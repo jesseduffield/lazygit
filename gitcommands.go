@@ -2,7 +2,7 @@
 // integers, floats, booleans, etc. Here are a few
 // basic examples.
 
-package gitgot
+package main
 
 import (
   "fmt"
@@ -59,38 +59,54 @@ func breakHere() {
   }
 }
 
-func filesToStage(statusString string) []string {
+func getFilesToStage(statusString string) []string {
   targets := []string{"Changes not staged for commit:", "Untracked files:"}
   return filesByMatches(statusString, targets)
 }
 
-func filesToUnstage(statusString string) []string {
+func getFilesToUnstage(statusString string) []string {
   targets := []string{"Changes to be committed:"}
   return filesByMatches(statusString, targets)
 }
 
 func runCommand(cmd string) (string, error) {
   splitCmd := strings.Split(cmd, " ")
-  // fmt.Println(splitCmd)
-
   cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).Output()
-
-  // if err != nil {
-  //   os.Exit(1)
-  // }
-
   return string(cmdOut), err
+}
+
+func getDiff(file string, cached bool) string {
+  devLog(file)
+  cachedArg := ""
+  if cached {
+    cachedArg = "--cached "
+  }
+  s, err := runCommand("git diff " + cachedArg + file)
+  if err != nil {
+    // for now we assume an error means the file was deleted
+    return "deleted"
+  }
+  return s
+}
+
+func stageFile(file string) error {
+  devLog("staging " + file)
+  _, err := runCommand("git add " + file)
+  return err
+}
+
+func unStageFile(file string) error {
+  _, err := runCommand("git reset HEAD " + file)
+  return err
 }
 
 func testGettingFiles() {
 
   statusString, _ := runCommand("git status")
-  fmt.Println(filesToStage(statusString))
-  fmt.Println(filesToUnstage(statusString))
+  fmt.Println(getFilesToStage(statusString))
+  fmt.Println(getFilesToUnstage(statusString))
 
   runCommand("git add hello-world.go")
-
-
 }
 
 
