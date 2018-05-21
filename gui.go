@@ -28,6 +28,16 @@ var state = stateType{GitFiles: make([]GitFile, 0)}
 
 var cyclableViews = []string{"files", "branches"}
 
+func stagedFiles(files []GitFile) []GitFile {
+  result := make([]GitFile, 0)
+  for _, file := range files {
+    if file.HasStagedChanges {
+      result = append(result, file)
+    }
+  }
+  return result
+}
+
 func nextView(g *gocui.Gui, v *gocui.View) error {
   var focusedViewName string
   if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
@@ -48,21 +58,27 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
     panic(err)
     return err
   }
-  if v != nil {
-    v.Highlight = false
+  return switchFocus(g, v, focusedView)
+}
+
+func switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
+  if oldView != nil {
+    oldView.Highlight = false
   }
-  focusedView.Highlight = true
-  devLog(focusedViewName)
-  _, err = g.SetCurrentView(focusedViewName)
-  itemSelected(g, focusedView)
-  showViewOptions(g, focusedViewName)
+  newView.Highlight = true
+  devLog(newView.Name())
+  _, err := g.SetCurrentView(newView.Name()) // not mega proud of the delayed
+  // return of err
+  itemSelected(g, newView)
+  showViewOptions(g, newView.Name())
   return err
 }
 
 func showViewOptions(g *gocui.Gui, viewName string) error {
   optionsMap := map[string]string{
-    "files":    "space: toggle staged, c: commit changes",
+    "files":    "space: toggle staged, c: commit changes, shift+d: remove",
     "branches": "space: checkout",
+    "prompt":   "esc: cancel, enter: commit",
   }
   g.Update(func(*gocui.Gui) error {
     v, err := g.View("options")
@@ -133,6 +149,8 @@ func itemSelected(g *gocui.Gui, v *gocui.View) error {
     return handleFileSelect(g, v)
   case "branches":
     return handleBranchSelect(g, v)
+  case "prompt":
+    return nil
   default:
     panic("No view matching itemSelected switch statement")
   }
@@ -166,7 +184,7 @@ func devLog(s string) {
 func handleBranchPress(g *gocui.Gui, v *gocui.View) error {
   branch := getSelectedBranch(v)
   if err := gitCheckout(branch.Name, false); err != nil {
-    return err
+    panic(err)
   }
   refreshBranches(v)
   refreshFiles(g)
@@ -192,8 +210,67 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
   return nil
 }
 
+func handleCommitPrompt(g *gocui.Gui, currentView *gocui.View) error {
+  devLog(fmt.Sprint(stagedFiles(state.GitFiles)))
+  if len(stagedFiles(state.GitFiles)) == 0 {
+    return nil
+  }
+  maxX, maxY := g.Size()
+  // var v *gocui.View
+  if v, err := g.SetView("prompt", maxX/2-30, maxY/2-1, maxX/2+30, maxY/2+1); err != nil {
+    if err != gocui.ErrUnknownView {
+      return err
+    }
+    v.Title = "Commit Message: "
+    v.Editable = true
+    v.Highlight = true
+    v.Autoscroll = true
+    v.Wrap = true
+    v.Overwrite = true
+    v.Caret = true
+    // fmt.Fprintln(v, "commit message: ")
+    if _, err := g.SetCurrentView("prompt"); err != nil {
+      return err
+    }
+    switchFocus(g, currentView, v)
+  }
+  return nil
+}
+
+func handleCommitSubmit(g *gocui.Gui, v *gocui.View) error {
+  if len(v.BufferLines()) == 0 {
+    return closePrompt(g, v)
+  }
+  message := fmt.Sprint(v.BufferLines()[0])
+  // for whatever reason, a successful commit returns an error, so we're not
+  // going to check for an error here
+  if err := gitCommit(message); err != nil {
+    devLog(fmt.Sprint(err))
+    panic(err)
+  }
+  refreshFiles(g)
+  return closePrompt(g, v)
+}
+
+func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
+  file := getSelectedFile(v)
+  removeFile(file)
+  refreshFiles(g)
+  return nil
+}
+
 func getSelectedFile(v *gocui.View) GitFile {
   lineNumber := getItemPosition(v)
+  if len(state.GitFiles) == 0 {
+    return GitFile{
+      Name:               "noFile",
+      DisplayString:      "none",
+      HasStagedChanges:   false,
+      HasUnstagedChanges: false,
+      Tracked:            false,
+      Deleted:            false,
+    }
+  }
   return state.GitFiles[lineNumber]
 }
 
@@ -215,25 +292,14 @@ func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 func handleFileSelect(g *gocui.Gui, v *gocui.View) error {
   item := getSelectedFile(v)
   diff := getDiff(item)
-  if err := renderString(g, diff); err != nil {
-    return err
-  }
-
-  // maxX, maxY := g.Size()
-  // if v, err := g.SetView("msg", maxX/2-30, maxY/2, maxX/2+30, maxY/2+2); err != nil {
-  //   if err != gocui.ErrUnknownView {
-  //     return errkjhgkhj
-  //   }
-  //   fmt.Fprintln(v, l)
-  //   if _, err := g.SetCurrentView("msg"); err != nil {
-  //     return err
-  //   }
-  // }
-  return nil
+  return renderString(g, diff)
 }
 
-func delMsg(g *gocui.Gui, v *gocui.View) error {
-  if err := g.DeleteView("msg"); err != nil {
+func closePrompt(g *gocui.Gui, v *gocui.View) error {
+  filesView, _ := g.View("files")
+  switchFocus(g, v, filesView)
+  devLog("test prompt close")
+  if err := g.DeleteView("prompt"); err != nil {
     return err
   }
   if _, err := g.SetCurrentView("files"); err != nil {
@@ -247,30 +313,40 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func keybindings(g *gocui.Gui) error {
-  for _, view := range cyclableViews {
-    if err := g.SetKeybinding(view, gocui.KeyTab, gocui.ModNone, nextView); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding(view, 'q', gocui.ModNone, quit); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding(view, gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding(view, gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding(view, gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding(view, gocui.KeyPgup, gocui.ModNone, scrollUp); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding(view, gocui.KeyPgdn, gocui.ModNone, scrollDown); err != nil {
-      return err
-    }
+  if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, nextView); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", gocui.KeyPgup, gocui.ModNone, scrollUp); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone, scrollDown); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", 'C', gocui.ModNone, handleCommitPrompt); err != nil {
+    return err
   }
   if err := g.SetKeybinding("files", gocui.KeySpace, gocui.ModNone, handleFilePress); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", 'D', gocui.ModNone, handleFileRemove); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("prompt", gocui.KeyEsc, gocui.ModNone, closePrompt); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("prompt", gocui.KeyEnter, gocui.ModNone, handleCommitSubmit); err != nil {
     return err
   }
   if err := g.SetKeybinding("branches", gocui.KeySpace, gocui.ModNone, handleBranchPress); err != nil {
@@ -317,6 +393,17 @@ func refreshBranches(v *gocui.View) error {
   return nil
 }
 
+// if the cursor down past the last item, move it up one
+func correctCursor(v *gocui.View) error {
+  cx, cy := v.Cursor()
+  _, oy := v.Origin()
+  lineCount := len(v.BufferLines()) - 2
+  if cy >= lineCount-oy {
+    return v.SetCursor(cx, lineCount-oy)
+  }
+  return nil
+}
+
 func refreshFiles(g *gocui.Gui) error {
   filesView, err := g.View("files")
   if err != nil {
@@ -343,6 +430,7 @@ func refreshFiles(g *gocui.Gui) error {
       green.Fprintln(filesView, gitFile.Name)
     }
   }
+  correctCursor(filesView)
   return nil
 }
 

@@ -56,8 +56,10 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
   return result
 }
 
-func getGitBranchOutput() (string, error) {
-  cmdOut, err := exec.Command("bash", "-c", getBranchesCommand).Output()
+func runDirectCommand(command string) (string, error) {
+  cmdOut, err := exec.Command("bash", "-c", command).Output()
+  devLog(string(cmdOut))
+  devLog(fmt.Sprint(err))
   return string(cmdOut), err
 }
 
@@ -70,7 +72,7 @@ func branchNameFromString(branchString string) string {
 
 func getGitBranches() []Branch {
   branches := make([]Branch, 0)
-  rawString, _ := getGitBranchOutput()
+  rawString, _ := runDirectCommand(getBranchesCommand)
   branchLines := splitLines(rawString)
   for _, line := range branchLines {
     name := branchNameFromString(line)
@@ -136,7 +138,7 @@ func runCommand(cmd string) (string, error) {
   splitCmd := strings.Split(cmd, " ")
   cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).Output()
   devLog(cmd)
-  devLog(string(cmdOut))
+  devLog(string(cmdOut[:]))
   return string(cmdOut), err
 }
 
@@ -150,10 +152,14 @@ func getDiff(file GitFile) string {
     cachedArg = "--cached "
   }
   deletedArg := ""
-  if file.Deleted || !file.Tracked {
-    deletedArg = "--no-index /dev/null "
+  if file.Deleted {
+    deletedArg = "-- "
   }
-  command := "git diff --color " + cachedArg + deletedArg + file.Name
+  trackedArg := ""
+  if !file.Tracked {
+    trackedArg = "--no-index /dev/null "
+  }
+  command := "git diff --color " + cachedArg + deletedArg + trackedArg + file.Name
   s, err := runCommand(command)
   if err != nil {
     // for now we assume an error means the file was deleted
@@ -174,6 +180,22 @@ func unStageFile(file string) error {
 
 func getGitStatus() (string, error) {
   return runCommand("git status --untracked-files=all --short")
+}
+
+func removeFile(file GitFile) error {
+  // if the file isn't tracked, we assume you want to delete it
+  if !file.Tracked {
+    _, err := runCommand("rm -rf ./" + file.Name)
+    return err
+  }
+  // if the file is tracked, we assume you want to just check it out
+  _, err := runCommand("git checkout " + file.Name)
+  return err
+}
+
+func gitCommit(message string) error {
+  _, err := runDirectCommand("git commit -m \"" + message + "\"")
+  return err
 }
 
 const getBranchesCommand = `set -e
