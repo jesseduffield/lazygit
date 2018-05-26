@@ -15,7 +15,7 @@ import (
 func handleCommitPress(g *gocui.Gui, currentView *gocui.View) error {
   devLog(stagedFiles(state.GitFiles))
   if len(stagedFiles(state.GitFiles)) == 0 {
-    return nil
+    return createConfirmationPanel(g, currentView, "Nothing to Commit", "There are no staged files to commit (enter)", nil, nil)
   }
   maxX, maxY := g.Size()
   if v, err := g.SetView("commit", maxX/2-30, maxY/2-1, maxX/2+30, maxY/2+1); err != nil {
