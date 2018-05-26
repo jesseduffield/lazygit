@@ -18,7 +18,6 @@ func handleCommitPress(g *gocui.Gui, currentView *gocui.View) error {
     return nil
   }
   maxX, maxY := g.Size()
-  // var v *gocui.View
   if v, err := g.SetView("commit", maxX/2-30, maxY/2-1, maxX/2+30, maxY/2+1); err != nil {
     if err != gocui.ErrUnknownView {
       return err
@@ -51,7 +50,9 @@ func handleCommitSubmit(g *gocui.Gui, v *gocui.View) error {
 
 func closeCommitPrompt(g *gocui.Gui, v *gocui.View) error {
   filesView, _ := g.View("files")
-  switchFocus(g, v, filesView)
+  // not passing in the view as oldView to switchFocus because we don't want a
+  // reference pointing to a deleted view
+  switchFocus(g, nil, filesView)
   devLog("test prompt close")
   if err := g.DeleteView("commit"); err != nil {
     return err
