@@ -53,7 +53,7 @@ func closeCommitPrompt(g *gocui.Gui, v *gocui.View) error {
   filesView, _ := g.View("files")
   switchFocus(g, v, filesView)
   devLog("test prompt close")
-  if err := g.DeleteView("commit"); err != nil {
+  if _, err := g.SetViewOnBottom("commit"); err != nil {
     return err
   }
   if _, err := g.SetCurrentView(state.PreviousView); err != nil {
