@@ -8,6 +8,7 @@ import (
 
   // "log"
   "fmt"
+  "os"
   "os/exec"
   "strings"
 )
@@ -30,6 +31,23 @@ type Branch struct {
   BaseBranch    string
 }
 
+func devLog(objects ...interface{}) {
+  localLog("/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
+}
+
+func commandLog(objects ...interface{}) {
+  localLog("/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/commands.log", objects...)
+  localLog("/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
+}
+
+func localLog(path string, objects ...interface{}) {
+  f, _ := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+  defer f.Close()
+  for _, object := range objects {
+    f.WriteString(fmt.Sprint(object) + "\n")
+  }
+}
+
 // Map (from https://gobyexample.com/collection-functions)
 func Map(vs []string, f func(string) string) []string {
   vsm := make([]string, len(vs))
@@ -37,6 +55,15 @@ func Map(vs []string, f func(string) string) []string {
     vsm[i] = f(v)
   }
   return vsm
+}
+
+func includes(list []string, a string) bool {
+  for _, b := range list {
+    if b == a {
+      return true
+    }
+  }
+  return false
 }
 
 func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
@@ -57,9 +84,10 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 }
 
 func runDirectCommand(command string) (string, error) {
+  commandLog(command)
   cmdOut, err := exec.Command("bash", "-c", command).Output()
   devLog(string(cmdOut))
-  devLog(fmt.Sprint(err))
+  devLog(err)
   return string(cmdOut), err
 }
 
@@ -74,7 +102,7 @@ func getGitBranches() []Branch {
   branches := make([]Branch, 0)
   rawString, _ := runDirectCommand(getBranchesCommand)
   branchLines := splitLines(rawString)
-  for _, line := range branchLines {
+  for i, line := range branchLines {
     name := branchNameFromString(line)
     var branchType string
     var baseBranch string
@@ -91,16 +119,19 @@ func getGitBranches() []Branch {
       branchType = "other"
       baseBranch = name
     }
+    if i == 0 {
+      line = line[:2] + "\t*" + line[2:]
+    }
     branches = append(branches, Branch{name, line, branchType, baseBranch})
   }
-  devLog(fmt.Sprint(branches))
+  devLog(branches)
   return branches
 }
 
 func getGitStatusFiles() []GitFile {
   statusOutput, _ := getGitStatus()
   statusStrings := splitLines(statusOutput)
-  devLog(fmt.Sprint(statusStrings))
+  devLog(statusStrings)
   // a file can have both staged and unstaged changes
   // I'll probably end up ignoring the unstaged flag for now but might revisit
   // tracked, staged, unstaged
@@ -135,15 +166,31 @@ func gitCheckout(branch string, force bool) error {
 }
 
 func runCommand(cmd string) (string, error) {
+  commandLog(cmd)
   splitCmd := strings.Split(cmd, " ")
   cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).Output()
-  devLog(cmd)
   devLog(string(cmdOut[:]))
   return string(cmdOut), err
 }
 
+func openFile(filename string) (string, error) {
+  return runCommand("open " + filename)
+}
+
+func sublimeOpenFile(filename string) (string, error) {
+  return runCommand("subl " + filename)
+}
+
 func getBranchDiff(branch string, baseBranch string) (string, error) {
   return runCommand("git diff --color " + baseBranch + "..." + branch)
+}
+
+func getLog() string {
+  result, err := runDirectCommand("git log --color --oneline")
+  if err != nil {
+    panic(err)
+  }
+  return result
 }
 
 func getDiff(file GitFile) string {
