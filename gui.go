@@ -137,6 +137,15 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("branches", gocui.KeySpace, gocui.ModNone, handleBranchPress); err != nil {
     return err
   }
+  if err := g.SetKeybinding("", '∑', gocui.ModNone, handleLogState); err != nil {
+    return err
+  }
+  return nil
+}
+
+func handleLogState(g *gocui.Gui, v *gocui.View) error {
+  devLog("state is:", state)
+  devLog("previous view:", state.PreviousView)
   return nil
 }
 

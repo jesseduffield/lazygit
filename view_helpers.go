@@ -24,7 +24,9 @@ func returnFocus(g *gocui.Gui, v *gocui.View) error {
 func switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
   if oldView != nil {
     oldView.Highlight = false
+    devLog("setting previous view to ")
     state.PreviousView = oldView.Name()
+    devLog(state.PreviousView)
   }
   newView.Highlight = true
   devLog(newView.Name())
