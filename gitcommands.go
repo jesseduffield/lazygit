@@ -245,6 +245,11 @@ func gitCommit(message string) error {
   return err
 }
 
+func gitPull() error {
+  _, err := runDirectCommand("git pull --no-edit")
+  return err
+}
+
 const getBranchesCommand = `set -e
 git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
   seen=":"

@@ -134,3 +134,11 @@ func refreshFiles(g *gocui.Gui) error {
   correctCursor(filesView)
   return nil
 }
+
+func pullFiles(g *gocui.Gui, v *gocui.Gui) error {
+  if err := gitPull(); err != nil {
+    // should show error
+    panic(err)
+  }
+  return refreshFiles(g)
+}
