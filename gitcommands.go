@@ -11,6 +11,8 @@ import (
   "os"
   "os/exec"
   "strings"
+
+  "github.com/fatih/color"
 )
 
 // GitFile : A staged/unstaged file
@@ -31,20 +33,32 @@ type Branch struct {
   BaseBranch    string
 }
 
+// Commit : A git commit
+type Commit struct {
+  Sha           string
+  Name          string
+  DisplayString string
+}
+
 func devLog(objects ...interface{}) {
-  localLog("/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
+  localLog(color.FgWhite, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
+}
+
+func colorLog(colour color.Attribute, objects ...interface{}) {
+  localLog(colour, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
 }
 
 func commandLog(objects ...interface{}) {
-  localLog("/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/commands.log", objects...)
-  localLog("/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
+  localLog(color.FgWhite, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/commands.log", objects...)
+  localLog(color.FgWhite, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
 }
 
-func localLog(path string, objects ...interface{}) {
+func localLog(colour color.Attribute, path string, objects ...interface{}) {
   f, _ := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
   defer f.Close()
   for _, object := range objects {
-    f.WriteString(fmt.Sprint(object) + "\n")
+    colorFunction := color.New(colour).SprintFunc()
+    f.WriteString(colorFunction(fmt.Sprint(object)) + "\n")
   }
 }
 
@@ -85,7 +99,7 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 
 func runDirectCommand(command string) (string, error) {
   commandLog(command)
-  cmdOut, err := exec.Command("bash", "-c", command).Output()
+  cmdOut, err := exec.Command("bash", "-c", command).CombinedOutput()
   devLog(string(cmdOut))
   devLog(err)
   return string(cmdOut), err
@@ -120,7 +134,7 @@ func getGitBranches() []Branch {
       baseBranch = name
     }
     if i == 0 {
-      line = line[:2] + "\t*" + line[2:]
+      line = "* " + line
     }
     branches = append(branches, Branch{name, line, branchType, baseBranch})
   }
@@ -156,19 +170,18 @@ func getGitStatusFiles() []GitFile {
   return gitFiles
 }
 
-func gitCheckout(branch string, force bool) error {
+func gitCheckout(branch string, force bool) (string, error) {
   forceArg := ""
   if force {
     forceArg = "--force "
   }
-  _, err := runCommand("git checkout " + forceArg + branch)
-  return err
+  return runCommand("git checkout " + forceArg + branch)
 }
 
-func runCommand(cmd string) (string, error) {
-  commandLog(cmd)
-  splitCmd := strings.Split(cmd, " ")
-  cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).Output()
+func runCommand(command string) (string, error) {
+  commandLog(command)
+  splitCmd := strings.Split(command, " ")
+  cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
   devLog(string(cmdOut[:]))
   return string(cmdOut), err
 }
@@ -185,8 +198,30 @@ func getBranchDiff(branch string, baseBranch string) (string, error) {
   return runCommand("git diff --color " + baseBranch + "..." + branch)
 }
 
+func getCommits() []Commit {
+  log := getLog()
+  commits := make([]Commit, 0)
+  // now we can split it up and turn it into commits
+  lines := splitLines(log)
+  for _, line := range lines {
+    splitLine := strings.Split(line, " ")
+    commits = append(commits, Commit{splitLine[0], strings.Join(splitLine[1:], " "), strings.Join(splitLine, " ")})
+  }
+  devLog(commits)
+  return commits
+}
+
 func getLog() string {
-  result, err := runDirectCommand("git log --color --oneline")
+  result, err := runDirectCommand("git log --oneline")
+  if err != nil {
+    panic(err)
+  }
+  return result
+}
+
+func gitShow(sha string) string {
+  result, err := runDirectCommand("git show --color " + sha)
+  // result, err := runDirectCommand("git show --color 10fd353")
   if err != nil {
     panic(err)
   }
@@ -245,9 +280,34 @@ func gitCommit(message string) error {
   return err
 }
 
-func gitPull() error {
-  _, err := runDirectCommand("git pull --no-edit")
-  return err
+func gitPull() (string, error) {
+  return runDirectCommand("git pull --no-edit")
+}
+
+func gitPush() (string, error) {
+  return runDirectCommand("git push -u")
+}
+
+func gitSquashPreviousTwoCommits(message string) (string, error) {
+  return runDirectCommand("git reset --soft head^ && git commit --amend -m \"" + message + "\"")
+}
+
+func gitRenameCommit(message string) (string, error) {
+  return runDirectCommand("git commit --allow-empty --amend -m \"" + message + "\"")
+}
+
+func betterHaveWorked(err error) {
+  if err != nil {
+    panic(err)
+  }
+}
+
+func gitUpstreamDifferenceCount() (string, string) {
+  pushableCount, err := runDirectCommand("git rev-list @{u}..head --count")
+  betterHaveWorked(err)
+  pullableCount, err := runDirectCommand("git rev-list head..@{u} --count")
+  betterHaveWorked(err)
+  return pullableCount, pushableCount
 }
 
 const getBranchesCommand = `set -e
@@ -263,7 +323,7 @@ git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
         printf "%s\t%s\n" "$date" "$branch"
       fi
     fi
-  done | sed 's/ days /d /g' | sed 's/ weeks /w /g' | sed 's/ hours /h /g' | sed 's/ minutes /m /g' | sed 's/ago//g' | tr -d ' '
+  done | sed 's/ days /d /g' | sed 's/ weeks /w /g' | sed 's/ hours /h /g' | sed 's/ minutes /m /g' | sed 's/ seconds /m /g' | sed 's/ago//g' | tr -d ' '
 }
 `
 

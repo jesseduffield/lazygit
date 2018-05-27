@@ -51,6 +51,7 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 func getSelectedFile(v *gocui.View) GitFile {
   lineNumber := getItemPosition(v)
   if len(state.GitFiles) == 0 {
+    // find a way to not have to do this
     return GitFile{
       Name:               "noFile",
       DisplayString:      "none",
@@ -71,7 +72,7 @@ func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
   } else {
     deleteVerb = "delete"
   }
-  return createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", "Are you sure you want to "+deleteVerb+" "+file.Name+" (you will lose your changes)?", func(g *gocui.Gui, v *gocui.View) error {
+  return createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", "Are you sure you want to "+deleteVerb+" "+file.Name+" (you will lose your changes)? (y/n)", func(g *gocui.Gui, v *gocui.View) error {
     if err := removeFile(file); err != nil {
       panic(err)
     }
@@ -135,10 +136,30 @@ func refreshFiles(g *gocui.Gui) error {
   return nil
 }
 
-func pullFiles(g *gocui.Gui, v *gocui.Gui) error {
-  if err := gitPull(); err != nil {
-    // should show error
-    panic(err)
-  }
+func pullFiles(g *gocui.Gui, v *gocui.View) error {
+  devLog("pulling...")
+  createSimpleConfirmationPanel(g, v, "", "Pulling...")
+  go func() {
+    if output, err := gitPull(); err != nil {
+      createSimpleConfirmationPanel(g, v, "Error", output)
+    } else {
+      closeConfirmationPrompt(g)
+    }
+  }()
+  devLog("pulled.")
   return refreshFiles(g)
+}
+
+func pushFiles(g *gocui.Gui, v *gocui.View) error {
+  devLog("pushing...")
+  createSimpleConfirmationPanel(g, v, "", "Pushing...")
+  go func() {
+    if output, err := gitPush(); err != nil {
+      createSimpleConfirmationPanel(g, v, "Error", output)
+    } else {
+      closeConfirmationPrompt(g)
+    }
+  }()
+  devLog("pushed.")
+  return nil
 }

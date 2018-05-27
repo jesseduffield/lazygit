@@ -19,13 +19,20 @@ import (
 
 func handleBranchPress(g *gocui.Gui, v *gocui.View) error {
   branch := getSelectedBranch(v)
-  if err := gitCheckout(branch.Name, false); err != nil {
-    panic(err)
+  if output, err := gitCheckout(branch.Name, false); err != nil {
+    createSimpleConfirmationPanel(g, v, "Error", output)
   }
-  refreshBranches(v)
-  refreshFiles(g)
-  refreshLogs(g)
-  return nil
+  return refreshSidePanels(g, v)
+}
+
+func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
+  branch := getSelectedBranch(v)
+  return createConfirmationPanel(g, v, "Force Checkout Branch", "Are you sure you want force checkout? You will lose all local changes (y/n)", func(g *gocui.Gui, v *gocui.View) error {
+    if output, err := gitCheckout(branch.Name, true); err != nil {
+      createSimpleConfirmationPanel(g, v, "Error", output)
+    }
+    return refreshSidePanels(g, v)
+  }, nil)
 }
 
 func getSelectedBranch(v *gocui.View) Branch {
@@ -34,7 +41,7 @@ func getSelectedBranch(v *gocui.View) Branch {
 }
 
 func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
-  renderString(g, "options", "space: checkout")
+  renderString(g, "options", "space: checkout, s: squash down")
   lineNumber := getItemPosition(v)
   branch := state.Branches[lineNumber]
   diff, _ := getBranchDiff(branch.Name, branch.BaseBranch)
@@ -44,7 +51,11 @@ func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
   return nil
 }
 
-func refreshBranches(v *gocui.View) error {
+func refreshBranches(g *gocui.Gui) error {
+  v, err := g.View("branches")
+  if err != nil {
+    panic(err)
+  }
   state.Branches = getGitBranches()
   yellow := color.New(color.FgYellow)
   red := color.New(color.FgRed)

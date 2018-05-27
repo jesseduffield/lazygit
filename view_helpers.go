@@ -32,7 +32,7 @@ func switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
   if _, err := g.SetCurrentView(newView.Name()); err != nil {
     return err
   }
-  g.Cursor = newView.Name() == "commit"
+  g.Cursor = newView.Editable
   return newLineFocused(g, newView)
 }
 
