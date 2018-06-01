@@ -186,6 +186,7 @@ func refreshStatus(g *gocui.Gui) error {
   if err != nil {
     return err
   }
+  v.Clear()
   up, down := gitUpstreamDifferenceCount()
   devLog(up, down)
   fmt.Fprint(v, "↑"+up+"↓"+down)
