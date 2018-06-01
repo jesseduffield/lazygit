@@ -155,6 +155,7 @@ func refreshFiles(g *gocui.Gui) error {
     }
   }
   correctCursor(filesView)
+  handleFileSelect(g, filesView)
   return nil
 }
 
