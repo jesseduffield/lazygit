@@ -11,6 +11,7 @@ import (
   // "io"
   // "io/ioutil"
 
+  "fmt"
   "log"
   // "strings"
 
@@ -140,10 +141,13 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("files", 's', gocui.ModNone, handleSublimeFileOpen); err != nil {
     return err
   }
-  if err := g.SetKeybinding("files", 'p', gocui.ModNone, pullFiles); err != nil {
+  if err := g.SetKeybinding("", 'P', gocui.ModNone, pushFiles); err != nil {
     return err
   }
-  if err := g.SetKeybinding("files", 'P', gocui.ModNone, pushFiles); err != nil {
+  if err := g.SetKeybinding("", 'p', gocui.ModNone, pullFiles); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", 'i', gocui.ModNone, handleIgnoreFile); err != nil {
     return err
   }
   if err := g.SetKeybinding("commit", gocui.KeyEsc, gocui.ModNone, closeCommitPrompt); err != nil {
@@ -177,19 +181,39 @@ func handleLogState(g *gocui.Gui, v *gocui.View) error {
   return nil
 }
 
+func refreshStatus(g *gocui.Gui) error {
+  v, err := g.View("status")
+  if err != nil {
+    return err
+  }
+  up, down := gitUpstreamDifferenceCount()
+  devLog(up, down)
+  fmt.Fprint(v, "↑"+up+"↓"+down)
+  branches := state.Branches
+  if len(branches) == 0 {
+    return nil
+  }
+  branch := branches[0]
+  // utilising the fact these all have padding to only grab the name
+  // from the display string with the existing coloring applied
+  fmt.Fprint(v, " "+branch.DisplayString[4:])
+  return nil
+}
+
 func layout(g *gocui.Gui) error {
   width, height := g.Size()
   leftSideWidth := width / 3
   logsBranchesBoundary := height - 10
   filesBranchesBoundary := height - 20
+  statusFilesBoundary := 2
 
-  optionsTop := height - 3
+  optionsTop := height - 2
   // hiding options if there's not enough space
   if height < 30 {
-    optionsTop = height
+    optionsTop = height - 1
   }
 
-  sideView, err := g.SetView("files", 0, 0, leftSideWidth, filesBranchesBoundary-1)
+  sideView, err := g.SetView("files", 0, statusFilesBoundary+1, leftSideWidth, filesBranchesBoundary-1)
   if err != nil {
     if err != gocui.ErrUnknownView {
       return err
@@ -199,7 +223,14 @@ func layout(g *gocui.Gui) error {
     refreshFiles(g)
   }
 
-  if v, err := g.SetView("main", leftSideWidth+1, 0, width-1, optionsTop-1); err != nil {
+  if v, err := g.SetView("status", 0, statusFilesBoundary-2, leftSideWidth, statusFilesBoundary); err != nil {
+    if err != gocui.ErrUnknownView {
+      return err
+    }
+    v.Title = "Status"
+  }
+
+  if v, err := g.SetView("main", leftSideWidth+1, 0, width-1, optionsTop); err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
@@ -207,16 +238,6 @@ func layout(g *gocui.Gui) error {
     v.Wrap = true
     switchFocus(g, nil, v)
     handleFileSelect(g, sideView)
-  }
-
-  if v, err := g.SetView("commits", 0, logsBranchesBoundary, leftSideWidth, optionsTop-1); err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    v.Title = "Commits"
-
-    // these are only called once
-    refreshCommits(g)
   }
 
   if v, err := g.SetView("branches", 0, filesBranchesBoundary, leftSideWidth, logsBranchesBoundary-1); err != nil {
@@ -230,10 +251,22 @@ func layout(g *gocui.Gui) error {
     nextView(g, nil)
   }
 
-  if v, err := g.SetView("options", 0, optionsTop, width-1, optionsTop+2); err != nil {
+  if v, err := g.SetView("commits", 0, logsBranchesBoundary, leftSideWidth, optionsTop); err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
+    v.Title = "Commits"
+
+    // these are only called once
+    refreshCommits(g)
+  }
+
+  if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2); err != nil {
+    if err != gocui.ErrUnknownView {
+      return err
+    }
+    v.BgColor = gocui.ColorBlue
+    v.Frame = false
     v.Title = "Options"
   }
 

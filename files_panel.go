@@ -13,10 +13,16 @@ import (
 
   // "strings"
 
+  "errors"
   "strings"
 
   "github.com/fatih/color"
   "github.com/jroimartin/gocui"
+)
+
+var (
+  // ErrNoFiles : when there are no modified files in the repo
+  ErrNoFiles = errors.New("No changed files")
 )
 
 func stagedFiles(files []GitFile) []GitFile {
@@ -30,7 +36,10 @@ func stagedFiles(files []GitFile) []GitFile {
 }
 
 func handleFilePress(g *gocui.Gui, v *gocui.View) error {
-  file := getSelectedFile(v)
+  file, err := getSelectedFile(v)
+  if err != nil {
+    return err
+  }
 
   if file.HasUnstagedChanges {
     stageFile(file.Name)
@@ -48,24 +57,19 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
   return nil
 }
 
-func getSelectedFile(v *gocui.View) GitFile {
-  lineNumber := getItemPosition(v)
+func getSelectedFile(v *gocui.View) (GitFile, error) {
   if len(state.GitFiles) == 0 {
-    // find a way to not have to do this
-    return GitFile{
-      Name:               "noFile",
-      DisplayString:      "none",
-      HasStagedChanges:   false,
-      HasUnstagedChanges: false,
-      Tracked:            false,
-      Deleted:            false,
-    }
+    return GitFile{}, ErrNoFiles
   }
-  return state.GitFiles[lineNumber]
+  lineNumber := getItemPosition(v)
+  return state.GitFiles[lineNumber], nil
 }
 
 func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
-  file := getSelectedFile(v)
+  file, err := getSelectedFile(v)
+  if err != nil {
+    return err
+  }
   var deleteVerb string
   if file.Tracked {
     deleteVerb = "checkout"
@@ -80,30 +84,54 @@ func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
   }, nil)
 }
 
+func handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
+  file, err := getSelectedFile(v)
+  if err != nil {
+    return err
+  }
+  if file.Tracked {
+    return createErrorPanel(g, "Cannot ignore tracked files")
+  }
+  gitIgnore(file.Name)
+  return refreshFiles(g)
+}
+
 func handleFileSelect(g *gocui.Gui, v *gocui.View) error {
-  item := getSelectedFile(v)
+  baseString := "tab: switch to branches, space: toggle staged, c: commit changes, o: open, s: open in sublime, i: ignore"
+  item, err := getSelectedFile(v)
+  if err != nil {
+    if err != ErrNoFiles {
+      return err
+    }
+    renderString(g, "main", "No changed files")
+    colorLog(color.FgRed, "error")
+    return renderString(g, "options", baseString)
+  }
   var optionsString string
-  baseString := "space: toggle staged, c: commit changes, option+o: open"
   if item.Tracked {
-    optionsString = baseString + ", option+d: checkout"
+    optionsString = baseString + ", r: checkout"
   } else {
-    optionsString = baseString + ", option+d: delete"
+    optionsString = baseString + ", r: delete"
   }
   renderString(g, "options", optionsString)
   diff := getDiff(item)
   return renderString(g, "main", diff)
 }
 
-func handleFileOpen(g *gocui.Gui, v *gocui.View) error {
-  file := getSelectedFile(v)
-  _, err := openFile(file.Name)
+func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, error)) error {
+  file, err := getSelectedFile(v)
+  if err != nil {
+    return err
+  }
+  _, err = open(file.Name)
   return err
 }
 
+func handleFileOpen(g *gocui.Gui, v *gocui.View) error {
+  return genericFileOpen(g, v, openFile)
+}
 func handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
-  file := getSelectedFile(v)
-  _, err := sublimeOpenFile(file.Name)
-  return err
+  return genericFileOpen(g, v, sublimeOpenFile)
 }
 
 func refreshFiles(g *gocui.Gui) error {
@@ -144,10 +172,13 @@ func pullFiles(g *gocui.Gui, v *gocui.View) error {
       createSimpleConfirmationPanel(g, v, "Error", output)
     } else {
       closeConfirmationPrompt(g)
+      refreshCommits(g)
+      refreshFiles(g)
+      refreshStatus(g)
+      devLog("pulled.")
     }
   }()
-  devLog("pulled.")
-  return refreshFiles(g)
+  return nil
 }
 
 func pushFiles(g *gocui.Gui, v *gocui.View) error {
@@ -158,8 +189,10 @@ func pushFiles(g *gocui.Gui, v *gocui.View) error {
       createSimpleConfirmationPanel(g, v, "Error", output)
     } else {
       closeConfirmationPrompt(g)
+      refreshCommits(g)
+      refreshStatus(g)
+      devLog("pushed.")
     }
   }()
-  devLog("pushed.")
   return nil
 }

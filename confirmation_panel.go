@@ -115,3 +115,8 @@ func createConfirmationPanel(g *gocui.Gui, v *gocui.View, title, prompt string, 
 func createSimpleConfirmationPanel(g *gocui.Gui, v *gocui.View, title, prompt string) error {
   return createConfirmationPanel(g, v, title, prompt, nil, nil)
 }
+
+func createErrorPanel(g *gocui.Gui, message string) error {
+  v := g.CurrentView()
+  return createConfirmationPanel(g, v, "Error", message, nil, nil)
+}

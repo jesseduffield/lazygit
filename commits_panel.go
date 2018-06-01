@@ -7,8 +7,15 @@
 package main
 
 import (
+  "errors"
+
   "github.com/fatih/color"
   "github.com/jroimartin/gocui"
+)
+
+var (
+  // ErrNoCommits : When no commits are found for the branch
+  ErrNoCommits = errors.New("No commits for this branch")
 )
 
 func refreshCommits(g *gocui.Gui) error {
@@ -19,10 +26,17 @@ func refreshCommits(g *gocui.Gui) error {
       panic(err)
     }
     v.Clear()
+    red := color.New(color.FgRed)
     yellow := color.New(color.FgYellow)
     white := color.New(color.FgWhite)
+    shaColor := white
     for _, commit := range state.Commits {
-      yellow.Fprint(v, commit.Sha+" ")
+      if commit.Pushed {
+        shaColor = red
+      } else {
+        shaColor = yellow
+      }
+      shaColor.Fprint(v, commit.Sha+" ")
       white.Fprintln(v, commit.Name)
     }
     return nil
@@ -31,9 +45,15 @@ func refreshCommits(g *gocui.Gui) error {
 }
 
 func handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
-  commit := getSelectedCommit(v)
+  renderString(g, "options", "s: squash down, r: rename")
+  commit, err := getSelectedCommit(v)
+  if err != nil {
+    if err != ErrNoCommits {
+      return err
+    }
+    return renderString(g, "main", "No commits for this branch")
+  }
   commitText := gitShow(commit.Sha)
-  devLog("commitText:", commitText)
   return renderString(g, "main", commitText)
 }
 
@@ -41,7 +61,10 @@ func handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
   if getItemPosition(v) != 0 {
     return createSimpleConfirmationPanel(g, v, "Error", "Can only squash topmost commit")
   }
-  commit := getSelectedCommit(v)
+  commit, err := getSelectedCommit(v)
+  if err != nil {
+    return err
+  }
   if output, err := gitSquashPreviousTwoCommits(commit.Name); err != nil {
     return createSimpleConfirmationPanel(g, v, "Error", output)
   }
@@ -67,13 +90,10 @@ func handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
   return nil
 }
 
-func getSelectedCommit(v *gocui.View) Commit {
-  lineNumber := getItemPosition(v)
+func getSelectedCommit(v *gocui.View) (Commit, error) {
   if len(state.Commits) == 0 {
-    return Commit{
-      Sha:           "noCommit",
-      DisplayString: "none",
-    }
+    return Commit{}, ErrNoCommits
   }
-  return state.Commits[lineNumber]
+  lineNumber := getItemPosition(v)
+  return state.Commits[lineNumber], nil
 }

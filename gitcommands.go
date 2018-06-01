@@ -18,25 +18,27 @@ import (
 // GitFile : A staged/unstaged file
 type GitFile struct {
   Name               string
-  DisplayString      string
   HasStagedChanges   bool
   HasUnstagedChanges bool
   Tracked            bool
   Deleted            bool
+  DisplayString      string
 }
 
 // Branch : A git branch
 type Branch struct {
   Name          string
-  DisplayString string
   Type          string
   BaseBranch    string
+  DisplayString string
+  DisplayColor  color.Attribute
 }
 
 // Commit : A git commit
 type Commit struct {
   Sha           string
   Name          string
+  Pushed        bool
   DisplayString string
 }
 
@@ -100,43 +102,61 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 func runDirectCommand(command string) (string, error) {
   commandLog(command)
   cmdOut, err := exec.Command("bash", "-c", command).CombinedOutput()
-  devLog(string(cmdOut))
-  devLog(err)
   return string(cmdOut), err
 }
 
-func branchNameFromString(branchString string) string {
-  // because this has the recency at the beginning,
-  // we need to split and take the second part
+func branchStringParts(branchString string) (string, string) {
   splitBranchName := strings.Split(branchString, "\t")
-  return splitBranchName[len(splitBranchName)-1]
+  return splitBranchName[0], splitBranchName[1]
+}
+
+// branchPropertiesFromName : returns branch type, base, and color
+func branchPropertiesFromName(name string) (string, string, color.Attribute) {
+  if strings.Contains(name, "feature/") {
+    return "feature", "develop", color.FgGreen
+  } else if strings.Contains(name, "bugfix/") {
+    return "bugfix", "develop", color.FgYellow
+  } else if strings.Contains(name, "hotfix/") {
+    return "hotfix", "master", color.FgRed
+  }
+  return "other", name, color.FgWhite
+}
+
+func coloredString(str string, colour color.Attribute) string {
+  return color.New(colour).SprintFunc()(fmt.Sprint(str))
+}
+
+func withPadding(str string, padding int) string {
+  return str + strings.Repeat(" ", padding-len(str))
+}
+
+func branchFromLine(line string, index int) Branch {
+  recency, name := branchStringParts(line)
+  branchType, branchBase, colour := branchPropertiesFromName(name)
+  if index == 0 {
+    recency = "  *"
+  }
+  displayString := withPadding(recency, 4) + coloredString(name, colour)
+  return Branch{
+    Name:          name,
+    Type:          branchType,
+    BaseBranch:    branchBase,
+    DisplayString: displayString,
+    DisplayColor:  colour,
+  }
 }
 
 func getGitBranches() []Branch {
   branches := make([]Branch, 0)
+  // check if there are any branches
+  branchCheck, _ := runDirectCommand("git branch")
+  if branchCheck == "" {
+    return branches
+  }
   rawString, _ := runDirectCommand(getBranchesCommand)
   branchLines := splitLines(rawString)
   for i, line := range branchLines {
-    name := branchNameFromString(line)
-    var branchType string
-    var baseBranch string
-    if strings.Contains(line, "feature/") {
-      branchType = "feature"
-      baseBranch = "develop"
-    } else if strings.Contains(line, "bugfix/") {
-      branchType = "bugfix"
-      baseBranch = "develop"
-    } else if strings.Contains(line, "hotfix/") {
-      branchType = "hotfix"
-      baseBranch = "master"
-    } else {
-      branchType = "other"
-      baseBranch = name
-    }
-    if i == 0 {
-      line = "* " + line
-    }
-    branches = append(branches, Branch{name, line, branchType, baseBranch})
+    branches = append(branches, branchFromLine(line, i))
   }
   devLog(branches)
   return branches
@@ -182,7 +202,6 @@ func runCommand(command string) (string, error) {
   commandLog(command)
   splitCmd := strings.Split(command, " ")
   cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
-  devLog(string(cmdOut[:]))
   return string(cmdOut), err
 }
 
@@ -198,30 +217,50 @@ func getBranchDiff(branch string, baseBranch string) (string, error) {
   return runCommand("git diff --color " + baseBranch + "..." + branch)
 }
 
+func verifyInGitRepo() {
+  if output, err := runCommand("git status"); err != nil {
+    fmt.Println(output)
+    os.Exit(1)
+  }
+}
+
 func getCommits() []Commit {
+  pushables := gitCommitsToPush()
   log := getLog()
   commits := make([]Commit, 0)
   // now we can split it up and turn it into commits
   lines := splitLines(log)
   for _, line := range lines {
     splitLine := strings.Split(line, " ")
-    commits = append(commits, Commit{splitLine[0], strings.Join(splitLine[1:], " "), strings.Join(splitLine, " ")})
+    sha := splitLine[0]
+    pushed := includes(pushables, sha)
+    commits = append(commits, Commit{
+      Sha:           sha,
+      Name:          strings.Join(splitLine[1:], " "),
+      Pushed:        pushed,
+      DisplayString: strings.Join(splitLine, " "),
+    })
   }
-  devLog(commits)
   return commits
 }
 
 func getLog() string {
   result, err := runDirectCommand("git log --oneline")
   if err != nil {
-    panic(err)
+    // assume if there is an error there are no commits yet for this branch
+    return ""
   }
   return result
 }
 
+func gitIgnore(filename string) {
+  if _, err := runDirectCommand("echo '" + filename + "' >> .gitignore"); err != nil {
+    panic(err)
+  }
+}
+
 func gitShow(sha string) string {
   result, err := runDirectCommand("git show --color " + sha)
-  // result, err := runDirectCommand("git show --color 10fd353")
   if err != nil {
     panic(err)
   }
@@ -296,18 +335,34 @@ func gitRenameCommit(message string) (string, error) {
   return runDirectCommand("git commit --allow-empty --amend -m \"" + message + "\"")
 }
 
-func betterHaveWorked(err error) {
+func gitUpstreamDifferenceCount() (string, string) {
+  // TODO: deal with these errors which appear when we haven't yet pushed a feature branch
+  pushableCount, err := runDirectCommand("git rev-list @{u}..head --count")
   if err != nil {
-    panic(err)
+    return "?", "?"
   }
+  pullableCount, err := runDirectCommand("git rev-list head..@{u} --count")
+  if err != nil {
+    return "?", "?"
+  }
+  return strings.Trim(pullableCount, " \n"), strings.Trim(pushableCount, " \n")
 }
 
-func gitUpstreamDifferenceCount() (string, string) {
-  pushableCount, err := runDirectCommand("git rev-list @{u}..head --count")
-  betterHaveWorked(err)
-  pullableCount, err := runDirectCommand("git rev-list head..@{u} --count")
-  betterHaveWorked(err)
-  return pullableCount, pushableCount
+func gitCommitsToPush() []string {
+  pushables, err := runDirectCommand("git rev-list @{u}..head --abbrev-commit")
+  if err != nil {
+    return make([]string, 0)
+  }
+  return splitLines(pushables)
+}
+
+func gitCurrentBranchName() string {
+  branchName, err := runDirectCommand("git rev-parse --abbrev-ref HEAD")
+  // if there is an error, assume there are no branches yet
+  if err != nil {
+    return ""
+  }
+  return branchName
 }
 
 const getBranchesCommand = `set -e

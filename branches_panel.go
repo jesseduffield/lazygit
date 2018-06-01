@@ -13,7 +13,8 @@ import (
 
   // "strings"
 
-  "github.com/fatih/color"
+  "fmt"
+
   "github.com/jroimartin/gocui"
 )
 
@@ -41,7 +42,11 @@ func getSelectedBranch(v *gocui.View) Branch {
 }
 
 func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
-  renderString(g, "options", "space: checkout, s: squash down")
+  renderString(g, "options", "space: checkout, f: force checkout")
+  if len(state.Branches) == 0 {
+    return renderString(g, "main", "No branches for this repo")
+  }
+  // may want to standardise how these select methods work
   lineNumber := getItemPosition(v)
   branch := state.Branches[lineNumber]
   diff, _ := getBranchDiff(branch.Name, branch.BaseBranch)
@@ -51,33 +56,19 @@ func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
   return nil
 }
 
+// refreshStatus is called at the end of this because that's when we can
+// be sure there is a state.Branches array to pick the current branch from
 func refreshBranches(g *gocui.Gui) error {
   v, err := g.View("branches")
   if err != nil {
     panic(err)
   }
   state.Branches = getGitBranches()
-  yellow := color.New(color.FgYellow)
-  red := color.New(color.FgRed)
-  white := color.New(color.FgWhite)
-  green := color.New(color.FgGreen)
-
   v.Clear()
   for _, branch := range state.Branches {
-    if branch.Type == "feature" {
-      green.Fprintln(v, branch.DisplayString)
-      continue
-    }
-    if branch.Type == "bugfix" {
-      yellow.Fprintln(v, branch.DisplayString)
-      continue
-    }
-    if branch.Type == "hotfix" {
-      red.Fprintln(v, branch.DisplayString)
-      continue
-    }
-    white.Fprintln(v, branch.DisplayString)
+    fmt.Fprintln(v, branch.DisplayString)
   }
   resetOrigin(v)
+  refreshStatus(g)
   return nil
 }

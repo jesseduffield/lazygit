@@ -53,7 +53,6 @@ func closeCommitPrompt(g *gocui.Gui, v *gocui.View) error {
   // not passing in the view as oldView to switchFocus because we don't want a
   // reference pointing to a deleted view
   switchFocus(g, nil, filesView)
-  devLog("test prompt close")
   if err := g.DeleteView("commit"); err != nil {
     return err
   }
