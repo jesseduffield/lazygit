@@ -70,7 +70,18 @@ func Map(vs []string, f func(string) string) []string {
   return vsm
 }
 
-func includes(list []string, a string) bool {
+func includesString(list []string, a string) bool {
+  for _, b := range list {
+    if b == a {
+      return true
+    }
+  }
+  return false
+}
+
+// not sure how to genericise this because []interface{} doesn't accept e.g.
+// []int arguments
+func includesInt(list []int, a int) bool {
   for _, b := range list {
     if b == a {
       return true
@@ -84,15 +95,27 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
     return newGitFiles
   }
 
+  appendedIndexes := make([]int, 0)
+
+  // retain position of files we already could see
   result := make([]GitFile, 0)
   for _, oldGitFile := range oldGitFiles {
-    for _, newGitFile := range newGitFiles {
+    for newIndex, newGitFile := range newGitFiles {
       if oldGitFile.Name == newGitFile.Name {
         result = append(result, newGitFile)
+        appendedIndexes = append(appendedIndexes, newIndex)
         break
       }
     }
   }
+
+  // append any new files to the end
+  for index, newGitFile := range newGitFiles {
+    if !includesInt(appendedIndexes, index) {
+      result = append(result, newGitFile)
+    }
+  }
+
   return result
 }
 
@@ -230,7 +253,7 @@ func getCommits() []Commit {
   for _, line := range lines {
     splitLine := strings.Split(line, " ")
     sha := splitLine[0]
-    pushed := includes(pushables, sha)
+    pushed := includesString(pushables, sha)
     commits = append(commits, Commit{
       Sha:           sha,
       Name:          strings.Join(splitLine[1:], " "),
