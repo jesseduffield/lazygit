@@ -9,6 +9,7 @@ package main
 import (
   "fmt"
   "strings"
+  "time"
 
   "github.com/jroimartin/gocui"
 )
@@ -97,6 +98,7 @@ func correctCursor(v *gocui.View) error {
 
 func renderString(g *gocui.Gui, viewName, s string) error {
   g.Update(func(*gocui.Gui) error {
+    timeStart := time.Now()
     v, err := g.View(viewName)
     if err != nil {
       panic(err)
@@ -104,6 +106,7 @@ func renderString(g *gocui.Gui, viewName, s string) error {
     v.Clear()
     fmt.Fprint(v, s)
     v.Wrap = true
+    devLog("render time: ", time.Now().Sub(timeStart))
     return nil
   })
   return nil

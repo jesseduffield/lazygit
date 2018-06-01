@@ -1,9 +1,3 @@
-// lots of this has been directly ported from one of the example files, will brush up later
-
-// Copyright 2014 The gocui Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package main
 
 import (
@@ -11,7 +5,6 @@ import (
   // "io"
   // "io/ioutil"
 
-  "fmt"
   "log"
   // "strings"
 
@@ -178,26 +171,6 @@ func handleLogState(g *gocui.Gui, v *gocui.View) error {
   devLog("state is:", state)
   devLog("previous view:", state.PreviousView)
   refreshBranches(g)
-  return nil
-}
-
-func refreshStatus(g *gocui.Gui) error {
-  v, err := g.View("status")
-  if err != nil {
-    return err
-  }
-  v.Clear()
-  up, down := gitUpstreamDifferenceCount()
-  devLog(up, down)
-  fmt.Fprint(v, "↑"+up+"↓"+down)
-  branches := state.Branches
-  if len(branches) == 0 {
-    return nil
-  }
-  branch := branches[0]
-  // utilising the fact these all have padding to only grab the name
-  // from the display string with the existing coloring applied
-  fmt.Fprint(v, " "+branch.DisplayString[4:])
   return nil
 }
 

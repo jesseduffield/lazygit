@@ -1,7 +1,3 @@
-// Go has various value types including strings,
-// integers, floats, booleans, etc. Here are a few
-// basic examples.
-
 package main
 
 import (
@@ -11,6 +7,7 @@ import (
   "os"
   "os/exec"
   "strings"
+  "time"
 
   "github.com/fatih/color"
 )
@@ -52,7 +49,7 @@ func colorLog(colour color.Attribute, objects ...interface{}) {
 
 func commandLog(objects ...interface{}) {
   localLog(color.FgWhite, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/commands.log", objects...)
-  localLog(color.FgWhite, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
+  // localLog(color.FgWhite, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
 }
 
 func localLog(colour color.Attribute, path string, objects ...interface{}) {
@@ -100,8 +97,12 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 }
 
 func runDirectCommand(command string) (string, error) {
+  timeStart := time.Now()
+
   commandLog(command)
   cmdOut, err := exec.Command("bash", "-c", command).CombinedOutput()
+  devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
+
   return string(cmdOut), err
 }
 
@@ -158,18 +159,12 @@ func getGitBranches() []Branch {
   for i, line := range branchLines {
     branches = append(branches, branchFromLine(line, i))
   }
-  devLog(branches)
   return branches
 }
 
 func getGitStatusFiles() []GitFile {
   statusOutput, _ := getGitStatus()
   statusStrings := splitLines(statusOutput)
-  devLog(statusStrings)
-  // a file can have both staged and unstaged changes
-  // I'll probably end up ignoring the unstaged flag for now but might revisit
-  // tracked, staged, unstaged
-
   gitFiles := make([]GitFile, 0)
 
   for _, statusString := range statusStrings {
@@ -199,9 +194,11 @@ func gitCheckout(branch string, force bool) (string, error) {
 }
 
 func runCommand(command string) (string, error) {
+  startTime := time.Now()
   commandLog(command)
   splitCmd := strings.Split(command, " ")
   cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
+  devLog("run command time: ", time.Now().Sub(startTime))
   return string(cmdOut), err
 }
 
@@ -245,7 +242,9 @@ func getCommits() []Commit {
 }
 
 func getLog() string {
-  result, err := runDirectCommand("git log --oneline")
+  // currently limiting to 30 for performance reasons
+  // TODO: add lazyloading when you scroll down
+  result, err := runDirectCommand("git log --oneline -30")
   if err != nil {
     // assume if there is an error there are no commits yet for this branch
     return ""

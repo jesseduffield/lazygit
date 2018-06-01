@@ -1,11 +1,15 @@
 package main
 
-import "github.com/fatih/color"
+import (
+  "time"
+)
+
+// StartTime : The starting time of the app
+var StartTime time.Time
 
 func main() {
-  verifyInGitRepo()
-  a, b := gitUpstreamDifferenceCount()
-  colorLog(color.FgRed, a, b)
   devLog("\n\n\n\n\n\n\n\n\n\n")
+  StartTime = time.Now()
+  verifyInGitRepo()
   run()
 }

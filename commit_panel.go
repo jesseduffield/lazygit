@@ -1,9 +1,3 @@
-// lots of this has been directly ported from one of the example files, will brush up later
-
-// Copyright 2014 The gocui Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package main
 
 import (
@@ -13,7 +7,6 @@ import (
 )
 
 func handleCommitPress(g *gocui.Gui, currentView *gocui.View) error {
-  devLog(stagedFiles(state.GitFiles))
   if len(stagedFiles(state.GitFiles)) == 0 {
     return createSimpleConfirmationPanel(g, currentView, "Nothing to Commit", "There are no staged files to commit (esc)")
   }
@@ -40,7 +33,6 @@ func handleCommitSubmit(g *gocui.Gui, v *gocui.View) error {
   // for whatever reason, a successful commit returns an error, so we're not
   // going to check for an error here
   if err := gitCommit(message); err != nil {
-    devLog(err)
     panic(err)
   }
   refreshFiles(g)
