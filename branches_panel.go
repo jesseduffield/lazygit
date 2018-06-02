@@ -24,6 +24,19 @@ func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
   }, nil)
 }
 
+func handleNewBranch(g *gocui.Gui, v *gocui.View) error {
+  branch := state.Branches[0]
+  createPromptPanel(g, v, "New Branch Name (Branch is off of "+branch.Name+")", func(g *gocui.Gui, v *gocui.View) error {
+    // TODO: make sure the buffer is stripped of whitespace
+    if output, err := gitNewBranch(v.Buffer()); err != nil {
+      return createSimpleConfirmationPanel(g, v, "Error", output)
+    }
+    refreshSidePanels(g, v)
+    return handleCommitSelect(g, v)
+  })
+  return nil
+}
+
 func getSelectedBranch(v *gocui.View) Branch {
   lineNumber := getItemPosition(v)
   return state.Branches[lineNumber]

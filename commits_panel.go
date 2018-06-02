@@ -13,8 +13,8 @@ var (
 )
 
 func refreshCommits(g *gocui.Gui) error {
-  state.Commits = getCommits()
   g.Update(func(*gocui.Gui) error {
+    state.Commits = getCommits()
     v, err := g.View("commits")
     if err != nil {
       panic(err)
@@ -33,14 +33,36 @@ func refreshCommits(g *gocui.Gui) error {
       shaColor.Fprint(v, commit.Sha+" ")
       white.Fprintln(v, commit.Name)
     }
+    refreshStatus(g)
     return nil
   })
   return nil
 }
 
+func handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
+  return createConfirmationPanel(g, commitView, "Reset To Commit", "Are you sure you want to reset to this commit? (y/n)", func(g *gocui.Gui, v *gocui.View) error {
+    commit, err := getSelectedCommit(g)
+    devLog(commit)
+    if err != nil {
+      panic(err)
+    }
+    if output, err := gitResetToCommit(commit.Sha); err != nil {
+      return createSimpleConfirmationPanel(g, commitView, "Error", output)
+    }
+    if err := refreshCommits(g); err != nil {
+      panic(err)
+    }
+    if err := refreshFiles(g); err != nil {
+      panic(err)
+    }
+    resetOrigin(commitView)
+    return handleCommitSelect(g, nil)
+  }, nil)
+}
+
 func handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
-  renderString(g, "options", "s: squash down, r: rename")
-  commit, err := getSelectedCommit(v)
+  renderString(g, "options", "s: squash down, r: rename, g: reset to this commit")
+  commit, err := getSelectedCommit(g)
   if err != nil {
     if err != ErrNoCommits {
       return err
@@ -55,7 +77,10 @@ func handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
   if getItemPosition(v) != 0 {
     return createSimpleConfirmationPanel(g, v, "Error", "Can only squash topmost commit")
   }
-  commit, err := getSelectedCommit(v)
+  if len(state.Commits) == 1 {
+    return createSimpleConfirmationPanel(g, v, "Error", "You have no commits to squash with")
+  }
+  commit, err := getSelectedCommit(g)
   if err != nil {
     return err
   }
@@ -65,6 +90,7 @@ func handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
   if err := refreshCommits(g); err != nil {
     panic(err)
   }
+  refreshStatus(g)
   return handleCommitSelect(g, v)
 }
 
@@ -84,10 +110,18 @@ func handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
   return nil
 }
 
-func getSelectedCommit(v *gocui.View) (Commit, error) {
+func getSelectedCommit(g *gocui.Gui) (Commit, error) {
+  v, err := g.View("commits")
+  if err != nil {
+    panic(err)
+  }
   if len(state.Commits) == 0 {
     return Commit{}, ErrNoCommits
   }
   lineNumber := getItemPosition(v)
+  if lineNumber > len(state.Commits)-1 {
+    colorLog(color.FgRed, "potential error in getSelected Commit (mismatched ui and state)", state.Commits, lineNumber)
+    return state.Commits[len(state.Commits)-1], nil
+  }
   return state.Commits[lineNumber], nil
 }

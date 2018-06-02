@@ -6,6 +6,7 @@ import (
   // "io/ioutil"
 
   "log"
+  "time"
   // "strings"
 
   "github.com/jroimartin/gocui"
@@ -155,22 +156,26 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("branches", 'F', gocui.ModNone, handleForceCheckout); err != nil {
     return err
   }
+  if err := g.SetKeybinding("branches", 'n', gocui.ModNone, handleNewBranch); err != nil {
+    return err
+  }
   if err := g.SetKeybinding("commits", 's', gocui.ModNone, handleCommitSquashDown); err != nil {
     return err
   }
   if err := g.SetKeybinding("commits", 'r', gocui.ModNone, handleRenameCommit); err != nil {
     return err
   }
-  if err := g.SetKeybinding("", '∑', gocui.ModNone, handleLogState); err != nil {
+  if err := g.SetKeybinding("commits", 'g', gocui.ModNone, handleResetToCommit); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", 'S', gocui.ModNone, genericTest); err != nil {
     return err
   }
   return nil
 }
 
-func handleLogState(g *gocui.Gui, v *gocui.View) error {
-  devLog("state is:", state)
-  devLog("previous view:", state.PreviousView)
-  refreshBranches(g)
+func genericTest(g *gocui.Gui, v *gocui.View) error {
+  pushFiles(g, v)
   return nil
 }
 
@@ -247,12 +252,24 @@ func layout(g *gocui.Gui) error {
   return nil
 }
 
+func fetch(g *gocui.Gui) {
+  gitFetch()
+  refreshStatus(g)
+}
+
 func run() {
   g, err := gocui.NewGui(gocui.OutputNormal)
   if err != nil {
     log.Panicln(err)
   }
   defer g.Close()
+
+  // periodically fetching to check for upstream differences
+  go func() {
+    for range time.Tick(time.Second * 60) {
+      fetch(g)
+    }
+  }()
 
   g.SetManagerFunc(layout)
 

@@ -357,8 +357,19 @@ func gitRenameCommit(message string) (string, error) {
   return runDirectCommand("git commit --allow-empty --amend -m \"" + message + "\"")
 }
 
+func gitFetch() (string, error) {
+  return runDirectCommand("git fetch")
+}
+
+func gitResetToCommit(sha string) (string, error) {
+  return runDirectCommand("git reset " + sha)
+}
+
+func gitNewBranch(name string) (string, error) {
+  return runDirectCommand("git checkout -b " + name)
+}
+
 func gitUpstreamDifferenceCount() (string, string) {
-  // TODO: deal with these errors which appear when we haven't yet pushed a feature branch
   pushableCount, err := runDirectCommand("git rev-list @{u}..head --count")
   if err != nil {
     return "?", "?"
@@ -367,7 +378,7 @@ func gitUpstreamDifferenceCount() (string, string) {
   if err != nil {
     return "?", "?"
   }
-  return strings.Trim(pullableCount, " \n"), strings.Trim(pushableCount, " \n")
+  return strings.Trim(pushableCount, " \n"), strings.Trim(pullableCount, " \n")
 }
 
 func gitCommitsToPush() []string {
