@@ -1,222 +1,260 @@
-// Copyright 2014 The gocui Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package main
 
 import (
-  "fmt"
+
   // "io"
   // "io/ioutil"
+
   "log"
+  "time"
   // "strings"
-  "os"
+
   "github.com/jroimartin/gocui"
-  "github.com/fatih/color"
 )
 
-type gitFile struct {
-  Name string
-  Staged bool
+type stateType struct {
+  GitFiles     []GitFile
+  Branches     []Branch
+  Commits      []Commit
+  PreviousView string
 }
 
-var gitFiles []gitFile
+var state = stateType{
+  GitFiles:     make([]GitFile, 0),
+  PreviousView: "files",
+  Commits:      make([]Commit, 0),
+}
+
+var cyclableViews = []string{"files", "branches", "commits"}
+
+func refreshSidePanels(g *gocui.Gui, v *gocui.View) error {
+  refreshBranches(g)
+  refreshFiles(g)
+  refreshCommits(g)
+  return nil
+}
 
 func nextView(g *gocui.Gui, v *gocui.View) error {
-  if v == nil || v.Name() == "side" {
-    _, err := g.SetCurrentView("main")
-    return err
-  }
-  _, err := g.SetCurrentView("side")
-  return err
-}
-
-func cursorDown(g *gocui.Gui, v *gocui.View) error {
-  if v != nil {
-    cx, cy := v.Cursor()
-    if err := v.SetCursor(cx, cy+1); err != nil {
-      ox, oy := v.Origin()
-      if err := v.SetOrigin(ox, oy+1); err != nil {
-        return err
-      }
-    }
-  }
-
-  // refresh main panel's text to match newly selected item
-  return handleItemSelect(g, v)
-}
-
-func cursorUp(g *gocui.Gui, v *gocui.View) error {
-  if v != nil {
-    ox, oy := v.Origin()
-    cx, cy := v.Cursor()
-    if err := v.SetCursor(cx, cy-1); err != nil && oy > 0 {
-      if err := v.SetOrigin(ox, oy-1); err != nil {
-        return err
-      }
-    }
-  }
-
-  // refresh main panel's text to match newly selected item
-  return handleItemSelect(g, v)
-}
-
-func devLog(s string) {
-  f, _ := os.OpenFile("development.log", os.O_APPEND|os.O_WRONLY, 0644)
-  defer f.Close()
-
-  f.WriteString(s + "\n")
-}
-
-func handleItemPress(g *gocui.Gui, v *gocui.View) error {
-  item := getItem(v)
-
-  if item.Staged {
-    unStageFile(item.Name)
+  var focusedViewName string
+  if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
+    focusedViewName = cyclableViews[0]
   } else {
-    stageFile(item.Name)
+    for i := range cyclableViews {
+      if v.Name() == cyclableViews[i] {
+        focusedViewName = cyclableViews[i+1]
+        break
+      }
+      if i == len(cyclableViews)-1 {
+        devLog(v.Name() + " is not in the list of views")
+        return nil
+      }
+    }
   }
-
-  if err := refreshList(v); err != nil {
+  focusedView, err := g.View(focusedViewName)
+  if err != nil {
+    panic(err)
     return err
+  }
+  return switchFocus(g, v, focusedView)
+}
+
+func newLineFocused(g *gocui.Gui, v *gocui.View) error {
+  mainView, _ := g.View("main")
+  mainView.SetOrigin(0, 0)
+
+  switch v.Name() {
+  case "files":
+    return handleFileSelect(g, v)
+  case "branches":
+    return handleBranchSelect(g, v)
+  case "commit":
+    return handleCommitPromptFocus(g, v)
+  case "confirmation":
+    return nil
+  case "main":
+    return nil
+  case "commits":
+    return handleCommitSelect(g, v)
+  default:
+    panic("No view matching newLineFocused switch statement")
+  }
+}
+
+func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
+  mainView, _ := g.View("main")
+  ox, oy := mainView.Origin()
+  if oy >= 1 {
+    return mainView.SetOrigin(ox, oy-1)
   }
   return nil
 }
 
-func getItem(v *gocui.View) gitFile {
-  _, lineNumber := v.Cursor()
-  if lineNumber >= len(gitFiles) {
-    return gitFiles[len(gitFiles) - 1]
-  }
-  return gitFiles[lineNumber]
-}
-
-func handleItemSelect(g *gocui.Gui, v *gocui.View) error {
-  item := getItem(v)
-  diff := getDiff(item.Name, item.Staged)
-  devLog(diff)
-  if err := renderString(g, diff); err != nil {
-    return err
-  }
-
-  // maxX, maxY := g.Size()
-  // if v, err := g.SetView("msg", maxX/2-30, maxY/2, maxX/2+30, maxY/2+2); err != nil {
-  //   if err != gocui.ErrUnknownView {
-  //     return err
-  //   }
-  //   fmt.Fprintln(v, l)
-  //   if _, err := g.SetCurrentView("msg"); err != nil {
-  //     return err
-  //   }
-  // }
-  return nil
-}
-
-func delMsg(g *gocui.Gui, v *gocui.View) error {
-  if err := g.DeleteView("msg"); err != nil {
-    return err
-  }
-  if _, err := g.SetCurrentView("side"); err != nil {
-    return err
+func scrollDownMain(g *gocui.Gui, v *gocui.View) error {
+  mainView, _ := g.View("main")
+  ox, oy := mainView.Origin()
+  if oy < len(mainView.BufferLines()) {
+    return mainView.SetOrigin(ox, oy+1)
   }
   return nil
-}
-
-func quit(g *gocui.Gui, v *gocui.View) error {
-  return gocui.ErrQuit
 }
 
 func keybindings(g *gocui.Gui) error {
-  if err := g.SetKeybinding("side", gocui.KeyCtrlSpace, gocui.ModNone, nextView); err != nil {
+  if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, nextView); err != nil {
     return err
   }
-  if err := g.SetKeybinding("main", gocui.KeyCtrlSpace, gocui.ModNone, nextView); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("side", gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("side", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
+  if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
     return err
   }
   if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
     return err
   }
-  if err := g.SetKeybinding("", gocui.KeyEsc, gocui.ModNone, quit); err != nil {
+  if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
     return err
   }
-  if err := g.SetKeybinding("side", gocui.KeySpace, gocui.ModNone, handleItemPress); err != nil {
+  if err := g.SetKeybinding("", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
     return err
   }
-  // if err := g.SetKeybinding("msg", gocui.KeySpace, gocui.ModNone, delMsg); err != nil {
-  //   return err
-  // }
+  if err := g.SetKeybinding("", gocui.KeyPgup, gocui.ModNone, scrollUpMain); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone, scrollDownMain); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", 'c', gocui.ModNone, handleCommitPress); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", gocui.KeySpace, gocui.ModNone, handleFilePress); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", 'r', gocui.ModNone, handleFileRemove); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", 'o', gocui.ModNone, handleFileOpen); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", 's', gocui.ModNone, handleSublimeFileOpen); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", 'P', gocui.ModNone, pushFiles); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", 'p', gocui.ModNone, pullFiles); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", 'i', gocui.ModNone, handleIgnoreFile); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("commit", gocui.KeyEsc, gocui.ModNone, closeCommitPrompt); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("commit", gocui.KeyEnter, gocui.ModNone, handleCommitSubmit); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("branches", gocui.KeySpace, gocui.ModNone, handleBranchPress); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("branches", 'F', gocui.ModNone, handleForceCheckout); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("branches", 'n', gocui.ModNone, handleNewBranch); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("commits", 's', gocui.ModNone, handleCommitSquashDown); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("commits", 'r', gocui.ModNone, handleRenameCommit); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("commits", 'g', gocui.ModNone, handleResetToCommit); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", 'S', gocui.ModNone, genericTest); err != nil {
+    return err
+  }
   return nil
 }
 
-func refreshList(v *gocui.View) error {
-  // get files to stage
-  statusString, _ := runCommand("git status")
-  filesToStage := getFilesToStage(statusString)
-  filesToUnstage := getFilesToUnstage(statusString)
-  // v.Highlight = true
-  // v.SelBgColor = gocui.ColorWhite
-  // v.SelFgColor = gocui.ColorBlack
-  v.Clear()
-  gitFiles = make([]gitFile, 0)
-  red := color.New(color.FgRed)
-  for _, file := range filesToStage {
-    gitFiles = append(gitFiles, gitFile{file, false})
-    red.Fprintln(v, file)
-  }
-  green := color.New(color.FgGreen)
-  for _, file := range filesToUnstage {
-    gitFiles = append(gitFiles, gitFile{file, true})
-    green.Fprintln(v, file)
-  }
-  devLog(fmt.Sprint(gitFiles))
+func genericTest(g *gocui.Gui, v *gocui.View) error {
+  pushFiles(g, v)
   return nil
 }
 
 func layout(g *gocui.Gui) error {
-  maxX, maxY := g.Size()
-  sideView, err := g.SetView("side", -1, -1, 30, maxY)
+  width, height := g.Size()
+  leftSideWidth := width / 3
+  logsBranchesBoundary := height - 10
+  filesBranchesBoundary := height - 20
+  statusFilesBoundary := 2
+
+  optionsTop := height - 2
+  // hiding options if there's not enough space
+  if height < 30 {
+    optionsTop = height - 1
+  }
+
+  sideView, err := g.SetView("files", 0, statusFilesBoundary+1, leftSideWidth, filesBranchesBoundary-1)
   if err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
+    sideView.Highlight = true
     sideView.Title = "Files"
-    devLog("test")
-    refreshList(sideView)
+    refreshFiles(g)
   }
 
-  if v, err := g.SetView("main", 30, -1, maxX, maxY); err != nil {
+  if v, err := g.SetView("status", 0, statusFilesBoundary-2, leftSideWidth, statusFilesBoundary); err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
-    v.Editable = true
-    v.Wrap = true
-    if _, err := g.SetCurrentView("side"); err != nil {
+    v.Title = "Status"
+  }
+
+  if v, err := g.SetView("main", leftSideWidth+1, 0, width-1, optionsTop); err != nil {
+    if err != gocui.ErrUnknownView {
       return err
     }
-    handleItemSelect(g, sideView)
+    v.Title = "Diff"
+    v.Wrap = true
+    switchFocus(g, nil, v)
+    handleFileSelect(g, sideView)
+  }
+
+  if v, err := g.SetView("branches", 0, filesBranchesBoundary, leftSideWidth, logsBranchesBoundary-1); err != nil {
+    if err != gocui.ErrUnknownView {
+      return err
+    }
+    v.Title = "Branches"
+
+    // these are only called once
+    refreshBranches(g)
+    nextView(g, nil)
+  }
+
+  if v, err := g.SetView("commits", 0, logsBranchesBoundary, leftSideWidth, optionsTop); err != nil {
+    if err != gocui.ErrUnknownView {
+      return err
+    }
+    v.Title = "Commits"
+
+    // these are only called once
+    refreshCommits(g)
+  }
+
+  if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2); err != nil {
+    if err != gocui.ErrUnknownView {
+      return err
+    }
+    v.BgColor = gocui.ColorBlue
+    v.Frame = false
+    v.Title = "Options"
   }
 
   return nil
 }
 
-func renderString(g *gocui.Gui, s string) error {
-  g.Update(func(*gocui.Gui) error {
-    v, err := g.View("main")
-    if err != nil {
-      panic(err)
-    }
-    v.Clear()
-    fmt.Fprint(v, s)
-    v.Wrap = true
-    return nil
-  })
-  return nil
+func fetch(g *gocui.Gui) {
+  gitFetch()
+  refreshStatus(g)
 }
 
 func run() {
@@ -226,7 +264,12 @@ func run() {
   }
   defer g.Close()
 
-  g.Cursor = true
+  // periodically fetching to check for upstream differences
+  go func() {
+    for range time.Tick(time.Second * 60) {
+      fetch(g)
+    }
+  }()
 
   g.SetManagerFunc(layout)
 
@@ -237,6 +280,10 @@ func run() {
   if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
     log.Panicln(err)
   }
+}
+
+func quit(g *gocui.Gui, v *gocui.View) error {
+  return gocui.ErrQuit
 }
 
 // const mcRide = "
