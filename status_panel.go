@@ -5,7 +5,7 @@ import (
   "time"
 
   "github.com/fatih/color"
-  "github.com/jroimartin/gocui"
+  "github.com/jesseduffield/gocui"
 )
 
 func refreshStatus(g *gocui.Gui) error {

@@ -14,7 +14,8 @@ import (
   "strings"
   // "strings"
 
-  "github.com/jroimartin/gocui"
+  "github.com/fatih/color"
+  "github.com/jesseduffield/gocui"
 )
 
 func wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.View) error) func(*gocui.Gui, *gocui.View) error {

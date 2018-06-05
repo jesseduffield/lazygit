@@ -4,7 +4,7 @@ import (
   "errors"
 
   "github.com/fatih/color"
-  "github.com/jroimartin/gocui"
+  "github.com/jesseduffield/gocui"
 )
 
 var (

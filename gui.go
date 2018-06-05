@@ -8,8 +8,7 @@ import (
   "log"
   "time"
   // "strings"
-
-  "github.com/jroimartin/gocui"
+  "github.com/jesseduffield/gocui"
 )
 
 type stateType struct {

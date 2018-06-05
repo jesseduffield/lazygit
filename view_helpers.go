@@ -5,7 +5,8 @@ import (
   "strings"
   "time"
 
-  "github.com/jroimartin/gocui"
+  "github.com/fatih/color"
+  "github.com/jesseduffield/gocui"
 )
 
 func returnFocus(g *gocui.Gui, v *gocui.View) error {

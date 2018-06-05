@@ -3,7 +3,7 @@ package main
 import (
   "fmt"
 
-  "github.com/jroimartin/gocui"
+  "github.com/jesseduffield/gocui"
 )
 
 func handleBranchPress(g *gocui.Gui, v *gocui.View) error {
