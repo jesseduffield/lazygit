@@ -61,63 +61,65 @@ func getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int,
     height/2 + panelHeight/2
 }
 
-func createPromptPanel(g *gocui.Gui, v *gocui.View, title string, handleSubmit func(*gocui.Gui, *gocui.View) error) error {
+func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleYes func(*gocui.Gui, *gocui.View) error) error {
   // only need to fit one line
   x0, y0, x1, y1 := getConfirmationPanelDimensions(g, "")
   if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1); err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
+
     confirmationView.Editable = true
     g.Cursor = true
+
     confirmationView.Title = title
-    switchFocus(g, v, confirmationView)
-    if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleSubmit)); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(nil)); err != nil {
-      return err
-    }
+    switchFocus(g, currentView, confirmationView)
+    return setKeyBindings(g, handleYes, nil)
   }
   return nil
 }
 
-func createConfirmationPanel(g *gocui.Gui, v *gocui.View, title, prompt string, handleYes, handleNo func(*gocui.Gui, *gocui.View) error) error {
-  // delete the existing confirmation panel if it exists
-  if view, _ := g.View("confirmation"); view != nil {
-    if err := closeConfirmationPrompt(g); err != nil {
-      panic(err)
+func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleYes, handleNo func(*gocui.Gui, *gocui.View) error) error {
+  g.Update(func(g *gocui.Gui) error {
+    // delete the existing confirmation panel if it exists
+    if view, _ := g.View("confirmation"); view != nil {
+      if err := closeConfirmationPrompt(g); err != nil {
+        panic(err)
+      }
     }
+    x0, y0, x1, y1 := getConfirmationPanelDimensions(g, prompt)
+    if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1); err != nil {
+      if err != gocui.ErrUnknownView {
+        return err
+      }
+      confirmationView.Title = title
+      renderString(g, "confirmation", prompt)
+      switchFocus(g, currentView, confirmationView)
+      return setKeyBindings(g, handleYes, handleNo)
+    }
+    return nil
+  })
+  return nil
+}
+
+func setKeyBindings(g *gocui.Gui, handleYes, handleNo func(*gocui.Gui, *gocui.View) error) error {
+  renderString(g, "options", "esc/n: close, enter/y: confirm")
+  if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleYes)); err != nil {
+    return err
   }
-  x0, y0, x1, y1 := getConfirmationPanelDimensions(g, prompt)
-  if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1); err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    confirmationView.Title = title
-    renderString(g, "confirmation", prompt)
-    switchFocus(g, v, confirmationView)
-    if err := g.SetKeybinding("confirmation", 'n', gocui.ModNone, wrappedConfirmationFunction(handleNo)); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleNo)); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding("confirmation", 'y', gocui.ModNone, wrappedConfirmationFunction(handleYes)); err != nil {
-      return err
-    }
-    if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleYes)); err != nil {
-      return err
-    }
+  if err := g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleNo)); err != nil {
+    return err
   }
   return nil
 }
 
-func createSimpleConfirmationPanel(g *gocui.Gui, v *gocui.View, title, prompt string) error {
-  return createConfirmationPanel(g, v, title, prompt, nil, nil)
+func createSimpleConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {
+  return createConfirmationPanel(g, currentView, title, prompt, nil, nil)
 }
 
 func createErrorPanel(g *gocui.Gui, message string) error {
-  v := g.CurrentView()
-  return createConfirmationPanel(g, v, "Error", message, nil, nil)
+  currentView := g.CurrentView()
+  colorFunction := color.New(color.FgRed).SprintFunc()
+  coloredMessage := colorFunction(strings.TrimSpace(message))
+  return createConfirmationPanel(g, currentView, "Error", coloredMessage, nil, nil)
 }
