@@ -58,7 +58,6 @@ func colorLog(colour color.Attribute, objects ...interface{}) {
 
 func commandLog(objects ...interface{}) {
   localLog(color.FgWhite, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/commands.log", objects...)
-  // localLog(color.FgWhite, "/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/gitgot/development.log", objects...)
 }
 
 func localLog(colour color.Attribute, path string, objects ...interface{}) {
@@ -465,14 +464,3 @@ git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
   done | sed 's/ days /d /g' | sed 's/ weeks /w /g' | sed 's/ hours /h /g' | sed 's/ minutes /m /g' | sed 's/ seconds /m /g' | sed 's/ago//g' | tr -d ' '
 }
 `
-
-// func main() {
-//   getGitStatusFiles()
-// }
-
-// func devLog(s string) {
-//   f, _ := os.OpenFile("development.log", os.O_APPEND|os.O_WRONLY, 0644)
-//   defer f.Close()
-
-//   f.WriteString(s + "\n")
-// }
