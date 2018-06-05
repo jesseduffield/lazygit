@@ -9,7 +9,7 @@ import (
 func handleBranchPress(g *gocui.Gui, v *gocui.View) error {
   branch := getSelectedBranch(v)
   if output, err := gitCheckout(branch.Name, false); err != nil {
-    createSimpleConfirmationPanel(g, v, "Error", output)
+    createErrorPanel(g, output)
   }
   return refreshSidePanels(g, v)
 }
@@ -18,7 +18,7 @@ func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
   branch := getSelectedBranch(v)
   return createConfirmationPanel(g, v, "Force Checkout Branch", "Are you sure you want force checkout? You will lose all local changes (y/n)", func(g *gocui.Gui, v *gocui.View) error {
     if output, err := gitCheckout(branch.Name, true); err != nil {
-      createSimpleConfirmationPanel(g, v, "Error", output)
+      createErrorPanel(g, output)
     }
     return refreshSidePanels(g, v)
   }, nil)
@@ -27,9 +27,8 @@ func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 func handleNewBranch(g *gocui.Gui, v *gocui.View) error {
   branch := state.Branches[0]
   createPromptPanel(g, v, "New Branch Name (Branch is off of "+branch.Name+")", func(g *gocui.Gui, v *gocui.View) error {
-    // TODO: make sure the buffer is stripped of whitespace
-    if output, err := gitNewBranch(v.Buffer()); err != nil {
-      return createSimpleConfirmationPanel(g, v, "Error", output)
+    if output, err := gitNewBranch(trimmedContent(v)); err != nil {
+      return createErrorPanel(g, output)
     }
     refreshSidePanels(g, v)
     return handleCommitSelect(g, v)
@@ -49,8 +48,7 @@ func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
     return renderString(g, "main", "No branches for this repo")
   }
   go func() {
-    lineNumber := getItemPosition(v)
-    branch := state.Branches[lineNumber]
+    branch := getSelectedBranch(v)
     diff, _ := getBranchDiff(branch.Name, branch.BaseBranch)
     renderString(g, "main", diff)
   }()

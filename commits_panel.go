@@ -47,7 +47,7 @@ func handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
       panic(err)
     }
     if output, err := gitResetToCommit(commit.Sha); err != nil {
-      return createSimpleConfirmationPanel(g, commitView, "Error", output)
+      return createErrorPanel(g, output)
     }
     if err := refreshCommits(g); err != nil {
       panic(err)
@@ -75,17 +75,17 @@ func handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 func handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
   if getItemPosition(v) != 0 {
-    return createSimpleConfirmationPanel(g, v, "Error", "Can only squash topmost commit")
+    return createErrorPanel(g, "Can only squash topmost commit")
   }
   if len(state.Commits) == 1 {
-    return createSimpleConfirmationPanel(g, v, "Error", "You have no commits to squash with")
+    return createErrorPanel(g, "You have no commits to squash with")
   }
   commit, err := getSelectedCommit(g)
   if err != nil {
     return err
   }
   if output, err := gitSquashPreviousTwoCommits(commit.Name); err != nil {
-    return createSimpleConfirmationPanel(g, v, "Error", output)
+    return createErrorPanel(g, output)
   }
   if err := refreshCommits(g); err != nil {
     panic(err)
@@ -96,11 +96,11 @@ func handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 
 func handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
   if getItemPosition(v) != 0 {
-    return createSimpleConfirmationPanel(g, v, "Error", "Can only rename topmost commit")
+    return createErrorPanel(g, "Can only rename topmost commit")
   }
   createPromptPanel(g, v, "Rename Commit", func(g *gocui.Gui, v *gocui.View) error {
     if output, err := gitRenameCommit(v.Buffer()); err != nil {
-      return createSimpleConfirmationPanel(g, v, "Error", output)
+      return createErrorPanel(g, output)
     }
     if err := refreshCommits(g); err != nil {
       panic(err)

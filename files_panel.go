@@ -91,7 +91,7 @@ func handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func handleFileSelect(g *gocui.Gui, v *gocui.View) error {
-  baseString := "tab: switch to branches, space: toggle staged, c: commit changes, o: open, s: open in sublime, i: ignore"
+  baseString := "tab: next panel, S: stash files, space: toggle staged, c: commit changes, o: open, s: open in sublime, i: ignore"
   item, err := getSelectedFile(v)
   if err != nil {
     if err != ErrNoFiles {
@@ -103,13 +103,31 @@ func handleFileSelect(g *gocui.Gui, v *gocui.View) error {
   }
   var optionsString string
   if item.Tracked {
-    optionsString = baseString + ", r: checkout"
+    optionsString = baseString + ", d: checkout"
   } else {
-    optionsString = baseString + ", r: delete"
+    optionsString = baseString + ", d: delete"
   }
   renderString(g, "options", optionsString)
   diff := getDiff(item)
   return renderString(g, "main", diff)
+}
+
+func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
+  if len(stagedFiles(state.GitFiles)) == 0 {
+    return createErrorPanel(g, "There are no staged files to commit")
+  }
+  createPromptPanel(g, filesView, "Commit message", func(g *gocui.Gui, v *gocui.View) error {
+    message := trimmedContent(v)
+    if message == "" {
+      return createErrorPanel(g, "You cannot commit without a commit message")
+    }
+    if err := gitCommit(message); err != nil {
+      panic(err)
+    }
+    refreshFiles(g)
+    return refreshCommits(g)
+  })
+  return nil
 }
 
 func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, error)) error {
@@ -155,7 +173,9 @@ func refreshFiles(g *gocui.Gui) error {
     }
   }
   correctCursor(filesView)
-  handleFileSelect(g, filesView)
+  if filesView == g.CurrentView() {
+    handleFileSelect(g, filesView)
+  }
   return nil
 }
 
@@ -164,7 +184,7 @@ func pullFiles(g *gocui.Gui, v *gocui.View) error {
   createSimpleConfirmationPanel(g, v, "", "Pulling...")
   go func() {
     if output, err := gitPull(); err != nil {
-      createSimpleConfirmationPanel(g, v, "Error", output)
+      createErrorPanel(g, output)
     } else {
       closeConfirmationPrompt(g)
       refreshCommits(g)
@@ -181,7 +201,7 @@ func pushFiles(g *gocui.Gui, v *gocui.View) error {
   createSimpleConfirmationPanel(g, v, "", "Pushing...")
   go func() {
     if output, err := gitPush(); err != nil {
-      createSimpleConfirmationPanel(g, v, "Error", output)
+      createErrorPanel(g, output)
     } else {
       closeConfirmationPrompt(g)
       refreshCommits(g)
