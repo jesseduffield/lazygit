@@ -3,6 +3,7 @@ package main
 import (
 
   // "log"
+  "errors"
   "fmt"
   "os"
   "os/exec"
@@ -13,6 +14,7 @@ import (
 )
 
 // GitFile : A staged/unstaged file
+// TODO: decide whether to give all of these the Git prefix
 type GitFile struct {
   Name               string
   HasStagedChanges   bool
@@ -36,6 +38,13 @@ type Commit struct {
   Sha           string
   Name          string
   Pushed        bool
+  DisplayString string
+}
+
+// StashEntry : A git stash entry
+type StashEntry struct {
+  Index         int
+  Name          string
   DisplayString string
 }
 
@@ -178,11 +187,32 @@ func getGitBranches() []Branch {
     return branches
   }
   rawString, _ := runDirectCommand(getBranchesCommand)
-  branchLines := splitLines(rawString)
-  for i, line := range branchLines {
+  for i, line := range splitLines(rawString) {
     branches = append(branches, branchFromLine(line, i))
   }
   return branches
+}
+
+// TODO: DRY up this function and getGitBranches
+func getGitStashEntries() []StashEntry {
+  stashEntries := make([]StashEntry, 0)
+  rawString, _ := runDirectCommand("git stash list --pretty='%gs'")
+  for i, line := range splitLines(rawString) {
+    stashEntries = append(stashEntries, stashEntryFromLine(line, i))
+  }
+  return stashEntries
+}
+
+func stashEntryFromLine(line string, index int) StashEntry {
+  return StashEntry{
+    Name:          line,
+    Index:         index,
+    DisplayString: line,
+  }
+}
+
+func getStashEntryDiff(index int) (string, error) {
+  return runCommand("git stash show -p --color stash@{" + fmt.Sprint(index) + "}")
 }
 
 func getGitStatusFiles() []GitFile {
@@ -206,6 +236,23 @@ func getGitStatusFiles() []GitFile {
     gitFiles = append(gitFiles, gitFile)
   }
   return gitFiles
+}
+
+func gitStashDo(index int, method string) (string, error) {
+  return runCommand("git stash " + method + " stash@{" + fmt.Sprint(index) + "}")
+}
+
+func gitStashSave(message string) (string, error) {
+  output, err := runCommand("git stash save \"" + message + "\"")
+  if err != nil {
+    return output, err
+  }
+  // if there are no local changes to save, the exit code is 0, but we want
+  // to raise an error
+  if output == "No local changes to save\n" {
+    return output, errors.New(output)
+  }
+  return output, nil
 }
 
 func gitCheckout(branch string, force bool) (string, error) {
@@ -369,6 +416,10 @@ func gitNewBranch(name string) (string, error) {
   return runDirectCommand("git checkout -b " + name)
 }
 
+func gitListStash() (string, error) {
+  return runDirectCommand("git stash list")
+}
+
 func gitUpstreamDifferenceCount() (string, string) {
   pushableCount, err := runDirectCommand("git rev-list @{u}..head --count")
   if err != nil {
@@ -378,7 +429,7 @@ func gitUpstreamDifferenceCount() (string, string) {
   if err != nil {
     return "?", "?"
   }
-  return strings.Trim(pushableCount, " \n"), strings.Trim(pullableCount, " \n")
+  return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
 }
 
 func gitCommitsToPush() []string {

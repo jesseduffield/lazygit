@@ -18,7 +18,9 @@ func returnFocus(g *gocui.Gui, v *gocui.View) error {
 }
 
 func switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
-  if oldView != nil {
+  // we assume we'll never want to return focus to a confirmation panel i.e.
+  // we should never stack confirmation panels
+  if oldView != nil && oldView.Name() != "confirmation" {
     oldView.Highlight = false
     devLog("setting previous view to:", oldView.Name())
     state.PreviousView = oldView.Name()
@@ -36,6 +38,10 @@ func getItemPosition(v *gocui.View) int {
   _, cy := v.Cursor()
   _, oy := v.Origin()
   return oy + cy
+}
+
+func trimmedContent(v *gocui.View) string {
+  return strings.TrimSpace(v.Buffer())
 }
 
 func cursorUp(g *gocui.Gui, v *gocui.View) error {
@@ -94,6 +100,7 @@ func correctCursor(v *gocui.View) error {
 func renderString(g *gocui.Gui, viewName, s string) error {
   g.Update(func(*gocui.Gui) error {
     timeStart := time.Now()
+    colorLog(color.FgRed, viewName)
     v, err := g.View(viewName)
     if err != nil {
       panic(err)

@@ -15,6 +15,7 @@ type stateType struct {
   GitFiles     []GitFile
   Branches     []Branch
   Commits      []Commit
+  StashEntries []StashEntry
   PreviousView string
 }
 
@@ -22,9 +23,10 @@ var state = stateType{
   GitFiles:     make([]GitFile, 0),
   PreviousView: "files",
   Commits:      make([]Commit, 0),
+  StashEntries: make([]StashEntry, 0),
 }
 
-var cyclableViews = []string{"files", "branches", "commits"}
+var cyclableViews = []string{"files", "branches", "commits", "stash"}
 
 func refreshSidePanels(g *gocui.Gui, v *gocui.View) error {
   refreshBranches(g)
@@ -66,14 +68,14 @@ func newLineFocused(g *gocui.Gui, v *gocui.View) error {
     return handleFileSelect(g, v)
   case "branches":
     return handleBranchSelect(g, v)
-  case "commit":
-    return handleCommitPromptFocus(g, v)
   case "confirmation":
     return nil
   case "main":
     return nil
   case "commits":
     return handleCommitSelect(g, v)
+  case "stash":
+    return handleStashEntrySelect(g, v)
   default:
     panic("No view matching newLineFocused switch statement")
   }
@@ -125,7 +127,7 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("files", gocui.KeySpace, gocui.ModNone, handleFilePress); err != nil {
     return err
   }
-  if err := g.SetKeybinding("files", 'r', gocui.ModNone, handleFileRemove); err != nil {
+  if err := g.SetKeybinding("files", 'd', gocui.ModNone, handleFileRemove); err != nil {
     return err
   }
   if err := g.SetKeybinding("files", 'o', gocui.ModNone, handleFileOpen); err != nil {
@@ -143,10 +145,7 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("files", 'i', gocui.ModNone, handleIgnoreFile); err != nil {
     return err
   }
-  if err := g.SetKeybinding("commit", gocui.KeyEsc, gocui.ModNone, closeCommitPrompt); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("commit", gocui.KeyEnter, gocui.ModNone, handleCommitSubmit); err != nil {
+  if err := g.SetKeybinding("files", 'S', gocui.ModNone, handleStashSave); err != nil {
     return err
   }
   if err := g.SetKeybinding("branches", gocui.KeySpace, gocui.ModNone, handleBranchPress); err != nil {
@@ -167,9 +166,21 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("commits", 'g', gocui.ModNone, handleResetToCommit); err != nil {
     return err
   }
-  if err := g.SetKeybinding("", 'S', gocui.ModNone, genericTest); err != nil {
+  if err := g.SetKeybinding("stash", gocui.KeySpace, gocui.ModNone, handleStashApply); err != nil {
     return err
   }
+  // TODO: come up with a better keybinding (p/P used for pushing/pulling which
+  // I'd like to be global. Perhaps all global keybindings should use a modifier
+  // like command? But then there's gonna be hotkey conflicts with the terminal
+  if err := g.SetKeybinding("stash", 'k', gocui.ModNone, handleStashPop); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("stash", 'd', gocui.ModNone, handleStashDrop); err != nil {
+    return err
+  }
+  // if err := g.SetKeybinding("", 'S', gocui.ModNone, genericTest); err != nil {
+  //   return err
+  // }
   return nil
 }
 
@@ -181,9 +192,10 @@ func genericTest(g *gocui.Gui, v *gocui.View) error {
 func layout(g *gocui.Gui) error {
   width, height := g.Size()
   leftSideWidth := width / 3
-  logsBranchesBoundary := height - 10
-  filesBranchesBoundary := height - 20
   statusFilesBoundary := 2
+  filesBranchesBoundary := height - 20
+  commitsBranchesBoundary := height - 10
+  commitsStashBoundary := height - 5
 
   optionsTop := height - 2
   // hiding options if there's not enough space
@@ -191,14 +203,13 @@ func layout(g *gocui.Gui) error {
     optionsTop = height - 1
   }
 
-  sideView, err := g.SetView("files", 0, statusFilesBoundary+1, leftSideWidth, filesBranchesBoundary-1)
+  filesView, err := g.SetView("files", 0, statusFilesBoundary+1, leftSideWidth, filesBranchesBoundary-1)
   if err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
-    sideView.Highlight = true
-    sideView.Title = "Files"
-    refreshFiles(g)
+    filesView.Highlight = true
+    filesView.Title = "Files"
   }
 
   if v, err := g.SetView("status", 0, statusFilesBoundary-2, leftSideWidth, statusFilesBoundary); err != nil {
@@ -208,35 +219,36 @@ func layout(g *gocui.Gui) error {
     v.Title = "Status"
   }
 
-  if v, err := g.SetView("main", leftSideWidth+1, 0, width-1, optionsTop); err != nil {
+  mainView, err := g.SetView("main", leftSideWidth+1, 0, width-1, optionsTop)
+  if err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
-    v.Title = "Diff"
-    v.Wrap = true
-    switchFocus(g, nil, v)
-    handleFileSelect(g, sideView)
+    mainView.Title = "Diff"
+    mainView.Wrap = true
   }
 
-  if v, err := g.SetView("branches", 0, filesBranchesBoundary, leftSideWidth, logsBranchesBoundary-1); err != nil {
+  if v, err := g.SetView("branches", 0, filesBranchesBoundary, leftSideWidth, commitsBranchesBoundary-1); err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
     v.Title = "Branches"
 
-    // these are only called once
-    refreshBranches(g)
-    nextView(g, nil)
   }
 
-  if v, err := g.SetView("commits", 0, logsBranchesBoundary, leftSideWidth, optionsTop); err != nil {
+  if v, err := g.SetView("commits", 0, commitsBranchesBoundary, leftSideWidth, commitsStashBoundary-1); err != nil {
     if err != gocui.ErrUnknownView {
       return err
     }
     v.Title = "Commits"
 
-    // these are only called once
-    refreshCommits(g)
+  }
+
+  if v, err := g.SetView("stash", 0, commitsStashBoundary, leftSideWidth, optionsTop); err != nil {
+    if err != gocui.ErrUnknownView {
+      return err
+    }
+    v.Title = "Stash"
   }
 
   if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2); err != nil {
@@ -246,6 +258,14 @@ func layout(g *gocui.Gui) error {
     v.BgColor = gocui.ColorBlue
     v.Frame = false
     v.Title = "Options"
+
+    // these are only called once
+    handleFileSelect(g, filesView)
+    refreshFiles(g)
+    refreshBranches(g)
+    refreshCommits(g)
+    refreshStashEntries(g)
+    nextView(g, nil)
   }
 
   return nil
