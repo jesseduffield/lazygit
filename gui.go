@@ -26,61 +26,6 @@ var state = stateType{
   StashEntries: make([]StashEntry, 0),
 }
 
-var cyclableViews = []string{"files", "branches", "commits", "stash"}
-
-func refreshSidePanels(g *gocui.Gui, v *gocui.View) error {
-  refreshBranches(g)
-  refreshFiles(g)
-  refreshCommits(g)
-  return nil
-}
-
-func nextView(g *gocui.Gui, v *gocui.View) error {
-  var focusedViewName string
-  if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
-    focusedViewName = cyclableViews[0]
-  } else {
-    for i := range cyclableViews {
-      if v.Name() == cyclableViews[i] {
-        focusedViewName = cyclableViews[i+1]
-        break
-      }
-      if i == len(cyclableViews)-1 {
-        devLog(v.Name() + " is not in the list of views")
-        return nil
-      }
-    }
-  }
-  focusedView, err := g.View(focusedViewName)
-  if err != nil {
-    panic(err)
-    return err
-  }
-  return switchFocus(g, v, focusedView)
-}
-
-func newLineFocused(g *gocui.Gui, v *gocui.View) error {
-  mainView, _ := g.View("main")
-  mainView.SetOrigin(0, 0)
-
-  switch v.Name() {
-  case "files":
-    return handleFileSelect(g, v)
-  case "branches":
-    return handleBranchSelect(g, v)
-  case "confirmation":
-    return nil
-  case "main":
-    return nil
-  case "commits":
-    return handleCommitSelect(g, v)
-  case "stash":
-    return handleStashEntrySelect(g, v)
-  default:
-    panic("No view matching newLineFocused switch statement")
-  }
-}
-
 func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
   mainView, _ := g.View("main")
   ox, oy := mainView.Origin()
@@ -178,14 +123,6 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("stash", 'd', gocui.ModNone, handleStashDrop); err != nil {
     return err
   }
-  // if err := g.SetKeybinding("", 'S', gocui.ModNone, genericTest); err != nil {
-  //   return err
-  // }
-  return nil
-}
-
-func genericTest(g *gocui.Gui, v *gocui.View) error {
-  pushFiles(g, v)
   return nil
 }
 
