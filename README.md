@@ -2,4 +2,4 @@
 simple terminal UI for git commands
 
 
-![Alt Text](https://media.giphy.com/media/8hXXdJjrrjxHmkhHYC/giphy.gif)
+![Alt Text](https://preview.ibb.co/nHqbso/better.gif)
