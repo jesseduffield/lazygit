@@ -53,7 +53,6 @@ func getMessageHeight(message string, width int) int {
 func getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int, int) {
   width, height := g.Size()
   panelWidth := 60
-  // panelHeight := int(math.Ceil(float64(len(prompt)) / float64(panelWidth)))
   panelHeight := getMessageHeight(prompt, panelWidth)
   return width/2 - panelWidth/2,
     height/2 - panelHeight/2 - panelHeight%2 - 1,
@@ -113,7 +112,7 @@ func setKeyBindings(g *gocui.Gui, handleYes, handleNo func(*gocui.Gui, *gocui.Vi
   return nil
 }
 
-func createSimpleConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {
+func createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {
   return createConfirmationPanel(g, currentView, title, prompt, nil, nil)
 }
 

@@ -60,8 +60,18 @@ func handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
   }, nil)
 }
 
+func renderCommitsOptions(g *gocui.Gui) error {
+  return renderOptionsMap(g, map[string]string{
+    "s": "squash down",
+    "r": "rename",
+    "g": "reset to this commit",
+  })
+}
+
 func handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
-  renderString(g, "options", "s: squash down, r: rename, g: reset to this commit")
+  if err := renderCommitsOptions(g); err != nil {
+    return err
+  }
   commit, err := getSelectedCommit(g)
   if err != nil {
     if err != ErrNoCommits {

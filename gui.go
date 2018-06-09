@@ -8,22 +8,38 @@ import (
   "log"
   "time"
   // "strings"
+  "github.com/golang-collections/collections/stack"
   "github.com/jesseduffield/gocui"
 )
 
 type stateType struct {
-  GitFiles     []GitFile
-  Branches     []Branch
-  Commits      []Commit
-  StashEntries []StashEntry
-  PreviousView string
+  GitFiles          []GitFile
+  Branches          []Branch
+  Commits           []Commit
+  StashEntries      []StashEntry
+  PreviousView      string
+  HasMergeConflicts bool
+  ConflictIndex     int
+  ConflictTop       bool
+  Conflicts         []conflict
+  EditHistory       *stack.Stack
+}
+
+type conflict struct {
+  start  int
+  middle int
+  end    int
 }
 
 var state = stateType{
-  GitFiles:     make([]GitFile, 0),
-  PreviousView: "files",
-  Commits:      make([]Commit, 0),
-  StashEntries: make([]StashEntry, 0),
+  GitFiles:      make([]GitFile, 0),
+  PreviousView:  "files",
+  Commits:       make([]Commit, 0),
+  StashEntries:  make([]StashEntry, 0),
+  ConflictIndex: 0,
+  ConflictTop:   true,
+  Conflicts:     make([]conflict, 0),
+  EditHistory:   stack.New(),
 }
 
 func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
@@ -42,6 +58,10 @@ func scrollDownMain(g *gocui.Gui, v *gocui.View) error {
     return mainView.SetOrigin(ox, oy+1)
   }
   return nil
+}
+
+func handleRefresh(g *gocui.Gui, v *gocui.View) error {
+  return refreshSidePanels(g)
 }
 
 func keybindings(g *gocui.Gui) error {
@@ -66,6 +86,15 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone, scrollDownMain); err != nil {
     return err
   }
+  if err := g.SetKeybinding("", 'P', gocui.ModNone, pushFiles); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", 'p', gocui.ModNone, pullFiles); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("", 'R', gocui.ModNone, handleRefresh); err != nil {
+    return err
+  }
   if err := g.SetKeybinding("files", 'c', gocui.ModNone, handleCommitPress); err != nil {
     return err
   }
@@ -75,22 +104,43 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("files", 'd', gocui.ModNone, handleFileRemove); err != nil {
     return err
   }
+  if err := g.SetKeybinding("files", 'm', gocui.ModNone, handleSwitchToMerge); err != nil {
+    return err
+  }
   if err := g.SetKeybinding("files", 'o', gocui.ModNone, handleFileOpen); err != nil {
     return err
   }
   if err := g.SetKeybinding("files", 's', gocui.ModNone, handleSublimeFileOpen); err != nil {
     return err
   }
-  if err := g.SetKeybinding("", 'P', gocui.ModNone, pushFiles); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", 'p', gocui.ModNone, pullFiles); err != nil {
-    return err
-  }
   if err := g.SetKeybinding("files", 'i', gocui.ModNone, handleIgnoreFile); err != nil {
     return err
   }
   if err := g.SetKeybinding("files", 'S', gocui.ModNone, handleStashSave); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("files", 'a', gocui.ModNone, handleAbortMerge); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("main", gocui.KeyArrowUp, gocui.ModNone, handleSelectTop); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("main", gocui.KeyEsc, gocui.ModNone, handleEscapeMerge); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("main", gocui.KeyArrowDown, gocui.ModNone, handleSelectBottom); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("main", gocui.KeySpace, gocui.ModNone, handlePickConflict); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("main", gocui.KeyArrowLeft, gocui.ModNone, handleSelectPrevConflict); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("main", gocui.KeyArrowRight, gocui.ModNone, handleSelectNextConflict); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("main", 'z', gocui.ModNone, handlePopFileSnapshot); err != nil {
     return err
   }
   if err := g.SetKeybinding("branches", gocui.KeySpace, gocui.ModNone, handleBranchPress); err != nil {
@@ -100,6 +150,9 @@ func keybindings(g *gocui.Gui) error {
     return err
   }
   if err := g.SetKeybinding("branches", 'n', gocui.ModNone, handleNewBranch); err != nil {
+    return err
+  }
+  if err := g.SetKeybinding("branches", 'm', gocui.ModNone, handleMerge); err != nil {
     return err
   }
   if err := g.SetKeybinding("commits", 's', gocui.ModNone, handleCommitSquashDown); err != nil {
@@ -127,12 +180,14 @@ func keybindings(g *gocui.Gui) error {
 }
 
 func layout(g *gocui.Gui) error {
+  g.Highlight = true
+  g.SelFgColor = gocui.AttrBold
   width, height := g.Size()
   leftSideWidth := width / 3
   statusFilesBoundary := 2
-  filesBranchesBoundary := height - 20
-  commitsBranchesBoundary := height - 10
-  commitsStashBoundary := height - 5
+  filesBranchesBoundary := 2 * height / 5   // height - 20
+  commitsBranchesBoundary := 3 * height / 5 // height - 10
+  commitsStashBoundary := height - 5        // height - 5
 
   optionsTop := height - 2
   // hiding options if there's not enough space
@@ -241,35 +296,3 @@ func run() {
 func quit(g *gocui.Gui, v *gocui.View) error {
   return gocui.ErrQuit
 }
-
-// const mcRide = "
-//                                                     `.-::-`
-//                                                  -/o+oossys+:.
-//                                                `+o++++++osssyys/`
-//                    ://-:+.`     .::-.       . `++oyyo/-/+oooosyhy.
-//                     `-+sy::-:::/+o+yss+-...   /s++ss/:/:+osyoosydh`
-//                        `-:/+o/:/+:/+-s/:s/o+`/++s++/:--/+shds+++yd:
-//                            `y+/+soy:+/-o++y+yhyyyo/---/oyhddo/::od-
-//                           .+o-``-+syysy//o:-oo+oyyyo+oyhyddds/oshy
-//                        `:o++o+/-....-:/+oooyyh+:ooshhhhhhdddssyyy`
-//                      .:o+/++ooosso//:::+yo.::hs+++:yhhhhdddhoyhh:
-//                  `-/+so///+osyso-.:://++-` `:hhhdsohddhhhdddssh+
-//                -+oso++ssoyys:.`              ydddddddddddhho+yd+
-//             `:sysssssssydh:`    `-:::-..-...`ydddddddddyso++shds
-//           `/syyysssyyhhdd+``..://+ooo/++ssssoyddddddhho/:::oyhdhs-`
-//          -syyyysssyhhddhyo++++/::+/+/-:::///+sddddhs//+o+/ososyhhs+/.`
-//        `+hhyyyyyyyhddhs+///://///+ooo/::+o++osyhyyys+--+//o//oosyys++++:..``
-//       .sddhyhyyyhddyso++/::://////+syo/:osssssyhsssoooosoo//+ossssyssooooo+++:.
-//       .hdhhhhhhhhhysssssysssssssyyyhddso+soyhhhsssooosyyssso+syysoososoo/++osyo/
-//        -syyyyyyyyyyyyyyyyyyo/::----:shdsyo+yysyyyssssosyysos+/+++/+ooo++:/+/ooss/
-//          `........----..``           odhyyyhhsysoss++oysso++s/++++syys++/:::/:+sy-
-//                                      `ydyssyysyoyyo+sysyys++s+++++ooo+osss+/+++syy
-//                                       /dysyssoyyoo+oyyshss//:---:/++++oshhysooosyh`
-//                                       .dhhhyysyyys++yyyyss+--:::/:///oshddhhyo+osy`
-//                                        yddhhyyssy+//ssyyso/-:://+ooosyhddhsoo+/+so
-//                                        +ddhhyysss+osyyysss:::/oyyhhyhddddds+///oy/
-//                                        /dddhhyyyssysssssss+++ooyhdddddddhdyo///yyo
-//                                        /dddhyyyyyysssoo+/:-/oshhdddddddssdds+//sys
-//                                        +ddhhyyhhy/oo+/:::::+syhddddddds -hdyo++ohh`
-//                                        sddhhysyysoys/:::::osyhdddddddy`  sdhsosohh:
-//                                       `dddddhhhhhhhyo:-/ossoshddddhhd-   .ddyssohh/"

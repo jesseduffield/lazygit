@@ -21,6 +21,13 @@ func refreshStatus(g *gocui.Gui) error {
     pushables, pullables := gitUpstreamDifferenceCount()
     fmt.Fprint(v, "↑"+pushables+"↓"+pullables)
     branches := state.Branches
+    if err := updateHasMergeConflictStatus(); err != nil {
+      return err
+    }
+    if state.HasMergeConflicts {
+      colour := color.New(color.FgYellow)
+      fmt.Fprint(v, coloredString(" (merging)", colour))
+    }
     if len(branches) == 0 {
       return nil
     }

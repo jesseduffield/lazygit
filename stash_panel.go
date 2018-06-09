@@ -30,8 +30,18 @@ func getSelectedStashEntry(v *gocui.View) *StashEntry {
   return &state.StashEntries[lineNumber]
 }
 
+func renderStashOptions(g *gocui.Gui) error {
+  return renderOptionsMap(g, map[string]string{
+    "space": "apply",
+    "k":     "pop",
+    "d":     "drop",
+  })
+}
+
 func handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
-  renderString(g, "options", "space: apply, k: pop, d: drop")
+  if err := renderStashOptions(g); err != nil {
+    return err
+  }
   go func() {
     stashEntry := getSelectedStashEntry(v)
     if stashEntry == nil {

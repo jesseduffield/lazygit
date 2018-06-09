@@ -30,7 +30,7 @@ func stagedFiles(files []GitFile) []GitFile {
 }
 
 func handleFilePress(g *gocui.Gui, v *gocui.View) error {
-  file, err := getSelectedFile(v)
+  file, err := getSelectedFile(g)
   if err != nil {
     return err
   }
@@ -51,16 +51,20 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
   return nil
 }
 
-func getSelectedFile(v *gocui.View) (GitFile, error) {
+func getSelectedFile(g *gocui.Gui) (GitFile, error) {
   if len(state.GitFiles) == 0 {
     return GitFile{}, ErrNoFiles
   }
-  lineNumber := getItemPosition(v)
+  filesView, err := g.View("files")
+  if err != nil {
+    panic(err)
+  }
+  lineNumber := getItemPosition(filesView)
   return state.GitFiles[lineNumber], nil
 }
 
 func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
-  file, err := getSelectedFile(v)
+  file, err := getSelectedFile(g)
   if err != nil {
     return err
   }
@@ -79,7 +83,7 @@ func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 }
 
 func handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
-  file, err := getSelectedFile(v)
+  file, err := getSelectedFile(g)
   if err != nil {
     return err
   }
@@ -90,30 +94,52 @@ func handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
   return refreshFiles(g)
 }
 
+func renderfilesOptions(g *gocui.Gui, gitFile *GitFile) error {
+  optionsMap := map[string]string{
+    "tab":   "next panel",
+    "S":     "stash files",
+    "c":     "commit changes",
+    "o":     "open",
+    "s":     "open in sublime",
+    "i":     "ignore",
+    "d":     "delete",
+    "space": "toggle staged",
+  }
+  if state.HasMergeConflicts {
+    optionsMap["a"] = "abort merge"
+    optionsMap["m"] = "resolve merge conflicts"
+  }
+  if gitFile == nil {
+    return renderOptionsMap(g, optionsMap)
+  }
+  if gitFile.Tracked {
+    optionsMap["d"] = "checkout"
+  }
+  return renderOptionsMap(g, optionsMap)
+}
+
 func handleFileSelect(g *gocui.Gui, v *gocui.View) error {
-  baseString := "tab: next panel, S: stash files, space: toggle staged, c: commit changes, o: open, s: open in sublime, i: ignore"
-  item, err := getSelectedFile(v)
+  gitFile, err := getSelectedFile(g)
   if err != nil {
     if err != ErrNoFiles {
       return err
     }
     renderString(g, "main", "No changed files")
     colorLog(color.FgRed, "error")
-    return renderString(g, "options", baseString)
+    return renderfilesOptions(g, nil)
   }
-  var optionsString string
-  if item.Tracked {
-    optionsString = baseString + ", d: checkout"
-  } else {
-    optionsString = baseString + ", d: delete"
+  renderfilesOptions(g, &gitFile)
+  var content string
+  if gitFile.HasMergeConflicts {
+    return refreshMergePanel(g)
   }
-  renderString(g, "options", optionsString)
-  diff := getDiff(item)
-  return renderString(g, "main", diff)
+
+  content = getDiff(gitFile)
+  return renderString(g, "main", content)
 }
 
 func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-  if len(stagedFiles(state.GitFiles)) == 0 {
+  if len(stagedFiles(state.GitFiles)) == 0 && !state.HasMergeConflicts {
     return createErrorPanel(g, "There are no staged files to commit")
   }
   createPromptPanel(g, filesView, "Commit message", func(g *gocui.Gui, v *gocui.View) error {
@@ -131,7 +157,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 }
 
 func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, error)) error {
-  file, err := getSelectedFile(v)
+  file, err := getSelectedFile(g)
   if err != nil {
     return err
   }
@@ -146,31 +172,64 @@ func handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
   return genericFileOpen(g, v, sublimeOpenFile)
 }
 
+func refreshStateGitFiles() {
+  // get files to stage
+  gitFiles := getGitStatusFiles()
+  state.GitFiles = mergeGitStatusFiles(state.GitFiles, gitFiles)
+  updateHasMergeConflictStatus()
+}
+
+func updateHasMergeConflictStatus() error {
+  merging, err := isInMergeState()
+  if err != nil {
+    return err
+  }
+  state.HasMergeConflicts = merging
+  return nil
+}
+
+func renderGitFile(gitFile GitFile, filesView *gocui.View) {
+  // potentially inefficient to be instantiating these color
+  // objects with each render
+  red := color.New(color.FgRed)
+  green := color.New(color.FgGreen)
+  if !gitFile.Tracked {
+    red.Fprintln(filesView, gitFile.DisplayString)
+    return
+  }
+  green.Fprint(filesView, gitFile.DisplayString[0:1])
+  red.Fprint(filesView, gitFile.DisplayString[1:3])
+  if gitFile.HasUnstagedChanges {
+    red.Fprintln(filesView, gitFile.Name)
+  } else {
+    green.Fprintln(filesView, gitFile.Name)
+  }
+}
+
+func catSelectedFile(g *gocui.Gui) (string, error) {
+  item, err := getSelectedFile(g)
+  if err != nil {
+    if err != ErrNoFiles {
+      return "", err
+    }
+    return "", renderString(g, "main", "No file to display")
+  }
+  cat, err := catFile(item.Name)
+  if err != nil {
+    panic(err)
+  }
+  return cat, nil
+}
+
 func refreshFiles(g *gocui.Gui) error {
   filesView, err := g.View("files")
   if err != nil {
     return err
   }
-
-  // get files to stage
-  gitFiles := getGitStatusFiles()
-  state.GitFiles = mergeGitStatusFiles(state.GitFiles, gitFiles)
-
+  refreshStateGitFiles()
   filesView.Clear()
-  red := color.New(color.FgRed)
-  green := color.New(color.FgGreen)
   for _, gitFile := range state.GitFiles {
-    if !gitFile.Tracked {
-      red.Fprintln(filesView, gitFile.DisplayString)
-      continue
-    }
-    green.Fprint(filesView, gitFile.DisplayString[0:1])
-    red.Fprint(filesView, gitFile.DisplayString[1:3])
-    if gitFile.HasUnstagedChanges {
-      red.Fprintln(filesView, gitFile.Name)
-    } else {
-      green.Fprintln(filesView, gitFile.Name)
-    }
+    renderGitFile(gitFile, filesView)
   }
   correctCursor(filesView)
   if filesView == g.CurrentView() {
@@ -181,7 +240,7 @@ func refreshFiles(g *gocui.Gui) error {
 
 func pullFiles(g *gocui.Gui, v *gocui.View) error {
   devLog("pulling...")
-  createSimpleConfirmationPanel(g, v, "", "Pulling...")
+  createMessagePanel(g, v, "", "Pulling...")
   go func() {
     if output, err := gitPull(); err != nil {
       createErrorPanel(g, output)
@@ -198,7 +257,7 @@ func pullFiles(g *gocui.Gui, v *gocui.View) error {
 
 func pushFiles(g *gocui.Gui, v *gocui.View) error {
   devLog("pushing...")
-  createSimpleConfirmationPanel(g, v, "", "Pushing...")
+  createMessagePanel(g, v, "", "Pushing...")
   go func() {
     if output, err := gitPush(); err != nil {
       createErrorPanel(g, output)
@@ -210,4 +269,32 @@ func pushFiles(g *gocui.Gui, v *gocui.View) error {
     }
   }()
   return nil
+}
+
+func handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
+  mergeView, err := g.View("main")
+  if err != nil {
+    return err
+  }
+  file, err := getSelectedFile(g)
+  if err != nil {
+    if err != ErrNoFiles {
+      return err
+    }
+    return nil
+  }
+  if !file.HasMergeConflicts {
+    return nil
+  }
+  switchFocus(g, v, mergeView)
+  return refreshMergePanel(g)
+}
+
+func handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
+  output, err := gitAbortMerge()
+  if err != nil {
+    return createErrorPanel(g, output)
+  }
+  createMessagePanel(g, v, "", "Merge aborted")
+  return refreshFiles(g)
 }

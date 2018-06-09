@@ -11,7 +11,7 @@ func handleBranchPress(g *gocui.Gui, v *gocui.View) error {
   if output, err := gitCheckout(branch.Name, false); err != nil {
     createErrorPanel(g, output)
   }
-  return refreshSidePanels(g, v)
+  return refreshSidePanels(g)
 }
 
 func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
@@ -20,7 +20,7 @@ func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
     if output, err := gitCheckout(branch.Name, true); err != nil {
       createErrorPanel(g, output)
     }
-    return refreshSidePanels(g, v)
+    return refreshSidePanels(g)
   }, nil)
 }
 
@@ -30,9 +30,22 @@ func handleNewBranch(g *gocui.Gui, v *gocui.View) error {
     if output, err := gitNewBranch(trimmedContent(v)); err != nil {
       return createErrorPanel(g, output)
     }
-    refreshSidePanels(g, v)
+    refreshSidePanels(g)
     return handleCommitSelect(g, v)
   })
+  return nil
+}
+
+func handleMerge(g *gocui.Gui, v *gocui.View) error {
+  checkedOutBranch := state.Branches[0]
+  selectedBranch := getSelectedBranch(v)
+  defer refreshSidePanels(g)
+  if checkedOutBranch.Name == selectedBranch.Name {
+    return createErrorPanel(g, "You cannot merge a branch into itself")
+  }
+  if output, err := gitMerge(selectedBranch.Name); err != nil {
+    return createErrorPanel(g, output)
+  }
   return nil
 }
 
@@ -41,9 +54,20 @@ func getSelectedBranch(v *gocui.View) Branch {
   return state.Branches[lineNumber]
 }
 
+func renderBranchesOptions(g *gocui.Gui) error {
+  return renderOptionsMap(g, map[string]string{
+    "space": "checkout",
+    "f":     "force checkout",
+    "m":     "merge",
+  })
+}
+
 // may want to standardise how these select methods work
 func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
-  renderString(g, "options", "space: checkout, f: force checkout")
+  if err := renderBranchesOptions(g); err != nil {
+    return err
+  }
+  // This really shouldn't happen: there should always be a master branch
   if len(state.Branches) == 0 {
     return renderString(g, "main", "No branches for this repo")
   }

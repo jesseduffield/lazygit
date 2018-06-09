@@ -21,6 +21,7 @@ type GitFile struct {
   HasUnstagedChanges bool
   Tracked            bool
   Deleted            bool
+  HasMergeConflicts  bool
   DisplayString      string
 }
 
@@ -30,7 +31,6 @@ type Branch struct {
   Type          string
   BaseBranch    string
   DisplayString string
-  DisplayColor  color.Attribute
 }
 
 // Commit : A git commit
@@ -133,8 +133,8 @@ func branchPropertiesFromName(name string) (string, string, color.Attribute) {
   return "other", name, color.FgWhite
 }
 
-func coloredString(str string, colour color.Attribute) string {
-  return color.New(colour).SprintFunc()(fmt.Sprint(str))
+func coloredString(str string, colour *color.Color) string {
+  return colour.SprintFunc()(fmt.Sprint(str))
 }
 
 func withPadding(str string, padding int) string {
@@ -143,17 +143,17 @@ func withPadding(str string, padding int) string {
 
 func branchFromLine(line string, index int) Branch {
   recency, name := branchStringParts(line)
-  branchType, branchBase, colour := branchPropertiesFromName(name)
+  branchType, branchBase, colourAttr := branchPropertiesFromName(name)
   if index == 0 {
     recency = "  *"
   }
+  colour := color.New(colourAttr)
   displayString := withPadding(recency, 4) + coloredString(name, colour)
   return Branch{
     Name:          name,
     Type:          branchType,
     BaseBranch:    branchBase,
     DisplayString: displayString,
-    DisplayColor:  colour,
   }
 }
 
@@ -206,10 +206,11 @@ func getGitStatusFiles() []GitFile {
     gitFile := GitFile{
       Name:               filename,
       DisplayString:      statusString,
-      HasStagedChanges:   tracked && stagedChange != " ",
+      HasStagedChanges:   tracked && stagedChange != " " && stagedChange != "U",
       HasUnstagedChanges: !tracked || unstagedChange != " ",
       Tracked:            tracked,
       Deleted:            unstagedChange == "D" || stagedChange == "D",
+      HasMergeConflicts:  statusString[0:2] == "UU",
     }
     gitFiles = append(gitFiles, gitFile)
   }
@@ -328,12 +329,13 @@ func getDiff(file GitFile) string {
     trackedArg = "--no-index /dev/null "
   }
   command := "git diff --color " + cachedArg + deletedArg + trackedArg + file.Name
-  s, err := runCommand(command)
-  if err != nil {
-    // for now we assume an error means the file was deleted
-    return s
-  }
+  // for now we assume an error means the file was deleted
+  s, _ := runCommand(command)
   return s
+}
+
+func catFile(file string) (string, error) {
+  return runDirectCommand("cat " + file)
 }
 
 func stageFile(file string) error {
@@ -348,6 +350,14 @@ func unStageFile(file string) error {
 
 func getGitStatus() (string, error) {
   return runCommand("git status --untracked-files=all --short")
+}
+
+func isInMergeState() (bool, error) {
+  output, err := runCommand("git status --untracked-files=all")
+  if err != nil {
+    return false, err
+  }
+  return strings.Contains(output, "conclude merge") || strings.Contains(output, "unmerged paths"), nil
 }
 
 func removeFile(file GitFile) error {
@@ -396,6 +406,14 @@ func gitNewBranch(name string) (string, error) {
 
 func gitListStash() (string, error) {
   return runDirectCommand("git stash list")
+}
+
+func gitMerge(branchName string) (string, error) {
+  return runDirectCommand("git merge --no-edit " + branchName)
+}
+
+func gitAbortMerge() (string, error) {
+  return runDirectCommand("git merge --abort")
 }
 
 func gitUpstreamDifferenceCount() (string, string) {
