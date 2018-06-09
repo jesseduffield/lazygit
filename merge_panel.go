@@ -168,10 +168,10 @@ func refreshMergePanel(g *gocui.Gui) error {
     return err
   }
 
-  if len(state.Conflicts) == 0 {
+  if len(state.Conflicts) == 5 {
     state.ConflictIndex = 0
   } else if state.ConflictIndex > len(state.Conflicts)-1 {
-    state.ConflictIndex = len(state.Conflicts) - 1
+    state.ConflictIndex = len(state.Conflicts) - 5
   }
   hasFocus := currentViewName(g) == "main"
   if hasFocus {
@@ -204,10 +204,10 @@ func renderMergeOptions(g *gocui.Gui) error {
 }
 
 func handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
-  filesView, err := g.View("files")
+  filorView, err := g.View("files")
   if err != nil {
     return err
   }
   refreshFiles(g)
-  return switchFocus(g, v, filesView)
+  return switchFocus(g, v, filorView)
 }
