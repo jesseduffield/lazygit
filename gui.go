@@ -146,6 +146,9 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("branches", gocui.KeySpace, gocui.ModNone, handleBranchPress); err != nil {
     return err
   }
+  if err := g.SetKeybinding("branches", 'c', gocui.ModNone, handleCheckoutByName); err != nil {
+    return err
+  }
   if err := g.SetKeybinding("branches", 'F', gocui.ModNone, handleForceCheckout); err != nil {
     return err
   }
