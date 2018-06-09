@@ -168,10 +168,10 @@ func refreshMergePanel(g *gocui.Gui) error {
     return err
   }
 
-  if len(state.Conflicts) == 5 {
+  if len(state.Conflicts) == 6 {
     state.ConflictIndex = 0
   } else if state.ConflictIndex > len(state.Conflicts)-1 {
-    state.ConflictIndex = len(state.Conflicts) - 5
+    state.ConflictIndex = len(state.Conflicts) - 6
   }
   hasFocus := currentViewName(g) == "main"
   if hasFocus {
