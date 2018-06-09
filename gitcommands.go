@@ -165,7 +165,14 @@ func getGitBranches() []Branch {
     return branches
   }
   rawString, _ := runDirectCommand(getBranchesCommand)
-  for i, line := range splitLines(rawString) {
+  branchLines := splitLines(rawString)
+  if len(branchLines) == 0 {
+    // sometimes the getBranchesCommand command returns nothing, in which case
+    // we assume you've just init'd or cloned the repo and you've got master
+    // checked out
+    branches = append(branches, branchFromLine(" *\tmaster", 0))
+  }
+  for i, line := range branchLines {
     branches = append(branches, branchFromLine(line, i))
   }
   return branches

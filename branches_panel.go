@@ -24,6 +24,16 @@ func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
   }, nil)
 }
 
+func handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
+  createPromptPanel(g, v, "Branch Name:", func(g *gocui.Gui, v *gocui.View) error {
+    if output, err := gitCheckout(trimmedContent(v), false); err != nil {
+      return createErrorPanel(g, output)
+    }
+    return refreshSidePanels(g)
+  })
+  return nil
+}
+
 func handleNewBranch(g *gocui.Gui, v *gocui.View) error {
   branch := state.Branches[0]
   createPromptPanel(g, v, "New Branch Name (Branch is off of "+branch.Name+")", func(g *gocui.Gui, v *gocui.View) error {
@@ -31,7 +41,7 @@ func handleNewBranch(g *gocui.Gui, v *gocui.View) error {
       return createErrorPanel(g, output)
     }
     refreshSidePanels(g)
-    return handleCommitSelect(g, v)
+    return handleBranchSelect(g, v)
   })
   return nil
 }
@@ -59,6 +69,7 @@ func renderBranchesOptions(g *gocui.Gui) error {
     "space": "checkout",
     "f":     "force checkout",
     "m":     "merge",
+    "c":     "checkout by name",
   })
 }
 
