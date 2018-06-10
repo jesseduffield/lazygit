@@ -116,6 +116,9 @@ func keybindings(g *gocui.Gui) error {
   if err := g.SetKeybinding("files", 'i', gocui.ModNone, handleIgnoreFile); err != nil {
     return err
   }
+  if err := g.SetKeybinding("files", 'r', gocui.ModNone, handleRefreshFiles); err != nil {
+    return err
+  }
   if err := g.SetKeybinding("files", 'S', gocui.ModNone, handleStashSave); err != nil {
     return err
   }
