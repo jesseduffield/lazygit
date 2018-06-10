@@ -2,4 +2,4 @@
 simple terminal UI for git commands
 
 
-![Gif](http://image.ibb.co/cVPQk8/better.gif)
+![Gif](https://image.ibb.co/nxyY58/shortone.gif)
