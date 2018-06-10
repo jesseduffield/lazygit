@@ -102,7 +102,7 @@ func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, promp
 }
 
 func setKeyBindings(g *gocui.Gui, handleYes, handleNo func(*gocui.Gui, *gocui.View) error) error {
-  renderString(g, "options", "esc/n: close, enter/y: confirm")
+  renderString(g, "options", "esc: close, enter: confirm")
   if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleYes)); err != nil {
     return err
   }
