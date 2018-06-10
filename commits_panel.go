@@ -40,7 +40,7 @@ func refreshCommits(g *gocui.Gui) error {
 }
 
 func handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
-  return createConfirmationPanel(g, commitView, "Reset To Commit", "Are you sure you want to reset to this commit? (y/n)", func(g *gocui.Gui, v *gocui.View) error {
+  return createConfirmationPanel(g, commitView, "Reset To Commit", "Are you sure you want to reset to this commit?", func(g *gocui.Gui, v *gocui.View) error {
     commit, err := getSelectedCommit(g)
     devLog(commit)
     if err != nil {

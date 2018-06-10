@@ -16,7 +16,7 @@ func handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 
 func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
   branch := getSelectedBranch(v)
-  return createConfirmationPanel(g, v, "Force Checkout Branch", "Are you sure you want force checkout? You will lose all local changes (y/n)", func(g *gocui.Gui, v *gocui.View) error {
+  return createConfirmationPanel(g, v, "Force Checkout Branch", "Are you sure you want force checkout? You will lose all local changes", func(g *gocui.Gui, v *gocui.View) error {
     if output, err := gitCheckout(branch.Name, true); err != nil {
       createErrorPanel(g, output)
     }
@@ -70,6 +70,7 @@ func renderBranchesOptions(g *gocui.Gui) error {
     "f":     "force checkout",
     "m":     "merge",
     "c":     "checkout by name",
+    "n":     "checkout new branch",
   })
 }
 

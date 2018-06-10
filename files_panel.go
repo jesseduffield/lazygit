@@ -74,7 +74,7 @@ func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
   } else {
     deleteVerb = "delete"
   }
-  return createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", "Are you sure you want to "+deleteVerb+" "+file.Name+" (you will lose your changes)? (y/n)", func(g *gocui.Gui, v *gocui.View) error {
+  return createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", "Are you sure you want to "+deleteVerb+" "+file.Name+" (you will lose your changes)?", func(g *gocui.Gui, v *gocui.View) error {
     if err := removeFile(file); err != nil {
       panic(err)
     }
@@ -170,6 +170,10 @@ func handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 }
 func handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
   return genericFileOpen(g, v, sublimeOpenFile)
+}
+
+func handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
+  return refreshFiles(g)
 }
 
 func refreshStateGitFiles() {

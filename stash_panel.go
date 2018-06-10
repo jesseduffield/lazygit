@@ -63,7 +63,7 @@ func handleStashPop(g *gocui.Gui, v *gocui.View) error {
 }
 
 func handleStashDrop(g *gocui.Gui, v *gocui.View) error {
-  return createConfirmationPanel(g, v, "Stash drop", "Are you sure you want to drop this stash entry? (y/n)", func(g *gocui.Gui, v *gocui.View) error {
+  return createConfirmationPanel(g, v, "Stash drop", "Are you sure you want to drop this stash entry?", func(g *gocui.Gui, v *gocui.View) error {
     return stashDo(g, v, "drop")
   }, nil)
   return nil
