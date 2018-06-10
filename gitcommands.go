@@ -267,7 +267,9 @@ func sublimeOpenFile(filename string) (string, error) {
 }
 
 func getBranchDiff(branch string, baseBranch string) (string, error) {
-  return runCommand("git diff --color " + baseBranch + "..." + branch)
+
+  return runCommand("git log -p -30 --color --no-merges " + branch)
+  // return runCommand("git diff --color " + baseBranch + "..." + branch)
 }
 
 func verifyInGitRepo() {
