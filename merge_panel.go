@@ -181,7 +181,24 @@ func refreshMergePanel(g *gocui.Gui) error {
   if err != nil {
     return err
   }
+  if err := scrollToConflict(g); err != nil {
+    return err
+  }
   return renderString(g, "main", content)
+}
+
+func scrollToConflict(g *gocui.Gui) error {
+  mainView, err := g.View("main")
+  if err != nil {
+    return err
+  }
+  if len(state.Conflicts) == 0 {
+    return nil
+  }
+  conflict := state.Conflicts[state.ConflictIndex]
+  ox, oy := mainView.Origin()
+  devLog(oy, conflict.start)
+  return mainView.SetOrigin(ox, conflict.start)
 }
 
 func switchToMerging(g *gocui.Gui) error {
