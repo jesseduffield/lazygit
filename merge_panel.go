@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"bytes"
 	"io/ioutil"
+	"math"
 	"os"
 	"strings"
 
@@ -86,16 +87,21 @@ func handleSelectPrevConflict(g *gocui.Gui, v *gocui.View) error {
 	return refreshMergePanel(g)
 }
 
-func isIndexToDelete(i int, conflict conflict, top bool) bool {
+func isIndexToDelete(i int, conflict conflict, pick string) bool {
 	return i == conflict.middle ||
 		i == conflict.start ||
 		i == conflict.end ||
-		(!top && i > conflict.start && i < conflict.middle) ||
-		(top && i > conflict.middle && i < conflict.end)
+		pick != "both" &&
+			(pick == "bottom" && i > conflict.start && i < conflict.middle) ||
+		(pick == "top" && i > conflict.middle && i < conflict.end)
 }
 
-func resolveConflict(filename string, conflict conflict, top bool) error {
-	file, err := os.Open(filename)
+func resolveConflict(g *gocui.Gui, conflict conflict, pick string) error {
+	gitFile, err := getSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	file, err := os.Open(gitFile.Name)
 	if err != nil {
 		return err
 	}
@@ -108,16 +114,20 @@ func resolveConflict(filename string, conflict conflict, top bool) error {
 		if err != nil {
 			break
 		}
-		if !isIndexToDelete(i, conflict, top) {
+		if !isIndexToDelete(i, conflict, pick) {
 			output += line
 		}
 	}
 	devLog(output)
-	return ioutil.WriteFile(filename, []byte(output), 0644)
+	return ioutil.WriteFile(gitFile.Name, []byte(output), 0644)
 }
 
-func pushFileSnapshot(filename string) error {
-	content, err := catFile(filename)
+func pushFileSnapshot(g *gocui.Gui) error {
+	gitFile, err := getSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	content, err := catFile(gitFile.Name)
 	if err != nil {
 		return err
 	}
@@ -139,14 +149,25 @@ func handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 	return refreshMergePanel(g)
 }
 
-func handlePickConflict(g *gocui.Gui, v *gocui.View) error {
+func handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 	conflict := state.Conflicts[state.ConflictIndex]
-	gitFile, err := getSelectedFile(g)
-	if err != nil {
-		return err
+	pushFileSnapshot(g)
+	pick := "bottom"
+	if state.ConflictTop {
+		pick = "top"
 	}
-	pushFileSnapshot(gitFile.Name)
-	err = resolveConflict(gitFile.Name, conflict, state.ConflictTop)
+	err := resolveConflict(g, conflict, pick)
+	if err != nil {
+		panic(err)
+	}
+	refreshMergePanel(g)
+	return nil
+}
+
+func handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
+	conflict := state.Conflicts[state.ConflictIndex]
+	pushFileSnapshot(g)
+	err := resolveConflict(g, conflict, "both")
 	if err != nil {
 		panic(err)
 	}
@@ -159,46 +180,48 @@ func currentViewName(g *gocui.Gui) string {
 }
 
 func refreshMergePanel(g *gocui.Gui) error {
-  cat, err := catSelectedFile(g)
-  if err != nil {
-    return err
-  }
-  state.Conflicts, err = findConflicts(cat)
-  if err != nil {
-    return err
-  }
+	cat, err := catSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	state.Conflicts, err = findConflicts(cat)
+	if err != nil {
+		return err
+	}
 
-  if len(state.Conflicts) == 0 {
-    state.ConflictIndex = 0
-  } else if state.ConflictIndex > len(state.Conflicts)-1 {
-    state.ConflictIndex = len(state.Conflicts) - 1
-  }
-  hasFocus := currentViewName(g) == "main"
-  if hasFocus {
-    renderMergeOptions(g)
-  }
-  content, err := coloredConflictFile(cat, state.Conflicts, state.ConflictIndex, state.ConflictTop, hasFocus)
-  if err != nil {
-    return err
-  }
-  if err := scrollToConflict(g); err != nil {
-    return err
-  }
-  return renderString(g, "main", content)
+	if len(state.Conflicts) == 0 {
+		return handleCompleteMerge(g)
+	} else if state.ConflictIndex > len(state.Conflicts)-1 {
+		state.ConflictIndex = len(state.Conflicts) - 1
+	}
+	hasFocus := currentViewName(g) == "main"
+	if hasFocus {
+		renderMergeOptions(g)
+	}
+	content, err := coloredConflictFile(cat, state.Conflicts, state.ConflictIndex, state.ConflictTop, hasFocus)
+	if err != nil {
+		return err
+	}
+	if err := scrollToConflict(g); err != nil {
+		return err
+	}
+	return renderString(g, "main", content)
 }
 
 func scrollToConflict(g *gocui.Gui) error {
-  mainView, err := g.View("main")
-  if err != nil {
-    return err
-  }
-  if len(state.Conflicts) == 0 {
-    return nil
-  }
-  conflict := state.Conflicts[state.ConflictIndex]
-  ox, oy := mainView.Origin()
-  devLog(oy, conflict.start)
-  return mainView.SetOrigin(ox, conflict.start)
+	mainView, err := g.View("main")
+	if err != nil {
+		return err
+	}
+	if len(state.Conflicts) == 0 {
+		return nil
+	}
+	conflict := state.Conflicts[state.ConflictIndex]
+	ox, _ := mainView.Origin()
+	_, height := mainView.Size()
+	conflictMiddle := (conflict.end + conflict.start) / 2
+	newOriginY := int(math.Max(0, float64(conflictMiddle-(height/2))))
+	return mainView.SetOrigin(ox, newOriginY)
 }
 
 func switchToMerging(g *gocui.Gui) error {
@@ -216,6 +239,7 @@ func renderMergeOptions(g *gocui.Gui) error {
 		"up/down":    "pick hunk",
 		"left/right": "previous/next commit",
 		"space":      "pick hunk",
+		"b":          "pick both hunks",
 		"z":          "undo",
 	})
 }
@@ -227,4 +251,14 @@ func handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 	}
 	refreshFiles(g)
 	return switchFocus(g, v, filesView)
+}
+
+func handleCompleteMerge(g *gocui.Gui) error {
+	filesView, err := g.View("files")
+	if err != nil {
+		return err
+	}
+	stageSelectedFile(g)
+	refreshFiles(g)
+	return switchFocus(g, nil, filesView)
 }

@@ -29,10 +29,22 @@ func stagedFiles(files []GitFile) []GitFile {
 	return result
 }
 
+func stageSelectedFile(g *gocui.Gui) error {
+	file, err := getSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	return stageFile(file.Name)
+}
+
 func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
 		return err
+	}
+
+	if file.HasMergeConflicts {
+		return handleSwitchToMerge(g, v)
 	}
 
 	if file.HasUnstagedChanges {
@@ -64,22 +76,22 @@ func getSelectedFile(g *gocui.Gui) (GitFile, error) {
 }
 
 func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
-  file, err := getSelectedFile(g)
-  if err != nil {
-    return err
-  }
-  var deleteVerb string
-  if file.Tracked {
-    deleteVerb = "checkout"
-  } else {
-    deleteVerb = "delete"
-  }
-  return createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", "Are you sure you want to "+deleteVerb+" "+file.Name+" (you will lose your changes)?", func(g *gocui.Gui, v *gocui.View) error {
-    if err := removeFile(file); err != nil {
-      panic(err)
-    }
-    return refreshFiles(g)
-  }, nil)
+	file, err := getSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	var deleteVerb string
+	if file.Tracked {
+		deleteVerb = "checkout"
+	} else {
+		deleteVerb = "delete"
+	}
+	return createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", "Are you sure you want to "+deleteVerb+" "+file.Name+" (you will lose your changes)?", func(g *gocui.Gui, v *gocui.View) error {
+		if err := removeFile(file); err != nil {
+			panic(err)
+		}
+		return refreshFiles(g)
+	}, nil)
 }
 
 func handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
@@ -176,7 +188,7 @@ func handleVsCodeFileOpen(g *gocui.Gui, v *gocui.View) error {
 }
 
 func handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
-  return refreshFiles(g)
+	return refreshFiles(g)
 }
 
 func refreshStateGitFiles() {
@@ -291,7 +303,7 @@ func handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if !file.HasMergeConflicts {
-		return nil
+		return createErrorPanel(g, "This file has no merge conflicts")
 	}
 	switchFocus(g, v, mergeView)
 	return refreshMergePanel(g)

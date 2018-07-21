@@ -66,124 +66,127 @@ func handleRefresh(g *gocui.Gui, v *gocui.View) error {
 }
 
 func keybindings(g *gocui.Gui) error {
-  if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, nextView); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", gocui.KeyPgup, gocui.ModNone, scrollUpMain); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone, scrollDownMain); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", 'P', gocui.ModNone, pushFiles); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", 'p', gocui.ModNone, pullFiles); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("", 'R', gocui.ModNone, handleRefresh); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 'c', gocui.ModNone, handleCommitPress); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", gocui.KeySpace, gocui.ModNone, handleFilePress); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 'd', gocui.ModNone, handleFileRemove); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 'm', gocui.ModNone, handleSwitchToMerge); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 'o', gocui.ModNone, handleFileOpen); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 's', gocui.ModNone, handleSublimeFileOpen); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 'i', gocui.ModNone, handleIgnoreFile); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 'r', gocui.ModNone, handleRefreshFiles); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 'S', gocui.ModNone, handleStashSave); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("files", 'a', gocui.ModNone, handleAbortMerge); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("main", gocui.KeyArrowUp, gocui.ModNone, handleSelectTop); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("main", gocui.KeyEsc, gocui.ModNone, handleEscapeMerge); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("main", gocui.KeyArrowDown, gocui.ModNone, handleSelectBottom); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("main", gocui.KeySpace, gocui.ModNone, handlePickConflict); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("main", gocui.KeyArrowLeft, gocui.ModNone, handleSelectPrevConflict); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("main", gocui.KeyArrowRight, gocui.ModNone, handleSelectNextConflict); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("main", 'z', gocui.ModNone, handlePopFileSnapshot); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("branches", gocui.KeySpace, gocui.ModNone, handleBranchPress); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("branches", 'c', gocui.ModNone, handleCheckoutByName); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("branches", 'F', gocui.ModNone, handleForceCheckout); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("branches", 'n', gocui.ModNone, handleNewBranch); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("branches", 'm', gocui.ModNone, handleMerge); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("commits", 's', gocui.ModNone, handleCommitSquashDown); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("commits", 'r', gocui.ModNone, handleRenameCommit); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("commits", 'g', gocui.ModNone, handleResetToCommit); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("stash", gocui.KeySpace, gocui.ModNone, handleStashApply); err != nil {
-    return err
-  }
-  // TODO: come up with a better keybinding (p/P used for pushing/pulling which
-  // I'd like to be global. Perhaps all global keybindings should use a modifier
-  // like command? But then there's gonna be hotkey conflicts with the terminal
-  if err := g.SetKeybinding("stash", 'k', gocui.ModNone, handleStashPop); err != nil {
-    return err
-  }
-  if err := g.SetKeybinding("stash", 'd', gocui.ModNone, handleStashDrop); err != nil {
-    return err
-  }
-  return nil
+	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, nextView); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyPgup, gocui.ModNone, scrollUpMain); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", gocui.KeyPgdn, gocui.ModNone, scrollDownMain); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", 'P', gocui.ModNone, pushFiles); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", 'p', gocui.ModNone, pullFiles); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("", 'R', gocui.ModNone, handleRefresh); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 'c', gocui.ModNone, handleCommitPress); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", gocui.KeySpace, gocui.ModNone, handleFilePress); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 'd', gocui.ModNone, handleFileRemove); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 'm', gocui.ModNone, handleSwitchToMerge); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 'o', gocui.ModNone, handleFileOpen); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 's', gocui.ModNone, handleSublimeFileOpen); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 'i', gocui.ModNone, handleIgnoreFile); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 'r', gocui.ModNone, handleRefreshFiles); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 'S', gocui.ModNone, handleStashSave); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("files", 'a', gocui.ModNone, handleAbortMerge); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", gocui.KeyArrowUp, gocui.ModNone, handleSelectTop); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", gocui.KeyEsc, gocui.ModNone, handleEscapeMerge); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", gocui.KeyArrowDown, gocui.ModNone, handleSelectBottom); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", gocui.KeySpace, gocui.ModNone, handlePickHunk); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", 'b', gocui.ModNone, handlePickBothHunks); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", gocui.KeyArrowLeft, gocui.ModNone, handleSelectPrevConflict); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", gocui.KeyArrowRight, gocui.ModNone, handleSelectNextConflict); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", 'z', gocui.ModNone, handlePopFileSnapshot); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("branches", gocui.KeySpace, gocui.ModNone, handleBranchPress); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("branches", 'c', gocui.ModNone, handleCheckoutByName); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("branches", 'F', gocui.ModNone, handleForceCheckout); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("branches", 'n', gocui.ModNone, handleNewBranch); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("branches", 'm', gocui.ModNone, handleMerge); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("commits", 's', gocui.ModNone, handleCommitSquashDown); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("commits", 'r', gocui.ModNone, handleRenameCommit); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("commits", 'g', gocui.ModNone, handleResetToCommit); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("stash", gocui.KeySpace, gocui.ModNone, handleStashApply); err != nil {
+		return err
+	}
+	// TODO: come up with a better keybinding (p/P used for pushing/pulling which
+	// I'd like to be global. Perhaps all global keybindings should use a modifier
+	// like command? But then there's gonna be hotkey conflicts with the terminal
+	if err := g.SetKeybinding("stash", 'k', gocui.ModNone, handleStashPop); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("stash", 'd', gocui.ModNone, handleStashDrop); err != nil {
+		return err
+	}
+	return nil
 }
 
 func layout(g *gocui.Gui) error {
