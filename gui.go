@@ -2,66 +2,67 @@ package main
 
 import (
 
-  // "io"
-  // "io/ioutil"
+	// "io"
+	// "io/ioutil"
 
-  "log"
-  "time"
-  // "strings"
-  "github.com/golang-collections/collections/stack"
-  "github.com/jesseduffield/gocui"
+	"log"
+	"time"
+
+	// "strings"
+	"github.com/golang-collections/collections/stack"
+	"github.com/jesseduffield/gocui"
 )
 
 type stateType struct {
-  GitFiles          []GitFile
-  Branches          []Branch
-  Commits           []Commit
-  StashEntries      []StashEntry
-  PreviousView      string
-  HasMergeConflicts bool
-  ConflictIndex     int
-  ConflictTop       bool
-  Conflicts         []conflict
-  EditHistory       *stack.Stack
+	GitFiles          []GitFile
+	Branches          []Branch
+	Commits           []Commit
+	StashEntries      []StashEntry
+	PreviousView      string
+	HasMergeConflicts bool
+	ConflictIndex     int
+	ConflictTop       bool
+	Conflicts         []conflict
+	EditHistory       *stack.Stack
 }
 
 type conflict struct {
-  start  int
-  middle int
-  end    int
+	start  int
+	middle int
+	end    int
 }
 
 var state = stateType{
-  GitFiles:      make([]GitFile, 0),
-  PreviousView:  "files",
-  Commits:       make([]Commit, 0),
-  StashEntries:  make([]StashEntry, 0),
-  ConflictIndex: 0,
-  ConflictTop:   true,
-  Conflicts:     make([]conflict, 0),
-  EditHistory:   stack.New(),
+	GitFiles:      make([]GitFile, 0),
+	PreviousView:  "files",
+	Commits:       make([]Commit, 0),
+	StashEntries:  make([]StashEntry, 0),
+	ConflictIndex: 0,
+	ConflictTop:   true,
+	Conflicts:     make([]conflict, 0),
+	EditHistory:   stack.New(),
 }
 
 func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
-  mainView, _ := g.View("main")
-  ox, oy := mainView.Origin()
-  if oy >= 1 {
-    return mainView.SetOrigin(ox, oy-1)
-  }
-  return nil
+	mainView, _ := g.View("main")
+	ox, oy := mainView.Origin()
+	if oy >= 1 {
+		return mainView.SetOrigin(ox, oy-1)
+	}
+	return nil
 }
 
 func scrollDownMain(g *gocui.Gui, v *gocui.View) error {
-  mainView, _ := g.View("main")
-  ox, oy := mainView.Origin()
-  if oy < len(mainView.BufferLines()) {
-    return mainView.SetOrigin(ox, oy+1)
-  }
-  return nil
+	mainView, _ := g.View("main")
+	ox, oy := mainView.Origin()
+	if oy < len(mainView.BufferLines()) {
+		return mainView.SetOrigin(ox, oy+1)
+	}
+	return nil
 }
 
 func handleRefresh(g *gocui.Gui, v *gocui.View) error {
-  return refreshSidePanels(g)
+	return refreshSidePanels(g)
 }
 
 func keybindings(g *gocui.Gui) error {
@@ -186,119 +187,119 @@ func keybindings(g *gocui.Gui) error {
 }
 
 func layout(g *gocui.Gui) error {
-  g.Highlight = true
-  g.SelFgColor = gocui.AttrBold
-  width, height := g.Size()
-  leftSideWidth := width / 3
-  statusFilesBoundary := 2
-  filesBranchesBoundary := 2 * height / 5   // height - 20
-  commitsBranchesBoundary := 3 * height / 5 // height - 10
-  commitsStashBoundary := height - 5        // height - 5
+	g.Highlight = true
+	g.SelFgColor = gocui.AttrBold
+	width, height := g.Size()
+	leftSideWidth := width / 3
+	statusFilesBoundary := 2
+	filesBranchesBoundary := 2 * height / 5   // height - 20
+	commitsBranchesBoundary := 3 * height / 5 // height - 10
+	commitsStashBoundary := height - 5        // height - 5
 
-  optionsTop := height - 2
-  // hiding options if there's not enough space
-  if height < 30 {
-    optionsTop = height - 1
-  }
+	optionsTop := height - 2
+	// hiding options if there's not enough space
+	if height < 30 {
+		optionsTop = height - 1
+	}
 
-  filesView, err := g.SetView("files", 0, statusFilesBoundary+1, leftSideWidth, filesBranchesBoundary-1)
-  if err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    filesView.Highlight = true
-    filesView.Title = "Files"
-  }
+	filesView, err := g.SetView("files", 0, statusFilesBoundary+1, leftSideWidth, filesBranchesBoundary-1)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		filesView.Highlight = true
+		filesView.Title = "Files"
+	}
 
-  if v, err := g.SetView("status", 0, statusFilesBoundary-2, leftSideWidth, statusFilesBoundary); err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    v.Title = "Status"
-  }
+	if v, err := g.SetView("status", 0, statusFilesBoundary-2, leftSideWidth, statusFilesBoundary); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = "Status"
+	}
 
-  mainView, err := g.SetView("main", leftSideWidth+1, 0, width-1, optionsTop)
-  if err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    mainView.Title = "Diff"
-    mainView.Wrap = true
-  }
+	mainView, err := g.SetView("main", leftSideWidth+1, 0, width-1, optionsTop)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		mainView.Title = "Diff"
+		mainView.Wrap = true
+	}
 
-  if v, err := g.SetView("branches", 0, filesBranchesBoundary, leftSideWidth, commitsBranchesBoundary-1); err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    v.Title = "Branches"
+	if v, err := g.SetView("branches", 0, filesBranchesBoundary, leftSideWidth, commitsBranchesBoundary-1); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = "Branches"
 
-  }
+	}
 
-  if v, err := g.SetView("commits", 0, commitsBranchesBoundary, leftSideWidth, commitsStashBoundary-1); err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    v.Title = "Commits"
+	if v, err := g.SetView("commits", 0, commitsBranchesBoundary, leftSideWidth, commitsStashBoundary-1); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = "Commits"
 
-  }
+	}
 
-  if v, err := g.SetView("stash", 0, commitsStashBoundary, leftSideWidth, optionsTop); err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    v.Title = "Stash"
-  }
+	if v, err := g.SetView("stash", 0, commitsStashBoundary, leftSideWidth, optionsTop); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = "Stash"
+	}
 
-  if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2); err != nil {
-    if err != gocui.ErrUnknownView {
-      return err
-    }
-    v.BgColor = gocui.ColorBlue
-    v.Frame = false
-    v.Title = "Options"
+	if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.BgColor = gocui.ColorBlue
+		v.Frame = false
+		v.Title = "Options"
 
-    // these are only called once
-    handleFileSelect(g, filesView)
-    refreshFiles(g)
-    refreshBranches(g)
-    refreshCommits(g)
-    refreshStashEntries(g)
-    nextView(g, nil)
-  }
+		// these are only called once
+		handleFileSelect(g, filesView)
+		refreshFiles(g)
+		refreshBranches(g)
+		refreshCommits(g)
+		refreshStashEntries(g)
+		nextView(g, nil)
+	}
 
-  return nil
+	return nil
 }
 
 func fetch(g *gocui.Gui) {
-  gitFetch()
-  refreshStatus(g)
+	gitFetch()
+	refreshStatus(g)
 }
 
 func run() {
-  g, err := gocui.NewGui(gocui.OutputNormal)
-  if err != nil {
-    log.Panicln(err)
-  }
-  defer g.Close()
+	g, err := gocui.NewGui(gocui.OutputNormal)
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer g.Close()
 
-  // periodically fetching to check for upstream differences
-  go func() {
-    for range time.Tick(time.Second * 60) {
-      fetch(g)
-    }
-  }()
+	// periodically fetching to check for upstream differences
+	go func() {
+		for range time.Tick(time.Second * 60) {
+			fetch(g)
+		}
+	}()
 
-  g.SetManagerFunc(layout)
+	g.SetManagerFunc(layout)
 
-  if err := keybindings(g); err != nil {
-    log.Panicln(err)
-  }
+	if err := keybindings(g); err != nil {
+		log.Panicln(err)
+	}
 
-  if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-    log.Panicln(err)
-  }
+	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+		log.Panicln(err)
+	}
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
-  return gocui.ErrQuit
+	return gocui.ErrQuit
 }
