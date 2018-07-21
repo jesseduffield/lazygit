@@ -250,10 +250,10 @@ func pullFiles(g *gocui.Gui, v *gocui.View) error {
 		} else {
 			closeConfirmationPrompt(g)
 			refreshCommits(g)
-			refreshFiles(g)
 			refreshStatus(g)
 			devLog("pulled.")
 		}
+		refreshFiles(g)
 	}()
 	return nil
 }
