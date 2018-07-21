@@ -162,8 +162,10 @@ func correctCursor(v *gocui.View) error {
 func renderString(g *gocui.Gui, viewName, s string) error {
 	g.Update(func(*gocui.Gui) error {
 		v, err := g.View(viewName)
+		// just in case the view disappeared as this function was called, we'll
+		// silently return if it's not found
 		if err != nil {
-			panic(err)
+			return nil
 		}
 		v.Clear()
 		fmt.Fprint(v, s)

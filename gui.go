@@ -6,6 +6,7 @@ import (
 	// "io/ioutil"
 
 	"log"
+	"strings"
 	"time"
 
 	// "strings"
@@ -278,6 +279,25 @@ func fetch(g *gocui.Gui) {
 	refreshStatus(g)
 }
 
+func loader() string {
+	characters := "|/-\\"
+	now := time.Now()
+	nanos := now.UnixNano()
+	index := nanos / 50000000 % int64(len(characters))
+	devLog(characters[index : index+1])
+	return characters[index : index+1]
+}
+
+func updateLoader(g *gocui.Gui) {
+	if confirmationView, _ := g.View("confirmation"); confirmationView != nil {
+		content := trimmedContent(confirmationView)
+		if strings.Contains(content, "...") {
+			staticContent := strings.Split(content, "...")[0] + "..."
+			renderString(g, "confirmation", staticContent+" "+loader())
+		}
+	}
+}
+
 func run() {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -289,6 +309,12 @@ func run() {
 	go func() {
 		for range time.Tick(time.Second * 60) {
 			fetch(g)
+		}
+	}()
+
+	go func() {
+		for range time.Tick(time.Millisecond * 10) {
+			updateLoader(g)
 		}
 	}()
 
