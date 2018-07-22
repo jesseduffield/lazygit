@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/gocui"
 )
@@ -25,6 +26,29 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
 		for i := range cyclableViews {
 			if v.Name() == cyclableViews[i] {
 				focusedViewName = cyclableViews[i+1]
+				break
+			}
+			if i == len(cyclableViews)-1 {
+				devLog(v.Name() + " is not in the list of views")
+				return nil
+			}
+		}
+	}
+	focusedView, err := g.View(focusedViewName)
+	if err != nil {
+		panic(err)
+	}
+	return switchFocus(g, v, focusedView)
+}
+
+func previousView(g *gocui.Gui, v *gocui.View) error {
+	var focusedViewName string
+	if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
+		focusedViewName = cyclableViews[0]
+	} else {
+		for i := range cyclableViews {
+			if v.Name() == cyclableViews[i] {
+				focusedViewName = cyclableViews[i-1] // TODO: make this work properly
 				break
 			}
 			if i == len(cyclableViews)-1 {
@@ -197,4 +221,12 @@ func optionsMapToString(optionsMap map[string]string) string {
 
 func renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) error {
 	return renderString(g, "options", optionsMapToString(optionsMap))
+}
+
+func loader() string {
+	characters := "|/-\\"
+	now := time.Now()
+	nanos := now.UnixNano()
+	index := nanos / 50000000 % int64(len(characters))
+	return characters[index : index+1]
 }

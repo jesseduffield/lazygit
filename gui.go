@@ -279,15 +279,6 @@ func fetch(g *gocui.Gui) {
 	refreshStatus(g)
 }
 
-func loader() string {
-	characters := "|/-\\"
-	now := time.Now()
-	nanos := now.UnixNano()
-	index := nanos / 50000000 % int64(len(characters))
-	devLog(characters[index : index+1])
-	return characters[index : index+1]
-}
-
 func updateLoader(g *gocui.Gui) {
 	if confirmationView, _ := g.View("confirmation"); confirmationView != nil {
 		content := trimmedContent(confirmationView)
