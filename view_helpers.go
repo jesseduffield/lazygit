@@ -43,8 +43,8 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
 
 func previousView(g *gocui.Gui, v *gocui.View) error {
 	var focusedViewName string
-	if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
-		focusedViewName = cyclableViews[0]
+	if v == nil || v.Name() == cyclableViews[0] {
+		focusedViewName = cyclableViews[len(cyclableViews)-1]
 	} else {
 		for i := range cyclableViews {
 			if v.Name() == cyclableViews[i] {
