@@ -108,15 +108,15 @@ func handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 
 func renderfilesOptions(g *gocui.Gui, gitFile *GitFile) error {
 	optionsMap := map[string]string{
-		"tab":   "next panel",
-		"S":     "stash files",
-		"c":     "commit changes",
-		"o":     "open",
-		"s":     "open in sublime",
-		"v":     "open in vscode",
-		"i":     "ignore",
-		"d":     "delete",
-		"space": "toggle staged",
+		"← → ↑ ↓": "navigate",
+		"S":       "stash files",
+		"c":       "commit changes",
+		"o":       "open",
+		"s":       "sublime",
+		"v":       "vscode",
+		"i":       "ignore",
+		"d":       "delete",
+		"space":   "toggle staged",
 	}
 	if state.HasMergeConflicts {
 		optionsMap["a"] = "abort merge"

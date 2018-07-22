@@ -236,11 +236,11 @@ func switchToMerging(g *gocui.Gui) error {
 
 func renderMergeOptions(g *gocui.Gui) error {
 	return renderOptionsMap(g, map[string]string{
-		"up/down":    "pick hunk",
-		"left/right": "previous/next commit",
-		"space":      "pick hunk",
-		"b":          "pick both hunks",
-		"z":          "undo",
+		"↑ ↓":   "select hunk",
+		"← →":   "navigate conflicts",
+		"space": "pick hunk",
+		"b":     "pick both hunks",
+		"z":     "undo",
 	})
 }
 
