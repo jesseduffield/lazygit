@@ -317,8 +317,8 @@ func sublimeOpenFile(filename string) (string, error) {
 
 func getBranchDiff(branch string, baseBranch string) (string, error) {
 
-  return runCommand("git log -p -30 --color --no-merges " + branch)
-  // return runCommand("git diff --color " + baseBranch + "..." + branch)
+	return runCommand("git log -p -30 --color --no-merges " + branch)
+	// return runCommand("git diff --color " + baseBranch + "..." + branch)
 }
 
 func verifyInGitRepo() {
@@ -386,7 +386,7 @@ func getDiff(file GitFile) string {
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null "
 	}
-	command := "git diff -b --color " + cachedArg + deletedArg + trackedArg + file.Name
+	command := "git diff --color " + cachedArg + deletedArg + trackedArg + file.Name
 	// for now we assume an error means the file was deleted
 	s, _ := runCommand(command)
 	return s
