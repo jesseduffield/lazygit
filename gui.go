@@ -70,6 +70,9 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, nextView); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding("", gocui.KeyTab, gocui.ModNone, nextView); err != nil {
+		return err
+	}
 	if err := g.SetKeybinding("", gocui.KeyArrowLeft, gocui.ModNone, previousView); err != nil {
 		return err
 	}
