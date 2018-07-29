@@ -62,9 +62,10 @@ func handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
 
 func renderCommitsOptions(g *gocui.Gui) error {
   return renderOptionsMap(g, map[string]string{
-    "s": "squash down",
-    "r": "rename",
-    "g": "reset to this commit",
+    "s":       "squash down",
+    "r":       "rename",
+    "g":       "reset to this commit",
+    "← → ↑ ↓": "navigate",
   })
 }
 

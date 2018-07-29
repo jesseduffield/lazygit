@@ -32,9 +32,10 @@ func getSelectedStashEntry(v *gocui.View) *StashEntry {
 
 func renderStashOptions(g *gocui.Gui) error {
 	return renderOptionsMap(g, map[string]string{
-		"space": "apply",
-		"k":     "pop",
-		"d":     "drop",
+		"space":   "apply",
+		"k":       "pop",
+		"d":       "drop",
+		"← → ↑ ↓": "navigate",
 	})
 }
 

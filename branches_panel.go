@@ -19,13 +19,13 @@ func handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 }
 
 func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
-  branch := getSelectedBranch(v)
-  return createConfirmationPanel(g, v, "Force Checkout Branch", "Are you sure you want force checkout? You will lose all local changes", func(g *gocui.Gui, v *gocui.View) error {
-    if output, err := gitCheckout(branch.Name, true); err != nil {
-      createErrorPanel(g, output)
-    }
-    return refreshSidePanels(g)
-  }, nil)
+	branch := getSelectedBranch(v)
+	return createConfirmationPanel(g, v, "Force Checkout Branch", "Are you sure you want force checkout? You will lose all local changes", func(g *gocui.Gui, v *gocui.View) error {
+		if output, err := gitCheckout(branch.Name, true); err != nil {
+			createErrorPanel(g, output)
+		}
+		return refreshSidePanels(g)
+	}, nil)
 }
 
 func handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
@@ -70,11 +70,12 @@ func getSelectedBranch(v *gocui.View) Branch {
 
 func renderBranchesOptions(g *gocui.Gui) error {
 	return renderOptionsMap(g, map[string]string{
-		"space": "checkout",
-		"f":     "force checkout",
-		"m":     "merge",
-		"c":     "checkout by name",
-		"n":     "new branch",
+		"space":   "checkout",
+		"f":       "force checkout",
+		"m":       "merge",
+		"c":       "checkout by name",
+		"n":       "new branch",
+		"← → ↑ ↓": "navigate",
 	})
 }
 
