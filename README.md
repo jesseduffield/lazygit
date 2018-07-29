@@ -6,11 +6,12 @@ are YOU tired of typing every git command directly into the terminal, but you're
 ![Gif](https://image.ibb.co/mmeXho/optimisedgif.gif)
 
 ## Installation
+In a terminal call this command:
 `go get github.com/jesseduffield/lazygit`
 
 then just call `lazygit` in your terminal inside a git repository
 
-You can add an alias for this with `echo "alias lg='lazygit' > ~/.zshrc` (or whichever rc file you're using)
+If you want, you can also add an alias for this with `echo "alias lg='lazygit' > ~/.zshrc` (or whichever rc file you're using)
 
 ## Cool features
 - Adding files easily
