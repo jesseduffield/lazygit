@@ -14,8 +14,8 @@ import (
 )
 
 var (
-  // ErrNoCheckedOutBranch : When we have no checked out branch
-  ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
+	// ErrNoCheckedOutBranch : When we have no checked out branch
+	ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
 )
 
 // GitFile : A staged/unstaged file
@@ -532,8 +532,8 @@ git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
         printf "%s\t%s\n" "$date" "$branch"
       fi
     fi
-	done \
-	| sed 's/ months /m /g' \
+  done \
+  | sed 's/ months /m /g' \
   | sed 's/ month /m /g' \
   | sed 's/ days /d /g' \
   | sed 's/ day /d /g' \
