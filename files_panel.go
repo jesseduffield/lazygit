@@ -40,6 +40,9 @@ func stageSelectedFile(g *gocui.Gui) error {
 func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
+		if err == ErrNoFiles {
+			return nil
+		}
 		return err
 	}
 
