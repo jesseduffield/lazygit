@@ -200,6 +200,7 @@ func renderString(g *gocui.Gui, viewName, s string) error {
 }
 
 func splitLines(multilineString string) []string {
+	multilineString = strings.Replace(multilineString, "\r", "", -1)
 	if multilineString == "" || multilineString == "\n" {
 		return make([]string, 0)
 	}
