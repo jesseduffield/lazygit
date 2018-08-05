@@ -1,5 +1,5 @@
 # lazygit
-A simple terminal UI for git commands, written in Go with the [gocui](https://www.google.com "gocui") library.
+A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
 
 are YOU tired of typing every git command directly into the terminal, but you're too stubborn to use Sourcetree because you'll never forgive Atlassian for making Jira? This is the app for you!
 
