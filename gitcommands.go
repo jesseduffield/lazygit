@@ -13,6 +13,11 @@ import (
 	"github.com/fatih/color"
 )
 
+var (
+  // ErrNoCheckedOutBranch : When we have no checked out branch
+  ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
+)
+
 // GitFile : A staged/unstaged file
 // TODO: decide whether to give all of these the Git prefix
 type GitFile struct {
@@ -446,7 +451,11 @@ func gitPull() (string, error) {
 }
 
 func gitPush() (string, error) {
-	return runDirectCommand("git push -u")
+	branchName := gitCurrentBranchName()
+	if branchName == "" {
+		return "", ErrNoCheckedOutBranch
+	}
+	return runDirectCommand("git push -u origin " + branchName)
 }
 
 func gitSquashPreviousTwoCommits(message string) (string, error) {
