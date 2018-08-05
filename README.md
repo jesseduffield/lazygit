@@ -16,11 +16,22 @@ then just call `lazygit` in your terminal inside a git repository
 
 If you want, you can also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or whichever rc file you're using)
 
+### Ubuntu
+Packages for Ubuntu 14.04 and up are available via Launchpad PPA.
+
+They are built daily, straight from master branch.
+
+```sh
+sudo add-apt-repository ppa:lazygit-team/daily
+sudo apt-get update
+sudo apt-get install lazygit
+```
+
 ## Cool features
 - Adding files easily
 - Resolving merge conflicts
 - Easily check out recent branches
-- Scroll through logs/diffs of branches/commits/stash 
+- Scroll through logs/diffs of branches/commits/stash
 - Quick pushing/pulling
 - Squash down and rename commits
 
