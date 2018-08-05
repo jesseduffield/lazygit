@@ -10,6 +10,7 @@ are YOU tired of typing every git command directly into the terminal, but you're
 ## Installation
 In a terminal call this command:
 `go get github.com/jesseduffield/lazygit`
+(if you don't have Go installed, you can follow the installation guide [Here](https://golang.org/doc/install)
 
 then just call `lazygit` in your terminal inside a git repository
 
