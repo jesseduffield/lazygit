@@ -172,7 +172,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	return nil
 }
 
-func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, error)) error {
+func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string, *gocui.Gui) (string, error)) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
 		if err != ErrNoFiles {
@@ -180,7 +180,7 @@ func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, err
 		}
 		return nil
 	}
-	_, err = open(file.Name)
+	_, err = open(file.Name, g)
 	return err
 }
 

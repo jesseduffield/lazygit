@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
 )
 
 var (
-  // ErrNoCheckedOutBranch : When we have no checked out branch
-  ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
+	// ErrNoCheckedOutBranch : When we have no checked out branch
+	ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
 )
 
 // GitFile : A staged/unstaged file
@@ -308,15 +309,31 @@ func runCommand(command string) (string, error) {
 	return string(cmdOut), err
 }
 
-func openFile(filename string) (string, error) {
-	return runCommand("open " + filename)
+func openFile(filename string, g *gocui.Gui) (string, error) {
+	editor := os.Getenv("VISUAL")
+	if editor == "" {
+		editor = os.Getenv("EDITOR")
+	}
+	if editor == "" {
+		editor = "vi"
+	}
+	go func() {
+		g.Close()
+		cmd := exec.Command(editor, filename)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+		run()
+	}()
+
+	return "", nil
 }
 
-func vsCodeOpenFile(filename string) (string, error) {
+func vsCodeOpenFile(filename string, g *gocui.Gui) (string, error) {
 	return runCommand("code -r " + filename)
 }
 
-func sublimeOpenFile(filename string) (string, error) {
+func sublimeOpenFile(filename string, g *gocui.Gui) (string, error) {
 	return runCommand("subl " + filename)
 }
 
