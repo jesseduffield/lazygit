@@ -11,7 +11,7 @@ In a terminal call this command:
 
 then just call `lazygit` in your terminal inside a git repository
 
-If you want, you can also add an alias for this with `echo "alias lg='lazygit' > ~/.zshrc` (or whichever rc file you're using)
+If you want, you can also add an alias for this with `echo "alias lg='lazygit' >> ~/.zshrc` (or whichever rc file you're using)
 
 ## Cool features
 - Adding files easily
