@@ -3,6 +3,8 @@ A simple terminal UI for git commands, written in Go with the [gocui](https://gi
 
 are YOU tired of typing every git command directly into the terminal, but you're too stubborn to use Sourcetree because you'll never forgive Atlassian for making Jira? This is the app for you!
 
+[Tutorial](https://www.youtube.com/watch?v=VDXvbHZYeKY)
+
 ![Gif](https://image.ibb.co/mmeXho/optimisedgif.gif)
 
 ## Installation
