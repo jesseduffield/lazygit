@@ -205,6 +205,22 @@ func layout(g *gocui.Gui) error {
 	filesBranchesBoundary := 2 * height / 5   // height - 20
 	commitsBranchesBoundary := 3 * height / 5 // height - 10
 	commitsStashBoundary := height - 5        // height - 5
+	panelSpacing := 1
+	minimumHeight := 16
+
+	if height < minimumHeight {
+		v, err := g.SetView("limit", 0, 0, width-1, height-1, 0)
+		if err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+			v.Title = "Not enough space to render panels"
+			v.Wrap = true
+		}
+		return nil
+	} else {
+		g.DeleteView("limit")
+	}
 
 	optionsTop := height - 2
 	// hiding options if there's not enough space
@@ -212,7 +228,23 @@ func layout(g *gocui.Gui) error {
 		optionsTop = height - 1
 	}
 
-	filesView, err := g.SetView("files", 0, statusFilesBoundary+1, leftSideWidth, filesBranchesBoundary-1)
+	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = "Diff"
+		v.Wrap = true
+	}
+
+	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = "Status"
+	}
+
+	filesView, err := g.SetView("files", 0, statusFilesBoundary+panelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -221,23 +253,7 @@ func layout(g *gocui.Gui) error {
 		filesView.Title = "Files"
 	}
 
-	if v, err := g.SetView("status", 0, statusFilesBoundary-2, leftSideWidth, statusFilesBoundary); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		v.Title = "Status"
-	}
-
-	mainView, err := g.SetView("main", leftSideWidth+1, 0, width-1, optionsTop)
-	if err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		mainView.Title = "Diff"
-		mainView.Wrap = true
-	}
-
-	if v, err := g.SetView("branches", 0, filesBranchesBoundary, leftSideWidth, commitsBranchesBoundary-1); err != nil {
+	if v, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -245,7 +261,7 @@ func layout(g *gocui.Gui) error {
 
 	}
 
-	if v, err := g.SetView("commits", 0, commitsBranchesBoundary, leftSideWidth, commitsStashBoundary-1); err != nil {
+	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -253,14 +269,14 @@ func layout(g *gocui.Gui) error {
 
 	}
 
-	if v, err := g.SetView("stash", 0, commitsStashBoundary, leftSideWidth, optionsTop); err != nil {
+	if v, err := g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		v.Title = "Stash"
 	}
 
-	if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2); err != nil {
+	if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
