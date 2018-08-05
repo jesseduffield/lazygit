@@ -120,6 +120,7 @@ func renderfilesOptions(g *gocui.Gui, gitFile *GitFile) error {
 		"i":       "ignore",
 		"d":       "delete",
 		"space":   "toggle staged",
+		"R":       "refresh",
 	}
 	if state.HasMergeConflicts {
 		optionsMap["a"] = "abort merge"
