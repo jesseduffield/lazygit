@@ -14,6 +14,10 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
+// PanelSpacing determines the distance between adjacent panels. Set to 0 for
+// overlapping edges (experimental)
+var PanelSpacing = 0
+
 type stateType struct {
 	GitFiles          []GitFile
 	Branches          []Branch
@@ -205,7 +209,6 @@ func layout(g *gocui.Gui) error {
 	filesBranchesBoundary := 2 * height / 5   // height - 20
 	commitsBranchesBoundary := 3 * height / 5 // height - 10
 	commitsStashBoundary := height - 5        // height - 5
-	panelSpacing := 1
 	minimumHeight := 16
 
 	if height < minimumHeight {
@@ -228,7 +231,7 @@ func layout(g *gocui.Gui) error {
 		optionsTop = height - 1
 	}
 
-	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	v, err := g.SetView("main", leftSideWidth+PanelSpacing, 0, width-1, optionsTop, gocui.LEFT)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -244,7 +247,7 @@ func layout(g *gocui.Gui) error {
 		v.Title = "Status"
 	}
 
-	filesView, err := g.SetView("files", 0, statusFilesBoundary+panelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
+	filesView, err := g.SetView("files", 0, statusFilesBoundary+PanelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -253,7 +256,7 @@ func layout(g *gocui.Gui) error {
 		filesView.Title = "Files"
 	}
 
-	if v, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+	if v, err := g.SetView("branches", 0, filesBranchesBoundary+PanelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -261,7 +264,7 @@ func layout(g *gocui.Gui) error {
 
 	}
 
-	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+PanelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -269,7 +272,7 @@ func layout(g *gocui.Gui) error {
 
 	}
 
-	if v, err := g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT); err != nil {
+	if v, err := g.SetView("stash", 0, commitsStashBoundary+PanelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
