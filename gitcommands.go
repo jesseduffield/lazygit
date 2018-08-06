@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
 )
 
 var (
-  // ErrNoCheckedOutBranch : When we have no checked out branch
-  ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
+	// ErrNoCheckedOutBranch : When we have no checked out branch
+	ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
 )
 
 // GitFile : A staged/unstaged file
@@ -308,16 +309,55 @@ func runCommand(command string) (string, error) {
 	return string(cmdOut), err
 }
 
-func openFile(filename string) (string, error) {
-	return runCommand("open " + filename)
-}
-
-func vsCodeOpenFile(filename string) (string, error) {
+func vsCodeOpenFile(g *gocui.Gui, filename string) (string, error) {
 	return runCommand("code -r " + filename)
 }
 
-func sublimeOpenFile(filename string) (string, error) {
+func sublimeOpenFile(g *gocui.Gui, filename string) (string, error) {
 	return runCommand("subl " + filename)
+}
+
+func openFile(g *gocui.Gui, filename string) (string, error) {
+	cmdName, cmdTrail := getOpenCommand()
+	return runCommand(cmdName + " " + cmdTrail)
+}
+
+func editFile(g *gocui.Gui, filename string) (string, error) {
+	editor := os.Getenv("VISUAL")
+	if editor == "" {
+		editor = os.Getenv("EDITOR")
+	}
+	if editor == "" {
+		editor = "vi"
+	}
+	runSubProcess(g, editor, filename)
+	return "", nil
+}
+
+func getOpenCommand() (string, string) {
+	//NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
+	trailMap := map[string]string{
+		"xdg-open": "&>/dev/null &",
+		"cygstart": "",
+	}
+	for name, trail := range trailMap {
+		if out, _ := runCommand("which " + name); out != "" {
+			return name, trail
+		}
+	}
+	return "open", ""
+}
+
+func runSubProcess(g *gocui.Gui, cmdName string, commandArgs ...string) {
+	// TODO: find a way to wait for the subprocess without having to
+	// close and reinitialize the gui
+	// g.Close() // TODO: find a way to make close properly after uncommenting
+	cmd := exec.Command(cmdName, commandArgs...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
+	run() // start another Gui
 }
 
 func getBranchDiff(branch string, baseBranch string) (string, error) {

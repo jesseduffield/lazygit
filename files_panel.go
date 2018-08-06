@@ -172,7 +172,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	return nil
 }
 
-func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, error)) error {
+func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gui, string) (string, error)) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
 		if err != ErrNoFiles {
@@ -180,16 +180,22 @@ func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, err
 		}
 		return nil
 	}
-	_, err = open(file.Name)
+	_, err = open(g, file.Name)
 	return err
+}
+
+func handleFileEdit(g *gocui.Gui, v *gocui.View) error {
+	return genericFileOpen(g, v, editFile)
 }
 
 func handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return genericFileOpen(g, v, openFile)
 }
+
 func handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return genericFileOpen(g, v, sublimeOpenFile)
 }
+
 func handleVsCodeFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return genericFileOpen(g, v, vsCodeOpenFile)
 }
