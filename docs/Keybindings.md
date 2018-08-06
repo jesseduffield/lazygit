@@ -12,8 +12,8 @@
       c:        commit changes
       shift+S:  stash files
       o:        open (osx only)
-      s:        open in sublime (requires 'code' command)
-      v:        open in vscode (requires 'subl' command)
+      s:        open in sublime (requires 'subl' command)
+      v:        open in vscode (requires 'code' command)
       i:        add to .gitignore
       d:        delete if untracked checkout if tracked (aka go away)
       shift+R:  refresh files
