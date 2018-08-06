@@ -6,7 +6,7 @@
       PgUp/PgDn: scroll diff panel (use fn+up/down on osx)
       q:         quit
       p:         pull
-      P:         push
+      shift+P:   push
 
 ## Files Panel:
 
