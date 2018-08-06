@@ -3,7 +3,7 @@
 ## Global:
 
       ← → ↑ ↓:   navigate
-      PgUp/PgDn: scroll diff panel
+      PgUp/PgDn: scroll diff panel (use fn+up/down on osx)
       q:         quit
 
 ## Files Panel:
