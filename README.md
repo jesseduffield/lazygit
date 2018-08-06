@@ -46,11 +46,11 @@ sudo apt-get install lazygit
 [Keybindings](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md)
 
 ## Milestones
-[ ] Easy Installation (homebrew, release binaries)
-[ ] Configurable Keybindings
-[ ] Configurable Color Themes
-[ ] Spawning Subprocesses (help needed - have a look at https://github.com/jesseduffield/lazygit/pull/18)
-[ ] i18n
+- [ ] Easy Installation (homebrew, release binaries)
+- [ ] Configurable Keybindings
+- [ ] Configurable Color Themes
+- [ ] Spawning Subprocesses (help needed - have a look at https://github.com/jesseduffield/lazygit/pull/18)
+- [ ] i18n
 
 ## Contributing
 I'll find a good template for contributing and then add it to the repo (or if somebody has a suggestion please put up a PR)
