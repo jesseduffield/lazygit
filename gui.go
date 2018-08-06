@@ -197,10 +197,8 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("stash", 'k', gocui.ModNone, handleStashPop); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("stash", 'd', gocui.ModNone, handleStashDrop); err != nil {
-		return err
-	}
-	return nil
+
+	return g.SetKeybinding("stash", 'd', gocui.ModNone, handleStashDrop)
 }
 
 func layout(g *gocui.Gui) error {
@@ -230,9 +228,9 @@ func layout(g *gocui.Gui) error {
 			v.Wrap = true
 		}
 		return nil
-	} else {
-		g.DeleteView("limit")
 	}
+
+	g.DeleteView("limit")
 
 	optionsTop := height - 2
 	// hiding options if there's not enough space

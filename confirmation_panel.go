@@ -103,10 +103,8 @@ func setKeyBindings(g *gocui.Gui, handleYes, handleNo func(*gocui.Gui, *gocui.Vi
 	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleYes)); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleNo)); err != nil {
-		return err
-	}
-	return nil
+
+	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleNo))
 }
 
 func createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {

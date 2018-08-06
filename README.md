@@ -1,4 +1,5 @@
-# lazygit
+# lazygit [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit)
+
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
 
 Are YOU tired of typing every git command directly into the terminal, but you're too stubborn to use Sourcetree because you'll never forgive Atlassian for making Jira? This is the app for you!
@@ -20,7 +21,7 @@ If you want, you can also add an alias for this with `echo "alias lg='lazygit'" 
 - Adding files easily
 - Resolving merge conflicts
 - Easily check out recent branches
-- Scroll through logs/diffs of branches/commits/stash 
+- Scroll through logs/diffs of branches/commits/stash
 - Quick pushing/pulling
 - Squash down and rename commits
 
