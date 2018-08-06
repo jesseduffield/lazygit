@@ -124,6 +124,9 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("files", 's', gocui.ModNone, handleSublimeFileOpen); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding("files", 'v', gocui.ModNone, handleVsCodeFileOpen); err != nil {
+		return err
+	}
 	if err := g.SetKeybinding("files", 'i', gocui.ModNone, handleIgnoreFile); err != nil {
 		return err
 	}

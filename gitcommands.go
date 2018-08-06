@@ -305,7 +305,11 @@ func runCommand(command string) (string, error) {
 	splitCmd := strings.Split(command, " ")
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
 	devLog("run command time: ", time.Now().Sub(commandStartTime))
-	return string(cmdOut), err
+	outputString := string(cmdOut)
+	if outputString == "" && err != nil {
+		return err.Error(), err
+	}
+	return outputString, err
 }
 
 func openFile(filename string) (string, error) {
