@@ -119,8 +119,7 @@ func runDirectCommand(command string) (string, error) {
 		Command("bash", "-c", command).
 		CombinedOutput()
 	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
-
-	return string(cmdOut), err
+	return sanitisedCommandOutput(cmdOut, err)
 }
 
 func branchStringParts(branchString string) (string, string) {
@@ -299,17 +298,21 @@ func gitCheckout(branch string, force bool) (string, error) {
 	return runCommand("git checkout " + forceArg + branch)
 }
 
+func sanitisedCommandOutput(output []byte, err error) (string, error) {
+	outputString := string(output)
+	if outputString == "" && err != nil {
+		return err.Error(), err
+	}
+	return outputString, err
+}
+
 func runCommand(command string) (string, error) {
 	commandStartTime := time.Now()
 	commandLog(command)
 	splitCmd := strings.Split(command, " ")
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
 	devLog("run command time: ", time.Now().Sub(commandStartTime))
-	outputString := string(cmdOut)
-	if outputString == "" && err != nil {
-		return err.Error(), err
-	}
-	return outputString, err
+	return sanitisedCommandOutput(cmdOut, err)
 }
 
 func openFile(filename string) (string, error) {
@@ -446,7 +449,7 @@ func removeFile(file GitFile) error {
 }
 
 func gitCommit(message string) (string, error) {
-	return runCommand("git commit -m \"" + message + "\"")
+	return runDirectCommand("git commit -m \"" + message + "\"")
 }
 
 func gitPull() (string, error) {
