@@ -178,10 +178,11 @@ func getGitBranches() []Branch {
 	if branchCheck == "" {
 		return append(branches, branchFromLine("master", 0))
 	}
-	rawString, _ := runDirectCommand(getBranchesCommand)
-	branchLines := splitLines(rawString)
-	for i, line := range branchLines {
-		branches = append(branches, branchFromLine(line, i))
+	if rawString, err := runDirectCommand(getBranchesCommand); err == nil {
+		branchLines := splitLines(rawString)
+		for i, line := range branchLines {
+			branches = append(branches, branchFromLine(line, i))
+		}
 	}
 	branches = getAndMergeFetchedBranches(branches)
 	return branches
