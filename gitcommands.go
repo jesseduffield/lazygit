@@ -471,7 +471,7 @@ func gitPush() (string, error) {
 }
 
 func gitSquashPreviousTwoCommits(message string) (string, error) {
-	return runDirectCommand("git reset --soft head^ && git commit --amend -m \"" + message + "\"")
+	return runDirectCommand("git reset --soft HEAD^ && git commit --amend -m \"" + message + "\"")
 }
 
 func gitRenameCommit(message string) (string, error) {
