@@ -226,9 +226,9 @@ func layout(g *gocui.Gui) error {
 			v.Wrap = true
 		}
 		return nil
-	} else {
-		g.DeleteView("limit")
 	}
+
+	g.DeleteView("limit")
 
 	optionsTop := height - 2
 	// hiding options if there's not enough space
