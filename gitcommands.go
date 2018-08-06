@@ -183,6 +183,9 @@ func getGitBranches() []Branch {
 		for i, line := range branchLines {
 			branches = append(branches, branchFromLine(line, i))
 		}
+	} else {
+		// TODO: DRY this up
+		branches = append(branches, branchFromLine(gitCurrentBranchName(), 0))
 	}
 	branches = getAndMergeFetchedBranches(branches)
 	return branches
@@ -525,7 +528,7 @@ func gitCurrentBranchName() string {
 	if err != nil {
 		return ""
 	}
-	return branchName
+	return strings.TrimSpace(branchName)
 }
 
 const getBranchesCommand = `set -e
