@@ -19,11 +19,11 @@
 #   name = "github.com/x/y"
 #   version = "2.4.0"
 #
-# [prune]
-#   non-go = false
-#   go-tests = true
-#   unused-packages = true
 
+[prune]
+  go-tests = true
+  unused-packages = true
+  non-go = true
 
 [[constraint]]
   name = "github.com/fatih/color"
@@ -36,7 +36,3 @@
 [[constraint]]
   branch = "master"
   name = "github.com/jesseduffield/gocui"
-
-[prune]
-  go-tests = true
-  unused-packages = true
