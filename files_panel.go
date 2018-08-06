@@ -59,11 +59,8 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	if err := refreshFiles(g); err != nil {
 		return err
 	}
-	if err := handleFileSelect(g, v); err != nil {
-		return err
-	}
 
-	return nil
+	return handleFileSelect(g, v)
 }
 
 func getSelectedFile(g *gocui.Gui) (GitFile, error) {

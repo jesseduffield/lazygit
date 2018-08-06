@@ -196,10 +196,8 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("stash", 'k', gocui.ModNone, handleStashPop); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("stash", 'd', gocui.ModNone, handleStashDrop); err != nil {
-		return err
-	}
-	return nil
+
+	return g.SetKeybinding("stash", 'd', gocui.ModNone, handleStashDrop)
 }
 
 func layout(g *gocui.Gui) error {
