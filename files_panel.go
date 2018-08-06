@@ -59,11 +59,8 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	if err := refreshFiles(g); err != nil {
 		return err
 	}
-	if err := handleFileSelect(g, v); err != nil {
-		return err
-	}
 
-	return nil
+	return handleFileSelect(g, v)
 }
 
 func getSelectedFile(g *gocui.Gui) (GitFile, error) {
@@ -163,8 +160,8 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 		if message == "" {
 			return createErrorPanel(g, "You cannot commit without a commit message")
 		}
-		if err := gitCommit(message); err != nil {
-			panic(err)
+		if output, err := gitCommit(message); err != nil {
+			return createErrorPanel(g, output)
 		}
 		refreshFiles(g)
 		return refreshCommits(g)
@@ -180,8 +177,10 @@ func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, err
 		}
 		return nil
 	}
-	_, err = open(file.Name)
-	return err
+	if output, err := open(file.Name); err != nil {
+		return createErrorPanel(g, output)
+	}
+	return nil
 }
 
 func handleFileOpen(g *gocui.Gui, v *gocui.View) error {

@@ -1,7 +1,8 @@
-# lazygit
+# lazygit [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit)
+
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
 
-are YOU tired of typing every git command directly into the terminal, but you're too stubborn to use Sourcetree because you'll never forgive Atlassian for making Jira? This is the app for you!
+Are YOU tired of typing every git command directly into the terminal, but you're too stubborn to use Sourcetree because you'll never forgive Atlassian for making Jira? This is the app for you!
 
 [Tutorial](https://www.youtube.com/watch?v=VDXvbHZYeKY)
 
@@ -10,17 +11,17 @@ are YOU tired of typing every git command directly into the terminal, but you're
 ## Installation
 In a terminal call this command:
 `go get github.com/jesseduffield/lazygit`
-(if you don't have Go installed, you can follow the installation guide [Here](https://golang.org/doc/install)
+(if you don't have Go installed, you can follow the installation guide [here](https://golang.org/doc/install).
 
-then just call `lazygit` in your terminal inside a git repository
+Then just call `lazygit` in your terminal inside a git repository.
 
-If you want, you can also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or whichever rc file you're using)
+If you want, you can also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or whichever rc file you're using).
 
 ## Cool features
 - Adding files easily
 - Resolving merge conflicts
 - Easily check out recent branches
-- Scroll through logs/diffs of branches/commits/stash 
+- Scroll through logs/diffs of branches/commits/stash
 - Quick pushing/pulling
 - Squash down and rename commits
 
@@ -31,4 +32,4 @@ If you want, you can also add an alias for this with `echo "alias lg='lazygit'" 
 ![Viewing Commit Diffs](https://image.ibb.co/gPD02o/capture.png)
 
 ## Work in progress
-This is still a work in progress so there's still bugs to iron out and as this is my first project in Go the code could no doubt use an increase in quality, but I'll be improving on it whenever I find the time. If you have any feedback feel free to raise an issue/submit a PR.
+This is still a work in progress so there's still bugs to iron out and as this is my first project in Go the code could no doubt use an increase in quality, but I'll be improving on it whenever I find the time. If you have any feedback feel free to [raise an issue](https://github.com/jesseduffield/lazygit/issues)/[submit a PR](https://github.com/jesseduffield/lazygit/pulls).
