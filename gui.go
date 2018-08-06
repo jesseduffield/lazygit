@@ -10,6 +10,7 @@ import (
 	"time"
 
 	// "strings"
+
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 )
@@ -204,7 +205,8 @@ func keybindings(g *gocui.Gui) error {
 
 func layout(g *gocui.Gui) error {
 	g.Highlight = true
-	g.SelFgColor = gocui.AttrBold
+	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
+	g.FgColor = gocui.ColorBlack
 	width, height := g.Size()
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
@@ -245,6 +247,7 @@ func layout(g *gocui.Gui) error {
 		}
 		v.Title = "Diff"
 		v.Wrap = true
+		v.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
@@ -252,6 +255,7 @@ func layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Status"
+		v.FgColor = gocui.ColorWhite
 	}
 
 	filesView, err := g.SetView("files", 0, statusFilesBoundary+panelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
@@ -261,6 +265,7 @@ func layout(g *gocui.Gui) error {
 		}
 		filesView.Highlight = true
 		filesView.Title = "Files"
+		v.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
@@ -268,7 +273,7 @@ func layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Branches"
-
+		v.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
@@ -276,7 +281,7 @@ func layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Commits"
-
+		v.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT); err != nil {
@@ -284,6 +289,7 @@ func layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = "Stash"
+		v.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2, 0); err != nil {
@@ -291,6 +297,7 @@ func layout(g *gocui.Gui) error {
 			return err
 		}
 		v.BgColor = gocui.ColorBlue
+		v.FgColor = gocui.ColorWhite
 		v.Frame = false
 		v.Title = "Options"
 
