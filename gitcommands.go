@@ -445,9 +445,8 @@ func removeFile(file GitFile) error {
 	return err
 }
 
-func gitCommit(message string) error {
-	_, err := runDirectCommand("git commit -m \"" + message + "\"")
-	return err
+func gitCommit(message string) (string, error) {
+	return runCommand("git commit -m \"" + message + "\"")
 }
 
 func gitPull() (string, error) {
