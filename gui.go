@@ -296,8 +296,8 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.BgColor = gocui.ColorBlue
-		v.FgColor = gocui.ColorWhite
+		v.BgColor = gocui.ColorDefault
+		v.FgColor = gocui.ColorBlue
 		v.Frame = false
 		v.Title = "Options"
 
