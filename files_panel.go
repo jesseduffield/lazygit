@@ -115,8 +115,7 @@ func renderfilesOptions(g *gocui.Gui, gitFile *GitFile) error {
 		"S":       "stash files",
 		"c":       "commit changes",
 		"o":       "open",
-		"s":       "sublime",
-		"v":       "vscode",
+		"e":       "edit",
 		"i":       "ignore",
 		"d":       "delete",
 		"space":   "toggle staged",
@@ -187,11 +186,8 @@ func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string, *gocui.Gui) 
 func handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return genericFileOpen(g, v, openFile)
 }
-func handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
-	return genericFileOpen(g, v, sublimeOpenFile)
-}
-func handleVsCodeFileOpen(g *gocui.Gui, v *gocui.View) error {
-	return genericFileOpen(g, v, vsCodeOpenFile)
+func handleEditorFileOpen(g *gocui.Gui, v *gocui.View) error {
+	return genericFileOpen(g, v, editFile)
 }
 
 func handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {

@@ -309,7 +309,7 @@ func runCommand(command string) (string, error) {
 	return string(cmdOut), err
 }
 
-func openFile(filename string, g *gocui.Gui) (string, error) {
+func editFile(filename string, g *gocui.Gui) (string, error) {
 	editor := os.Getenv("VISUAL")
 	if editor == "" {
 		editor = os.Getenv("EDITOR")
@@ -329,12 +329,33 @@ func openFile(filename string, g *gocui.Gui) (string, error) {
 	return "", nil
 }
 
-func vsCodeOpenFile(filename string, g *gocui.Gui) (string, error) {
-	return runCommand("code -r " + filename)
-}
 
-func sublimeOpenFile(filename string, g *gocui.Gui) (string, error) {
-	return runCommand("subl " + filename)
+func openFile(filename string, g *gocui.Gui) (string, error) {
+    //NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
+    var cmdname string = "xdg-open"
+    var cmdtrail string = ""
+    out, _ := exec.Command("which "+cmdname+" 2>/dev/null").Output()
+    if  "" != string(out) {
+        cmdtrail="&>/dev/null &"
+    } else {
+        cmdname="cygstart"
+        out, _ := exec.Command("which "+cmdname+" 2>/dev/null").Output()
+        if "" != string(out) {
+            cmdtrail=""
+        } else {
+            cmdname="open"
+            cmdtrail=""
+        }
+    }
+    go func() {
+		g.Close()
+        cmd := exec.Command(cmdname, filename, cmdtrail)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+		run()
+	}()
+    return "", nil
 }
 
 func getBranchDiff(branch string, baseBranch string) (string, error) {
