@@ -14,6 +14,10 @@ import (
 var (
 	startTime time.Time
 	debugging bool
+	Rev string
+	builddate string
+	debuggingPointer = flag.Bool("debug", false, "a boolean")
+	versionFlag = flag.Bool("v", false, "Print the current version")
 )
 
 func homeDirectory() string {
@@ -58,11 +62,14 @@ func navigateToRepoRootDirectory() {
 }
 
 func main() {
-	debuggingPointer := flag.Bool("debug", false, "a boolean")
-	flag.Parse()
+	startTime = time.Now()
 	debugging = *debuggingPointer
 	devLog("\n\n\n\n\n\n\n\n\n\n")
-	startTime = time.Now()
+	flag.Parse()
+	if *versionFlag {
+		fmt.Printf("rev=%s, build date=%s", Rev, builddate)
+		os.Exit(0)
+	}
 	verifyInGitRepo()
 	navigateToRepoRootDirectory()
 	run()
