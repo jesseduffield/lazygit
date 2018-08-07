@@ -117,7 +117,7 @@ func platformShell() (string, string) {
 	if runtime.GOOS == "windows" {
 		return "cmd", "/c"
 	}
-	return "sh", "-c"
+	return "bash", "-c"
 }
 
 func runDirectCommand(command string) (string, error) {
