@@ -15,6 +15,7 @@ before_install:
   # Make the binary executable
   - chmod +x $GOPATH/bin/dep
   - dep ensure
+  - go get github.com/mitchellh/gox
 install:
   -
 script:
