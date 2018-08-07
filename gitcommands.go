@@ -205,12 +205,14 @@ func branchAlreadyStored(branchLine string, branches []Branch) bool {
 // directory i.e. things we've fetched but haven't necessarily checked out.
 // Worth mentioning this has nothing to do with the 'git merge' operation
 func getAndMergeFetchedBranches(branches []Branch) []Branch {
-	rawString, err := runDirectCommand("git branch")
+	rawString, err := runDirectCommand("git branch --sort=-committerdate --no-color")
 	if err != nil {
 		return branches
 	}
 	branchLines := splitLines(rawString)
 	for _, line := range branchLines {
+		line = strings.Replace(line, "* ", "", -1)
+		line = strings.TrimSpace(line)
 		if branchAlreadyStored(line, branches) {
 			continue
 		}
@@ -564,11 +566,3 @@ git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
   | tr -d ' '
 }
 `
-
-const getHeadsCommand = `git show-ref \
-| grep 'refs/heads/\|refs/remotes/origin/' \
-| sed 's/.*refs\/heads\///g' \
-| sed 's/.*refs\/remotes\/origin\///g' \
-| grep -v '^HEAD$' \
-| sort \
-| uniq`
