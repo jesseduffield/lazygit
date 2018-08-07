@@ -57,7 +57,7 @@ sudo apt-get install lazygit
 - [ ] i18n
 
 ## Contributing
-We love your input! Please check out the [contributing guide](CONTRIBUTING).
+We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
 
 ## Work in progress
 This is still a work in progress so there's still bugs to iron out and as this is my first project in Go the code could no doubt use an increase in quality, but I'll be improving on it whenever I find the time. If you have any feedback feel free to [raise an issue](https://github.com/jesseduffield/lazygit/issues)/[submit a PR](https://github.com/jesseduffield/lazygit/pulls).
