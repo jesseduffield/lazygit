@@ -1,5 +1,5 @@
 language: go
-sudo: true
+sudo: false
 env:
   - DEP_VERSION="0.5.0"
 matrix:
@@ -12,7 +12,7 @@ matrix:
   - go: tip
 before_install:
   # Download the binary to bin folder in $GOPATH
-  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-386 -o $GOPATH/bin/dep
   # Make the binary executable
   - chmod +x $GOPATH/bin/dep
   - dep ensure
