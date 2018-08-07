@@ -384,7 +384,6 @@ func runSubProcess(g *gocui.Gui, cmdName string, commandArgs ...string) {
 	})
 }
 
-func getBranchDiff(branch string, baseBranch string) (string, error) {
 func getBranchGraph(branch string, baseBranch string) (string, error) {
 	return runCommand("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branch)
 

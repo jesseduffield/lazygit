@@ -180,7 +180,7 @@ func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gui, string) 
 		}
 		return nil
 	}
-	if output, err := open(file.Name); err != nil {
+	if output, err := open(g, file.Name); err != nil {
 		return createErrorPanel(g, output)
 	}
 	return nil
