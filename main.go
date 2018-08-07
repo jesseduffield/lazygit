@@ -1,19 +1,25 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/user"
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
 )
 
+// ErrSubProcess is raised when we are running a subprocess
 var (
-	startTime time.Time
-	debugging bool
+	startTime     time.Time
+	debugging     bool
+	ErrSubprocess = errors.New("running subprocess")
+	subprocess    *exec.Cmd
 )
 
 func homeDirectory() string {
@@ -65,5 +71,15 @@ func main() {
 	startTime = time.Now()
 	verifyInGitRepo()
 	navigateToRepoRootDirectory()
-	run()
+	for {
+		if err := run(); err != nil {
+			if err == gocui.ErrQuit {
+				break
+			} else if err == ErrSubprocess {
+				subprocess.Run()
+			} else {
+				log.Panicln(err)
+			}
+		}
+	}
 }

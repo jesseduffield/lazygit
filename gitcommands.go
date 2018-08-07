@@ -349,15 +349,14 @@ func getOpenCommand() (string, string) {
 }
 
 func runSubProcess(g *gocui.Gui, cmdName string, commandArgs ...string) {
-	// TODO: find a way to wait for the subprocess without having to
-	// close and reinitialize the gui
-	// g.Close() // TODO: find a way to make close properly after uncommenting
-	cmd := exec.Command(cmdName, commandArgs...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
-	run() // start another Gui
+	subprocess = exec.Command(cmdName, commandArgs...)
+	subprocess.Stdin = os.Stdin
+	subprocess.Stdout = os.Stdout
+	subprocess.Stderr = os.Stderr
+
+	g.Update(func(g *gocui.Gui) error {
+		return ErrSubprocess
+	})
 }
 
 func getBranchDiff(branch string, baseBranch string) (string, error) {
