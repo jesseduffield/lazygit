@@ -100,7 +100,7 @@ func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 func handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
-		return err
+		return createErrorPanel(g, err.Error())
 	}
 	if file.Tracked {
 		return createErrorPanel(g, "Cannot ignore tracked files")
