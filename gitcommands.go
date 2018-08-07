@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -117,7 +118,7 @@ func platformShell() (string, string) {
 	if runtime.GOOS == "windows" {
 		return "cmd", "/c"
 	}
-	return "sh", "-c"
+	return "bash", "-c"
 }
 
 func runDirectCommand(command string) (string, error) {
@@ -163,72 +164,6 @@ func withPadding(str string, padding int) string {
 		return str
 	}
 	return str + strings.Repeat(" ", padding-len(str))
-}
-
-func branchFromLine(line string, index int) Branch {
-	recency, name := branchStringParts(line)
-	branchType, branchBase, colourAttr := branchPropertiesFromName(name)
-	if index == 0 {
-		recency = "  *"
-	}
-	colour := color.New(colourAttr)
-	displayString := withPadding(recency, 4) + coloredString(name, colour)
-	return Branch{
-		Name:          name,
-		Type:          branchType,
-		BaseBranch:    branchBase,
-		DisplayString: displayString,
-	}
-}
-
-func getGitBranches() []Branch {
-	branches := make([]Branch, 0)
-	// check if there are any branches
-	branchCheck, _ := runCommand("git branch")
-	if branchCheck == "" {
-		return append(branches, branchFromLine("master", 0))
-	}
-	if rawString, err := runDirectCommand(getBranchesCommand); err == nil {
-		branchLines := splitLines(rawString)
-		for i, line := range branchLines {
-			branches = append(branches, branchFromLine(line, i))
-		}
-	} else {
-		// TODO: DRY this up
-		branches = append(branches, branchFromLine(gitCurrentBranchName(), 0))
-	}
-	branches = getAndMergeFetchedBranches(branches)
-	return branches
-}
-
-func branchAlreadyStored(branchLine string, branches []Branch) bool {
-	for _, branch := range branches {
-		if branch.Name == branchLine {
-			return true
-		}
-	}
-	return false
-}
-
-// here branches contains all the branches that we've checked out, along with
-// the recency. In this function we append the branches that are in our heads
-// directory i.e. things we've fetched but haven't necessarily checked out.
-// Worth mentioning this has nothing to do with the 'git merge' operation
-func getAndMergeFetchedBranches(branches []Branch) []Branch {
-	rawString, err := runDirectCommand("git branch --sort=-committerdate --no-color")
-	if err != nil {
-		return branches
-	}
-	branchLines := splitLines(rawString)
-	for _, line := range branchLines {
-		line = strings.Replace(line, "* ", "", -1)
-		line = strings.TrimSpace(line)
-		if branchAlreadyStored(line, branches) {
-			continue
-		}
-		branches = append(branches, branchFromLine(line, len(branches)))
-	}
-	return branches
 }
 
 // TODO: DRY up this function and getGitBranches
@@ -589,33 +524,107 @@ func gitCurrentBranchName() string {
 	return strings.TrimSpace(branchName)
 }
 
-const getBranchesCommand = `set -e
-git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
-  seen=":"
-  git_dir="$(git rev-parse --git-dir)"
-  while read line; do
-    date="${line%%|*}"
-    branch="${line##* }"
-    if ! [[ $seen == *:"${branch}":* ]]; then
-      seen="${seen}${branch}:"
-      if [ -f "${git_dir}/refs/heads/${branch}" ]; then
-        printf "%s\t%s\n" "$date" "$branch"
-      fi
-    fi
-  done \
-  | sed 's/ months /m /g' \
-  | sed 's/ month /m /g' \
-  | sed 's/ days /d /g' \
-  | sed 's/ day /d /g' \
-  | sed 's/ weeks /w /g' \
-  | sed 's/ week /w /g' \
-  | sed 's/ hours /h /g' \
-  | sed 's/ hour /h /g' \
-  | sed 's/ minutes /m /g' \
-  | sed 's/ minute /m /g' \
-  | sed 's/ seconds /s /g' \
-  | sed 's/ second /s /g' \
-  | sed 's/ago//g' \
-  | tr -d ' '
+// A line will have the form '10 days ago master' so we need to strip out the
+// useful information from that into timeNumber, timeUnit, and branchName
+func branchInfoFromLine(line string) (string, string, string) {
+	r := regexp.MustCompile("\\|.*\\s")
+	line = r.ReplaceAllString(line, " ")
+	words := strings.Split(line, " ")
+	return words[0], words[1], words[3]
 }
-`
+
+func abbreviatedTimeUnit(timeUnit string) string {
+	r := regexp.MustCompile("s$")
+	timeUnit = r.ReplaceAllString(timeUnit, "")
+	timeUnitMap := map[string]string{
+		"hour":   "h",
+		"minute": "m",
+		"second": "s",
+		"week":   "w",
+		"year":   "y",
+		"day":    "d",
+		"month":  "m",
+	}
+	return timeUnitMap[timeUnit]
+}
+
+func getBranches() []Branch {
+	branches := make([]Branch, 0)
+	rawString, err := runDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
+	if err != nil {
+		return branches
+	}
+
+	branchLines := splitLines(rawString)
+	for i, line := range branchLines {
+		timeNumber, timeUnit, branchName := branchInfoFromLine(line)
+		timeUnit = abbreviatedTimeUnit(timeUnit)
+
+		if branchAlreadyStored(branchName, branches) {
+			continue
+		}
+
+		branch := constructBranch(timeNumber+timeUnit, branchName, i)
+		branches = append(branches, branch)
+	}
+	return branches
+}
+
+func constructBranch(prefix, name string, index int) Branch {
+	branchType, branchBase, colourAttr := branchPropertiesFromName(name)
+	if index == 0 {
+		prefix = "  *"
+	}
+	colour := color.New(colourAttr)
+	displayString := withPadding(prefix, 4) + coloredString(name, colour)
+	return Branch{
+		Name:          name,
+		Type:          branchType,
+		BaseBranch:    branchBase,
+		DisplayString: displayString,
+	}
+}
+
+func getGitBranches() []Branch {
+	// check if there are any branches
+	branchCheck, _ := runCommand("git branch")
+	if branchCheck == "" {
+		return []Branch{constructBranch("", gitCurrentBranchName(), 0)}
+	}
+	branches := getBranches()
+	if len(branches) == 0 {
+		branches = append(branches, constructBranch("", gitCurrentBranchName(), 0))
+	}
+	branches = getAndMergeFetchedBranches(branches)
+	return branches
+}
+
+func branchAlreadyStored(branchName string, branches []Branch) bool {
+	for _, existingBranch := range branches {
+		if existingBranch.Name == branchName {
+			return true
+		}
+	}
+	return false
+}
+
+// here branches contains all the branches that we've checked out, along with
+// the recency. In this function we append the branches that are in our heads
+// directory i.e. things we've fetched but haven't necessarily checked out.
+// Worth mentioning this has nothing to do with the 'git merge' operation
+func getAndMergeFetchedBranches(branches []Branch) []Branch {
+	rawString, err := runDirectCommand("git branch --sort=-committerdate --no-color")
+	if err != nil {
+		return branches
+	}
+	branchLines := splitLines(rawString)
+	for _, line := range branchLines {
+		line = strings.Replace(line, "* ", "", -1)
+		line = strings.TrimSpace(line)
+		if branchAlreadyStored(line, branches) {
+			continue
+		}
+		branches = append(branches, constructBranch("", line, len(branches)))
+	}
+	return branches
+}
