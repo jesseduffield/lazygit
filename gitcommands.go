@@ -541,6 +541,9 @@ func getGitBranches() []Branch {
 		return []Branch{constructBranch("", gitCurrentBranchName(), 0)}
 	}
 	branches := getBranches()
+	if len(branches) == 0 {
+		branches = append(branches, constructBranch("", gitCurrentBranchName(), 0))
+	}
 	branches = getAndMergeFetchedBranches(branches)
 	return branches
 }
