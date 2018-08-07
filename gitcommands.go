@@ -332,7 +332,7 @@ func sublimeOpenFile(filename string) (string, error) {
 }
 
 func getBranchGraph(branch string, baseBranch string) (string, error) {
-	return runCommand("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium " + branch)
+	return runCommand("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branch)
 
 	// Leaving this guy commented out in case there's backlash from the design
 	// change and I want to make this configurable
