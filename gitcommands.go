@@ -347,6 +347,10 @@ func openFile(g *gocui.Gui, filename string) (string, error) {
 	return runCommand(cmdName + " " + cmdTrail)
 }
 
+func gitAddPatch(g *gocui.Gui, filename string) {
+	runSubProcess(g, "git", "add", "-p", filename)
+}
+
 func editFile(g *gocui.Gui, filename string) (string, error) {
 	editor := os.Getenv("VISUAL")
 	if editor == "" {
@@ -355,6 +359,7 @@ func editFile(g *gocui.Gui, filename string) (string, error) {
 	if editor == "" {
 		editor = "vi"
 	}
+
 	runSubProcess(g, editor, filename)
 	return "", nil
 }

@@ -63,6 +63,19 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	return handleFileSelect(g, v)
 }
 
+func handleAddPatch(g *gocui.Gui, v *gocui.View) error {
+	file, err := getSelectedFile(g)
+	if err != nil {
+		if err == ErrNoFiles {
+			return nil
+		}
+		return err
+	}
+
+	gitAddPatch(g, file.Name)
+	return err
+}
+
 func getSelectedFile(g *gocui.Gui) (GitFile, error) {
 	if len(state.GitFiles) == 0 {
 		return GitFile{}, ErrNoFiles

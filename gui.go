@@ -106,6 +106,7 @@ func keybindings(g *gocui.Gui) error {
 		Binding{ViewName: "files", Key: 'r', Modifier: gocui.ModNone, Handler: handleRefreshFiles},
 		Binding{ViewName: "files", Key: 'S', Modifier: gocui.ModNone, Handler: handleStashSave},
 		Binding{ViewName: "files", Key: 'a', Modifier: gocui.ModNone, Handler: handleAbortMerge},
+		Binding{ViewName: "files", Key: 't', Modifier: gocui.ModNone, Handler: handleAddPatch},
 		Binding{ViewName: "main", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: handleSelectTop},
 		Binding{ViewName: "main", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: handleSelectBottom},
 		Binding{ViewName: "main", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: handleEscapeMerge},
