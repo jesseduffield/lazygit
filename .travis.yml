@@ -4,8 +4,9 @@ env:
   - DEP_VERSION="0.5.0"
 matrix:
   include:
-  - go: 1.7
+  - go: 1.X
     env: LATEST=true
+  - go: 1.7
   - go: tip
   allow_failures:
   - go: tip
