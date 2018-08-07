@@ -165,62 +165,6 @@ func withPadding(str string, padding int) string {
 	return str + strings.Repeat(" ", padding-len(str))
 }
 
-func constructBranch(recency, name string, index int) Branch {
-	branchType, branchBase, colourAttr := branchPropertiesFromName(name)
-	if index == 0 {
-		recency = "  *"
-	}
-	colour := color.New(colourAttr)
-	displayString := withPadding(recency, 4) + coloredString(name, colour)
-	return Branch{
-		Name:          name,
-		Type:          branchType,
-		BaseBranch:    branchBase,
-		DisplayString: displayString,
-	}
-}
-
-func getGitBranches() []Branch {
-	// check if there are any branches
-	branchCheck, _ := runCommand("git branch")
-	if branchCheck == "" {
-		return []Branch{constructBranch("", gitCurrentBranchName(), 0)}
-	}
-	branches := getBranches()
-	branches = getAndMergeFetchedBranches(branches)
-	return branches
-}
-
-func branchAlreadyStored(branchName string, branches []Branch) bool {
-	for _, existingBranch := range branches {
-		if existingBranch.Name == branchName {
-			return true
-		}
-	}
-	return false
-}
-
-// here branches contains all the branches that we've checked out, along with
-// the recency. In this function we append the branches that are in our heads
-// directory i.e. things we've fetched but haven't necessarily checked out.
-// Worth mentioning this has nothing to do with the 'git merge' operation
-func getAndMergeFetchedBranches(branches []Branch) []Branch {
-	rawString, err := runDirectCommand("git branch --sort=-committerdate --no-color")
-	if err != nil {
-		return branches
-	}
-	branchLines := splitLines(rawString)
-	for _, line := range branchLines {
-		line = strings.Replace(line, "* ", "", -1)
-		line = strings.TrimSpace(line)
-		if branchAlreadyStored(line, branches) {
-			continue
-		}
-		branches = append(branches, constructBranch("", line, len(branches)))
-	}
-	return branches
-}
-
 // TODO: DRY up this function and getGitBranches
 func getGitStashEntries() []StashEntry {
 	stashEntries := make([]StashEntry, 0)
@@ -537,9 +481,12 @@ func gitCurrentBranchName() string {
 }
 
 func getBranches() []Branch {
-	rawString, _ := runDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
-
 	branches := make([]Branch, 0)
+	rawString, err := runDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
+	if err != nil {
+		return branches
+	}
+
 	branchLines := splitLines(rawString)
 	for i, line := range branchLines {
 		r := regexp.MustCompile("\\|.*\\s")
@@ -568,6 +515,62 @@ func getBranches() []Branch {
 
 		branch := constructBranch(timeNumber+timeUnit, branchName, i)
 		branches = append(branches, branch)
+	}
+	return branches
+}
+
+func constructBranch(recency, name string, index int) Branch {
+	branchType, branchBase, colourAttr := branchPropertiesFromName(name)
+	if index == 0 {
+		recency = "  *"
+	}
+	colour := color.New(colourAttr)
+	displayString := withPadding(recency, 4) + coloredString(name, colour)
+	return Branch{
+		Name:          name,
+		Type:          branchType,
+		BaseBranch:    branchBase,
+		DisplayString: displayString,
+	}
+}
+
+func getGitBranches() []Branch {
+	// check if there are any branches
+	branchCheck, _ := runCommand("git branch")
+	if branchCheck == "" {
+		return []Branch{constructBranch("", gitCurrentBranchName(), 0)}
+	}
+	branches := getBranches()
+	branches = getAndMergeFetchedBranches(branches)
+	return branches
+}
+
+func branchAlreadyStored(branchName string, branches []Branch) bool {
+	for _, existingBranch := range branches {
+		if existingBranch.Name == branchName {
+			return true
+		}
+	}
+	return false
+}
+
+// here branches contains all the branches that we've checked out, along with
+// the recency. In this function we append the branches that are in our heads
+// directory i.e. things we've fetched but haven't necessarily checked out.
+// Worth mentioning this has nothing to do with the 'git merge' operation
+func getAndMergeFetchedBranches(branches []Branch) []Branch {
+	rawString, err := runDirectCommand("git branch --sort=-committerdate --no-color")
+	if err != nil {
+		return branches
+	}
+	branchLines := splitLines(rawString)
+	for _, line := range branchLines {
+		line = strings.Replace(line, "* ", "", -1)
+		line = strings.TrimSpace(line)
+		if branchAlreadyStored(line, branches) {
+			continue
+		}
+		branches = append(branches, constructBranch("", line, len(branches)))
 	}
 	return branches
 }
