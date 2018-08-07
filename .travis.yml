@@ -5,14 +5,15 @@ env:
 matrix:
   include:
   - go: 1.x
-  - go: 1.7
     env: LATEST=true
+  - go: 1.7
   - go: tip
   allow_failures:
   - go: tip
 before_install:
   # Download the binary to bin folder in $GOPATH
-  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-386 -o $GOPATH/bin/dep
+  # - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-386 -o $GOPATH/bin/dep
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   # Make the binary executable
   - chmod +x $GOPATH/bin/dep
   - ls $GOPATH/bin/
