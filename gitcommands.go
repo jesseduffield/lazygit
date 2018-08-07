@@ -116,7 +116,7 @@ func runDirectCommand(command string) (string, error) {
 
 	commandLog(command)
 	cmdOut, err := exec.
-		Command("sh", "-c", command).
+		Command("cmd", "/c", command).
 		CombinedOutput()
 	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
 	return sanitisedCommandOutput(cmdOut, err)
