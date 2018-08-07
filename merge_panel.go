@@ -18,7 +18,7 @@ func findConflicts(content string) ([]conflict, error) {
 	conflicts := make([]conflict, 0)
 	var newConflict conflict
 	for i, line := range splitLines(content) {
-		if line == "<<<<<<< HEAD" {
+		if line == "<<<<<<< HEAD" || line == "<<<<<<< MERGE_HEAD" || line == "<<<<<<< Updated upstream" {
 			newConflict = conflict{start: i}
 		} else if line == "=======" {
 			newConflict.middle = i

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -112,16 +113,23 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 	return result
 }
 
+func platformShell() (string, string) {
+	if runtime.GOOS == "windows" {
+		return "cmd", "/c"
+	}
+	return "sh", "-c"
+}
+
 func runDirectCommand(command string) (string, error) {
 	timeStart := time.Now()
-
 	commandLog(command)
+
+	shell, shellArg := platformShell()
 	cmdOut, err := exec.
-		Command("bash", "-c", command).
+		Command(shell, shellArg, command).
 		CombinedOutput()
 	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
-
-	return string(cmdOut), err
+	return sanitisedCommandOutput(cmdOut, err)
 }
 
 func branchStringParts(branchString string) (string, string) {
@@ -176,14 +184,18 @@ func branchFromLine(line string, index int) Branch {
 func getGitBranches() []Branch {
 	branches := make([]Branch, 0)
 	// check if there are any branches
-	branchCheck, _ := runDirectCommand("git branch")
+	branchCheck, _ := runCommand("git branch")
 	if branchCheck == "" {
 		return append(branches, branchFromLine("master", 0))
 	}
-	rawString, _ := runDirectCommand(getBranchesCommand)
-	branchLines := splitLines(rawString)
-	for i, line := range branchLines {
-		branches = append(branches, branchFromLine(line, i))
+	if rawString, err := runDirectCommand(getBranchesCommand); err == nil {
+		branchLines := splitLines(rawString)
+		for i, line := range branchLines {
+			branches = append(branches, branchFromLine(line, i))
+		}
+	} else {
+		// TODO: DRY this up
+		branches = append(branches, branchFromLine(gitCurrentBranchName(), 0))
 	}
 	branches = getAndMergeFetchedBranches(branches)
 	return branches
@@ -203,9 +215,14 @@ func branchAlreadyStored(branchLine string, branches []Branch) bool {
 // directory i.e. things we've fetched but haven't necessarily checked out.
 // Worth mentioning this has nothing to do with the 'git merge' operation
 func getAndMergeFetchedBranches(branches []Branch) []Branch {
-	rawString, _ := runDirectCommand(getHeadsCommand)
+	rawString, err := runDirectCommand("git branch --sort=-committerdate --no-color")
+	if err != nil {
+		return branches
+	}
 	branchLines := splitLines(rawString)
 	for _, line := range branchLines {
+		line = strings.Replace(line, "* ", "", -1)
+		line = strings.TrimSpace(line)
 		if branchAlreadyStored(line, branches) {
 			continue
 		}
@@ -300,13 +317,21 @@ func gitCheckout(branch string, force bool) (string, error) {
 	return runCommand("git checkout " + forceArg + branch)
 }
 
+func sanitisedCommandOutput(output []byte, err error) (string, error) {
+	outputString := string(output)
+	if outputString == "" && err != nil {
+		return err.Error(), err
+	}
+	return outputString, err
+}
+
 func runCommand(command string) (string, error) {
 	commandStartTime := time.Now()
 	commandLog(command)
 	splitCmd := strings.Split(command, " ")
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
 	devLog("run command time: ", time.Now().Sub(commandStartTime))
-	return string(cmdOut), err
+	return sanitisedCommandOutput(cmdOut, err)
 }
 
 func vsCodeOpenFile(g *gocui.Gui, filename string) (string, error) {
@@ -360,9 +385,12 @@ func runSubProcess(g *gocui.Gui, cmdName string, commandArgs ...string) {
 }
 
 func getBranchDiff(branch string, baseBranch string) (string, error) {
+func getBranchGraph(branch string, baseBranch string) (string, error) {
+	return runCommand("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branch)
 
-	return runCommand("git log -p -30 --color --no-merges " + branch)
-	// return runCommand("git diff --color " + baseBranch + "..." + branch)
+	// Leaving this guy commented out in case there's backlash from the design
+	// change and I want to make this configurable
+	// return runCommand("git log -p -30 --color --no-merges " + branch)
 }
 
 func verifyInGitRepo() {
@@ -480,9 +508,8 @@ func removeFile(file GitFile) error {
 	return err
 }
 
-func gitCommit(message string) error {
-	_, err := runDirectCommand("git commit -m \"" + message + "\"")
-	return err
+func gitCommit(message string) (string, error) {
+	return runDirectCommand("git commit -m \"" + message + "\"")
 }
 
 func gitPull() (string, error) {
@@ -498,7 +525,7 @@ func gitPush() (string, error) {
 }
 
 func gitSquashPreviousTwoCommits(message string) (string, error) {
-	return runDirectCommand("git reset --soft head^ && git commit --amend -m \"" + message + "\"")
+	return runDirectCommand("git reset --soft HEAD^ && git commit --amend -m \"" + message + "\"")
 }
 
 func gitRenameCommit(message string) (string, error) {
@@ -555,7 +582,7 @@ func gitCurrentBranchName() string {
 	if err != nil {
 		return ""
 	}
-	return branchName
+	return strings.TrimSpace(branchName)
 }
 
 const getBranchesCommand = `set -e
@@ -572,6 +599,8 @@ git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
       fi
     fi
   done \
+  | sed 's/ months /m /g' \
+  | sed 's/ month /m /g' \
   | sed 's/ days /d /g' \
   | sed 's/ day /d /g' \
   | sed 's/ weeks /w /g' \
@@ -586,11 +615,3 @@ git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
   | tr -d ' '
 }
 `
-
-const getHeadsCommand = `git show-ref \
-| grep 'refs/heads/\|refs/remotes/origin/' \
-| sed 's/.*refs\/heads\///g' \
-| sed 's/.*refs\/remotes\/origin\///g' \
-| grep -v '^HEAD$' \
-| sort \
-| uniq`

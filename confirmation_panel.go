@@ -63,10 +63,11 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, hand
 			return err
 		}
 
-		confirmationView.Editable = true
 		g.Cursor = true
 
+		confirmationView.Editable = true
 		confirmationView.Title = title
+		confirmationView.FgColor = gocui.ColorWhite
 		switchFocus(g, currentView, confirmationView)
 		return setKeyBindings(g, handleYes, nil)
 	}
@@ -87,6 +88,7 @@ func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, promp
 				return err
 			}
 			confirmationView.Title = title
+			confirmationView.FgColor = gocui.ColorWhite
 			renderString(g, "confirmation", prompt)
 			switchFocus(g, currentView, confirmationView)
 			return setKeyBindings(g, handleYes, handleNo)
@@ -101,10 +103,8 @@ func setKeyBindings(g *gocui.Gui, handleYes, handleNo func(*gocui.Gui, *gocui.Vi
 	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleYes)); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleNo)); err != nil {
-		return err
-	}
-	return nil
+
+	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleNo))
 }
 
 func createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 )
@@ -90,7 +91,10 @@ func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	go func() {
 		branch := getSelectedBranch(v)
-		diff, _ := getBranchDiff(branch.Name, branch.BaseBranch)
+		diff, err := getBranchGraph(branch.Name, branch.BaseBranch)
+		if err != nil && strings.HasPrefix(diff, "fatal: ambiguous argument") {
+			diff = "There is no tracking for this branch"
+		}
 		renderString(g, "main", diff)
 	}()
 	return nil
