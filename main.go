@@ -12,12 +12,12 @@ import (
 )
 
 var (
-	startTime time.Time
-	debugging bool
-	Rev string
-	builddate string
+	startTime        time.Time
+	debugging        bool
+	Rev              string
+	builddate        string
 	debuggingPointer = flag.Bool("debug", false, "a boolean")
-	versionFlag = flag.Bool("v", false, "Print the current version")
+	versionFlag      = flag.Bool("v", false, "Print the current version")
 )
 
 func homeDirectory() string {
