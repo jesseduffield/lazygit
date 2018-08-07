@@ -22,7 +22,7 @@ welcome your pull requests:
 ## Code of conduct
 Please note by participating in this project, you agree to abide by the [code of conduct].
 
-[code of conduct]: https://github.com/jesseduffield/lazygit/blob/master/CONTRIBUTING.md
+[code of conduct]: https://github.com/jesseduffield/lazygit/blob/master/CODE-OF-CONDUCT.md
 
 ## Any contributions you make will be under the MIT Software License
 In short, when you submit code changes, your submissions are understood to be
