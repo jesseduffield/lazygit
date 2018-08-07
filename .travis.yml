@@ -5,8 +5,8 @@ env:
 matrix:
   include:
   - go: 1.x
-    env: LATEST=true
   - go: 1.7
+    env: LATEST=true
   - go: tip
   allow_failures:
   - go: tip
