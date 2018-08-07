@@ -176,7 +176,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 		if message == "" {
 			return createErrorPanel(g, "You cannot commit without a commit message")
 		}
-		if output, err := gitCommit(message); err != nil {
+		if output, err := gitCommit(g, message); err != nil {
 			return createErrorPanel(g, output)
 		}
 		refreshFiles(g)

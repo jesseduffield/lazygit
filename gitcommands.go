@@ -447,7 +447,12 @@ func removeFile(file GitFile) error {
 	return err
 }
 
-func gitCommit(message string) (string, error) {
+func gitCommit(g *gocui.Gui, message string) (string, error) {
+	out, _ := runDirectCommand("git config --get commit.gpgsign")
+	if out != "" {
+		runSubProcess(g, "git", "commit", "-m", "\""+message+"\"")
+		return "", nil
+	}
 	return runDirectCommand("git commit -m \"" + message + "\"")
 }
 
