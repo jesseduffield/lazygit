@@ -165,7 +165,7 @@ func withPadding(str string, padding int) string {
 	return str + strings.Repeat(" ", padding-len(str))
 }
 
-func branchFromLine(recency, name string, index int) Branch {
+func constructBranch(recency, name string, index int) Branch {
 	branchType, branchBase, colourAttr := branchPropertiesFromName(name)
 	if index == 0 {
 		recency = "  *"
@@ -184,7 +184,7 @@ func getGitBranches() []Branch {
 	// check if there are any branches
 	branchCheck, _ := runCommand("git branch")
 	if branchCheck == "" {
-		return []Branch{branchFromLine("", gitCurrentBranchName(), 0)}
+		return []Branch{constructBranch("", gitCurrentBranchName(), 0)}
 	}
 	branches := getBranches()
 	branches = getAndMergeFetchedBranches(branches)
@@ -216,7 +216,7 @@ func getAndMergeFetchedBranches(branches []Branch) []Branch {
 		if branchAlreadyStored(line, branches) {
 			continue
 		}
-		branches = append(branches, branchFromLine("", line, len(branches)))
+		branches = append(branches, constructBranch("", line, len(branches)))
 	}
 	return branches
 }
@@ -566,7 +566,7 @@ func getBranches() []Branch {
 		}
 		timeUnit = timeUnitMap[timeUnit]
 
-		branch := branchFromLine(timeNumber+timeUnit, branchName, i)
+		branch := constructBranch(timeNumber+timeUnit, branchName, i)
 		branches = append(branches, branch)
 	}
 	return branches
