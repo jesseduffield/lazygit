@@ -17,6 +17,21 @@ Then just call `lazygit` in your terminal inside a git repository.
 
 If you want, you can also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or whichever rc file you're using).
 
+Please note:
+On MacOS you may have to add `~/go/bin` to your $PATH variable.
+
+
+### Ubuntu
+Packages for Ubuntu 14.04 and up are available via Launchpad PPA.
+
+They are built daily, straight from master branch.
+
+```sh
+sudo add-apt-repository ppa:lazygit-team/daily
+sudo apt-get update
+sudo apt-get install lazygit
+```
+
 ## Cool features
 - Adding files easily
 - Resolving merge conflicts
@@ -30,6 +45,19 @@ If you want, you can also add an alias for this with `echo "alias lg='lazygit'" 
 
 ### Viewing commit diffs
 ![Viewing Commit Diffs](https://image.ibb.co/gPD02o/capture.png)
+
+## Docs
+[Keybindings](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md)
+
+## Milestones
+- [ ] Easy Installation (homebrew, release binaries)
+- [ ] Configurable Keybindings
+- [ ] Configurable Color Themes
+- [ ] Spawning Subprocesses (help needed - have a look at https://github.com/jesseduffield/lazygit/pull/18)
+- [ ] i18n
+
+## Contributing
+I'll find a good template for contributing and then add it to the repo (or if somebody has a suggestion please put up a PR)
 
 ## Work in progress
 This is still a work in progress so there's still bugs to iron out and as this is my first project in Go the code could no doubt use an increase in quality, but I'll be improving on it whenever I find the time. If you have any feedback feel free to [raise an issue](https://github.com/jesseduffield/lazygit/issues)/[submit a PR](https://github.com/jesseduffield/lazygit/pulls).

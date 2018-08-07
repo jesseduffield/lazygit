@@ -178,10 +178,14 @@ func getGitBranches() []Branch {
 	if branchCheck == "" {
 		return append(branches, branchFromLine("master", 0))
 	}
-	rawString, _ := runDirectCommand(getBranchesCommand)
-	branchLines := splitLines(rawString)
-	for i, line := range branchLines {
-		branches = append(branches, branchFromLine(line, i))
+	if rawString, err := runDirectCommand(getBranchesCommand); err == nil {
+		branchLines := splitLines(rawString)
+		for i, line := range branchLines {
+			branches = append(branches, branchFromLine(line, i))
+		}
+	} else {
+		// TODO: DRY this up
+		branches = append(branches, branchFromLine(gitCurrentBranchName(), 0))
 	}
 	branches = getAndMergeFetchedBranches(branches)
 	return branches
@@ -327,10 +331,12 @@ func sublimeOpenFile(filename string) (string, error) {
 	return runCommand("subl " + filename)
 }
 
-func getBranchDiff(branch string, baseBranch string) (string, error) {
+func getBranchGraph(branch string, baseBranch string) (string, error) {
+	return runCommand("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branch)
 
-	return runCommand("git log -p -30 --color --no-merges " + branch)
-	// return runCommand("git diff --color " + baseBranch + "..." + branch)
+	// Leaving this guy commented out in case there's backlash from the design
+	// change and I want to make this configurable
+	// return runCommand("git log -p -30 --color --no-merges " + branch)
 }
 
 func verifyInGitRepo() {
@@ -465,7 +471,7 @@ func gitPush() (string, error) {
 }
 
 func gitSquashPreviousTwoCommits(message string) (string, error) {
-	return runDirectCommand("git reset --soft head^ && git commit --amend -m \"" + message + "\"")
+	return runDirectCommand("git reset --soft HEAD^ && git commit --amend -m \"" + message + "\"")
 }
 
 func gitRenameCommit(message string) (string, error) {
@@ -522,7 +528,7 @@ func gitCurrentBranchName() string {
 	if err != nil {
 		return ""
 	}
-	return branchName
+	return strings.TrimSpace(branchName)
 }
 
 const getBranchesCommand = `set -e

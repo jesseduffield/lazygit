@@ -90,7 +90,7 @@ func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	go func() {
 		branch := getSelectedBranch(v)
-		diff, _ := getBranchDiff(branch.Name, branch.BaseBranch)
+		diff, _ := getBranchGraph(branch.Name, branch.BaseBranch)
 		renderString(g, "main", diff)
 	}()
 	return nil
