@@ -31,9 +31,9 @@ script:
   - mv lazygit_windows_amd64.exe lazygit_windows_amd64_${TRAVIS_TAG}.exe
   - mv lazygit_darwin_amd64 lazygit_darwin_amd64_${TRAVIS_TAG}
   - mv lazygit_linux_amd64 lazygit_linux_amd64_${TRAVIS_TAG}
-  - chmod +x ./lazygit_windows_amd64_${TRAVIS_TAG}.exe
-  - chmod +x ./lazygit_darwin_amd64_${TRAVIS_TAG}
-  - chmod +x ./lazygit_linux_amd64_${TRAVIS_TAG}
+  - chmod a+x ./lazygit_windows_amd64_${TRAVIS_TAG}.exe
+  - chmod a+x ./lazygit_darwin_amd64_${TRAVIS_TAG}
+  - chmod a+x ./lazygit_linux_amd64_${TRAVIS_TAG}
   - ls
   - ls */*
 deploy:
