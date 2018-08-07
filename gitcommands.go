@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -111,12 +112,20 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 	return result
 }
 
+func platformShell() (string, string) {
+	if runtime.GOOS == "windows" {
+		return "cmd", "/c"
+	}
+	return "sh", "-c"
+}
+
 func runDirectCommand(command string) (string, error) {
 	timeStart := time.Now()
-
 	commandLog(command)
+
+	shell, shellArg := platformShell()
 	cmdOut, err := exec.
-		Command("sh", "-c", command).
+		Command(shell, shellArg, command).
 		CombinedOutput()
 	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
 	return sanitisedCommandOutput(cmdOut, err)
