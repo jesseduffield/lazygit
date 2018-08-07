@@ -116,7 +116,7 @@ func runDirectCommand(command string) (string, error) {
 
 	commandLog(command)
 	cmdOut, err := exec.
-		Command("bash", "-c", command).
+		Command("sh", "-c", command).
 		CombinedOutput()
 	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
 	return sanitisedCommandOutput(cmdOut, err)
@@ -174,7 +174,7 @@ func branchFromLine(line string, index int) Branch {
 func getGitBranches() []Branch {
 	branches := make([]Branch, 0)
 	// check if there are any branches
-	branchCheck, _ := runDirectCommand("git branch")
+	branchCheck, _ := runCommand("git branch")
 	if branchCheck == "" {
 		return append(branches, branchFromLine("master", 0))
 	}
