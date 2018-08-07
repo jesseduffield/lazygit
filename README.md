@@ -18,7 +18,7 @@ Then just call `lazygit` in your terminal inside a git repository.
 If you want, you can also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or whichever rc file you're using).
 
 Please note:
-On MacOS you may have to add `~/go/bin` to your $PATH variable, or `%HOME%\go\bin` to your %PATH% in Windows
+If you get an error claiming that lazygit cannot be found or is not defined, you may need to add `~/go/bin` to your $PATH (MacOS/Linux), or `%HOME%\go\bin` (Windows)
 
 ### Ubuntu
 Packages for Ubuntu 14.04 and up are available via Launchpad PPA.
