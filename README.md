@@ -21,7 +21,7 @@ Please note:
 If you get an error claiming that lazygit cannot be found or is not defined, you may need to add `~/go/bin` to your $PATH (MacOS/Linux), or `%HOME%\go\bin` (Windows)
 
 ### Ubuntu
-Packages for Ubuntu 14.04 and up are available via Launchpad PPA.
+Packages for Ubuntu 16.04 and up are available via Launchpad PPA.
 
 They are built daily, straight from master branch.
 
