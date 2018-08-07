@@ -4,7 +4,7 @@ env:
   - DEP_VERSION="0.5.0"
 matrix:
   include:
-  # - go: 1.X
+  - go: 1.X
   - go: 1.7
     env: LATEST=true
   - go: tip
@@ -15,6 +15,7 @@ before_install:
   - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
   # Make the binary executable
   - chmod +x $GOPATH/bin/dep
+  - ls $GOPATH/bin/
   - dep ensure
   - go get github.com/mitchellh/gox
 install:
