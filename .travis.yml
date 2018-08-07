@@ -27,7 +27,10 @@ script:
 # - go get -v ./...
 # - diff -u <(echo -n) <(gofmt -d .) # can't make gofmt ignore vendor directory
 # - go vet $(go list ./... | grep -v /vendor/)
-  - if [ "${LATEST}" = "true" ]; then gox -os="linux darwin windows" -arch="amd64" -ldflags "-X main.Rev=`git rev-parse --short HEAD`" -verbose ./...; fi
+  - gox -os="linux darwin windows" -arch="amd64" -ldflags "-X main.Rev=`git rev-parse --short HEAD`" -verbose ./...
+  - chmod +x ./lazygit_windows_amd64.exe
+  - chmod +x ./lazygit_darwin_amd64
+  - chmod +x ./lazygit_linux_amd64
   - ls
   - ls */*
 deploy:
