@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -111,12 +112,20 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 	return result
 }
 
+func platformShell() (string, string) {
+	if runtime.GOOS == "windows" {
+		return "cmd", "/c"
+	}
+	return "sh", "-c"
+}
+
 func runDirectCommand(command string) (string, error) {
 	timeStart := time.Now()
-
 	commandLog(command)
+
+	shell, shellArg := platformShell()
 	cmdOut, err := exec.
-		Command("bash", "-c", command).
+		Command(shell, shellArg, command).
 		CombinedOutput()
 	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
 	return sanitisedCommandOutput(cmdOut, err)
@@ -174,7 +183,7 @@ func branchFromLine(line string, index int) Branch {
 func getGitBranches() []Branch {
 	branches := make([]Branch, 0)
 	// check if there are any branches
-	branchCheck, _ := runDirectCommand("git branch")
+	branchCheck, _ := runCommand("git branch")
 	if branchCheck == "" {
 		return append(branches, branchFromLine("master", 0))
 	}
@@ -205,9 +214,14 @@ func branchAlreadyStored(branchLine string, branches []Branch) bool {
 // directory i.e. things we've fetched but haven't necessarily checked out.
 // Worth mentioning this has nothing to do with the 'git merge' operation
 func getAndMergeFetchedBranches(branches []Branch) []Branch {
-	rawString, _ := runDirectCommand(getHeadsCommand)
+	rawString, err := runDirectCommand("git branch --sort=-committerdate --no-color")
+	if err != nil {
+		return branches
+	}
 	branchLines := splitLines(rawString)
 	for _, line := range branchLines {
+		line = strings.Replace(line, "* ", "", -1)
+		line = strings.TrimSpace(line)
 		if branchAlreadyStored(line, branches) {
 			continue
 		}
@@ -561,11 +575,3 @@ git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD | {
   | tr -d ' '
 }
 `
-
-const getHeadsCommand = `git show-ref \
-| grep 'refs/heads/\|refs/remotes/origin/' \
-| sed 's/.*refs\/heads\///g' \
-| sed 's/.*refs\/remotes\/origin\///g' \
-| grep -v '^HEAD$' \
-| sort \
-| uniq`

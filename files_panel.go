@@ -78,6 +78,9 @@ func getSelectedFile(g *gocui.Gui) (GitFile, error) {
 func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
+		if err == ErrNoFiles {
+			return nil
+		}
 		return err
 	}
 	var deleteVerb string

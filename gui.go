@@ -6,6 +6,7 @@ import (
 	// "io/ioutil"
 
 	"log"
+	"runtime"
 	"strings"
 	"time"
 
@@ -136,7 +137,9 @@ func keybindings(g *gocui.Gui) error {
 func layout(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
-	g.FgColor = gocui.ColorBlack
+	if runtime.GOOS != "windows" {
+		g.FgColor = gocui.ColorBlack
+	}
 	width, height := g.Size()
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
