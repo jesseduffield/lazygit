@@ -279,7 +279,7 @@ func sublimeOpenFile(g *gocui.Gui, filename string) (string, error) {
 
 func openFile(g *gocui.Gui, filename string) (string, error) {
 	cmdName, cmdTrail := getOpenCommand()
-	return runCommand(cmdName + " " + cmdTrail)
+	return runCommand(cmdName + " " + filename + " " + cmdTrail) // TODO: find out why finder is being opened here
 }
 
 func gitAddPatch(g *gocui.Gui, filename string) {
@@ -306,7 +306,7 @@ func getOpenCommand() (string, string) {
 		"cygstart": "",
 	}
 	for name, trail := range trailMap {
-		if out, _ := runCommand("which " + name); out != "" {
+		if out, _ := runCommand("which " + name); out != "exit status 1" {
 			return name, trail
 		}
 	}
