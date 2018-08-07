@@ -205,7 +205,10 @@ func branchAlreadyStored(branchLine string, branches []Branch) bool {
 // directory i.e. things we've fetched but haven't necessarily checked out.
 // Worth mentioning this has nothing to do with the 'git merge' operation
 func getAndMergeFetchedBranches(branches []Branch) []Branch {
-	rawString, _ := runDirectCommand(getHeadsCommand)
+	rawString, err := runDirectCommand(getHeadsCommand)
+	if err != nil {
+		return branches
+	}
 	branchLines := splitLines(rawString)
 	for _, line := range branchLines {
 		if branchAlreadyStored(line, branches) {
