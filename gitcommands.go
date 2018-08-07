@@ -480,6 +480,30 @@ func gitCurrentBranchName() string {
 	return strings.TrimSpace(branchName)
 }
 
+// A line will have the form '10 days ago master' so we need to strip out the
+// useful information from that into timeNumber, timeUnit, and branchName
+func branchInfoFromLine(line string) (string, string, string) {
+	r := regexp.MustCompile("\\|.*\\s")
+	line = r.ReplaceAllString(line, " ")
+	words := strings.Split(line, " ")
+	return words[0], words[1], words[3]
+}
+
+func abbreviatedTimeUnit(timeUnit string) string {
+	r := regexp.MustCompile("s$")
+	timeUnit = r.ReplaceAllString(timeUnit, "")
+	timeUnitMap := map[string]string{
+		"hour":   "h",
+		"minute": "m",
+		"second": "s",
+		"week":   "w",
+		"year":   "y",
+		"day":    "d",
+		"month":  "m",
+	}
+	return timeUnitMap[timeUnit]
+}
+
 func getBranches() []Branch {
 	branches := make([]Branch, 0)
 	rawString, err := runDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
@@ -489,29 +513,12 @@ func getBranches() []Branch {
 
 	branchLines := splitLines(rawString)
 	for i, line := range branchLines {
-		r := regexp.MustCompile("\\|.*\\s")
-		line = r.ReplaceAllString(line, " ")
-		words := strings.Split(line, " ")
-		timeNumber := words[0]
-		timeUnit := words[1]
-		branchName := words[3]
+		timeNumber, timeUnit, branchName := branchInfoFromLine(line)
+		timeUnit = abbreviatedTimeUnit(timeUnit)
 
 		if branchAlreadyStored(branchName, branches) {
 			continue
 		}
-
-		r = regexp.MustCompile("s$")
-		timeUnit = r.ReplaceAllString(timeUnit, "")
-		timeUnitMap := map[string]string{
-			"hour":   "h",
-			"minute": "m",
-			"second": "s",
-			"week":   "w",
-			"year":   "y",
-			"day":    "d",
-			"month":  "m",
-		}
-		timeUnit = timeUnitMap[timeUnit]
 
 		branch := constructBranch(timeNumber+timeUnit, branchName, i)
 		branches = append(branches, branch)
