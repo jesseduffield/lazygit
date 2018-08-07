@@ -14,6 +14,8 @@ before_install:
   # Download the binary to bin folder in $GOPATH
   # - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-386 -o $GOPATH/bin/dep
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - ls
+  - ls */*
   # Make the binary executable
   - chmod +x $GOPATH/bin/dep
   - ls $GOPATH/bin/
@@ -26,15 +28,16 @@ script:
 # - diff -u <(echo -n) <(gofmt -d .) # can't make gofmt ignore vendor directory
 # - go vet $(go list ./... | grep -v /vendor/)
   - if [ "${LATEST}" = "true" ]; then gox -os="linux darwin windows" -arch="amd64" -output="lazygit.." -ldflags "-X main.Rev=`git rev-parse --short HEAD`" -verbose ./...; fi
+  - ls */*
 deploy:
   provider: releases
   skip_cleanup: true
   api_key:
     secure: TnB8I+swjicHuGTXk3ncm1Aaa12eIJqWV/Lhcnbb01i39p6+fyn3vDMdWPcejt3R8gcJqv4wyP8UQVO9G1qkLppt6V/qAuY5x6nX0MgEa3t+8JLJnGYHZYsuIgan/ecAmeu5+6dgUhr9Oq6zQOEv/O88NsALzMlqnEQNXI8XSoScfhkiVDIp3zWov0vBizCdThnNgTx9zRpJVoqxmhWvgt+me2+fOhSx1Y+3ZA2gE7zq8IFAbxp36d0rsR5lKqmTuF+YsF9iQ7Ar+xCjbRunLsZx+VwGqGfpS/qS7EwsEqBI0vEO76eFJkwEsIzOvJiFNhBDUu3upquBFMT4uzxRxH3eV+J4mZtu29UDLdvKI5Q730Lk9AgmH4now+RmP08M0SEXJa+AnHeuBv2u1iU5bu+sI6CORVQzKQwOph9AABDjSZ54wrXIpYEeIW2sz8nx+hiG6QL1mqfM/l+55BR69u3vxKYMryQBxPuzhZCTOqqI4uahlb6GIUNZJ9vGZeIA9HFJq3ymW8cdrpYzhKf3Nx9jK+Yb81h5/AHq9iChXEC63VPCDXXGRllh2UYWNYCaAdtk+ekpLR8299e4CaEregy6g5U2S3/xrBKl87miu1uJ/fquXoxGdSU+JcmsmXZ26sGIU2TCYdNjSfIgpOyfMmB4JNtKHqWRHA9Fe42CRpA=
   file:
-  - $GOPATH/bin/lazygit.windows.amd64.exe
-  - $GOPATH/bin/lazygit.darwin.amd64
-  - $GOPATH/bin/lazygit.linux.amd64
+  - lazygit.windows.amd64.exe
+  - lazygit.darwin.amd64
+  - lazygit.linux.amd64
   on:
     repo: jesseduffield/lazygit
     tags: true
