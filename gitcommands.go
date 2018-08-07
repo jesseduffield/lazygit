@@ -526,13 +526,13 @@ func getBranches() []Branch {
 	return branches
 }
 
-func constructBranch(recency, name string, index int) Branch {
+func constructBranch(prefix, name string, index int) Branch {
 	branchType, branchBase, colourAttr := branchPropertiesFromName(name)
 	if index == 0 {
-		recency = "  *"
+		prefix = "  *"
 	}
 	colour := color.New(colourAttr)
-	displayString := withPadding(recency, 4) + coloredString(name, colour)
+	displayString := withPadding(prefix, 4) + coloredString(name, colour)
 	return Branch{
 		Name:          name,
 		Type:          branchType,
