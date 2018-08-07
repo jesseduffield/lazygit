@@ -1,5 +1,5 @@
 language: go
-sudo: false
+sudo: true
 env:
   - DEP_VERSION="0.5.0"
 matrix:
