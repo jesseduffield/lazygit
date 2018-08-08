@@ -1,19 +1,8 @@
 # This is an example goreleaser.yaml file with some sane defaults.
 # Make sure to check the documentation at http://goreleaser.com
 builds:
-  -
-    env:
-      - CGO_ENABLED=0
-    main: .
-    goos:
-      - freebsd
-      - windows
-      - darwin
-      - linux
-    goarch:
-      - amd64
-      - arm
-      - arm64
+- env:
+  - CGO_ENABLED=0
 archive:
   replacements:
     darwin: Darwin
@@ -31,5 +20,3 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
-# env_files:
-#   github_token: ./github_token
