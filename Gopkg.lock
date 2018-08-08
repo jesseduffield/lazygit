@@ -2,10 +2,10 @@
 
 
 [[projects]]
-  digest = "1:865079840386857c809b72ce300be7580cb50d3d3129ce11bf9aa6ca2bc1934a"
+  digest = "1:ade392a843b2035effb4b4a2efa2c3bab3eb29b992e98bacf9c898b0ecb54e45"
   name = "github.com/fatih/color"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4"
   version = "v1.7.0"
 
@@ -14,55 +14,55 @@
   digest = "1:4a8ed9b8cf22bd03bee5d74179fa06a282e4a73b6de949f7a865ff56cd2537e0"
   name = "github.com/golang-collections/collections"
   packages = ["stack"]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "604e922904d35e97f98a774db7881f049cd8d970"
 
 [[projects]]
   branch = "master"
-  digest = "1:f086cf183e423bf1926f4de05f47bf57132fe5db9c99e464f733ce925280fc81"
+  digest = "1:82b3bbc50ba7b6065b0229ebf0fc990a76e47410acd510294e435aeb3523293e"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "3c923f53ac9952af649af04a067405843558d56f"
 
 [[projects]]
-  digest = "1:c658e84ad3916da105a761660dcaeb01e63416c8ec7bc62256a9b411a05fcd67"
+  digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
   version = "v0.0.9"
 
 [[projects]]
-  digest = "1:d4d17353dbd05cb52a2a52b7fe1771883b682806f68db442b436294926bbfafb"
+  digest = "1:bc4f7eec3b7be8c6cb1f0af6c1e3333d5bb71072951aaaae2f05067b0803f287"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
 
 [[projects]]
-  digest = "1:e2d1d410fb367567c2b53ed9e2d719d3c1f0891397bb2fa49afd747cfbf1e8e4"
+  digest = "1:cb591533458f6eb6e2c1065ff3eac6b50263d7847deb23fc9f79b25bc608970e"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
   version = "v0.0.2"
 
 [[projects]]
   branch = "master"
-  digest = "1:c9b6e36dbd23f8403a04493376916ca5dad8c01b2da5ae0a05e6a468eb0b6f24"
+  digest = "1:34d9354c2c5d916c05864327553047df59fc10e86ff1f408e4136eba0a25a5ec"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "5c94acc5e6eb520f1bcd183974e01171cc4c23b3"
 
 [[projects]]
   branch = "master"
-  digest = "1:9ec6ad2659635ba0974dd7e55bf84233523eb4e7535c9a2fddaefc4cc62a3eac"
+  digest = "1:4d8a79fbc6fa348fc94afa4235947c5196b7900ed71b94aa5fcbc7e273d150e1"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "0ffbfd41fbef8ffcf9b62b0b0aa3a5873ed7a4fe"
 
 [solve-meta]

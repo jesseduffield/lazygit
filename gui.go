@@ -226,14 +226,23 @@ func layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", -1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", -1, optionsTop, width-len(Version)-2, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorBlue
 		v.Frame = false
-		v.Title = "Options"
+	}
+
+	if v, err := g.SetView("version", width-len(Version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.BgColor = gocui.ColorDefault
+		v.FgColor = gocui.ColorGreen
+		v.Frame = false
+		renderString(g, "version", Version)
 
 		// these are only called once
 		handleFileSelect(g, filesView)

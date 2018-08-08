@@ -16,10 +16,20 @@ import (
 
 // ErrSubProcess is raised when we are running a subprocess
 var (
-	startTime     time.Time
-	debugging     bool
 	ErrSubprocess = errors.New("running subprocess")
 	subprocess    *exec.Cmd
+	startTime     time.Time
+	debugging     bool
+
+	// Rev - Git Revision
+	Rev string
+
+	// Version - Version number
+	Version = "unversioned"
+
+	builddate        string
+	debuggingPointer = flag.Bool("debug", false, "a boolean")
+	versionFlag      = flag.Bool("v", false, "Print the current version")
 )
 
 func homeDirectory() string {
@@ -64,11 +74,14 @@ func navigateToRepoRootDirectory() {
 }
 
 func main() {
-	debuggingPointer := flag.Bool("debug", false, "a boolean")
-	flag.Parse()
+	startTime = time.Now()
 	debugging = *debuggingPointer
 	devLog("\n\n\n\n\n\n\n\n\n\n")
-	startTime = time.Now()
+	flag.Parse()
+	if *versionFlag {
+		fmt.Printf("rev=%s, build date=%s, version=%s", Rev, builddate, Version)
+		os.Exit(0)
+	}
 	verifyInGitRepo()
 	navigateToRepoRootDirectory()
 	for {

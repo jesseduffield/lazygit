@@ -9,16 +9,20 @@ Are YOU tired of typing every git command directly into the terminal, but you're
 ![Gif](https://image.ibb.co/mmeXho/optimisedgif.gif)
 
 ## Installation
+
+### Via binary release
+You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases)
+You may need to grant execute permission via `chmod +x ./<filename>`.
+You can move this file to your local /bin directory and rename to `lazygit` so that you can run it anywhere
+(Easier-install coming soon)
+
+### Via Go
 In a terminal call this command:
 `go get github.com/jesseduffield/lazygit`
 (if you don't have Go installed, you can follow the installation guide [here](https://golang.org/doc/install).
 
-Then just call `lazygit` in your terminal inside a git repository.
-
-If you want, you can also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or whichever rc file you're using).
-
 Please note:
-If you get an error claiming that lazygit cannot be found or is not defined, you may need to add `~/go/bin` to your $PATH (MacOS/Linux), or `%HOME%\go\bin` (Windows)
+If you get an error claiming that lazygit cannot be found or is not defined, you may need to add `~/go/bin` to your $PATH (MacOS/Linux), or `%HOME%\go\bin` (Windows). Not to be mistaked for `C:\Go\bin` (which is for Go's own binaries, not apps like Lazygit)
 
 ### Ubuntu
 Packages for Ubuntu 16.04 and up are available via Launchpad PPA.
@@ -30,6 +34,13 @@ sudo add-apt-repository ppa:lazygit-team/daily
 sudo apt-get update
 sudo apt-get install lazygit
 ```
+
+
+## Usage
+Call `lazygit` in your terminal inside a git repository.
+If you want, you can also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or whichever rc file you're using).
+Basic tutorial [Here](https://www.youtube.com/watch?v=VDXvbHZYeKY)
+[Keybindings](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md)
 
 ## Cool features
 - Adding files easily
@@ -45,14 +56,12 @@ sudo apt-get install lazygit
 ### Viewing commit diffs
 ![Viewing Commit Diffs](https://image.ibb.co/gPD02o/capture.png)
 
-## Docs
-[Keybindings](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md)
-
 ## Milestones
 - [ ] Easy Installation (homebrew, release binaries)
 - [ ] Configurable Keybindings
 - [ ] Configurable Color Themes
 - [ ] Spawning Subprocesses (help needed - have a look at https://github.com/jesseduffield/lazygit/pull/18)
+- [ ] Maintainability
 - [ ] Performance
 - [ ] i18n
 
