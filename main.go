@@ -20,13 +20,10 @@ var (
 	subprocess    *exec.Cmd
 	startTime     time.Time
 
-	// Rev - Git Revision
-	Rev string
+	commit  string
+	version = "unversioned"
 
-	// Version - Version number
-	Version = "unversioned"
-
-	builddate     string
+	date          string
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
 )
@@ -77,7 +74,7 @@ func main() {
 	devLog("\n\n\n\n\n\n\n\n\n\n")
 	flag.Parse()
 	if *versionFlag {
-		fmt.Printf("rev=%s, build date=%s, version=%s", Rev, builddate, Version)
+		fmt.Printf("rev=%s, build date=%s, version=%s", Rev, date, Version)
 		os.Exit(0)
 	}
 	verifyInGitRepo()
