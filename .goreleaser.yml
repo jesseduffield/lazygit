@@ -29,3 +29,26 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+brew:
+  # Reporitory to push the tap to.
+  github:
+    owner: jesseduffield
+    name: homebrew-tap
+
+  # Your app's homepage.
+  # Default is empty.
+  homepage: "https://github.com/jesseduffield/lazygit/"
+
+  # Your app's description.
+  # Default is empty.
+  description: "A simple terminal UI for git commands, written in Go"
+
+  # # Packages your package depends on.
+  # dependencies:
+  #   - git
+  #   - zsh
+
+  # # Packages that conflict with your package.
+  # conflicts:
+  #   - svn
+  #   - bash
