@@ -12,9 +12,6 @@ Are YOU tired of typing every git command directly into the terminal, but you're
 
 ### Via binary release
 You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases)
-You may need to grant execute permission via `chmod +x ./<filename>`.
-You can move this file to your local /bin directory and rename to `lazygit` so that you can run it anywhere
-(Easier-install coming soon)
 
 ### Via Go
 In a terminal call this command:
