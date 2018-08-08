@@ -5,7 +5,6 @@ import (
 	// "io"
 	// "io/ioutil"
 
-	"runtime"
 	"strings"
 	"time"
 
@@ -73,9 +72,6 @@ func handleRefresh(g *gocui.Gui, v *gocui.View) error {
 func layout(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
-	if runtime.GOOS != "windows" && runtime.GOOS != "linux" {
-		g.FgColor = gocui.ColorBlack
-	}
 	width, height := g.Size()
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
