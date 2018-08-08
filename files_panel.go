@@ -193,8 +193,8 @@ func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gui, string) 
 		}
 		return nil
 	}
-	if output, err := open(g, file.Name); err != nil {
-		return createErrorPanel(g, output)
+	if _, err := open(g, file.Name); err != nil {
+		return createErrorPanel(g, err.Error())
 	}
 	return nil
 }

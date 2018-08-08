@@ -19,6 +19,9 @@ import (
 var (
 	// ErrNoCheckedOutBranch : When we have no checked out branch
 	ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
+
+	// ErrNoOpenCommand : When we don't know which command to use to open a file
+	ErrNoOpenCommand = errors.New("Unsure what command to use to open this file")
 )
 
 // GitFile : A staged/unstaged file
@@ -278,8 +281,26 @@ func sublimeOpenFile(g *gocui.Gui, filename string) (string, error) {
 }
 
 func openFile(g *gocui.Gui, filename string) (string, error) {
-	cmdName, cmdTrail := getOpenCommand()
-	return runCommand(cmdName + " " + filename + " " + cmdTrail) // TODO: find out why finder is being opened here
+	cmdName, cmdTrail, err := getOpenCommand()
+	if err != nil {
+		return "", err
+	}
+	return runCommand(cmdName + " " + filename + cmdTrail)
+}
+
+func getOpenCommand() (string, string, error) {
+	//NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
+	trailMap := map[string]string{
+		"xdg-open": " &>/dev/null &",
+		"cygstart": "",
+		"open":     "",
+	}
+	for name, trail := range trailMap {
+		if out, _ := runCommand("which " + name); out != "exit status 1" {
+			return name, trail, nil
+		}
+	}
+	return "", "", ErrNoOpenCommand
 }
 
 func gitAddPatch(g *gocui.Gui, filename string) {
@@ -297,20 +318,6 @@ func editFile(g *gocui.Gui, filename string) (string, error) {
 
 	runSubProcess(g, editor, filename)
 	return "", nil
-}
-
-func getOpenCommand() (string, string) {
-	//NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
-	trailMap := map[string]string{
-		"xdg-open": "&>/dev/null &",
-		"cygstart": "",
-	}
-	for name, trail := range trailMap {
-		if out, _ := runCommand("which " + name); out != "exit status 1" {
-			return name, trail
-		}
-	}
-	return "open", ""
 }
 
 func runSubProcess(g *gocui.Gui, cmdName string, commandArgs ...string) {
