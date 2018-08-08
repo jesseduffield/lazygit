@@ -74,6 +74,9 @@ func handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 	if !file.HasUnstagedChanges {
 		return createErrorPanel(g, "File has no unstaged changes to add")
 	}
+	if !file.Tracked {
+		return createErrorPanel(g, "Cannot git add --patch untracked files")
+	}
 	gitAddPatch(g, file.Name)
 	return err
 }

@@ -306,7 +306,7 @@ func getOpenCommand() (string, string, error) {
 }
 
 func gitAddPatch(g *gocui.Gui, filename string) {
-	runSubProcess(g, "git", "add", "-p", filename)
+	runSubProcess(g, "git", "add", "--patch", filename)
 }
 
 func editFile(g *gocui.Gui, filename string) (string, error) {
