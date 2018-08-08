@@ -12,9 +12,15 @@ import (
 )
 
 var (
-	startTime        time.Time
-	debugging        bool
-	Rev              string
+	startTime time.Time
+	debugging bool
+
+	// Rev - Git Revision
+	Rev string
+
+	// Version - Version number
+	Version = "unversioned"
+
 	builddate        string
 	debuggingPointer = flag.Bool("debug", false, "a boolean")
 	versionFlag      = flag.Bool("v", false, "Print the current version")
@@ -67,7 +73,7 @@ func main() {
 	devLog("\n\n\n\n\n\n\n\n\n\n")
 	flag.Parse()
 	if *versionFlag {
-		fmt.Printf("rev=%s, build date=%s", Rev, builddate)
+		fmt.Printf("rev=%s, build date=%s, version=%s", Rev, builddate, Version)
 		os.Exit(0)
 	}
 	verifyInGitRepo()
