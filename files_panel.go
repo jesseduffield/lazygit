@@ -17,6 +17,7 @@ import (
 var (
 	// ErrNoFiles : when there are no modified files in the repo
 	ErrNoFiles = errors.New("No changed files")
+	savedCommitMessage = &[]byte{};
 )
 
 func stagedFiles(files []GitFile) []GitFile {
@@ -173,7 +174,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(stagedFiles(state.GitFiles)) == 0 && !state.HasMergeConflicts {
 		return createErrorPanel(g, "There are no staged files to commit")
 	}
-	createPromptPanel(g, filesView, "Commit message", func(g *gocui.Gui, v *gocui.View) error {
+	createPromptPanel(g, filesView, "Commit message", savedCommitMessage, func(g *gocui.Gui, v *gocui.View) error {
 		message := trimmedContent(v)
 		if message == "" {
 			return createErrorPanel(g, "You cannot commit without a commit message")
