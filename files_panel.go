@@ -63,6 +63,21 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	return handleFileSelect(g, v)
 }
 
+func handleAddPatch(g *gocui.Gui, v *gocui.View) error {
+	file, err := getSelectedFile(g)
+	if err != nil {
+		if err == ErrNoFiles {
+			return nil
+		}
+		return err
+	}
+	if !file.HasUnstagedChanges {
+		return createErrorPanel(g, "File has no unstaged changes to add")
+	}
+	gitAddPatch(g, file.Name)
+	return err
+}
+
 func getSelectedFile(g *gocui.Gui) (GitFile, error) {
 	if len(state.GitFiles) == 0 {
 		return GitFile{}, ErrNoFiles
@@ -163,7 +178,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 		if message == "" {
 			return createErrorPanel(g, "You cannot commit without a commit message")
 		}
-		if output, err := gitCommit(message); err != nil {
+		if output, err := gitCommit(g, message); err != nil {
 			return createErrorPanel(g, output)
 		}
 		refreshFiles(g)
@@ -172,7 +187,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	return nil
 }
 
-func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, error)) error {
+func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gui, string) (string, error)) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
 		if err != ErrNoFiles {
@@ -180,18 +195,24 @@ func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (string, err
 		}
 		return nil
 	}
-	if output, err := open(file.Name); err != nil {
-		return createErrorPanel(g, output)
+	if _, err := open(g, file.Name); err != nil {
+		return createErrorPanel(g, err.Error())
 	}
 	return nil
+}
+
+func handleFileEdit(g *gocui.Gui, v *gocui.View) error {
+	return genericFileOpen(g, v, editFile)
 }
 
 func handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return genericFileOpen(g, v, openFile)
 }
+
 func handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return genericFileOpen(g, v, sublimeOpenFile)
 }
+
 func handleVsCodeFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return genericFileOpen(g, v, vsCodeOpenFile)
 }

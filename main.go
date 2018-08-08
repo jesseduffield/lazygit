@@ -1,19 +1,24 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/user"
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
 )
 
+// ErrSubProcess is raised when we are running a subprocess
 var (
-	startTime time.Time
-	debugging bool
+	ErrSubprocess = errors.New("running subprocess")
+	subprocess    *exec.Cmd
+	startTime     time.Time
 
 	// Rev - Git Revision
 	Rev string
@@ -21,9 +26,9 @@ var (
 	// Version - Version number
 	Version = "unversioned"
 
-	builddate        string
-	debuggingPointer = flag.Bool("debug", false, "a boolean")
-	versionFlag      = flag.Bool("v", false, "Print the current version")
+	builddate     string
+	debuggingFlag = flag.Bool("debug", false, "a boolean")
+	versionFlag   = flag.Bool("v", false, "Print the current version")
 )
 
 func homeDirectory() string {
@@ -47,7 +52,7 @@ func commandLog(objects ...interface{}) {
 }
 
 func localLog(colour color.Attribute, path string, objects ...interface{}) {
-	if !debugging {
+	if !*debuggingFlag {
 		return
 	}
 	f, _ := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
@@ -69,7 +74,6 @@ func navigateToRepoRootDirectory() {
 
 func main() {
 	startTime = time.Now()
-	debugging = *debuggingPointer
 	devLog("\n\n\n\n\n\n\n\n\n\n")
 	flag.Parse()
 	if *versionFlag {
@@ -78,5 +82,15 @@ func main() {
 	}
 	verifyInGitRepo()
 	navigateToRepoRootDirectory()
-	run()
+	for {
+		if err := run(); err != nil {
+			if err == gocui.ErrQuit {
+				break
+			} else if err == ErrSubprocess {
+				subprocess.Run()
+			} else {
+				log.Panicln(err)
+			}
+		}
+	}
 }

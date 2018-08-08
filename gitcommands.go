@@ -13,11 +13,16 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
+	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
 var (
 	// ErrNoCheckedOutBranch : When we have no checked out branch
 	ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
+
+	// ErrNoOpenCommand : When we don't know which command to use to open a file
+	ErrNoOpenCommand = errors.New("Unsure what command to use to open this file")
 )
 
 // GitFile : A staged/unstaged file
@@ -263,21 +268,71 @@ func runCommand(command string) (string, error) {
 	commandStartTime := time.Now()
 	commandLog(command)
 	splitCmd := strings.Split(command, " ")
+	devLog(splitCmd)
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
 	devLog("run command time: ", time.Now().Sub(commandStartTime))
 	return sanitisedCommandOutput(cmdOut, err)
 }
 
-func openFile(filename string) (string, error) {
-	return runCommand("open " + filename)
-}
-
-func vsCodeOpenFile(filename string) (string, error) {
+func vsCodeOpenFile(g *gocui.Gui, filename string) (string, error) {
 	return runCommand("code -r " + filename)
 }
 
-func sublimeOpenFile(filename string) (string, error) {
+func sublimeOpenFile(g *gocui.Gui, filename string) (string, error) {
 	return runCommand("subl " + filename)
+}
+
+func openFile(g *gocui.Gui, filename string) (string, error) {
+	cmdName, cmdTrail, err := getOpenCommand()
+	if err != nil {
+		return "", err
+	}
+	return runCommand(cmdName + " " + filename + cmdTrail)
+}
+
+func getOpenCommand() (string, string, error) {
+	//NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
+	trailMap := map[string]string{
+		"xdg-open": " &>/dev/null &",
+		"cygstart": "",
+		"open":     "",
+	}
+	for name, trail := range trailMap {
+		if out, _ := runCommand("which " + name); out != "exit status 1" {
+			return name, trail, nil
+		}
+	}
+	return "", "", ErrNoOpenCommand
+}
+
+func gitAddPatch(g *gocui.Gui, filename string) {
+	runSubProcess(g, "git", "add", "-p", filename)
+}
+
+func editFile(g *gocui.Gui, filename string) (string, error) {
+	editor, _ := gitconfig.Global("core.editor")
+	if editor == "" {
+		editor = os.Getenv("VISUAL")
+	}
+	if editor == "" {
+		editor = os.Getenv("EDITOR")
+	}
+	if editor == "" {
+		return "", createErrorPanel(g, "No editor defined in $VISUAL, $EDITOR, or git config.")
+	}
+	runSubProcess(g, editor, filename)
+	return "", nil
+}
+
+func runSubProcess(g *gocui.Gui, cmdName string, commandArgs ...string) {
+	subprocess = exec.Command(cmdName, commandArgs...)
+	subprocess.Stdin = os.Stdin
+	subprocess.Stdout = os.Stdout
+	subprocess.Stderr = os.Stderr
+
+	g.Update(func(g *gocui.Gui) error {
+		return ErrSubprocess
+	})
 }
 
 func getBranchGraph(branch string, baseBranch string) (string, error) {
@@ -403,7 +458,12 @@ func removeFile(file GitFile) error {
 	return err
 }
 
-func gitCommit(message string) (string, error) {
+func gitCommit(g *gocui.Gui, message string) (string, error) {
+	gpgsign, _ := gitconfig.Global("commit.gpgsign")
+	if gpgsign != "" {
+		runSubProcess(g, "bash", "-c", "git commit -m \""+message+"\"")
+		return "", nil
+	}
 	return runDirectCommand("git commit -m \"" + message + "\"")
 }
 

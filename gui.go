@@ -5,7 +5,6 @@ import (
 	// "io"
 	// "io/ioutil"
 
-	"log"
 	"runtime"
 	"strings"
 	"time"
@@ -207,10 +206,10 @@ func updateLoader(g *gocui.Gui) {
 	}
 }
 
-func run() {
+func run() (err error) {
 	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
 	if err != nil {
-		log.Panicln(err)
+		return
 	}
 	defer g.Close()
 
@@ -229,13 +228,12 @@ func run() {
 
 	g.SetManagerFunc(layout)
 
-	if err := keybindings(g); err != nil {
-		log.Panicln(err)
+	if err = keybindings(g); err != nil {
+		return
 	}
 
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Panicln(err)
-	}
+	err = g.MainLoop()
+	return
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
