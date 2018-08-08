@@ -74,7 +74,7 @@ func main() {
 	devLog("\n\n\n\n\n\n\n\n\n\n")
 	flag.Parse()
 	if *versionFlag {
-		fmt.Printf("rev=%s, build date=%s, version=%s", Rev, date, Version)
+		fmt.Printf("commit=%s, build date=%s, version=%s", commit, date, version)
 		os.Exit(0)
 	}
 	verifyInGitRepo()
