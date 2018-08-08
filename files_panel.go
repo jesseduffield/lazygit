@@ -130,12 +130,12 @@ func renderfilesOptions(g *gocui.Gui, gitFile *GitFile) error {
 		"S":       "stash files",
 		"c":       "commit changes",
 		"o":       "open",
-		"s":       "sublime",
-		"v":       "vscode",
 		"i":       "ignore",
 		"d":       "delete",
 		"space":   "toggle staged",
 		"R":       "refresh",
+		"t":       "add patch",
+		"e":       "edit",
 	}
 	if state.HasMergeConflicts {
 		optionsMap["a"] = "abort merge"

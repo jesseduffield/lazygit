@@ -13,7 +13,9 @@
       space:    toggle staged
       c:        commit changes
       shift+S:  stash files
-      o:        open (osx only)
+      t:        add patched (i.e. pick chunks of a file to add)
+      o:        open
+      e:        edit
       s:        open in sublime (requires 'subl' command)
       v:        open in vscode (requires 'code' command)
       i:        add to .gitignore
