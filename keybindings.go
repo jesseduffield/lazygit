@@ -55,6 +55,7 @@ func keybindings(g *gocui.Gui) error {
 		Binding{ViewName: "commits", Key: 's', Modifier: gocui.ModNone, Handler: handleCommitSquashDown},
 		Binding{ViewName: "commits", Key: 'r', Modifier: gocui.ModNone, Handler: handleRenameCommit},
 		Binding{ViewName: "commits", Key: 'g', Modifier: gocui.ModNone, Handler: handleResetToCommit},
+		Binding{ViewName: "commits", Key: 'f', Modifier: gocui.ModNone, Handler: handleCommitFixup},
 		Binding{ViewName: "stash", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: handleStashApply},
 		Binding{ViewName: "stash", Key: 'g', Modifier: gocui.ModNone, Handler: handleStashPop},
 		Binding{ViewName: "stash", Key: 'd', Modifier: gocui.ModNone, Handler: handleStashDrop},

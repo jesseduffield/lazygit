@@ -65,6 +65,7 @@ func renderCommitsOptions(g *gocui.Gui) error {
 		"s":       "squash down",
 		"r":       "rename",
 		"g":       "reset to this commit",
+		"f":       "fixup commit",
 		"← → ↑ ↓": "navigate",
 	})
 }
@@ -96,6 +97,25 @@ func handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	if output, err := gitSquashPreviousTwoCommits(commit.Name); err != nil {
+		return createErrorPanel(g, output)
+	}
+	if err := refreshCommits(g); err != nil {
+		panic(err)
+	}
+	refreshStatus(g)
+	return handleCommitSelect(g, v)
+}
+
+func handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
+	if len(state.Commits) == 1 {
+		return createErrorPanel(g, "You have no commits to squash with")
+	}
+	branch := state.Branches[0]
+	commit, err := getSelectedCommit(g)
+	if err != nil {
+		return err
+	}
+	if output, err := gitSquashFixupCommit(branch.Name, commit.Sha); err != nil {
 		return createErrorPanel(g, output)
 	}
 	if err := refreshCommits(g); err != nil {

@@ -491,6 +491,40 @@ func gitSquashPreviousTwoCommits(message string) (string, error) {
 	return runDirectCommand("git reset --soft HEAD^ && git commit --amend -m \"" + message + "\"")
 }
 
+func gitSquashFixupCommit(branchName string, shaValue string) (string, error) {
+	ret := ""
+	output, err := runDirectCommand("git checkout -q " + shaValue)
+	ret += output
+	if err != nil {
+		goto FIXUP_ERROR
+	}
+	output, err = runDirectCommand("git reset --soft " + shaValue + "^")
+	ret += output
+	if err != nil {
+		goto FIXUP_ERROR
+	}
+	output, err = runDirectCommand("git commit --amend -C " + shaValue + "^")
+	ret += output
+	if err != nil {
+		goto FIXUP_ERROR
+	}
+	output, err = runDirectCommand("git rebase --onto HEAD " + shaValue + " " + branchName)
+	ret += output
+	if err != nil {
+		goto FIXUP_ERROR
+	}
+	return ret, err
+
+FIXUP_ERROR:
+	//Failed to perform rebase, back to the original branch
+	output2, err2 := runDirectCommand("git checkout " + branchName)
+	ret += output2
+	if err2 != nil {
+		return ret, err2
+	}
+	return ret, err
+}
+
 func gitRenameCommit(message string) (string, error) {
 	return runDirectCommand("git commit --allow-empty --amend -m \"" + message + "\"")
 }
