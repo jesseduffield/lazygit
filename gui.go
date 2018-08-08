@@ -74,7 +74,7 @@ func layout(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
 	if runtime.GOOS != "windows" && runtime.GOOS != "linux" {
-		g.FgColor = gocui.ColorDefault
+		g.FgColor = gocui.ColorBlack
 	}
 	width, height := g.Size()
 	leftSideWidth := width / 3
