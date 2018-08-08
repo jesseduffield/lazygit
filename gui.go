@@ -73,8 +73,8 @@ func handleRefresh(g *gocui.Gui, v *gocui.View) error {
 func layout(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
-	if runtime.GOOS != "windows" {
-		g.FgColor = gocui.ColorBlack
+	if runtime.GOOS != "windows" && runtime.GOOS != "linux" {
+		g.FgColor = gocui.ColorDefault
 	}
 	width, height := g.Size()
 	leftSideWidth := width / 3
