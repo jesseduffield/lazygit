@@ -58,6 +58,14 @@
   revision = "5c94acc5e6eb520f1bcd183974e01171cc4c23b3"
 
 [[projects]]
+  digest = "1:cd5ffc5bda4e0296ab3e4de90dbb415259c78e45e7fab13694b14cde8ab74541"
+  name = "github.com/tcnksm/go-gitconfig"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "d154598bacbf4501c095a309753c5d4af66caa81"
+  version = "v0.1.2"
+
+[[projects]]
   branch = "master"
   digest = "1:4d8a79fbc6fa348fc94afa4235947c5196b7900ed71b94aa5fcbc7e273d150e1"
   name = "golang.org/x/sys"
@@ -72,6 +80,7 @@
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
     "github.com/jesseduffield/gocui",
+    "github.com/tcnksm/go-gitconfig",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

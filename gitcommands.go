@@ -14,6 +14,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
 var (
@@ -267,6 +268,7 @@ func runCommand(command string) (string, error) {
 	commandStartTime := time.Now()
 	commandLog(command)
 	splitCmd := strings.Split(command, " ")
+	devLog(splitCmd)
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
 	devLog("run command time: ", time.Now().Sub(commandStartTime))
 	return sanitisedCommandOutput(cmdOut, err)
@@ -308,14 +310,16 @@ func gitAddPatch(g *gocui.Gui, filename string) {
 }
 
 func editFile(g *gocui.Gui, filename string) (string, error) {
-	editor := os.Getenv("VISUAL")
+	editor, _ := gitconfig.Global("core.editor")
+	if editor == "" {
+		editor = os.Getenv("VISUAL")
+	}
 	if editor == "" {
 		editor = os.Getenv("EDITOR")
 	}
 	if editor == "" {
-		editor = "vi"
+		return "", createErrorPanel(g, "No editor defined in $VISUAL, $EDITOR, or git config.")
 	}
-
 	runSubProcess(g, editor, filename)
 	return "", nil
 }
@@ -455,9 +459,9 @@ func removeFile(file GitFile) error {
 }
 
 func gitCommit(g *gocui.Gui, message string) (string, error) {
-	out, _ := runDirectCommand("git config --get commit.gpgsign")
-	if out != "" {
-		runSubProcess(g, "git", "commit", "-m", "\""+message+"\"")
+	gpgsign, _ := gitconfig.Global("commit.gpgsign")
+	if gpgsign != "" {
+		runSubProcess(g, "bash", "-c", "git commit -m \""+message+"\"")
 		return "", nil
 	}
 	return runDirectCommand("git commit -m \"" + message + "\"")
