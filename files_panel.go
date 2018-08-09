@@ -354,3 +354,12 @@ func handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 	refreshStatus(g)
 	return refreshFiles(g)
 }
+
+func handleResetHard(g *gocui.Gui, v *gocui.View) error {
+	return createConfirmationPanel(g, v, "Clear file panel", "Are you sure you want `reset --hard HEAD`? You may lose changes", func(g *gocui.Gui, v *gocui.View) error {
+		if err := gitResetHard(); err != nil {
+			createErrorPanel(g, err.Error())
+		}
+		return refreshFiles(g)
+	}, nil)
+}

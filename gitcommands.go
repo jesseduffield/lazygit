@@ -652,3 +652,7 @@ func getAndMergeFetchedBranches(branches []Branch) []Branch {
 	}
 	return branches
 }
+
+func gitResetHard() error {
+	return w.Reset(&git.ResetOptions{Mode: git.HardReset})
+}
