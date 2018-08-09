@@ -401,9 +401,9 @@ func getDiff(file GitFile) string {
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null "
 	}
-	command := "git diff --color " + cachedArg + deletedArg + trackedArg + file.Name
+	command := "git diff --color " + cachedArg + deletedArg + trackedArg + "\"" + file.Name + "\""
 	// for now we assume an error means the file was deleted
-	s, _ := runCommand(command)
+	s, _ := runDirectCommand(command)
 	return s
 }
 
