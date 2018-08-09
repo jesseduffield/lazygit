@@ -216,12 +216,13 @@ func layout(g *gocui.Gui) error {
 	return nil
 }
 
-func fetch(g *gocui.Gui) {
+func fetch(g *gocui.Gui) error {
 	gitFetch()
 	refreshStatus(g)
+	return nil
 }
 
-func updateLoader(g *gocui.Gui) {
+func updateLoader(g *gocui.Gui) error {
 	if confirmationView, _ := g.View("confirmation"); confirmationView != nil {
 		content := trimmedContent(confirmationView)
 		if strings.Contains(content, "...") {
@@ -229,6 +230,15 @@ func updateLoader(g *gocui.Gui) {
 			renderString(g, "confirmation", staticContent+" "+loader())
 		}
 	}
+	return nil
+}
+
+func goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
+	go func() {
+		for range time.Tick(interval) {
+			function(g)
+		}
+	}()
 }
 
 func run() (err error) {
@@ -238,18 +248,9 @@ func run() (err error) {
 	}
 	defer g.Close()
 
-	// periodically fetching to check for upstream differences
-	go func() {
-		for range time.Tick(time.Second * 60) {
-			fetch(g)
-		}
-	}()
-
-	go func() {
-		for range time.Tick(time.Millisecond * 10) {
-			updateLoader(g)
-		}
-	}()
+	goEvery(g, time.Second*60, fetch)
+	goEvery(g, time.Second*10, refreshFiles)
+	goEvery(g, time.Millisecond*10, updateLoader)
 
 	g.SetManagerFunc(layout)
 
