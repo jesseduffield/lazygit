@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -69,10 +70,24 @@ func navigateToRepoRootDirectory() {
 	}
 }
 
+// when building the binary, `version` is set as a compile-time variable, along
+// with `date` and `commit`. If this program has been opened directly via go,
+// we will populate the `version` with VERSION in the lazygit root directory
+func fallbackVersion() string {
+	byteVersion, err := ioutil.ReadFile("VERSION")
+	if err != nil {
+		log.Panicln(err.Error())
+	}
+	return string(byteVersion)
+}
+
 func main() {
 	startTime = time.Now()
 	devLog("\n\n\n\n\n\n\n\n\n\n")
 	flag.Parse()
+	if version == "unversioned" {
+		version = fallbackVersion()
+	}
 	if *versionFlag {
 		fmt.Printf("commit=%s, build date=%s, version=%s", commit, date, version)
 		os.Exit(0)
