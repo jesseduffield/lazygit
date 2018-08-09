@@ -457,9 +457,12 @@ func gitCommit(g *gocui.Gui, message string) (string, error) {
 		runSubProcess(g, "bash", "-c", "git commit -m \""+message+"\"")
 		return "", nil
 	}
-	userName, _ := gitconfig.Global("user.name")
-	userEmail, _ := gitconfig.Global("user.email")
-	_, err := w.Commit(message, &git.CommitOptions{
+	userName, err := gitconfig.Username()
+	if userName == "" {
+		return "", errNoUsername
+	}
+	userEmail, err := gitconfig.Email()
+	_, err = w.Commit(message, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  userName,
 			Email: userEmail,

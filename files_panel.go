@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	// ErrNoFiles : when there are no modified files in the repo
-	ErrNoFiles = errors.New("No changed files")
+	errNoFiles    = errors.New("No changed files")
+	errNoUsername = errors.New(`No username set. Please do: git config --global user.name "Your Name"`)
 )
 
 func stagedFiles(files []GitFile) []GitFile {
@@ -40,7 +40,7 @@ func stageSelectedFile(g *gocui.Gui) error {
 func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
-		if err == ErrNoFiles {
+		if err == errNoFiles {
 			return nil
 		}
 		return err
@@ -66,7 +66,7 @@ func handleFilePress(g *gocui.Gui, v *gocui.View) error {
 func handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
-		if err == ErrNoFiles {
+		if err == errNoFiles {
 			return nil
 		}
 		return err
@@ -83,7 +83,7 @@ func handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 
 func getSelectedFile(g *gocui.Gui) (GitFile, error) {
 	if len(state.GitFiles) == 0 {
-		return GitFile{}, ErrNoFiles
+		return GitFile{}, errNoFiles
 	}
 	filesView, err := g.View("files")
 	if err != nil {
@@ -96,7 +96,7 @@ func getSelectedFile(g *gocui.Gui) (GitFile, error) {
 func handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
-		if err == ErrNoFiles {
+		if err == errNoFiles {
 			return nil
 		}
 		return err
@@ -156,7 +156,7 @@ func renderfilesOptions(g *gocui.Gui, gitFile *GitFile) error {
 func handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	gitFile, err := getSelectedFile(g)
 	if err != nil {
-		if err != ErrNoFiles {
+		if err != errNoFiles {
 			return err
 		}
 		renderString(g, "main", "No changed files")
@@ -182,6 +182,9 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 			return createErrorPanel(g, "You cannot commit without a commit message")
 		}
 		if output, err := gitCommit(g, message); err != nil {
+			if err == errNoUsername {
+				return createErrorPanel(g, err.Error())
+			}
 			return createErrorPanel(g, output)
 		}
 		refreshFiles(g)
@@ -193,7 +196,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gui, string) (string, error)) error {
 	file, err := getSelectedFile(g)
 	if err != nil {
-		if err != ErrNoFiles {
+		if err != errNoFiles {
 			return err
 		}
 		return nil
@@ -261,7 +264,7 @@ func renderGitFile(gitFile GitFile, filesView *gocui.View) {
 func catSelectedFile(g *gocui.Gui) (string, error) {
 	item, err := getSelectedFile(g)
 	if err != nil {
-		if err != ErrNoFiles {
+		if err != errNoFiles {
 			return "", err
 		}
 		return "", renderString(g, "main", "No file to display")
@@ -330,7 +333,7 @@ func handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 	}
 	file, err := getSelectedFile(g)
 	if err != nil {
-		if err != ErrNoFiles {
+		if err != errNoFiles {
 			return err
 		}
 		return nil
