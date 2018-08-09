@@ -61,7 +61,7 @@ Basic tutorial [Here](https://www.youtube.com/watch?v=VDXvbHZYeKY)
 ![Viewing Commit Diffs](https://image.ibb.co/gPD02o/capture.png)
 
 ## Milestones
-- [ ] Easy Installation (homebrew, release binaries)
+- [x] Easy Installation (homebrew, release binaries)
 - [ ] Configurable Keybindings
 - [ ] Configurable Color Themes
 - [ ] Spawning Subprocesses (help needed - have a look at https://github.com/jesseduffield/lazygit/pull/18)
