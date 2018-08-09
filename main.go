@@ -44,22 +44,22 @@ func projectPath(path string) string {
 }
 
 func devLog(objects ...interface{}) {
-	localLog(color.FgWhite, projectPath("development.log"), objects...)
+	localLog(color.FgWhite, "development.log", objects...)
 }
 
 func colorLog(colour color.Attribute, objects ...interface{}) {
-	localLog(colour, projectPath("development.log"), objects...)
+	localLog(colour, "development.log", objects...)
 }
 
 func commandLog(objects ...interface{}) {
-	localLog(color.FgWhite, projectPath("commands.log"), objects...)
+	localLog(color.FgWhite, "commands.log", objects...)
 }
 
 func localLog(colour color.Attribute, path string, objects ...interface{}) {
 	if !*debuggingFlag {
 		return
 	}
-	f, _ := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+	f, _ := os.OpenFile(projectPath(path), os.O_APPEND|os.O_WRONLY, 0644)
 	defer f.Close()
 	for _, object := range objects {
 		colorFunction := color.New(colour).SprintFunc()
