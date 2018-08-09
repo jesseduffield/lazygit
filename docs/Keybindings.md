@@ -18,6 +18,7 @@
       e:        edit
       s:        open in sublime (requires 'subl' command)
       v:        open in vscode (requires 'code' command)
+      V:        open in vim (requires 'vim' command)
       i:        add to .gitignore
       d:        delete if untracked checkout if tracked (aka go away)
       shift+R:  refresh files

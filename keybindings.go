@@ -34,6 +34,7 @@ func keybindings(g *gocui.Gui) error {
 		Binding{ViewName: "files", Key: 'o', Modifier: gocui.ModNone, Handler: handleFileOpen},
 		Binding{ViewName: "files", Key: 's', Modifier: gocui.ModNone, Handler: handleSublimeFileOpen},
 		Binding{ViewName: "files", Key: 'v', Modifier: gocui.ModNone, Handler: handleVsCodeFileOpen},
+		Binding{ViewName: "files", Key: 'V', Modifier: gocui.ModNone, Handler: handleVimFileOpen},
 		Binding{ViewName: "files", Key: 'i', Modifier: gocui.ModNone, Handler: handleIgnoreFile},
 		Binding{ViewName: "files", Key: 'r', Modifier: gocui.ModNone, Handler: handleRefreshFiles},
 		Binding{ViewName: "files", Key: 'S', Modifier: gocui.ModNone, Handler: handleStashSave},
