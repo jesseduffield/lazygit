@@ -19,6 +19,9 @@ archive:
     windows: Windows
     386: i386
     amd64: x86_64
+  format_overrides:
+    - goos: windows
+      format: zip
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -33,7 +36,7 @@ brew:
   # Reporitory to push the tap to.
   github:
     owner: jesseduffield
-    name: lazygit
+    name: homebrew-lazygit
 
   # Your app's homepage.
   # Default is empty.
@@ -52,3 +55,5 @@ brew:
   # conflicts:
   #   - svn
   #   - bash
+
+# test comment to see if goreleaser only releases on new commits

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -35,7 +34,6 @@ func refreshStatus(g *gocui.Gui) error {
 		// utilising the fact these all have padding to only grab the name
 		// from the display string with the existing coloring applied
 		fmt.Fprint(v, " "+branch.DisplayString[4:])
-		colorLog(color.FgCyan, time.Now().Sub(startTime))
 		return nil
 	})
 

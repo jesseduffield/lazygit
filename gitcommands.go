@@ -8,13 +8,14 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	gitconfig "github.com/tcnksm/go-gitconfig"
+	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 var (
@@ -118,20 +119,12 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 	return result
 }
 
-func platformShell() (string, string) {
-	if runtime.GOOS == "windows" {
-		return "cmd", "/c"
-	}
-	return "bash", "-c"
-}
-
 func runDirectCommand(command string) (string, error) {
 	timeStart := time.Now()
 	commandLog(command)
 
-	shell, shellArg := platformShell()
 	cmdOut, err := exec.
-		Command(shell, shellArg, command).
+		Command(state.Platform.shell, state.Platform.shellArg, command).
 		CombinedOutput()
 	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
 	return sanitisedCommandOutput(cmdOut, err)
@@ -306,7 +299,7 @@ func getOpenCommand() (string, string, error) {
 }
 
 func gitAddPatch(g *gocui.Gui, filename string) {
-	runSubProcess(g, "git", "add", "-p", filename)
+	runSubProcess(g, "git", "add", "--patch", filename)
 }
 
 func editFile(g *gocui.Gui, filename string) (string, error) {
@@ -464,7 +457,22 @@ func gitCommit(g *gocui.Gui, message string) (string, error) {
 		runSubProcess(g, "bash", "-c", "git commit -m \""+message+"\"")
 		return "", nil
 	}
-	return runDirectCommand("git commit -m \"" + message + "\"")
+	userName, err := gitconfig.Username()
+	if userName == "" {
+		return "", errNoUsername
+	}
+	userEmail, err := gitconfig.Email()
+	_, err = w.Commit(message, &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  userName,
+			Email: userEmail,
+			When:  time.Now(),
+		},
+	})
+	if err != nil {
+		return err.Error(), err
+	}
+	return "", nil
 }
 
 func gitPull() (string, error) {
