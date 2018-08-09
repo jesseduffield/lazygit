@@ -11,8 +11,10 @@ Are YOU tired of typing every git command directly into the terminal, but you're
 ## Installation
 
 ### Homebrew
+```sh
 brew tap jesseduffield/lazygit
 brew install lazygit
+```
 
 ### Via binary release
 You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases)
