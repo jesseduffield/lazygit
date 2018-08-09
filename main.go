@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -21,7 +20,6 @@ import (
 var (
 	ErrSubprocess = errors.New("running subprocess")
 	subprocess    *exec.Cmd
-	startTime     time.Time
 
 	commit  string
 	version = "unversioned"
@@ -107,7 +105,6 @@ func setupWorktree() {
 }
 
 func main() {
-	startTime = time.Now()
 	devLog("\n\n\n\n\n\n\n\n\n\n")
 	flag.Parse()
 	if version == "unversioned" {
