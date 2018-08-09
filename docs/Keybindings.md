@@ -2,11 +2,11 @@
 
 ## Global:
 
-      ← → ↑ ↓:   navigate
-      PgUp/PgDn: scroll diff panel (use fn+up/down on osx)
-      q:         quit
-      p:         pull
-      shift+P:   push
+      ← → ↑ ↓/h j k l:  navigate
+      PgUp/PgDn:        scroll diff panel (use fn+up/down on osx)
+      q:                quit
+      p:                pull
+      shift+P:          push
 
 ## Files Panel:
 
@@ -39,7 +39,7 @@
 ## Stash Panel:
 
       space:   apply
-      k:       pop
+      g:       pop
       d:       drop
 
 ## Popup Panel:
@@ -49,8 +49,8 @@
 
 ## Resolving Merge Conflicts (Diff Panel):
 
-      ← →:   navigate conflicts
-      ↑ ↓:   select hunk
-      space: pick hunk
-      b:     pick both hunks
-      z:     undo (only available while still inside diff panel)
+      ← →/h l:    navigate conflicts
+      ↑ ↓/ k j:   select hunk
+      space:      pick hunk
+      b:          pick both hunks
+      z:          undo (only available while still inside diff panel)

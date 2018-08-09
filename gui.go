@@ -204,12 +204,8 @@ func layout(g *gocui.Gui) error {
 		v.Frame = false
 	}
 
-	// If the confirmation panel is already displayed, just resize the width,
-	// otherwise continue
-	if v, err := g.View("confirmation"); err == nil {
-		_, y := v.Size()
-		x0, y0, x1, _ := getConfirmationPanelDimensions(g, "")
-		g.SetView("confirmation", x0, y0, x1, y0+y+1, 0)
+	if err = resizeConfirmationPanel(g); err != nil {
+		return err
 	}
 
 	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {

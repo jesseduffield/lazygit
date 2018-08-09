@@ -14,13 +14,8 @@ type Binding struct {
 
 func keybindings(g *gocui.Gui) error {
 	bindings := []Binding{
-		Binding{ViewName: "", Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: previousView},
-		Binding{ViewName: "", Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: nextView},
-		Binding{ViewName: "", Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: nextView},
 		Binding{ViewName: "", Key: 'q', Modifier: gocui.ModNone, Handler: quit},
 		Binding{ViewName: "", Key: gocui.KeyCtrlC, Modifier: gocui.ModNone, Handler: quit},
-		Binding{ViewName: "", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: cursorDown},
-		Binding{ViewName: "", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: cursorUp},
 		Binding{ViewName: "", Key: gocui.KeyPgup, Modifier: gocui.ModNone, Handler: scrollUpMain},
 		Binding{ViewName: "", Key: gocui.KeyPgdn, Modifier: gocui.ModNone, Handler: scrollDownMain},
 		Binding{ViewName: "", Key: 'P', Modifier: gocui.ModNone, Handler: pushFiles},
@@ -40,13 +35,17 @@ func keybindings(g *gocui.Gui) error {
 		Binding{ViewName: "files", Key: 'a', Modifier: gocui.ModNone, Handler: handleAbortMerge},
 		Binding{ViewName: "files", Key: 't', Modifier: gocui.ModNone, Handler: handleAddPatch},
 		Binding{ViewName: "files", Key: 'D', Modifier: gocui.ModNone, Handler: handleResetHard},
-		Binding{ViewName: "main", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: handleSelectTop},
-		Binding{ViewName: "main", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: handleSelectBottom},
 		Binding{ViewName: "main", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: handleEscapeMerge},
 		Binding{ViewName: "main", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: handlePickHunk},
 		Binding{ViewName: "main", Key: 'b', Modifier: gocui.ModNone, Handler: handlePickBothHunks},
 		Binding{ViewName: "main", Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: handleSelectPrevConflict},
 		Binding{ViewName: "main", Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: handleSelectNextConflict},
+		Binding{ViewName: "main", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: handleSelectTop},
+		Binding{ViewName: "main", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: handleSelectBottom},
+		Binding{ViewName: "main", Key: 'h', Modifier: gocui.ModNone, Handler: handleSelectPrevConflict},
+		Binding{ViewName: "main", Key: 'l', Modifier: gocui.ModNone, Handler: handleSelectNextConflict},
+		Binding{ViewName: "main", Key: 'k', Modifier: gocui.ModNone, Handler: handleSelectTop},
+		Binding{ViewName: "main", Key: 'j', Modifier: gocui.ModNone, Handler: handleSelectBottom},
 		Binding{ViewName: "main", Key: 'z', Modifier: gocui.ModNone, Handler: handlePopFileSnapshot},
 		Binding{ViewName: "branches", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: handleBranchPress},
 		Binding{ViewName: "branches", Key: 'c', Modifier: gocui.ModNone, Handler: handleCheckoutByName},
@@ -57,9 +56,26 @@ func keybindings(g *gocui.Gui) error {
 		Binding{ViewName: "commits", Key: 'r', Modifier: gocui.ModNone, Handler: handleRenameCommit},
 		Binding{ViewName: "commits", Key: 'g', Modifier: gocui.ModNone, Handler: handleResetToCommit},
 		Binding{ViewName: "stash", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: handleStashApply},
-		Binding{ViewName: "stash", Key: 'k', Modifier: gocui.ModNone, Handler: handleStashPop},
+		Binding{ViewName: "stash", Key: 'g', Modifier: gocui.ModNone, Handler: handleStashPop},
 		Binding{ViewName: "stash", Key: 'd', Modifier: gocui.ModNone, Handler: handleStashDrop},
 	}
+
+	// Would make these keybindings global but that interferes with editing
+	// input in the confirmation panel
+	for _, viewName := range []string{"files", "branches", "commits", "stash"} {
+		bindings = append(bindings, []Binding{
+			Binding{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: nextView},
+			Binding{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: previousView},
+			Binding{ViewName: viewName, Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: nextView},
+			Binding{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: cursorUp},
+			Binding{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: cursorDown},
+			Binding{ViewName: viewName, Key: 'h', Modifier: gocui.ModNone, Handler: previousView},
+			Binding{ViewName: viewName, Key: 'l', Modifier: gocui.ModNone, Handler: nextView},
+			Binding{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: cursorUp},
+			Binding{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: cursorDown},
+		}...)
+	}
+
 	for _, binding := range bindings {
 		if err := g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
 			return err

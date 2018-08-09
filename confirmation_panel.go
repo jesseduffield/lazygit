@@ -55,7 +55,7 @@ func getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int,
 		height/2 + panelHeight/2
 }
 
-func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleYes func(*gocui.Gui, *gocui.View) error) error {
+func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
 	// only need to fit one line
 	x0, y0, x1, y1 := getConfirmationPanelDimensions(g, "")
 	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
@@ -69,12 +69,12 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, hand
 		confirmationView.Title = title
 		confirmationView.FgColor = gocui.ColorWhite
 		switchFocus(g, currentView, confirmationView)
-		return setKeyBindings(g, handleYes, nil)
+		return setKeyBindings(g, handleConfirm, nil)
 	}
 	return nil
 }
 
-func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleYes, handleNo func(*gocui.Gui, *gocui.View) error) error {
+func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
@@ -91,20 +91,36 @@ func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, promp
 			confirmationView.FgColor = gocui.ColorWhite
 			renderString(g, "confirmation", prompt)
 			switchFocus(g, currentView, confirmationView)
-			return setKeyBindings(g, handleYes, handleNo)
+			return setKeyBindings(g, handleConfirm, handleClose)
 		}
 		return nil
 	})
 	return nil
 }
 
-func setKeyBindings(g *gocui.Gui, handleYes, handleNo func(*gocui.Gui, *gocui.View) error) error {
-	renderString(g, "options", "esc: close, enter: confirm")
-	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleYes)); err != nil {
-		return err
+func handleNewline(g *gocui.Gui, v *gocui.View) error {
+	// resising ahead of time so that the top line doesn't get hidden to make
+	// room for the cursor on the second line
+	x0, y0, x1, y1 := getConfirmationPanelDimensions(g, v.Buffer())
+	if _, err := g.SetView("confirmation", x0, y0, x1, y1+1, 0); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
 	}
 
-	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleNo))
+	v.EditNewLine()
+	return nil
+}
+
+func setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
+	renderString(g, "options", "esc: close, enter: confirm")
+	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleConfirm)); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("confirmation", gocui.KeyTab, gocui.ModNone, handleNewline); err != nil {
+		return err
+	}
+	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleClose))
 }
 
 func createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {
@@ -116,4 +132,24 @@ func createErrorPanel(g *gocui.Gui, message string) error {
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))
 	return createConfirmationPanel(g, currentView, "Error", coloredMessage, nil, nil)
+}
+
+func trimTrailingNewline(str string) string {
+	if strings.HasSuffix(str, "\n") {
+		return str[:len(str)-1]
+	}
+	return str
+}
+
+func resizeConfirmationPanel(g *gocui.Gui) error {
+	// If the confirmation panel is already displayed, just resize the width,
+	// otherwise continue
+	if v, err := g.View("confirmation"); err == nil {
+		content := trimTrailingNewline(v.Buffer())
+		x0, y0, x1, y1 := getConfirmationPanelDimensions(g, content)
+		if _, err = g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
+			return err
+		}
+	}
+	return nil
 }
