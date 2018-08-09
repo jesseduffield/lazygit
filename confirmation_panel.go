@@ -55,7 +55,7 @@ func getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int,
 		height/2 + panelHeight/2
 }
 
-func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleYes func(*gocui.Gui, *gocui.View) error) error {
+func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, initialValue *[]byte, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
 	// only need to fit one line
 	x0, y0, x1, y1 := getConfirmationPanelDimensions(g, "")
 	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
@@ -65,16 +65,27 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, hand
 
 		g.Cursor = true
 
+		handleConfirmAndClear := func(gui *gocui.Gui, view *gocui.View) error {
+			*initialValue = nil
+			return handleConfirm(g, view)
+		}
+
+		handleClose := func(gui *gocui.Gui, view *gocui.View) error {
+			*initialValue = []byte(strings.TrimSpace(view.Buffer()))
+			return nil
+		}
+
 		confirmationView.Editable = true
 		confirmationView.Title = title
-		confirmationView.FgColor = gocui.ColorWhite
+		confirmationView.Write(*initialValue)
+		confirmationView.SetCursor(len(*initialValue), 0)
 		switchFocus(g, currentView, confirmationView)
-		return setKeyBindings(g, handleYes, nil)
+		return setKeyBindings(g, handleConfirmAndClear, handleClose)
 	}
 	return nil
 }
 
-func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleYes, handleNo func(*gocui.Gui, *gocui.View) error) error {
+func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
@@ -91,20 +102,20 @@ func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, promp
 			confirmationView.FgColor = gocui.ColorWhite
 			renderString(g, "confirmation", prompt)
 			switchFocus(g, currentView, confirmationView)
-			return setKeyBindings(g, handleYes, handleNo)
+			return setKeyBindings(g, handleConfirm, handleClose)
 		}
 		return nil
 	})
 	return nil
 }
 
-func setKeyBindings(g *gocui.Gui, handleYes, handleNo func(*gocui.Gui, *gocui.View) error) error {
+func setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	renderString(g, "options", "esc: close, enter: confirm")
-	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleYes)); err != nil {
+	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, wrappedConfirmationFunction(handleConfirm)); err != nil {
 		return err
 	}
 
-	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleNo))
+	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, wrappedConfirmationFunction(handleClose))
 }
 
 func createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {
