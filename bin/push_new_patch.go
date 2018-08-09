@@ -42,6 +42,7 @@ func main() {
 	runCommand("git", "tag", newVersion)
 	runCommand("git", "push", "origin", newVersion)
 	runCommand("goreleaser", "--rm-dist")
+	runCommand("rm", "-rf", "dist")
 }
 
 func runCommand(args ...string) {
