@@ -33,7 +33,7 @@ brew:
   # Reporitory to push the tap to.
   github:
     owner: jesseduffield
-    name: lazygit
+    name: homebrew-lazygit
 
   # Your app's homepage.
   # Default is empty.
