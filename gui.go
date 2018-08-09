@@ -5,6 +5,7 @@ import (
 	// "io"
 	// "io/ioutil"
 
+	"runtime"
 	"strings"
 	"time"
 
@@ -28,6 +29,7 @@ type stateType struct {
 	ConflictTop       bool
 	Conflicts         []conflict
 	EditHistory       *stack.Stack
+	Platform          platform
 }
 
 type conflict struct {
@@ -45,6 +47,33 @@ var state = stateType{
 	ConflictTop:   true,
 	Conflicts:     make([]conflict, 0),
 	EditHistory:   stack.New(),
+	Platform:      getPlatform(),
+}
+
+type platform struct {
+	os           string
+	shell        string
+	shellArg     string
+	escapedQuote string
+}
+
+func getPlatform() platform {
+	switch runtime.GOOS {
+	case "windows":
+		return platform{
+			os:           "windows",
+			shell:        "cmd",
+			shellArg:     "/c",
+			escapedQuote: "\\\"",
+		}
+	default:
+		return platform{
+			os:           runtime.GOOS,
+			shell:        "bash",
+			shellArg:     "-c",
+			escapedQuote: "\"",
+		}
+	}
 }
 
 func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
