@@ -223,6 +223,10 @@ func handleVsCodeFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return genericFileOpen(g, v, vsCodeOpenFile)
 }
 
+func handleVimFileOpen(g *gocui.Gui, v *gocui.View) error {
+	return genericFileOpen(g, v, vimOpenFile)
+}
+
 func handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
 	return refreshFiles(g)
 }

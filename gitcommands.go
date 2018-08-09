@@ -275,6 +275,10 @@ func sublimeOpenFile(g *gocui.Gui, filename string) (string, error) {
 	return runCommand("subl " + filename)
 }
 
+func vimOpenFile(g *gocui.Gui, filename string) (string, error) {
+	return runCommand("vim " + filename)
+}
+
 func openFile(g *gocui.Gui, filename string) (string, error) {
 	cmdName, cmdTrail, err := getOpenCommand()
 	if err != nil {
