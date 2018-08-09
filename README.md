@@ -27,6 +27,15 @@ sudo apt-get update
 sudo apt-get install lazygit
 ```
 
+### Void Linux
+Packages for Void Linux are available in the distro repo
+
+They follow upstream latest releases
+
+```sh
+sudo xbps-install -S lazygit
+```
+
 ### Binary Release (Windows/Linux/OSX)
 You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases)
 
