@@ -38,16 +38,21 @@ func homeDirectory() string {
 	return usr.HomeDir
 }
 
+func projectPath(path string) string {
+	gopath := os.Getenv("GOPATH")
+	return filepath.FromSlash(gopath + "/src/github.com/jesseduffield/lazygit/" + path)
+}
+
 func devLog(objects ...interface{}) {
-	localLog(color.FgWhite, homeDirectory()+"/go/src/github.com/jesseduffield/lazygit/development.log", objects...)
+	localLog(color.FgWhite, projectPath("development.log"), objects...)
 }
 
 func colorLog(colour color.Attribute, objects ...interface{}) {
-	localLog(colour, homeDirectory()+"/go/src/github.com/jesseduffield/lazygit/development.log", objects...)
+	localLog(colour, projectPath("development.log"), objects...)
 }
 
 func commandLog(objects ...interface{}) {
-	localLog(color.FgWhite, homeDirectory()+"/go/src/github.com/jesseduffield/lazygit/commands.log", objects...)
+	localLog(color.FgWhite, projectPath("commands.log"), objects...)
 }
 
 func localLog(colour color.Attribute, path string, objects ...interface{}) {
@@ -75,8 +80,7 @@ func navigateToRepoRootDirectory() {
 // with `date` and `commit`. If this program has been opened directly via go,
 // we will populate the `version` with VERSION in the lazygit root directory
 func fallbackVersion() string {
-	gopath := os.Getenv("GOPATH")
-	path := filepath.FromSlash(gopath + "/src/github.com/jesseduffield/lazygit/VERSION")
+	path := projectPath("VERSION")
 	byteVersion, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "unversioned"
