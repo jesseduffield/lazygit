@@ -31,9 +31,9 @@ sudo apt-get install lazygit
 You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases)
 
 ### Go
-In a terminal call this command:
-`go get github.com/jesseduffield/lazygit`
-(if you don't have Go installed, you can follow the installation guide [here](https://golang.org/doc/install).
+```sh
+go get github.com/jesseduffield/lazygit
+```
 
 Please note:
 If you get an error claiming that lazygit cannot be found or is not defined, you may need to add `~/go/bin` to your $PATH (MacOS/Linux), or `%HOME%\go\bin` (Windows). Not to be mistaked for `C:\Go\bin` (which is for Go's own binaries, not apps like Lazygit)
