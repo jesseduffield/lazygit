@@ -62,7 +62,10 @@ func localLog(colour color.Attribute, path string, objects ...interface{}) {
 	if !*debuggingFlag {
 		return
 	}
-	f, _ := os.OpenFile(projectPath(path), os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(projectPath(path), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		panic(err.Error())
+	}
 	defer f.Close()
 	for _, object := range objects {
 		colorFunction := color.New(colour).SprintFunc()
