@@ -74,9 +74,10 @@ func navigateToRepoRootDirectory() {
 // with `date` and `commit`. If this program has been opened directly via go,
 // we will populate the `version` with VERSION in the lazygit root directory
 func fallbackVersion() string {
-	byteVersion, err := ioutil.ReadFile("VERSION")
+	gopath := os.Getenv("GOPATH")
+	byteVersion, err := ioutil.ReadFile(gopath + "/src/github.com/jesseduffield/lazygit/VERSION")
 	if err != nil {
-		log.Panicln(err.Error())
+		return "unversioned"
 	}
 	return string(byteVersion)
 }
