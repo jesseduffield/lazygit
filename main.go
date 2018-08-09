@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"time"
 
 	"github.com/fatih/color"
@@ -75,7 +76,8 @@ func navigateToRepoRootDirectory() {
 // we will populate the `version` with VERSION in the lazygit root directory
 func fallbackVersion() string {
 	gopath := os.Getenv("GOPATH")
-	byteVersion, err := ioutil.ReadFile(gopath + "/src/github.com/jesseduffield/lazygit/VERSION")
+	path := filepath.FromSlash(gopath + "/src/github.com/jesseduffield/lazygit/VERSION")
+	byteVersion, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "unversioned"
 	}
