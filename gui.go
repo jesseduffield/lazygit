@@ -98,6 +98,14 @@ func handleRefresh(g *gocui.Gui, v *gocui.View) error {
 	return refreshSidePanels(g)
 }
 
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// layout is called for every screen re-render e.g. when the screen is resized
 func layout(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
@@ -108,14 +116,15 @@ func layout(g *gocui.Gui) error {
 	commitsBranchesBoundary := 3 * height / 5 // height - 10
 	commitsStashBoundary := height - 5        // height - 5
 	minimumHeight := 16
+	minimumWidth := 10
 
 	panelSpacing := 1
 	if OverlappingEdges {
 		panelSpacing = 0
 	}
 
-	if height < minimumHeight {
-		v, err := g.SetView("limit", 0, 0, width-1, height-1, 0)
+	if height < minimumHeight || width < minimumWidth {
+		v, err := g.SetView("limit", 0, 0, max(width-1, 2), max(height-1, 2), 0)
 		if err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
@@ -193,6 +202,14 @@ func layout(g *gocui.Gui) error {
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorBlue
 		v.Frame = false
+	}
+
+	// If the confirmation panel is already displayed, just resize the width,
+	// otherwise continue
+	if v, err := g.View("confirmation"); err == nil {
+		_, y := v.Size()
+		x0, y0, x1, _ := getConfirmationPanelDimensions(g, "")
+		g.SetView("confirmation", x0, y0, x1, y0+y+1, 0)
 	}
 
 	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
