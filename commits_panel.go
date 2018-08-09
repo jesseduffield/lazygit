@@ -131,7 +131,7 @@ func getSelectedCommit(g *gocui.Gui) (Commit, error) {
 	}
 	lineNumber := getItemPosition(v)
 	if lineNumber > len(state.Commits)-1 {
-		colorLog(color.FgRed, "potential error in getSelected Commit (mismatched ui and state)", state.Commits, lineNumber)
+		devLog("potential error in getSelected Commit (mismatched ui and state)", state.Commits, lineNumber)
 		return state.Commits[len(state.Commits)-1], nil
 	}
 	return state.Commits[lineNumber], nil

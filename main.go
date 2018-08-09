@@ -11,7 +11,6 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	git "gopkg.in/src-d/go-git.v4"
 )
@@ -45,18 +44,14 @@ func projectPath(path string) string {
 }
 
 func devLog(objects ...interface{}) {
-	localLog(color.FgWhite, "development.log", objects...)
-}
-
-func colorLog(colour color.Attribute, objects ...interface{}) {
-	localLog(colour, "development.log", objects...)
+	localLog("development.log", objects...)
 }
 
 func commandLog(objects ...interface{}) {
-	localLog(color.FgWhite, "commands.log", objects...)
+	localLog("commands.log", objects...)
 }
 
-func localLog(colour color.Attribute, path string, objects ...interface{}) {
+func localLog(path string, objects ...interface{}) {
 	if !*debuggingFlag {
 		return
 	}
@@ -65,9 +60,9 @@ func localLog(colour color.Attribute, path string, objects ...interface{}) {
 		panic(err.Error())
 	}
 	defer f.Close()
+	log.SetOutput(f)
 	for _, object := range objects {
-		colorFunction := color.New(colour).SprintFunc()
-		f.WriteString(colorFunction(fmt.Sprint(object)) + "\n")
+		log.Println(fmt.Sprint(object))
 	}
 }
 

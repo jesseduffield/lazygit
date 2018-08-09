@@ -136,7 +136,6 @@ func pushFileSnapshot(g *gocui.Gui) error {
 }
 
 func handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
-	colorLog(color.FgCyan, "IM HERE")
 	if state.EditHistory.Len() == 0 {
 		return nil
 	}
