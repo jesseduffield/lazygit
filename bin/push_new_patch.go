@@ -37,7 +37,7 @@ func main() {
 	}
 
 	runCommand("git", "add", "VERSION")
-	runCommand("git", "commit", "-m", "\"bump version to "+newVersion+"\"", "--", "VERSION")
+	runCommand("git", "commit", "-m", "bump version to "+newVersion, "--", "VERSION")
 	runCommand("git", "push")
 	runCommand("git", "tag", newVersion)
 	runCommand("git", "push", "origin", newVersion)
