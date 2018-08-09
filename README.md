@@ -37,6 +37,7 @@ sudo apt-get install lazygit
 Call `lazygit` in your terminal inside a git repository.
 If you want, you can also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or whichever rc file you're using).
 Basic tutorial [Here](https://www.youtube.com/watch?v=VDXvbHZYeKY)
+
 [Keybindings](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md)
 
 ## Cool features
