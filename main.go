@@ -14,6 +14,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	git "gopkg.in/src-d/go-git.v4"
 )
 
 // ErrSubProcess is raised when we are running a subprocess
@@ -28,6 +29,8 @@ var (
 	date          string
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
+
+	w *git.Worktree
 )
 
 func homeDirectory() string {
@@ -88,6 +91,18 @@ func fallbackVersion() string {
 	return string(byteVersion)
 }
 
+func setupWorktree() {
+	r, err := git.PlainOpen(".")
+	if err != nil {
+		panic(err)
+	}
+
+	w, err = r.Worktree()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 	startTime = time.Now()
 	devLog("\n\n\n\n\n\n\n\n\n\n")
@@ -101,6 +116,7 @@ func main() {
 	}
 	verifyInGitRepo()
 	navigateToRepoRootDirectory()
+	setupWorktree()
 	for {
 		if err := run(); err != nil {
 			if err == gocui.ErrQuit {
