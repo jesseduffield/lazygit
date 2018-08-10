@@ -498,7 +498,7 @@ func getGitBranches() []Branch {
 
 func branchIncluded(branchName string, branches []Branch) bool {
 	for _, existingBranch := range branches {
-		if existingBranch.Name == branchName {
+		if strings.ToLower(existingBranch.Name) == strings.ToLower(branchName) {
 			return true
 		}
 	}
