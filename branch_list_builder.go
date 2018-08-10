@@ -78,7 +78,8 @@ func (b *branchListBuilder) build() []Branch {
 	branches := make([]Branch, 0)
 	head := b.obtainCurrentBranch()
 	validBranches := b.obtainSafeBranches()
-	reflogBranches := uniqueByName(append(b.obtainReflogBranches(), head))
+	reflogBranches := b.obtainReflogBranches()
+	reflogBranches = uniqueByName(append([]Branch{head}, reflogBranches...))
 
 	branches = b.appendNewBranches(branches, reflogBranches, validBranches, true)
 	branches = b.appendNewBranches(branches, validBranches, branches, false)
