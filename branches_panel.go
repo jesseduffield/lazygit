@@ -51,12 +51,18 @@ func handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
-	branch := getSelectedBranch(v)
-	if output, err := gitDeleteBranch(branch.Name); err != nil {
+func handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {	
+	checkedOutBranch := state.Branches[0]
+	selectedBranch := getSelectedBranch(v)
+	if checkedOutBranch.Name == selectedBranch.Name {
+		return createErrorPanel(g, "You cannot delete the checked out branch!")
+	}
+	return createConfirmationPanel(g, v, "Delete Branch", "Are you sure you want delete the branch "+selectedBranch.Name+" ?", func(g *gocui.Gui, v *gocui.View) error {
+		if output, err := gitDeleteBranch(selectedBranch.Name); err != nil {
                         return createErrorPanel(g, output)
                 }
         return refreshSidePanels(g)
+	}, nil)	
 }
 
 
