@@ -30,7 +30,7 @@ func handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 }
 
 func handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	createPromptPanel(g, v, "Branch Name:", func(g *gocui.Gui, v *gocui.View) error {
+	createPromptPanel(g, v, "Branch Name:", nil, func(g *gocui.Gui, v *gocui.View) error {
 		if output, err := gitCheckout(trimmedContent(v), false); err != nil {
 			return createErrorPanel(g, output)
 		}
@@ -41,7 +41,7 @@ func handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 
 func handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 	branch := state.Branches[0]
-	createPromptPanel(g, v, "New Branch Name (Branch is off of "+branch.Name+")", func(g *gocui.Gui, v *gocui.View) error {
+	createPromptPanel(g, v, "New Branch Name (Branch is off of "+branch.Name+")", nil, func(g *gocui.Gui, v *gocui.View) error {
 		if output, err := gitNewBranch(trimmedContent(v)); err != nil {
 			return createErrorPanel(g, output)
 		}
@@ -91,7 +91,7 @@ func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	go func() {
 		branch := getSelectedBranch(v)
-		diff, err := getBranchGraph(branch.Name, branch.BaseBranch)
+		diff, err := getBranchGraph(branch.Name)
 		if err != nil && strings.HasPrefix(diff, "fatal: ambiguous argument") {
 			diff = "There is no tracking for this branch"
 		}
@@ -111,7 +111,7 @@ func refreshBranches(g *gocui.Gui) error {
 		state.Branches = getGitBranches()
 		v.Clear()
 		for _, branch := range state.Branches {
-			fmt.Fprintln(v, branch.DisplayString)
+			fmt.Fprintln(v, branch.getDisplayString())
 		}
 		resetOrigin(v)
 		return refreshStatus(g)

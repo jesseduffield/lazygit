@@ -121,10 +121,6 @@ func getItemPosition(v *gocui.View) int {
 	return oy + cy
 }
 
-func trimmedContent(v *gocui.View) string {
-	return strings.TrimSpace(v.Buffer())
-}
-
 func cursorUp(g *gocui.Gui, v *gocui.View) error {
 	// swallowing cursor movements in main
 	// TODO: pull this out
@@ -197,18 +193,6 @@ func renderString(g *gocui.Gui, viewName, s string) error {
 		return nil
 	})
 	return nil
-}
-
-func splitLines(multilineString string) []string {
-	multilineString = strings.Replace(multilineString, "\r", "", -1)
-	if multilineString == "" || multilineString == "\n" {
-		return make([]string, 0)
-	}
-	lines := strings.Split(multilineString, "\n")
-	if lines[len(lines)-1] == "" {
-		return lines[:len(lines)-1]
-	}
-	return lines
 }
 
 func optionsMapToString(optionsMap map[string]string) string {

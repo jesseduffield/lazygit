@@ -382,6 +382,7 @@ var (
 	gitProtocolNotFoundErr     = "ERR \n  Repository not found."
 	gitProtocolNoSuchErr       = "ERR no such repository"
 	gitProtocolAccessDeniedErr = "ERR access denied"
+	gogsAccessDeniedErr        = "Gogs: Repository does not exist or you do not have access"
 )
 
 func isRepoNotFoundError(s string) bool {
@@ -406,6 +407,10 @@ func isRepoNotFoundError(s string) bool {
 	}
 
 	if strings.HasPrefix(s, gitProtocolAccessDeniedErr) {
+		return true
+	}
+
+	if strings.HasPrefix(s, gogsAccessDeniedErr) {
 		return true
 	}
 

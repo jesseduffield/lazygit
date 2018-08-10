@@ -1288,7 +1288,11 @@ func Mount(source string, target string, fstype string, flags uintptr, data stri
 //sys	Fchownat(dirfd int, path string, uid int, gid int, flags int) (err error)
 //sys	fcntl(fd int, cmd int, arg int) (val int, err error)
 //sys	Fdatasync(fd int) (err error)
+//sys	Fgetxattr(fd int, attr string, dest []byte) (sz int, err error)
+//sys	Flistxattr(fd int, dest []byte) (sz int, err error)
 //sys	Flock(fd int, how int) (err error)
+//sys	Fremovexattr(fd int, attr string) (err error)
+//sys	Fsetxattr(fd int, attr string, dest []byte, flags int) (err error)
 //sys	Fsync(fd int) (err error)
 //sys	Getdents(fd int, buf []byte) (n int, err error) = SYS_GETDENTS64
 //sysnb	Getpgid(pid int) (pgid int, err error)
@@ -1327,6 +1331,7 @@ func Getpgrp() (pid int) {
 //sys	read(fd int, p []byte) (n int, err error)
 //sys	Removexattr(path string, attr string) (err error)
 //sys	Renameat(olddirfd int, oldpath string, newdirfd int, newpath string) (err error)
+//sys	Renameat2(olddirfd int, oldpath string, newdirfd int, newpath string, flags uint) (err error)
 //sys	RequestKey(keyType string, description string, callback string, destRingid int) (id int, err error)
 //sys	Setdomainname(p []byte) (err error)
 //sys	Sethostname(p []byte) (err error)
@@ -1500,11 +1505,7 @@ func Faccessat(dirfd int, path string, mode uint32, flags int) (err error) {
 // EpollPwait
 // EpollWaitOld
 // Execve
-// Fgetxattr
-// Flistxattr
 // Fork
-// Fremovexattr
-// Fsetxattr
 // Futex
 // GetKernelSyms
 // GetMempolicy

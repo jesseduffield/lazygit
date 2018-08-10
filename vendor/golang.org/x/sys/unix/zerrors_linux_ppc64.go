@@ -1486,6 +1486,9 @@ const (
 	RAMFS_MAGIC                          = 0x858458f6
 	RDTGROUP_SUPER_MAGIC                 = 0x7655821
 	REISERFS_SUPER_MAGIC                 = 0x52654973
+	RENAME_EXCHANGE                      = 0x2
+	RENAME_NOREPLACE                     = 0x1
+	RENAME_WHITEOUT                      = 0x4
 	RLIMIT_AS                            = 0x9
 	RLIMIT_CORE                          = 0x4
 	RLIMIT_CPU                           = 0x0

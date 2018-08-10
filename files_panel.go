@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	errNoFiles    = errors.New("No changed files")
-	errNoUsername = errors.New(`No username set. Please do: git config --global user.name "Your Name"`)
+	savedCommitMessage = &[]byte{}
+	errNoFiles         = errors.New("No changed files")
+	errNoUsername      = errors.New(`No username set. Please do: git config --global user.name "Your Name"`)
 )
 
 func stagedFiles(files []GitFile) []GitFile {
@@ -177,7 +178,7 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(stagedFiles(state.GitFiles)) == 0 && !state.HasMergeConflicts {
 		return createErrorPanel(g, "There are no staged files to commit")
 	}
-	createPromptPanel(g, filesView, "Commit message", func(g *gocui.Gui, v *gocui.View) error {
+	createPromptPanel(g, filesView, "Commit message", savedCommitMessage, func(g *gocui.Gui, v *gocui.View) error {
 		message := trimmedContent(v)
 		if message == "" {
 			return createErrorPanel(g, "You cannot commit without a commit message")
