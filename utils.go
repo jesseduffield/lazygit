@@ -21,3 +21,10 @@ func splitLines(multilineString string) []string {
 func trimmedContent(v *gocui.View) string {
 	return strings.TrimSpace(v.Buffer())
 }
+
+func withPadding(str string, padding int) string {
+	if padding-len(str) < 0 {
+		return str
+	}
+	return str + strings.Repeat(" ", padding-len(str))
+}

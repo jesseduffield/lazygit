@@ -33,10 +33,3 @@ func (b *Branch) getColor() color.Attribute {
 func (b *Branch) getType() string {
 	return strings.Split(b.Name, "/")[0]
 }
-
-func withPadding(str string, padding int) string {
-	if padding-len(str) < 0 {
-		return str
-	}
-	return str + strings.Repeat(" ", padding-len(str))
-}
