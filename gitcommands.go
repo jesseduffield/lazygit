@@ -459,6 +459,10 @@ func gitNewBranch(name string) (string, error) {
 	return runDirectCommand("git checkout -b " + name)
 }
 
+func gitDeleteBranch(branch string) (string, error) {
+        return runCommand("git branch -d " + branch)
+}
+
 func gitListStash() (string, error) {
 	return runDirectCommand("git stash list")
 }
