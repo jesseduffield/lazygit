@@ -91,7 +91,7 @@ func handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	go func() {
 		branch := getSelectedBranch(v)
-		diff, err := getBranchGraph(branch.Name, branch.BaseBranch)
+		diff, err := getBranchGraph(branch.Name)
 		if err != nil && strings.HasPrefix(diff, "fatal: ambiguous argument") {
 			diff = "There is no tracking for this branch"
 		}
@@ -111,7 +111,7 @@ func refreshBranches(g *gocui.Gui) error {
 		state.Branches = getGitBranches()
 		v.Clear()
 		for _, branch := range state.Branches {
-			fmt.Fprintln(v, branch.DisplayString)
+			fmt.Fprintln(v, branch.getDisplayString())
 		}
 		resetOrigin(v)
 		return refreshStatus(g)
