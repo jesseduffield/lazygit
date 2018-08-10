@@ -22,13 +22,10 @@ func newBranchListBuilder() *branchListBuilder {
 }
 
 func (b *branchListBuilder) obtainCurrentBranch() Branch {
-	// Using git-go whenever possible
-	head, err := r.Head()
-	if err != nil {
-		panic(err)
-	}
-	name := head.Name().Short()
-	return Branch{Name: name, Recency: "  *"}
+	// I used go-git for this, but that breaks if you've just done a git init,
+	// even though you're on 'master'
+	branchName, _ := runDirectCommand("git symbolic-ref --short HEAD")
+	return Branch{Name: strings.TrimSpace(branchName), Recency: "  *"}
 }
 
 func (*branchListBuilder) obtainReflogBranches() []Branch {
@@ -77,12 +74,15 @@ func (b *branchListBuilder) appendNewBranches(finalBranches, newBranches, existi
 func (b *branchListBuilder) build() []Branch {
 	branches := make([]Branch, 0)
 	head := b.obtainCurrentBranch()
-	validBranches := b.obtainSafeBranches()
+	safeBranches := b.obtainSafeBranches()
+	if len(safeBranches) == 0 {
+		return append(branches, head)
+	}
 	reflogBranches := b.obtainReflogBranches()
 	reflogBranches = uniqueByName(append([]Branch{head}, reflogBranches...))
 
-	branches = b.appendNewBranches(branches, reflogBranches, validBranches, true)
-	branches = b.appendNewBranches(branches, validBranches, branches, false)
+	branches = b.appendNewBranches(branches, reflogBranches, safeBranches, true)
+	branches = b.appendNewBranches(branches, safeBranches, branches, false)
 
 	return branches
 }
