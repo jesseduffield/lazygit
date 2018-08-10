@@ -56,6 +56,9 @@ func getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int,
 }
 
 func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, initialValue *[]byte, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
+	if initialValue == nil {
+		initialValue = &[]byte{}
+	}
 	// only need to fit one line
 	x0, y0, x1, y1 := getConfirmationPanelDimensions(g, "")
 	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
@@ -79,12 +82,27 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, init
 
 		confirmationView.Editable = true
 		confirmationView.Title = title
-		confirmationView.Write(*initialValue)
-		confirmationView.SetCursor(len(*initialValue), 0)
+		restorePreviousBuffer(confirmationView, initialValue)
 		switchFocus(g, currentView, confirmationView)
 		return setKeyBindings(g, handleConfirmAndClear, handleClose)
 	}
 	return nil
+}
+
+func restorePreviousBuffer(confirmationView *gocui.View, initialValue *[]byte) {
+	confirmationView.Write(*initialValue)
+	x, y := getCursorPositionFromBuffer(initialValue)
+	devLog("New cursor position:", x, y)
+	confirmationView.SetCursor(0, 0)
+	confirmationView.MoveCursor(x, y, false)
+}
+
+func getCursorPositionFromBuffer(initialValue *[]byte) (int, int) {
+	split := strings.Split(string(*initialValue), "\n")
+	lastLine := split[len(split)-1]
+	x := len(lastLine)
+	y := len(split)
+	return x, y
 }
 
 func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
