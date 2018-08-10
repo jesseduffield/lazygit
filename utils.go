@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
@@ -39,4 +42,13 @@ func coloredString(str string, colorAttribute color.Attribute) string {
 // used for aggregating a few color attributes rather than just sending a single one
 func coloredStringDirect(str string, colour *color.Color) string {
 	return colour.SprintFunc()(fmt.Sprint(str))
+}
+
+// used to get the project name
+func getCurrentProject() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	return filepath.Base(pwd)
 }

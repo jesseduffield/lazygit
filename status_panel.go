@@ -32,7 +32,8 @@ func refreshStatus(g *gocui.Gui) error {
 		}
 		branch := branches[0]
 		name := coloredString(branch.Name, branch.getColor())
-		fmt.Fprint(v, " "+name)
+		repo := getCurrentProject()
+		fmt.Fprint(v, " "+repo+" → "+name)
 		return nil
 	})
 
