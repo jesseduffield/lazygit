@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	git "gopkg.in/src-d/go-git.v4"
@@ -19,9 +17,6 @@ import (
 )
 
 var (
-	// ErrNoCheckedOutBranch : When we have no checked out branch
-	ErrNoCheckedOutBranch = errors.New("No currently checked out branch")
-
 	// ErrNoOpenCommand : When we don't know which command to use to open a file
 	ErrNoOpenCommand = errors.New("Unsure what command to use to open this file")
 )
@@ -36,14 +31,6 @@ type GitFile struct {
 	Deleted            bool
 	HasMergeConflicts  bool
 	DisplayString      string
-}
-
-// Branch : A git branch
-type Branch struct {
-	Name          string
-	Type          string
-	BaseBranch    string
-	DisplayString string
 }
 
 // Commit : A git commit
@@ -140,29 +127,6 @@ func branchStringParts(branchString string) (string, string) {
 	return splitBranchName[0], splitBranchName[1]
 }
 
-// branchPropertiesFromName : returns branch type, base, and color
-func branchPropertiesFromName(name string) (string, string, color.Attribute) {
-	if strings.Contains(name, "feature/") {
-		return "feature", "develop", color.FgGreen
-	} else if strings.Contains(name, "bugfix/") {
-		return "bugfix", "develop", color.FgYellow
-	} else if strings.Contains(name, "hotfix/") {
-		return "hotfix", "master", color.FgRed
-	}
-	return "other", name, color.FgWhite
-}
-
-func coloredString(str string, colour *color.Color) string {
-	return colour.SprintFunc()(fmt.Sprint(str))
-}
-
-func withPadding(str string, padding int) string {
-	if padding-len(str) < 0 {
-		return str
-	}
-	return str + strings.Repeat(" ", padding-len(str))
-}
-
 // TODO: DRY up this function and getGitBranches
 func getGitStashEntries() []StashEntry {
 	stashEntries := make([]StashEntry, 0)
@@ -214,10 +178,6 @@ func getGitStatusFiles() []GitFile {
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:  change == "UU",
 		}
-		devLog("tracked", gitFile.Tracked)
-		devLog("hasUnstagedChanges", gitFile.HasUnstagedChanges)
-		devLog("HasStagedChanges", gitFile.HasStagedChanges)
-		devLog("DisplayString", gitFile.DisplayString)
 		gitFiles = append(gitFiles, gitFile)
 	}
 	devLog(gitFiles)
@@ -328,12 +288,8 @@ func runSubProcess(g *gocui.Gui, cmdName string, commandArgs ...string) {
 	})
 }
 
-func getBranchGraph(branch string, baseBranch string) (string, error) {
+func getBranchGraph(branch string) (string, error) {
 	return runCommand("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branch)
-
-	// Leaving this guy commented out in case there's backlash from the design
-	// change and I want to make this configurable
-	// return runCommand("git log -p -30 --color --no-merges " + branch)
 }
 
 func verifyInGitRepo() {
@@ -480,11 +436,7 @@ func gitPull() (string, error) {
 }
 
 func gitPush() (string, error) {
-	branchName := gitCurrentBranchName()
-	if branchName == "" {
-		return "", ErrNoCheckedOutBranch
-	}
-	return runDirectCommand("git push -u origin " + branchName)
+	return runDirectCommand("git push -u origin " + state.Branches[0].Name)
 }
 
 func gitSquashPreviousTwoCommits(message string) (string, error) {
@@ -539,118 +491,18 @@ func gitCommitsToPush() []string {
 	return splitLines(pushables)
 }
 
-func gitCurrentBranchName() string {
-	branchName, err := runDirectCommand("git symbolic-ref --short HEAD")
-	// if there is an error, assume there are no branches yet
-	if err != nil {
-		return ""
-	}
-	return strings.TrimSpace(branchName)
-}
-
-// A line will have the form '10 days ago master' so we need to strip out the
-// useful information from that into timeNumber, timeUnit, and branchName
-func branchInfoFromLine(line string) (string, string, string) {
-	r := regexp.MustCompile("\\|.*\\s")
-	line = r.ReplaceAllString(line, " ")
-	words := strings.Split(line, " ")
-	return words[0], words[1], words[3]
-}
-
-func abbreviatedTimeUnit(timeUnit string) string {
-	r := regexp.MustCompile("s$")
-	timeUnit = r.ReplaceAllString(timeUnit, "")
-	timeUnitMap := map[string]string{
-		"hour":   "h",
-		"minute": "m",
-		"second": "s",
-		"week":   "w",
-		"year":   "y",
-		"day":    "d",
-		"month":  "m",
-	}
-	return timeUnitMap[timeUnit]
-}
-
-func getBranches() []Branch {
-	branches := make([]Branch, 0)
-	rawString, err := runDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
-	if err != nil {
-		return branches
-	}
-
-	branchLines := splitLines(rawString)
-	for i, line := range branchLines {
-		timeNumber, timeUnit, branchName := branchInfoFromLine(line)
-		timeUnit = abbreviatedTimeUnit(timeUnit)
-
-		if branchAlreadyStored(branchName, branches) {
-			continue
-		}
-
-		branch := constructBranch(timeNumber+timeUnit, branchName, i)
-		branches = append(branches, branch)
-	}
-	return branches
-}
-
-func constructBranch(prefix, name string, index int) Branch {
-	branchType, branchBase, colourAttr := branchPropertiesFromName(name)
-	if index == 0 {
-		prefix = "  *"
-	}
-	colour := color.New(colourAttr)
-	displayString := withPadding(prefix, 4) + coloredString(name, colour)
-	return Branch{
-		Name:          name,
-		Type:          branchType,
-		BaseBranch:    branchBase,
-		DisplayString: displayString,
-	}
-}
-
 func getGitBranches() []Branch {
-	// check if there are any branches
-	branchCheck, _ := runCommand("git branch")
-	if branchCheck == "" {
-		return []Branch{constructBranch("", gitCurrentBranchName(), 0)}
-	}
-	branches := getBranches()
-	if len(branches) == 0 {
-		branches = append(branches, constructBranch("", gitCurrentBranchName(), 0))
-	}
-	branches = getAndMergeFetchedBranches(branches)
-	return branches
+	builder := newBranchListBuilder()
+	return builder.build()
 }
 
-func branchAlreadyStored(branchName string, branches []Branch) bool {
+func branchIncluded(branchName string, branches []Branch) bool {
 	for _, existingBranch := range branches {
 		if existingBranch.Name == branchName {
 			return true
 		}
 	}
 	return false
-}
-
-// here branches contains all the branches that we've checked out, along with
-// the recency. In this function we append the branches that are in our heads
-// directory i.e. things we've fetched but haven't necessarily checked out.
-// Worth mentioning this has nothing to do with the 'git merge' operation
-func getAndMergeFetchedBranches(branches []Branch) []Branch {
-	rawString, err := runDirectCommand("git branch --sort=-committerdate --no-color")
-	if err != nil {
-		return branches
-	}
-	branchLines := splitLines(rawString)
-	for _, line := range branchLines {
-		line = strings.Replace(line, "* ", "", -1)
-		line = strings.TrimSpace(line)
-		if branchAlreadyStored(line, branches) {
-			continue
-		}
-		branches = append(branches, constructBranch("", line, len(branches)))
-	}
-	return branches
 }
 
 func gitResetHard() error {
