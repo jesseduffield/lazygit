@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	beginpgp string = "-----BEGIN PGP SIGNATURE-----"
-	endpgp   string = "-----END PGP SIGNATURE-----"
+	beginpgp  string = "-----BEGIN PGP SIGNATURE-----"
+	endpgp    string = "-----END PGP SIGNATURE-----"
+	headerpgp string = "gpgsig"
 )
 
 // Hash represents the hash of an object
@@ -181,23 +182,13 @@ func (c *Commit) Decode(o plumbing.EncodedObject) (err error) {
 		}
 
 		if pgpsig {
-			// Check if it's the end of a PGP signature.
-			if bytes.Contains(line, []byte(endpgp)) {
-				c.PGPSignature += endpgp + "\n"
-				pgpsig = false
-			} else {
-				// Trim the left padding.
+			if len(line) > 0 && line[0] == ' ' {
 				line = bytes.TrimLeft(line, " ")
 				c.PGPSignature += string(line)
+				continue
+			} else {
+				pgpsig = false
 			}
-			continue
-		}
-
-		// Check if it's the beginning of a PGP signature.
-		if bytes.Contains(line, []byte(beginpgp)) {
-			c.PGPSignature += beginpgp + "\n"
-			pgpsig = true
-			continue
 		}
 
 		if !message {
@@ -217,6 +208,9 @@ func (c *Commit) Decode(o plumbing.EncodedObject) (err error) {
 				c.Author.Decode(split[1])
 			case "committer":
 				c.Committer.Decode(split[1])
+			case headerpgp:
+				c.PGPSignature += string(split[1]) + "\n"
+				pgpsig = true
 			}
 		} else {
 			c.Message += string(line)
@@ -269,13 +263,14 @@ func (b *Commit) encode(o plumbing.EncodedObject, includeSig bool) (err error) {
 	}
 
 	if b.PGPSignature != "" && includeSig {
-		if _, err = fmt.Fprint(w, "pgpsig"); err != nil {
+		if _, err = fmt.Fprint(w, "\n"+headerpgp); err != nil {
 			return err
 		}
 
 		// Split all the signature lines and write with a left padding and
 		// newline at the end.
-		lines := strings.Split(b.PGPSignature, "\n")
+		signature := strings.TrimSuffix(b.PGPSignature, "\n")
+		lines := strings.Split(signature, "\n")
 		for _, line := range lines {
 			if _, err = fmt.Fprintf(w, " %s\n", line); err != nil {
 				return err

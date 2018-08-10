@@ -472,6 +472,7 @@ const (
 	F_GETLK                           = 0x7
 	F_GETOWN                          = 0x5
 	F_ISATTY                          = 0xb
+	F_OK                              = 0x0
 	F_RDLCK                           = 0x1
 	F_SETFD                           = 0x2
 	F_SETFL                           = 0x4
