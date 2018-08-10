@@ -261,7 +261,7 @@ func run() (err error) {
 	}
 	defer g.Close()
 
-	g.FgColor = gocui.ColorMagenta
+	g.FgColor = gocui.ColorDefault
 
 	goEvery(g, time.Second*60, fetch)
 	goEvery(g, time.Second*10, refreshFiles)
