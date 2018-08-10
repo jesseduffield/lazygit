@@ -71,6 +71,8 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, init
 		}
 
 		handleClose := func(gui *gocui.Gui, view *gocui.View) error {
+			// FIXME: trimming a newline that is no doubt caused by the enter keybinding
+			// on the editor. We should just define a new editor that doesn't do that
 			*initialValue = []byte(strings.TrimSpace(view.Buffer()))
 			return nil
 		}
