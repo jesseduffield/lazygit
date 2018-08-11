@@ -10,7 +10,7 @@
 # -x means print out simple commands before running them
 set -ex
 
-reponame="testrepo"
+reponame="unicode_characters"
 
 rm -rf ${reponame}
 mkdir ${reponame}

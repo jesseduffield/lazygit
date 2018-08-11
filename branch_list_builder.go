@@ -66,9 +66,17 @@ func (b *branchListBuilder) appendNewBranches(finalBranches, newBranches, existi
 		if included == branchIncluded(newBranch.Name, existingBranches) {
 			finalBranches = append(finalBranches, newBranch)
 		}
-
 	}
 	return finalBranches
+}
+
+func sanitisedReflogName(reflogBranch Branch, safeBranches []Branch) string {
+	for _, safeBranch := range safeBranches {
+		if strings.ToLower(safeBranch.Name) == strings.ToLower(reflogBranch.Name) {
+			return safeBranch.Name
+		}
+	}
+	return reflogBranch.Name
 }
 
 func (b *branchListBuilder) build() []Branch {
@@ -80,6 +88,9 @@ func (b *branchListBuilder) build() []Branch {
 	}
 	reflogBranches := b.obtainReflogBranches()
 	reflogBranches = uniqueByName(append([]Branch{head}, reflogBranches...))
+	for i, reflogBranch := range reflogBranches {
+		reflogBranches[i].Name = sanitisedReflogName(reflogBranch, safeBranches)
+	}
 
 	branches = b.appendNewBranches(branches, reflogBranches, safeBranches, true)
 	branches = b.appendNewBranches(branches, safeBranches, branches, false)

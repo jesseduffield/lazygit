@@ -9,7 +9,7 @@
 # -x means print out simple commands before running them
 set -ex
 
-reponame="lots_of_commits"
+reponame="case_insensitive_checkouts"
 
 rm -rf ${reponame}
 mkdir ${reponame}
@@ -17,14 +17,14 @@ cd ${reponame}
 
 git init
 
-i=2
-end=100
-while [ $i -le $end ]; do
-    echo "file${i}" > file${i}
-    git add file${i}
-    git commit -m file${i}
-
-    i=$(($i+1))
-done
-
-echo "unstaged change" > file100
+touch foo
+git add foo
+git commit -m "init"
+git branch -a
+git branch test
+git branch TEST
+git checkout TEST
+git checkout TeST
+git checkout TesT
+git checkout TEsT
+git branch -a
