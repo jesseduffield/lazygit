@@ -218,7 +218,6 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 func runCommand(command string) (string, error) {
 	commandLog(command)
 	splitCmd := strings.Split(command, " ")
-	devLog(splitCmd)
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
 	return sanitisedCommandOutput(cmdOut, err)
 }
