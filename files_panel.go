@@ -186,6 +186,14 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	return nil
 }
 
+func handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
+	if len(stagedFiles(state.GitFiles)) == 0 && !state.HasMergeConflicts {
+		return createErrorPanel(g, "There are no staged files to commit")
+	}
+	runSubProcess(g, "git", "commit")
+	return nil
+}
+
 func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gui, string) (string, error)) error {
 	file, err := getSelectedFile(g)
 	if err != nil {

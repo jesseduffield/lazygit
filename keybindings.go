@@ -22,6 +22,7 @@ func keybindings(g *gocui.Gui) error {
 		{ViewName: "", Key: 'p', Modifier: gocui.ModNone, Handler: pullFiles},
 		{ViewName: "", Key: 'R', Modifier: gocui.ModNone, Handler: handleRefresh},
 		{ViewName: "files", Key: 'c', Modifier: gocui.ModNone, Handler: handleCommitPress},
+		{ViewName: "files", Key: 'C', Modifier: gocui.ModNone, Handler: handleCommitEditorPress},
 		{ViewName: "files", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: handleFilePress},
 		{ViewName: "files", Key: 'd', Modifier: gocui.ModNone, Handler: handleFileRemove},
 		{ViewName: "files", Key: 'm', Modifier: gocui.ModNone, Handler: handleSwitchToMerge},

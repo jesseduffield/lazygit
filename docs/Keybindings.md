@@ -12,6 +12,7 @@
 
       space:    toggle staged
       c:        commit changes
+      shift+C:  commit using git editor
       shift+S:  stash files
       t:        add patched (i.e. pick chunks of a file to add)
       o:        open
@@ -47,6 +48,7 @@
 
       esc:     close/cancel
       enter:   confirm
+      tab:     enter newline (if editing)
 
 ## Resolving Merge Conflicts (Diff Panel):
 
