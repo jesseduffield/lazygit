@@ -120,13 +120,11 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 }
 
 func runDirectCommand(command string) (string, error) {
-	timeStart := time.Now()
 	commandLog(command)
 
 	cmdOut, err := exec.
 		Command(state.Platform.shell, state.Platform.shellArg, command).
 		CombinedOutput()
-	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
 	return sanitisedCommandOutput(cmdOut, err)
 }
 
@@ -258,12 +256,10 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 }
 
 func runCommand(command string) (string, error) {
-	commandStartTime := time.Now()
 	commandLog(command)
 	splitCmd := strings.Split(command, " ")
 	devLog(splitCmd)
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
-	devLog("run command time: ", time.Now().Sub(commandStartTime))
 	return sanitisedCommandOutput(cmdOut, err)
 }
 
