@@ -216,8 +216,12 @@ func layout(g *gocui.Gui) error {
 		}
 	}
 
-	resizeConfirmationPanel(g, "commitMessage")
-	resizeConfirmationPanel(g, "confirmation")
+	if err = resizeConfirmationPanel(g, "commitMessage"); err != nil {
+		return err
+	}
+	if err = resizeConfirmationPanel(g, "confirmation"); err != nil {
+		return err
+	}
 
 	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
