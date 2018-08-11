@@ -30,7 +30,7 @@ sudo apt-get install lazygit
 ### Arch Linux
 Packages for Arch Linux are available via AUR (Arch User Repository).
 
-There are two packages. The stable which is built with the last releases and the git version which takes the last commit and build based on.
+There are two packages. The stable one which is built with the latest release and the git version which builds from the most recent commit.
 
 Stable:
 https://aur.archlinux.org/packages/lazygit/
