@@ -415,7 +415,7 @@ func removeFile(file GitFile) error {
 func gitCommit(g *gocui.Gui, message string) (string, error) {
 	gpgsign, _ := gitconfig.Global("commit.gpgsign")
 	if gpgsign != "" {
-		runSubProcess(g, "bash", "-c", "git commit -m \""+message+"\"")
+		runSubProcess(g, "git", "commit")
 		return "", nil
 	}
 	userName, err := gitconfig.Username()
