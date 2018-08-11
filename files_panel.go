@@ -295,7 +295,6 @@ func refreshFiles(g *gocui.Gui) error {
 }
 
 func pullFiles(g *gocui.Gui, v *gocui.View) error {
-	devLog("pulling...")
 	createMessagePanel(g, v, "", "Pulling...")
 	go func() {
 		if output, err := gitPull(); err != nil {
@@ -304,7 +303,6 @@ func pullFiles(g *gocui.Gui, v *gocui.View) error {
 			closeConfirmationPrompt(g)
 			refreshCommits(g)
 			refreshStatus(g)
-			devLog("pulled.")
 		}
 		refreshFiles(g)
 	}()
@@ -312,7 +310,6 @@ func pullFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func pushFiles(g *gocui.Gui, v *gocui.View) error {
-	devLog("pushing...")
 	createMessagePanel(g, v, "", "Pushing...")
 	go func() {
 		if output, err := gitPush(); err != nil {
@@ -321,7 +318,6 @@ func pushFiles(g *gocui.Gui, v *gocui.View) error {
 			closeConfirmationPrompt(g)
 			refreshCommits(g)
 			refreshStatus(g)
-			devLog("pushed.")
 		}
 	}()
 	return nil

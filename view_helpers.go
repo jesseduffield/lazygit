@@ -107,7 +107,7 @@ func switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		state.PreviousView = oldView.Name()
 	}
 	newView.Highlight = true
-	devLog(newView.Name())
+	devLog("new focused view is " + newView.Name())
 	if _, err := g.SetCurrentView(newView.Name()); err != nil {
 		return err
 	}

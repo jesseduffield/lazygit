@@ -119,6 +119,12 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 	return result
 }
 
+// only to be used when you're already in an error state
+func runDirectCommandIgnoringError(command string) string {
+	output, _ := runDirectCommand(command)
+	return output
+}
+
 func runDirectCommand(command string) (string, error) {
 	commandLog(command)
 
@@ -212,13 +218,9 @@ func getGitStatusFiles() []GitFile {
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:  change == "UU",
 		}
-		devLog("tracked", gitFile.Tracked)
-		devLog("hasUnstagedChanges", gitFile.HasUnstagedChanges)
-		devLog("HasStagedChanges", gitFile.HasStagedChanges)
-		devLog("DisplayString", gitFile.DisplayString)
 		gitFiles = append(gitFiles, gitFile)
 	}
-	devLog(gitFiles)
+	objectLog(gitFiles)
 	return gitFiles
 }
 
@@ -258,7 +260,6 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 func runCommand(command string) (string, error) {
 	commandLog(command)
 	splitCmd := strings.Split(command, " ")
-	devLog(splitCmd)
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
 	return sanitisedCommandOutput(cmdOut, err)
 }
@@ -419,7 +420,6 @@ func unStageFile(file string, tracked bool) error {
 	} else {
 		command = "git rm --cached "
 	}
-	devLog(command)
 	_, err := runCommand(command + file)
 	return err
 }
@@ -488,35 +488,28 @@ func gitSquashPreviousTwoCommits(message string) (string, error) {
 }
 
 func gitSquashFixupCommit(branchName string, shaValue string) (string, error) {
+	var err error
+	commands := []string{
+		"git checkout -q " + shaValue,
+		"git reset --soft " + shaValue + "^",
+		"git commit --amend -C " + shaValue + "^",
+		"git rebase --onto HEAD " + shaValue + " " + branchName,
+	}
 	ret := ""
-	output, err := runDirectCommand("git checkout -q " + shaValue)
-	ret += output
-	if err != nil {
-		goto FIXUP_ERROR
+	for _, command := range commands {
+		devLog(command)
+		output, err := runDirectCommand(command)
+		ret += output
+		if err != nil {
+			devLog(ret)
+			break
+		}
 	}
-	output, err = runDirectCommand("git reset --soft " + shaValue + "^")
-	ret += output
 	if err != nil {
-		goto FIXUP_ERROR
-	}
-	output, err = runDirectCommand("git commit --amend -C " + shaValue + "^")
-	ret += output
-	if err != nil {
-		goto FIXUP_ERROR
-	}
-	output, err = runDirectCommand("git rebase --onto HEAD " + shaValue + " " + branchName)
-	ret += output
-	if err != nil {
-		goto FIXUP_ERROR
-	}
-	return ret, err
-
-FIXUP_ERROR:
-	//Failed to perform rebase, back to the original branch
-	output2, err2 := runDirectCommand("git checkout " + branchName)
-	ret += output2
-	if err2 != nil {
-		return ret, err2
+		// We are already in an error state here so we're just going to append
+		// the output of these commands
+		ret += runDirectCommandIgnoringError("git branch -d " + shaValue)
+		ret += runDirectCommandIgnoringError("git checkout " + branchName)
 	}
 	return ret, err
 }
