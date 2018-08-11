@@ -56,9 +56,13 @@ func keybindings(g *gocui.Gui) error {
 		{ViewName: "commits", Key: 's', Modifier: gocui.ModNone, Handler: handleCommitSquashDown},
 		{ViewName: "commits", Key: 'r', Modifier: gocui.ModNone, Handler: handleRenameCommit},
 		{ViewName: "commits", Key: 'g', Modifier: gocui.ModNone, Handler: handleResetToCommit},
+		{ViewName: "commits", Key: 'f', Modifier: gocui.ModNone, Handler: handleCommitFixup},
 		{ViewName: "stash", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: handleStashApply},
 		{ViewName: "stash", Key: 'g', Modifier: gocui.ModNone, Handler: handleStashPop},
 		{ViewName: "stash", Key: 'd', Modifier: gocui.ModNone, Handler: handleStashDrop},
+		{ViewName: "commitMessage", Key: gocui.KeyEnter, Modifier: gocui.ModNone, Handler: handleCommitConfirm},
+		{ViewName: "commitMessage", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: handleCommitClose},
+		{ViewName: "commitMessage", Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: handleNewlineCommitMessage},
 	}
 
 	// Would make these keybindings global but that interferes with editing

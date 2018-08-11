@@ -75,6 +75,8 @@ func newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return handleBranchSelect(g, v)
 	case "confirmation":
 		return nil
+	case "commitMessage":
+		return handleCommitFocused(g, v)
 	case "main":
 		// TODO: pull this out into a 'view focused' function
 		refreshMergePanel(g)
@@ -107,7 +109,7 @@ func switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		state.PreviousView = oldView.Name()
 	}
 	newView.Highlight = true
-	devLog(newView.Name())
+	devLog("new focused view is " + newView.Name())
 	if _, err := g.SetCurrentView(newView.Name()); err != nil {
 		return err
 	}
@@ -214,4 +216,20 @@ func loader() string {
 	nanos := now.UnixNano()
 	index := nanos / 50000000 % int64(len(characters))
 	return characters[index : index+1]
+}
+
+// TODO: refactor properly
+func getFilesView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("files")
+	return v
+}
+
+func getCommitsView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("commits")
+	return v
+}
+
+func getCommitMessageView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("commitMessage")
+	return v
 }

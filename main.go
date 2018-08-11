@@ -11,6 +11,8 @@ import (
 	"os/user"
 	"path/filepath"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/jesseduffield/gocui"
 	git "gopkg.in/src-d/go-git.v4"
 )
@@ -46,6 +48,14 @@ func projectPath(path string) string {
 
 func devLog(objects ...interface{}) {
 	localLog("development.log", objects...)
+}
+
+func objectLog(object interface{}) {
+	if !*debuggingFlag {
+		return
+	}
+	str := spew.Sdump(object)
+	localLog("development.log", str)
 }
 
 func commandLog(objects ...interface{}) {

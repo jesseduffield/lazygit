@@ -4,7 +4,7 @@
 # on the master branch and if we try and merge master we get a merge conflict
 
 # call this command from the test directory:
-# ./generate_basic_repo.sh; cd testrepo; gg; cd ..
+# ./merge_conflict.sh; cd testrepo; gg; cd ..
 
 # -e means exit if something fails
 # -x means print out simple commands before running them

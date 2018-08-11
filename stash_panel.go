@@ -82,7 +82,7 @@ func stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 }
 
 func handleStashSave(g *gocui.Gui, filesView *gocui.View) error {
-	createPromptPanel(g, filesView, "Stash changes", nil, func(g *gocui.Gui, v *gocui.View) error {
+	createPromptPanel(g, filesView, "Stash changes", func(g *gocui.Gui, v *gocui.View) error {
 		if output, err := gitStashSave(trimmedContent(v)); err != nil {
 			createErrorPanel(g, output)
 		}

@@ -8,6 +8,8 @@ Are YOU tired of typing every git command directly into the terminal, but you're
 
 ![Gif](https://image.ibb.co/mmeXho/optimisedgif.gif)
 
+[Twitch Stream](https://www.twitch.tv/jesseduffield)
+
 ## Installation
 
 ### Homebrew
@@ -26,6 +28,20 @@ sudo add-apt-repository ppa:lazygit-team/daily
 sudo apt-get update
 sudo apt-get install lazygit
 ```
+
+### Arch Linux
+Packages for Arch Linux are available via AUR (Arch User Repository).
+
+There are two packages. The stable one which is built with the latest release and the git version which builds from the most recent commit.
+
+Stable:
+https://aur.archlinux.org/packages/lazygit/
+
+Development:
+https://aur.archlinux.org/packages/lazygit-git/
+
+Instruction of how to install AUR content can be found here:
+https://wiki.archlinux.org/index.php/Arch_User_Repository
 
 ### Binary Release (Windows/Linux/OSX)
 You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases)
@@ -74,3 +90,6 @@ We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
 
 ## Work in progress
 This is still a work in progress so there's still bugs to iron out and as this is my first project in Go the code could no doubt use an increase in quality, but I'll be improving on it whenever I find the time. If you have any feedback feel free to [raise an issue](https://github.com/jesseduffield/lazygit/issues)/[submit a PR](https://github.com/jesseduffield/lazygit/pulls).
+
+## Social
+If you want to see what I (Jesse) am up to in terms of development, follow me on [twitter](https://twitter.com/DuffieldJesse) or watch me program on [twitch](https://www.twitch.tv/jesseduffield)

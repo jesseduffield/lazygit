@@ -106,14 +106,18 @@ func mergeGitStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
 	return result
 }
 
+// only to be used when you're already in an error state
+func runDirectCommandIgnoringError(command string) string {
+	output, _ := runDirectCommand(command)
+	return output
+}
+
 func runDirectCommand(command string) (string, error) {
-	timeStart := time.Now()
 	commandLog(command)
 
 	cmdOut, err := exec.
 		Command(state.Platform.shell, state.Platform.shellArg, command).
 		CombinedOutput()
-	devLog("run direct command time for command: ", command, time.Now().Sub(timeStart))
 	return sanitisedCommandOutput(cmdOut, err)
 }
 
@@ -180,7 +184,7 @@ func getGitStatusFiles() []GitFile {
 		}
 		gitFiles = append(gitFiles, gitFile)
 	}
-	devLog(gitFiles)
+	objectLog(gitFiles)
 	return gitFiles
 }
 
@@ -218,12 +222,9 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 }
 
 func runCommand(command string) (string, error) {
-	commandStartTime := time.Now()
 	commandLog(command)
 	splitCmd := strings.Split(command, " ")
-	devLog(splitCmd)
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
-	devLog("run command time: ", time.Now().Sub(commandStartTime))
 	return sanitisedCommandOutput(cmdOut, err)
 }
 
@@ -379,7 +380,6 @@ func unStageFile(file string, tracked bool) error {
 	} else {
 		command = "git rm --cached "
 	}
-	devLog(command)
 	_, err := runCommand(command + file)
 	return err
 }
@@ -441,6 +441,33 @@ func gitPush() (string, error) {
 
 func gitSquashPreviousTwoCommits(message string) (string, error) {
 	return runDirectCommand("git reset --soft HEAD^ && git commit --amend -m \"" + message + "\"")
+}
+
+func gitSquashFixupCommit(branchName string, shaValue string) (string, error) {
+	var err error
+	commands := []string{
+		"git checkout -q " + shaValue,
+		"git reset --soft " + shaValue + "^",
+		"git commit --amend -C " + shaValue + "^",
+		"git rebase --onto HEAD " + shaValue + " " + branchName,
+	}
+	ret := ""
+	for _, command := range commands {
+		devLog(command)
+		output, err := runDirectCommand(command)
+		ret += output
+		if err != nil {
+			devLog(ret)
+			break
+		}
+	}
+	if err != nil {
+		// We are already in an error state here so we're just going to append
+		// the output of these commands
+		ret += runDirectCommandIgnoringError("git branch -d " + shaValue)
+		ret += runDirectCommandIgnoringError("git checkout " + branchName)
+	}
+	return ret, err
 }
 
 func gitRenameCommit(message string) (string, error) {
