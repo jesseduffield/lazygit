@@ -1,59 +1,66 @@
 # Keybindings:
 
 ## Global:
-
-      ← → ↑ ↓/h j k l:  navigate
-      PgUp/PgDn:        scroll diff panel (use fn+up/down on osx)
-      q:                quit
-      p:                pull
-      shift+P:          push
+<pre>
+  <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>/<kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd>:  navigate
+  <kbd>PgUp</kbd>/<kbd>PgDn</kbd>:           scroll diff panel (use <kbd>fn</kbd>+<kbd>up</kbd>/<kbd>fn</kbd>+<kbd>down</kbd> on osx)
+  <kbd>q</kbd>:                    quit
+  <kbd>p</kbd>:                    pull
+  <kbd>shift</kbd>+<kbd>P</kbd>:             push
+</pre>
 
 ## Files Panel:
-
-      space:    toggle staged
-      c:        commit changes
-      shift+C:  commit using git editor
-      shift+S:  stash files
-      t:        add patched (i.e. pick chunks of a file to add)
-      o:        open
-      e:        edit
-      s:        open in sublime (requires 'subl' command)
-      v:        open in vscode (requires 'code' command)
-      i:        add to .gitignore
-      d:        delete if untracked checkout if tracked (aka go away)
-      shift+R:  refresh files
+<pre>
+  <kbd>space</kbd>:    toggle staged
+  <kbd>c</kbd>:        commit changes
+  <kbd>shift</kbd>+<kbd>C</kbd>: commit using git editor
+  <kbd>shift</kbd>+<kbd>S</kbd>: stash files
+  <kbd>t</kbd>:        add patched (i.e. pick chunks of a file to add)
+  <kbd>o</kbd>:        open
+  <kbd>e</kbd>:        edit
+  <kbd>s</kbd>:        open in sublime (requires 'subl' command)
+  <kbd>v</kbd>:        open in vscode (requires 'code' command)
+  <kbd>i</kbd>:        add to .gitignore
+  <kbd>d</kbd>:        delete if untracked checkout if tracked (aka go away)
+  <kbd>shift</kbd>+<kbd>R</kbd>: refresh files
+</pre>
 
 ## Branches Panel:
-
-      space:    checkout branch
-      f:        force checkout branch
-      m:        merge into currently checked out branch
-      c:        checkout by name
-      n:        new branch
-      d:        delete branch
+<pre>
+  <kbd>space</kbd>:   checkout branch
+  <kbd>f</kbd>:       force checkout branch
+  <kbd>m</kbd>:       merge into currently checked out branch
+  <kbd>c</kbd>:       checkout by name
+  <kbd>n</kbd>:       new branch
+  <kbd>d</kbd>:       delete branch
+</pre>
 
 ## Commits Panel:
-
-      s:       squash down (only available for topmost commit)
-      r:       rename commit
-      g:       reset to this commit
+<pre>
+  <kbd>s</kbd>:       squash down (only available for topmost commit)
+  <kbd>r</kbd>:       rename commit
+  <kbd>g</kbd>:       reset to this commit
+</pre>
 
 ## Stash Panel:
-
-      space:   apply
-      g:       pop
-      d:       drop
+<pre>
+  <kbd>space</kbd>:   apply
+  <kbd>g</kbd>:       pop
+  <kbd>d</kbd>:       drop
+</pre>
 
 ## Popup Panel:
-
-      esc:     close/cancel
-      enter:   confirm
-      tab:     enter newline (if editing)
+<pre>
+  <kbd>esc</kbd>:     close/cancel
+  <kbd>enter</kbd>:   confirm
+  <kbd>tab</kbd>:     enter newline (if editing)
+</pre>
 
 ## Resolving Merge Conflicts (Diff Panel):
-
-      ← →/h l:    navigate conflicts
-      ↑ ↓/ k j:   select hunk
-      space:      pick hunk
-      b:          pick both hunks
-      z:          undo (only available while still inside diff panel)
+<pre>
+  <kbd>←</kbd><kbd>→</kbd>/<kbd>h</kbd><kbd>l</kbd>: navigate conflicts
+  <kbd>↑</kbd><kbd>↓</kbd>/<kbd>k</kbd><kbd>j</kbd>: select hunk
+  <kbd>space</kbd>:      pick hunk
+  <kbd>b</kbd>:         pick both hunks
+  <kbd>z</kbd>:         undo (only available while still inside diff panel)
+</pre>
