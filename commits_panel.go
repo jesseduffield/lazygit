@@ -34,6 +34,9 @@ func refreshCommits(g *gocui.Gui) error {
 			white.Fprintln(v, commit.Name)
 		}
 		refreshStatus(g)
+		if g.CurrentView().Name() == "commits" {
+			handleCommitSelect(g, v)
+		}
 		return nil
 	})
 	return nil
@@ -135,8 +138,7 @@ func handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 		if err := refreshCommits(g); err != nil {
 			panic(err)
 		}
-		refreshStatus(g)
-		return handleCommitSelect(g, v)
+		return refreshStatus(g)
 	}, nil)
 	return nil
 }
