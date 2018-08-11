@@ -75,6 +75,8 @@ func newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return handleBranchSelect(g, v)
 	case "confirmation":
 		return nil
+	case "commitMessage":
+		return handleCommitFocused(g, v)
 	case "main":
 		// TODO: pull this out into a 'view focused' function
 		refreshMergePanel(g)
@@ -107,7 +109,7 @@ func switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		state.PreviousView = oldView.Name()
 	}
 	newView.Highlight = true
-	devLog(newView.Name())
+	devLog("new focused view is " + newView.Name())
 	if _, err := g.SetCurrentView(newView.Name()); err != nil {
 		return err
 	}
@@ -119,10 +121,6 @@ func getItemPosition(v *gocui.View) int {
 	_, cy := v.Cursor()
 	_, oy := v.Origin()
 	return oy + cy
-}
-
-func trimmedContent(v *gocui.View) string {
-	return strings.TrimSpace(v.Buffer())
 }
 
 func cursorUp(g *gocui.Gui, v *gocui.View) error {
@@ -199,18 +197,6 @@ func renderString(g *gocui.Gui, viewName, s string) error {
 	return nil
 }
 
-func splitLines(multilineString string) []string {
-	multilineString = strings.Replace(multilineString, "\r", "", -1)
-	if multilineString == "" || multilineString == "\n" {
-		return make([]string, 0)
-	}
-	lines := strings.Split(multilineString, "\n")
-	if lines[len(lines)-1] == "" {
-		return lines[:len(lines)-1]
-	}
-	return lines
-}
-
 func optionsMapToString(optionsMap map[string]string) string {
 	optionsArray := make([]string, 0)
 	for key, description := range optionsMap {
@@ -230,4 +216,20 @@ func loader() string {
 	nanos := now.UnixNano()
 	index := nanos / 50000000 % int64(len(characters))
 	return characters[index : index+1]
+}
+
+// TODO: refactor properly
+func getFilesView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("files")
+	return v
+}
+
+func getCommitsView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("commits")
+	return v
+}
+
+func getCommitMessageView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("commitMessage")
+	return v
 }

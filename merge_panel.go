@@ -56,7 +56,7 @@ func coloredConflictFile(content string, conflicts []conflict, conflictIndex int
 		if i == conflict.end && len(remainingConflicts) > 0 {
 			conflict, remainingConflicts = shiftConflict(remainingConflicts)
 		}
-		outputBuffer.WriteString(coloredString(line, colour) + "\n")
+		outputBuffer.WriteString(coloredStringDirect(line, colour) + "\n")
 	}
 	return outputBuffer.String(), nil
 }

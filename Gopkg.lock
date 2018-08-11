@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "NUT"
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:de4a74b504df31145ffa8ca0c4edbffa2f3eb7f466753962184611b618fa5981"
   name = "github.com/emirpasic/gods"
   packages = [
@@ -176,14 +184,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:de22999d08e1604a7c3186ef64b5a18a90e399b99c4e8ff2a8d6c6abf42b7934"
+  digest = "1:87aef4c266c820591e859450c3ee5ab98f9b8755d7cfd9e4db606959eb5b483d"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "0ffbfd41fbef8ffcf9b62b0b0aa3a5873ed7a4fe"
+  revision = "904bdc257025c7b3f43c19360ad3ab85783fad78"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
@@ -215,7 +223,7 @@
   version = "v4.2.0"
 
 [[projects]]
-  digest = "1:fa265385a5175b4aaed0cccec60059a3f363c3f209bba1b658e9a12baddbc5e0"
+  digest = "1:e66078da2bd6e53c72518d7f6ae0c3c8c7f34c0df12c39435ce34a6bce165525"
   name = "gopkg.in/src-d/go-git.v4"
   packages = [
     ".",
@@ -260,8 +268,7 @@
     "utils/merkletrie/noder",
   ]
   pruneopts = "NUT"
-  revision = "3bd5e82b2512d85becae9677fa06b5a973fd4cfb"
-  version = "v4.5.0"
+  revision = "43d17e14b714665ab5bc2ecc220b6740779d733f"
 
 [[projects]]
   digest = "1:b233ad4ec87ac916e7bf5e678e98a2cb9e8b52f6de6ad3e11834fc7a71b8e3bf"
@@ -275,11 +282,13 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/davecgh/go-spew/spew",
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
     "github.com/jesseduffield/gocui",
     "github.com/tcnksm/go-gitconfig",
     "gopkg.in/src-d/go-git.v4",
+    "gopkg.in/src-d/go-git.v4/plumbing",
     "gopkg.in/src-d/go-git.v4/plumbing/object",
   ]
   solver-name = "gps-cdcl"

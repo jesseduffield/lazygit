@@ -34,6 +34,9 @@ func refreshCommits(g *gocui.Gui) error {
 			white.Fprintln(v, commit.Name)
 		}
 		refreshStatus(g)
+		if g.CurrentView().Name() == "commits" {
+			handleCommitSelect(g, v)
+		}
 		return nil
 	})
 	return nil
@@ -42,7 +45,6 @@ func refreshCommits(g *gocui.Gui) error {
 func handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
 	return createConfirmationPanel(g, commitView, "Reset To Commit", "Are you sure you want to reset to this commit?", func(g *gocui.Gui, v *gocui.View) error {
 		commit, err := getSelectedCommit(g)
-		devLog(commit)
 		if err != nil {
 			panic(err)
 		}
@@ -65,6 +67,7 @@ func renderCommitsOptions(g *gocui.Gui) error {
 		"s":       "squash down",
 		"r":       "rename",
 		"g":       "reset to this commit",
+		"f":       "fixup commit",
 		"← → ↑ ↓": "navigate",
 	})
 }
@@ -103,6 +106,41 @@ func handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	}
 	refreshStatus(g)
 	return handleCommitSelect(g, v)
+}
+
+// TODO: move to files panel
+func anyUnStagedChanges(files []GitFile) bool {
+	for _, file := range files {
+		if file.Tracked && file.HasUnstagedChanges {
+			return true
+		}
+	}
+	return false
+}
+
+func handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
+	if len(state.Commits) == 1 {
+		return createErrorPanel(g, "You have no commits to squash with")
+	}
+	objectLog(state.GitFiles)
+	if anyUnStagedChanges(state.GitFiles) {
+		return createErrorPanel(g, "Can't fixup while there are unstaged changes")
+	}
+	branch := state.Branches[0]
+	commit, err := getSelectedCommit(g)
+	if err != nil {
+		return err
+	}
+	createConfirmationPanel(g, v, "Fixup", "Are you sure you want to fixup this commit? The commit beneath will be squashed up into this one", func(g *gocui.Gui, v *gocui.View) error {
+		if output, err := gitSquashFixupCommit(branch.Name, commit.Sha); err != nil {
+			return createErrorPanel(g, output)
+		}
+		if err := refreshCommits(g); err != nil {
+			panic(err)
+		}
+		return refreshStatus(g)
+	}, nil)
+	return nil
 }
 
 func handleRenameCommit(g *gocui.Gui, v *gocui.View) error {

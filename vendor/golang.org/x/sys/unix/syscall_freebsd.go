@@ -602,14 +602,6 @@ func Uname(uname *Utsname) error {
 // Watchevent
 // Waitevent
 // Modwatch
-// Getxattr
-// Fgetxattr
-// Setxattr
-// Fsetxattr
-// Removexattr
-// Fremovexattr
-// Listxattr
-// Flistxattr
 // Fsctl
 // Initgroups
 // Posix_spawn

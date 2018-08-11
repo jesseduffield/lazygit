@@ -199,12 +199,27 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorBlue
 		v.Frame = false
 	}
 
-	if err = resizeConfirmationPanel(g); err != nil {
+	if getCommitMessageView(g) == nil {
+		// doesn't matter where this view starts because it will be hidden
+		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width, height, 0); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+			g.SetViewOnBottom("commitMessage")
+			commitMessageView.Title = "Commit message"
+			commitMessageView.FgColor = gocui.ColorWhite
+			commitMessageView.Editable = true
+		}
+	}
+
+	if err = resizeConfirmationPanel(g, "commitMessage"); err != nil {
+		return err
+	}
+	if err = resizeConfirmationPanel(g, "confirmation"); err != nil {
 		return err
 	}
 
@@ -260,6 +275,8 @@ func run() (err error) {
 		return
 	}
 	defer g.Close()
+
+	g.FgColor = gocui.ColorDefault
 
 	goEvery(g, time.Second*60, fetch)
 	goEvery(g, time.Second*10, refreshFiles)

@@ -26,6 +26,7 @@ var (
 	ErrMaxTreeDepth      = errors.New("maximum tree depth exceeded")
 	ErrFileNotFound      = errors.New("file not found")
 	ErrDirectoryNotFound = errors.New("directory not found")
+	ErrEntryNotFound     = errors.New("entry not found")
 )
 
 // Tree is basically like a directory - it references a bunch of other trees
@@ -167,8 +168,6 @@ func (t *Tree) dir(baseName string) (*Tree, error) {
 	return tree, err
 }
 
-var errEntryNotFound = errors.New("entry not found")
-
 func (t *Tree) entry(baseName string) (*TreeEntry, error) {
 	if t.m == nil {
 		t.buildMap()
@@ -176,7 +175,7 @@ func (t *Tree) entry(baseName string) (*TreeEntry, error) {
 
 	entry, ok := t.m[baseName]
 	if !ok {
-		return nil, errEntryNotFound
+		return nil, ErrEntryNotFound
 	}
 
 	return entry, nil

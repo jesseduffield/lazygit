@@ -29,6 +29,7 @@
       m:        merge into currently checked out branch
       c:        checkout by name
       n:        new branch
+      d:        delete branch
 
 ## Commits Panel:
 
