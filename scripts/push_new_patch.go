@@ -10,12 +10,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 )
 
 func main() {
+
 	version, err := ioutil.ReadFile("VERSION")
 	if err != nil {
 		log.Panicln(err.Error())
@@ -47,9 +49,15 @@ func main() {
 
 func runCommand(args ...string) {
 	fmt.Println(strings.Join(args, " "))
-	output, err := exec.Command(args[0], args[1:]...).CombinedOutput()
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Start()
 	if err != nil {
 		panic(err.Error())
 	}
-	log.Print(string(output))
+	err = cmd.Wait()
+	if err != nil {
+		panic(err.Error())
+	}
 }
