@@ -24,16 +24,16 @@ func refreshStatus(g *gocui.Gui) error {
 			return err
 		}
 		if state.HasMergeConflicts {
-			colour := color.New(color.FgYellow)
-			fmt.Fprint(v, coloredString(" (merging)", colour))
+			fmt.Fprint(v, coloredString(" (merging)", color.FgYellow))
 		}
+
 		if len(branches) == 0 {
 			return nil
 		}
 		branch := branches[0]
-		// utilising the fact these all have padding to only grab the name
-		// from the display string with the existing coloring applied
-		fmt.Fprint(v, " "+branch.DisplayString[4:])
+		name := coloredString(branch.Name, branch.getColor())
+		repo := getCurrentProject()
+		fmt.Fprint(v, " "+repo+" → "+name)
 		return nil
 	})
 

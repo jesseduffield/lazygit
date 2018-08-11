@@ -30,6 +30,7 @@ var (
 	versionFlag   = flag.Bool("v", false, "Print the current version")
 
 	w *git.Worktree
+	r *git.Repository
 )
 
 func homeDirectory() string {
@@ -98,7 +99,8 @@ func fallbackVersion() string {
 }
 
 func setupWorktree() {
-	r, err := git.PlainOpen(".")
+	var err error
+	r, err = git.PlainOpen(".")
 	if err != nil {
 		panic(err)
 	}

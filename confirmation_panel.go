@@ -56,6 +56,7 @@ func getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int,
 }
 
 func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
+	g.SetViewOnBottom("commitMessage")
 	// only need to fit one line
 	x0, y0, x1, y1 := getConfirmationPanelDimensions(g, "")
 	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
@@ -63,11 +64,8 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, hand
 			return err
 		}
 
-		g.Cursor = true
-
 		confirmationView.Editable = true
 		confirmationView.Title = title
-		confirmationView.FgColor = gocui.ColorWhite
 		switchFocus(g, currentView, confirmationView)
 		return setKeyBindings(g, handleConfirm, nil)
 	}
@@ -75,6 +73,7 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, hand
 }
 
 func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
+	g.SetViewOnBottom("commitMessage")
 	g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
@@ -141,15 +140,20 @@ func trimTrailingNewline(str string) string {
 	return str
 }
 
-func resizeConfirmationPanel(g *gocui.Gui) error {
+func resizeConfirmationPanel(g *gocui.Gui, viewName string) error {
 	// If the confirmation panel is already displayed, just resize the width,
 	// otherwise continue
-	if v, err := g.View("confirmation"); err == nil {
+	g.Update(func(g *gocui.Gui) error {
+		v, err := g.View(viewName)
+		if err != nil {
+			return nil
+		}
 		content := trimTrailingNewline(v.Buffer())
 		x0, y0, x1, y1 := getConfirmationPanelDimensions(g, content)
-		if _, err = g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
+		if _, err := g.SetView(viewName, x0, y0, x1, y1, 0); err != nil {
 			return err
 		}
-	}
+		return nil
+	})
 	return nil
 }

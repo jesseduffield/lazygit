@@ -177,19 +177,11 @@ func handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(stagedFiles(state.GitFiles)) == 0 && !state.HasMergeConflicts {
 		return createErrorPanel(g, "There are no staged files to commit")
 	}
-	createPromptPanel(g, filesView, "Commit message", func(g *gocui.Gui, v *gocui.View) error {
-		message := trimmedContent(v)
-		if message == "" {
-			return createErrorPanel(g, "You cannot commit without a commit message")
-		}
-		if output, err := gitCommit(g, message); err != nil {
-			if err == errNoUsername {
-				return createErrorPanel(g, err.Error())
-			}
-			return createErrorPanel(g, output)
-		}
-		refreshFiles(g)
-		return refreshCommits(g)
+	commitMessageView := getCommitMessageView(g)
+	g.Update(func(g *gocui.Gui) error {
+		g.SetViewOnTop("commitMessage")
+		switchFocus(g, filesView, commitMessageView)
+		return nil
 	})
 	return nil
 }
