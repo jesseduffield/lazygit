@@ -26,3 +26,5 @@ while [ $i -le $end ]; do
 
     i=$(($i+1))
 done
+
+echo "unstaged change" > file100
