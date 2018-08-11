@@ -15,6 +15,7 @@ func handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	}
 	refreshFiles(g)
 	g.SetViewOnBottom("commitMessage")
+	switchFocus(g, v, getFilesView(g))
 	return refreshCommits(g)
 }
 
