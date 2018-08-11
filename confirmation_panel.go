@@ -55,11 +55,8 @@ func getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int,
 		height/2 + panelHeight/2
 }
 
-func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, initialValue *[]byte, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
+func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
 	g.SetViewOnBottom("commitMessage")
-	if initialValue == nil {
-		initialValue = &[]byte{}
-	}
 	// only need to fit one line
 	x0, y0, x1, y1 := getConfirmationPanelDimensions(g, "")
 	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
@@ -67,41 +64,12 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, init
 			return err
 		}
 
-		handleConfirm := func(gui *gocui.Gui, view *gocui.View) error {
-			*initialValue = nil
-			return handleConfirm(g, view)
-		}
-
-		handleClose := func(gui *gocui.Gui, view *gocui.View) error {
-			// FIXME: trimming a newline that is no doubt caused by the enter keybinding
-			// on the editor. We should just define a new editor that doesn't do that
-			*initialValue = []byte(strings.TrimSpace(view.Buffer()))
-			return nil
-		}
-
 		confirmationView.Editable = true
 		confirmationView.Title = title
-		restorePreviousBuffer(confirmationView, initialValue)
 		switchFocus(g, currentView, confirmationView)
-		return setKeyBindings(g, handleConfirm, handleClose)
+		return setKeyBindings(g, handleConfirm, nil)
 	}
 	return nil
-}
-
-func restorePreviousBuffer(confirmationView *gocui.View, initialValue *[]byte) {
-	confirmationView.Write(*initialValue)
-	x, y := getCursorPositionFromBuffer(initialValue)
-	devLog("New cursor position:", x, y)
-	confirmationView.SetCursor(0, 0)
-	confirmationView.MoveCursor(x, y, false)
-}
-
-func getCursorPositionFromBuffer(initialValue *[]byte) (int, int) {
-	split := strings.Split(string(*initialValue), "\n")
-	lastLine := split[len(split)-1]
-	x := len(lastLine)
-	y := len(split)
-	return x, y
 }
 
 func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {

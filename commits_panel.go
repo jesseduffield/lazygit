@@ -109,7 +109,7 @@ func handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 	if getItemPosition(v) != 0 {
 		return createErrorPanel(g, "Can only rename topmost commit")
 	}
-	createPromptPanel(g, v, "Rename Commit", nil, func(g *gocui.Gui, v *gocui.View) error {
+	createPromptPanel(g, v, "Rename Commit", func(g *gocui.Gui, v *gocui.View) error {
 		if output, err := gitRenameCommit(v.Buffer()); err != nil {
 			return createErrorPanel(g, output)
 		}
