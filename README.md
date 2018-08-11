@@ -29,6 +29,15 @@ sudo apt-get update
 sudo apt-get install lazygit
 ```
 
+### Void Linux
+Packages for Void Linux are available in the distro repo
+
+They follow upstream latest releases
+
+```sh
+sudo xbps-install -S lazygit
+```
+
 ### Arch Linux
 Packages for Arch Linux are available via AUR (Arch User Repository).
 
