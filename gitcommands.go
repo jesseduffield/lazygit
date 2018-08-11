@@ -272,6 +272,11 @@ func editFile(g *gocui.Gui, filename string) (string, error) {
 		editor = os.Getenv("EDITOR")
 	}
 	if editor == "" {
+		if _, err := runCommand("which vi"); err == nil {
+			editor = "vi"
+		}
+	}
+	if editor == "" {
 		return "", createErrorPanel(g, "No editor defined in $VISUAL, $EDITOR, or git config.")
 	}
 	runSubProcess(g, editor, filename)
