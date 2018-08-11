@@ -492,7 +492,7 @@ func gitNewBranch(name string) (string, error) {
 }
 
 func gitDeleteBranch(branch string) (string, error) {
-        return runCommand("git branch -d " + branch)
+	return runCommand("git branch -d " + branch)
 }
 
 func gitListStash() (string, error) {
