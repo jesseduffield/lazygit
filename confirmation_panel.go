@@ -56,6 +56,10 @@ func getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int,
 }
 
 func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, initialValue *[]byte, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
+	g.SetViewOnBottom("commitMessage")
+	if initialValue == nil {
+		initialValue = &[]byte{}
+	}
 	// only need to fit one line
 	x0, y0, x1, y1 := getConfirmationPanelDimensions(g, "")
 	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
@@ -63,9 +67,7 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, init
 			return err
 		}
 
-		g.Cursor = true
-
-		handleConfirmAndClear := func(gui *gocui.Gui, view *gocui.View) error {
+		handleConfirm := func(gui *gocui.Gui, view *gocui.View) error {
 			*initialValue = nil
 			return handleConfirm(g, view)
 		}
@@ -79,15 +81,31 @@ func createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, init
 
 		confirmationView.Editable = true
 		confirmationView.Title = title
-		confirmationView.Write(*initialValue)
-		confirmationView.SetCursor(len(*initialValue), 0)
+		restorePreviousBuffer(confirmationView, initialValue)
 		switchFocus(g, currentView, confirmationView)
-		return setKeyBindings(g, handleConfirmAndClear, handleClose)
+		return setKeyBindings(g, handleConfirm, handleClose)
 	}
 	return nil
 }
 
+func restorePreviousBuffer(confirmationView *gocui.View, initialValue *[]byte) {
+	confirmationView.Write(*initialValue)
+	x, y := getCursorPositionFromBuffer(initialValue)
+	devLog("New cursor position:", x, y)
+	confirmationView.SetCursor(0, 0)
+	confirmationView.MoveCursor(x, y, false)
+}
+
+func getCursorPositionFromBuffer(initialValue *[]byte) (int, int) {
+	split := strings.Split(string(*initialValue), "\n")
+	lastLine := split[len(split)-1]
+	x := len(lastLine)
+	y := len(split)
+	return x, y
+}
+
 func createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
+	g.SetViewOnBottom("commitMessage")
 	g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
@@ -154,15 +172,20 @@ func trimTrailingNewline(str string) string {
 	return str
 }
 
-func resizeConfirmationPanel(g *gocui.Gui) error {
+func resizeConfirmationPanel(g *gocui.Gui, viewName string) error {
 	// If the confirmation panel is already displayed, just resize the width,
 	// otherwise continue
-	if v, err := g.View("confirmation"); err == nil {
+	g.Update(func(g *gocui.Gui) error {
+		v, err := g.View(viewName)
+		if err != nil {
+			return nil
+		}
 		content := trimTrailingNewline(v.Buffer())
 		x0, y0, x1, y1 := getConfirmationPanelDimensions(g, content)
-		if _, err = g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
+		if _, err := g.SetView(viewName, x0, y0, x1, y1, 0); err != nil {
 			return err
 		}
-	}
+		return nil
+	})
 	return nil
 }
