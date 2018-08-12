@@ -8,12 +8,10 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/jesseduffield/gocui"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 var (
@@ -418,22 +416,7 @@ func gitCommit(g *gocui.Gui, message string) (string, error) {
 		runSubProcess(g, "git", "commit")
 		return "", nil
 	}
-	userName, err := gitconfig.Username()
-	if userName == "" {
-		return "", errNoUsername
-	}
-	userEmail, err := gitconfig.Email()
-	_, err = w.Commit(message, &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  userName,
-			Email: userEmail,
-			When:  time.Now(),
-		},
-	})
-	if err != nil {
-		return err.Error(), err
-	}
-	return "", nil
+	return runDirectCommand("git commit -m \"" + message + "\"")
 }
 
 func gitPull() (string, error) {
