@@ -140,20 +140,16 @@ func trimTrailingNewline(str string) string {
 	return str
 }
 
-func resizeConfirmationPanel(g *gocui.Gui, viewName string) error {
+func resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
 	// If the confirmation panel is already displayed, just resize the width,
 	// otherwise continue
-	g.Update(func(g *gocui.Gui) error {
-		v, err := g.View(viewName)
-		if err != nil {
-			return nil
-		}
-		content := trimTrailingNewline(v.Buffer())
-		x0, y0, x1, y1 := getConfirmationPanelDimensions(g, content)
-		if _, err := g.SetView(viewName, x0, y0, x1, y1, 0); err != nil {
-			return err
-		}
+	content := trimTrailingNewline(v.Buffer())
+	x0, y0, x1, y1 := getConfirmationPanelDimensions(g, content)
+	vx0, vy0, vx1, vy1 := v.Dimensions()
+	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
 		return nil
-	})
-	return nil
+	}
+	devLog("resizing popup panel")
+	_, err := g.SetView(v.Name(), x0, y0, x1, y1, 0)
+	return err
 }

@@ -216,13 +216,6 @@ func layout(g *gocui.Gui) error {
 		}
 	}
 
-	if err = resizeConfirmationPanel(g, "commitMessage"); err != nil {
-		return err
-	}
-	if err = resizeConfirmationPanel(g, "confirmation"); err != nil {
-		return err
-	}
-
 	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -240,6 +233,8 @@ func layout(g *gocui.Gui) error {
 		refreshStashEntries(g)
 		nextView(g, nil)
 	}
+
+	resizePopupPanels(g)
 
 	return nil
 }
@@ -267,6 +262,14 @@ func goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) err
 			function(g)
 		}
 	}()
+}
+
+func resizePopupPanels(g *gocui.Gui) error {
+	v := g.CurrentView()
+	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
+		return resizePopupPanel(g, v)
+	}
+	return nil
 }
 
 func run() (err error) {

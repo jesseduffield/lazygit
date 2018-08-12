@@ -122,7 +122,7 @@ func newView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 }
 
 // Dimensions returns the dimensions of the View
-func Dimensions(v *View) (int, int, int, int) {
+func (v *View) Dimensions() (int, int, int, int) {
 	return v.x0, v.y0, v.x1, v.y1
 }
 

@@ -532,6 +532,10 @@ const (
 	EV_ONESHOT                        = 0x10
 	EV_SYSFLAGS                       = 0xf000
 	EXTA                              = 0x4b00
+	EXTATTR_CMD_START                 = 0x1
+	EXTATTR_CMD_STOP                  = 0x2
+	EXTATTR_NAMESPACE_SYSTEM          = 0x2
+	EXTATTR_NAMESPACE_USER            = 0x1
 	EXTB                              = 0x9600
 	EXTPROC                           = 0x800
 	FD_CLOEXEC                        = 0x1

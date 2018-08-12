@@ -50,11 +50,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:770db5f9b049ecc164570556c190c4ce875621d912c0c07eb6b557d3b1233266"
+  digest = "1:e9b2b07a20f19d886267876b72ba15f2cbdeeeadd18030a4ce174b864e97c39e"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "b46a743016a3434674ed08b1944c711c1150a38e"
+  revision = "8cecad864fb0b099a5f55bf1c97fbc1daca103e0"
 
 [[projects]]
   digest = "1:8021af4dcbd531ae89433c8c3a6520e51064114aaf8eb1724c3cf911c497c9ba"
@@ -180,18 +180,18 @@
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = "NUT"
-  revision = "f9ce57c11b242f0f1599cf25c89d8cb02c45295a"
+  revision = "c39426892332e1bb5ec0a434a079bf82f5d30c54"
 
 [[projects]]
   branch = "master"
-  digest = "1:87aef4c266c820591e859450c3ee5ab98f9b8755d7cfd9e4db606959eb5b483d"
+  digest = "1:ec76a40fbfda0c329ee58f4e3b14b4279a939efce89eca020e934e2e5234eddd"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "904bdc257025c7b3f43c19360ad3ab85783fad78"
+  revision = "98c5dad5d1a0e8a73845ecc8897d0bd56586511d"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
