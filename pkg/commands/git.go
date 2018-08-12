@@ -6,14 +6,12 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	gogit "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 // GitCommand is our main git interface
@@ -272,27 +270,13 @@ func (c *GitCommand) AbortMerge() (string, error) {
 
 // GitCommit commit to git
 func (c *GitCommand) GitCommit(g *gocui.Gui, message string) (string, error) {
+	command := "git commit -m \"" + message + "\""
 	gpgsign, _ := gitconfig.Global("commit.gpgsign")
 	if gpgsign != "" {
 		sub, err := c.OSCommand.RunSubProcess("git", "commit")
 		return "", nil
 	}
-	userName, err := gitconfig.Username()
-	if userName == "" {
-		return "", errNoUsername
-	}
-	userEmail, err := gitconfig.Email()
-	_, err = c.Worktree.Commit(message, &gogit.CommitOptions{
-		Author: &object.Signature{
-			Name:  userName,
-			Email: userEmail,
-			When:  time.Now(),
-		},
-	})
-	if err != nil {
-		return err.Error(), err
-	}
-	return "", nil
+	return c.OSCommand.RunDirectCommand(command)
 }
 
 // GitPull pull from repo
