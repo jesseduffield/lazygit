@@ -123,7 +123,7 @@ func refreshBranches(g *gocui.Gui) error {
 		if err != nil {
 			panic(err)
 		}
-		state.Branches = getGitBranches()
+		state.Branches = git.GetGitBranches()
 		v.Clear()
 		for _, branch := range state.Branches {
 			fmt.Fprintln(v, branch.getDisplayString())

@@ -17,7 +17,7 @@ func refreshStatus(g *gocui.Gui) error {
 	// contents end up cleared
 	g.Update(func(*gocui.Gui) error {
 		v.Clear()
-		pushables, pullables := gitUpstreamDifferenceCount()
+		pushables, pullables := git.UpstreamDifferenceCount()
 		fmt.Fprint(v, "↑"+pushables+"↓"+pullables)
 		branches := state.Branches
 		if err := updateHasMergeConflictStatus(); err != nil {

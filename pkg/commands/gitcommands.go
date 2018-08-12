@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 
@@ -279,7 +279,7 @@ func verifyInGitRepo() {
 }
 
 func getCommits() []Commit {
-	pushables := gitCommitsToPush()
+	pushables := git.GetCommitsToPush()
 	log := getLog()
 	commits := make([]Commit, 0)
 	// now we can split it up and turn it into commits
@@ -446,74 +446,4 @@ func gitSquashFixupCommit(branchName string, shaValue string) (string, error) {
 		ret += runDirectCommandIgnoringError("git checkout " + branchName)
 	}
 	return ret, err
-}
-
-func gitRenameCommit(message string) (string, error) {
-	return runDirectCommand("git commit --allow-empty --amend -m \"" + message + "\"")
-}
-
-func gitFetch() (string, error) {
-	return runDirectCommand("git fetch")
-}
-
-func gitResetToCommit(sha string) (string, error) {
-	return runDirectCommand("git reset " + sha)
-}
-
-func gitNewBranch(name string) (string, error) {
-	return runDirectCommand("git checkout -b " + name)
-}
-
-func gitDeleteBranch(branch string) (string, error) {
-	return runCommand("git branch -d " + branch)
-}
-
-func gitListStash() (string, error) {
-	return runDirectCommand("git stash list")
-}
-
-func gitMerge(branchName string) (string, error) {
-	return runDirectCommand("git merge --no-edit " + branchName)
-}
-
-func gitAbortMerge() (string, error) {
-	return runDirectCommand("git merge --abort")
-}
-
-func gitUpstreamDifferenceCount() (string, string) {
-	pushableCount, err := runDirectCommand("git rev-list @{u}..head --count")
-	if err != nil {
-		return "?", "?"
-	}
-	pullableCount, err := runDirectCommand("git rev-list head..@{u} --count")
-	if err != nil {
-		return "?", "?"
-	}
-	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
-}
-
-func gitCommitsToPush() []string {
-	pushables, err := runDirectCommand("git rev-list @{u}..head --abbrev-commit")
-	if err != nil {
-		return make([]string, 0)
-	}
-	return splitLines(pushables)
-}
-
-func getGitBranches() []Branch {
-	builder := newBranchListBuilder()
-	return builder.build()
-}
-
-func branchIncluded(branchName string, branches []Branch) bool {
-	for _, existingBranch := range branches {
-		if strings.ToLower(existingBranch.Name) == strings.ToLower(branchName) {
-			return true
-		}
-	}
-	return false
-}
-
-func gitResetHard() error {
-	return w.Reset(&git.ResetOptions{Mode: git.HardReset})
 }
