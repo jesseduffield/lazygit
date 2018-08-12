@@ -121,6 +121,11 @@ func newView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 	return v
 }
 
+// Dimensions returns the dimensions of the View
+func Dimensions(v *View) (int, int, int, int) {
+	return v.x0, v.y0, v.x1, v.y1
+}
+
 // Size returns the number of visible columns and rows in the View.
 func (v *View) Size() (x, y int) {
 	return v.x1 - v.x0 - 1, v.y1 - v.y0 - 1
