@@ -1,4 +1,4 @@
-package main
+package git
 
 import (
 	"strings"
@@ -12,11 +12,13 @@ type Branch struct {
 	Recency string
 }
 
-func (b *Branch) getDisplayString() string {
-	return withPadding(b.Recency, 4) + coloredString(b.Name, b.getColor())
-}
+// GetDisplayString returns the dispaly string of branch
+// func (b *Branch) GetDisplayString() string {
+// 	return gui.withPadding(b.Recency, 4) + gui.coloredString(b.Name, b.getColor())
+// }
 
-func (b *Branch) getColor() color.Attribute {
+// GetColor branch color
+func (b *Branch) GetColor() color.Attribute {
 	switch b.getType() {
 	case "feature":
 		return color.FgGreen

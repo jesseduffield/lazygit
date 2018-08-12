@@ -1,4 +1,4 @@
-package main
+package gui
 
 import (
 	"fmt"
@@ -232,4 +232,8 @@ func getCommitsView(g *gocui.Gui) *gocui.View {
 func getCommitMessageView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("commitMessage")
 	return v
+}
+
+func trimmedContent(v *gocui.View) string {
+	return strings.TrimSpace(v.Buffer())
 }

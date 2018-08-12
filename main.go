@@ -14,6 +14,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/app"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	git "gopkg.in/src-d/go-git.v4"
 )
 
@@ -24,8 +26,8 @@ var (
 
 	commit  string
 	version = "unversioned"
+	date    string
 
-	date          string
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
 
@@ -77,15 +79,6 @@ func localLog(path string, objects ...interface{}) {
 	}
 }
 
-func navigateToRepoRootDirectory() {
-	_, err := os.Stat(".git")
-	for os.IsNotExist(err) {
-		devLog("going up a directory to find the root")
-		os.Chdir("..")
-		_, err = os.Stat(".git")
-	}
-}
-
 // when building the binary, `version` is set as a compile-time variable, along
 // with `date` and `commit`. If this program has been opened directly via go,
 // we will populate the `version` with VERSION in the lazygit root directory
@@ -112,7 +105,6 @@ func setupWorktree() {
 }
 
 func main() {
-	devLog("\n\n\n\n\n\n\n\n\n\n")
 	flag.Parse()
 	if version == "unversioned" {
 		version = fallbackVersion()
@@ -121,9 +113,22 @@ func main() {
 		fmt.Printf("commit=%s, build date=%s, version=%s", commit, date, version)
 		os.Exit(0)
 	}
-	verifyInGitRepo()
-	navigateToRepoRootDirectory()
+	appConfig := &config.AppConfig{
+		Name:      "lazygit",
+		Version:   version,
+		Commit:    commit,
+		BuildDate: date,
+		Debug:     *debuggingFlag,
+	}
+	app, err := app.NewApp(appConfig)
+	app.Log.Info(err)
+
+	app.GitCommand.SetupGit()
+	// TODO remove this once r, w not used
 	setupWorktree()
+
+	app.Gui.Run()
+
 	for {
 		if err := run(); err != nil {
 			if err == gocui.ErrQuit {

@@ -1,4 +1,4 @@
-package main
+package gui
 
 import (
 
@@ -13,16 +13,17 @@ import (
 
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/git"
 )
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
 
 type stateType struct {
-	GitFiles          []GitFile
-	Branches          []Branch
-	Commits           []Commit
-	StashEntries      []StashEntry
+	GitFiles          []git.File
+	Branches          []git.Branch
+	Commits           []git.Commit
+	StashEntries      []git.StashEntry
 	PreviousView      string
 	HasMergeConflicts bool
 	ConflictIndex     int
