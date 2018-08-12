@@ -1,4 +1,4 @@
-package main
+package panels
 
 import (
 	"fmt"
@@ -123,7 +123,8 @@ func refreshBranches(g *gocui.Gui) error {
 		if err != nil {
 			panic(err)
 		}
-		state.Branches = git.GetGitBranches()
+		builder := git.newBranchListBuilder() // TODO: add constructor params
+		state.Branches = builder.build()
 		v.Clear()
 		for _, branch := range state.Branches {
 			fmt.Fprintln(v, branch.getDisplayString())

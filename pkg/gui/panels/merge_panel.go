@@ -1,6 +1,6 @@
 // though this panel is called the merge panel, it's really going to use the main panel. This may change in the future
 
-package main
+package panels
 
 import (
 	"bufio"

@@ -4,6 +4,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
+
+	"github.com/Sirupsen/logrus"
+
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
@@ -15,20 +19,26 @@ import (
 // our safe branches, then add the remaining safe branches, ensuring uniqueness
 // along the way
 
-type branchListBuilder struct{}
-
-func newBranchListBuilder() *branchListBuilder {
-	return &branchListBuilder{}
+type BranchListBuilder struct {
+	Log        *logrus.Log
+	GitCommand *commands.GitCommand
 }
 
-func (b *branchListBuilder) obtainCurrentBranch() Branch {
+func NewBranchListBuilder(log *logrus.Logger, gitCommand *GitCommand) (*BranchListBuilder, error) {
+	return nil, &BranchListBuilder{
+		Log: log,
+		GitCommand: gitCommand
+	}
+}
+
+func (b *branchListBuilder) ObtainCurrentBranch() Branch {
 	// I used go-git for this, but that breaks if you've just done a git init,
 	// even though you're on 'master'
 	branchName, _ := runDirectCommand("git symbolic-ref --short HEAD")
 	return Branch{Name: strings.TrimSpace(branchName), Recency: "  *"}
 }
 
-func (*branchListBuilder) obtainReflogBranches() []Branch {
+func (*branchListBuilder) ObtainReflogBranches() []Branch {
 	branches := make([]Branch, 0)
 	rawString, err := runDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
 	if err != nil {

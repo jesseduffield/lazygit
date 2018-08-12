@@ -1,4 +1,4 @@
-package main
+package panels
 
 import (
 
@@ -192,6 +192,17 @@ func handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
 	}
 	runSubProcess(g, "git", "commit")
 	return nil
+}
+
+func runSubprocess(g *gocui.Gui, commands string...) error {
+	var err error
+	// need this OsCommand to be available
+	if subprocess, err = osCommand.RunSubProcess(commands...); err != nil {
+		return err
+	}
+	g.Update(func(g *gocui.Gui) error {
+		return gui.ErrSubprocess
+	})
 }
 
 func genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gui, string) (string, error)) error {

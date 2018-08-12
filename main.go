@@ -1,29 +1,22 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"os/user"
 	"path/filepath"
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	git "gopkg.in/src-d/go-git.v4"
 )
 
-// ErrSubProcess is raised when we are running a subprocess
 var (
-	ErrSubprocess = errors.New("running subprocess")
-	subprocess    *exec.Cmd
-
 	commit  string
 	version = "unversioned"
 	date    string
@@ -127,17 +120,5 @@ func main() {
 	// TODO remove this once r, w not used
 	setupWorktree()
 
-	app.Gui.Run()
-
-	for {
-		if err := run(); err != nil {
-			if err == gocui.ErrQuit {
-				break
-			} else if err == ErrSubprocess {
-				subprocess.Run()
-			} else {
-				log.Panicln(err)
-			}
-		}
-	}
+	app.Gui.RunWithSubprocesses()
 }

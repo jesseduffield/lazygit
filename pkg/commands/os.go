@@ -85,7 +85,8 @@ func getPlatform() platform {
 	}
 }
 
-func (c *OSCommand) getOpenCommand() (string, string, error) {
+// GetOpenCommand get open command
+func (c *OSCommand) GetOpenCommand() (string, string, error) {
 	//NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
 	trailMap := map[string]string{
 		"xdg-open": " &>/dev/null &",
@@ -93,7 +94,7 @@ func (c *OSCommand) getOpenCommand() (string, string, error) {
 		"open":     "",
 	}
 	for name, trail := range trailMap {
-		if out, _ := c.runCommand("which " + name); out != "exit status 1" {
+		if out, _ := c.RunCommand("which " + name); out != "exit status 1" {
 			return name, trail, nil
 		}
 	}
@@ -103,22 +104,22 @@ func (c *OSCommand) getOpenCommand() (string, string, error) {
 // VsCodeOpenFile opens the file in code, with the -r flag to open in the
 // current window
 func (c *OSCommand) VsCodeOpenFile(g *gocui.Gui, filename string) (string, error) {
-	return c.runCommand("code -r " + filename)
+	return c.RunCommand("code -r " + filename)
 }
 
 // SublimeOpenFile opens the filein sublime
 // may be deprecated in the future
 func (c *OSCommand) SublimeOpenFile(g *gocui.Gui, filename string) (string, error) {
-	return c.runCommand("subl " + filename)
+	return c.RunCommand("subl " + filename)
 }
 
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(g *gocui.Gui, filename string) (string, error) {
-	cmdName, cmdTrail, err := getOpenCommand()
+	cmdName, cmdTrail, err := c.GetOpenCommand()
 	if err != nil {
 		return "", err
 	}
-	return c.runCommand(cmdName + " " + filename + cmdTrail)
+	return c.RunCommand(cmdName + " " + filename + cmdTrail)
 }
 
 // EditFile opens a file in a subprocess using whatever editor is available,
@@ -132,13 +133,23 @@ func (c *OSCommand) editFile(g *gocui.Gui, filename string) (string, error) {
 		editor = os.Getenv("EDITOR")
 	}
 	if editor == "" {
-		if _, err := c.OSCommand.runCommand("which vi"); err == nil {
+		if _, err := c.RunCommand("which vi"); err == nil {
 			editor = "vi"
 		}
 	}
 	if editor == "" {
 		return "", createErrorPanel(g, "No editor defined in $VISUAL, $EDITOR, or git config.")
 	}
-	runSubProcess(g, editor, filename)
+	c.RunSubProcess(editor, filename)
 	return "", nil
+}
+
+// RunSubProcess iniRunSubProcessrocess then tells the Gui to switch to it
+func (c *OSCommand) RunSubProcess(cmdName string, commandArgs ...string) (*exec.Cmd, error) {
+	subprocess := exec.Command(cmdName, commandArgs...)
+	subprocess.Stdin = os.Stdin
+	subprocess.Stdout = os.Stdout
+	subprocess.Stderr = os.Stderr
+
+	return subprocess, nil
 }

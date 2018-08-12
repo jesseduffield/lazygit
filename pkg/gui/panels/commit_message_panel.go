@@ -1,4 +1,4 @@
-package main
+package panels
 
 import "github.com/jesseduffield/gocui"
 

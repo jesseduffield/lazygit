@@ -5,6 +5,9 @@ import (
 	// "io"
 	// "io/ioutil"
 
+	"errors"
+	"log"
+	"os/exec"
 	"runtime"
 	"strings"
 	"time"
@@ -18,6 +21,13 @@ import (
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
+
+// ErrSubprocess tells us we're switching to a subprocess so we need to
+// close the Gui until it is finished
+var (
+	ErrSubprocess = errors.New("running subprocess")
+	subprocess    *exec.Cmd
+)
 
 type stateType struct {
 	GitFiles          []git.File
@@ -271,6 +281,20 @@ func resizePopupPanels(g *gocui.Gui) error {
 		return resizePopupPanel(g, v)
 	}
 	return nil
+}
+
+func RunWithSubprocesses() {
+	for {
+		if err := run(); err != nil {
+			if err == gocui.ErrQuit {
+				break
+			} else if err == ErrSubprocess {
+				subprocess.Run()
+			} else {
+				log.Panicln(err)
+			}
+		}
+	}
 }
 
 func run() (err error) {

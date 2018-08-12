@@ -1,8 +1,8 @@
-package git
+package commands
 
 // File : A staged/unstaged file
 // TODO: decide whether to give all of these the Git prefix
-type File struct {
+type GitFile struct {
 	Name               string
 	HasStagedChanges   bool
 	HasUnstagedChanges bool
@@ -25,4 +25,10 @@ type StashEntry struct {
 	Index         int
 	Name          string
 	DisplayString string
+}
+
+// Branch : A git branch
+type Branch struct {
+	Name    string
+	Recency string
 }

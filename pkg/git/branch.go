@@ -6,12 +6,6 @@ import (
 	"github.com/fatih/color"
 )
 
-// Branch : A git branch
-type Branch struct {
-	Name    string
-	Recency string
-}
-
 // GetDisplayString returns the dispaly string of branch
 // func (b *Branch) GetDisplayString() string {
 // 	return gui.withPadding(b.Recency, 4) + gui.coloredString(b.Name, b.getColor())
