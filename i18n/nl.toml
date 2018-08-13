@@ -1,0 +1,19 @@
+# The dutch translation for this program
+
+[FilesTitle]
+other = "Bestanden"
+
+[BranchesTitle]
+other = "Branches"
+
+[CommitsTitle]
+other = "Commits"
+
+[StashTitle]
+other = "Stash"
+
+[CommitMessage]
+other = "Commit Bericht"
+
+[StatusTitle]
+other = "Status"

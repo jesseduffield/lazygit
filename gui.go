@@ -157,7 +157,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Status"
+		v.Title = ShortLocalize("StatusTitle", "Status")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -167,7 +167,7 @@ func layout(g *gocui.Gui) error {
 			return err
 		}
 		filesView.Highlight = true
-		filesView.Title = "Files"
+		filesView.Title = ShortLocalize("FilesTitle", "Files")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -175,7 +175,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Branches"
+		v.Title = ShortLocalize("BranchesTitle", "Branches")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -183,7 +183,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Commits"
+		v.Title = ShortLocalize("CommitsTitle", "Commits")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -191,7 +191,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Stash"
+		v.Title = ShortLocalize("StashTitle", "Stash")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -210,7 +210,7 @@ func layout(g *gocui.Gui) error {
 				return err
 			}
 			g.SetViewOnBottom("commitMessage")
-			commitMessageView.Title = "Commit message"
+			commitMessageView.Title = ShortLocalize("CommitMessage", "Commit message")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
 		}
