@@ -250,15 +250,27 @@ func (c *GitCommand) AbortMerge() (string, error) {
 	return c.OSCommand.RunDirectCommand("git merge --abort")
 }
 
+// UsingGpg tells us whether the user has gpg enabled so that we can know
+// whether we need to run a subprocess to allow them to enter their password
+func (c *GitCommand) UsingGpg() bool {
+	gpgsign, _ := gitconfig.Global("commit.gpgsign")
+	if gpgsign == "" {
+		gpgsign, _ = gitconfig.Local("commit.gpgsign")
+	}
+	if gpgsign == "" {
+		return false
+	}
+	return true
+}
+
 // Commit commit to git
 func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
-	command := "commit -m \"" + message + "\""
-	gpgsign, _ := gitconfig.Global("commit.gpgsign")
-	if gpgsign != "" {
-		return c.OSCommand.PrepareSubProcess("git", command)
+	command := "git commit -m \"" + message + "\""
+	if c.UsingGpg() {
+		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)
 	}
 	// TODO: make these runDirectCommand functions just return an error
-	_, err := c.OSCommand.RunDirectCommand("git " + command)
+	_, err := c.OSCommand.RunDirectCommand(command)
 	return nil, err
 }
 
