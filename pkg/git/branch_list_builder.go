@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 
 	"github.com/Sirupsen/logrus"
 
@@ -19,59 +20,61 @@ import (
 // our safe branches, then add the remaining safe branches, ensuring uniqueness
 // along the way
 
+// BranchListBuilder returns a list of Branch objects for the current repo
 type BranchListBuilder struct {
-	Log        *logrus.Log
+	Log        *logrus.Logger
 	GitCommand *commands.GitCommand
 }
 
-func NewBranchListBuilder(log *logrus.Logger, gitCommand *GitCommand) (*BranchListBuilder, error) {
-	return nil, &BranchListBuilder{
-		Log: log,
-		GitCommand: gitCommand
-	}
+// NewBranchListBuilder builds a new branch list builder
+func NewBranchListBuilder(log *logrus.Logger, gitCommand *commands.GitCommand) (*BranchListBuilder, error) {
+	return &BranchListBuilder{
+		Log:        log,
+		GitCommand: gitCommand,
+	}, nil
 }
 
-func (b *branchListBuilder) ObtainCurrentBranch() Branch {
+func (b *BranchListBuilder) obtainCurrentBranch() commands.Branch {
 	// I used go-git for this, but that breaks if you've just done a git init,
 	// even though you're on 'master'
-	branchName, _ := runDirectCommand("git symbolic-ref --short HEAD")
-	return Branch{Name: strings.TrimSpace(branchName), Recency: "  *"}
+	branchName, _ := b.GitCommand.OSCommand.RunDirectCommand("git symbolic-ref --short HEAD")
+	return commands.Branch{Name: strings.TrimSpace(branchName), Recency: "  *"}
 }
 
-func (*branchListBuilder) ObtainReflogBranches() []Branch {
-	branches := make([]Branch, 0)
-	rawString, err := runDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
+func (b *BranchListBuilder) obtainReflogBranches() []commands.Branch {
+	branches := make([]commands.Branch, 0)
+	rawString, err := b.GitCommand.OSCommand.RunDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
 	if err != nil {
 		return branches
 	}
 
-	branchLines := splitLines(rawString)
+	branchLines := utils.SplitLines(rawString)
 	for _, line := range branchLines {
 		timeNumber, timeUnit, branchName := branchInfoFromLine(line)
 		timeUnit = abbreviatedTimeUnit(timeUnit)
-		branch := Branch{Name: branchName, Recency: timeNumber + timeUnit}
+		branch := commands.Branch{Name: branchName, Recency: timeNumber + timeUnit}
 		branches = append(branches, branch)
 	}
 	return branches
 }
 
-func (b *branchListBuilder) obtainSafeBranches() []Branch {
-	branches := make([]Branch, 0)
+func (b *BranchListBuilder) obtainSafeBranches() []commands.Branch {
+	branches := make([]commands.Branch, 0)
 
-	bIter, err := r.Branches()
+	bIter, err := b.GitCommand.Repo.Branches()
 	if err != nil {
 		panic(err)
 	}
 	err = bIter.ForEach(func(b *plumbing.Reference) error {
 		name := b.Name().Short()
-		branches = append(branches, Branch{Name: name})
+		branches = append(branches, commands.Branch{Name: name})
 		return nil
 	})
 
 	return branches
 }
 
-func (b *branchListBuilder) appendNewBranches(finalBranches, newBranches, existingBranches []Branch, included bool) []Branch {
+func (b *BranchListBuilder) appendNewBranches(finalBranches, newBranches, existingBranches []commands.Branch, included bool) []commands.Branch {
 	for _, newBranch := range newBranches {
 		if included == branchIncluded(newBranch.Name, existingBranches) {
 			finalBranches = append(finalBranches, newBranch)
@@ -80,7 +83,7 @@ func (b *branchListBuilder) appendNewBranches(finalBranches, newBranches, existi
 	return finalBranches
 }
 
-func sanitisedReflogName(reflogBranch Branch, safeBranches []Branch) string {
+func sanitisedReflogName(reflogBranch commands.Branch, safeBranches []commands.Branch) string {
 	for _, safeBranch := range safeBranches {
 		if strings.ToLower(safeBranch.Name) == strings.ToLower(reflogBranch.Name) {
 			return safeBranch.Name
@@ -89,15 +92,16 @@ func sanitisedReflogName(reflogBranch Branch, safeBranches []Branch) string {
 	return reflogBranch.Name
 }
 
-func (b *branchListBuilder) build() []Branch {
-	branches := make([]Branch, 0)
+// Build the list of branches for the current repo
+func (b *BranchListBuilder) Build() []commands.Branch {
+	branches := make([]commands.Branch, 0)
 	head := b.obtainCurrentBranch()
 	safeBranches := b.obtainSafeBranches()
 	if len(safeBranches) == 0 {
 		return append(branches, head)
 	}
 	reflogBranches := b.obtainReflogBranches()
-	reflogBranches = uniqueByName(append([]Branch{head}, reflogBranches...))
+	reflogBranches = uniqueByName(append([]commands.Branch{head}, reflogBranches...))
 	for i, reflogBranch := range reflogBranches {
 		reflogBranches[i].Name = sanitisedReflogName(reflogBranch, safeBranches)
 	}
@@ -108,8 +112,17 @@ func (b *branchListBuilder) build() []Branch {
 	return branches
 }
 
-func uniqueByName(branches []Branch) []Branch {
-	finalBranches := make([]Branch, 0)
+func branchIncluded(branchName string, branches []commands.Branch) bool {
+	for _, existingBranch := range branches {
+		if strings.ToLower(existingBranch.Name) == strings.ToLower(branchName) {
+			return true
+		}
+	}
+	return false
+}
+
+func uniqueByName(branches []commands.Branch) []commands.Branch {
+	finalBranches := make([]commands.Branch, 0)
 	for _, branch := range branches {
 		if branchIncluded(branch.Name, finalBranches) {
 			continue

@@ -14,51 +14,69 @@ import (
 
 	// "strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/git"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
 
-// ErrSubprocess tells us we're switching to a subprocess so we need to
+// ErrSubProcess tells us we're switching to a subprocess so we need to
 // close the Gui until it is finished
 var (
-	ErrSubprocess = errors.New("running subprocess")
-	subprocess    *exec.Cmd
+	ErrSubProcess = errors.New("running subprocess")
 )
 
-type stateType struct {
-	GitFiles          []git.File
-	Branches          []git.Branch
-	Commits           []git.Commit
-	StashEntries      []git.StashEntry
+// Gui wraps the gocui Gui object which handles rendering and events
+type Gui struct {
+	Gui        *gocui.Gui
+	Log        *logrus.Logger
+	GitCommand *commands.GitCommand
+	OSCommand  *commands.OSCommand
+	Version    string
+	SubProcess *exec.Cmd
+	State      StateType
+}
+
+// NewGui builds a new gui handler
+func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, version string) (*Gui, error) {
+	initialState := StateType{
+		Files:         make([]commands.File, 0),
+		PreviousView:  "files",
+		Commits:       make([]commands.Commit, 0),
+		StashEntries:  make([]commands.StashEntry, 0),
+		ConflictIndex: 0,
+		ConflictTop:   true,
+		Conflicts:     make([]commands.Conflict, 0),
+		EditHistory:   stack.New(),
+		Platform:      getPlatform(),
+		Version:       "test version", // TODO: send version in
+	}
+
+	return &Gui{
+		Log:        log,
+		GitCommand: gitCommand,
+		OSCommand:  oSCommand,
+		Version:    version,
+		State:      initialState,
+	}, nil
+}
+
+type StateType struct {
+	Files             []commands.File
+	Branches          []commands.Branch
+	Commits           []commands.Commit
+	StashEntries      []commands.StashEntry
 	PreviousView      string
 	HasMergeConflicts bool
 	ConflictIndex     int
 	ConflictTop       bool
-	Conflicts         []conflict
+	Conflicts         []commands.Conflict
 	EditHistory       *stack.Stack
 	Platform          platform
-}
-
-type conflict struct {
-	start  int
-	middle int
-	end    int
-}
-
-var state = stateType{
-	GitFiles:      make([]GitFile, 0),
-	PreviousView:  "files",
-	Commits:       make([]Commit, 0),
-	StashEntries:  make([]StashEntry, 0),
-	ConflictIndex: 0,
-	ConflictTop:   true,
-	Conflicts:     make([]conflict, 0),
-	EditHistory:   stack.New(),
-	Platform:      getPlatform(),
+	Version           string
 }
 
 type platform struct {
@@ -117,7 +135,7 @@ func max(a, b int) int {
 }
 
 // layout is called for every screen re-render e.g. when the screen is resized
-func layout(g *gocui.Gui) error {
+func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
 	width, height := g.Size()
@@ -206,7 +224,7 @@ func layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", -1, optionsTop, width-len(version)-2, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", -1, optionsTop, width-len(gui.Version)-2, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -214,7 +232,7 @@ func layout(g *gocui.Gui) error {
 		v.Frame = false
 	}
 
-	if getCommitMessageView(g) == nil {
+	if gui.getCommitMessageView(g) == nil {
 		// doesn't matter where this view starts because it will be hidden
 		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width, height, 0); err != nil {
 			if err != gocui.ErrUnknownView {
@@ -227,18 +245,18 @@ func layout(g *gocui.Gui) error {
 		}
 	}
 
-	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("version", width-len(gui.Version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorGreen
 		v.Frame = false
-		renderString(g, "version", version)
+		gui.renderString(g, "version", gui.Version)
 
 		// these are only called once
-		handleFileSelect(g, filesView)
-		refreshFiles(g)
+		gui.handleFileSelect(g, filesView)
+		gui.refreshFiles(g)
 		refreshBranches(g)
 		refreshCommits(g)
 		refreshStashEntries(g)
@@ -258,10 +276,10 @@ func fetch(g *gocui.Gui) error {
 
 func updateLoader(g *gocui.Gui) error {
 	if confirmationView, _ := g.View("confirmation"); confirmationView != nil {
-		content := trimmedContent(confirmationView)
+		content := gui.trimmedContent(confirmationView)
 		if strings.Contains(content, "...") {
 			staticContent := strings.Split(content, "...")[0] + "..."
-			renderString(g, "confirmation", staticContent+" "+loader())
+			gui.renderString(g, "confirmation", staticContent+" "+loader())
 		}
 	}
 	return nil
@@ -283,41 +301,45 @@ func resizePopupPanels(g *gocui.Gui) error {
 	return nil
 }
 
-func RunWithSubprocesses() {
-	for {
-		if err := run(); err != nil {
-			if err == gocui.ErrQuit {
-				break
-			} else if err == ErrSubprocess {
-				subprocess.Run()
-			} else {
-				log.Panicln(err)
-			}
-		}
-	}
-}
-
-func run() (err error) {
+// Run setup the gui with keybindings and start the mainloop
+func (gui *Gui) Run() (*exec.Cmd, error) {
 	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer g.Close()
 
 	g.FgColor = gocui.ColorDefault
 
 	goEvery(g, time.Second*60, fetch)
-	goEvery(g, time.Second*10, refreshFiles)
+	goEvery(g, time.Second*10, gui.refreshFiles)
 	goEvery(g, time.Millisecond*10, updateLoader)
 
-	g.SetManagerFunc(layout)
+	g.SetManagerFunc(gui.layout)
 
-	if err = keybindings(g); err != nil {
-		return
+	if err = gui.keybindings(g); err != nil {
+		return nil, err
 	}
 
 	err = g.MainLoop()
-	return
+	return nil, err
+}
+
+// RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
+// if the error returned from a run is a ErrSubProcess, it runs the subprocess
+// otherwise it handles the error, possibly by quitting the application
+func (gui *Gui) RunWithSubprocesses() {
+	for {
+		if err := gui.Run(); err != nil {
+			if err == gocui.ErrQuit {
+				break
+			} else if err == ErrSubProcess {
+				gui.SubProcess.Run()
+			} else {
+				log.Panicln(err)
+			}
+		}
+	}
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {

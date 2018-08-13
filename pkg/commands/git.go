@@ -38,13 +38,6 @@ func (c *GitCommand) SetupGit() {
 	c.setupWorktree()
 }
 
-// GitIgnore adds a file to the .gitignore of the repo
-func (c *GitCommand) GitIgnore(filename string) {
-	if _, err := c.OSCommand.RunDirectCommand("echo '" + filename + "' >> .gitignore"); err != nil {
-		panic(err)
-	}
-}
-
 // GetStashEntries stash entryies
 func (c *GitCommand) GetStashEntries() []StashEntry {
 	stashEntries := make([]StashEntry, 0)
@@ -78,10 +71,10 @@ func includes(array []string, str string) bool {
 }
 
 // GetStatusFiles git status files
-func (c *GitCommand) GetStatusFiles() []GitFile {
+func (c *GitCommand) GetStatusFiles() []File {
 	statusOutput, _ := c.GitStatus()
 	statusStrings := utils.SplitLines(statusOutput)
-	gitFiles := make([]GitFile, 0)
+	files := make([]File, 0)
 
 	for _, statusString := range statusStrings {
 		change := statusString[0:2]
@@ -89,7 +82,7 @@ func (c *GitCommand) GetStatusFiles() []GitFile {
 		unstagedChange := statusString[1:2]
 		filename := statusString[3:]
 		tracked := !includes([]string{"??", "A "}, change)
-		gitFile := GitFile{
+		file := File{
 			Name:               filename,
 			DisplayString:      statusString,
 			HasStagedChanges:   !includes([]string{" ", "U", "?"}, stagedChange),
@@ -98,10 +91,10 @@ func (c *GitCommand) GetStatusFiles() []GitFile {
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:  change == "UU",
 		}
-		gitFiles = append(gitFiles, gitFile)
+		files = append(files, file)
 	}
-	c.Log.Info(gitFiles) // TODO: use a dumper-esque log here
-	return gitFiles
+	c.Log.Info(files) // TODO: use a dumper-esque log here
+	return files
 }
 
 // StashDo modify stash
@@ -124,19 +117,19 @@ func (c *GitCommand) StashSave(message string) (string, error) {
 }
 
 // MergeStatusFiles merge status files
-func (c *GitCommand) MergeStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitFile {
-	if len(oldGitFiles) == 0 {
-		return newGitFiles
+func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
+	if len(oldFiles) == 0 {
+		return newFiles
 	}
 
 	appendedIndexes := make([]int, 0)
 
 	// retain position of files we already could see
-	result := make([]GitFile, 0)
-	for _, oldGitFile := range oldGitFiles {
-		for newIndex, newGitFile := range newGitFiles {
-			if oldGitFile.Name == newGitFile.Name {
-				result = append(result, newGitFile)
+	result := make([]File, 0)
+	for _, oldFile := range oldFiles {
+		for newIndex, newFile := range newFiles {
+			if oldFile.Name == newFile.Name {
+				result = append(result, newFile)
 				appendedIndexes = append(appendedIndexes, newIndex)
 				break
 			}
@@ -144,9 +137,9 @@ func (c *GitCommand) MergeStatusFiles(oldGitFiles, newGitFiles []GitFile) []GitF
 	}
 
 	// append any new files to the end
-	for index, newGitFile := range newGitFiles {
+	for index, newFile := range newFiles {
 		if !includesInt(appendedIndexes, index) {
-			result = append(result, newGitFile)
+			result = append(result, newFile)
 		}
 	}
 
@@ -217,17 +210,6 @@ func (c *GitCommand) GetCommitsToPush() []string {
 	return utils.SplitLines(pushables)
 }
 
-// BranchIncluded states whether a branch is included in a list of branches,
-// with a case insensitive comparison on name
-func (c *GitCommand) BranchIncluded(branchName string, branches []Branch) bool {
-	for _, existingBranch := range branches {
-		if strings.ToLower(existingBranch.Name) == strings.ToLower(branchName) {
-			return true
-		}
-	}
-	return false
-}
-
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) (string, error) {
 	return c.OSCommand.RunDirectCommand("git commit --allow-empty --amend -m \"" + name + "\"")
@@ -268,25 +250,26 @@ func (c *GitCommand) AbortMerge() (string, error) {
 	return c.OSCommand.RunDirectCommand("git merge --abort")
 }
 
-// GitCommit commit to git
-func (c *GitCommand) GitCommit(g *gocui.Gui, message string) (string, error) {
+// Commit commit to git
+func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
 	command := "git commit -m \"" + message + "\""
 	gpgsign, _ := gitconfig.Global("commit.gpgsign")
 	if gpgsign != "" {
-		sub, err := c.OSCommand.RunSubProcess("git", "commit")
-		return "", nil
+		return c.OSCommand.PrepareSubProcess("git", "commit")
 	}
-	return c.OSCommand.RunDirectCommand(command)
+	// TODO: make these runDirectCommand functions just return an error
+	_, err := c.OSCommand.RunDirectCommand(command)
+	return nil, err
 }
 
-// GitPull pull from repo
-func (c *GitCommand) GitPull() (string, error) {
+// Pull pull from repo
+func (c *GitCommand) Pull() (string, error) {
 	return c.OSCommand.RunCommand("git pull --no-edit")
 }
 
-// GitPush push to a branch
-func (c *GitCommand) GitPush() (string, error) {
-	return c.OSCommand.RunDirectCommand("git push -u origin " + state.Branches[0].Name)
+// Push push to a branch
+func (c *GitCommand) Push(branchName string) (string, error) {
+	return c.OSCommand.RunDirectCommand("git push -u origin " + branchName)
 }
 
 // SquashPreviousTwoCommits squashes a commit down to the one below it
@@ -364,7 +347,7 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 }
 
 // RemoveFile directly
-func (c *GitCommand) RemoveFile(file GitFile) error {
+func (c *GitCommand) RemoveFile(file File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	if !file.Tracked {
 		_, err := c.OSCommand.RunCommand("rm -rf ./" + file.Name)
@@ -384,10 +367,15 @@ func (c *GitCommand) Checkout(branch string, force bool) (string, error) {
 	return c.OSCommand.RunCommand("git checkout " + forceArg + branch)
 }
 
-// AddPatch runs a subprocess for adding a patch by patch
+// AddPatch prepares a subprocess for adding a patch by patch
 // this will eventually be swapped out for a better solution inside the Gui
-func (c *GitCommand) AddPatch(g *gocui.Gui, filename string) (*exec.Cmd, error) {
-	return c.OSCommand.RunSubProcess("git", "add", "--patch", filename)
+func (c *GitCommand) AddPatch(filename string) (*exec.Cmd, error) {
+	return c.OSCommand.PrepareSubProcess("git", "add", "--patch", filename)
+}
+
+// PrepareCommitSubProcess prepares a subprocess for `git commit`
+func (c *GitCommand) PrepareCommitSubProcess() (*exec.Cmd, error) {
+	return c.OSCommand.PrepareSubProcess("git", "commit")
 }
 
 // GetBranchGraph gets the color-formatted graph of the log for the given branch
@@ -428,11 +416,11 @@ func includesInt(list []int, a int) bool {
 
 // GetCommits obtains the commits of the current branch
 func (c *GitCommand) GetCommits() []Commit {
-	pushables := gogit.GetCommitsToPush()
-	log := getLog()
+	pushables := c.GetCommitsToPush()
+	log := c.GetLog()
 	commits := make([]Commit, 0)
 	// now we can split it up and turn it into commits
-	lines := utils.RplitLines(log)
+	lines := utils.SplitLines(log)
 	for _, line := range lines {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
@@ -477,7 +465,7 @@ func (c *GitCommand) Show(sha string) string {
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file GitFile) string {
+func (c *GitCommand) Diff(file File) string {
 	cachedArg := ""
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached "

@@ -15,6 +15,8 @@ import (
 var (
 	// ErrNoOpenCommand : When we don't know which command to use to open a file
 	ErrNoOpenCommand = errors.New("Unsure what command to use to open this file")
+	// ErrNoEditorDefined : When we can't find an editor to edit a file
+	ErrNoEditorDefined = errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 )
 
 // Platform stores the os state
@@ -138,14 +140,14 @@ func (c *OSCommand) editFile(g *gocui.Gui, filename string) (string, error) {
 		}
 	}
 	if editor == "" {
-		return "", createErrorPanel(g, "No editor defined in $VISUAL, $EDITOR, or git config.")
+		return "", ErrNoEditorDefined
 	}
-	c.RunSubProcess(editor, filename)
+	c.PrepareSubProcess(editor, filename)
 	return "", nil
 }
 
-// RunSubProcess iniRunSubProcessrocess then tells the Gui to switch to it
-func (c *OSCommand) RunSubProcess(cmdName string, commandArgs ...string) (*exec.Cmd, error) {
+// PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
+func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) (*exec.Cmd, error) {
 	subprocess := exec.Command(cmdName, commandArgs...)
 	subprocess.Stdin = os.Stdin
 	subprocess.Stdout = os.Stdout

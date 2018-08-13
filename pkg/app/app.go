@@ -4,8 +4,10 @@ import (
 	"io"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui"
 )
 
 // App struct
@@ -16,6 +18,7 @@ type App struct {
 	Log        *logrus.Logger
 	OSCommand  *commands.OSCommand
 	GitCommand *commands.GitCommand
+	Gui        *gocui.Gui
 }
 
 // NewApp retruns a new applications
@@ -31,6 +34,10 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 		return nil, err
 	}
 	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand)
+	if err != nil {
+		return nil, err
+	}
+	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, config.GetVersion())
 	if err != nil {
 		return nil, err
 	}

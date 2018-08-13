@@ -54,3 +54,12 @@ func GetCurrentProject() string {
 	}
 	return filepath.Base(pwd)
 }
+
+// TrimTrailingNewline - Trims the trailing newline
+// TODO: replace with `chomp` after refactor
+func TrimTrailingNewline(str string) string {
+	if strings.HasSuffix(str, "\n") {
+		return str[:len(str)-1]
+	}
+	return str
+}

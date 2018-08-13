@@ -2,7 +2,7 @@ package commands
 
 // File : A staged/unstaged file
 // TODO: decide whether to give all of these the Git prefix
-type GitFile struct {
+type File struct {
 	Name               string
 	HasStagedChanges   bool
 	HasUnstagedChanges bool
@@ -27,8 +27,10 @@ type StashEntry struct {
 	DisplayString string
 }
 
-// Branch : A git branch
-type Branch struct {
-	Name    string
-	Recency string
+// Conflict : A git conflict with a start middle and end corresponding to line
+// numbers in the file where the conflict bars appear
+type Conflict struct {
+	start  int
+	middle int
+	end    int
 }

@@ -1,4 +1,4 @@
-package panels
+package gui
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ func refreshStashEntries(g *gocui.Gui) error {
 		for _, stashEntry := range state.StashEntries {
 			fmt.Fprintln(v, stashEntry.DisplayString)
 		}
-		return resetOrigin(v)
+		return gui.resetOrigin(v)
 	})
 	return nil
 }
@@ -26,12 +26,12 @@ func getSelectedStashEntry(v *gocui.View) *StashEntry {
 	if len(state.StashEntries) == 0 {
 		return nil
 	}
-	lineNumber := getItemPosition(v)
+	lineNumber := gui.getItemPosition(v)
 	return &state.StashEntries[lineNumber]
 }
 
 func renderStashOptions(g *gocui.Gui) error {
-	return renderOptionsMap(g, map[string]string{
+	return gui.renderOptionsMap(g, map[string]string{
 		"space":   "apply",
 		"g":       "pop",
 		"d":       "drop",
@@ -46,11 +46,11 @@ func handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 	go func() {
 		stashEntry := getSelectedStashEntry(v)
 		if stashEntry == nil {
-			renderString(g, "main", "No stash entries")
+			gui.renderString(g, "main", "No stash entries")
 			return
 		}
 		diff, _ := getStashEntryDiff(stashEntry.Index)
-		renderString(g, "main", diff)
+		gui.renderString(g, "main", diff)
 	}()
 	return nil
 }
@@ -64,7 +64,7 @@ func handleStashPop(g *gocui.Gui, v *gocui.View) error {
 }
 
 func handleStashDrop(g *gocui.Gui, v *gocui.View) error {
-	return createConfirmationPanel(g, v, "Stash drop", "Are you sure you want to drop this stash entry?", func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, "Stash drop", "Are you sure you want to drop this stash entry?", func(g *gocui.Gui, v *gocui.View) error {
 		return stashDo(g, v, "drop")
 	}, nil)
 }
@@ -72,22 +72,22 @@ func handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 func stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 	stashEntry := getSelectedStashEntry(v)
 	if stashEntry == nil {
-		return createErrorPanel(g, "No stash to "+method)
+		return gui.createErrorPanel(g, "No stash to "+method)
 	}
 	if output, err := gitStashDo(stashEntry.Index, method); err != nil {
-		createErrorPanel(g, output)
+		gui.createErrorPanel(g, output)
 	}
 	refreshStashEntries(g)
-	return refreshFiles(g)
+	return gui.refreshFiles(g)
 }
 
 func handleStashSave(g *gocui.Gui, filesView *gocui.View) error {
-	createPromptPanel(g, filesView, "Stash changes", func(g *gocui.Gui, v *gocui.View) error {
-		if output, err := gitStashSave(trimmedContent(v)); err != nil {
-			createErrorPanel(g, output)
+	gui.createPromptPanel(g, filesView, "Stash changes", func(g *gocui.Gui, v *gocui.View) error {
+		if output, err := gitStashSave(gui.trimmedContent(v)); err != nil {
+			gui.createErrorPanel(g, output)
 		}
 		refreshStashEntries(g)
-		return refreshFiles(g)
+		return gui.refreshFiles(g)
 	})
 	return nil
 }

@@ -1,6 +1,6 @@
 // though this panel is called the merge panel, it's really going to use the main panel. This may change in the future
 
-package panels
+package gui
 
 import (
 	"bufio"
@@ -12,12 +12,14 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func findConflicts(content string) ([]conflict, error) {
-	conflicts := make([]conflict, 0)
+func findConflicts(content string) ([]commands.Conflict, error) {
+	conflicts := make([]commands.Conflict, 0)
 	var newConflict conflict
-	for i, line := range splitLines(content) {
+	for i, line := range utils.SplitLines(content) {
 		if line == "<<<<<<< HEAD" || line == "<<<<<<< MERGE_HEAD" || line == "<<<<<<< Updated upstream" {
 			newConflict = conflict{start: i}
 		} else if line == "=======" {
@@ -30,15 +32,15 @@ func findConflicts(content string) ([]conflict, error) {
 	return conflicts, nil
 }
 
-func shiftConflict(conflicts []conflict) (conflict, []conflict) {
+func shiftConflict(conflicts []commands.Conflict) (commands.Conflict, []commands.Conflict) {
 	return conflicts[0], conflicts[1:]
 }
 
-func shouldHighlightLine(index int, conflict conflict, top bool) bool {
+func shouldHighlightLine(index int, conflict commands.Conflict, top bool) bool {
 	return (index >= conflict.start && index <= conflict.middle && top) || (index >= conflict.middle && index <= conflict.end && !top)
 }
 
-func coloredConflictFile(content string, conflicts []conflict, conflictIndex int, conflictTop, hasFocus bool) (string, error) {
+func coloredConflictFile(content string, conflicts []commands.Conflict, conflictIndex int, conflictTop, hasFocus bool) (string, error) {
 	if len(conflicts) == 0 {
 		return content, nil
 	}
@@ -87,7 +89,7 @@ func handleSelectPrevConflict(g *gocui.Gui, v *gocui.View) error {
 	return refreshMergePanel(g)
 }
 
-func isIndexToDelete(i int, conflict conflict, pick string) bool {
+func isIndexToDelete(i int, conflict commands.Conflict, pick string) bool {
 	return i == conflict.middle ||
 		i == conflict.start ||
 		i == conflict.end ||
@@ -96,8 +98,8 @@ func isIndexToDelete(i int, conflict conflict, pick string) bool {
 		(pick == "top" && i > conflict.middle && i < conflict.end)
 }
 
-func resolveConflict(g *gocui.Gui, conflict conflict, pick string) error {
-	gitFile, err := getSelectedFile(g)
+func resolveConflict(g *gocui.Gui, conflict commands.Conflict, pick string) error {
+	gitFile, err := gui.getSelectedFile(g)
 	if err != nil {
 		return err
 	}
@@ -123,7 +125,7 @@ func resolveConflict(g *gocui.Gui, conflict conflict, pick string) error {
 }
 
 func pushFileSnapshot(g *gocui.Gui) error {
-	gitFile, err := getSelectedFile(g)
+	gitFile, err := gui.getSelectedFile(g)
 	if err != nil {
 		return err
 	}
@@ -140,7 +142,7 @@ func handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	prevContent := state.EditHistory.Pop().(string)
-	gitFile, err := getSelectedFile(g)
+	gitFile, err := gui.getSelectedFile(g)
 	if err != nil {
 		return err
 	}
@@ -204,7 +206,7 @@ func refreshMergePanel(g *gocui.Gui) error {
 	if err := scrollToConflict(g); err != nil {
 		return err
 	}
-	return renderString(g, "main", content)
+	return gui.renderString(g, "main", content)
 }
 
 func scrollToConflict(g *gocui.Gui) error {
@@ -234,7 +236,7 @@ func switchToMerging(g *gocui.Gui) error {
 }
 
 func renderMergeOptions(g *gocui.Gui) error {
-	return renderOptionsMap(g, map[string]string{
+	return gui.renderOptionsMap(g, map[string]string{
 		"↑ ↓":   "select hunk",
 		"← →":   "navigate conflicts",
 		"space": "pick hunk",
@@ -248,8 +250,8 @@ func handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	refreshFiles(g)
-	return switchFocus(g, v, filesView)
+	gui.refreshFiles(g)
+	return gui.switchFocus(g, v, filesView)
 }
 
 func handleCompleteMerge(g *gocui.Gui) error {
@@ -258,6 +260,6 @@ func handleCompleteMerge(g *gocui.Gui) error {
 		return err
 	}
 	stageSelectedFile(g)
-	refreshFiles(g)
-	return switchFocus(g, nil, filesView)
+	gui.refreshFiles(g)
+	return gui.switchFocus(g, nil, filesView)
 }

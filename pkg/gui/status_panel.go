@@ -1,4 +1,4 @@
-package panels
+package gui
 
 import (
 	"fmt"
