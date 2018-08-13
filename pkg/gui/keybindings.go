@@ -18,6 +18,8 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		{ViewName: "", Key: gocui.KeyCtrlC, Modifier: gocui.ModNone, Handler: gui.quit},
 		{ViewName: "", Key: gocui.KeyPgup, Modifier: gocui.ModNone, Handler: gui.scrollUpMain},
 		{ViewName: "", Key: gocui.KeyPgdn, Modifier: gocui.ModNone, Handler: gui.scrollDownMain},
+		{ViewName: "", Key: gocui.KeyCtrlU, Modifier: gocui.ModNone, Handler: gui.scrollUpMain},
+		{ViewName: "", Key: gocui.KeyCtrlD, Modifier: gocui.ModNone, Handler: gui.scrollDownMain},
 		{ViewName: "", Key: 'P', Modifier: gocui.ModNone, Handler: gui.pushFiles},
 		{ViewName: "", Key: 'p', Modifier: gocui.ModNone, Handler: gui.pullFiles},
 		{ViewName: "", Key: 'R', Modifier: gocui.ModNone, Handler: gui.handleRefresh},
