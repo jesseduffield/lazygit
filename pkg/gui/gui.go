@@ -84,7 +84,7 @@ func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy >= 1 {
-		return mainView.SetOrigin(ox, oy-1)
+		return mainView.SetOrigin(ox, oy-11)
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy < len(mainView.BufferLines()) {
-		return mainView.SetOrigin(ox, oy+1)
+		return mainView.SetOrigin(ox, oy+11)
 	}
 	return nil
 }
