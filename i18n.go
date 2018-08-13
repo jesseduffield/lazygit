@@ -11,7 +11,7 @@ func getlocalizer() *i18n.Localizer {
 
 	// TODO: currently the system language issn't detected
 	// I'm not sure how to detect it
-	var i18nObject = &i18n.Bundle{DefaultLanguage: language.Dutch}
+	var i18nObject = &i18n.Bundle{DefaultLanguage: language.English}
 	i18nObject.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
 	// Dutch translation for some words
