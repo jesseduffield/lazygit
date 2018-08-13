@@ -153,9 +153,5 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
 func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) (*exec.Cmd, error) {
 	subprocess := exec.Command(cmdName, commandArgs...)
-	subprocess.Stdin = os.Stdin
-	subprocess.Stdout = os.Stdout
-	subprocess.Stderr = os.Stderr
-
 	return subprocess, nil
 }

@@ -6,7 +6,9 @@ import (
 	// "io/ioutil"
 
 	"errors"
+	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -31,7 +33,7 @@ var (
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	Gui        *gocui.Gui
+	g          *gocui.Gui
 	Log        *logrus.Logger
 	GitCommand *commands.GitCommand
 	OSCommand  *commands.OSCommand
@@ -309,6 +311,8 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
+	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
+
 	g.FgColor = gocui.ColorDefault
 
 	gui.goEvery(g, time.Second*60, gui.fetch)
@@ -334,7 +338,13 @@ func (gui *Gui) RunWithSubprocesses() {
 			if err == gocui.ErrQuit {
 				break
 			} else if err == ErrSubProcess {
+				gui.SubProcess.Stdin = os.Stdin
+				gui.SubProcess.Stdout = os.Stdout
+				gui.SubProcess.Stderr = os.Stderr
 				gui.SubProcess.Run()
+				gui.SubProcess.Stdout = ioutil.Discard
+				gui.SubProcess.Stderr = ioutil.Discard
+				gui.SubProcess.Stdin = nil
 				gui.SubProcess = nil
 			} else {
 				log.Panicln(err)
