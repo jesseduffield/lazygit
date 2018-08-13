@@ -2,6 +2,7 @@ package app
 
 import (
 	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/Sirupsen/logrus"
@@ -24,7 +25,7 @@ type App struct {
 func newLogger(config config.AppConfigurer) *logrus.Logger {
 	log := logrus.New()
 	if !config.GetDebug() {
-		log.Out = nil
+		log.Out = ioutil.Discard
 		return log
 	}
 	file, err := os.OpenFile("development.log", os.O_CREATE|os.O_WRONLY, 0666)
