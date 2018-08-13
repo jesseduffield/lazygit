@@ -350,8 +350,10 @@ func gitShow(sha string) string {
 
 func getDiff(file GitFile) string {
 	cachedArg := ""
+	quotationMark := "\""
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached "
+		quotationMark = ""
 	}
 	deletedArg := ""
 	if file.Deleted {
@@ -361,9 +363,9 @@ func getDiff(file GitFile) string {
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null "
 	}
-	command := "git diff --color " + cachedArg + deletedArg + trackedArg + file.Name
+	command := fmt.Sprintf("%s %s %s %s %s%s%s", "git diff --color ", cachedArg, deletedArg, trackedArg, quotationMark, file.Name, quotationMark)
 	// for now we assume an error means the file was deleted
-	s, _ := runCommand(command)
+	s, _ := runDirectCommand(command)
 	return s
 }
 
