@@ -4,6 +4,4 @@ extra/lgit.rb
 notes/go.notes
 TODO.notes
 TODO.md
-test/testrepo/
-test/repos/*/repo
-test/repos/*/repo/*
+test/repos/repo
