@@ -2,11 +2,12 @@
 
 ## Global:
 <pre>
-  <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>/<kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd>:  navigate
-  <kbd>PgUp</kbd>/<kbd>PgDn</kbd>:           scroll diff panel (use <kbd>fn</kbd>+<kbd>up</kbd>/<kbd>fn</kbd>+<kbd>down</kbd> on osx)
-  <kbd>q</kbd>:                    quit
-  <kbd>p</kbd>:                    pull
-  <kbd>shift</kbd>+<kbd>P</kbd>:             push
+  <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>/<kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd>:               navigate
+  <kbd>PgUp</kbd>/<kbd>PgDn</kbd> or <kbd>ctrl</kbd>+<kbd>u</kbd>/<kbd>ctrl</kbd>+<kbd>d</kbd>:   scroll diff panel 
+                                     (for <kbd>PgUp</kbd> and <kbd>PgDn</kbd>, use <kbd>fn</kbd>+<kbd>up</kbd>/<kbd>fn</kbd>+<kbd>down</kbd> on osx)
+  <kbd>q</kbd>:                                quit
+  <kbd>p</kbd>:                                pull
+  <kbd>shift</kbd>+<kbd>P</kbd>:                         push
 </pre>
 
 ## Files Panel:

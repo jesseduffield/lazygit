@@ -16,6 +16,8 @@ func keybindings(g *gocui.Gui) error {
 	bindings := []Binding{
 		{ViewName: "", Key: 'q', Modifier: gocui.ModNone, Handler: quit},
 		{ViewName: "", Key: gocui.KeyCtrlC, Modifier: gocui.ModNone, Handler: quit},
+		{ViewName: "", Key: gocui.KeyCtrlU, Modifier: gocui.ModNone, Handler: scrollUpMain},
+		{ViewName: "", Key: gocui.KeyCtrlD, Modifier: gocui.ModNone, Handler: scrollDownMain},
 		{ViewName: "", Key: gocui.KeyPgup, Modifier: gocui.ModNone, Handler: scrollUpMain},
 		{ViewName: "", Key: gocui.KeyPgdn, Modifier: gocui.ModNone, Handler: scrollDownMain},
 		{ViewName: "", Key: 'P', Modifier: gocui.ModNone, Handler: pushFiles},
