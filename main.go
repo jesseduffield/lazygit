@@ -118,7 +118,7 @@ func main() {
 		version = fallbackVersion()
 	}
 	if *versionFlag {
-		fmt.Printf("commit=%s, build date=%s, version=%s", commit, date, version)
+		fmt.Printf("commit=%s, build date=%s, version=%s\n", commit, date, version)
 		os.Exit(0)
 	}
 	verifyInGitRepo()
