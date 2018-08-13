@@ -335,6 +335,7 @@ func (gui *Gui) RunWithSubprocesses() {
 				break
 			} else if err == ErrSubProcess {
 				gui.SubProcess.Run()
+				gui.SubProcess = nil
 			} else {
 				log.Panicln(err)
 			}
