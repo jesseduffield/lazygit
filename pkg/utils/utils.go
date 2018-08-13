@@ -46,8 +46,8 @@ func ColoredStringDirect(str string, colour *color.Color) string {
 	return colour.SprintFunc()(fmt.Sprint(str))
 }
 
-// GetCurrentProject gets the repo's base name
-func GetCurrentProject() string {
+// GetCurrentRepoName gets the repo's base name
+func GetCurrentRepoName() string {
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln(err.Error())

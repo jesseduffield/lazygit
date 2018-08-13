@@ -2,9 +2,9 @@ package app
 
 import (
 	"io"
+	"os"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
@@ -18,7 +18,21 @@ type App struct {
 	Log        *logrus.Logger
 	OSCommand  *commands.OSCommand
 	GitCommand *commands.GitCommand
-	Gui        *gocui.Gui
+	Gui        *gui.Gui
+}
+
+func newLogger(config config.AppConfigurer) *logrus.Logger {
+	log := logrus.New()
+	if !config.GetDebug() {
+		log.Out = nil
+		return log
+	}
+	file, err := os.OpenFile("development.log", os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
+	}
+	log.Out = file
+	return log
 }
 
 // NewApp retruns a new applications
@@ -28,7 +42,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 		Config:  config,
 	}
 	var err error
-	app.Log = logrus.New()
+	app.Log = newLogger(config)
 	app.OSCommand, err = commands.NewOSCommand(app.Log)
 	if err != nil {
 		return nil, err
@@ -37,7 +51,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, config.GetVersion())
+	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, config.GetVersion())
 	if err != nil {
 		return nil, err
 	}

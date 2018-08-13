@@ -70,15 +70,15 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 	// input in the confirmation panel
 	for _, viewName := range []string{"files", "branches", "commits", "stash"} {
 		bindings = append(bindings, []Binding{
-			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: nextView},
-			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: previousView},
-			{ViewName: viewName, Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: nextView},
-			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: cursorUp},
-			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: cursorDown},
-			{ViewName: viewName, Key: 'h', Modifier: gocui.ModNone, Handler: previousView},
-			{ViewName: viewName, Key: 'l', Modifier: gocui.ModNone, Handler: nextView},
-			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: cursorUp},
-			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: cursorDown},
+			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
+			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},
+			{ViewName: viewName, Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: gui.nextView},
+			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.cursorUp},
+			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.cursorDown},
+			{ViewName: viewName, Key: 'h', Modifier: gocui.ModNone, Handler: gui.previousView},
+			{ViewName: viewName, Key: 'l', Modifier: gocui.ModNone, Handler: gui.nextView},
+			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: gui.cursorUp},
+			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: gui.cursorDown},
 		}...)
 	}
 

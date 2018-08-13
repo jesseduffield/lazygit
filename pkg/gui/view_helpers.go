@@ -13,7 +13,7 @@ var cyclableViews = []string{"files", "branches", "commits", "stash"}
 
 func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
 	gui.refreshBranches(g)
-	gui.gui.refreshFiles(g)
+	gui.refreshFiles(g)
 	gui.refreshCommits(g)
 	return nil
 }
@@ -38,7 +38,7 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		panic(err)
 	}
-	return gui.gui.switchFocus(g, v, focusedView)
+	return gui.switchFocus(g, v, focusedView)
 }
 
 func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
@@ -52,7 +52,7 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 				break
 			}
 			if i == len(cyclableViews)-1 {
-				devLog(v.Name() + " is not in the list of views")
+				gui.Log.Info(v.Name() + " is not in the list of views")
 				return nil
 			}
 		}
@@ -72,27 +72,27 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "files":
 		return gui.handleFileSelect(g, v)
 	case "branches":
-		return handleBranchSelect(g, v)
+		return gui.handleBranchSelect(g, v)
 	case "confirmation":
 		return nil
 	case "commitMessage":
-		return handleCommitFocused(g, v)
+		return gui.handleCommitFocused(g, v)
 	case "main":
 		// TODO: pull this out into a 'view focused' function
-		refreshMergePanel(g)
+		gui.refreshMergePanel(g)
 		v.Highlight = false
 		return nil
 	case "commits":
-		return handleCommitSelect(g, v)
+		return gui.handleCommitSelect(g, v)
 	case "stash":
-		return handleStashEntrySelect(g, v)
+		return gui.handleStashEntrySelect(g, v)
 	default:
 		panic("No view matching newLineFocused switch statement")
 	}
 }
 
 func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
-	previousView, err := g.View(state.PreviousView)
+	previousView, err := g.View(gui.State.PreviousView)
 	if err != nil {
 		panic(err)
 	}
@@ -105,16 +105,16 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	// we should never stack confirmation panels
 	if oldView != nil && oldView.Name() != "confirmation" {
 		oldView.Highlight = false
-		devLog("setting previous view to:", oldView.Name())
-		state.PreviousView = oldView.Name()
+		gui.Log.Info("setting previous view to:", oldView.Name())
+		gui.State.PreviousView = oldView.Name()
 	}
 	newView.Highlight = true
-	devLog("new focused view is " + newView.Name())
+	gui.Log.Info("new focused view is " + newView.Name())
 	if _, err := g.SetCurrentView(newView.Name()); err != nil {
 		return err
 	}
 	g.Cursor = newView.Editable
-	return newLineFocused(g, newView)
+	return gui.newLineFocused(g, newView)
 }
 
 func (gui *Gui) getItemPosition(v *gocui.View) int {
@@ -138,7 +138,7 @@ func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	newLineFocused(g, v)
+	gui.newLineFocused(g, v)
 	return nil
 }
 
@@ -159,7 +159,7 @@ func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	newLineFocused(g, v)
+	gui.newLineFocused(g, v)
 	return nil
 }
 
@@ -207,7 +207,7 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 }
 
 func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) error {
-	return gui.renderString(g, "options", optionsMapToString(optionsMap))
+	return gui.renderString(g, "options", gui.optionsMapToString(optionsMap))
 }
 
 func (gui *Gui) loader() string {
@@ -236,4 +236,9 @@ func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 
 func (gui *Gui) trimmedContent(v *gocui.View) string {
 	return strings.TrimSpace(v.Buffer())
+}
+
+func (gui *Gui) currentViewName(g *gocui.Gui) string {
+	currentView := g.CurrentView()
+	return currentView.Name()
 }

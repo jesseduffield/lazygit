@@ -5,9 +5,10 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func refreshStatus(g *gocui.Gui) error {
+func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 	v, err := g.View("status")
 	if err != nil {
 		panic(err)
@@ -17,22 +18,22 @@ func refreshStatus(g *gocui.Gui) error {
 	// contents end up cleared
 	g.Update(func(*gocui.Gui) error {
 		v.Clear()
-		pushables, pullables := git.UpstreamDifferenceCount()
+		pushables, pullables := gui.GitCommand.UpstreamDifferenceCount()
 		fmt.Fprint(v, "↑"+pushables+"↓"+pullables)
-		branches := state.Branches
-		if err := updateHasMergeConflictStatus(); err != nil {
+		branches := gui.State.Branches
+		if err := gui.updateHasMergeConflictStatus(); err != nil {
 			return err
 		}
-		if state.HasMergeConflicts {
-			fmt.Fprint(v, coloredString(" (merging)", color.FgYellow))
+		if gui.State.HasMergeConflicts {
+			fmt.Fprint(v, utils.ColoredString(" (merging)", color.FgYellow))
 		}
 
 		if len(branches) == 0 {
 			return nil
 		}
 		branch := branches[0]
-		name := coloredString(branch.Name, branch.getColor())
-		repo := getCurrentProject()
+		name := utils.ColoredString(branch.Name, branch.GetColor())
+		repo := utils.GetCurrentRepoName()
 		fmt.Fprint(v, " "+repo+" → "+name)
 		return nil
 	})

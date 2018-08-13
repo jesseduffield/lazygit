@@ -34,7 +34,7 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			shaColor.Fprint(v, commit.Sha+" ")
 			white.Fprintln(v, commit.Name)
 		}
-		refreshStatus(g)
+		gui.refreshStatus(g)
 		if g.CurrentView().Name() == "commits" {
 			gui.handleCommitSelect(g, v)
 		}
@@ -105,7 +105,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.refreshCommits(g); err != nil {
 		panic(err)
 	}
-	refreshStatus(g)
+	gui.refreshStatus(g)
 	return gui.handleCommitSelect(g, v)
 }
 
@@ -138,7 +138,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.refreshCommits(g); err != nil {
 			panic(err)
 		}
-		return refreshStatus(g)
+		return gui.refreshStatus(g)
 	}, nil)
 	return nil
 }

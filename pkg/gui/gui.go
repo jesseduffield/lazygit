@@ -37,12 +37,27 @@ type Gui struct {
 	OSCommand  *commands.OSCommand
 	Version    string
 	SubProcess *exec.Cmd
-	State      StateType
+	State      guiState
+}
+
+type guiState struct {
+	Files             []commands.File
+	Branches          []commands.Branch
+	Commits           []commands.Commit
+	StashEntries      []commands.StashEntry
+	PreviousView      string
+	HasMergeConflicts bool
+	ConflictIndex     int
+	ConflictTop       bool
+	Conflicts         []commands.Conflict
+	EditHistory       *stack.Stack
+	Platform          platform
+	Version           string
 }
 
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, version string) (*Gui, error) {
-	initialState := StateType{
+	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
 		Commits:       make([]commands.Commit, 0),
@@ -62,21 +77,6 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		Version:    version,
 		State:      initialState,
 	}, nil
-}
-
-type StateType struct {
-	Files             []commands.File
-	Branches          []commands.Branch
-	Commits           []commands.Commit
-	StashEntries      []commands.StashEntry
-	PreviousView      string
-	HasMergeConflicts bool
-	ConflictIndex     int
-	ConflictTop       bool
-	Conflicts         []commands.Conflict
-	EditHistory       *stack.Stack
-	Platform          platform
-	Version           string
 }
 
 type platform struct {
@@ -105,7 +105,7 @@ func getPlatform() platform {
 	}
 }
 
-func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy >= 1 {
@@ -114,7 +114,7 @@ func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func scrollDownMain(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy < len(mainView.BufferLines()) {
@@ -123,8 +123,8 @@ func scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func handleRefresh(g *gocui.Gui, v *gocui.View) error {
-	return refreshSidePanels(g)
+func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
+	return gui.refreshSidePanels(g)
 }
 
 func max(a, b int) int {
@@ -257,35 +257,35 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		// these are only called once
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles(g)
-		refreshBranches(g)
-		refreshCommits(g)
-		refreshStashEntries(g)
-		nextView(g, nil)
+		gui.refreshBranches(g)
+		gui.refreshCommits(g)
+		gui.refreshStashEntries(g)
+		gui.nextView(g, nil)
 	}
 
-	resizePopupPanels(g)
+	gui.resizePopupPanels(g)
 
 	return nil
 }
 
-func fetch(g *gocui.Gui) error {
-	gitFetch()
-	refreshStatus(g)
+func (gui *Gui) fetch(g *gocui.Gui) error {
+	gui.GitCommand.Fetch()
+	gui.refreshStatus(g)
 	return nil
 }
 
-func updateLoader(g *gocui.Gui) error {
+func (gui *Gui) updateLoader(g *gocui.Gui) error {
 	if confirmationView, _ := g.View("confirmation"); confirmationView != nil {
 		content := gui.trimmedContent(confirmationView)
 		if strings.Contains(content, "...") {
 			staticContent := strings.Split(content, "...")[0] + "..."
-			gui.renderString(g, "confirmation", staticContent+" "+loader())
+			gui.renderString(g, "confirmation", staticContent+" "+gui.loader())
 		}
 	}
 	return nil
 }
 
-func goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
+func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
 	go func() {
 		for range time.Tick(interval) {
 			function(g)
@@ -293,36 +293,36 @@ func goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) err
 	}()
 }
 
-func resizePopupPanels(g *gocui.Gui) error {
+func (gui *Gui) resizePopupPanels(g *gocui.Gui) error {
 	v := g.CurrentView()
 	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
-		return resizePopupPanel(g, v)
+		return gui.resizePopupPanel(g, v)
 	}
 	return nil
 }
 
 // Run setup the gui with keybindings and start the mainloop
-func (gui *Gui) Run() (*exec.Cmd, error) {
+func (gui *Gui) Run() error {
 	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer g.Close()
 
 	g.FgColor = gocui.ColorDefault
 
-	goEvery(g, time.Second*60, fetch)
-	goEvery(g, time.Second*10, gui.refreshFiles)
-	goEvery(g, time.Millisecond*10, updateLoader)
+	gui.goEvery(g, time.Second*60, gui.fetch)
+	gui.goEvery(g, time.Second*10, gui.refreshFiles)
+	gui.goEvery(g, time.Millisecond*10, gui.updateLoader)
 
 	g.SetManagerFunc(gui.layout)
 
 	if err = gui.keybindings(g); err != nil {
-		return nil, err
+		return err
 	}
 
 	err = g.MainLoop()
-	return nil, err
+	return err
 }
 
 // RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
@@ -342,6 +342,6 @@ func (gui *Gui) RunWithSubprocesses() {
 	}
 }
 
-func quit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }

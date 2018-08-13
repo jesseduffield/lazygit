@@ -117,7 +117,7 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-// refreshStatus is called at the end of this because that's when we can
+// gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 	g.Update(func(g *gocui.Gui) error {
@@ -135,7 +135,7 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 			fmt.Fprintln(v, branch.GetDisplayString())
 		}
 		gui.resetOrigin(v)
-		return refreshStatus(g)
+		return gui.refreshStatus(g)
 	})
 	return nil
 }

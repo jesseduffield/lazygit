@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/jesseduffield/gocui"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
@@ -105,28 +104,34 @@ func (c *OSCommand) GetOpenCommand() (string, string, error) {
 
 // VsCodeOpenFile opens the file in code, with the -r flag to open in the
 // current window
-func (c *OSCommand) VsCodeOpenFile(g *gocui.Gui, filename string) (string, error) {
-	return c.RunCommand("code -r " + filename)
+// each of these open files needs to have the same function signature because
+// they're being passed as arguments into another function,
+// but only editFile actually returns a *exec.Cmd
+func (c *OSCommand) VsCodeOpenFile(filename string) (*exec.Cmd, error) {
+	_, err := c.RunCommand("code -r " + filename)
+	return nil, err
 }
 
 // SublimeOpenFile opens the filein sublime
 // may be deprecated in the future
-func (c *OSCommand) SublimeOpenFile(g *gocui.Gui, filename string) (string, error) {
-	return c.RunCommand("subl " + filename)
+func (c *OSCommand) SublimeOpenFile(filename string) (*exec.Cmd, error) {
+	_, err := c.RunCommand("subl " + filename)
+	return nil, err
 }
 
 // OpenFile opens a file with the given
-func (c *OSCommand) OpenFile(g *gocui.Gui, filename string) (string, error) {
+func (c *OSCommand) OpenFile(filename string) (*exec.Cmd, error) {
 	cmdName, cmdTrail, err := c.GetOpenCommand()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return c.RunCommand(cmdName + " " + filename + cmdTrail)
+	_, err = c.RunCommand(cmdName + " " + filename + cmdTrail)
+	return nil, err
 }
 
 // EditFile opens a file in a subprocess using whatever editor is available,
 // falling back to core.editor, VISUAL, EDITOR, then vi
-func (c *OSCommand) editFile(g *gocui.Gui, filename string) (string, error) {
+func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 	editor, _ := gitconfig.Global("core.editor")
 	if editor == "" {
 		editor = os.Getenv("VISUAL")
@@ -140,10 +145,9 @@ func (c *OSCommand) editFile(g *gocui.Gui, filename string) (string, error) {
 		}
 	}
 	if editor == "" {
-		return "", ErrNoEditorDefined
+		return nil, ErrNoEditorDefined
 	}
-	c.PrepareSubProcess(editor, filename)
-	return "", nil
+	return c.PrepareSubProcess(editor, filename)
 }
 
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it

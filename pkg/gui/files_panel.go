@@ -8,6 +8,7 @@ import (
 	// "strings"
 
 	"errors"
+	"os/exec"
 	"strings"
 
 	"github.com/fatih/color"
@@ -171,7 +172,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	gui.renderfilesOptions(g, &file)
 	var content string
 	if file.HasMergeConflicts {
-		return refreshMergePanel(g)
+		return gui.refreshMergePanel(g)
 	}
 
 	content = gui.GitCommand.Diff(file)
@@ -191,9 +192,9 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	return nil
 }
 
-// HandleCommitEditorPress - handle when the user wants to commit changes via
+// handleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
-func (gui *Gui) HandleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
+func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles(gui.State.Files)) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(g, "There are no staged files to commit")
 	}
@@ -214,7 +215,7 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) error {
 	return nil
 }
 
-func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gui, string) (string, error)) error {
+func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (*exec.Cmd, error)) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
 		if err != errNoFiles {
@@ -222,26 +223,31 @@ func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, open func(*gocui.Gu
 		}
 		return nil
 	}
-	if _, err := open(g, file.Name); err != nil {
+	sub, err := open(file.Name)
+	if err != nil {
 		return gui.createErrorPanel(g, err.Error())
+	}
+	if sub != nil {
+		gui.SubProcess = sub
+		return ErrSubProcess
 	}
 	return nil
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
-	return gui.genericFileOpen(g, v, gui.editFile)
+	return gui.genericFileOpen(g, v, gui.OSCommand.EditFile)
 }
 
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
-	return gui.genericFileOpen(g, v, gui.openFile)
+	return gui.genericFileOpen(g, v, gui.OSCommand.OpenFile)
 }
 
 func (gui *Gui) handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
-	return gui.genericFileOpen(g, v, gui.sublimeOpenFile)
+	return gui.genericFileOpen(g, v, gui.OSCommand.SublimeOpenFile)
 }
 
 func (gui *Gui) handleVsCodeFileOpen(g *gocui.Gui, v *gocui.View) error {
-	return gui.genericFileOpen(g, v, gui.vsCodeOpenFile)
+	return gui.genericFileOpen(g, v, gui.OSCommand.VsCodeOpenFile)
 }
 
 func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
@@ -250,13 +256,13 @@ func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshStateFiles() {
 	// get files to stage
-	files := getGitStatusFiles()
-	gui.State.Files = mergeGitStatusFiles(gui.State.Files, files)
-	updateHasMergeConflictStatus()
+	files := gui.GitCommand.GetStatusFiles()
+	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
+	gui.updateHasMergeConflictStatus()
 }
 
 func (gui *Gui) updateHasMergeConflictStatus() error {
-	merging, err := isInMergeState()
+	merging, err := gui.GitCommand.IsInMergeState()
 	if err != nil {
 		return err
 	}
@@ -290,7 +296,7 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 		}
 		return "", gui.renderString(g, "main", "No file to display")
 	}
-	cat, err := catFile(item.Name)
+	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
 		panic(err)
 	}
@@ -302,12 +308,12 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 	if err != nil {
 		return err
 	}
-	refreshStateFiles()
+	gui.refreshStateFiles()
 	filesView.Clear()
 	for _, file := range gui.State.Files {
-		renderFile(file, filesView)
+		gui.renderFile(file, filesView)
 	}
-	correctCursor(filesView)
+	gui.correctCursor(filesView)
 	if filesView == g.CurrentView() {
 		gui.handleFileSelect(g, filesView)
 	}
@@ -315,14 +321,14 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 }
 
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
-	createMessagePanel(g, v, "", "Pulling...")
+	gui.createMessagePanel(g, v, "", "Pulling...")
 	go func() {
-		if output, err := gitPull(); err != nil {
+		if output, err := gui.GitCommand.Pull(); err != nil {
 			gui.createErrorPanel(g, output)
 		} else {
 			gui.closeConfirmationPrompt(g)
-			refreshCommits(g)
-			refreshStatus(g)
+			gui.refreshCommits(g)
+			gui.refreshStatus(g)
 		}
 		gui.refreshFiles(g)
 	}()
@@ -330,15 +336,15 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
-	createMessagePanel(g, v, "", "Pushing...")
+	gui.createMessagePanel(g, v, "", "Pushing...")
 	go func() {
-		branchName = gui.State.Branches[0].Name
-		if output, err := commands.Push(branchName); err != nil {
+		branchName := gui.State.Branches[0].Name
+		if output, err := gui.GitCommand.Push(branchName); err != nil {
 			gui.createErrorPanel(g, output)
 		} else {
 			gui.closeConfirmationPrompt(g)
-			refreshCommits(g)
-			refreshStatus(g)
+			gui.refreshCommits(g)
+			gui.refreshStatus(g)
 		}
 	}()
 	return nil
@@ -360,22 +366,22 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, "This file has no merge conflicts")
 	}
 	gui.switchFocus(g, v, mergeView)
-	return refreshMergePanel(g)
+	return gui.refreshMergePanel(g)
 }
 
 func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
-	output, err := gitAbortMerge()
+	output, err := gui.GitCommand.AbortMerge()
 	if err != nil {
 		return gui.createErrorPanel(g, output)
 	}
-	createMessagePanel(g, v, "", "Merge aborted")
-	refreshStatus(g)
+	gui.createMessagePanel(g, v, "", "Merge aborted")
+	gui.refreshStatus(g)
 	return gui.refreshFiles(g)
 }
 
 func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
 	return gui.createConfirmationPanel(g, v, "Clear file panel", "Are you sure you want `reset --hard HEAD`? You may lose changes", func(g *gocui.Gui, v *gocui.View) error {
-		if err := commands.ResetHard(); err != nil {
+		if err := gui.GitCommand.ResetHard(); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshFiles(g)

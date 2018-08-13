@@ -30,7 +30,7 @@ type StashEntry struct {
 // Conflict : A git conflict with a start middle and end corresponding to line
 // numbers in the file where the conflict bars appear
 type Conflict struct {
-	start  int
-	middle int
-	end    int
+	Start  int
+	Middle int
+	End    int
 }
