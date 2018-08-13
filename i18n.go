@@ -11,9 +11,32 @@ func getlocalizer() *i18n.Localizer {
 
 	// TODO: currently the system language issn't detected
 	// I'm not sure how to detect it
-	var i18nObject = &i18n.Bundle{DefaultLanguage: language.English}
+	var i18nObject = &i18n.Bundle{DefaultLanguage: language.Dutch}
 	i18nObject.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	i18nObject.MustLoadMessageFile("i18n/nl.toml")
+
+	// Dutch translation for some words
+	i18nObject.AddMessages(language.Dutch,
+		&i18n.Message{
+			ID:    "FilesTitle",
+			Other: "Bestanden",
+		}, &i18n.Message{
+			ID:    "BranchesTitle",
+			Other: "Branches",
+		}, &i18n.Message{
+			ID:    "CommitsTitle",
+			Other: "Commits",
+		}, &i18n.Message{
+			ID:    "StashTitle",
+			Other: "Stash",
+		}, &i18n.Message{
+			ID:    "CommitMessage",
+			Other: "Commit Bericht",
+		}, &i18n.Message{
+			ID:    "StatusTitle",
+			Other: "Status",
+		},
+	)
+
 	return i18n.NewLocalizer(i18nObject)
 }
 
