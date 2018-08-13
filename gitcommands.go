@@ -186,12 +186,22 @@ func getGitStatusFiles() []GitFile {
 	return gitFiles
 }
 
-func gitStashDo(index int, method string) (string, error) {
-	return runCommand("git stash " + method + " stash@{" + fmt.Sprint(index) + "}")
+func gitStashDo(g *gocui.Gui, index int, method string) (string, error) {
+	command := "git stash " + method + " stash@{" + fmt.Sprint(index) + "}"
+	if usingGpg() {
+		runSubProcess(g, state.Platform.shell, state.Platform.shellArg, command)
+		return "", nil
+	}
+	return runCommand(command)
 }
 
-func gitStashSave(message string) (string, error) {
-	output, err := runCommand("git stash save \"" + message + "\"")
+func gitStashSave(g *gocui.Gui, message string) (string, error) {
+	command := "git stash save \"" + message + "\""
+	if usingGpg() {
+		runSubProcess(g, state.Platform.shell, state.Platform.shellArg, command)
+		return "", nil
+	}
+	output, err := runCommand(command)
 	if err != nil {
 		return output, err
 	}
@@ -410,10 +420,20 @@ func removeFile(file GitFile) error {
 	return err
 }
 
-func gitCommit(g *gocui.Gui, message string) (string, error) {
+func usingGpg() bool {
 	gpgsign, _ := gitconfig.Global("commit.gpgsign")
-	if gpgsign != "" {
-		runSubProcess(g, "git", "commit")
+	if gpgsign == "" {
+		gpgsign, _ = gitconfig.Local("commit.gpgsign")
+	}
+	if gpgsign == "" {
+		return false
+	}
+	return true
+}
+
+func gitCommit(g *gocui.Gui, message string) (string, error) {
+	if usingGpg() {
+		runSubProcess(g, state.Platform.shell, state.Platform.shellArg, "git commit -m \""+message+"\"")
 		return "", nil
 	}
 	return runDirectCommand("git commit -m \"" + message + "\"")
