@@ -2,7 +2,7 @@
 set -ex; rm -rf repo; mkdir repo; cd repo
 
 git init
-cp ../pre-commit .git/hooks/pre-commit
+cp ../extras/pre-commit .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 
 echo "file" > file
