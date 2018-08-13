@@ -252,13 +252,13 @@ func (c *GitCommand) AbortMerge() (string, error) {
 
 // Commit commit to git
 func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
-	command := "git commit -m \"" + message + "\""
+	command := "commit -m \"" + message + "\""
 	gpgsign, _ := gitconfig.Global("commit.gpgsign")
 	if gpgsign != "" {
-		return c.OSCommand.PrepareSubProcess("git", "commit")
+		return c.OSCommand.PrepareSubProcess("git", command)
 	}
 	// TODO: make these runDirectCommand functions just return an error
-	_, err := c.OSCommand.RunDirectCommand(command)
+	_, err := c.OSCommand.RunDirectCommand("git " + command)
 	return nil, err
 }
 
