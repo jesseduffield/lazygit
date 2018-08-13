@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
-  name = "github.com/davecgh/go-spew"
-  packages = ["spew"]
+  digest = "1:b2339e83ce9b5c4f79405f949429a7f68a9a904fed903c672aac1e7ceb7f5f02"
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
   pruneopts = "NUT"
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
+  version = "v1.0.6"
 
 [[projects]]
   digest = "1:de4a74b504df31145ffa8ca0c4edbffa2f3eb7f466753962184611b618fa5981"
@@ -50,11 +50,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e9b2b07a20f19d886267876b72ba15f2cbdeeeadd18030a4ce174b864e97c39e"
+  digest = "1:c9a848b0484a72da2dae28957b4f67501fe27fa38bc73f4713e454353c0a4a60"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "8cecad864fb0b099a5f55bf1c97fbc1daca103e0"
+  revision = "432b7f6215f81ef1aaa1b2d9b69887822923cf79"
 
 [[projects]]
   digest = "1:8021af4dcbd531ae89433c8c3a6520e51064114aaf8eb1724c3cf911c497c9ba"
@@ -151,7 +151,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c76f8b24a4d9b99b502fb7b61ad769125075cb570efff9b9b73e6c428629532d"
+  digest = "1:dfcb1b2db354cafa48fc3cdafe4905a08bec4a9757919ab07155db0ca23855b4"
   name = "golang.org/x/crypto"
   packages = [
     "cast5",
@@ -170,6 +170,7 @@
     "ssh",
     "ssh/agent",
     "ssh/knownhosts",
+    "ssh/terminal",
   ]
   pruneopts = "NUT"
   revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
@@ -282,7 +283,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/davecgh/go-spew/spew",
+    "github.com/Sirupsen/logrus",
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
     "github.com/jesseduffield/gocui",

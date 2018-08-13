@@ -364,6 +364,9 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
+	if err := g.flush(); err != nil {
+		return err
+	}
 	go func() {
 		for {
 			g.tbEvents <- termbox.PollEvent()
