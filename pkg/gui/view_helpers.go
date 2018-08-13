@@ -118,6 +118,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 }
 
 func (gui *Gui) getItemPosition(v *gocui.View) int {
+	gui.correctCursor(v)
 	_, cy := v.Cursor()
 	_, oy := v.Origin()
 	return oy + cy
