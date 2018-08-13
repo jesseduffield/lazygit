@@ -129,21 +129,21 @@ func handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 
 func renderfilesOptions(g *gocui.Gui, gitFile *GitFile) error {
 	optionsMap := map[string]string{
-		"← → ↑ ↓":   "navigate",
-		"S":         "stash files",
-		"c":         "commit changes",
-		"o":         "open",
-		"i":         "ignore",
-		"d":         "delete",
-		"space":     "toggle staged",
-		"R":         "refresh",
-		"t":         "add patch",
-		"e":         "edit",
-		"PgUp/PgDn": "scroll",
+		"← → ↑ ↓":   ShortLocalize("navigate", "navigate"),
+		"S":         ShortLocalize("stashFiles", "stash files"),
+		"c":         ShortLocalize("commitChanges", "commit changes"),
+		"o":         ShortLocalize("open", "open"),
+		"i":         ShortLocalize("ignore", "ignore"),
+		"d":         ShortLocalize("delete", "delete"),
+		"space":     ShortLocalize("toggleStaged", "toggle staged"),
+		"R":         ShortLocalize("refresh", "refresh"),
+		"t":         ShortLocalize("addPatch", "add patch"),
+		"e":         ShortLocalize("edit", "edit"),
+		"PgUp/PgDn": ShortLocalize("scroll", "scroll"),
 	}
 	if state.HasMergeConflicts {
-		optionsMap["a"] = "abort merge"
-		optionsMap["m"] = "resolve merge conflicts"
+		optionsMap["a"] = ShortLocalize("abortMerge", "abort merge")
+		optionsMap["m"] = ShortLocalize("resolveMergeConflicts", "resolve merge conflicts")
 	}
 	if gitFile == nil {
 		return renderOptionsMap(g, optionsMap)
