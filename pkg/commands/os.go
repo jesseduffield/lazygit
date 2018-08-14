@@ -22,7 +22,7 @@ var (
 )
 
 // Platform stores the os state
-type platform struct {
+type Platform struct {
 	os           string
 	shell        string
 	shellArg     string
@@ -32,7 +32,7 @@ type platform struct {
 // OSCommand holds all the os commands
 type OSCommand struct {
 	Log      *logrus.Logger
-	Platform platform
+	Platform *Platform
 }
 
 // NewOSCommand os command runner
@@ -81,17 +81,17 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 	return outputString, nil
 }
 
-func getPlatform() platform {
+func getPlatform() *Platform {
 	switch runtime.GOOS {
 	case "windows":
-		return platform{
+		return &Platform{
 			os:           "windows",
 			shell:        "cmd",
 			shellArg:     "/c",
 			escapedQuote: "\\\"",
 		}
 	default:
-		return platform{
+		return &Platform{
 			os:           runtime.GOOS,
 			shell:        "bash",
 			shellArg:     "-c",
