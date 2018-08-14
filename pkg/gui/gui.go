@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"time"
 
@@ -53,7 +52,7 @@ type guiState struct {
 	ConflictTop       bool
 	Conflicts         []commands.Conflict
 	EditHistory       *stack.Stack
-	Platform          platform
+	Platform          commands.Platform
 	Version           string
 }
 
@@ -68,7 +67,7 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		ConflictTop:   true,
 		Conflicts:     make([]commands.Conflict, 0),
 		EditHistory:   stack.New(),
-		Platform:      getPlatform(),
+		Platform:      *oSCommand.Platform,
 		Version:       "test version", // TODO: send version in
 	}
 
@@ -79,32 +78,6 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		Version:    version,
 		State:      initialState,
 	}, nil
-}
-
-type platform struct {
-	os           string
-	shell        string
-	shellArg     string
-	escapedQuote string
-}
-
-func getPlatform() platform {
-	switch runtime.GOOS {
-	case "windows":
-		return platform{
-			os:           "windows",
-			shell:        "cmd",
-			shellArg:     "/c",
-			escapedQuote: "\\\"",
-		}
-	default:
-		return platform{
-			os:           runtime.GOOS,
-			shell:        "bash",
-			shellArg:     "-c",
-			escapedQuote: "\"",
-		}
-	}
 }
 
 func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
