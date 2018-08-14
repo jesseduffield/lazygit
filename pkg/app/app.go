@@ -51,7 +51,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 		return nil, err
 	}
 
-	app.Tr, err = i18n.NewLocalizer()
+	app.Tr, err = i18n.NewLocalizer(app.Log)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 // addDutch will add all dutch translations
-func addDutch(i18nObject *i18n.Bundle) *i18n.Bundle {
+func addDutch(i18nObject *i18n.Bundle) {
 
 	// add the translations
 	i18nObject.AddMessages(language.Dutch,
@@ -91,9 +91,9 @@ func addDutch(i18nObject *i18n.Bundle) *i18n.Bundle {
 		}, &i18n.Message{
 			ID:    "CantIgnoreTrackFiles",
 			Other: "Kan gevolgde bestanden niet negeren",
+		}, &i18n.Message{
+			ID:    "NoStagedFilesCommit",
+			Other: "Er zijn geen staged bestanden om te commiten",
 		},
 	)
-
-	// return the new i18nObject
-	return i18nObject
 }

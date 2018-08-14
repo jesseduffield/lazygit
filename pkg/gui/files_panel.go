@@ -196,7 +196,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
-		return gui.createErrorPanel(g, "There are no staged files to commit")
+		return gui.createErrorPanel(g, tr.SLocalize("NoStagedFilesCommit", "There are no staged files to commit"))
 	}
 	commitMessageView := gui.getCommitMessageView(g)
 	g.Update(func(g *gocui.Gui) error {
