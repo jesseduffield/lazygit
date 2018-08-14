@@ -109,7 +109,7 @@ func (c *OSCommand) GetOpenCommand() (string, string, error) {
 		"open":     "",
 	}
 	for name, trail := range trailMap {
-		if out, _ := c.RunCommandWithOutput("which " + name); out != "exit status 1" {
+		if err := c.RunCommand("which " + name); err == nil {
 			return name, trail, nil
 		}
 	}
@@ -137,7 +137,8 @@ func (c *OSCommand) OpenFile(filename string) (*exec.Cmd, error) {
 	if err != nil {
 		return nil, err
 	}
-	return nil, c.RunCommand(cmdName + " " + filename + cmdTrail) // TODO: ensure this works given that it's not rundirectcommand
+	err = c.RunCommand(cmdName + " " + filename + cmdTrail) // TODO: test on linux
+	return nil, err
 }
 
 // EditFile opens a file in a subprocess using whatever editor is available,
