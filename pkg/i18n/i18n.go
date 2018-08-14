@@ -9,12 +9,16 @@ import (
 // the function to setup the localizer
 func getlocalizer() *i18n.Localizer {
 
+	// detect the user's language
 	userLang, _ := jibber_jabber.DetectLanguage()
+
+	// create a i18n bundle that can be used to add translations and other things
 	var i18nObject = &i18n.Bundle{DefaultLanguage: language.English}
 
 	// add translation file(s)
 	i18nObject = addDutch(i18nObject)
 
+	// return the new localizer that can be used to translate text
 	return i18n.NewLocalizer(i18nObject, userLang)
 }
 

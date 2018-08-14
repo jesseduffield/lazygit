@@ -5,7 +5,10 @@ import (
 	"golang.org/x/text/language"
 )
 
+// addDutch will add all the translations
 func addDutch(i18nObject *i18n.Bundle) *i18n.Bundle {
+
+	// add the translations
 	i18nObject.AddMessages(language.Dutch,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
@@ -75,5 +78,7 @@ func addDutch(i18nObject *i18n.Bundle) *i18n.Bundle {
 			Other: "uitchecken",
 		},
 	)
+
+	// return the new i18nObject
 	return i18nObject
 }
