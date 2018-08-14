@@ -83,6 +83,9 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 }
 
 func (gui *Gui) handleStashSave(g *gocui.Gui, filesView *gocui.View) error {
+	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
+		return gui.createErrorPanel(g, "You have no tracked/staged files to stash")
+	}
 	gui.createPromptPanel(g, filesView, "Stash changes", func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.StashSave(gui.trimmedContent(v)); err != nil {
 			gui.createErrorPanel(g, err.Error())

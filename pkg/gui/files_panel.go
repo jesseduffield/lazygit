@@ -21,10 +21,22 @@ var (
 	errNoUsername = errors.New(`No username set. Please do: git config --global user.name "Your Name"`)
 )
 
-func (gui *Gui) stagedFiles(files []commands.File) []commands.File {
+func (gui *Gui) stagedFiles() []commands.File {
+	files := gui.State.Files
 	result := make([]commands.File, 0)
 	for _, file := range files {
 		if file.HasStagedChanges {
+			result = append(result, file)
+		}
+	}
+	return result
+}
+
+func (gui *Gui) trackedFiles() []commands.File {
+	files := gui.State.Files
+	result := make([]commands.File, 0)
+	for _, file := range files {
+		if file.Tracked {
 			result = append(result, file)
 		}
 	}
@@ -180,7 +192,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-	if len(gui.stagedFiles(gui.State.Files)) == 0 && !gui.State.HasMergeConflicts {
+	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(g, "There are no staged files to commit")
 	}
 	commitMessageView := gui.getCommitMessageView(g)
@@ -195,7 +207,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 // handleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
-	if len(gui.stagedFiles(gui.State.Files)) == 0 && !gui.State.HasMergeConflicts {
+	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(g, "There are no staged files to commit")
 	}
 	gui.PrepareSubProcess(g, "git", "commit")
