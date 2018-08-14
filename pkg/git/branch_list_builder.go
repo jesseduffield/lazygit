@@ -39,7 +39,10 @@ func (b *BranchListBuilder) obtainCurrentBranch() commands.Branch {
 	// even though you're on 'master'
 	branchName, err := b.GitCommand.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
 	if err != nil {
-		panic(err.Error())
+		branchName, err = b.GitCommand.OSCommand.RunCommandWithOutput("git rev-parse --short HEAD")
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 	return commands.Branch{Name: strings.TrimSpace(branchName), Recency: "  *"}
 }
