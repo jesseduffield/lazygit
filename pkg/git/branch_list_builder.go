@@ -46,7 +46,7 @@ func (b *BranchListBuilder) obtainCurrentBranch() commands.Branch {
 
 func (b *BranchListBuilder) obtainReflogBranches() []commands.Branch {
 	branches := make([]commands.Branch, 0)
-	rawString, err := b.GitCommand.OSCommand.RunDirectCommand("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
+	rawString, err := b.GitCommand.OSCommand.RunCommandWithOutput("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
 	if err != nil {
 		return branches
 	}
