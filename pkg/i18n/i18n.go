@@ -60,6 +60,17 @@ func (l *Localizer) SLocalize(ID string, Other string) string {
 	})
 }
 
+// TemplateLocalize allows the Other input to be dynamic
+func (l *Localizer) TemplateLocalize(ID string, Other string, TemplateData map[string]interface{}) string {
+	return l.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    ID,
+			Other: Other,
+		},
+		TemplateData: TemplateData,
+	})
+}
+
 // GetLanguage returns the currently selected language, e.g 'en'
 func (l *Localizer) GetLanguage() string {
 	return l.language

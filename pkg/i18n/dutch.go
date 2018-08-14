@@ -92,8 +92,26 @@ func addDutch(i18nObject *i18n.Bundle) {
 			ID:    "CantIgnoreTrackFiles",
 			Other: "Kan gevolgde bestanden niet negeren",
 		}, &i18n.Message{
-			ID:    "NoStagedFilesCommit",
+			ID:    "NoStagedFilesToCommit",
 			Other: "Er zijn geen staged bestanden om te commiten",
+		}, &i18n.Message{
+			ID:    "NoFilesDisplay",
+			Other: "Geen bestanden om te laten zien",
+		}, &i18n.Message{
+			ID:    "PullWait",
+			Other: "Pulling...",
+		}, &i18n.Message{
+			ID:    "PushWait",
+			Other: "Pushing...",
+		}, &i18n.Message{
+			ID:    "FileNoMergeCons",
+			Other: "Dit bestand heeft geen merge conflicten",
+		}, &i18n.Message{
+			ID:    "SureResetHardHead",
+			Other: "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? het kan dat je hierdoor bestanden verliest",
+		}, &i18n.Message{
+			ID:    "SureTo",
+			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijdert)",
 		},
 	)
 }

@@ -115,11 +115,19 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	}
 	var deleteVerb string
 	if file.Tracked {
-		deleteVerb = "checkout"
+		deleteVerb = gui.Tr.SLocalize("checkout", "checkout")
 	} else {
-		deleteVerb = "delete"
+		deleteVerb = gui.Tr.SLocalize("delete", "delete")
 	}
-	return gui.createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", "Are you sure you want to "+deleteVerb+" "+file.Name+" (you will lose your changes)?", func(g *gocui.Gui, v *gocui.View) error {
+	message := gui.Tr.TemplateLocalize(
+		"SureTo",
+		"Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
+		map[string]interface{}{
+			"deleteVerb": deleteVerb,
+			"fileName":   file.Name,
+		},
+	)
+	return gui.createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RemoveFile(file); err != nil {
 			panic(err)
 		}
@@ -187,7 +195,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesCommit", "There are no staged files to commit"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit", "There are no staged files to commit"))
 	}
 	commitMessageView := gui.getCommitMessageView(g)
 	g.Update(func(g *gocui.Gui) error {
@@ -202,7 +210,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
-		return gui.createErrorPanel(g, "There are no staged files to commit")
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit", "There are no staged files to commit"))
 	}
 	gui.PrepareSubProcess(g, "git", "commit")
 	return nil
@@ -300,7 +308,7 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 		if err != gui.Errors.ErrNoFiles {
 			return "", err
 		}
-		return "", gui.renderString(g, "main", "No file to display")
+		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NoFilesDisplay", "No file to display"))
 	}
 	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
@@ -327,7 +335,7 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 }
 
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
-	gui.createMessagePanel(g, v, "", "Pulling...")
+	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PullWait", "Pulling..."))
 	go func() {
 		if err := gui.GitCommand.Pull(); err != nil {
 			gui.createErrorPanel(g, err.Error())
@@ -342,7 +350,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
-	gui.createMessagePanel(g, v, "", "Pushing...")
+	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PushWait", "Pushing..."))
 	go func() {
 		branchName := gui.State.Branches[0].Name
 		if err := gui.GitCommand.Push(branchName); err != nil {
@@ -369,7 +377,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if !file.HasMergeConflicts {
-		return gui.createErrorPanel(g, "This file has no merge conflicts")
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons", "This file has no merge conflicts"))
 	}
 	gui.switchFocus(g, v, mergeView)
 	return gui.refreshMergePanel(g)
@@ -385,7 +393,7 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(g, v, "Clear file panel", "Are you sure you want `reset --hard HEAD`? You may lose changes", func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, "Clear file panel", gui.Tr.SLocalize("SureResetHardHead", "Are you sure you want `reset --hard HEAD`? You may lose changes"), func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.ResetHard(); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}
