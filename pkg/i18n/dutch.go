@@ -5,7 +5,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-// addDutch will add all the translations
+// addDutch will add all dutch translations
 func addDutch(i18nObject *i18n.Bundle) *i18n.Bundle {
 
 	// add the translations
@@ -76,6 +76,21 @@ func addDutch(i18nObject *i18n.Bundle) *i18n.Bundle {
 		}, &i18n.Message{
 			ID:    "checkout",
 			Other: "uitchecken",
+		}, &i18n.Message{
+			ID:    "NoChangedFiles",
+			Other: "Geen Bestanden verandert",
+		}, &i18n.Message{
+			ID:    "NoUsernameSetErr",
+			Other: `Geen gebruikersnaam ingesteld. Doe: git config --global user.name "Jou Naam"`,
+		}, &i18n.Message{
+			ID:    "FileHasNoUnstagedChanges",
+			Other: "Het bestand heeft geen unstaged veranderingen om toe te voegen",
+		}, &i18n.Message{
+			ID:    "CannotGitAdd",
+			Other: "Kan commando niet uitvoeren git add --path untracked files",
+		}, &i18n.Message{
+			ID:    "CantIgnoreTrackFiles",
+			Other: "Kan gevolgde bestanden niet negeren",
 		},
 	)
 
