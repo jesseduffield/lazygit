@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 
 	// "io"
 	// "io/ioutil"
@@ -147,21 +148,21 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
 	optionsMap := map[string]string{
-		"← → ↑ ↓":   "navigate",
-		"S":         "stash files",
-		"c":         "commit changes",
-		"o":         "open",
-		"i":         "ignore",
-		"d":         "delete",
-		"space":     "toggle staged",
-		"R":         "refresh",
-		"t":         "add patch",
-		"e":         "edit",
-		"PgUp/PgDn": "scroll",
+		"← → ↑ ↓":   lang.SLocalize("navigate", "navigate"),
+		"S":         lang.SLocalize("stashFiles", "stash files"),
+		"c":         lang.SLocalize("CommitChanges", "commit changes"),
+		"o":         lang.SLocalize("open", "open"),
+		"i":         lang.SLocalize("ignore", "ignore"),
+		"d":         lang.SLocalize("delete", "delete"),
+		"space":     lang.SLocalize("toggleStaged", "toggle staged"),
+		"R":         lang.SLocalize("refresh", "refresh"),
+		"t":         lang.SLocalize("addPatch", "add patch"),
+		"e":         lang.SLocalize("edit", "edit"),
+		"PgUp/PgDn": lang.SLocalize("scroll", "scroll"),
 	}
 	if gui.State.HasMergeConflicts {
-		optionsMap["a"] = "abort merge"
-		optionsMap["m"] = "resolve merge conflicts"
+		optionsMap["a"] = lang.SLocalize("abortMerge", "abort merge")
+		optionsMap["m"] = lang.SLocalize("resolveMergeConflicts", "resolve merge conflicts")
 	}
 	if file == nil {
 		return gui.renderOptionsMap(g, optionsMap)
