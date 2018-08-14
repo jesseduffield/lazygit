@@ -18,7 +18,10 @@ type Localizer struct {
 func NewLocalizer(log *logrus.Logger) (*Localizer, error) {
 
 	// detect the user's language
-	userLang, _ := jibber_jabber.DetectLanguage()
+	userLang, err := jibber_jabber.DetectLanguage()
+	if err != nil {
+		return nil, err
+	}
 	log.Info("language: " + userLang)
 
 	// create a i18n bundle that can be used to add translations and other things

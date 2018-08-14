@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
 func (gui *Gui) stagedFiles() []commands.File {
