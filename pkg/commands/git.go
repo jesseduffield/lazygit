@@ -104,7 +104,7 @@ func (c *GitCommand) StashDo(index int, method string) (string, error) {
 
 // StashSave save stash
 func (c *GitCommand) StashSave(message string) (string, error) {
-	output, err := c.OSCommand.RunCommand("git stash save \"" + message + "\"")
+	output, err := c.OSCommand.RunCommand("git stash save " + c.OSCommand.Quote(message))
 	if err != nil {
 		return output, err
 	}
@@ -212,7 +212,7 @@ func (c *GitCommand) GetCommitsToPush() []string {
 
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) (string, error) {
-	return c.OSCommand.RunDirectCommand("git commit --allow-empty --amend -m \"" + name + "\"")
+	return c.OSCommand.RunDirectCommand("git commit --allow-empty --amend -m " + c.OSCommand.Quote(name))
 }
 
 // Fetch fetch git repo
@@ -265,7 +265,7 @@ func (c *GitCommand) UsingGpg() bool {
 
 // Commit commit to git
 func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
-	command := "git commit -m \"" + message + "\""
+	command := "git commit -m " + c.OSCommand.Quote(message)
 	if c.UsingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)
 	}
@@ -287,7 +287,7 @@ func (c *GitCommand) Push(branchName string) (string, error) {
 // SquashPreviousTwoCommits squashes a commit down to the one below it
 // retaining the message of the higher commit
 func (c *GitCommand) SquashPreviousTwoCommits(message string) (string, error) {
-	return c.OSCommand.RunDirectCommand("git reset --soft HEAD^ && git commit --amend -m \"" + message + "\"")
+	return c.OSCommand.RunDirectCommand("git reset --soft HEAD^ && git commit --amend -m " + c.OSCommand.Quote(message))
 }
 
 // SquashFixupCommit squashes a 'FIXUP' commit into the commit beneath it,

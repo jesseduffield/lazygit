@@ -155,3 +155,8 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) (*e
 	subprocess := exec.Command(cmdName, commandArgs...)
 	return subprocess, nil
 }
+
+// Quote wraps a message in platform-specific quotation marks
+func (c *OSCommand) Quote(message string) string {
+	return c.Platform.escapedQuote + message + c.Platform.escapedQuote
+}
