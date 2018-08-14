@@ -9,7 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
-	"github.com/mjarkk/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
 // App struct

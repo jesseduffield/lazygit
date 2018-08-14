@@ -19,7 +19,7 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/mjarkk/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -59,7 +59,7 @@ type guiState struct {
 }
 
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *lang.Localizer, version string) (*Gui, error) {
+func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, version string) (*Gui, error) {
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
