@@ -1,4 +1,4 @@
-package main
+package gui
 
 import (
 	"fmt"
@@ -11,14 +11,14 @@ import (
 
 var cyclableViews = []string{"files", "branches", "commits", "stash"}
 
-func refreshSidePanels(g *gocui.Gui) error {
-	refreshBranches(g)
-	refreshFiles(g)
-	refreshCommits(g)
+func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
+	gui.refreshBranches(g)
+	gui.refreshFiles(g)
+	gui.refreshCommits(g)
 	return nil
 }
 
-func nextView(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 	var focusedViewName string
 	if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
 		focusedViewName = cyclableViews[0]
@@ -29,7 +29,7 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
 				break
 			}
 			if i == len(cyclableViews)-1 {
-				devLog(v.Name() + " is not in the list of views")
+				gui.Log.Info(v.Name() + " is not in the list of views")
 				return nil
 			}
 		}
@@ -38,10 +38,10 @@ func nextView(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		panic(err)
 	}
-	return switchFocus(g, v, focusedView)
+	return gui.switchFocus(g, v, focusedView)
 }
 
-func previousView(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 	var focusedViewName string
 	if v == nil || v.Name() == cyclableViews[0] {
 		focusedViewName = cyclableViews[len(cyclableViews)-1]
@@ -52,7 +52,7 @@ func previousView(g *gocui.Gui, v *gocui.View) error {
 				break
 			}
 			if i == len(cyclableViews)-1 {
-				devLog(v.Name() + " is not in the list of views")
+				gui.Log.Info(v.Name() + " is not in the list of views")
 				return nil
 			}
 		}
@@ -61,69 +61,70 @@ func previousView(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		panic(err)
 	}
-	return switchFocus(g, v, focusedView)
+	return gui.switchFocus(g, v, focusedView)
 }
 
-func newLineFocused(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	mainView.SetOrigin(0, 0)
 
 	switch v.Name() {
 	case "files":
-		return handleFileSelect(g, v)
+		return gui.handleFileSelect(g, v)
 	case "branches":
-		return handleBranchSelect(g, v)
+		return gui.handleBranchSelect(g, v)
 	case "confirmation":
 		return nil
 	case "commitMessage":
-		return handleCommitFocused(g, v)
+		return gui.handleCommitFocused(g, v)
 	case "main":
 		// TODO: pull this out into a 'view focused' function
-		refreshMergePanel(g)
+		gui.refreshMergePanel(g)
 		v.Highlight = false
 		return nil
 	case "commits":
-		return handleCommitSelect(g, v)
+		return gui.handleCommitSelect(g, v)
 	case "stash":
-		return handleStashEntrySelect(g, v)
+		return gui.handleStashEntrySelect(g, v)
 	default:
 		panic("No view matching newLineFocused switch statement")
 	}
 }
 
-func returnFocus(g *gocui.Gui, v *gocui.View) error {
-	previousView, err := g.View(state.PreviousView)
+func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
+	previousView, err := g.View(gui.State.PreviousView)
 	if err != nil {
 		panic(err)
 	}
-	return switchFocus(g, v, previousView)
+	return gui.switchFocus(g, v, previousView)
 }
 
 // pass in oldView = nil if you don't want to be able to return to your old view
-func switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
+func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	// we assume we'll never want to return focus to a confirmation panel i.e.
 	// we should never stack confirmation panels
 	if oldView != nil && oldView.Name() != "confirmation" {
 		oldView.Highlight = false
-		devLog("setting previous view to:", oldView.Name())
-		state.PreviousView = oldView.Name()
+		gui.Log.Info("setting previous view to:", oldView.Name())
+		gui.State.PreviousView = oldView.Name()
 	}
 	newView.Highlight = true
-	devLog("new focused view is " + newView.Name())
+	gui.Log.Info("new focused view is " + newView.Name())
 	if _, err := g.SetCurrentView(newView.Name()); err != nil {
 		return err
 	}
 	g.Cursor = newView.Editable
-	return newLineFocused(g, newView)
+	return gui.newLineFocused(g, newView)
 }
 
-func getItemPosition(v *gocui.View) int {
+func (gui *Gui) getItemPosition(v *gocui.View) int {
+	gui.correctCursor(v)
 	_, cy := v.Cursor()
 	_, oy := v.Origin()
 	return oy + cy
 }
 
-func cursorUp(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
 	// swallowing cursor movements in main
 	// TODO: pull this out
 	if v == nil || v.Name() == "main" {
@@ -138,11 +139,11 @@ func cursorUp(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	newLineFocused(g, v)
+	gui.newLineFocused(g, v)
 	return nil
 }
 
-func cursorDown(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
 	// swallowing cursor movements in main
 	// TODO: pull this out
 	if v == nil || v.Name() == "main" {
@@ -159,19 +160,19 @@ func cursorDown(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	newLineFocused(g, v)
+	gui.newLineFocused(g, v)
 	return nil
 }
 
-func resetOrigin(v *gocui.View) error {
+func (gui *Gui) resetOrigin(v *gocui.View) error {
 	if err := v.SetCursor(0, 0); err != nil {
 		return err
 	}
 	return v.SetOrigin(0, 0)
 }
 
-// if the cursor down past the last item, move it up one
-func correctCursor(v *gocui.View) error {
+// if the cursor down past the last item, move it to the last line
+func (gui *Gui) correctCursor(v *gocui.View) error {
 	cx, cy := v.Cursor()
 	_, oy := v.Origin()
 	lineCount := len(v.BufferLines()) - 2
@@ -181,7 +182,7 @@ func correctCursor(v *gocui.View) error {
 	return nil
 }
 
-func renderString(g *gocui.Gui, viewName, s string) error {
+func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 	g.Update(func(*gocui.Gui) error {
 		v, err := g.View(viewName)
 		// just in case the view disappeared as this function was called, we'll
@@ -197,7 +198,7 @@ func renderString(g *gocui.Gui, viewName, s string) error {
 	return nil
 }
 
-func optionsMapToString(optionsMap map[string]string) string {
+func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 	optionsArray := make([]string, 0)
 	for key, description := range optionsMap {
 		optionsArray = append(optionsArray, key+": "+description)
@@ -206,11 +207,11 @@ func optionsMapToString(optionsMap map[string]string) string {
 	return strings.Join(optionsArray, ", ")
 }
 
-func renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) error {
-	return renderString(g, "options", optionsMapToString(optionsMap))
+func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) error {
+	return gui.renderString(g, "options", gui.optionsMapToString(optionsMap))
 }
 
-func loader() string {
+func (gui *Gui) loader() string {
 	characters := "|/-\\"
 	now := time.Now()
 	nanos := now.UnixNano()
@@ -219,17 +220,26 @@ func loader() string {
 }
 
 // TODO: refactor properly
-func getFilesView(g *gocui.Gui) *gocui.View {
+func (gui *Gui) getFilesView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("files")
 	return v
 }
 
-func getCommitsView(g *gocui.Gui) *gocui.View {
+func (gui *Gui) getCommitsView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("commits")
 	return v
 }
 
-func getCommitMessageView(g *gocui.Gui) *gocui.View {
+func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("commitMessage")
 	return v
+}
+
+func (gui *Gui) trimmedContent(v *gocui.View) string {
+	return strings.TrimSpace(v.Buffer())
+}
+
+func (gui *Gui) currentViewName(g *gocui.Gui) string {
+	currentView := g.CurrentView()
+	return currentView.Name()
 }

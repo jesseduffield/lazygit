@@ -1,22 +1,26 @@
-package main
+package commands
 
 import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Branch : A git branch
+// duplicating this for now
 type Branch struct {
 	Name    string
 	Recency string
 }
 
-func (b *Branch) getDisplayString() string {
-	return withPadding(b.Recency, 4) + coloredString(b.Name, b.getColor())
+// GetDisplayString returns the dispaly string of branch
+func (b *Branch) GetDisplayString() string {
+	return utils.WithPadding(b.Recency, 4) + utils.ColoredString(b.Name, b.GetColor())
 }
 
-func (b *Branch) getColor() color.Attribute {
+// GetColor branch color
+func (b *Branch) GetColor() color.Attribute {
 	switch b.getType() {
 	case "feature":
 		return color.FgGreen

@@ -1,82 +1,86 @@
-package main
+package gui
 
 import (
 
 	// "io"
 	// "io/ioutil"
 
-	"runtime"
+	"errors"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 
 	// "strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
 
-type stateType struct {
-	GitFiles          []GitFile
-	Branches          []Branch
-	Commits           []Commit
-	StashEntries      []StashEntry
+// ErrSubProcess tells us we're switching to a subprocess so we need to
+// close the Gui until it is finished
+var (
+	ErrSubProcess = errors.New("running subprocess")
+)
+
+// Gui wraps the gocui Gui object which handles rendering and events
+type Gui struct {
+	g          *gocui.Gui
+	Log        *logrus.Logger
+	GitCommand *commands.GitCommand
+	OSCommand  *commands.OSCommand
+	Version    string
+	SubProcess *exec.Cmd
+	State      guiState
+}
+
+type guiState struct {
+	Files             []commands.File
+	Branches          []commands.Branch
+	Commits           []commands.Commit
+	StashEntries      []commands.StashEntry
 	PreviousView      string
 	HasMergeConflicts bool
 	ConflictIndex     int
 	ConflictTop       bool
-	Conflicts         []conflict
+	Conflicts         []commands.Conflict
 	EditHistory       *stack.Stack
-	Platform          platform
+	Platform          commands.Platform
+	Version           string
 }
 
-type conflict struct {
-	start  int
-	middle int
-	end    int
-}
-
-var state = stateType{
-	GitFiles:      make([]GitFile, 0),
-	PreviousView:  "files",
-	Commits:       make([]Commit, 0),
-	StashEntries:  make([]StashEntry, 0),
-	ConflictIndex: 0,
-	ConflictTop:   true,
-	Conflicts:     make([]conflict, 0),
-	EditHistory:   stack.New(),
-	Platform:      getPlatform(),
-}
-
-type platform struct {
-	os           string
-	shell        string
-	shellArg     string
-	escapedQuote string
-}
-
-func getPlatform() platform {
-	switch runtime.GOOS {
-	case "windows":
-		return platform{
-			os:           "windows",
-			shell:        "cmd",
-			shellArg:     "/c",
-			escapedQuote: "\\\"",
-		}
-	default:
-		return platform{
-			os:           runtime.GOOS,
-			shell:        "bash",
-			shellArg:     "-c",
-			escapedQuote: "\"",
-		}
+// NewGui builds a new gui handler
+func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, version string) (*Gui, error) {
+	initialState := guiState{
+		Files:         make([]commands.File, 0),
+		PreviousView:  "files",
+		Commits:       make([]commands.Commit, 0),
+		StashEntries:  make([]commands.StashEntry, 0),
+		ConflictIndex: 0,
+		ConflictTop:   true,
+		Conflicts:     make([]commands.Conflict, 0),
+		EditHistory:   stack.New(),
+		Platform:      *oSCommand.Platform,
+		Version:       "test version", // TODO: send version in
 	}
+
+	return &Gui{
+		Log:        log,
+		GitCommand: gitCommand,
+		OSCommand:  oSCommand,
+		Version:    version,
+		State:      initialState,
+	}, nil
 }
 
-func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy >= 1 {
@@ -85,7 +89,7 @@ func scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func scrollDownMain(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy < len(mainView.BufferLines()) {
@@ -94,8 +98,8 @@ func scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func handleRefresh(g *gocui.Gui, v *gocui.View) error {
-	return refreshSidePanels(g)
+func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
+	return gui.refreshSidePanels(g)
 }
 
 func max(a, b int) int {
@@ -106,7 +110,7 @@ func max(a, b int) int {
 }
 
 // layout is called for every screen re-render e.g. when the screen is resized
-func layout(g *gocui.Gui) error {
+func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
 	width, height := g.Size()
@@ -157,7 +161,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = ShortLocalize("StatusTitle", "Status")
+		v.Title = "Status"
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -167,7 +171,7 @@ func layout(g *gocui.Gui) error {
 			return err
 		}
 		filesView.Highlight = true
-		filesView.Title = ShortLocalize("FilesTitle", "Files")
+		filesView.Title = "Files"
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -175,7 +179,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = ShortLocalize("BranchesTitle", "Branches")
+		v.Title = "Branches"
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -183,7 +187,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = ShortLocalize("CommitsTitle", "Commits")
+		v.Title = "Commits"
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -191,11 +195,11 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = ShortLocalize("StashTitle", "Stash")
+		v.Title = "Stash"
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", -1, optionsTop, width-len(version)-2, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", -1, optionsTop, width-len(gui.Version)-2, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -203,60 +207,60 @@ func layout(g *gocui.Gui) error {
 		v.Frame = false
 	}
 
-	if getCommitMessageView(g) == nil {
+	if gui.getCommitMessageView(g) == nil {
 		// doesn't matter where this view starts because it will be hidden
 		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width, height, 0); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
 			g.SetViewOnBottom("commitMessage")
-			commitMessageView.Title = ShortLocalize("CommitMessage", "Commit message")
+			commitMessageView.Title = "Commit message"
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
 		}
 	}
 
-	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("version", width-len(gui.Version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorGreen
 		v.Frame = false
-		renderString(g, "version", version)
+		gui.renderString(g, "version", gui.Version)
 
 		// these are only called once
-		handleFileSelect(g, filesView)
-		refreshFiles(g)
-		refreshBranches(g)
-		refreshCommits(g)
-		refreshStashEntries(g)
-		nextView(g, nil)
+		gui.handleFileSelect(g, filesView)
+		gui.refreshFiles(g)
+		gui.refreshBranches(g)
+		gui.refreshCommits(g)
+		gui.refreshStashEntries(g)
+		gui.nextView(g, nil)
 	}
 
-	resizePopupPanels(g)
+	gui.resizePopupPanels(g)
 
 	return nil
 }
 
-func fetch(g *gocui.Gui) error {
-	gitFetch()
-	refreshStatus(g)
+func (gui *Gui) fetch(g *gocui.Gui) error {
+	gui.GitCommand.Fetch()
+	gui.refreshStatus(g)
 	return nil
 }
 
-func updateLoader(g *gocui.Gui) error {
+func (gui *Gui) updateLoader(g *gocui.Gui) error {
 	if confirmationView, _ := g.View("confirmation"); confirmationView != nil {
-		content := trimmedContent(confirmationView)
+		content := gui.trimmedContent(confirmationView)
 		if strings.Contains(content, "...") {
 			staticContent := strings.Split(content, "...")[0] + "..."
-			renderString(g, "confirmation", staticContent+" "+loader())
+			gui.renderString(g, "confirmation", staticContent+" "+gui.loader())
 		}
 	}
 	return nil
 }
 
-func goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
+func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
 	go func() {
 		for range time.Tick(interval) {
 			function(g)
@@ -264,37 +268,64 @@ func goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) err
 	}()
 }
 
-func resizePopupPanels(g *gocui.Gui) error {
+func (gui *Gui) resizePopupPanels(g *gocui.Gui) error {
 	v := g.CurrentView()
 	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
-		return resizePopupPanel(g, v)
+		return gui.resizePopupPanel(g, v)
 	}
 	return nil
 }
 
-func run() (err error) {
+// Run setup the gui with keybindings and start the mainloop
+func (gui *Gui) Run() error {
 	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
 	if err != nil {
-		return
+		return err
 	}
 	defer g.Close()
 
+	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
+
 	g.FgColor = gocui.ColorDefault
 
-	goEvery(g, time.Second*60, fetch)
-	goEvery(g, time.Second*10, refreshFiles)
-	goEvery(g, time.Millisecond*10, updateLoader)
+	gui.goEvery(g, time.Second*60, gui.fetch)
+	gui.goEvery(g, time.Second*10, gui.refreshFiles)
+	gui.goEvery(g, time.Millisecond*10, gui.updateLoader)
 
-	g.SetManagerFunc(layout)
+	g.SetManagerFunc(gui.layout)
 
-	if err = keybindings(g); err != nil {
-		return
+	if err = gui.keybindings(g); err != nil {
+		return err
 	}
 
 	err = g.MainLoop()
-	return
+	return err
 }
 
-func quit(g *gocui.Gui, v *gocui.View) error {
+// RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
+// if the error returned from a run is a ErrSubProcess, it runs the subprocess
+// otherwise it handles the error, possibly by quitting the application
+func (gui *Gui) RunWithSubprocesses() {
+	for {
+		if err := gui.Run(); err != nil {
+			if err == gocui.ErrQuit {
+				break
+			} else if err == ErrSubProcess {
+				gui.SubProcess.Stdin = os.Stdin
+				gui.SubProcess.Stdout = os.Stdout
+				gui.SubProcess.Stderr = os.Stderr
+				gui.SubProcess.Run()
+				gui.SubProcess.Stdout = ioutil.Discard
+				gui.SubProcess.Stderr = ioutil.Discard
+				gui.SubProcess.Stdin = nil
+				gui.SubProcess = nil
+			} else {
+				log.Panicln(err)
+			}
+		}
+	}
+}
+
+func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }

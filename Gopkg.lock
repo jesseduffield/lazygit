@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:b2339e83ce9b5c4f79405f949429a7f68a9a904fed903c672aac1e7ceb7f5f02"
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
+  version = "v1.0.6"
+
+[[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -50,11 +58,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e9b2b07a20f19d886267876b72ba15f2cbdeeeadd18030a4ce174b864e97c39e"
+  digest = "1:c9a848b0484a72da2dae28957b4f67501fe27fa38bc73f4713e454353c0a4a60"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "8cecad864fb0b099a5f55bf1c97fbc1daca103e0"
+  revision = "432b7f6215f81ef1aaa1b2d9b69887822923cf79"
 
 [[projects]]
   digest = "1:8021af4dcbd531ae89433c8c3a6520e51064114aaf8eb1724c3cf911c497c9ba"
@@ -87,6 +95,14 @@
   pruneopts = "NUT"
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
   version = "v0.0.2"
+
+[[projects]]
+  digest = "1:a25c9a6b41e100f4ce164db80260f2b687095ba9d8b46a1d6072d3686cc020db"
+  name = "github.com/mgutz/str"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "968bf66e3da857419e4f6e71b2d5c9ae95682dc4"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -151,7 +167,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c76f8b24a4d9b99b502fb7b61ad769125075cb570efff9b9b73e6c428629532d"
+  digest = "1:dfcb1b2db354cafa48fc3cdafe4905a08bec4a9757919ab07155db0ca23855b4"
   name = "golang.org/x/crypto"
   packages = [
     "cast5",
@@ -170,6 +186,7 @@
     "ssh",
     "ssh/agent",
     "ssh/knownhosts",
+    "ssh/terminal",
   ]
   pruneopts = "NUT"
   revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
@@ -282,10 +299,12 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/Sirupsen/logrus",
     "github.com/davecgh/go-spew/spew",
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
     "github.com/jesseduffield/gocui",
+    "github.com/mgutz/str",
     "github.com/tcnksm/go-gitconfig",
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/plumbing",
