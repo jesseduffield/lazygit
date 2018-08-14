@@ -1,7 +1,7 @@
 package lang
 
 import (
-	"github.com/BurntSushi/toml"
+	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
@@ -9,15 +9,13 @@ import (
 // the function to setup the localizer
 func getlocalizer() *i18n.Localizer {
 
-	// TODO: currently the system language issn't detected
-	// I'm not sure how to detect it
-	var i18nObject = &i18n.Bundle{DefaultLanguage: language.Dutch}
-	i18nObject.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+	userLang, _ := jibber_jabber.DetectLanguage()
+	var i18nObject = &i18n.Bundle{DefaultLanguage: language.English}
 
 	// add translation file(s)
 	i18nObject = addDutch(i18nObject)
 
-	return i18n.NewLocalizer(i18nObject)
+	return i18n.NewLocalizer(i18nObject, userLang)
 }
 
 // setup the localizer for later use

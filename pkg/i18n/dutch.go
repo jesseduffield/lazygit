@@ -6,7 +6,7 @@ import (
 )
 
 func addDutch(i18nObject *i18n.Bundle) *i18n.Bundle {
-	i18nObject.AddMessages(language.English,
+	i18nObject.AddMessages(language.Dutch,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
 			Other: "Niet genoeg ruimte om de panelen te renderen",
@@ -70,6 +70,9 @@ func addDutch(i18nObject *i18n.Bundle) *i18n.Bundle {
 		}, &i18n.Message{
 			ID:    "resolveMergeConflicts",
 			Other: "verhelp samenvoegen fouten",
+		}, &i18n.Message{
+			ID:    "checkout",
+			Other: "uitchecken",
 		},
 	)
 	return i18nObject

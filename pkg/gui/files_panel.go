@@ -168,7 +168,7 @@ func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
 		return gui.renderOptionsMap(g, optionsMap)
 	}
 	if file.Tracked {
-		optionsMap["d"] = "checkout"
+		optionsMap["d"] = lang.SLocalize("checkout", "checkout")
 	}
 	return gui.renderOptionsMap(g, optionsMap)
 }
