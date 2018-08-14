@@ -5,7 +5,10 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strings"
+
+	"github.com/davecgh/go-spew/spew"
+
+	"github.com/mgutz/str"
 
 	"github.com/Sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
@@ -41,30 +44,41 @@ func NewOSCommand(log *logrus.Logger) (*OSCommand, error) {
 	return osCommand, nil
 }
 
-// RunCommand wrapper around commands
-func (c *OSCommand) RunCommand(command string) (string, error) {
+// RunCommandWithOutput wrapper around commands returning their output and error
+func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
-	splitCmd := strings.Split(command, " ")
+	splitCmd := str.ToArgv(command)
+	c.Log.Info(splitCmd)
 	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
 	return sanitisedCommandOutput(cmdOut, err)
+}
+
+// RunCommand runs a command and just returns the error
+func (c *OSCommand) RunCommand(command string) error {
+	_, err := c.RunCommandWithOutput(command)
+	return err
 }
 
 // RunDirectCommand wrapper around direct commands
 func (c *OSCommand) RunDirectCommand(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunDirectCommand")
+	args := str.ToArgv(c.Platform.shellArg + " " + command)
+	c.Log.Info(spew.Sdump(args))
 
 	cmdOut, err := exec.
-		Command(c.Platform.shell, c.Platform.shellArg, command).
+		Command(c.Platform.shell, args...).
 		CombinedOutput()
 	return sanitisedCommandOutput(cmdOut, err)
 }
 
 func sanitisedCommandOutput(output []byte, err error) (string, error) {
 	outputString := string(output)
-	if outputString == "" && err != nil {
-		return err.Error(), err
+	if err != nil {
+		// errors like 'exit status 1' are not very useful so we'll create an error
+		// from the combined output
+		return outputString, errors.New(outputString)
 	}
-	return outputString, err
+	return outputString, nil
 }
 
 func getPlatform() platform {
@@ -95,7 +109,7 @@ func (c *OSCommand) GetOpenCommand() (string, string, error) {
 		"open":     "",
 	}
 	for name, trail := range trailMap {
-		if out, _ := c.RunCommand("which " + name); out != "exit status 1" {
+		if out, _ := c.RunCommandWithOutput("which " + name); out != "exit status 1" {
 			return name, trail, nil
 		}
 	}
@@ -108,15 +122,13 @@ func (c *OSCommand) GetOpenCommand() (string, string, error) {
 // they're being passed as arguments into another function,
 // but only editFile actually returns a *exec.Cmd
 func (c *OSCommand) VsCodeOpenFile(filename string) (*exec.Cmd, error) {
-	_, err := c.RunCommand("code -r " + filename)
-	return nil, err
+	return nil, c.RunCommand("code -r " + filename)
 }
 
 // SublimeOpenFile opens the filein sublime
 // may be deprecated in the future
 func (c *OSCommand) SublimeOpenFile(filename string) (*exec.Cmd, error) {
-	_, err := c.RunCommand("subl " + filename)
-	return nil, err
+	return nil, c.RunCommand("subl " + filename)
 }
 
 // OpenFile opens a file with the given
@@ -125,8 +137,7 @@ func (c *OSCommand) OpenFile(filename string) (*exec.Cmd, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = c.RunCommand(cmdName + " " + filename + cmdTrail)
-	return nil, err
+	return nil, c.RunCommand(cmdName + " " + filename + cmdTrail) // TODO: ensure this works given that it's not rundirectcommand
 }
 
 // EditFile opens a file in a subprocess using whatever editor is available,
@@ -140,7 +151,7 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 		editor = os.Getenv("EDITOR")
 	}
 	if editor == "" {
-		if _, err := c.RunCommand("which vi"); err == nil {
+		if err := c.RunCommand("which vi"); err == nil {
 			editor = "vi"
 		}
 	}

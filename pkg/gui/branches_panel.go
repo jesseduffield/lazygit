@@ -15,8 +15,8 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, "You have already checked out this branch")
 	}
 	branch := gui.getSelectedBranch(v)
-	if output, err := gui.GitCommand.Checkout(branch.Name, false); err != nil {
-		gui.createErrorPanel(g, output)
+	if err := gui.GitCommand.Checkout(branch.Name, false); err != nil {
+		gui.createErrorPanel(g, err.Error())
 	}
 	return gui.refreshSidePanels(g)
 }
@@ -24,8 +24,8 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch(v)
 	return gui.createConfirmationPanel(g, v, "Force Checkout Branch", "Are you sure you want force checkout? You will lose all local changes", func(g *gocui.Gui, v *gocui.View) error {
-		if output, err := gui.GitCommand.Checkout(branch.Name, true); err != nil {
-			gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.Checkout(branch.Name, true); err != nil {
+			gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshSidePanels(g)
 	}, nil)
@@ -33,8 +33,8 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	gui.createPromptPanel(g, v, "Branch Name:", func(g *gocui.Gui, v *gocui.View) error {
-		if output, err := gui.GitCommand.Checkout(gui.trimmedContent(v), false); err != nil {
-			return gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.Checkout(gui.trimmedContent(v), false); err != nil {
+			return gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshSidePanels(g)
 	})
@@ -44,8 +44,8 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.State.Branches[0]
 	gui.createPromptPanel(g, v, "New Branch Name (Branch is off of "+branch.Name+")", func(g *gocui.Gui, v *gocui.View) error {
-		if output, err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
-			return gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
+			return gui.createErrorPanel(g, err.Error())
 		}
 		gui.refreshSidePanels(g)
 		return gui.handleBranchSelect(g, v)
@@ -60,8 +60,8 @@ func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, "You cannot delete the checked out branch!")
 	}
 	return gui.createConfirmationPanel(g, v, "Delete Branch", "Are you sure you want delete the branch "+selectedBranch.Name+" ?", func(g *gocui.Gui, v *gocui.View) error {
-		if output, err := gui.GitCommand.DeleteBranch(selectedBranch.Name); err != nil {
-			return gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name); err != nil {
+			return gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshSidePanels(g)
 	}, nil)
@@ -74,8 +74,8 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 	if checkedOutBranch.Name == selectedBranch.Name {
 		return gui.createErrorPanel(g, "You cannot merge a branch into itself")
 	}
-	if output, err := gui.GitCommand.Merge(selectedBranch.Name); err != nil {
-		return gui.createErrorPanel(g, output)
+	if err := gui.GitCommand.Merge(selectedBranch.Name); err != nil {
+		return gui.createErrorPanel(g, err.Error())
 	}
 	return nil
 }

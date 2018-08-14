@@ -49,8 +49,8 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 		if err != nil {
 			panic(err)
 		}
-		if output, err := gui.GitCommand.ResetToCommit(commit.Sha); err != nil {
-			return gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.ResetToCommit(commit.Sha); err != nil {
+			return gui.createErrorPanel(g, err.Error())
 		}
 		if err := gui.refreshCommits(g); err != nil {
 			panic(err)
@@ -99,8 +99,8 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	if output, err := gui.GitCommand.SquashPreviousTwoCommits(commit.Name); err != nil {
-		return gui.createErrorPanel(g, output)
+	if err := gui.GitCommand.SquashPreviousTwoCommits(commit.Name); err != nil {
+		return gui.createErrorPanel(g, err.Error())
 	}
 	if err := gui.refreshCommits(g); err != nil {
 		panic(err)
@@ -132,8 +132,8 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	gui.createConfirmationPanel(g, v, "Fixup", "Are you sure you want to fixup this commit? The commit beneath will be squashed up into this one", func(g *gocui.Gui, v *gocui.View) error {
-		if output, err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha); err != nil {
-			return gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha); err != nil {
+			return gui.createErrorPanel(g, err.Error())
 		}
 		if err := gui.refreshCommits(g); err != nil {
 			panic(err)
@@ -148,8 +148,8 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, "Can only rename topmost commit")
 	}
 	gui.createPromptPanel(g, v, "Rename Commit", func(g *gocui.Gui, v *gocui.View) error {
-		if output, err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
-			return gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
+			return gui.createErrorPanel(g, err.Error())
 		}
 		if err := gui.refreshCommits(g); err != nil {
 			panic(err)

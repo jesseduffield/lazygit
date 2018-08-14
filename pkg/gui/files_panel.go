@@ -323,8 +323,8 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 	gui.createMessagePanel(g, v, "", "Pulling...")
 	go func() {
-		if output, err := gui.GitCommand.Pull(); err != nil {
-			gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.Pull(); err != nil {
+			gui.createErrorPanel(g, err.Error())
 		} else {
 			gui.closeConfirmationPrompt(g)
 			gui.refreshCommits(g)
@@ -339,8 +339,8 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	gui.createMessagePanel(g, v, "", "Pushing...")
 	go func() {
 		branchName := gui.State.Branches[0].Name
-		if output, err := gui.GitCommand.Push(branchName); err != nil {
-			gui.createErrorPanel(g, output)
+		if err := gui.GitCommand.Push(branchName); err != nil {
+			gui.createErrorPanel(g, err.Error())
 		} else {
 			gui.closeConfirmationPrompt(g)
 			gui.refreshCommits(g)
@@ -370,9 +370,8 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
-	output, err := gui.GitCommand.AbortMerge()
-	if err != nil {
-		return gui.createErrorPanel(g, output)
+	if err := gui.GitCommand.AbortMerge(); err != nil {
+		return gui.createErrorPanel(g, err.Error())
 	}
 	gui.createMessagePanel(g, v, "", "Merge aborted")
 	gui.refreshStatus(g)
