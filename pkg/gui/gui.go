@@ -19,6 +19,7 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -133,7 +134,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-			v.Title = "Not enough space to render panels"
+			v.Title = lang.SLocalize("NotEnoughSpace", "Not enough space to render panels")
 			v.Wrap = true
 		}
 		return nil
@@ -152,7 +153,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Diff"
+		v.Title = lang.SLocalize("DiffTitle", "Diff")
 		v.Wrap = true
 		v.FgColor = gocui.ColorWhite
 	}
@@ -161,7 +162,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Status"
+		v.Title = lang.SLocalize("StatusTitle", "Status")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -171,7 +172,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		filesView.Highlight = true
-		filesView.Title = "Files"
+		filesView.Title = lang.SLocalize("FilesTitle", "Files")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -179,7 +180,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Branches"
+		v.Title = lang.SLocalize("BranchesTitle", "Branches")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -187,7 +188,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Commits"
+		v.Title = lang.SLocalize("CommitsTitle", "Commits")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -195,7 +196,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Stash"
+		v.Title = lang.SLocalize("StashTitle", "Stash")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -214,7 +215,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 				return err
 			}
 			g.SetViewOnBottom("commitMessage")
-			commitMessageView.Title = "Commit message"
+			commitMessageView.Title = lang.SLocalize("CommitMessage", "Commit message")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
 		}
