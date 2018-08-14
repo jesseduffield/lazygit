@@ -13,7 +13,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
 func (gui *Gui) stagedFiles() []commands.File {
@@ -91,7 +90,7 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	gui.SubProcess = sub
-	return ErrSubProcess
+	return nil
 }
 
 func (gui *Gui) getSelectedFile(g *gocui.Gui) (commands.File, error) {
@@ -188,7 +187,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
-		return gui.createErrorPanel(g, tr.SLocalize("NoStagedFilesCommit", "There are no staged files to commit"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesCommit", "There are no staged files to commit"))
 	}
 	commitMessageView := gui.getCommitMessageView(g)
 	g.Update(func(g *gocui.Gui) error {
@@ -217,7 +216,7 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) error {
 	}
 	gui.SubProcess = sub
 	g.Update(func(g *gocui.Gui) error {
-		return ErrSubProcess
+		return nil
 	})
 	return nil
 }
@@ -236,7 +235,7 @@ func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (
 	}
 	if sub != nil {
 		gui.SubProcess = sub
-		return ErrSubProcess
+		return nil
 	}
 	return nil
 }
