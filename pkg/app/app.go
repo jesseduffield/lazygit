@@ -28,11 +28,11 @@ func newLogger(config config.AppConfigurer) *logrus.Logger {
 		log.Out = ioutil.Discard
 		return log
 	}
-	file, err := os.OpenFile("development.log", os.O_CREATE|os.O_WRONLY, 0666)
+	file, err := os.OpenFile("development.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
 	}
-	log.Out = file
+	log.SetOutput(file)
 	return log
 }
 
