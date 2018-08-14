@@ -112,6 +112,54 @@ func addDutch(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijdert)",
+		}, &i18n.Message{
+			ID:    "AlreadyCheckedOutBranch",
+			Other: "Je hebt uitgecheckt op deze branch",
+		}, &i18n.Message{
+			ID:    "SureForceCheckout",
+			Other: "Weet je zeker dat je het uitchecken wil forceren? al je locale verandering zullen worden verwijdert",
+		}, &i18n.Message{
+			ID:    "ForceCheckoutBranch",
+			Other: "Forceer uitchecken op deze branch",
+		}, &i18n.Message{
+			ID:    "BranchName",
+			Other: "Branch naam",
+		}, &i18n.Message{
+			ID:    "NewBranchNameBranchOff",
+			Other: "Nieuw branch naam (Branch is afgeleid van {{.branchName}})",
+		}, &i18n.Message{
+			ID:    "CantDeleteCheckOutBranch",
+			Other: "Je kan een uitgecheckte branch niet verwijderen!",
+		}, &i18n.Message{
+			ID:    "DeleteBranch",
+			Other: "Verwijder branch",
+		}, &i18n.Message{
+			ID:    "DeleteBranchMessage",
+			Other: "Weet je zeker dat je {{.selectedBranchName}} branch wil verwijderen?",
+		}, &i18n.Message{
+			ID:    "CantMergeBranchIntoItself",
+			Other: "Je kan niet een branch in zichzelf mergen",
+		}, &i18n.Message{
+			ID:    "forceCheckout",
+			Other: "forceren checkout",
+		}, &i18n.Message{
+			ID:    "merge",
+			Other: "merge",
+		}, &i18n.Message{
+			ID:    "checkoutByName",
+			Other: "uitchecken bij naam",
+		}, &i18n.Message{
+			ID:    "newBranch",
+			Other: "nieuwe branch",
+		}, &i18n.Message{
+			ID:    "deleteBranch",
+			Other: "verwijder branch",
+		}, &i18n.Message{
+			ID:    "NoBranchesThisRepo",
+			Other: "Geen branches voor deze repo",
+		}, &i18n.Message{
+			ID:    "NoTrackingThisRepo",
+			Other: "deze branch wordt niet gevolgd",
 		},
 	)
 }
