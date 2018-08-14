@@ -327,7 +327,7 @@ func (c *GitCommand) CatFile(file string) (string, error) {
 
 // StageFile stages a file
 func (c *GitCommand) StageFile(file string) error {
-	return c.OSCommand.RunCommand("git add " + file)
+	return c.OSCommand.RunCommand("git add " + c.OSCommand.Quote(file))
 }
 
 // UnStageFile unstages a file
@@ -474,18 +474,23 @@ func (c *GitCommand) Show(sha string) string {
 // Diff returns the diff of a file
 func (c *GitCommand) Diff(file File) string {
 	cachedArg := ""
+	fileName := file.Name
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
-		cachedArg = "--cached "
+		cachedArg = "--cached"
+	} else {
+		// if the file is staged and has spaces in it, it comes pre-quoted
+		fileName = c.OSCommand.Quote(fileName)
 	}
 	deletedArg := ""
 	if file.Deleted {
-		deletedArg = "-- "
+		deletedArg = "--"
 	}
 	trackedArg := ""
 	if !file.Tracked && !file.HasStagedChanges {
-		trackedArg = "--no-index /dev/null "
+		trackedArg = "--no-index /dev/null"
 	}
-	command := "git diff --color " + cachedArg + deletedArg + trackedArg + file.Name
+	command := fmt.Sprintf("%s %s %s %s %s", "git diff --color ", cachedArg, deletedArg, trackedArg, fileName)
+
 	// for now we assume an error means the file was deleted
 	s, _ := c.OSCommand.RunCommandWithOutput(command)
 	return s
