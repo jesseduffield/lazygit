@@ -68,7 +68,7 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		Conflicts:     make([]commands.Conflict, 0),
 		EditHistory:   stack.New(),
 		Platform:      *oSCommand.Platform,
-		Version:       "test version", // TODO: send version in
+		Version:       version,
 	}
 
 	return &Gui{
