@@ -8,11 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
-var (
-	// ErrNoCommits : When no commits are found for the branch
-	ErrNoCommits = errors.New("No commits for this branch")
-)
-
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
 		gui.State.Commits = gui.GitCommand.GetCommits()
@@ -79,7 +74,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	commit, err := gui.getSelectedCommit(g)
 	if err != nil {
-		if err != ErrNoCommits {
+		if err != errors.New("No commits for this branch") {
 			return err
 		}
 		return gui.renderString(g, "main", "No commits for this branch")
@@ -165,7 +160,7 @@ func (gui *Gui) getSelectedCommit(g *gocui.Gui) (commands.Commit, error) {
 		panic(err)
 	}
 	if len(gui.State.Commits) == 0 {
-		return commands.Commit{}, ErrNoCommits
+		return commands.Commit{}, errors.New("No commits for this branch")
 	}
 	lineNumber := gui.getItemPosition(v)
 	if lineNumber > len(gui.State.Commits)-1 {

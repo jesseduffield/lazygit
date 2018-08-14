@@ -12,13 +12,13 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	sub, err := gui.GitCommand.Commit(g, message)
 	if err != nil {
 		// TODO need to find a way to send through this error
-		if err != ErrSubProcess {
+		if err != gui.Errors.ErrSubProcess {
 			return gui.createErrorPanel(g, err.Error())
 		}
 	}
 	if sub != nil {
 		gui.SubProcess = sub
-		return ErrSubProcess
+		return gui.Errors.ErrSubProcess
 	}
 	gui.refreshFiles(g)
 	v.Clear()

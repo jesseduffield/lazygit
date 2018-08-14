@@ -14,13 +14,6 @@ import (
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
-var (
-	// ErrNoOpenCommand : When we don't know which command to use to open a file
-	ErrNoOpenCommand = errors.New("Unsure what command to use to open this file")
-	// ErrNoEditorDefined : When we can't find an editor to edit a file
-	ErrNoEditorDefined = errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
-)
-
 // Platform stores the os state
 type Platform struct {
 	os           string
@@ -113,7 +106,7 @@ func (c *OSCommand) GetOpenCommand() (string, string, error) {
 			return name, trail, nil
 		}
 	}
-	return "", "", ErrNoOpenCommand
+	return "", "", errors.New("Unsure what command to use to open this file")
 }
 
 // VsCodeOpenFile opens the file in code, with the -r flag to open in the
@@ -157,7 +150,7 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 		}
 	}
 	if editor == "" {
-		return nil, ErrNoEditorDefined
+		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 	}
 	return c.PrepareSubProcess(editor, filename)
 }

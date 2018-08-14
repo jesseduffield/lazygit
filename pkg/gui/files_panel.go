@@ -7,18 +7,12 @@ import (
 
 	// "strings"
 
-	"errors"
 	"os/exec"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-)
-
-var (
-	errNoFiles    = errors.New(lang.SLocalize("NoChangedFiles", "No changed files"))
-	errNoUsername = errors.New(lang.SLocalize("NoUsernameSetErr", `No username set. Please do: git config --global user.name "Your Name"`))
 )
 
 func (gui *Gui) stagedFiles() []commands.File {
@@ -54,7 +48,7 @@ func (gui *Gui) stageSelectedFile(g *gocui.Gui) error {
 func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		if err == errNoFiles {
+		if err == gui.Errors.ErrNoFiles {
 			return nil
 		}
 		return err
@@ -80,16 +74,16 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		if err == errNoFiles {
+		if err == gui.Errors.ErrNoFiles {
 			return nil
 		}
 		return err
 	}
 	if !file.HasUnstagedChanges {
-		return gui.createErrorPanel(g, lang.SLocalize("FileHasNoUnstagedChanges", "File has no unstaged changes to add"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileHasNoUnstagedChanges", "File has no unstaged changes to add"))
 	}
 	if !file.Tracked {
-		return gui.createErrorPanel(g, lang.SLocalize("CannotGitAdd", "Cannot git add --patch untracked files"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("CannotGitAdd", "Cannot git add --patch untracked files"))
 	}
 	sub, err := gui.GitCommand.AddPatch(file.Name)
 	if err != nil {
@@ -101,7 +95,7 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) getSelectedFile(g *gocui.Gui) (commands.File, error) {
 	if len(gui.State.Files) == 0 {
-		return commands.File{}, errNoFiles
+		return commands.File{}, gui.Errors.ErrNoFiles
 	}
 	filesView, err := g.View("files")
 	if err != nil {
@@ -114,7 +108,7 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (commands.File, error) {
 func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		if err == errNoFiles {
+		if err == gui.Errors.ErrNoFiles {
 			return nil
 		}
 		return err
@@ -139,7 +133,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, err.Error())
 	}
 	if file.Tracked {
-		return gui.createErrorPanel(g, lang.SLocalize("CantIgnoreTrackFiles", "Cannot ignore tracked files"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantIgnoreTrackFiles", "Cannot ignore tracked files"))
 	}
 	gui.GitCommand.Ignore(file.Name)
 	return gui.refreshFiles(g)
@@ -175,7 +169,7 @@ func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
 func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		if err != errNoFiles {
+		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
 		gui.renderString(g, "main", "No changed files")
@@ -230,7 +224,7 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) error {
 func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (*exec.Cmd, error)) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		if err != errNoFiles {
+		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
 		return nil
@@ -303,7 +297,7 @@ func (gui *Gui) renderFile(file commands.File, filesView *gocui.View) {
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 	item, err := gui.getSelectedFile(g)
 	if err != nil {
-		if err != errNoFiles {
+		if err != gui.Errors.ErrNoFiles {
 			return "", err
 		}
 		return "", gui.renderString(g, "main", "No file to display")
@@ -369,7 +363,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 	}
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		if err != errNoFiles {
+		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
 		return nil
