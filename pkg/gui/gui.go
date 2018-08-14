@@ -19,7 +19,7 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/mjarkk/lazygit/pkg/i18n"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -40,6 +40,7 @@ type Gui struct {
 	Version    string
 	SubProcess *exec.Cmd
 	State      guiState
+	Tr         *i18n.Localizer
 }
 
 type guiState struct {
@@ -58,7 +59,7 @@ type guiState struct {
 }
 
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, version string) (*Gui, error) {
+func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *lang.Localizer, version string) (*Gui, error) {
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
@@ -78,6 +79,7 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		OSCommand:  oSCommand,
 		Version:    version,
 		State:      initialState,
+		Tr:         tr,
 	}, nil
 }
 
@@ -134,7 +136,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-			v.Title = lang.SLocalize("NotEnoughSpace", "Not enough space to render panels")
+			v.Title = gui.Tr.SLocalize("NotEnoughSpace", "Not enough space to render panels")
 			v.Wrap = true
 		}
 		return nil
@@ -153,7 +155,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = lang.SLocalize("DiffTitle", "Diff")
+		v.Title = gui.Tr.SLocalize("DiffTitle", "Diff")
 		v.Wrap = true
 		v.FgColor = gocui.ColorWhite
 	}
@@ -162,7 +164,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = lang.SLocalize("StatusTitle", "Status")
+		v.Title = gui.Tr.SLocalize("StatusTitle", "Status")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -172,7 +174,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		filesView.Highlight = true
-		filesView.Title = lang.SLocalize("FilesTitle", "Files")
+		filesView.Title = gui.Tr.SLocalize("FilesTitle", "Files")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -180,7 +182,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = lang.SLocalize("BranchesTitle", "Branches")
+		v.Title = gui.Tr.SLocalize("BranchesTitle", "Branches")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -188,7 +190,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = lang.SLocalize("CommitsTitle", "Commits")
+		v.Title = gui.Tr.SLocalize("CommitsTitle", "Commits")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -196,7 +198,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = lang.SLocalize("StashTitle", "Stash")
+		v.Title = gui.Tr.SLocalize("StashTitle", "Stash")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -215,7 +217,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 				return err
 			}
 			g.SetViewOnBottom("commitMessage")
-			commitMessageView.Title = lang.SLocalize("CommitMessage", "Commit message")
+			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage", "Commit message")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
 		}

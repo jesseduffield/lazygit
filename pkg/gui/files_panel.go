@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 
 	// "io"
 	// "io/ioutil"
@@ -148,27 +147,27 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
 	optionsMap := map[string]string{
-		"← → ↑ ↓":   lang.SLocalize("navigate", "navigate"),
-		"S":         lang.SLocalize("stashFiles", "stash files"),
-		"c":         lang.SLocalize("CommitChanges", "commit changes"),
-		"o":         lang.SLocalize("open", "open"),
-		"i":         lang.SLocalize("ignore", "ignore"),
-		"d":         lang.SLocalize("delete", "delete"),
-		"space":     lang.SLocalize("toggleStaged", "toggle staged"),
-		"R":         lang.SLocalize("refresh", "refresh"),
-		"t":         lang.SLocalize("addPatch", "add patch"),
-		"e":         lang.SLocalize("edit", "edit"),
-		"PgUp/PgDn": lang.SLocalize("scroll", "scroll"),
+		"← → ↑ ↓":   gui.Tr.SLocalize("navigate", "navigate"),
+		"S":         gui.Tr.SLocalize("stashFiles", "stash files"),
+		"c":         gui.Tr.SLocalize("CommitChanges", "commit changes"),
+		"o":         gui.Tr.SLocalize("open", "open"),
+		"i":         gui.Tr.SLocalize("ignore", "ignore"),
+		"d":         gui.Tr.SLocalize("delete", "delete"),
+		"space":     gui.Tr.SLocalize("toggleStaged", "toggle staged"),
+		"R":         gui.Tr.SLocalize("refresh", "refresh"),
+		"t":         gui.Tr.SLocalize("addPatch", "add patch"),
+		"e":         gui.Tr.SLocalize("edit", "edit"),
+		"PgUp/PgDn": gui.Tr.SLocalize("scroll", "scroll"),
 	}
 	if gui.State.HasMergeConflicts {
-		optionsMap["a"] = lang.SLocalize("abortMerge", "abort merge")
-		optionsMap["m"] = lang.SLocalize("resolveMergeConflicts", "resolve merge conflicts")
+		optionsMap["a"] = gui.Tr.SLocalize("abortMerge", "abort merge")
+		optionsMap["m"] = gui.Tr.SLocalize("resolveMergeConflicts", "resolve merge conflicts")
 	}
 	if file == nil {
 		return gui.renderOptionsMap(g, optionsMap)
 	}
 	if file.Tracked {
-		optionsMap["d"] = lang.SLocalize("checkout", "checkout")
+		optionsMap["d"] = gui.Tr.SLocalize("checkout", "checkout")
 	}
 	return gui.renderOptionsMap(g, optionsMap)
 }

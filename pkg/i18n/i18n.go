@@ -1,45 +1,68 @@
-package lang
+package i18n
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
 
-// the function to setup the localizer
-func getlocalizer() *i18n.Localizer {
+// Localizer will translate a message into the user's language
+type Localizer struct {
+	i18nLocalizer *i18n.Localizer
+	language      string
+	Log           *logrus.Logger
+}
+
+// NewLocalizer creates a new Localizer
+func NewLocalizer(log *logrus.Logger) (*Localizer, error) {
 
 	// detect the user's language
 	userLang, _ := jibber_jabber.DetectLanguage()
+	log.Info("language: " + userLang)
 
 	// create a i18n bundle that can be used to add translations and other things
-	var i18nObject = &i18n.Bundle{DefaultLanguage: language.English}
+	i18nBundle := &i18n.Bundle{DefaultLanguage: language.English}
 
-	// add translation file(s)
-	i18nObject = addDutch(i18nObject)
+	addBundles(i18nBundle)
 
 	// return the new localizer that can be used to translate text
-	return i18n.NewLocalizer(i18nObject, userLang)
-}
+	i18nLocalizer := i18n.NewLocalizer(i18nBundle, userLang)
 
-// setup the localizer for later use
-var localizer = getlocalizer()
+	localizer := &Localizer{
+		i18nLocalizer: i18nLocalizer,
+		language:      userLang,
+		Log:           log,
+	}
+
+	return localizer, nil
+}
 
 // Localize handels the translations
 // expects i18n.LocalizeConfig as input: https://godoc.org/github.com/nicksnyder/go-i18n/v2/i18n#Localizer.MustLocalize
 // output: translated string
-func Localize(config *i18n.LocalizeConfig) string {
-	return localizer.MustLocalize(config)
+func (l *Localizer) Localize(config *i18n.LocalizeConfig) string {
+	return l.i18nLocalizer.MustLocalize(config)
 }
 
 // SLocalize (short localize) is for 1 line localizations
 // ID: The id that is used in the .toml translation files
 // Other: the default message it needs to return if there is no translation found or the system is english
-func SLocalize(ID string, Other string) string {
-	return Localize(&i18n.LocalizeConfig{
+func (l *Localizer) SLocalize(ID string, Other string) string {
+	return l.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
 			ID:    ID,
 			Other: Other,
 		},
 	})
+}
+
+// GetLanguage returns the currently selected language, e.g 'en'
+func (l *Localizer) GetLanguage() string {
+	return l.language
+}
+
+// add translation file(s)
+func addBundles(i18nBundle *i18n.Bundle) {
+	addDutch(i18nBundle)
 }
