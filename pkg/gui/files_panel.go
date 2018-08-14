@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	errNoFiles    = errors.New("No changed files")
-	errNoUsername = errors.New(`No username set. Please do: git config --global user.name "Your Name"`)
+	errNoFiles    = errors.New(lang.SLocalize("NoChangedFiles", "No changed files"))
+	errNoUsername = errors.New(lang.SLocalize("NoUsernameSetErr", `No username set. Please do: git config --global user.name "Your Name"`))
 )
 
 func (gui *Gui) stagedFiles() []commands.File {
@@ -87,10 +87,10 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	if !file.HasUnstagedChanges {
-		return gui.createErrorPanel(g, "File has no unstaged changes to add")
+		return gui.createErrorPanel(g, lang.SLocalize("FileHasNoUnstagedChanges", "File has no unstaged changes to add"))
 	}
 	if !file.Tracked {
-		return gui.createErrorPanel(g, "Cannot git add --patch untracked files")
+		return gui.createErrorPanel(g, lang.SLocalize("CannotGitAdd", "Cannot git add --patch untracked files"))
 	}
 	sub, err := gui.GitCommand.AddPatch(file.Name)
 	if err != nil {
@@ -140,7 +140,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, err.Error())
 	}
 	if file.Tracked {
-		return gui.createErrorPanel(g, "Cannot ignore tracked files")
+		return gui.createErrorPanel(g, lang.SLocalize("CantIgnoreTrackFiles", "Cannot ignore tracked files"))
 	}
 	gui.GitCommand.Ignore(file.Name)
 	return gui.refreshFiles(g)
