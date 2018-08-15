@@ -238,6 +238,33 @@ func addDutch(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "undo",
 			Other: "ongedaan maken",
+		}, &i18n.Message{
+			ID:    "pop",
+			Other: "pop",
+		}, &i18n.Message{
+			ID:    "drop",
+			Other: "drop",
+		}, &i18n.Message{
+			ID:    "apply",
+			Other: "toepassen",
+		}, &i18n.Message{
+			ID:    "NoStashEntries",
+			Other: "Geen stash items",
+		}, &i18n.Message{
+			ID:    "StashDrop",
+			Other: "Stash drop",
+		}, &i18n.Message{
+			ID:    "SureDropStashEntry",
+			Other: "Weet je het zeker dat je deze stash entry wil laten vallen?",
+		}, &i18n.Message{
+			ID:    "NoStashTo",
+			Other: "Geen stash voor {{.method}}",
+		}, &i18n.Message{
+			ID:    "NoTrackedStagedFilesStash",
+			Other: "Je hebt geen tracked/staged bestanden om te laten stashen",
+		}, &i18n.Message{
+			ID:    "StashChanges",
+			Other: "Stash veranderingen",
 		},
 	)
 }
