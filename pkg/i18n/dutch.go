@@ -160,6 +160,12 @@ func addDutch(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "NoTrackingThisRepo",
 			Other: "deze branch wordt niet gevolgd",
+		}, &i18n.Message{
+			ID:    "CommitWithoutMessageErr",
+			Other: "Je kan geen commit maken zonder commit bericht",
+		}, &i18n.Message{
+			ID:    "CloseConfirm",
+			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
 		},
 	)
 }
