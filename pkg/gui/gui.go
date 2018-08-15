@@ -19,6 +19,7 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/spf13/viper"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -39,6 +40,7 @@ type Gui struct {
 	Version    string
 	SubProcess *exec.Cmd
 	State      guiState
+	Config     *viper.Viper
 }
 
 type guiState struct {
@@ -57,7 +59,7 @@ type guiState struct {
 }
 
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, version string) (*Gui, error) {
+func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, version string, userConfig *viper.Viper) (*Gui, error) {
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
@@ -77,6 +79,7 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		OSCommand:  oSCommand,
 		Version:    version,
 		State:      initialState,
+		Config:     userConfig,
 	}, nil
 }
 
@@ -84,7 +87,7 @@ func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy >= 1 {
-		return mainView.SetOrigin(ox, oy-1)
+		return mainView.SetOrigin(ox, oy-gui.Config.GetInt("gui.scrollHeight"))
 	}
 	return nil
 }
@@ -93,7 +96,7 @@ func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy < len(mainView.BufferLines()) {
-		return mainView.SetOrigin(ox, oy+1)
+		return mainView.SetOrigin(ox, oy+gui.Config.GetInt("gui.scrollHeight"))
 	}
 	return nil
 }
