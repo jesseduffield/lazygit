@@ -166,6 +166,54 @@ func addDutch(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
+		}, &i18n.Message{
+			ID:    "SureResetThisCommit",
+			Other: "Weet je het zeker dat je wil resetten naar deze commit?",
+		}, &i18n.Message{
+			ID:    "ResetToCommit",
+			Other: "Reset Naar Commit",
+		}, &i18n.Message{
+			ID:    "squashDown",
+			Other: "squash beneden",
+		}, &i18n.Message{
+			ID:    "rename",
+			Other: "hernoem",
+		}, &i18n.Message{
+			ID:    "resetToThisCommit",
+			Other: "reset naar deze commit",
+		}, &i18n.Message{
+			ID:    "FixupCommit",
+			Other: "Fixup commit",
+		}, &i18n.Message{
+			ID:    "NoCommitsThisBranch",
+			Other: "Er zijn geen commits voor deze branch",
+		}, &i18n.Message{
+			ID:    "OnlySquashTopmostCommit",
+			Other: "Kan alleen bovenste commit squashen",
+		}, &i18n.Message{
+			ID:    "YouNoCommitsToSquash",
+			Other: "Je hebt geen commits om mee te squashen",
+		}, &i18n.Message{
+			ID:    "CantFixupWhileUnstagedChanges",
+			Other: "Kan geen Fixup uitvoeren op unstaged veranderingen",
+		}, &i18n.Message{
+			ID:    "Fixup",
+			Other: "Fixup",
+		}, &i18n.Message{
+			ID:    "SureFixupThisCommit",
+			Other: "Weet je zeker dat je fixup wil uitvoeren op deze commit? De commit hieronder zol worden squashed in deze",
+		}, &i18n.Message{
+			ID:    "OnlyRenameTopCommit",
+			Other: "Je kan alleen de bovenste commit hernoemen",
+		}, &i18n.Message{
+			ID:    "RenameCommit",
+			Other: "Hernoem Commit",
+		}, &i18n.Message{
+			ID:    "PotentialErrInGetselectedCommit",
+			Other: "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)",
+		}, &i18n.Message{
+			ID:    "NoCommitsThisBranch",
+			Other: "Geen commits voor deze branch",
 		},
 	)
 }
