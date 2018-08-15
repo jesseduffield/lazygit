@@ -57,7 +57,7 @@ func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int
 }
 
 func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
-	g.SetViewOnBottom("commitMessage")
+	gui.onNewPopupPanel()
 	// only need to fit one line
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, "")
 	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
@@ -73,8 +73,12 @@ func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title s
 	return nil
 }
 
+func (gui *Gui) onNewPopupPanel() {
+	gui.g.SetViewOnBottom("commitMessage")
+}
+
 func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
-	g.SetViewOnBottom("commitMessage")
+	gui.onNewPopupPanel()
 	g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
