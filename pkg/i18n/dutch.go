@@ -141,7 +141,7 @@ func addDutch(i18nObject *i18n.Bundle) {
 			Other: "Je kan niet een branch in zichzelf mergen",
 		}, &i18n.Message{
 			ID:    "forceCheckout",
-			Other: "forceren checkout",
+			Other: "forceer checkout",
 		}, &i18n.Message{
 			ID:    "merge",
 			Other: "merge",
@@ -214,6 +214,30 @@ func addDutch(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "NoCommitsThisBranch",
 			Other: "Geen commits voor deze branch",
+		}, &i18n.Message{
+			ID:    "Error",
+			Other: "Error",
+		}, &i18n.Message{
+			ID:    "resizingPopupPanel",
+			Other: "resizen popup paneel",
+		}, &i18n.Message{
+			ID:    "RunningSubprocess",
+			Other: "subprocess lopend",
+		}, &i18n.Message{
+			ID:    "selectHunk",
+			Other: "selecteer Hunk",
+		}, &i18n.Message{
+			ID:    "navigateConflicts",
+			Other: "navigeer conflicts",
+		}, &i18n.Message{
+			ID:    "pickHunk",
+			Other: "kies Hunk",
+		}, &i18n.Message{
+			ID:    "pickBothHunks",
+			Other: "kies bijde hunks",
+		}, &i18n.Message{
+			ID:    "undo",
+			Other: "ongedaan maken",
 		},
 	)
 }
