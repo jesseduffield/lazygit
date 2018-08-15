@@ -284,6 +284,9 @@ func addEnglish(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "new focused view is {{.newFocusedView}}",
+		}, &i18n.Message{
+			ID:    "CantCloseConfirmationPrompt",
+			Other: "Could not close confirmation prompt: {{.error}}",
 		},
 	)
 }

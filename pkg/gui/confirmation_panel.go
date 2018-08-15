@@ -83,7 +83,14 @@ func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, t
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
 			if err := gui.closeConfirmationPrompt(g); err != nil {
-				gui.Log.Error("Could not close confirmation prompt: ", err.Error())
+				errMessage := gui.Tr.TemplateLocalize(
+					"CantCloseConfirmationPrompt",
+					"Could not close confirmation prompt: {{.error}}",
+					map[string]interface{}{
+						"error": err.Error(),
+					},
+				)
+				gui.Log.Error(errMessage)
 			}
 		}
 		x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, prompt)
