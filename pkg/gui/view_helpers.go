@@ -29,7 +29,14 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 				break
 			}
 			if i == len(cyclableViews)-1 {
-				gui.Log.Info(v.Name() + " is not in the list of views")
+				message := gui.Tr.TemplateLocalize(
+					"IssntListOfViews",
+					"{{.name}} is not in the list of views",
+					map[string]interface{}{
+						"name": v.Name(),
+					},
+				)
+				gui.Log.Info(message)
 				return nil
 			}
 		}
@@ -52,7 +59,14 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 				break
 			}
 			if i == len(cyclableViews)-1 {
-				gui.Log.Info(v.Name() + " is not in the list of views")
+				message := gui.Tr.TemplateLocalize(
+					"IssntListOfViews",
+					"{{.name}} is not in the list of views",
+					map[string]interface{}{
+						"name": v.Name(),
+					},
+				)
+				gui.Log.Info(message)
 				return nil
 			}
 		}
@@ -87,7 +101,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "stash":
 		return gui.handleStashEntrySelect(g, v)
 	default:
-		panic("No view matching newLineFocused switch statement")
+		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement", "No view matching newLineFocused switch statement"))
 	}
 }
 
@@ -105,11 +119,25 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	// we should never stack confirmation panels
 	if oldView != nil && oldView.Name() != "confirmation" {
 		oldView.Highlight = false
-		gui.Log.Info("setting previous view to:", oldView.Name())
+		message := gui.Tr.TemplateLocalize(
+			"settingPreviewsViewTo",
+			"setting previous view to: {{.oldViewName}}",
+			map[string]interface{}{
+				"oldViewName": oldView.Name(),
+			},
+		)
+		gui.Log.Info(message)
 		gui.State.PreviousView = oldView.Name()
 	}
 	newView.Highlight = true
-	gui.Log.Info("new focused view is " + newView.Name())
+	message := gui.Tr.TemplateLocalize(
+		"newFocusedViewIs",
+		"new focused view is {{.newFocusedView}}",
+		map[string]interface{}{
+			"newFocusedView": newView.Name(),
+		},
+	)
+	gui.Log.Info(message)
 	if _, err := g.SetCurrentView(newView.Name()); err != nil {
 		return err
 	}

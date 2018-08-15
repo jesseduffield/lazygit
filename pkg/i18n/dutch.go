@@ -265,6 +265,18 @@ func addDutch(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "StashChanges",
 			Other: "Stash veranderingen",
+		}, &i18n.Message{
+			ID:    "IssntListOfViews",
+			Other: "{{.name}} is niet in de lijst van weergaves",
+		}, &i18n.Message{
+			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
+			Other: "Er machen geen weergave met de newLineFocused switch declaratie",
+		}, &i18n.Message{
+			ID:    "settingPreviewsViewTo",
+			Other: "vorige weergave instellen op: {{.oldViewName}}",
+		}, &i18n.Message{
+			ID:    "newFocusedViewIs",
+			Other: "nieuw gefocussed weergave is {{.newFocusedView}}",
 		},
 	)
 }
