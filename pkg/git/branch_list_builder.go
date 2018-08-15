@@ -39,7 +39,10 @@ func (b *BranchListBuilder) obtainCurrentBranch() commands.Branch {
 	// even though you're on 'master'
 	branchName, err := b.GitCommand.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
 	if err != nil {
-		panic(err.Error())
+		branchName, err = b.GitCommand.OSCommand.RunCommandWithOutput("git rev-parse --short HEAD")
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 	return commands.Branch{Name: strings.TrimSpace(branchName), Recency: "  *"}
 }
@@ -141,7 +144,7 @@ func branchInfoFromLine(line string) (string, string, string) {
 	r := regexp.MustCompile("\\|.*\\s")
 	line = r.ReplaceAllString(line, " ")
 	words := strings.Split(line, " ")
-	return words[0], words[1], words[3]
+	return words[0], words[1], words[len(words)-1]
 }
 
 func abbreviatedTimeUnit(timeUnit string) string {
