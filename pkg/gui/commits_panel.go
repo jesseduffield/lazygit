@@ -63,7 +63,7 @@ func (gui *Gui) renderCommitsOptions(g *gocui.Gui) error {
 		"s":       gui.Tr.SLocalize("squashDown", "squash down"),
 		"r":       gui.Tr.SLocalize("rename", "rename"),
 		"g":       gui.Tr.SLocalize("resetToThisCommit", "reset to this commit"),
-		"f":       gui.Tr.SLocalize("FixupCommit", "fixup commit"),
+		"f":       gui.Tr.SLocalize("fixupCommit", "fixup commit"),
 		"← → ↑ ↓": gui.Tr.SLocalize("navigate", "navigate"),
 	})
 }

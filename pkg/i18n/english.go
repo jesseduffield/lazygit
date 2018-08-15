@@ -1,3 +1,15 @@
+/*
+
+About: this pakcage contains just the contents to gets started with a new translations
+
+Todo list when making a new translation
+- Copy this file and rename it to the language you want to translate to like someLanguage.go
+- Change the addEnglish() name to the language you want to translate to like addSomeLanguage()
+- change the first function argument of i18nObject.AddMessages( to the language you want to translate to like language.SomeLanguage
+- Remove this todo and the about section
+
+*/
+
 package i18n
 
 import (
@@ -5,20 +17,18 @@ import (
 	"golang.org/x/text/language"
 )
 
-// addDutch will add all dutch translations
-func addDutch(i18nObject *i18n.Bundle) {
+func addEnglish(i18nObject *i18n.Bundle) {
 
-	// add the translations
-	i18nObject.AddMessages(language.Dutch,
+	i18nObject.AddMessages(language.English,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
-			Other: "Niet genoeg ruimte om de panelen te renderen",
+			Other: "Not enough space to render panels",
 		}, &i18n.Message{
 			ID:    "DiffTitle",
 			Other: "Diff",
 		}, &i18n.Message{
 			ID:    "FilesTitle",
-			Other: "Bestanden",
+			Other: "Files",
 		}, &i18n.Message{
 			ID:    "BranchesTitle",
 			Other: "Branches",
@@ -30,70 +40,70 @@ func addDutch(i18nObject *i18n.Bundle) {
 			Other: "Stash",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
-			Other: "Commit Bericht",
+			Other: "Commit message",
 		}, &i18n.Message{
 			ID:    "CommitChanges",
-			Other: "Commit Veranderingen",
+			Other: "commit changes",
 		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
 			ID:    "navigate",
-			Other: "navigeer",
+			Other: "navigate",
 		}, &i18n.Message{
 			ID:    "stashFiles",
-			Other: "stash-bestanden",
+			Other: "stash files",
 		}, &i18n.Message{
 			ID:    "open",
 			Other: "open",
 		}, &i18n.Message{
 			ID:    "ignore",
-			Other: "negeren",
+			Other: "ignore",
 		}, &i18n.Message{
 			ID:    "delete",
-			Other: "verwijderen",
+			Other: "delete",
 		}, &i18n.Message{
 			ID:    "toggleStaged",
 			Other: "toggle staged",
 		}, &i18n.Message{
 			ID:    "refresh",
-			Other: "verversen",
+			Other: "refresh",
 		}, &i18n.Message{
 			ID:    "addPatch",
-			Other: "verandering toevoegen",
+			Other: "add path",
 		}, &i18n.Message{
 			ID:    "edit",
-			Other: "veranderen",
+			Other: "edit",
 		}, &i18n.Message{
 			ID:    "scroll",
 			Other: "scroll",
 		}, &i18n.Message{
 			ID:    "abortMerge",
-			Other: "samenvoegen afbreken",
+			Other: "abort merge",
 		}, &i18n.Message{
 			ID:    "resolveMergeConflicts",
-			Other: "verhelp samenvoegen fouten",
+			Other: "resolve merge conflicts",
 		}, &i18n.Message{
 			ID:    "checkout",
-			Other: "uitchecken",
+			Other: "checkout",
 		}, &i18n.Message{
 			ID:    "NoChangedFiles",
-			Other: "Geen Bestanden verandert",
+			Other: "No changed files",
 		}, &i18n.Message{
 			ID:    "FileHasNoUnstagedChanges",
-			Other: "Het bestand heeft geen unstaged veranderingen om toe te voegen",
+			Other: "File has no unstaged changes to add",
 		}, &i18n.Message{
 			ID:    "CannotGitAdd",
-			Other: "Kan commando niet uitvoeren git add --path untracked files",
+			Other: "Cannot git add --patch untracked files",
 		}, &i18n.Message{
 			ID:    "CantIgnoreTrackFiles",
-			Other: "Kan gevolgde bestanden niet negeren",
+			Other: "Cannot ignore tracked files",
 		}, &i18n.Message{
 			ID:    "NoStagedFilesToCommit",
-			Other: "Er zijn geen staged bestanden om te commiten",
+			Other: "There are no staged files to commit",
 		}, &i18n.Message{
 			ID:    "NoFilesDisplay",
-			Other: "Geen bestanden om te laten zien",
+			Other: "No file to display",
 		}, &i18n.Message{
 			ID:    "PullWait",
 			Other: "Pulling...",
@@ -102,139 +112,139 @@ func addDutch(i18nObject *i18n.Bundle) {
 			Other: "Pushing...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
-			Other: "Dit bestand heeft geen merge conflicten",
+			Other: "This file has no merge conflicts",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? het kan dat je hierdoor bestanden verliest",
+			Other: "Are you sure you want `reset --hard HEAD`? You may lose changes",
 		}, &i18n.Message{
 			ID:    "SureTo",
-			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijdert)",
+			Other: "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
 		}, &i18n.Message{
 			ID:    "AlreadyCheckedOutBranch",
-			Other: "Je hebt uitgecheckt op deze branch",
+			Other: "You have already checked out this branch",
 		}, &i18n.Message{
 			ID:    "SureForceCheckout",
-			Other: "Weet je zeker dat je het uitchecken wil forceren? al je locale verandering zullen worden verwijdert",
+			Other: "Are you sure you want force checkout? You will lose all local changes",
 		}, &i18n.Message{
 			ID:    "ForceCheckoutBranch",
-			Other: "Forceer uitchecken op deze branch",
+			Other: "Force Checkout Branch",
 		}, &i18n.Message{
 			ID:    "BranchName",
-			Other: "Branch naam",
+			Other: "Branch name",
 		}, &i18n.Message{
 			ID:    "NewBranchNameBranchOff",
-			Other: "Nieuw branch naam (Branch is afgeleid van {{.branchName}})",
+			Other: "New Branch Name (Branch is off of {{.branchName}})",
 		}, &i18n.Message{
 			ID:    "CantDeleteCheckOutBranch",
-			Other: "Je kan een uitgecheckte branch niet verwijderen!",
+			Other: "You cannot delete the checked out branch!",
 		}, &i18n.Message{
 			ID:    "DeleteBranch",
-			Other: "Verwijder branch",
+			Other: "Delete Branch",
 		}, &i18n.Message{
 			ID:    "DeleteBranchMessage",
-			Other: "Weet je zeker dat je {{.selectedBranchName}} branch wil verwijderen?",
+			Other: "Are you sure you want delete the branch {{.selectedBranchName}} ?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
-			Other: "Je kan niet een branch in zichzelf mergen",
+			Other: "You cannot merge a branch into itself",
 		}, &i18n.Message{
 			ID:    "forceCheckout",
-			Other: "forceer checkout",
+			Other: "force checkout",
 		}, &i18n.Message{
 			ID:    "merge",
 			Other: "merge",
 		}, &i18n.Message{
 			ID:    "checkoutByName",
-			Other: "uitchecken bij naam",
+			Other: "checkout by name",
 		}, &i18n.Message{
 			ID:    "newBranch",
-			Other: "nieuwe branch",
+			Other: "new branch",
 		}, &i18n.Message{
 			ID:    "deleteBranch",
-			Other: "verwijder branch",
+			Other: "delete branch",
 		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
-			Other: "Geen branches voor deze repo",
+			Other: "No branches for this repo",
 		}, &i18n.Message{
 			ID:    "NoTrackingThisBranch",
-			Other: "deze branch wordt niet gevolgd",
+			Other: "There is no tracking for this branch",
 		}, &i18n.Message{
 			ID:    "CommitWithoutMessageErr",
-			Other: "Je kan geen commit maken zonder commit bericht",
+			Other: "You cannot commit without a commit message",
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
-			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
+			Other: "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
 		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
-			Other: "Weet je het zeker dat je wil resetten naar deze commit?",
+			Other: "Are you sure you want to reset to this commit?",
 		}, &i18n.Message{
 			ID:    "ResetToCommit",
-			Other: "Reset Naar Commit",
+			Other: "Reset To Commit",
 		}, &i18n.Message{
 			ID:    "squashDown",
-			Other: "squash beneden",
+			Other: "squash down",
 		}, &i18n.Message{
 			ID:    "rename",
-			Other: "hernoem",
+			Other: "rename",
 		}, &i18n.Message{
 			ID:    "resetToThisCommit",
-			Other: "reset naar deze commit",
+			Other: "reset to this commit",
 		}, &i18n.Message{
 			ID:    "fixupCommit",
-			Other: "Fixup commit",
+			Other: "fixup commit",
 		}, &i18n.Message{
 			ID:    "NoCommitsThisBranch",
-			Other: "Er zijn geen commits voor deze branch",
+			Other: "No commits for this branch",
 		}, &i18n.Message{
 			ID:    "OnlySquashTopmostCommit",
-			Other: "Kan alleen bovenste commit squashen",
+			Other: "Can only squash topmost commit",
 		}, &i18n.Message{
 			ID:    "YouNoCommitsToSquash",
-			Other: "Je hebt geen commits om mee te squashen",
+			Other: "You have no commits to squash with",
 		}, &i18n.Message{
 			ID:    "CantFixupWhileUnstagedChanges",
-			Other: "Kan geen Fixup uitvoeren op unstaged veranderingen",
+			Other: "Can't fixup while there are unstaged changes",
 		}, &i18n.Message{
 			ID:    "Fixup",
 			Other: "Fixup",
 		}, &i18n.Message{
 			ID:    "SureFixupThisCommit",
-			Other: "Weet je zeker dat je fixup wil uitvoeren op deze commit? De commit hieronder zol worden squashed in deze",
+			Other: "Are you sure you want to fixup this commit? The commit beneath will be squashed up into this one",
 		}, &i18n.Message{
 			ID:    "OnlyRenameTopCommit",
-			Other: "Je kan alleen de bovenste commit hernoemen",
+			Other: "Can only rename topmost commit",
 		}, &i18n.Message{
 			ID:    "RenameCommit",
-			Other: "Hernoem Commit",
+			Other: "Rename Commit",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
-			Other: "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)",
+			Other: "potential error in getSelected Commit (mismatched ui and state)",
 		}, &i18n.Message{
 			ID:    "NoCommitsThisBranch",
-			Other: "Geen commits voor deze branch",
+			Other: "No commits for this branch",
 		}, &i18n.Message{
 			ID:    "Error",
-			Other: "Fout",
+			Other: "Error",
 		}, &i18n.Message{
 			ID:    "resizingPopupPanel",
-			Other: "resizen popup paneel",
+			Other: "resizing popup panel",
 		}, &i18n.Message{
 			ID:    "RunningSubprocess",
-			Other: "subprocess lopend",
+			Other: "running subprocess",
 		}, &i18n.Message{
 			ID:    "selectHunk",
-			Other: "selecteer Hunk",
+			Other: "select hunk",
 		}, &i18n.Message{
 			ID:    "navigateConflicts",
-			Other: "navigeer conflicts",
+			Other: "navigate conflicts",
 		}, &i18n.Message{
 			ID:    "pickHunk",
-			Other: "kies Hunk",
+			Other: "pick hunk",
 		}, &i18n.Message{
 			ID:    "pickBothHunks",
-			Other: "kies bijde hunks",
+			Other: "pick both hunks",
 		}, &i18n.Message{
 			ID:    "undo",
-			Other: "ongedaan maken",
+			Other: "undo",
 		}, &i18n.Message{
 			ID:    "pop",
 			Other: "pop",
@@ -243,37 +253,37 @@ func addDutch(i18nObject *i18n.Bundle) {
 			Other: "drop",
 		}, &i18n.Message{
 			ID:    "apply",
-			Other: "toepassen",
+			Other: "apply",
 		}, &i18n.Message{
 			ID:    "NoStashEntries",
-			Other: "Geen stash items",
+			Other: "No stash entries",
 		}, &i18n.Message{
 			ID:    "StashDrop",
 			Other: "Stash drop",
 		}, &i18n.Message{
 			ID:    "SureDropStashEntry",
-			Other: "Weet je het zeker dat je deze stash entry wil laten vallen?",
+			Other: "Are you sure you want to drop this stash entry?",
 		}, &i18n.Message{
 			ID:    "NoStashTo",
-			Other: "Geen stash voor {{.method}}",
+			Other: "No stash to {{.method}}",
 		}, &i18n.Message{
 			ID:    "NoTrackedStagedFilesStash",
-			Other: "Je hebt geen tracked/staged bestanden om te laten stashen",
+			Other: "You have no tracked/staged files to stash",
 		}, &i18n.Message{
 			ID:    "StashChanges",
-			Other: "Stash veranderingen",
+			Other: "Stash changes",
 		}, &i18n.Message{
 			ID:    "IssntListOfViews",
-			Other: "{{.name}} is niet in de lijst van weergaves",
+			Other: "{{.name}} is not in the list of views",
 		}, &i18n.Message{
 			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
-			Other: "Er machen geen weergave met de newLineFocused switch declaratie",
+			Other: "No view matching newLineFocused switch statement",
 		}, &i18n.Message{
 			ID:    "settingPreviewsViewTo",
-			Other: "vorige weergave instellen op: {{.oldViewName}}",
+			Other: "setting previous view to: {{.oldViewName}}",
 		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
-			Other: "nieuw gefocussed weergave is {{.newFocusedView}}",
+			Other: "new focused view is {{.newFocusedView}}",
 		},
 	)
 }

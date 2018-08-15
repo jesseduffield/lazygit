@@ -127,7 +127,7 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		branch := gui.getSelectedBranch(v)
 		diff, err := gui.GitCommand.GetBranchGraph(branch.Name)
 		if err != nil && strings.HasPrefix(diff, "fatal: ambiguous argument") {
-			diff = gui.Tr.SLocalize("NoTrackingThisRepo", "There is no tracking for this branch")
+			diff = gui.Tr.SLocalize("NoTrackingThisBranch", "There is no tracking for this branch")
 		}
 		gui.renderString(g, "main", diff)
 	}()
