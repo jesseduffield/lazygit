@@ -152,6 +152,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "deleteBranch",
 			Other: "verwijder branch",
 		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "verwijder branch (forceer)",
+		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "Geen branches voor deze repo",
 		}, &i18n.Message{

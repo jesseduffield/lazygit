@@ -160,6 +160,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "deleteBranch",
 			Other: "delete branch",
 		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "delete branch (force)",
+		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "No branches for this repo",
 		}, &i18n.Message{

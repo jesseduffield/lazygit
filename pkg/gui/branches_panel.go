@@ -62,20 +62,28 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
+	gui.deleteBranch(g, v, false)
+}
+
+func (gui *Gui) handleForceDeleteBranch(g *gocui.Gui, v *gocui.View) error {
+	gui.deleteBranch(g, v, true)
+}
+
+func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 	checkedOutBranch := gui.State.Branches[0]
 	selectedBranch := gui.getSelectedBranch(v)
 	if checkedOutBranch.Name == selectedBranch.Name {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
 	}
+	title := gui.Tr.SLocalize("DeleteBranch")
 	message := gui.Tr.TemplateLocalize(
 		"DeleteBranchMessage",
 		Teml{
 			"selectedBranchName": selectedBranch.Name,
 		},
 	)
-	title := gui.Tr.SLocalize("DeleteBranch")
 	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name); err != nil {
+		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshSidePanels(g)
@@ -108,6 +116,7 @@ func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
 		"c":       gui.Tr.SLocalize("checkoutByName"),
 		"n":       gui.Tr.SLocalize("newBranch"),
 		"d":       gui.Tr.SLocalize("deleteBranch"),
+		"D":       gui.Tr.SLocalize("forceDeleteBranch"),
 		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
 	})
 }
