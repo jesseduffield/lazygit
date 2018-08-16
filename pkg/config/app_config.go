@@ -82,7 +82,7 @@ func (c *AppConfig) GetUserConfig() *viper.Viper {
 // LoadUserConfig gets the user's config
 func LoadUserConfig() (*viper.Viper, error) {
 	v := viper.New()
-	v.SetConfigType("json")
+	v.SetConfigType("yaml")
 	defaults := getDefaultConfig()
 	err := v.ReadConfig(bytes.NewBuffer(defaults))
 	if err != nil {
@@ -90,7 +90,7 @@ func LoadUserConfig() (*viper.Viper, error) {
 	}
 	v.SetConfigName("config")
 	configPath := homeDirectory() + "/lazygit/"
-	if _, err := os.Stat(filepath.FromSlash(configPath + "config.json")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.FromSlash(configPath + "config.yaml")); !os.IsNotExist(err) {
 		v.AddConfigPath(configPath)
 		err = v.MergeInConfig()
 		if err != nil {
@@ -103,13 +103,14 @@ func LoadUserConfig() (*viper.Viper, error) {
 
 func getDefaultConfig() []byte {
 	return []byte(`
-	{
-		"gui": {
-			"scrollHeight": 1
-		},
-		"git": {},
-		"os": {}
-	}
+  gui:
+    ## stuff relating to the UI
+    scrollHeight: 2
+  git:
+    # stuff relating to git
+  os:
+    # stuff relating to the OS
+
 `)
 }
 
