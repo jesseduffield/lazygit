@@ -3,8 +3,8 @@ package commands
 import "testing"
 
 func TestQuote(t *testing.T) {
-	osCommand := &OSCommand {
-		Log: nil,
+	osCommand := &OSCommand{
+		Log:      nil,
 		Platform: getPlatform(),
 	}
 	test := "hello `test`"
