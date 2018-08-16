@@ -44,8 +44,8 @@ type SentinelErrors struct {
 // localising things in the code.
 func (gui *Gui) GenerateSentinelErrors() {
 	gui.Errors = SentinelErrors{
-		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess", "running subprocess")),
-		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles", "No changed files")),
+		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess")),
+		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles")),
 	}
 }
 
@@ -159,7 +159,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-			v.Title = gui.Tr.SLocalize("NotEnoughSpace", "Not enough space to render panels")
+			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
 			v.Wrap = true
 		}
 		return nil
@@ -178,7 +178,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("DiffTitle", "Diff")
+		v.Title = gui.Tr.SLocalize("DiffTitle")
 		v.Wrap = true
 		v.FgColor = gocui.ColorWhite
 	}
@@ -187,7 +187,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("StatusTitle", "Status")
+		v.Title = gui.Tr.SLocalize("StatusTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -197,7 +197,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		filesView.Highlight = true
-		filesView.Title = gui.Tr.SLocalize("FilesTitle", "Files")
+		filesView.Title = gui.Tr.SLocalize("FilesTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -205,7 +205,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("BranchesTitle", "Branches")
+		v.Title = gui.Tr.SLocalize("BranchesTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -213,7 +213,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("CommitsTitle", "Commits")
+		v.Title = gui.Tr.SLocalize("CommitsTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -221,7 +221,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("StashTitle", "Stash")
+		v.Title = gui.Tr.SLocalize("StashTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -240,7 +240,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 				return err
 			}
 			g.SetViewOnBottom("commitMessage")
-			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage", "Commit message")
+			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
 		}

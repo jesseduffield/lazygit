@@ -31,7 +31,6 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 			if i == len(cyclableViews)-1 {
 				message := gui.Tr.TemplateLocalize(
 					"IssntListOfViews",
-					"{{.name}} is not in the list of views",
 					map[string]interface{}{
 						"name": v.Name(),
 					},
@@ -61,7 +60,6 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 			if i == len(cyclableViews)-1 {
 				message := gui.Tr.TemplateLocalize(
 					"IssntListOfViews",
-					"{{.name}} is not in the list of views",
 					map[string]interface{}{
 						"name": v.Name(),
 					},
@@ -101,7 +99,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "stash":
 		return gui.handleStashEntrySelect(g, v)
 	default:
-		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement", "No view matching newLineFocused switch statement"))
+		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement"))
 	}
 }
 
@@ -121,7 +119,6 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		oldView.Highlight = false
 		message := gui.Tr.TemplateLocalize(
 			"settingPreviewsViewTo",
-			"setting previous view to: {{.oldViewName}}",
 			map[string]interface{}{
 				"oldViewName": oldView.Name(),
 			},
@@ -132,7 +129,6 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	newView.Highlight = true
 	message := gui.Tr.TemplateLocalize(
 		"newFocusedViewIs",
-		"new focused view is {{.newFocusedView}}",
 		map[string]interface{}{
 			"newFocusedView": newView.Name(),
 		},

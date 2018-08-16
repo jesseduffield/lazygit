@@ -7,7 +7,7 @@ import (
 func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
 	if message == "" {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CommitWithoutMessageErr", "You cannot commit without a commit message"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("CommitWithoutMessageErr"))
 	}
 	sub, err := gui.GitCommand.Commit(g, message)
 	if err != nil {
@@ -50,7 +50,6 @@ func (gui *Gui) handleNewlineCommitMessage(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
-		"{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
 		map[string]interface{}{
 			"keyBindClose":   "esc",
 			"keyBindConfirm": "enter",

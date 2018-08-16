@@ -80,10 +80,10 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	if !file.HasUnstagedChanges {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileHasNoUnstagedChanges", "File has no unstaged changes to add"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileHasNoUnstagedChanges"))
 	}
 	if !file.Tracked {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CannotGitAdd", "Cannot git add --patch untracked files"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("CannotGitAdd"))
 	}
 	sub, err := gui.GitCommand.AddPatch(file.Name)
 	if err != nil {
@@ -115,13 +115,12 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	}
 	var deleteVerb string
 	if file.Tracked {
-		deleteVerb = gui.Tr.SLocalize("checkout", "checkout")
+		deleteVerb = gui.Tr.SLocalize("checkout")
 	} else {
-		deleteVerb = gui.Tr.SLocalize("delete", "delete")
+		deleteVerb = gui.Tr.SLocalize("delete")
 	}
 	message := gui.Tr.TemplateLocalize(
 		"SureTo",
-		"Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
 		map[string]interface{}{
 			"deleteVerb": deleteVerb,
 			"fileName":   file.Name,
@@ -141,7 +140,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, err.Error())
 	}
 	if file.Tracked {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantIgnoreTrackFiles", "Cannot ignore tracked files"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantIgnoreTrackFiles"))
 	}
 	gui.GitCommand.Ignore(file.Name)
 	return gui.refreshFiles(g)
@@ -149,27 +148,27 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
 	optionsMap := map[string]string{
-		"← → ↑ ↓":   gui.Tr.SLocalize("navigate", "navigate"),
-		"S":         gui.Tr.SLocalize("stashFiles", "stash files"),
-		"c":         gui.Tr.SLocalize("CommitChanges", "commit changes"),
-		"o":         gui.Tr.SLocalize("open", "open"),
-		"i":         gui.Tr.SLocalize("ignore", "ignore"),
-		"d":         gui.Tr.SLocalize("delete", "delete"),
-		"space":     gui.Tr.SLocalize("toggleStaged", "toggle staged"),
-		"R":         gui.Tr.SLocalize("refresh", "refresh"),
-		"t":         gui.Tr.SLocalize("addPatch", "add patch"),
-		"e":         gui.Tr.SLocalize("edit", "edit"),
-		"PgUp/PgDn": gui.Tr.SLocalize("scroll", "scroll"),
+		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
+		"S":         gui.Tr.SLocalize("stashFiles"),
+		"c":         gui.Tr.SLocalize("CommitChanges"),
+		"o":         gui.Tr.SLocalize("open"),
+		"i":         gui.Tr.SLocalize("ignore"),
+		"d":         gui.Tr.SLocalize("delete"),
+		"space":     gui.Tr.SLocalize("toggleStaged"),
+		"R":         gui.Tr.SLocalize("refresh"),
+		"t":         gui.Tr.SLocalize("addPatch"),
+		"e":         gui.Tr.SLocalize("edit"),
+		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
 	}
 	if gui.State.HasMergeConflicts {
-		optionsMap["a"] = gui.Tr.SLocalize("abortMerge", "abort merge")
-		optionsMap["m"] = gui.Tr.SLocalize("resolveMergeConflicts", "resolve merge conflicts")
+		optionsMap["a"] = gui.Tr.SLocalize("abortMerge")
+		optionsMap["m"] = gui.Tr.SLocalize("resolveMergeConflicts")
 	}
 	if file == nil {
 		return gui.renderOptionsMap(g, optionsMap)
 	}
 	if file.Tracked {
-		optionsMap["d"] = gui.Tr.SLocalize("checkout", "checkout")
+		optionsMap["d"] = gui.Tr.SLocalize("checkout")
 	}
 	return gui.renderOptionsMap(g, optionsMap)
 }
@@ -180,7 +179,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
-		gui.renderString(g, "main", "No changed files")
+		gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 		return gui.renderfilesOptions(g, nil)
 	}
 	gui.renderfilesOptions(g, &file)
@@ -195,7 +194,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit", "There are no staged files to commit"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
 	commitMessageView := gui.getCommitMessageView(g)
 	g.Update(func(g *gocui.Gui) error {
@@ -210,7 +209,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit", "There are no staged files to commit"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
 	gui.PrepareSubProcess(g, "git", "commit")
 	return nil
@@ -308,7 +307,7 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 		if err != gui.Errors.ErrNoFiles {
 			return "", err
 		}
-		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NoFilesDisplay", "No file to display"))
+		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NoFilesDisplay"))
 	}
 	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
@@ -335,7 +334,7 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 }
 
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
-	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PullWait", "Pulling..."))
+	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PullWait"))
 	go func() {
 		if err := gui.GitCommand.Pull(); err != nil {
 			gui.createErrorPanel(g, err.Error())
@@ -350,7 +349,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
-	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PushWait", "Pushing..."))
+	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PushWait"))
 	go func() {
 		branchName := gui.State.Branches[0].Name
 		if err := gui.GitCommand.Push(branchName); err != nil {
@@ -377,7 +376,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if !file.HasMergeConflicts {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons", "This file has no merge conflicts"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons"))
 	}
 	gui.switchFocus(g, v, mergeView)
 	return gui.refreshMergePanel(g)
@@ -387,13 +386,13 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.GitCommand.AbortMerge(); err != nil {
 		return gui.createErrorPanel(g, err.Error())
 	}
-	gui.createMessagePanel(g, v, "", "Merge aborted")
+	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("MergeAborted"))
 	gui.refreshStatus(g)
 	return gui.refreshFiles(g)
 }
 
 func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(g, v, "Clear file panel", gui.Tr.SLocalize("SureResetHardHead", "Are you sure you want `reset --hard HEAD`? You may lose changes"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("ClearFilePanel"), gui.Tr.SLocalize("SureResetHardHead"), func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.ResetHard(); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}

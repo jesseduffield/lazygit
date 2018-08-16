@@ -33,10 +33,10 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 
 func (gui *Gui) renderStashOptions(g *gocui.Gui) error {
 	return gui.renderOptionsMap(g, map[string]string{
-		"space":   gui.Tr.SLocalize("apply", "apply"),
-		"g":       gui.Tr.SLocalize("pop", "pop"),
-		"d":       gui.Tr.SLocalize("drop", "drop"),
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate", "navigate"),
+		"space":   gui.Tr.SLocalize("apply"),
+		"g":       gui.Tr.SLocalize("pop"),
+		"d":       gui.Tr.SLocalize("drop"),
+		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
 	})
 }
 
@@ -47,7 +47,7 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 	go func() {
 		stashEntry := gui.getSelectedStashEntry(v)
 		if stashEntry == nil {
-			gui.renderString(g, "main", gui.Tr.SLocalize("NoStashEntries", "No stash entries"))
+			gui.renderString(g, "main", gui.Tr.SLocalize("NoStashEntries"))
 			return
 		}
 		diff, _ := gui.GitCommand.GetStashEntryDiff(stashEntry.Index)
@@ -65,8 +65,8 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
-	title := gui.Tr.SLocalize("StashDrop", "Stash drop")
-	message := gui.Tr.SLocalize("SureDropStashEntry", "Are you sure you want to drop this stash entry?")
+	title := gui.Tr.SLocalize("StashDrop")
+	message := gui.Tr.SLocalize("SureDropStashEntry")
 	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		return gui.stashDo(g, v, "drop")
 	}, nil)
@@ -77,7 +77,6 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 	if stashEntry == nil {
 		errorMessage := gui.Tr.TemplateLocalize(
 			"NoStashTo",
-			"No stash to {{.method}}",
 			map[string]interface{}{
 				"method": method,
 			},
@@ -93,9 +92,9 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 
 func (gui *Gui) handleStashSave(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoTrackedStagedFilesStash", "You have no tracked/staged files to stash"))
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoTrackedStagedFilesStash"))
 	}
-	gui.createPromptPanel(g, filesView, gui.Tr.SLocalize("StashChanges", "Stash changes"), func(g *gocui.Gui, v *gocui.View) error {
+	gui.createPromptPanel(g, filesView, gui.Tr.SLocalize("StashChanges"), func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.StashSave(gui.trimmedContent(v)); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}

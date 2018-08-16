@@ -1,7 +1,5 @@
 /*
 
-About: this pakcage contains just the contents to gets started with a new translations
-
 Todo list when making a new translation
 - Copy this file and rename it to the language you want to translate to like someLanguage.go
 - Change the addEnglish() name to the language you want to translate to like addSomeLanguage()
@@ -287,6 +285,15 @@ func addEnglish(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "CantCloseConfirmationPrompt",
 			Other: "Could not close confirmation prompt: {{.error}}",
+		}, &i18n.Message{
+			ID:    "NoChangedFiles",
+			Other: "No changed files",
+		}, &i18n.Message{
+			ID:    "ClearFilePanel",
+			Other: "Clear file panel",
+		}, &i18n.Message{
+			ID:    "MergeAborted",
+			Other: "Merge aborted",
 		},
 	)
 }

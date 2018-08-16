@@ -51,21 +51,19 @@ func (l *Localizer) Localize(config *i18n.LocalizeConfig) string {
 // SLocalize (short localize) is for 1 line localizations
 // ID: The id that is used in the .toml translation files
 // Other: the default message it needs to return if there is no translation found or the system is english
-func (l *Localizer) SLocalize(ID string, Other string) string {
+func (l *Localizer) SLocalize(ID string) string {
 	return l.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
-			ID:    ID,
-			Other: Other,
+			ID: ID,
 		},
 	})
 }
 
 // TemplateLocalize allows the Other input to be dynamic
-func (l *Localizer) TemplateLocalize(ID string, Other string, TemplateData map[string]interface{}) string {
+func (l *Localizer) TemplateLocalize(ID string, TemplateData map[string]interface{}) string {
 	return l.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
-			ID:    ID,
-			Other: Other,
+			ID: ID,
 		},
 		TemplateData: TemplateData,
 	})
@@ -79,4 +77,5 @@ func (l *Localizer) GetLanguage() string {
 // add translation file(s)
 func addBundles(i18nBundle *i18n.Bundle) {
 	addDutch(i18nBundle)
+	addEnglish(i18nBundle)
 }
