@@ -7,6 +7,9 @@ import (
 	"golang.org/x/text/language"
 )
 
+// Teml is short for template used to make the required map[string]interface{} shorter when using gui.Tr.SLocalize and gui.Tr.TemplateLocalize
+type Teml map[string]interface{}
+
 // Localizer will translate a message into the user's language
 type Localizer struct {
 	i18nLocalizer *i18n.Localizer

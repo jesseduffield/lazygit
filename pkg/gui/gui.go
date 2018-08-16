@@ -50,7 +50,7 @@ func (gui *Gui) GenerateSentinelErrors() {
 }
 
 // Teml is short for template used to make the required map[string]interface{} shorter when using gui.Tr.SLocalize and gui.Tr.TemplateLocalize
-type Teml map[string]interface{}
+type Teml i18n.Teml
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
