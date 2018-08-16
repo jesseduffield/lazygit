@@ -68,7 +68,7 @@ func addEnglish(i18nObject *i18n.Bundle) {
 			Other: "refresh",
 		}, &i18n.Message{
 			ID:    "addPatch",
-			Other: "add path",
+			Other: "add patch",
 		}, &i18n.Message{
 			ID:    "edit",
 			Other: "edit",
