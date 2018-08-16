@@ -112,7 +112,6 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "Już przęłączono na tą gałąź",
 		}, &i18n.Message{
 			ID:    "SureForceCheckout",
-			Other: "Are you sure you want force checkout? You will lose all local changes",
 			Other: "Jesteś pewny, że chcesz wymusić przełączenie? Stracisz wszystkie lokalne zmiany",
 		}, &i18n.Message{
 			ID:    "ForceCheckoutBranch",
@@ -134,7 +133,6 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "Jesteś pewien, że chcesz usunąć gałąź {{.selectedBranchName}} ?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
-			Other: "You cannot merge a branch into itself",
 			Other: "Nie możesz scalić gałęzi do samej siebie",
 		}, &i18n.Message{
 			ID:    "forceCheckout",
@@ -189,7 +187,6 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "Można tylko ścisnąć najwyższe zatwierdzenie",
 		}, &i18n.Message{
 			ID:    "YouNoCommitsToSquash",
-			Other: "You have no commits to squash with",
 			Other: "Nie masz zatwierdzeń do ściśnięcia",
 		}, &i18n.Message{
 			ID:    "CantFixupWhileUnstagedChanges", //TODO
@@ -277,7 +274,6 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "nowy skupiony widok to {{.newFocusedView}}",
 		}, &i18n.Message{
 			ID:    "CantCloseConfirmationPrompt",
-			Other: "Could not close confirmation prompt: {{.error}}",
 			Other: "Nie można zamknąć monitu potwierdzenia: {{.error}}",
 		}, &i18n.Message{
 			ID:    "NoChangedFiles",
@@ -287,7 +283,6 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "Wyczyść panel plików",
 		}, &i18n.Message{
 			ID:    "MergeAborted",
-			Other: "Merge aborted",
 			Other: "Scalanie anulowane",
 		},
 	)
