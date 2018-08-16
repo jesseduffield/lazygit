@@ -43,4 +43,4 @@
 
 [[constraint]]
   branch = "master"
-  name = "https://github.com/spkg/bom"
+  name = "github.com/spkg/bom"

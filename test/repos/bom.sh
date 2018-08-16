@@ -3,7 +3,8 @@ set -ex; rm -rf repo; mkdir repo; cd repo
 
 git init
 
-cat <<EOT >> bomtest.txt ﻿A,B,C,D,E
+cat <<EOT >> bomtest.txt
+﻿A,B,C,D,E
 F,G,H,I,J
 K,L,M,N,O
 P,Q,R,S,T

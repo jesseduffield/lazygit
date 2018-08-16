@@ -192,7 +192,7 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 			return nil
 		}
 		v.Clear()
-		fmt.Fprint(v, bom.Clean(s))
+		fmt.Fprint(v, bom.Clean([]byte(s)))
 		v.Wrap = true
 		return nil
 	})
