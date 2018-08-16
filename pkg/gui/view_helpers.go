@@ -230,6 +230,11 @@ func (gui *Gui) getCommitsView(g *gocui.Gui) *gocui.View {
 	return v
 }
 
+func (gui *Gui) getMainView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("main")
+	return v
+}
+
 func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("commitMessage")
 	return v
