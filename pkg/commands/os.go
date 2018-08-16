@@ -171,7 +171,7 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) (*e
 
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
-        r := regexp.MustCompile("`")
-        message = r.ReplaceAllString(message, "\\`")
+	r := regexp.MustCompile("`")
+	message = r.ReplaceAllString(message, "\\`")
 	return c.Platform.escapedQuote + message + c.Platform.escapedQuote
 }
