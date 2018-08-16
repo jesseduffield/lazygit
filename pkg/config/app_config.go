@@ -3,10 +3,9 @@ package config
 import (
 	"bytes"
 	"log"
-	"os"
 	"os/user"
-	"path/filepath"
 
+	"github.com/shibukawa/configdir"
 	"github.com/spf13/viper"
 )
 
@@ -89,15 +88,20 @@ func LoadUserConfig() (*viper.Viper, error) {
 		return nil, err
 	}
 	v.SetConfigName("config")
-	configPath := homeDirectory() + "/lazygit/"
-	if _, err := os.Stat(filepath.FromSlash(configPath + "config.yaml")); !os.IsNotExist(err) {
-		v.AddConfigPath(configPath)
-		err = v.MergeInConfig()
+
+	// chucking my name there is not for vanity purposes, the xdg spec (and that
+	// function) requires a vendor name. May as well line up with github
+	configDirs := configdir.New("jesseduffield", "lazygit")
+	folder := configDirs.QueryFolderContainsFile("config.yml")
+	if folder != nil {
+		configData, err := folder.ReadFile("config.yml")
 		if err != nil {
 			return nil, err
 		}
+		if err = v.MergeConfig(bytes.NewReader(configData)); err != nil {
+			return nil, err
+		}
 	}
-
 	return v, nil
 }
 
