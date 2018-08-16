@@ -50,7 +50,7 @@ func (gui *Gui) handleNewlineCommitMessage(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
-		map[string]interface{}{
+		Teml{
 			"keyBindClose":   "esc",
 			"keyBindConfirm": "enter",
 		},

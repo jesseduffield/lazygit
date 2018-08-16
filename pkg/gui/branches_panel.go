@@ -47,7 +47,7 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.State.Branches[0]
 	message := gui.Tr.TemplateLocalize(
 		"NewBranchNameBranchOff",
-		map[string]interface{}{
+		Teml{
 			"branchName": branch.Name,
 		},
 	)
@@ -69,7 +69,7 @@ func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
 	}
 	message := gui.Tr.TemplateLocalize(
 		"DeleteBranchMessage",
-		map[string]interface{}{
+		Teml{
 			"selectedBranchName": selectedBranch.Name,
 		},
 	)

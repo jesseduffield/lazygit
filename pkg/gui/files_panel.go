@@ -90,7 +90,7 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	gui.SubProcess = sub
-	return nil
+	return gui.Errors.ErrSubProcess
 }
 
 func (gui *Gui) getSelectedFile(g *gocui.Gui) (commands.File, error) {
@@ -121,7 +121,7 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	}
 	message := gui.Tr.TemplateLocalize(
 		"SureTo",
-		map[string]interface{}{
+		Teml{
 			"deleteVerb": deleteVerb,
 			"fileName":   file.Name,
 		},
@@ -223,7 +223,7 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) error {
 	}
 	gui.SubProcess = sub
 	g.Update(func(g *gocui.Gui) error {
-		return nil
+		return gui.Errors.ErrSubProcess
 	})
 	return nil
 }
@@ -242,7 +242,7 @@ func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (
 	}
 	if sub != nil {
 		gui.SubProcess = sub
-		return nil
+		return gui.Errors.ErrSubProcess
 	}
 	return nil
 }

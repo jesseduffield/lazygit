@@ -85,7 +85,7 @@ func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, t
 			if err := gui.closeConfirmationPrompt(g); err != nil {
 				errMessage := gui.Tr.TemplateLocalize(
 					"CantCloseConfirmationPrompt",
-					map[string]interface{}{
+					Teml{
 						"error": err.Error(),
 					},
 				)
@@ -125,7 +125,7 @@ func (gui *Gui) handleNewline(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	actions := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
-		map[string]interface{}{
+		Teml{
 			"keyBindClose":   "esc",
 			"keyBindConfirm": "enter",
 		},
