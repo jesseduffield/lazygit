@@ -232,11 +232,11 @@ func (gui *Gui) switchToMerging(g *gocui.Gui) error {
 
 func (gui *Gui) renderMergeOptions(g *gocui.Gui) error {
 	return gui.renderOptionsMap(g, map[string]string{
-		"↑ ↓":   "select hunk",
-		"← →":   "navigate conflicts",
-		"space": "pick hunk",
-		"b":     "pick both hunks",
-		"z":     "undo",
+		"↑ ↓":   gui.Tr.SLocalize("selectHunk"),
+		"← →":   gui.Tr.SLocalize("navigateConflicts"),
+		"space": gui.Tr.SLocalize("pickHunk"),
+		"b":     gui.Tr.SLocalize("pickBothHunks"),
+		"z":     gui.Tr.SLocalize("undo"),
 	})
 }
 
