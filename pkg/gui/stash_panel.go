@@ -77,7 +77,7 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 	if stashEntry == nil {
 		errorMessage := gui.Tr.TemplateLocalize(
 			"NoStashTo",
-			map[string]interface{}{
+			Teml{
 				"method": method,
 			},
 		)

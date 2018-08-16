@@ -31,7 +31,7 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 			if i == len(cyclableViews)-1 {
 				message := gui.Tr.TemplateLocalize(
 					"IssntListOfViews",
-					map[string]interface{}{
+					Teml{
 						"name": v.Name(),
 					},
 				)
@@ -60,7 +60,7 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 			if i == len(cyclableViews)-1 {
 				message := gui.Tr.TemplateLocalize(
 					"IssntListOfViews",
-					map[string]interface{}{
+					Teml{
 						"name": v.Name(),
 					},
 				)
@@ -119,7 +119,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		oldView.Highlight = false
 		message := gui.Tr.TemplateLocalize(
 			"settingPreviewsViewTo",
-			map[string]interface{}{
+			Teml{
 				"oldViewName": oldView.Name(),
 			},
 		)
@@ -129,7 +129,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	newView.Highlight = true
 	message := gui.Tr.TemplateLocalize(
 		"newFocusedViewIs",
-		map[string]interface{}{
+		Teml{
 			"newFocusedView": newView.Name(),
 		},
 	)
