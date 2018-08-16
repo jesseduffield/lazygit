@@ -79,6 +79,7 @@ func (l *Localizer) GetLanguage() string {
 
 // add translation file(s)
 func addBundles(i18nBundle *i18n.Bundle) {
+	addPolish(i18nBundle)
 	addDutch(i18nBundle)
 	addEnglish(i18nBundle)
 }
