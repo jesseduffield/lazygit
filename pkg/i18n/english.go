@@ -15,9 +15,9 @@ import (
 	"golang.org/x/text/language"
 )
 
-func addEnglish(i18nObject *i18n.Bundle) {
+func addEnglish(i18nObject *i18n.Bundle) error {
 
-	i18nObject.AddMessages(language.English,
+	return i18nObject.AddMessages(language.English,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
 			Other: "Not enough space to render panels",

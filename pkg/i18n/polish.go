@@ -5,9 +5,9 @@ import (
 	"golang.org/x/text/language"
 )
 
-func addPolish(i18nObject *i18n.Bundle) {
+func addPolish(i18nObject *i18n.Bundle) error {
 
-	i18nObject.AddMessages(language.Polish,
+	return i18nObject.AddMessages(language.Polish,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
 			Other: "Za mało miejsca do wyświetlenia paneli",
