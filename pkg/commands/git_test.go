@@ -28,7 +28,7 @@ func TestDiff(t *testing.T) {
 		Deleted:            false,
 		HasMergeConflicts:  false,
 	}
-	osCommand.RunCommand("bash test/repos/ambiguous_ref.sh")
+	_ := osCommand.RunCommandWithoutOutput("bash test/repos/ambiguous_ref.sh")
 	content := gitCommand.Diff(file)
 	if strings.Contains(content, "ambiguous ref") {
 		t.Error("Error: ambiguous ref test failed")
