@@ -359,7 +359,7 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 func (c *GitCommand) RemoveFile(file File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	if !file.Tracked {
-		return c.OSCommand.RunCommand("rm -rf ./" + file.Name)
+		return os.RemoveAll(file.Name)
 	}
 	// if the file is tracked, we assume you want to just check it out
 	return c.OSCommand.RunCommand("git checkout " + file.Name)
