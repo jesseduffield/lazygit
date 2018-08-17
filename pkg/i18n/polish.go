@@ -244,13 +244,13 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "zastosuj",
 		}, &i18n.Message{
 			ID:    "NoStashEntries",
-			Other: "Brak pozycji w skrytce",
+			Other: "Brak pozycji w schowku",
 		}, &i18n.Message{
 			ID:    "StashDrop",
-			Other: "Porzuć skrytkę",
+			Other: "Porzuć schowek",
 		}, &i18n.Message{
 			ID:    "SureDropStashEntry",
-			Other: "Jesteś pewny, że chcesz porzucić tę pozycję w skrytce?",
+			Other: "Jesteś pewny, że chcesz porzucić tę pozycję w schowku?",
 		}, &i18n.Message{
 			ID:    "NoStashTo",
 			Other: "Brak schowka dla {{.method}}",
