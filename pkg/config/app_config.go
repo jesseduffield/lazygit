@@ -5,6 +5,7 @@ import (
 	"log"
 	"os/user"
 
+	"github.com/rollbar/rollbar-go"
 	"github.com/shibukawa/configdir"
 	"github.com/spf13/viper"
 )
@@ -36,6 +37,22 @@ func NewAppConfig(name, version, commit, date string, debuggingFlag *bool) (*App
 	if err != nil {
 		panic(err)
 	}
+
+	rollbar.SetToken("23432119147a4367abf7c0de2aa99a2d")
+	rollbar.SetEnvironment("production") // defaults to "development"
+	rollbar.SetCodeVersion(version)
+	// rollbar.SetServerHost("web.1")                       // optional override; defaults to hostname
+	rollbar.SetServerRoot("github.com/jesseduffield/lazygit") // path of project (required for GitHub integration and non-project stacktrace collapsing)
+
+	// result, err := DoSomething()
+	// if err != nil {
+	//   rollbar.Critical(err)
+	// }
+
+	rollbar.Info("This is a test message")
+	rollbar.Critical("test error")
+
+	// rollbar.Wait()
 
 	appConfig := &AppConfig{
 		Name:       "lazygit",
