@@ -1,7 +1,17 @@
-development.log
-commands.log
+# Logs
+*.log
+
+# Extras
 extra/lgit.rb
+
+# Notes
 notes/go.notes
 TODO.notes
 TODO.md
+
+# Tests
 test/repos/repo
+
+# Binaries
+lazygit
+
