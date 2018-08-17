@@ -211,6 +211,9 @@ func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) err
 	return gui.renderString(g, "options", gui.optionsMapToString(optionsMap))
 }
 
+// TODO: remove test comment for golangci
+// test two
+
 func (gui *Gui) loader() string {
 	characters := "|/-\\"
 	now := time.Now()
