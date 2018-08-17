@@ -22,16 +22,16 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "Gałęzie",
 		}, &i18n.Message{
 			ID:    "CommitsTitle",
-			Other: "Zatwierdzenia",
+			Other: "Commity",
 		}, &i18n.Message{
 			ID:    "StashTitle",
-			Other: "Skrytka",
+			Other: "Schowek",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
-			Other: "Wiadomość zatwierdzenia",
+			Other: "Wiadomość commita",
 		}, &i18n.Message{
 			ID:    "CommitChanges",
-			Other: "zatwierdź zmiany",
+			Other: "commituj zmiany",
 		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
@@ -51,8 +51,8 @@ func addPolish(i18nObject *i18n.Bundle) {
 			ID:    "delete",
 			Other: "usuń",
 		}, &i18n.Message{
-			ID:    "toggleStaged", //TODO
-			Other: "toggle staged",
+			ID:    "toggleStaged",
+			Other: "przełącz zatwierdzenie",
 		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "odśwież",
@@ -78,8 +78,8 @@ func addPolish(i18nObject *i18n.Bundle) {
 			ID:    "NoChangedFiles",
 			Other: "Brak zmienionych plików",
 		}, &i18n.Message{
-			ID:    "FileHasNoUnstagedChanges", //TODO
-			Other: "File has no unstaged changes to add",
+			ID:    "FileHasNoUnstagedChanges",
+			Other: "Plik nie zawiera żadnych nieopublikowanych zmian do dodania",
 		}, &i18n.Message{
 			ID:    "CannotGitAdd",
 			Other: "Nie można git add --patch nieśledzonych plików",
@@ -87,17 +87,17 @@ func addPolish(i18nObject *i18n.Bundle) {
 			ID:    "CantIgnoreTrackFiles",
 			Other: "Nie można zignorować nieśledzonych plików",
 		}, &i18n.Message{
-			ID:    "NoStagedFilesToCommit", //TODO
-			Other: "There are no staged files to commit",
+			ID:    "NoStagedFilesToCommit",
+			Other: "Brak zatwierdzonych plików do commita",
 		}, &i18n.Message{
 			ID:    "NoFilesDisplay",
 			Other: "Brak pliku do wyświetlenia",
 		}, &i18n.Message{
 			ID:    "PullWait",
-			Other: "Wciaganie...",
+			Other: "Wciąganie zmian...",
 		}, &i18n.Message{
 			ID:    "PushWait",
-			Other: "Wypychanie...",
+			Other: "Wypychanie zmian...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "Ten plik nie powoduje konfliktów scalania",
@@ -157,16 +157,16 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "Brak śledzenia dla tej gałęzi",
 		}, &i18n.Message{
 			ID:    "CommitWithoutMessageErr",
-			Other: "Nie możesz zatwierdzić bez podania wiadomości",
+			Other: "Nie możesz commitować bez podania wiadomości",
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: zamknij, {{.keyBindConfirm}}: potwierdź",
 		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
-			Other: "Jesteś pewny, że chcesz zresetować to zatwierdzenie?",
+			Other: "Jesteś pewny, że chcesz zresetować ten commit?",
 		}, &i18n.Message{
 			ID:    "ResetToCommit",
-			Other: "Zresetuj, aby zatwierdzić",
+			Other: "Zresetuj, aby commitować",
 		}, &i18n.Message{
 			ID:    "squashDown",
 			Other: "ściśnij w dół",
@@ -175,40 +175,40 @@ func addPolish(i18nObject *i18n.Bundle) {
 			Other: "przemianuj",
 		}, &i18n.Message{
 			ID:    "resetToThisCommit",
-			Other: "zresetuj do tego zatwierdzenia",
+			Other: "zresetuj do tego commita",
 		}, &i18n.Message{
-			ID:    "fixupCommit", //TODO
-			Other: "fixup commit",
+			ID:    "fixupCommit",
+			Other: "napraw commit",
 		}, &i18n.Message{
 			ID:    "NoCommitsThisBranch",
-			Other: "Brak zatwierdzeń dla tej gałęzi",
+			Other: "Brak commitów dla tej gałęzi",
 		}, &i18n.Message{
 			ID:    "OnlySquashTopmostCommit",
-			Other: "Można tylko ścisnąć najwyższe zatwierdzenie",
+			Other: "Można tylko ścisnąć najwyższy commit",
 		}, &i18n.Message{
 			ID:    "YouNoCommitsToSquash",
-			Other: "Nie masz zatwierdzeń do ściśnięcia",
+			Other: "Nie masz commitów do ściśnięcia",
 		}, &i18n.Message{
-			ID:    "CantFixupWhileUnstagedChanges", //TODO
-			Other: "Can't fixup while there are unstaged changes",
+			ID:    "CantFixupWhileUnstagedChanges",
+			Other: "Nie można wykonać naprawy, kiedy istnieją niezatwierdzone zmiany",
 		}, &i18n.Message{
-			ID:    "Fixup", //TODO
-			Other: "Fixup",
+			ID:    "Fixup",
+			Other: "Napraw",
 		}, &i18n.Message{
-			ID:    "SureFixupThisCommit", //TODO
-			Other: "Are you sure you want to fixup this commit? The commit beneath will be squashed up into this one",
+			ID:    "SureFixupThisCommit",
+			Other: "Jesteś pewny, ze chcesz naprawić ten commit? Commit poniżej zostanie ściśnięty w górę wraz z tym",
 		}, &i18n.Message{
 			ID:    "OnlyRenameTopCommit",
-			Other: "Można przmianować tylko najwyższe zatwierdzenie",
+			Other: "Można przmianować tylko najwyższy commit",
 		}, &i18n.Message{
 			ID:    "RenameCommit",
-			Other: "Przemianuj zatwierdzenie",
+			Other: "Przemianuj commit",
 		}, &i18n.Message{
-			ID:    "PotentialErrInGetselectedCommit", //TODO
-			Other: "potential error in getSelected Commit (mismatched ui and state)",
+			ID:    "PotentialErrInGetselectedCommit",
+			Other: "potencjalny błąd w getSelected Commit (niedopasowane ui i stan)",
 		}, &i18n.Message{
 			ID:    "NoCommitsThisBranch",
-			Other: "Brak zatwierdzeń dla tej gałęzi",
+			Other: "Brak commitów dla tej gałęzi",
 		}, &i18n.Message{
 			ID:    "Error",
 			Other: "Błąd",
@@ -252,11 +252,11 @@ func addPolish(i18nObject *i18n.Bundle) {
 			ID:    "SureDropStashEntry",
 			Other: "Jesteś pewny, że chcesz porzucić tę pozycję w skrytce?",
 		}, &i18n.Message{
-			ID:    "NoStashTo", //TODO
-			Other: "No stash to {{.method}}",
+			ID:    "NoStashTo",
+			Other: "Brak schowka dla {{.method}}",
 		}, &i18n.Message{
-			ID:    "NoTrackedStagedFilesStash", //TODO
-			Other: "You have no tracked/staged files to stash",
+			ID:    "NoTrackedStagedFilesStash",
+			Other: "Nie masz śledzonych/zatwierdzonych plików do przechowania",
 		}, &i18n.Message{
 			ID:    "StashChanges",
 			Other: "Przechowaj zmiany",
@@ -264,8 +264,8 @@ func addPolish(i18nObject *i18n.Bundle) {
 			ID:    "IssntListOfViews",
 			Other: "{{.name}} nie jest na liście widoków",
 		}, &i18n.Message{
-			ID:    "NoViewMachingNewLineFocusedSwitchStatement", //TODO
-			Other: "No view matching newLineFocused switch statement",
+			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
+			Other: "Brak widoku pasującego do instrukcji przełączania newLineFocused",
 		}, &i18n.Message{
 			ID:    "settingPreviewsViewTo",
 			Other: "ustawianie poprzedniego widoku na: {{.oldViewName}}",
