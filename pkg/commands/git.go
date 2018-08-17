@@ -489,7 +489,7 @@ func (c *GitCommand) Diff(file File) string {
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null"
 	}
-	command := fmt.Sprintf("%s %s %s %s %s", "git diff --color ", cachedArg, deletedArg, trackedArg, fileName)
+	command := fmt.Sprintf("%s %s %s %s %s", "git diff --color -- ", cachedArg, deletedArg, trackedArg, fileName)
 
 	// for now we assume an error means the file was deleted
 	s, _ := c.OSCommand.RunCommandWithOutput(command)
