@@ -15,3 +15,5 @@ test/repos/repo
 # Binaries
 lazygit
 
+# Dependencies
+vendor/*
