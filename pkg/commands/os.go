@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 
@@ -163,5 +164,6 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) (*e
 
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
+	message = strings.Replace(message, "`", "\\`", -1)
 	return c.Platform.escapedQuote + message + c.Platform.escapedQuote
 }
