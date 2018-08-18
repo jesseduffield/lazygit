@@ -90,7 +90,7 @@ whichever rc file you're using).
 
   * Basic video tutorial [here](https://www.youtube.com/watch?v=VDXvbHZYeKY).
   * List of keybindings
-[here](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md).
+[here](/docs/Keybindings.md).
 
 ## Cool features
   * Adding files easily
@@ -101,7 +101,7 @@ whichever rc file you're using).
   * Squash down and rename commits
 
 ### Resolving merge conflicts
-![Gif](https://image.ibb.co/iyxUTT/shortermerging.gif)
+![Gif](/docs/resources/resolving-merge-conflicts.gif)
 
 ### Viewing commit diffs
 ![Viewing Commit Diffs](https://image.ibb.co/gPD02o/capture.png)
