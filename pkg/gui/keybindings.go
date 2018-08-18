@@ -23,6 +23,8 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		{ViewName: "", Key: 'P', Modifier: gocui.ModNone, Handler: gui.pushFiles},
 		{ViewName: "", Key: 'p', Modifier: gocui.ModNone, Handler: gui.pullFiles},
 		{ViewName: "", Key: 'R', Modifier: gocui.ModNone, Handler: gui.handleRefresh},
+		{ViewName: "status", Key: 'e', Modifier: gocui.ModNone, Handler: gui.handleEditConfig},
+		{ViewName: "status", Key: 'o', Modifier: gocui.ModNone, Handler: gui.handleOpenConfig},
 		{ViewName: "files", Key: 'c', Modifier: gocui.ModNone, Handler: gui.handleCommitPress},
 		{ViewName: "files", Key: 'C', Modifier: gocui.ModNone, Handler: gui.handleCommitEditorPress},
 		{ViewName: "files", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: gui.handleFilePress},
@@ -70,7 +72,7 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 
 	// Would make these keybindings global but that interferes with editing
 	// input in the confirmation panel
-	for _, viewName := range []string{"files", "branches", "commits", "stash"} {
+	for _, viewName := range []string{"status", "files", "branches", "commits", "stash"} {
 		bindings = append(bindings, []Binding{
 			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},

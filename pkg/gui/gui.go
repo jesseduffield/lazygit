@@ -257,7 +257,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorGreen
 		v.Frame = false
-		gui.renderString(g, "version", version)
+		if err := gui.renderString(g, "version", version); err != nil {
+			return err
+		}
 
 		// these are only called once
 		gui.handleFileSelect(g, filesView)
@@ -265,7 +267,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		gui.refreshBranches(g)
 		gui.refreshCommits(g)
 		gui.refreshStashEntries(g)
-		gui.nextView(g, nil)
+		if err := gui.switchFocus(g, nil, filesView); err != nil {
+			return err
+		}
 	}
 
 	gui.resizePopupPanels(g)

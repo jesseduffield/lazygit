@@ -40,3 +40,24 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 
 	return nil
 }
+
+func (gui *Gui) renderStatusOptions(g *gocui.Gui) error {
+	return gui.renderOptionsMap(g, map[string]string{
+		"o": gui.Tr.SLocalize("OpenConfig"),
+		"e": gui.Tr.SLocalize("EditConfig"),
+	})
+}
+
+func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
+	return gui.renderStatusOptions(g)
+}
+
+func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
+	filename := gui.Config.GetUserConfig().ConfigFileUsed()
+	return gui.genericFileOpen(g, v, filename, gui.OSCommand.OpenFile)
+}
+
+func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {
+	filename := gui.Config.GetUserConfig().ConfigFileUsed()
+	return gui.genericFileOpen(g, v, filename, gui.OSCommand.EditFile)
+}

@@ -131,7 +131,7 @@ func (c *OSCommand) OpenFile(filename string) (*exec.Cmd, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = c.RunCommand(cmdName + " " + filename + cmdTrail) // TODO: test on linux
+	err = c.RunCommand(cmdName + " " + c.Quote(filename) + cmdTrail) // TODO: test on linux
 	return nil, err
 }
 
