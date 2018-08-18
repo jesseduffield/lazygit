@@ -36,6 +36,7 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+      - '^bump'
 brew:
   # Reporitory to push the tap to.
   github:
