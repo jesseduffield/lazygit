@@ -104,7 +104,7 @@ whichever rc file you're using).
 ![Gif](/docs/resources/resolving-merge-conflicts.gif)
 
 ### Viewing commit diffs
-![Viewing Commit Diffs](/docs/resources/view-commit-diffs.png)
+![Viewing Commit Diffs](/docs/resources/viewing-commit-diffs.png)
 
 ## Milestones
 - [x] Easy Installation (homebrew, release binaries)
