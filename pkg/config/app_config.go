@@ -28,6 +28,7 @@ type AppConfigurer interface {
 	GetBuildDate() string
 	GetName() string
 	GetUserConfig() *viper.Viper
+	InsertToUserConfig(string, string) error
 }
 
 // NewAppConfig makes a new app config
@@ -78,31 +79,70 @@ func (c *AppConfig) GetUserConfig() *viper.Viper {
 	return c.UserConfig
 }
 
-// LoadUserConfig gets the user's config
-func LoadUserConfig() (*viper.Viper, error) {
+func newViper() (*viper.Viper, error) {
 	v := viper.New()
 	v.SetConfigType("yaml")
-	defaults := getDefaultConfig()
-	err := v.ReadConfig(bytes.NewBuffer(defaults))
+	v.SetConfigName("config")
+	return v, nil
+}
+
+// LoadUserConfig gets the user's config
+func LoadUserConfig() (*viper.Viper, error) {
+	v, err := newViper()
 	if err != nil {
+		panic(err)
+	}
+	if err = LoadDefaultConfig(v); err != nil {
 		return nil, err
 	}
-	v.SetConfigName("config")
+	if err = LoadUserConfigFromFile(v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
 
+// LoadDefaultConfig loads in the defaults defined in this file
+func LoadDefaultConfig(v *viper.Viper) error {
+	defaults := getDefaultConfig()
+	return v.ReadConfig(bytes.NewBuffer(defaults))
+}
+
+// LoadUserConfigFromFile Loads the user config from their config file, creating
+// the file as an empty config if it does not exist
+func LoadUserConfigFromFile(v *viper.Viper) error {
 	// chucking my name there is not for vanity purposes, the xdg spec (and that
 	// function) requires a vendor name. May as well line up with github
 	configDirs := configdir.New("jesseduffield", "lazygit")
 	folder := configDirs.QueryFolderContainsFile("config.yml")
-	if folder != nil {
-		configData, err := folder.ReadFile("config.yml")
-		if err != nil {
-			return nil, err
-		}
-		if err = v.MergeConfig(bytes.NewReader(configData)); err != nil {
-			return nil, err
-		}
+	if folder == nil {
+		// create the file as an empty config and load it
+		folders := configDirs.QueryFolders(configdir.Global)
+		folders[0].WriteFile("config.yml", []byte{})
+		folder = configDirs.QueryFolderContainsFile("config.yml")
 	}
-	return v, nil
+	v.AddConfigPath(folder.Path)
+	if err := v.MergeInConfig(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// InsertToUserConfig adds a key/value pair to the user's config and saves it
+func (c *AppConfig) InsertToUserConfig(key, value string) error {
+	// making a new viper object so that we're not writing any defaults back
+	// to the user's config file
+	v, err := newViper()
+	if err != nil {
+		return err
+	}
+	if err = LoadUserConfigFromFile(v); err != nil {
+		return err
+	}
+	v.Set(key, value)
+	if err := v.WriteConfig(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func getDefaultConfig() []byte {

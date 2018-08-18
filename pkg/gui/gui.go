@@ -19,8 +19,8 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/spf13/viper"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -59,10 +59,9 @@ type Gui struct {
 	Log        *logrus.Logger
 	GitCommand *commands.GitCommand
 	OSCommand  *commands.OSCommand
-	Version    string
 	SubProcess *exec.Cmd
 	State      guiState
-	Config     *viper.Viper
+	Config     config.AppConfigurer
 	Tr         *i18n.Localizer
 	Errors     SentinelErrors
 }
@@ -79,11 +78,10 @@ type guiState struct {
 	Conflicts         []commands.Conflict
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
-	Version           string
 }
 
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, userConfig *viper.Viper, version string) (*Gui, error) {
+func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*Gui, error) {
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
@@ -94,16 +92,14 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		Conflicts:     make([]commands.Conflict, 0),
 		EditHistory:   stack.New(),
 		Platform:      *oSCommand.Platform,
-		Version:       version,
 	}
 
 	gui := &Gui{
 		Log:        log,
 		GitCommand: gitCommand,
 		OSCommand:  oSCommand,
-		Version:    version,
 		State:      initialState,
-		Config:     userConfig,
+		Config:     config,
 		Tr:         tr,
 	}
 
@@ -116,7 +112,7 @@ func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy >= 1 {
-		return mainView.SetOrigin(ox, oy-gui.Config.GetInt("gui.scrollHeight"))
+		return mainView.SetOrigin(ox, oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
 	}
 	return nil
 }
@@ -125,7 +121,7 @@ func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
 	if oy < len(mainView.BufferLines()) {
-		return mainView.SetOrigin(ox, oy+gui.Config.GetInt("gui.scrollHeight"))
+		return mainView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
 	}
 	return nil
 }
@@ -153,6 +149,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	commitsStashBoundary := height - 5        // height - 5
 	minimumHeight := 16
 	minimumWidth := 10
+	version := gui.Config.GetVersion()
 
 	panelSpacing := 1
 	if OverlappingEdges {
@@ -231,7 +228,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", -1, optionsTop, width-len(gui.Version)-2, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", -1, optionsTop, width-len(version)-2, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -252,14 +249,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if v, err := g.SetView("version", width-len(gui.Version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorGreen
 		v.Frame = false
-		gui.renderString(g, "version", gui.Version)
+		gui.renderString(g, "version", version)
 
 		// these are only called once
 		gui.handleFileSelect(g, filesView)
