@@ -231,8 +231,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.FgColor = gocui.ColorBlue
 		v.Frame = false
+		if v.FgColor, err = gui.GetOptionsPanelTextColor(); err != nil {
+			return err
+		}
 	}
 
 	if gui.getCommitMessageView(g) == nil {

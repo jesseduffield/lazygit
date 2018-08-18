@@ -36,10 +36,18 @@ func (gui *Gui) GetColor(keys []string) gocui.Attribute {
 	return attribute
 }
 
+// GetOptionsPanelTextColor gets the color of the options panel text
+func (gui *Gui) GetOptionsPanelTextColor() (gocui.Attribute, error) {
+	userConfig := gui.Config.GetUserConfig()
+	optionsColor := userConfig.GetStringSlice("gui.theme.optionsTextColor")
+	return gui.GetColor(optionsColor), nil
+}
+
 // SetColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) SetColorScheme() error {
-	activeBorderColor := gui.Config.GetUserConfig().GetStringSlice("gui.activeBorderColor")
-	inactiveBorderColor := gui.Config.GetUserConfig().GetStringSlice("gui.inactiveBorderColor")
+	userConfig := gui.Config.GetUserConfig()
+	activeBorderColor := userConfig.GetStringSlice("gui.theme.activeBorderColor")
+	inactiveBorderColor := userConfig.GetStringSlice("gui.theme.inactiveBorderColor")
 	gui.g.FgColor = gui.GetColor(inactiveBorderColor)
 	gui.g.SelFgColor = gui.GetColor(activeBorderColor)
 	return nil

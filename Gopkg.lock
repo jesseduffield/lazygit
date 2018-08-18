@@ -156,6 +156,14 @@
   revision = "58046073cbffe2f25d425fe1331102f55cf719de"
 
 [[projects]]
+  branch = "master"
+  digest = "1:5fe20cfe4ef484c237cec9f947b2a6fa90bad4b8610fd014f0e4211e13d82d5d"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
+
+[[projects]]
   digest = "1:2c34c77bf3ec848da26e48af58fc511ed52750961fa848399d122882b8890928"
   name = "github.com/nicksnyder/go-i18n"
   packages = [
@@ -166,14 +174,6 @@
   pruneopts = "NUT"
   revision = "a16b91a3ba80db3a2301c70d1d302d42251c9079"
   version = "v2.0.0-beta.5"
-
-[[projects]]
-  branch = "master"
-  digest = "1:5fe20cfe4ef484c237cec9f947b2a6fa90bad4b8610fd014f0e4211e13d82d5d"
-  name = "github.com/mitchellh/mapstructure"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
 
 [[projects]]
   branch = "master"
@@ -438,9 +438,9 @@
     "github.com/golang-collections/collections/stack",
     "github.com/jesseduffield/gocui",
     "github.com/mgutz/str",
+    "github.com/nicksnyder/go-i18n/v2/i18n",
     "github.com/shibukawa/configdir",
     "github.com/spf13/viper",
-    "github.com/nicksnyder/go-i18n/v2/i18n",
     "github.com/tcnksm/go-gitconfig",
     "golang.org/x/text/language",
     "gopkg.in/src-d/go-git.v4",

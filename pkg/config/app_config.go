@@ -2,8 +2,6 @@ package config
 
 import (
 	"bytes"
-	"log"
-	"os/user"
 
 	"github.com/shibukawa/configdir"
 	"github.com/spf13/viper"
@@ -117,7 +115,9 @@ func LoadUserConfigFromFile(v *viper.Viper) error {
 	if folder == nil {
 		// create the file as an empty config and load it
 		folders := configDirs.QueryFolders(configdir.Global)
-		folders[0].WriteFile("config.yml", []byte{})
+		if err := folders[0].WriteFile("config.yml", []byte{}); err != nil {
+			return err
+		}
 		folder = configDirs.QueryFolderContainsFile("config.yml")
 	}
 	v.AddConfigPath(folder.Path)
@@ -150,11 +150,14 @@ func getDefaultConfig() []byte {
   gui:
     ## stuff relating to the UI
     scrollHeight: 2
-    activeBorderColor:
-      - white
-      - bold
-    inactiveBorderColor:
-      - white
+    theme:
+      activeBorderColor:
+        - white
+        - bold
+      inactiveBorderColor:
+        - white
+      optionsTextColor:
+        - blue
   git:
     # stuff relating to git
   os:
@@ -163,10 +166,11 @@ func getDefaultConfig() []byte {
 `)
 }
 
-func homeDirectory() string {
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return usr.HomeDir
-}
+// // commenting this out until we use it again
+// func homeDirectory() string {
+// 	usr, err := user.Current()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	return usr.HomeDir
+// }
