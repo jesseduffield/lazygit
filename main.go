@@ -4,9 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
-	"os/user"
 	"path/filepath"
 
 	"github.com/jesseduffield/lazygit/pkg/app"
@@ -21,14 +19,6 @@ var (
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
 )
-
-func homeDirectory() string {
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return usr.HomeDir
-}
 
 func projectPath(path string) string {
 	gopath := os.Getenv("GOPATH")
@@ -56,13 +46,11 @@ func main() {
 		fmt.Printf("commit=%s, build date=%s, version=%s\n", commit, date, version)
 		os.Exit(0)
 	}
-	appConfig := &config.AppConfig{
-		Name:      "lazygit",
-		Version:   version,
-		Commit:    commit,
-		BuildDate: date,
-		Debug:     *debuggingFlag,
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, debuggingFlag)
+	if err != nil {
+		panic(err)
 	}
+
 	app, err := app.NewApp(appConfig)
 	app.Log.Info(err)
 	app.GitCommand.SetupGit()

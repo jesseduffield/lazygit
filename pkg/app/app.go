@@ -60,7 +60,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config.GetVersion())
+	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config)
 	if err != nil {
 		return nil, err
 	}

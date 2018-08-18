@@ -28,7 +28,19 @@ brew install lazygit
 ### Ubuntu
 Packages for Ubuntu 16.04, 18.04 and 18.10 are available via [Launchpad PPA](https://launchpad.net/~lazygit-team).
 
-They are built daily, straight from master branch.
+**Release builds**
+
+Built from git tags. Supposed to be more stable.
+
+```sh
+sudo add-apt-repository ppa:lazygit-team/release
+sudo apt-get update
+sudo apt-get install lazygit
+```
+
+**Daily builds**
+
+Built from master branch once in 24 hours (or more sometimes).
 
 ```sh
 sudo add-apt-repository ppa:lazygit-team/daily

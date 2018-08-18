@@ -10,7 +10,7 @@ import (
 	"github.com/spkg/bom"
 )
 
-var cyclableViews = []string{"files", "branches", "commits", "stash"}
+var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
 
 func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
 	gui.refreshBranches(g)
@@ -82,6 +82,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	mainView.SetOrigin(0, 0)
 
 	switch v.Name() {
+	case "status":
+		return gui.handleStatusSelect(g, v)
 	case "files":
 		return gui.handleFileSelect(g, v)
 	case "branches":

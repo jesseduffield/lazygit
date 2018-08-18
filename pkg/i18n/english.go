@@ -68,7 +68,7 @@ func addEnglish(i18nObject *i18n.Bundle) {
 			Other: "refresh",
 		}, &i18n.Message{
 			ID:    "addPatch",
-			Other: "add path",
+			Other: "add patch",
 		}, &i18n.Message{
 			ID:    "edit",
 			Other: "edit",
@@ -294,6 +294,12 @@ func addEnglish(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge aborted",
+		}, &i18n.Message{
+			ID:    "OpenConfig",
+			Other: "open config file",
+		}, &i18n.Message{
+			ID:    "EditConfig",
+			Other: "edit config file",
 		},
 	)
 }

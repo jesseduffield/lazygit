@@ -1,23 +1,24 @@
 # This is an example goreleaser.yaml file with some sane defaults.
 # Make sure to check the documentation at http://goreleaser.com
 builds:
-- env:
-  - CGO_ENABLED=0
-  goos:
-    - freebsd
-    - windows
-    - darwin
-    - linux
-  goarch:
-    - amd64
-    - arm
-    - arm64
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - freebsd
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+      - 386
 archive:
   replacements:
     darwin: Darwin
     linux: Linux
     windows: Windows
-    386: i386
+    386: 32-bit
     amd64: x86_64
   format_overrides:
     - goos: windows
@@ -25,13 +26,13 @@ archive:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: '{{ .Tag }}-next'
 changelog:
   sort: asc
   filters:
     exclude:
-    - '^docs:'
-    - '^test:'
+      - '^docs:'
+      - '^test:'
 brew:
   # Reporitory to push the tap to.
   github:
@@ -40,17 +41,16 @@ brew:
 
   # Your app's homepage.
   # Default is empty.
-  homepage: "https://github.com/jesseduffield/lazygit/"
+  homepage: 'https://github.com/jesseduffield/lazygit/'
 
   # Your app's description.
   # Default is empty.
-  description: "A simple terminal UI for git commands, written in Go"
+  description: 'A simple terminal UI for git commands, written in Go'
 
   # # Packages your package depends on.
   # dependencies:
   #   - git
   #   - zsh
-
   # # Packages that conflict with your package.
   # conflicts:
   #   - svn
