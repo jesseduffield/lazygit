@@ -140,7 +140,6 @@ func max(a, b int) int {
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
-	g.SelFgColor = gocui.ColorWhite | gocui.AttrBold
 	width, height := g.Size()
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
@@ -315,7 +314,9 @@ func (gui *Gui) Run() error {
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
-	g.FgColor = gocui.ColorDefault
+	if err := gui.SetColorScheme(); err != nil {
+		return err
+	}
 
 	gui.goEvery(g, time.Second*60, gui.fetch)
 	gui.goEvery(g, time.Second*10, gui.refreshFiles)

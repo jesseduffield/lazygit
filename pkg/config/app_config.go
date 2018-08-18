@@ -150,6 +150,11 @@ func getDefaultConfig() []byte {
   gui:
     ## stuff relating to the UI
     scrollHeight: 2
+    activeBorderColor:
+      - white
+      - bold
+    inactiveBorderColor:
+      - white
   git:
     # stuff relating to git
   os:
