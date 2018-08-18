@@ -10,6 +10,14 @@
   version = "v1.0.6"
 
 [[projects]]
+  branch = "master"
+  digest = "1:cd7ba2b29e93e2a8384e813dfc80ebb0f85d9214762e6ca89bb55a58092eab87"
+  name = "github.com/cloudfoundry/jibber_jabber"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "bcc4c8345a21301bf47c032ff42dd1aae2fe3027"
+
+[[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -146,6 +154,18 @@
   packages = ["."]
   pruneopts = "NUT"
   revision = "58046073cbffe2f25d425fe1331102f55cf719de"
+
+[[projects]]
+  digest = "1:2c34c77bf3ec848da26e48af58fc511ed52750961fa848399d122882b8890928"
+  name = "github.com/nicksnyder/go-i18n"
+  packages = [
+    "v2/i18n",
+    "v2/internal",
+    "v2/internal/plural",
+  ]
+  pruneopts = "NUT"
+  revision = "a16b91a3ba80db3a2301c70d1d302d42251c9079"
+  version = "v2.0.0-beta.5"
 
 [[projects]]
   branch = "master"
@@ -313,12 +333,14 @@
   revision = "98c5dad5d1a0e8a73845ecc8897d0bd56586511d"
 
 [[projects]]
-  digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
+  digest = "1:a95288ef1ef4dfad6cba7fe30843e1683f71bc28c912ca1ba3f6a539d44db739"
   name = "golang.org/x/text"
   packages = [
     "internal/gen",
+    "internal/tag",
     "internal/triegen",
     "internal/ucd",
+    "language",
     "transform",
     "unicode/cldr",
     "unicode/norm",
@@ -410,6 +432,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/Sirupsen/logrus",
+    "github.com/cloudfoundry/jibber_jabber",
     "github.com/davecgh/go-spew/spew",
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
@@ -417,7 +440,9 @@
     "github.com/mgutz/str",
     "github.com/shibukawa/configdir",
     "github.com/spf13/viper",
+    "github.com/nicksnyder/go-i18n/v2/i18n",
     "github.com/tcnksm/go-gitconfig",
+    "golang.org/x/text/language",
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/plumbing",
   ]

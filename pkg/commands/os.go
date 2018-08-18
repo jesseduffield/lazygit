@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 
@@ -12,13 +13,6 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
-)
-
-var (
-	// ErrNoOpenCommand : When we don't know which command to use to open a file
-	ErrNoOpenCommand = errors.New("Unsure what command to use to open this file")
-	// ErrNoEditorDefined : When we can't find an editor to edit a file
-	ErrNoEditorDefined = errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 )
 
 // Platform stores the os state
@@ -113,7 +107,7 @@ func (c *OSCommand) GetOpenCommand() (string, string, error) {
 			return name, trail, nil
 		}
 	}
-	return "", "", ErrNoOpenCommand
+	return "", "", errors.New("Unsure what command to use to open this file")
 }
 
 // VsCodeOpenFile opens the file in code, with the -r flag to open in the
@@ -157,7 +151,7 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 		}
 	}
 	if editor == "" {
-		return nil, ErrNoEditorDefined
+		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 	}
 	return c.PrepareSubProcess(editor, filename)
 }
@@ -170,5 +164,6 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) (*e
 
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
+	message = strings.Replace(message, "`", "\\`", -1)
 	return c.Platform.escapedQuote + message + c.Platform.escapedQuote
 }

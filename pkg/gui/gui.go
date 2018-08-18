@@ -19,17 +19,39 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/spf13/viper"
 )
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
 
-// ErrSubProcess tells us we're switching to a subprocess so we need to
-// close the Gui until it is finished
-var (
-	ErrSubProcess = errors.New("running subprocess")
-)
+// SentinelErrors are the errors that have special meaning and need to be checked
+// by calling functions. The less of these, the better
+type SentinelErrors struct {
+	ErrSubProcess error
+	ErrNoFiles    error
+}
+
+// GenerateSentinelErrors makes the sentinel errors for the gui. We're defining it here
+// because we can't do package-scoped errors with localization, and also because
+// it seems like package-scoped variables are bad in general
+// https://dave.cheney.net/2017/06/11/go-without-package-scoped-variables
+// In the future it would be good to implement some of the recommendations of
+// that article. For now, if we don't need an error to be a sentinel, we will just
+// define it inline. This has implications for error messages that pop up everywhere
+// in that we'll be duplicating the default values. We may need to look at
+// having a default localisation bundle defined, and just using keys-only when
+// localising things in the code.
+func (gui *Gui) GenerateSentinelErrors() {
+	gui.Errors = SentinelErrors{
+		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess")),
+		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles")),
+	}
+}
+
+// Teml is short for template used to make the required map[string]interface{} shorter when using gui.Tr.SLocalize and gui.Tr.TemplateLocalize
+type Teml i18n.Teml
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
@@ -41,6 +63,8 @@ type Gui struct {
 	SubProcess *exec.Cmd
 	State      guiState
 	Config     *viper.Viper
+	Tr         *i18n.Localizer
+	Errors     SentinelErrors
 }
 
 type guiState struct {
@@ -59,7 +83,7 @@ type guiState struct {
 }
 
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, version string, userConfig *viper.Viper) (*Gui, error) {
+func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, userConfig *viper.Viper, version string) (*Gui, error) {
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
@@ -73,14 +97,19 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		Version:       version,
 	}
 
-	return &Gui{
+	gui := &Gui{
 		Log:        log,
 		GitCommand: gitCommand,
 		OSCommand:  oSCommand,
 		Version:    version,
 		State:      initialState,
 		Config:     userConfig,
-	}, nil
+		Tr:         tr,
+	}
+
+	gui.GenerateSentinelErrors()
+
+	return gui, nil
 }
 
 func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
@@ -136,7 +165,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-			v.Title = "Not enough space to render panels"
+			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
 			v.Wrap = true
 		}
 		return nil
@@ -155,7 +184,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Diff"
+		v.Title = gui.Tr.SLocalize("DiffTitle")
 		v.Wrap = true
 		v.FgColor = gocui.ColorWhite
 	}
@@ -164,7 +193,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Status"
+		v.Title = gui.Tr.SLocalize("StatusTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -174,7 +203,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		filesView.Highlight = true
-		filesView.Title = "Files"
+		filesView.Title = gui.Tr.SLocalize("FilesTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -182,7 +211,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Branches"
+		v.Title = gui.Tr.SLocalize("BranchesTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -190,7 +219,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Commits"
+		v.Title = gui.Tr.SLocalize("CommitsTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -198,7 +227,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Stash"
+		v.Title = gui.Tr.SLocalize("StashTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
@@ -217,7 +246,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 				return err
 			}
 			g.SetViewOnBottom("commitMessage")
-			commitMessageView.Title = "Commit message"
+			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
 		}
@@ -313,7 +342,7 @@ func (gui *Gui) RunWithSubprocesses() {
 		if err := gui.Run(); err != nil {
 			if err == gocui.ErrQuit {
 				break
-			} else if err == ErrSubProcess {
+			} else if err == gui.Errors.ErrSubProcess {
 				gui.SubProcess.Stdin = os.Stdin
 				gui.SubProcess.Stdout = os.Stdout
 				gui.SubProcess.Stderr = os.Stderr
