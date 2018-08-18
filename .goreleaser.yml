@@ -13,6 +13,9 @@ builds:
       - arm
       - arm64
       - 386
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.tag={{.Tag}} -X main.date={{.Date}} -X main.commit={{.Commit}} -X "main.goos={{.Os}} -X "main.arch={{.Arch}} -X "main.arm={{.Arm}}"
+
 archive:
   replacements:
     darwin: Darwin

@@ -15,6 +15,9 @@ var (
 	commit  string
 	version = "unversioned"
 	date    string
+	goos    string
+	arch    string
+	arm     string
 
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
@@ -43,7 +46,7 @@ func main() {
 		version = fallbackVersion()
 	}
 	if *versionFlag {
-		fmt.Printf("commit=%s, build date=%s, version=%s\n", commit, date, version)
+		fmt.Printf("commit=%s, build date=%s, version=%s, os=%s, arch=%s, arm=%s\n", commit, date, version, goos, arch, arm)
 		os.Exit(0)
 	}
 	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, debuggingFlag)
