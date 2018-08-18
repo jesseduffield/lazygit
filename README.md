@@ -72,9 +72,17 @@ https://wiki.archlinux.org/index.php/Arch_User_Repository
 ### Binary Release (Windows/Linux/OSX)
 You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases).
 
-### Go
+### Source
+
+To get the source code run the following command:
 ```sh
 go get github.com/jesseduffield/lazygit
+```
+
+To set up the dependencies, you need to run the following command
+inside the source folder:
+```sh
+dep ensure
 ```
 
 Please note:
