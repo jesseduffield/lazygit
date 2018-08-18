@@ -48,21 +48,21 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	app.Log = newLogger(config)
 	app.OSCommand, err = commands.NewOSCommand(app.Log)
 	if err != nil {
-		return nil, err
+		return app, err
 	}
 
 	app.Tr, err = i18n.NewLocalizer(app.Log)
 	if err != nil {
-		return nil, err
+		return app, err
 	}
 
 	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand)
 	if err != nil {
-		return nil, err
+		return app, err
 	}
 	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config)
 	if err != nil {
-		return nil, err
+		return app, err
 	}
 	return app, nil
 }
