@@ -23,4 +23,5 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: go test -v ./...
+      - run: bash test/coverage.sh
       - run: bash <(curl -s https://codecov.io/bash)
