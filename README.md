@@ -7,7 +7,7 @@ too stubborn to use Sourcetree because you'll never forgive Atlassian for making
 Jira? This is the app for you!
 
 
-![Gif](https://image.ibb.co/mmeXho/optimisedgif.gif)
+![Gif](/docs/resources/lazygit-example.gif)
 
   * [Installation](https://github.com/jesseduffield/lazygit#installation)
   * [Usage](https://github.com/jesseduffield/lazygit#usage),
