@@ -47,6 +47,13 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	return sanitisedCommandOutput(cmdOut, err)
 }
 
+// RunCommandWithArgs takes a command and explicit arguments
+func (c *OSCommand) RunCommandWithArgs(command string, args []string) (string, error) {
+	c.Log.WithField("command", command).Info("RunCommand")
+	cmdOut, err := exec.Command(command, args...).CombinedOutput()
+	return sanitisedCommandOutput(cmdOut, err)
+}
+
 // RunCommand runs a command and just returns the error
 func (c *OSCommand) RunCommand(command string) error {
 	_, err := c.RunCommandWithOutput(command)

@@ -137,11 +137,18 @@ func max(a, b int) int {
 	return b
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
-	leftSideWidth := width / 3
+	leftSideWidth := min(width/3, 50)
 	statusFilesBoundary := 2
 	filesBranchesBoundary := 2 * height / 5   // height - 20
 	commitsBranchesBoundary := 3 * height / 5 // height - 10

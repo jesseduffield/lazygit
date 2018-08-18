@@ -477,7 +477,7 @@ func (c *GitCommand) Show(sha string) string {
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file File) string {
+func (c *GitCommand) Diff(file File, width int) string {
 	cachedArg := ""
 	fileName := file.Name
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
@@ -494,9 +494,9 @@ func (c *GitCommand) Diff(file File) string {
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null"
 	}
-	command := fmt.Sprintf("%s %s %s %s %s", "git diff --color ", cachedArg, deletedArg, trackedArg, fileName)
 
-	// for now we assume an error means the file was deleted
-	s, _ := c.OSCommand.RunCommandWithOutput(command)
+	command := fmt.Sprintf("%s %s %s %s %s%d %s %s", "git difftool --no-prompt", cachedArg, deletedArg, trackedArg, `--extcmd="icdiff --cols=`, width, `"`, fileName)
+	s, _ := c.OSCommand.RunCommandWithArgs(c.OSCommand.Platform.shell, []string{c.OSCommand.Platform.shellArg, command})
+
 	return s
 }
