@@ -5,18 +5,13 @@
 
 # Extras
 extra/lgit.rb
-extra/lgit.rb
 
 # Notes
 notes/go.notes
-notes/go.notes
 TODO.notes
-TODO.notes
-TODO.md
 TODO.md
 
 # Tests
-test/repos/repo
 test/repos/repo
 
 # Binaries
