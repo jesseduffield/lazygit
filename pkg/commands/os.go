@@ -167,3 +167,10 @@ func (c *OSCommand) Quote(message string) string {
 	message = strings.Replace(message, "`", "\\`", -1)
 	return c.Platform.escapedQuote + message + c.Platform.escapedQuote
 }
+
+// Unquote removes wrapping quotations marks if they are present
+// this is needed for removing quotes from staged filenames with spaces
+func (c *OSCommand) Unquote(message string) string {
+	message = strings.Replace(message, `"`, "", -1)
+	return message
+}

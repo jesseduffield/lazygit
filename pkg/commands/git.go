@@ -81,7 +81,7 @@ func (c *GitCommand) GetStatusFiles() []File {
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
 		filename := statusString[3:]
-		tracked := !includes([]string{"??", "A "}, change)
+		tracked := !includes([]string{"??", "A ", "AM"}, change)
 		file := File{
 			Name:               filename,
 			DisplayString:      statusString,
@@ -358,11 +358,16 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 // RemoveFile directly
 func (c *GitCommand) RemoveFile(file File) error {
 	// if the file isn't tracked, we assume you want to delete it
+	if file.HasStagedChanges {
+		if err := c.OSCommand.RunCommand("git reset -- " + file.Name); err != nil {
+			return err
+		}
+	}
 	if !file.Tracked {
-		return os.RemoveAll(file.Name)
+		return os.RemoveAll(c.OSCommand.Unquote(file.Name))
 	}
 	// if the file is tracked, we assume you want to just check it out
-	return c.OSCommand.RunCommand("git checkout " + file.Name)
+	return c.OSCommand.RunCommand("git checkout -- " + file.Name)
 }
 
 // Checkout checks out a branch, with --force if you set the force arg to true
