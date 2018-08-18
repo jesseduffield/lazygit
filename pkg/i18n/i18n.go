@@ -1,6 +1,8 @@
 package i18n
 
 import (
+	"log"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -79,6 +81,17 @@ func (l *Localizer) GetLanguage() string {
 
 // add translation file(s)
 func addBundles(i18nBundle *i18n.Bundle) {
-	addDutch(i18nBundle)
-	addEnglish(i18nBundle)
+	err := addPolish(i18nBundle)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = addDutch(i18nBundle)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = addEnglish(i18nBundle)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }

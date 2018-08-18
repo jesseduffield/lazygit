@@ -15,9 +15,9 @@ import (
 	"golang.org/x/text/language"
 )
 
-func addEnglish(i18nObject *i18n.Bundle) {
+func addEnglish(i18nObject *i18n.Bundle) error {
 
-	i18nObject.AddMessages(language.English,
+	return i18nObject.AddMessages(language.English,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
 			Other: "Not enough space to render panels",
@@ -294,6 +294,12 @@ func addEnglish(i18nObject *i18n.Bundle) {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge aborted",
+		}, &i18n.Message{
+			ID:    "OpenConfig",
+			Other: "open config file",
+		}, &i18n.Message{
+			ID:    "EditConfig",
+			Other: "edit config file",
 		},
 	)
 }

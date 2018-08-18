@@ -67,6 +67,7 @@ func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title s
 
 		confirmationView.Editable = true
 		confirmationView.Title = title
+		confirmationView.FgColor = gocui.ColorWhite
 		gui.switchFocus(g, currentView, confirmationView)
 		return gui.setKeyBindings(g, handleConfirm, nil)
 	}

@@ -128,7 +128,7 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	)
 	return gui.createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RemoveFile(file); err != nil {
-			panic(err)
+			return err
 		}
 		return gui.refreshFiles(g)
 	}, nil)
@@ -228,15 +228,9 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) error {
 	return nil
 }
 
-func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (*exec.Cmd, error)) error {
-	file, err := gui.getSelectedFile(g)
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
-		return nil
-	}
-	sub, err := open(file.Name)
+func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, filename string, open func(string) (*exec.Cmd, error)) error {
+
+	sub, err := open(filename)
 	if err != nil {
 		return gui.createErrorPanel(g, err.Error())
 	}
@@ -248,19 +242,35 @@ func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, open func(string) (
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
-	return gui.genericFileOpen(g, v, gui.OSCommand.EditFile)
+	file, err := gui.getSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.EditFile)
 }
 
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
-	return gui.genericFileOpen(g, v, gui.OSCommand.OpenFile)
+	file, err := gui.getSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.OpenFile)
 }
 
 func (gui *Gui) handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
-	return gui.genericFileOpen(g, v, gui.OSCommand.SublimeOpenFile)
+	file, err := gui.getSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.SublimeOpenFile)
 }
 
 func (gui *Gui) handleVsCodeFileOpen(g *gocui.Gui, v *gocui.View) error {
-	return gui.genericFileOpen(g, v, gui.OSCommand.VsCodeOpenFile)
+	file, err := gui.getSelectedFile(g)
+	if err != nil {
+		return err
+	}
+	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.VsCodeOpenFile)
 }
 
 func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
