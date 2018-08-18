@@ -53,7 +53,13 @@ func main() {
 	}
 
 	app, err := app.NewApp(appConfig)
-	app.Log.Info(err)
+	if err != nil {
+		// TODO: remove this call to panic after anonymous error reporting
+		// is setup (right now the call to panic logs nothing to the screen which
+		// would make debugging difficult
+		panic(err)
+		// app.Log.Panic(err.Error())
+	}
 	app.GitCommand.SetupGit()
 	app.Gui.RunWithSubprocesses()
 }
