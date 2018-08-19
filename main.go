@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -26,23 +25,8 @@ func projectPath(path string) string {
 	return filepath.FromSlash(gopath + "/src/github.com/jesseduffield/lazygit/" + path)
 }
 
-// when building the binary, `version` is set as a compile-time variable, along
-// with `date` and `commit`. If this program has been opened directly via go,
-// we will populate the `version` with VERSION in the lazygit root directory
-func fallbackVersion() string {
-	path := projectPath("VERSION")
-	byteVersion, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "unversioned"
-	}
-	return string(byteVersion)
-}
-
 func main() {
 	flag.Parse()
-	if version == "unversioned" {
-		version = fallbackVersion()
-	}
 	if *versionFlag {
 		fmt.Printf("commit=%s, build date=%s, version=%s, os=%s, arch=%s\n", commit, date, version, runtime.GOOS, runtime.GOARCH)
 		os.Exit(0)
