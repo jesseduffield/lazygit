@@ -300,6 +300,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "EditConfig",
 			Other: "edit config file",
+		}, &i18n.Message{
+			ID:    "ForcePush",
+			Other: "Force push",
+		}, &i18n.Message{
+			ID:    "ForcePushPrompt",
+			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
 		},
 	)
 }

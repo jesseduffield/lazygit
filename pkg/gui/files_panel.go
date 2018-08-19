@@ -360,19 +360,33 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
-	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PushWait"))
+func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
+	if err := gui.createMessagePanel(gui.g, currentView, "", gui.Tr.SLocalize("PushWait")); err != nil {
+		return err
+	}
 	go func() {
 		branchName := gui.State.Branches[0].Name
-		if err := gui.GitCommand.Push(branchName); err != nil {
-			gui.createErrorPanel(g, err.Error())
+		if err := gui.GitCommand.Push(branchName, force); err != nil {
+			gui.createErrorPanel(gui.g, err.Error())
 		} else {
-			gui.closeConfirmationPrompt(g)
-			gui.refreshCommits(g)
-			gui.refreshStatus(g)
+			gui.closeConfirmationPrompt(gui.g)
+			gui.refreshCommits(gui.g)
+			gui.refreshStatus(gui.g)
 		}
 	}()
 	return nil
+}
+
+func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
+	// if we have pullables we'll ask if the user wants to force push
+	_, pullables := gui.GitCommand.UpstreamDifferenceCount()
+	if pullables == "?" || pullables == "0" {
+		return gui.pushWithForceFlag(v, false)
+	}
+	err := gui.createConfirmationPanel(g, nil, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.pushWithForceFlag(v, true)
+	}, nil)
+	return err
 }
 
 func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
