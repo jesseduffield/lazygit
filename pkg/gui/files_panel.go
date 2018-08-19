@@ -367,11 +367,11 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 	go func() {
 		branchName := gui.State.Branches[0].Name
 		if err := gui.GitCommand.Push(branchName, force); err != nil {
-			gui.createErrorPanel(gui.g, err.Error())
+			_ = gui.createErrorPanel(gui.g, err.Error())
 		} else {
-			gui.closeConfirmationPrompt(gui.g)
-			gui.refreshCommits(gui.g)
-			gui.refreshStatus(gui.g)
+			_ = gui.closeConfirmationPrompt(gui.g)
+			_ = gui.refreshCommits(gui.g)
+			_ = gui.refreshStatus(gui.g)
 		}
 	}()
 	return nil
