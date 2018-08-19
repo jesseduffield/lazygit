@@ -60,10 +60,6 @@ func TestWithPadding(t *testing.T) {
 	}
 }
 
-func TestCurrentRepoName(t *testing.T) {
-	assert.EqualValues(t, "utils", GetCurrentRepoName())
-}
-
 func TestTrimTrailingNewline(t *testing.T) {
 	type scenario struct {
 		str      string
