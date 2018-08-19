@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/updates"
 )
 
 // App struct
@@ -22,6 +23,7 @@ type App struct {
 	GitCommand *commands.GitCommand
 	Gui        *gui.Gui
 	Tr         *i18n.Localizer
+	Updater    *updates.Updater // may only need this on the Gui
 }
 
 func newLogger(config config.AppConfigurer) *logrus.Logger {
@@ -60,7 +62,11 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	if err != nil {
 		return app, err
 	}
-	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config)
+	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand)
+	if err != nil {
+		return app, err
+	}
+	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater)
 	if err != nil {
 		return app, err
 	}

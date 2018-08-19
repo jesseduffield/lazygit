@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/updates"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -64,6 +65,7 @@ type Gui struct {
 	Config     config.AppConfigurer
 	Tr         *i18n.Localizer
 	Errors     SentinelErrors
+	Updater    *updates.Updater
 }
 
 type guiState struct {
@@ -81,7 +83,7 @@ type guiState struct {
 }
 
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*Gui, error) {
+func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
@@ -101,6 +103,7 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 		State:      initialState,
 		Config:     config,
 		Tr:         tr,
+		Updater:    updater,
 	}
 
 	gui.GenerateSentinelErrors()
@@ -261,6 +264,19 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
+		newVersion, err := gui.Updater.CheckForNewUpdate()
+		if err != nil {
+			return err
+		}
+		gui.Updater.NewVersion = "v0.1.75"
+		newVersion = "v0.1.75"
+		if newVersion != "" {
+			if err := gui.Updater.Update(); err != nil {
+				panic(err)
+				return err
+			}
+		}
+
 		// these are only called once
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles(g)
@@ -317,6 +333,9 @@ func (gui *Gui) Run() error {
 		return err
 	}
 	defer g.Close()
+
+	// TODO: do this more elegantly
+	gui.Updater.CheckForNewUpdate()
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
