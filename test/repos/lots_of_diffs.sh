@@ -2,6 +2,9 @@
 set -ex; rm -rf repo; mkdir repo; cd repo
 
 git init
+git config user.email "test@example.com"
+git config user.name "Lazygit Tester"
+
 
 echo "deleted" > deleted_staged
 echo "deleted_unstaged" > deleted_unstaged
