@@ -13,6 +13,7 @@ builds:
       - arm
       - arm64
       - 386
+
 archive:
   replacements:
     darwin: Darwin
@@ -33,6 +34,7 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+      - '^bump'
 brew:
   # Reporitory to push the tap to.
   github:

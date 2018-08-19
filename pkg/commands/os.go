@@ -167,3 +167,21 @@ func (c *OSCommand) Quote(message string) string {
 	message = strings.Replace(message, "`", "\\`", -1)
 	return c.Platform.escapedQuote + message + c.Platform.escapedQuote
 }
+
+// Unquote removes wrapping quotations marks if they are present
+// this is needed for removing quotes from staged filenames with spaces
+func (c *OSCommand) Unquote(message string) string {
+	message = strings.Replace(message, `"`, "", -1)
+	return message
+}
+
+func (C *OSCommand) AppendLineToFile(filename, line string) error {
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString("\n" + line)
+	return err
+}

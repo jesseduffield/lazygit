@@ -1,7 +1,18 @@
-development.log
-commands.log
+# Please do not add personal files
+
+# Logs
+*.log
+
+# Extras
 extra/lgit.rb
+
+# Notes
 notes/go.notes
 TODO.notes
 TODO.md
+
+# Tests
 test/repos/repo
+
+# Binaries
+lazygit
