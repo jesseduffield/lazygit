@@ -3,30 +3,30 @@ set -ex; rm -rf repo; mkdir repo; cd repo
 
 git init
 
-echo "deleted1" > deleted1
-echo "deleted2" > deleted2
-echo "modified1" > modified1
-echo "modified2" > modified2
-echo "renamed" > renamed1
+echo "deleted" > deleted_staged
+echo "deleted_unstaged" > deleted_unstaged
+echo "modified_staged" > modified_staged
+echo "modified_unstaged" > modified_unstaged
+echo "renamed" > renamed_before
 
 git add .
 git commit -m "files to delete"
-rm deleted1
-rm deleted2
+rm deleted_staged
+rm deleted_unstaged
 
-rm renamed1
-echo "renamed" > renamed2
-echo "more" >> modified1
-echo "more" >> modified2
-echo "untracked1" > untracked1
-echo "untracked2" > untracked2
-echo "blah" > "file with space1"
-echo "blah" > "file with space2"
+rm renamed_before
+echo "renamed" > renamed_after
+echo "more" >> modified_staged
+echo "more" >> modified_unstaged
+echo "untracked_staged" > untracked_staged
+echo "untracked_unstaged" > untracked_unstaged
+echo "blah" > "file with space staged"
+echo "blah" > "file with space unstaged"
 echo "same name as branch" > master
 
-git add deleted1
-git add modified1
-git add untracked1
-git add "file with space2"
-git add renamed1
-git add renamed2
+git add deleted_staged
+git add modified_staged
+git add untracked_staged
+git add "file with space staged"
+git add renamed_before
+git add renamed_after

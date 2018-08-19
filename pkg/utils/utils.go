@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -62,4 +63,12 @@ func TrimTrailingNewline(str string) string {
 		return str[:len(str)-1]
 	}
 	return str
+}
+
+// GetProjectRoot returns the path to the root of the project. Only to be used
+// in testing contexts, as with binaries it's unlikely this path will exist on
+// the machine
+func GetProjectRoot() string {
+	gp := os.Getenv("GOPATH")
+	return path.Join(gp, "src/github.com/jesseduffield/lazygit")
 }
