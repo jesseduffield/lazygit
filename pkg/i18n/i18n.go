@@ -1,8 +1,6 @@
 package i18n
 
 import (
-	"log"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -32,7 +30,7 @@ func NewLocalizer(log *logrus.Logger) (*Localizer, error) {
 	// create a i18n bundle that can be used to add translations and other things
 	i18nBundle := &i18n.Bundle{DefaultLanguage: language.English}
 
-	addBundles(i18nBundle)
+	addBundles(log, i18nBundle)
 
 	// return the new localizer that can be used to translate text
 	i18nLocalizer := i18n.NewLocalizer(i18nBundle, userLang)
@@ -80,7 +78,7 @@ func (l *Localizer) GetLanguage() string {
 }
 
 // add translation file(s)
-func addBundles(i18nBundle *i18n.Bundle) {
+func addBundles(log *logrus.Logger, i18nBundle *i18n.Bundle) {
 	err := addPolish(i18nBundle)
 	if err != nil {
 		log.Fatal(err)
