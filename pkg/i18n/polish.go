@@ -5,287 +5,285 @@ import (
 	"golang.org/x/text/language"
 )
 
-// addDutch will add all dutch translations
-func addDutch(i18nObject *i18n.Bundle) error {
+func addPolish(i18nObject *i18n.Bundle) error {
 
-	// add the translations
-	return i18nObject.AddMessages(language.Dutch,
+	return i18nObject.AddMessages(language.Polish,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
-			Other: "Niet genoeg ruimte om de panelen te renderen",
+			Other: "Za mało miejsca do wyświetlenia paneli",
 		}, &i18n.Message{
 			ID:    "DiffTitle",
-			Other: "Diff",
+			Other: "Różnice",
 		}, &i18n.Message{
 			ID:    "FilesTitle",
-			Other: "Bestanden",
+			Other: "Pliki",
 		}, &i18n.Message{
 			ID:    "BranchesTitle",
-			Other: "Branches",
+			Other: "Gałęzie",
 		}, &i18n.Message{
 			ID:    "CommitsTitle",
-			Other: "Commits",
+			Other: "Commity",
 		}, &i18n.Message{
 			ID:    "StashTitle",
-			Other: "Stash",
+			Other: "Schowek",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
-			Other: "Commit Bericht",
+			Other: "Wiadomość commita",
 		}, &i18n.Message{
 			ID:    "CommitChanges",
-			Other: "Commit Veranderingen",
+			Other: "commituj zmiany",
 		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
 			ID:    "navigate",
-			Other: "navigeer",
+			Other: "nawiguj",
 		}, &i18n.Message{
 			ID:    "stashFiles",
-			Other: "stash-bestanden",
+			Other: "przechowaj pliki",
 		}, &i18n.Message{
 			ID:    "open",
-			Other: "open",
+			Other: "otwórz",
 		}, &i18n.Message{
 			ID:    "ignore",
-			Other: "negeren",
+			Other: "ignoruj",
 		}, &i18n.Message{
 			ID:    "delete",
-			Other: "verwijderen",
+			Other: "usuń",
 		}, &i18n.Message{
 			ID:    "toggleStaged",
-			Other: "toggle staged",
+			Other: "przełącz zatwierdzenie",
 		}, &i18n.Message{
 			ID:    "refresh",
-			Other: "verversen",
+			Other: "odśwież",
 		}, &i18n.Message{
 			ID:    "addPatch",
-			Other: "verandering toevoegen",
+			Other: "dodaj łatkę",
 		}, &i18n.Message{
 			ID:    "edit",
-			Other: "veranderen",
+			Other: "edytuj",
 		}, &i18n.Message{
 			ID:    "scroll",
-			Other: "scroll",
+			Other: "przewiń",
 		}, &i18n.Message{
 			ID:    "abortMerge",
-			Other: "samenvoegen afbreken",
+			Other: "o scalaniu",
 		}, &i18n.Message{
 			ID:    "resolveMergeConflicts",
-			Other: "verhelp samenvoegen fouten",
+			Other: "rozwiąż konflikty scalania",
 		}, &i18n.Message{
 			ID:    "checkout",
-			Other: "uitchecken",
+			Other: "przełącz",
 		}, &i18n.Message{
 			ID:    "NoChangedFiles",
-			Other: "Geen Bestanden verandert",
+			Other: "Brak zmienionych plików",
 		}, &i18n.Message{
 			ID:    "FileHasNoUnstagedChanges",
-			Other: "Het bestand heeft geen unstaged veranderingen om toe te voegen",
+			Other: "Plik nie zawiera żadnych nieopublikowanych zmian do dodania",
 		}, &i18n.Message{
 			ID:    "CannotGitAdd",
-			Other: "Kan commando niet uitvoeren git add --path untracked files",
+			Other: "Nie można git add --patch nieśledzonych plików",
 		}, &i18n.Message{
 			ID:    "CantIgnoreTrackFiles",
-			Other: "Kan gevolgde bestanden niet negeren",
+			Other: "Nie można zignorować nieśledzonych plików",
 		}, &i18n.Message{
 			ID:    "NoStagedFilesToCommit",
-			Other: "Er zijn geen staged bestanden om te commiten",
+			Other: "Brak zatwierdzonych plików do commita",
 		}, &i18n.Message{
 			ID:    "NoFilesDisplay",
-			Other: "Geen bestanden om te laten zien",
+			Other: "Brak pliku do wyświetlenia",
 		}, &i18n.Message{
 			ID:    "PullWait",
-			Other: "Pulling...",
+			Other: "Wciąganie zmian...",
 		}, &i18n.Message{
 			ID:    "PushWait",
-			Other: "Pushing...",
+			Other: "Wypychanie zmian...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
-			Other: "Dit bestand heeft geen merge conflicten",
+			Other: "Ten plik nie powoduje konfliktów scalania",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? het kan dat je hierdoor bestanden verliest",
+			Other: "Jesteś pewny, że chcesz wykonać `reset --hard HEAD`? Możesz stracić wprowadzone zmiany",
 		}, &i18n.Message{
 			ID:    "SureTo",
-			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijdert)",
+			Other: "Jesteś pewny, że chcesz {{.deleteVerb}} {{.fileName}} (stracisz swoje wprowadzone zmiany)?",
 		}, &i18n.Message{
 			ID:    "AlreadyCheckedOutBranch",
-			Other: "Je hebt uitgecheckt op deze branch",
+			Other: "Już przęłączono na tą gałąź",
 		}, &i18n.Message{
 			ID:    "SureForceCheckout",
-			Other: "Weet je zeker dat je het uitchecken wil forceren? al je locale verandering zullen worden verwijdert",
+			Other: "Jesteś pewny, że chcesz wymusić przełączenie? Stracisz wszystkie lokalne zmiany",
 		}, &i18n.Message{
 			ID:    "ForceCheckoutBranch",
-			Other: "Forceer uitchecken op deze branch",
+			Other: "Wymuś przełączenie gałęzi",
 		}, &i18n.Message{
 			ID:    "BranchName",
-			Other: "Branch naam",
+			Other: "Nazwa gałęzi",
 		}, &i18n.Message{
 			ID:    "NewBranchNameBranchOff",
-			Other: "Nieuw branch naam (Branch is afgeleid van {{.branchName}})",
+			Other: "Nazwa nowej gałęzi (gałąź na bazie {{.branchName}})",
 		}, &i18n.Message{
 			ID:    "CantDeleteCheckOutBranch",
-			Other: "Je kan een uitgecheckte branch niet verwijderen!",
+			Other: "Nie możesz usunąć obecnej przełączonej gałęzi!",
 		}, &i18n.Message{
 			ID:    "DeleteBranch",
-			Other: "Verwijder branch",
+			Other: "Usuń gałąź",
 		}, &i18n.Message{
 			ID:    "DeleteBranchMessage",
-			Other: "Weet je zeker dat je {{.selectedBranchName}} branch wil verwijderen?",
+			Other: "Jesteś pewien, że chcesz usunąć gałąź {{.selectedBranchName}} ?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
-			Other: "Je kan niet een branch in zichzelf mergen",
+			Other: "Nie możesz scalić gałęzi do samej siebie",
 		}, &i18n.Message{
 			ID:    "forceCheckout",
-			Other: "forceer checkout",
+			Other: "wymuś przełączenie",
 		}, &i18n.Message{
 			ID:    "merge",
-			Other: "merge",
+			Other: "scal",
 		}, &i18n.Message{
 			ID:    "checkoutByName",
-			Other: "uitchecken bij naam",
+			Other: "przełącz używając nazwy",
 		}, &i18n.Message{
 			ID:    "newBranch",
-			Other: "nieuwe branch",
+			Other: "nowa gałąź",
 		}, &i18n.Message{
 			ID:    "deleteBranch",
-			Other: "verwijder branch",
+			Other: "usuń gałąź",
 		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
-			Other: "Geen branches voor deze repo",
+			Other: "Brak gałęzi dla tego repozytorium",
 		}, &i18n.Message{
 			ID:    "NoTrackingThisBranch",
-			Other: "deze branch wordt niet gevolgd",
+			Other: "Brak śledzenia dla tej gałęzi",
 		}, &i18n.Message{
 			ID:    "CommitWithoutMessageErr",
-			Other: "Je kan geen commit maken zonder commit bericht",
+			Other: "Nie możesz commitować bez podania wiadomości",
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
-			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
+			Other: "{{.keyBindClose}}: zamknij, {{.keyBindConfirm}}: potwierdź",
 		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
-			Other: "Weet je het zeker dat je wil resetten naar deze commit?",
+			Other: "Jesteś pewny, że chcesz zresetować ten commit?",
 		}, &i18n.Message{
 			ID:    "ResetToCommit",
-			Other: "Reset Naar Commit",
+			Other: "Zresetuj, aby commitować",
 		}, &i18n.Message{
 			ID:    "squashDown",
-			Other: "squash beneden",
+			Other: "ściśnij w dół",
 		}, &i18n.Message{
 			ID:    "rename",
-			Other: "hernoem",
+			Other: "przemianuj",
 		}, &i18n.Message{
 			ID:    "resetToThisCommit",
-			Other: "reset naar deze commit",
+			Other: "zresetuj do tego commita",
 		}, &i18n.Message{
 			ID:    "fixupCommit",
-			Other: "Fixup commit",
+			Other: "napraw commit",
 		}, &i18n.Message{
 			ID:    "NoCommitsThisBranch",
-			Other: "Er zijn geen commits voor deze branch",
+			Other: "Brak commitów dla tej gałęzi",
 		}, &i18n.Message{
 			ID:    "OnlySquashTopmostCommit",
-			Other: "Kan alleen bovenste commit squashen",
+			Other: "Można tylko ścisnąć najwyższy commit",
 		}, &i18n.Message{
 			ID:    "YouNoCommitsToSquash",
-			Other: "Je hebt geen commits om mee te squashen",
+			Other: "Nie masz commitów do ściśnięcia",
 		}, &i18n.Message{
 			ID:    "CantFixupWhileUnstagedChanges",
-			Other: "Kan geen Fixup uitvoeren op unstaged veranderingen",
+			Other: "Nie można wykonać naprawy, kiedy istnieją niezatwierdzone zmiany",
 		}, &i18n.Message{
 			ID:    "Fixup",
-			Other: "Fixup",
+			Other: "Napraw",
 		}, &i18n.Message{
 			ID:    "SureFixupThisCommit",
-			Other: "Weet je zeker dat je fixup wil uitvoeren op deze commit? De commit hieronder zol worden squashed in deze",
+			Other: "Jesteś pewny, ze chcesz naprawić ten commit? Commit poniżej zostanie ściśnięty w górę wraz z tym",
 		}, &i18n.Message{
 			ID:    "OnlyRenameTopCommit",
-			Other: "Je kan alleen de bovenste commit hernoemen",
+			Other: "Można przmianować tylko najwyższy commit",
 		}, &i18n.Message{
 			ID:    "RenameCommit",
-			Other: "Hernoem Commit",
+			Other: "Przemianuj commit",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
-			Other: "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)",
+			Other: "potencjalny błąd w getSelected Commit (niedopasowane ui i stan)",
 		}, &i18n.Message{
 			ID:    "NoCommitsThisBranch",
-			Other: "Geen commits voor deze branch",
+			Other: "Brak commitów dla tej gałęzi",
 		}, &i18n.Message{
 			ID:    "Error",
-			Other: "Fout",
+			Other: "Błąd",
 		}, &i18n.Message{
 			ID:    "resizingPopupPanel",
-			Other: "resizen popup paneel",
+			Other: "skalowanie wyskakującego panelu",
 		}, &i18n.Message{
 			ID:    "RunningSubprocess",
-			Other: "subprocess lopend",
+			Other: "uruchomiony podproces",
 		}, &i18n.Message{
 			ID:    "selectHunk",
-			Other: "selecteer Hunk",
+			Other: "wybierz kawałek",
 		}, &i18n.Message{
 			ID:    "navigateConflicts",
-			Other: "navigeer conflicts",
+			Other: "nawiguj konflikty",
 		}, &i18n.Message{
 			ID:    "pickHunk",
-			Other: "kies Hunk",
+			Other: "wybierz kawałek",
 		}, &i18n.Message{
 			ID:    "pickBothHunks",
-			Other: "kies bijde hunks",
+			Other: "wybierz oba kawałki",
 		}, &i18n.Message{
 			ID:    "undo",
-			Other: "ongedaan maken",
+			Other: "cofnij",
 		}, &i18n.Message{
 			ID:    "pop",
-			Other: "pop",
+			Other: "wyciągnij",
 		}, &i18n.Message{
 			ID:    "drop",
-			Other: "drop",
+			Other: "porzuć",
 		}, &i18n.Message{
 			ID:    "apply",
-			Other: "toepassen",
+			Other: "zastosuj",
 		}, &i18n.Message{
 			ID:    "NoStashEntries",
-			Other: "Geen stash items",
+			Other: "Brak pozycji w schowku",
 		}, &i18n.Message{
 			ID:    "StashDrop",
-			Other: "Stash drop",
+			Other: "Porzuć schowek",
 		}, &i18n.Message{
 			ID:    "SureDropStashEntry",
-			Other: "Weet je het zeker dat je deze stash entry wil laten vallen?",
+			Other: "Jesteś pewny, że chcesz porzucić tę pozycję w schowku?",
 		}, &i18n.Message{
 			ID:    "NoStashTo",
-			Other: "Geen stash voor {{.method}}",
+			Other: "Brak schowka dla {{.method}}",
 		}, &i18n.Message{
 			ID:    "NoTrackedStagedFilesStash",
-			Other: "Je hebt geen tracked/staged bestanden om te laten stashen",
+			Other: "Nie masz śledzonych/zatwierdzonych plików do przechowania",
 		}, &i18n.Message{
 			ID:    "StashChanges",
-			Other: "Stash veranderingen",
+			Other: "Przechowaj zmiany",
 		}, &i18n.Message{
 			ID:    "IssntListOfViews",
-			Other: "{{.name}} is niet in de lijst van weergaves",
+			Other: "{{.name}} nie jest na liście widoków",
 		}, &i18n.Message{
 			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
-			Other: "Er machen geen weergave met de newLineFocused switch declaratie",
+			Other: "Brak widoku pasującego do instrukcji przełączania newLineFocused",
 		}, &i18n.Message{
 			ID:    "settingPreviewsViewTo",
-			Other: "vorige weergave instellen op: {{.oldViewName}}",
+			Other: "ustawianie poprzedniego widoku na: {{.oldViewName}}",
 		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
-			Other: "nieuw gefocussed weergave is {{.newFocusedView}}",
+			Other: "nowy skupiony widok to {{.newFocusedView}}",
 		}, &i18n.Message{
 			ID:    "CantCloseConfirmationPrompt",
-			Other: "Kon de bevestiging prompt niet sluiten: {{.error}}",
+			Other: "Nie można zamknąć monitu potwierdzenia: {{.error}}",
 		}, &i18n.Message{
 			ID:    "NoChangedFiles",
-			Other: "Geen veranderde files",
+			Other: "Brak zmienionych plików",
 		}, &i18n.Message{
 			ID:    "ClearFilePanel",
-			Other: "maak bestandsvenster leeg",
+			Other: "Wyczyść panel plików",
 		}, &i18n.Message{
 			ID:    "MergeAborted",
-			Other: "Merge afgebroken",
+			Other: "Scalanie anulowane",
 		},
 	)
 }

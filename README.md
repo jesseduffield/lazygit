@@ -7,7 +7,7 @@ too stubborn to use Sourcetree because you'll never forgive Atlassian for making
 Jira? This is the app for you!
 
 
-![Gif](https://image.ibb.co/mmeXho/optimisedgif.gif)
+![Gif](/docs/resources/lazygit-example.gif)
 
   * [Installation](https://github.com/jesseduffield/lazygit#installation)
   * [Usage](https://github.com/jesseduffield/lazygit#usage),
@@ -90,7 +90,7 @@ whichever rc file you're using).
 
   * Basic video tutorial [here](https://www.youtube.com/watch?v=VDXvbHZYeKY).
   * List of keybindings
-[here](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md).
+[here](/docs/Keybindings.md).
 
 ## Cool features
   * Adding files easily
@@ -101,10 +101,10 @@ whichever rc file you're using).
   * Squash down and rename commits
 
 ### Resolving merge conflicts
-![Gif](https://image.ibb.co/iyxUTT/shortermerging.gif)
+![Gif](/docs/resources/resolving-merge-conflicts.gif)
 
 ### Viewing commit diffs
-![Viewing Commit Diffs](https://image.ibb.co/gPD02o/capture.png)
+![Viewing Commit Diffs](/docs/resources/viewing-commit-diffs.png)
 
 ## Milestones
 - [x] Easy Installation (homebrew, release binaries)
@@ -119,7 +119,7 @@ whichever rc file you're using).
 We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
 For contributor discussion about things not better discussed here in the repo, join the slack channel
 
-[![Slack](/files/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/enQtNDE3MjIwNTYyMDA0LTM3Yjk3NzdiYzhhNTA1YjM4Y2M4MWNmNDBkOTI0YTE4YjQ1ZmI2YWRhZTgwNjg2YzhhYjg3NDBlMmQyMTI5N2M)
+[![Slack](/docs/resources/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/enQtNDE3MjIwNTYyMDA0LTM3Yjk3NzdiYzhhNTA1YjM4Y2M4MWNmNDBkOTI0YTE4YjQ1ZmI2YWRhZTgwNjg2YzhhYjg3NDBlMmQyMTI5N2M)
 
 ## Work in progress
 This is still a work in progress so there's still bugs to iron out and as this

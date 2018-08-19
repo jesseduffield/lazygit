@@ -2,6 +2,9 @@
 set -ex; rm -rf repo; mkdir repo; cd repo
 
 git init
+git config user.email "test@example.com"
+git config user.name "Lazygit Tester"
+
 
 i=2
 end=100

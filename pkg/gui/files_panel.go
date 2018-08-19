@@ -128,7 +128,7 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	)
 	return gui.createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RemoveFile(file); err != nil {
-			panic(err)
+			return err
 		}
 		return gui.refreshFiles(g)
 	}, nil)
@@ -142,7 +142,9 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	if file.Tracked {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantIgnoreTrackFiles"))
 	}
-	gui.GitCommand.Ignore(file.Name)
+	if err := gui.GitCommand.Ignore(file.Name); err != nil {
+		return gui.createErrorPanel(g, err.Error())
+	}
 	return gui.refreshFiles(g)
 }
 

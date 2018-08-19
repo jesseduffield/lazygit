@@ -63,3 +63,14 @@ func TrimTrailingNewline(str string) string {
 	}
 	return str
 }
+
+// GetProjectRoot returns the path to the root of the project. Only to be used
+// in testing contexts, as with binaries it's unlikely this path will exist on
+// the machine
+func GetProjectRoot() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return strings.Split(dir, "lazygit")[0] + "lazygit"
+}
