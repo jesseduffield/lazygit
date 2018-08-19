@@ -63,3 +63,9 @@ func TrimTrailingNewline(str string) string {
 	}
 	return str
 }
+
+func NormalizeLinefeeds(str string) string {
+	str = strings.Replace(str, "\r\n", "\n", -1)
+	str = strings.Replace(str, "\r", "\n", -1)
+	return str
+}

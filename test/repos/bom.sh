@@ -3,6 +3,18 @@ set -ex; rm -rf repo; mkdir repo; cd repo
 
 git init
 
+cat <<EOT >> windowslf.txt
+asdf
+asdf
+EOT
+
+unix2dos windowslf.txt
+
+cat <<EOT >> linuxlf.txt
+asdf
+asdf
+EOT
+
 cat <<EOT >> bomtest.txt
 ﻿A,B,C,D,E
 F,G,H,I,J

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
 
@@ -218,8 +219,7 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 			return nil
 		}
 		v.Clear()
-		output := string(bom.Clean([]byte(s)))
-		output = strings.Replace(output, "\r", "\r\n", -1)
+		output := utils.NormalizeLinefeeds(string(bom.Clean([]byte(s))))
 		fmt.Fprint(v, output)
 		v.Wrap = true
 		return nil
