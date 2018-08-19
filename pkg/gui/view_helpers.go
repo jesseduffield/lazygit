@@ -219,7 +219,7 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 		}
 		v.Clear()
 		output := string(bom.Clean([]byte(s)))
-		strings.Replace(output, "\r", "\r\n", -1)
+		output = strings.Replace(output, "\r", "\r\n", -1)
 		fmt.Fprint(v, output)
 		v.Wrap = true
 		return nil
