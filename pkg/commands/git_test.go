@@ -45,7 +45,7 @@ func TestDiff(t *testing.T) {
 			DisplayString:      " D deleted_staged",
 		},
 		{
-			Name:               "\"file with space staged\"",
+			Name:               "file with space staged",
 			HasStagedChanges:   true,
 			HasUnstagedChanges: false,
 			Tracked:            false,
