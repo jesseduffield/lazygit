@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -69,6 +68,9 @@ func TrimTrailingNewline(str string) string {
 // in testing contexts, as with binaries it's unlikely this path will exist on
 // the machine
 func GetProjectRoot() string {
-	gp := os.Getenv("GOPATH")
-	return path.Join(gp, "src/github.com/jesseduffield/lazygit")
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return strings.Split(dir, "lazygit")[0] + "lazygit"
 }
