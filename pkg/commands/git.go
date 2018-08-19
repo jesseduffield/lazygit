@@ -83,7 +83,7 @@ func (c *GitCommand) GetStatusFiles() []File {
 		filename := statusString[3:]
 		tracked := !includes([]string{"??", "A ", "AM"}, change)
 		file := File{
-			Name:               filename,
+			Name:               c.OSCommand.Unquote(filename),
 			DisplayString:      statusString,
 			HasStagedChanges:   !includes([]string{" ", "U", "?"}, stagedChange),
 			HasUnstagedChanges: unstagedChange != " ",
@@ -321,24 +321,24 @@ func (c *GitCommand) SquashFixupCommit(branchName string, shaValue string) error
 }
 
 // CatFile obtain the contents of a file
-func (c *GitCommand) CatFile(file string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("cat " + file)
+func (c *GitCommand) CatFile(fileName string) (string, error) {
+	return c.OSCommand.RunCommandWithOutput("cat " + c.OSCommand.Quote(fileName))
 }
 
 // StageFile stages a file
-func (c *GitCommand) StageFile(file string) error {
-	return c.OSCommand.RunCommand("git add " + c.OSCommand.Quote(file))
+func (c *GitCommand) StageFile(fileName string) error {
+	return c.OSCommand.RunCommand("git add " + c.OSCommand.Quote(fileName))
 }
 
 // UnStageFile unstages a file
-func (c *GitCommand) UnStageFile(file string, tracked bool) error {
+func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 	var command string
 	if tracked {
 		command = "git reset HEAD "
 	} else {
 		command = "git rm --cached "
 	}
-	return c.OSCommand.RunCommand(command + file)
+	return c.OSCommand.RunCommand(command + c.OSCommand.Quote(fileName))
 }
 
 // GitStatus returns the plaintext short status of the repo
@@ -364,7 +364,7 @@ func (c *GitCommand) RemoveFile(file File) error {
 		}
 	}
 	if !file.Tracked {
-		return os.RemoveAll(c.OSCommand.Unquote(file.Name))
+		return os.RemoveAll(file.Name)
 	}
 	// if the file is tracked, we assume you want to just check it out
 	return c.OSCommand.RunCommand("git checkout -- " + file.Name)
@@ -479,12 +479,9 @@ func (c *GitCommand) Show(sha string) string {
 // Diff returns the diff of a file
 func (c *GitCommand) Diff(file File) string {
 	cachedArg := ""
-	fileName := file.Name
+	fileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
-	} else {
-		// if the file is staged and has spaces in it, it comes pre-quoted
-		fileName = c.OSCommand.Quote(fileName)
 	}
 	trackedArg := "--"
 	if !file.Tracked && !file.HasStagedChanges {
