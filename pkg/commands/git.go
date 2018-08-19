@@ -461,10 +461,8 @@ func (c *GitCommand) GetLog() string {
 }
 
 // Ignore adds a file to the gitignore for the repo
-func (c *GitCommand) Ignore(filename string) {
-	if _, err := c.OSCommand.RunDirectCommand("echo '" + filename + "' >> .gitignore"); err != nil {
-		panic(err)
-	}
+func (c *GitCommand) Ignore(filename string) error {
+	return c.OSCommand.AppendLineToFile(".gitignore", filename)
 }
 
 // Show shows the diff of a commit

@@ -142,7 +142,9 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	if file.Tracked {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantIgnoreTrackFiles"))
 	}
-	gui.GitCommand.Ignore(file.Name)
+	if err := gui.GitCommand.Ignore(file.Name); err != nil {
+		return gui.createErrorPanel(g, err.Error())
+	}
 	return gui.refreshFiles(g)
 }
 
