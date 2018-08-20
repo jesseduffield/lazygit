@@ -170,6 +170,15 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "NUT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:d917313f309bda80d27274d53985bc65651f81a5b66b820749ac7f8ef061fd04"
   name = "github.com/sergi/go-diff"
   packages = ["diffmatchpatch"]
   revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
@@ -231,6 +240,15 @@
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:bacb8b590716ab7c33f2277240972c9582d389593ee8d66fc10074e0508b8126"
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  pruneopts = "NUT"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
+
+[[projects]]
+  digest = "1:cd5ffc5bda4e0296ab3e4de90dbb415259c78e45e7fab13694b14cde8ab74541"
   name = "github.com/tcnksm/go-gitconfig"
   packages = ["."]
   revision = "d154598bacbf4501c095a309753c5d4af66caa81"
@@ -369,6 +387,22 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5f2c359c480939c540907b265eb58d98dd1bb892e44b21e93cba861d79100203"
+  input-imports = [
+    "github.com/Sirupsen/logrus",
+    "github.com/cloudfoundry/jibber_jabber",
+    "github.com/davecgh/go-spew/spew",
+    "github.com/fatih/color",
+    "github.com/golang-collections/collections/stack",
+    "github.com/jesseduffield/gocui",
+    "github.com/mgutz/str",
+    "github.com/nicksnyder/go-i18n/v2/i18n",
+    "github.com/shibukawa/configdir",
+    "github.com/spf13/viper",
+    "github.com/stretchr/testify/assert",
+    "github.com/tcnksm/go-gitconfig",
+    "golang.org/x/text/language",
+    "gopkg.in/src-d/go-git.v4",
+    "gopkg.in/src-d/go-git.v4/plumbing",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

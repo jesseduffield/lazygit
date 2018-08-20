@@ -23,7 +23,10 @@ func NewLocalizer(log *logrus.Logger) (*Localizer, error) {
 	// detect the user's language
 	userLang, err := jibber_jabber.DetectLanguage()
 	if err != nil {
-		return nil, err
+		if err.Error() != "Could not detect Language" {
+			return nil, err
+		}
+		userLang = "C"
 	}
 	log.Info("language: " + userLang)
 
