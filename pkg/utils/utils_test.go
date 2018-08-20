@@ -82,33 +82,30 @@ func TestTrimTrailingNewline(t *testing.T) {
 	}
 }
 
-var testCases = []struct {
-	Input    []byte
-	Expected []byte
-}{
-	{
-		// \r\n
-		Input:    []byte{97, 115, 100, 102, 13, 10},
-		Expected: []byte{97, 115, 100, 102},
-	},
-	{
-		// \r
-		Input:    []byte{97, 115, 100, 102, 13},
-		Expected: []byte{97, 115, 100, 102},
-	},
-	{
-		// \n
-		Input:    []byte{97, 115, 100, 102, 10},
-		Expected: []byte{97, 115, 100, 102, 10},
-	},
-}
-
 func TestNormalizeLinefeeds(t *testing.T) {
-	for _, tc := range testCases {
-		input := NormalizeLinefeeds(string(tc.Input))
-		expected := string(tc.Expected)
-		if input != expected {
-			t.Error("Expected " + expected + ", got " + input)
-		}
+	type scenario struct {
+		byteArray []byte
+		expected  []byte
+	}
+	var scenarios = []scenario{
+		{
+			// \r\n
+			[]byte{97, 115, 100, 102, 13, 10},
+			[]byte{97, 115, 100, 102},
+		},
+		{
+			// \r
+			[]byte{97, 115, 100, 102, 13},
+			[]byte{97, 115, 100, 102},
+		},
+		{
+			// \n
+			[]byte{97, 115, 100, 102, 10},
+			[]byte{97, 115, 100, 102, 10},
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, string(s.expected), NormalizeLinefeeds(string(s.byteArray)))
 	}
 }
