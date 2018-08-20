@@ -61,19 +61,18 @@ func (l *Localizer) GetLanguage() string {
 
 // add translation file(s)
 func addBundles(log *logrus.Logger, i18nBundle *i18n.Bundle) {
-	err := addPolish(i18nBundle)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = addDutch(i18nBundle)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = addEnglish(i18nBundle)
-	if err != nil {
-		log.Fatal(err)
+	fs := []func(*i18n.Bundle) error{
+		addPolish,
+		addDutch,
+		addEnglish,
 	}
 
+	for _, f := range fs {
+		if err := f(i18nBundle); err != nil {
+			log.Fatal(err)
+
+		}
+	}
 }
 
 // detectLanguage extracts user language from environment
