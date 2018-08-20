@@ -8,8 +8,6 @@ asdf
 asdf
 EOT
 
-unix2dos windowslf.txt
-
 cat <<EOT >> linuxlf.txt
 asdf
 asdf
