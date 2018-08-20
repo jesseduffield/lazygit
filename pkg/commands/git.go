@@ -270,8 +270,12 @@ func (c *GitCommand) Pull() error {
 }
 
 // Push push to a branch
-func (c *GitCommand) Push(branchName string) error {
-	return c.OSCommand.RunCommand("git push -u origin " + branchName)
+func (c *GitCommand) Push(branchName string, force bool) error {
+	forceFlag := ""
+	if force {
+		forceFlag = "--force-with-lease "
+	}
+	return c.OSCommand.RunCommand("git push " + forceFlag + "-u origin " + branchName)
 }
 
 // SquashPreviousTwoCommits squashes a commit down to the one below it
