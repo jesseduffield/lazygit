@@ -1,7 +1,7 @@
 package i18n
 
 import (
-	"os"
+	"fmt"
 	"testing"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -11,38 +11,46 @@ import (
 )
 
 func TestNewLocalizer(t *testing.T) {
-	type scenario struct {
-		setup    func()
-		test     func(*Localizer, error)
-		teardown func()
-	}
+	assert.NotNil(t, NewLocalizer(logrus.New()))
+}
 
-	LCALL := os.Getenv("LC_ALL")
-	LANG := os.Getenv("LANG")
+func TestDetectLanguage(t *testing.T) {
+	type scenario struct {
+		langDetector func() (string, error)
+		expected     string
+	}
 
 	scenarios := []scenario{
 		{
-			func() {
-				os.Setenv("LC_ALL", "")
-				os.Setenv("LANG", "")
+			func() (string, error) {
+				return "", fmt.Errorf("An error occurred")
 			},
-			func(l *Localizer, err error) {
-				assert.EqualValues(t, "C", l.GetLanguage())
-			},
-			func() {
-				os.Setenv("LC_ALL", LCALL)
-				os.Setenv("LANG", LANG)
-			},
+			"C",
 		},
 		{
-			func() {
-				os.Setenv("LC_ALL", "whatever")
-				os.Setenv("LANG", "whatever")
+			func() (string, error) {
+				return "en", nil
 			},
-			func(l *Localizer, err error) {
-				assert.NoError(t, err)
+			"en",
+		},
+	}
 
-				assert.EqualValues(t, "whatever", l.GetLanguage())
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, detectLanguage(s.langDetector))
+	}
+}
+
+func TestLocalizer(t *testing.T) {
+	type scenario struct {
+		userLang string
+		test     func(*Localizer)
+	}
+
+	scenarios := []scenario{
+		{
+			"C",
+			func(l *Localizer) {
+				assert.EqualValues(t, "C", l.GetLanguage())
 				assert.Equal(t, "Diff", l.Localize(&i18n.LocalizeConfig{
 					DefaultMessage: &i18n.Message{
 						ID: "DiffTitle",
@@ -51,18 +59,10 @@ func TestNewLocalizer(t *testing.T) {
 				assert.Equal(t, "Diff", l.SLocalize("DiffTitle"))
 				assert.Equal(t, "Are you sure you want delete the branch test ?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
 			},
-			func() {
-				os.Setenv("LC_ALL", LCALL)
-				os.Setenv("LANG", LANG)
-			},
 		},
 		{
-			func() {
-				os.Setenv("LC_ALL", "nl")
-			},
-			func(l *Localizer, err error) {
-				assert.NoError(t, err)
-
+			"nl",
+			func(l *Localizer) {
 				assert.EqualValues(t, "nl", l.GetLanguage())
 				assert.Equal(t, "Diff", l.Localize(&i18n.LocalizeConfig{
 					DefaultMessage: &i18n.Message{
@@ -72,15 +72,10 @@ func TestNewLocalizer(t *testing.T) {
 				assert.Equal(t, "Diff", l.SLocalize("DiffTitle"))
 				assert.Equal(t, "Weet je zeker dat je test branch wil verwijderen?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
 			},
-			func() {
-				os.Setenv("LC_ALL", LCALL)
-			},
 		},
 	}
 
 	for _, s := range scenarios {
-		s.setup()
-		s.test(NewLocalizer(logrus.New()))
-		s.teardown()
+		s.test(setupLocalizer(logrus.New(), s.userLang))
 	}
 }
