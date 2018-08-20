@@ -110,4 +110,5 @@ func TestNormalizeLinefeeds(t *testing.T) {
 		if input != expected {
 			t.Error("Expected " + expected + ", got " + input)
 		}
+	}
 }
