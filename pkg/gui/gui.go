@@ -141,14 +141,15 @@ func max(a, b int) int {
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
+	version := gui.Config.GetVersion()
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
 	filesBranchesBoundary := 2 * height / 5   // height - 20
 	commitsBranchesBoundary := 3 * height / 5 // height - 10
 	commitsStashBoundary := height - 5        // height - 5
+	optionsVersionBoundary := width - max(len(version), 1)
 	minimumHeight := 16
 	minimumWidth := 10
-	version := gui.Config.GetVersion()
 
 	panelSpacing := 1
 	if OverlappingEdges {
@@ -227,7 +228,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", -1, optionsTop, width-len(version)-2, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", -1, optionsTop, optionsVersionBoundary-1, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -249,8 +250,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			commitMessageView.Editable = true
 		}
 	}
-
-	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
