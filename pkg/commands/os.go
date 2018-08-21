@@ -175,7 +175,8 @@ func (c *OSCommand) Unquote(message string) string {
 	return message
 }
 
-func (C *OSCommand) AppendLineToFile(filename, line string) error {
+// AppendLineToFile adds a new line in file
+func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return err
