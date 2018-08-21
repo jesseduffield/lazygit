@@ -41,8 +41,10 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
 	splitCmd := str.ToArgv(command)
 	c.Log.Info(splitCmd)
-	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
-	return sanitisedCommandOutput(cmdOut, err)
+
+	return sanitisedCommandOutput(
+		exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
+	)
 }
 
 // RunCommand runs a command and just returns the error
@@ -57,10 +59,11 @@ func (c *OSCommand) RunDirectCommand(command string) (string, error) {
 	args := str.ToArgv(c.Platform.shellArg + " " + command)
 	c.Log.Info(spew.Sdump(args))
 
-	cmdOut, err := exec.
-		Command(c.Platform.shell, args...).
-		CombinedOutput()
-	return sanitisedCommandOutput(cmdOut, err)
+	return sanitisedCommandOutput(
+		exec.
+			Command(c.Platform.shell, args...).
+			CombinedOutput(),
+	)
 }
 
 func sanitisedCommandOutput(output []byte, err error) (string, error) {
