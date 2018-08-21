@@ -1,4 +1,4 @@
-# lazygit [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit)
+# lazygit [![CircleCI](https://circleci.com/gh/jesseduffield/lazygit.svg?style=svg)](https://circleci.com/gh/jesseduffield/lazygit) [![codecov](https://codecov.io/gh/jesseduffield/lazygit/branch/master/graph/badge.svg)](https://codecov.io/gh/jesseduffield/lazygit) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](http://godoc.org/github.com/jesseduffield/lazygit) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)]()
 
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
 

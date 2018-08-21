@@ -13,6 +13,7 @@ TODO.md
 
 # Tests
 test/repos/repo
+coverage.txt
 
 # Binaries
 lazygit
