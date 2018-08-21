@@ -121,6 +121,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 // falling back to core.editor, VISUAL, EDITOR, then vi
 func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 	editor, _ := gitconfig.Global("core.editor")
+
 	if editor == "" {
 		editor = os.Getenv("VISUAL")
 	}
@@ -135,13 +136,13 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 	if editor == "" {
 		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 	}
-	return c.PrepareSubProcess(editor, filename)
+
+	return c.PrepareSubProcess(editor, filename), nil
 }
 
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
-func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) (*exec.Cmd, error) {
-	subprocess := exec.Command(cmdName, commandArgs...)
-	return subprocess, nil
+func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *exec.Cmd {
+	return exec.Command(cmdName, commandArgs...)
 }
 
 // Quote wraps a message in platform-specific quotation marks
