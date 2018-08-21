@@ -14,9 +14,9 @@ type Binding struct {
 
 func (gui *Gui) keybindings(g *gocui.Gui) error {
 	bindings := []Binding{
-		{ViewName: "", Key: 'q', Modifier: gocui.ModNone, Handler: gui.escape},
-		{ViewName: "", Key: gocui.KeyCtrlC, Modifier: gocui.ModNone, Handler: gui.escape},
-		{ViewName: "", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: gui.escape},
+		{ViewName: "", Key: 'q', Modifier: gocui.ModNone, Handler: gui.quit},
+		{ViewName: "", Key: gocui.KeyCtrlC, Modifier: gocui.ModNone, Handler: gui.quit},
+		{ViewName: "", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: gui.quit},
 		{ViewName: "", Key: gocui.KeyPgup, Modifier: gocui.ModNone, Handler: gui.scrollUpMain},
 		{ViewName: "", Key: gocui.KeyPgdn, Modifier: gocui.ModNone, Handler: gui.scrollDownMain},
 		{ViewName: "", Key: gocui.KeyCtrlU, Modifier: gocui.ModNone, Handler: gui.scrollUpMain},

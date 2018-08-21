@@ -362,6 +362,6 @@ func (gui *Gui) RunWithSubprocesses() {
 	}
 }
 
-func (gui *Gui) escape(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
