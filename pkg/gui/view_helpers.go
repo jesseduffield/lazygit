@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/spkg/bom"
 )
 
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
@@ -217,7 +219,9 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 			return nil
 		}
 		v.Clear()
-		fmt.Fprint(v, s)
+		output := string(bom.Clean([]byte(s)))
+		output = utils.NormalizeLinefeeds(output)
+		fmt.Fprint(v, output)
 		v.Wrap = true
 		return nil
 	})
