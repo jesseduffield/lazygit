@@ -76,10 +76,11 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
 	}
 	title := gui.Tr.SLocalize("DeleteBranch")
+	var messageId string
 	if force {
-		messageId := "ForceDeleteBranchMessage"
+		messageId = "ForceDeleteBranchMessage"
 	} else {
-		messageId := "DeleteBranchMessage"
+		messageId = "DeleteBranchMessage"
 	}
 	message := gui.Tr.TemplateLocalize(
 		messageId,
