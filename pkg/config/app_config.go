@@ -121,10 +121,7 @@ func LoadUserConfigFromFile(v *viper.Viper) error {
 		folder = configDirs.QueryFolderContainsFile("config.yml")
 	}
 	v.AddConfigPath(folder.Path)
-	if err := v.MergeInConfig(); err != nil {
-		return err
-	}
-	return nil
+	return v.MergeInConfig()
 }
 
 // InsertToUserConfig adds a key/value pair to the user's config and saves it
@@ -139,10 +136,7 @@ func (c *AppConfig) InsertToUserConfig(key, value string) error {
 		return err
 	}
 	v.Set(key, value)
-	if err := v.WriteConfig(); err != nil {
-		return err
-	}
-	return nil
+	return v.WriteConfig()
 }
 
 func getDefaultConfig() []byte {

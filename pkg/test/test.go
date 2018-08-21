@@ -26,8 +26,6 @@ func GenerateRepo(filename string) error {
 	if output, err := exec.Command("bash", filename).CombinedOutput(); err != nil {
 		return errors.New(string(output))
 	}
-	if err := os.Chdir(testPath + "repo"); err != nil {
-		return err
-	}
-	return nil
+
+	return os.Chdir(testPath + "repo")
 }
