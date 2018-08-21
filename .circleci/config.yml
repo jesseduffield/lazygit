@@ -35,7 +35,6 @@ workflows:
   release:
     jobs:
       - release:
-          context: org-global
           filters:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
