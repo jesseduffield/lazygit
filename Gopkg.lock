@@ -77,7 +77,7 @@
   branch = "master"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
-  revision = "432b7f6215f81ef1aaa1b2d9b69887822923cf79"
+  revision = "76a959bb4b0df223fd046b96b68f0162dd609e4b"
 
 [[projects]]
   name = "github.com/kevinburke/ssh_config"

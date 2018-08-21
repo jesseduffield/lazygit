@@ -38,9 +38,6 @@ func (kb *keybinding) matchView(v *View) bool {
 	if v.Editable == true && kb.ch != 0 {
 		return false
 	}
-	if kb.viewName == "" {
-		return true
-	}
 	return v != nil && kb.viewName == v.name
 }
 
