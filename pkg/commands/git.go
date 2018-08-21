@@ -489,7 +489,7 @@ func (c *GitCommand) Diff(file File, width int) string {
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
 	}
-	trackedArg := ""
+	trackedArg := "--"
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null"
 	}
