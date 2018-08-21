@@ -51,10 +51,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 		return app, err
 	}
 
-	app.Tr, err = i18n.NewLocalizer(app.Log)
-	if err != nil {
-		return app, err
-	}
+	app.Tr = i18n.NewLocalizer(app.Log)
 
 	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand)
 	if err != nil {
