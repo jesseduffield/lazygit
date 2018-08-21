@@ -362,9 +362,6 @@ func (gui *Gui) RunWithSubprocesses() {
 	}
 }
 
-func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
-	if v.Name() != "commitMessage" && v.Name() != "confirmation" {
-		return gocui.ErrQuit
-	}
-	return nil
+func (gui *Gui) escape(g *gocui.Gui, v *gocui.View) error {
+	return gocui.ErrQuit
 }
