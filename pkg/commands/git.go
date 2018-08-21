@@ -261,6 +261,44 @@ func (c *GitCommand) UsingGpg() bool {
 	return true
 }
 
+// UsingCredentialHelper tells us whether the user has an external program
+// configured to enter their credentials. If they do, we need to run a subprocess
+func (c *GitCommand) UsingCredentialHelper() bool {
+	credential, _ := gitconfig.Global("credential")
+	if credential == "" {
+		credential, _ = gitconfig.Local("credential")
+	}
+	if credential != "" {
+		return true
+	}
+
+	if os.Getenv("GIT_ASKPASS") != "" {
+		return true
+	}
+
+	askPass, _ := gitconfig.Global("core.askPass")
+	if askPass == "" {
+		askPass, _ = gitconfig.Local("core.askPass")
+	}
+	if askPass != "" {
+		return true
+	}
+
+	if os.Getenv("SSH_ASKPASS") != "" {
+		return true
+	}
+
+	return false
+}
+
+// This tells us whether the configured remote has https in the URL
+// TODO: fix this when multiple remotes are configurable
+func (c *GitCommand) RemoteHasHttps() bool {
+	command := "git remote get-url origin"
+	output, _ := c.OSCommand.RunCommandWithOutput(command)
+	return strings.Contains(output, "https")
+}
+
 // Commit commit to git
 func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
 	command := "git commit -m " + c.OSCommand.Quote(message)
@@ -276,12 +314,17 @@ func (c *GitCommand) Pull() error {
 }
 
 // Push push to a branch
-func (c *GitCommand) Push(branchName string, force bool) error {
+func (c *GitCommand) Push(branchName string, force bool) (*exec.Cmd, error) {
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease "
 	}
-	return c.OSCommand.RunCommand("git push " + forceFlag + "-u origin " + branchName)
+	command := "git push " + forceFlag + "-u origin " + branchName
+	if c.UsingCredentialHelper() || c.RemoteHasHttps() {
+		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)
+	} else {
+		return nil, c.OSCommand.RunCommand(command)
+	}
 }
 
 // SquashPreviousTwoCommits squashes a commit down to the one below it

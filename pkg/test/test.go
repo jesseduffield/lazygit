@@ -11,7 +11,7 @@ import (
 
 // GenerateRepo generates a repo from test/repos and changes the directory to be
 // inside the newly made repo
-func GenerateRepo(filename string) error {
+func GenerateRepo(filename string, args string) error {
 	reposDir := "/test/repos/"
 	testPath := utils.GetProjectRoot() + reposDir
 
@@ -23,7 +23,7 @@ func GenerateRepo(filename string) error {
 	if err := os.Chdir(testPath); err != nil {
 		return err
 	}
-	if output, err := exec.Command("bash", filename).CombinedOutput(); err != nil {
+	if output, err := exec.Command("bash", filename, args).CombinedOutput(); err != nil {
 		return errors.New(string(output))
 	}
 	if err := os.Chdir(testPath + "repo"); err != nil {

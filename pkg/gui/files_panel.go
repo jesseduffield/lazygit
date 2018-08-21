@@ -364,16 +364,31 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 	if err := gui.createMessagePanel(gui.g, currentView, "", gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
-	go func() {
-		branchName := gui.State.Branches[0].Name
-		if err := gui.GitCommand.Push(branchName, force); err != nil {
-			_ = gui.createErrorPanel(gui.g, err.Error())
-		} else {
-			_ = gui.closeConfirmationPrompt(gui.g)
-			_ = gui.refreshCommits(gui.g)
-			_ = gui.refreshStatus(gui.g)
+
+	branchName := gui.State.Branches[0].Name
+	sub, err := gui.GitCommand.Push(branchName, force)
+	if sub == nil {
+		go func() {
+			if err != nil {
+				_ = gui.createErrorPanel(gui.g, err.Error())
+			} else {
+				_ = gui.closeConfirmationPrompt(gui.g)
+				_ = gui.refreshCommits(gui.g)
+				_ = gui.refreshStatus(gui.g)
+			}
+		}()
+	} else {
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
 		}
-	}()
+		if sub != nil {
+			gui.SubProcess = sub
+			return gui.Errors.ErrSubProcess
+		}
+		_ = gui.closeConfirmationPrompt(gui.g)
+		_ = gui.refreshCommits(gui.g)
+		_ = gui.refreshStatus(gui.g)
+	}
 	return nil
 }
 
