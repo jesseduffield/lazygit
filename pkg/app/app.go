@@ -46,10 +46,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	}
 	var err error
 	app.Log = newLogger(config)
-	app.OSCommand, err = commands.NewOSCommand(app.Log)
-	if err != nil {
-		return app, err
-	}
+	app.OSCommand = commands.NewOSCommand(app.Log)
 
 	app.Tr = i18n.NewLocalizer(app.Log)
 

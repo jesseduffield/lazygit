@@ -30,12 +30,11 @@ type OSCommand struct {
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(log *logrus.Logger) (*OSCommand, error) {
-	osCommand := &OSCommand{
+func NewOSCommand(log *logrus.Logger) *OSCommand {
+	return &OSCommand{
 		Log:      log,
 		Platform: getPlatform(),
 	}
-	return osCommand, nil
 }
 
 // RunCommandWithOutput wrapper around commands returning their output and error
