@@ -223,8 +223,14 @@ func (c *GitCommand) NewBranch(name string) error {
 }
 
 // DeleteBranch delete branch
-func (c *GitCommand) DeleteBranch(branch string) error {
-	return c.OSCommand.RunCommand("git branch -d " + branch)
+func (c *GitCommand) DeleteBranch(branch string, force bool) error {
+	var command string
+	if force {
+		command = "git branch -D "
+	} else {
+		command = "git branch -d "
+	}
+	return c.OSCommand.RunCommand(command + branch)
 }
 
 // ListStash list stash

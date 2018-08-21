@@ -140,7 +140,10 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Delete Branch",
 		}, &i18n.Message{
 			ID:    "DeleteBranchMessage",
-			Other: "Are you sure you want delete the branch {{.selectedBranchName}} ?",
+			Other: "Are you sure you want to delete the branch {{.selectedBranchName}} ?",
+		}, &i18n.Message{
+			ID:    "ForceDeleteBranchMessage",
+			Other: "Are you sure you want to force delete the branch {{.selectedBranchName}} ?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "You cannot merge a branch into itself",
@@ -159,6 +162,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "deleteBranch",
 			Other: "delete branch",
+		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "delete branch (force)",
 		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "No branches for this repo",

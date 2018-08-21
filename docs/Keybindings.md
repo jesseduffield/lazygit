@@ -44,6 +44,7 @@
   <kbd>c</kbd>:       checkout by name
   <kbd>n</kbd>:       new branch
   <kbd>d</kbd>:       delete branch
+  <kbd>D</kbd>:       force delete branch
 </pre>
 
 ## Commits Panel:
