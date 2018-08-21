@@ -62,11 +62,11 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
-	gui.deleteBranch(g, v, false)
+	return gui.deleteBranch(g, v, false)
 }
 
 func (gui *Gui) handleForceDeleteBranch(g *gocui.Gui, v *gocui.View) error {
-	gui.deleteBranch(g, v, true)
+	return gui.deleteBranch(g, v, true)
 }
 
 func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
