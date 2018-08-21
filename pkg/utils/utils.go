@@ -81,3 +81,11 @@ func GetProjectRoot() string {
 	}
 	return strings.Split(dir, "lazygit")[0] + "lazygit"
 }
+
+// ResolvePlaceholderString populates a template with values
+func ResolvePlaceholderString(str string, arguments map[string]string) string {
+	for key, value := range arguments {
+		str = strings.Replace(str, "{{"+key+"}}", value, -1)
+	}
+	return str
+}

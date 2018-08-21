@@ -145,6 +145,8 @@ func (c *AppConfig) InsertToUserConfig(key, value string) error {
 	return nil
 }
 
+// # git diff --color {{args}} {{filename}}
+
 func getDefaultConfig() []byte {
 	return []byte(`
   gui:
@@ -159,7 +161,7 @@ func getDefaultConfig() []byte {
       optionsTextColor:
         - blue
   git:
-    # stuff relating to git
+    fileDiffTemplate: 'git difftool --no-prompt --extcmd="icdiff --cols={{width}}" {{args}} -- {{filename}}'
   os:
     # stuff relating to the OS
 

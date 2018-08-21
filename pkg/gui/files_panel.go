@@ -190,7 +190,9 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshMergePanel(g)
 	}
 
-	content = gui.GitCommand.Diff(file)
+	mainView := gui.getMainView(g)
+	width, _ := mainView.Size()
+	content = gui.GitCommand.Diff(file, width)
 	return gui.renderString(g, "main", content)
 }
 

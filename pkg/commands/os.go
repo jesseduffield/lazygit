@@ -7,8 +7,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/mgutz/str"
 
 	"github.com/Sirupsen/logrus"
@@ -56,11 +54,8 @@ func (c *OSCommand) RunCommand(command string) error {
 // RunDirectCommand wrapper around direct commands
 func (c *OSCommand) RunDirectCommand(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunDirectCommand")
-	args := str.ToArgv(c.Platform.shellArg + " " + command)
-	c.Log.Info(spew.Sdump(args))
-
 	cmdOut, err := exec.
-		Command(c.Platform.shell, args...).
+		Command(c.Platform.shell, c.Platform.shellArg, command).
 		CombinedOutput()
 	return sanitisedCommandOutput(cmdOut, err)
 }

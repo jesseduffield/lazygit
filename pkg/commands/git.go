@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	gogit "gopkg.in/src-d/go-git.v4"
@@ -20,13 +22,15 @@ type GitCommand struct {
 	OSCommand *OSCommand
 	Worktree  *gogit.Worktree
 	Repo      *gogit.Repository
+	Config    config.AppConfigurer
 }
 
 // NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Logger, osCommand *OSCommand) (*GitCommand, error) {
+func NewGitCommand(log *logrus.Logger, osCommand *OSCommand, config config.AppConfigurer) (*GitCommand, error) {
 	gitCommand := &GitCommand{
 		Log:       log,
 		OSCommand: osCommand,
+		Config:    config,
 	}
 	return gitCommand, nil
 }
@@ -479,19 +483,25 @@ func (c *GitCommand) Show(sha string) string {
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file File) string {
+func (c *GitCommand) Diff(file File, width int) string {
 	cachedArg := ""
 	fileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
 	}
-	trackedArg := "--"
+	trackedArg := ""
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null"
 	}
-	command := fmt.Sprintf("%s %s %s %s", "git diff --color ", cachedArg, trackedArg, fileName)
 
-	// for now we assume an error means the file was deleted
-	s, _ := c.OSCommand.RunCommandWithOutput(command)
+	templateValues := map[string]string{
+		"width":    strconv.Itoa(width),
+		"args":     cachedArg + " " + trackedArg,
+		"filename": fileName,
+	}
+
+	template := c.Config.GetUserConfig().GetString("git.fileDiffTemplate")
+	command := utils.ResolvePlaceholderString(template, templateValues)
+	s, _ := c.OSCommand.RunDirectCommand(command)
 	return s
 }
