@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -72,25 +71,6 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 		return outputString, errors.New(outputString)
 	}
 	return outputString, nil
-}
-
-func getPlatform() *Platform {
-	switch runtime.GOOS {
-	case "windows":
-		return &Platform{
-			os:           "windows",
-			shell:        "cmd",
-			shellArg:     "/c",
-			escapedQuote: "\\\"",
-		}
-	default:
-		return &Platform{
-			os:           runtime.GOOS,
-			shell:        "bash",
-			shellArg:     "-c",
-			escapedQuote: "\"",
-		}
-	}
 }
 
 // GetOpenCommand get open command
