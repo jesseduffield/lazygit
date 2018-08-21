@@ -264,9 +264,9 @@ func (c *GitCommand) UsingGpg() bool {
 // UsingCredentialHelper tells us whether the user has an external program
 // configured to enter their credentials. If they do, we need to run a subprocess
 func (c *GitCommand) UsingCredentialHelper() bool {
-	credential, _ := gitconfig.Global("credential")
+	credential, _ := gitconfig.Global("credential.helper")
 	if credential == "" {
-		credential, _ = gitconfig.Local("credential")
+		credential, _ = gitconfig.Local("credential.helper")
 	}
 	if credential != "" {
 		return true
