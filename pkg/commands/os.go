@@ -108,13 +108,13 @@ func (c *OSCommand) SublimeOpenFile(filename string) (*exec.Cmd, error) {
 }
 
 // OpenFile opens a file with the given
-func (c *OSCommand) OpenFile(filename string) (*exec.Cmd, error) {
+func (c *OSCommand) OpenFile(filename string) error {
 	cmdName, cmdTrail, err := c.GetOpenCommand()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	err = c.RunCommand(cmdName + " " + c.Quote(filename) + cmdTrail) // TODO: test on linux
-	return nil, err
+
+	return c.RunCommand(cmdName + " " + c.Quote(filename) + cmdTrail) // TODO: test on linux
 }
 
 // EditFile opens a file in a subprocess using whatever editor is available,

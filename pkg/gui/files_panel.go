@@ -256,7 +256,7 @@ func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.OpenFile)
+	return gui.genericFileOpen(g, v, file.Name, func(filename string) (*exec.Cmd, error) { return nil, gui.OSCommand.OpenFile(filename) })
 }
 
 func (gui *Gui) handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
