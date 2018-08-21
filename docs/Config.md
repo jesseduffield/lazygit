@@ -37,3 +37,7 @@ The available attributes are:
 - bold
 - reverse # useful for high-contrast
 - underline
+
+## Example Coloring:
+
+![border example](/docs/resources/colored-border-example.png)
