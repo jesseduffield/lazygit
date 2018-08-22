@@ -76,8 +76,8 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 	return outputString, nil
 }
 
-// GetOpenCommand get open command
-func (c *OSCommand) GetOpenCommand() (string, string, error) {
+// getOpenCommand get open command
+func (c *OSCommand) getOpenCommand() (string, string, error) {
 	//NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
 	trailMap := map[string]string{
 		"xdg-open": " &>/dev/null &",
@@ -109,7 +109,7 @@ func (c *OSCommand) SublimeOpenFile(filename string) (*exec.Cmd, error) {
 
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
-	cmdName, cmdTrail, err := c.GetOpenCommand()
+	cmdName, cmdTrail, err := c.getOpenCommand()
 	if err != nil {
 		return err
 	}
