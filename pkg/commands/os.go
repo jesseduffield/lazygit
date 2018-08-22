@@ -24,15 +24,21 @@ type Platform struct {
 
 // OSCommand holds all the os commands
 type OSCommand struct {
-	Log      *logrus.Logger
-	Platform *Platform
+	Log                *logrus.Logger
+	Platform           *Platform
+	command            func(string, ...string) *exec.Cmd
+	getGlobalGitConfig func(string) (string, error)
+	getenv             func(string) string
 }
 
 // NewOSCommand os command runner
 func NewOSCommand(log *logrus.Logger) *OSCommand {
 	return &OSCommand{
-		Log:      log,
-		Platform: getPlatform(),
+		Log:                log,
+		Platform:           getPlatform(),
+		command:            exec.Command,
+		getGlobalGitConfig: gitconfig.Global,
+		getenv:             os.Getenv,
 	}
 }
 
@@ -43,7 +49,7 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.Info(splitCmd)
 
 	return sanitisedCommandOutput(
-		exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
+		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
 	)
 }
 
@@ -84,6 +90,7 @@ func (c *OSCommand) getOpenCommand() (string, string, error) {
 		"cygstart": "",
 		"open":     "",
 	}
+
 	for name, trail := range trailMap {
 		if err := c.RunCommand("which " + name); err == nil {
 			return name, trail, nil
@@ -120,13 +127,13 @@ func (c *OSCommand) OpenFile(filename string) error {
 // EditFile opens a file in a subprocess using whatever editor is available,
 // falling back to core.editor, VISUAL, EDITOR, then vi
 func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
-	editor, _ := gitconfig.Global("core.editor")
+	editor, _ := c.getGlobalGitConfig("core.editor")
 
 	if editor == "" {
-		editor = os.Getenv("VISUAL")
+		editor = c.getenv("VISUAL")
 	}
 	if editor == "" {
-		editor = os.Getenv("EDITOR")
+		editor = c.getenv("EDITOR")
 	}
 	if editor == "" {
 		if err := c.RunCommand("which vi"); err == nil {
@@ -142,7 +149,7 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
 func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *exec.Cmd {
-	return exec.Command(cmdName, commandArgs...)
+	return c.command(cmdName, commandArgs...)
 }
 
 // Quote wraps a message in platform-specific quotation marks
