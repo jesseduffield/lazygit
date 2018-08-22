@@ -9,28 +9,21 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/test"
 )
 
-func getDummyLog() *logrus.Logger {
+func newDummyLog() *logrus.Logger {
 	log := logrus.New()
 	log.Out = ioutil.Discard
 	return log
 }
 
-func getDummyOSCommand() *OSCommand {
-	return &OSCommand{
-		Log:      getDummyLog(),
-		Platform: getPlatform(),
-	}
-}
-
-func getDummyGitCommand() *GitCommand {
+func newDummyGitCommand() *GitCommand {
 	return &GitCommand{
-		Log:       getDummyLog(),
-		OSCommand: getDummyOSCommand(),
+		Log:       newDummyLog(),
+		OSCommand: newDummyOSCommand(),
 	}
 }
 
 func TestDiff(t *testing.T) {
-	gitCommand := getDummyGitCommand()
+	gitCommand := newDummyGitCommand()
 	if err := test.GenerateRepo("lots_of_diffs.sh"); err != nil {
 		t.Error(err.Error())
 	}

@@ -3,12 +3,14 @@ package commands
 import (
 	"testing"
 
-	"github.com/Sirupsen/logrus"
-
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRunCommandWithOutput(t *testing.T) {
+func newDummyOSCommand() *OSCommand {
+	return NewOSCommand(newDummyLog())
+}
+
+func TestOSCommandRunCommandWithOutput(t *testing.T) {
 	type scenario struct {
 		command string
 		test    func(string, error)
@@ -31,11 +33,11 @@ func TestRunCommandWithOutput(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewOSCommand(logrus.New()).RunCommandWithOutput(s.command))
+		s.test(newDummyOSCommand().RunCommandWithOutput(s.command))
 	}
 }
 
-func TestRunCommand(t *testing.T) {
+func TestOSCommandRunCommand(t *testing.T) {
 	type scenario struct {
 		command string
 		test    func(error)
@@ -51,12 +53,12 @@ func TestRunCommand(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewOSCommand(logrus.New()).RunCommand(s.command))
+		s.test(newDummyOSCommand().RunCommand(s.command))
 	}
 }
 
-func TestQuote(t *testing.T) {
-	osCommand := NewOSCommand(logrus.New())
+func TestOSCommandQuote(t *testing.T) {
+	osCommand := newDummyOSCommand()
 
 	actual := osCommand.Quote("hello `test`")
 
@@ -65,8 +67,8 @@ func TestQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-func TestUnquote(t *testing.T) {
-	osCommand := NewOSCommand(logrus.New())
+func TestOSCommandUnquote(t *testing.T) {
+	osCommand := newDummyOSCommand()
 
 	actual := osCommand.Unquote(`hello "test"`)
 
