@@ -134,7 +134,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "DeleteBranchMessage",
 			Other: "Weet je zeker dat je branch {{.selectedBranchName}} wil verwijderen?",
 		}, &i18n.Message{
-			ID:    "DeleteBranchMessage",
+			ID:    "ForceDeleteBranchMessage",
 			Other: "Weet je zeker dat je branch {{.selectedBranchName}} geforceerd wil verwijderen?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
