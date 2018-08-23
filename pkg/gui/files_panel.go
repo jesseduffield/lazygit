@@ -248,7 +248,7 @@ func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	return gui.genericFileOpen(g, v, file.Name, func(filename string) (*exec.Cmd, error) { return nil, gui.OSCommand.OpenFile(filename) })
+	return gui.openFile(file.Name)
 }
 
 func (gui *Gui) handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
@@ -416,4 +416,11 @@ func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
 		}
 		return gui.refreshFiles(g)
 	}, nil)
+}
+
+func (gui *Gui) openFile(filename string) error {
+	if err := gui.OSCommand.OpenFile(filename); err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+	return nil
 }
