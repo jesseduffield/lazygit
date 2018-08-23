@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/jesseduffield/lazygit/pkg/test"
 )
 
