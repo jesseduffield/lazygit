@@ -18,7 +18,7 @@ func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.Vie
 	return func(g *gocui.Gui, v *gocui.View) error {
 		if function != nil {
 			if err := function(g, v); err != nil {
-				panic(err)
+				return err
 			}
 		}
 		return gui.closeConfirmationPrompt(g)

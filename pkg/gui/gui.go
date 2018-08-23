@@ -80,6 +80,7 @@ type guiState struct {
 	Conflicts         []commands.Conflict
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
+	Updating          bool
 }
 
 // NewGui builds a new gui handler
@@ -140,6 +141,13 @@ func max(a, b int) int {
 	return b
 }
 
+func (gui *Gui) setAppStatus(status string) error {
+	if err := gui.renderString(gui.g, "appStatus", status); err != nil {
+		return err
+	}
+	return nil
+}
+
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
@@ -152,6 +160,12 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	minimumHeight := 16
 	minimumWidth := 10
 	version := gui.Config.GetVersion()
+
+	appStatusView, _ := g.View("appStatus")
+	appStatusOptionsBoundary := -2
+	if appStatusView != nil && len(appStatusView.Buffer()) > 2 {
+		appStatusOptionsBoundary = len(appStatusView.Buffer()) + 2
+	}
 
 	panelSpacing := 1
 	if OverlappingEdges {
@@ -230,7 +244,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", -1, optionsTop, width-len(version)-2, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", appStatusOptionsBoundary-1, optionsTop, width-len(version)-2, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -253,6 +267,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
+	appStatusLeft := -1
+	if appStatusOptionsBoundary < 2 {
+		appStatusLeft = -5
+	}
+
+	if v, err := g.SetView("appStatus", appStatusLeft, optionsTop, appStatusOptionsBoundary, optionsTop+2, 0); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.BgColor = gocui.ColorDefault
+		v.FgColor = gocui.ColorCyan
+		v.Frame = false
+	}
+
 	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -264,18 +292,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		newVersion, err := gui.Updater.CheckForNewUpdate()
-		if err != nil {
-			return err
-		}
-		gui.Updater.NewVersion = "v0.1.75"
-		newVersion = "v0.1.75"
-		if newVersion != "" {
-			if err := gui.Updater.Update(); err != nil {
-				panic(err)
-				return err
-			}
-		}
+		// gui.Updater.CheckForNewUpdate(gui.onUpdateCheckFinish)
 
 		// these are only called once
 		gui.handleFileSelect(g, filesView)
@@ -293,6 +310,36 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	return nil
 }
 
+func (gui *Gui) onUpdateFinish(err error) error {
+	gui.State.Updating = false
+	gui.setAppStatus("")
+	if err != nil {
+		gui.createErrorPanel(gui.g, "Update failed: "+err.Error())
+	}
+	// TODO: on attempted quit, if downloading is true, ask if sure the user wants to quit
+	return nil
+}
+
+func (gui *Gui) onUpdateCheckFinish(newVersion string, err error) error {
+	newVersion = "v0.1.72"
+	if err != nil {
+		// ignoring the error for now
+		return nil
+	}
+	if newVersion == "" {
+		return nil
+	}
+	title := "New version available!"
+	message := "Download latest version? (enter/esc)"
+	// TODO: support nil view in createConfirmationPanel or always go back to filesPanel when there is no previous view
+	return gui.createConfirmationPanel(gui.g, nil, title, message, func(g *gocui.Gui, v *gocui.View) error {
+		gui.State.Updating = true
+		gui.setAppStatus("updating...")
+		gui.Updater.Update(newVersion, gui.onUpdateFinish)
+		return nil
+	}, nil) // TODO: set config value saying not to check for another while if user hits escape
+}
+
 func (gui *Gui) fetch(g *gocui.Gui) error {
 	gui.GitCommand.Fetch()
 	gui.refreshStatus(g)
@@ -300,11 +347,17 @@ func (gui *Gui) fetch(g *gocui.Gui) error {
 }
 
 func (gui *Gui) updateLoader(g *gocui.Gui) error {
-	if confirmationView, _ := g.View("confirmation"); confirmationView != nil {
-		content := gui.trimmedContent(confirmationView)
-		if strings.Contains(content, "...") {
-			staticContent := strings.Split(content, "...")[0] + "..."
-			gui.renderString(g, "confirmation", staticContent+" "+gui.loader())
+	viewNames := []string{"confirmation", "appStatus"}
+	for _, viewName := range viewNames {
+		if view, _ := g.View(viewName); view != nil {
+			content := gui.trimmedContent(view)
+			if strings.Contains(content, "...") {
+				staticContent := strings.Split(content, "...")[0] + "..."
+				if viewName == "appStatus" {
+					// panic(staticContent + " " + gui.loader())
+				}
+				gui.renderString(g, viewName, staticContent+" "+gui.loader())
+			}
 		}
 	}
 	return nil
@@ -333,9 +386,6 @@ func (gui *Gui) Run() error {
 		return err
 	}
 	defer g.Close()
-
-	// TODO: do this more elegantly
-	gui.Updater.CheckForNewUpdate()
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
@@ -381,6 +431,17 @@ func (gui *Gui) RunWithSubprocesses() {
 	}
 }
 
+func (gui *Gui) createUpdateQuitConfirmation(g *gocui.Gui, v *gocui.View) error {
+	title := "Currently Updating"
+	message := "An update is in progress. Are you sure you want to quit?"
+	return gui.createConfirmationPanel(gui.g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
+		return gocui.ErrQuit
+	}, nil)
+}
+
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
+	if gui.State.Updating {
+		return gui.createUpdateQuitConfirmation(g, v)
+	}
 	return gocui.ErrQuit
 }

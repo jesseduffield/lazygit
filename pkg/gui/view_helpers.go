@@ -108,7 +108,11 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 	previousView, err := g.View(gui.State.PreviousView)
 	if err != nil {
-		panic(err)
+		// always fall back to files view if there's no 'previous' view stored
+		previousView, err = g.View("files")
+		if err != nil {
+			gui.Log.Error(err)
+		}
 	}
 	return gui.switchFocus(g, v, previousView)
 }
@@ -215,6 +219,9 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 		// silently return if it's not found
 		if err != nil {
 			return nil
+		}
+		if viewName == "appStatus" {
+			gui.Log.Info(s)
 		}
 		v.Clear()
 		fmt.Fprint(v, s)

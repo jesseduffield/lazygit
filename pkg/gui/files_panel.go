@@ -251,6 +251,14 @@ func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
 	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.EditFile)
 }
 
+func (gui *Gui) openFile(filename string) error {
+	err := gui.OSCommand.OpenFile(filename)
+	if err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+	return nil
+}
+
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {

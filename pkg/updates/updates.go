@@ -2,7 +2,6 @@ package updates
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,11 +9,12 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/kardianos/osext"
 
 	"github.com/Sirupsen/logrus"
-	getter "github.com/hashicorp/go-getter"
+	getter "github.com/jesseduffield/go-getter"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 )
@@ -22,9 +22,8 @@ import (
 // Update checks for updates and does updates
 type Updater struct {
 	LastChecked string
-	Log         *logrus.Logger
+	Log         *logrus.Entry
 	Config      config.AppConfigurer
-	NewVersion  string
 	OSCommand   *commands.OSCommand
 }
 
@@ -40,10 +39,11 @@ var (
 
 // NewUpdater creates a new updater
 func NewUpdater(log *logrus.Logger, config config.AppConfigurer, osCommand *commands.OSCommand) (*Updater, error) {
+	contextLogger := log.WithField("context", "updates")
 
 	updater := &Updater{
 		LastChecked: "today",
-		Log:         log,
+		Log:         contextLogger,
 		Config:      config,
 		OSCommand:   osCommand,
 	}
@@ -51,6 +51,7 @@ func NewUpdater(log *logrus.Logger, config config.AppConfigurer, osCommand *comm
 }
 
 func (u *Updater) getLatestVersionNumber() (string, error) {
+	time.Sleep(5)
 	req, err := http.NewRequest("GET", projectUrl+"/releases/latest", nil)
 	if err != nil {
 		return "", err
@@ -75,25 +76,43 @@ func (u *Updater) getLatestVersionNumber() (string, error) {
 	return dat["tag_name"].(string), nil
 }
 
-// CheckForNewUpdate checks if there is an available update
-func (u *Updater) CheckForNewUpdate() (string, error) {
+func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("Checking for an updated version")
-	if u.Config.GetVersion() == "unversioned" {
-		u.Log.Info("Current version is not built from an official release so we won't check for an update")
-		return "", nil
-	}
+	// if u.Config.GetVersion() == "unversioned" {
+	// 	u.Log.Info("Current version is not built from an official release so we won't check for an update")
+	// 	return "", nil
+	// }
 	newVersion, err := u.getLatestVersionNumber()
 	if err != nil {
 		return "", err
 	}
-	u.NewVersion = newVersion
 	u.Log.Info("Current version is " + u.Config.GetVersion())
 	u.Log.Info("New version is " + newVersion)
-	if newVersion == u.Config.GetVersion() {
+	// if newVersion == u.Config.GetVersion() {
+	// 	return "", nil
+	// }
+
+	rawUrl, err := u.getBinaryUrl(newVersion)
+	if err != nil {
+		return "", err
+	}
+	u.Log.Info("Checking for resource at url " + rawUrl)
+	if !u.verifyResourceFound(rawUrl) {
+		u.Log.Error("Resource not found")
 		return "", nil
 	}
-	// TODO: verify here that there is a binary available for this OS/arch
+	u.Log.Info("Verified resource is available, ready to update")
 	return newVersion, nil
+}
+
+// CheckForNewUpdate checks if there is an available update
+func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error) {
+	go func() {
+		newVersion, err := u.checkForNewUpdate()
+		if err = onFinish(newVersion, err); err != nil {
+			u.Log.Error(err)
+		}
+	}()
 }
 
 func (u *Updater) mappedOs(os string) string {
@@ -122,10 +141,7 @@ func (u *Updater) mappedArch(arch string) string {
 }
 
 // example: https://github.com/jesseduffield/lazygit/releases/download/v0.1.73/lazygit_0.1.73_Darwin_x86_64.tar.gz
-func (u *Updater) getBinaryUrl() (string, error) {
-	if u.NewVersion == "" {
-		return "", errors.New("Must run CheckForUpdate() before running getBinaryUrl() to get the new version number")
-	}
+func (u *Updater) getBinaryUrl(newVersion string) (string, error) {
 	extension := "tar.gz"
 	if runtime.GOOS == "windows" {
 		extension = "zip"
@@ -133,8 +149,8 @@ func (u *Updater) getBinaryUrl() (string, error) {
 	url := fmt.Sprintf(
 		"%s/releases/download/%s/lazygit_%s_%s_%s.%s",
 		projectUrl,
-		u.NewVersion,
-		u.NewVersion[1:],
+		newVersion,
+		newVersion[1:],
 		u.mappedOs(runtime.GOOS),
 		u.mappedArch(runtime.GOARCH),
 		extension,
@@ -143,54 +159,79 @@ func (u *Updater) getBinaryUrl() (string, error) {
 	return url, nil
 }
 
-func (u *Updater) Update() error {
-	rawUrl, err := u.getBinaryUrl()
+// Update downloads the latest binary and replaces the current binary with it
+func (u *Updater) Update(newVersion string, onFinish func(error) error) {
+	go func() {
+		err := u.update(newVersion)
+		if err = onFinish(err); err != nil {
+			u.Log.Error(err)
+		}
+	}()
+}
+
+func (u *Updater) update(newVersion string) error {
+	rawUrl, err := u.getBinaryUrl(newVersion)
 	if err != nil {
 		return err
 	}
+	u.Log.Info("updating with url " + rawUrl)
 	return u.downloadAndInstall(rawUrl)
 }
 
 func (u *Updater) downloadAndInstall(rawUrl string) error {
 	url, err := url.Parse(rawUrl)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	g := new(getter.HttpGetter)
 	tempDir, err := ioutil.TempDir("", "lazygit")
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer os.RemoveAll(tempDir)
+	u.Log.Info("temp directory is " + tempDir)
 
 	// Get it!
 	if err := g.Get(tempDir, url); err != nil {
-		panic(err)
-	}
-
-	extension := ""
-	if runtime.GOOS == "windows" {
-		extension = ".exe"
-	}
-
-	// Verify the main file exists
-	tempPath := filepath.Join(tempDir, "lazygit"+extension)
-	if _, err := os.Stat(tempPath); err != nil {
-		panic(err)
+		return err
 	}
 
 	// get the path of the current binary
-	execPath, err := osext.Executable()
+	binaryPath, err := osext.Executable()
 	if err != nil {
-		panic(err)
+		return err
+	}
+	u.Log.Info("binary path is " + binaryPath)
+
+	binaryName := filepath.Base(binaryPath)
+	u.Log.Info("binary name is " + binaryName)
+
+	// Verify the main file exists
+	tempPath := filepath.Join(tempDir, binaryName)
+	u.Log.Info("temp path to binary is " + tempPath)
+	if _, err := os.Stat(tempPath); err != nil {
+		return err
 	}
 
 	// swap out the old binary for the new one
-	err = os.Rename(tempPath, execPath+"2")
+	err = os.Rename(tempPath, binaryPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	u.Log.Info("update complete!")
 
 	return nil
+}
+
+func (u *Updater) verifyResourceFound(rawUrl string) bool {
+	resp, err := http.Head(rawUrl)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	u.Log.Info("Received status code ", resp.StatusCode)
+	// 403 means the resource is there (not going to bother adding extra request headers)
+	// 404 means its not
+	return resp.StatusCode == 403
 }
