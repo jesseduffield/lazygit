@@ -6,7 +6,7 @@ import (
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 

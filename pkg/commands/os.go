@@ -11,7 +11,7 @@ import (
 
 	"github.com/mgutz/str"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
