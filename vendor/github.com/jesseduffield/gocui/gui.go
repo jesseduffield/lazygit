@@ -664,7 +664,7 @@ func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err err
 		if kb.matchView(v) {
 			return g.execKeybinding(v, kb)
 		}
-		if kb.viewName == "" {
+		if kb.viewName == "" && (!v.Editable || kb.ch == 0) {
 			globalKb = kb
 		}
 	}
