@@ -7,9 +7,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	gogit "gopkg.in/src-d/go-git.v4"
 )
@@ -338,6 +338,16 @@ func (c *GitCommand) CatFile(fileName string) (string, error) {
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
 	return c.OSCommand.RunCommand("git add " + c.OSCommand.Quote(fileName))
+}
+
+// StageAll stages all files
+func (c *GitCommand) StageAll() error {
+	return c.OSCommand.RunCommand("git add -A")
+}
+
+// UnstageAll stages all files
+func (c *GitCommand) UnstageAll() error {
+	return c.OSCommand.RunCommand("git reset")
 }
 
 // UnStageFile unstages a file

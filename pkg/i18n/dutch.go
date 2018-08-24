@@ -56,6 +56,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "toggleStaged",
 			Other: "toggle staged",
 		}, &i18n.Message{
+			ID:    "toggleStagedAll",
+			Other: "toggle staged alle",
+		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "verversen",
 		}, &i18n.Message{

@@ -64,6 +64,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "toggleStaged",
 			Other: "toggle staged",
 		}, &i18n.Message{
+			ID:    "toggleStagedAll",
+			Other: "stage/unstage all",
+		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "refresh",
 		}, &i18n.Message{
