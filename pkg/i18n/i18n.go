@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Teml is short for template used to make the required map[string]interface{} shorter when using gui.Tr.SLocalize and gui.Tr.TemplateLocalize
@@ -63,9 +64,9 @@ func (l *Localizer) GetLanguage() string {
 // add translation file(s)
 func addBundles(log *logrus.Logger, i18nBundle *i18n.Bundle) {
 	i18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	i18nBundle.MustLoadMessageFile("active.en.toml")
-	i18nBundle.MustLoadMessageFile("active.nl.toml")
-	i18nBundle.MustLoadMessageFile("active.pl.toml")
+	i18nBundle.MustLoadMessageFile(utils.GetProjectRoot() + "/pkg/i18n/active.en.toml")
+	i18nBundle.MustLoadMessageFile(utils.GetProjectRoot() + "/pkg/i18n/active.nl.toml")
+	i18nBundle.MustLoadMessageFile(utils.GetProjectRoot() + "/pkg/i18n/active.pl.toml")
 }
 
 // detectLanguage extracts user language from environment
