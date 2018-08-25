@@ -15,7 +15,7 @@ jobs:
           name: Compile project on every platform
           command: |
             go get github.com/mitchellh/gox
-            gox
+            gox -os "linux darwin freebsd netbsd windows"
       - run:
           name: Push on codecov result
           command: |
