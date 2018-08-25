@@ -2,14 +2,6 @@
 
 
 [[projects]]
-  digest = "1:b2339e83ce9b5c4f79405f949429a7f68a9a904fed903c672aac1e7ceb7f5f02"
-  name = "github.com/Sirupsen/logrus"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
-  version = "v1.0.6"
-
-[[projects]]
   branch = "master"
   digest = "1:cd7ba2b29e93e2a8384e813dfc80ebb0f85d9214762e6ca89bb55a58092eab87"
   name = "github.com/cloudfoundry/jibber_jabber"
@@ -93,11 +85,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c9a848b0484a72da2dae28957b4f67501fe27fa38bc73f4713e454353c0a4a60"
+  digest = "1:f774b11ae458cae2d10b94ef66ef00ba1c57f1971dd0e5534ac743cbe574f6d4"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "432b7f6215f81ef1aaa1b2d9b69887822923cf79"
+  revision = "7818a0f93387d1037cbd06f69323d9f8d068af7c"
 
 [[projects]]
   digest = "1:8021af4dcbd531ae89433c8c3a6520e51064114aaf8eb1724c3cf911c497c9ba"
@@ -216,12 +208,19 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   digest = "1:41618aee8828e62dfe62d44f579c06892d0e98907d1c6d5bcd83bfe8536ec5a3"
   name = "github.com/shibukawa/configdir"
   packages = ["."]
   pruneopts = "NUT"
   revision = "e180dbdc8da04c4fa04272e875ce64949f38bd3e"
+
+[[projects]]
+  digest = "1:b2339e83ce9b5c4f79405f949429a7f68a9a904fed903c672aac1e7ceb7f5f02"
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
+  version = "v1.0.6"
 
 [[projects]]
   digest = "1:330e9062b308ac597e28485699c02223bd052437a6eed32a173c9227dcb9d95a"
@@ -265,6 +264,14 @@
   pruneopts = "NUT"
   revision = "907c19d40d9a6c9bb55f040ff4ae45271a4754b9"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:0e9a5ac14bcc11f205031a671b28c7e05cb88b2ebbe06f383c1ab0b2c12c7cb5"
+  name = "github.com/spkg/bom"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "59b7046e48ad6bac800c5e1dd5142282cbfcf154"
 
 [[projects]]
   digest = "1:ccca1dcd18bc54e23b517a3c5babeff2e3924a7d8fc1932162225876cfe4bfb0"
@@ -447,7 +454,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/Sirupsen/logrus",
     "github.com/cloudfoundry/jibber_jabber",
     "github.com/davecgh/go-spew/spew",
     "github.com/fatih/color",
@@ -456,7 +462,9 @@
     "github.com/mgutz/str",
     "github.com/nicksnyder/go-i18n/v2/i18n",
     "github.com/shibukawa/configdir",
+    "github.com/sirupsen/logrus",
     "github.com/spf13/viper",
+    "github.com/spkg/bom",
     "github.com/stretchr/testify/assert",
     "github.com/tcnksm/go-gitconfig",
     "golang.org/x/text/language",

@@ -132,7 +132,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Verwijder branch",
 		}, &i18n.Message{
 			ID:    "DeleteBranchMessage",
-			Other: "Weet je zeker dat je {{.selectedBranchName}} branch wil verwijderen?",
+			Other: "Weet je zeker dat je branch {{.selectedBranchName}} wil verwijderen?",
+		}, &i18n.Message{
+			ID:    "ForceDeleteBranchMessage",
+			Other: "Weet je zeker dat je branch {{.selectedBranchName}} geforceerd wil verwijderen?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Je kan niet een branch in zichzelf mergen",
@@ -151,6 +154,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "deleteBranch",
 			Other: "verwijder branch",
+		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "verwijder branch (forceer)",
 		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "Geen branches voor deze repo",

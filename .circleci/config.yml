@@ -1,26 +1,42 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
   build:
     docker:
-      # specify the version
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.10
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
+      - run:
+          name: Run tests
+          command: |
+            ./test.sh
+      - run:
+          name: Push on codecov result
+          command: |
+            bash <(curl -s https://codecov.io/bash)
 
-      # specify any bash command here prefixed with `run: `
-      - run: go test -v ./...
-      - run: bash <(curl -s https://codecov.io/bash)
+  release:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/jesseduffield/lazygit
+    steps:
+      - checkout
+      - run:
+          name: Run gorelease
+          command: |
+            curl -sL https://git.io/goreleaser | bash
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+  release:
+    jobs:
+      - release:
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/

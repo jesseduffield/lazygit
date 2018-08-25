@@ -13,10 +13,10 @@ import (
 
 	"github.com/kardianos/osext"
 
-	"github.com/Sirupsen/logrus"
 	getter "github.com/jesseduffield/go-getter"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/sirupsen/logrus"
 )
 
 // Update checks for updates and does updates

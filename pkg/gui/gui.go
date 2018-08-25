@@ -15,13 +15,13 @@ import (
 
 	// "strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
+	"github.com/sirupsen/logrus"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -152,14 +152,15 @@ func (gui *Gui) setAppStatus(status string) error {
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
+	version := gui.Config.GetVersion()
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
 	filesBranchesBoundary := 2 * height / 5   // height - 20
 	commitsBranchesBoundary := 3 * height / 5 // height - 10
 	commitsStashBoundary := height - 5        // height - 5
+	optionsVersionBoundary := width - max(len(version), 1)
 	minimumHeight := 16
 	minimumWidth := 10
-	version := gui.Config.GetVersion()
 
 	appStatusView, _ := g.View("appStatus")
 	appStatusOptionsBoundary := -2
@@ -244,7 +245,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", appStatusOptionsBoundary-1, optionsTop, width-len(version)-2, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", appStatusOptionsBoundary-1, optionsTop, optionsVersionBoundary-1, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -281,7 +282,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Frame = false
 	}
 
-	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}

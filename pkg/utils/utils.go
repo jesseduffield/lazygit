@@ -64,6 +64,13 @@ func TrimTrailingNewline(str string) string {
 	return str
 }
 
+// NormalizeLinefeeds - Removes all Windows and Mac style line feeds
+func NormalizeLinefeeds(str string) string {
+	str = strings.Replace(str, "\r\n", "\n", -1)
+	str = strings.Replace(str, "\r", "", -1)
+	return str
+}
+
 // GetProjectRoot returns the path to the root of the project. Only to be used
 // in testing contexts, as with binaries it's unlikely this path will exist on
 // the machine

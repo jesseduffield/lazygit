@@ -16,6 +16,7 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 	bindings := []Binding{
 		{ViewName: "", Key: 'q', Modifier: gocui.ModNone, Handler: gui.quit},
 		{ViewName: "", Key: gocui.KeyCtrlC, Modifier: gocui.ModNone, Handler: gui.quit},
+		{ViewName: "", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: gui.quit},
 		{ViewName: "", Key: gocui.KeyPgup, Modifier: gocui.ModNone, Handler: gui.scrollUpMain},
 		{ViewName: "", Key: gocui.KeyPgdn, Modifier: gocui.ModNone, Handler: gui.scrollDownMain},
 		{ViewName: "", Key: gocui.KeyCtrlU, Modifier: gocui.ModNone, Handler: gui.scrollUpMain},
@@ -57,6 +58,7 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		{ViewName: "branches", Key: 'F', Modifier: gocui.ModNone, Handler: gui.handleForceCheckout},
 		{ViewName: "branches", Key: 'n', Modifier: gocui.ModNone, Handler: gui.handleNewBranch},
 		{ViewName: "branches", Key: 'd', Modifier: gocui.ModNone, Handler: gui.handleDeleteBranch},
+		{ViewName: "branches", Key: 'D', Modifier: gocui.ModNone, Handler: gui.handleForceDeleteBranch},
 		{ViewName: "branches", Key: 'm', Modifier: gocui.ModNone, Handler: gui.handleMerge},
 		{ViewName: "commits", Key: 's', Modifier: gocui.ModNone, Handler: gui.handleCommitSquashDown},
 		{ViewName: "commits", Key: 'r', Modifier: gocui.ModNone, Handler: gui.handleRenameCommit},
