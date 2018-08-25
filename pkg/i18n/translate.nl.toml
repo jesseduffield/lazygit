@@ -1,0 +1,15 @@
+[EditConfig]
+hash = "sha1-d9f547f1d61e0a3c29c2ffe5b95203bb4abad334"
+other = "edit config file"
+
+[ForcePush]
+hash = "sha1-d9fbdbea9ab9b70e5768b3ad18d88bb13a665ca4"
+other = "Force push"
+
+[ForcePushPrompt]
+hash = "sha1-ee9afde7baadc1b6e254d002fc1aa5acd373f72d"
+other = "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push."
+
+[OpenConfig]
+hash = "sha1-05563cfcb1f80ea3263ad8b279920e7eebe31681"
+other = "open config file"

@@ -1,92 +1,367 @@
-AlreadyCheckedOutBranch = "Je hebt uitgecheckt op deze branch"
-BranchName = "Branch naam"
-BranchesTitle = "Branches"
-CannotGitAdd = "Kan commando niet uitvoeren git add --path untracked files"
-CantCloseConfirmationPrompt = "Kon de bevestiging prompt niet sluiten: {{.error}}"
-CantDeleteCheckOutBranch = "Je kan een uitgecheckte branch niet verwijderen!"
-CantFixupWhileUnstagedChanges = "Kan geen Fixup uitvoeren op unstaged veranderingen"
-CantIgnoreTrackFiles = "Kan gevolgde bestanden niet negeren"
-CantMergeBranchIntoItself = "Je kan niet een branch in zichzelf mergen"
-ClearFilePanel = "maak bestandsvenster leeg"
-CloseConfirm = "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen"
-CommitChanges = "Commit Veranderingen"
-CommitMessage = "Commit Bericht"
-CommitWithoutMessageErr = "Je kan geen commit maken zonder commit bericht"
-CommitsTitle = "Commits"
-DeleteBranch = "Verwijder branch"
-DeleteBranchMessage = "Weet je zeker dat je branch {{.selectedBranchName}} wil verwijderen?"
-DiffTitle = "Diff"
-Error = "Fout"
-FileHasNoUnstagedChanges = "Het bestand heeft geen unstaged veranderingen om toe te voegen"
-FileNoMergeCons = "Dit bestand heeft geen merge conflicten"
-FilesTitle = "Bestanden"
-Fixup = "Fixup"
-ForceCheckoutBranch = "Forceer uitchecken op deze branch"
-ForceDeleteBranchMessage = "Weet je zeker dat je branch {{.selectedBranchName}} geforceerd wil verwijderen?"
-IssntListOfViews = "{{.name}} is niet in de lijst van weergaves"
-MergeAborted = "Merge afgebroken"
-NewBranchNameBranchOff = "Nieuw branch naam (Branch is afgeleid van {{.branchName}})"
-NoBranchesThisRepo = "Geen branches voor deze repo"
-NoChangedFiles = "Geen veranderde files"
-NoCommitsThisBranch = "Geen commits voor deze branch"
-NoFilesDisplay = "Geen bestanden om te laten zien"
-NoStagedFilesToCommit = "Er zijn geen staged bestanden om te commiten"
-NoStashEntries = "Geen stash items"
-NoStashTo = "Geen stash voor {{.method}}"
-NoTrackedStagedFilesStash = "Je hebt geen tracked/staged bestanden om te laten stashen"
-NoTrackingThisBranch = "deze branch wordt niet gevolgd"
-NoViewMachingNewLineFocusedSwitchStatement = "Er machen geen weergave met de newLineFocused switch declaratie"
-NotEnoughSpace = "Niet genoeg ruimte om de panelen te renderen"
-OnlyRenameTopCommit = "Je kan alleen de bovenste commit hernoemen"
-OnlySquashTopmostCommit = "Kan alleen bovenste commit squashen"
-PotentialErrInGetselectedCommit = "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)"
-PullWait = "Pulling..."
-PushWait = "Pushing..."
-RenameCommit = "Hernoem Commit"
-ResetToCommit = "Reset Naar Commit"
-RunningSubprocess = "subprocess lopend"
-StashChanges = "Stash veranderingen"
-StashDrop = "Stash drop"
-StashTitle = "Stash"
-StatusTitle = "Status"
-SureDropStashEntry = "Weet je het zeker dat je deze stash entry wil laten vallen?"
-SureFixupThisCommit = "Weet je zeker dat je fixup wil uitvoeren op deze commit? De commit hieronder zol worden squashed in deze"
-SureForceCheckout = "Weet je zeker dat je het uitchecken wil forceren? al je locale verandering zullen worden verwijdert"
-SureResetHardHead = "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? het kan dat je hierdoor bestanden verliest"
-SureResetThisCommit = "Weet je het zeker dat je wil resetten naar deze commit?"
-SureTo = "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijdert)"
-YouNoCommitsToSquash = "Je hebt geen commits om mee te squashen"
-abortMerge = "samenvoegen afbreken"
-addPatch = "verandering toevoegen"
-apply = "toepassen"
-checkout = "uitchecken"
-checkoutByName = "uitchecken bij naam"
-delete = "verwijderen"
-deleteBranch = "verwijder branch"
-drop = "drop"
-edit = "veranderen"
-fixupCommit = "Fixup commit"
-forceCheckout = "forceer checkout"
-forceDeleteBranch = "verwijder branch (forceer)"
-ignore = "negeren"
-merge = "merge"
-navigate = "navigeer"
-navigateConflicts = "navigeer conflicts"
-newBranch = "nieuwe branch"
-newFocusedViewIs = "nieuw gefocussed weergave is {{.newFocusedView}}"
-open = "open"
-pickBothHunks = "kies bijde hunks"
-pickHunk = "kies Hunk"
-pop = "pop"
-refresh = "verversen"
-rename = "hernoem"
-resetToThisCommit = "reset naar deze commit"
-resizingPopupPanel = "resizen popup paneel"
-resolveMergeConflicts = "verhelp samenvoegen fouten"
-scroll = "scroll"
-selectHunk = "selecteer Hunk"
-settingPreviewsViewTo = "vorige weergave instellen op: {{.oldViewName}}"
-squashDown = "squash beneden"
-stashFiles = "stash-bestanden"
-toggleStaged = "toggle staged"
-undo = "ongedaan maken"
+[AlreadyCheckedOutBranch]
+hash = "sha1-f6b05160d53205c50a4d220ef2e0aeab7142b1eb"
+other = "Je hebt uitgecheckt op deze branch"
+
+[BranchName]
+hash = "sha1-748f3d06e7906c56f08760c8514338b3a6d36916"
+other = "Branch naam"
+
+[BranchesTitle]
+hash = "sha1-f578227926a03a85a494aaca127cfbff63d7ec5e"
+other = "Branches"
+
+[CannotGitAdd]
+hash = "sha1-4ba81348797b7a1fdafd30fa9eaeac8db9515d78"
+other = "Kan commando niet uitvoeren git add --path untracked files"
+
+[CantCloseConfirmationPrompt]
+hash = "sha1-3293e5ca55c485258c7a9c809366d167c0eb8540"
+other = "Kon de bevestiging prompt niet sluiten: {{.error}}"
+
+[CantDeleteCheckOutBranch]
+hash = "sha1-97635f33f2eb0bc1e89b8126b377e40c9de02d8a"
+other = "Je kan een uitgecheckte branch niet verwijderen!"
+
+[CantFixupWhileUnstagedChanges]
+hash = "sha1-2604ba76d6aa9fa8a9f59e826966a5b32754192c"
+other = "Kan geen Fixup uitvoeren op unstaged veranderingen"
+
+[CantIgnoreTrackFiles]
+hash = "sha1-6da97a7274331e36957231e316b51870682179fa"
+other = "Kan gevolgde bestanden niet negeren"
+
+[CantMergeBranchIntoItself]
+hash = "sha1-7982b30aca9126ffe7a4a8d1b8e942ef23ab9020"
+other = "Je kan niet een branch in zichzelf mergen"
+
+[ClearFilePanel]
+hash = "sha1-4fdc13c7b632045ed4428bed5f2e70faff114582"
+other = "maak bestandsvenster leeg"
+
+[CloseConfirm]
+hash = "sha1-663f2599a998d984d2363a77e9bc8ca184133a0e"
+other = "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen"
+
+[CommitChanges]
+hash = "sha1-e23cdabf35e9143bb043c3af215b7fd099bcb66e"
+other = "Commit Veranderingen"
+
+[CommitMessage]
+hash = "sha1-a635957687d394ed8eb32dd7af4e9fb9ea45ae9c"
+other = "Commit Bericht"
+
+[CommitWithoutMessageErr]
+hash = "sha1-b893ab09ca6f25ba3b3e87449f14641b49162511"
+other = "Je kan geen commit maken zonder commit bericht"
+
+[CommitsTitle]
+hash = "sha1-74536b5173ae6491f7dda8f1481a12dc09be38b1"
+other = "Commits"
+
+[DeleteBranch]
+hash = "sha1-d6726bb9e3188abc620fa3463e898c825f2ade7d"
+other = "Verwijder branch"
+
+[DeleteBranchMessage]
+hash = "sha1-0762a95a6357c5594374906aa3239ebc484bfeed"
+other = "Weet je zeker dat je branch {{.selectedBranchName}} wil verwijderen?"
+
+[DiffTitle]
+hash = "sha1-d23a1c9fb35fe6b57ac5f1bfdb31606baf7e1006"
+other = "Diff"
+
+[Error]
+hash = "sha1-7f2f6a15cf8da2b27e5a4af47b58e7ad71c0b3d9"
+other = "Fout"
+
+[FileHasNoUnstagedChanges]
+hash = "sha1-dec05aa4a24bbe75ae8c3eb23608a45372b159c2"
+other = "Het bestand heeft geen unstaged veranderingen om toe te voegen"
+
+[FileNoMergeCons]
+hash = "sha1-d620a33b731c8e2e2e806d3b655092c41d5fbbf2"
+other = "Dit bestand heeft geen merge conflicten"
+
+[FilesTitle]
+hash = "sha1-6ce6c512ea433a7fc5c8841628e7696cd0ff7f2b"
+other = "Bestanden"
+
+[Fixup]
+hash = "sha1-b8191bb9d760459018e3bc77ba9bab9672c533b4"
+other = "Fixup"
+
+[ForceCheckoutBranch]
+hash = "sha1-7d99c83774c4386b9f3974407fbb8fab8db32a69"
+other = "Forceer uitchecken op deze branch"
+
+[ForceDeleteBranchMessage]
+hash = "sha1-f17d59df7ba8a9d06746f301cf9a80e848301829"
+other = "Weet je zeker dat je branch {{.selectedBranchName}} geforceerd wil verwijderen?"
+
+[IssntListOfViews]
+hash = "sha1-0c2cb37b99ef195605e08ce175fb72c55ef2303e"
+other = "{{.name}} is niet in de lijst van weergaves"
+
+[MergeAborted]
+hash = "sha1-dbf15a8dc83dc59123fd8a3aa7dd68a872d00808"
+other = "Merge afgebroken"
+
+[NewBranchNameBranchOff]
+hash = "sha1-924ff8384b78f2225cb1e79652976f9203225d42"
+other = "Nieuw branch naam (Branch is afgeleid van {{.branchName}})"
+
+[NoBranchesThisRepo]
+hash = "sha1-8616a437a1170eab6f67ee53b4b671b0e74605db"
+other = "Geen branches voor deze repo"
+
+[NoChangedFiles]
+hash = "sha1-462b527cc50b8f0554f02a3ea55bccf65828f6ab"
+other = "Geen veranderde files"
+
+[NoCommitsThisBranch]
+hash = "sha1-612da9416fa4e9c4114c6d7a2153785ddd75bf38"
+other = "Geen commits voor deze branch"
+
+[NoFilesDisplay]
+hash = "sha1-d3c251cb0c9531b9c26a8a901f5dec263abb3a6c"
+other = "Geen bestanden om te laten zien"
+
+[NoStagedFilesToCommit]
+hash = "sha1-f5ca83370b64bbe218270e26f53b02be0357ad08"
+other = "Er zijn geen staged bestanden om te commiten"
+
+[NoStashEntries]
+hash = "sha1-5e808e2d64dc37a3882f3f1e5f371ef60df19a9d"
+other = "Geen stash items"
+
+[NoStashTo]
+hash = "sha1-a39b7110f4e20c1c1845fd4e2223d3613a267cd7"
+other = "Geen stash voor {{.method}}"
+
+[NoTrackedStagedFilesStash]
+hash = "sha1-1acabe5d31c5561ac60fbe5f4795cf0dbbda83d1"
+other = "Je hebt geen tracked/staged bestanden om te laten stashen"
+
+[NoTrackingThisBranch]
+hash = "sha1-a5aaed7e1b427eb67d02d7dd58675857242b2c08"
+other = "deze branch wordt niet gevolgd"
+
+[NoViewMachingNewLineFocusedSwitchStatement]
+hash = "sha1-f3db6a67a82b7a700abeed4eccab29a7b2088fd1"
+other = "Er machen geen weergave met de newLineFocused switch declaratie"
+
+[NotEnoughSpace]
+hash = "sha1-589a9fc6099cdbfb7715b035aaa6bf2ba4bfa7d9"
+other = "Niet genoeg ruimte om de panelen te renderen"
+
+[OnlyRenameTopCommit]
+hash = "sha1-f8882a3ff56948cae76e81f479a91cf90a2c7eb2"
+other = "Je kan alleen de bovenste commit hernoemen"
+
+[OnlySquashTopmostCommit]
+hash = "sha1-46c2fa83021cb27c921e2066f6b80dc833ab2c73"
+other = "Kan alleen bovenste commit squashen"
+
+[PotentialErrInGetselectedCommit]
+hash = "sha1-7ffaaabed30663e9e9b4834d3ede6e803829f03c"
+other = "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)"
+
+[PullWait]
+hash = "sha1-a16658562d69b9657e3d318ba556eb96a7dfb94d"
+other = "Pulling..."
+
+[PushWait]
+hash = "sha1-20227515bb5fa31f9b3ee5ac8444f4b6fdc703a2"
+other = "Pushing..."
+
+[RenameCommit]
+hash = "sha1-50e65d363de54a9d43f9d45a8128087d312135ee"
+other = "Hernoem Commit"
+
+[ResetToCommit]
+hash = "sha1-6fa3e2efc3fb20b4bf0281221a569aede53c965c"
+other = "Reset Naar Commit"
+
+[RunningSubprocess]
+hash = "sha1-4457afa4f91dffac2cbe1b42a51d95e9911e132e"
+other = "subprocess lopend"
+
+[StashChanges]
+hash = "sha1-c747d75cac93cf73494bd41dca993609a188710c"
+other = "Stash veranderingen"
+
+[StashDrop]
+hash = "sha1-8d2ee2ba1ec3d18c90710b5c447e3f5fdacf0831"
+other = "Stash drop"
+
+[StashTitle]
+hash = "sha1-82f2f517632616692a59c9e00918b41d65e5a0b4"
+other = "Stash"
+
+[StatusTitle]
+hash = "sha1-bae7d5be70820ed56467bd9a63744e23b47bd711"
+other = "Status"
+
+[SureDropStashEntry]
+hash = "sha1-65332e25ad09c382808f3803e05988d4f684da86"
+other = "Weet je het zeker dat je deze stash entry wil laten vallen?"
+
+[SureFixupThisCommit]
+hash = "sha1-e12f66f5685943012ddb8377143a7f3ade1ad3b4"
+other = "Weet je zeker dat je fixup wil uitvoeren op deze commit? De commit hieronder zol worden squashed in deze"
+
+[SureForceCheckout]
+hash = "sha1-0cd1a57c303c403056f7180e9db99c27f3b17950"
+other = "Weet je zeker dat je het uitchecken wil forceren? al je locale verandering zullen worden verwijdert"
+
+[SureResetHardHead]
+hash = "sha1-5d8db3c38c5c453f90ddc3b41b1a7bb459a34dd9"
+other = "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? het kan dat je hierdoor bestanden verliest"
+
+[SureResetThisCommit]
+hash = "sha1-3e1d8063b7212f6b85d39799efbbfc98bda222b7"
+other = "Weet je het zeker dat je wil resetten naar deze commit?"
+
+[SureTo]
+hash = "sha1-662aa42f2b6fe5badf28b0adbf0e581cf85ad3ec"
+other = "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijdert)"
+
+[YouNoCommitsToSquash]
+hash = "sha1-78fe82376349a6affc66de555a845f5d83633b0f"
+other = "Je hebt geen commits om mee te squashen"
+
+[abortMerge]
+hash = "sha1-16c343681434690b9c26dd58e27f8d75cd977510"
+other = "samenvoegen afbreken"
+
+[addPatch]
+hash = "sha1-cdfcf676a3f7da9e0f21c67b18976820a883634f"
+other = "verandering toevoegen"
+
+[apply]
+hash = "sha1-69f45da1683c501696ebfa086d25192af3807dc6"
+other = "toepassen"
+
+[checkout]
+hash = "sha1-d5491e7e7124a22dd73fa746ba129c59f9dc6d5d"
+other = "uitchecken"
+
+[checkoutByName]
+hash = "sha1-918f316b3d68e7b03213595b6b0e2038c510bed2"
+other = "uitchecken bij naam"
+
+[delete]
+hash = "sha1-9485989ff514b5106b7738850fd73c23e8c1e3f7"
+other = "verwijderen"
+
+[deleteBranch]
+hash = "sha1-4f29849756fb226436b6ed80a08357b185906833"
+other = "verwijder branch"
+
+[drop]
+hash = "sha1-aa20c3bf5eca16e978a39965710b45ac9b9b5949"
+other = "drop"
+
+[edit]
+hash = "sha1-9ead47a82a0d25985f22f10651d1f93b3abba317"
+other = "veranderen"
+
+[fixupCommit]
+hash = "sha1-6e147a8b0876bf740358ab3891924f861fc4b317"
+other = "Fixup commit"
+
+[forceCheckout]
+hash = "sha1-edf73d07c6539a6c7cd46ed9bb9671830092ed6b"
+other = "forceer checkout"
+
+[forceDeleteBranch]
+hash = "sha1-3407cb769dfaf08b19dcebab737e7eda4e37c230"
+other = "verwijder branch (forceer)"
+
+[ignore]
+hash = "sha1-8ccbde832c3e0f90c55b72c598844679fff2167d"
+other = "negeren"
+
+[merge]
+hash = "sha1-14091a9f2461267ee7e02525b4f1f2923f1c9849"
+other = "merge"
+
+[navigate]
+hash = "sha1-fb6aa5c2f5f14a5d453d2cab054b4e74ccafe8e7"
+other = "navigeer"
+
+[navigateConflicts]
+hash = "sha1-b3db8a8de66a25849a48a63f202a0a8c86b6e34e"
+other = "navigeer conflicts"
+
+[newBranch]
+hash = "sha1-cc92fbc1b4cc09c10f511ede6031e47cf9bb42f2"
+other = "nieuwe branch"
+
+[newFocusedViewIs]
+hash = "sha1-b0417e60de7d82a9ff49016db6976e702c96c885"
+other = "nieuw gefocussed weergave is {{.newFocusedView}}"
+
+[open]
+hash = "sha1-5fc7e38bffe00ca46add89145464a2eaf759d5c2"
+other = "open"
+
+[pickBothHunks]
+hash = "sha1-b0f4db42aeea5300ad04fa90d0799f5b9137b197"
+other = "kies bijde hunks"
+
+[pickHunk]
+hash = "sha1-75bc9035a220946cf7924afdaeb5dbaabbae9e50"
+other = "kies Hunk"
+
+[pop]
+hash = "sha1-4f197c99a78b8411f1cf48ab409a0a6d176b99b7"
+other = "pop"
+
+[refresh]
+hash = "sha1-26b56c1bdfb048c3e46419fde332bab76deb2cd3"
+other = "verversen"
+
+[rename]
+hash = "sha1-04a26d6f4aab9bc632ef3b0b244135354c76f93c"
+other = "hernoem"
+
+[resetToThisCommit]
+hash = "sha1-d94bec13110bebe3d116358e53dbe67d69675ef0"
+other = "reset naar deze commit"
+
+[resizingPopupPanel]
+hash = "sha1-c46525714d215ade79f4932f09859efbe6b72b94"
+other = "resizen popup paneel"
+
+[resolveMergeConflicts]
+hash = "sha1-071c2456f47d91084a41b074ea146bfc0b162173"
+other = "verhelp samenvoegen fouten"
+
+[scroll]
+hash = "sha1-c29dac5a5a8c62fe45bd56e1ab7b51b1f12fabc3"
+other = "scroll"
+
+[selectHunk]
+hash = "sha1-a4fb728e27dd53811ac352ae0398e24176d4107b"
+other = "selecteer Hunk"
+
+[settingPreviewsViewTo]
+hash = "sha1-c60ea7f4a8e789c8e8b5daef3369fbd335d703b8"
+other = "vorige weergave instellen op: {{.oldViewName}}"
+
+[squashDown]
+hash = "sha1-d0654b6ff1ae625f9e06b62f459b1cf8fd7f9b8c"
+other = "squash beneden"
+
+[stashFiles]
+hash = "sha1-0630feaaa502a026fe8578f50b9fbea1d9356fba"
+other = "stash-bestanden"
+
+[toggleStaged]
+hash = "sha1-f58e76e40df0b604dd692767ddaf5d972131c8ab"
+other = "toggle staged"
+
+[undo]
+hash = "sha1-5c6fa26f4938297f3faec24b512673f0ba5875d3"
+other = "ongedaan maken"
