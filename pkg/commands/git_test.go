@@ -29,9 +29,32 @@ func getDummyGitCommand() *GitCommand {
 	}
 }
 
+func TestUsingCredentialHelper(t *testing.T) {
+	helperTypes := []string{"credential", "gitAskPass", "coreAskPass", "sshAskPass"}
+	gitCommand := getDummyGitCommand()
+	for _, helper := range helperTypes {
+		if err := test.GenerateRepo("credential_helper.sh", helper); err != nil {
+			t.Error(err.Error())
+		}
+		if !gitCommand.UsingCredentialHelper() {
+			t.Error("Error: UsingCredentialHelper test failed. Type: " + helper)
+		}
+	}
+}
+
+func TestRemoteHasHttps(t *testing.T) {
+	gitCommand := getDummyGitCommand()
+	if err := test.GenerateRepo("remote_https.sh", ""); err != nil {
+		t.Error(err.Error())
+	}
+	if !gitCommand.RemoteHasHttps() {
+		t.Error("Error: RemoteHasHttps test failed.")
+	}
+}
+
 func TestDiff(t *testing.T) {
 	gitCommand := getDummyGitCommand()
-	if err := test.GenerateRepo("lots_of_diffs.sh"); err != nil {
+	if err := test.GenerateRepo("lots_of_diffs.sh", ""); err != nil {
 		t.Error(err.Error())
 	}
 	files := []File{
