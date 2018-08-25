@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	commit  string
-	version = "unversioned"
-	date    string
+	commit      string
+	version     = "unversioned"
+	date        string
+	buildSource = "unknown"
 
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
@@ -28,10 +29,10 @@ func projectPath(path string) string {
 func main() {
 	flag.Parse()
 	if *versionFlag {
-		fmt.Printf("commit=%s, build date=%s, version=%s, os=%s, arch=%s\n", commit, date, version, runtime.GOOS, runtime.GOARCH)
+		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s\n", commit, date, buildSource, version, runtime.GOOS, runtime.GOARCH)
 		os.Exit(0)
 	}
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, debuggingFlag)
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
 	if err != nil {
 		panic(err)
 	}

@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -56,16 +57,17 @@ type Teml i18n.Teml
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g          *gocui.Gui
-	Log        *logrus.Logger
-	GitCommand *commands.GitCommand
-	OSCommand  *commands.OSCommand
-	SubProcess *exec.Cmd
-	State      guiState
-	Config     config.AppConfigurer
-	Tr         *i18n.Localizer
-	Errors     SentinelErrors
-	Updater    *updates.Updater
+	g             *gocui.Gui
+	Log           *logrus.Logger
+	GitCommand    *commands.GitCommand
+	OSCommand     *commands.OSCommand
+	SubProcess    *exec.Cmd
+	State         guiState
+	Config        config.AppConfigurer
+	Tr            *i18n.Localizer
+	Errors        SentinelErrors
+	Updater       *updates.Updater
+	statusManager *statusManager
 }
 
 type guiState struct {
@@ -98,13 +100,14 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 	}
 
 	gui := &Gui{
-		Log:        log,
-		GitCommand: gitCommand,
-		OSCommand:  oSCommand,
-		State:      initialState,
-		Config:     config,
-		Tr:         tr,
-		Updater:    updater,
+		Log:           log,
+		GitCommand:    gitCommand,
+		OSCommand:     oSCommand,
+		State:         initialState,
+		Config:        config,
+		Tr:            tr,
+		Updater:       updater,
+		statusManager: &statusManager{},
 	}
 
 	gui.GenerateSentinelErrors()
@@ -141,13 +144,6 @@ func max(a, b int) int {
 	return b
 }
 
-func (gui *Gui) setAppStatus(status string) error {
-	if err := gui.renderString(gui.g, "appStatus", status); err != nil {
-		return err
-	}
-	return nil
-}
-
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
@@ -162,10 +158,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	minimumHeight := 16
 	minimumWidth := 10
 
-	appStatusView, _ := g.View("appStatus")
-	appStatusOptionsBoundary := -2
-	if appStatusView != nil && len(appStatusView.Buffer()) > 2 {
-		appStatusOptionsBoundary = len(appStatusView.Buffer()) + 2
+	appStatus := gui.statusManager.getStatusString()
+	appStatusOptionsBoundary := 0
+	if appStatus != "" {
+		appStatusOptionsBoundary = len(appStatus) + 2
 	}
 
 	panelSpacing := 1
@@ -257,7 +253,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if gui.getCommitMessageView(g) == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width, height, 0); err != nil {
+		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width/2, height/2, 0); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
@@ -268,18 +264,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	appStatusLeft := -1
-	if appStatusOptionsBoundary < 2 {
-		appStatusLeft = -5
-	}
-
-	if v, err := g.SetView("appStatus", appStatusLeft, optionsTop, appStatusOptionsBoundary, optionsTop+2, 0); err != nil {
+	if appStatusView, err := g.SetView("appStatus", -1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.BgColor = gocui.ColorDefault
-		v.FgColor = gocui.ColorCyan
-		v.Frame = false
+		appStatusView.BgColor = gocui.ColorDefault
+		appStatusView.FgColor = gocui.ColorCyan
+		appStatusView.Frame = false
+		g.SetViewOnBottom("appStatus")
 	}
 
 	if v, err := g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
@@ -293,9 +285,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		// gui.Updater.CheckForNewUpdate(gui.onUpdateCheckFinish)
-
-		// these are only called once
+		// these are only called once (it's a place to put all the things you want
+		// to happen on startup after the screen is first rendered)
+		gui.Updater.CheckForNewUpdate(gui.onUpdateCheckFinish, false)
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles(g)
 		gui.refreshBranches(g)
@@ -313,32 +305,42 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 func (gui *Gui) onUpdateFinish(err error) error {
 	gui.State.Updating = false
-	gui.setAppStatus("")
-	if err != nil {
-		gui.createErrorPanel(gui.g, "Update failed: "+err.Error())
+	gui.statusManager.removeStatus("updating")
+	if err := gui.renderString(gui.g, "appStatus", ""); err != nil {
+		return err
 	}
-	// TODO: on attempted quit, if downloading is true, ask if sure the user wants to quit
+	if err != nil {
+		return gui.createErrorPanel(gui.g, "Update failed: "+err.Error())
+	}
 	return nil
 }
 
 func (gui *Gui) onUpdateCheckFinish(newVersion string, err error) error {
-	newVersion = "v0.1.72"
 	if err != nil {
-		// ignoring the error for now
+		// ignoring the error for now so that I'm not annoying users
+		gui.Log.Error(err.Error())
 		return nil
 	}
 	if newVersion == "" {
 		return nil
 	}
+	if gui.Config.GetUserConfig().Get("update.method") == "background" {
+		gui.startUpdating(newVersion)
+		return nil
+	}
 	title := "New version available!"
 	message := "Download latest version? (enter/esc)"
-	// TODO: support nil view in createConfirmationPanel or always go back to filesPanel when there is no previous view
-	return gui.createConfirmationPanel(gui.g, nil, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		gui.State.Updating = true
-		gui.setAppStatus("updating...")
-		gui.Updater.Update(newVersion, gui.onUpdateFinish)
+	currentView := gui.g.CurrentView()
+	return gui.createConfirmationPanel(gui.g, currentView, title, message, func(g *gocui.Gui, v *gocui.View) error {
+		gui.startUpdating(newVersion)
 		return nil
-	}, nil) // TODO: set config value saying not to check for another while if user hits escape
+	}, nil)
+}
+
+func (gui *Gui) startUpdating(newVersion string) {
+	gui.State.Updating = true
+	gui.statusManager.addWaitingStatus("updating")
+	gui.Updater.Update(newVersion, gui.onUpdateFinish)
 }
 
 func (gui *Gui) fetch(g *gocui.Gui) error {
@@ -348,18 +350,22 @@ func (gui *Gui) fetch(g *gocui.Gui) error {
 }
 
 func (gui *Gui) updateLoader(g *gocui.Gui) error {
-	viewNames := []string{"confirmation", "appStatus"}
-	for _, viewName := range viewNames {
-		if view, _ := g.View(viewName); view != nil {
-			content := gui.trimmedContent(view)
-			if strings.Contains(content, "...") {
-				staticContent := strings.Split(content, "...")[0] + "..."
-				if viewName == "appStatus" {
-					// panic(staticContent + " " + gui.loader())
-				}
-				gui.renderString(g, viewName, staticContent+" "+gui.loader())
+	if view, _ := g.View("confirmation"); view != nil {
+		content := gui.trimmedContent(view)
+		if strings.Contains(content, "...") {
+			staticContent := strings.Split(content, "...")[0] + "..."
+			if err := gui.renderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
+				return err
 			}
 		}
+	}
+	return nil
+}
+
+func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
+	appStatus := gui.statusManager.getStatusString()
+	if appStatus != "" {
+		return gui.renderString(gui.g, "appStatus", appStatus)
 	}
 	return nil
 }
@@ -396,7 +402,8 @@ func (gui *Gui) Run() error {
 
 	gui.goEvery(g, time.Second*60, gui.fetch)
 	gui.goEvery(g, time.Second*10, gui.refreshFiles)
-	gui.goEvery(g, time.Millisecond*10, gui.updateLoader)
+	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
+	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
 
 	g.SetManagerFunc(gui.layout)
 

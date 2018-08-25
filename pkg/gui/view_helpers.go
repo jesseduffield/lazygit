@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -222,9 +221,6 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 		if err != nil {
 			return nil
 		}
-		if viewName == "appStatus" {
-			gui.Log.Info(s)
-		}
 		v.Clear()
 		output := string(bom.Clean([]byte(s)))
 		output = utils.NormalizeLinefeeds(output)
@@ -246,14 +242,6 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 
 func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) error {
 	return gui.renderString(g, "options", gui.optionsMapToString(optionsMap))
-}
-
-func (gui *Gui) loader() string {
-	characters := "|/-\\"
-	now := time.Now()
-	nanos := now.UnixNano()
-	index := nanos / 50000000 % int64(len(characters))
-	return characters[index : index+1]
 }
 
 // TODO: refactor properly

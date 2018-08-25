@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/kardianos/osext"
@@ -21,10 +22,9 @@ import (
 
 // Update checks for updates and does updates
 type Updater struct {
-	LastChecked string
-	Log         *logrus.Entry
-	Config      config.AppConfigurer
-	OSCommand   *commands.OSCommand
+	Log       *logrus.Entry
+	Config    config.AppConfigurer
+	OSCommand *commands.OSCommand
 }
 
 // Updater implements the check and update methods
@@ -42,16 +42,14 @@ func NewUpdater(log *logrus.Logger, config config.AppConfigurer, osCommand *comm
 	contextLogger := log.WithField("context", "updates")
 
 	updater := &Updater{
-		LastChecked: "today",
-		Log:         contextLogger,
-		Config:      config,
-		OSCommand:   osCommand,
+		Log:       contextLogger,
+		Config:    config,
+		OSCommand: osCommand,
 	}
 	return updater, nil
 }
 
 func (u *Updater) getLatestVersionNumber() (string, error) {
-	time.Sleep(5)
 	req, err := http.NewRequest("GET", projectUrl+"/releases/latest", nil)
 	if err != nil {
 		return "", err
@@ -76,21 +74,41 @@ func (u *Updater) getLatestVersionNumber() (string, error) {
 	return dat["tag_name"].(string), nil
 }
 
+func (u *Updater) RecordLastUpdateCheck() error {
+	u.Config.GetAppState().LastUpdateCheck = time.Now().Unix()
+	return u.Config.SaveAppState()
+}
+
+// expecting version to be of the form `v12.34.56`
+func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
+	return strings.Split(oldVersion, ".")[0] != strings.Split(newVersion, ".")[0]
+}
+
 func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("Checking for an updated version")
-	// if u.Config.GetVersion() == "unversioned" {
-	// 	u.Log.Info("Current version is not built from an official release so we won't check for an update")
-	// 	return "", nil
-	// }
+	if u.Config.GetVersion() == "unversioned" {
+		u.Log.Info("Current version is not built from an official release so we won't check for an update")
+		return "", nil
+	}
 	newVersion, err := u.getLatestVersionNumber()
 	if err != nil {
 		return "", err
 	}
 	u.Log.Info("Current version is " + u.Config.GetVersion())
 	u.Log.Info("New version is " + newVersion)
-	// if newVersion == u.Config.GetVersion() {
-	// 	return "", nil
-	// }
+
+	if err := u.RecordLastUpdateCheck(); err != nil {
+		return "", err
+	}
+
+	if newVersion == u.Config.GetVersion() {
+		return "", nil
+	}
+
+	if u.majorVersionDiffers(u.Config.GetVersion(), newVersion) {
+		u.Log.Info("New version has non-backwards compatible changes.")
+		return "", nil
+	}
 
 	rawUrl, err := u.getBinaryUrl(newVersion)
 	if err != nil {
@@ -102,17 +120,39 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 		return "", nil
 	}
 	u.Log.Info("Verified resource is available, ready to update")
+
 	return newVersion, nil
 }
 
 // CheckForNewUpdate checks if there is an available update
-func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error) {
+func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error, userRequested bool) {
+	if !userRequested && u.skipUpdateCheck() {
+		return
+	}
+
 	go func() {
 		newVersion, err := u.checkForNewUpdate()
 		if err = onFinish(newVersion, err); err != nil {
 			u.Log.Error(err)
 		}
 	}()
+}
+
+func (u *Updater) skipUpdateCheck() bool {
+	if u.Config.GetBuildSource() != "buildBinary" {
+		return true
+	}
+
+	userConfig := u.Config.GetUserConfig()
+	if userConfig.Get("update.method") == "never" {
+		return true
+	}
+
+	currentTimestamp := time.Now().Unix()
+	lastUpdateCheck := u.Config.GetAppState().LastUpdateCheck
+	days := userConfig.GetInt64("update.days")
+
+	return (currentTimestamp-lastUpdateCheck)/(60*60*24) < days
 }
 
 func (u *Updater) mappedOs(os string) string {
