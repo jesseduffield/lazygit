@@ -1,6 +1,7 @@
 package i18n
 
 import (
+	"github.com/BurntSushi/toml"
 	"github.com/sirupsen/logrus"
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -61,18 +62,10 @@ func (l *Localizer) GetLanguage() string {
 
 // add translation file(s)
 func addBundles(log *logrus.Logger, i18nBundle *i18n.Bundle) {
-	fs := []func(*i18n.Bundle) error{
-		addPolish,
-		addDutch,
-		addEnglish,
-	}
-
-	for _, f := range fs {
-		if err := f(i18nBundle); err != nil {
-			log.Fatal(err)
-
-		}
-	}
+	i18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+	i18nBundle.MustLoadMessageFile("active.en.toml")
+	i18nBundle.MustLoadMessageFile("active.nl.toml")
+	i18nBundle.MustLoadMessageFile("active.pl.toml")
 }
 
 // detectLanguage extracts user language from environment
