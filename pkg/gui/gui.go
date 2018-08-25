@@ -271,7 +271,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		appStatusView.BgColor = gocui.ColorDefault
 		appStatusView.FgColor = gocui.ColorCyan
 		appStatusView.Frame = false
-		g.SetViewOnBottom("appStatus")
+		if _, err := g.SetViewOnBottom("appStatus"); err != nil {
+			return err
+		}
 	}
 
 	if v, err := g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
