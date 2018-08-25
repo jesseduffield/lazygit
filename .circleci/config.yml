@@ -7,6 +7,9 @@ jobs:
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-pkg-cache
       - run:
           name: Run tests
           command: |
@@ -20,6 +23,10 @@ jobs:
           name: Push on codecov result
           command: |
             bash <(curl -s https://codecov.io/bash)
+      - save_cache:
+          key: v1-pkg-cache
+          paths:
+            - "/go/pkg"
 
   release:
     docker:
