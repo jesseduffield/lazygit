@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jesseduffield/lazygit/pkg/test"
+	"github.com/sirupsen/logrus"
 )
 
 func newDummyLog() *logrus.Logger {
