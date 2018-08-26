@@ -16,6 +16,7 @@ var (
 	version = "unversioned"
 	date    string
 
+	configFlag    = flag.Bool("config", false, "Print the current default config")
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
 )
@@ -29,6 +30,10 @@ func main() {
 	flag.Parse()
 	if *versionFlag {
 		fmt.Printf("commit=%s, build date=%s, version=%s, os=%s, arch=%s\n", commit, date, version, runtime.GOOS, runtime.GOARCH)
+		os.Exit(0)
+	}
+	if *configFlag {
+		fmt.Printf("%s\n", config.GetDefaultConfig())
 		os.Exit(0)
 	}
 	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, debuggingFlag)
