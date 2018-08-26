@@ -5,14 +5,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jesseduffield/lazygit/pkg/test"
+	"github.com/sirupsen/logrus"
 )
 
-func getDummyLog() *logrus.Logger {
+func getDummyLog() *logrus.Entry {
 	log := logrus.New()
 	log.Out = ioutil.Discard
-	return log
+	return log.WithField("test", "test")
 }
 
 func getDummyOSCommand() *OSCommand {

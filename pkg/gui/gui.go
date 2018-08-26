@@ -15,12 +15,12 @@ import (
 
 	// "strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/sirupsen/logrus"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -56,7 +56,7 @@ type Teml i18n.Teml
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	g          *gocui.Gui
-	Log        *logrus.Logger
+	Log        *logrus.Entry
 	GitCommand *commands.GitCommand
 	OSCommand  *commands.OSCommand
 	SubProcess *exec.Cmd
@@ -81,7 +81,7 @@ type guiState struct {
 }
 
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*Gui, error) {
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
@@ -270,11 +270,25 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err := gui.switchFocus(g, nil, filesView); err != nil {
 			return err
 		}
+
+		if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
+			if err := gui.promptAnonymousReporting(); err != nil {
+				return err
+			}
+		}
 	}
 
 	gui.resizePopupPanels(g)
 
 	return nil
+}
+
+func (gui *Gui) promptAnonymousReporting() error {
+	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.Config.InsertToUserConfig("reporting", "on")
+	}, func(g *gocui.Gui, v *gocui.View) error {
+		return gui.Config.InsertToUserConfig("reporting", "off")
+	})
 }
 
 func (gui *Gui) fetch(g *gocui.Gui) error {

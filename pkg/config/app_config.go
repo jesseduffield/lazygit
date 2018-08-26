@@ -141,22 +141,22 @@ func (c *AppConfig) InsertToUserConfig(key, value string) error {
 
 func getDefaultConfig() []byte {
 	return []byte(`
-  gui:
-    ## stuff relating to the UI
-    scrollHeight: 2
-    theme:
-      activeBorderColor:
-        - white
-        - bold
-      inactiveBorderColor:
-        - white
-      optionsTextColor:
-        - blue
-  git:
-    # stuff relating to git
-  os:
-    # stuff relating to the OS
-
+gui:
+  ## stuff relating to the UI
+  scrollHeight: 2
+  theme:
+    activeBorderColor:
+      - white
+      - bold
+    inactiveBorderColor:
+      - white
+    optionsTextColor:
+      - blue
+git:
+  # stuff relating to git
+os:
+  # stuff relating to the OS
+reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
 `)
 }
 

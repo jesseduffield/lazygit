@@ -2,6 +2,7 @@ package i18n
 
 import (
 	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -10,8 +11,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func getDummyLog() *logrus.Entry {
+	log := logrus.New()
+	log.Out = ioutil.Discard
+	return log.WithField("test", "test")
+}
 func TestNewLocalizer(t *testing.T) {
-	assert.NotNil(t, NewLocalizer(logrus.New()))
+	assert.NotNil(t, NewLocalizer(getDummyLog()))
 }
 
 func TestDetectLanguage(t *testing.T) {
@@ -76,6 +82,6 @@ func TestLocalizer(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(setupLocalizer(logrus.New(), s.userLang))
+		s.test(setupLocalizer(getDummyLog(), s.userLang))
 	}
 }

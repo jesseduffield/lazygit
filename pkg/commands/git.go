@@ -7,23 +7,23 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	gogit "gopkg.in/src-d/go-git.v4"
 )
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Log       *logrus.Logger
+	Log       *logrus.Entry
 	OSCommand *OSCommand
 	Worktree  *gogit.Worktree
 	Repo      *gogit.Repository
 }
 
 // NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Logger, osCommand *OSCommand) (*GitCommand, error) {
+func NewGitCommand(log *logrus.Entry, osCommand *OSCommand) (*GitCommand, error) {
 	gitCommand := &GitCommand{
 		Log:       log,
 		OSCommand: osCommand,

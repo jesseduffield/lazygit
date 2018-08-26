@@ -18,6 +18,7 @@
     # stuff relating to git
   os:
     # stuff relating to the OS
+  reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
 ```
 
 ## Color Attributes:
