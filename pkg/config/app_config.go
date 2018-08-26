@@ -223,8 +223,8 @@ func getDefaultConfig() []byte {
   os:
     # stuff relating to the OS
   update:
-    method: prompt # can be prompt | background | never
-    days: 7 # only applies for prompt/background update methods
+    method: prompt # can be: prompt | background | never
+    days: 14 # how often a update is checked for
 `)
 }
 
