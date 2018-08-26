@@ -11,6 +11,13 @@ jobs:
           keys:
             - v1-pkg-cache
       - run:
+          name: Run gofmt -s
+          command: |
+            if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
+             find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
+             exit 1;
+            fi
+      - run:
           name: Run tests
           command: |
             ./test.sh
