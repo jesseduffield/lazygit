@@ -141,7 +141,7 @@ func (c *AppConfig) InsertToUserConfig(key, value string) error {
 
 func GetDefaultConfig() []byte {
 	return []byte(
-`gui:
+		`gui:
   # stuff relating to the UI
   scrollHeight: 2
   theme:
