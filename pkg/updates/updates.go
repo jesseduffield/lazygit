@@ -90,16 +90,16 @@ func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
 
 func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("Checking for an updated version")
+	if err := u.RecordLastUpdateCheck(); err != nil {
+		return "", err
+	}
+
 	newVersion, err := u.getLatestVersionNumber()
 	if err != nil {
 		return "", err
 	}
 	u.Log.Info("Current version is " + u.Config.GetVersion())
 	u.Log.Info("New version is " + newVersion)
-
-	if err := u.RecordLastUpdateCheck(); err != nil {
-		return "", err
-	}
 
 	if newVersion == u.Config.GetVersion() {
 		return "", errors.New("You already have the latest version")
