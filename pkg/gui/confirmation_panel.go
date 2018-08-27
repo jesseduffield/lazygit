@@ -18,7 +18,7 @@ func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.Vie
 	return func(g *gocui.Gui, v *gocui.View) error {
 		if function != nil {
 			if err := function(g, v); err != nil {
-				panic(err)
+				return err
 			}
 		}
 		return gui.closeConfirmationPrompt(g)
@@ -58,20 +58,30 @@ func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int
 
 func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
 	gui.onNewPopupPanel()
-	// only need to fit one line
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, "")
-	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
+	confirmationView, err := gui.prepareConfirmationPanel(currentView, title, "")
+	if err != nil {
+		return err
+	}
+	confirmationView.Editable = true
+	return gui.setKeyBindings(g, handleConfirm, nil)
+}
 
-		confirmationView.Editable = true
+func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string) (*gocui.View, error) {
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, prompt)
+	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return nil, err
+		}
 		confirmationView.Title = title
 		confirmationView.FgColor = gocui.ColorWhite
-		gui.switchFocus(g, currentView, confirmationView)
-		return gui.setKeyBindings(g, handleConfirm, nil)
 	}
-	return nil
+	confirmationView.Clear()
+
+	if err := gui.switchFocus(gui.g, currentView, confirmationView); err != nil {
+		return nil, err
+	}
+	return confirmationView, nil
 }
 
 func (gui *Gui) onNewPopupPanel() {
@@ -93,18 +103,15 @@ func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, t
 				gui.Log.Error(errMessage)
 			}
 		}
-		x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, prompt)
-		if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
-			}
-			confirmationView.Title = title
-			confirmationView.FgColor = gocui.ColorWhite
-			gui.renderString(g, "confirmation", prompt)
-			gui.switchFocus(g, currentView, confirmationView)
-			return gui.setKeyBindings(g, handleConfirm, handleClose)
+		confirmationView, err := gui.prepareConfirmationPanel(currentView, title, prompt)
+		if err != nil {
+			return err
 		}
-		return nil
+		confirmationView.Editable = false
+		if err := gui.renderString(g, "confirmation", prompt); err != nil {
+			return err
+		}
+		return gui.setKeyBindings(g, handleConfirm, handleClose)
 	})
 	return nil
 }
@@ -131,7 +138,9 @@ func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*go
 			"keyBindConfirm": "enter",
 		},
 	)
-	gui.renderString(g, "options", actions)
+	if err := gui.renderString(g, "options", actions); err != nil {
+		return err
+	}
 	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm)); err != nil {
 		return err
 	}
@@ -146,6 +155,7 @@ func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title,
 }
 
 func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
+	gui.Log.Error(message)
 	currentView := g.CurrentView()
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))

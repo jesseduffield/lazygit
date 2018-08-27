@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -110,7 +109,11 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 	previousView, err := g.View(gui.State.PreviousView)
 	if err != nil {
-		panic(err)
+		// always fall back to files view if there's no 'previous' view stored
+		previousView, err = g.View("files")
+		if err != nil {
+			gui.Log.Error(err)
+		}
 	}
 	return gui.switchFocus(g, v, previousView)
 }
@@ -239,14 +242,6 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 
 func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) error {
 	return gui.renderString(g, "options", gui.optionsMapToString(optionsMap))
-}
-
-func (gui *Gui) loader() string {
-	characters := "|/-\\"
-	now := time.Now()
-	nanos := now.UnixNano()
-	index := nanos / 50000000 % int64(len(characters))
-	return characters[index : index+1]
 }
 
 // TODO: refactor properly

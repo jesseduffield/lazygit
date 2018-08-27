@@ -18,6 +18,9 @@
     # stuff relating to git
   os:
     # stuff relating to the OS
+  update:
+    method: prompt # can be: prompt | background | never
+    days: 14 # how often an update is checked for
 ```
 
 ## Color Attributes:

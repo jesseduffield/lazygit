@@ -2,6 +2,54 @@
 
 
 [[projects]]
+  digest = "1:e24ea5dbc89fbab51635ee32e5be4f61a9267cae20788efcae4c07efb4abec99"
+  name = "github.com/aws/aws-sdk-go"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/stscreds",
+    "aws/csm",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/sdkio",
+    "internal/sdkrand",
+    "internal/sdkuri",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/restxml",
+    "private/protocol/xml/xmlutil",
+    "service/s3",
+    "service/sts",
+  ]
+  pruneopts = "NUT"
+  revision = "4324bc9d8865bdb3e6aa86ec7772ca1272d2750e"
+  version = "v1.15.21"
+
+[[projects]]
+  branch = "master"
+  digest = "1:37011b20a70e205b93ebea5287e1afa5618db54bf3998c36ff5a8e4b146a170a"
+  name = "github.com/bgentry/go-netrc"
+  packages = ["netrc"]
+  pruneopts = "NUT"
+  revision = "9fd32a8b3d3d3f9d43c341bfe098430e07609480"
+
+[[projects]]
   branch = "master"
   digest = "1:cd7ba2b29e93e2a8384e813dfc80ebb0f85d9214762e6ca89bb55a58092eab87"
   name = "github.com/cloudfoundry/jibber_jabber"
@@ -49,12 +97,52 @@
   version = "v1.4.7"
 
 [[projects]]
+  digest = "1:74d9b0a7b4107b41e0ade759fac64502876f82d29fb23d77b3dd24b194ee3dd5"
+  name = "github.com/go-ini/ini"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "5cf292cae48347c2490ac1a58fe36735fb78df7e"
+  version = "v1.38.2"
+
+[[projects]]
   branch = "master"
   digest = "1:4a8ed9b8cf22bd03bee5d74179fa06a282e4a73b6de949f7a865ff56cd2537e0"
   name = "github.com/golang-collections/collections"
   packages = ["stack"]
   pruneopts = "NUT"
   revision = "604e922904d35e97f98a774db7881f049cd8d970"
+
+[[projects]]
+  branch = "master"
+  digest = "1:a5d940c38bf56f121721bfa747c66356df387cb9d5318c570c6d4170aab62862"
+  name = "github.com/hashicorp/go-cleanhttp"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "d5fe4b57a186c716b0e00b8c301cbd9b4182694d"
+
+[[projects]]
+  branch = "master"
+  digest = "1:b634d733abf079dc191d359e5a8d31479f1795d00e656f8a018a459571046266"
+  name = "github.com/hashicorp/go-getter"
+  packages = ["helper/url"]
+  pruneopts = "NUT"
+  revision = "4bda8fa99001c61db3cad96b421d4c12a81f256d"
+
+[[projects]]
+  branch = "master"
+  digest = "1:fbab03227343a0285fc74a68dd2ff46cda7edecbbe5a3e98d2cecd00cc67b217"
+  name = "github.com/hashicorp/go-safetemp"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "b1a1dbde6fdc11e3ae79efd9039009e22d4ae240"
+
+[[projects]]
+  digest = "1:0b06ffe0c0764e413a6738e3f045d6bb14117359aef80a09f8c60fbff2ecad6b"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "b5a281d3160aa11950a6182bd9a9dc2cb1e02d50"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -85,11 +173,34 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:490643e333b848f3d6ab772c21082d706663dcf4a3c0fbe9a4b4ef7b205ce6c7"
+  name = "github.com/jesseduffield/go-getter"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "906e15686e6309ff310c1c10463ab53287c3a678"
+
+[[projects]]
+  branch = "master"
   digest = "1:f774b11ae458cae2d10b94ef66ef00ba1c57f1971dd0e5534ac743cbe574f6d4"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
   revision = "7818a0f93387d1037cbd06f69323d9f8d068af7c"
+
+[[projects]]
+  digest = "1:ac6d01547ec4f7f673311b4663909269bfb8249952de3279799289467837c3cc"
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "0b12d6b5"
+
+[[projects]]
+  branch = "master"
+  digest = "1:263f9b0a0bcbfff9d5e7d9f2aa11f53995d98214fe0fb97e429e7a5f4534a0f9"
+  name = "github.com/kardianos/osext"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "ae77be60afb1dcacde03767a8c37337fad28ac14"
 
 [[projects]]
   digest = "1:8021af4dcbd531ae89433c8c3a6520e51064114aaf8eb1724c3cf911c497c9ba"
@@ -146,6 +257,14 @@
   packages = ["."]
   pruneopts = "NUT"
   revision = "58046073cbffe2f25d425fe1331102f55cf719de"
+
+[[projects]]
+  branch = "master"
+  digest = "1:18b773b92ac82a451c1276bd2776c1e55ce057ee202691ab33c8d6690efcc048"
+  name = "github.com/mitchellh/go-testing-interface"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "a61a99592b77c9ba629d254a693acffaeb4b7e28"
 
 [[projects]]
   branch = "master"
@@ -303,6 +422,19 @@
   version = "v0.1.2"
 
 [[projects]]
+  digest = "1:07e8742c479bab0066149ad02a710024154e76874fd0a2dba002d87702725825"
+  name = "github.com/ulikunitz/xz"
+  packages = [
+    ".",
+    "internal/hash",
+    "internal/xlog",
+    "lzma",
+  ]
+  pruneopts = "NUT"
+  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
+  version = "v0.5.4"
+
+[[projects]]
   digest = "1:3148cb3478c26a92b4c1a18abb9428234b281e278af6267840721a24b6cbc6a3"
   name = "github.com/xanzy/ssh-agent"
   packages = ["."]
@@ -458,7 +590,9 @@
     "github.com/davecgh/go-spew/spew",
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
+    "github.com/jesseduffield/go-getter",
     "github.com/jesseduffield/gocui",
+    "github.com/kardianos/osext",
     "github.com/mgutz/str",
     "github.com/nicksnyder/go-i18n/v2/i18n",
     "github.com/shibukawa/configdir",
@@ -470,6 +604,7 @@
     "golang.org/x/text/language",
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/plumbing",
+    "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

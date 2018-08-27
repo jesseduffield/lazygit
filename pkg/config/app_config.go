@@ -2,19 +2,24 @@ package config
 
 import (
 	"bytes"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/shibukawa/configdir"
 	"github.com/spf13/viper"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug      bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version    string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit     string `long:"commit" env:"COMMIT"`
-	BuildDate  string `long:"build-date" env:"BUILD_DATE"`
-	Name       string `long:"name" env:"NAME" default:"lazygit"`
-	UserConfig *viper.Viper
+	Debug       bool   `long:"debug" env:"DEBUG" default:"false"`
+	Version     string `long:"version" env:"VERSION" default:"unversioned"`
+	Commit      string `long:"commit" env:"COMMIT"`
+	BuildDate   string `long:"build-date" env:"BUILD_DATE"`
+	Name        string `long:"name" env:"NAME" default:"lazygit"`
+	BuildSource string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	UserConfig  *viper.Viper
+	AppState    *AppState
 }
 
 // AppConfigurer interface allows individual app config structs to inherit Fields
@@ -25,25 +30,37 @@ type AppConfigurer interface {
 	GetCommit() string
 	GetBuildDate() string
 	GetName() string
+	GetBuildSource() string
 	GetUserConfig() *viper.Viper
-	InsertToUserConfig(string, string) error
+	GetAppState() *AppState
+	WriteToUserConfig(string, string) error
+	SaveAppState() error
+	LoadAppState() error
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, debuggingFlag *bool) (*AppConfig, error) {
-	userConfig, err := LoadUserConfig()
+func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag *bool) (*AppConfig, error) {
+	defaultConfig := GetDefaultConfig()
+	userConfig, err := LoadConfig("config", defaultConfig)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	appConfig := &AppConfig{
-		Name:       "lazygit",
-		Version:    version,
-		Commit:     commit,
-		BuildDate:  date,
-		Debug:      *debuggingFlag,
-		UserConfig: userConfig,
+		Name:        "lazygit",
+		Version:     version,
+		Commit:      commit,
+		BuildDate:   date,
+		Debug:       *debuggingFlag,
+		BuildSource: buildSource,
+		UserConfig:  userConfig,
+		AppState:    &AppState{},
 	}
+
+	if err := appConfig.LoadAppState(); err != nil {
+		return nil, err
+	}
+
 	return appConfig, nil
 }
 
@@ -72,77 +89,126 @@ func (c *AppConfig) GetName() string {
 	return c.Name
 }
 
+// GetBuildSource returns the source of the build. For builds from goreleaser
+// this will be binaryBuild
+func (c *AppConfig) GetBuildSource() string {
+	return c.BuildSource
+}
+
 // GetUserConfig returns the user config
 func (c *AppConfig) GetUserConfig() *viper.Viper {
 	return c.UserConfig
 }
 
-func newViper() (*viper.Viper, error) {
+// GetAppState returns the app state
+func (c *AppConfig) GetAppState() *AppState {
+	return c.AppState
+}
+
+func newViper(filename string) (*viper.Viper, error) {
 	v := viper.New()
 	v.SetConfigType("yaml")
-	v.SetConfigName("config")
+	v.SetConfigName(filename)
 	return v, nil
 }
 
-// LoadUserConfig gets the user's config
-func LoadUserConfig() (*viper.Viper, error) {
-	v, err := newViper()
+// LoadConfig gets the user's config
+func LoadConfig(filename string, defaults []byte) (*viper.Viper, error) {
+	v, err := newViper(filename)
 	if err != nil {
-		panic(err)
-	}
-	if err = LoadDefaultConfig(v); err != nil {
 		return nil, err
 	}
-	if err = LoadUserConfigFromFile(v); err != nil {
+	if defaults != nil {
+		if err = LoadDefaults(v, defaults); err != nil {
+			return nil, err
+		}
+	}
+	if err = LoadAndMergeFile(v, filename+".yml"); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
-// LoadDefaultConfig loads in the defaults defined in this file
-func LoadDefaultConfig(v *viper.Viper) error {
-	defaults := GetDefaultConfig()
+// LoadDefaults loads in the defaults defined in this file
+func LoadDefaults(v *viper.Viper, defaults []byte) error {
 	return v.ReadConfig(bytes.NewBuffer(defaults))
 }
 
-// LoadUserConfigFromFile Loads the user config from their config file, creating
-// the file as an empty config if it does not exist
-func LoadUserConfigFromFile(v *viper.Viper) error {
+func prepareConfigFile(filename string) (string, error) {
 	// chucking my name there is not for vanity purposes, the xdg spec (and that
 	// function) requires a vendor name. May as well line up with github
 	configDirs := configdir.New("jesseduffield", "lazygit")
-	folder := configDirs.QueryFolderContainsFile("config.yml")
+	folder := configDirs.QueryFolderContainsFile(filename)
 	if folder == nil {
-		// create the file as an empty config and load it
+		// create the file as empty
 		folders := configDirs.QueryFolders(configdir.Global)
-		if err := folders[0].WriteFile("config.yml", []byte{}); err != nil {
-			return err
+		if err := folders[0].WriteFile(filename, []byte{}); err != nil {
+			return "", err
 		}
-		folder = configDirs.QueryFolderContainsFile("config.yml")
+		folder = configDirs.QueryFolderContainsFile(filename)
 	}
-	v.AddConfigPath(folder.Path)
-	return v.MergeInConfig()
+	return filepath.Join(folder.Path, filename), nil
 }
 
-// InsertToUserConfig adds a key/value pair to the user's config and saves it
-func (c *AppConfig) InsertToUserConfig(key, value string) error {
-	// making a new viper object so that we're not writing any defaults back
-	// to the user's config file
-	v, err := newViper()
+// LoadAndMergeFile Loads the config/state file, creating
+// the file as an empty one if it does not exist
+func LoadAndMergeFile(v *viper.Viper, filename string) error {
+	configPath, err := prepareConfigFile(filename)
 	if err != nil {
 		return err
 	}
-	if err = LoadUserConfigFromFile(v); err != nil {
+
+	v.AddConfigPath(filepath.Dir(configPath))
+	return v.MergeInConfig()
+}
+
+// WriteToUserConfig adds a key/value pair to the user's config and saves it
+func (c *AppConfig) WriteToUserConfig(key, value string) error {
+	// reloading the user config directly (without defaults) so that we're not
+	// writing any defaults back to the user's config
+	v, err := LoadConfig("config", nil)
+	if err != nil {
 		return err
 	}
+
 	v.Set(key, value)
 	return v.WriteConfig()
+}
+
+// SaveAppState marhsalls the AppState struct and writes it to the disk
+func (c *AppConfig) SaveAppState() error {
+	marshalledAppState, err := yaml.Marshal(c.AppState)
+	if err != nil {
+		return err
+	}
+
+	filepath, err := prepareConfigFile("state.yml")
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filepath, marshalledAppState, 0644)
+}
+
+func (c *AppConfig) LoadAppState() error {
+	filepath, err := prepareConfigFile("state.yml")
+	if err != nil {
+		return err
+	}
+	appStateBytes, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return err
+	}
+	if len(appStateBytes) == 0 {
+		return yaml.Unmarshal(getDefaultAppState(), c.AppState)
+	}
+	return yaml.Unmarshal(appStateBytes, c.AppState)
 }
 
 func GetDefaultConfig() []byte {
 	return []byte(
 		`gui:
-  # stuff relating to the UI
+  ## stuff relating to the UI
   scrollHeight: 2
   theme:
     activeBorderColor:
@@ -156,6 +222,23 @@ git:
   # stuff relating to git
 os:
   # stuff relating to the OS
+update:
+  method: prompt # can be: prompt | background | never
+  days: 14 # how often a update is checked for
+`)
+}
+
+// AppState stores data between runs of the app like when the last update check
+// was performed and which other repos have been checked out
+type AppState struct {
+	LastUpdateCheck int64
+	RecentRepos     []string
+}
+
+func getDefaultAppState() []byte {
+	return []byte(`
+  lastUpdateCheck: 0
+  recentRepos: []
 `)
 }
 

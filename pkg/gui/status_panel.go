@@ -45,7 +45,13 @@ func (gui *Gui) renderStatusOptions(g *gocui.Gui) error {
 	return gui.renderOptionsMap(g, map[string]string{
 		"o": gui.Tr.SLocalize("OpenConfig"),
 		"e": gui.Tr.SLocalize("EditConfig"),
+		"u": gui.Tr.SLocalize("CheckForUpdate"),
 	})
+}
+
+func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
+	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
+	return gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("CheckingForUpdates"))
 }
 
 func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
