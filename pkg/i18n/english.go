@@ -315,6 +315,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CheckForUpdate",
 			Other: "Check for update",
+		}, &i18n.Message{
+			ID:    "CheckingForUpdates",
+			Other: "Checking for updates...",
 		},
 	)
 }

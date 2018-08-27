@@ -155,6 +155,7 @@ func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title,
 }
 
 func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
+	gui.Log.Error(message)
 	currentView := g.CurrentView()
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))

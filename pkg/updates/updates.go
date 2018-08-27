@@ -2,6 +2,7 @@ package updates
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -81,15 +82,14 @@ func (u *Updater) RecordLastUpdateCheck() error {
 
 // expecting version to be of the form `v12.34.56`
 func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
+	if oldVersion == "unversioned" {
+		return false
+	}
 	return strings.Split(oldVersion, ".")[0] != strings.Split(newVersion, ".")[0]
 }
 
 func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("Checking for an updated version")
-	if u.Config.GetVersion() == "unversioned" {
-		u.Log.Info("Current version is not built from an official release so we won't check for an update")
-		return "", nil
-	}
 	newVersion, err := u.getLatestVersionNumber()
 	if err != nil {
 		return "", err
@@ -102,12 +102,11 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	}
 
 	if newVersion == u.Config.GetVersion() {
-		return "", nil
+		return "", errors.New("You already have the latest version")
 	}
 
 	if u.majorVersionDiffers(u.Config.GetVersion(), newVersion) {
-		u.Log.Info("New version has non-backwards compatible changes.")
-		return "", nil
+		return "", errors.New("New version has non-backwards compatible changes.")
 	}
 
 	rawUrl, err := u.getBinaryUrl(newVersion)
@@ -116,8 +115,7 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	}
 	u.Log.Info("Checking for resource at url " + rawUrl)
 	if !u.verifyResourceFound(rawUrl) {
-		u.Log.Error("Resource not found")
-		return "", nil
+		return "", errors.New("Could not find any binary at " + rawUrl)
 	}
 	u.Log.Info("Verified resource is available, ready to update")
 
@@ -142,15 +140,23 @@ func (u *Updater) skipUpdateCheck() bool {
 	// will remove the check for windows after adding a manifest file asking for
 	// the required permissions
 	if runtime.GOOS == "windows" {
+		u.Log.Info("Updating is currently not supported for windows until we can fix permission issues")
+		return true
+	}
+
+	if u.Config.GetVersion() == "unversioned" {
+		u.Log.Info("Current version is not built from an official release so we won't check for an update")
 		return true
 	}
 
 	if u.Config.GetBuildSource() != "buildBinary" {
+		u.Log.Info("Binary is not built with the buildBinary flag so we won't check for an update")
 		return true
 	}
 
 	userConfig := u.Config.GetUserConfig()
 	if userConfig.Get("update.method") == "never" {
+		u.Log.Info("Update method is set to never so we won't check for an update")
 		return true
 	}
 
@@ -158,7 +164,12 @@ func (u *Updater) skipUpdateCheck() bool {
 	lastUpdateCheck := u.Config.GetAppState().LastUpdateCheck
 	days := userConfig.GetInt64("update.days")
 
-	return (currentTimestamp-lastUpdateCheck)/(60*60*24) < days
+	if (currentTimestamp-lastUpdateCheck)/(60*60*24) < days {
+		u.Log.Info("Last update was too recent so we won't check for an update")
+		return true
+	}
+
+	return false
 }
 
 func (u *Updater) mappedOs(os string) string {

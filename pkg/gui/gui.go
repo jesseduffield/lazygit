@@ -289,7 +289,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 		// these are only called once (it's a place to put all the things you want
 		// to happen on startup after the screen is first rendered)
-		gui.Updater.CheckForNewUpdate(gui.onUpdateCheckFinish, false)
+		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles(g)
 		gui.refreshBranches(g)
@@ -303,46 +303,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	gui.resizePopupPanels(g)
 
 	return nil
-}
-
-func (gui *Gui) onUpdateFinish(err error) error {
-	gui.State.Updating = false
-	gui.statusManager.removeStatus("updating")
-	if err := gui.renderString(gui.g, "appStatus", ""); err != nil {
-		return err
-	}
-	if err != nil {
-		return gui.createErrorPanel(gui.g, "Update failed: "+err.Error())
-	}
-	return nil
-}
-
-func (gui *Gui) onUpdateCheckFinish(newVersion string, err error) error {
-	if err != nil {
-		// ignoring the error for now so that I'm not annoying users
-		gui.Log.Error(err.Error())
-		return nil
-	}
-	if newVersion == "" {
-		return nil
-	}
-	if gui.Config.GetUserConfig().Get("update.method") == "background" {
-		gui.startUpdating(newVersion)
-		return nil
-	}
-	title := "New version available!"
-	message := "Download latest version? (enter/esc)"
-	currentView := gui.g.CurrentView()
-	return gui.createConfirmationPanel(gui.g, currentView, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		gui.startUpdating(newVersion)
-		return nil
-	}, nil)
-}
-
-func (gui *Gui) startUpdating(newVersion string) {
-	gui.State.Updating = true
-	gui.statusManager.addWaitingStatus("updating")
-	gui.Updater.Update(newVersion, gui.onUpdateFinish)
 }
 
 func (gui *Gui) fetch(g *gocui.Gui) error {
