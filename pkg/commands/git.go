@@ -74,7 +74,7 @@ func includes(array []string, str string) bool {
 func (c *GitCommand) GetStatusFiles() []File {
 	statusOutput, _ := c.GitStatus()
 	statusStrings := utils.SplitLines(statusOutput)
-	files := make([]File, 0)
+	files := []File{}
 
 	for _, statusString := range statusStrings {
 		change := statusString[0:2]
