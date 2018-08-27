@@ -22,6 +22,7 @@
 
 <pre>
   <kbd>space</kbd>:    toggle staged
+  <kbd>a</kbd>:        stage/unstage all
   <kbd>c</kbd>:        commit changes
   <kbd>shift</kbd>+<kbd>C</kbd>: commit using git editor
   <kbd>shift</kbd>+<kbd>S</kbd>: stash files
@@ -33,6 +34,7 @@
   <kbd>i</kbd>:        add to .gitignore
   <kbd>d</kbd>:        delete if untracked checkout if tracked (aka go away)
   <kbd>shift</kbd>+<kbd>R</kbd>: refresh files
+  <kbd>shift</kbd>+<kbd>A</kbd>: abort merge
 </pre>
 
 ## Branches Panel:

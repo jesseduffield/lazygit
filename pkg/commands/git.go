@@ -340,6 +340,16 @@ func (c *GitCommand) StageFile(fileName string) error {
 	return c.OSCommand.RunCommand("git add " + c.OSCommand.Quote(fileName))
 }
 
+// StageAll stages all files
+func (c *GitCommand) StageAll() error {
+	return c.OSCommand.RunCommand("git add -A")
+}
+
+// UnstageAll stages all files
+func (c *GitCommand) UnstageAll() error {
+	return c.OSCommand.RunCommand("git reset")
+}
+
 // UnStageFile unstages a file
 func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 	var command string

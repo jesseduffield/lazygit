@@ -54,6 +54,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "toggleStaged",
 			Other: "przełącz zatwierdzenie",
 		}, &i18n.Message{
+			ID:    "toggleStagedAll",
+			Other: "przełącz wszystkie zatwierdzenia",
+		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "odśwież",
 		}, &i18n.Message{

@@ -71,6 +71,33 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	return gui.handleFileSelect(g, v)
 }
 
+func (gui *Gui) allFilesStaged() bool {
+	for _, file := range gui.State.Files {
+		if file.HasUnstagedChanges {
+			return false
+		}
+	}
+	return true
+}
+
+func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
+	var err error
+	if gui.allFilesStaged() {
+		err = gui.GitCommand.UnstageAll()
+	} else {
+		err = gui.GitCommand.StageAll()
+	}
+	if err != nil {
+		_ = gui.createErrorPanel(g, err.Error())
+	}
+
+	if err := gui.refreshFiles(g); err != nil {
+		return err
+	}
+
+	return gui.handleFileSelect(g, v)
+}
+
 func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
@@ -157,6 +184,7 @@ func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
 		"R":         gui.Tr.SLocalize("refresh"),
 		"t":         gui.Tr.SLocalize("addPatch"),
 		"e":         gui.Tr.SLocalize("edit"),
+		"a":         gui.Tr.SLocalize("toggleStagedAll"),
 		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
 	}
 	if gui.State.HasMergeConflicts {
