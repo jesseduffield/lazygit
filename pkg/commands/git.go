@@ -46,8 +46,8 @@ func (c *GitCommand) SetupGit() {
 
 // GetStashEntries stash entryies
 func (c *GitCommand) GetStashEntries() []StashEntry {
-	stashEntries := make([]StashEntry, 0)
 	rawString, _ := c.OSCommand.RunCommandWithOutput("git stash list --pretty='%gs'")
+	stashEntries := []StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
 	}
