@@ -70,6 +70,18 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 	}
 }
 
+func TestGetStashEntryDiff(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"stash", "show", "-p", "--color", "stash@{1}"}, args)
+
+		return exec.Command("echo")
+	}
+
+	gitCmd.GetStashEntryDiff(1)
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
