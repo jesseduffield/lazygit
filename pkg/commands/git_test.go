@@ -2,6 +2,7 @@ package commands
 
 import (
 	"io/ioutil"
+	"os/exec"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/test"
@@ -22,7 +23,53 @@ func newDummyGitCommand() *GitCommand {
 	}
 }
 
+func TestGitCommandGetStashEntries(t *testing.T) {
+	type scenario struct {
+		command func(string, ...string) *exec.Cmd
+		test    func([]StashEntry)
 	}
+
+	scenarios := []scenario{
+		{
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("echo")
+			},
+			func(entries []StashEntry) {
+				assert.Len(t, entries, 0)
+			},
+		},
+		{
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("echo", "WIP on add-pkg-commands-test: 55c6af2 increase parallel build\nWIP on master: bb86a3f update github template")
+			},
+			func(entries []StashEntry) {
+				expected := []StashEntry{
+					{
+						0,
+						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
+						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
+					},
+					{
+						1,
+						"WIP on master: bb86a3f update github template",
+						"WIP on master: bb86a3f update github template",
+					},
+				}
+
+				assert.Len(t, entries, 2)
+				assert.EqualValues(t, expected, entries)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		gitCmd := newDummyGitCommand()
+		gitCmd.OSCommand.command = s.command
+
+		s.test(gitCmd.GetStashEntries())
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
