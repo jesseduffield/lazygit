@@ -84,6 +84,83 @@ func TestGetStashEntryDiff(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestGetStatusFiles(t *testing.T) {
+	type scenario struct {
+		command func(string, ...string) *exec.Cmd
+		test    func([]File)
+	}
+
+	scenarios := []scenario{
+		{
+			func(cmd string, args ...string) *exec.Cmd {
+				return exec.Command("echo")
+			},
+			func(files []File) {
+				assert.Len(t, files, 0)
+			},
+		},
+		{
+			func(cmd string, args ...string) *exec.Cmd {
+				return exec.Command(
+					"echo",
+					"MM file1.txt\nA  file3.txt\nAM file2.txt\n?? file4.txt",
+				)
+			},
+			func(files []File) {
+				assert.Len(t, files, 4)
+
+				expected := []File{
+					{
+						Name:               "file1.txt",
+						HasStagedChanges:   true,
+						HasUnstagedChanges: true,
+						Tracked:            true,
+						Deleted:            false,
+						HasMergeConflicts:  false,
+						DisplayString:      "MM file1.txt",
+					},
+					{
+						Name:               "file3.txt",
+						HasStagedChanges:   true,
+						HasUnstagedChanges: false,
+						Tracked:            false,
+						Deleted:            false,
+						HasMergeConflicts:  false,
+						DisplayString:      "A  file3.txt",
+					},
+					{
+						Name:               "file2.txt",
+						HasStagedChanges:   true,
+						HasUnstagedChanges: true,
+						Tracked:            false,
+						Deleted:            false,
+						HasMergeConflicts:  false,
+						DisplayString:      "AM file2.txt",
+					},
+					{
+						Name:               "file4.txt",
+						HasStagedChanges:   false,
+						HasUnstagedChanges: true,
+						Tracked:            false,
+						Deleted:            false,
+						HasMergeConflicts:  false,
+						DisplayString:      "?? file4.txt",
+					},
+				}
+
+				assert.EqualValues(t, expected, files)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		gitCmd := newDummyGitCommand()
+		gitCmd.OSCommand.command = s.command
+
+		s.test(gitCmd.GetStatusFiles())
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
