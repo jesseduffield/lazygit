@@ -7,9 +7,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	gogit "gopkg.in/src-d/go-git.v4"
 )
@@ -265,7 +265,7 @@ func (c *GitCommand) UsingGpg() bool {
 func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
 	command := "git commit -m " + c.OSCommand.Quote(message)
 	if c.UsingGpg() {
-		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)
+		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
 	return nil, c.OSCommand.RunCommand(command)
 }
@@ -391,12 +391,12 @@ func (c *GitCommand) Checkout(branch string, force bool) error {
 
 // AddPatch prepares a subprocess for adding a patch by patch
 // this will eventually be swapped out for a better solution inside the Gui
-func (c *GitCommand) AddPatch(filename string) (*exec.Cmd, error) {
+func (c *GitCommand) AddPatch(filename string) *exec.Cmd {
 	return c.OSCommand.PrepareSubProcess("git", "add", "--patch", filename)
 }
 
 // PrepareCommitSubProcess prepares a subprocess for `git commit`
-func (c *GitCommand) PrepareCommitSubProcess() (*exec.Cmd, error) {
+func (c *GitCommand) PrepareCommitSubProcess() *exec.Cmd {
 	return c.OSCommand.PrepareSubProcess("git", "commit")
 }
 

@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/sirupsen/logrus"
 )
 
 // App struct
@@ -46,10 +46,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	}
 	var err error
 	app.Log = newLogger(config)
-	app.OSCommand, err = commands.NewOSCommand(app.Log)
-	if err != nil {
-		return app, err
-	}
+	app.OSCommand = commands.NewOSCommand(app.Log)
 
 	app.Tr = i18n.NewLocalizer(app.Log)
 
