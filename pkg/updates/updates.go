@@ -41,7 +41,7 @@ var (
 )
 
 // NewUpdater creates a new updater
-func NewUpdater(log *logrus.Logger, config config.AppConfigurer, osCommand *commands.OSCommand, tr *i18n.Localizer) (*Updater, error) {
+func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *commands.OSCommand, tr *i18n.Localizer) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
 
 	updater := &Updater{
