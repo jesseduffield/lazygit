@@ -327,6 +327,11 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CouldNotFindBinaryErr",
 			Other: "Could not find any binary at {{.url}}",
+			ID:    "AnonymousReportingTitle",
+			Other: "Help make lazygit better",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingPrompt",
+			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
 		},
 	)
 }

@@ -165,6 +165,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:d457d39e88f678ed14ac29517c3d74927a48dbc6a9f073fa241cf364a68cbe5c"
+  name = "github.com/heroku/rollrus"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "fc0cef2ff331aebb24cd4e9ded7e20650f3d7006"
+
+[[projects]]
+  branch = "master"
   digest = "1:62fe3a7ea2050ecbd753a71889026f83d73329337ada66325cbafd5dea5f713d"
   name = "github.com/jbenet/go-context"
   packages = ["io"]
@@ -311,6 +319,14 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:5cf3f025cbee5951a4ee961de067c8a89fc95a5adabead774f82822efabab121"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
@@ -412,6 +428,14 @@
   pruneopts = "NUT"
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:e42372d3f4921ec35df07f9b23239631e9d28580f7c1edcca212bc6daddc68fe"
+  name = "github.com/stvp/roll"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "3627a5cbeaeaa68023abd02bb8687925265f2f63"
 
 [[projects]]
   digest = "1:cd5ffc5bda4e0296ab3e4de90dbb415259c78e45e7fab13694b14cde8ab74541"
@@ -591,6 +615,7 @@
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
     "github.com/jesseduffield/go-getter",
+    "github.com/heroku/rollrus",
     "github.com/jesseduffield/gocui",
     "github.com/kardianos/osext",
     "github.com/mgutz/str",

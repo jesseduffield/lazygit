@@ -24,7 +24,7 @@ type Platform struct {
 
 // OSCommand holds all the os commands
 type OSCommand struct {
-	Log                *logrus.Logger
+	Log                *logrus.Entry
 	Platform           *Platform
 	command            func(string, ...string) *exec.Cmd
 	getGlobalGitConfig func(string) (string, error)
@@ -32,7 +32,7 @@ type OSCommand struct {
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(log *logrus.Logger) *OSCommand {
+func NewOSCommand(log *logrus.Entry) *OSCommand {
 	return &OSCommand{
 		Log:                log,
 		Platform:           getPlatform(),

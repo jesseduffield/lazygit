@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/heroku/rollrus"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
@@ -18,7 +19,7 @@ type App struct {
 	closers []io.Closer
 
 	Config     config.AppConfigurer
-	Log        *logrus.Logger
+	Log        *logrus.Entry
 	OSCommand  *commands.OSCommand
 	GitCommand *commands.GitCommand
 	Gui        *gui.Gui
@@ -26,18 +27,40 @@ type App struct {
 	Updater    *updates.Updater // may only need this on the Gui
 }
 
-func newLogger(config config.AppConfigurer) *logrus.Logger {
+func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
 	log := logrus.New()
-	if !config.GetDebug() {
-		log.Out = ioutil.Discard
-		return log
+	log.Out = ioutil.Discard
+	if config.GetUserConfig().GetString("reporting") == "on" {
+		// this isn't really a secret token: it only has permission to push new rollbar items
+		hook := rollrus.NewHook("23432119147a4367abf7c0de2aa99a2d", "production")
+		log.Hooks.Add(hook)
 	}
+	return log
+}
+
+func newDevelopmentLogger() *logrus.Logger {
+	log := logrus.New()
 	file, err := os.OpenFile("development.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
 	}
 	log.SetOutput(file)
 	return log
+}
+
+func newLogger(config config.AppConfigurer) *logrus.Entry {
+	var log *logrus.Logger
+	if config.GetDebug() {
+		log = newDevelopmentLogger()
+	} else {
+		log = newProductionLogger(config)
+	}
+	return log.WithFields(logrus.Fields{
+		"debug":     config.GetDebug(),
+		"version":   config.GetVersion(),
+		"commit":    config.GetCommit(),
+		"buildDate": config.GetBuildDate(),
+	})
 }
 
 // NewApp retruns a new applications

@@ -9,10 +9,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func newDummyLog() *logrus.Logger {
+func newDummyLog() *logrus.Entry {
 	log := logrus.New()
 	log.Out = ioutil.Discard
-	return log
+	return log.WithField("test", "test")
 }
 
 func newDummyGitCommand() *GitCommand {
