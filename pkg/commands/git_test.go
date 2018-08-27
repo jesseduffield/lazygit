@@ -2,11 +2,12 @@ package commands
 
 import (
 	"io/ioutil"
-	"strings"
+	"os/exec"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func newDummyLog() *logrus.Entry {
@@ -22,11 +23,57 @@ func newDummyGitCommand() *GitCommand {
 	}
 }
 
-func TestDiff(t *testing.T) {
-	gitCommand := newDummyGitCommand()
-	if err := test.GenerateRepo("lots_of_diffs.sh"); err != nil {
-		t.Error(err.Error())
+func TestGitCommandGetStashEntries(t *testing.T) {
+	type scenario struct {
+		command func(string, ...string) *exec.Cmd
+		test    func([]StashEntry)
 	}
+
+	scenarios := []scenario{
+		{
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("echo")
+			},
+			func(entries []StashEntry) {
+				assert.Len(t, entries, 0)
+			},
+		},
+		{
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("echo", "WIP on add-pkg-commands-test: 55c6af2 increase parallel build\nWIP on master: bb86a3f update github template")
+			},
+			func(entries []StashEntry) {
+				expected := []StashEntry{
+					{
+						0,
+						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
+						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
+					},
+					{
+						1,
+						"WIP on master: bb86a3f update github template",
+						"WIP on master: bb86a3f update github template",
+					},
+				}
+
+				assert.Len(t, entries, 2)
+				assert.EqualValues(t, expected, entries)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		gitCmd := newDummyGitCommand()
+		gitCmd.OSCommand.command = s.command
+
+		s.test(gitCmd.GetStashEntries())
+	}
+}
+
+func TestGitCommandDiff(t *testing.T) {
+	gitCommand := newDummyGitCommand()
+	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
+
 	files := []File{
 		{
 			Name:               "deleted_staged",
@@ -110,10 +157,8 @@ func TestDiff(t *testing.T) {
 			DisplayString:      "?? master",
 		},
 	}
+
 	for _, file := range files {
-		content := gitCommand.Diff(file)
-		if strings.Contains(content, "error") {
-			t.Error("Error: diff test failed. File: " + file.Name + ", " + content)
-		}
+		assert.NotContains(t, gitCommand.Diff(file), "error")
 	}
 }
