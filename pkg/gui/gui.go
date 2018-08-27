@@ -314,9 +314,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 func (gui *Gui) promptAnonymousReporting() error {
 	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.Config.InsertToUserConfig("reporting", "on")
+		return gui.Config.WriteToUserConfig("reporting", "on")
 	}, func(g *gocui.Gui, v *gocui.View) error {
-		return gui.Config.InsertToUserConfig("reporting", "off")
+		return gui.Config.WriteToUserConfig("reporting", "off")
 	})
 }
 
