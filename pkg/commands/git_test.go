@@ -2,11 +2,11 @@ package commands
 
 import (
 	"io/ioutil"
-	"strings"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func newDummyLog() *logrus.Entry {
@@ -22,11 +22,11 @@ func newDummyGitCommand() *GitCommand {
 	}
 }
 
-func TestDiff(t *testing.T) {
-	gitCommand := newDummyGitCommand()
-	if err := test.GenerateRepo("lots_of_diffs.sh"); err != nil {
-		t.Error(err.Error())
 	}
+func TestGitCommandDiff(t *testing.T) {
+	gitCommand := newDummyGitCommand()
+	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
+
 	files := []File{
 		{
 			Name:               "deleted_staged",
@@ -110,10 +110,8 @@ func TestDiff(t *testing.T) {
 			DisplayString:      "?? master",
 		},
 	}
+
 	for _, file := range files {
-		content := gitCommand.Diff(file)
-		if strings.Contains(content, "error") {
-			t.Error("Error: diff test failed. File: " + file.Name + ", " + content)
-		}
+		assert.NotContains(t, gitCommand.Diff(file), "error")
 	}
 }
