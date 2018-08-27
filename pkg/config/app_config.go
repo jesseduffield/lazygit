@@ -40,7 +40,7 @@ type AppConfigurer interface {
 
 // NewAppConfig makes a new app config
 func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag *bool) (*AppConfig, error) {
-	defaultConfig := getDefaultConfig()
+	defaultConfig := GetDefaultConfig()
 	userConfig, err := LoadConfig("config", defaultConfig)
 	if err != nil {
 		return nil, err
@@ -205,26 +205,26 @@ func (c *AppConfig) LoadAppState() error {
 	return yaml.Unmarshal(appStateBytes, c.AppState)
 }
 
-func getDefaultConfig() []byte {
-	return []byte(`
-  gui:
-    ## stuff relating to the UI
-    scrollHeight: 2
-    theme:
-      activeBorderColor:
-        - white
-        - bold
-      inactiveBorderColor:
-        - white
-      optionsTextColor:
-        - blue
-  git:
-    # stuff relating to git
-  os:
-    # stuff relating to the OS
-  update:
-    method: prompt # can be: prompt | background | never
-    days: 14 # how often a update is checked for
+func GetDefaultConfig() []byte {
+	return []byte(
+		`gui:
+  ## stuff relating to the UI
+  scrollHeight: 2
+  theme:
+    activeBorderColor:
+      - white
+      - bold
+    inactiveBorderColor:
+      - white
+    optionsTextColor:
+      - blue
+git:
+  # stuff relating to git
+os:
+  # stuff relating to the OS
+update:
+  method: prompt # can be: prompt | background | never
+  days: 14 # how often a update is checked for
 `)
 }
 

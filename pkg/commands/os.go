@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -25,17 +24,22 @@ type Platform struct {
 
 // OSCommand holds all the os commands
 type OSCommand struct {
-	Log      *logrus.Logger
-	Platform *Platform
+	Log                *logrus.Logger
+	Platform           *Platform
+	command            func(string, ...string) *exec.Cmd
+	getGlobalGitConfig func(string) (string, error)
+	getenv             func(string) string
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(log *logrus.Logger) (*OSCommand, error) {
-	osCommand := &OSCommand{
-		Log:      log,
-		Platform: getPlatform(),
+func NewOSCommand(log *logrus.Logger) *OSCommand {
+	return &OSCommand{
+		Log:                log,
+		Platform:           getPlatform(),
+		command:            exec.Command,
+		getGlobalGitConfig: gitconfig.Global,
+		getenv:             os.Getenv,
 	}
-	return osCommand, nil
 }
 
 // RunCommandWithOutput wrapper around commands returning their output and error
@@ -43,8 +47,10 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
 	splitCmd := str.ToArgv(command)
 	c.Log.Info(splitCmd)
-	cmdOut, err := exec.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput()
-	return sanitisedCommandOutput(cmdOut, err)
+
+	return sanitisedCommandOutput(
+		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
+	)
 }
 
 // RunCommand runs a command and just returns the error
@@ -59,10 +65,11 @@ func (c *OSCommand) RunDirectCommand(command string) (string, error) {
 	args := str.ToArgv(c.Platform.shellArg + " " + command)
 	c.Log.Info(spew.Sdump(args))
 
-	cmdOut, err := exec.
-		Command(c.Platform.shell, args...).
-		CombinedOutput()
-	return sanitisedCommandOutput(cmdOut, err)
+	return sanitisedCommandOutput(
+		exec.
+			Command(c.Platform.shell, args...).
+			CombinedOutput(),
+	)
 }
 
 func sanitisedCommandOutput(output []byte, err error) (string, error) {
@@ -75,33 +82,15 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 	return outputString, nil
 }
 
-func getPlatform() *Platform {
-	switch runtime.GOOS {
-	case "windows":
-		return &Platform{
-			os:           "windows",
-			shell:        "cmd",
-			shellArg:     "/c",
-			escapedQuote: "\\\"",
-		}
-	default:
-		return &Platform{
-			os:           runtime.GOOS,
-			shell:        "bash",
-			shellArg:     "-c",
-			escapedQuote: "\"",
-		}
-	}
-}
-
-// GetOpenCommand get open command
-func (c *OSCommand) GetOpenCommand() (string, string, error) {
+// getOpenCommand get open command
+func (c *OSCommand) getOpenCommand() (string, string, error) {
 	//NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
 	trailMap := map[string]string{
 		"xdg-open": " &>/dev/null &",
 		"cygstart": "",
 		"open":     "",
 	}
+
 	for name, trail := range trailMap {
 		if err := c.RunCommand("which " + name); err == nil {
 			return name, trail, nil
@@ -126,24 +115,25 @@ func (c *OSCommand) SublimeOpenFile(filename string) (*exec.Cmd, error) {
 }
 
 // OpenFile opens a file with the given
-func (c *OSCommand) OpenFile(filename string) (*exec.Cmd, error) {
-	cmdName, cmdTrail, err := c.GetOpenCommand()
+func (c *OSCommand) OpenFile(filename string) error {
+	cmdName, cmdTrail, err := c.getOpenCommand()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	err = c.RunCommand(cmdName + " " + c.Quote(filename) + cmdTrail) // TODO: test on linux
-	return nil, err
+
+	return c.RunCommand(cmdName + " " + c.Quote(filename) + cmdTrail) // TODO: test on linux
 }
 
 // EditFile opens a file in a subprocess using whatever editor is available,
 // falling back to core.editor, VISUAL, EDITOR, then vi
 func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
-	editor, _ := gitconfig.Global("core.editor")
+	editor, _ := c.getGlobalGitConfig("core.editor")
+
 	if editor == "" {
-		editor = os.Getenv("VISUAL")
+		editor = c.getenv("VISUAL")
 	}
 	if editor == "" {
-		editor = os.Getenv("EDITOR")
+		editor = c.getenv("EDITOR")
 	}
 	if editor == "" {
 		if err := c.RunCommand("which vi"); err == nil {
@@ -153,13 +143,13 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 	if editor == "" {
 		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 	}
-	return c.PrepareSubProcess(editor, filename)
+
+	return c.PrepareSubProcess(editor, filename), nil
 }
 
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
-func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) (*exec.Cmd, error) {
-	subprocess := exec.Command(cmdName, commandArgs...)
-	return subprocess, nil
+func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *exec.Cmd {
+	return c.command(cmdName, commandArgs...)
 }
 
 // Quote wraps a message in platform-specific quotation marks
@@ -171,8 +161,7 @@ func (c *OSCommand) Quote(message string) string {
 // Unquote removes wrapping quotations marks if they are present
 // this is needed for removing quotes from staged filenames with spaces
 func (c *OSCommand) Unquote(message string) string {
-	message = strings.Replace(message, `"`, "", -1)
-	return message
+	return strings.Replace(message, `"`, "", -1)
 }
 
 // AppendLineToFile adds a new line in file
