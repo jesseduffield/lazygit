@@ -18,6 +18,7 @@ import (
 	getter "github.com/jesseduffield/go-getter"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,6 +27,7 @@ type Updater struct {
 	Log       *logrus.Entry
 	Config    config.AppConfigurer
 	OSCommand *commands.OSCommand
+	Tr        *i18n.Localizer
 }
 
 // Updater implements the check and update methods
@@ -39,13 +41,14 @@ var (
 )
 
 // NewUpdater creates a new updater
-func NewUpdater(log *logrus.Logger, config config.AppConfigurer, osCommand *commands.OSCommand) (*Updater, error) {
+func NewUpdater(log *logrus.Logger, config config.AppConfigurer, osCommand *commands.OSCommand, tr *i18n.Localizer) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
 
 	updater := &Updater{
 		Log:       contextLogger,
 		Config:    config,
 		OSCommand: osCommand,
+		Tr:        tr,
 	}
 	return updater, nil
 }
@@ -102,11 +105,11 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("New version is " + newVersion)
 
 	if newVersion == u.Config.GetVersion() {
-		return "", errors.New("You already have the latest version")
+		return "", errors.New(u.Tr.SLocalize("OnLatestVersionErr"))
 	}
 
 	if u.majorVersionDiffers(u.Config.GetVersion(), newVersion) {
-		return "", errors.New("New version has non-backwards compatible changes.")
+		return "", errors.New(u.Tr.SLocalize("MajorVersionErr"))
 	}
 
 	rawUrl, err := u.getBinaryUrl(newVersion)
@@ -115,7 +118,13 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	}
 	u.Log.Info("Checking for resource at url " + rawUrl)
 	if !u.verifyResourceFound(rawUrl) {
-		return "", errors.New("Could not find any binary at " + rawUrl)
+		errMessage := u.Tr.TemplateLocalize(
+			"CouldNotFindBinaryErr",
+			i18n.Teml{
+				"url": rawUrl,
+			},
+		)
+		return "", errors.New(errMessage)
 	}
 	u.Log.Info("Verified resource is available, ready to update")
 

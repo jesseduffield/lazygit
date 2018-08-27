@@ -56,7 +56,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	if err != nil {
 		return app, err
 	}
-	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand)
+	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand, app.Tr)
 	if err != nil {
 		return app, err
 	}
