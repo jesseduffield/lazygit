@@ -65,8 +65,7 @@ func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
-	filename := gui.Config.GetUserConfig().ConfigFileUsed()
-	return gui.genericFileOpen(g, v, filename, gui.OSCommand.OpenFile)
+	return gui.openFile(gui.Config.GetUserConfig().ConfigFileUsed())
 }
 
 func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {

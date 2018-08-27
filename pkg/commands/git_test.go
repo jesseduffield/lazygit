@@ -9,28 +9,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func getDummyLog() *logrus.Entry {
+func newDummyLog() *logrus.Entry {
 	log := logrus.New()
 	log.Out = ioutil.Discard
 	return log.WithField("test", "test")
 }
 
-func getDummyOSCommand() *OSCommand {
-	return &OSCommand{
-		Log:      getDummyLog(),
-		Platform: getPlatform(),
-	}
-}
-
-func getDummyGitCommand() *GitCommand {
+func newDummyGitCommand() *GitCommand {
 	return &GitCommand{
-		Log:       getDummyLog(),
-		OSCommand: getDummyOSCommand(),
+		Log:       newDummyLog(),
+		OSCommand: newDummyOSCommand(),
 	}
 }
 
 func TestDiff(t *testing.T) {
-	gitCommand := getDummyGitCommand()
+	gitCommand := newDummyGitCommand()
 	if err := test.GenerateRepo("lots_of_diffs.sh"); err != nil {
 		t.Error(err.Error())
 	}

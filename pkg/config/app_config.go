@@ -101,7 +101,7 @@ func LoadUserConfig() (*viper.Viper, error) {
 
 // LoadDefaultConfig loads in the defaults defined in this file
 func LoadDefaultConfig(v *viper.Viper) error {
-	defaults := getDefaultConfig()
+	defaults := GetDefaultConfig()
 	return v.ReadConfig(bytes.NewBuffer(defaults))
 }
 
@@ -139,10 +139,10 @@ func (c *AppConfig) InsertToUserConfig(key, value string) error {
 	return v.WriteConfig()
 }
 
-func getDefaultConfig() []byte {
-	return []byte(`
-gui:
-  ## stuff relating to the UI
+func GetDefaultConfig() []byte {
+	return []byte(
+		`gui:
+  # stuff relating to the UI
   scrollHeight: 2
   theme:
     activeBorderColor:

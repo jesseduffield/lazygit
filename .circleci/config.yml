@@ -7,14 +7,33 @@ jobs:
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-pkg-cache
+      - run:
+          name: Run gofmt -s
+          command: |
+            if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
+             find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
+             exit 1;
+            fi
       - run:
           name: Run tests
           command: |
             ./test.sh
       - run:
+          name: Compile project on every platform
+          command: |
+            go get github.com/mitchellh/gox
+            gox -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
+      - run:
           name: Push on codecov result
           command: |
             bash <(curl -s https://codecov.io/bash)
+      - save_cache:
+          key: v1-pkg-cache
+          paths:
+            - "/go/pkg"
 
   release:
     docker:
