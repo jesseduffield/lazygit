@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -80,4 +81,12 @@ func GetProjectRoot() string {
 		panic(err)
 	}
 	return strings.Split(dir, "lazygit")[0] + "lazygit"
+}
+
+func Loader() string {
+	characters := "|/-\\"
+	now := time.Now()
+	nanos := now.UnixNano()
+	index := nanos / 50000000 % int64(len(characters))
+	return characters[index : index+1]
 }

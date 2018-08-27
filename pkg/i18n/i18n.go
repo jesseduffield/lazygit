@@ -1,9 +1,9 @@
 package i18n
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/text/language"
 )
 
@@ -14,11 +14,11 @@ type Teml map[string]interface{}
 type Localizer struct {
 	i18nLocalizer *i18n.Localizer
 	language      string
-	Log           *logrus.Logger
+	Log           *logrus.Entry
 }
 
 // NewLocalizer creates a new Localizer
-func NewLocalizer(log *logrus.Logger) *Localizer {
+func NewLocalizer(log *logrus.Entry) *Localizer {
 	userLang := detectLanguage(jibber_jabber.DetectLanguage)
 
 	log.Info("language: " + userLang)
@@ -60,7 +60,7 @@ func (l *Localizer) GetLanguage() string {
 }
 
 // add translation file(s)
-func addBundles(log *logrus.Logger, i18nBundle *i18n.Bundle) {
+func addBundles(log *logrus.Entry, i18nBundle *i18n.Bundle) {
 	fs := []func(*i18n.Bundle) error{
 		addPolish,
 		addDutch,
@@ -85,7 +85,7 @@ func detectLanguage(langDetector func() (string, error)) string {
 }
 
 // setupLocalizer creates a new localizer using given userLang
-func setupLocalizer(log *logrus.Logger, userLang string) *Localizer {
+func setupLocalizer(log *logrus.Entry, userLang string) *Localizer {
 	// create a i18n bundle that can be used to add translations and other things
 	i18nBundle := &i18n.Bundle{DefaultLanguage: language.English}
 

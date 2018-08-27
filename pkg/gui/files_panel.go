@@ -112,11 +112,8 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 	if !file.Tracked {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CannotGitAdd"))
 	}
-	sub, err := gui.GitCommand.AddPatch(file.Name)
-	if err != nil {
-		return err
-	}
-	gui.SubProcess = sub
+
+	gui.SubProcess = gui.GitCommand.AddPatch(file.Name)
 	return gui.Errors.ErrSubProcess
 }
 
@@ -246,16 +243,11 @@ func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) err
 }
 
 // PrepareSubProcess - prepare a subprocess for execution and tell the gui to switch to it
-func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) error {
-	sub, err := gui.GitCommand.PrepareCommitSubProcess()
-	if err != nil {
-		return err
-	}
-	gui.SubProcess = sub
+func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) {
+	gui.SubProcess = gui.GitCommand.PrepareCommitSubProcess()
 	g.Update(func(g *gocui.Gui) error {
 		return gui.Errors.ErrSubProcess
 	})
-	return nil
 }
 
 func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, filename string, open func(string) (*exec.Cmd, error)) error {
@@ -284,7 +276,7 @@ func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.OpenFile)
+	return gui.openFile(file.Name)
 }
 
 func (gui *Gui) handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
@@ -452,4 +444,11 @@ func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
 		}
 		return gui.refreshFiles(g)
 	}, nil)
+}
+
+func (gui *Gui) openFile(filename string) error {
+	if err := gui.OSCommand.OpenFile(filename); err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+	return nil
 }

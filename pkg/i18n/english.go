@@ -315,6 +315,27 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ForcePushPrompt",
 			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
+		}, &i18n.Message{
+			ID:    "CheckForUpdate",
+			Other: "Check for update",
+		}, &i18n.Message{
+			ID:    "CheckingForUpdates",
+			Other: "Checking for updates...",
+		}, &i18n.Message{
+			ID:    "OnLatestVersionErr",
+			Other: "You already have the latest version",
+		}, &i18n.Message{
+			ID:    "MajorVersionErr",
+			Other: "New version has non-backwards compatible changes.",
+		}, &i18n.Message{
+			ID:    "CouldNotFindBinaryErr",
+			Other: "Could not find any binary at {{.url}}",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingTitle",
+			Other: "Help make lazygit better",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingPrompt",
+			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
 		},
 	)
 }
