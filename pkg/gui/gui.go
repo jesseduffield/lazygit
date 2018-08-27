@@ -401,14 +401,6 @@ func (gui *Gui) RunWithSubprocesses() {
 	}
 }
 
-func (gui *Gui) createUpdateQuitConfirmation(g *gocui.Gui, v *gocui.View) error {
-	title := "Currently Updating"
-	message := "An update is in progress. Are you sure you want to quit?"
-	return gui.createConfirmationPanel(gui.g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		return gocui.ErrQuit
-	}, nil)
-}
-
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 	if gui.State.Updating {
 		return gui.createUpdateQuitConfirmation(g, v)
