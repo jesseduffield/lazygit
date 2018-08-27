@@ -139,6 +139,12 @@ func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error, userRequ
 }
 
 func (u *Updater) skipUpdateCheck() bool {
+	// will remove the check for windows after adding a manifest file asking for
+	// the required permissions
+	if runtime.GOOS == "windows" {
+		return true
+	}
+
 	if u.Config.GetBuildSource() != "buildBinary" {
 		return true
 	}
