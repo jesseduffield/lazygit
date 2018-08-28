@@ -118,6 +118,7 @@ func TestGetStatusFiles(t *testing.T) {
 						Deleted:            false,
 						HasMergeConflicts:  false,
 						DisplayString:      "MM file1.txt",
+						Type:               "other",
 					},
 					{
 						Name:               "file3.txt",
@@ -127,6 +128,7 @@ func TestGetStatusFiles(t *testing.T) {
 						Deleted:            false,
 						HasMergeConflicts:  false,
 						DisplayString:      "A  file3.txt",
+						Type:               "other",
 					},
 					{
 						Name:               "file2.txt",
@@ -136,6 +138,7 @@ func TestGetStatusFiles(t *testing.T) {
 						Deleted:            false,
 						HasMergeConflicts:  false,
 						DisplayString:      "AM file2.txt",
+						Type:               "other",
 					},
 					{
 						Name:               "file4.txt",
@@ -145,6 +148,7 @@ func TestGetStatusFiles(t *testing.T) {
 						Deleted:            false,
 						HasMergeConflicts:  false,
 						DisplayString:      "?? file4.txt",
+						Type:               "other",
 					},
 				}
 
