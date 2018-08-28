@@ -13,9 +13,15 @@ function add_spacing {
   done
 }
 
+mkdir directory
+echo "test1" > directory/file
+echo "test1" > directory/file2
+
+
 echo "Here is a story that has been told throuhg the ages" >> file1
 
 git add file1
+git add directory
 git commit -m "first commit"
 
 git checkout -b develop
@@ -24,6 +30,11 @@ echo "once upon a time there was a dog" >> file1
 add_spacing file1
 echo "once upon a time there was another dog" >> file1
 git add file1
+
+echo "test2" > directory/file
+echo "test2" > directory/file2
+git add directory
+
 git commit -m "first commit on develop"
 
 git checkout master
@@ -32,6 +43,11 @@ echo "once upon a time there was a cat" >> file1
 add_spacing file1
 echo "once upon a time there was another cat" >> file1
 git add file1
+
+echo "test3" > directory/file
+echo "test3" > directory/file2
+git add directory
+
 git commit -m "first commit on develop"
 
 git merge develop # should have a merge conflict here

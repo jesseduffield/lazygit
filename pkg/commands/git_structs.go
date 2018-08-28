@@ -1,7 +1,6 @@
 package commands
 
 // File : A staged/unstaged file
-// TODO: decide whether to give all of these the Git prefix
 type File struct {
 	Name               string
 	HasStagedChanges   bool
@@ -10,6 +9,7 @@ type File struct {
 	Deleted            bool
 	HasMergeConflicts  bool
 	DisplayString      string
+	Type               string // one of 'file', 'directory', and 'other'
 }
 
 // Commit : A git commit

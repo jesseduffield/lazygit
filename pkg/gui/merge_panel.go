@@ -180,6 +180,9 @@ func (gui *Gui) refreshMergePanel(g *gocui.Gui) error {
 	if err != nil {
 		return err
 	}
+	if cat == "" {
+		return nil
+	}
 	gui.State.Conflicts, err = gui.findConflicts(cat)
 	if err != nil {
 		return err

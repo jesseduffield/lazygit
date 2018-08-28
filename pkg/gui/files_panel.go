@@ -341,9 +341,13 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 		}
 		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NoFilesDisplay"))
 	}
+	if item.Type != "file" {
+		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NotAFile"))
+	}
 	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
-		panic(err)
+		gui.Log.Error(err)
+		return "", gui.renderString(g, "main", err.Error())
 	}
 	return cat, nil
 }

@@ -59,6 +59,18 @@ func (c *OSCommand) RunCommand(command string) error {
 	return err
 }
 
+// FileType tells us if the file is a file, directory or other
+func (c *OSCommand) FileType(path string) string {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return "other"
+	}
+	if fileInfo.IsDir() {
+		return "directory"
+	}
+	return "file"
+}
+
 // RunDirectCommand wrapper around direct commands
 func (c *OSCommand) RunDirectCommand(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunDirectCommand")

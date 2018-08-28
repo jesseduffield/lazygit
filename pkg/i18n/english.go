@@ -106,6 +106,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "NoFilesDisplay",
 			Other: "No file to display",
 		}, &i18n.Message{
+			ID:    "NotAFile",
+			Other: "Not a file",
+		}, &i18n.Message{
 			ID:    "PullWait",
 			Other: "Pulling...",
 		}, &i18n.Message{

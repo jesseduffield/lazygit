@@ -86,16 +86,17 @@ func (c *GitCommand) GetStatusFiles() []File {
 		change := statusString[0:2]
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
-		filename := statusString[3:]
+		filename := c.OSCommand.Unquote(statusString[3:])
 		tracked := !includes([]string{"??", "A ", "AM"}, change)
 		file := File{
-			Name:               c.OSCommand.Unquote(filename),
+			Name:               filename,
 			DisplayString:      statusString,
 			HasStagedChanges:   !includes([]string{" ", "U", "?"}, stagedChange),
 			HasUnstagedChanges: unstagedChange != " ",
 			Tracked:            tracked,
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:  change == "UU",
+			Type:               c.OSCommand.FileType(filename),
 		}
 		files = append(files, file)
 	}
