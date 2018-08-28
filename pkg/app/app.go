@@ -30,11 +30,6 @@ type App struct {
 func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
 	log := logrus.New()
 	log.Out = ioutil.Discard
-	if config.GetUserConfig().GetString("reporting") == "on" {
-		// this isn't really a secret token: it only has permission to push new rollbar items
-		hook := rollrus.NewHook("23432119147a4367abf7c0de2aa99a2d", "production")
-		log.Hooks.Add(hook)
-	}
 	return log
 }
 
@@ -50,10 +45,17 @@ func newDevelopmentLogger() *logrus.Logger {
 
 func newLogger(config config.AppConfigurer) *logrus.Entry {
 	var log *logrus.Logger
+	environment := "production"
 	if config.GetDebug() {
+		environment = "development"
 		log = newDevelopmentLogger()
 	} else {
 		log = newProductionLogger(config)
+	}
+	if config.GetUserConfig().GetString("reporting") == "on" {
+		// this isn't really a secret token: it only has permission to push new rollbar items
+		hook := rollrus.NewHook("23432119147a4367abf7c0de2aa99a2d", environment)
+		log.Hooks.Add(hook)
 	}
 	return log.WithFields(logrus.Fields{
 		"debug":     config.GetDebug(),
@@ -75,7 +77,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 
 	app.Tr = i18n.NewLocalizer(app.Log)
 
-	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand)
+	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr)
 	if err != nil {
 		return app, err
 	}

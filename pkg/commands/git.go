@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
@@ -20,13 +21,15 @@ type GitCommand struct {
 	OSCommand *OSCommand
 	Worktree  *gogit.Worktree
 	Repo      *gogit.Repository
+	Tr        *i18n.Localizer
 }
 
 // NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Entry, osCommand *OSCommand) (*GitCommand, error) {
+func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) (*GitCommand, error) {
 	gitCommand := &GitCommand{
 		Log:       log,
 		OSCommand: osCommand,
+		Tr:        tr,
 	}
 	return gitCommand, nil
 }
@@ -35,7 +38,10 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand) (*GitCommand, error)
 func (c *GitCommand) SetupGit() {
 	c.verifyInGitRepo()
 	c.navigateToRepoRootDirectory()
-	c.setupWorktree()
+	if err := c.setupWorktree(); err != nil {
+		c.Log.Error(err)
+		panic(err)
+	}
 }
 
 // GetStashEntries stash entryies
@@ -159,18 +165,23 @@ func (c *GitCommand) navigateToRepoRootDirectory() {
 	}
 }
 
-func (c *GitCommand) setupWorktree() {
+func (c *GitCommand) setupWorktree() error {
 	r, err := gogit.PlainOpen(".")
 	if err != nil {
-		panic(err)
+		if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
+			errorMessage := c.Tr.SLocalize("GitconfigParseErr")
+			return errors.New(errorMessage)
+		}
+		return err
 	}
 	c.Repo = r
 
 	w, err := r.Worktree()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	c.Worktree = w
+	return nil
 }
 
 // ResetHard does the equivalent of `git reset --hard HEAD`

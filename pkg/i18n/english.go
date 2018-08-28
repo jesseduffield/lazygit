@@ -336,6 +336,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "AnonymousReportingPrompt",
 			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
+		}, &i18n.Message{
+			ID:    "GitconfigParseErr",
+			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		},
 	)
 }
