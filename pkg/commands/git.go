@@ -112,7 +112,7 @@ func (c *GitCommand) StashDo(index int, method string) error {
 // StashSave save stash
 // TODO: before calling this, check if there is anything to save
 func (c *GitCommand) StashSave(message string) error {
-	return c.OSCommand.RunCommand("git stash save " + c.OSCommand.Quote(message))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git stash save %s", c.OSCommand.Quote(message)))
 }
 
 // MergeStatusFiles merge status files
