@@ -121,28 +121,28 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 		return newFiles
 	}
 
-	appendedIndexes := []int{}
+	headResults := []File{}
+	tailResults := []File{}
 
-	// retain position of files we already could see
-	result := []File{}
-	for _, oldFile := range oldFiles {
-		for newIndex, newFile := range newFiles {
+	for _, newFile := range newFiles {
+		var isHeadResult bool
+
+		for _, oldFile := range oldFiles {
 			if oldFile.Name == newFile.Name {
-				result = append(result, newFile)
-				appendedIndexes = append(appendedIndexes, newIndex)
+				isHeadResult = true
 				break
 			}
 		}
-	}
 
-	// append any new files to the end
-	for index, newFile := range newFiles {
-		if !includesInt(appendedIndexes, index) {
-			result = append(result, newFile)
+		if isHeadResult {
+			headResults = append(headResults, newFile)
+			continue
 		}
+
+		tailResults = append(tailResults, newFile)
 	}
 
-	return result
+	return append(headResults, tailResults...)
 }
 
 func (c *GitCommand) verifyInGitRepo() {
@@ -439,17 +439,6 @@ func Map(vs []string, f func(string) string) []string {
 }
 
 func includesString(list []string, a string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
-// not sure how to genericise this because []interface{} doesn't accept e.g.
-// []int arguments
-func includesInt(list []int, a int) bool {
 	for _, b := range list {
 		if b == a {
 			return true
