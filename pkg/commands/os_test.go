@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"os"
 	"os/exec"
 	"testing"
 
@@ -296,4 +297,61 @@ func TestOSCommandUnquote(t *testing.T) {
 	expected := "hello test"
 
 	assert.EqualValues(t, expected, actual)
+}
+
+func TestOSCommandFileType(t *testing.T) {
+	type scenario struct {
+		path  string
+		setup func()
+		test  func(string)
+	}
+
+	scenarios := []scenario{
+		{
+			"testFile",
+			func() {
+				if _, err := os.Create("testFile"); err != nil {
+					panic(err)
+				}
+			},
+			func(output string) {
+				assert.EqualValues(t, "file", output)
+			},
+		},
+		{
+			"file with spaces",
+			func() {
+				if _, err := os.Create("file with spaces"); err != nil {
+					panic(err)
+				}
+			},
+			func(output string) {
+				assert.EqualValues(t, "file", output)
+			},
+		},
+		{
+			"testDirectory",
+			func() {
+				if err := os.Mkdir("testDirectory", 0644); err != nil {
+					panic(err)
+				}
+			},
+			func(output string) {
+				assert.EqualValues(t, "directory", output)
+			},
+		},
+		{
+			"nonExistant",
+			func() {},
+			func(output string) {
+				assert.EqualValues(t, "other", output)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		s.setup()
+		s.test(newDummyOSCommand().FileType(s.path))
+		_ = os.RemoveAll(s.path)
+	}
 }
