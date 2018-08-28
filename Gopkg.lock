@@ -189,11 +189,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f774b11ae458cae2d10b94ef66ef00ba1c57f1971dd0e5534ac743cbe574f6d4"
+  digest = "1:acbcdae312c37a8019e0f573a9be26499058d5e1244243655373d2fd97714658"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "7818a0f93387d1037cbd06f69323d9f8d068af7c"
+  revision = "5d9e836837237cb3aadca51ecb37c7cf3345bfa4"
 
 [[projects]]
   digest = "1:ac6d01547ec4f7f673311b4663909269bfb8249952de3279799289467837c3cc"
@@ -614,8 +614,8 @@
     "github.com/davecgh/go-spew/spew",
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
-    "github.com/jesseduffield/go-getter",
     "github.com/heroku/rollrus",
+    "github.com/jesseduffield/go-getter",
     "github.com/jesseduffield/gocui",
     "github.com/kardianos/osext",
     "github.com/mgutz/str",
