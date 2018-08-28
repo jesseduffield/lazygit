@@ -12,7 +12,7 @@ type Binding struct {
 	Modifier gocui.Modifier
 }
 
-func (gui *Gui) keybindings(g *gocui.Gui) error {
+func (gui *Gui) getKeybindings() []Binding {
 	bindings := []Binding{
 		{ViewName: "", Key: 'q', Modifier: gocui.ModNone, Handler: gui.quit},
 		{ViewName: "", Key: gocui.KeyCtrlC, Modifier: gocui.ModNone, Handler: gui.quit},
@@ -88,6 +88,12 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: gui.cursorDown},
 		}...)
 	}
+
+	return bindings
+}
+
+func (gui *Gui) keybindings(g *gocui.Gui) error {
+	bindings := gui.getKeybindings()
 
 	for _, binding := range bindings {
 		if err := g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
