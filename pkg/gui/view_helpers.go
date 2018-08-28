@@ -145,7 +145,11 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		return err
 	}
 	g.Cursor = newView.Editable
-	return gui.newLineFocused(g, newView)
+
+	if newView.Name() != "help" {
+		return gui.newLineFocused(g, newView)
+	}
+	return nil
 }
 
 func (gui *Gui) getItemPosition(v *gocui.View) int {

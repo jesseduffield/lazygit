@@ -10,6 +10,8 @@ type Binding struct {
 	Handler  func(*gocui.Gui, *gocui.View) error
 	Key      interface{} // FIXME: find out how to get `gocui.Key | rune`
 	Modifier gocui.Modifier
+	KeyReadable string
+	Description string
 }
 
 func (gui *Gui) getKeybindings() []Binding {
@@ -24,6 +26,7 @@ func (gui *Gui) getKeybindings() []Binding {
 		{ViewName: "", Key: 'P', Modifier: gocui.ModNone, Handler: gui.pushFiles},
 		{ViewName: "", Key: 'p', Modifier: gocui.ModNone, Handler: gui.pullFiles},
 		{ViewName: "", Key: 'R', Modifier: gocui.ModNone, Handler: gui.handleRefresh},
+		{ViewName: "", Key: 'H', Modifier: gocui.ModNone, Handler: gui.handleHelp},
 		{ViewName: "status", Key: 'e', Modifier: gocui.ModNone, Handler: gui.handleEditConfig},
 		{ViewName: "status", Key: 'o', Modifier: gocui.ModNone, Handler: gui.handleOpenConfig},
 		{ViewName: "status", Key: 'u', Modifier: gocui.ModNone, Handler: gui.handleCheckForUpdate},
@@ -71,6 +74,10 @@ func (gui *Gui) getKeybindings() []Binding {
 		{ViewName: "commitMessage", Key: gocui.KeyEnter, Modifier: gocui.ModNone, Handler: gui.handleCommitConfirm},
 		{ViewName: "commitMessage", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: gui.handleCommitClose},
 		{ViewName: "commitMessage", Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.handleNewlineCommitMessage},
+		{ViewName: "help", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: gui.handleHelpClose},
+		{ViewName: "help", Key: 'q', Modifier: gocui.ModNone, Handler: gui.handleHelpClose},
+		{ViewName: "help", Key: gocui.KeyPgup, Modifier: gocui.ModNone, Handler: gui.scrollUpHelp},
+		{ViewName: "help", Key: gocui.KeyPgdn, Modifier: gocui.ModNone, Handler: gui.scrollDownHelp},
 	}
 
 	// Would make these keybindings global but that interferes with editing

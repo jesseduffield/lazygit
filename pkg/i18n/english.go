@@ -49,6 +49,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "navigate",
 			Other: "navigate",
 		}, &i18n.Message{
+			ID:    "help",
+			Other: "help",
+		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "stash files",
 		}, &i18n.Message{
@@ -183,6 +186,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
+		}, &i18n.Message{
+			ID:    "close",
+			Other: "close",
 		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Are you sure you want to reset to this commit?",
