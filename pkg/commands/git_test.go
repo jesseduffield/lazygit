@@ -161,6 +161,18 @@ func TestGetStatusFiles(t *testing.T) {
 	}
 }
 
+func TestGitCommandStashDo(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"stash", "drop", "stash@{1}"}, args)
+
+		return exec.Command("echo")
+	}
+
+	assert.NoError(t, gitCmd.StashDo(1, "drop"))
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))

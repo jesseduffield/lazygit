@@ -106,7 +106,7 @@ func (c *GitCommand) GetStatusFiles() []File {
 
 // StashDo modify stash
 func (c *GitCommand) StashDo(index int, method string) error {
-	return c.OSCommand.RunCommand("git stash " + method + " stash@{" + fmt.Sprint(index) + "}")
+	return c.OSCommand.RunCommand(fmt.Sprintf("git stash %s stash@{%d}", method, index))
 }
 
 // StashSave save stash
