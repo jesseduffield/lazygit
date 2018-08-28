@@ -88,6 +88,8 @@ func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
 	if oldVersion == "unversioned" {
 		return false
 	}
+	oldVersion = strings.TrimPrefix(oldVersion, "v")
+	newVersion = strings.TrimPrefix(newVersion, "v")
 	return strings.Split(oldVersion, ".")[0] != strings.Split(newVersion, ".")[0]
 }
 
