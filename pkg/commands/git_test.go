@@ -185,6 +185,81 @@ func TestGitCommandStashSave(t *testing.T) {
 	assert.NoError(t, gitCmd.StashSave("A stash message"))
 }
 
+func TestGitCommandMergeStatusFiles(t *testing.T) {
+	type scenario struct {
+		oldFiles []File
+		newFiles []File
+		test     func([]File)
+	}
+
+	scenarios := []scenario{
+		{
+			[]File{},
+			[]File{
+				{
+					Name: "new_file.txt",
+				},
+			},
+			func(files []File) {
+				expected := []File{
+					{
+						Name: "new_file.txt",
+					},
+				}
+
+				assert.Len(t, files, 1)
+				assert.EqualValues(t, expected, files)
+			},
+		},
+		{
+			[]File{
+				{
+					Name: "new_file1.txt",
+				},
+				{
+					Name: "new_file2.txt",
+				},
+				{
+					Name: "new_file3.txt",
+				},
+			},
+			[]File{
+				{
+					Name: "new_file4.txt",
+				},
+				{
+					Name: "new_file5.txt",
+				},
+				{
+					Name: "new_file1.txt",
+				},
+			},
+			func(files []File) {
+				expected := []File{
+					{
+						Name: "new_file1.txt",
+					},
+					{
+						Name: "new_file4.txt",
+					},
+					{
+						Name: "new_file5.txt",
+					},
+				}
+
+				assert.Len(t, files, 3)
+				assert.EqualValues(t, expected, files)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		gitCmd := newDummyGitCommand()
+
+		s.test(gitCmd.MergeStatusFiles(s.oldFiles, s.newFiles))
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))

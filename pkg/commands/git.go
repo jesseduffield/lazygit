@@ -121,10 +121,10 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 		return newFiles
 	}
 
-	appendedIndexes := make([]int, 0)
+	appendedIndexes := []int{}
 
 	// retain position of files we already could see
-	result := make([]File, 0)
+	result := []File{}
 	for _, oldFile := range oldFiles {
 		for newIndex, newFile := range newFiles {
 			if oldFile.Name == newFile.Name {
