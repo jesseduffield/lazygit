@@ -190,6 +190,7 @@ func (c *AppConfig) SaveAppState() error {
 	return ioutil.WriteFile(filepath, marshalledAppState, 0644)
 }
 
+// LoadAppState loads recorded AppState from file
 func (c *AppConfig) LoadAppState() error {
 	filepath, err := prepareConfigFile("state.yml")
 	if err != nil {
@@ -205,6 +206,7 @@ func (c *AppConfig) LoadAppState() error {
 	return yaml.Unmarshal(appStateBytes, c.AppState)
 }
 
+ // GetDefaultConfig returns the application default configuration 
 func GetDefaultConfig() []byte {
 	return []byte(
 		`gui:
