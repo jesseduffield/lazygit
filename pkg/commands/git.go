@@ -422,6 +422,11 @@ func (c *GitCommand) PrepareCommitSubProcess() *exec.Cmd {
 	return c.OSCommand.PrepareSubProcess("git", "commit")
 }
 
+// PrepareCommitAmendSubProcess prepares a subprocess for `git commit --amend --allow-empty`
+func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
+	return c.OSCommand.PrepareSubProcess("git", "commit", "--amend", "--allow-empty")
+}
+
 // GetBranchGraph gets the color-formatted graph of the log for the given branch
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
