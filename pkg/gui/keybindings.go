@@ -6,10 +6,10 @@ import "github.com/jesseduffield/gocui"
 // is only handled if the given view has focus, or handled globally if the view
 // is ""
 type Binding struct {
-	ViewName string
-	Handler  func(*gocui.Gui, *gocui.View) error
-	Key      interface{} // FIXME: find out how to get `gocui.Key | rune`
-	Modifier gocui.Modifier
+	ViewName    string
+	Handler     func(*gocui.Gui, *gocui.View) error
+	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
+	Modifier    gocui.Modifier
 	KeyReadable string
 	Description string
 }

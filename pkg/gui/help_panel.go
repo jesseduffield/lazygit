@@ -1,14 +1,14 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"fmt"
+	"github.com/jesseduffield/gocui"
 	"strings"
 )
 
 func (gui *Gui) renderHelpOptions(g *gocui.Gui) error {
 	optionsMap := map[string]string{
-		"esc/q":   gui.Tr.SLocalize("close"),
+		"esc/q":     gui.Tr.SLocalize("close"),
 		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
 	}
 	return gui.renderOptionsMap(g, optionsMap)
@@ -47,9 +47,9 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 
 	gui.renderHelpOptions(g)
 
-	for _, binding := range bindings{
+	for _, binding := range bindings {
 		if binding.Description != "" {
-			if curr != binding.ViewName  {
+			if curr != binding.ViewName {
 				curr = binding.ViewName
 				content += fmt.Sprintf("\n%s:\n", strings.Title(curr))
 			}
