@@ -26,7 +26,7 @@ func (gui *Gui) getKeybindings() []Binding {
 		{ViewName: "", Key: 'P', Modifier: gocui.ModNone, Handler: gui.pushFiles},
 		{ViewName: "", Key: 'p', Modifier: gocui.ModNone, Handler: gui.pullFiles},
 		{ViewName: "", Key: 'R', Modifier: gocui.ModNone, Handler: gui.handleRefresh},
-		{ViewName: "", Key: 'H', Modifier: gocui.ModNone, Handler: gui.handleHelp},
+		{ViewName: "", Key: '?', Modifier: gocui.ModNone, Handler: gui.handleHelp},
 		{ViewName: "status", Key: 'e', Modifier: gocui.ModNone, Handler: gui.handleEditConfig},
 		{ViewName: "status", Key: 'o', Modifier: gocui.ModNone, Handler: gui.handleOpenConfig},
 		{ViewName: "status", Key: 'u', Modifier: gocui.ModNone, Handler: gui.handleCheckForUpdate},
