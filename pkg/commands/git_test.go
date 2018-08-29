@@ -1,13 +1,16 @@
 package commands
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	gogit "gopkg.in/src-d/go-git.v4"
 )
 
 func newDummyLog() *logrus.Entry {
@@ -20,6 +23,73 @@ func newDummyGitCommand() *GitCommand {
 	return &GitCommand{
 		Log:       newDummyLog(),
 		OSCommand: newDummyOSCommand(),
+		Tr:        i18n.NewLocalizer(newDummyLog()),
+	}
+}
+
+func TestGitCommandSetupGit(t *testing.T) {
+	type scenario struct {
+		command                      func(string, ...string) *exec.Cmd
+		openGitRepositoryAndWorktree func() (*gogit.Repository, *gogit.Worktree, error)
+		test                         func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("exit", "1")
+			},
+			func() (*gogit.Repository, *gogit.Worktree, error) {
+				return nil, nil, nil
+			},
+			func(err error) {
+				assert.Error(t, err)
+				assert.Equal(t, ErrGitRepositoryInvalid, err)
+			},
+		},
+		{
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("echo")
+			},
+			func() (*gogit.Repository, *gogit.Worktree, error) {
+				return nil, nil, fmt.Errorf(`unquoted '\' must be followed by new line`)
+			},
+			func(err error) {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "gitconfig")
+			},
+		},
+		{
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("echo")
+			},
+			func() (*gogit.Repository, *gogit.Worktree, error) {
+				return nil, nil, fmt.Errorf("Error from inside gogit")
+			},
+			func(err error) {
+				assert.Error(t, err)
+				assert.EqualError(t, err, "Error from inside gogit")
+			},
+		},
+		{
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("echo")
+			},
+			func() (*gogit.Repository, *gogit.Worktree, error) {
+				return &gogit.Repository{}, &gogit.Worktree{}, nil
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		gitCmd := newDummyGitCommand()
+		gitCmd.OSCommand.command = s.command
+		gitCmd.openGitRepositoryAndWorktree = s.openGitRepositoryAndWorktree
+
+		s.test(gitCmd.SetupGit())
 	}
 }
 

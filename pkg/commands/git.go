@@ -19,21 +19,39 @@ import (
 // to check if we have a valid git repository and we get an error instead
 var ErrGitRepositoryInvalid = fmt.Errorf("can't find a valid git repository in current directory")
 
+func openGitRepositoryAndWorktree() (*gogit.Repository, *gogit.Worktree, error) {
+	r, err := gogit.PlainOpen(".")
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	w, err := r.Worktree()
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return r, w, nil
+}
+
 // GitCommand is our main git interface
 type GitCommand struct {
-	Log       *logrus.Entry
-	OSCommand *OSCommand
-	Worktree  *gogit.Worktree
-	Repo      *gogit.Repository
-	Tr        *i18n.Localizer
+	Log                          *logrus.Entry
+	OSCommand                    *OSCommand
+	Worktree                     *gogit.Worktree
+	Repo                         *gogit.Repository
+	Tr                           *i18n.Localizer
+	openGitRepositoryAndWorktree func() (*gogit.Repository, *gogit.Worktree, error)
 }
 
 // NewGitCommand it runs git commands
 func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) (*GitCommand, error) {
 	gitCommand := &GitCommand{
-		Log:       log,
-		OSCommand: osCommand,
-		Tr:        tr,
+		Log:                          log,
+		OSCommand:                    osCommand,
+		Tr:                           tr,
+		openGitRepositoryAndWorktree: openGitRepositoryAndWorktree,
 	}
 	return gitCommand, nil
 }
@@ -43,7 +61,7 @@ func (c *GitCommand) SetupGit() error {
 	fs := []func() error{
 		c.verifyInGitRepo,
 		c.navigateToRepoRootDirectory,
-		c.setupWorktree,
+		c.setupRepositoryAndWorktree,
 	}
 
 	for _, f := range fs {
@@ -53,6 +71,44 @@ func (c *GitCommand) SetupGit() error {
 	}
 
 	return nil
+}
+
+func (c *GitCommand) verifyInGitRepo() error {
+	if _, err := c.OSCommand.RunCommandWithOutput("git status"); err != nil {
+		return ErrGitRepositoryInvalid
+	}
+
+	return nil
+}
+
+func (c *GitCommand) navigateToRepoRootDirectory() error {
+	for {
+		f, err := os.Stat(".git")
+
+		if err == nil && f.IsDir() {
+			return nil
+		}
+
+		c.Log.Debug("going up a directory to find the root")
+
+		if err = os.Chdir(".."); err != nil {
+			return err
+		}
+	}
+}
+
+func (c *GitCommand) setupRepositoryAndWorktree() (err error) {
+	c.Repo, c.Worktree, err = c.openGitRepositoryAndWorktree()
+
+	if err == nil {
+		return
+	}
+
+	if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
+		return errors.New(c.Tr.SLocalize("GitconfigParseErr"))
+	}
+
+	return
 }
 
 // GetStashEntries stash entryies
@@ -156,52 +212,9 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 	return append(headResults, tailResults...)
 }
 
-func (c *GitCommand) verifyInGitRepo() error {
-	if _, err := c.OSCommand.RunCommandWithOutput("git status"); err != nil {
-		return ErrGitRepositoryInvalid
-	}
-
-	return nil
-}
-
 // GetBranchName branch name
 func (c *GitCommand) GetBranchName() (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
-}
-
-func (c *GitCommand) navigateToRepoRootDirectory() error {
-	for {
-		f, err := os.Stat(".git")
-
-		if err == nil && f.IsDir() {
-			return nil
-		}
-
-		c.Log.Debug("going up a directory to find the root")
-
-		if err = os.Chdir(".."); err != nil {
-			return err
-		}
-	}
-}
-
-func (c *GitCommand) setupWorktree() error {
-	r, err := gogit.PlainOpen(".")
-	if err != nil {
-		if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
-			errorMessage := c.Tr.SLocalize("GitconfigParseErr")
-			return errors.New(errorMessage)
-		}
-		return err
-	}
-	c.Repo = r
-
-	w, err := r.Worktree()
-	if err != nil {
-		return err
-	}
-	c.Worktree = w
-	return nil
 }
 
 // ResetHard does the equivalent of `git reset --hard HEAD`
