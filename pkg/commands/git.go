@@ -466,15 +466,6 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branchName)
 }
 
-// Map (from https://gobyexample.com/collection-functions)
-func Map(vs []string, f func(string) string) []string {
-	vsm := make([]string, len(vs))
-	for i, v := range vs {
-		vsm[i] = f(v)
-	}
-	return vsm
-}
-
 func includesString(list []string, a string) bool {
 	for _, b := range list {
 		if b == a {
