@@ -83,6 +83,7 @@ func GetProjectRoot() string {
 	return strings.Split(dir, "lazygit")[0] + "lazygit"
 }
 
+// Loader dumps a string to be displayed as a loader
 func Loader() string {
 	characters := "|/-\\"
 	now := time.Now()
