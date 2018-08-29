@@ -55,7 +55,9 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	helpView, _ := g.SetView("help", maxX-x, y, x, maxY-y, 0)
 	helpView.Title = strings.Title(gui.Tr.SLocalize("help"))
 
-	gui.renderHelpOptions(g)
+	if err := gui.renderHelpOptions(g); err != nil {
+		return err
+	}
 
 	for _, binding := range bindings {
 		if binding.ViewName == v.Name() && binding.Description != "" && binding.KeyReadable != "" {
@@ -69,12 +71,17 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	content += "second\n"
 	content += "third\n"
 	*/
-	gui.renderString(g, "help", content)
+
+	if err := gui.renderString(g, "help", content); err != nil {
+		return err
+	}
 
 	g.Update(func(g *gocui.Gui) error {
-		g.SetViewOnTop("help")
-		gui.switchFocus(g, v, helpView)
-		return nil
+		_, err := g.SetViewOnTop("help")
+		if err != nil {
+			return err
+		}
+		return gui.switchFocus(g, v, helpView)
 	})
 	return nil
 }
