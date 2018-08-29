@@ -82,6 +82,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	mainView.SetOrigin(0, 0)
 
 	switch v.Name() {
+	case "help":
+		return gui.handleHelpSelect(g, v)
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
@@ -146,10 +148,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	}
 	g.Cursor = newView.Editable
 
-	if newView.Name() != "help" {
-		return gui.newLineFocused(g, newView)
-	}
-	return nil
+	return gui.newLineFocused(g, newView)
 }
 
 func (gui *Gui) getItemPosition(v *gocui.View) int {

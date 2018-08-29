@@ -52,6 +52,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "help",
 			Other: "help",
 		}, &i18n.Message{
+			ID:    "execute",
+			Other: "execute",
+		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "stash files",
 		}, &i18n.Message{

@@ -27,9 +27,9 @@ func (gui *Gui) getKeybindings() []Binding {
 		{ViewName: "", Key: 'p', Modifier: gocui.ModNone, Handler: gui.pullFiles},
 		{ViewName: "", Key: 'R', Modifier: gocui.ModNone, Handler: gui.handleRefresh},
 		{ViewName: "", Key: '?', Modifier: gocui.ModNone, Handler: gui.handleHelp},
-		{ViewName: "status", Key: 'e', Modifier: gocui.ModNone, Handler: gui.handleEditConfig},
-		{ViewName: "status", Key: 'o', Modifier: gocui.ModNone, Handler: gui.handleOpenConfig},
-		{ViewName: "status", Key: 'u', Modifier: gocui.ModNone, Handler: gui.handleCheckForUpdate},
+		{ViewName: "status", Key: 'e', Modifier: gocui.ModNone, Handler: gui.handleEditConfig, KeyReadable: "e", Description: "edit config"},
+		{ViewName: "status", Key: 'o', Modifier: gocui.ModNone, Handler: gui.handleOpenConfig, KeyReadable: "o", Description: "open config"},
+		{ViewName: "status", Key: 'u', Modifier: gocui.ModNone, Handler: gui.handleCheckForUpdate, KeyReadable: "u", Description: "check for update"},
 		{ViewName: "files", Key: 'c', Modifier: gocui.ModNone, Handler: gui.handleCommitPress},
 		{ViewName: "files", Key: 'C', Modifier: gocui.ModNone, Handler: gui.handleCommitEditorPress},
 		{ViewName: "files", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: gui.handleFilePress},
@@ -76,13 +76,12 @@ func (gui *Gui) getKeybindings() []Binding {
 		{ViewName: "commitMessage", Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.handleNewlineCommitMessage},
 		{ViewName: "help", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: gui.handleHelpClose},
 		{ViewName: "help", Key: 'q', Modifier: gocui.ModNone, Handler: gui.handleHelpClose},
-		{ViewName: "help", Key: gocui.KeyPgup, Modifier: gocui.ModNone, Handler: gui.scrollUpHelp},
-		{ViewName: "help", Key: gocui.KeyPgdn, Modifier: gocui.ModNone, Handler: gui.scrollDownHelp},
+		{ViewName: "help", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: gui.handleHelpPress},
 	}
 
 	// Would make these keybindings global but that interferes with editing
 	// input in the confirmation panel
-	for _, viewName := range []string{"status", "files", "branches", "commits", "stash"} {
+	for _, viewName := range []string{"status", "files", "branches", "commits", "stash", "help"} {
 		bindings = append(bindings, []Binding{
 			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},
