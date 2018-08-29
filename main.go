@@ -48,6 +48,12 @@ func main() {
 		app.Log.Error(err.Error())
 		panic(err)
 	}
-	app.GitCommand.SetupGit()
+
+	if err := app.GitCommand.SetupGit(); err != nil {
+		app.Log.Error(err.Error())
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	app.Gui.RunWithSubprocesses()
 }

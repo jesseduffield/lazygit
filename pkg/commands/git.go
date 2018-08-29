@@ -15,6 +15,10 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 )
 
+// ErrGitRepositoryInvalid is emitted when we run a git command in a folder
+// to check if we have a valid git repository and we get an error instead
+var ErrGitRepositoryInvalid = fmt.Errorf("can't find a valid git repository in current directory")
+
 // GitCommand is our main git interface
 type GitCommand struct {
 	Log       *logrus.Entry
@@ -35,13 +39,20 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 }
 
 // SetupGit sets git repo up
-func (c *GitCommand) SetupGit() {
-	c.verifyInGitRepo()
-	c.navigateToRepoRootDirectory()
-	if err := c.setupWorktree(); err != nil {
-		c.Log.Error(err)
-		panic(err)
+func (c *GitCommand) SetupGit() error {
+	fs := []func() error{
+		c.verifyInGitRepo,
+		c.navigateToRepoRootDirectory,
+		c.setupWorktree,
 	}
+
+	for _, f := range fs {
+		if err := f(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // GetStashEntries stash entryies
@@ -145,11 +156,12 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 	return append(headResults, tailResults...)
 }
 
-func (c *GitCommand) verifyInGitRepo() {
-	if output, err := c.OSCommand.RunCommandWithOutput("git status"); err != nil {
-		fmt.Println(output)
-		os.Exit(1)
+func (c *GitCommand) verifyInGitRepo() error {
+	if _, err := c.OSCommand.RunCommandWithOutput("git status"); err != nil {
+		return ErrGitRepositoryInvalid
 	}
+
+	return nil
 }
 
 // GetBranchName branch name
@@ -157,12 +169,19 @@ func (c *GitCommand) GetBranchName() (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
 }
 
-func (c *GitCommand) navigateToRepoRootDirectory() {
-	_, err := os.Stat(".git")
-	for os.IsNotExist(err) {
+func (c *GitCommand) navigateToRepoRootDirectory() error {
+	for {
+		f, err := os.Stat(".git")
+
+		if err == nil && f.IsDir() {
+			return nil
+		}
+
 		c.Log.Debug("going up a directory to find the root")
-		os.Chdir("..")
-		_, err = os.Stat(".git")
+
+		if err = os.Chdir(".."); err != nil {
+			return err
+		}
 	}
 }
 
