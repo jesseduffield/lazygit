@@ -46,6 +46,7 @@ func (gui *Gui) renderStatusOptions(g *gocui.Gui) error {
 		"o": gui.Tr.SLocalize("OpenConfig"),
 		"e": gui.Tr.SLocalize("EditConfig"),
 		"u": gui.Tr.SLocalize("CheckForUpdate"),
+		"?": gui.Tr.SLocalize("help"),
 	})
 }
 

@@ -37,6 +37,7 @@ func (gui *Gui) renderStashOptions(g *gocui.Gui) error {
 		"g":       gui.Tr.SLocalize("pop"),
 		"d":       gui.Tr.SLocalize("drop"),
 		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
+		"?":       gui.Tr.SLocalize("help"),
 	})
 }
 

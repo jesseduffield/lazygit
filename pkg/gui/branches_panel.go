@@ -124,6 +124,7 @@ func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
 		"d":       gui.Tr.SLocalize("deleteBranch"),
 		"D":       gui.Tr.SLocalize("forceDeleteBranch"),
 		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
+		"?":       gui.Tr.SLocalize("help"),
 	})
 }
 

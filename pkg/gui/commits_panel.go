@@ -65,6 +65,7 @@ func (gui *Gui) renderCommitsOptions(g *gocui.Gui) error {
 		"g":       gui.Tr.SLocalize("resetToThisCommit"),
 		"f":       gui.Tr.SLocalize("fixupCommit"),
 		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
+		"?":       gui.Tr.SLocalize("help"),
 	})
 }
 

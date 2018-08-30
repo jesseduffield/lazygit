@@ -185,7 +185,7 @@ func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
 		"e":         gui.Tr.SLocalize("edit"),
 		"a":         gui.Tr.SLocalize("toggleStagedAll"),
 		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
-		"?":         gui.Tr.SLocalize("help"), //TODO make it visible for all panels, not only files
+		"?":         gui.Tr.SLocalize("help"),
 	}
 	if gui.State.HasMergeConflicts {
 		optionsMap["a"] = gui.Tr.SLocalize("abortMerge")
