@@ -11,11 +11,14 @@ var keys []Binding
 
 func (gui *Gui) handleHelpPress(g *gocui.Gui, v *gocui.View) error {
 	lineNumber := gui.getItemPosition(v)
-	err := gui.handleHelpClose(g, v)
-	if err != nil {
-		return err
+	if len(keys) > lineNumber {
+		err := gui.handleHelpClose(g, v)
+		if err != nil {
+			return err
+		}
+		return keys[lineNumber].Handler(g, v)
 	}
-	return keys[lineNumber].Handler(g, v)
+	return nil
 }
 
 func (gui *Gui) handleHelpSelect(g *gocui.Gui, v *gocui.View) error {
@@ -49,21 +52,21 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	keys = keys[:0]
 	content := ""
 	bindings := gui.getKeybindings()
-	maxX, maxY := g.Size()
-	x := maxX * 3 / 4
-	y := 5
-	helpView, _ := g.SetView("help", maxX-x, y, x, maxY-y, 0)
-	helpView.Title = strings.Title(gui.Tr.SLocalize("help"))
-
-	if err := gui.renderHelpOptions(g); err != nil {
-		return err
-	}
 
 	for _, binding := range bindings {
 		if binding.ViewName == v.Name() && binding.Description != "" && binding.KeyReadable != "" {
 			content += fmt.Sprintf(" %s - %s\n", binding.KeyReadable, binding.Description)
 			keys = append(keys, binding)
 		}
+	}
+
+	// y1-1 so there will not be an extra space at the end of panel
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, content)
+	helpView, _ := g.SetView("help", x0, y0, x1, y1-1, 0)
+	helpView.Title = strings.Title(gui.Tr.SLocalize("help"))
+
+	if err := gui.renderHelpOptions(g); err != nil {
+		return err
 	}
 
 	// for testing
