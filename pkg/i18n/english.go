@@ -43,6 +43,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "commit changes",
 		}, &i18n.Message{
+			ID:    "CommitChangesWithEditor",
+			Other: "commit changes using git editor",
+		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
