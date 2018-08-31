@@ -218,9 +218,9 @@ func GetDefaultConfig() []byte {
       - white
     optionsTextColor:
       - blue
-git:
+# git:
   # stuff relating to git
-os:
+# os:
   # stuff relating to the OS
 update:
   method: prompt # can be: prompt | background | never

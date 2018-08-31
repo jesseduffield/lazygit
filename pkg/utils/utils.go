@@ -90,3 +90,11 @@ func Loader() string {
 	index := nanos / 50000000 % int64(len(characters))
 	return characters[index : index+1]
 }
+
+// ResolvePlaceholderString populates a template with values
+func ResolvePlaceholderString(str string, arguments map[string]string) string {
+	for key, value := range arguments {
+		str = strings.Replace(str, "{{"+key+"}}", value, -1)
+	}
+	return str
+}

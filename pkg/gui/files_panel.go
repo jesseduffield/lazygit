@@ -7,7 +7,6 @@ import (
 
 	// "strings"
 
-	"os/exec"
 	"strings"
 
 	"github.com/fatih/color"
@@ -250,11 +249,10 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) {
 	})
 }
 
-func (gui *Gui) genericFileOpen(g *gocui.Gui, v *gocui.View, filename string, open func(string) (*exec.Cmd, error)) error {
-
-	sub, err := open(filename)
+func (gui *Gui) editFile(filename string) error {
+	sub, err := gui.OSCommand.EditFile(filename)
 	if err != nil {
-		return gui.createErrorPanel(g, err.Error())
+		return gui.createErrorPanel(gui.g, err.Error())
 	}
 	if sub != nil {
 		gui.SubProcess = sub
@@ -268,7 +266,8 @@ func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.EditFile)
+
+	return gui.editFile(file.Name)
 }
 
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
@@ -277,22 +276,6 @@ func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	return gui.openFile(file.Name)
-}
-
-func (gui *Gui) handleSublimeFileOpen(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
-	if err != nil {
-		return err
-	}
-	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.SublimeOpenFile)
-}
-
-func (gui *Gui) handleVsCodeFileOpen(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
-	if err != nil {
-		return err
-	}
-	return gui.genericFileOpen(g, v, file.Name, gui.OSCommand.VsCodeOpenFile)
 }
 
 func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {

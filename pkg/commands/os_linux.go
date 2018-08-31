@@ -1,5 +1,3 @@
-// +build !windows
-
 package commands
 
 import (
@@ -12,6 +10,6 @@ func getPlatform() *Platform {
 		shell:        "bash",
 		shellArg:     "-c",
 		escapedQuote: "\"",
-		openCommand:  "open {{filename}}",
+		openCommand:  "xdg-open {{filename}} &>/dev/null &",
 	}
 }
