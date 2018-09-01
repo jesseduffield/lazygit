@@ -329,7 +329,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "You already have the latest version",
 		}, &i18n.Message{
 			ID:    "MajorVersionErr",
-			Other: "New version has non-backwards compatible changes.",
+			Other: "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
 		}, &i18n.Message{
 			ID:    "CouldNotFindBinaryErr",
 			Other: "Could not find any binary at {{.url}}",
