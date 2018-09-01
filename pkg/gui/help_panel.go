@@ -40,7 +40,7 @@ func (gui *Gui) handleHelpClose(g *gocui.Gui, v *gocui.View) error {
 	// better to delete because for example after closing update confirmation panel,
 	// the focus isn't set back to any of panels and one is unable to even quit
 	//_, err := g.SetViewOnBottom(v.Name())
-	err := g.DeleteView(v.Name())
+	err := g.DeleteView("help")
 	if err != nil {
 		return err
 	}
