@@ -33,11 +33,20 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "commituj zmiany",
 		}, &i18n.Message{
+			ID:    "CommitChangesWithEditor",
+			Other: "commituj zmiany używając edytora z gita",
+		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "nawiguj",
+		}, &i18n.Message{
+			ID:    "help",
+			Other: "pomoc",
+		}, &i18n.Message{
+			ID:    "execute",
+			Other: "wykonaj",
 		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "przechowaj pliki",
@@ -165,6 +174,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: zamknij, {{.keyBindConfirm}}: potwierdź",
 		}, &i18n.Message{
+			ID:    "close",
+			Other: "zamknij",
+		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Jesteś pewny, że chcesz zresetować ten commit?",
 		}, &i18n.Message{
@@ -287,6 +299,27 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Scalanie anulowane",
+		}, &i18n.Message{
+			ID:    "removeFile",
+			Other: `usuń jeśli nie śledzony / przełącz jeśli śledzony`,
+		}, &i18n.Message{
+			ID:    "editFile",
+			Other: `edytuj plik`,
+		}, &i18n.Message{
+			ID:    "openFile",
+			Other: `otwórz plik`,
+		}, &i18n.Message{
+			ID:    "ignoreFile",
+			Other: `dodaj do .gitignore`,
+		}, &i18n.Message{
+			ID:    "refreshFiles",
+			Other: `odśwież pliki`,
+		}, &i18n.Message{
+			ID:    "resetHard",
+			Other: `zresetuj twardo`,
+		}, &i18n.Message{
+			ID:    "mergeIntoCurrentBranch",
+			Other: `scal do obecnej gałęzi`,
 		},
 	)
 }
