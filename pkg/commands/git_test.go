@@ -189,6 +189,19 @@ func TestGitCommandStashSave(t *testing.T) {
 	assert.NoError(t, gitCmd.StashSave("A stash message"))
 }
 
+func TestGitCommandCommitAmend(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"commit", "--amend", "--allow-empty"}, args)
+
+		return exec.Command("echo")
+	}
+
+	_, err := gitCmd.PrepareCommitAmendSubProcess().CombinedOutput()
+	assert.NoError(t, err)
+}
+
 func TestGitCommandMergeStatusFiles(t *testing.T) {
 	type scenario struct {
 		oldFiles []File
