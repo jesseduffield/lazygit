@@ -14,12 +14,42 @@
         - white
       optionsTextColor:
         - blue
-  os:
-    openCommand: 'open {{filename}}'
   update:
     method: prompt # can be: prompt | background | never
     days: 14 # how often an update is checked for
   reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
+```
+
+## Platform Defaults:
+
+### Windows:
+
+```
+  os:
+    openCommand: 'cmd /c "start "" {{filename}}"'
+```
+
+### Linux:
+
+```
+  os:
+    openCommand: 'bash -c \"xdg-open {{filename}} &>/dev/null &\"'
+```
+
+### OSX:
+
+```
+  os:
+    openCommand: 'open {{filename}}'
+```
+
+### Recommended Config Values:
+
+for users of VSCode
+
+```
+  os:
+    openCommand: 'code -r {{filename}}'
 ```
 
 ## Color Attributes:
