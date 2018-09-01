@@ -35,11 +35,20 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "Commit Veranderingen",
 		}, &i18n.Message{
+			ID:    "CommitChangesWithEditor",
+			Other: "commit changes using git editor",
+		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "navigeer",
+		}, &i18n.Message{
+			ID:    "help",
+			Other: "help",
+		}, &i18n.Message{
+			ID:    "execute",
+			Other: "execute",
 		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "stash-bestanden",
@@ -173,6 +182,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
 		}, &i18n.Message{
+			ID:    "close",
+			Other: "close",
+		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Weet je het zeker dat je wil resetten naar deze commit?",
 		}, &i18n.Message{
@@ -295,6 +307,27 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
+		}, &i18n.Message{
+			ID:    "removeFile",
+			Other: `delete if untracked / checkout if tracked (aka go away)`,
+		}, &i18n.Message{
+			ID:    "editFile",
+			Other: `edit file`,
+		}, &i18n.Message{
+			ID:    "openFile",
+			Other: `open file`,
+		}, &i18n.Message{
+			ID:    "ignoreFile",
+			Other: `add to .gitignore`,
+		}, &i18n.Message{
+			ID:    "refreshFiles",
+			Other: `refresh files`,
+		}, &i18n.Message{
+			ID:    "resetHard",
+			Other: `reset hard`,
+		}, &i18n.Message{
+			ID:    "mergeIntoCurrentBranch",
+			Other: `merge into currently checked out branch`,
 		},
 	)
 }
