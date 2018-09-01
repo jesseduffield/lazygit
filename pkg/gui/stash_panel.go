@@ -27,7 +27,8 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 	if len(gui.State.StashEntries) == 0 {
 		return nil
 	}
-	lineNumber := gui.getItemPosition(v)
+	stashView, _ := gui.g.View("stash")
+	lineNumber := gui.getItemPosition(stashView)
 	return &gui.State.StashEntries[lineNumber]
 }
 
