@@ -29,7 +29,7 @@ func TestOSCommandRunCommandWithOutput(t *testing.T) {
 		{
 			"rmdir unexisting-folder",
 			func(output string, err error) {
-				assert.Regexp(t, ".*No such file or directory.*", err.Error())
+				assert.Regexp(t, "rmdir: .* 'unexisting-folder': .*", err.Error())
 			},
 		},
 	}
@@ -49,7 +49,7 @@ func TestOSCommandRunCommand(t *testing.T) {
 		{
 			"rmdir unexisting-folder",
 			func(err error) {
-				assert.Regexp(t, ".*No such file or directory.*", err.Error())
+				assert.Regexp(t, "rmdir: .* 'unexisting-folder': .*", err.Error())
 			},
 		},
 	}
