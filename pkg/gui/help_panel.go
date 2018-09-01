@@ -54,8 +54,17 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	bindings := gui.getKeybindings()
 
 	for _, binding := range bindings {
-		if binding.ViewName == v.Name() && binding.Description != "" && binding.KeyReadable != "" {
-			content += fmt.Sprintf(" %s - %s\n", binding.KeyReadable, binding.Description)
+		r, ok := binding.Key.(rune)
+		key := ""
+
+		if ok {
+			key = string(r)
+		} else if binding.KeyReadable != "" {
+			key = binding.KeyReadable
+		}
+
+		if key != "" && binding.ViewName == v.Name() && binding.Description != "" {
+			content += fmt.Sprintf(" %s - %s\n", key, binding.Description)
 			keys = append(keys, binding)
 		}
 	}
