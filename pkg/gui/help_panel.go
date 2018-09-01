@@ -47,23 +47,27 @@ func (gui *Gui) handleHelpClose(g *gocui.Gui, v *gocui.View) error {
 	return gui.returnFocus(g, v)
 }
 
+func (gui *Gui) GetKey(binding Binding) string {
+	r, ok := binding.Key.(rune)
+	key := ""
+
+	if ok {
+		key = string(r)
+	} else if binding.KeyReadable != "" {
+		key = binding.KeyReadable
+	}
+
+	return key
+}
+
 func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	// clear keys slice, so we don't have ghost elements
 	keys = keys[:0]
 	content := ""
-	bindings := gui.getKeybindings()
+	bindings := gui.GetKeybindings()
 
 	for _, binding := range bindings {
-		r, ok := binding.Key.(rune)
-		key := ""
-
-		if ok {
-			key = string(r)
-		} else if binding.KeyReadable != "" {
-			key = binding.KeyReadable
-		}
-
-		if key != "" && binding.ViewName == v.Name() && binding.Description != "" {
+		if key := gui.GetKey(binding); key != "" && binding.ViewName == v.Name() && binding.Description != "" {
 			content += fmt.Sprintf(" %s - %s\n", key, binding.Description)
 			keys = append(keys, binding)
 		}

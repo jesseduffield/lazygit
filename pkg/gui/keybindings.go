@@ -14,7 +14,7 @@ type Binding struct {
 	Description string
 }
 
-func (gui *Gui) getKeybindings() []Binding {
+func (gui *Gui) GetKeybindings() []Binding {
 	bindings := []Binding{
 		{
 			ViewName: "",
@@ -379,7 +379,7 @@ func (gui *Gui) getKeybindings() []Binding {
 }
 
 func (gui *Gui) keybindings(g *gocui.Gui) error {
-	bindings := gui.getKeybindings()
+	bindings := gui.GetKeybindings()
 
 	for _, binding := range bindings {
 		if err := g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
