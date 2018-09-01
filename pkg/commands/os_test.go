@@ -76,48 +76,6 @@ func TestOSCommandRunCommand(t *testing.T) {
 	}
 }
 
-func TestOSCommandGetOpenCommand(t *testing.T) {
-	// two scenarios to test. One with a config set, the other with the platform default
-
-	type scenario struct {
-		before func(*OSCommand)
-		test   func(string)
-	}
-
-	scenarios := []scenario{
-		{
-			func(OSCmd *OSCommand) {},
-			func(command string) {
-				assert.Equal(t, command, "open {{filename}}")
-			},
-		},
-		{
-			func(OSCmd *OSCommand) {
-				OSCmd.Config.GetUserConfig().Set("os.openCommand", "test {{filename}}")
-			},
-			func(command string) {
-				assert.Equal(t, command, "test {{filename}}")
-			},
-		},
-		{
-			func(OSCmd *OSCommand) {
-				OSCmd.Platform = &Platform{
-					openCommand: "platform specific open {{filename}}",
-				}
-			},
-			func(command string) {
-				assert.Equal(t, command, "platform specific open {{filename}}")
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		OSCmd := newDummyOSCommand()
-		s.before(OSCmd)
-		s.test(OSCmd.getOpenCommand())
-	}
-}
-
 func TestOSCommandOpenFile(t *testing.T) {
 	type scenario struct {
 		filename string
@@ -138,8 +96,19 @@ func TestOSCommandOpenFile(t *testing.T) {
 		{
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, name, "bash")
-				assert.Equal(t, arg, []string{"-c", "open \"test\""})
+				assert.Equal(t, "open", name)
+				assert.Equal(t, []string{"test"}, arg)
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"filename with spaces",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "open", name)
+				assert.Equal(t, []string{"filename with spaces"}, arg)
 				return exec.Command("echo")
 			},
 			func(err error) {
@@ -151,6 +120,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 	for _, s := range scenarios {
 		OSCmd := newDummyOSCommand()
 		OSCmd.command = s.command
+		OSCmd.Config.GetUserConfig().Set("os.openCommand", "open {{filename}}")
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}

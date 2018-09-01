@@ -6,5 +6,5 @@ func getPlatform() *Platform {
 		shell:        "cmd",
 		shellArg:     "/c",
 		escapedQuote: `\"`,
-		openCommand:  `cmd /c "start "" {{filename}}"`,
-}}
+	}
+}

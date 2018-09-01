@@ -51,7 +51,6 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
 	splitCmd := str.ToArgv(command)
 	c.Log.Info(splitCmd)
-
 	return sanitisedCommandOutput(
 		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
 	)
@@ -98,23 +97,15 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 	return outputString, nil
 }
 
-// getOpenCommand get open command
-func (c *OSCommand) getOpenCommand() string {
-	if c.Config.GetUserConfig().IsSet("os.openCommand") {
-		return c.Config.GetUserConfig().GetString("os.openCommand")
-	}
-	return c.Platform.openCommand
-}
-
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
-	commandTemplate := c.getOpenCommand()
+	commandTemplate := c.Config.GetUserConfig().GetString("os.openCommand")
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	_, err := c.RunCommandWithOutput(command)
+	err := c.RunCommand(command)
 	return err
 }
 

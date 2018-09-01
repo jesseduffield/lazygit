@@ -40,8 +40,7 @@ type AppConfigurer interface {
 
 // NewAppConfig makes a new app config
 func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag *bool) (*AppConfig, error) {
-	defaultConfig := GetDefaultConfig()
-	userConfig, err := LoadConfig("config", defaultConfig)
+	userConfig, err := LoadConfig("config", true)
 	if err != nil {
 		return nil, err
 	}
@@ -113,13 +112,16 @@ func newViper(filename string) (*viper.Viper, error) {
 }
 
 // LoadConfig gets the user's config
-func LoadConfig(filename string, defaults []byte) (*viper.Viper, error) {
+func LoadConfig(filename string, withDefaults bool) (*viper.Viper, error) {
 	v, err := newViper(filename)
 	if err != nil {
 		return nil, err
 	}
-	if defaults != nil {
-		if err = LoadDefaults(v, defaults); err != nil {
+	if withDefaults {
+		if err = LoadDefaults(v, GetDefaultConfig()); err != nil {
+			return nil, err
+		}
+		if err = LoadDefaults(v, GetPlatformDefaultConfig()); err != nil {
 			return nil, err
 		}
 	}
@@ -131,7 +133,7 @@ func LoadConfig(filename string, defaults []byte) (*viper.Viper, error) {
 
 // LoadDefaults loads in the defaults defined in this file
 func LoadDefaults(v *viper.Viper, defaults []byte) error {
-	return v.ReadConfig(bytes.NewBuffer(defaults))
+	return v.MergeConfig(bytes.NewBuffer(defaults))
 }
 
 func prepareConfigFile(filename string) (string, error) {
@@ -166,7 +168,7 @@ func LoadAndMergeFile(v *viper.Viper, filename string) error {
 func (c *AppConfig) WriteToUserConfig(key, value string) error {
 	// reloading the user config directly (without defaults) so that we're not
 	// writing any defaults back to the user's config
-	v, err := LoadConfig("config", nil)
+	v, err := LoadConfig("config", false)
 	if err != nil {
 		return err
 	}
@@ -222,10 +224,6 @@ update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often a update is checked for
 reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
-# git:
-#   stuff relating to git
-# os:
-#   openCommand: 'code -r {{filename}}'
 `)
 }
 
