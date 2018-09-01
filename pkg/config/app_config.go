@@ -218,14 +218,14 @@ func GetDefaultConfig() []byte {
       - white
     optionsTextColor:
       - blue
-# git:
-  # stuff relating to git
-# os:
-  # stuff relating to the OS
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often a update is checked for
 reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
+# git:
+#   stuff relating to git
+# os:
+#   openCommand: 'code -r {{filename}}'
 `)
 }
 

@@ -14,10 +14,8 @@
         - white
       optionsTextColor:
         - blue
-  git:
-    # stuff relating to git
   os:
-    # stuff relating to the OS
+    openCommand: 'open {{filename}}'
   update:
     method: prompt # can be: prompt | background | never
     days: 14 # how often an update is checked for
