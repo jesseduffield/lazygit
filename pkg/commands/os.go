@@ -80,8 +80,7 @@ func (c *OSCommand) RunDirectCommand(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunDirectCommand")
 
 	return sanitisedCommandOutput(
-		exec.
-			Command(c.Platform.shell, c.Platform.shellArg, command).
+		c.command(c.Platform.shell, c.Platform.shellArg, command).
 			CombinedOutput(),
 	)
 }
