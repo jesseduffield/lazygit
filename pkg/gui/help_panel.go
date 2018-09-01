@@ -78,12 +78,6 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	// for testing
-	/*content += "first\n"
-	content += "second\n"
-	content += "third\n"
-	*/
-
 	fmt.Fprint(helpView, content)
 
 	g.Update(func(g *gocui.Gui) error {
