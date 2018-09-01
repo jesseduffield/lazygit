@@ -10,6 +10,6 @@ func getPlatform() *Platform {
 		shell:        "bash",
 		shellArg:     "-c",
 		escapedQuote: "\"",
-		openCommand:  "xdg-open {{filename}} &>/dev/null &",
+		openCommand:  "bash -c \"xdg-open {{filename}} &>/dev/null &\"",
 	}
 }

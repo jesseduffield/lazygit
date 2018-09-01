@@ -111,7 +111,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	_, err := c.RunDirectCommand(command)
+	err := c.RunCommand(command)
 	return err
 }
 

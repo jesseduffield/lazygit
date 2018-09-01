@@ -6,6 +6,6 @@ func getPlatform() *Platform {
 		shell:        "cmd",
 		shellArg:     "/c",
 		escapedQuote: "\\\"",
-		openCommand:  "cygstart {{filename}}",
+		openCommand:  "start {{filename}}",
 	}
 }
