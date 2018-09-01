@@ -84,9 +84,7 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	content += "third\n"
 	*/
 
-	if err := gui.renderString(g, "help", content); err != nil {
-		return err
-	}
+	fmt.Fprint(helpView, content)
 
 	g.Update(func(g *gocui.Gui) error {
 		_, err := g.SetViewOnTop("help")
