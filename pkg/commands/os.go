@@ -90,6 +90,9 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 	if err != nil {
 		// errors like 'exit status 1' are not very useful so we'll create an error
 		// from the combined output
+		if outputString == "" {
+			return "", err
+		}
 		return outputString, errors.New(outputString)
 	}
 	return outputString, nil
@@ -111,7 +114,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.RunCommand(command)
+	_, err := c.RunCommandWithOutput(command)
 	return err
 }
 
