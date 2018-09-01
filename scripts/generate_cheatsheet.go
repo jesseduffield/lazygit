@@ -6,8 +6,8 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/app"
