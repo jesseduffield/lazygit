@@ -354,6 +354,29 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "GitconfigParseErr",
 			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
+
+			// KEYBINDINGS DESCRIPTIONS
+		}, &i18n.Message{
+			ID:    "removeFile",
+			Other: `delete if untracked checkout if tracked (aka go away)`,
+		}, &i18n.Message{
+			ID:    "editFile",
+			Other: `edit file`,
+		}, &i18n.Message{
+			ID:    "openFile",
+			Other: `open file`,
+		}, &i18n.Message{
+			ID:    "ignoreFile",
+			Other: `add to .gitignore`,
+		}, &i18n.Message{
+			ID:    "refreshFiles",
+			Other: `refresh files`,
+		}, &i18n.Message{
+			ID:    "resetHard",
+			Other: `reset hard`,
+		}, &i18n.Message{
+			ID:    "mergeIntoCurrentBranch",
+			Other: `merge into currently checked out branch`,
 		},
 	)
 }
