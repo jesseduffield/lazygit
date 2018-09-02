@@ -3,8 +3,10 @@ package commands
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"testing"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/test"
@@ -12,6 +14,39 @@ import (
 	"github.com/stretchr/testify/assert"
 	gogit "gopkg.in/src-d/go-git.v4"
 )
+
+type fileInfoMock struct {
+	name        string
+	size        int64
+	fileMode    os.FileMode
+	fileModTime time.Time
+	isDir       bool
+	sys         interface{}
+}
+
+func (f fileInfoMock) Name() string {
+	return f.name
+}
+
+func (f fileInfoMock) Size() int64 {
+	return f.size
+}
+
+func (f fileInfoMock) Mode() os.FileMode {
+	return f.fileMode
+}
+
+func (f fileInfoMock) ModTime() time.Time {
+	return f.fileModTime
+}
+
+func (f fileInfoMock) IsDir() bool {
+	return f.isDir
+}
+
+func (f fileInfoMock) Sys() interface{} {
+	return f.sys
+}
 
 func newDummyLog() *logrus.Entry {
 	log := logrus.New()
@@ -27,69 +62,155 @@ func newDummyGitCommand() *GitCommand {
 	}
 }
 
-func TestGitCommandSetupGit(t *testing.T) {
+func TestVerifyInGitRepo(t *testing.T) {
 	type scenario struct {
-		command                      func(string, ...string) *exec.Cmd
-		openGitRepositoryAndWorktree func() (*gogit.Repository, *gogit.Worktree, error)
-		test                         func(error)
+		runCmdWithOutput func(string) (string, error)
+		test             func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			func(string, ...string) *exec.Cmd {
-				return exec.Command("exit", "1")
+			func(string) (string, error) {
+				return "", nil
 			},
-			func() (*gogit.Repository, *gogit.Worktree, error) {
-				return nil, nil, nil
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			func(string) (string, error) {
+				return "", ErrGitRepositoryInvalid
 			},
 			func(err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrGitRepositoryInvalid, err)
 			},
 		},
+	}
+
+	for _, s := range scenarios {
+		s.test(verifyInGitRepo(s.runCmdWithOutput))
+	}
+}
+
+func TestNavigateToRepoRootDirectory(t *testing.T) {
+	type scenario struct {
+		stat  func(string) (os.FileInfo, error)
+		chdir func(string) error
+		test  func(error)
+	}
+
+	scenarios := []scenario{
 		{
-			func(string, ...string) *exec.Cmd {
-				return exec.Command("echo")
+			func(string) (os.FileInfo, error) {
+				return fileInfoMock{isDir: true}, nil
 			},
-			func() (*gogit.Repository, *gogit.Worktree, error) {
-				return nil, nil, fmt.Errorf(`unquoted '\' must be followed by new line`)
+			func(string) error {
+				return nil
 			},
 			func(err error) {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "gitconfig")
+				assert.NoError(t, err)
 			},
 		},
 		{
-			func(string, ...string) *exec.Cmd {
-				return exec.Command("echo")
+			func(string) (os.FileInfo, error) {
+				return nil, fmt.Errorf("An error occurred")
 			},
-			func() (*gogit.Repository, *gogit.Worktree, error) {
-				return nil, nil, fmt.Errorf("Error from inside gogit")
+			func(string) error {
+				return nil
 			},
 			func(err error) {
+				assert.Error(t, err)
+				assert.EqualError(t, err, "An error occurred")
+			},
+		},
+		{
+			func(string) (os.FileInfo, error) {
+				return nil, os.ErrNotExist
+			},
+			func(string) error {
+				return fmt.Errorf("An error occurred")
+			},
+			func(err error) {
+				assert.Error(t, err)
+				assert.EqualError(t, err, "An error occurred")
+			},
+		},
+		{
+			func(string) (os.FileInfo, error) {
+				return nil, os.ErrNotExist
+			},
+			func(string) error {
+				return fmt.Errorf("An error occurred")
+			},
+			func(err error) {
+				assert.Error(t, err)
+				assert.EqualError(t, err, "An error occurred")
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		s.test(navigateToRepoRootDirectory(s.stat, s.chdir))
+	}
+}
+
+func TestSetupRepositoryAndWorktree(t *testing.T) {
+	type scenario struct {
+		openGitRepository func(string) (*gogit.Repository, error)
+		sLocalize         func(string) string
+		test              func(*gogit.Repository, *gogit.Worktree, error)
+	}
+
+	scenarios := []scenario{
+		{
+			func(string) (*gogit.Repository, error) {
+				return nil, fmt.Errorf(`unquoted '\' must be followed by new line`)
+			},
+			func(string) string {
+				return "error translated"
+			},
+			func(r *gogit.Repository, w *gogit.Worktree, err error) {
+				assert.Error(t, err)
+				assert.EqualError(t, err, "error translated")
+			},
+		},
+		{
+			func(string) (*gogit.Repository, error) {
+				return nil, fmt.Errorf("Error from inside gogit")
+			},
+			func(string) string { return "" },
+			func(r *gogit.Repository, w *gogit.Worktree, err error) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, "Error from inside gogit")
 			},
 		},
 		{
-			func(string, ...string) *exec.Cmd {
-				return exec.Command("echo")
+			func(string) (*gogit.Repository, error) {
+				return &gogit.Repository{}, nil
 			},
-			func() (*gogit.Repository, *gogit.Worktree, error) {
-				return &gogit.Repository{}, &gogit.Worktree{}, nil
+			func(string) string { return "" },
+			func(r *gogit.Repository, w *gogit.Worktree, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, gogit.ErrIsBareRepository, err)
 			},
-			func(err error) {
+		},
+		{
+			func(string) (*gogit.Repository, error) {
+				assert.NoError(t, os.RemoveAll("/tmp/lazygit-test"))
+				r, err := gogit.PlainInit("/tmp/lazygit-test", false)
+				assert.NoError(t, err)
+				return r, nil
+			},
+			func(string) string { return "" },
+			func(r *gogit.Repository, w *gogit.Worktree, err error) {
 				assert.NoError(t, err)
 			},
 		},
 	}
 
 	for _, s := range scenarios {
-		gitCmd := newDummyGitCommand()
-		gitCmd.OSCommand.command = s.command
-		gitCmd.openGitRepositoryAndWorktree = s.openGitRepositoryAndWorktree
-
-		s.test(gitCmd.SetupGit())
+		s.test(setupRepositoryAndWorktree(s.openGitRepository, s.sLocalize))
 	}
 }
 
