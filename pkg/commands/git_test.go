@@ -214,6 +214,48 @@ func TestSetupRepositoryAndWorktree(t *testing.T) {
 	}
 }
 
+func TestNewGitCommand(t *testing.T) {
+	actual, err := os.Getwd()
+	assert.NoError(t, err)
+
+	defer func() {
+		assert.NoError(t, os.Chdir(actual))
+	}()
+
+	type scenario struct {
+		setup func()
+		test  func(*GitCommand, error)
+	}
+
+	scenarios := []scenario{
+		{
+			func() {
+				assert.NoError(t, os.Chdir("/tmp"))
+			},
+			func(gitCmd *GitCommand, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, ErrGitRepositoryInvalid, err)
+			},
+		},
+		{
+			func() {
+				assert.NoError(t, os.RemoveAll("/tmp/lazygit-test"))
+				_, err := gogit.PlainInit("/tmp/lazygit-test", false)
+				assert.NoError(t, err)
+				assert.NoError(t, os.Chdir("/tmp/lazygit-test"))
+			},
+			func(gitCmd *GitCommand, err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		s.setup()
+		s.test(NewGitCommand(newDummyLog(), newDummyOSCommand(), i18n.NewLocalizer(newDummyLog())))
+	}
+}
+
 func TestGitCommandGetStashEntries(t *testing.T) {
 	type scenario struct {
 		command func(string, ...string) *exec.Cmd

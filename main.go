@@ -43,7 +43,7 @@ func main() {
 		panic(err)
 	}
 
-	app, err := app.NewApp(appConfig)
+	app, err := app.Setup(appConfig)
 	if err != nil {
 		app.Log.Error(err.Error())
 		panic(err)
