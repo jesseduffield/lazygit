@@ -17,7 +17,7 @@ import (
 
 // ErrGitRepositoryInvalid is emitted when we run a git command in a folder
 // to check if we have a valid git repository and we get an error instead
-var ErrGitRepositoryInvalid = fmt.Errorf("can't find a valid git repository in current directory")
+var ErrGitRepositoryInvalid = errors.New("can't find a valid git repository in current directory")
 
 func verifyInGitRepo(runCmdWithOutput func(string) (string, error)) error {
 	if _, err := runCmdWithOutput("git status"); err != nil {
