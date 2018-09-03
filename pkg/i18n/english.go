@@ -238,6 +238,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "RenameCommit",
 			Other: "Rename Commit",
 		}, &i18n.Message{
+			ID:    "RenameCommitEditor",
+			Other: "Rename Commit with editor",
+		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "potential error in getSelected Commit (mismatched ui and state)",
 		}, &i18n.Message{

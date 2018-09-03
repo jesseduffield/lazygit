@@ -131,16 +131,6 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Handler:     gui.handleFileOpen,
 			Description: gui.Tr.SLocalize("openFile"),
 		}, {
-			ViewName: "files",
-			Key:      's',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSublimeFileOpen,
-		}, {
-			ViewName: "files",
-			Key:      'v',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleVsCodeFileOpen,
-		}, {
 			ViewName:    "files",
 			Key:         'i',
 			Modifier:    gocui.ModNone,
@@ -295,6 +285,12 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleRenameCommit,
 			Description: gui.Tr.SLocalize("RenameCommit"),
+		},{
+			ViewName: "commits",
+			Key: 'R',
+			Modifier: gocui.ModNone,
+			Handler: gui.handleRenameCommitEditor,
+			Description: gui.Tr.SLocalize("RenameCommitEditor"),
 		}, {
 			ViewName:    "commits",
 			Key:         'g',
