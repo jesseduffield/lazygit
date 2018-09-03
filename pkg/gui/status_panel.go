@@ -76,7 +76,7 @@ func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {
 	filename := gui.Config.GetUserConfig().ConfigFileUsed()
-	return gui.genericFileOpen(g, v, filename, gui.OSCommand.EditFile)
+	return gui.editFile(filename)
 }
 
 func lazygitTitle() string {

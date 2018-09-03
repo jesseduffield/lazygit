@@ -6,7 +6,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 
 	"github.com/mgutz/str"
 
@@ -20,22 +21,25 @@ type Platform struct {
 	shell        string
 	shellArg     string
 	escapedQuote string
+	openCommand  string
 }
 
 // OSCommand holds all the os commands
 type OSCommand struct {
 	Log                *logrus.Entry
 	Platform           *Platform
+	Config             config.AppConfigurer
 	command            func(string, ...string) *exec.Cmd
 	getGlobalGitConfig func(string) (string, error)
 	getenv             func(string) string
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(log *logrus.Entry) *OSCommand {
+func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 	return &OSCommand{
 		Log:                log,
 		Platform:           getPlatform(),
+		Config:             config,
 		command:            exec.Command,
 		getGlobalGitConfig: gitconfig.Global,
 		getenv:             os.Getenv,
@@ -47,7 +51,6 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
 	splitCmd := str.ToArgv(command)
 	c.Log.Info(splitCmd)
-
 	return sanitisedCommandOutput(
 		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
 	)
@@ -74,12 +77,9 @@ func (c *OSCommand) FileType(path string) string {
 // RunDirectCommand wrapper around direct commands
 func (c *OSCommand) RunDirectCommand(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunDirectCommand")
-	args := str.ToArgv(c.Platform.shellArg + " " + command)
-	c.Log.Info(spew.Sdump(args))
 
 	return sanitisedCommandOutput(
-		exec.
-			Command(c.Platform.shell, args...).
+		c.command(c.Platform.shell, c.Platform.shellArg, command).
 			CombinedOutput(),
 	)
 }
@@ -89,51 +89,24 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 	if err != nil {
 		// errors like 'exit status 1' are not very useful so we'll create an error
 		// from the combined output
+		if outputString == "" {
+			return "", err
+		}
 		return outputString, errors.New(outputString)
 	}
 	return outputString, nil
 }
 
-// getOpenCommand get open command
-func (c *OSCommand) getOpenCommand() (string, string, error) {
-	//NextStep open equivalents: xdg-open (linux), cygstart (cygwin), open (OSX)
-	trailMap := map[string]string{
-		"xdg-open": " &>/dev/null &",
-		"cygstart": "",
-		"open":     "",
-	}
-
-	for name, trail := range trailMap {
-		if err := c.RunCommand("which " + name); err == nil {
-			return name, trail, nil
-		}
-	}
-	return "", "", errors.New("Unsure what command to use to open this file")
-}
-
-// VsCodeOpenFile opens the file in code, with the -r flag to open in the
-// current window
-// each of these open files needs to have the same function signature because
-// they're being passed as arguments into another function,
-// but only editFile actually returns a *exec.Cmd
-func (c *OSCommand) VsCodeOpenFile(filename string) (*exec.Cmd, error) {
-	return nil, c.RunCommand("code -r " + filename)
-}
-
-// SublimeOpenFile opens the filein sublime
-// may be deprecated in the future
-func (c *OSCommand) SublimeOpenFile(filename string) (*exec.Cmd, error) {
-	return nil, c.RunCommand("subl " + filename)
-}
-
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
-	cmdName, cmdTrail, err := c.getOpenCommand()
-	if err != nil {
-		return err
+	commandTemplate := c.Config.GetUserConfig().GetString("os.openCommand")
+	templateValues := map[string]string{
+		"filename": c.Quote(filename),
 	}
 
-	return c.RunCommand(cmdName + " " + c.Quote(filename) + cmdTrail) // TODO: test on linux
+	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
+	err := c.RunCommand(command)
+	return err
 }
 
 // EditFile opens a file in a subprocess using whatever editor is available,
