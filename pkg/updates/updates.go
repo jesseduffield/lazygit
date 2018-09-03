@@ -96,6 +96,7 @@ func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
 
 func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("Checking for an updated version")
+	currentVersion := u.Config.GetVersion()
 	if err := u.RecordLastUpdateCheck(); err != nil {
 		return "", err
 	}
@@ -104,15 +105,22 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	u.Log.Info("Current version is " + u.Config.GetVersion())
+	u.Log.Info("Current version is " + currentVersion)
 	u.Log.Info("New version is " + newVersion)
 
-	if newVersion == u.Config.GetVersion() {
+	if newVersion == currentVersion {
 		return "", errors.New(u.Tr.SLocalize("OnLatestVersionErr"))
 	}
 
-	if u.majorVersionDiffers(u.Config.GetVersion(), newVersion) {
-		return "", errors.New(u.Tr.SLocalize("MajorVersionErr"))
+	if u.majorVersionDiffers(currentVersion, newVersion) {
+		errMessage := u.Tr.TemplateLocalize(
+			"MajorVersionErr",
+			i18n.Teml{
+				"newVersion":     newVersion,
+				"currentVersion": currentVersion,
+			},
+		)
+		return "", errors.New(errMessage)
 	}
 
 	rawUrl, err := u.getBinaryUrl(newVersion)
