@@ -5,11 +5,28 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func newDummyOSCommand() *OSCommand {
-	return NewOSCommand(newDummyLog())
+	return NewOSCommand(newDummyLog(), newDummyAppConfig())
+}
+
+func newDummyAppConfig() *config.AppConfig {
+	appConfig := &config.AppConfig{
+		Name:        "lazygit",
+		Version:     "unversioned",
+		Commit:      "",
+		BuildDate:   "",
+		Debug:       false,
+		BuildSource: "",
+		UserConfig:  viper.New(),
+	}
+	_ = yaml.Unmarshal([]byte{}, appConfig.AppState)
+	return appConfig
 }
 
 func TestOSCommandRunCommandWithOutput(t *testing.T) {
@@ -59,44 +76,6 @@ func TestOSCommandRunCommand(t *testing.T) {
 	}
 }
 
-func TestOSCommandGetOpenCommand(t *testing.T) {
-	type scenario struct {
-		command func(string, ...string) *exec.Cmd
-		test    func(string, string, error)
-	}
-
-	scenarios := []scenario{
-		{
-			func(name string, arg ...string) *exec.Cmd {
-				return exec.Command("exit", "1")
-			},
-			func(name string, trail string, err error) {
-				assert.EqualError(t, err, "Unsure what command to use to open this file")
-			},
-		},
-		{
-			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "which", name)
-				assert.Len(t, arg, 1)
-				assert.Regexp(t, "xdg-open|cygstart|open", arg[0])
-				return exec.Command("echo")
-			},
-			func(name string, trail string, err error) {
-				assert.NoError(t, err)
-				assert.Regexp(t, "xdg-open|cygstart|open", name)
-				assert.Regexp(t, " \\&\\>/dev/null \\&|", trail)
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		OSCmd := newDummyOSCommand()
-		OSCmd.command = s.command
-
-		s.test(OSCmd.getOpenCommand())
-	}
-}
-
 func TestOSCommandOpenFile(t *testing.T) {
 	type scenario struct {
 		filename string
@@ -111,29 +90,25 @@ func TestOSCommandOpenFile(t *testing.T) {
 				return exec.Command("exit", "1")
 			},
 			func(err error) {
-				assert.EqualError(t, err, "Unsure what command to use to open this file")
+				assert.Error(t, err)
 			},
 		},
 		{
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
-				if name == "which" {
-					return exec.Command("echo")
-				}
-
-				switch len(arg) {
-				case 1:
-					assert.Regexp(t, "open|cygstart", name)
-					assert.EqualValues(t, "test", arg[0])
-				case 3:
-					assert.Equal(t, "xdg-open", name)
-					assert.EqualValues(t, "test", arg[0])
-					assert.Regexp(t, " \\&\\>/dev/null \\&|", arg[1])
-					assert.EqualValues(t, "&", arg[2])
-				default:
-					assert.Fail(t, "Unexisting command given")
-				}
-
+				assert.Equal(t, "open", name)
+				assert.Equal(t, []string{"test"}, arg)
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"filename with spaces",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "open", name)
+				assert.Equal(t, []string{"filename with spaces"}, arg)
 				return exec.Command("echo")
 			},
 			func(err error) {
@@ -145,6 +120,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 	for _, s := range scenarios {
 		OSCmd := newDummyOSCommand()
 		OSCmd.command = s.command
+		OSCmd.Config.GetUserConfig().Set("os.openCommand", "open {{filename}}")
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}

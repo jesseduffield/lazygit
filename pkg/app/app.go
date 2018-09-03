@@ -73,7 +73,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	}
 	var err error
 	app.Log = newLogger(config)
-	app.OSCommand = commands.NewOSCommand(app.Log)
+	app.OSCommand = commands.NewOSCommand(app.Log, config)
 
 	app.Tr = i18n.NewLocalizer(app.Log)
 
