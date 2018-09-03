@@ -54,6 +54,7 @@
 <pre>
   <kbd>s</kbd>:       squash down (only available for topmost commit)
   <kbd>r</kbd>:       rename commit
+  <kbd>shift</kbd>+<kbd>R</kbd>: rename commit using git editor
   <kbd>g</kbd>:       reset to this commit
 </pre>
 

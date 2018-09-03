@@ -155,6 +155,19 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
+	if gui.getItemPosition(v) != 0 {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+	}
+
+	gui.SubProcess = gui.GitCommand.PrepareCommitAmendSubProcess()
+	g.Update(func(g *gocui.Gui) error {
+		return gui.Errors.ErrSubProcess
+	})
+
+	return nil
+}
+
 func (gui *Gui) getSelectedCommit(g *gocui.Gui) (commands.Commit, error) {
 	v, err := g.View("commits")
 	if err != nil {

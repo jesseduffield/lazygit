@@ -62,6 +62,7 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		{ViewName: "branches", Key: 'm', Modifier: gocui.ModNone, Handler: gui.handleMerge},
 		{ViewName: "commits", Key: 's', Modifier: gocui.ModNone, Handler: gui.handleCommitSquashDown},
 		{ViewName: "commits", Key: 'r', Modifier: gocui.ModNone, Handler: gui.handleRenameCommit},
+		{ViewName: "commits", Key: 'R', Modifier: gocui.ModNone, Handler: gui.handleRenameCommitEditor},
 		{ViewName: "commits", Key: 'g', Modifier: gocui.ModNone, Handler: gui.handleResetToCommit},
 		{ViewName: "commits", Key: 'f', Modifier: gocui.ModNone, Handler: gui.handleCommitFixup},
 		{ViewName: "stash", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: gui.handleStashApply},
