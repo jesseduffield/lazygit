@@ -10,11 +10,11 @@ import (
 )
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
-	index := gui.getItemPosition(v)
+	index := gui.getItemPosition(gui.getBranchesView(g))
 	if index == 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
-	branch := gui.getSelectedBranch(v)
+	branch := gui.getSelectedBranch(gui.getBranchesView(g))
 	if err := gui.GitCommand.Checkout(branch.Name, false); err != nil {
 		gui.createErrorPanel(g, err.Error())
 	}

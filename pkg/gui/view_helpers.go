@@ -248,6 +248,7 @@ func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) err
 }
 
 // TODO: refactor properly
+// i'm so sorry but had to add this getBranchesView
 func (gui *Gui) getFilesView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("files")
 	return v
@@ -260,6 +261,11 @@ func (gui *Gui) getCommitsView(g *gocui.Gui) *gocui.View {
 
 func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("commitMessage")
+	return v
+}
+
+func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("branches")
 	return v
 }
 
