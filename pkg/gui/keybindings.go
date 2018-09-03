@@ -102,10 +102,12 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Handler:     gui.handleCommitEditorPress,
 			Description: gui.Tr.SLocalize("CommitChangesWithEditor"),
 		}, {
-			ViewName: "files",
-			Key:      gocui.KeySpace,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleFilePress,
+			ViewName:    "files",
+			Key:         gocui.KeySpace,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleFilePress,
+			KeyReadable: "space",
+			Description: gui.Tr.SLocalize("toggleStaged"),
 		}, {
 			ViewName:    "files",
 			Key:         'd',
@@ -233,10 +235,12 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handlePopFileSnapshot,
 		}, {
-			ViewName: "branches",
-			Key:      gocui.KeySpace,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleBranchPress,
+			ViewName:    "branches",
+			Key:         gocui.KeySpace,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleBranchPress,
+			KeyReadable: "space",
+			Description: gui.Tr.SLocalize("checkout"),
 		}, {
 			ViewName:    "branches",
 			Key:         'c',
