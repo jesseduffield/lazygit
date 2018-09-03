@@ -144,6 +144,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "DeleteBranchMessage",
 			Other: "Jesteś pewien, że chcesz usunąć gałąź {{.selectedBranchName}} ?",
 		}, &i18n.Message{
+			ID:    "ForceDeleteBranchMessage",
+			Other: "Na pewno wymusić usunięcie gałęzi {{.selectedBranchName}}?",
+		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Nie możesz scalić gałęzi do samej siebie",
 		}, &i18n.Message{
@@ -161,6 +164,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "deleteBranch",
 			Other: "usuń gałąź",
+		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "usuń gałąź (wymuś)",
 		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "Brak gałęzi dla tego repozytorium",
@@ -218,6 +224,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "renameCommit",
 			Other: "przemianuj commit",
+		}, &i18n.Message{
+			ID:    "renameCommitEditor",
+			Other: "przemianuj commit w edytorze",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "potencjalny błąd w getSelected Commit (niedopasowane ui i stan)",
@@ -299,6 +308,39 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Scalanie anulowane",
+		}, &i18n.Message{
+			ID:    "OpenConfig",
+			Other: "otwórz plik konfiguracyjny",
+		}, &i18n.Message{
+			ID:    "EditConfig",
+			Other: "edytuj plik konfiguracyjny",
+		}, &i18n.Message{
+			ID:    "ForcePush",
+			Other: "Wymuś wypchnięcie",
+		}, &i18n.Message{
+			ID:    "ForcePushPrompt",
+			Other: "Twoja gałąź rozeszła się z gałęzią zdalną. Wciśnij 'esc' aby anulować lub 'enter' aby wymusić wypchnięcie.",
+		}, &i18n.Message{
+			ID:    "checkForUpdate",
+			Other: "sprawdź aktualizacje",
+		}, &i18n.Message{
+			ID:    "CheckingForUpdates",
+			Other: "Sprawdzanie aktualizacji...",
+		}, &i18n.Message{
+			ID:    "OnLatestVersionErr",
+			Other: "Już posiadasz najnowszą wersję",
+		}, &i18n.Message{
+			ID:    "MajorVersionErr",
+			Other: "Nowa wersja ({{.newVersion}}) posiada niekompatybilne zmiany w porównaniu do obecnej wersji ({{.currentVersion}})",
+		}, &i18n.Message{
+			ID:    "CouldNotFindBinaryErr",
+			Other: "Nie można znaleźć pliku binarnego w {{.url}}",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingTitle",
+			Other: "Help make lazygit better",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingPrompt",
+			Other: "Włączyć anonimowe raportowanie błędów w celu pomocy w usprawnianiu lazygita (enter/esc)?",
 		}, &i18n.Message{
 			ID:    "removeFile",
 			Other: `usuń jeśli nie śledzony / przełącz jeśli śledzony`,
