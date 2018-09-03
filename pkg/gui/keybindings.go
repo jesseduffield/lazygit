@@ -285,11 +285,11 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleRenameCommit,
 			Description: gui.Tr.SLocalize("RenameCommit"),
-		},{
-			ViewName: "commits",
-			Key: 'R',
-			Modifier: gocui.ModNone,
-			Handler: gui.handleRenameCommitEditor,
+		}, {
+			ViewName:    "commits",
+			Key:         'R',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleRenameCommitEditor,
 			Description: gui.Tr.SLocalize("RenameCommitEditor"),
 		}, {
 			ViewName:    "commits",
