@@ -216,8 +216,8 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "OnlyRenameTopCommit",
 			Other: "Można przmianować tylko najwyższy commit",
 		}, &i18n.Message{
-			ID:    "RenameCommit",
-			Other: "Przemianuj commit",
+			ID:    "renameCommit",
+			Other: "przemianuj commit",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "potencjalny błąd w getSelected Commit (niedopasowane ui i stan)",

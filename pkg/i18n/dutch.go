@@ -224,8 +224,8 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "OnlyRenameTopCommit",
 			Other: "Je kan alleen de bovenste commit hernoemen",
 		}, &i18n.Message{
-			ID:    "RenameCommit",
-			Other: "Hernoem Commit",
+			ID:    "renameCommit",
+			Other: "hernoem commit",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)",

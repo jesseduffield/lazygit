@@ -88,7 +88,7 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Key:         'u',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCheckForUpdate,
-			Description: gui.Tr.SLocalize("CheckForUpdate"),
+			Description: gui.Tr.SLocalize("checkForUpdate"),
 		}, {
 			ViewName:    "files",
 			Key:         'c',
@@ -284,13 +284,13 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Key:         'r',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleRenameCommit,
-			Description: gui.Tr.SLocalize("RenameCommit"),
+			Description: gui.Tr.SLocalize("renameCommit"),
 		}, {
 			ViewName:    "commits",
 			Key:         'R',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleRenameCommitEditor,
-			Description: gui.Tr.SLocalize("RenameCommitEditor"),
+			Description: gui.Tr.SLocalize("renameCommitEditor"),
 		}, {
 			ViewName:    "commits",
 			Key:         'g',
