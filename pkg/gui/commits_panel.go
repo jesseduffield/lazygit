@@ -141,7 +141,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
-	if gui.getItemPosition(v) != 0 {
+	if gui.getItemPosition(gui.getCommitsView(g)) != 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
 	gui.createPromptPanel(g, v, gui.Tr.SLocalize("RenameCommit"), func(g *gocui.Gui, v *gocui.View) error {
@@ -157,7 +157,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
-	if gui.getItemPosition(v) != 0 {
+	if gui.getItemPosition(gui.getCommitsView(g)) != 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
 
