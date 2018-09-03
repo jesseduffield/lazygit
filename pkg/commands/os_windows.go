@@ -5,6 +5,6 @@ func getPlatform() *Platform {
 		os:           "windows",
 		shell:        "cmd",
 		shellArg:     "/c",
-		escapedQuote: "\\\"",
+		escapedQuote: `\"`,
 	}
 }

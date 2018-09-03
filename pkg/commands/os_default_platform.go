@@ -12,5 +12,6 @@ func getPlatform() *Platform {
 		shell:        "bash",
 		shellArg:     "-c",
 		escapedQuote: "\"",
+		openCommand:  "open {{filename}}",
 	}
 }

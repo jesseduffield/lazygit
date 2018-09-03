@@ -34,8 +34,6 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		{ViewName: "files", Key: 'm', Modifier: gocui.ModNone, Handler: gui.handleSwitchToMerge},
 		{ViewName: "files", Key: 'e', Modifier: gocui.ModNone, Handler: gui.handleFileEdit},
 		{ViewName: "files", Key: 'o', Modifier: gocui.ModNone, Handler: gui.handleFileOpen},
-		{ViewName: "files", Key: 's', Modifier: gocui.ModNone, Handler: gui.handleSublimeFileOpen},
-		{ViewName: "files", Key: 'v', Modifier: gocui.ModNone, Handler: gui.handleVsCodeFileOpen},
 		{ViewName: "files", Key: 'i', Modifier: gocui.ModNone, Handler: gui.handleIgnoreFile},
 		{ViewName: "files", Key: 'r', Modifier: gocui.ModNone, Handler: gui.handleRefreshFiles},
 		{ViewName: "files", Key: 'S', Modifier: gocui.ModNone, Handler: gui.handleStashSave},
