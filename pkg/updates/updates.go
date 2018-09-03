@@ -22,7 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Update checks for updates and does updates
+// Updater checks for updates and does updates
 type Updater struct {
 	Log       *logrus.Entry
 	Config    config.AppConfigurer
@@ -30,7 +30,7 @@ type Updater struct {
 	Tr        *i18n.Localizer
 }
 
-// Updater implements the check and update methods
+// Updaterer implements the check and update methods
 type Updaterer interface {
 	CheckForNewUpdate()
 	Update()
@@ -78,6 +78,7 @@ func (u *Updater) getLatestVersionNumber() (string, error) {
 	return dat["tag_name"].(string), nil
 }
 
+// RecordLastUpdateCheck records last time an update check was performed
 func (u *Updater) RecordLastUpdateCheck() error {
 	u.Config.GetAppState().LastUpdateCheck = time.Now().Unix()
 	return u.Config.SaveAppState()

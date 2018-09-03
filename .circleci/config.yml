@@ -9,7 +9,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-pkg-cache
+            - pkg-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: Run gofmt -s
           command: |
@@ -31,7 +31,7 @@ jobs:
           command: |
             bash <(curl -s https://codecov.io/bash)
       - save_cache:
-          key: v1-pkg-cache
+          key: pkg-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - "/go/pkg"
 

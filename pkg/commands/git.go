@@ -46,8 +46,8 @@ func (c *GitCommand) SetupGit() {
 
 // GetStashEntries stash entryies
 func (c *GitCommand) GetStashEntries() []StashEntry {
-	stashEntries := make([]StashEntry, 0)
 	rawString, _ := c.OSCommand.RunCommandWithOutput("git stash list --pretty='%gs'")
+	stashEntries := []StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
 	}
@@ -80,7 +80,7 @@ func includes(array []string, str string) bool {
 func (c *GitCommand) GetStatusFiles() []File {
 	statusOutput, _ := c.GitStatus()
 	statusStrings := utils.SplitLines(statusOutput)
-	files := make([]File, 0)
+	files := []File{}
 
 	for _, statusString := range statusStrings {
 		change := statusString[0:2]
@@ -106,13 +106,13 @@ func (c *GitCommand) GetStatusFiles() []File {
 
 // StashDo modify stash
 func (c *GitCommand) StashDo(index int, method string) error {
-	return c.OSCommand.RunCommand("git stash " + method + " stash@{" + fmt.Sprint(index) + "}")
+	return c.OSCommand.RunCommand(fmt.Sprintf("git stash %s stash@{%d}", method, index))
 }
 
 // StashSave save stash
 // TODO: before calling this, check if there is anything to save
 func (c *GitCommand) StashSave(message string) error {
-	return c.OSCommand.RunCommand("git stash save " + c.OSCommand.Quote(message))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git stash save %s", c.OSCommand.Quote(message)))
 }
 
 // MergeStatusFiles merge status files
@@ -121,28 +121,28 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 		return newFiles
 	}
 
-	appendedIndexes := make([]int, 0)
+	headResults := []File{}
+	tailResults := []File{}
 
-	// retain position of files we already could see
-	result := make([]File, 0)
-	for _, oldFile := range oldFiles {
-		for newIndex, newFile := range newFiles {
+	for _, newFile := range newFiles {
+		var isHeadResult bool
+
+		for _, oldFile := range oldFiles {
 			if oldFile.Name == newFile.Name {
-				result = append(result, newFile)
-				appendedIndexes = append(appendedIndexes, newIndex)
+				isHeadResult = true
 				break
 			}
 		}
-	}
 
-	// append any new files to the end
-	for index, newFile := range newFiles {
-		if !includesInt(appendedIndexes, index) {
-			result = append(result, newFile)
+		if isHeadResult {
+			headResults = append(headResults, newFile)
+			continue
 		}
+
+		tailResults = append(tailResults, newFile)
 	}
 
-	return result
+	return append(headResults, tailResults...)
 }
 
 func (c *GitCommand) verifyInGitRepo() {
@@ -439,17 +439,6 @@ func Map(vs []string, f func(string) string) []string {
 }
 
 func includesString(list []string, a string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
-// not sure how to genericise this because []interface{} doesn't accept e.g.
-// []int arguments
-func includesInt(list []int, a int) bool {
 	for _, b := range list {
 		if b == a {
 			return true
