@@ -227,6 +227,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "renameCommit",
 			Other: "hernoem commit",
 		}, &i18n.Message{
+			ID:    "renameCommitEditor",
+			Other: "rename commit with editor",
+		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)",
 		}, &i18n.Message{
@@ -307,6 +310,39 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
+		}, &i18n.Message{
+			ID:    "OpenConfig",
+			Other: "open config file",
+		}, &i18n.Message{
+			ID:    "EditConfig",
+			Other: "edit config file",
+		}, &i18n.Message{
+			ID:    "ForcePush",
+			Other: "Force push",
+		}, &i18n.Message{
+			ID:    "ForcePushPrompt",
+			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
+		}, &i18n.Message{
+			ID:    "checkForUpdate",
+			Other: "check for update",
+		}, &i18n.Message{
+			ID:    "CheckingForUpdates",
+			Other: "Checking for updates...",
+		}, &i18n.Message{
+			ID:    "OnLatestVersionErr",
+			Other: "You already have the latest version",
+		}, &i18n.Message{
+			ID:    "MajorVersionErr",
+			Other: "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
+		}, &i18n.Message{
+			ID:    "CouldNotFindBinaryErr",
+			Other: "Could not find any binary at {{.url}}",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingTitle",
+			Other: "Help make lazygit better",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingPrompt",
+			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
 		}, &i18n.Message{
 			ID:    "removeFile",
 			Other: `delete if untracked / checkout if tracked (aka go away)`,
