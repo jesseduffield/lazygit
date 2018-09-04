@@ -348,6 +348,18 @@ func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
 	return nil
 }
 
+func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
+	return gui.renderOptionsMap(g, map[string]string{
+		"R":         gui.Tr.SLocalize("refresh"),
+		"p":         gui.Tr.SLocalize("pull"),
+		"P":         gui.Tr.SLocalize("push"),
+		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
+		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
+		"esc/q":     gui.Tr.SLocalize("close"),
+		"?":         gui.Tr.SLocalize("help"),
+	})
+}
+
 func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
 	go func() {
 		for range time.Tick(interval) {

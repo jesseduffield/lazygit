@@ -115,10 +115,7 @@ func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
 }
 
 func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
-		"?":       gui.Tr.SLocalize("help"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 // may want to standardise how these select methods work

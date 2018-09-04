@@ -33,10 +33,7 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 }
 
 func (gui *Gui) renderStashOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
-		"?":       gui.Tr.SLocalize("help"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {

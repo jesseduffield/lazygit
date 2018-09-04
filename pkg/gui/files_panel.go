@@ -172,22 +172,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
-	optionsMap := map[string]string{
-		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
-		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
-		"?":         gui.Tr.SLocalize("help"),
-	}
-	if gui.State.HasMergeConflicts {
-		optionsMap["a"] = gui.Tr.SLocalize("abortMerge")
-		optionsMap["m"] = gui.Tr.SLocalize("resolveMergeConflicts")
-	}
-	if file == nil {
-		return gui.renderOptionsMap(g, optionsMap)
-	}
-	if file.Tracked {
-		optionsMap["d"] = gui.Tr.SLocalize("checkout")
-	}
-	return gui.renderOptionsMap(g, optionsMap)
+	return gui.renderGlobalOptions(g)
 }
 
 func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {

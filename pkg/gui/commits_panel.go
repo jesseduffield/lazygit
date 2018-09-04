@@ -59,10 +59,7 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 }
 
 func (gui *Gui) renderCommitsOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
-		"?":       gui.Tr.SLocalize("help"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
