@@ -23,22 +23,27 @@ func (m *statusManager) removeStatus(name string) {
 }
 
 func (m *statusManager) addWaitingStatus(name string) {
+
 	m.removeStatus(name)
 	newStatus := appStatus{
 		name:       name,
 		statusType: "waiting",
 		duration:   0,
 	}
+
 	m.statuses = append([]appStatus{newStatus}, m.statuses...)
 }
 
 func (m *statusManager) getStatusString() string {
+
 	if len(m.statuses) == 0 {
 		return ""
 	}
+
 	topStatus := m.statuses[0]
 	if topStatus.statusType == "waiting" {
 		return topStatus.name + " " + utils.Loader()
 	}
+
 	return topStatus.name
 }
