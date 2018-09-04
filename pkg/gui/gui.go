@@ -224,7 +224,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("BranchesTitle")
 		v.FgColor = gocui.ColorWhite
 
-		g.SetViewOnTop(v.Name())
+		_, err := g.SetViewOnTop(v.Name())
+		if err != nil {
+			return err
+		}
 
 	}
 
@@ -236,7 +239,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("TagsTitle")
 		v.FgColor = gocui.ColorWhite
 
-		g.SetViewOnBottom(v.Name())
+		_, err := g.SetViewOnBottom(v.Name())
+		if err != nil {
+			return err
+		}
 
 	}
 
