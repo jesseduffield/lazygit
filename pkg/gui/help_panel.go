@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 var keys []Binding
@@ -60,15 +61,27 @@ func (gui *Gui) GetKey(binding Binding) string {
 	return key
 }
 
+func (gui *Gui) getMaxKeyLength(bindings []Binding) int {
+	max := 0
+	for _, binding := range bindings {
+		keyLength := len(gui.GetKey(binding))
+		if keyLength > max {
+			max = keyLength
+		}
+	}
+	return max
+}
+
 func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	// clear keys slice, so we don't have ghost elements
 	keys = keys[:0]
 	content := ""
 	bindings := gui.GetKeybindings()
+	padWidth := gui.getMaxKeyLength(bindings)
 
 	for _, binding := range bindings {
 		if key := gui.GetKey(binding); key != "" && binding.ViewName == v.Name() && binding.Description != "" {
-			content += fmt.Sprintf(" %s - %s\n", key, binding.Description)
+			content += fmt.Sprintf("%s  %s\n", utils.WithPadding(key, padWidth), binding.Description)
 			keys = append(keys, binding)
 		}
 	}
