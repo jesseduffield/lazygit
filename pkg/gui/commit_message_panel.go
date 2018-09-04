@@ -8,10 +8,12 @@ import (
 )
 
 func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
+
 	message := gui.trimmedContent(v)
 	if message == "" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CommitWithoutMessageErr"))
 	}
+
 	sub, err := gui.GitCommand.Commit(g, message)
 	if err != nil {
 		// TODO need to find a way to send through this error
@@ -19,24 +21,72 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(g, err.Error())
 		}
 	}
+
 	if sub != nil {
 		gui.SubProcess = sub
 		return gui.Errors.ErrSubProcess
 	}
-	gui.refreshFiles(g)
+
+	err = gui.refreshFiles(g)
+	if err != nil {
+
+	}
+
 	v.Clear()
-	v.SetCursor(0, 0)
-	g.SetViewOnBottom("commitMessage")
-	gui.switchFocus(g, v, gui.getFilesView(g))
+
+	err = v.SetCursor(0, 0)
+	if err != nil {
+		return err
+	}
+
+	_, err = g.SetViewOnBottom("commitMessage")
+	if err != nil {
+		return err
+	}
+
+	err = gui.switchFocus(g, v, gui.getFilesView(g))
+	if err != nil {
+		return err
+	}
+
 	return gui.refreshCommits(g)
+
 }
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
-	g.SetViewOnBottom("commitMessage")
+
+	_, err := g.SetViewOnBottom("commitMessage")
+	if err != nil {
+		return err
+	}
+
 	return gui.switchFocus(g, v, gui.getFilesView(g))
+
+}
+
+func (gui *Gui) handleNewlineCommitMessage(g *gocui.Gui, v *gocui.View) error {
+
+	// resising ahead of time so that the top line doesn't get hidden to make
+	// room for the cursor on the second line
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, v.Buffer())
+
+	_, err := g.SetView("commitMessage", x0, y0, x1, y1+1, 0)
+	if err != nil {
+
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+
+	}
+
+	v.EditNewLine()
+
+	return nil
+
 }
 
 func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
+
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{
@@ -44,7 +94,9 @@ func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 			"keyBindConfirm": "enter",
 		},
 	)
+
 	return gui.renderString(g, "options", message)
+
 }
 
 func (gui *Gui) simpleEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
