@@ -15,6 +15,48 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 )
 
+func verifyInGitRepo(runCmd func(string) error) error {
+	return runCmd("git status")
+}
+
+func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {
+	for {
+		f, err := stat(".git")
+
+		if err == nil && f.IsDir() {
+			return nil
+		}
+
+		if !os.IsNotExist(err) {
+			return err
+		}
+
+		if err = chdir(".."); err != nil {
+			return err
+		}
+	}
+}
+
+func setupRepositoryAndWorktree(openGitRepository func(string) (*gogit.Repository, error), sLocalize func(string) string) (repository *gogit.Repository, worktree *gogit.Worktree, err error) {
+	repository, err = openGitRepository(".")
+
+	if err != nil {
+		if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
+			return nil, nil, errors.New(sLocalize("GitconfigParseErr"))
+		}
+
+		return
+	}
+
+	worktree, err = repository.Worktree()
+
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // GitCommand is our main git interface
 type GitCommand struct {
 	Log       *logrus.Entry
@@ -26,22 +68,36 @@ type GitCommand struct {
 
 // NewGitCommand it runs git commands
 func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) (*GitCommand, error) {
-	gitCommand := &GitCommand{
+	var worktree *gogit.Worktree
+	var repo *gogit.Repository
+
+	fs := []func() error{
+		func() error {
+			return verifyInGitRepo(osCommand.RunCommand)
+		},
+		func() error {
+			return navigateToRepoRootDirectory(os.Stat, os.Chdir)
+		},
+		func() error {
+			var err error
+			repo, worktree, err = setupRepositoryAndWorktree(gogit.PlainOpen, tr.SLocalize)
+			return err
+		},
+	}
+
+	for _, f := range fs {
+		if err := f(); err != nil {
+			return nil, err
+		}
+	}
+
+	return &GitCommand{
 		Log:       log,
 		OSCommand: osCommand,
 		Tr:        tr,
-	}
-	return gitCommand, nil
-}
-
-// SetupGit sets git repo up
-func (c *GitCommand) SetupGit() {
-	c.verifyInGitRepo()
-	c.navigateToRepoRootDirectory()
-	if err := c.setupWorktree(); err != nil {
-		c.Log.Error(err)
-		panic(err)
-	}
+		Worktree:  worktree,
+		Repo:      repo,
+	}, nil
 }
 
 // GetStashEntries stash entryies
@@ -145,44 +201,9 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 	return append(headResults, tailResults...)
 }
 
-func (c *GitCommand) verifyInGitRepo() {
-	if output, err := c.OSCommand.RunCommandWithOutput("git status"); err != nil {
-		fmt.Println(output)
-		os.Exit(1)
-	}
-}
-
 // GetBranchName branch name
 func (c *GitCommand) GetBranchName() (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
-}
-
-func (c *GitCommand) navigateToRepoRootDirectory() {
-	_, err := os.Stat(".git")
-	for os.IsNotExist(err) {
-		c.Log.Debug("going up a directory to find the root")
-		os.Chdir("..")
-		_, err = os.Stat(".git")
-	}
-}
-
-func (c *GitCommand) setupWorktree() error {
-	r, err := gogit.PlainOpen(".")
-	if err != nil {
-		if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
-			errorMessage := c.Tr.SLocalize("GitconfigParseErr")
-			return errors.New(errorMessage)
-		}
-		return err
-	}
-	c.Repo = r
-
-	w, err := r.Worktree()
-	if err != nil {
-		return err
-	}
-	c.Worktree = w
-	return nil
 }
 
 // ResetHard does the equivalent of `git reset --hard HEAD`
@@ -432,15 +453,6 @@ func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branchName)
-}
-
-// Map (from https://gobyexample.com/collection-functions)
-func Map(vs []string, f func(string) string) []string {
-	vsm := make([]string, len(vs))
-	for i, v := range vs {
-		vsm[i] = f(v)
-	}
-	return vsm
 }
 
 func includesString(list []string, a string) bool {

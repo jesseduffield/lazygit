@@ -65,8 +65,8 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 	})
 }
 
-// NewApp retruns a new applications
-func NewApp(config config.AppConfigurer) (*App, error) {
+// Setup bootstrap a new application
+func Setup(config config.AppConfigurer) (*App, error) {
 	app := &App{
 		closers: []io.Closer{},
 		Config:  config,
