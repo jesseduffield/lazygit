@@ -90,6 +90,7 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, content)
 	helpView, _ := g.SetView("help", x0, y0, x1, y1-1, 0)
 	helpView.Title = strings.Title(gui.Tr.SLocalize("help"))
+	helpView.FgColor = gocui.ColorWhite
 
 	if err := gui.renderHelpOptions(g); err != nil {
 		return err
