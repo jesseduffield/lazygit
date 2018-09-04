@@ -34,9 +34,6 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 
 func (gui *Gui) renderStashOptions(g *gocui.Gui) error {
 	return gui.renderOptionsMap(g, map[string]string{
-		"space":   gui.Tr.SLocalize("apply"),
-		"g":       gui.Tr.SLocalize("pop"),
-		"d":       gui.Tr.SLocalize("drop"),
 		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
 		"?":       gui.Tr.SLocalize("help"),
 	})

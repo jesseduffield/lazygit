@@ -60,10 +60,6 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 
 func (gui *Gui) renderCommitsOptions(g *gocui.Gui) error {
 	return gui.renderOptionsMap(g, map[string]string{
-		"s":       gui.Tr.SLocalize("squashDown"),
-		"r":       gui.Tr.SLocalize("rename"),
-		"g":       gui.Tr.SLocalize("resetToThisCommit"),
-		"f":       gui.Tr.SLocalize("fixupCommit"),
 		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
 		"?":       gui.Tr.SLocalize("help"),
 	})

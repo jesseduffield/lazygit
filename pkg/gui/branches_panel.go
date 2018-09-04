@@ -116,13 +116,6 @@ func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
 
 func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
 	return gui.renderOptionsMap(g, map[string]string{
-		"space":   gui.Tr.SLocalize("checkout"),
-		"f":       gui.Tr.SLocalize("forceCheckout"),
-		"m":       gui.Tr.SLocalize("merge"),
-		"c":       gui.Tr.SLocalize("checkoutByName"),
-		"n":       gui.Tr.SLocalize("newBranch"),
-		"d":       gui.Tr.SLocalize("deleteBranch"),
-		"D":       gui.Tr.SLocalize("forceDeleteBranch"),
 		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
 		"?":       gui.Tr.SLocalize("help"),
 	})
