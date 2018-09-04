@@ -15,16 +15,8 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 )
 
-// ErrGitRepositoryInvalid is emitted when we run a git command in a folder
-// to check if we have a valid git repository and we get an error instead
-var ErrGitRepositoryInvalid = errors.New("can't find a valid git repository in current directory")
-
-func verifyInGitRepo(runCmdWithOutput func(string) (string, error)) error {
-	if _, err := runCmdWithOutput("git status"); err != nil {
-		return ErrGitRepositoryInvalid
-	}
-
-	return nil
+func verifyInGitRepo(runCmd func(string) error) error {
+	return runCmd("git status")
 }
 
 func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {
@@ -81,7 +73,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 
 	fs := []func() error{
 		func() error {
-			return verifyInGitRepo(osCommand.RunCommandWithOutput)
+			return verifyInGitRepo(osCommand.RunCommand)
 		},
 		func() error {
 			return navigateToRepoRootDirectory(os.Stat, os.Chdir)

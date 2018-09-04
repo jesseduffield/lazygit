@@ -64,32 +64,32 @@ func newDummyGitCommand() *GitCommand {
 
 func TestVerifyInGitRepo(t *testing.T) {
 	type scenario struct {
-		runCmdWithOutput func(string) (string, error)
-		test             func(error)
+		runCmd func(string) error
+		test   func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			func(string) (string, error) {
-				return "", nil
+			func(string) error {
+				return nil
 			},
 			func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 		{
-			func(string) (string, error) {
-				return "", ErrGitRepositoryInvalid
+			func(string) error {
+				return fmt.Errorf("fatal: Not a git repository (or any of the parent directories): .git")
 			},
 			func(err error) {
 				assert.Error(t, err)
-				assert.Equal(t, ErrGitRepositoryInvalid, err)
+				assert.Regexp(t, "fatal: .ot a git repository \\(or any of the parent directories\\): \\.git", err.Error())
 			},
 		},
 	}
 
 	for _, s := range scenarios {
-		s.test(verifyInGitRepo(s.runCmdWithOutput))
+		s.test(verifyInGitRepo(s.runCmd))
 	}
 }
 
@@ -234,7 +234,7 @@ func TestNewGitCommand(t *testing.T) {
 			},
 			func(gitCmd *GitCommand, err error) {
 				assert.Error(t, err)
-				assert.Equal(t, ErrGitRepositoryInvalid, err)
+				assert.Regexp(t, "fatal: .ot a git repository \\(or any of the parent directories\\): \\.git", err.Error())
 			},
 		},
 		{
