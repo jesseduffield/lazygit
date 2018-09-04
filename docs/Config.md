@@ -33,7 +33,7 @@
 
 ```
   os:
-    openCommand: 'bash -c \"xdg-open {{filename}} &>/dev/null &\"'
+    openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'
 ```
 
 ### OSX:
