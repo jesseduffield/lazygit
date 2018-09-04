@@ -83,6 +83,7 @@ type guiState struct {
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
 	Updating          bool
+	Keys              []Binding
 }
 
 // NewGui builds a new gui handler

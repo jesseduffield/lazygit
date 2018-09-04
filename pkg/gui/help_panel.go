@@ -8,16 +8,14 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-var keys []Binding
-
 func (gui *Gui) handleHelpPress(g *gocui.Gui, v *gocui.View) error {
 	lineNumber := gui.getItemPosition(v)
-	if len(keys) > lineNumber {
+	if len(gui.State.Keys) > lineNumber {
 		err := gui.handleHelpClose(g, v)
 		if err != nil {
 			return err
 		}
-		return keys[lineNumber].Handler(g, v)
+		return gui.State.Keys[lineNumber].Handler(g, v)
 	}
 	return nil
 }
@@ -74,7 +72,7 @@ func (gui *Gui) getMaxKeyLength(bindings []Binding) int {
 
 func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	// clear keys slice, so we don't have ghost elements
-	keys = keys[:0]
+	gui.State.Keys = gui.State.Keys[:0]
 	content := ""
 	bindings := gui.GetKeybindings()
 	padWidth := gui.getMaxKeyLength(bindings)
@@ -82,7 +80,7 @@ func (gui *Gui) handleHelp(g *gocui.Gui, v *gocui.View) error {
 	for _, binding := range bindings {
 		if key := gui.GetKey(binding); key != "" && binding.ViewName == v.Name() && binding.Description != "" {
 			content += fmt.Sprintf("%s  %s\n", utils.WithPadding(key, padWidth), binding.Description)
-			keys = append(keys, binding)
+			gui.State.Keys = append(gui.State.Keys, binding)
 		}
 	}
 
