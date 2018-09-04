@@ -29,7 +29,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 
 	err = gui.refreshFiles(g)
 	if err != nil {
-
+		return err
 	}
 
 	v.Clear()

@@ -47,7 +47,12 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(branch.Name, true)
 			if err != nil {
-				gui.createErrorPanel(g, err.Error())
+
+				err = gui.createErrorPanel(g, err.Error())
+				if err != nil {
+					return err
+				}
+
 			}
 
 			err = gui.refreshSidePanels(g)
