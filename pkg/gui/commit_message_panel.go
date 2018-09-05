@@ -71,9 +71,17 @@ func (gui *Gui) simpleEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mo
 		v.EditWrite(ch)
 	}
 
-	v.Subtitle = gui.getBufferLength(v)
+	gui.RenderCommitLength()
 }
 
 func (gui *Gui) getBufferLength(view *gocui.View) string {
 	return " " + strconv.Itoa(strings.Count(view.Buffer(), "")-1) + " "
+}
+
+func (gui *Gui) RenderCommitLength() {
+	if !gui.Config.GetUserConfig().GetBool("gui.commitLength.show") {
+		return
+	}
+	v := gui.getCommitMessageView(gui.g)
+	v.Subtitle = gui.getBufferLength(v)
 }

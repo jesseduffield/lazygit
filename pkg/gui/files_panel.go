@@ -226,7 +226,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	g.Update(func(g *gocui.Gui) error {
 		g.SetViewOnTop("commitMessage")
 		gui.switchFocus(g, filesView, commitMessageView)
-		commitMessageView.Subtitle = gui.getBufferLength(commitMessageView)
+		gui.RenderCommitLength()
 		return nil
 	})
 	return nil
