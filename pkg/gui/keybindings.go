@@ -71,7 +71,7 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Description: gui.Tr.SLocalize("refresh"),
 		}, {
 			ViewName: "",
-			Key:      '?',
+			Key:      'x',
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleMenu,
 		}, {

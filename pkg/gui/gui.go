@@ -353,7 +353,7 @@ func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
 		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
 		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
 		"esc/q":     gui.Tr.SLocalize("close"),
-		"?":         gui.Tr.SLocalize("menu"),
+		"x":         gui.Tr.SLocalize("menu"),
 	})
 }
 

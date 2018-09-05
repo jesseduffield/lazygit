@@ -30,7 +30,7 @@ func main() {
 	file.WriteString("# Lazygit " + a.Tr.SLocalize("menu"))
 
 	for _, binding := range bindings {
-		if key := a.Gui.GetKey(binding); key != "" && (binding.Description != "" || key == "?") {
+		if key := a.Gui.GetKey(binding); key != "" && (binding.Description != "" || key == "x") {
 			if binding.ViewName != current {
 				current = binding.ViewName
 				if current == "" {
@@ -44,7 +44,7 @@ func main() {
 			// workaround to include menu keybinding in cheatsheet
 			// could not add this Description field directly to keybindings.go,
 			// because then menu key would be displayed in menu itself and that is undesirable
-			if key == "?" {
+			if key == "x" {
 				binding.Description = a.Tr.SLocalize("menu")
 			}
 			content = fmt.Sprintf("\t<kbd>%s</kbd>%s  %s\n", key, strings.TrimPrefix(utils.WithPadding(key, padWidth), key), binding.Description)
