@@ -222,6 +222,8 @@ func GetDefaultConfig() []byte {
       - white
     optionsTextColor:
       - blue
+  commitLength:
+    show: true
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often a update is checked for

@@ -262,6 +262,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
+			commitMessageView.Editor = gocui.EditorFunc(gui.simpleEditor)
 		}
 	}
 

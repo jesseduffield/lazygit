@@ -70,7 +70,6 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		{ViewName: "stash", Key: 'd', Modifier: gocui.ModNone, Handler: gui.handleStashDrop},
 		{ViewName: "commitMessage", Key: gocui.KeyEnter, Modifier: gocui.ModNone, Handler: gui.handleCommitConfirm},
 		{ViewName: "commitMessage", Key: gocui.KeyEsc, Modifier: gocui.ModNone, Handler: gui.handleCommitClose},
-		{ViewName: "commitMessage", Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.handleNewlineCommitMessage},
 	}
 
 	// Would make these keybindings global but that interferes with editing
