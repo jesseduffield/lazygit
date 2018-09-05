@@ -12,7 +12,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"strconv"
 )
 
 func (gui *Gui) stagedFiles() []commands.File {
@@ -219,60 +218,6 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	return gui.renderString(g, "main", content)
 }
 
-func (gui *Gui) simpleEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-	switch {
-	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
-		v.EditDelete(true)
-	case key == gocui.KeyDelete:
-		v.EditDelete(false)
-	case key == gocui.KeyArrowDown:
-		v.MoveCursor(0, 1, false)
-	case key == gocui.KeyArrowUp:
-		v.MoveCursor(0, -1, false)
-	case key == gocui.KeyArrowLeft:
-		v.MoveCursor(-1, 0, false)
-	case key == gocui.KeyArrowRight:
-		v.MoveCursor(1, 0, false)
-	case key == gocui.KeyTab:
-		v.EditNewLine()
-	case key == gocui.KeySpace:
-		v.EditWrite(' ')
-	case key == gocui.KeyInsert:
-		v.Overwrite = !v.Overwrite
-	default:
-		v.EditWrite(ch)
-	}
-
-	gui.renderCommitCount(v)
-}
-
-func (gui *Gui) getCommitCount(view *gocui.View) int {
-	return strings.Count(view.Buffer(), "") - 1
-}
-
-func (gui *Gui) renderCommitCount(view *gocui.View) error {
-	num := 0
-	offset := 5
-	count := gui.getCommitCount(view)
-	_, y0, x1, _ := gui.getConfirmationPanelDimensions(gui.g, view.Buffer())
-
-	if count > 99 {
-		num = 3
-	} else if count > 9 {
-		num = 2
-	} else {
-		num = 1
-	}
-
-	if _, err := gui.g.SetView("commitMessageCount", x1-num-offset, y0-1, x1-offset+1, y0+1, 0); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-	}
-
-	return gui.renderString(gui.g, "commitMessageCount", strconv.Itoa(count))
-}
-
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
@@ -280,9 +225,8 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	commitMessageView := gui.getCommitMessageView(g)
 	g.Update(func(g *gocui.Gui) error {
 		g.SetViewOnTop("commitMessage")
-		g.SetViewOnTop("commitMessageCount")
 		gui.switchFocus(g, filesView, commitMessageView)
-		gui.renderCommitCount(commitMessageView)
+		commitMessageView.Subtitle = gui.getBufferLength(commitMessageView)
 		return nil
 	})
 	return nil
