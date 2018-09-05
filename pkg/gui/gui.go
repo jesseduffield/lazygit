@@ -262,6 +262,16 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
+			commitMessageView.Editor = gocui.EditorFunc(gui.simpleEditor)
+		}
+		if commitMessageCountView, err := g.SetView("commitMessageCount", 0, 0, width/2, height/2, 0); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+			g.SetViewOnBottom("commitMessageCount")
+			commitMessageCountView.Frame = false
+			commitMessageCountView.BgColor = gocui.ColorDefault
+			commitMessageCountView.FgColor = gocui.ColorWhite
 		}
 	}
 

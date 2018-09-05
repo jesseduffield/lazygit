@@ -30,12 +30,8 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 	g.SetViewOnBottom("commitMessage")
+	g.SetViewOnBottom("commitMessageCount")
 	return gui.switchFocus(g, v, gui.getFilesView(g))
-}
-
-func (gui *Gui) handleNewlineCommitMessage(g *gocui.Gui, v *gocui.View) error {
-	v.EditNewLine()
-	return nil
 }
 
 func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
