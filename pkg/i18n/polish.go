@@ -46,7 +46,7 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			Other: "nawiguj",
 		}, &i18n.Message{
 			ID:    "menu",
-			Other: "pomoc",
+			Other: "menu",
 		}, &i18n.Message{
 			ID:    "execute",
 			Other: "wykonaj",
