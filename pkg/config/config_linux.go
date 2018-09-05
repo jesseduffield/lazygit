@@ -4,5 +4,5 @@ package config
 func GetPlatformDefaultConfig() []byte {
 	return []byte(
 		`os:
-  openCommand: 'bash -c \"xdg-open {{filename}} &>/dev/null &\"'`)
+  openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'`)
 }
