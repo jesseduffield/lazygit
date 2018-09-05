@@ -295,6 +295,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
+		}, &i18n.Message{
+			ID:    "ConfirmQuit",
+			Other: `Are you sure you want to quit?`,
 		},
 	)
 }
