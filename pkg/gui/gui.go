@@ -307,9 +307,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	gui.resizePopupPanels(g)
-
-	return nil
+	return gui.resizeCurrentPopupPanel(g)
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
@@ -353,14 +351,6 @@ func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*goc
 			function(g)
 		}
 	}()
-}
-
-func (gui *Gui) resizePopupPanels(g *gocui.Gui) error {
-	v := g.CurrentView()
-	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
-		return gui.resizePopupPanel(g, v)
-	}
-	return nil
 }
 
 // Run setup the gui with keybindings and start the mainloop
