@@ -342,6 +342,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "GitconfigParseErr",
 			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
+		}, &i18n.Message{
+			ID:    "ConfirmQuit",
+			Other: `Are you sure you want to quit?`,
 		},
 	)
 }

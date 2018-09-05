@@ -411,5 +411,10 @@ func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 	if gui.State.Updating {
 		return gui.createUpdateQuitConfirmation(g, v)
 	}
+	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
+		return gui.createConfirmationPanel(g, v, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
+			return gocui.ErrQuit
+		}, nil)
+	}
 	return gocui.ErrQuit
 }

@@ -287,6 +287,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Scalanie anulowane",
+		}, &i18n.Message{
+			ID:    "ConfirmQuit",
+			Other: `Na pewno chcesz wyjść z programu?`,
 		},
 	)
 }
