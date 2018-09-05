@@ -34,15 +34,6 @@ func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleNewlineCommitMessage(g *gocui.Gui, v *gocui.View) error {
-	// resising ahead of time so that the top line doesn't get hidden to make
-	// room for the cursor on the second line
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, v.Buffer())
-	if _, err := g.SetView("commitMessage", x0, y0, x1, y1+1, 0); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-	}
-
 	v.EditNewLine()
 	return nil
 }
