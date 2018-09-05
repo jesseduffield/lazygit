@@ -24,7 +24,7 @@ func main() {
 	current := ""
 	content := ""
 
-	file.WriteString("# Lazygit " + a.Tr.SLocalize("help"))
+	file.WriteString("# Lazygit " + a.Tr.SLocalize("menu"))
 
 	for _, binding := range bindings {
 		if key := a.Gui.GetKey(binding); key != "" && binding.Description != "" {

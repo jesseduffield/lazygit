@@ -70,7 +70,7 @@ func (gui *Gui) GetKeybindings() []Binding {
 			ViewName: "",
 			Key:      '?',
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleHelp,
+			Handler:  gui.handleMenu,
 		}, {
 			ViewName:    "status",
 			Key:         'e',
@@ -342,26 +342,26 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleNewlineCommitMessage,
 		}, {
-			ViewName: "help",
+			ViewName: "menu",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleHelpClose,
+			Handler:  gui.handleMenuClose,
 		}, {
-			ViewName: "help",
+			ViewName: "menu",
 			Key:      'q',
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleHelpClose,
+			Handler:  gui.handleMenuClose,
 		}, {
-			ViewName: "help",
+			ViewName: "menu",
 			Key:      gocui.KeySpace,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleHelpPress,
+			Handler:  gui.handleMenuPress,
 		},
 	}
 
 	// Would make these keybindings global but that interferes with editing
 	// input in the confirmation panel
-	for _, viewName := range []string{"status", "files", "branches", "commits", "stash", "help"} {
+	for _, viewName := range []string{"status", "files", "branches", "commits", "stash", "menu"} {
 		bindings = append(bindings, []Binding{
 			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},
