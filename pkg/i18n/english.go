@@ -49,6 +49,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
+			ID:    "GlobalTitle",
+			Other: "Global",
+		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "navigate",
 		}, &i18n.Message{

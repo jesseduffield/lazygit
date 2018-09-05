@@ -10,6 +10,9 @@ import (
 
 func (gui *Gui) handleMenuPress(g *gocui.Gui, v *gocui.View) error {
 	lineNumber := gui.getItemPosition(v)
+	if gui.State.Keys[lineNumber].Key == nil {
+		return nil
+	}
 	if len(gui.State.Keys) > lineNumber {
 		err := gui.handleMenuClose(g, v)
 		if err != nil {
@@ -59,7 +62,7 @@ func (gui *Gui) GetKey(binding Binding) string {
 	return key
 }
 
-func (gui *Gui) getMaxKeyLength(bindings []Binding) int {
+func (gui *Gui) GetMaxKeyLength(bindings []Binding) int {
 	max := 0
 	for _, binding := range bindings {
 		keyLength := len(gui.GetKey(binding))
@@ -74,11 +77,17 @@ func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
 	// clear keys slice, so we don't have ghost elements
 	gui.State.Keys = gui.State.Keys[:0]
 	content := ""
+	current := ""
 	bindings := gui.GetKeybindings()
-	padWidth := gui.getMaxKeyLength(bindings)
+	padWidth := gui.GetMaxKeyLength(bindings)
 
 	for _, binding := range bindings {
-		if key := gui.GetKey(binding); key != "" && binding.ViewName == v.Name() && binding.Description != "" {
+		if key := gui.GetKey(binding); key != "" && (binding.ViewName == v.Name() || binding.ViewName == "") && binding.Description != "" {
+			if binding.ViewName != current {
+				content += "\n"
+				gui.State.Keys = append(gui.State.Keys, Binding{})
+				current = binding.ViewName
+			}
 			content += fmt.Sprintf("%s  %s\n", utils.WithPadding(key, padWidth), binding.Description)
 			gui.State.Keys = append(gui.State.Keys, binding)
 		}

@@ -39,6 +39,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
+			ID:    "GlobalTitle",
+			Other: "Globalne",
+		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "nawiguj",
 		}, &i18n.Message{

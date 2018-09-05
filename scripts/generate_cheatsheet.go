@@ -12,6 +12,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func main() {
@@ -20,9 +21,11 @@ func main() {
 	lang := a.Tr.GetLanguage()
 	name := "Keybindings_" + lang + ".md"
 	bindings := a.Gui.GetKeybindings()
+	padWidth := a.Gui.GetMaxKeyLength(bindings)
 	file, _ := os.Create(name)
-	current := ""
+	current := "v"
 	content := ""
+	title := ""
 
 	file.WriteString("# Lazygit " + a.Tr.SLocalize("menu"))
 
@@ -30,11 +33,15 @@ func main() {
 		if key := a.Gui.GetKey(binding); key != "" && binding.Description != "" {
 			if binding.ViewName != current {
 				current = binding.ViewName
-				title := a.Tr.SLocalize(strings.Title(current) + "Title")
+				if current == "" {
+					title = a.Tr.SLocalize("GlobalTitle")
+				} else {
+					title = a.Tr.SLocalize(strings.Title(current) + "Title")
+				}
 				content = fmt.Sprintf("</pre>\n\n## %s\n<pre>\n", title)
 				file.WriteString(content)
 			}
-			content = fmt.Sprintf("\t<kbd>%s</kbd>:\t%s\n", key, binding.Description)
+			content = fmt.Sprintf("\t<kbd>%s</kbd>%s  %s\n", key, strings.TrimPrefix(utils.WithPadding(key, padWidth), key), binding.Description)
 			file.WriteString(content)
 		}
 	}

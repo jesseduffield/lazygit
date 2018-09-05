@@ -56,16 +56,19 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Key:      'P',
 			Modifier: gocui.ModNone,
 			Handler:  gui.pushFiles,
+			Description: gui.Tr.SLocalize("push"),
 		}, {
 			ViewName: "",
 			Key:      'p',
 			Modifier: gocui.ModNone,
 			Handler:  gui.pullFiles,
+			Description: gui.Tr.SLocalize("pull"),
 		}, {
 			ViewName: "",
 			Key:      'R',
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleRefresh,
+			Description: gui.Tr.SLocalize("refresh"),
 		}, {
 			ViewName: "",
 			Key:      '?',
