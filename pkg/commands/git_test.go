@@ -321,7 +321,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 	}
 }
 
-func TestGetStashEntryDiff(t *testing.T) {
+func TestGitCommandGetStashEntryDiff(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
@@ -335,7 +335,7 @@ func TestGetStashEntryDiff(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestGetStatusFiles(t *testing.T) {
+func TestGitCommandGetStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
