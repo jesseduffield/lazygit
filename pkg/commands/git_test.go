@@ -595,6 +595,44 @@ func TestGitCommandUpstreamDifferentCount(t *testing.T) {
 	}
 }
 
+func TestGitCommandGetCommitsToPush(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func([]string)
+	}
+
+	scenarios := []scenario{
+		{
+			"Can't retrieve pushable commits",
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("exit 1")
+			},
+			func(pushables []string) {
+				assert.EqualValues(t, []string{}, pushables)
+			},
+		},
+		{
+			"Retrieve pushable commits",
+			func(cmd string, args ...string) *exec.Cmd {
+				return exec.Command("echo", "8a2bb0e\n78976bc")
+			},
+			func(pushables []string) {
+				assert.Len(t, pushables, 2)
+				assert.EqualValues(t, []string{"8a2bb0e", "78976bc"}, pushables)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.GetCommitsToPush())
+		})
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
