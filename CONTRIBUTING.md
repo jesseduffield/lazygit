@@ -15,9 +15,10 @@ welcome your pull requests:
 1. Fork the repo and create your branch from `master`.
 2. If you've added code that should be tested, add tests.
 3. If you've added code that need documentation, update the documentation.
-4. Be sure to test your modifications.
-5. Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
-6. Issue that pull request!
+4. Make sure your code follows the [effective go](https://golang.org/doc/effective_go.html) guidelines as much as possible.
+5. Be sure to test your modifications.
+6. Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
+7. Issue that pull request!
 
 ## Code of conduct
 Please note by participating in this project, you agree to abide by the [code of conduct].
