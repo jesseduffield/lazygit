@@ -21,6 +21,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "BranchesTitle",
 			Other: "Gałęzie",
 		}, &i18n.Message{
+			ID:    "TagsTitle",
+			Other: "Tags",
+		}, &i18n.Message{
 			ID:    "CommitsTitle",
 			Other: "Commity",
 		}, &i18n.Message{
