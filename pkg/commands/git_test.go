@@ -538,6 +538,63 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 	}
 }
 
+func TestGitCommandUpstreamDifferentCount(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(string, string)
+	}
+
+	scenarios := []scenario{
+		{
+			"Can't retrieve pushable count",
+			func(string, ...string) *exec.Cmd {
+				return exec.Command("exit 1")
+			},
+			func(pushableCount string, pullableCount string) {
+				assert.EqualValues(t, "?", pushableCount)
+				assert.EqualValues(t, "?", pullableCount)
+			},
+		},
+		{
+			"Can't retrieve pullable count",
+			func(cmd string, args ...string) *exec.Cmd {
+				if args[1] == "head..@{u}" {
+					return exec.Command("exit 1")
+				}
+
+				return exec.Command("echo")
+			},
+			func(pushableCount string, pullableCount string) {
+				assert.EqualValues(t, "?", pushableCount)
+				assert.EqualValues(t, "?", pullableCount)
+			},
+		},
+		{
+			"Retrieve pullable and pushable count",
+			func(cmd string, args ...string) *exec.Cmd {
+				if args[1] == "head..@{u}" {
+					return exec.Command("echo", "10")
+				}
+
+				return exec.Command("echo", "11")
+			},
+			func(pushableCount string, pullableCount string) {
+				assert.EqualValues(t, "11", pushableCount)
+				assert.EqualValues(t, "10", pullableCount)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.UpstreamDifferenceCount())
+		})
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
