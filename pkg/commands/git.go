@@ -123,15 +123,6 @@ func (c *GitCommand) GetStashEntryDiff(index int) (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git stash show -p --color stash@{" + fmt.Sprint(index) + "}")
 }
 
-func includes(array []string, str string) bool {
-	for _, arrayStr := range array {
-		if arrayStr == str {
-			return true
-		}
-	}
-	return false
-}
-
 // GetStatusFiles git status files
 func (c *GitCommand) GetStatusFiles() []File {
 	statusOutput, _ := c.GitStatus()
@@ -143,13 +134,15 @@ func (c *GitCommand) GetStatusFiles() []File {
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
 		filename := c.OSCommand.Unquote(statusString[3:])
-		tracked := !includes([]string{"??", "A ", "AM"}, change)
+		_, untracked := map[string]bool{"??": true, "A ": true, "AM": true}[change]
+		_, hasUnstagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
+
 		file := File{
 			Name:               filename,
 			DisplayString:      statusString,
-			HasStagedChanges:   !includes([]string{" ", "U", "?"}, stagedChange),
+			HasStagedChanges:   !hasUnstagedChanges,
 			HasUnstagedChanges: unstagedChange != " ",
-			Tracked:            tracked,
+			Tracked:            !untracked,
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:  change == "UU",
 			Type:               c.OSCommand.FileType(filename),
