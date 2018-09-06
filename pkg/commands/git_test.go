@@ -549,7 +549,7 @@ func TestGitCommandUpstreamDifferentCount(t *testing.T) {
 		{
 			"Can't retrieve pushable count",
 			func(string, ...string) *exec.Cmd {
-				return exec.Command("exit 1")
+				return exec.Command("exit", "1")
 			},
 			func(pushableCount string, pullableCount string) {
 				assert.EqualValues(t, "?", pushableCount)
@@ -560,7 +560,7 @@ func TestGitCommandUpstreamDifferentCount(t *testing.T) {
 			"Can't retrieve pullable count",
 			func(cmd string, args ...string) *exec.Cmd {
 				if args[1] == "head..@{u}" {
-					return exec.Command("exit 1")
+					return exec.Command("exit", "1")
 				}
 
 				return exec.Command("echo")
@@ -606,7 +606,7 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 		{
 			"Can't retrieve pushable commits",
 			func(string, ...string) *exec.Cmd {
-				return exec.Command("exit 1")
+				return exec.Command("exit", "1")
 			},
 			func(pushables []string) {
 				assert.EqualValues(t, []string{}, pushables)
