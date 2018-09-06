@@ -6,7 +6,7 @@ import (
 )
 
 func addPolish(i18nObject *i18n.Bundle) error {
-
+	
 	return i18nObject.AddMessages(language.Polish,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
@@ -20,6 +20,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "BranchesTitle",
 			Other: "Gałęzie",
+		}, &i18n.Message{
+			ID:    "TagsTitle",
+			Other: "Tags",
 		}, &i18n.Message{
 			ID:    "CommitsTitle",
 			Other: "Commity",

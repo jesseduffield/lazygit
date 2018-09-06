@@ -225,6 +225,19 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("BranchesTitle")
 		v.FgColor = gocui.ColorWhite
 	}
+	
+	if v, err := g.SetView("tags", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		
+		v.Title = gui.Tr.SLocalize("TagsTitle")
+		v.FgColor = gocui.ColorWhite
+		
+		gui.g.SetViewOnBottom(v.Name())
+	}
+	
 
 	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
 		if err != gocui.ErrUnknownView {
