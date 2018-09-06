@@ -15,7 +15,7 @@ jobs:
           command: |
             if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
              find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
-             exit 0;
+             exit 1;
             fi
       - run:
           name: Run tests
