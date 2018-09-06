@@ -223,7 +223,7 @@ func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
 func (c *GitCommand) GetCommitsToPush() []string {
 	pushables, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
 	if err != nil {
-		return make([]string, 0)
+		return []string{}
 	}
 	return utils.SplitLines(pushables)
 }
@@ -461,7 +461,7 @@ func includesString(list []string, a string) bool {
 func (c *GitCommand) GetCommits() []Commit {
 	pushables := c.GetCommitsToPush()
 	log := c.GetLog()
-	commits := make([]Commit, 0)
+	commits := []Commit{}
 	// now we can split it up and turn it into commits
 	lines := utils.SplitLines(log)
 	for _, line := range lines {
