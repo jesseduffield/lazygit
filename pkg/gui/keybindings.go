@@ -27,6 +27,7 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		{ViewName: "status", Key: 'e', Modifier: gocui.ModNone, Handler: gui.handleEditConfig},
 		{ViewName: "status", Key: 'o', Modifier: gocui.ModNone, Handler: gui.handleOpenConfig},
 		{ViewName: "status", Key: 'u', Modifier: gocui.ModNone, Handler: gui.handleCheckForUpdate},
+		{ViewName: "status", Key: 's', Modifier: gocui.ModNone, Handler: gui.handleSwitchRepo},
 		{ViewName: "files", Key: 'c', Modifier: gocui.ModNone, Handler: gui.handleCommitPress},
 		{ViewName: "files", Key: 'C', Modifier: gocui.ModNone, Handler: gui.handleCommitEditorPress},
 		{ViewName: "files", Key: gocui.KeySpace, Modifier: gocui.ModNone, Handler: gui.handleFilePress},

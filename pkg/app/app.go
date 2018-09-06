@@ -77,11 +77,11 @@ func Setup(config config.AppConfigurer) (*App, error) {
 
 	app.Tr = i18n.NewLocalizer(app.Log)
 
-	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr)
+	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand, app.Tr)
 	if err != nil {
 		return app, err
 	}
-	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand, app.Tr)
+	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr)
 	if err != nil {
 		return app, err
 	}

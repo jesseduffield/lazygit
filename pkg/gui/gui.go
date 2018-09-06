@@ -33,6 +33,7 @@ var OverlappingEdges = false
 type SentinelErrors struct {
 	ErrSubProcess error
 	ErrNoFiles    error
+	ErrSwitchRepo error
 }
 
 // GenerateSentinelErrors makes the sentinel errors for the gui. We're defining it here
@@ -49,6 +50,7 @@ func (gui *Gui) GenerateSentinelErrors() {
 	gui.Errors = SentinelErrors{
 		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess")),
 		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles")),
+		ErrSwitchRepo: errors.New("switching repo"),
 	}
 }
 
@@ -292,6 +294,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		// these are only called once (it's a place to put all the things you want
 		// to happen on startup after the screen is first rendered)
 		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+		if err := gui.updateRecentRepoList(); err != nil {
+			return err
+		}
+
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles(g)
 		gui.refreshBranches(g)
@@ -309,6 +315,41 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	return gui.resizeCurrentPopupPanel(g)
+}
+
+func newRecentReposList(recentRepos []string, currentRepo string) []string {
+	newRepos := []string{currentRepo}
+	for _, repo := range recentRepos {
+		if repo != currentRepo {
+			newRepos = append(newRepos, repo)
+		}
+	}
+	return newRepos
+}
+
+// updateRecentRepoList registers the fact that we opened lazygit in this repo,
+// so that we can open the same repo via a 'recent repos' menu
+func (gui *Gui) updateRecentRepoList() error {
+	recentRepos := gui.Config.GetAppState().RecentRepos
+	currentRepo, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	gui.Config.GetAppState().RecentRepos = newRecentReposList(recentRepos, currentRepo)
+	return gui.Config.SaveAppState()
+}
+
+func (gui *Gui) handleSwitchRepo(g *gocui.Gui, v *gocui.View) error {
+	newRepo := gui.Config.GetAppState().RecentRepos[1]
+	if err := os.Chdir(newRepo); err != nil {
+		return err
+	}
+	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr)
+	if err != nil {
+		return err
+	}
+	gui.GitCommand = newGitCommand
+	return gui.Errors.ErrSwitchRepo
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
@@ -391,6 +432,8 @@ func (gui *Gui) RunWithSubprocesses() {
 		if err := gui.Run(); err != nil {
 			if err == gocui.ErrQuit {
 				break
+			} else if err == gui.Errors.ErrSwitchRepo {
+				continue
 			} else if err == gui.Errors.ErrSubProcess {
 				gui.SubProcess.Stdin = os.Stdin
 				gui.SubProcess.Stdout = os.Stdout
