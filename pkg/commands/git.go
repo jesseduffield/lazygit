@@ -230,7 +230,7 @@ func (c *GitCommand) GetCommitsToPush() []string {
 
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) error {
-	return c.OSCommand.RunCommand("git commit --allow-empty --amend -m " + c.OSCommand.Quote(name))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name)))
 }
 
 // Fetch fetch git repo
@@ -240,23 +240,23 @@ func (c *GitCommand) Fetch() error {
 
 // ResetToCommit reset to commit
 func (c *GitCommand) ResetToCommit(sha string) error {
-	return c.OSCommand.RunCommand("git reset " + sha)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git reset %s", sha))
 }
 
 // NewBranch create new branch
 func (c *GitCommand) NewBranch(name string) error {
-	return c.OSCommand.RunCommand("git checkout -b " + name)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -b %s", name))
 }
 
 // DeleteBranch delete branch
 func (c *GitCommand) DeleteBranch(branch string, force bool) error {
-	var command string
+	command := "git branch -d"
+
 	if force {
-		command = "git branch -D "
-	} else {
-		command = "git branch -d "
+		command = "git branch -D"
 	}
-	return c.OSCommand.RunCommand(command + branch)
+
+	return c.OSCommand.RunCommand(fmt.Sprintf("%s %s", command, branch))
 }
 
 // ListStash list stash
@@ -266,7 +266,7 @@ func (c *GitCommand) ListStash() (string, error) {
 
 // Merge merge
 func (c *GitCommand) Merge(branchName string) error {
-	return c.OSCommand.RunCommand("git merge --no-edit " + branchName)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git merge --no-edit %s", branchName))
 }
 
 // AbortMerge abort merge

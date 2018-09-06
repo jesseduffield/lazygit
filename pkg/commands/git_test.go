@@ -633,6 +633,103 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 	}
 }
 
+func TestGitCommandRenameCommit(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"commit", "--allow-empty", "--amend", "-m", "test"}, args)
+
+		return exec.Command("echo")
+	}
+
+	assert.NoError(t, gitCmd.RenameCommit("test"))
+}
+
+func TestGitCommandResetToCommit(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"reset", "78976bc"}, args)
+
+		return exec.Command("echo")
+	}
+
+	assert.NoError(t, gitCmd.ResetToCommit("78976bc"))
+}
+
+func TestGitCommandNewBranch(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"checkout", "-b", "test"}, args)
+
+		return exec.Command("echo")
+	}
+
+	assert.NoError(t, gitCmd.NewBranch("test"))
+}
+
+func TestGitCommandDeleteBranch(t *testing.T) {
+	type scenario struct {
+		testName string
+		branch   string
+		force    bool
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Delete a branch",
+			"test",
+			false,
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"branch", "-d", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Force delete a branch",
+			"test",
+			true,
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"branch", "-D", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.DeleteBranch(s.branch, s.force))
+		})
+	}
+}
+
+func TestGitCommandMerge(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"merge", "--no-edit", "test"}, args)
+
+		return exec.Command("echo")
+	}
+
+	assert.NoError(t, gitCmd.Merge("test"))
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
