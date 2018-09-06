@@ -16,7 +16,6 @@ import (
 )
 
 func addEnglish(i18nObject *i18n.Bundle) error {
-	
 	return i18nObject.AddMessages(language.English,
 		&i18n.Message{
 			ID:    "NotEnoughSpace",
