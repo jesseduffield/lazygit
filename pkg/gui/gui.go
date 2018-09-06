@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
+	"fmt"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -235,7 +236,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("TagsTitle")
 		v.FgColor = gocui.ColorWhite
 		
-		gui.g.SetViewOnBottom(v.Name())
+		_, err = gui.g.SetViewOnBottom(v.Name())
+		if err != nil{
+			gui.Log.Error(fmt.Sprintf("Couldn't create the tags view: %v\n", err))
+			return err
+		}
 	}
 	
 
