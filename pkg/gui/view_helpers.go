@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
+	
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
@@ -80,7 +80,7 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	mainView.SetOrigin(0, 0)
-
+	
 	switch v.Name() {
 	case "status":
 		return gui.handleStatusSelect(g, v)
@@ -161,7 +161,7 @@ func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
 	if v == nil || v.Name() == "main" {
 		return nil
 	}
-
+	
 	ox, oy := v.Origin()
 	cx, cy := v.Cursor()
 	if err := v.SetCursor(cx, cy-1); err != nil && oy > 0 {
@@ -169,7 +169,7 @@ func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 	}
-
+	
 	gui.newLineFocused(g, v)
 	return nil
 }
@@ -190,7 +190,7 @@ func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 	}
-
+	
 	gui.newLineFocused(g, v)
 	return nil
 }
@@ -289,4 +289,38 @@ func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
 	gui.Log.Info(gui.Tr.SLocalize("resizingPopupPanel"))
 	_, err := g.SetView(v.Name(), x0, y0, x1, y1, 0)
 	return err
+}
+
+// handleLayerSwitch does what it says... It handles the layer switch.
+// This is achieved by first setting the current view to the bottom, and
+// then refocusing the view
+func (gui *Gui) handleLayerSwitch(g *gocui.Gui, v *gocui.View) error {
+	
+	_, err := g.SetViewOnBottom(v.Name())
+	if err != nil {
+		gui.Log.Error(fmt.Sprintf("SetViewOnBottom crashed with %v\n", err))
+		return err
+	}
+	
+	switch v.Name() {
+	
+	case "tags":
+		_, err = g.SetCurrentView("branches")
+	
+	case "branches":
+		_, err = g.SetCurrentView("tags")
+		
+	}
+	if err != nil {
+		gui.Log.Error(fmt.Sprintf("SetViewOnBottom crashed with %v\n", err))
+		return err
+	}
+	
+	_, err = g.SetViewOnTop(g.CurrentView().Name())
+	if err != nil {
+		gui.Log.Error(fmt.Sprintf("SetViewOnBottom crashed with %v\n", err))
+		return err
+	}
+	
+	return nil
 }
