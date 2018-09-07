@@ -75,7 +75,7 @@ func (gui *Gui) GetMaxKeyLength(bindings []Binding) int {
 
 func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
 	var (
-		contentGlobal, contentPanel []string
+		contentGlobal, contentPanel   []string
 		bindingsGlobal, bindingsPanel []Binding
 	)
 	// clear keys slice, so we don't have ghost elements
