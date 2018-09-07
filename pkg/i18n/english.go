@@ -32,8 +32,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "TagsTitle",
 			Other: "Tags",
-		},
-		&i18n.Message{
+		}, &i18n.Message{
 			ID:    "CommitsTitle",
 			Other: "Commits",
 		}, &i18n.Message{
@@ -180,6 +179,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoTrackingThisBranch",
 			Other: "There is no tracking for this branch",
+		}, &i18n.Message{
+			ID:    "TagName",
+			Other: "Tag name",
 		}, &i18n.Message{
 			ID:    "CommitWithoutMessageErr",
 			Other: "You cannot commit without a commit message",

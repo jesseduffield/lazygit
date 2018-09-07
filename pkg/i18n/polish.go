@@ -161,6 +161,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "NoTrackingThisBranch",
 			Other: "Brak śledzenia dla tej gałęzi",
 		}, &i18n.Message{
+			ID:    "TagName",
+			Other: "Tag name",
+		}, &i18n.Message{
 			ID:    "CommitWithoutMessageErr",
 			Other: "Nie możesz commitować bez podania wiadomości",
 		}, &i18n.Message{

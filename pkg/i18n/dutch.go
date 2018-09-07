@@ -168,6 +168,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "NoTrackingThisBranch",
 			Other: "deze branch wordt niet gevolgd",
 		}, &i18n.Message{
+			ID:    "TagName",
+			Other: "Tag naam",
+		}, &i18n.Message{
 			ID:    "CommitWithoutMessageErr",
 			Other: "Je kan geen commit maken zonder commit bericht",
 		}, &i18n.Message{
