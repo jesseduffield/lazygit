@@ -62,6 +62,7 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		{ViewName: "branches", Key: 'm', Modifier: gocui.ModNone, Handler: gui.handleMerge},
 		{ViewName: "branches", Key: 't', Modifier: gocui.ModNone, Handler: gui.handleLayerSwitch},
 		{ViewName: "tags", Key: 't', Modifier: gocui.ModNone, Handler: gui.handleLayerSwitch},
+		{ViewName: "tags", Key: 'c', Modifier: gocui.ModNone, Handler: gui.handleCheckoutByName},
 		{ViewName: "commits", Key: 's', Modifier: gocui.ModNone, Handler: gui.handleCommitSquashDown},
 		{ViewName: "commits", Key: 'r', Modifier: gocui.ModNone, Handler: gui.handleRenameCommit},
 		{ViewName: "commits", Key: 'R', Modifier: gocui.ModNone, Handler: gui.handleRenameCommitEditor},
