@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"errors"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/git"
@@ -34,12 +36,24 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.Checkout(gui.trimmedContent(v), false); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		return gui.refreshSidePanels(g)
-	})
+
+	var target string
+
+	if v.Name() == "branches" {
+		target = "BranchName"
+	} else if v.Name() == "tags" {
+		target = "TagName"
+	} else {
+		return errors.New("you can't checkout in this view")
+	}
+
+	gui.createPromptPanel(g, v, gui.Tr.SLocalize(target)+":",
+		func(g *gocui.Gui, v *gocui.View) error {
+			if err := gui.GitCommand.Checkout(gui.trimmedContent(v), false); err != nil {
+				return gui.createErrorPanel(g, err.Error())
+			}
+			return gui.refreshSidePanels(g)
+		})
 	return nil
 }
 
