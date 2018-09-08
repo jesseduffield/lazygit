@@ -3,13 +3,8 @@
 # Logs
 *.log
 
-# Extras
-extra/lgit.rb
-
-# Notes
-notes/go.notes
-TODO.notes
-TODO.md
+# Hidden
+.*
 
 # Tests
 test/repos/repo
@@ -17,3 +12,9 @@ coverage.txt
 
 # Binaries
 lazygit
+
+# Exceptions
+!.gitignore
+!.goreleaser.yml
+!.circleci/
+!.github/
