@@ -16,6 +16,12 @@ func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
 	gui.refreshBranches(g)
 	gui.refreshFiles(g)
 	gui.refreshCommits(g)
+
+	err := gui.refreshTags(g)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to refresh tags: %s\n", err.Error()))
+	}
+
 	return nil
 }
 
