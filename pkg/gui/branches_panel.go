@@ -47,13 +47,17 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 		return errors.New("you can't checkout in this view")
 	}
 
-	gui.createPromptPanel(g, v, gui.Tr.SLocalize(target)+":",
+	err := gui.createPromptPanel(g, v, gui.Tr.SLocalize(target)+":",
 		func(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.Checkout(gui.trimmedContent(v), false); err != nil {
 				return gui.createErrorPanel(g, err.Error())
 			}
 			return gui.refreshSidePanels(g)
 		})
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create prompt panel: %s\n", err.Error()))
+	}
+
 	return nil
 }
 
