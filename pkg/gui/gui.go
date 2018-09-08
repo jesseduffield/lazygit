@@ -15,6 +15,7 @@ import (
 	// "strings"
 
 	"fmt"
+
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
