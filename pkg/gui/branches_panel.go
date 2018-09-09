@@ -10,11 +10,11 @@ import (
 )
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
-	index := gui.getItemPosition(v)
+	index := gui.getItemPosition(gui.getBranchesView(g))
 	if index == 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
-	branch := gui.getSelectedBranch(v)
+	branch := gui.getSelectedBranch(gui.getBranchesView(g))
 	if err := gui.GitCommand.Checkout(branch.Name, false); err != nil {
 		gui.createErrorPanel(g, err.Error())
 	}
@@ -115,16 +115,7 @@ func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
 }
 
 func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"space":   gui.Tr.SLocalize("checkout"),
-		"f":       gui.Tr.SLocalize("forceCheckout"),
-		"m":       gui.Tr.SLocalize("merge"),
-		"c":       gui.Tr.SLocalize("checkoutByName"),
-		"n":       gui.Tr.SLocalize("newBranch"),
-		"d":       gui.Tr.SLocalize("deleteBranch"),
-		"D":       gui.Tr.SLocalize("forceDeleteBranch"),
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 // may want to standardise how these select methods work
