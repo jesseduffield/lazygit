@@ -11,6 +11,7 @@ jobs:
           name: Ensure go.mod file is up to date
           command: |
             export GO111MODULE=on
+            rm go.sum
             mv go.mod /tmp/
             go mod init
             export GO111MODULE=auto
