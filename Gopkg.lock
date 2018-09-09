@@ -189,11 +189,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:acbcdae312c37a8019e0f573a9be26499058d5e1244243655373d2fd97714658"
+  digest = "1:71e6c15797951d3fabaa944d70253e36a6cee96bf54ca0bc43ca3de3b4814bbb"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "5d9e836837237cb3aadca51ecb37c7cf3345bfa4"
+  revision = "2cb6e95bbbf850bb32cc1799e07d08ff0f144746"
 
 [[projects]]
   digest = "1:ac6d01547ec4f7f673311b4663909269bfb8249952de3279799289467837c3cc"
@@ -611,7 +611,6 @@
   analyzer-version = 1
   input-imports = [
     "github.com/cloudfoundry/jibber_jabber",
-    "github.com/davecgh/go-spew/spew",
     "github.com/fatih/color",
     "github.com/golang-collections/collections/stack",
     "github.com/heroku/rollrus",

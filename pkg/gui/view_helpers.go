@@ -277,3 +277,25 @@ func (gui *Gui) currentViewName(g *gocui.Gui) string {
 	currentView := g.CurrentView()
 	return currentView.Name()
 }
+
+func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
+	v := g.CurrentView()
+	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
+		return gui.resizePopupPanel(g, v)
+	}
+	return nil
+}
+
+func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
+	// If the confirmation panel is already displayed, just resize the width,
+	// otherwise continue
+	content := v.Buffer()
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, content)
+	vx0, vy0, vx1, vy1 := v.Dimensions()
+	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
+		return nil
+	}
+	gui.Log.Info(gui.Tr.SLocalize("resizingPopupPanel"))
+	_, err := g.SetView(v.Name(), x0, y0, x1, y1, 0)
+	return err
+}

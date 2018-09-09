@@ -476,6 +476,11 @@ func (g *Gui) flush() error {
 					return err
 				}
 			}
+			if v.Subtitle != "" {
+				if err := g.drawSubtitle(v, fgColor, bgColor); err != nil {
+					return err
+				}
+			}
 		}
 		if err := g.draw(v); err != nil {
 			return err
@@ -573,6 +578,25 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		if x < 0 {
 			continue
 		} else if x > v.x1-2 || x >= g.maxX {
+			break
+		}
+		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// drawSubtitle draws the subtitle of the view.
+func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
+	if v.y0 < 0 || v.y0 >= g.maxY {
+		return nil
+	}
+
+	start := v.x1 - 5 - len(v.Subtitle)
+	for i, ch := range v.Subtitle {
+		x := start + i
+		if x >= v.x1 {
 			break
 		}
 		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {

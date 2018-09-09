@@ -387,6 +387,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `merge into currently checked out branch`,
+		}, &i18n.Message{
+			ID:    "ConfirmQuit",
+			Other: `Are you sure you want to quit?`,
 		},
 	)
 }

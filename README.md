@@ -131,3 +131,7 @@ feel free to [raise an issue](https://github.com/jesseduffield/lazygit/issues)/[
 If you want to see what I (Jesse) am up to in terms of development, follow me on
 [twitter](https://twitter.com/DuffieldJesse) or watch me program on
 [twitch](https://www.twitch.tv/jesseduffield).
+
+## Alternatives
+If you find that lazygit doesn't quite satisfy your requirements, these may be a better fit:
+- [tig](https://github.com/jonas/tig)

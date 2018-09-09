@@ -114,8 +114,8 @@ func (v *View) EditDelete(back bool) {
 func (v *View) EditNewLine() {
 	v.breakLine(v.cx, v.cy)
 	v.ox = 0
+	v.cy = v.cy + 1
 	v.cx = 0
-	v.MoveCursor(0, 1, true)
 }
 
 // MoveCursor moves the cursor taking into account the width of the line/view,

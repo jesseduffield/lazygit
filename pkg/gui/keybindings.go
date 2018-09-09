@@ -340,11 +340,6 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCommitClose,
 		}, {
-			ViewName: "commitMessage",
-			Key:      gocui.KeyTab,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleNewlineCommitMessage,
-		}, {
 			ViewName: "menu",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,

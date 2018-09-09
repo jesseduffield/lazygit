@@ -11,7 +11,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.View) error) func(*gocui.Gui, *gocui.View) error {
@@ -116,20 +115,6 @@ func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, t
 	return nil
 }
 
-func (gui *Gui) handleNewline(g *gocui.Gui, v *gocui.View) error {
-	// resising ahead of time so that the top line doesn't get hidden to make
-	// room for the cursor on the second line
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, v.Buffer())
-	if _, err := g.SetView("confirmation", x0, y0, x1, y1+1, 0); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-	}
-
-	v.EditNewLine()
-	return nil
-}
-
 func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	actions := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
@@ -142,9 +127,6 @@ func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*go
 		return err
 	}
 	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm)); err != nil {
-		return err
-	}
-	if err := g.SetKeybinding("confirmation", gocui.KeyTab, gocui.ModNone, gui.handleNewline); err != nil {
 		return err
 	}
 	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, gui.wrappedConfirmationFunction(handleClose))
@@ -160,18 +142,4 @@ func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))
 	return gui.createConfirmationPanel(g, currentView, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
-}
-
-func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
-	// If the confirmation panel is already displayed, just resize the width,
-	// otherwise continue
-	content := utils.TrimTrailingNewline(v.Buffer())
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, content)
-	vx0, vy0, vx1, vy1 := v.Dimensions()
-	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
-		return nil
-	}
-	gui.Log.Info(gui.Tr.SLocalize("resizingPopupPanel"))
-	_, err := g.SetView(v.Name(), x0, y0, x1, y1, 0)
-	return err
 }
