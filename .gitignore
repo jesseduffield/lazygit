@@ -6,6 +6,12 @@
 # Hidden
 .*
 
+# TODO
+TODO.*
+
+# Notes
+*.notes
+
 # Tests
 test/repos/repo
 coverage.txt
