@@ -83,6 +83,7 @@ type guiState struct {
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
 	Updating          bool
+	Keys              []Binding
 }
 
 // NewGui builds a new gui handler
@@ -344,6 +345,15 @@ func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
 		return gui.renderString(gui.g, "appStatus", appStatus)
 	}
 	return nil
+}
+
+func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
+	return gui.renderOptionsMap(g, map[string]string{
+		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
+		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
+		"esc/q":     gui.Tr.SLocalize("close"),
+		"x":         gui.Tr.SLocalize("menu"),
+	})
 }
 
 func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {

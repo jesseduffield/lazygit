@@ -42,11 +42,7 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 }
 
 func (gui *Gui) renderStatusOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"o": gui.Tr.SLocalize("OpenConfig"),
-		"e": gui.Tr.SLocalize("EditConfig"),
-		"u": gui.Tr.SLocalize("CheckForUpdate"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {

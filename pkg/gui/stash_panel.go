@@ -27,17 +27,13 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 	if len(gui.State.StashEntries) == 0 {
 		return nil
 	}
-	lineNumber := gui.getItemPosition(v)
+	stashView, _ := gui.g.View("stash")
+	lineNumber := gui.getItemPosition(stashView)
 	return &gui.State.StashEntries[lineNumber]
 }
 
 func (gui *Gui) renderStashOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"space":   gui.Tr.SLocalize("apply"),
-		"g":       gui.Tr.SLocalize("pop"),
-		"d":       gui.Tr.SLocalize("drop"),
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
