@@ -135,12 +135,12 @@ func (c *GitCommand) GetStatusFiles() []File {
 		unstagedChange := statusString[1:2]
 		filename := c.OSCommand.Unquote(statusString[3:])
 		_, untracked := map[string]bool{"??": true, "A ": true, "AM": true}[change]
-		_, hasUnstagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
+		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
 
 		file := File{
 			Name:               filename,
 			DisplayString:      statusString,
-			HasStagedChanges:   !hasUnstagedChanges,
+			HasStagedChanges:   !hasNoStagedChanges,
 			HasUnstagedChanges: unstagedChange != " ",
 			Tracked:            !untracked,
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
