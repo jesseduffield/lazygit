@@ -894,6 +894,65 @@ func TestGitCommandCommit(t *testing.T) {
 	}
 }
 
+func TestGitCommandPush(t *testing.T) {
+	type scenario struct {
+		testName  string
+		command   func(string, ...string) *exec.Cmd
+		forcePush bool
+		test      func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Push with force disabled",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "-u", "origin", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			false,
+			func(err error) {
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Push with force enable",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "--force-with-lease", "-u", "origin", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			true,
+			func(err error) {
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Push with an error occurring",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "-u", "origin", "test"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			false,
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.Push("test", s.forcePush))
+		})
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))

@@ -304,13 +304,15 @@ func (c *GitCommand) Pull() error {
 	return c.OSCommand.RunCommand("git pull --no-edit")
 }
 
-// Push push to a branch
+// Push pushes to a branch
 func (c *GitCommand) Push(branchName string, force bool) error {
 	forceFlag := ""
+
 	if force {
 		forceFlag = "--force-with-lease "
 	}
-	return c.OSCommand.RunCommand("git push " + forceFlag + "-u origin " + branchName)
+
+	return c.OSCommand.RunCommand(fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName))
 }
 
 // SquashPreviousTwoCommits squashes a commit down to the one below it
