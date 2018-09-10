@@ -272,7 +272,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 
 	actual := osCommand.Quote("hello 'test'")
 
-	expected := osCommand.Platform.escapedQuote + "hello 'test'" + osCommand.Platform.escapedQuote
+	expected := osCommand.Platform.fallbackEscapedQuote + "hello 'test'" + osCommand.Platform.fallbackEscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
