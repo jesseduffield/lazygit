@@ -2,13 +2,13 @@ package gui
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
+// refreshCommits refreshes the commits view
 func (gui *Gui) refreshCommits() error {
 
 	gui.g.Update(func(*gocui.Gui) error {
@@ -22,7 +22,7 @@ func (gui *Gui) refreshCommits() error {
 
 		v, err := gui.g.View("commits")
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Failed to get commits view: %s\n", err))
+			gui.Log.Errorf("Failed to get commits view: %s\n", err)
 			return err
 		}
 
@@ -42,14 +42,15 @@ func (gui *Gui) refreshCommits() error {
 
 		err = gui.refreshStatus()
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Failed to refresh status in refreshCommits: %s\n", err))
+			gui.Log.Errorf("Failed to refresh status in refreshCommits: %s\n", err)
 			return err
 		}
 
 		if gui.g.CurrentView().Name() == "commits" {
+
 			err = gui.handleCommitSelect(gui.g, v)
 			if err != nil {
-				gui.Log.Error(fmt.Sprintf("Failed to handleCommitSelect in refreshCommits: %s\n", err))
+				gui.Log.Errorf("Failed to handleCommitSelect in refreshCommits: %s\n", err)
 				return err
 			}
 		}
