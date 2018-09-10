@@ -5,9 +5,9 @@ import "github.com/jesseduffield/lazygit/pkg/utils"
 // appStatus is used to store information about the status
 // of the current session
 type appStatus struct {
-	name       string `json:"name"`
-	statusType string `json:"status_type"`
-	duration   int    `json:"duration"`
+	name       string
+	statusType string
+	duration   int
 }
 
 // statusManager
