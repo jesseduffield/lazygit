@@ -50,7 +50,7 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 		if err := gui.refreshCommits(g); err != nil {
 			panic(err)
 		}
-		if err := gui.refreshFiles(g); err != nil {
+		if err := gui.refreshFiles(); err != nil {
 			panic(err)
 		}
 		gui.resetOrigin(commitView)
