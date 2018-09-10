@@ -296,19 +296,56 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// handleRenameCommit is called when a user wants to rename a commit.
+// g and v are passed by the gocui library but only v is used.
+// If anything goes wrong it returns an error.
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
+
 	if gui.getItemPosition(gui.getCommitsView(g)) != 0 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+
+		err := gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleRenameCommit: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
-	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("renameCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshCommits(); err != nil {
-			panic(err)
-		}
-		return gui.handleCommitSelect()
-	})
+
+	err := gui.createPromptPanel(g, v, gui.Tr.SLocalize("renameCommit"),
+		func(g *gocui.Gui, v *gocui.View) error {
+
+			err := gui.GitCommand.RenameCommit(v.Buffer())
+			if err != nil {
+
+				err = gui.createErrorPanel(g, err.Error())
+				if err != nil {
+					gui.Log.Errorf("Failed to create error panel at handleRenameCommit: %s\n", err)
+					return err
+				}
+
+				return nil
+			}
+
+			err = gui.refreshCommits()
+			if err != nil {
+				gui.Log.Errorf("Failed to refresh commits at handleRenameCommit: %s\n", err)
+				return err
+			}
+
+			err = gui.handleCommitSelect()
+			if err != nil {
+				gui.Log.Errorf("Failed to handleCommitSelect at handleRenameCommit: %s\n", err)
+				return err
+			}
+
+			return nil
+		})
+	if err != nil {
+		gui.Log.Errorf("Failed to create prompt panel at handleRenameCommit: %s\n", err)
+		return err
+	}
+
 	return nil
 }
 
