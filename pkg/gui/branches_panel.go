@@ -101,14 +101,14 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
 
-	err := gui.createConfirmationPanel(g, v, title, message,
+	err := gui.createConfirmationPanel(gui.g, v, title, message,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(branch.Name, true)
 			if err != nil {
-				err = gui.createErrorPanel(g, err.Error())
+				err = gui.createErrorPanel(gui.g, err.Error())
 				if err != nil {
-					gui.Log.Errorf("Failed to create error panel at handleBranchPress: %s\n", err)
+					gui.Log.Errorf("Failed to create error panel at handleForceCheckout: %s\n", err)
 					return err
 				}
 			}
@@ -118,6 +118,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 			return nil
 		}, nil)
 	if err != nil {
+		gui.Log.Errorf("Failed to create confirmation panel at handleForceCheckout: %s\n", err)
 		return err
 	}
 
