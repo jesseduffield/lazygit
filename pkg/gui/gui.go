@@ -117,7 +117,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 }
 
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
-	return gui.refreshSidePanels(g)
+	return gui.refresh()
 }
 
 // layout is called for every screen re-render e.g. when the screen is resized
@@ -268,7 +268,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		// to happen on startup after the screen is first rendered)
 		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
 		gui.handleFileSelect(g, filesView)
-		gui.refreshFiles(g)
+		gui.refreshFiles()
 		gui.refreshBranches(g)
 		gui.refreshCommits(g)
 		gui.refreshStashEntries(g)
@@ -294,18 +294,18 @@ func (gui *Gui) promptAnonymousReporting() error {
 	})
 }
 
-func (gui *Gui) fetch(g *gocui.Gui) error {
+func (gui *Gui) fetch() error {
 	gui.GitCommand.Fetch()
-	gui.refreshStatus(g)
+	gui.refreshStatus(gui.g)
 	return nil
 }
 
-func (gui *Gui) updateLoader(g *gocui.Gui) error {
-	if view, _ := g.View("confirmation"); view != nil {
+func (gui *Gui) updateLoader() error {
+	if view, _ := gui.g.View("confirmation"); view != nil {
 		content := gui.trimmedContent(view)
 		if strings.Contains(content, "...") {
 			staticContent := strings.Split(content, "...")[0] + "..."
-			if err := gui.renderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
+			if err := gui.renderString(gui.g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
 				return err
 			}
 		}
@@ -313,7 +313,7 @@ func (gui *Gui) updateLoader(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
+func (gui *Gui) renderAppStatus() error {
 	appStatus := gui.statusManager.getStatusString()
 	if appStatus != "" {
 		return gui.renderString(gui.g, "appStatus", appStatus)
@@ -330,10 +330,10 @@ func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
 	})
 }
 
-func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
+func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func() error) {
 	go func() {
 		for range time.Tick(interval) {
-			function(g)
+			function()
 		}
 	}()
 }
