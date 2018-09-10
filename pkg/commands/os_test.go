@@ -265,6 +265,30 @@ func TestOSCommandQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
+func TestOSCommandQuoteSingleQuote(t *testing.T) {
+	osCommand := newDummyOSCommand()
+
+	osCommand.Platform.os = "linux"
+
+	actual := osCommand.Quote("hello 'test'")
+
+	expected := osCommand.Platform.escapedQuote + "hello 'test'" + osCommand.Platform.escapedQuote
+
+	assert.EqualValues(t, expected, actual)
+}
+
+func TestOSCommandQuoteDoubleQuote(t *testing.T) {
+	osCommand := newDummyOSCommand()
+
+	osCommand.Platform.os = "linux"
+
+	actual := osCommand.Quote(`hello "test"`)
+
+	expected := osCommand.Platform.escapedQuote + "hello \"test\"" + osCommand.Platform.escapedQuote
+
+	assert.EqualValues(t, expected, actual)
+}
+
 func TestOSCommandUnquote(t *testing.T) {
 	osCommand := newDummyOSCommand()
 
