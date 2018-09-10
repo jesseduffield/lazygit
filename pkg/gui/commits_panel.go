@@ -301,9 +301,9 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 
-	if gui.getItemPosition(gui.getCommitsView(g)) != 0 {
+	if gui.getItemPosition(gui.getCommitsView(gui.g)) != 0 {
 
-		err := gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleRenameCommit: %s\n", err)
 			return err
@@ -312,13 +312,13 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	err := gui.createPromptPanel(g, v, gui.Tr.SLocalize("renameCommit"),
+	err := gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("renameCommit"),
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.RenameCommit(v.Buffer())
 			if err != nil {
 
-				err = gui.createErrorPanel(g, err.Error())
+				err = gui.createErrorPanel(gui.g, err.Error())
 				if err != nil {
 					gui.Log.Errorf("Failed to create error panel at handleRenameCommit: %s\n", err)
 					return err
