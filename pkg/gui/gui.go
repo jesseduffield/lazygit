@@ -1,7 +1,6 @@
 package gui
 
 import (
-
 	// "io"
 	// "io/ioutil"
 
@@ -117,33 +116,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	return gui, nil
 }
 
-func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
-	mainView, _ := g.View("main")
-	ox, oy := mainView.Origin()
-	if oy >= 1 {
-		return mainView.SetOrigin(ox, oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
-	}
-	return nil
-}
-
-func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
-	mainView, _ := g.View("main")
-	ox, oy := mainView.Origin()
-	if oy < len(mainView.BufferLines()) {
-		return mainView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
-	}
-	return nil
-}
-
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshSidePanels(g)
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 // layout is called for every screen re-render e.g. when the screen is resized
@@ -156,7 +130,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	filesBranchesBoundary := 2 * height / 5   // height - 20
 	commitsBranchesBoundary := 3 * height / 5 // height - 10
 	commitsStashBoundary := height - 5        // height - 5
-	optionsVersionBoundary := width - max(len(version), 1)
+	optionsVersionBoundary := width - utils.Max(len(version), 1)
 	minimumHeight := 16
 	minimumWidth := 10
 
@@ -172,7 +146,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if height < minimumHeight || width < minimumWidth {
-		v, err := g.SetView("limit", 0, 0, max(width-1, 2), max(height-1, 2), 0)
+		v, err := g.SetView("limit", 0, 0, utils.Max(width-1, 2), utils.Max(height-1, 2), 0)
 		if err != nil {
 			if err != gocui.ErrUnknownView {
 				return err

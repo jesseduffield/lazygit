@@ -99,3 +99,11 @@ func ResolvePlaceholderString(str string, arguments map[string]string) string {
 	}
 	return str
 }
+
+// Max returns the largest integer of the two given
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
