@@ -258,6 +258,12 @@ func (gui *Gui) handleCompleteMerge(g *gocui.Gui) error {
 		return err
 	}
 	gui.stageSelectedFile(g)
-	gui.refreshFiles()
+
+	err = gui.refreshFiles()
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
 	return gui.switchFocus(g, nil, filesView)
 }

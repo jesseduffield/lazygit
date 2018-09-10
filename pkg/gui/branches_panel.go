@@ -88,7 +88,11 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(branch.Name, true)
 			if err != nil {
-				gui.createErrorPanel(g, err.Error())
+				err = gui.createErrorPanel(g, err.Error())
+				if err != nil {
+					gui.Log.Error(err)
+					return err
+				}
 			}
 
 			gui.refresh()
@@ -99,7 +103,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 
-	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":",
+	err := gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":",
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(gui.trimmedContent(v), false)
@@ -111,6 +115,10 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 
 			return nil
 		})
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
 
 	return nil
 }
@@ -123,17 +131,23 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 			"branchName": branch.Name,
 		},
 	)
-	gui.createPromptPanel(g, v, message, func(g *gocui.Gui, v *gocui.View) error {
+	err := gui.createPromptPanel(g, v, message,
+		func(g *gocui.Gui, v *gocui.View) error {
 
-		err := gui.GitCommand.NewBranch(gui.trimmedContent(v))
-		if err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
+			err := gui.GitCommand.NewBranch(gui.trimmedContent(v))
+			if err != nil {
+				return gui.createErrorPanel(g, err.Error())
+			}
 
-		gui.refresh()
+			gui.refresh()
 
-		return gui.handleBranchSelect(g, v)
-	})
+			return gui.handleBranchSelect(g, v)
+		})
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
 	return nil
 }
 

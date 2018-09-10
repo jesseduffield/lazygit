@@ -371,7 +371,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 
 		err := gui.GitCommand.Pull()
 		if err != nil {
-			gui.createErrorPanel(gui.g, err.Error())
+			_ = gui.createErrorPanel(gui.g, err.Error())
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)
 			_ = gui.refreshCommits()
