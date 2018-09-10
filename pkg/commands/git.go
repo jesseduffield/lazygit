@@ -299,7 +299,7 @@ func (c *GitCommand) Commit(message string) (*exec.Cmd, error) {
 	return nil, c.OSCommand.RunCommand(command)
 }
 
-// Pull pull from repo
+// Pull pulls from repo
 func (c *GitCommand) Pull() error {
 	return c.OSCommand.RunCommand("git pull --no-edit")
 }
