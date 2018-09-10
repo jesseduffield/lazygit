@@ -223,28 +223,76 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// handleCommitFixup is called when a user wants to fix a commit.
+// g and v are passed to by the gocui library but only v is used
+// If anything goes wrong it returns an error
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
+
 	if len(gui.State.Commits) == 1 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
+
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
+
 	if gui.anyUnStagedChanges(gui.State.Files) {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantFixupWhileUnstagedChanges"))
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantFixupWhileUnstagedChanges"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
+
 	branch := gui.State.Branches[0]
-	commit, err := gui.getSelectedCommit(g)
+
+	commit, err := gui.getSelectedCommit(gui.g)
 	if err != nil {
+		gui.Log.Errorf("Failed to get selected commit: %s\n", err)
 		return err
 	}
+
 	message := gui.Tr.SLocalize("SureFixupThisCommit")
-	gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Fixup"), message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshCommits(); err != nil {
-			panic(err)
-		}
-		return gui.refreshStatus()
-	}, nil)
+
+	err = gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("Fixup"), message,
+		func(g *gocui.Gui, v *gocui.View) error {
+
+			err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha)
+			if err != nil {
+
+				err = gui.createErrorPanel(gui.g, err.Error())
+				if err != nil {
+					gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
+					return err
+				}
+
+				return nil
+			}
+
+			err = gui.refreshCommits()
+			if err != nil {
+				gui.Log.Errorf("Failed to refresh commits at handleCommitFixup: %s\n", err)
+				return err
+			}
+
+			err = gui.refreshStatus()
+			if err != nil {
+				gui.Log.Errorf("Failed to refresh status at handleCommitFixup: %s\n", err)
+				return err
+			}
+
+			return nil
+		}, nil)
+	if err != nil {
+		gui.Log.Errorf("Failed to create confirmation panel at handleCommitFixup: %s\n", err)
+		return err
+	}
+
 	return nil
 }
 
