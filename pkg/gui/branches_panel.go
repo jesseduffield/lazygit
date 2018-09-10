@@ -1,9 +1,8 @@
 package gui
 
 import (
-	"strings"
-
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
