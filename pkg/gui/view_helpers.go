@@ -247,11 +247,6 @@ func (gui *Gui) getFilesView(g *gocui.Gui) *gocui.View {
 	return v
 }
 
-func (gui *Gui) getCommitsView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("commits")
-	return v
-}
-
 func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("commitMessage")
 	return v

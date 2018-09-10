@@ -301,7 +301,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 
-	if gui.getItemPosition(gui.getCommitsView(gui.g)) != 0 {
+	if gui.getItemPosition(v) != 0 {
 
 		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
 		if err != nil {
@@ -349,13 +349,26 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// handleRenameCommitEditor is called when the user wants to edit the
+// commit naming in an editor
+// g and v are passed by the gocui library, but only v is used
+// If anything goes wrong, it returns an error<
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
-	if gui.getItemPosition(gui.getCommitsView(g)) != 0 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+
+	if gui.getItemPosition(v) != 0 {
+
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleRenameCommitEditor: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
 
 	gui.SubProcess = gui.GitCommand.PrepareCommitAmendSubProcess()
-	g.Update(func(g *gocui.Gui) error {
+
+	gui.g.Update(func(g *gocui.Gui) error {
 		return gui.Errors.ErrSubProcess
 	})
 
