@@ -140,6 +140,13 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *ex
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
 	message = strings.Replace(message, "`", "\\`", -1)
+	if c.Platform.os == "linux" {
+		if strings.ContainsRune(message, '\'') {
+			c.Platform.escapedQuote = `"`
+		} else {
+			c.Platform.escapedQuote = `'`
+		}
+	}
 	return c.Platform.escapedQuote + message + c.Platform.escapedQuote
 }
 
