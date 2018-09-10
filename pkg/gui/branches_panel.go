@@ -206,46 +206,75 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 // handleDeleteBranch gets called when the user wants to normally delete a
 // branch.
 func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
-	return gui.deleteBranch(g, v, false)
+	return gui.deleteBranch(v, false)
 }
 
 // handleForceDeleteBranch gets called when the user wants to force delete a
 // branch
 func (gui *Gui) handleForceDeleteBranch(g *gocui.Gui, v *gocui.View) error {
-	return gui.deleteBranch(g, v, true)
+	return gui.deleteBranch(v, true)
 }
 
-func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
+// deleteBranch gets called when the user wants to delete a branch.
+// v is passed for ease sake, force is to indicate if it must be force
+// deleted.
+// If anything goes wrong, it returns an error.
+func (gui *Gui) deleteBranch(v *gocui.View, force bool) error {
+
+	var messageId string
+
 	checkedOutBranch := gui.State.Branches[0]
 	selectedBranch := gui.getSelectedBranch(v)
-	if checkedOutBranch.Name == selectedBranch.Name {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
-	}
 	title := gui.Tr.SLocalize("DeleteBranch")
-	var messageId string
+
 	if force {
 		messageId = "ForceDeleteBranchMessage"
 	} else {
 		messageId = "DeleteBranchMessage"
 	}
+
 	message := gui.Tr.TemplateLocalize(
 		messageId,
 		Teml{
 			"selectedBranchName": selectedBranch.Name,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, title, message,
+
+	if checkedOutBranch.Name == selectedBranch.Name {
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at deleteBranch: %s\n", err)
+			return err
+		}
+
+		return nil
+	}
+
+	err := gui.createConfirmationPanel(gui.g, v, title, message,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force)
 			if err != nil {
-				return gui.createErrorPanel(gui.g, err.Error())
+
+				err = gui.createErrorPanel(gui.g, err.Error())
+				if err != nil {
+					gui.Log.Errorf("Failed to create error panel at deleteBranch: %s\n", err)
+					return err
+				}
+
+				return nil
 			}
 
 			gui.refresh()
 
 			return nil
 		}, nil)
+	if err != nil {
+		gui.Log.Errorf("Failed to create confirmation panel at checkedOutBranch: %s\n", err)
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
