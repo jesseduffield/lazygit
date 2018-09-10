@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-var refreshables map[string]func() error
+var refreshables = make(map[string]func() error)
 
 // refresh refreshes the gui
 func (gui *Gui) refresh() error {
@@ -17,9 +17,6 @@ func (gui *Gui) refresh() error {
 		}
 	}
 
-	gui.refreshBranches(gui.g)
-	gui.refreshFiles()
-	gui.refreshCommits(gui.g)
 	return nil
 }
 
@@ -34,6 +31,7 @@ func (gui *Gui) registerRefresher(name string, f func() error) error {
 	}
 
 	refreshables[name] = f
+
 	return nil
 }
 
