@@ -70,7 +70,7 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
 	err := gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"),
 		func(g *gocui.Gui, v *gocui.View) error {
 
-			commit, err := gui.getSelectedCommit(gui.g)
+			commit, err := gui.getSelectedCommit()
 			if err != nil {
 				gui.Log.Errorf("Failed to get selected commit at handleResetToCommit: %s\n", err)
 				return err
@@ -129,7 +129,7 @@ func (gui *Gui) handleCommitSelect() error {
 		return err
 	}
 
-	commit, err := gui.getSelectedCommit(gui.g)
+	commit, err := gui.getSelectedCommit()
 	if err != nil {
 
 		if err.Error() != gui.Tr.SLocalize("NoCommitsThisBranch") {
@@ -185,7 +185,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	commit, err := gui.getSelectedCommit(gui.g)
+	commit, err := gui.getSelectedCommit()
 	if err != nil {
 		gui.Log.Errorf("Failed to get selected commit at handleCommitSquashDown: %s\n", err)
 		return err
@@ -252,7 +252,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 
 	branch := gui.State.Branches[0]
 
-	commit, err := gui.getSelectedCommit(gui.g)
+	commit, err := gui.getSelectedCommit()
 	if err != nil {
 		gui.Log.Errorf("Failed to get selected commit: %s\n", err)
 		return err
@@ -376,18 +376,27 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) getSelectedCommit(g *gocui.Gui) (commands.Commit, error) {
-	v, err := g.View("commits")
+// getSelectedCommit gets the selected commit.
+// returns the commit that is currently selected and an error if something
+// went wrong.
+func (gui *Gui) getSelectedCommit() (commands.Commit, error) {
+
+	v, err := gui.g.View("commits")
 	if err != nil {
-		panic(err)
+		gui.Log.Errorf("Failed to get the commits view at getSelectedCommit: %s\n", err)
+		return commands.Commit{}, err
 	}
+
 	if len(gui.State.Commits) == 0 {
+		gui.Log.Errorf(gui.Tr.SLocalize("NoCommitsThisBranch"))
 		return commands.Commit{}, errors.New(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
+
 	lineNumber := gui.getItemPosition(v)
 	if lineNumber > len(gui.State.Commits)-1 {
 		gui.Log.Info(gui.Tr.SLocalize("PotentialErrInGetselectedCommit"), gui.State.Commits, lineNumber)
 		return gui.State.Commits[len(gui.State.Commits)-1], nil
 	}
+
 	return gui.State.Commits[lineNumber], nil
 }
