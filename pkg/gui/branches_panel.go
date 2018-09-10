@@ -157,7 +157,11 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// handleNewBranch is called when a user wants to create a new branch.
+// g and v are passed by the gocui library but only v is used.
+// If something goes wrong it returns an error.
 func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
+
 	branch := gui.State.Branches[0]
 	message := gui.Tr.TemplateLocalize(
 		"NewBranchNameBranchOff",
@@ -165,20 +169,34 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 			"branchName": branch.Name,
 		},
 	)
-	err := gui.createPromptPanel(g, v, message,
+
+	err := gui.createPromptPanel(gui.g, v, message,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.NewBranch(gui.trimmedContent(v))
 			if err != nil {
-				return gui.createErrorPanel(g, err.Error())
+
+				err = gui.createErrorPanel(g, err.Error())
+				if err != nil {
+					gui.Log.Errorf("Failed to create error panel at handleNewBranch: %s\n", err)
+					return err
+				}
+
+				return nil
 			}
 
 			gui.refresh()
 
-			return gui.handleBranchSelect(g, v)
+			err = gui.handleBranchSelect(g, v)
+			if err != nil {
+				gui.Log.Errorf("Failed to handleBranchSelect at handleNewBranch: %s\n", err)
+				return err
+			}
+
+			return nil
 		})
 	if err != nil {
-		gui.Log.Error(err)
+		gui.Log.Errorf("Failed to create prompt panel at handleNewBranch: %s\n", err)
 		return err
 	}
 
