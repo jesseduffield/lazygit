@@ -2,7 +2,6 @@ package commands
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -140,7 +139,6 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *ex
 
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
-	fmt.Println(c.Platform.os)
 	message = strings.Replace(message, "`", "\\`", -1)
 	if c.Platform.os == "linux" {
 		if strings.ContainsRune(message, '\'') {
