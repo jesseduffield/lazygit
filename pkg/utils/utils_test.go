@@ -167,3 +167,38 @@ func TestResolvePlaceholderString(t *testing.T) {
 		assert.EqualValues(t, string(s.expected), ResolvePlaceholderString(s.templateString, s.arguments))
 	}
 }
+
+func TestMax(t *testing.T) {
+	type scenario struct {
+		smal     int
+		big      int
+		expected int
+	}
+
+	scenarios := []scenario{
+		{
+			1,
+			2,
+			2,
+		},
+		{
+			2,
+			3,
+			3,
+		},
+		{
+			12312,
+			1133131,
+			1133131,
+		},
+		{
+			8688671866,
+			789768987668,
+			789768987668,
+		},
+	}
+
+	for _, i := range scenarios {
+		assert.EqualValues(t, i.expected, Max(i.big, i.smal))
+	}
+}
