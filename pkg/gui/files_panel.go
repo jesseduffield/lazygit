@@ -263,19 +263,19 @@ func (gui *Gui) handleFileSelect() error {
 	if err != nil {
 
 		if err != gui.Errors.ErrNoFiles {
-			gui.Log.Error("Failed to get selected file in handlefileselect: ", err)
+			gui.Log.Errorf("Failed to get selected file in handlefileselect: %s\n", err)
 			return err
 		}
 
 		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 		if err != nil {
-			gui.Log.Error("Failed to render string in handlefileselect: ", err)
+			gui.Log.Errorf("Failed to render string in handlefileselect: %s\n", err)
 			return err
 		}
 
 		err = gui.renderGlobalOptions()
 		if err != nil {
-			gui.Log.Error("Failed to renderfilesoptions in handlefileselect: ", err)
+			gui.Log.Errorf("Failed to renderfilesoptions in handlefileselect: %s\n", err)
 			return err
 		}
 
@@ -284,7 +284,7 @@ func (gui *Gui) handleFileSelect() error {
 
 	err = gui.renderGlobalOptions()
 	if err != nil {
-		gui.Log.Error("Failed to renderfilesoptions in handlefileselect: ", err)
+		gui.Log.Errorf("Failed to renderfilesoptions in handlefileselect: %s\n", err)
 		return err
 	}
 
@@ -292,7 +292,7 @@ func (gui *Gui) handleFileSelect() error {
 
 		err = gui.refreshMergePanel(gui.g)
 		if err != nil {
-			gui.Log.Error("Failed to refreshmergepanel in handlefileselect: ", err)
+			gui.Log.Errorf("Failed to refreshmergepanel in handlefileselect: %s\n", err)
 			return err
 		}
 
@@ -303,7 +303,7 @@ func (gui *Gui) handleFileSelect() error {
 
 	err = gui.renderString(gui.g, "main", content)
 	if err != nil {
-		gui.Log.Error("Failed to render string in handlefileselect : ", err)
+		gui.Log.Errorf("Failed to render string in handlefileselect: %s\n", err)
 		return err
 	}
 
@@ -502,13 +502,40 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshMergePanel(g)
 }
 
+// handleAbortMerge is called when someone aborts the merge... duuhh.
+// g and v are passed by the gocui library but g is not used.
+// If anything goes wrong, it returns an error
 func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.GitCommand.AbortMerge(); err != nil {
-		return gui.createErrorPanel(g, err.Error())
+
+	err := gui.GitCommand.AbortMerge()
+	if err != nil {
+
+		err = gui.createErrorPanel(gui.g, err.Error())
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleAbortMerge: %s\n", err)
+			return err
+		}
 	}
-	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("MergeAborted"))
-	gui.refreshStatus()
-	return gui.refreshFiles()
+
+	err = gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("MergeAborted"))
+	if err != nil {
+		gui.Log.Errorf("Failed to create message panel at handleAbortMerge: %s\n", err)
+		return err
+	}
+
+	err = gui.refreshStatus()
+	if err != nil {
+		gui.Log.Errorf("Failed to refresh status at handleAbortMerge: %s\n", err)
+		return err
+	}
+
+	err = gui.refreshFiles()
+	if err != nil {
+		gui.Log.Errorf("Failed to refresh files at handleAbortMerge: %s\n", err)
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
