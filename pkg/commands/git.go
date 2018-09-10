@@ -123,15 +123,6 @@ func (c *GitCommand) GetStashEntryDiff(index int) (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git stash show -p --color stash@{" + fmt.Sprint(index) + "}")
 }
 
-func includes(array []string, str string) bool {
-	for _, arrayStr := range array {
-		if arrayStr == str {
-			return true
-		}
-	}
-	return false
-}
-
 // GetStatusFiles git status files
 func (c *GitCommand) GetStatusFiles() []File {
 	statusOutput, _ := c.GitStatus()
@@ -143,13 +134,15 @@ func (c *GitCommand) GetStatusFiles() []File {
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
 		filename := c.OSCommand.Unquote(statusString[3:])
-		tracked := !includes([]string{"??", "A ", "AM"}, change)
+		_, untracked := map[string]bool{"??": true, "A ": true, "AM": true}[change]
+		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
+
 		file := File{
 			Name:               filename,
 			DisplayString:      statusString,
-			HasStagedChanges:   !includes([]string{" ", "U", "?"}, stagedChange),
+			HasStagedChanges:   !hasNoStagedChanges,
 			HasUnstagedChanges: unstagedChange != " ",
-			Tracked:            tracked,
+			Tracked:            !untracked,
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:  change == "UU",
 			Type:               c.OSCommand.FileType(filename),
@@ -230,14 +223,14 @@ func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
 func (c *GitCommand) GetCommitsToPush() []string {
 	pushables, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
 	if err != nil {
-		return make([]string, 0)
+		return []string{}
 	}
 	return utils.SplitLines(pushables)
 }
 
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) error {
-	return c.OSCommand.RunCommand("git commit --allow-empty --amend -m " + c.OSCommand.Quote(name))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name)))
 }
 
 // Fetch fetch git repo
@@ -247,23 +240,23 @@ func (c *GitCommand) Fetch() error {
 
 // ResetToCommit reset to commit
 func (c *GitCommand) ResetToCommit(sha string) error {
-	return c.OSCommand.RunCommand("git reset " + sha)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git reset %s", sha))
 }
 
 // NewBranch create new branch
 func (c *GitCommand) NewBranch(name string) error {
-	return c.OSCommand.RunCommand("git checkout -b " + name)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -b %s", name))
 }
 
 // DeleteBranch delete branch
 func (c *GitCommand) DeleteBranch(branch string, force bool) error {
-	var command string
+	command := "git branch -d"
+
 	if force {
-		command = "git branch -D "
-	} else {
-		command = "git branch -d "
+		command = "git branch -D"
 	}
-	return c.OSCommand.RunCommand(command + branch)
+
+	return c.OSCommand.RunCommand(fmt.Sprintf("%s %s", command, branch))
 }
 
 // ListStash list stash
@@ -273,7 +266,7 @@ func (c *GitCommand) ListStash() (string, error) {
 
 // Merge merge
 func (c *GitCommand) Merge(branchName string) error {
-	return c.OSCommand.RunCommand("git merge --no-edit " + branchName)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git merge --no-edit %s", branchName))
 }
 
 // AbortMerge abort merge
@@ -468,7 +461,7 @@ func includesString(list []string, a string) bool {
 func (c *GitCommand) GetCommits() []Commit {
 	pushables := c.GetCommitsToPush()
 	log := c.GetLog()
-	commits := make([]Commit, 0)
+	commits := []Commit{}
 	// now we can split it up and turn it into commits
 	lines := utils.SplitLines(log)
 	for _, line := range lines {
