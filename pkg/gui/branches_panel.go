@@ -187,7 +187,7 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 
 			gui.refresh()
 
-			err = gui.handleBranchSelect(g, v)
+			err = gui.handleBranchSelect(v)
 			if err != nil {
 				gui.Log.Errorf("Failed to handleBranchSelect at handleNewBranch: %s\n", err)
 				return err
@@ -310,13 +310,14 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// getSelectedBranch returns the selected branch
 func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
 	lineNumber := gui.getItemPosition(v)
 	return gui.State.Branches[lineNumber]
 }
 
-// may want to standardise how these select methods work
-func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
+// handleBranchSelect is
+func (gui *Gui) handleBranchSelect(v *gocui.View) error {
 
 	err := gui.renderGlobalOptions()
 	if err != nil {
@@ -326,16 +327,29 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 
 	// This really shouldn't happen: there should always be a master branch
 	if len(gui.State.Branches) == 0 {
-		return gui.renderString(g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
+
+		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
+		if err != nil {
+			gui.Log.Errorf("Failed to render string at handleBranchSelect: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
 
 	go func() {
 		branch := gui.getSelectedBranch(v)
+
 		diff, err := gui.GitCommand.GetBranchGraph(branch.Name)
 		if err != nil && strings.HasPrefix(diff, "fatal: ambiguous argument") {
 			diff = gui.Tr.SLocalize("NoTrackingThisBranch")
 		}
-		gui.renderString(g, "main", diff)
+
+		err = gui.renderString(gui.g, "main", diff)
+		if err != nil {
+			gui.Log.Errorf("Failed to render string at handleBranchSelect: %s\n", err)
+			return
+		}
 	}()
 	return nil
 }
