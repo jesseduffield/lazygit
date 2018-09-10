@@ -23,7 +23,12 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		gui.SubProcess = sub
 		return gui.Errors.ErrSubProcess
 	}
-	gui.refreshFiles(g)
+
+	err = gui.refreshFiles()
+	if err != nil {
+		return err
+	}
+
 	v.Clear()
 	v.SetCursor(0, 0)
 	g.SetViewOnBottom("commitMessage")
