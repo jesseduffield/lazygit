@@ -42,7 +42,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.GitCommand.Checkout(branch.Name, false); err != nil {
 		gui.createErrorPanel(g, err.Error())
 	}
-	return gui.refreshSidePanels(g)
+	return gui.refresh()
 }
 
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
@@ -53,7 +53,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.Checkout(branch.Name, true); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}
-		return gui.refreshSidePanels(g)
+		return gui.refresh()
 	}, nil)
 }
 
@@ -62,7 +62,7 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.Checkout(gui.trimmedContent(v), false); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		return gui.refreshSidePanels(g)
+		return gui.refresh()
 	})
 	return nil
 }
@@ -79,7 +79,10 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		gui.refreshSidePanels(g)
+		err := gui.refresh()
+		if err != nil {
+			return err
+		}
 		return gui.handleBranchSelect(g, v)
 	})
 	return nil
@@ -116,14 +119,14 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		return gui.refreshSidePanels(g)
+		return gui.refresh()
 	}, nil)
 }
 
 func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 	checkedOutBranch := gui.State.Branches[0]
 	selectedBranch := gui.getSelectedBranch(v)
-	defer gui.refreshSidePanels(g)
+	defer gui.refresh()
 	if checkedOutBranch.Name == selectedBranch.Name {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
 	}
