@@ -1,18 +1,14 @@
 package gui
 
 import (
-	// "io"
-	// "io/ioutil"
-
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
-
-	// "strings"
 
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
@@ -186,27 +182,46 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	filesView, err := g.SetView("files", 0, statusFilesBoundary+panelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error(fmt.Sprintf("Failed to create files view in layout: %s\n", err))
 			return err
 		}
+
 		filesView.Highlight = true
 		filesView.Title = gui.Tr.SLocalize("FilesTitle")
-		v.FgColor = gocui.ColorWhite
+		filesView.FgColor = gocui.ColorWhite
+
+		gui.registerRefresher("files", gui.refreshFiles)
+
 	}
 
-	if v, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+	v, err = g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM)
+	if err != nil {
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error(fmt.Sprintf("Failed to create branches view in layout: %s\n", err))
 			return err
 		}
+
 		v.Title = gui.Tr.SLocalize("BranchesTitle")
 		v.FgColor = gocui.ColorWhite
+
+		err = gui.registerRefresher("branches", gui.refreshBranches)
+		if err != nil {
+			gui.Log.Error(fmt.Sprintf("Failed to register refresh at commit: %s\n", err))
+		}
+
 	}
 
-	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+	v, err = g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM)
+	if err != nil {
+
 		if err != gocui.ErrUnknownView {
 			return err
 		}
+
 		v.Title = gui.Tr.SLocalize("CommitsTitle")
 		v.FgColor = gocui.ColorWhite
+
+		gui.registerRefresher("commits", gui.refreshCommits)
 	}
 
 	if v, err := g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT); err != nil {
@@ -269,8 +284,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles()
-		gui.refreshBranches(g)
-		gui.refreshCommits(g)
+		gui.refreshBranches()
+		gui.refreshCommits()
 		gui.refreshStashEntries(g)
 		if err := gui.switchFocus(g, nil, filesView); err != nil {
 			return err

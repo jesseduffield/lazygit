@@ -2,39 +2,61 @@ package gui
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
-func (gui *Gui) refreshCommits(g *gocui.Gui) error {
-	g.Update(func(*gocui.Gui) error {
-		gui.State.Commits = gui.GitCommand.GetCommits()
-		v, err := g.View("commits")
-		if err != nil {
-			panic(err)
-		}
-		v.Clear()
+func (gui *Gui) refreshCommits() error {
+
+	gui.g.Update(func(*gocui.Gui) error {
+
 		red := color.New(color.FgRed)
 		yellow := color.New(color.FgYellow)
 		white := color.New(color.FgWhite)
 		shaColor := white
+
+		gui.State.Commits = gui.GitCommand.GetCommits()
+
+		v, err := gui.g.View("commits")
+		if err != nil {
+			gui.Log.Error(fmt.Sprintf("Failed to get commits view: %s\n", err))
+			return err
+		}
+
+		v.Clear()
+
 		for _, commit := range gui.State.Commits {
 			if commit.Pushed {
 				shaColor = red
 			} else {
 				shaColor = yellow
 			}
+
 			shaColor.Fprint(v, commit.Sha+" ")
 			white.Fprintln(v, commit.Name)
+
 		}
-		gui.refreshStatus(g)
-		if g.CurrentView().Name() == "commits" {
-			gui.handleCommitSelect(g, v)
+
+		err = gui.refreshStatus(gui.g)
+		if err != nil {
+			gui.Log.Error(fmt.Sprintf("Failed to refresh status in refreshCommits: %s\n", err))
+			return err
 		}
+
+		if gui.g.CurrentView().Name() == "commits" {
+			err = gui.handleCommitSelect(gui.g, v)
+			if err != nil {
+				gui.Log.Error(fmt.Sprintf("Failed to handleCommitSelect in refreshCommits: %s\n", err))
+				return err
+			}
+		}
+
 		return nil
 	})
+
 	return nil
 }
 
@@ -47,7 +69,7 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 		if err := gui.GitCommand.ResetToCommit(commit.Sha); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		if err := gui.refreshCommits(g); err != nil {
+		if err := gui.refreshCommits(); err != nil {
 			panic(err)
 		}
 		if err := gui.refreshFiles(); err != nil {
@@ -91,7 +113,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.GitCommand.SquashPreviousTwoCommits(commit.Name); err != nil {
 		return gui.createErrorPanel(g, err.Error())
 	}
-	if err := gui.refreshCommits(g); err != nil {
+	if err := gui.refreshCommits(); err != nil {
 		panic(err)
 	}
 	gui.refreshStatus(g)
@@ -125,7 +147,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		if err := gui.refreshCommits(g); err != nil {
+		if err := gui.refreshCommits(); err != nil {
 			panic(err)
 		}
 		return gui.refreshStatus(g)
@@ -141,7 +163,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		if err := gui.refreshCommits(g); err != nil {
+		if err := gui.refreshCommits(); err != nil {
 			panic(err)
 		}
 		return gui.handleCommitSelect(g, v)

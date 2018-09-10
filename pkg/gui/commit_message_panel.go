@@ -33,7 +33,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	v.SetCursor(0, 0)
 	g.SetViewOnBottom("commitMessage")
 	gui.switchFocus(g, v, gui.getFilesView(g))
-	return gui.refreshCommits(g)
+	return gui.refreshCommits()
 }
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {

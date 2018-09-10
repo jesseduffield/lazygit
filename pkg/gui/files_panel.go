@@ -1,9 +1,8 @@
 package gui
 
 import (
-	"strings"
-
 	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -367,7 +366,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 			gui.createErrorPanel(g, err.Error())
 		} else {
 			gui.closeConfirmationPrompt(g)
-			gui.refreshCommits(g)
+			gui.refreshCommits()
 			gui.refreshStatus(g)
 		}
 		gui.refreshFiles()
@@ -385,7 +384,7 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 			_ = gui.createErrorPanel(gui.g, err.Error())
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)
-			_ = gui.refreshCommits(gui.g)
+			_ = gui.refreshCommits()
 			_ = gui.refreshStatus(gui.g)
 		}
 	}()

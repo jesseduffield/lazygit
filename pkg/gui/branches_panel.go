@@ -12,8 +12,8 @@ import (
 
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
-func (gui *Gui) refreshBranches(g *gocui.Gui) error {
-	g.Update(func(g *gocui.Gui) error {
+func (gui *Gui) refreshBranches() error {
+	gui.g.Update(func(g *gocui.Gui) error {
 		v, err := g.View("branches")
 		if err != nil {
 			panic(err)
