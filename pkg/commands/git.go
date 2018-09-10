@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -290,8 +289,8 @@ func (c *GitCommand) usingGpg() bool {
 	return value == "true" || value == "1" || value == "yes" || value == "on"
 }
 
-// Commit commit to git
-func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
+// Commit commits to git
+func (c *GitCommand) Commit(message string) (*exec.Cmd, error) {
 	command := "git commit -m " + c.OSCommand.Quote(message)
 	if c.usingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
