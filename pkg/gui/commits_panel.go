@@ -48,7 +48,7 @@ func (gui *Gui) refreshCommits() error {
 
 		if gui.g.CurrentView().Name() == "commits" {
 
-			err = gui.handleCommitSelect(gui.g, v)
+			err = gui.handleCommitSelect()
 			if err != nil {
 				gui.Log.Errorf("Failed to handleCommitSelect in refreshCommits: %s\n", err)
 				return err
@@ -102,7 +102,7 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
 				return err
 			}
 
-			err = gui.handleCommitSelect(gui.g, nil)
+			err = gui.handleCommitSelect()
 			if err != nil {
 				gui.Log.Errorf("Failed to handle commit select at handleResetToCommit: %s\n", err)
 				return err
@@ -118,20 +118,42 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
+// handleCommitSelect gets called when a commit needs to be select
+// If anything goes wrong it returns an error
+func (gui *Gui) handleCommitSelect() error {
+
 	err := gui.renderGlobalOptions()
 	if err != nil {
+		gui.Log.Errorf("Failed to render global options at handleCommitSelect%s\n", err)
 		return err
 	}
-	commit, err := gui.getSelectedCommit(g)
+
+	commit, err := gui.getSelectedCommit(gui.g)
 	if err != nil {
+
 		if err.Error() != gui.Tr.SLocalize("NoCommitsThisBranch") {
+			gui.Log.Errorf("Failed to select commit at handleResetToCommit: %s\n", err)
 			return err
 		}
-		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+
+		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+		if err != nil {
+			gui.Log.Errorf("Failed to render string at handleResetToCommit: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
+
 	commitText := gui.GitCommand.Show(commit.Sha)
-	return gui.renderString(g, "main", commitText)
+
+	err = gui.renderString(gui.g, "main", commitText)
+	if err != nil {
+		gui.Log.Errorf("Failed to render string at handleResetToCommit: %s\n", err)
+		return err
+	}
+
+	return nil
 }
 
 // handleCommitSquashDown gets called when the user wants to squash down
@@ -192,7 +214,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = gui.handleCommitSelect(gui.g, v)
+	err = gui.handleCommitSelect()
 	if err != nil {
 		gui.Log.Errorf("Failed to handleCommitSelect at handleCommitSquashDown: %s\n", err)
 		return err
@@ -237,7 +259,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.refreshCommits(); err != nil {
 			panic(err)
 		}
-		return gui.handleCommitSelect(g, v)
+		return gui.handleCommitSelect()
 	})
 	return nil
 }

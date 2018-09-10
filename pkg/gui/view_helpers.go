@@ -93,7 +93,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		v.Highlight = false
 		return nil
 	case "commits":
-		return gui.handleCommitSelect(g, v)
+		return gui.handleCommitSelect()
 	case "stash":
 		return gui.handleStashEntrySelect(g, v)
 	default:
