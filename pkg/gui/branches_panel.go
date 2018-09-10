@@ -203,10 +203,14 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// handleDeleteBranch gets called when the user wants to normally delete a
+// branch.
 func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
 	return gui.deleteBranch(g, v, false)
 }
 
+// handleForceDeleteBranch gets called when the user wants to force delete a
+// branch
 func (gui *Gui) handleForceDeleteBranch(g *gocui.Gui, v *gocui.View) error {
 	return gui.deleteBranch(g, v, true)
 }
