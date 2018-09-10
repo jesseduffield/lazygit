@@ -14,10 +14,45 @@
         - white
       optionsTextColor:
         - blue
-  git:
-    # stuff relating to git
+    commitLength:
+      show: true
+  update:
+    method: prompt # can be: prompt | background | never
+    days: 14 # how often an update is checked for
+  reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
+  confirmOnQuit: false
+```
+
+## Platform Defaults:
+
+### Windows:
+
+```
   os:
-    # stuff relating to the OS
+    openCommand: 'cmd /c "start "" {{filename}}"'
+```
+
+### Linux:
+
+```
+  os:
+    openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'
+```
+
+### OSX:
+
+```
+  os:
+    openCommand: 'open {{filename}}'
+```
+
+### Recommended Config Values:
+
+for users of VSCode
+
+```
+  os:
+    openCommand: 'code -r {{filename}}'
 ```
 
 ## Color Attributes:
@@ -37,3 +72,7 @@ The available attributes are:
 - bold
 - reverse # useful for high-contrast
 - underline
+
+## Example Coloring:
+
+![border example](/docs/resources/colored-border-example.png)

@@ -35,11 +35,23 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "Commit Veranderingen",
 		}, &i18n.Message{
+			ID:    "CommitChangesWithEditor",
+			Other: "commit changes using git editor",
+		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
+			ID:    "GlobalTitle",
+			Other: "Global",
+		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "navigeer",
+		}, &i18n.Message{
+			ID:    "menu",
+			Other: "menu",
+		}, &i18n.Message{
+			ID:    "execute",
+			Other: "execute",
 		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "stash-bestanden",
@@ -55,6 +67,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "toggleStaged",
 			Other: "toggle staged",
+		}, &i18n.Message{
+			ID:    "toggleStagedAll",
+			Other: "toggle staged alle",
 		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "verversen",
@@ -132,7 +147,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Verwijder branch",
 		}, &i18n.Message{
 			ID:    "DeleteBranchMessage",
-			Other: "Weet je zeker dat je {{.selectedBranchName}} branch wil verwijderen?",
+			Other: "Weet je zeker dat je branch {{.selectedBranchName}} wil verwijderen?",
+		}, &i18n.Message{
+			ID:    "ForceDeleteBranchMessage",
+			Other: "Weet je zeker dat je branch {{.selectedBranchName}} geforceerd wil verwijderen?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Je kan niet een branch in zichzelf mergen",
@@ -152,6 +170,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "deleteBranch",
 			Other: "verwijder branch",
 		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "verwijder branch (forceer)",
+		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "Geen branches voor deze repo",
 		}, &i18n.Message{
@@ -163,6 +184,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
+		}, &i18n.Message{
+			ID:    "close",
+			Other: "close",
 		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Weet je het zeker dat je wil resetten naar deze commit?",
@@ -203,8 +227,11 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "OnlyRenameTopCommit",
 			Other: "Je kan alleen de bovenste commit hernoemen",
 		}, &i18n.Message{
-			ID:    "RenameCommit",
-			Other: "Hernoem Commit",
+			ID:    "renameCommit",
+			Other: "hernoem commit",
+		}, &i18n.Message{
+			ID:    "renameCommitEditor",
+			Other: "rename commit with editor",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)",
@@ -286,6 +313,63 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
+		}, &i18n.Message{
+			ID:    "OpenConfig",
+			Other: "open config file",
+		}, &i18n.Message{
+			ID:    "EditConfig",
+			Other: "edit config file",
+		}, &i18n.Message{
+			ID:    "ForcePush",
+			Other: "Force push",
+		}, &i18n.Message{
+			ID:    "ForcePushPrompt",
+			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
+		}, &i18n.Message{
+			ID:    "checkForUpdate",
+			Other: "check for update",
+		}, &i18n.Message{
+			ID:    "CheckingForUpdates",
+			Other: "Checking for updates...",
+		}, &i18n.Message{
+			ID:    "OnLatestVersionErr",
+			Other: "You already have the latest version",
+		}, &i18n.Message{
+			ID:    "MajorVersionErr",
+			Other: "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
+		}, &i18n.Message{
+			ID:    "CouldNotFindBinaryErr",
+			Other: "Could not find any binary at {{.url}}",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingTitle",
+			Other: "Help make lazygit better",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingPrompt",
+			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
+		}, &i18n.Message{
+			ID:    "removeFile",
+			Other: `delete if untracked / checkout if tracked (aka go away)`,
+		}, &i18n.Message{
+			ID:    "editFile",
+			Other: `edit file`,
+		}, &i18n.Message{
+			ID:    "openFile",
+			Other: `open file`,
+		}, &i18n.Message{
+			ID:    "ignoreFile",
+			Other: `add to .gitignore`,
+		}, &i18n.Message{
+			ID:    "refreshFiles",
+			Other: `refresh files`,
+		}, &i18n.Message{
+			ID:    "resetHard",
+			Other: `reset hard`,
+		}, &i18n.Message{
+			ID:    "mergeIntoCurrentBranch",
+			Other: `merge into currently checked out branch`,
+		}, &i18n.Message{
+			ID:    "ConfirmQuit",
+			Other: `Are you sure you want to quit?`,
 		},
 	)
 }

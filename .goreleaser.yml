@@ -13,8 +13,9 @@ builds:
       - arm
       - arm64
       - 386
+    # Default is `-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}`.
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.tag={{.Tag}} -X main.date={{.Date}} -X main.commit={{.Commit}} -X main.goos={{.Os}} -X main.arch={{.Arch}} -X main.arm={{.Arm}}
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.buildSource=binaryRelease
 
 archive:
   replacements:

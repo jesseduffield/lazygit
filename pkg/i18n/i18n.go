@@ -1,9 +1,9 @@
 package i18n
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/text/language"
 )
 
@@ -14,34 +14,16 @@ type Teml map[string]interface{}
 type Localizer struct {
 	i18nLocalizer *i18n.Localizer
 	language      string
-	Log           *logrus.Logger
+	Log           *logrus.Entry
 }
 
 // NewLocalizer creates a new Localizer
-func NewLocalizer(log *logrus.Logger) (*Localizer, error) {
+func NewLocalizer(log *logrus.Entry) *Localizer {
+	userLang := detectLanguage(jibber_jabber.DetectLanguage)
 
-	// detect the user's language
-	userLang, err := jibber_jabber.DetectLanguage()
-	if err != nil {
-		return nil, err
-	}
 	log.Info("language: " + userLang)
 
-	// create a i18n bundle that can be used to add translations and other things
-	i18nBundle := &i18n.Bundle{DefaultLanguage: language.English}
-
-	addBundles(log, i18nBundle)
-
-	// return the new localizer that can be used to translate text
-	i18nLocalizer := i18n.NewLocalizer(i18nBundle, userLang)
-
-	localizer := &Localizer{
-		i18nLocalizer: i18nLocalizer,
-		language:      userLang,
-		Log:           log,
-	}
-
-	return localizer, nil
+	return setupLocalizer(log, userLang)
 }
 
 // Localize handels the translations
@@ -78,18 +60,43 @@ func (l *Localizer) GetLanguage() string {
 }
 
 // add translation file(s)
-func addBundles(log *logrus.Logger, i18nBundle *i18n.Bundle) {
-	err := addPolish(i18nBundle)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = addDutch(i18nBundle)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = addEnglish(i18nBundle)
-	if err != nil {
-		log.Fatal(err)
+func addBundles(log *logrus.Entry, i18nBundle *i18n.Bundle) {
+	fs := []func(*i18n.Bundle) error{
+		addPolish,
+		addDutch,
+		addEnglish,
 	}
 
+	for _, f := range fs {
+		if err := f(i18nBundle); err != nil {
+			log.Fatal(err)
+
+		}
+	}
+}
+
+// detectLanguage extracts user language from environment
+func detectLanguage(langDetector func() (string, error)) string {
+	if userLang, err := langDetector(); err == nil {
+		return userLang
+	}
+
+	return "C"
+}
+
+// setupLocalizer creates a new localizer using given userLang
+func setupLocalizer(log *logrus.Entry, userLang string) *Localizer {
+	// create a i18n bundle that can be used to add translations and other things
+	i18nBundle := &i18n.Bundle{DefaultLanguage: language.English}
+
+	addBundles(log, i18nBundle)
+
+	// return the new localizer that can be used to translate text
+	i18nLocalizer := i18n.NewLocalizer(i18nBundle, userLang)
+
+	return &Localizer{
+		i18nLocalizer: i18nLocalizer,
+		language:      userLang,
+		Log:           log,
+	}
 }

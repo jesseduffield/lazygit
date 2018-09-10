@@ -59,13 +59,7 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 }
 
 func (gui *Gui) renderCommitsOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"s":       gui.Tr.SLocalize("squashDown"),
-		"r":       gui.Tr.SLocalize("rename"),
-		"g":       gui.Tr.SLocalize("resetToThisCommit"),
-		"f":       gui.Tr.SLocalize("fixupCommit"),
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
@@ -74,7 +68,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	commit, err := gui.getSelectedCommit(g)
 	if err != nil {
-		if err != errors.New(gui.Tr.SLocalize("NoCommitsThisBranch")) {
+		if err.Error() != gui.Tr.SLocalize("NoCommitsThisBranch") {
 			return err
 		}
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
@@ -140,10 +134,10 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
-	if gui.getItemPosition(v) != 0 {
+	if gui.getItemPosition(gui.getCommitsView(g)) != 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
-	gui.createPromptPanel(g, v, gui.Tr.SLocalize("RenameCommit"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("renameCommit"), func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
@@ -152,6 +146,19 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		}
 		return gui.handleCommitSelect(g, v)
 	})
+	return nil
+}
+
+func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
+	if gui.getItemPosition(gui.getCommitsView(g)) != 0 {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+	}
+
+	gui.SubProcess = gui.GitCommand.PrepareCommitAmendSubProcess()
+	g.Update(func(g *gocui.Gui) error {
+		return gui.Errors.ErrSubProcess
+	})
+
 	return nil
 }
 

@@ -10,11 +10,11 @@ import (
 )
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
-	index := gui.getItemPosition(v)
+	index := gui.getItemPosition(gui.getBranchesView(g))
 	if index == 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
-	branch := gui.getSelectedBranch(v)
+	branch := gui.getSelectedBranch(gui.getBranchesView(g))
 	if err := gui.GitCommand.Checkout(branch.Name, false); err != nil {
 		gui.createErrorPanel(g, err.Error())
 	}
@@ -62,20 +62,34 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
+	return gui.deleteBranch(g, v, false)
+}
+
+func (gui *Gui) handleForceDeleteBranch(g *gocui.Gui, v *gocui.View) error {
+	return gui.deleteBranch(g, v, true)
+}
+
+func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 	checkedOutBranch := gui.State.Branches[0]
 	selectedBranch := gui.getSelectedBranch(v)
 	if checkedOutBranch.Name == selectedBranch.Name {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
 	}
+	title := gui.Tr.SLocalize("DeleteBranch")
+	var messageId string
+	if force {
+		messageId = "ForceDeleteBranchMessage"
+	} else {
+		messageId = "DeleteBranchMessage"
+	}
 	message := gui.Tr.TemplateLocalize(
-		"DeleteBranchMessage",
+		messageId,
 		Teml{
 			"selectedBranchName": selectedBranch.Name,
 		},
 	)
-	title := gui.Tr.SLocalize("DeleteBranch")
 	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name); err != nil {
+		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshSidePanels(g)
@@ -101,15 +115,7 @@ func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
 }
 
 func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"space":   gui.Tr.SLocalize("checkout"),
-		"f":       gui.Tr.SLocalize("forceCheckout"),
-		"m":       gui.Tr.SLocalize("merge"),
-		"c":       gui.Tr.SLocalize("checkoutByName"),
-		"n":       gui.Tr.SLocalize("newBranch"),
-		"d":       gui.Tr.SLocalize("deleteBranch"),
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 // may want to standardise how these select methods work

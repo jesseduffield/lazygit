@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -60,6 +61,41 @@ func GetCurrentRepoName() string {
 func TrimTrailingNewline(str string) string {
 	if strings.HasSuffix(str, "\n") {
 		return str[:len(str)-1]
+	}
+	return str
+}
+
+// NormalizeLinefeeds - Removes all Windows and Mac style line feeds
+func NormalizeLinefeeds(str string) string {
+	str = strings.Replace(str, "\r\n", "\n", -1)
+	str = strings.Replace(str, "\r", "", -1)
+	return str
+}
+
+// GetProjectRoot returns the path to the root of the project. Only to be used
+// in testing contexts, as with binaries it's unlikely this path will exist on
+// the machine
+func GetProjectRoot() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return strings.Split(dir, "lazygit")[0] + "lazygit"
+}
+
+// Loader dumps a string to be displayed as a loader
+func Loader() string {
+	characters := "|/-\\"
+	now := time.Now()
+	nanos := now.UnixNano()
+	index := nanos / 50000000 % int64(len(characters))
+	return characters[index : index+1]
+}
+
+// ResolvePlaceholderString populates a template with values
+func ResolvePlaceholderString(str string, arguments map[string]string) string {
+	for key, value := range arguments {
+		str = strings.Replace(str, "{{"+key+"}}", value, -1)
 	}
 	return str
 }

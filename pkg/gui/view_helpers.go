@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/spkg/bom"
 )
 
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
@@ -81,6 +82,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	mainView.SetOrigin(0, 0)
 
 	switch v.Name() {
+	case "menu":
+		return gui.handleMenuSelect(g, v)
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
@@ -108,7 +111,11 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 	previousView, err := g.View(gui.State.PreviousView)
 	if err != nil {
-		panic(err)
+		// always fall back to files view if there's no 'previous' view stored
+		previousView, err = g.View("files")
+		if err != nil {
+			gui.Log.Error(err)
+		}
 	}
 	return gui.switchFocus(g, v, previousView)
 }
@@ -140,6 +147,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		return err
 	}
 	g.Cursor = newView.Editable
+
 	return gui.newLineFocused(g, newView)
 }
 
@@ -217,7 +225,9 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 			return nil
 		}
 		v.Clear()
-		fmt.Fprint(v, s)
+		output := string(bom.Clean([]byte(s)))
+		output = utils.NormalizeLinefeeds(output)
+		fmt.Fprint(v, output)
 		v.Wrap = true
 		return nil
 	})
@@ -237,15 +247,8 @@ func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) err
 	return gui.renderString(g, "options", gui.optionsMapToString(optionsMap))
 }
 
-func (gui *Gui) loader() string {
-	characters := "|/-\\"
-	now := time.Now()
-	nanos := now.UnixNano()
-	index := nanos / 50000000 % int64(len(characters))
-	return characters[index : index+1]
-}
-
 // TODO: refactor properly
+// i'm so sorry but had to add this getBranchesView
 func (gui *Gui) getFilesView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("files")
 	return v
@@ -261,6 +264,11 @@ func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	return v
 }
 
+func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("branches")
+	return v
+}
+
 func (gui *Gui) trimmedContent(v *gocui.View) string {
 	return strings.TrimSpace(v.Buffer())
 }
@@ -268,4 +276,26 @@ func (gui *Gui) trimmedContent(v *gocui.View) string {
 func (gui *Gui) currentViewName(g *gocui.Gui) string {
 	currentView := g.CurrentView()
 	return currentView.Name()
+}
+
+func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
+	v := g.CurrentView()
+	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
+		return gui.resizePopupPanel(g, v)
+	}
+	return nil
+}
+
+func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
+	// If the confirmation panel is already displayed, just resize the width,
+	// otherwise continue
+	content := v.Buffer()
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, content)
+	vx0, vy0, vx1, vy1 := v.Dimensions()
+	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
+		return nil
+	}
+	gui.Log.Info(gui.Tr.SLocalize("resizingPopupPanel"))
+	_, err := g.SetView(v.Name(), x0, y0, x1, y1, 0)
+	return err
 }

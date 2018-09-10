@@ -15,12 +15,14 @@ import (
 
 	// "strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/updates"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // OverlappingEdges determines if panel edges overlap
@@ -55,15 +57,17 @@ type Teml i18n.Teml
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g          *gocui.Gui
-	Log        *logrus.Logger
-	GitCommand *commands.GitCommand
-	OSCommand  *commands.OSCommand
-	SubProcess *exec.Cmd
-	State      guiState
-	Config     config.AppConfigurer
-	Tr         *i18n.Localizer
-	Errors     SentinelErrors
+	g             *gocui.Gui
+	Log           *logrus.Entry
+	GitCommand    *commands.GitCommand
+	OSCommand     *commands.OSCommand
+	SubProcess    *exec.Cmd
+	State         guiState
+	Config        config.AppConfigurer
+	Tr            *i18n.Localizer
+	Errors        SentinelErrors
+	Updater       *updates.Updater
+	statusManager *statusManager
 }
 
 type guiState struct {
@@ -78,10 +82,13 @@ type guiState struct {
 	Conflicts         []commands.Conflict
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
+	Updating          bool
+	Keys              []Binding
 }
 
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
+
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
@@ -95,12 +102,14 @@ func NewGui(log *logrus.Logger, gitCommand *commands.GitCommand, oSCommand *comm
 	}
 
 	gui := &Gui{
-		Log:        log,
-		GitCommand: gitCommand,
-		OSCommand:  oSCommand,
-		State:      initialState,
-		Config:     config,
-		Tr:         tr,
+		Log:           log,
+		GitCommand:    gitCommand,
+		OSCommand:     oSCommand,
+		State:         initialState,
+		Config:        config,
+		Tr:            tr,
+		Updater:       updater,
+		statusManager: &statusManager{},
 	}
 
 	gui.GenerateSentinelErrors()
@@ -141,14 +150,21 @@ func max(a, b int) int {
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
+	version := gui.Config.GetVersion()
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
 	filesBranchesBoundary := 2 * height / 5   // height - 20
 	commitsBranchesBoundary := 3 * height / 5 // height - 10
 	commitsStashBoundary := height - 5        // height - 5
+	optionsVersionBoundary := width - max(len(version), 1)
 	minimumHeight := 16
 	minimumWidth := 10
-	version := gui.Config.GetVersion()
+
+	appStatus := gui.statusManager.getStatusString()
+	appStatusOptionsBoundary := 0
+	if appStatus != "" {
+		appStatusOptionsBoundary = len(appStatus) + 2
+	}
 
 	panelSpacing := 1
 	if OverlappingEdges {
@@ -227,7 +243,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", -1, optionsTop, width-len(version)-2, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", appStatusOptionsBoundary-1, optionsTop, optionsVersionBoundary-1, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -239,7 +255,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if gui.getCommitMessageView(g) == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width, height, 0); err != nil {
+		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width/2, height/2, 0); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
@@ -247,10 +263,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
+			commitMessageView.Editor = gocui.EditorFunc(gui.simpleEditor)
 		}
 	}
 
-	if v, err := g.SetView("version", width-len(version)-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if appStatusView, err := g.SetView("appStatus", -1, optionsTop, width, optionsTop+2, 0); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		appStatusView.BgColor = gocui.ColorDefault
+		appStatusView.FgColor = gocui.ColorCyan
+		appStatusView.Frame = false
+		if _, err := g.SetViewOnBottom("appStatus"); err != nil {
+			return err
+		}
+	}
+
+	if v, err := g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -261,7 +290,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		// these are only called once
+		// these are only called once (it's a place to put all the things you want
+		// to happen on startup after the screen is first rendered)
+		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles(g)
 		gui.refreshBranches(g)
@@ -270,11 +301,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err := gui.switchFocus(g, nil, filesView); err != nil {
 			return err
 		}
+
+		if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
+			if err := gui.promptAnonymousReporting(); err != nil {
+				return err
+			}
+		}
 	}
 
-	gui.resizePopupPanels(g)
+	return gui.resizeCurrentPopupPanel(g)
+}
 
-	return nil
+func (gui *Gui) promptAnonymousReporting() error {
+	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.Config.WriteToUserConfig("reporting", "on")
+	}, func(g *gocui.Gui, v *gocui.View) error {
+		return gui.Config.WriteToUserConfig("reporting", "off")
+	})
 }
 
 func (gui *Gui) fetch(g *gocui.Gui) error {
@@ -284,14 +327,33 @@ func (gui *Gui) fetch(g *gocui.Gui) error {
 }
 
 func (gui *Gui) updateLoader(g *gocui.Gui) error {
-	if confirmationView, _ := g.View("confirmation"); confirmationView != nil {
-		content := gui.trimmedContent(confirmationView)
+	if view, _ := g.View("confirmation"); view != nil {
+		content := gui.trimmedContent(view)
 		if strings.Contains(content, "...") {
 			staticContent := strings.Split(content, "...")[0] + "..."
-			gui.renderString(g, "confirmation", staticContent+" "+gui.loader())
+			if err := gui.renderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+
+func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
+	appStatus := gui.statusManager.getStatusString()
+	if appStatus != "" {
+		return gui.renderString(gui.g, "appStatus", appStatus)
+	}
+	return nil
+}
+
+func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
+	return gui.renderOptionsMap(g, map[string]string{
+		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
+		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
+		"esc/q":     gui.Tr.SLocalize("close"),
+		"x":         gui.Tr.SLocalize("menu"),
+	})
 }
 
 func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
@@ -300,14 +362,6 @@ func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*goc
 			function(g)
 		}
 	}()
-}
-
-func (gui *Gui) resizePopupPanels(g *gocui.Gui) error {
-	v := g.CurrentView()
-	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
-		return gui.resizePopupPanel(g, v)
-	}
-	return nil
 }
 
 // Run setup the gui with keybindings and start the mainloop
@@ -326,7 +380,8 @@ func (gui *Gui) Run() error {
 
 	gui.goEvery(g, time.Second*60, gui.fetch)
 	gui.goEvery(g, time.Second*10, gui.refreshFiles)
-	gui.goEvery(g, time.Millisecond*10, gui.updateLoader)
+	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
+	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
 
 	g.SetManagerFunc(gui.layout)
 
@@ -363,5 +418,13 @@ func (gui *Gui) RunWithSubprocesses() {
 }
 
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
+	if gui.State.Updating {
+		return gui.createUpdateQuitConfirmation(g, v)
+	}
+	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
+		return gui.createConfirmationPanel(g, v, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
+			return gocui.ErrQuit
+		}, nil)
+	}
 	return gocui.ErrQuit
 }

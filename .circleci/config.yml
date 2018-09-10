@@ -1,26 +1,74 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
   build:
     docker:
-      # specify the version
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.11
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
+      - run:
+          name: Ensure go.mod file is up to date
+          command: |
+            export GO111MODULE=on
+            rm go.sum
+            mv go.mod /tmp/
+            go mod init
+            export GO111MODULE=auto
 
-      # specify any bash command here prefixed with `run: `
-      - run: go test -v ./...
-      - run: bash <(curl -s https://codecov.io/bash)
+            if [ $(diff /tmp/go.mod go.mod|wc -l) -gt 0 ]; then
+              diff /tmp/go.mod go.mod
+              exit 1;
+            fi
+      - run:
+          name: Run gofmt -s
+          command: |
+            if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
+             find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
+             exit 1;
+            fi
+      - restore_cache:
+          keys:
+            - pkg-cache-{{ checksum "Gopkg.lock" }}-v2
+      - run:
+          name: Run tests
+          command: |
+            ./test.sh
+      - run:
+          name: Compile project on every platform
+          command: |
+            go get github.com/mitchellh/gox
+            gox -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
+      - run:
+          name: Push on codecov result
+          command: |
+            bash <(curl -s https://codecov.io/bash)
+      - save_cache:
+          key: pkg-cache-{{ checksum "Gopkg.lock" }}-v2
+          paths:
+            - ~/.cache/go-build
+
+  release:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/jesseduffield/lazygit
+    steps:
+      - checkout
+      - run:
+          name: Run gorelease
+          command: |
+            curl -sL https://git.io/goreleaser | bash
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+  release:
+    jobs:
+      - release:
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/

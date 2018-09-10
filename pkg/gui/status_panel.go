@@ -42,10 +42,12 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 }
 
 func (gui *Gui) renderStatusOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"o": gui.Tr.SLocalize("OpenConfig"),
-		"e": gui.Tr.SLocalize("EditConfig"),
-	})
+	return gui.renderGlobalOptions(g)
+}
+
+func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
+	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
+	return gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("CheckingForUpdates"))
 }
 
 func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
@@ -65,13 +67,12 @@ func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
-	filename := gui.Config.GetUserConfig().ConfigFileUsed()
-	return gui.genericFileOpen(g, v, filename, gui.OSCommand.OpenFile)
+	return gui.openFile(gui.Config.GetUserConfig().ConfigFileUsed())
 }
 
 func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {
 	filename := gui.Config.GetUserConfig().ConfigFileUsed()
-	return gui.genericFileOpen(g, v, filename, gui.OSCommand.EditFile)
+	return gui.editFile(filename)
 }
 
 func lazygitTitle() string {

@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -13,10 +12,12 @@ import (
 )
 
 var (
-	commit  string
-	version = "unversioned"
-	date    string
+	commit      string
+	version     = "unversioned"
+	date        string
+	buildSource = "unknown"
 
+	configFlag    = flag.Bool("config", false, "Print the current default config")
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
 )
@@ -26,40 +27,27 @@ func projectPath(path string) string {
 	return filepath.FromSlash(gopath + "/src/github.com/jesseduffield/lazygit/" + path)
 }
 
-// when building the binary, `version` is set as a compile-time variable, along
-// with `date` and `commit`. If this program has been opened directly via go,
-// we will populate the `version` with VERSION in the lazygit root directory
-func fallbackVersion() string {
-	path := projectPath("VERSION")
-	byteVersion, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "unversioned"
-	}
-	return string(byteVersion)
-}
-
 func main() {
 	flag.Parse()
-	if version == "unversioned" {
-		version = fallbackVersion()
-	}
 	if *versionFlag {
-		fmt.Printf("commit=%s, build date=%s, version=%s, os=%s, arch=%s\n", commit, date, version, runtime.GOOS, runtime.GOARCH)
+		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s\n", commit, date, buildSource, version, runtime.GOOS, runtime.GOARCH)
 		os.Exit(0)
 	}
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, debuggingFlag)
+
+	if *configFlag {
+		fmt.Printf("%s\n", config.GetDefaultConfig())
+		os.Exit(0)
+	}
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
 	if err != nil {
 		panic(err)
 	}
 
-	app, err := app.NewApp(appConfig)
+	app, err := app.Setup(appConfig)
 	if err != nil {
-		// TODO: remove this call to panic after anonymous error reporting
-		// is setup (right now the call to panic logs nothing to the screen which
-		// would make debugging difficult
+		app.Log.Error(err.Error())
 		panic(err)
-		// app.Log.Panic(err.Error())
 	}
-	app.GitCommand.SetupGit()
+
 	app.Gui.RunWithSubprocesses()
 }

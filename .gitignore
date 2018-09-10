@@ -1,7 +1,26 @@
-development.log
-commands.log
-extra/lgit.rb
-notes/go.notes
-TODO.notes
-TODO.md
+# Please do not add personal files
+
+# Logs
+*.log
+
+# Hidden
+.*
+
+# TODO
+TODO.*
+
+# Notes
+*.notes
+
+# Tests
 test/repos/repo
+coverage.txt
+
+# Binaries
+lazygit
+
+# Exceptions
+!.gitignore
+!.goreleaser.yml
+!.circleci/
+!.github/

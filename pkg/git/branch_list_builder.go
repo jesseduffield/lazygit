@@ -7,7 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
@@ -22,12 +22,12 @@ import (
 
 // BranchListBuilder returns a list of Branch objects for the current repo
 type BranchListBuilder struct {
-	Log        *logrus.Logger
+	Log        *logrus.Entry
 	GitCommand *commands.GitCommand
 }
 
 // NewBranchListBuilder builds a new branch list builder
-func NewBranchListBuilder(log *logrus.Logger, gitCommand *commands.GitCommand) (*BranchListBuilder, error) {
+func NewBranchListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand) (*BranchListBuilder, error) {
 	return &BranchListBuilder{
 		Log:        log,
 		GitCommand: gitCommand,
