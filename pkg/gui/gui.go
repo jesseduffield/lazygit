@@ -182,7 +182,6 @@ func (gui *Gui) RunWithSubprocesses() {
 
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
-
 	gui.g.Highlight = true
 	width, height := gui.g.Size()
 	version := gui.Config.GetVersion()
@@ -345,7 +344,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if gui.getCommitMessageView(gui.g) == nil {
 
 		// doesn't matter where this view starts because it will be hidden
-		commitMessageView, err := gui.g.SetView("commitMessage", 0, 0, width/2, height/2, 0)
+		v, err = gui.g.SetView("commitMessage", 0, 0, width/2, height/2, 0)
 		if err != nil {
 
 			if err != gocui.ErrUnknownView {
@@ -359,10 +358,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 				return err
 			}
 
-			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
-			commitMessageView.FgColor = gocui.ColorWhite
-			commitMessageView.Editable = true
-			commitMessageView.Editor = gocui.EditorFunc(gui.simpleEditor)
+			v.Title = gui.Tr.SLocalize("CommitMessage")
+			v.FgColor = gocui.ColorWhite
+			v.Editable = true
+			v.Editor = gocui.EditorFunc(gui.simpleEditor)
 		}
 	}
 
@@ -413,14 +412,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		_ = gui.refreshCommits()
 		_ = gui.refreshStashEntries(gui.g)
 
-		err := gui.switchFocus(gui.g, nil, filesView)
+		err = gui.switchFocus(gui.g, nil, filesView)
 		if err != nil {
 			gui.Log.Error("Failed to create appstatus view in appstatus-layout: ", err)
 			return err
 		}
 
 		if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-			if err := gui.promptAnonymousReporting(); err != nil {
+			err = gui.promptAnonymousReporting()
+			if err != nil {
 				return err
 			}
 		}
