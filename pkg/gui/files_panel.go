@@ -37,7 +37,7 @@ func (gui *Gui) refreshFiles() error {
 	}
 
 	if filesView == gui.g.CurrentView() {
-		err = gui.handleFileSelect(gui.g, filesView)
+		err = gui.handleFileSelect()
 		if err != nil {
 			gui.Log.Error(fmt.Sprintf("failed to get filesview in refreshfiles: %s", err))
 			return err
@@ -95,8 +95,12 @@ func (gui *Gui) stageSelectedFile() error {
 	return gui.GitCommand.StageFile(file.Name)
 }
 
+// handleFilePress is called when the user selects a file.
+// g and v are passed by the gocui library to the function but are not used.
+// In case something goes wrong, this function returns an error
 func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
+
+	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
 		if err == gui.Errors.ErrNoFiles {
 			return nil
@@ -105,7 +109,7 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if file.HasMergeConflicts {
-		return gui.handleSwitchToMerge(g, v)
+		return gui.handleSwitchToMerge(gui.g, v)
 	}
 
 	if file.HasUnstagedChanges {
@@ -114,11 +118,18 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 		gui.GitCommand.UnStageFile(file.Name, file.Tracked)
 	}
 
-	if err := gui.refreshFiles(); err != nil {
+	err = gui.refreshFiles()
+	if err != nil {
+		gui.Log.Error("Failed to refresh files at handleFilePress: ", err)
 		return err
 	}
 
-	return gui.handleFileSelect(g, v)
+	err = gui.handleFileSelect()
+	if err != nil {
+		gui.Log.Error("Failed to handleFileSelect at handleFilePress: ", err)
+	}
+
+	return nil
 }
 
 func (gui *Gui) allFilesStaged() bool {
@@ -130,22 +141,41 @@ func (gui *Gui) allFilesStaged() bool {
 	return true
 }
 
+// handleStageAll is called when the user pressed the stage all key
+// in the gui.
+// g and v are passed by the gocui library bubt are not used.
+// In case something goes wrong, it returns an error
 func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
+
 	var err error
+
 	if gui.allFilesStaged() {
 		err = gui.GitCommand.UnstageAll()
 	} else {
 		err = gui.GitCommand.StageAll()
 	}
+
 	if err != nil {
-		_ = gui.createErrorPanel(g, err.Error())
+		err = gui.createErrorPanel(gui.g, err.Error())
+		if err != nil {
+			gui.Log.Error("Failed to create error panel in handleStageAll: ", err)
+			return err
+		}
 	}
 
-	if err := gui.refreshFiles(); err != nil {
+	err = gui.refreshFiles()
+	if err != nil {
+		gui.Log.Error("Failed to refreshFiles in handleStageAll: ", err)
 		return err
 	}
 
-	return gui.handleFileSelect(g, v)
+	err = gui.handleFileSelect()
+	if err != nil {
+		gui.Log.Error("Failed to handleFileSelect in handleStageAll: ", err)
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
@@ -226,23 +256,62 @@ func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
 	return gui.renderGlobalOptions(g)
 }
 
-func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
+// handleFileSelect is called when a file is selected.
+// It checks if there are any changed files and if there is one
+// and it is selected, it gets rendered into the main view
+func (gui *Gui) handleFileSelect() error {
+
+	var content string
+
+	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
+
 		if err != gui.Errors.ErrNoFiles {
+			gui.Log.Error("Failed to get selected file in handlefileselect: ", err)
 			return err
 		}
-		gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
-		return gui.renderfilesOptions(g, nil)
+
+		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoChangedFiles"))
+		if err != nil {
+			gui.Log.Error("Failed to render string in handlefileselect: ", err)
+			return err
+		}
+
+		err = gui.renderfilesOptions(gui.g, nil)
+		if err != nil {
+			gui.Log.Error("Failed to renderfilesoptions in handlefileselect: ", err)
+			return err
+		}
+
+		return nil
 	}
-	gui.renderfilesOptions(g, &file)
-	var content string
+
+	err = gui.renderfilesOptions(gui.g, &file)
+	if err != nil {
+		gui.Log.Error("Failed to renderfilesoptions in handlefileselect: ", err)
+		return err
+	}
+
 	if file.HasMergeConflicts {
-		return gui.refreshMergePanel(g)
+
+		err = gui.refreshMergePanel(gui.g)
+		if err != nil {
+			gui.Log.Error("Failed to refreshmergepanel in handlefileselect: ", err)
+			return err
+		}
+
+		return nil
 	}
 
 	content = gui.GitCommand.Diff(file)
-	return gui.renderString(g, "main", content)
+
+	err = gui.renderString(gui.g, "main", content)
+	if err != nil {
+		gui.Log.Error("Failed to render string in handlefileselect : ", err)
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {

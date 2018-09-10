@@ -3,12 +3,13 @@ package gui
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"io/ioutil"
+	"os"
 
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
@@ -112,16 +113,78 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	return gui, nil
 }
 
-func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
-	gui.refresh()
+// Run setup the gui with keybindings and start the mainloop
+func (gui *Gui) Run() error {
+
+	var err error
+
+	gui.g, err = gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
+	if err != nil {
+		gui.Log.Error("Failed at newgui: ", err)
+		return err
+	}
+
+	defer gui.g.Close()
+
+	err = gui.SetColorScheme()
+	if err != nil {
+		gui.Log.Error("Failed at setcolorscheme: ", err)
+		return err
+	}
+
+	gui.g.SetManagerFunc(gui.layout)
+
+	gui.goEvery(time.Second*60, gui.fetch)
+	gui.goEvery(time.Second*10, gui.refreshFiles)
+	gui.goEvery(time.Millisecond*50, gui.updateLoader)
+	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
+
+	if err = gui.keybindings(gui.g); err != nil {
+		fmt.Println("kb")
+		return err
+	}
+
+	err = gui.g.MainLoop()
+	if err != nil {
+		fmt.Println("ml")
+		gui.Log.Error(err)
+		return err
+	}
+
 	return nil
+}
+
+// RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
+// if the error returned from a run is a ErrSubProcess, it runs the subprocess
+// otherwise it handles the error, possibly by quitting the application
+func (gui *Gui) RunWithSubprocesses() {
+	for {
+
+		err := gui.Run()
+		if err != nil {
+			if err == gocui.ErrQuit {
+				break
+			} else if err == gui.Errors.ErrSubProcess {
+				gui.SubProcess.Stdin = os.Stdin
+				gui.SubProcess.Stdout = os.Stdout
+				gui.SubProcess.Stderr = os.Stderr
+				gui.SubProcess.Run()
+				gui.SubProcess.Stdout = ioutil.Discard
+				gui.SubProcess.Stderr = ioutil.Discard
+				gui.SubProcess.Stdin = nil
+				gui.SubProcess = nil
+			} else {
+				log.Panicln(err)
+			}
+		}
+	}
 }
 
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 
 	gui.g.Highlight = true
-	width, height := g.Size()
+	width, height := gui.g.Size()
 	version := gui.Config.GetVersion()
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
@@ -144,47 +207,60 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if height < minimumHeight || width < minimumWidth {
-		v, err := g.SetView("limit", 0, 0, utils.Max(width-1, 2), utils.Max(height-1, 2), 0)
+		v, err := gui.g.SetView("limit", 0, 0, utils.Max(width-1, 2), utils.Max(height-1, 2), 0)
 		if err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
+
 			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
 			v.Wrap = true
+
 		}
+
 		return nil
 	}
 
-	_ = g.DeleteView("limit")
+	_ = gui.g.DeleteView("limit")
 
 	optionsTop := height - 2
+
 	// hiding options if there's not enough space
 	if height < 30 {
 		optionsTop = height - 1
 	}
 
-	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	v, err := gui.g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
 	if err != nil {
+
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error("Failed to create files view in main-layout: ", err)
 			return err
 		}
+
 		v.Title = gui.Tr.SLocalize("DiffTitle")
 		v.Wrap = true
 		v.FgColor = gocui.ColorWhite
+
 	}
 
-	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
+	v, err = gui.g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT)
+	if err != nil {
+
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error("Failed to create status view in status-layout: ", err)
 			return err
 		}
+
 		v.Title = gui.Tr.SLocalize("StatusTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
-	filesView, err := g.SetView("files", 0, statusFilesBoundary+panelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
+	filesView, err := gui.g.SetView("files", 0, statusFilesBoundary+panelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
 	if err != nil {
+
 		if err != gocui.ErrUnknownView {
-			gui.Log.Error(fmt.Sprintf("Failed to create files view in layout: %s\n", err))
+			gui.Log.Error("Failed to create files view in files-layout: ", err)
 			return err
 		}
 
@@ -194,16 +270,17 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 		err = gui.registerRefresher("files", gui.refreshFiles)
 		if err != nil {
-			gui.Log.Error(err)
+			gui.Log.Error("Failed to register refresher at files-layout: ", err)
 			return err
 		}
 
 	}
 
-	v, err = g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM)
+	v, err = gui.g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM)
 	if err != nil {
+
 		if err != gocui.ErrUnknownView {
-			gui.Log.Error(fmt.Sprintf("Failed to create branches view in layout: %s\n", err))
+			gui.Log.Error("Failed to create branches view in branches-layout: ", err)
 			return err
 		}
 
@@ -212,15 +289,17 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 		err = gui.registerRefresher("branches", gui.refreshBranches)
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Failed to register refresh at commit: %s\n", err))
+			gui.Log.Error("Failed to create files view in branches-layout: ", err)
+			return err
 		}
 
 	}
 
-	v, err = g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM)
+	v, err = gui.g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM)
 	if err != nil {
 
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error("Failed to create commits view in commits-layout: ", err)
 			return err
 		}
 
@@ -229,36 +308,57 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 		err = gui.registerRefresher("commits", gui.refreshCommits)
 		if err != nil {
-			gui.Log.Error(err)
+			gui.Log.Error("Failed to register refresher at commits-layout: ", err)
 			return err
 		}
 	}
 
-	if v, err := g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT); err != nil {
+	v, err = gui.g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT)
+	if err != nil {
+
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error("Failed to create stash view in stash-layout: ", err)
 			return err
 		}
+
 		v.Title = gui.Tr.SLocalize("StashTitle")
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", appStatusOptionsBoundary-1, optionsTop, optionsVersionBoundary-1, optionsTop+2, 0); err != nil {
+	v, err = gui.g.SetView("options", appStatusOptionsBoundary-1, optionsTop, optionsVersionBoundary-1, optionsTop+2, 0)
+	if err != nil {
+
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error("Failed to create options view in options-layout: ", err)
 			return err
 		}
+
 		v.Frame = false
-		if v.FgColor, err = gui.GetOptionsPanelTextColor(); err != nil {
+
+		v.FgColor, err = gui.GetOptionsPanelTextColor()
+		if err != nil {
+			gui.Log.Error("Failed to get color in options-layout: ", err)
 			return err
 		}
 	}
 
-	if gui.getCommitMessageView(g) == nil {
+	if gui.getCommitMessageView(gui.g) == nil {
+
 		// doesn't matter where this view starts because it will be hidden
-		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width/2, height/2, 0); err != nil {
+		commitMessageView, err := gui.g.SetView("commitMessage", 0, 0, width/2, height/2, 0)
+		if err != nil {
+
 			if err != gocui.ErrUnknownView {
+				gui.Log.Error("Failed to create commitMessage view in commitmessage-layout: ", err)
 				return err
 			}
-			g.SetViewOnBottom("commitMessage")
+
+			_, err = gui.g.SetViewOnBottom("commitMessage")
+			if err != nil {
+				gui.Log.Error("Failed to set commitmessage view to bottom in commitmessage-layout: ", err)
+				return err
+			}
+
 			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
@@ -266,40 +366,56 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if appStatusView, err := g.SetView("appStatus", -1, optionsTop, width, optionsTop+2, 0); err != nil {
+	v, err = gui.g.SetView("appStatus", -1, optionsTop, width, optionsTop+2, 0)
+	if err != nil {
+
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error("Failed to create appstatus view in appstatus-layout: ", err)
 			return err
 		}
-		appStatusView.BgColor = gocui.ColorDefault
-		appStatusView.FgColor = gocui.ColorCyan
-		appStatusView.Frame = false
-		if _, err := g.SetViewOnBottom("appStatus"); err != nil {
+
+		v.BgColor = gocui.ColorDefault
+		v.FgColor = gocui.ColorCyan
+		v.Frame = false
+
+		_, err = gui.g.SetViewOnBottom("appStatus")
+		if err != nil {
+			gui.Log.Error("Failed to set appstatus view to bottom in appstatus-layout: ", err)
 			return err
 		}
 	}
 
-	if v, err := g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	v, err = gui.g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0)
+	if err != nil {
+
 		if err != gocui.ErrUnknownView {
+			gui.Log.Error("Failed to create version view in version-layout: ", err)
 			return err
 		}
+
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorGreen
 		v.Frame = false
-		if err := gui.renderString(g, "version", version); err != nil {
+
+		err = gui.renderString(gui.g, "version", version)
+		if err != nil {
+			gui.Log.Error("Failed to render string version in version-layout: ", err)
 			return err
 		}
 
 		// these are only called once (it's a place to put all the things you want
 		// to happen on startup after the screen is first rendered)
 		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
-		_ = gui.handleFileSelect(g, filesView)
+
+		_ = gui.handleFileSelect()
 		_ = gui.refreshFiles()
 		_ = gui.refreshBranches()
 		_ = gui.refreshCommits()
-		_ = gui.refreshStashEntries(g)
+		_ = gui.refreshStashEntries(gui.g)
 
-		err := gui.switchFocus(g, nil, filesView)
+		err := gui.switchFocus(gui.g, nil, filesView)
 		if err != nil {
+			gui.Log.Error("Failed to create appstatus view in appstatus-layout: ", err)
 			return err
 		}
 
@@ -310,7 +426,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	return gui.resizeCurrentPopupPanel(g)
+	return gui.resizeCurrentPopupPanel(gui.g)
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
@@ -381,73 +497,9 @@ func (gui *Gui) goEvery(interval time.Duration, function func() error) {
 	}()
 }
 
-// Run setup the gui with keybindings and start the mainloop
-func (gui *Gui) Run() error {
-
-	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
-	if err != nil {
-		fmt.Println("ng")
-		gui.Log.Error("Failed at newgui:", err)
-		return err
-	}
-
-	defer g.Close()
-
-	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
-
-	err = gui.SetColorScheme()
-	if err != nil {
-		fmt.Println("scs")
-		gui.Log.Error("Failed at setcolorscheme", err)
-		return err
-	}
-
-	gui.g.SetManagerFunc(gui.layout)
-
-	gui.goEvery(time.Second*60, gui.fetch)
-	gui.goEvery(time.Second*10, gui.refreshFiles)
-	gui.goEvery(time.Millisecond*50, gui.updateLoader)
-	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
-
-	if err = gui.keybindings(gui.g); err != nil {
-		fmt.Println("kb")
-		return err
-	}
-
-	err = gui.g.MainLoop()
-	if err != nil {
-		fmt.Println("ml")
-		gui.Log.Error(err)
-		return err
-	}
-
+func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
+	gui.refresh()
 	return nil
-}
-
-// RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
-// if the error returned from a run is a ErrSubProcess, it runs the subprocess
-// otherwise it handles the error, possibly by quitting the application
-func (gui *Gui) RunWithSubprocesses() {
-	for {
-
-		err := gui.Run()
-		if err != nil {
-			if err == gocui.ErrQuit {
-				break
-			} else if err == gui.Errors.ErrSubProcess {
-				gui.SubProcess.Stdin = os.Stdin
-				gui.SubProcess.Stdout = os.Stdout
-				gui.SubProcess.Stderr = os.Stderr
-				gui.SubProcess.Run()
-				gui.SubProcess.Stdout = ioutil.Discard
-				gui.SubProcess.Stderr = ioutil.Discard
-				gui.SubProcess.Stdin = nil
-				gui.SubProcess = nil
-			} else {
-				log.Panicln(err)
-			}
-		}
-	}
 }
 
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
