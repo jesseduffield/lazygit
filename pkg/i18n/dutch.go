@@ -36,7 +36,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Commit Veranderingen",
 		}, &i18n.Message{
 			ID:    "CommitChangesWithEditor",
-			Other: "commit changes using git editor",
+			Other: "commit Veranderingen met de git editor",
 		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
@@ -51,7 +51,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "menu",
 		}, &i18n.Message{
 			ID:    "execute",
-			Other: "execute",
+			Other: "uitvoeren",
 		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "stash-bestanden",
@@ -78,7 +78,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "verandering toevoegen",
 		}, &i18n.Message{
 			ID:    "edit",
-			Other: "veranderen",
+			Other: "verander",
 		}, &i18n.Message{
 			ID:    "scroll",
 			Other: "scroll",
@@ -186,7 +186,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
 		}, &i18n.Message{
 			ID:    "close",
-			Other: "close",
+			Other: "sluiten",
 		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Weet je het zeker dat je wil resetten naar deze commit?",
@@ -318,58 +318,58 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "open config file",
 		}, &i18n.Message{
 			ID:    "EditConfig",
-			Other: "edit config file",
+			Other: "verander config file",
 		}, &i18n.Message{
 			ID:    "ForcePush",
-			Other: "Force push",
+			Other: "Forceer push",
 		}, &i18n.Message{
 			ID:    "ForcePushPrompt",
-			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
+			Other: "Jou branch is afgeweken van de remote branch. Druk 'esc' om te anuleren, of 'enter' om geforceert te pushen.",
 		}, &i18n.Message{
 			ID:    "checkForUpdate",
-			Other: "check for update",
+			Other: "check voor updates",
 		}, &i18n.Message{
 			ID:    "CheckingForUpdates",
-			Other: "Checking for updates...",
+			Other: "checken voor updates...",
 		}, &i18n.Message{
 			ID:    "OnLatestVersionErr",
-			Other: "You already have the latest version",
+			Other: "Je hebt al de laatste versie",
 		}, &i18n.Message{
 			ID:    "MajorVersionErr",
-			Other: "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
+			Other: "Nieuwe versie ({{.newVersion}}) is niet teruggaand compatibele vergeleken met de huidige versie ({{.currentVersion}})",
 		}, &i18n.Message{
 			ID:    "CouldNotFindBinaryErr",
-			Other: "Could not find any binary at {{.url}}",
+			Other: "Kon geen binary vinden op {{.url}}",
 		}, &i18n.Message{
 			ID:    "AnonymousReportingTitle",
-			Other: "Help make lazygit better",
+			Other: "Help maak lazygit beter",
 		}, &i18n.Message{
 			ID:    "AnonymousReportingPrompt",
-			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
+			Other: "Zou je anonieme data rapportage willen aanzetten om lazygit beter te kunnen maken? (enter/esc)",
 		}, &i18n.Message{
 			ID:    "removeFile",
-			Other: `delete if untracked / checkout if tracked (aka go away)`,
+			Other: `Verwijder als untracked / uitchecken wordt gevolgd (ga weg)`,
 		}, &i18n.Message{
 			ID:    "editFile",
-			Other: `edit file`,
+			Other: `verander bestand`,
 		}, &i18n.Message{
 			ID:    "openFile",
-			Other: `open file`,
+			Other: `open bestand`,
 		}, &i18n.Message{
 			ID:    "ignoreFile",
-			Other: `add to .gitignore`,
+			Other: `voeg toe aan .gitignore`,
 		}, &i18n.Message{
 			ID:    "refreshFiles",
-			Other: `refresh files`,
+			Other: `refresh bestanden`,
 		}, &i18n.Message{
 			ID:    "resetHard",
-			Other: `reset hard`,
+			Other: `harde reset`,
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
-			Other: `merge into currently checked out branch`,
+			Other: `merge in met huidige checked out branch`,
 		}, &i18n.Message{
 			ID:    "ConfirmQuit",
-			Other: `Are you sure you want to quit?`,
+			Other: `Weet je zeker dat je dit programma wil sluiten?`,
 		},
 	)
 }
