@@ -316,7 +316,7 @@ func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
 	return gui.State.Branches[lineNumber]
 }
 
-// handleBranchSelect is
+// handleBranchSelect gets called when the user selects a branch
 func (gui *Gui) handleBranchSelect(v *gocui.View) error {
 
 	err := gui.renderGlobalOptions()
