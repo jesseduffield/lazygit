@@ -56,9 +56,11 @@ func newDummyLog() *logrus.Entry {
 
 func newDummyGitCommand() *GitCommand {
 	return &GitCommand{
-		Log:       newDummyLog(),
-		OSCommand: newDummyOSCommand(),
-		Tr:        i18n.NewLocalizer(newDummyLog()),
+		Log:                newDummyLog(),
+		OSCommand:          newDummyOSCommand(),
+		Tr:                 i18n.NewLocalizer(newDummyLog()),
+		getGlobalGitConfig: func(string) (string, error) { return "", nil },
+		getLocalGitConfig:  func(string) (string, error) { return "", nil },
 	}
 }
 
@@ -728,6 +730,99 @@ func TestGitCommandMerge(t *testing.T) {
 	}
 
 	assert.NoError(t, gitCmd.Merge("test"))
+}
+
+func TestGitCommandUsingGpg(t *testing.T) {
+	type scenario struct {
+		testName           string
+		getGlobalGitConfig func(string) (string, error)
+		getLocalGitConfig  func(string) (string, error)
+		test               func(bool)
+	}
+
+	scenarios := []scenario{
+		{
+			"Option global and local config commit.gpgsign is not set",
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.False(t, gpgEnabled)
+			},
+		},
+		{
+			"Option global config commit.gpgsign is not set, fallback on local config",
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(string) (string, error) {
+				return "true", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+		{
+			"Option commit.gpgsign is true",
+			func(string) (string, error) {
+				return "True", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+		{
+			"Option commit.gpgsign is on",
+			func(string) (string, error) {
+				return "ON", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+		{
+			"Option commit.gpgsign is yes",
+			func(string) (string, error) {
+				return "YeS", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+		{
+			"Option commit.gpgsign is 1",
+			func(string) (string, error) {
+				return "1", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			gitCmd.getLocalGitConfig = s.getLocalGitConfig
+			s.test(gitCmd.usingGpg())
+		})
+	}
 }
 
 func TestGitCommandDiff(t *testing.T) {

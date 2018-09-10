@@ -59,11 +59,13 @@ func setupRepositoryAndWorktree(openGitRepository func(string) (*gogit.Repositor
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Log       *logrus.Entry
-	OSCommand *OSCommand
-	Worktree  *gogit.Worktree
-	Repo      *gogit.Repository
-	Tr        *i18n.Localizer
+	Log                *logrus.Entry
+	OSCommand          *OSCommand
+	Worktree           *gogit.Worktree
+	Repo               *gogit.Repository
+	Tr                 *i18n.Localizer
+	getGlobalGitConfig func(string) (string, error)
+	getLocalGitConfig  func(string) (string, error)
 }
 
 // NewGitCommand it runs git commands
@@ -92,11 +94,13 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 	}
 
 	return &GitCommand{
-		Log:       log,
-		OSCommand: osCommand,
-		Tr:        tr,
-		Worktree:  worktree,
-		Repo:      repo,
+		Log:                log,
+		OSCommand:          osCommand,
+		Tr:                 tr,
+		Worktree:           worktree,
+		Repo:               repo,
+		getGlobalGitConfig: gitconfig.Global,
+		getLocalGitConfig:  gitconfig.Local,
 	}, nil
 }
 
@@ -274,23 +278,22 @@ func (c *GitCommand) AbortMerge() error {
 	return c.OSCommand.RunCommand("git merge --abort")
 }
 
-// UsingGpg tells us whether the user has gpg enabled so that we can know
+// usingGpg tells us whether the user has gpg enabled so that we can know
 // whether we need to run a subprocess to allow them to enter their password
-func (c *GitCommand) UsingGpg() bool {
-	gpgsign, _ := gitconfig.Global("commit.gpgsign")
+func (c *GitCommand) usingGpg() bool {
+	gpgsign, _ := c.getGlobalGitConfig("commit.gpgsign")
 	if gpgsign == "" {
-		gpgsign, _ = gitconfig.Local("commit.gpgsign")
+		gpgsign, _ = c.getLocalGitConfig("commit.gpgsign")
 	}
-	if gpgsign == "" {
-		return false
-	}
-	return true
+	value := strings.ToLower(gpgsign)
+
+	return value == "true" || value == "1" || value == "yes" || value == "on"
 }
 
 // Commit commit to git
 func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
 	command := "git commit -m " + c.OSCommand.Quote(message)
-	if c.UsingGpg() {
+	if c.usingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
 	return nil, c.OSCommand.RunCommand(command)
