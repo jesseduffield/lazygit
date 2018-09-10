@@ -277,16 +277,36 @@ func (gui *Gui) deleteBranch(v *gocui.View, force bool) error {
 	return nil
 }
 
+// handleMerge is called when the user wants to merge.
+// g and v are passed by the gocui library, but only v is used.
+// If something goes wrong it returns an error
 func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 	checkedOutBranch := gui.State.Branches[0]
 	selectedBranch := gui.getSelectedBranch(v)
+
 	defer gui.refresh()
+
 	if checkedOutBranch.Name == selectedBranch.Name {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleMerge: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
-	if err := gui.GitCommand.Merge(selectedBranch.Name); err != nil {
-		return gui.createErrorPanel(g, err.Error())
+
+	err := gui.GitCommand.Merge(selectedBranch.Name)
+	if err != nil {
+		err = gui.createErrorPanel(gui.g, err.Error())
+		if err != nil {
+			gui.Log.Errorf("Failed to error confirmation panel at handleMerge: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
+
 	return nil
 }
 
