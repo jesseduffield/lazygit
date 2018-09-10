@@ -825,6 +825,75 @@ func TestGitCommandUsingGpg(t *testing.T) {
 	}
 }
 
+func TestGitCommandCommit(t *testing.T) {
+	type scenario struct {
+		testName           string
+		command            func(string, ...string) *exec.Cmd
+		getGlobalGitConfig func(string) (string, error)
+		test               func(*exec.Cmd, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Commit using gpg",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "bash", cmd)
+				assert.EqualValues(t, []string{"-c", `git commit -m "test"`}, args)
+
+				return exec.Command("echo")
+			},
+			func(string) (string, error) {
+				return "true", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.NotNil(t, cmd)
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Commit without using gpg",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "-m", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.Nil(t, cmd)
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Commit without using gpg with an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "-m", "test"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.Nil(t, cmd)
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.Commit("test"))
+		})
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
