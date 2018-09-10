@@ -440,7 +440,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)
 			_ = gui.refreshCommits()
-			_ = gui.refreshStatus(gui.g)
+			_ = gui.refreshStatus()
 		}
 
 		err = gui.refreshFiles()
@@ -465,7 +465,7 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)
 			_ = gui.refreshCommits()
-			_ = gui.refreshStatus(gui.g)
+			_ = gui.refreshStatus()
 		}
 	}()
 	return nil
@@ -507,7 +507,7 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, err.Error())
 	}
 	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("MergeAborted"))
-	gui.refreshStatus(g)
+	gui.refreshStatus()
 	return gui.refreshFiles()
 }
 

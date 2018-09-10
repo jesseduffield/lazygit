@@ -463,7 +463,7 @@ func (gui *Gui) fetch() error {
 		return err
 	}
 
-	err = gui.refreshStatus(gui.g)
+	err = gui.refreshStatus()
 	if err != nil {
 		gui.Log.Error(err)
 		return err

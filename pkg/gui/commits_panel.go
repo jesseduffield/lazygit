@@ -183,7 +183,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.refreshCommits(); err != nil {
 			panic(err)
 		}
-		return gui.refreshStatus(g)
+		return gui.refreshStatus()
 	}, nil)
 	return nil
 }
