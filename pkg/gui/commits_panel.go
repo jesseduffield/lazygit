@@ -61,24 +61,61 @@ func (gui *Gui) refreshCommits() error {
 	return nil
 }
 
-func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
-	return gui.createConfirmationPanel(g, commitView, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		commit, err := gui.getSelectedCommit(g)
-		if err != nil {
-			panic(err)
-		}
-		if err := gui.GitCommand.ResetToCommit(commit.Sha); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshCommits(); err != nil {
-			panic(err)
-		}
-		if err := gui.refreshFiles(); err != nil {
-			panic(err)
-		}
-		gui.resetOrigin(commitView)
-		return gui.handleCommitSelect(g, nil)
-	}, nil)
+// handleResetToCommit is called when the user wants to reset to a commit.
+// g and v are passed by the gocui, but only v is used.
+// If anything goes wrong it returns an error.
+func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
+
+	err := gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"),
+		func(g *gocui.Gui, v *gocui.View) error {
+
+			commit, err := gui.getSelectedCommit(gui.g)
+			if err != nil {
+				gui.Log.Errorf("Failed to get selected commit at handleResetToCommit: %s\n", err)
+				return err
+			}
+
+			err = gui.GitCommand.ResetToCommit(commit.Sha)
+			if err != nil {
+				err = gui.createErrorPanel(gui.g, err.Error())
+				if err != nil {
+					gui.Log.Errorf("Failed to create error panel at handleResetToCommit: %s\n", err)
+					return err
+				}
+			}
+
+			err = gui.refreshCommits()
+			if err != nil {
+				gui.Log.Errorf("Failed to refresh commits at handleResetToCommit: %s\n", err)
+				return err
+			}
+
+			err = gui.refreshFiles()
+			if err != nil {
+				gui.Log.Errorf("Failed to refresh files at handleResetToCommit: %s\n", err)
+				return err
+			}
+
+			err = gui.resetOrigin(v)
+			if err != nil {
+				gui.Log.Errorf("Failed to reset origin at handleResetToCommit %s\n", err)
+				return err
+			}
+
+			err = gui.handleCommitSelect(gui.g, nil)
+			if err != nil {
+				gui.Log.Errorf("Failed to handle commit select at handleResetToCommit: %s\n", err)
+				return err
+			}
+
+			return nil
+		}, nil)
+	if err != nil {
+		gui.Log.Errorf("Failed to create confirmation panel at handleResetToCommit: %s\n", err)
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
