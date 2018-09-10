@@ -125,14 +125,24 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// handleCheckoutByName gets called when a user presses the key
+// to checkout a branch by name.
+// g and v are passed by the gocui library, but only v is used.
+// If something goes wrong it returns an error
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 
-	err := gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":",
+	err := gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("BranchName")+":",
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(gui.trimmedContent(v), false)
 			if err != nil {
-				return gui.createErrorPanel(g, err.Error())
+				err = gui.createErrorPanel(gui.g, err.Error())
+				if err != nil {
+					gui.Log.Errorf("Failed to create error panel at handleCheckoutByName: %s\n", err)
+					return err
+				}
+
+				return nil
 			}
 
 			gui.refresh()
@@ -140,7 +150,7 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 			return nil
 		})
 	if err != nil {
-		gui.Log.Error(err)
+		gui.Log.Errorf("Failed to create prompt panel at handleCheckoutByName: %s\n", err)
 		return err
 	}
 
