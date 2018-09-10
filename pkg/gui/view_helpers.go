@@ -257,11 +257,6 @@ func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	return v
 }
 
-func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("branches")
-	return v
-}
-
 func (gui *Gui) trimmedContent(v *gocui.View) string {
 	return strings.TrimSpace(v.Buffer())
 }

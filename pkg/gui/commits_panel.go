@@ -40,7 +40,7 @@ func (gui *Gui) refreshCommits() error {
 
 		}
 
-		err = gui.refreshStatus(gui.g)
+		err = gui.refreshStatus()
 		if err != nil {
 			gui.Log.Error(fmt.Sprintf("Failed to refresh status in refreshCommits: %s\n", err))
 			return err
@@ -80,12 +80,9 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 	}, nil)
 }
 
-func (gui *Gui) renderCommitsOptions(g *gocui.Gui) error {
-	return gui.renderGlobalOptions(g)
-}
-
 func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.renderCommitsOptions(g); err != nil {
+	err := gui.renderGlobalOptions()
+	if err != nil {
 		return err
 	}
 	commit, err := gui.getSelectedCommit(g)
@@ -99,35 +96,71 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	return gui.renderString(g, "main", commitText)
 }
 
+// handleCommitSquashDown gets called when the user wants to squash down
+// commits.
+// g and v gets passed by gocui but g is not used.
+// If anything goes wrong, it returns an error
 func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
+
 	if gui.getItemPosition(v) != 0 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlySquashTopmostCommit"))
+
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("OnlySquashTopmostCommit"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create errorpanel at handleCommitSquashDown: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
+
 	if len(gui.State.Commits) == 1 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
+
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleCommitSquashDown: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
-	commit, err := gui.getSelectedCommit(g)
+
+	commit, err := gui.getSelectedCommit(gui.g)
 	if err != nil {
+		gui.Log.Errorf("Failed to get selected commit at handleCommitSquashDown: %s\n", err)
 		return err
 	}
-	if err := gui.GitCommand.SquashPreviousTwoCommits(commit.Name); err != nil {
-		return gui.createErrorPanel(g, err.Error())
-	}
-	if err := gui.refreshCommits(); err != nil {
-		panic(err)
-	}
-	gui.refreshStatus(g)
-	return gui.handleCommitSelect(g, v)
-}
 
-// TODO: move to files panel
-func (gui *Gui) anyUnStagedChanges(files []commands.File) bool {
-	for _, file := range files {
-		if file.Tracked && file.HasUnstagedChanges {
-			return true
+	err = gui.GitCommand.SquashPreviousTwoCommits(commit.Name)
+	if err != nil {
+
+		err = gui.createErrorPanel(gui.g, err.Error())
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleCommitSquashDown: %s\n", err)
+			return err
 		}
+
+		return nil
 	}
-	return false
+
+	err = gui.refreshCommits()
+	if err != nil {
+		gui.Log.Errorf("Failed to refresh commits at handleCommitSquashDown: %s\n", err)
+		return err
+	}
+
+	err = gui.refreshStatus()
+	if err != nil {
+		gui.Log.Errorf("Failed to refresh status at handleCommitSquashDown: %s\n", err)
+		return err
+	}
+
+	err = gui.handleCommitSelect(gui.g, v)
+	if err != nil {
+		gui.Log.Errorf("Failed to handleCommitSelect at handleCommitSquashDown: %s\n", err)
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {

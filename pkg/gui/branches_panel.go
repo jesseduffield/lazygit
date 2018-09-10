@@ -42,7 +42,7 @@ func (gui *Gui) refreshBranches() error {
 			return err
 		}
 
-		err = gui.refreshStatus(g)
+		err = gui.refreshStatus()
 		if err != nil {
 			gui.Log.Error(fmt.Sprintf("Failed to refresh statsu at refreshBranches: %s\n", err))
 			return err
@@ -54,20 +54,35 @@ func (gui *Gui) refreshBranches() error {
 	return nil
 }
 
+// handleBranchPress is called when the user selects a branch.
+// g and v are passed by the gocui library, but are not used.
+// In case something goes wrong it returns an error
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 
-	index := gui.getItemPosition(gui.getBranchesView(g))
-	if index == 0 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
+	v, err := gui.g.View("branches")
+	if err != nil {
+		gui.Log.Errorf("Failed to get branch view at handleBranchPress: %s\n", err.Error())
 	}
 
-	branch := gui.getSelectedBranch(gui.getBranchesView(g))
+	index := gui.getItemPosition(v)
+	if index == 0 {
 
-	err := gui.GitCommand.Checkout(branch.Name, false)
-	if err != nil {
-		err = gui.createErrorPanel(g, err.Error())
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 		if err != nil {
-			gui.Log.Error(err)
+			gui.Log.Errorf("Failed to create error panel at handleBranchPress: %s\n", err)
+			return err
+		}
+
+		return nil
+	}
+
+	branch := gui.getSelectedBranch(v)
+
+	err = gui.GitCommand.Checkout(branch.Name, false)
+	if err != nil {
+		err = gui.createErrorPanel(gui.g, err.Error())
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleBranchPress: %s\n", err)
 			return err
 		}
 	}
@@ -77,20 +92,23 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// handleForceCheckout is called when the user wants to force checkout a branch
+// g and v are passed by the gocui library, but are not used.
+// In case something goes wrong it returns an error
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 
 	branch := gui.getSelectedBranch(v)
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
 
-	return gui.createConfirmationPanel(g, v, title, message,
+	err := gui.createConfirmationPanel(g, v, title, message,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(branch.Name, true)
 			if err != nil {
 				err = gui.createErrorPanel(g, err.Error())
 				if err != nil {
-					gui.Log.Error(err)
+					gui.Log.Errorf("Failed to create error panel at handleBranchPress: %s\n", err)
 					return err
 				}
 			}
@@ -99,6 +117,11 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 
 			return nil
 		}, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
@@ -210,19 +233,20 @@ func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
 	return gui.State.Branches[lineNumber]
 }
 
-func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
-	return gui.renderGlobalOptions(g)
-}
-
 // may want to standardise how these select methods work
 func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.renderBranchesOptions(g); err != nil {
+
+	err := gui.renderGlobalOptions()
+	if err != nil {
+		gui.Log.Errorf("Failed to renderGlobalOptions at handleBranchSelect: %s\n", err)
 		return err
 	}
+
 	// This really shouldn't happen: there should always be a master branch
 	if len(gui.State.Branches) == 0 {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
 	}
+
 	go func() {
 		branch := gui.getSelectedBranch(v)
 		diff, err := gui.GitCommand.GetBranchGraph(branch.Name)

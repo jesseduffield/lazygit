@@ -3,13 +3,12 @@ package gui
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
-
-	"io/ioutil"
-	"os"
 
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
@@ -20,6 +19,18 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
+
+// lazygitTitle is the icon that gets display when the user focusses
+// on the status view
+const lazygitTitle = `
+   _                       _ _
+  | |                     (_) |
+  | | __ _ _____   _  __ _ _| |_
+  | |/ _` + "`" + ` |_  / | | |/ _` + "`" + ` | | __|
+  | | (_| |/ /| |_| | (_| | | |_
+  |_|\__,_/___|\__, |\__, |_|\__|
+                __/ | __/ |
+               |___/ |___/       `
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
@@ -168,7 +179,13 @@ func (gui *Gui) RunWithSubprocesses() {
 				gui.SubProcess.Stdin = os.Stdin
 				gui.SubProcess.Stdout = os.Stdout
 				gui.SubProcess.Stderr = os.Stderr
-				gui.SubProcess.Run()
+
+				err = gui.SubProcess.Run()
+				if err != nil {
+					gui.Log.Error("Failed to runWithSubProcess: ", err)
+					return
+				}
+
 				gui.SubProcess.Stdout = ioutil.Discard
 				gui.SubProcess.Stderr = ioutil.Discard
 				gui.SubProcess.Stdin = nil
@@ -476,8 +493,8 @@ func (gui *Gui) renderAppStatus() error {
 	return nil
 }
 
-func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
+func (gui *Gui) renderGlobalOptions() error {
+	return gui.renderOptionsMap(gui.g, map[string]string{
 		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
 		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
 		"esc/q":     gui.Tr.SLocalize("close"),

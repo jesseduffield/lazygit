@@ -252,10 +252,6 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshFiles()
 }
 
-func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
-	return gui.renderGlobalOptions(g)
-}
-
 // handleFileSelect is called when a file is selected.
 // It checks if there are any changed files and if there is one
 // and it is selected, it gets rendered into the main view
@@ -277,7 +273,7 @@ func (gui *Gui) handleFileSelect() error {
 			return err
 		}
 
-		err = gui.renderfilesOptions(gui.g, nil)
+		err = gui.renderGlobalOptions()
 		if err != nil {
 			gui.Log.Error("Failed to renderfilesoptions in handlefileselect: ", err)
 			return err
@@ -286,7 +282,7 @@ func (gui *Gui) handleFileSelect() error {
 		return nil
 	}
 
-	err = gui.renderfilesOptions(gui.g, &file)
+	err = gui.renderGlobalOptions()
 	if err != nil {
 		gui.Log.Error("Failed to renderfilesoptions in handlefileselect: ", err)
 		return err
@@ -529,4 +525,13 @@ func (gui *Gui) openFile(filename string) error {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 	return nil
+}
+
+func (gui *Gui) anyUnStagedChanges(files []commands.File) bool {
+	for _, file := range files {
+		if file.Tracked && file.HasUnstagedChanges {
+			return true
+		}
+	}
+	return false
 }

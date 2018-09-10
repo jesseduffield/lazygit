@@ -32,14 +32,13 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 	return &gui.State.StashEntries[lineNumber]
 }
 
-func (gui *Gui) renderStashOptions(g *gocui.Gui) error {
-	return gui.renderGlobalOptions(g)
-}
-
 func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.renderStashOptions(g); err != nil {
+
+	err := gui.renderGlobalOptions()
+	if err != nil {
 		return err
 	}
+
 	go func() {
 		stashEntry := gui.getSelectedStashEntry(v)
 		if stashEntry == nil {
