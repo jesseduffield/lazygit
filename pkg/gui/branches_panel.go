@@ -15,7 +15,7 @@ func (gui *Gui) refreshBranches() error {
 
 	gui.g.Update(func(g *gocui.Gui) error {
 
-		v, err := g.View("branches")
+		v, err := gui.g.View("branches")
 		if err != nil {
 			gui.Log.Error(fmt.Sprintf("Failed to get branches view at refreshbranches %s\n", err))
 			return err
