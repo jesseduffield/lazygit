@@ -189,7 +189,7 @@ func (gui *Gui) refreshMergePanel(g *gocui.Gui) error {
 	}
 
 	if len(gui.State.Conflicts) == 0 {
-		return gui.handleCompleteMerge(g)
+		return gui.handleCompleteMerge()
 	} else if gui.State.ConflictIndex > len(gui.State.Conflicts)-1 {
 		gui.State.ConflictIndex = len(gui.State.Conflicts) - 1
 	}
@@ -243,21 +243,13 @@ func (gui *Gui) renderMergeOptions(g *gocui.Gui) error {
 	})
 }
 
+// handleEscapeMerge is called when a user presses escape while merging
 func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
-	filesView, err := g.View("files")
-	if err != nil {
-		return err
-	}
-	gui.refreshFiles()
-	return gui.switchFocus(g, v, filesView)
-}
 
-func (gui *Gui) handleCompleteMerge(g *gocui.Gui) error {
 	filesView, err := g.View("files")
 	if err != nil {
 		return err
 	}
-	gui.stageSelectedFile(g)
 
 	err = gui.refreshFiles()
 	if err != nil {
@@ -265,5 +257,40 @@ func (gui *Gui) handleCompleteMerge(g *gocui.Gui) error {
 		return err
 	}
 
-	return gui.switchFocus(g, nil, filesView)
+	err = gui.switchFocus(g, v, filesView)
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func (gui *Gui) handleCompleteMerge() error {
+
+	v, err := gui.g.View("files")
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
+	err = gui.stageSelectedFile()
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
+	err = gui.refreshFiles()
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
+	err = gui.switchFocus(gui.g, nil, v)
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
+	return nil
 }

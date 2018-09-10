@@ -119,7 +119,8 @@ func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
 
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
-	g.Highlight = true
+
+	gui.g.Highlight = true
 	width, height := g.Size()
 	version := gui.Config.GetVersion()
 	leftSideWidth := width / 3
@@ -154,11 +155,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return nil
 	}
 
-	err := g.DeleteView("limit")
-	if err != nil {
-		gui.Log.Error(err)
-		return err
-	}
+	_ = g.DeleteView("limit")
 
 	optionsTop := height - 2
 	// hiding options if there's not enough space
@@ -324,9 +321,21 @@ func (gui *Gui) promptAnonymousReporting() error {
 	})
 }
 
+// Fetch fetches the commits
 func (gui *Gui) fetch() error {
-	gui.GitCommand.Fetch()
-	gui.refreshStatus(gui.g)
+
+	err := gui.GitCommand.Fetch()
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
+	err = gui.refreshStatus(gui.g)
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
 	return nil
 }
 
@@ -365,6 +374,7 @@ func (gui *Gui) goEvery(interval time.Duration, function func() error) {
 		for range time.Tick(interval) {
 			err := function()
 			if err != nil {
+				log.Println("ge")
 				gui.Log.Error(err)
 			}
 		}
@@ -376,6 +386,8 @@ func (gui *Gui) Run() error {
 
 	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
 	if err != nil {
+		fmt.Println("ng")
+		gui.Log.Error("Failed at newgui:", err)
 		return err
 	}
 
@@ -385,22 +397,26 @@ func (gui *Gui) Run() error {
 
 	err = gui.SetColorScheme()
 	if err != nil {
+		fmt.Println("scs")
+		gui.Log.Error("Failed at setcolorscheme", err)
 		return err
 	}
+
+	gui.g.SetManagerFunc(gui.layout)
 
 	gui.goEvery(time.Second*60, gui.fetch)
 	gui.goEvery(time.Second*10, gui.refreshFiles)
 	gui.goEvery(time.Millisecond*50, gui.updateLoader)
 	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
-	gui.g.SetManagerFunc(gui.layout)
-
 	if err = gui.keybindings(gui.g); err != nil {
+		fmt.Println("kb")
 		return err
 	}
 
 	err = gui.g.MainLoop()
 	if err != nil {
+		fmt.Println("ml")
 		gui.Log.Error(err)
 		return err
 	}
@@ -413,7 +429,9 @@ func (gui *Gui) Run() error {
 // otherwise it handles the error, possibly by quitting the application
 func (gui *Gui) RunWithSubprocesses() {
 	for {
-		if err := gui.Run(); err != nil {
+
+		err := gui.Run()
+		if err != nil {
 			if err == gocui.ErrQuit {
 				break
 			} else if err == gui.Errors.ErrSubProcess {

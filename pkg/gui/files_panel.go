@@ -87,8 +87,8 @@ func (gui *Gui) trackedFiles() []commands.File {
 	return result
 }
 
-func (gui *Gui) stageSelectedFile(g *gocui.Gui) error {
-	file, err := gui.getSelectedFile(g)
+func (gui *Gui) stageSelectedFile() error {
+	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
 		return err
 	}
