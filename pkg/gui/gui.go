@@ -113,7 +113,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 }
 
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
-	return gui.refresh()
+	gui.refresh()
+	return nil
 }
 
 // layout is called for every screen re-render e.g. when the screen is resized
@@ -153,7 +154,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return nil
 	}
 
-	g.DeleteView("limit")
+	err := g.DeleteView("limit")
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
 
 	optionsTop := height - 2
 	// hiding options if there's not enough space
@@ -190,7 +195,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		filesView.Title = gui.Tr.SLocalize("FilesTitle")
 		filesView.FgColor = gocui.ColorWhite
 
-		gui.registerRefresher("files", gui.refreshFiles)
+		err = gui.registerRefresher("files", gui.refreshFiles)
+		if err != nil {
+			gui.Log.Error(err)
+			return err
+		}
 
 	}
 
@@ -221,7 +230,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("CommitsTitle")
 		v.FgColor = gocui.ColorWhite
 
-		gui.registerRefresher("commits", gui.refreshCommits)
+		err = gui.registerRefresher("commits", gui.refreshCommits)
+		if err != nil {
+			gui.Log.Error(err)
+			return err
+		}
 	}
 
 	if v, err := g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT); err != nil {
@@ -282,12 +295,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		// these are only called once (it's a place to put all the things you want
 		// to happen on startup after the screen is first rendered)
 		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
-		gui.handleFileSelect(g, filesView)
-		gui.refreshFiles()
-		gui.refreshBranches()
-		gui.refreshCommits()
-		gui.refreshStashEntries(g)
-		if err := gui.switchFocus(g, nil, filesView); err != nil {
+		_ = gui.handleFileSelect(g, filesView)
+		_ = gui.refreshFiles()
+		_ = gui.refreshBranches()
+		_ = gui.refreshCommits()
+		_ = gui.refreshStashEntries(g)
+
+		err := gui.switchFocus(g, nil, filesView)
+		if err != nil {
 			return err
 		}
 
@@ -345,41 +360,52 @@ func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
 	})
 }
 
-func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func() error) {
+func (gui *Gui) goEvery(interval time.Duration, function func() error) {
 	go func() {
 		for range time.Tick(interval) {
-			function()
+			err := function()
+			if err != nil {
+				gui.Log.Error(err)
+			}
 		}
 	}()
 }
 
 // Run setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run() error {
+
 	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
 	if err != nil {
 		return err
 	}
+
 	defer g.Close()
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
-	if err := gui.SetColorScheme(); err != nil {
+	err = gui.SetColorScheme()
+	if err != nil {
 		return err
 	}
 
-	gui.goEvery(g, time.Second*60, gui.fetch)
-	gui.goEvery(g, time.Second*10, gui.refreshFiles)
-	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
-	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
+	gui.goEvery(time.Second*60, gui.fetch)
+	gui.goEvery(time.Second*10, gui.refreshFiles)
+	gui.goEvery(time.Millisecond*50, gui.updateLoader)
+	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
-	g.SetManagerFunc(gui.layout)
+	gui.g.SetManagerFunc(gui.layout)
 
-	if err = gui.keybindings(g); err != nil {
+	if err = gui.keybindings(gui.g); err != nil {
 		return err
 	}
 
-	err = g.MainLoop()
-	return err
+	err = gui.g.MainLoop()
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
+	return nil
 }
 
 // RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration

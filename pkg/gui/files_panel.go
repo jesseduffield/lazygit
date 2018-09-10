@@ -360,17 +360,32 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 }
 
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
-	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PullWait"))
+
+	err := gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PullWait"))
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+
 	go func() {
-		if err := gui.GitCommand.Pull(); err != nil {
-			gui.createErrorPanel(g, err.Error())
+
+		err := gui.GitCommand.Pull()
+		if err != nil {
+			gui.createErrorPanel(gui.g, err.Error())
 		} else {
-			gui.closeConfirmationPrompt(g)
-			gui.refreshCommits()
-			gui.refreshStatus(g)
+			_ = gui.closeConfirmationPrompt(gui.g)
+			_ = gui.refreshCommits()
+			_ = gui.refreshStatus(gui.g)
 		}
-		gui.refreshFiles()
+
+		err = gui.refreshFiles()
+		if err != nil {
+			gui.Log.Error(err)
+			return
+		}
+
 	}()
+
 	return nil
 }
 

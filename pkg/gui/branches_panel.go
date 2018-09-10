@@ -13,57 +13,105 @@ import (
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches() error {
+
 	gui.g.Update(func(g *gocui.Gui) error {
+
 		v, err := g.View("branches")
 		if err != nil {
-			panic(err)
-		}
-		builder, err := git.NewBranchListBuilder(gui.Log, gui.GitCommand)
-		if err != nil {
+			gui.Log.Error(fmt.Sprintf("Failed to get branches view at refreshbranches %s\n", err))
 			return err
 		}
+
+		builder, err := git.NewBranchListBuilder(gui.Log, gui.GitCommand)
+		if err != nil {
+			gui.Log.Error(fmt.Sprintf("Failed to create branchbuilder at refreshBranches: %s\n", err))
+			return err
+		}
+
 		gui.State.Branches = builder.Build()
+
 		v.Clear()
+
 		for _, branch := range gui.State.Branches {
 			fmt.Fprintln(v, branch.GetDisplayString())
 		}
-		gui.resetOrigin(v)
-		return gui.refreshStatus(g)
+
+		err = gui.resetOrigin(v)
+		if err != nil {
+			gui.Log.Error(fmt.Sprintf("Failed to reset origin at refreshBranches: %s\n", err))
+			return err
+		}
+
+		err = gui.refreshStatus(g)
+		if err != nil {
+			gui.Log.Error(fmt.Sprintf("Failed to refresh statsu at refreshBranches: %s\n", err))
+			return err
+		}
+
+		return nil
 	})
+
 	return nil
 }
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
+
 	index := gui.getItemPosition(gui.getBranchesView(g))
 	if index == 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
+
 	branch := gui.getSelectedBranch(gui.getBranchesView(g))
-	if err := gui.GitCommand.Checkout(branch.Name, false); err != nil {
-		gui.createErrorPanel(g, err.Error())
+
+	err := gui.GitCommand.Checkout(branch.Name, false)
+	if err != nil {
+		err = gui.createErrorPanel(g, err.Error())
+		if err != nil {
+			gui.Log.Error(err)
+			return err
+		}
 	}
-	return gui.refresh()
+
+	gui.refresh()
+
+	return nil
 }
 
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
+
 	branch := gui.getSelectedBranch(v)
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
-	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.Checkout(branch.Name, true); err != nil {
-			gui.createErrorPanel(g, err.Error())
-		}
-		return gui.refresh()
-	}, nil)
+
+	return gui.createConfirmationPanel(g, v, title, message,
+		func(g *gocui.Gui, v *gocui.View) error {
+
+			err := gui.GitCommand.Checkout(branch.Name, true)
+			if err != nil {
+				gui.createErrorPanel(g, err.Error())
+			}
+
+			gui.refresh()
+
+			return nil
+		}, nil)
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.Checkout(gui.trimmedContent(v), false); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		return gui.refresh()
-	})
+
+	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":",
+		func(g *gocui.Gui, v *gocui.View) error {
+
+			err := gui.GitCommand.Checkout(gui.trimmedContent(v), false)
+			if err != nil {
+				return gui.createErrorPanel(g, err.Error())
+			}
+
+			gui.refresh()
+
+			return nil
+		})
+
 	return nil
 }
 
@@ -76,13 +124,14 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 	gui.createPromptPanel(g, v, message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
+
+		err := gui.GitCommand.NewBranch(gui.trimmedContent(v))
+		if err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		err := gui.refresh()
-		if err != nil {
-			return err
-		}
+
+		gui.refresh()
+
 		return gui.handleBranchSelect(g, v)
 	})
 	return nil
@@ -115,12 +164,18 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 			"selectedBranchName": selectedBranch.Name,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		return gui.refresh()
-	}, nil)
+	return gui.createConfirmationPanel(g, v, title, message,
+		func(g *gocui.Gui, v *gocui.View) error {
+
+			err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force)
+			if err != nil {
+				return gui.createErrorPanel(gui.g, err.Error())
+			}
+
+			gui.refresh()
+
+			return nil
+		}, nil)
 }
 
 func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
