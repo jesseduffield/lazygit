@@ -12,13 +12,6 @@ import (
 
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
 
-func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
-	gui.refreshBranches(g)
-	gui.refreshFiles(g)
-	gui.refreshCommits(g)
-	return nil
-}
-
 func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 	var focusedViewName string
 	if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
