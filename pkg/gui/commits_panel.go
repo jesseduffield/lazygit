@@ -8,7 +8,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
-// refreshCommits refreshes the commits view
+// refreshCommits refreshes the commits view.
+// If something goes wrong, it returns an error
 func (gui *Gui) refreshCommits() error {
 
 	gui.g.Update(func(*gocui.Gui) error {
@@ -118,8 +119,8 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-// handleCommitSelect gets called when a commit needs to be select
-// If anything goes wrong it returns an error
+// handleCommitSelect gets called when a commit needs to be select.
+// If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitSelect() error {
 
 	err := gui.renderGlobalOptions()
@@ -159,7 +160,7 @@ func (gui *Gui) handleCommitSelect() error {
 // handleCommitSquashDown gets called when the user wants to squash down
 // commits.
 // g and v gets passed by gocui but g is not used.
-// If anything goes wrong, it returns an error
+// If anything goes wrong, it returns an error.
 func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 
 	if gui.getItemPosition(v) != 0 {
@@ -224,8 +225,8 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 // handleCommitFixup is called when a user wants to fix a commit.
-// g and v are passed to by the gocui library but only v is used
-// If anything goes wrong it returns an error
+// g and v are passed to by the gocui library but only v is used.
+// If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 
 	if len(gui.State.Commits) == 1 {
@@ -350,9 +351,9 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 // handleRenameCommitEditor is called when the user wants to edit the
-// commit naming in an editor
-// g and v are passed by the gocui library, but only v is used
-// If anything goes wrong, it returns an error<
+// commit naming in an editor.
+// g and v are passed by the gocui library, but only v is used.
+// If anything goes wrong, it returns an error.
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 
 	if gui.getItemPosition(v) != 0 {
