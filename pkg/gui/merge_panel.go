@@ -248,7 +248,7 @@ func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	gui.refreshFiles(g)
+	gui.refreshFiles()
 	return gui.switchFocus(g, v, filesView)
 }
 
@@ -258,6 +258,6 @@ func (gui *Gui) handleCompleteMerge(g *gocui.Gui) error {
 		return err
 	}
 	gui.stageSelectedFile(g)
-	gui.refreshFiles(g)
+	gui.refreshFiles()
 	return gui.switchFocus(g, nil, filesView)
 }
