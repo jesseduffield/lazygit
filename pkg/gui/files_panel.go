@@ -275,22 +275,23 @@ func (gui *Gui) updateHasMergeConflictStatus() error {
 	return nil
 }
 
-func (gui *Gui) renderFile(file commands.File, filesView *gocui.View) {
+func (gui *Gui) renderFile(file commands.File) string {
 	// potentially inefficient to be instantiating these color
 	// objects with each render
 	red := color.New(color.FgRed)
 	green := color.New(color.FgGreen)
 	if !file.Tracked && !file.HasStagedChanges {
-		red.Fprintln(filesView, file.DisplayString)
-		return
+		return red.Sprint(file.DisplayString)
 	}
-	green.Fprint(filesView, file.DisplayString[0:1])
-	red.Fprint(filesView, file.DisplayString[1:3])
+
+	output := green.Sprint(file.DisplayString[0:1])
+	output += red.Sprint(file.DisplayString[1:3])
 	if file.HasUnstagedChanges {
-		red.Fprintln(filesView, file.Name)
+		output += red.Sprint(file.Name)
 	} else {
-		green.Fprintln(filesView, file.Name)
+		output += green.Sprint(file.Name)
 	}
+	return output
 }
 
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
@@ -319,8 +320,14 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 	}
 	gui.refreshStateFiles()
 	filesView.Clear()
-	for _, file := range gui.State.Files {
-		gui.renderFile(file, filesView)
+	for i, file := range gui.State.Files {
+		str := gui.renderFile(file)
+		if i < len(gui.State.Files)-1 {
+			str += "\n"
+		}
+		if _, err := filesView.Write([]byte(str)); err != nil {
+			return err
+		}
 	}
 	gui.correctCursor(filesView)
 	if filesView == g.CurrentView() {

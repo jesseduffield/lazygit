@@ -8,6 +8,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// I need to store the handler function in state and it will take an interface and do something with it
+// I need to have another function describing how to display one of the structs
+// perhaps this calls for an interface where the struct is Binding and the interface has the methods Display and Execute
+// but this means that for the one struct I can only have one possible display/execute function, but I want to use whatever I want.
+// Would I ever need to use different handlers for different things? Maybe I should assume not given that I can cross that bridge when I come to it
+
 func (gui *Gui) handleMenuPress(g *gocui.Gui, v *gocui.View) error {
 	lineNumber := gui.getItemPosition(v)
 	if gui.State.Keys[lineNumber].Key == nil {
@@ -106,11 +112,11 @@ func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
 	content := append(contentPanel, contentGlobal...)
 	gui.State.Keys = append(bindingsPanel, bindingsGlobal...)
 	// append newline at the end so the last line would be selectable
-	contentJoined := strings.Join(content, "\n") + "\n"
+	contentJoined := strings.Join(content, "\n")
 
 	// y1-1 so there will not be an extra space at the end of panel
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, contentJoined)
-	menuView, _ := g.SetView("menu", x0, y0, x1, y1-1, 0)
+	menuView, _ := g.SetView("menu", x0, y0, x1, y1, 0)
 	menuView.Title = strings.Title(gui.Tr.SLocalize("menu"))
 	menuView.FgColor = gocui.ColorWhite
 
