@@ -1,13 +1,37 @@
 package gui
 
 import (
-	"fmt"
 	"strings"
+
+	"fmt"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/git"
 )
+
+// gui.refreshStatus is called at the end of this because that's when we can
+// be sure there is a state.Branches array to pick the current branch from
+func (gui *Gui) refreshBranches(g *gocui.Gui) error {
+	g.Update(func(g *gocui.Gui) error {
+		v, err := g.View("branches")
+		if err != nil {
+			panic(err)
+		}
+		builder, err := git.NewBranchListBuilder(gui.Log, gui.GitCommand)
+		if err != nil {
+			return err
+		}
+		gui.State.Branches = builder.Build()
+		v.Clear()
+		for _, branch := range gui.State.Branches {
+			fmt.Fprintln(v, branch.GetDisplayString())
+		}
+		gui.resetOrigin(v)
+		return gui.refreshStatus(g)
+	})
+	return nil
+}
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 	index := gui.getItemPosition(gui.getBranchesView(g))
@@ -135,28 +159,5 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		}
 		gui.renderString(g, "main", diff)
 	}()
-	return nil
-}
-
-// gui.refreshStatus is called at the end of this because that's when we can
-// be sure there is a state.Branches array to pick the current branch from
-func (gui *Gui) refreshBranches(g *gocui.Gui) error {
-	g.Update(func(g *gocui.Gui) error {
-		v, err := g.View("branches")
-		if err != nil {
-			panic(err)
-		}
-		builder, err := git.NewBranchListBuilder(gui.Log, gui.GitCommand)
-		if err != nil {
-			return err
-		}
-		gui.State.Branches = builder.Build()
-		v.Clear()
-		for _, branch := range gui.State.Branches {
-			fmt.Fprintln(v, branch.GetDisplayString())
-		}
-		gui.resetOrigin(v)
-		return gui.refreshStatus(g)
-	})
 	return nil
 }
