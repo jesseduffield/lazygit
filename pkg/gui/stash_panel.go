@@ -83,7 +83,7 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 		gui.createErrorPanel(g, err.Error())
 	}
 	gui.refreshStashEntries(g)
-	return gui.refreshFiles(g)
+	return gui.refreshFiles()
 }
 
 func (gui *Gui) handleStashSave(g *gocui.Gui, filesView *gocui.View) error {
@@ -95,7 +95,7 @@ func (gui *Gui) handleStashSave(g *gocui.Gui, filesView *gocui.View) error {
 			gui.createErrorPanel(g, err.Error())
 		}
 		gui.refreshStashEntries(g)
-		return gui.refreshFiles(g)
+		return gui.refreshFiles()
 	})
 	return nil
 }
