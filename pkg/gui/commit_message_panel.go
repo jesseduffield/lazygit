@@ -16,7 +16,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
 	if message == "" {
 
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CommitWithoutMessageErr"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("CommitWithoutMessageErr"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleCommitConfirm: %s\n", err)
 			return err
@@ -30,7 +30,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 
 		if err != gui.Errors.ErrSubProcess {
 
-			err = gui.createErrorPanel(gui.g, err.Error())
+			err = gui.createErrorPanel(err.Error())
 			if err != nil {
 				gui.Log.Errorf("Failed to create error panel at handleCommitConfirm: %s\n", err)
 				return err

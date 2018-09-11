@@ -156,7 +156,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if err != nil {
-		err = gui.createErrorPanel(gui.g, err.Error())
+		err = gui.createErrorPanel(err.Error())
 		if err != nil {
 			gui.Log.Error("Failed to create error panel in handleStageAll: ", err)
 			return err
@@ -187,10 +187,10 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	if !file.HasUnstagedChanges {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileHasNoUnstagedChanges"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("FileHasNoUnstagedChanges"))
 	}
 	if !file.Tracked {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CannotGitAdd"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("CannotGitAdd"))
 	}
 
 	gui.SubProcess = gui.GitCommand.AddPatch(file.Name)
@@ -241,13 +241,13 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		return gui.createErrorPanel(g, err.Error())
+		return gui.createErrorPanel(err.Error())
 	}
 	if file.Tracked {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantIgnoreTrackFiles"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("CantIgnoreTrackFiles"))
 	}
 	if err := gui.GitCommand.Ignore(file.Name); err != nil {
-		return gui.createErrorPanel(g, err.Error())
+		return gui.createErrorPanel(err.Error())
 	}
 	return gui.refreshFiles()
 }
@@ -313,7 +313,7 @@ func (gui *Gui) handleFileSelect() error {
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
 
 	commitMessageView, err := gui.g.View("commitMessage")
@@ -335,7 +335,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
 	gui.PrepareSubProcess(g, "git", "commit")
 	return nil
@@ -352,7 +352,7 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) {
 func (gui *Gui) editFile(filename string) error {
 	sub, err := gui.OSCommand.EditFile(filename)
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.createErrorPanel(err.Error())
 	}
 	if sub != nil {
 		gui.SubProcess = sub
@@ -443,7 +443,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 
 		err := gui.GitCommand.Pull()
 		if err != nil {
-			_ = gui.createErrorPanel(gui.g, err.Error())
+			_ = gui.createErrorPanel(err.Error())
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)
 			_ = gui.refreshCommits()
@@ -468,7 +468,7 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 	go func() {
 		branchName := gui.State.Branches[0].Name
 		if err := gui.GitCommand.Push(branchName, force); err != nil {
-			_ = gui.createErrorPanel(gui.g, err.Error())
+			_ = gui.createErrorPanel(err.Error())
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)
 			_ = gui.refreshCommits()
@@ -503,7 +503,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if !file.HasMergeConflicts {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("FileNoMergeCons"))
 	}
 	gui.switchFocus(g, v, mergeView)
 	return gui.refreshMergePanel(g)
@@ -517,7 +517,7 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 	err := gui.GitCommand.AbortMerge()
 	if err != nil {
 
-		err = gui.createErrorPanel(gui.g, err.Error())
+		err = gui.createErrorPanel(err.Error())
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleAbortMerge: %s\n", err)
 			return err
@@ -548,7 +548,7 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
 	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("ClearFilePanel"), gui.Tr.SLocalize("SureResetHardHead"), func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.ResetHard(); err != nil {
-			gui.createErrorPanel(g, err.Error())
+			gui.createErrorPanel(err.Error())
 		}
 		return gui.refreshFiles()
 	}, nil)
@@ -556,7 +556,7 @@ func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) openFile(filename string) error {
 	if err := gui.OSCommand.OpenFile(filename); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.createErrorPanel(err.Error())
 	}
 	return nil
 }

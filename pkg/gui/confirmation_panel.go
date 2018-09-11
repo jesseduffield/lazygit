@@ -1,9 +1,3 @@
-// lots of this has been directly ported from one of the example files, will brush up later
-
-// Copyright 2014 The gocui Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package gui
 
 import (
@@ -25,14 +19,18 @@ func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.Vie
 }
 
 func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui) error {
+
 	view, err := g.View("confirmation")
 	if err != nil {
 		panic(err)
 	}
+
 	if err := gui.returnFocus(g, view); err != nil {
 		panic(err)
 	}
+
 	g.DeleteKeybindings("confirmation")
+
 	return g.DeleteView("confirmation")
 }
 
@@ -136,10 +134,20 @@ func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title,
 	return gui.createConfirmationPanel(g, currentView, title, prompt, nil, nil)
 }
 
-func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
+func (gui *Gui) createErrorPanel(message string) error {
+
 	gui.Log.Error(message)
-	currentView := g.CurrentView()
+
+	currentView := gui.g.CurrentView()
+
 	colorFunction := color.New(color.FgRed).SprintFunc()
+
 	coloredMessage := colorFunction(strings.TrimSpace(message))
-	return gui.createConfirmationPanel(g, currentView, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
+
+	err := gui.createConfirmationPanel(gui.g, currentView, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
+	if err != nil {
+
+	}
+
+	return nil
 }

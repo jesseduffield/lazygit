@@ -78,7 +78,7 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
 
 			err = gui.GitCommand.ResetToCommit(commit.Sha)
 			if err != nil {
-				err = gui.createErrorPanel(gui.g, err.Error())
+				err = gui.createErrorPanel(err.Error())
 				if err != nil {
 					gui.Log.Errorf("Failed to create error panel at handleResetToCommit: %s\n", err)
 					return err
@@ -165,7 +165,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 
 	if gui.getItemPosition(v) != 0 {
 
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("OnlySquashTopmostCommit"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlySquashTopmostCommit"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create errorpanel at handleCommitSquashDown: %s\n", err)
 			return err
@@ -176,7 +176,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 
 	if len(gui.State.Commits) == 1 {
 
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleCommitSquashDown: %s\n", err)
 			return err
@@ -194,7 +194,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	err = gui.GitCommand.SquashPreviousTwoCommits(commit.Name)
 	if err != nil {
 
-		err = gui.createErrorPanel(gui.g, err.Error())
+		err = gui.createErrorPanel(err.Error())
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleCommitSquashDown: %s\n", err)
 			return err
@@ -231,7 +231,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 
 	if len(gui.State.Commits) == 1 {
 
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
 			return err
@@ -241,7 +241,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if gui.anyUnStagedChanges(gui.State.Files) {
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantFixupWhileUnstagedChanges"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("CantFixupWhileUnstagedChanges"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
 			return err
@@ -266,7 +266,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 			err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha)
 			if err != nil {
 
-				err = gui.createErrorPanel(gui.g, err.Error())
+				err = gui.createErrorPanel(err.Error())
 				if err != nil {
 					gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
 					return err
@@ -304,7 +304,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 
 	if gui.getItemPosition(v) != 0 {
 
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleRenameCommit: %s\n", err)
 			return err
@@ -319,7 +319,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 			err := gui.GitCommand.RenameCommit(v.Buffer())
 			if err != nil {
 
-				err = gui.createErrorPanel(gui.g, err.Error())
+				err = gui.createErrorPanel(err.Error())
 				if err != nil {
 					gui.Log.Errorf("Failed to create error panel at handleRenameCommit: %s\n", err)
 					return err
@@ -358,7 +358,7 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 
 	if gui.getItemPosition(v) != 0 {
 
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleRenameCommitEditor: %s\n", err)
 			return err

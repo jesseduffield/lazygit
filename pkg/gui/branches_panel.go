@@ -66,7 +66,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 	index := gui.getItemPosition(v)
 	if index == 0 {
 
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleBranchPress: %s\n", err)
 			return err
@@ -79,7 +79,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 
 	err = gui.GitCommand.Checkout(branch.Name, false)
 	if err != nil {
-		err = gui.createErrorPanel(gui.g, err.Error())
+		err = gui.createErrorPanel(err.Error())
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleBranchPress: %s\n", err)
 			return err
@@ -105,7 +105,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(branch.Name, true)
 			if err != nil {
-				err = gui.createErrorPanel(gui.g, err.Error())
+				err = gui.createErrorPanel(err.Error())
 				if err != nil {
 					gui.Log.Errorf("Failed to create error panel at handleForceCheckout: %s\n", err)
 					return err
@@ -135,7 +135,7 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(gui.trimmedContent(v), false)
 			if err != nil {
-				err = gui.createErrorPanel(gui.g, err.Error())
+				err = gui.createErrorPanel(err.Error())
 				if err != nil {
 					gui.Log.Errorf("Failed to create error panel at handleCheckoutByName: %s\n", err)
 					return err
@@ -175,7 +175,7 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 			err := gui.GitCommand.NewBranch(gui.trimmedContent(v))
 			if err != nil {
 
-				err = gui.createErrorPanel(g, err.Error())
+				err = gui.createErrorPanel(err.Error())
 				if err != nil {
 					gui.Log.Errorf("Failed to create error panel at handleNewBranch: %s\n", err)
 					return err
@@ -240,7 +240,7 @@ func (gui *Gui) deleteBranch(v *gocui.View, force bool) error {
 	)
 
 	if checkedOutBranch.Name == selectedBranch.Name {
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at deleteBranch: %s\n", err)
 			return err
@@ -255,7 +255,7 @@ func (gui *Gui) deleteBranch(v *gocui.View, force bool) error {
 			err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force)
 			if err != nil {
 
-				err = gui.createErrorPanel(gui.g, err.Error())
+				err = gui.createErrorPanel(err.Error())
 				if err != nil {
 					gui.Log.Errorf("Failed to create error panel at deleteBranch: %s\n", err)
 					return err
@@ -286,7 +286,7 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 	defer gui.refresh()
 
 	if checkedOutBranch.Name == selectedBranch.Name {
-		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
+		err := gui.createErrorPanel(gui.Tr.SLocalize("CantMergeBranchIntoItself"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleMerge: %s\n", err)
 			return err
@@ -297,7 +297,7 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 
 	err := gui.GitCommand.Merge(selectedBranch.Name)
 	if err != nil {
-		err = gui.createErrorPanel(gui.g, err.Error())
+		err = gui.createErrorPanel(err.Error())
 		if err != nil {
 			gui.Log.Errorf("Failed to error confirmation panel at handleMerge: %s\n", err)
 			return err

@@ -76,10 +76,10 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 				"method": method,
 			},
 		)
-		return gui.createErrorPanel(g, errorMessage)
+		return gui.createErrorPanel(errorMessage)
 	}
 	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
-		gui.createErrorPanel(g, err.Error())
+		gui.createErrorPanel(err.Error())
 	}
 	gui.refreshStashEntries(g)
 	return gui.refreshFiles()
@@ -87,11 +87,11 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 
 func (gui *Gui) handleStashSave(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoTrackedStagedFilesStash"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("NoTrackedStagedFilesStash"))
 	}
 	gui.createPromptPanel(g, filesView, gui.Tr.SLocalize("StashChanges"), func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.StashSave(gui.trimmedContent(v)); err != nil {
-			gui.createErrorPanel(g, err.Error())
+			gui.createErrorPanel(err.Error())
 		}
 		gui.refreshStashEntries(g)
 		return gui.refreshFiles()
