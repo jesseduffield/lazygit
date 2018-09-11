@@ -109,7 +109,7 @@ func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
 	contentJoined := strings.Join(content, "\n") + "\n"
 
 	// y1-1 so there will not be an extra space at the end of panel
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, contentJoined)
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(contentJoined)
 	menuView, _ := g.SetView("menu", x0, y0, x1, y1-1, 0)
 	menuView.Title = strings.Title(gui.Tr.SLocalize("menu"))
 	menuView.FgColor = gocui.ColorWhite

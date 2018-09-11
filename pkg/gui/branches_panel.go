@@ -100,7 +100,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
 
-	err := gui.createConfirmationPanel(gui.g, v, title, message,
+	err := gui.createConfirmationPanel(v, title, message,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(branch.Name, true)
@@ -130,7 +130,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 // If something goes wrong it returns an error
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 
-	err := gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("BranchName")+":",
+	err := gui.createPromptPanel(v, gui.Tr.SLocalize("BranchName")+":",
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Checkout(gui.trimmedContent(v), false)
@@ -169,7 +169,7 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	err := gui.createPromptPanel(gui.g, v, message,
+	err := gui.createPromptPanel(v, message,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.NewBranch(gui.trimmedContent(v))
@@ -249,7 +249,7 @@ func (gui *Gui) deleteBranch(v *gocui.View, force bool) error {
 		return nil
 	}
 
-	err := gui.createConfirmationPanel(gui.g, v, title, message,
+	err := gui.createConfirmationPanel(v, title, message,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force)

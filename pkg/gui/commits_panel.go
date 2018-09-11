@@ -67,7 +67,7 @@ func (gui *Gui) refreshCommits() error {
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
 
-	err := gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"),
+	err := gui.createConfirmationPanel(v, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"),
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			commit, err := gui.getSelectedCommit()
@@ -260,7 +260,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 
 	message := gui.Tr.SLocalize("SureFixupThisCommit")
 
-	err = gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("Fixup"), message,
+	err = gui.createConfirmationPanel(v, gui.Tr.SLocalize("Fixup"), message,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha)
@@ -313,7 +313,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	err := gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("renameCommit"),
+	err := gui.createPromptPanel(v, gui.Tr.SLocalize("renameCommit"),
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.RenameCommit(v.Buffer())

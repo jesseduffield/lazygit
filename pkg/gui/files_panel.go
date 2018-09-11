@@ -230,7 +230,7 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 			"fileName":   file.Name,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", message, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(v, strings.Title(deleteVerb)+" file", message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RemoveFile(file); err != nil {
 			return err
 		}
@@ -433,7 +433,7 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 
-	err := gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PullWait"))
+	err := gui.createMessagePanel(v, "", gui.Tr.SLocalize("PullWait"))
 	if err != nil {
 		gui.Log.Error(err)
 		return err
@@ -445,7 +445,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 		if err != nil {
 			_ = gui.createErrorPanel(err.Error())
 		} else {
-			_ = gui.closeConfirmationPrompt(gui.g)
+			_ = gui.closeConfirmationPrompt()
 			_ = gui.refreshCommits()
 			_ = gui.refreshStatus()
 		}
@@ -462,7 +462,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
-	if err := gui.createMessagePanel(gui.g, currentView, "", gui.Tr.SLocalize("PushWait")); err != nil {
+	if err := gui.createMessagePanel(currentView, "", gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {
@@ -470,7 +470,7 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 		if err := gui.GitCommand.Push(branchName, force); err != nil {
 			_ = gui.createErrorPanel(err.Error())
 		} else {
-			_ = gui.closeConfirmationPrompt(gui.g)
+			_ = gui.closeConfirmationPrompt()
 			_ = gui.refreshCommits()
 			_ = gui.refreshStatus()
 		}
@@ -484,7 +484,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	if pullables == "?" || pullables == "0" {
 		return gui.pushWithForceFlag(v, false)
 	}
-	err := gui.createConfirmationPanel(g, nil, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+	err := gui.createConfirmationPanel(nil, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.pushWithForceFlag(v, true)
 	}, nil)
 	return err
@@ -524,7 +524,7 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	err = gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("MergeAborted"))
+	err = gui.createMessagePanel(v, "", gui.Tr.SLocalize("MergeAborted"))
 	if err != nil {
 		gui.Log.Errorf("Failed to create message panel at handleAbortMerge: %s\n", err)
 		return err
@@ -546,7 +546,7 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("ClearFilePanel"), gui.Tr.SLocalize("SureResetHardHead"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(v, gui.Tr.SLocalize("ClearFilePanel"), gui.Tr.SLocalize("SureResetHardHead"), func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.ResetHard(); err != nil {
 			gui.createErrorPanel(err.Error())
 		}

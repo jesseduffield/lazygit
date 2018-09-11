@@ -448,7 +448,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
-	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.Config.WriteToUserConfig("reporting", "on")
 	}, func(g *gocui.Gui, v *gocui.View) error {
 		return gui.Config.WriteToUserConfig("reporting", "off")
@@ -525,7 +525,7 @@ func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 		return gui.createUpdateQuitConfirmation(g, v)
 	}
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
-		return gui.createConfirmationPanel(g, v, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.createConfirmationPanel(v, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
 			return gocui.ErrQuit
 		}, nil)
 	}
