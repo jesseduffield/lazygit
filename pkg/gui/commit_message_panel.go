@@ -7,18 +7,39 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
+// handleCommitConfirm gets called when a user presses enter on
+// a commit confirmation panel.
+// g and v are passed by the gocui.
+// If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
+
 	message := gui.trimmedContent(v)
 	if message == "" {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CommitWithoutMessageErr"))
+
+		err := gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CommitWithoutMessageErr"))
+		if err != nil {
+			gui.Log.Errorf("Failed to create error panel at handleCommitConfirm: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
-	sub, err := gui.GitCommand.Commit(g, message)
+
+	sub, err := gui.GitCommand.Commit(gui.g, message)
 	if err != nil {
-		// TODO need to find a way to send through this error
+
 		if err != gui.Errors.ErrSubProcess {
-			return gui.createErrorPanel(g, err.Error())
+
+			err = gui.createErrorPanel(gui.g, err.Error())
+			if err != nil {
+				gui.Log.Errorf("Failed to create error panel at handleCommitConfirm: %s\n", err)
+				return err
+			}
+
+			return nil
 		}
 	}
+
 	if sub != nil {
 		gui.SubProcess = sub
 		return gui.Errors.ErrSubProcess
@@ -26,22 +47,63 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 
 	err = gui.refreshFiles()
 	if err != nil {
+		gui.Log.Errorf("Failed to refresh files at handleCommitConfirm: %s\n", err)
 		return err
 	}
 
 	v.Clear()
-	v.SetCursor(0, 0)
-	g.SetViewOnBottom("commitMessage")
-	gui.switchFocus(g, v, gui.getFilesView(g))
-	return gui.refreshCommits()
+
+	err = v.SetCursor(0, 0)
+	if err != nil {
+		gui.Log.Errorf("Failed to setcuror at handleCommitConfirm: %s\n", err)
+		return err
+	}
+
+	_, err = gui.g.SetViewOnBottom("commitMessage")
+	if err != nil {
+		gui.Log.Errorf("Failed to set view to bottom at handleCommitConfirm: %s\n", err)
+		return err
+	}
+
+	err = gui.switchFocus(gui.g, v, gui.getFilesView(gui.g))
+	if err != nil {
+		gui.Log.Errorf("Failed to switch focus at handleCommitConfirm: %s\n", err)
+		return err
+	}
+
+	err = gui.refreshCommits()
+	if err != nil {
+		gui.Log.Errorf("Failed to refresh commits at handleCommitConfirm: %s\n", err)
+		return err
+	}
+
+	return nil
 }
 
+// handleCommitClose gets called when a user presses exit on a commit message view.
+// g and v are passes by the gocui library, but only v is used.
+// If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
-	g.SetViewOnBottom("commitMessage")
-	return gui.switchFocus(g, v, gui.getFilesView(g))
+
+	_, err := gui.g.SetViewOnBottom("commitMessage")
+	if err != nil {
+		gui.Log.Errorf("Failed to set view on bottom at handleCommitClose: %s\n", err)
+		return err
+	}
+
+	err = gui.switchFocus(gui.g, v, gui.getFilesView(gui.g))
+	if err != nil {
+		gui.Log.Errorf("Failed to switch focus at handleCommitClose: %s\n", err)
+		return err
+	}
+
+	return nil
 }
 
-func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
+// handleCommitFocused gets called when the commitMessageView is called.
+// If anything goes wrong it returns an error.
+func (gui *Gui) handleCommitFocused() error {
+
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{
@@ -49,10 +111,20 @@ func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 			"keyBindConfirm": "enter",
 		},
 	)
-	return gui.renderString(g, "options", message)
+
+	err := gui.renderString(gui.g, "options", message)
+	if err != nil {
+		gui.Log.Errorf("Failed render string at handleCommitFocused: %s\n", err)
+		return err
+	}
+
+	return nil
 }
 
+// simpleEditor is a simple implementation to provide custom key handling for
+// the gocui library.
 func (gui *Gui) simpleEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
@@ -79,14 +151,26 @@ func (gui *Gui) simpleEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mo
 	gui.RenderCommitLength()
 }
 
+// getBufferLength calculates the size of the buffer.
+// Takes the view to check.
+// returns the count as a string.
 func (gui *Gui) getBufferLength(view *gocui.View) string {
 	return " " + strconv.Itoa(strings.Count(view.Buffer(), "")-1) + " "
 }
 
+// RenderCommitLength renders the commit length
 func (gui *Gui) RenderCommitLength() {
+
 	if !gui.Config.GetUserConfig().GetBool("gui.commitLength.show") {
 		return
 	}
-	v := gui.getCommitMessageView(gui.g)
+
+	v, err := gui.g.View("commitMessage")
+	if err != nil {
+		gui.Log.Errorf("Failed render get commitMessage view at RenderCommitLength: %s\n", err)
+		return
+	}
+
 	v.Subtitle = gui.getBufferLength(v)
+
 }

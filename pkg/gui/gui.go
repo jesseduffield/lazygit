@@ -358,7 +358,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if gui.getCommitMessageView(gui.g) == nil {
+	v, _ = g.View("commitMessage")
+	if v == nil {
 
 		// doesn't matter where this view starts because it will be hidden
 		v, err = gui.g.SetView("commitMessage", 0, 0, width/2, height/2, 0)

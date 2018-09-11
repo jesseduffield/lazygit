@@ -311,10 +311,17 @@ func (gui *Gui) handleFileSelect() error {
 }
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
+
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
-	commitMessageView := gui.getCommitMessageView(g)
+
+	commitMessageView, err := gui.g.View("commitMessage")
+	if err != nil {
+		gui.Log.Errorf("Failed to get commitMessage view at handleCommitPress: %s\n", err)
+		return err
+	}
+
 	g.Update(func(g *gocui.Gui) error {
 		g.SetViewOnTop("commitMessage")
 		gui.switchFocus(g, filesView, commitMessageView)

@@ -86,7 +86,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "confirmation":
 		return nil
 	case "commitMessage":
-		return gui.handleCommitFocused(g, v)
+		return gui.handleCommitFocused()
 	case "main":
 		// TODO: pull this out into a 'view focused' function
 		gui.refreshMergePanel(g)
@@ -244,11 +244,6 @@ func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) err
 // i'm so sorry but had to add this getBranchesView
 func (gui *Gui) getFilesView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("files")
-	return v
-}
-
-func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("commitMessage")
 	return v
 }
 
