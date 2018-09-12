@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -59,11 +58,13 @@ func setupRepositoryAndWorktree(openGitRepository func(string) (*gogit.Repositor
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Log       *logrus.Entry
-	OSCommand *OSCommand
-	Worktree  *gogit.Worktree
-	Repo      *gogit.Repository
-	Tr        *i18n.Localizer
+	Log                *logrus.Entry
+	OSCommand          *OSCommand
+	Worktree           *gogit.Worktree
+	Repo               *gogit.Repository
+	Tr                 *i18n.Localizer
+	getGlobalGitConfig func(string) (string, error)
+	getLocalGitConfig  func(string) (string, error)
 }
 
 // NewGitCommand it runs git commands
@@ -92,11 +93,13 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 	}
 
 	return &GitCommand{
-		Log:       log,
-		OSCommand: osCommand,
-		Tr:        tr,
-		Worktree:  worktree,
-		Repo:      repo,
+		Log:                log,
+		OSCommand:          osCommand,
+		Tr:                 tr,
+		Worktree:           worktree,
+		Repo:               repo,
+		getGlobalGitConfig: gitconfig.Global,
+		getLocalGitConfig:  gitconfig.Local,
 	}, nil
 }
 
@@ -170,28 +173,37 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 		return newFiles
 	}
 
-	headResults := []File{}
-	tailResults := []File{}
+	appendedIndexes := []int{}
 
-	for _, newFile := range newFiles {
-		var isHeadResult bool
-
-		for _, oldFile := range oldFiles {
+	// retain position of files we already could see
+	result := []File{}
+	for _, oldFile := range oldFiles {
+		for newIndex, newFile := range newFiles {
 			if oldFile.Name == newFile.Name {
-				isHeadResult = true
+				result = append(result, newFile)
+				appendedIndexes = append(appendedIndexes, newIndex)
 				break
 			}
 		}
-
-		if isHeadResult {
-			headResults = append(headResults, newFile)
-			continue
-		}
-
-		tailResults = append(tailResults, newFile)
 	}
 
-	return append(headResults, tailResults...)
+	// append any new files to the end
+	for index, newFile := range newFiles {
+		if !includesInt(appendedIndexes, index) {
+			result = append(result, newFile)
+		}
+	}
+
+	return result
+}
+
+func includesInt(list []int, a int) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
 
 // GetBranchName branch name
@@ -274,40 +286,41 @@ func (c *GitCommand) AbortMerge() error {
 	return c.OSCommand.RunCommand("git merge --abort")
 }
 
-// UsingGpg tells us whether the user has gpg enabled so that we can know
+// usingGpg tells us whether the user has gpg enabled so that we can know
 // whether we need to run a subprocess to allow them to enter their password
-func (c *GitCommand) UsingGpg() bool {
-	gpgsign, _ := gitconfig.Global("commit.gpgsign")
+func (c *GitCommand) usingGpg() bool {
+	gpgsign, _ := c.getLocalGitConfig("commit.gpgsign")
 	if gpgsign == "" {
-		gpgsign, _ = gitconfig.Local("commit.gpgsign")
+		gpgsign, _ = c.getGlobalGitConfig("commit.gpgsign")
 	}
-	if gpgsign == "" {
-		return false
-	}
-	return true
+	value := strings.ToLower(gpgsign)
+
+	return value == "true" || value == "1" || value == "yes" || value == "on"
 }
 
-// Commit commit to git
-func (c *GitCommand) Commit(g *gocui.Gui, message string) (*exec.Cmd, error) {
-	command := "git commit -m " + c.OSCommand.Quote(message)
-	if c.UsingGpg() {
+// Commit commits to git
+func (c *GitCommand) Commit(message string) (*exec.Cmd, error) {
+	command := fmt.Sprintf("git commit -m %s", c.OSCommand.Quote(message))
+	if c.usingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
+
 	return nil, c.OSCommand.RunCommand(command)
 }
 
-// Pull pull from repo
+// Pull pulls from repo
 func (c *GitCommand) Pull() error {
 	return c.OSCommand.RunCommand("git pull --no-edit")
 }
 
-// Push push to a branch
+// Push pushes to a branch
 func (c *GitCommand) Push(branchName string, force bool) error {
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease "
 	}
-	return c.OSCommand.RunCommand("git push " + forceFlag + "-u origin " + branchName)
+
+	return c.OSCommand.RunCommand(fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName))
 }
 
 // SquashPreviousTwoCommits squashes a commit down to the one below it
