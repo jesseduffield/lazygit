@@ -735,8 +735,8 @@ func TestGitCommandMerge(t *testing.T) {
 func TestGitCommandUsingGpg(t *testing.T) {
 	type scenario struct {
 		testName           string
-		getGlobalGitConfig func(string) (string, error)
 		getLocalGitConfig  func(string) (string, error)
+		getGlobalGitConfig func(string) (string, error)
 		test               func(bool)
 	}
 
