@@ -78,8 +78,11 @@ func (gui *Gui) createConfirmationPanel(currentView *gocui.View, title, prompt s
 // returns an error if something goes wrong.
 func (gui *Gui) createPromptPanel(currentView *gocui.View, title string, handleConfirm handler) error {
 
-	gui.g.SetViewOnBottom("commitMessage")
-
+	_, err := gui.g.SetViewOnBottom("commitMessage")
+	if err != nil {
+		gui.Log.Errorf("Failed to set view on bottom at createPromptPanel: %s\n", err)
+		return err
+	}
 	confirmationView, err := gui.prepareConfirmationPanel(currentView, title, "")
 	if err != nil {
 		gui.Log.Errorf("Failed to prepare confirmation panel at createPromptPanel: %s\n", err)
