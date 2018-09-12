@@ -307,7 +307,6 @@ func (c *GitCommand) Pull() error {
 // Push pushes to a branch
 func (c *GitCommand) Push(branchName string, force bool) error {
 	forceFlag := ""
-
 	if force {
 		forceFlag = "--force-with-lease "
 	}
