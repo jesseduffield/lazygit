@@ -2,11 +2,26 @@ package gui
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
+
+func (gui *Gui) renderCommit(commit commands.Commit) string {
+	red := color.New(color.FgRed)
+	yellow := color.New(color.FgYellow)
+	white := color.New(color.FgWhite)
+
+	shaColor := yellow
+	if commit.Pushed {
+		shaColor = red
+	}
+
+	return shaColor.Sprint(commit.Sha) + " " + white.Sprint(commit.Name)
+}
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
@@ -16,19 +31,11 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			panic(err)
 		}
 		v.Clear()
-		red := color.New(color.FgRed)
-		yellow := color.New(color.FgYellow)
-		white := color.New(color.FgWhite)
-		shaColor := white
-		for _, commit := range gui.State.Commits {
-			if commit.Pushed {
-				shaColor = red
-			} else {
-				shaColor = yellow
-			}
-			shaColor.Fprint(v, commit.Sha+" ")
-			white.Fprintln(v, commit.Name)
+		displayStrings := make([]string, len(gui.State.Commits))
+		for i, commit := range gui.State.Commits {
+			displayStrings[i] = gui.renderCommit(commit)
 		}
+		fmt.Fprint(v, strings.Join(displayStrings, "\n"))
 		gui.refreshStatus(g)
 		if g.CurrentView().Name() == "commits" {
 			gui.handleCommitSelect(g, v)

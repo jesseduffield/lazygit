@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -14,10 +15,15 @@ func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
 			panic(err)
 		}
 		gui.State.StashEntries = gui.GitCommand.GetStashEntries()
-		v.Clear()
-		for _, stashEntry := range gui.State.StashEntries {
-			fmt.Fprintln(v, stashEntry.DisplayString)
+
+		displayStrings := make([]string, len(gui.State.StashEntries))
+		for i, stashEntry := range gui.State.StashEntries {
+			displayStrings[i] = stashEntry.DisplayString
 		}
+
+		v.Clear()
+		fmt.Fprint(v, strings.Join(displayStrings, "\n"))
+
 		return gui.resetOrigin(v)
 	})
 	return nil

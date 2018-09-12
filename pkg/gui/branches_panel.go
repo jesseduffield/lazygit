@@ -152,9 +152,11 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 		}
 		gui.State.Branches = builder.Build()
 		v.Clear()
+		displayStrings := []string{}
 		for _, branch := range gui.State.Branches {
-			fmt.Fprintln(v, branch.GetDisplayString())
+			displayStrings = append(displayStrings, branch.GetDisplayString())
 		}
+		fmt.Fprint(v, strings.Join(displayStrings, "\n"))
 		gui.resetOrigin(v)
 		return gui.refreshStatus(g)
 	})

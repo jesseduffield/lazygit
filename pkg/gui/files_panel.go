@@ -7,6 +7,7 @@ import (
 
 	// "strings"
 
+	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
@@ -319,16 +320,15 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 		return err
 	}
 	gui.refreshStateFiles()
-	filesView.Clear()
+
+	displayStrings := make([]string, len(gui.State.Files))
 	for i, file := range gui.State.Files {
-		str := gui.renderFile(file)
-		if i < len(gui.State.Files)-1 {
-			str += "\n"
-		}
-		if _, err := filesView.Write([]byte(str)); err != nil {
-			return err
-		}
+		displayStrings[i] = gui.renderFile(file)
 	}
+
+	filesView.Clear()
+	fmt.Fprint(filesView, strings.Join(displayStrings, "\n"))
+
 	gui.correctCursor(filesView)
 	if filesView == g.CurrentView() {
 		gui.handleFileSelect(g, filesView)
