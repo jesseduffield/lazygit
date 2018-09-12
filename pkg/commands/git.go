@@ -327,12 +327,11 @@ func (c *GitCommand) Push(branchName string, force bool) error {
 // retaining the message of the higher commit
 func (c *GitCommand) SquashPreviousTwoCommits(message string) error {
 	// TODO: test this
-	err := c.OSCommand.RunCommand("git reset --soft HEAD^")
-	if err != nil {
+	if err := c.OSCommand.RunCommand("git reset --soft HEAD^"); err != nil {
 		return err
 	}
 	// TODO: if password is required, we need to return a subprocess
-	return c.OSCommand.RunCommand("git commit --amend -m " + c.OSCommand.Quote(message))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --amend -m %s", c.OSCommand.Quote(message)))
 }
 
 // SquashFixupCommit squashes a 'FIXUP' commit into the commit beneath it,

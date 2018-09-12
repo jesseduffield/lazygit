@@ -953,6 +953,69 @@ func TestGitCommandPush(t *testing.T) {
 	}
 }
 
+func TestGitCommandSquashPreviousTwoCommits(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Git reset triggers an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"reset", "--soft", "HEAD^"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(err error) {
+				assert.NotNil(t, err)
+			},
+		},
+		{
+			"Git commit triggers an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				if len(args) > 0 && args[0] == "reset" {
+					return exec.Command("echo")
+				}
+
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--amend", "-m", "test"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(err error) {
+				assert.NotNil(t, err)
+			},
+		},
+		{
+			"Stash succeeded",
+			func(cmd string, args ...string) *exec.Cmd {
+				if len(args) > 0 && args[0] == "reset" {
+					return exec.Command("echo")
+				}
+
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--amend", "-m", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.Nil(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.SquashPreviousTwoCommits("test"))
+		})
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
