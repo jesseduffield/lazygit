@@ -173,28 +173,37 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 		return newFiles
 	}
 
-	headResults := []File{}
-	tailResults := []File{}
+	appendedIndexes := []int{}
 
-	for _, newFile := range newFiles {
-		var isHeadResult bool
-
-		for _, oldFile := range oldFiles {
+	// retain position of files we already could see
+	result := []File{}
+	for _, oldFile := range oldFiles {
+		for newIndex, newFile := range newFiles {
 			if oldFile.Name == newFile.Name {
-				isHeadResult = true
+				result = append(result, newFile)
+				appendedIndexes = append(appendedIndexes, newIndex)
 				break
 			}
 		}
-
-		if isHeadResult {
-			headResults = append(headResults, newFile)
-			continue
-		}
-
-		tailResults = append(tailResults, newFile)
 	}
 
-	return append(headResults, tailResults...)
+	// append any new files to the end
+	for index, newFile := range newFiles {
+		if !includesInt(appendedIndexes, index) {
+			result = append(result, newFile)
+		}
+	}
+
+	return result
+}
+
+func includesInt(list []int, a int) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
 
 // GetBranchName branch name
