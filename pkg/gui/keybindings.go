@@ -14,6 +14,7 @@ type Binding struct {
 	Description string
 }
 
+// GetKeybindings returns an array of keybindings
 func (gui *Gui) GetKeybindings() []Binding {
 	bindings := []Binding{
 		{
@@ -376,13 +377,18 @@ func (gui *Gui) GetKeybindings() []Binding {
 	return bindings
 }
 
+// keybinding is the setup function for the gui.
+// returns an error if something goes wrong
 func (gui *Gui) keybindings(g *gocui.Gui) error {
 	bindings := gui.GetKeybindings()
 
 	for _, binding := range bindings {
-		if err := g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
+		err := gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler)
+		if err != nil {
+			gui.Log.Errorf("Failed to setKeybinding at keybindings: %s\n", err)
 			return err
 		}
 	}
+
 	return nil
 }
