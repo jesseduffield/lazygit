@@ -136,7 +136,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 
 		// second class panels should never have focus restored to them because
 		// once they lose focus they are effectively 'destroyed'
-		secondClassPanels := []string{"commitMessage", "confirmation"}
+		secondClassPanels := []string{"confirmation"}
 		if !utils.IncludesString(secondClassPanels, oldView.Name()) {
 			gui.State.PreviousView = oldView.Name()
 		}
