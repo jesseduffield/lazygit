@@ -337,38 +337,33 @@ func (c *GitCommand) SquashPreviousTwoCommits(message string) error {
 // SquashFixupCommit squashes a 'FIXUP' commit into the commit beneath it,
 // retaining the commit message of the lower commit
 func (c *GitCommand) SquashFixupCommit(branchName string, shaValue string) error {
-	var err error
 	commands := []string{
-		"git checkout -q " + shaValue,
-		"git reset --soft " + shaValue + "^",
-		"git commit --amend -C " + shaValue + "^",
-		"git rebase --onto HEAD " + shaValue + " " + branchName,
+		fmt.Sprintf("git checkout -q %s", shaValue),
+		fmt.Sprintf("git reset --soft %s^", shaValue),
+		fmt.Sprintf("git commit --amend -C %s^", shaValue),
+		fmt.Sprintf("git rebase --onto HEAD %s %s", shaValue, branchName),
 	}
-	ret := ""
 	for _, command := range commands {
 		c.Log.Info(command)
-		output, err := c.OSCommand.RunCommandWithOutput(command)
-		ret += output
-		if err != nil {
+
+		if output, err := c.OSCommand.RunCommandWithOutput(command); err != nil {
+			ret := output
+			// We are already in an error state here so we're just going to append
+			// the output of these commands
+			output, _ := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git branch -d %s", shaValue))
+			ret += output
+			output, _ = c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git checkout %s", branchName))
+			ret += output
+
 			c.Log.Info(ret)
-			break
+			return errors.New(ret)
 		}
 	}
-	if err != nil {
-		// We are already in an error state here so we're just going to append
-		// the output of these commands
-		output, _ := c.OSCommand.RunCommandWithOutput("git branch -d " + shaValue)
-		ret += output
-		output, _ = c.OSCommand.RunCommandWithOutput("git checkout " + branchName)
-		ret += output
-	}
-	if err != nil {
-		return errors.New(ret)
-	}
+
 	return nil
 }
 
-// CatFile obtain the contents of a file
+// CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput("cat " + c.OSCommand.Quote(fileName))
 }

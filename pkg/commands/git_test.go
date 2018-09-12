@@ -1016,6 +1016,69 @@ func TestGitCommandSquashPreviousTwoCommits(t *testing.T) {
 	}
 }
 
+func TestGitCommandSquashFixupCommit(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func() (func(string, ...string) *exec.Cmd, *[][]string)
+		test     func(*[][]string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"An error occurred with one of the sub git command",
+			func() (func(string, ...string) *exec.Cmd, *[][]string) {
+				cmdsCalled := [][]string{}
+				return func(cmd string, args ...string) *exec.Cmd {
+					cmdsCalled = append(cmdsCalled, args)
+					if len(args) > 0 && args[0] == "checkout" {
+						return exec.Command("exit", "1")
+					}
+
+					return exec.Command("echo")
+				}, &cmdsCalled
+			},
+			func(cmdsCalled *[][]string, err error) {
+				assert.NotNil(t, err)
+				assert.Len(t, *cmdsCalled, 3)
+				assert.EqualValues(t, *cmdsCalled, [][]string{
+					{"checkout", "-q", "6789abcd"},
+					{"branch", "-d", "6789abcd"},
+					{"checkout", "test"},
+				})
+			},
+		},
+		{
+			"Squash fixup succeeded",
+			func() (func(string, ...string) *exec.Cmd, *[][]string) {
+				cmdsCalled := [][]string{}
+				return func(cmd string, args ...string) *exec.Cmd {
+					cmdsCalled = append(cmdsCalled, args)
+					return exec.Command("echo")
+				}, &cmdsCalled
+			},
+			func(cmdsCalled *[][]string, err error) {
+				assert.Nil(t, err)
+				assert.Len(t, *cmdsCalled, 4)
+				assert.EqualValues(t, *cmdsCalled, [][]string{
+					{"checkout", "-q", "6789abcd"},
+					{"reset", "--soft", "6789abcd^"},
+					{"commit", "--amend", "-C", "6789abcd^"},
+					{"rebase", "--onto", "HEAD", "6789abcd", "test"},
+				})
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			var cmdsCalled *[][]string
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command, cmdsCalled = s.command()
+			s.test(cmdsCalled, gitCmd.SquashFixupCommit("test", "6789abcd"))
+		})
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
