@@ -167,3 +167,33 @@ func TestResolvePlaceholderString(t *testing.T) {
 		assert.EqualValues(t, string(s.expected), ResolvePlaceholderString(s.templateString, s.arguments))
 	}
 }
+
+func TestMin(t *testing.T) {
+	type scenario struct {
+		a        int
+		b        int
+		expected int
+	}
+
+	scenarios := []scenario{
+		{
+			2,
+			4,
+			2,
+		},
+		{
+			2,
+			1,
+			1,
+		},
+		{
+			1,
+			1,
+			1,
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, Min(s.a, s.b))
+	}
+}
