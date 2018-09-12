@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/gocui"
 )
 
@@ -16,7 +14,7 @@ func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	if oy >= 1 {
 		err := mainView.SetOrigin(ox, oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Error while scrolling up main %s\n", err.Error()))
+			gui.Log.Errorf("Error while scrolling up main: %s\n", err)
 			return err
 		}
 	}
@@ -35,7 +33,7 @@ func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	if oy < len(mainView.BufferLines()) {
 		err := mainView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Error while scrolling down main %s\n", err.Error()))
+			gui.Log.Errorf("Error while scrolling down main: %s\n", err)
 			return err
 		}
 		return nil
