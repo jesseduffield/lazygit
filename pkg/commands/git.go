@@ -461,15 +461,6 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branchName)
 }
 
-func includesString(list []string, a string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 // GetCommits obtains the commits of the current branch
 func (c *GitCommand) GetCommits() []Commit {
 	pushables := c.GetCommitsToPush()
@@ -480,7 +471,7 @@ func (c *GitCommand) GetCommits() []Commit {
 	for _, line := range lines {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
-		pushed := includesString(pushables, sha)
+		pushed := utils.IncludesString(pushables, sha)
 		commits = append(commits, Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),

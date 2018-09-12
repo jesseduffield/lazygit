@@ -99,3 +99,13 @@ func ResolvePlaceholderString(str string, arguments map[string]string) string {
 	}
 	return str
 }
+
+// IncludesString if the list contains the string
+func IncludesString(list []string, a string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
