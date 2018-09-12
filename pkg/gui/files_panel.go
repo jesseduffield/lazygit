@@ -198,10 +198,37 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
+
 	commitMessageView := gui.getCommitMessageView(g)
+	if commitMessageView.Title == gui.Tr.SLocalize("AmendLastCommit") {
+		commitMessageView.Clear()
+		commitMessageView.SetCursor(0, 0)
+	}
+
+	commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 	g.Update(func(g *gocui.Gui) error {
 		g.SetViewOnTop("commitMessage")
 		gui.switchFocus(g, filesView, commitMessageView)
+		gui.RenderCommitLength()
+		return nil
+	})
+	return nil
+}
+
+func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) error {
+	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
+	}
+	commitMessageView := gui.getCommitMessageView(g)
+	commitMessageView.Clear()
+	commitMessageView.Title = gui.Tr.SLocalize("AmendLastCommit")
+
+	g.Update(func(g *gocui.Gui) error {
+		g.SetViewOnTop("commitMessage")
+		gui.switchFocus(g, filesView, commitMessageView)
+		lastCommitName := gui.State.Commits[0].Name
+		commitMessageView.Write([]byte(lastCommitName))
+		commitMessageView.SetCursor(len(lastCommitName), 0)
 		gui.RenderCommitLength()
 		return nil
 	})

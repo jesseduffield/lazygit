@@ -1,6 +1,7 @@
 package gui
 
 import "github.com/jesseduffield/gocui"
+import "strings"
 
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
 // is only handled if the given view has focus, or handled globally if the view
@@ -98,6 +99,12 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitPress,
 			Description: gui.Tr.SLocalize("CommitChanges"),
+		}, {
+			ViewName:    "files",
+			Key:         'M',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleAmendCommitPress,
+			Description: strings.ToLower(gui.Tr.SLocalize("AmendLastCommit")),
 		}, {
 			ViewName:    "files",
 			Key:         'C',

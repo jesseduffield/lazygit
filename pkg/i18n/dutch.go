@@ -35,6 +35,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "Commit Veranderingen",
 		}, &i18n.Message{
+			ID:    "AmendLastCommit",
+			Other: "Wijzig laatste commit",
+		}, &i18n.Message{
 			ID:    "CommitChangesWithEditor",
 			Other: "commit Veranderingen met de git editor",
 		}, &i18n.Message{

@@ -33,6 +33,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "commituj zmiany",
 		}, &i18n.Message{
+			ID:    "AmendLastCommit",
+			Other: "Zmień ostatnie zatwierdzenie",
+		}, &i18n.Message{
 			ID:    "CommitChangesWithEditor",
 			Other: "commituj zmiany używając edytora z gita",
 		}, &i18n.Message{
