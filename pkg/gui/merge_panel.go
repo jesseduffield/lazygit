@@ -253,7 +253,7 @@ func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 
 	err = gui.refreshFiles()
 	if err != nil {
-		gui.Log.Error(err)
+		gui.Log.Errorf("Failed to refresh files at handleEscapeMerge: %s\n", err)
 		return err
 	}
 
