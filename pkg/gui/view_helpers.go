@@ -200,12 +200,23 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 
 // if the cursor down past the last item, move it to the last line
 func (gui *Gui) correctCursor(v *gocui.View) error {
+
 	cx, cy := v.Cursor()
 	_, oy := v.Origin()
+	gui.Log.Infof("cx: %v, cy: %v oy %v\n", cx, cy, oy)
+
 	lineCount := len(v.BufferLines()) - 2
+
 	if cy >= lineCount-oy {
-		return v.SetCursor(cx, lineCount-oy)
+		err := v.SetCursor(cx, lineCount-oy)
+		if err != nil {
+			gui.Log.Errorf("Failed to set cursor at correctCursor: %s\n", err)
+			return err
+		}
+
+		return nil
 	}
+
 	return nil
 }
 
