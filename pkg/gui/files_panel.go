@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
@@ -15,13 +14,13 @@ func (gui *Gui) refreshFiles() error {
 
 	filesView, err := gui.g.View("files")
 	if err != nil {
-		gui.Log.Error(fmt.Sprintf("failed to get filesview in refreshfiles: %s", err))
+		gui.Log.Errorf("failed to get filesview in refreshfiles: %s\n", err)
 		return err
 	}
 
 	err = gui.refreshStateFiles()
 	if err != nil {
-		gui.Log.Error(fmt.Sprintf("failed to refresh state files in refreshfiles: %s", err))
+		gui.Log.Errorf("failed to refresh state files in refreshfiles: %s\n", err)
 		return err
 	}
 
@@ -33,14 +32,14 @@ func (gui *Gui) refreshFiles() error {
 
 	err = gui.correctCursor(filesView)
 	if err != nil {
-		gui.Log.Error(fmt.Sprintf("failed correctCursor in refreshfiles: %s", err))
+		gui.Log.Errorf("failed correctCursor in refreshfiles: %s\n", err)
 		return err
 	}
 
 	if filesView == gui.g.CurrentView() {
 		err = gui.handleFileSelect()
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("failed to get filesview in refreshfiles: %s", err))
+			gui.Log.Errorf("failed to get filesview in refreshfiles: %s\n", err)
 			return err
 		}
 	}
@@ -58,8 +57,7 @@ func (gui *Gui) refreshStateFiles() error {
 
 	err := gui.updateHasMergeConflictStatus()
 	if err != nil {
-		gui.Log.Error(fmt.Sprintf("failed to updateHasMergedConflictStatus"+
-			" in refreshStateFiles: %s", err))
+		gui.Log.Errorf("failed to updateHasMergedConflictStatus in refreshStateFiles: %s\n", err)
 		return err
 
 	}
@@ -154,13 +152,13 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 
 	err = gui.refreshFiles()
 	if err != nil {
-		gui.Log.Error("Failed to refresh files at handleFilePress: ", err)
+		gui.Log.Errorf("Failed to refresh files at handleFilePress: ", err)
 		return err
 	}
 
 	err = gui.handleFileSelect()
 	if err != nil {
-		gui.Log.Error("Failed to handleFileSelect at handleFilePress: ", err)
+		gui.Log.Errorf("Failed to handleFileSelect at handleFilePress: %s\n", err)
 	}
 
 	return nil
@@ -195,20 +193,20 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		err = gui.createErrorPanel(err.Error())
 		if err != nil {
-			gui.Log.Error("Failed to create error panel in handleStageAll: ", err)
+			gui.Log.Errorf("Failed to create error panel in handleStageAll: %s\n", err)
 			return err
 		}
 	}
 
 	err = gui.refreshFiles()
 	if err != nil {
-		gui.Log.Error("Failed to refreshFiles in handleStageAll: ", err)
+		gui.Log.Errorf("Failed to refreshFiles in handleStageAll: %s\n", err)
 		return err
 	}
 
 	err = gui.handleFileSelect()
 	if err != nil {
-		gui.Log.Error("Failed to handleFileSelect in handleStageAll: ", err)
+		gui.Log.Errorf("Failed to handleFileSelect in handleStageAll: %s\n", err)
 		return err
 	}
 
@@ -630,8 +628,15 @@ func (gui *Gui) catSelectedFile() (string, error) {
 
 	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
-		gui.Log.Error(err)
-		return "", gui.renderString(gui.g, "main", err.Error())
+
+		gui.Log.Errorf("Failed to cat file at catSelectedFile: %s\n", err)
+		err = gui.renderString(gui.g, "main", err.Error())
+		if err != nil {
+			gui.Log.Errorf("Failed to render string at catSelectedFile: %s\n", err)
+			return "", err
+		}
+
+		return "", nil
 	}
 
 	return cat, nil
