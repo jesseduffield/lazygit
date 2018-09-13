@@ -180,7 +180,7 @@ func (gui *Gui) RunWithSubprocesses() {
 
 				err = gui.SubProcess.Run()
 				if err != nil {
-					gui.Log.Error("Failed to runWithSubProcess: ", err)
+					gui.Log.Errorf("Failed to runWithSubProcess: %s\n", err)
 					return
 				}
 
