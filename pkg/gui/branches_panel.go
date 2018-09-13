@@ -17,13 +17,13 @@ func (gui *Gui) refreshBranches() error {
 
 		v, err := gui.g.View("branches")
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Failed to get branches view at refreshbranches %s\n", err))
+			gui.Log.Errorf("Failed to get branches view at refreshbranches %s\n", err)
 			return err
 		}
 
 		builder, err := git.NewBranchListBuilder(gui.Log, gui.GitCommand)
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Failed to create branchbuilder at refreshBranches: %s\n", err))
+			gui.Log.Errorf("Failed to create branchbuilder at refreshBranches: %s\n", err)
 			return err
 		}
 
@@ -37,13 +37,13 @@ func (gui *Gui) refreshBranches() error {
 
 		err = gui.resetOrigin(v)
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Failed to reset origin at refreshBranches: %s\n", err))
+			gui.Log.Errorf("Failed to reset origin at refreshBranches: %s\n", err)
 			return err
 		}
 
 		err = gui.refreshStatus()
 		if err != nil {
-			gui.Log.Error(fmt.Sprintf("Failed to refresh statsu at refreshBranches: %s\n", err))
+			gui.Log.Errorf("Failed to refresh statsu at refreshBranches: %s\n", err)
 			return err
 		}
 
