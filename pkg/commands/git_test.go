@@ -825,6 +825,146 @@ func TestGitCommandUsingGpg(t *testing.T) {
 	}
 }
 
+func TestGitCommandCatFile(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "cat", cmd)
+		assert.EqualValues(t, []string{"test.txt"}, args)
+
+		return exec.Command("echo", "-n", "test")
+	}
+
+	o, err := gitCmd.CatFile("test.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, "test", o)
+}
+
+func TestGitCommandStageFile(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"add", "test.txt"}, args)
+
+		return exec.Command("echo")
+	}
+
+	assert.NoError(t, gitCmd.StageFile("test.txt"))
+}
+
+func TestGitCommandUnstageFile(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+		tracked  bool
+	}
+
+	scenarios := []scenario{
+		{
+			"Remove an untracked file from staging",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"rm", "--cached", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+			false,
+		},
+		{
+			"Remove a tracked file from staging",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"reset", "HEAD", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+			true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.UnStageFile("test.txt", s.tracked))
+		})
+	}
+}
+
+func TestGitCommandIsInMergeState(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(bool, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"An error occurred when running status command",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"status", "--untracked-files=all"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(isInMergeState bool, err error) {
+				assert.Error(t, err)
+				assert.False(t, isInMergeState)
+			},
+		},
+		{
+			"Is not in merge state",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"status", "--untracked-files=all"}, args)
+				return exec.Command("echo")
+			},
+			func(isInMergeState bool, err error) {
+				assert.False(t, isInMergeState)
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Command output contains conclude merge",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"status", "--untracked-files=all"}, args)
+				return exec.Command("echo", "'conclude merge'")
+			},
+			func(isInMergeState bool, err error) {
+				assert.True(t, isInMergeState)
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Command output contains unmerged paths",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"status", "--untracked-files=all"}, args)
+				return exec.Command("echo", "'unmerged paths'")
+			},
+			func(isInMergeState bool, err error) {
+				assert.True(t, isInMergeState)
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.IsInMergeState())
+		})
+	}
+}
+
 func TestGitCommandCommit(t *testing.T) {
 	type scenario struct {
 		testName           string
@@ -917,7 +1057,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 		},
 		{
-			"Push with force enable",
+			"Push with force enabled",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--force-with-lease", "-u", "origin", "test"}, args)
