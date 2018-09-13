@@ -208,6 +208,10 @@ func (gui *Gui) correctCursor(v *gocui.View) error {
 	lineCount := len(v.BufferLines()) - 2
 	gui.Log.Infof("linecount: %v\n", lineCount)
 
+	if lineCount < 0 {
+		lineCount = 0
+	}
+
 	if cy >= lineCount-oy {
 		err := v.SetCursor(cx, lineCount-oy)
 		if err != nil {
