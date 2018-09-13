@@ -152,7 +152,7 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 
 	err = gui.refreshFiles()
 	if err != nil {
-		gui.Log.Errorf("Failed to refresh files at handleFilePress: ", err)
+		gui.Log.Errorf("Failed to refresh files at handleFilePress: %s\n", err)
 		return err
 	}
 
@@ -712,7 +712,7 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 		if err != nil {
 			err = gui.createErrorPanel(err.Error())
 			if err != nil {
-				gui.Log.Errorf("Failed to create error panel at pushWithForceFlag: %s\n")
+				gui.Log.Errorf("Failed to create error panel at pushWithForceFlag: %s\n", err)
 			}
 		} else {
 			err = gui.closeConfirmationPrompt()
