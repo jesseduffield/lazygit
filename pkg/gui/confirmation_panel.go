@@ -39,7 +39,7 @@ func (gui *Gui) createConfirmationPanel(currentView *gocui.View, title, prompt s
 					},
 				)
 
-				gui.Log.Error(errMessage)
+				gui.Log.Errorf("%s\n", errMessage)
 				return err
 			}
 		}
