@@ -56,9 +56,11 @@ func newDummyLog() *logrus.Entry {
 
 func newDummyGitCommand() *GitCommand {
 	return &GitCommand{
-		Log:       newDummyLog(),
-		OSCommand: newDummyOSCommand(),
-		Tr:        i18n.NewLocalizer(newDummyLog()),
+		Log:                newDummyLog(),
+		OSCommand:          newDummyOSCommand(),
+		Tr:                 i18n.NewLocalizer(newDummyLog()),
+		getGlobalGitConfig: func(string) (string, error) { return "", nil },
+		getLocalGitConfig:  func(string) (string, error) { return "", nil },
 	}
 }
 
@@ -728,6 +730,353 @@ func TestGitCommandMerge(t *testing.T) {
 	}
 
 	assert.NoError(t, gitCmd.Merge("test"))
+}
+
+func TestGitCommandUsingGpg(t *testing.T) {
+	type scenario struct {
+		testName           string
+		getLocalGitConfig  func(string) (string, error)
+		getGlobalGitConfig func(string) (string, error)
+		test               func(bool)
+	}
+
+	scenarios := []scenario{
+		{
+			"Option global and local config commit.gpgsign is not set",
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.False(t, gpgEnabled)
+			},
+		},
+		{
+			"Option global config commit.gpgsign is not set, fallback on local config",
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(string) (string, error) {
+				return "true", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+		{
+			"Option commit.gpgsign is true",
+			func(string) (string, error) {
+				return "True", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+		{
+			"Option commit.gpgsign is on",
+			func(string) (string, error) {
+				return "ON", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+		{
+			"Option commit.gpgsign is yes",
+			func(string) (string, error) {
+				return "YeS", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+		{
+			"Option commit.gpgsign is 1",
+			func(string) (string, error) {
+				return "1", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(gpgEnabled bool) {
+				assert.True(t, gpgEnabled)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			gitCmd.getLocalGitConfig = s.getLocalGitConfig
+			s.test(gitCmd.usingGpg())
+		})
+	}
+}
+
+func TestGitCommandCommit(t *testing.T) {
+	type scenario struct {
+		testName           string
+		command            func(string, ...string) *exec.Cmd
+		getGlobalGitConfig func(string) (string, error)
+		test               func(*exec.Cmd, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Commit using gpg",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "bash", cmd)
+				assert.EqualValues(t, []string{"-c", `git commit -m 'test'`}, args)
+
+				return exec.Command("echo")
+			},
+			func(string) (string, error) {
+				return "true", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.NotNil(t, cmd)
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Commit without using gpg",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "-m", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.Nil(t, cmd)
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Commit without using gpg with an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "-m", "test"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.Nil(t, cmd)
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.Commit("test"))
+		})
+	}
+}
+
+func TestGitCommandPush(t *testing.T) {
+	type scenario struct {
+		testName  string
+		command   func(string, ...string) *exec.Cmd
+		forcePush bool
+		test      func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Push with force disabled",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "-u", "origin", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			false,
+			func(err error) {
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Push with force enable",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "--force-with-lease", "-u", "origin", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			true,
+			func(err error) {
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Push with an error occurring",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "-u", "origin", "test"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			false,
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.Push("test", s.forcePush))
+		})
+	}
+}
+
+func TestGitCommandSquashPreviousTwoCommits(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Git reset triggers an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"reset", "--soft", "HEAD^"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(err error) {
+				assert.NotNil(t, err)
+			},
+		},
+		{
+			"Git commit triggers an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				if len(args) > 0 && args[0] == "reset" {
+					return exec.Command("echo")
+				}
+
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--amend", "-m", "test"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(err error) {
+				assert.NotNil(t, err)
+			},
+		},
+		{
+			"Stash succeeded",
+			func(cmd string, args ...string) *exec.Cmd {
+				if len(args) > 0 && args[0] == "reset" {
+					return exec.Command("echo")
+				}
+
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--amend", "-m", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.Nil(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.SquashPreviousTwoCommits("test"))
+		})
+	}
+}
+
+func TestGitCommandSquashFixupCommit(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func() (func(string, ...string) *exec.Cmd, *[][]string)
+		test     func(*[][]string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"An error occurred with one of the sub git command",
+			func() (func(string, ...string) *exec.Cmd, *[][]string) {
+				cmdsCalled := [][]string{}
+				return func(cmd string, args ...string) *exec.Cmd {
+					cmdsCalled = append(cmdsCalled, args)
+					if len(args) > 0 && args[0] == "checkout" {
+						return exec.Command("exit", "1")
+					}
+
+					return exec.Command("echo")
+				}, &cmdsCalled
+			},
+			func(cmdsCalled *[][]string, err error) {
+				assert.NotNil(t, err)
+				assert.Len(t, *cmdsCalled, 3)
+				assert.EqualValues(t, *cmdsCalled, [][]string{
+					{"checkout", "-q", "6789abcd"},
+					{"branch", "-d", "6789abcd"},
+					{"checkout", "test"},
+				})
+			},
+		},
+		{
+			"Squash fixup succeeded",
+			func() (func(string, ...string) *exec.Cmd, *[][]string) {
+				cmdsCalled := [][]string{}
+				return func(cmd string, args ...string) *exec.Cmd {
+					cmdsCalled = append(cmdsCalled, args)
+					return exec.Command("echo")
+				}, &cmdsCalled
+			},
+			func(cmdsCalled *[][]string, err error) {
+				assert.Nil(t, err)
+				assert.Len(t, *cmdsCalled, 4)
+				assert.EqualValues(t, *cmdsCalled, [][]string{
+					{"checkout", "-q", "6789abcd"},
+					{"reset", "--soft", "6789abcd^"},
+					{"commit", "--amend", "-C", "6789abcd^"},
+					{"rebase", "--onto", "HEAD", "6789abcd", "test"},
+				})
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			var cmdsCalled *[][]string
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command, cmdsCalled = s.command()
+			s.test(cmdsCalled, gitCmd.SquashFixupCommit("test", "6789abcd"))
+		})
+	}
 }
 
 func TestGitCommandDiff(t *testing.T) {

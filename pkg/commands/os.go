@@ -17,11 +17,12 @@ import (
 
 // Platform stores the os state
 type Platform struct {
-	os           string
-	shell        string
-	shellArg     string
-	escapedQuote string
-	openCommand  string
+	os                   string
+	shell                string
+	shellArg             string
+	escapedQuote         string
+	openCommand          string
+	fallbackEscapedQuote string
 }
 
 // OSCommand holds all the os commands
@@ -140,7 +141,11 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *ex
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
 	message = strings.Replace(message, "`", "\\`", -1)
-	return c.Platform.escapedQuote + message + c.Platform.escapedQuote
+	escapedQuote := c.Platform.escapedQuote
+	if strings.Contains(message, c.Platform.escapedQuote) {
+		escapedQuote = c.Platform.fallbackEscapedQuote
+	}
+	return escapedQuote + message + escapedQuote
 }
 
 // Unquote removes wrapping quotations marks if they are present
