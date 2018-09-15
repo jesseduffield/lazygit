@@ -192,7 +192,7 @@ func (gui *Gui) handleStashSave(g *gocui.Gui, v *gocui.View) error {
 			if err != nil {
 				err = gui.createErrorPanel(err.Error())
 				if err != nil {
-					gui.Log.Errorf("Failed to createErrorPanel at handleStashSave: %s\n")
+					gui.Log.Errorf("Failed to createErrorPanel at handleStashSave: %s\n", err)
 					return err
 				}
 			}

@@ -31,7 +31,7 @@ func (gui *Gui) refreshStatus() error {
 
 		err := gui.updateHasMergeConflictStatus()
 		if err != nil {
-			gui.Log.Errorf("Failed to updateHasMergeConflictStatus at refreshStatus: %s\n")
+			gui.Log.Errorf("Failed to updateHasMergeConflictStatus at refreshStatus: %s\n", err)
 			return err
 		}
 
@@ -82,7 +82,7 @@ func (gui *Gui) handleStatusSelect() error {
 
 	err = gui.renderGlobalOptions()
 	if err != nil {
-		gui.Log.Errorf("Failed to renderGlobalOptions at handleStatusSelect: %s\n")
+		gui.Log.Errorf("Failed to renderGlobalOptions at handleStatusSelect: %s\n", err)
 		return err
 	}
 

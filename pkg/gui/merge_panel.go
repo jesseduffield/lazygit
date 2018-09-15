@@ -213,7 +213,7 @@ func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
 
 	err = ioutil.WriteFile(gitFile.Name, []byte(output), 0644)
 	if err != nil {
-		gui.Log.Errorf("Failed to writeFile at resolveConflict: %s\n")
+		gui.Log.Errorf("Failed to writeFile at resolveConflict: %s\n", err)
 		return err
 	}
 
@@ -284,7 +284,7 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 
 	err := gui.pushFileSnapshot()
 	if err != nil {
-		gui.Log.Errorf("Failed to pushFileSnapshot at handlePickHunk: %s\n, err")
+		gui.Log.Errorf("Failed to pushFileSnapshot at handlePickHunk: %s\n", err)
 		return err
 	}
 
