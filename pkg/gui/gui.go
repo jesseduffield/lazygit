@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"fmt"
+
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -20,7 +22,8 @@ import (
 
 // lazygitTitle is the icon that gets display when the user focusses
 // on the status view
-const lazygitTitle = `
+const (
+	lazygitTitle = `
    _                       _ _
   | |                     (_) |
   | | __ _ _____   _  __ _ _| |_
@@ -29,6 +32,18 @@ const lazygitTitle = `
   |_|\__,_/___|\__, |\__, |_|\__|
                 __/ | __/ |
                |___/ |___/       `
+)
+
+var (
+	dashboardString = fmt.Sprintf(
+		"%s\n\n%s\n\n%s\n\n%s\n\n%s",
+		lazygitTitle,
+		"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md",
+		"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
+		"Tutorial: https://www.youtube.com/watch?v=VDXvbHZYeKY",
+		"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
+	)
+)
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false

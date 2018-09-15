@@ -78,7 +78,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "menu":
 		return gui.handleMenuSelect(v)
 	case "status":
-		return gui.handleStatusSelect(g, v)
+		return gui.handleStatusSelect()
 	case "files":
 		return gui.handleFileSelect()
 	case "branches":
