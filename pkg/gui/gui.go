@@ -447,7 +447,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		err = gui.refreshStashEntries(gui.g)
+		err = gui.refreshStashEntries()
 		if err != nil {
 			gui.Log.Errorf("Failed to refreshStashEntries at layout: %s\n", err)
 			return err

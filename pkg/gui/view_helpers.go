@@ -95,7 +95,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "commits":
 		return gui.handleCommitSelect()
 	case "stash":
-		return gui.handleStashEntrySelect(g, v)
+		return gui.handleStashEntrySelect()
 	default:
 		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement"))
 	}
