@@ -409,7 +409,7 @@ func (gui *Gui) handleFileSelect() error {
 
 	if file.HasMergeConflicts {
 
-		err = gui.refreshMergePanel(gui.g)
+		err = gui.refreshMergePanel()
 		if err != nil {
 			gui.Log.Errorf("Failed to refreshmergepanel in handlefileselect: %s\n", err)
 			return err
@@ -803,7 +803,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = gui.refreshMergePanel(gui.g)
+	err = gui.refreshMergePanel()
 	if err != nil {
 		gui.Log.Errorf("Failed to refreshMergePanel at handleSwitchToMerge: %s\n", err)
 		return err
