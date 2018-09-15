@@ -588,7 +588,7 @@ func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 
 	if gui.State.Updating {
 
-		err := gui.createUpdateQuitConfirmation(gui.g, v)
+		err := gui.createUpdateQuitConfirmation(v)
 		if err != nil {
 			gui.Log.Errorf("Failed to create update quit confirmation at quit: %s\n", err)
 		}
