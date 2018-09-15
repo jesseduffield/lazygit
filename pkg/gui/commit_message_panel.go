@@ -37,6 +37,7 @@ func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
+	g.SetViewOnTop("commitMessage")
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{
