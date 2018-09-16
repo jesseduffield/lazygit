@@ -436,14 +436,16 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		_, err = g.SetViewOnTop("commitMessage")
+		_, err = gui.g.SetViewOnTop("commitMessage")
 		if err != nil {
-
+			gui.Log.Errorf("Failed to setViewOnTop at handleCommitPress: %s\n", err)
+			return err
 		}
 
 		err = gui.switchFocus(filesView, commitMessageView)
 		if err != nil {
-
+			gui.Log.Errorf("Failed to switchFocus at handleCommitPress: %s\n", err)
+			return err
 		}
 
 		gui.RenderCommitLength()
