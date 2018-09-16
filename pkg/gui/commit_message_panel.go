@@ -23,18 +23,15 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 
 		return nil
 	}
-
-	sub, err := gui.GitCommand.Commit(gui.g, message)
+  
+	sub, err := gui.GitCommand.Commit(message)
 	if err != nil {
-
 		if err != gui.Errors.ErrSubProcess {
-
-			err = gui.createErrorPanel(err.Error())
+      err = gui.createErrorPanel(err.Error())
 			if err != nil {
 				gui.Log.Errorf("Failed to create error panel at handleCommitConfirm: %s\n", err)
 				return err
 			}
-
 			return nil
 		}
 	}
