@@ -274,7 +274,7 @@ func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
 
 	err = gui.newLineFocused(v)
 	if err != nil {
-		gui.Log.Errorf("Failed to newLineFocused at cursorDown: %s\n")
+		gui.Log.Errorf("Failed to newLineFocused at cursorDown: %s\n", err)
 		return err
 	}
 
@@ -293,7 +293,7 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 
 	err = v.SetOrigin(0, 0)
 	if err != nil {
-		gui.Log.Errorf("Failed to setOrigin at resetOrigin: %s\n")
+		gui.Log.Errorf("Failed to setOrigin at resetOrigin: %s\n", err)
 		return err
 	}
 
