@@ -65,6 +65,7 @@ type GitCommand struct {
 	Tr                 *i18n.Localizer
 	getGlobalGitConfig func(string) (string, error)
 	getLocalGitConfig  func(string) (string, error)
+	removeFile         func(string) error
 }
 
 // NewGitCommand it runs git commands
@@ -410,15 +411,15 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 func (c *GitCommand) RemoveFile(file File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges {
-		if err := c.OSCommand.RunCommand("git reset -- " + file.Name); err != nil {
+		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", file.Name)); err != nil {
 			return err
 		}
 	}
 	if !file.Tracked {
-		return os.RemoveAll(file.Name)
+		return c.removeFile(file.Name)
 	}
 	// if the file is tracked, we assume you want to just check it out
-	return c.OSCommand.RunCommand("git checkout -- " + file.Name)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", file.Name))
 }
 
 // Checkout checks out a branch, with --force if you set the force arg to true
