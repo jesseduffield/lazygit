@@ -451,7 +451,7 @@ func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branchName)
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
 }
 
 func includesString(list []string, a string) bool {

@@ -1467,6 +1467,19 @@ func TestGitCommandCheckout(t *testing.T) {
 	}
 }
 
+func TestGitCommandGetBranchGraph(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"log", "--graph", "--color", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "-100", "test"}, args)
+
+		return exec.Command("echo")
+	}
+
+	_, err := gitCmd.GetBranchGraph("test")
+	assert.NoError(t, err)
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
