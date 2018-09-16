@@ -365,12 +365,12 @@ func (c *GitCommand) SquashFixupCommit(branchName string, shaValue string) error
 
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("cat " + c.OSCommand.Quote(fileName))
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("cat %s", c.OSCommand.Quote(fileName)))
 }
 
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
-	return c.OSCommand.RunCommand("git add " + c.OSCommand.Quote(fileName))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git add %s", c.OSCommand.Quote(fileName)))
 }
 
 // StageAll stages all files
@@ -385,13 +385,11 @@ func (c *GitCommand) UnstageAll() error {
 
 // UnStageFile unstages a file
 func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
-	var command string
+	command := "git rm --cached %s"
 	if tracked {
-		command = "git reset HEAD "
-	} else {
-		command = "git rm --cached "
+		command = "git reset HEAD %s"
 	}
-	return c.OSCommand.RunCommand(command + c.OSCommand.Quote(fileName))
+	return c.OSCommand.RunCommand(fmt.Sprintf(command, c.OSCommand.Quote(fileName)))
 }
 
 // GitStatus returns the plaintext short status of the repo
