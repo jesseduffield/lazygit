@@ -204,10 +204,8 @@ func (gui *Gui) getConfirmationPanelDimensions(prompt string) (int, int, int, in
 // returns the view and if any occurred an error
 func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string) (*gocui.View, error) {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(prompt)
-
 	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
 	if err != nil {
-
 		if err != gocui.ErrUnknownView {
 			gui.Log.Errorf("Failed to set view at prepareConfirmationPanel: %s\n", err)
 			return nil, err
