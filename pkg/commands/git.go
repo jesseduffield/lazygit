@@ -428,7 +428,7 @@ func (c *GitCommand) Checkout(branch string, force bool) error {
 	if force {
 		forceArg = "--force "
 	}
-	return c.OSCommand.RunCommand("git checkout " + forceArg + branch)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout %s %s", forceArg, branch))
 }
 
 // AddPatch prepares a subprocess for adding a patch by patch

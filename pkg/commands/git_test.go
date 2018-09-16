@@ -1421,6 +1421,52 @@ func TestGitCommandRemoveFile(t *testing.T) {
 	}
 }
 
+func TestGitCommandCheckout(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+		force    bool
+	}
+
+	scenarios := []scenario{
+		{
+			"Checkout",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"checkout", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+			false,
+		},
+		{
+			"Checkout forced",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"checkout", "--force", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+			true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.Checkout("test", s.force))
+		})
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
