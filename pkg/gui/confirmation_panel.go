@@ -17,7 +17,6 @@ type handler func(gui *gocui.Gui, view *gocui.View) error
 // handleClose: what to call on close.
 // returns an error if something goes wrong.
 func (gui *Gui) createConfirmationPanel(currentView *gocui.View, title, prompt string, handleConfirm, handleClose handler) error {
-
 	_, err := gui.g.SetViewOnBottom("commitMessage")
 	if err != nil {
 		gui.Log.Errorf("Failed to set view on bottom at createConfirmationPanel: %s\n", err)
@@ -77,7 +76,6 @@ func (gui *Gui) createConfirmationPanel(currentView *gocui.View, title, prompt s
 // handleConfirm: what to do on confirmation.
 // returns an error if something goes wrong.
 func (gui *Gui) createPromptPanel(currentView *gocui.View, title string, handleConfirm handler) error {
-
 	_, err := gui.g.SetViewOnBottom("commitMessage")
 	if err != nil {
 		gui.Log.Errorf("Failed to set view on bottom at createPromptPanel: %s\n", err)
@@ -104,7 +102,6 @@ func (gui *Gui) createPromptPanel(currentView *gocui.View, title string, handleC
 // message: the error to display.
 // returns an error if something goes wrong.
 func (gui *Gui) createErrorPanel(message string) error {
-
 	gui.Log.Error(message)
 
 	currentView := gui.g.CurrentView()
@@ -134,7 +131,6 @@ func (gui *Gui) createMessagePanel(currentView *gocui.View, title, prompt string
 // wrappedConfirmationFunction creates a function that is acceptable for some other functions.
 // TO BE REMOVED.
 func (gui *Gui) wrappedConfirmationFunction(function handler) handler {
-
 	// TODO change this
 	return func(g *gocui.Gui, v *gocui.View) error {
 		if function != nil {
@@ -150,7 +146,6 @@ func (gui *Gui) wrappedConfirmationFunction(function handler) handler {
 // closeConfirmationPrompt closes the confirmation prompt.
 // returns an error if something goes wrong.
 func (gui *Gui) closeConfirmationPrompt() error {
-
 	view, err := gui.g.View("confirmation")
 	if err != nil {
 		gui.Log.Errorf("Failed to get confirmation view at closeConfirmationPrompt: %s\n", err)
@@ -179,7 +174,6 @@ func (gui *Gui) closeConfirmationPrompt() error {
 // width: the width.
 // returns the size.
 func (gui *Gui) getMessageHeight(message string, width int) int {
-
 	lines := strings.Split(message, "\n")
 	lineCount := 0
 	for _, line := range lines {
@@ -193,7 +187,6 @@ func (gui *Gui) getMessageHeight(message string, width int) int {
 // prompt: what to prompt the user.
 // returns: begin x, begin y, offset width, offset height.
 func (gui *Gui) getConfirmationPanelDimensions(prompt string) (int, int, int, int) {
-
 	width, height := gui.g.Size()
 	panelWidth := width / 2
 	panelHeight := gui.getMessageHeight(prompt, panelWidth)
@@ -210,7 +203,6 @@ func (gui *Gui) getConfirmationPanelDimensions(prompt string) (int, int, int, in
 // prompt: what to prompt the user.
 // returns the view and if any occurred an error
 func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string) (*gocui.View, error) {
-
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(prompt)
 
 	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
@@ -240,7 +232,6 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 // handleConfirm: what to do when the user presses confirm.
 // handleClose: what to do when the user presses close.
 func (gui *Gui) setConfirmationHandlers(handleConfirm, handleClose handler) error {
-
 	actions := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{

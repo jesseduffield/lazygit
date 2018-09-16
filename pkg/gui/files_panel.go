@@ -11,7 +11,6 @@ import (
 // refreshFiles refreshes the files view.
 // returns an error if something goes wrong.
 func (gui *Gui) refreshFiles() error {
-
 	filesView, err := gui.g.View("files")
 	if err != nil {
 		gui.Log.Errorf("failed to get filesview in refreshfiles: %s\n", err)
@@ -50,7 +49,6 @@ func (gui *Gui) refreshFiles() error {
 // refreshStateFiles refreshes the state files.
 // returns an error if something goes wrong.
 func (gui *Gui) refreshStateFiles() error {
-
 	files := gui.GitCommand.GetStatusFiles()
 
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
@@ -68,7 +66,6 @@ func (gui *Gui) refreshStateFiles() error {
 // stagedFiles returns the staged files.
 // returns a file array.
 func (gui *Gui) stagedFiles() []commands.File {
-
 	files := gui.State.Files
 	result := make([]commands.File, 0)
 
@@ -84,7 +81,6 @@ func (gui *Gui) stagedFiles() []commands.File {
 // trackedFiles returns the tracked files.
 // returns a file array.
 func (gui *Gui) trackedFiles() []commands.File {
-
 	files := gui.State.Files
 	result := make([]commands.File, 0)
 
@@ -100,7 +96,6 @@ func (gui *Gui) trackedFiles() []commands.File {
 // stageSelectedFile stages the selected file.
 // returns an error if something went wrong.
 func (gui *Gui) stageSelectedFile() error {
-
 	file, err := gui.getSelectedFile()
 	if err != nil {
 		gui.Log.Errorf("Failed to get selected file at stageSelectedFile: %s\n", err)
@@ -119,7 +114,6 @@ func (gui *Gui) stageSelectedFile() error {
 // g and v are passed by the gocui library to the function but are not used.
 // In case something goes wrong, this function returns an error.
 func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
-
 	file, err := gui.getSelectedFile()
 	if err != nil {
 		if err == gui.Errors.ErrNoFiles {
@@ -166,7 +160,6 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 
 // allFilesStage returns whether or not all the files are staged.
 func (gui *Gui) allFilesStaged() bool {
-
 	for _, file := range gui.State.Files {
 		if file.HasUnstagedChanges {
 			return false
@@ -181,7 +174,6 @@ func (gui *Gui) allFilesStaged() bool {
 // g and v are passed by the gocui library bubt are not used.
 // In case something goes wrong, it returns an error.
 func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
-
 	var err error
 
 	if gui.allFilesStaged() {
@@ -216,7 +208,6 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 // handleAddPatch is called when a user wants to add a patch.
 // g and v are passed by the gocui library
 func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
-
 	file, err := gui.getSelectedFile()
 	if err != nil {
 		if err == gui.Errors.ErrNoFiles {
@@ -253,7 +244,6 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 // getSelectedFile returns the selected files
 // returns the file and an error if something goes wrong.
 func (gui *Gui) getSelectedFile() (commands.File, error) {
-
 	if len(gui.State.Files) == 0 {
 		return commands.File{}, gui.Errors.ErrNoFiles
 	}
@@ -273,7 +263,6 @@ func (gui *Gui) getSelectedFile() (commands.File, error) {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong
 func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
-
 	var deleteVerb string
 
 	file, err := gui.getSelectedFile()
@@ -329,7 +318,6 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui.
 // returns an error if something goes wrong.
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
-
 	file, err := gui.getSelectedFile()
 	if err != nil {
 		err = gui.createErrorPanel(err.Error())
@@ -375,7 +363,6 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 // It checks if there are any changed files and if there is one
 // and it is selected, it gets rendered into the main view
 func (gui *Gui) handleFileSelect() error {
-
 	var content string
 
 	file, err := gui.getSelectedFile()
@@ -433,7 +420,6 @@ func (gui *Gui) handleFileSelect() error {
 // g and v are passed by the gocui library.
 // returns and error if something goes wrong.
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 
 		err := gui.createErrorPanel(gui.Tr.SLocalize("NoStagedFilesToCommit"))
@@ -476,7 +462,9 @@ func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) err
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
+
 	gui.PrepareSubProcess(gui.g, "git", "commit")
+
 	return nil
 }
 
@@ -491,7 +479,6 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) {
 // editFile edits a file.
 // This is achieved with a subprocess
 func (gui *Gui) editFile(filename string) error {
-
 	sub, err := gui.OSCommand.EditFile(filename)
 	if err != nil {
 		err = gui.createErrorPanel(err.Error())
@@ -534,7 +521,6 @@ func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
-
 	file, err := gui.getSelectedFile()
 	if err != nil {
 		gui.Log.Errorf("Failed to getSelectedFile at handleFileOpen: %s\n", err)
@@ -558,7 +544,6 @@ func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
 // updateHasMergeConflictStatus updates the status.
 // returns an error if something goes wrong.
 func (gui *Gui) updateHasMergeConflictStatus() error {
-
 	merging, err := gui.GitCommand.IsInMergeState()
 	if err != nil {
 		gui.Log.Errorf("Failed to get merge state at updateHasMergeConflictStatus: %s\n", err)
@@ -574,7 +559,6 @@ func (gui *Gui) updateHasMergeConflictStatus() error {
 // file is the file to render.
 // filesview is where the view is located.
 func (gui *Gui) renderFileName(file commands.File, filesView *gocui.View) {
-
 	// potentially inefficient to be instantiating these color
 	// objects with each render
 	red := color.New(color.FgRed)
@@ -598,7 +582,6 @@ func (gui *Gui) renderFileName(file commands.File, filesView *gocui.View) {
 // catSelectedFiles reads the file and "cats" the data.
 // returns the string and an error if anything goes wrong.
 func (gui *Gui) catSelectedFile() (string, error) {
-
 	item, err := gui.getSelectedFile()
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
@@ -646,7 +629,6 @@ func (gui *Gui) catSelectedFile() (string, error) {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
-
 	err := gui.createMessagePanel(v, "", gui.Tr.SLocalize("PullWait"))
 	if err != nil {
 		gui.Log.Errorf("Failed to createMessagePanel at pullFiles: %s\n", err)
@@ -699,7 +681,6 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 // currentView is used to return focus to the view.
 // force indicates whether or not to push with foce.
 func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
-
 	err := gui.createMessagePanel(currentView, "", gui.Tr.SLocalize("PushWait"))
 	if err != nil {
 		gui.Log.Errorf("Failed to createMessagePanel at pushWithForceFlag: %s\n", err)
@@ -739,7 +720,6 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 // g and v are added by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
-
 	_, pullables := gui.GitCommand.UpstreamDifferenceCount()
 	if pullables == "?" || pullables == "0" {
 
@@ -770,7 +750,6 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 // v is used to refocus after merging is done.
 // returns an error if something goes wrong.
 func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
-
 	mergeView, err := gui.g.View("main")
 	if err != nil {
 		return err
@@ -816,7 +795,6 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library but g is not used.
 // If anything goes wrong, it returns an error
 func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
-
 	err := gui.GitCommand.AbortMerge()
 	if err != nil {
 
@@ -852,7 +830,6 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library.
 // returns an error if something went wrong.
 func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
-
 	err := gui.createConfirmationPanel(v, gui.Tr.SLocalize("ClearFilePanel"), gui.Tr.SLocalize("SureResetHardHead"), func(g *gocui.Gui, v *gocui.View) error {
 		err := gui.GitCommand.ResetHard()
 		if err != nil {
@@ -881,7 +858,6 @@ func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
 
 // openFile opens a file
 func (gui *Gui) openFile(filename string) error {
-
 	err := gui.OSCommand.OpenFile(filename)
 	if err != nil {
 
@@ -899,7 +875,6 @@ func (gui *Gui) openFile(filename string) error {
 
 // anyUnStageChanges returns whether or not there are any unstage changes.
 func (gui *Gui) anyUnStagedChanges(files []commands.File) bool {
-
 	for _, file := range files {
 		if file.Tracked && file.HasUnstagedChanges {
 			return true

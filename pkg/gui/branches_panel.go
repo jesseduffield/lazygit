@@ -12,7 +12,6 @@ import (
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches() error {
-
 	gui.g.Update(func(g *gocui.Gui) error {
 
 		v, err := gui.g.View("branches")
@@ -57,7 +56,6 @@ func (gui *Gui) refreshBranches() error {
 // g and v are passed by the gocui library, but are not used.
 // In case something goes wrong it returns an error
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
-
 	v, err := gui.g.View("branches")
 	if err != nil {
 		gui.Log.Errorf("Failed to get branch view at handleBranchPress: %s\n", err.Error())
@@ -95,7 +93,6 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library, but are not used.
 // In case something goes wrong it returns an error
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
-
 	branch := gui.getSelectedBranch(v)
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
@@ -129,7 +126,6 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library, but only v is used.
 // If something goes wrong it returns an error
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-
 	err := gui.createPromptPanel(v, gui.Tr.SLocalize("BranchName")+":",
 		func(g *gocui.Gui, v *gocui.View) error {
 
@@ -160,7 +156,6 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library but only v is used.
 // If something goes wrong it returns an error.
 func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
-
 	branch := gui.State.Branches[0]
 	message := gui.Tr.TemplateLocalize(
 		"NewBranchNameBranchOff",
@@ -219,7 +214,6 @@ func (gui *Gui) handleForceDeleteBranch(g *gocui.Gui, v *gocui.View) error {
 // deleted.
 // If anything goes wrong, it returns an error.
 func (gui *Gui) deleteBranch(v *gocui.View, force bool) error {
-
 	var messageId string
 
 	checkedOutBranch := gui.State.Branches[0]
@@ -317,7 +311,6 @@ func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
 
 // handleBranchSelect gets called when the user selects a branch
 func (gui *Gui) handleBranchSelect(v *gocui.View) error {
-
 	err := gui.renderGlobalOptions()
 	if err != nil {
 		gui.Log.Errorf("Failed to renderGlobalOptions at handleBranchSelect: %s\n", err)

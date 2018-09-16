@@ -11,7 +11,6 @@ import (
 // refreshCommits refreshes the commits view.
 // If something goes wrong, it returns an error
 func (gui *Gui) refreshCommits() error {
-
 	gui.g.Update(func(*gocui.Gui) error {
 
 		red := color.New(color.FgRed)
@@ -66,7 +65,6 @@ func (gui *Gui) refreshCommits() error {
 // g and v are passed by the gocui, but only v is used.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
-
 	err := gui.createConfirmationPanel(v, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"),
 		func(g *gocui.Gui, v *gocui.View) error {
 
@@ -122,7 +120,6 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
 // handleCommitSelect gets called when a commit needs to be select.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitSelect() error {
-
 	err := gui.renderGlobalOptions()
 	if err != nil {
 		gui.Log.Errorf("Failed to render global options at handleCommitSelect%s\n", err)
@@ -162,7 +159,6 @@ func (gui *Gui) handleCommitSelect() error {
 // g and v gets passed by gocui but g is not used.
 // If anything goes wrong, it returns an error.
 func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
-
 	if gui.getItemPosition(v) != 0 {
 
 		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlySquashTopmostCommit"))
@@ -228,7 +224,6 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed to by the gocui library but only v is used.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
-
 	if len(gui.State.Commits) == 1 {
 
 		err := gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
@@ -301,7 +296,6 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library but only v is used.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
-
 	if gui.getItemPosition(v) != 0 {
 
 		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
@@ -355,7 +349,6 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library, but only v is used.
 // If anything goes wrong, it returns an error.
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
-
 	if gui.getItemPosition(v) != 0 {
 
 		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
@@ -380,7 +373,6 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 // returns the commit that is currently selected and an error if something
 // went wrong.
 func (gui *Gui) getSelectedCommit() (commands.Commit, error) {
-
 	v, err := gui.g.View("commits")
 	if err != nil {
 		gui.Log.Errorf("Failed to get the commits view at getSelectedCommit: %s\n", err)

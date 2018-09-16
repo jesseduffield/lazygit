@@ -63,7 +63,6 @@ func (gui *Gui) onUserUpdateCheckFinish(newVersion string, err error) error {
 // newVersion: the new version.
 // err: the error code passed by the checker.
 func (gui *Gui) onBackgroundUpdateCheckFinish(newVersion string, err error) error {
-
 	if err != nil {
 		gui.Log.Errorf("Failed to update at onBackgroundUpdateCheckFinish: %s\n", err)
 		return err

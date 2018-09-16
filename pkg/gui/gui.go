@@ -108,7 +108,6 @@ type guiState struct {
 
 // NewGui builds a new gui handler.
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
-
 	initialState := guiState{
 		Files:         make([]commands.File, 0),
 		PreviousView:  "files",
@@ -140,7 +139,6 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 // Run setup the gui with keybindings and start the mainloop.
 // returns an error if something goes wrong.
 func (gui *Gui) Run() error {
-
 	var err error
 
 	gui.g, err = gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
@@ -183,7 +181,6 @@ func (gui *Gui) Run() error {
 // otherwise it handles the error, possibly by quitting the application
 func (gui *Gui) RunWithSubprocesses() {
 	for {
-
 		err := gui.Run()
 		if err != nil {
 			if err == gocui.ErrQuit {
@@ -506,7 +503,6 @@ func (gui *Gui) promptAnonymousReporting() error {
 // Fetch fetches the commits.
 // returns an error if something goes wrong.
 func (gui *Gui) fetch() error {
-
 	err := gui.GitCommand.Fetch()
 	if err != nil {
 		gui.Log.Errorf("Failed to fetch at fetch: %s\n", err)
@@ -524,7 +520,6 @@ func (gui *Gui) fetch() error {
 
 // updateloader shows a little loader
 func (gui *Gui) updateLoader() error {
-
 	view, _ := gui.g.View("confirmation")
 	if view != nil {
 
@@ -589,7 +584,6 @@ func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
 
 // quit handles the quit keys
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
-
 	if gui.State.Updating {
 
 		err := gui.createUpdateQuitConfirmation(v)

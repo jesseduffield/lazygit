@@ -12,7 +12,6 @@ import (
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleMenuPress(g *gocui.Gui, v *gocui.View) error {
-
 	lineNumber := gui.getItemPosition(v)
 	if gui.State.Keys[lineNumber].Key == nil {
 		return nil
@@ -54,7 +53,6 @@ func (gui *Gui) handleMenuSelect() error {
 // renderMenuOptions renders the menu options.
 // returns an error if something goes wrong.
 func (gui *Gui) renderMenuOptions() error {
-
 	optionsMap := map[string]string{
 		"esc/q": gui.Tr.SLocalize("close"),
 		"↑ ↓":   gui.Tr.SLocalize("navigate"),
@@ -74,7 +72,6 @@ func (gui *Gui) renderMenuOptions() error {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
-
 	err := gui.g.DeleteView("menu")
 	if err != nil {
 		return err
@@ -109,7 +106,6 @@ func (gui *Gui) GetKey(binding Binding) string {
 // bindings: what to get the keys from.
 // returns the size
 func (gui *Gui) GetMaxKeyLength(bindings []Binding) int {
-
 	max := 0
 
 	for _, binding := range bindings {
@@ -126,7 +122,6 @@ func (gui *Gui) GetMaxKeyLength(bindings []Binding) int {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
-
 	var (
 		contentGlobal, contentPanel   []string
 		bindingsGlobal, bindingsPanel []Binding

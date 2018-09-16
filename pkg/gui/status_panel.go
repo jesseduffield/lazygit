@@ -11,7 +11,6 @@ import (
 // refreshStatus is called to refresh the status view.
 // returns an error when something goes wrong.
 func (gui *Gui) refreshStatus() error {
-
 	v, err := gui.g.View("status")
 	if err != nil {
 		gui.Log.Errorf("Failed to get the status view at refreshStatus: %s\n", err)
@@ -58,7 +57,6 @@ func (gui *Gui) refreshStatus() error {
 // g and v are passed by the gocui library.
 // returns an error when something goes wrong.
 func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
-
 	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
 
 	err := gui.createMessagePanel(v, "", gui.Tr.SLocalize("CheckingForUpdates"))
@@ -73,7 +71,6 @@ func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 // handleStatusSelect is called when the status view is selected.
 // returns an error when something goes wrong.
 func (gui *Gui) handleStatusSelect() error {
-
 	err := gui.renderString("main", dashboardString)
 	if err != nil {
 		gui.Log.Errorf("Failed to renderString at ")

@@ -10,7 +10,6 @@ import (
 // refreshStashEntries refreshes the stash entries.
 // returns an error if something goes wrong.
 func (gui *Gui) refreshStashEntries() error {
-
 	gui.g.Update(func(g *gocui.Gui) error {
 
 		v, err := gui.g.View("stash")
@@ -42,7 +41,6 @@ func (gui *Gui) refreshStashEntries() error {
 // getSelectedStashEntry returns the selected stash entry.
 // returns a stash entry.
 func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
-
 	if len(gui.State.StashEntries) == 0 {
 		return nil
 	}
@@ -57,7 +55,6 @@ func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
 // view.
 // returns an error if something went wrong.
 func (gui *Gui) handleStashEntrySelect() error {
-
 	err := gui.renderGlobalOptions()
 	if err != nil {
 		gui.Log.Errorf("Failed to renderGlobalOptions at handleStashEntrySelect: %s\n", err)
@@ -107,7 +104,6 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
-
 	title := gui.Tr.SLocalize("StashDrop")
 	message := gui.Tr.SLocalize("SureDropStashEntry")
 
@@ -128,7 +124,6 @@ func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 // method: what to do.
 // return an error if something goes wrong.
 func (gui *Gui) stashDo(method string) error {
-
 	stashEntry := gui.getSelectedStashEntry()
 
 	if stashEntry == nil {
@@ -176,7 +171,6 @@ func (gui *Gui) stashDo(method string) error {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleStashSave(g *gocui.Gui, v *gocui.View) error {
-
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
 		err := gui.createErrorPanel(gui.Tr.SLocalize("NoTrackedStagedFilesStash"))
 		if err != nil {

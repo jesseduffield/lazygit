@@ -12,7 +12,6 @@ import (
 // g and v are passed by the gocui.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
-
 	message := gui.trimmedContent(v)
 	if message == "" {
 
@@ -90,7 +89,6 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 // g and v are passes by the gocui library, but only v is used.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
-
 	_, err := gui.g.SetViewOnBottom("commitMessage")
 	if err != nil {
 		gui.Log.Errorf("Failed to set view on bottom at handleCommitClose: %s\n", err)
@@ -115,7 +113,6 @@ func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 // handleCommitFocused gets called when the commitMessageView is called.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitFocused() error {
-
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{
@@ -136,7 +133,6 @@ func (gui *Gui) handleCommitFocused() error {
 // simpleEditor is a simple implementation to provide custom key handling for
 // the gocui library.
 func (gui *Gui) simpleEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
@@ -172,7 +168,6 @@ func (gui *Gui) getBufferLength(view *gocui.View) string {
 
 // RenderCommitLength renders the commit length
 func (gui *Gui) RenderCommitLength() {
-
 	if !gui.Config.GetUserConfig().GetBool("gui.commitLength.show") {
 		return
 	}

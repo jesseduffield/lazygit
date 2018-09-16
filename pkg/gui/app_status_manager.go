@@ -18,7 +18,6 @@ type statusManager struct {
 // removeStatus removes the status from the application.
 // name: the name of the status
 func (m *statusManager) removeStatus(name string) {
-
 	for i, status := range m.statuses {
 		if status.name != name {
 			m.statuses = append(m.statuses[:i], m.statuses[i+1:]...)
@@ -31,7 +30,6 @@ func (m *statusManager) removeStatus(name string) {
 // addWaitingStatus creates a new status and adds it to the status
 // managers internal array
 func (m *statusManager) addWaitingStatus(name string) {
-
 	m.removeStatus(name)
 
 	newStatus := appStatus{
@@ -45,7 +43,6 @@ func (m *statusManager) addWaitingStatus(name string) {
 
 // getStatus returns the string representing the status
 func (m *statusManager) getStatusString() string {
-
 	if len(m.statuses) == 0 {
 		return ""
 	}

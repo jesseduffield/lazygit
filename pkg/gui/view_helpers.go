@@ -165,7 +165,6 @@ func (gui *Gui) returnFocus(v *gocui.View) error {
 // newView: what to go to now.
 // returns an error when something goes wrong.
 func (gui *Gui) switchFocus(oldView, newView *gocui.View) error {
-
 	// TODO call gui.State.PreviousView
 	// we assume we'll never want to return focus to a confirmation panel i.e.
 	// we should never stack confirmation panels
@@ -306,7 +305,6 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 // v: the view to affect.
 // returns an error when something goes wrong.
 func (gui *Gui) correctCursor(v *gocui.View) error {
-
 	cx, cy := v.Cursor()
 	_, oy := v.Origin()
 
@@ -399,7 +397,6 @@ func (gui *Gui) resizeCurrentPopupPanel() error {
 // v: the view to resize.
 // returns an error when something goes wrong.
 func (gui *Gui) resizePopupPanel(v *gocui.View) error {
-
 	content := v.Buffer()
 	// If the confirmation panel is already displayed, just resize the width,
 	// otherwise continue

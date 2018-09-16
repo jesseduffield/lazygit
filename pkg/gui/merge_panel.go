@@ -54,7 +54,6 @@ func (gui *Gui) shouldHighlightLine(index int, conflict commands.Conflict, top b
 
 // coloredConflictFile creates a color representation of the conflicts file
 func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflict, conflictIndex int, conflictTop, hasFocus bool) (string, error) {
-
 	var (
 		outputBuffer                 bytes.Buffer
 		conflict, remainingConflicts = gui.shiftConflict(conflicts)
@@ -91,7 +90,6 @@ func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflic
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleSelectTop(g *gocui.Gui, v *gocui.View) error {
-
 	gui.State.ConflictTop = true
 
 	err := gui.refreshMergePanel()
@@ -108,7 +106,6 @@ func (gui *Gui) handleSelectTop(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleSelectBottom(g *gocui.Gui, v *gocui.View) error {
-
 	gui.State.ConflictTop = false
 
 	err := gui.refreshMergePanel()
@@ -125,7 +122,6 @@ func (gui *Gui) handleSelectBottom(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleSelectNextConflict(g *gocui.Gui, v *gocui.View) error {
-
 	if gui.State.ConflictIndex >= len(gui.State.Conflicts)-1 {
 		return nil
 	}
@@ -146,7 +142,6 @@ func (gui *Gui) handleSelectNextConflict(g *gocui.Gui, v *gocui.View) error {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleSelectPrevConflict(g *gocui.Gui, v *gocui.View) error {
-
 	if gui.State.ConflictIndex <= 0 {
 		return nil
 	}
@@ -180,7 +175,6 @@ func (gui *Gui) isIndexToDelete(i int, conflict commands.Conflict, pick string) 
 // pick: TODO
 // returns an error if something goes wrong.
 func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
-
 	gitFile, err := gui.getSelectedFile()
 	if err != nil {
 		gui.Log.Errorf("Failed to getSelectedFiles at resolveConflic: %s\n", err)
@@ -223,7 +217,6 @@ func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
 // pushFileSnapshot TODO
 // returns an error when something goes wrong.
 func (gui *Gui) pushFileSnapshot() error {
-
 	gitFile, err := gui.getSelectedFile()
 	if err != nil {
 		gui.Log.Errorf("Failed to getSelectedFile: %s\n", err)
@@ -245,7 +238,6 @@ func (gui *Gui) pushFileSnapshot() error {
 // g and v are passed by the gocui library.
 // returns an error when something goes wrong.
 func (gui *Gui) handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
-
 	if gui.State.EditHistory.Len() == 0 {
 		return nil
 	}
@@ -311,7 +303,6 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 // when resolving a merge conflict.
 // g and v are passed by the gocui library.
 func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
-
 	conflict := gui.State.Conflicts[gui.State.ConflictIndex]
 
 	err := gui.pushFileSnapshot()
@@ -338,7 +329,6 @@ func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
 // refreshMergePanel refreshes the mergePanel.
 // returns an error if something goes wrong.
 func (gui *Gui) refreshMergePanel() error {
-
 	cat, err := gui.catSelectedFile()
 	if err != nil {
 		gui.Log.Errorf("Failed to catSelectedFile at refreshMergePanel: %s\n", err)
@@ -401,7 +391,6 @@ func (gui *Gui) refreshMergePanel() error {
 // scrollToConflict scrolls to the conflict.
 // returns an error if something goes wrong.
 func (gui *Gui) scrollToConflict() error {
-
 	mainView, err := gui.g.View("main")
 	if err != nil {
 		return err
@@ -463,7 +452,6 @@ func (gui *Gui) renderMergeOptions() error {
 // g and v are passed by the gocui library.
 // returns an error if something goes wrong.
 func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
-
 	filesView, err := gui.g.View("files")
 	if err != nil {
 		gui.Log.Errorf("Failed to get files view at handleEscapeMerge: %s\n", err)
@@ -488,7 +476,6 @@ func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 // handleCompleteMerge is called when the user completes the merge.
 // returns an error if something goes wrong.
 func (gui *Gui) handleCompleteMerge() error {
-
 	v, err := gui.g.View("files")
 	if err != nil {
 		gui.Log.Errorf("Failed to get files view at handleCompleteMerge: %s\n", err)
