@@ -137,7 +137,7 @@ func (gui *Gui) handleCommitSelect() error {
 			return err
 		}
 
-		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+		err = gui.renderString("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 		if err != nil {
 			gui.Log.Errorf("Failed to render string at handleResetToCommit: %s\n", err)
 			return err
@@ -148,7 +148,7 @@ func (gui *Gui) handleCommitSelect() error {
 
 	commitText := gui.GitCommand.Show(commit.Sha)
 
-	err = gui.renderString(gui.g, "main", commitText)
+	err = gui.renderString("main", commitText)
 	if err != nil {
 		gui.Log.Errorf("Failed to render string at handleResetToCommit: %s\n", err)
 		return err

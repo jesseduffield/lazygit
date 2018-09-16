@@ -74,7 +74,7 @@ func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 // returns an error when something goes wrong.
 func (gui *Gui) handleStatusSelect() error {
 
-	err := gui.renderString(gui.g, "main", dashboardString)
+	err := gui.renderString("main", dashboardString)
 	if err != nil {
 		gui.Log.Errorf("Failed to renderString at ")
 		return err

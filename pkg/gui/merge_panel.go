@@ -368,7 +368,7 @@ func (gui *Gui) refreshMergePanel() error {
 		gui.State.ConflictIndex = len(gui.State.Conflicts) - 1
 	}
 
-	hasFocus := gui.currentViewName(gui.g) == "main"
+	hasFocus := gui.g.CurrentView().Name() == "main"
 	if hasFocus {
 		err = gui.renderMergeOptions()
 		if err != nil {
@@ -389,7 +389,7 @@ func (gui *Gui) refreshMergePanel() error {
 		return err
 	}
 
-	err = gui.renderString(gui.g, "main", content)
+	err = gui.renderString("main", content)
 	if err != nil {
 		gui.Log.Errorf("Failed to renderString at refreshMergePanel: %s\n", err)
 		return err
@@ -450,7 +450,7 @@ func (gui *Gui) switchToMerging() error {
 // Acts as a macro for optionsmap.
 // returns an error if something went wrong.
 func (gui *Gui) renderMergeOptions() error {
-	return gui.renderOptionsMap(gui.g, map[string]string{
+	return gui.renderOptionsMap(map[string]string{
 		"↑ ↓":   gui.Tr.SLocalize("selectHunk"),
 		"← →":   gui.Tr.SLocalize("navigateConflicts"),
 		"space": gui.Tr.SLocalize("pickHunk"),
@@ -476,7 +476,7 @@ func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = gui.switchFocus(gui.g, v, filesView)
+	err = gui.switchFocus(v, filesView)
 	if err != nil {
 		gui.Log.Errorf("Failed to switchFocus at handleEscapeMerge: %s\n", err)
 		return err
@@ -507,7 +507,7 @@ func (gui *Gui) handleCompleteMerge() error {
 		return err
 	}
 
-	err = gui.switchFocus(gui.g, nil, v)
+	err = gui.switchFocus(nil, v)
 	if err != nil {
 		gui.Log.Errorf("Failed to switchFocus at handleCompleteMerge: %s\n", err)
 		return err

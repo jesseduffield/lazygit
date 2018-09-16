@@ -65,7 +65,13 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = gui.switchFocus(gui.g, v, gui.getFilesView(gui.g))
+	vv, err := gui.g.View("files")
+	if vv == nil || err != nil {
+		gui.Log.Errorf("Failed to get the files view at handleCommitConfirm: %s\n", err)
+		return err
+	}
+
+	err = gui.switchFocus(v, vv)
 	if err != nil {
 		gui.Log.Errorf("Failed to switch focus at handleCommitConfirm: %s\n", err)
 		return err
@@ -91,7 +97,13 @@ func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = gui.switchFocus(gui.g, v, gui.getFilesView(gui.g))
+	vv, err := gui.g.View("files")
+	if vv == nil || err != nil {
+		gui.Log.Errorf("Failed to get the files view at handleCommitClose: %s\n", err)
+		return err
+	}
+
+	err = gui.switchFocus(v, vv)
 	if err != nil {
 		gui.Log.Errorf("Failed to switch focus at handleCommitClose: %s\n", err)
 		return err
@@ -112,7 +124,7 @@ func (gui *Gui) handleCommitFocused() error {
 		},
 	)
 
-	err := gui.renderString(gui.g, "options", message)
+	err := gui.renderString("options", message)
 	if err != nil {
 		gui.Log.Errorf("Failed render string at handleCommitFocused: %s\n", err)
 		return err

@@ -47,7 +47,7 @@ func (gui *Gui) handleMenuPress(g *gocui.Gui, v *gocui.View) error {
 // handleMenuSelect doesn't do anything at the moment
 // but it is needed for switch in newLineFocused
 // TODO find use
-func (gui *Gui) handleMenuSelect(v *gocui.View) error {
+func (gui *Gui) handleMenuSelect() error {
 	return nil
 }
 
@@ -61,7 +61,7 @@ func (gui *Gui) renderMenuOptions() error {
 		"space": gui.Tr.SLocalize("execute"),
 	}
 
-	err := gui.renderOptionsMap(gui.g, optionsMap)
+	err := gui.renderOptionsMap(optionsMap)
 	if err != nil {
 		gui.Log.Errorf("Failed to renderOptionsMap at renderMenuOptions: %s\n", err)
 		return err
@@ -80,7 +80,7 @@ func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	err = gui.returnFocus(gui.g, v)
+	err = gui.returnFocus(v)
 	if err != nil {
 		gui.Log.Errorf("Failed to return focus at handleMenuClose: %s\n", err)
 		return err
@@ -185,7 +185,7 @@ func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 
-		err = gui.switchFocus(gui.g, v, menuView)
+		err = gui.switchFocus(v, menuView)
 		if err != nil {
 			gui.Log.Errorf("Failed to switchFocus at handleMenu")
 			return err

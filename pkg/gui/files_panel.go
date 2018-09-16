@@ -386,7 +386,7 @@ func (gui *Gui) handleFileSelect() error {
 			return err
 		}
 
-		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoChangedFiles"))
+		err = gui.renderString("main", gui.Tr.SLocalize("NoChangedFiles"))
 		if err != nil {
 			gui.Log.Errorf("Failed to render string in handlefileselect: %s\n", err)
 			return err
@@ -420,7 +420,7 @@ func (gui *Gui) handleFileSelect() error {
 
 	content = gui.GitCommand.Diff(file)
 
-	err = gui.renderString(gui.g, "main", content)
+	err = gui.renderString("main", content)
 	if err != nil {
 		gui.Log.Errorf("Failed to render string in handlefileselect: %s\n", err)
 		return err
@@ -457,7 +457,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 
 		}
 
-		err = gui.switchFocus(g, filesView, commitMessageView)
+		err = gui.switchFocus(filesView, commitMessageView)
 		if err != nil {
 
 		}
@@ -606,7 +606,7 @@ func (gui *Gui) catSelectedFile() (string, error) {
 			return "", err
 		}
 
-		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoFilesDisplay"))
+		err = gui.renderString("main", gui.Tr.SLocalize("NoFilesDisplay"))
 		if err != nil {
 			gui.Log.Errorf("Failed to renderString at catSelectedFile: %s\n", err)
 			return "", err
@@ -617,7 +617,7 @@ func (gui *Gui) catSelectedFile() (string, error) {
 
 	if item.Type != "file" {
 
-		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NotAFile"))
+		err = gui.renderString("main", gui.Tr.SLocalize("NotAFile"))
 		if err != nil {
 			gui.Log.Errorf("Failed to renderString at catSelectedFile: %s\n", err)
 			return "", err
@@ -630,7 +630,7 @@ func (gui *Gui) catSelectedFile() (string, error) {
 	if err != nil {
 
 		gui.Log.Errorf("Failed to cat file at catSelectedFile: %s\n", err)
-		err = gui.renderString(gui.g, "main", err.Error())
+		err = gui.renderString("main", err.Error())
 		if err != nil {
 			gui.Log.Errorf("Failed to render string at catSelectedFile: %s\n", err)
 			return "", err
@@ -797,7 +797,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	err = gui.switchFocus(gui.g, v, mergeView)
+	err = gui.switchFocus(v, mergeView)
 	if err != nil {
 		gui.Log.Errorf("Failed to switchFocus at handleSwitchToMerge: %s\n", err)
 		return err

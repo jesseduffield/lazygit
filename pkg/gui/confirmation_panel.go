@@ -52,7 +52,7 @@ func (gui *Gui) createConfirmationPanel(currentView *gocui.View, title, prompt s
 
 		confirmationView.Editable = false
 
-		err = gui.renderString(gui.g, "confirmation", prompt)
+		err = gui.renderString("confirmation", prompt)
 		if err != nil {
 			gui.Log.Errorf("Failed to render string at createConfirmationPanel: %s\n", err)
 			return err
@@ -157,7 +157,7 @@ func (gui *Gui) closeConfirmationPrompt() error {
 		return err
 	}
 
-	err = gui.returnFocus(gui.g, view)
+	err = gui.returnFocus(view)
 	if err != nil {
 		gui.Log.Errorf("Failed to return focus at closeConfirmationPrompt: %s\n", err)
 		return err
@@ -227,7 +227,7 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 
 	confirmationView.Clear()
 
-	err = gui.switchFocus(gui.g, currentView, confirmationView)
+	err = gui.switchFocus(currentView, confirmationView)
 	if err != nil {
 		gui.Log.Errorf("Failed to switch focus at prepareConfirmationPanel: %s\n", err)
 		return nil, err
@@ -249,7 +249,7 @@ func (gui *Gui) setConfirmationHandlers(handleConfirm, handleClose handler) erro
 		},
 	)
 
-	err := gui.renderString(gui.g, "options", actions)
+	err := gui.renderString("options", actions)
 	if err != nil {
 		gui.Log.Errorf("Failed to renderString at setConfirmationHandlers: %s\n", err)
 		return err

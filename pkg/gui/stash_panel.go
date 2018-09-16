@@ -68,7 +68,7 @@ func (gui *Gui) handleStashEntrySelect() error {
 		stashEntry := gui.getSelectedStashEntry()
 		if stashEntry == nil {
 
-			err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoStashEntries"))
+			err = gui.renderString("main", gui.Tr.SLocalize("NoStashEntries"))
 			if err != nil {
 				gui.Log.Errorf("Failed to renderString at handleStashEntrySelect: %s\n", err)
 			}
@@ -78,7 +78,7 @@ func (gui *Gui) handleStashEntrySelect() error {
 
 		diff, _ := gui.GitCommand.GetStashEntryDiff(stashEntry.Index)
 
-		err = gui.renderString(gui.g, "main", diff)
+		err = gui.renderString("main", diff)
 		if err != nil {
 			gui.Log.Errorf("Failed to renderString at handleStashEntrySelect: %s\n", err)
 		}

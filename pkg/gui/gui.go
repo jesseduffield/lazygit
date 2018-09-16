@@ -428,7 +428,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorGreen
 		v.Frame = false
 
-		err = gui.renderString(gui.g, "version", version)
+		err = gui.renderString("version", version)
 		if err != nil {
 			gui.Log.Errorf("Failed to render string version in version-layout: %s\n", err)
 			return err
@@ -468,7 +468,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		err = gui.switchFocus(gui.g, nil, filesView)
+		err = gui.switchFocus(nil, filesView)
 		if err != nil {
 			gui.Log.Errorf("Failed to create switchFocus in appstatus-layout: %s\n", err)
 			return err
@@ -483,7 +483,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	err = gui.resizeCurrentPopupPanel(gui.g)
+	err = gui.resizeCurrentPopupPanel()
 	if err != nil {
 		gui.Log.Errorf("Failed to resizeCurrentPopupPanel at layout: %s\n", err)
 		return err
@@ -532,7 +532,7 @@ func (gui *Gui) updateLoader() error {
 		if strings.Contains(content, "...") {
 			staticContent := strings.Split(content, "...")[0] + "..."
 
-			err := gui.renderString(gui.g, "confirmation", staticContent+" "+utils.Loader())
+			err := gui.renderString("confirmation", staticContent+" "+utils.Loader())
 			if err != nil {
 				gui.Log.Errorf("Failed to render string at updateLoader: %s\n", err)
 				return err
@@ -547,7 +547,11 @@ func (gui *Gui) updateLoader() error {
 func (gui *Gui) renderAppStatus() error {
 	appStatus := gui.statusManager.getStatusString()
 	if appStatus != "" {
-		return gui.renderString(gui.g, "appStatus", appStatus)
+		err := gui.renderString("appStatus", appStatus)
+		if err != nil {
+			gui.Log.Errorf("Failed to renderString at renderAppStatus: %s\n", err)
+			return err
+		}
 	}
 
 	return nil
@@ -556,7 +560,7 @@ func (gui *Gui) renderAppStatus() error {
 // renderGlobalOptions renders the global options.
 // returns an error if something goes wrong.
 func (gui *Gui) renderGlobalOptions() error {
-	return gui.renderOptionsMap(gui.g, map[string]string{
+	return gui.renderOptionsMap(map[string]string{
 		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
 		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
 		"esc/q":     gui.Tr.SLocalize("close"),

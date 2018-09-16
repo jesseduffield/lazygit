@@ -102,7 +102,7 @@ func (gui *Gui) onUpdateFinish(code error) error {
 	gui.State.Updating = false
 	gui.statusManager.removeStatus("updating")
 
-	err := gui.renderString(gui.g, "appStatus", "")
+	err := gui.renderString("appStatus", "")
 	if err != nil {
 		gui.Log.Errorf("Failed to renderString at onUpdateFinsish: %s\n", err)
 		return err

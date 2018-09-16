@@ -327,7 +327,7 @@ func (gui *Gui) handleBranchSelect(v *gocui.View) error {
 	// This really shouldn't happen: there should always be a master branch
 	if len(gui.State.Branches) == 0 {
 
-		err = gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
+		err = gui.renderString("main", gui.Tr.SLocalize("NoBranchesThisRepo"))
 		if err != nil {
 			gui.Log.Errorf("Failed to render string at handleBranchSelect: %s\n", err)
 			return err
@@ -344,7 +344,7 @@ func (gui *Gui) handleBranchSelect(v *gocui.View) error {
 			diff = gui.Tr.SLocalize("NoTrackingThisBranch")
 		}
 
-		err = gui.renderString(gui.g, "main", diff)
+		err = gui.renderString("main", diff)
 		if err != nil {
 			gui.Log.Errorf("Failed to render string at handleBranchSelect: %s\n", err)
 			return
