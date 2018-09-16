@@ -121,7 +121,11 @@ func (gui *Gui) newLineFocused(v *gocui.View) error {
 		return gui.handleCommitFocused()
 	case "main":
 		// TODO: pull this out into a 'view focused' function
-		gui.refreshMergePanel()
+		err := gui.refreshMergePanel()
+		if err != nil {
+			gui.Log.Errorf("Failed to refreshMergePanel at newLineFocused: %s\n", err)
+			return err
+		}
 		v.Highlight = false
 		return nil
 	case "commits":
