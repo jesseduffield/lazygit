@@ -63,7 +63,6 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 
 	index := gui.getItemPosition(v)
 	if index == 0 {
-
 		err := gui.createErrorPanel(gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 		if err != nil {
 			gui.Log.Errorf("Failed to create error panel at handleBranchPress: %s\n", err)
