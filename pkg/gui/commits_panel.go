@@ -146,7 +146,6 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		}
 		return gui.handleCommitSelect(g, v)
 	})
-	return nil
 }
 
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
