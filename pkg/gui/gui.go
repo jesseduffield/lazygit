@@ -193,7 +193,7 @@ func (gui *Gui) RunWithSubprocesses() {
 				err = gui.SubProcess.Run()
 				if err != nil {
 					gui.Log.Errorf("Failed to runWithSubProcess: %s\n", err)
-					return
+					panic(err)
 				}
 
 				gui.SubProcess.Stdout = ioutil.Discard
