@@ -363,8 +363,6 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 // It checks if there are any changed files and if there is one
 // and it is selected, it gets rendered into the main view
 func (gui *Gui) handleFileSelect() error {
-	var content string
-
 	file, err := gui.getSelectedFile()
 	if err != nil {
 
@@ -405,7 +403,7 @@ func (gui *Gui) handleFileSelect() error {
 		return nil
 	}
 
-	content = gui.GitCommand.Diff(file)
+	content := gui.GitCommand.Diff(file)
 
 	err = gui.renderString("main", content)
 	if err != nil {
