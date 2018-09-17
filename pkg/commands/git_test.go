@@ -917,7 +917,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 		},
 		{
-			"Push with force enable",
+			"Push with force enabled",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--force-with-lease", "-u", "origin", "test"}, args)
@@ -949,6 +949,272 @@ func TestGitCommandPush(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
 			s.test(gitCmd.Push("test", s.forcePush))
+		})
+	}
+}
+
+func TestGitCommandSquashPreviousTwoCommits(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Git reset triggers an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"reset", "--soft", "HEAD^"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(err error) {
+				assert.NotNil(t, err)
+			},
+		},
+		{
+			"Git commit triggers an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				if len(args) > 0 && args[0] == "reset" {
+					return exec.Command("echo")
+				}
+
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--amend", "-m", "test"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(err error) {
+				assert.NotNil(t, err)
+			},
+		},
+		{
+			"Stash succeeded",
+			func(cmd string, args ...string) *exec.Cmd {
+				if len(args) > 0 && args[0] == "reset" {
+					return exec.Command("echo")
+				}
+
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--amend", "-m", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.Nil(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.SquashPreviousTwoCommits("test"))
+		})
+	}
+}
+
+func TestGitCommandSquashFixupCommit(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func() (func(string, ...string) *exec.Cmd, *[][]string)
+		test     func(*[][]string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"An error occurred with one of the sub git command",
+			func() (func(string, ...string) *exec.Cmd, *[][]string) {
+				cmdsCalled := [][]string{}
+				return func(cmd string, args ...string) *exec.Cmd {
+					cmdsCalled = append(cmdsCalled, args)
+					if len(args) > 0 && args[0] == "checkout" {
+						return exec.Command("exit", "1")
+					}
+
+					return exec.Command("echo")
+				}, &cmdsCalled
+			},
+			func(cmdsCalled *[][]string, err error) {
+				assert.NotNil(t, err)
+				assert.Len(t, *cmdsCalled, 3)
+				assert.EqualValues(t, *cmdsCalled, [][]string{
+					{"checkout", "-q", "6789abcd"},
+					{"branch", "-d", "6789abcd"},
+					{"checkout", "test"},
+				})
+			},
+		},
+		{
+			"Squash fixup succeeded",
+			func() (func(string, ...string) *exec.Cmd, *[][]string) {
+				cmdsCalled := [][]string{}
+				return func(cmd string, args ...string) *exec.Cmd {
+					cmdsCalled = append(cmdsCalled, args)
+					return exec.Command("echo")
+				}, &cmdsCalled
+			},
+			func(cmdsCalled *[][]string, err error) {
+				assert.Nil(t, err)
+				assert.Len(t, *cmdsCalled, 4)
+				assert.EqualValues(t, *cmdsCalled, [][]string{
+					{"checkout", "-q", "6789abcd"},
+					{"reset", "--soft", "6789abcd^"},
+					{"commit", "--amend", "-C", "6789abcd^"},
+					{"rebase", "--onto", "HEAD", "6789abcd", "test"},
+				})
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			var cmdsCalled *[][]string
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command, cmdsCalled = s.command()
+			s.test(cmdsCalled, gitCmd.SquashFixupCommit("test", "6789abcd"))
+		})
+	}
+}
+
+func TestGitCommandCatFile(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "cat", cmd)
+		assert.EqualValues(t, []string{"test.txt"}, args)
+
+		return exec.Command("echo", "-n", "test")
+	}
+
+	o, err := gitCmd.CatFile("test.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, "test", o)
+}
+
+func TestGitCommandStageFile(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"add", "test.txt"}, args)
+
+		return exec.Command("echo")
+	}
+
+	assert.NoError(t, gitCmd.StageFile("test.txt"))
+}
+
+func TestGitCommandUnstageFile(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+		tracked  bool
+	}
+
+	scenarios := []scenario{
+		{
+			"Remove an untracked file from staging",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"rm", "--cached", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+			false,
+		},
+		{
+			"Remove a tracked file from staging",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"reset", "HEAD", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+			true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.UnStageFile("test.txt", s.tracked))
+		})
+	}
+}
+
+func TestGitCommandIsInMergeState(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(bool, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"An error occurred when running status command",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"status", "--untracked-files=all"}, args)
+
+				return exec.Command("exit", "1")
+			},
+			func(isInMergeState bool, err error) {
+				assert.Error(t, err)
+				assert.False(t, isInMergeState)
+			},
+		},
+		{
+			"Is not in merge state",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"status", "--untracked-files=all"}, args)
+				return exec.Command("echo")
+			},
+			func(isInMergeState bool, err error) {
+				assert.False(t, isInMergeState)
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Command output contains conclude merge",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"status", "--untracked-files=all"}, args)
+				return exec.Command("echo", "'conclude merge'")
+			},
+			func(isInMergeState bool, err error) {
+				assert.True(t, isInMergeState)
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Command output contains unmerged paths",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"status", "--untracked-files=all"}, args)
+				return exec.Command("echo", "'unmerged paths'")
+			},
+			func(isInMergeState bool, err error) {
+				assert.True(t, isInMergeState)
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.IsInMergeState())
 		})
 	}
 }
