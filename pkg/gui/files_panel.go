@@ -185,7 +185,9 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 		gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 		return gui.renderfilesOptions(g, nil)
 	}
-	gui.renderfilesOptions(g, file)
+	if err := gui.renderfilesOptions(g, file); err != nil {
+		return err
+	}
 	var content string
 	if file.HasMergeConflicts {
 		return gui.refreshMergePanel(g)
