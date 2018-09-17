@@ -231,14 +231,19 @@ func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
 	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
 }
 
-// GetCommitsToPush Returns the sha's of the commits that have not yet been pushed
-// to the remote branch of the current branch
-func (c *GitCommand) GetCommitsToPush() []string {
-	pushables, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
+// getCommitsToPush Returns the sha's of the commits that have not yet been pushed
+// to the remote branch of the current branch, a map is returned to ease look up
+func (c *GitCommand) getCommitsToPush() map[string]bool {
+	pushables := map[string]bool{}
+	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
 	if err != nil {
-		return []string{}
+		return pushables
 	}
-	return utils.SplitLines(pushables)
+	for _, p := range utils.SplitLines(o) {
+		pushables[p] = true
+	}
+
+	return pushables
 }
 
 // RenameCommit renames the topmost commit with the given name
@@ -454,26 +459,16 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
 }
 
-func includesString(list []string, a string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 // GetCommits obtains the commits of the current branch
 func (c *GitCommand) GetCommits() []Commit {
-	pushables := c.GetCommitsToPush()
+	pushables := c.getCommitsToPush()
 	log := c.GetLog()
 	commits := []Commit{}
 	// now we can split it up and turn it into commits
-	lines := utils.SplitLines(log)
-	for _, line := range lines {
+	for _, line := range utils.SplitLines(log) {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
-		pushed := includesString(pushables, sha)
+		_, pushed := pushables[sha]
 		commits = append(commits, Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),
@@ -489,12 +484,12 @@ func (c *GitCommand) GetCommits() []Commit {
 func (c *GitCommand) GetLog() string {
 	// currently limiting to 30 for performance reasons
 	// TODO: add lazyloading when you scroll down
-	result, err := c.OSCommand.RunCommandWithOutput("git log --oneline -30")
-	if err != nil {
-		// assume if there is an error there are no commits yet for this branch
-		return ""
+	if result, err := c.OSCommand.RunCommandWithOutput("git log --oneline -30"); err == nil {
+		return result
 	}
-	return result
+
+	// assume if there is an error there are no commits yet for this branch
+	return ""
 }
 
 // Ignore adds a file to the gitignore for the repo

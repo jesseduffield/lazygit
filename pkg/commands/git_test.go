@@ -602,7 +602,7 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]string)
+		test     func(map[string]bool)
 	}
 
 	scenarios := []scenario{
@@ -611,8 +611,8 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 			func(string, ...string) *exec.Cmd {
 				return exec.Command("test")
 			},
-			func(pushables []string) {
-				assert.EqualValues(t, []string{}, pushables)
+			func(pushables map[string]bool) {
+				assert.EqualValues(t, map[string]bool{}, pushables)
 			},
 		},
 		{
@@ -620,9 +620,9 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 			func(cmd string, args ...string) *exec.Cmd {
 				return exec.Command("echo", "8a2bb0e\n78976bc")
 			},
-			func(pushables []string) {
+			func(pushables map[string]bool) {
 				assert.Len(t, pushables, 2)
-				assert.EqualValues(t, []string{"8a2bb0e", "78976bc"}, pushables)
+				assert.EqualValues(t, map[string]bool{"8a2bb0e": true, "78976bc": true}, pushables)
 			},
 		},
 	}
@@ -631,7 +631,7 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.GetCommitsToPush())
+			s.test(gitCmd.getCommitsToPush())
 		})
 	}
 }
@@ -1478,6 +1478,79 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 
 	_, err := gitCmd.GetBranchGraph("test")
 	assert.NoError(t, err)
+}
+
+func TestGitCommandGetCommits(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func([]Commit)
+	}
+
+	scenarios := []scenario{
+		{
+			"No data found",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+
+				switch args[0] {
+				case "rev-list":
+					assert.EqualValues(t, []string{"rev-list", "@{u}..head", "--abbrev-commit"}, args)
+					return exec.Command("echo")
+				case "log":
+					assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
+					return exec.Command("echo")
+				}
+
+				return nil
+			},
+			func(commits []Commit) {
+				assert.Len(t, commits, 0)
+			},
+		},
+		{
+			"GetCommits returns 2 commits, 1 pushed the other not",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+
+				switch args[0] {
+				case "rev-list":
+					assert.EqualValues(t, []string{"rev-list", "@{u}..head", "--abbrev-commit"}, args)
+					return exec.Command("echo", "8a2bb0e")
+				case "log":
+					assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
+					return exec.Command("echo", "8a2bb0e commit 1\n78976bc commit 2")
+				}
+
+				return nil
+			},
+			func(commits []Commit) {
+				assert.Len(t, commits, 2)
+				assert.EqualValues(t, []Commit{
+					{
+						Sha:           "8a2bb0e",
+						Name:          "commit 1",
+						Pushed:        true,
+						DisplayString: "8a2bb0e commit 1",
+					},
+					{
+						Sha:           "78976bc",
+						Name:          "commit 2",
+						Pushed:        false,
+						DisplayString: "78976bc commit 2",
+					},
+				}, commits)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.GetCommits())
+		})
+	}
 }
 
 func TestGitCommandDiff(t *testing.T) {
