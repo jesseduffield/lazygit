@@ -3,25 +3,11 @@ package gui
 import (
 	"errors"
 	"fmt"
-	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
-
-func (gui *Gui) renderCommit(commit commands.Commit) string {
-	red := color.New(color.FgRed)
-	yellow := color.New(color.FgYellow)
-	white := color.New(color.FgWhite)
-
-	shaColor := yellow
-	if commit.Pushed {
-		shaColor = red
-	}
-
-	return shaColor.Sprint(commit.Sha) + " " + white.Sprint(commit.Name)
-}
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
@@ -30,12 +16,14 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		if err != nil {
 			panic(err)
 		}
+
 		v.Clear()
-		displayStrings := make([]string, len(gui.State.Commits))
-		for i, commit := range gui.State.Commits {
-			displayStrings[i] = gui.renderCommit(commit)
+		list, err := utils.RenderList(gui.State.Commits)
+		if err != nil {
+			return err
 		}
-		fmt.Fprint(v, strings.Join(displayStrings, "\n"))
+		fmt.Fprint(v, list)
+
 		gui.refreshStatus(g)
 		if g.CurrentView().Name() == "commits" {
 			gui.handleCommitSelect(g, v)
@@ -106,7 +94,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 // TODO: move to files panel
-func (gui *Gui) anyUnStagedChanges(files []commands.File) bool {
+func (gui *Gui) anyUnStagedChanges(files []*commands.File) bool {
 	for _, file := range files {
 		if file.Tracked && file.HasUnstagedChanges {
 			return true
@@ -169,13 +157,13 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) getSelectedCommit(g *gocui.Gui) (commands.Commit, error) {
+func (gui *Gui) getSelectedCommit(g *gocui.Gui) (*commands.Commit, error) {
 	v, err := g.View("commits")
 	if err != nil {
 		panic(err)
 	}
 	if len(gui.State.Commits) == 0 {
-		return commands.Commit{}, errors.New(gui.Tr.SLocalize("NoCommitsThisBranch"))
+		return &commands.Commit{}, errors.New(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 	lineNumber := gui.getItemPosition(v)
 	if lineNumber > len(gui.State.Commits)-1 {

@@ -104,17 +104,17 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 }
 
 // GetStashEntries stash entryies
-func (c *GitCommand) GetStashEntries() []StashEntry {
+func (c *GitCommand) GetStashEntries() []*StashEntry {
 	rawString, _ := c.OSCommand.RunCommandWithOutput("git stash list --pretty='%gs'")
-	stashEntries := []StashEntry{}
+	stashEntries := []*StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
 	}
 	return stashEntries
 }
 
-func stashEntryFromLine(line string, index int) StashEntry {
-	return StashEntry{
+func stashEntryFromLine(line string, index int) *StashEntry {
+	return &StashEntry{
 		Name:          line,
 		Index:         index,
 		DisplayString: line,
@@ -127,10 +127,10 @@ func (c *GitCommand) GetStashEntryDiff(index int) (string, error) {
 }
 
 // GetStatusFiles git status files
-func (c *GitCommand) GetStatusFiles() []File {
+func (c *GitCommand) GetStatusFiles() []*File {
 	statusOutput, _ := c.GitStatus()
 	statusStrings := utils.SplitLines(statusOutput)
-	files := []File{}
+	files := []*File{}
 
 	for _, statusString := range statusStrings {
 		change := statusString[0:2]
@@ -140,7 +140,7 @@ func (c *GitCommand) GetStatusFiles() []File {
 		_, untracked := map[string]bool{"??": true, "A ": true, "AM": true}[change]
 		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
 
-		file := File{
+		file := &File{
 			Name:               filename,
 			DisplayString:      statusString,
 			HasStagedChanges:   !hasNoStagedChanges,
@@ -168,7 +168,7 @@ func (c *GitCommand) StashSave(message string) error {
 }
 
 // MergeStatusFiles merge status files
-func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
+func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*File) []*File {
 	if len(oldFiles) == 0 {
 		return newFiles
 	}
@@ -176,7 +176,7 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 	appendedIndexes := []int{}
 
 	// retain position of files we already could see
-	result := []File{}
+	result := []*File{}
 	for _, oldFile := range oldFiles {
 		for newIndex, newFile := range newFiles {
 			if oldFile.Name == newFile.Name {
@@ -415,7 +415,7 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 }
 
 // RemoveFile directly
-func (c *GitCommand) RemoveFile(file File) error {
+func (c *GitCommand) RemoveFile(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges {
 		if err := c.OSCommand.RunCommand("git reset -- " + file.Name); err != nil {
@@ -471,17 +471,17 @@ func includesString(list []string, a string) bool {
 }
 
 // GetCommits obtains the commits of the current branch
-func (c *GitCommand) GetCommits() []Commit {
+func (c *GitCommand) GetCommits() []*Commit {
 	pushables := c.GetCommitsToPush()
 	log := c.GetLog()
-	commits := []Commit{}
+	commits := []*Commit{}
 	// now we can split it up and turn it into commits
 	lines := utils.SplitLines(log)
 	for _, line := range lines {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
 		pushed := includesString(pushables, sha)
-		commits = append(commits, Commit{
+		commits = append(commits, &Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),
 			Pushed:        pushed,
@@ -519,7 +519,7 @@ func (c *GitCommand) Show(sha string) string {
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file File) string {
+func (c *GitCommand) Diff(file *File) string {
 	cachedArg := ""
 	fileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges && !file.HasUnstagedChanges {

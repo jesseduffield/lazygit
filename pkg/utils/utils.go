@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -106,4 +108,68 @@ func Min(x, y int) int {
 		return x
 	}
 	return y
+}
+
+type Displayable interface {
+	GetDisplayStrings() []string
+}
+
+// RenderList takes a slice of items, confirms they implement the Displayable
+// interface, then generates a list of their displaystrings to write to a panel's
+// buffer
+func RenderList(slice interface{}) (string, error) {
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		return "", errors.New("RenderList given a non-slice type")
+	}
+
+	displayables := make([]Displayable, s.Len())
+
+	for i := 0; i < s.Len(); i++ {
+		value, ok := s.Index(i).Interface().(Displayable)
+		if !ok {
+			return "", errors.New("item does not implement the Displayable interface")
+		}
+		displayables[i] = value
+	}
+
+	return renderDisplayableList(displayables)
+}
+
+// renderDisplayableList takes a list of displayable items, obtains their display
+// strings via GetDisplayStrings() and then returns a single string containing
+// each item's string representation on its own line, with appropriate horizontal
+// padding between the item's own strings
+func renderDisplayableList(items []Displayable) (string, error) {
+	displayStrings := make([][]string, len(items))
+
+	for i, item := range items {
+		displayStrings[i] = item.GetDisplayStrings()
+	}
+
+	if len(displayStrings) == 0 {
+		return "", nil
+	}
+
+	// use first element to determine how many times to do this
+	padWidths := make([]int, len(displayStrings[0]))
+	for i, _ := range padWidths {
+		for _, strings := range displayStrings {
+			if len(strings) != len(padWidths) {
+				return "", errors.New("Each item must return the same number of strings to display")
+			}
+			if len(strings[i]) > padWidths[i] {
+				padWidths[i] = len(strings[i])
+			}
+		}
+	}
+
+	paddedDisplayStrings := make([]string, len(displayStrings))
+	for i, strings := range displayStrings {
+		for j, padWidth := range padWidths {
+			paddedDisplayStrings[i] += WithPadding(strings[j], padWidth) + " "
+		}
+	}
+
+	return strings.Join(paddedDisplayStrings, "\n"), nil
 }

@@ -49,50 +49,20 @@ func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
 	return gui.returnFocus(g, v)
 }
 
-func (gui *Gui) GetKey(binding Binding) string {
-	r, ok := binding.Key.(rune)
-	key := ""
-
-	if ok {
-		key = string(r)
-	} else if binding.KeyReadable != "" {
-		key = binding.KeyReadable
-	}
-
-	return key
-}
-
-func (gui *Gui) GetMaxKeyLength(bindings []Binding) int {
-	max := 0
-	for _, binding := range bindings {
-		keyLength := len(gui.GetKey(binding))
-		if keyLength > max {
-			max = keyLength
-		}
-	}
-	return max
-}
-
 func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
 	var (
-		contentGlobal, contentPanel   []string
-		bindingsGlobal, bindingsPanel []Binding
+		bindingsGlobal, bindingsPanel []*Binding
 	)
 	// clear keys slice, so we don't have ghost elements
 	gui.State.Keys = gui.State.Keys[:0]
 	bindings := gui.GetKeybindings()
-	padWidth := gui.GetMaxKeyLength(bindings)
 
 	for _, binding := range bindings {
-		key := gui.GetKey(binding)
-		if key != "" && binding.Description != "" {
-			content := fmt.Sprintf("%s  %s", utils.WithPadding(key, padWidth), binding.Description)
+		if binding.GetKey() != "" && binding.Description != "" {
 			switch binding.ViewName {
 			case "":
-				contentGlobal = append(contentGlobal, content)
 				bindingsGlobal = append(bindingsGlobal, binding)
 			case v.Name():
-				contentPanel = append(contentPanel, content)
 				bindingsPanel = append(bindingsPanel, binding)
 			}
 		}
@@ -100,23 +70,24 @@ func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
 
 	// append dummy element to have a separator between
 	// panel and global keybindings
-	contentPanel = append(contentPanel, "")
-	bindingsPanel = append(bindingsPanel, Binding{})
-
-	content := append(contentPanel, contentGlobal...)
+	bindingsPanel = append(bindingsPanel, &Binding{})
 	gui.State.Keys = append(bindingsPanel, bindingsGlobal...)
-	contentJoined := strings.Join(content, "\n")
 
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, contentJoined)
+	list, err := utils.RenderList(gui.State.Keys)
+	if err != nil {
+		return err
+	}
+
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, list)
 	menuView, _ := g.SetView("menu", x0, y0, x1, y1, 0)
 	menuView.Title = strings.Title(gui.Tr.SLocalize("menu"))
 	menuView.FgColor = gocui.ColorWhite
+	menuView.Clear()
+	fmt.Fprint(menuView, list)
 
 	if err := gui.renderMenuOptions(g); err != nil {
 		return err
 	}
-
-	fmt.Fprint(menuView, contentJoined)
 
 	g.Update(func(g *gocui.Gui) error {
 		_, err := g.SetViewOnTop("menu")

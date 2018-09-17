@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/git"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
@@ -109,7 +110,7 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
+func (gui *Gui) getSelectedBranch(v *gocui.View) *commands.Branch {
 	lineNumber := gui.getItemPosition(v)
 	return gui.State.Branches[lineNumber]
 }
@@ -151,12 +152,15 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 			return err
 		}
 		gui.State.Branches = builder.Build()
+
 		v.Clear()
-		displayStrings := make([]string, len(gui.State.Branches))
-		for i, branch := range gui.State.Branches {
-			displayStrings[i] = branch.GetDisplayString()
+		list, err := utils.RenderList(gui.State.Branches)
+		if err != nil {
+			return err
 		}
-		fmt.Fprint(v, strings.Join(displayStrings, "\n"))
+
+		fmt.Fprint(v, list)
+
 		gui.resetOrigin(v)
 		return gui.refreshStatus(g)
 	})

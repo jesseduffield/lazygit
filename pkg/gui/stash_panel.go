@@ -2,10 +2,10 @@ package gui
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
@@ -16,13 +16,12 @@ func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
 		}
 		gui.State.StashEntries = gui.GitCommand.GetStashEntries()
 
-		displayStrings := make([]string, len(gui.State.StashEntries))
-		for i, stashEntry := range gui.State.StashEntries {
-			displayStrings[i] = stashEntry.DisplayString
-		}
-
 		v.Clear()
-		fmt.Fprint(v, strings.Join(displayStrings, "\n"))
+		list, err := utils.RenderList(gui.State.StashEntries)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(v, list)
 
 		return gui.resetOrigin(v)
 	})
@@ -35,7 +34,7 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 	}
 	stashView, _ := gui.g.View("stash")
 	lineNumber := gui.getItemPosition(stashView)
-	return &gui.State.StashEntries[lineNumber]
+	return gui.State.StashEntries[lineNumber]
 }
 
 func (gui *Gui) renderStashOptions(g *gocui.Gui) error {
