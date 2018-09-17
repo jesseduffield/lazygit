@@ -7,13 +7,13 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/mgutz/str"
-
+	"github.com/go-cmd/cmd"
 	"github.com/go-errors/errors"
-
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mgutz/str"
 	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	gogit "gopkg.in/src-d/go-git.v4"
@@ -353,9 +353,26 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 	return nil, c.OSCommand.RunCommand(command)
 }
 
-// Pull pulls from repo
-func (c *GitCommand) Pull(ask func(string) string) error {
-	return c.OSCommand.DetectUnamePass("git pull --no-edit", ask)
+// CommitWithStatus commit to git with return status message
+func (c *GitCommand) CommitWithStatus(g *gocui.Gui, message string) (*cmd.Cmd, bool, error) {
+	command := fmt.Sprintf("git commit -m %s", c.OSCommand.Quote(message))
+	if c.usingGpg() {
+		subCmd, err := c.OSCommand.PrepareSubProcessWithStatus(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)
+		if err != nil {
+			return nil, false, err
+		}
+		return subCmd, true, nil
+	}
+	cmdExec, err := c.OSCommand.RunCommandWithRealTimeOutput(command)
+	if err != nil {
+		return nil, false, err
+	}
+	return cmdExec, false, nil
+}
+
+// Pull pull from repo
+func (c *GitCommand) Pull() error {
+	return c.OSCommand.RunCommand("git pull --no-edit")
 }
 
 // Push pushes to a branch

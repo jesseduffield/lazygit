@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-cmd/cmd"
 	"github.com/go-errors/errors"
-
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
@@ -111,6 +111,13 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	return errMessage
 }
 
+// RunCommandWithRealTimeOutput returns the process status
+func (c *OSCommand) RunCommandWithRealTimeOutput(command string) (*cmd.Cmd, error) {
+	splitCmd := str.ToArgv(command)
+	cmdOut := cmd.NewCmd(splitCmd[0], splitCmd[1:]...)
+	return cmdOut, nil
+}
+
 // RunCommand runs a command and just returns the error
 func (c *OSCommand) RunCommand(command string) error {
 	_, err := c.RunCommandWithOutput(command)
@@ -199,9 +206,15 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 	return c.PrepareSubProcess(editor, filename), nil
 }
 
-// PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
+// PrepareSubProcess inits PrepareSubProcessrocess then tells the Gui to switch to it
 func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *exec.Cmd {
 	return c.command(cmdName, commandArgs...)
+}
+
+// PrepareSubProcessWithStatus returns real time cmd status
+func (c *OSCommand) PrepareSubProcessWithStatus(cmdName string, commandArgs ...string) (*cmd.Cmd, error) {
+	subprocess := cmd.NewCmd(cmdName, commandArgs...)
+	return subprocess, nil
 }
 
 // Quote wraps a message in platform-specific quotation marks
