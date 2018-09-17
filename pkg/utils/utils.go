@@ -141,35 +141,59 @@ func RenderList(slice interface{}) (string, error) {
 // each item's string representation on its own line, with appropriate horizontal
 // padding between the item's own strings
 func renderDisplayableList(items []Displayable) (string, error) {
-	displayStrings := make([][]string, len(items))
-
-	for i, item := range items {
-		displayStrings[i] = item.GetDisplayStrings()
-	}
-
-	if len(displayStrings) == 0 {
+	if len(items) == 0 {
 		return "", nil
 	}
 
-	// use first element to determine how many times to do this
-	padWidths := make([]int, len(displayStrings[0]))
+	stringArrays := getDisplayStringArrays(items)
+
+	if !displayArraysAligned(stringArrays) {
+		return "", errors.New("Each item must return the same number of strings to display")
+	}
+
+	padWidths := getPadWidths(stringArrays)
+	paddedDisplayStrings := getPaddedDisplayStrings(stringArrays, padWidths)
+
+	return strings.Join(paddedDisplayStrings, "\n"), nil
+}
+
+func getPadWidths(stringArrays [][]string) []int {
+	padWidths := make([]int, len(stringArrays[0]))
 	for i, _ := range padWidths {
-		for _, strings := range displayStrings {
-			if len(strings) != len(padWidths) {
-				return "", errors.New("Each item must return the same number of strings to display")
-			}
+		for _, strings := range stringArrays {
 			if len(strings[i]) > padWidths[i] {
 				padWidths[i] = len(strings[i])
 			}
 		}
 	}
+	return padWidths
+}
 
-	paddedDisplayStrings := make([]string, len(displayStrings))
-	for i, strings := range displayStrings {
+func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) []string {
+	paddedDisplayStrings := make([]string, len(stringArrays))
+	for i, stringArray := range stringArrays {
 		for j, padWidth := range padWidths {
-			paddedDisplayStrings[i] += WithPadding(strings[j], padWidth) + " "
+			paddedDisplayStrings[i] += WithPadding(stringArray[j], padWidth) + " "
 		}
 	}
+	return paddedDisplayStrings
+}
 
-	return strings.Join(paddedDisplayStrings, "\n"), nil
+// displayArraysAligned returns true if every string array returned from our
+// list of displayables has the same length
+func displayArraysAligned(stringArrays [][]string) bool {
+	for _, strings := range stringArrays {
+		if len(strings) != len(stringArrays[0]) {
+			return false
+		}
+	}
+	return true
+}
+
+func getDisplayStringArrays(displayables []Displayable) [][]string {
+	stringArrays := make([][]string, len(displayables))
+	for i, item := range displayables {
+		stringArrays[i] = item.GetDisplayStrings()
+	}
+	return stringArrays
 }

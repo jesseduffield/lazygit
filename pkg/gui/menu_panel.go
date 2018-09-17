@@ -49,12 +49,11 @@ func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
 	return gui.returnFocus(g, v)
 }
 
-func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 	var (
 		bindingsGlobal, bindingsPanel []*Binding
 	)
-	// clear keys slice, so we don't have ghost elements
-	gui.State.Keys = gui.State.Keys[:0]
+
 	bindings := gui.GetKeybindings()
 
 	for _, binding := range bindings {
@@ -71,7 +70,11 @@ func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
 	// append dummy element to have a separator between
 	// panel and global keybindings
 	bindingsPanel = append(bindingsPanel, &Binding{})
-	gui.State.Keys = append(bindingsPanel, bindingsGlobal...)
+	return append(bindingsPanel, bindingsGlobal...)
+}
+
+func (gui *Gui) handleMenu(g *gocui.Gui, v *gocui.View) error {
+	gui.State.Keys = gui.getBindings(v)
 
 	list, err := utils.RenderList(gui.State.Keys)
 	if err != nil {
