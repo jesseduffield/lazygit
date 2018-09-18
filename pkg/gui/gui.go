@@ -9,15 +9,12 @@ import (
 	// "io"
 	// "io/ioutil"
 
+	"errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/go-errors/errors"
-
-	// "strings"
 
 	"github.com/fatih/color"
 	"github.com/golang-collections/collections/stack"
@@ -77,6 +74,7 @@ type Gui struct {
 	statusManager *statusManager
 	credentials   credentials
 	waitForIntro  sync.WaitGroup
+	CmdStatus     string
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -333,7 +331,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
 
-	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, commitsBranchesBoundary, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -509,6 +507,17 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
+	if gui.Config.GetUserConfig().GetBool("commandStatus") {
+		if v, err := g.SetView("commandStatus", leftSideWidth+panelSpacing, commitsBranchesBoundary+panelSpacing, width-1, optionsTop, gocui.LEFT); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+			v.BgColor = gocui.ColorDefault
+			v.FgColor = gocui.ColorGreen
+			v.Frame = false
+			v.Title = gui.Tr.SLocalize("CommandTitle")
+		}
+	}
 	// here is a good place log some stuff
 	// if you download humanlog and do tail -f development.log | humanlog
 	// this will let you see these branches as prettified json

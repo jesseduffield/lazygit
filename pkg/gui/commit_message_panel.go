@@ -43,6 +43,28 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	sub, _, err := gui.GitCommand.CommitWithStatus(g, message)
+	if err != nil {
+		return err
+	}
+	// if sub != nil {
+	// USE git command directly
+	// gui.SubProcess = sub
+
+	// return gui.Errors.ErrSubProcess
+	// }
+
+	if sub != nil {
+		c := sub.Start()
+		// wait until the command is ok
+		res := <-c
+		gui.CmdStatus = strings.Join(res.Stdout, "\n")
+		if err = gui.refreshCommandStatus(g); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+	}
+
+	gui.refreshFiles()
 	v.Clear()
 	_ = v.SetCursor(0, 0)
 	_ = v.SetOrigin(0, 0)

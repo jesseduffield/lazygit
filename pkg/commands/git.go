@@ -370,9 +370,9 @@ func (c *GitCommand) CommitWithStatus(g *gocui.Gui, message string) (*cmd.Cmd, b
 	return cmdExec, false, nil
 }
 
-// Pull pull from repo
-func (c *GitCommand) Pull() error {
-	return c.OSCommand.RunCommand("git pull --no-edit")
+// Pull pulls from repo
+func (c *GitCommand) Pull(ask func(string) string) error {
+	return c.OSCommand.DetectUnamePass("git pull --no-edit", ask)
 }
 
 // Push pushes to a branch
