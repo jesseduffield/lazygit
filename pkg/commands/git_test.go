@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	gogit "gopkg.in/src-d/go-git.v4"
@@ -1609,96 +1608,63 @@ func TestGitCommandGetLog(t *testing.T) {
 }
 
 func TestGitCommandDiff(t *testing.T) {
-	gitCommand := newDummyGitCommand()
-	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		file     *File
+	}
 
-	files := []*File{
+	scenarios := []scenario{
 		{
-			Name:               "deleted_staged",
-			HasStagedChanges:   false,
-			HasUnstagedChanges: true,
-			Tracked:            true,
-			Deleted:            true,
-			HasMergeConflicts:  false,
-			DisplayString:      " D deleted_staged",
+			"Default case",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--color", "--", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			&File{
+				Name:             "test.txt",
+				HasStagedChanges: false,
+				Tracked:          true,
+			},
 		},
 		{
-			Name:               "file with space staged",
-			HasStagedChanges:   true,
-			HasUnstagedChanges: false,
-			Tracked:            false,
-			Deleted:            false,
-			HasMergeConflicts:  false,
-			DisplayString:      "A  \"file with space staged\"",
+			"All changes staged",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--color", "--cached", "--", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			&File{
+				Name:               "test.txt",
+				HasStagedChanges:   true,
+				HasUnstagedChanges: false,
+				Tracked:            true,
+			},
 		},
 		{
-			Name:               "file with space unstaged",
-			HasStagedChanges:   false,
-			HasUnstagedChanges: true,
-			Tracked:            false,
-			Deleted:            false,
-			HasMergeConflicts:  false,
-			DisplayString:      "?? file with space unstaged",
-		},
-		{
-			Name:               "modified_unstaged",
-			HasStagedChanges:   true,
-			HasUnstagedChanges: false,
-			Tracked:            true,
-			Deleted:            false,
-			HasMergeConflicts:  false,
-			DisplayString:      "M  modified_unstaged",
-		},
-		{
-			Name:               "modified_staged",
-			HasStagedChanges:   false,
-			HasUnstagedChanges: true,
-			Tracked:            true,
-			Deleted:            false,
-			HasMergeConflicts:  false,
-			DisplayString:      " M modified_staged",
-		},
-		{
-			Name:               "renamed_before -> renamed_after",
-			HasStagedChanges:   true,
-			HasUnstagedChanges: false,
-			Tracked:            true,
-			Deleted:            false,
-			HasMergeConflicts:  false,
-			DisplayString:      "R  renamed_before -> renamed_after",
-		},
-		{
-			Name:               "untracked_unstaged",
-			HasStagedChanges:   false,
-			HasUnstagedChanges: true,
-			Tracked:            false,
-			Deleted:            false,
-			HasMergeConflicts:  false,
-			DisplayString:      "?? untracked_unstaged",
-		},
-		{
-			Name:               "untracked_staged",
-			HasStagedChanges:   true,
-			HasUnstagedChanges: false,
-			Tracked:            false,
-			Deleted:            false,
-			HasMergeConflicts:  false,
-			DisplayString:      "A  untracked_staged",
-		},
-		{
-			Name:               "master",
-			HasStagedChanges:   false,
-			HasUnstagedChanges: true,
-			Tracked:            false,
-			Deleted:            false,
-			HasMergeConflicts:  false,
-			DisplayString:      "?? master",
+			"File not tracked and file has no staged changes",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--color", "--no-index", "/dev/null", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			&File{
+				Name:             "test.txt",
+				HasStagedChanges: false,
+				Tracked:          false,
+			},
 		},
 	}
 
-	for _, file := range files {
-		t.Run(file.Name, func(t *testing.T) {
-			assert.NotContains(t, gitCommand.Diff(file), "error")
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			gitCmd.Diff(s.file)
 		})
 	}
 }
