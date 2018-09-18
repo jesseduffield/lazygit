@@ -93,7 +93,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			ViewName: "",
 			Key:      'x',
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleMenu,
+			Handler:  gui.handleCreateOptionsMenu,
 		}, {
 			ViewName:    "status",
 			Key:         'e',
@@ -369,11 +369,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:      'q',
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleMenuClose,
-		}, {
-			ViewName: "menu",
-			Key:      gocui.KeySpace,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleMenuPress,
 		},
 	}
 
