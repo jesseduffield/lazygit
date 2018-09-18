@@ -17,12 +17,15 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		}
 		v.Clear()
 		red := color.New(color.FgRed)
-		yellow := color.New(color.FgYellow)
+		yellow := color.New(color.FgGreen)
+		green := color.New(color.FgYellow)
 		white := color.New(color.FgWhite)
 		shaColor := white
 		for _, commit := range gui.State.Commits {
-			if commit.Pushed {
+			if !commit.Pushed {
 				shaColor = red
+			} else if !commit.Merged {
+				shaColor = green
 			} else {
 				shaColor = yellow
 			}

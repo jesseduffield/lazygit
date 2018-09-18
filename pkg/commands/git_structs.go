@@ -17,6 +17,7 @@ type Commit struct {
 	Sha           string
 	Name          string
 	Pushed        bool
+	Merged        bool
 	DisplayString string
 }
 

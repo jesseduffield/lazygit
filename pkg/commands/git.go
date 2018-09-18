@@ -462,23 +462,48 @@ func includesString(list []string, a string) bool {
 	return false
 }
 
+func (c *GitCommand) getMergeBase() string {
+	output, err := c.OSCommand.RunCommandWithOutput("git merge-base HEAD master") // TODO: support develop as well
+	if err != nil {
+		c.Log.Error("Could not get merge base")
+		return ""
+	}
+	return output
+}
+
 // GetCommits obtains the commits of the current branch
 func (c *GitCommand) GetCommits() []Commit {
 	pushables := c.GetCommitsToPush()
 	log := c.GetLog()
-	commits := []Commit{}
 	// now we can split it up and turn it into commits
 	lines := utils.SplitLines(log)
-	for _, line := range lines {
+	commits := make([]Commit, len(lines))
+	for i, line := range lines {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
-		pushed := includesString(pushables, sha)
-		commits = append(commits, Commit{
+		pushed := !includesString(pushables, sha)
+		commits[i] = Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),
 			Pushed:        pushed,
 			DisplayString: strings.Join(splitLine, " "),
-		})
+		}
+	}
+	commits = c.setCommitMergedStatuses(commits)
+	return commits
+}
+
+func (c *GitCommand) setCommitMergedStatuses(commits []Commit) []Commit {
+	ancestor := c.getMergeBase()
+	if ancestor == "" {
+		return commits
+	}
+	passedAncestor := false
+	for i, commit := range commits {
+		if strings.HasPrefix(ancestor, commit.Sha) {
+			passedAncestor = true
+		}
+		commits[i].Merged = passedAncestor
 	}
 	return commits
 }
