@@ -12,7 +12,6 @@ import (
 // If something goes wrong, it returns an error
 func (gui *Gui) refreshCommits() error {
 	gui.g.Update(func(*gocui.Gui) error {
-
 		red := color.New(color.FgRed)
 		yellow := color.New(color.FgYellow)
 		white := color.New(color.FgWhite)
@@ -22,7 +21,6 @@ func (gui *Gui) refreshCommits() error {
 
 		v, err := gui.g.View("commits")
 		if err != nil {
-			gui.Log.Errorf("Failed to get commits view: %s\n", err)
 			return err
 		}
 
@@ -37,27 +35,19 @@ func (gui *Gui) refreshCommits() error {
 
 			shaColor.Fprint(v, commit.Sha+" ")
 			white.Fprintln(v, commit.Name)
-
 		}
 
-		err = gui.refreshStatus()
-		if err != nil {
-			gui.Log.Errorf("Failed to refresh status in refreshCommits: %s\n", err)
+		if err := gui.refreshStatus(); err != nil {
 			return err
 		}
 
 		if gui.g.CurrentView().Name() == "commits" {
-
-			err = gui.handleCommitSelect()
-			if err != nil {
-				gui.Log.Errorf("Failed to handleCommitSelect in refreshCommits: %s\n", err)
+			if err := gui.handleCommitSelect(); err != nil {
 				return err
 			}
 		}
-
 		return nil
 	})
-
 	return nil
 }
 
@@ -65,93 +55,51 @@ func (gui *Gui) refreshCommits() error {
 // g and v are passed by the gocui, but only v is used.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleResetToCommit(g *gocui.Gui, v *gocui.View) error {
-	err := gui.createConfirmationPanel(v, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"),
+	return gui.createConfirmationPanel(v, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"),
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			commit, err := gui.getSelectedCommit()
 			if err != nil {
-				gui.Log.Errorf("Failed to get selected commit at handleResetToCommit: %s\n", err)
 				return err
 			}
 
-			err = gui.GitCommand.ResetToCommit(commit.Sha)
-			if err != nil {
-				err = gui.createErrorPanel(err.Error())
-				if err != nil {
-					gui.Log.Errorf("Failed to create error panel at handleResetToCommit: %s\n", err)
-					return err
-				}
+			if err := gui.GitCommand.ResetToCommit(commit.Sha); err != nil {
+				return gui.createErrorPanel(err.Error())
 			}
 
-			err = gui.refreshCommits()
-			if err != nil {
-				gui.Log.Errorf("Failed to refresh commits at handleResetToCommit: %s\n", err)
+			if err := gui.refreshCommits(); err != nil {
 				return err
 			}
 
-			err = gui.refreshFiles()
-			if err != nil {
-				gui.Log.Errorf("Failed to refresh files at handleResetToCommit: %s\n", err)
+			if err := gui.refreshFiles(); err != nil {
 				return err
 			}
 
-			err = gui.resetOrigin(v)
-			if err != nil {
-				gui.Log.Errorf("Failed to reset origin at handleResetToCommit %s\n", err)
+			if err := gui.resetOrigin(v); err != nil {
 				return err
 			}
 
-			err = gui.handleCommitSelect()
-			if err != nil {
-				gui.Log.Errorf("Failed to handle commit select at handleResetToCommit: %s\n", err)
-				return err
-			}
-
-			return nil
+			return gui.handleCommitSelect()
 		}, nil)
-	if err != nil {
-		gui.Log.Errorf("Failed to create confirmation panel at handleResetToCommit: %s\n", err)
-		return err
-	}
-
-	return nil
 }
 
 // handleCommitSelect gets called when a commit needs to be select.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitSelect() error {
-	err := gui.renderGlobalOptions()
-	if err != nil {
-		gui.Log.Errorf("Failed to render global options at handleCommitSelect%s\n", err)
+	if err := gui.renderGlobalOptions(); err != nil {
 		return err
 	}
 
 	commit, err := gui.getSelectedCommit()
 	if err != nil {
-
 		if err.Error() != gui.Tr.SLocalize("NoCommitsThisBranch") {
-			gui.Log.Errorf("Failed to select commit at handleResetToCommit: %s\n", err)
 			return err
 		}
-
-		err = gui.renderString("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
-		if err != nil {
-			gui.Log.Errorf("Failed to render string at handleResetToCommit: %s\n", err)
-			return err
-		}
-
-		return nil
+		return gui.renderString("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 
 	commitText := gui.GitCommand.Show(commit.Sha)
-
-	err = gui.renderString("main", commitText)
-	if err != nil {
-		gui.Log.Errorf("Failed to render string at handleResetToCommit: %s\n", err)
-		return err
-	}
-
-	return nil
+	return gui.renderString("main", commitText)
 }
 
 // handleCommitSquashDown gets called when the user wants to squash down
@@ -160,64 +108,31 @@ func (gui *Gui) handleCommitSelect() error {
 // If anything goes wrong, it returns an error.
 func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	if gui.getItemPosition(v) != 0 {
-
-		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlySquashTopmostCommit"))
-		if err != nil {
-			gui.Log.Errorf("Failed to create errorpanel at handleCommitSquashDown: %s\n", err)
-			return err
-		}
-
-		return nil
+		return gui.createErrorPanel(gui.Tr.SLocalize("OnlySquashTopmostCommit"))
 	}
 
 	if len(gui.State.Commits) == 1 {
-
-		err := gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
-		if err != nil {
-			gui.Log.Errorf("Failed to create error panel at handleCommitSquashDown: %s\n", err)
-			return err
-		}
-
-		return nil
+		return gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
 	}
 
 	commit, err := gui.getSelectedCommit()
 	if err != nil {
-		gui.Log.Errorf("Failed to get selected commit at handleCommitSquashDown: %s\n", err)
 		return err
 	}
 
-	err = gui.GitCommand.SquashPreviousTwoCommits(commit.Name)
-	if err != nil {
-
-		err = gui.createErrorPanel(err.Error())
-		if err != nil {
-			gui.Log.Errorf("Failed to create error panel at handleCommitSquashDown: %s\n", err)
-			return err
-		}
-
-		return nil
+	if err := gui.GitCommand.SquashPreviousTwoCommits(commit.Name); err != nil {
+		return gui.createErrorPanel(err.Error())
 	}
 
-	err = gui.refreshCommits()
-	if err != nil {
-		gui.Log.Errorf("Failed to refresh commits at handleCommitSquashDown: %s\n", err)
+	if err := gui.refreshCommits(); err != nil {
 		return err
 	}
 
-	err = gui.refreshStatus()
-	if err != nil {
-		gui.Log.Errorf("Failed to refresh status at handleCommitSquashDown: %s\n", err)
+	if err := gui.refreshStatus(); err != nil {
 		return err
 	}
 
-	err = gui.handleCommitSelect()
-	if err != nil {
-		gui.Log.Errorf("Failed to handleCommitSelect at handleCommitSquashDown: %s\n", err)
-		return err
-	}
-
-	return nil
+	return gui.handleCommitSelect()
 }
 
 // handleCommitFixup is called when a user wants to fix a commit.
@@ -225,71 +140,33 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 	if len(gui.State.Commits) == 1 {
-
-		err := gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
-		if err != nil {
-			gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
-			return err
-		}
-
-		return nil
+		return gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
 	}
 
 	if gui.anyUnStagedChanges(gui.State.Files) {
-		err := gui.createErrorPanel(gui.Tr.SLocalize("CantFixupWhileUnstagedChanges"))
-		if err != nil {
-			gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
-			return err
-		}
-
-		return nil
+		return gui.createErrorPanel(gui.Tr.SLocalize("CantFixupWhileUnstagedChanges"))
 	}
-
-	branch := gui.State.Branches[0]
 
 	commit, err := gui.getSelectedCommit()
 	if err != nil {
-		gui.Log.Errorf("Failed to get selected commit: %s\n", err)
 		return err
 	}
 
+	branch := gui.State.Branches[0]
 	message := gui.Tr.SLocalize("SureFixupThisCommit")
 
-	err = gui.createConfirmationPanel(v, gui.Tr.SLocalize("Fixup"), message,
+	return gui.createConfirmationPanel(v, gui.Tr.SLocalize("Fixup"), message,
 		func(g *gocui.Gui, v *gocui.View) error {
-
-			err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha)
-			if err != nil {
-
-				err = gui.createErrorPanel(err.Error())
-				if err != nil {
-					gui.Log.Errorf("Failed to create error panel at handleCommitFixup: %s\n", err)
-					return err
-				}
-
-				return nil
+			if err := gui.GitCommand.SquashFixupCommit(branch.Name, commit.Sha); err != nil {
+				return gui.createErrorPanel(err.Error())
 			}
 
-			err = gui.refreshCommits()
-			if err != nil {
-				gui.Log.Errorf("Failed to refresh commits at handleCommitFixup: %s\n", err)
+			if err := gui.refreshCommits(); err != nil {
 				return err
 			}
 
-			err = gui.refreshStatus()
-			if err != nil {
-				gui.Log.Errorf("Failed to refresh status at handleCommitFixup: %s\n", err)
-				return err
-			}
-
-			return nil
+			return gui.refreshStatus()
 		}, nil)
-	if err != nil {
-		gui.Log.Errorf("Failed to create confirmation panel at handleCommitFixup: %s\n", err)
-		return err
-	}
-
-	return nil
 }
 
 // handleRenameCommit is called when a user wants to rename a commit.
@@ -297,51 +174,21 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 	if gui.getItemPosition(v) != 0 {
-
-		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
-		if err != nil {
-			gui.Log.Errorf("Failed to create error panel at handleRenameCommit: %s\n", err)
-			return err
-		}
-
-		return nil
+		return gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
 
-	err := gui.createPromptPanel(v, gui.Tr.SLocalize("renameCommit"),
+	return gui.createPromptPanel(v, gui.Tr.SLocalize("renameCommit"),
 		func(g *gocui.Gui, v *gocui.View) error {
-
-			err := gui.GitCommand.RenameCommit(v.Buffer())
-			if err != nil {
-
-				err = gui.createErrorPanel(err.Error())
-				if err != nil {
-					gui.Log.Errorf("Failed to create error panel at handleRenameCommit: %s\n", err)
-					return err
-				}
-
-				return nil
+			if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
+				return gui.createErrorPanel(err.Error())
 			}
 
-			err = gui.refreshCommits()
-			if err != nil {
-				gui.Log.Errorf("Failed to refresh commits at handleRenameCommit: %s\n", err)
+			if err := gui.refreshCommits(); err != nil {
 				return err
 			}
 
-			err = gui.handleCommitSelect()
-			if err != nil {
-				gui.Log.Errorf("Failed to handleCommitSelect at handleRenameCommit: %s\n", err)
-				return err
-			}
-
-			return nil
+			return gui.handleCommitSelect()
 		})
-	if err != nil {
-		gui.Log.Errorf("Failed to create prompt panel at handleRenameCommit: %s\n", err)
-		return err
-	}
-
-	return nil
 }
 
 // handleRenameCommitEditor is called when the user wants to edit the
@@ -350,14 +197,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 // If anything goes wrong, it returns an error.
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 	if gui.getItemPosition(v) != 0 {
-
-		err := gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
-		if err != nil {
-			gui.Log.Errorf("Failed to create error panel at handleRenameCommitEditor: %s\n", err)
-			return err
-		}
-
-		return nil
+		return gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
 
 	gui.SubProcess = gui.GitCommand.PrepareCommitAmendSubProcess()
@@ -375,12 +215,10 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) getSelectedCommit() (commands.Commit, error) {
 	v, err := gui.g.View("commits")
 	if err != nil {
-		gui.Log.Errorf("Failed to get the commits view at getSelectedCommit: %s\n", err)
 		return commands.Commit{}, err
 	}
 
 	if len(gui.State.Commits) == 0 {
-		gui.Log.Errorf(gui.Tr.SLocalize("NoCommitsThisBranch"))
 		return commands.Commit{}, errors.New(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 

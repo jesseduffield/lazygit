@@ -14,25 +14,13 @@ import (
 func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
 	if message == "" {
-
-		err := gui.createErrorPanel(gui.Tr.SLocalize("CommitWithoutMessageErr"))
-		if err != nil {
-			gui.Log.Errorf("Failed to create error panel at handleCommitConfirm: %s\n", err)
-			return err
-		}
-
-		return nil
+		return gui.createErrorPanel(gui.Tr.SLocalize("CommitWithoutMessageErr"))
 	}
 
 	sub, err := gui.GitCommand.Commit(message)
 	if err != nil {
 		if err != gui.Errors.ErrSubProcess {
-			err = gui.createErrorPanel(err.Error())
-			if err != nil {
-				gui.Log.Errorf("Failed to create error panel at handleCommitConfirm: %s\n", err)
-				return err
-			}
-			return nil
+			return gui.createErrorPanel(err.Error())
 		}
 	}
 
@@ -41,70 +29,46 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		return gui.Errors.ErrSubProcess
 	}
 
-	err = gui.refreshFiles()
-	if err != nil {
-		gui.Log.Errorf("Failed to refresh files at handleCommitConfirm: %s\n", err)
+	if err := gui.refreshFiles(); err != nil {
 		return err
 	}
 
 	v.Clear()
 
-	err = v.SetCursor(0, 0)
-	if err != nil {
-		gui.Log.Errorf("Failed to setcuror at handleCommitConfirm: %s\n", err)
+	if err = v.SetCursor(0, 0); err != nil {
 		return err
 	}
 
-	_, err = gui.g.SetViewOnBottom("commitMessage")
-	if err != nil {
-		gui.Log.Errorf("Failed to set view to bottom at handleCommitConfirm: %s\n", err)
+	if _, err = gui.g.SetViewOnBottom("commitMessage"); err != nil {
 		return err
 	}
 
-	vv, err := gui.g.View("files")
-	if vv == nil || err != nil {
-		gui.Log.Errorf("Failed to get the files view at handleCommitConfirm: %s\n", err)
+	filesView, err := gui.g.View("files")
+	if filesView == nil || err != nil {
 		return err
 	}
 
-	err = gui.switchFocus(v, vv)
-	if err != nil {
-		gui.Log.Errorf("Failed to switch focus at handleCommitConfirm: %s\n", err)
+	if err := gui.switchFocus(v, filesView); err != nil {
 		return err
 	}
 
-	err = gui.refreshCommits()
-	if err != nil {
-		gui.Log.Errorf("Failed to refresh commits at handleCommitConfirm: %s\n", err)
-		return err
-	}
-
-	return nil
+	return gui.refreshCommits()
 }
 
 // handleCommitClose gets called when a user presses exit on a commit message view.
 // g and v are passes by the gocui library, but only v is used.
 // If anything goes wrong it returns an error.
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
-	_, err := gui.g.SetViewOnBottom("commitMessage")
-	if err != nil {
-		gui.Log.Errorf("Failed to set view on bottom at handleCommitClose: %s\n", err)
+	if _, err := gui.g.SetViewOnBottom("commitMessage"); err != nil {
 		return err
 	}
 
-	vv, err := gui.g.View("files")
-	if vv == nil || err != nil {
-		gui.Log.Errorf("Failed to get the files view at handleCommitClose: %s\n", err)
+	filesView, err := gui.g.View("files")
+	if filesView == nil || err != nil {
 		return err
 	}
 
-	err = gui.switchFocus(v, vv)
-	if err != nil {
-		gui.Log.Errorf("Failed to switch focus at handleCommitClose: %s\n", err)
-		return err
-	}
-
-	return nil
+	return gui.switchFocus(v, filesView)
 }
 
 // handleCommitFocused gets called when the commitMessageView is called.
@@ -118,13 +82,7 @@ func (gui *Gui) handleCommitFocused() error {
 		},
 	)
 
-	err := gui.renderString("options", message)
-	if err != nil {
-		gui.Log.Errorf("Failed render string at handleCommitFocused: %s\n", err)
-		return err
-	}
-
-	return nil
+	return gui.renderString("options", message)
 }
 
 // simpleEditor is a simple implementation to provide custom key handling for
@@ -171,10 +129,8 @@ func (gui *Gui) RenderCommitLength() {
 
 	v, err := gui.g.View("commitMessage")
 	if err != nil {
-		gui.Log.Errorf("Failed render get commitMessage view at RenderCommitLength: %s\n", err)
 		return
 	}
 
 	v.Subtitle = gui.getBufferLength(v)
-
 }

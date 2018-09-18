@@ -24,7 +24,6 @@ func (m *statusManager) removeStatus(name string) {
 			return
 		}
 	}
-
 }
 
 // addWaitingStatus creates a new status and adds it to the status

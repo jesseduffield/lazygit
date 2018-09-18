@@ -578,8 +578,7 @@ func (gui *Gui) goEvery(interval time.Duration, function func() error) {
 
 // handleRefresh is a macro for refresh
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
-	gui.refresh()
-	return nil
+	return gui.refresh()
 }
 
 // quit handles the quit keys

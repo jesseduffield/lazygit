@@ -8,15 +8,14 @@ import (
 var refreshables = make(map[string]func() error)
 
 // refresh refreshes the gui
-func (gui *Gui) refresh() {
-	for n, s := range refreshables {
-		err := s()
-		if err != nil {
-			gui.Log.Errorf("Failed to refresh %s at refresh: %s\n", n, err)
+func (gui *Gui) refresh() error {
+	for _, s := range refreshables {
+		if err := s(); err != nil {
+			return err
 		}
 	}
 
-	return
+	return nil
 }
 
 // registerRefresher adds a new refresh job to be run when refresh is
