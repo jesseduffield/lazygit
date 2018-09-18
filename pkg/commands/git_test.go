@@ -1421,6 +1421,19 @@ func TestGitCommandRemoveFile(t *testing.T) {
 	}
 }
 
+func TestGitCommandShow(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"show", "--color", "456abcde"}, args)
+
+		return exec.Command("echo")
+	}
+
+	_, err := gitCmd.Show("456abcde")
+	assert.NoError(t, err)
+}
+
 func TestGitCommandCheckout(t *testing.T) {
 	type scenario struct {
 		testName string

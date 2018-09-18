@@ -499,12 +499,8 @@ func (c *GitCommand) Ignore(filename string) error {
 }
 
 // Show shows the diff of a commit
-func (c *GitCommand) Show(sha string) string {
-	result, err := c.OSCommand.RunCommandWithOutput("git show --color " + sha)
-	if err != nil {
-		panic(err)
-	}
-	return result
+func (c *GitCommand) Show(sha string) (string, error) {
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
 }
 
 // Diff returns the diff of a file
