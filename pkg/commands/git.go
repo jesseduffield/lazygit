@@ -484,12 +484,13 @@ func (c *GitCommand) GetCommits() []Commit {
 func (c *GitCommand) GetLog() string {
 	// currently limiting to 30 for performance reasons
 	// TODO: add lazyloading when you scroll down
-	if result, err := c.OSCommand.RunCommandWithOutput("git log --oneline -30"); err == nil {
-		return result
+	result, err := c.OSCommand.RunCommandWithOutput("git log --oneline -30")
+	if err != nil {
+		// assume if there is an error there are no commits yet for this branch
+		return ""
 	}
 
-	// assume if there is an error there are no commits yet for this branch
-	return ""
+	return result
 }
 
 // Ignore adds a file to the gitignore for the repo
