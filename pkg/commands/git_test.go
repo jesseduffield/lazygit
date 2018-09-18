@@ -1553,6 +1553,48 @@ func TestGitCommandGetCommits(t *testing.T) {
 	}
 }
 
+func TestGitCommandGetLog(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(string)
+	}
+
+	scenarios := []scenario{
+		{
+			"Retrieves logs",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
+
+				return exec.Command("echo", "6f0b32f commands/git : add GetCommits tests refactor\n9d9d775 circle : remove new line")
+			},
+			func(output string) {
+				assert.EqualValues(t, "6f0b32f commands/git : add GetCommits tests refactor\n9d9d775 circle : remove new line\n", output)
+			},
+		},
+		{
+			"An error occurred when retrieving logs",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
+				return exec.Command("test")
+			},
+			func(output string) {
+				assert.Empty(t, output)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.GetLog())
+		})
+	}
+}
+
 func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
