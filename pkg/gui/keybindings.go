@@ -113,6 +113,13 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Handler:     gui.handleCheckForUpdate,
 			Description: gui.Tr.SLocalize("checkForUpdate"),
 		}, {
+			ViewName:    "status",
+			Key:         's',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateRecentReposMenu,
+			Description: gui.Tr.SLocalize("SwitchRepo"),
+		},
+		{
 			ViewName:    "files",
 			Key:         'c',
 			Modifier:    gocui.ModNone,

@@ -33,11 +33,11 @@ func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 func (gui *Gui) handleCreateOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 	bindings := gui.getBindings(v)
 
-	handleOptionsMenuPress := func(index int) error {
+	handleMenuPress := func(index int) error {
 		if bindings[index].Key == nil {
 			return nil
 		}
-		if index <= len(bindings) {
+		if index >= len(bindings) {
 			return errors.New("Index is greater than size of bindings")
 		}
 		err := gui.handleMenuClose(g, v)
@@ -47,5 +47,5 @@ func (gui *Gui) handleCreateOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 		return bindings[index].Handler(g, v)
 	}
 
-	return gui.createMenu(bindings, handleOptionsMenuPress)
+	return gui.createMenu(bindings, handleMenuPress)
 }

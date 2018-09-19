@@ -33,6 +33,7 @@ var OverlappingEdges = false
 type SentinelErrors struct {
 	ErrSubProcess error
 	ErrNoFiles    error
+	ErrSwitchRepo error
 }
 
 // GenerateSentinelErrors makes the sentinel errors for the gui. We're defining it here
@@ -49,6 +50,7 @@ func (gui *Gui) GenerateSentinelErrors() {
 	gui.Errors = SentinelErrors{
 		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess")),
 		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles")),
+		ErrSwitchRepo: errors.New("switching repo"),
 	}
 }
 
@@ -292,6 +294,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		// these are only called once (it's a place to put all the things you want
 		// to happen on startup after the screen is first rendered)
 		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+		if err := gui.updateRecentRepoList(); err != nil {
+			return err
+		}
+
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles(g)
 		gui.refreshBranches(g)
@@ -400,6 +406,8 @@ func (gui *Gui) RunWithSubprocesses() {
 		if err := gui.Run(); err != nil {
 			if err == gocui.ErrQuit {
 				break
+			} else if err == gui.Errors.ErrSwitchRepo {
+				continue
 			} else if err == gui.Errors.ErrSubProcess {
 				gui.SubProcess.Stdin = os.Stdin
 				gui.SubProcess.Stdout = os.Stdout

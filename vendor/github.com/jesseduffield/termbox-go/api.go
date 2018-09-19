@@ -317,6 +317,9 @@ func PollEvent() Event {
 	event.Type = EventKey
 	status := extract_event(inbuf, &event, true)
 	if event.N != 0 {
+		if event.N > len(inbuf) {
+			event.N = len(inbuf)
+		}
 		copy(inbuf, inbuf[event.N:])
 		inbuf = inbuf[:len(inbuf)-event.N]
 	}
@@ -345,6 +348,9 @@ func PollEvent() Event {
 			input_comm <- ev
 			status := extract_event(inbuf, &event, true)
 			if event.N != 0 {
+				if event.N > len(inbuf) {
+					event.N = len(inbuf)
+				}
 				copy(inbuf, inbuf[event.N:])
 				inbuf = inbuf[:len(inbuf)-event.N]
 			}
@@ -359,6 +365,9 @@ func PollEvent() Event {
 
 			status := extract_event(inbuf, &event, false)
 			if event.N != 0 {
+				if event.N > len(inbuf) {
+					event.N = len(inbuf)
+				}
 				copy(inbuf, inbuf[event.N:])
 				inbuf = inbuf[:len(inbuf)-event.N]
 			}
