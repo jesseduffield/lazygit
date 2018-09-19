@@ -631,7 +631,7 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.getCommitsToPush())
+			s.test(gitCmd.GetCommitsToPush())
 		})
 	}
 }

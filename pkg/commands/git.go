@@ -231,9 +231,9 @@ func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
 	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
 }
 
-// getCommitsToPush Returns the sha's of the commits that have not yet been pushed
+// GetCommitsToPush Returns the sha's of the commits that have not yet been pushed
 // to the remote branch of the current branch, a map is returned to ease look up
-func (c *GitCommand) getCommitsToPush() map[string]bool {
+func (c *GitCommand) GetCommitsToPush() map[string]bool {
 	pushables := map[string]bool{}
 	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
 	if err != nil {
