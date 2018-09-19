@@ -1225,7 +1225,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 		testName   string
 		command    func() (func(string, ...string) *exec.Cmd, *[][]string)
 		test       func(*[][]string, error)
-		file       File
+		file       *File
 		removeFile func(string) error
 	}
 
@@ -1247,7 +1247,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"reset", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				HasStagedChanges: true,
 			},
@@ -1270,7 +1270,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 				assert.EqualError(t, err, "an error occurred when removing file")
 				assert.Len(t, *cmdsCalled, 0)
 			},
-			File{
+			&File{
 				Name:    "test",
 				Tracked: false,
 			},
@@ -1295,7 +1295,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
@@ -1321,7 +1321,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
@@ -1348,7 +1348,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: true,
@@ -1374,7 +1374,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"reset", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          false,
 				HasStagedChanges: true,
@@ -1398,7 +1398,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Len(t, *cmdsCalled, 0)
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          false,
 				HasStagedChanges: false,
@@ -1484,7 +1484,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]Commit)
+		test     func([]*Commit)
 	}
 
 	scenarios := []scenario{
@@ -1504,7 +1504,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 
 				return nil
 			},
-			func(commits []Commit) {
+			func(commits []*Commit) {
 				assert.Len(t, commits, 0)
 			},
 		},
@@ -1524,9 +1524,9 @@ func TestGitCommandGetCommits(t *testing.T) {
 
 				return nil
 			},
-			func(commits []Commit) {
+			func(commits []*Commit) {
 				assert.Len(t, commits, 2)
-				assert.EqualValues(t, []Commit{
+				assert.EqualValues(t, []*Commit{
 					{
 						Sha:           "8a2bb0e",
 						Name:          "commit 1",
