@@ -376,3 +376,38 @@ func TestMin(t *testing.T) {
 		assert.EqualValues(t, s.expected, Min(s.a, s.b))
 	}
 }
+
+func TestIncludesString(t *testing.T) {
+	type scenario struct {
+		list     []string
+		element  string
+		expected bool
+	}
+
+	scenarios := []scenario{
+		{
+			[]string{"a", "b"},
+			"a",
+			true,
+		},
+		{
+			[]string{"a", "b"},
+			"c",
+			false,
+		},
+		{
+			[]string{"a", "b"},
+			"",
+			false,
+		},
+		{
+			[]string{""},
+			"",
+			true,
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, IncludesString(s.list, s.element))
+	}
+}
