@@ -211,7 +211,7 @@ func TestGetDisplayStringArrays(t *testing.T) {
 		{
 			[]Displayable{
 				Displayable(&myDisplayable{[]string{"a", "b"}}),
-				Displayable(&myDisplayable{[]string{"a", "b"}}),
+				Displayable(&myDisplayable{[]string{"c", "d"}}),
 			},
 			[][]string{{"a", "b"}, {"c", "d"}},
 		},
