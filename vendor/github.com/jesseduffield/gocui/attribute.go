@@ -4,7 +4,7 @@
 
 package gocui
 
-import "github.com/nsf/termbox-go"
+import "github.com/jesseduffield/termbox-go"
 
 // Attribute represents a terminal attribute, like color, font style, etc. They
 // can be combined using bitwise OR (|). Note that it is not possible to

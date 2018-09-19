@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -165,5 +166,213 @@ func TestResolvePlaceholderString(t *testing.T) {
 
 	for _, s := range scenarios {
 		assert.EqualValues(t, string(s.expected), ResolvePlaceholderString(s.templateString, s.arguments))
+	}
+}
+
+func TestDisplayArraysAligned(t *testing.T) {
+	type scenario struct {
+		input    [][]string
+		expected bool
+	}
+
+	scenarios := []scenario{
+		{
+			[][]string{{"", ""}, {"", ""}},
+			true,
+		},
+		{
+			[][]string{{""}, {"", ""}},
+			false,
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, displayArraysAligned(s.input))
+	}
+}
+
+type myDisplayable struct {
+	strings []string
+}
+
+type myStruct struct{}
+
+func (d *myDisplayable) GetDisplayStrings() []string {
+	return d.strings
+}
+
+func TestGetDisplayStringArrays(t *testing.T) {
+	type scenario struct {
+		input    []Displayable
+		expected [][]string
+	}
+
+	scenarios := []scenario{
+		{
+			[]Displayable{
+				Displayable(&myDisplayable{[]string{"a", "b"}}),
+				Displayable(&myDisplayable{[]string{"c", "d"}}),
+			},
+			[][]string{{"a", "b"}, {"c", "d"}},
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, getDisplayStringArrays(s.input))
+	}
+}
+
+func TestRenderDisplayableList(t *testing.T) {
+	type scenario struct {
+		input          []Displayable
+		expectedString string
+		expectedError  error
+	}
+
+	scenarios := []scenario{
+		{
+			[]Displayable{
+				Displayable(&myDisplayable{[]string{}}),
+				Displayable(&myDisplayable{[]string{}}),
+			},
+			"\n",
+			nil,
+		},
+		{
+			[]Displayable{
+				Displayable(&myDisplayable{[]string{"aa", "b"}}),
+				Displayable(&myDisplayable{[]string{"c", "d"}}),
+			},
+			"aa b\nc  d",
+			nil,
+		},
+		{
+			[]Displayable{
+				Displayable(&myDisplayable{[]string{"a"}}),
+				Displayable(&myDisplayable{[]string{"b", "c"}}),
+			},
+			"",
+			errors.New("Each item must return the same number of strings to display"),
+		},
+	}
+
+	for _, s := range scenarios {
+		str, err := renderDisplayableList(s.input)
+		assert.EqualValues(t, s.expectedString, str)
+		assert.EqualValues(t, s.expectedError, err)
+	}
+}
+
+func TestRenderList(t *testing.T) {
+	type scenario struct {
+		input          interface{}
+		expectedString string
+		expectedError  error
+	}
+
+	scenarios := []scenario{
+		{
+			[]*myDisplayable{
+				{[]string{"aa", "b"}},
+				{[]string{"c", "d"}},
+			},
+			"aa b\nc  d",
+			nil,
+		},
+		{
+			[]*myStruct{
+				{},
+				{},
+			},
+			"",
+			errors.New("item does not implement the Displayable interface"),
+		},
+		{
+			&myStruct{},
+			"",
+			errors.New("RenderList given a non-slice type"),
+		},
+	}
+
+	for _, s := range scenarios {
+		str, err := RenderList(s.input)
+		assert.EqualValues(t, s.expectedString, str)
+		assert.EqualValues(t, s.expectedError, err)
+	}
+}
+
+func TestGetPaddedDisplayStrings(t *testing.T) {
+	type scenario struct {
+		stringArrays [][]string
+		padWidths    []int
+		expected     []string
+	}
+
+	scenarios := []scenario{
+		{
+			[][]string{{"a", "b"}, {"c", "d"}},
+			[]int{1},
+			[]string{"a b", "c d"},
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, getPaddedDisplayStrings(s.stringArrays, s.padWidths))
+	}
+}
+
+func TestGetPadWidths(t *testing.T) {
+	type scenario struct {
+		stringArrays [][]string
+		expected     []int
+	}
+
+	scenarios := []scenario{
+		{
+			[][]string{{""}, {""}},
+			[]int{},
+		},
+		{
+			[][]string{{"a"}, {""}},
+			[]int{},
+		},
+		{
+			[][]string{{"aa", "b", "ccc"}, {"c", "d", "e"}},
+			[]int{2, 1},
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, getPadWidths(s.stringArrays))
+	}
+}
+
+func TestMin(t *testing.T) {
+	type scenario struct {
+		a        int
+		b        int
+		expected int
+	}
+
+	scenarios := []scenario{
+		{
+			1,
+			1,
+			1,
+		},
+		{
+			1,
+			2,
+			1,
+		},
+		{
+			2,
+			1,
+			1,
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, Min(s.a, s.b))
 	}
 }
