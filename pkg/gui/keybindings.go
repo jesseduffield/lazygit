@@ -116,7 +116,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			ViewName:    "status",
 			Key:         's',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleSwitchRepo,
+			Handler:     gui.handleCreateRecentReposMenu,
 			Description: gui.Tr.SLocalize("SwitchRepo"),
 		},
 		{
