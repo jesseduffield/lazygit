@@ -276,7 +276,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]StashEntry)
+		test     func([]*StashEntry)
 	}
 
 	scenarios := []scenario{
@@ -285,7 +285,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 			func(string, ...string) *exec.Cmd {
 				return exec.Command("echo")
 			},
-			func(entries []StashEntry) {
+			func(entries []*StashEntry) {
 				assert.Len(t, entries, 0)
 			},
 		},
@@ -294,8 +294,8 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 			func(string, ...string) *exec.Cmd {
 				return exec.Command("echo", "WIP on add-pkg-commands-test: 55c6af2 increase parallel build\nWIP on master: bb86a3f update github template")
 			},
-			func(entries []StashEntry) {
-				expected := []StashEntry{
+			func(entries []*StashEntry) {
+				expected := []*StashEntry{
 					{
 						0,
 						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
@@ -342,7 +342,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]File)
+		test     func([]*File)
 	}
 
 	scenarios := []scenario{
@@ -351,7 +351,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 			func(cmd string, args ...string) *exec.Cmd {
 				return exec.Command("echo")
 			},
-			func(files []File) {
+			func(files []*File) {
 				assert.Len(t, files, 0)
 			},
 		},
@@ -363,10 +363,10 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 					"MM file1.txt\nA  file3.txt\nAM file2.txt\n?? file4.txt",
 				)
 			},
-			func(files []File) {
+			func(files []*File) {
 				assert.Len(t, files, 4)
 
-				expected := []File{
+				expected := []*File{
 					{
 						Name:               "file1.txt",
 						HasStagedChanges:   true,
@@ -464,22 +464,22 @@ func TestGitCommandCommitAmend(t *testing.T) {
 func TestGitCommandMergeStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName string
-		oldFiles []File
-		newFiles []File
-		test     func([]File)
+		oldFiles []*File
+		newFiles []*File
+		test     func([]*File)
 	}
 
 	scenarios := []scenario{
 		{
 			"Old file and new file are the same",
-			[]File{},
-			[]File{
+			[]*File{},
+			[]*File{
 				{
 					Name: "new_file.txt",
 				},
 			},
-			func(files []File) {
-				expected := []File{
+			func(files []*File) {
+				expected := []*File{
 					{
 						Name: "new_file.txt",
 					},
@@ -491,7 +491,7 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 		},
 		{
 			"Several files to merge, with some identical",
-			[]File{
+			[]*File{
 				{
 					Name: "new_file1.txt",
 				},
@@ -502,7 +502,7 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 					Name: "new_file3.txt",
 				},
 			},
-			[]File{
+			[]*File{
 				{
 					Name: "new_file4.txt",
 				},
@@ -513,8 +513,8 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 					Name: "new_file1.txt",
 				},
 			},
-			func(files []File) {
-				expected := []File{
+			func(files []*File) {
+				expected := []*File{
 					{
 						Name: "new_file1.txt",
 					},
@@ -631,7 +631,7 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.getCommitsToPush())
+			s.test(gitCmd.GetCommitsToPush())
 		})
 	}
 }
@@ -1225,7 +1225,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 		testName   string
 		command    func() (func(string, ...string) *exec.Cmd, *[][]string)
 		test       func(*[][]string, error)
-		file       File
+		file       *File
 		removeFile func(string) error
 	}
 
@@ -1247,7 +1247,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"reset", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				HasStagedChanges: true,
 			},
@@ -1270,7 +1270,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 				assert.EqualError(t, err, "an error occurred when removing file")
 				assert.Len(t, *cmdsCalled, 0)
 			},
-			File{
+			&File{
 				Name:    "test",
 				Tracked: false,
 			},
@@ -1295,7 +1295,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
@@ -1321,7 +1321,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
@@ -1348,7 +1348,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: true,
@@ -1374,7 +1374,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 					{"reset", "--", "test"},
 				})
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          false,
 				HasStagedChanges: true,
@@ -1398,7 +1398,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Len(t, *cmdsCalled, 0)
 			},
-			File{
+			&File{
 				Name:             "test",
 				Tracked:          false,
 				HasStagedChanges: false,
@@ -1484,7 +1484,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]Commit)
+		test     func([]*Commit)
 	}
 
 	scenarios := []scenario{
@@ -1504,7 +1504,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 
 				return nil
 			},
-			func(commits []Commit) {
+			func(commits []*Commit) {
 				assert.Len(t, commits, 0)
 			},
 		},
@@ -1524,9 +1524,9 @@ func TestGitCommandGetCommits(t *testing.T) {
 
 				return nil
 			},
-			func(commits []Commit) {
+			func(commits []*Commit) {
 				assert.Len(t, commits, 2)
-				assert.EqualValues(t, []Commit{
+				assert.EqualValues(t, []*Commit{
 					{
 						Sha:           "8a2bb0e",
 						Name:          "commit 1",
@@ -1557,7 +1557,7 @@ func TestGitCommandDiff(t *testing.T) {
 	gitCommand := newDummyGitCommand()
 	assert.NoError(t, test.GenerateRepo("lots_of_diffs.sh"))
 
-	files := []File{
+	files := []*File{
 		{
 			Name:               "deleted_staged",
 			HasStagedChanges:   false,

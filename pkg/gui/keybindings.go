@@ -1,6 +1,8 @@
 package gui
 
-import "github.com/jesseduffield/gocui"
+import (
+	"github.com/jesseduffield/gocui"
+)
 
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
 // is only handled if the given view has focus, or handled globally if the view
@@ -14,8 +16,26 @@ type Binding struct {
 	Description string
 }
 
-func (gui *Gui) GetKeybindings() []Binding {
-	bindings := []Binding{
+// GetDisplayStrings returns the display string of a file
+func (b *Binding) GetDisplayStrings() []string {
+	return []string{b.GetKey(), b.Description}
+}
+
+func (b *Binding) GetKey() string {
+	r, ok := b.Key.(rune)
+	key := ""
+
+	if ok {
+		key = string(r)
+	} else if b.KeyReadable != "" {
+		key = b.KeyReadable
+	}
+
+	return key
+}
+
+func (gui *Gui) GetKeybindings() []*Binding {
+	bindings := []*Binding{
 		{
 			ViewName: "",
 			Key:      'q',
@@ -73,7 +93,7 @@ func (gui *Gui) GetKeybindings() []Binding {
 			ViewName: "",
 			Key:      'x',
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleMenu,
+			Handler:  gui.handleCreateOptionsMenu,
 		}, {
 			ViewName:    "status",
 			Key:         'e',
@@ -349,18 +369,13 @@ func (gui *Gui) GetKeybindings() []Binding {
 			Key:      'q',
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleMenuClose,
-		}, {
-			ViewName: "menu",
-			Key:      gocui.KeySpace,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleMenuPress,
 		},
 	}
 
 	// Would make these keybindings global but that interferes with editing
 	// input in the confirmation panel
 	for _, viewName := range []string{"status", "files", "branches", "commits", "stash", "menu"} {
-		bindings = append(bindings, []Binding{
+		bindings = append(bindings, []*Binding{
 			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},
 			{ViewName: viewName, Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: gui.nextView},

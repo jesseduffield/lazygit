@@ -14,9 +14,9 @@ type Branch struct {
 	Recency string
 }
 
-// GetDisplayString returns the dispaly string of branch
-func (b *Branch) GetDisplayString() string {
-	return utils.WithPadding(b.Recency, 4) + utils.ColoredString(b.Name, b.GetColor())
+// GetDisplayStrings returns the dispaly string of branch
+func (b *Branch) GetDisplayStrings() []string {
+	return []string{b.Recency, utils.ColoredString(b.Name, b.GetColor())}
 }
 
 // GetColor branch color

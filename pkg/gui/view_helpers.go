@@ -160,7 +160,6 @@ func (gui *Gui) getItemPosition(v *gocui.View) int {
 
 func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
 	// swallowing cursor movements in main
-	// TODO: pull this out
 	if v == nil || v.Name() == "main" {
 		return nil
 	}
@@ -179,19 +178,28 @@ func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
 	// swallowing cursor movements in main
-	// TODO: pull this out
 	if v == nil || v.Name() == "main" {
 		return nil
 	}
 	cx, cy := v.Cursor()
 	ox, oy := v.Origin()
-	if cy+oy >= len(v.BufferLines())-2 {
+	ly := len(v.BufferLines()) - 1
+	_, height := v.Size()
+	maxY := height - 1
+
+	// if we are at the end we just return
+	if cy+oy == ly {
 		return nil
 	}
-	if err := v.SetCursor(cx, cy+1); err != nil {
-		if err := v.SetOrigin(ox, oy+1); err != nil {
-			return err
-		}
+
+	var err error
+	if cy < maxY {
+		err = v.SetCursor(cx, cy+1)
+	} else {
+		err = v.SetOrigin(ox, oy+1)
+	}
+	if err != nil {
+		return err
 	}
 
 	gui.newLineFocused(g, v)
@@ -208,10 +216,19 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 // if the cursor down past the last item, move it to the last line
 func (gui *Gui) correctCursor(v *gocui.View) error {
 	cx, cy := v.Cursor()
-	_, oy := v.Origin()
-	lineCount := len(v.BufferLines()) - 2
-	if cy >= lineCount-oy {
-		return v.SetCursor(cx, lineCount-oy)
+	ox, oy := v.Origin()
+	_, height := v.Size()
+	maxY := height - 1
+	ly := len(v.BufferLines()) - 1
+	if oy+cy <= ly {
+		return nil
+	}
+	newCy := utils.Min(ly, maxY)
+	if err := v.SetCursor(cx, newCy); err != nil {
+		return err
+	}
+	if err := v.SetOrigin(ox, ly-newCy); err != nil {
+		return err
 	}
 	return nil
 }

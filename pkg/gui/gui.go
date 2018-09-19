@@ -71,10 +71,10 @@ type Gui struct {
 }
 
 type guiState struct {
-	Files             []commands.File
-	Branches          []commands.Branch
-	Commits           []commands.Commit
-	StashEntries      []commands.StashEntry
+	Files             []*commands.File
+	Branches          []*commands.Branch
+	Commits           []*commands.Commit
+	StashEntries      []*commands.StashEntry
 	PreviousView      string
 	HasMergeConflicts bool
 	ConflictIndex     int
@@ -83,17 +83,16 @@ type guiState struct {
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
 	Updating          bool
-	Keys              []Binding
 }
 
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
 
 	initialState := guiState{
-		Files:         make([]commands.File, 0),
+		Files:         make([]*commands.File, 0),
 		PreviousView:  "files",
-		Commits:       make([]commands.Commit, 0),
-		StashEntries:  make([]commands.StashEntry, 0),
+		Commits:       make([]*commands.Commit, 0),
+		StashEntries:  make([]*commands.StashEntry, 0),
 		ConflictIndex: 0,
 		ConflictTop:   true,
 		Conflicts:     make([]commands.Conflict, 0),
