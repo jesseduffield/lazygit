@@ -158,8 +158,11 @@ func renderDisplayableList(items []Displayable) (string, error) {
 }
 
 func getPadWidths(stringArrays [][]string) []int {
-	padWidths := make([]int, len(stringArrays[0]))
-	for i, _ := range padWidths {
+	if len(stringArrays[0]) <= 1 {
+		return []int{}
+	}
+	padWidths := make([]int, len(stringArrays[0])-1)
+	for i := range padWidths {
 		for _, strings := range stringArrays {
 			if len(strings[i]) > padWidths[i] {
 				padWidths[i] = len(strings[i])
@@ -172,9 +175,13 @@ func getPadWidths(stringArrays [][]string) []int {
 func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) []string {
 	paddedDisplayStrings := make([]string, len(stringArrays))
 	for i, stringArray := range stringArrays {
+		if len(stringArray) == 0 {
+			continue
+		}
 		for j, padWidth := range padWidths {
 			paddedDisplayStrings[i] += WithPadding(stringArray[j], padWidth) + " "
 		}
+		paddedDisplayStrings[i] += stringArray[len(padWidths)]
 	}
 	return paddedDisplayStrings
 }
