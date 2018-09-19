@@ -1,0 +1,7 @@
+#!/bin/bash
+n=$1
+t=$2
+for i in $(seq $n); do
+  echo $i
+  sleep $t
+done
