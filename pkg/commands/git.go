@@ -65,6 +65,7 @@ type GitCommand struct {
 	Tr                 *i18n.Localizer
 	getGlobalGitConfig func(string) (string, error)
 	getLocalGitConfig  func(string) (string, error)
+	removeFile         func(string) error
 }
 
 // NewGitCommand it runs git commands
@@ -231,13 +232,18 @@ func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
 }
 
 // GetCommitsToPush Returns the sha's of the commits that have not yet been pushed
-// to the remote branch of the current branch
-func (c *GitCommand) GetCommitsToPush() []string {
-	pushables, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
+// to the remote branch of the current branch, a map is returned to ease look up
+func (c *GitCommand) GetCommitsToPush() map[string]bool {
+	pushables := map[string]bool{}
+	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
 	if err != nil {
-		return []string{}
+		return pushables
 	}
-	return utils.SplitLines(pushables)
+	for _, p := range utils.SplitLines(o) {
+		pushables[p] = true
+	}
+
+	return pushables
 }
 
 // RenameCommit renames the topmost commit with the given name
@@ -410,15 +416,15 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 func (c *GitCommand) RemoveFile(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges {
-		if err := c.OSCommand.RunCommand("git reset -- " + file.Name); err != nil {
+		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", file.Name)); err != nil {
 			return err
 		}
 	}
 	if !file.Tracked {
-		return os.RemoveAll(file.Name)
+		return c.removeFile(file.Name)
 	}
 	// if the file is tracked, we assume you want to just check it out
-	return c.OSCommand.RunCommand("git checkout -- " + file.Name)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", file.Name))
 }
 
 // Checkout checks out a branch, with --force if you set the force arg to true
@@ -427,7 +433,7 @@ func (c *GitCommand) Checkout(branch string, force bool) error {
 	if force {
 		forceArg = "--force "
 	}
-	return c.OSCommand.RunCommand("git checkout " + forceArg + branch)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout %s %s", forceArg, branch))
 }
 
 // AddPatch prepares a subprocess for adding a patch by patch
@@ -450,16 +456,7 @@ func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branchName)
-}
-
-func includesString(list []string, a string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
 }
 
 // GetCommits obtains the commits of the current branch
@@ -468,11 +465,10 @@ func (c *GitCommand) GetCommits() []*Commit {
 	log := c.GetLog()
 	commits := []*Commit{}
 	// now we can split it up and turn it into commits
-	lines := utils.SplitLines(log)
-	for _, line := range lines {
+	for _, line := range utils.SplitLines(log) {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
-		pushed := includesString(pushables, sha)
+		_, pushed := pushables[sha]
 		commits = append(commits, &Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),
@@ -493,6 +489,7 @@ func (c *GitCommand) GetLog() string {
 		// assume if there is an error there are no commits yet for this branch
 		return ""
 	}
+
 	return result
 }
 
