@@ -756,6 +756,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SkipHookPrefixNotConfigured",
 			Other: "You have not configured a commit message prefix for skipping hooks. Set `git.skipHookPrefix = 'WIP'` in your config",
+		}, &i18n.Message{
+			ID:    "CommandTitle",
+			Other: "CommandStatus",
 		},
 	)
 }
