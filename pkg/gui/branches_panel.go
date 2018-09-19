@@ -7,14 +7,15 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/git"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
-	index := gui.getItemPosition(v)
+	index := gui.getItemPosition(gui.getBranchesView(g))
 	if index == 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
-	branch := gui.getSelectedBranch(v)
+	branch := gui.getSelectedBranch(gui.getBranchesView(g))
 	if err := gui.GitCommand.Checkout(branch.Name, false); err != nil {
 		gui.createErrorPanel(g, err.Error())
 	}
@@ -109,22 +110,13 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) getSelectedBranch(v *gocui.View) commands.Branch {
+func (gui *Gui) getSelectedBranch(v *gocui.View) *commands.Branch {
 	lineNumber := gui.getItemPosition(v)
 	return gui.State.Branches[lineNumber]
 }
 
 func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"space":   gui.Tr.SLocalize("checkout"),
-		"f":       gui.Tr.SLocalize("forceCheckout"),
-		"m":       gui.Tr.SLocalize("merge"),
-		"c":       gui.Tr.SLocalize("checkoutByName"),
-		"n":       gui.Tr.SLocalize("newBranch"),
-		"d":       gui.Tr.SLocalize("deleteBranch"),
-		"D":       gui.Tr.SLocalize("forceDeleteBranch"),
-		"← → ↑ ↓": gui.Tr.SLocalize("navigate"),
-	})
+	return gui.renderGlobalOptions(g)
 }
 
 // may want to standardise how these select methods work
@@ -160,10 +152,15 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 			return err
 		}
 		gui.State.Branches = builder.Build()
+
 		v.Clear()
-		for _, branch := range gui.State.Branches {
-			fmt.Fprintln(v, branch.GetDisplayString())
+		list, err := utils.RenderList(gui.State.Branches)
+		if err != nil {
+			return err
 		}
+
+		fmt.Fprint(v, list)
+
 		gui.resetOrigin(v)
 		return gui.refreshStatus(g)
 	})

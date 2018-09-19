@@ -82,6 +82,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	mainView.SetOrigin(0, 0)
 
 	switch v.Name() {
+	case "menu":
+		return gui.handleMenuSelect(g, v)
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
@@ -145,6 +147,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		return err
 	}
 	g.Cursor = newView.Editable
+
 	return gui.newLineFocused(g, newView)
 }
 
@@ -157,7 +160,6 @@ func (gui *Gui) getItemPosition(v *gocui.View) int {
 
 func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
 	// swallowing cursor movements in main
-	// TODO: pull this out
 	if v == nil || v.Name() == "main" {
 		return nil
 	}
@@ -176,19 +178,28 @@ func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
 	// swallowing cursor movements in main
-	// TODO: pull this out
 	if v == nil || v.Name() == "main" {
 		return nil
 	}
 	cx, cy := v.Cursor()
 	ox, oy := v.Origin()
-	if cy+oy >= len(v.BufferLines())-2 {
+	ly := len(v.BufferLines()) - 1
+	_, height := v.Size()
+	maxY := height - 1
+
+	// if we are at the end we just return
+	if cy+oy == ly {
 		return nil
 	}
-	if err := v.SetCursor(cx, cy+1); err != nil {
-		if err := v.SetOrigin(ox, oy+1); err != nil {
-			return err
-		}
+
+	var err error
+	if cy < maxY {
+		err = v.SetCursor(cx, cy+1)
+	} else {
+		err = v.SetOrigin(ox, oy+1)
+	}
+	if err != nil {
+		return err
 	}
 
 	gui.newLineFocused(g, v)
@@ -205,10 +216,19 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 // if the cursor down past the last item, move it to the last line
 func (gui *Gui) correctCursor(v *gocui.View) error {
 	cx, cy := v.Cursor()
-	_, oy := v.Origin()
-	lineCount := len(v.BufferLines()) - 2
-	if cy >= lineCount-oy {
-		return v.SetCursor(cx, lineCount-oy)
+	ox, oy := v.Origin()
+	_, height := v.Size()
+	maxY := height - 1
+	ly := len(v.BufferLines()) - 1
+	if oy+cy <= ly {
+		return nil
+	}
+	newCy := utils.Min(ly, maxY)
+	if err := v.SetCursor(cx, newCy); err != nil {
+		return err
+	}
+	if err := v.SetOrigin(ox, ly-newCy); err != nil {
+		return err
 	}
 	return nil
 }
@@ -245,6 +265,7 @@ func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) err
 }
 
 // TODO: refactor properly
+// i'm so sorry but had to add this getBranchesView
 func (gui *Gui) getFilesView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("files")
 	return v
@@ -257,6 +278,11 @@ func (gui *Gui) getCommitsView(g *gocui.Gui) *gocui.View {
 
 func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("commitMessage")
+	return v
+}
+
+func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("branches")
 	return v
 }
 

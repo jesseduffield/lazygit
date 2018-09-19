@@ -43,11 +43,23 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "commit changes",
 		}, &i18n.Message{
+			ID:    "CommitChangesWithEditor",
+			Other: "commit changes using git editor",
+		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
+			ID:    "GlobalTitle",
+			Other: "Global",
+		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "navigate",
+		}, &i18n.Message{
+			ID:    "menu",
+			Other: "menu",
+		}, &i18n.Message{
+			ID:    "execute",
+			Other: "execute",
 		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "stash files",
@@ -69,6 +81,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "refresh",
+		}, &i18n.Message{
+			ID:    "push",
+			Other: "push",
+		}, &i18n.Message{
+			ID:    "pull",
+			Other: "pull",
 		}, &i18n.Message{
 			ID:    "addPatch",
 			Other: "add patch",
@@ -184,6 +202,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
 		}, &i18n.Message{
+			ID:    "close",
+			Other: "close",
+		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Are you sure you want to reset to this commit?",
 		}, &i18n.Message{
@@ -223,8 +244,11 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "OnlyRenameTopCommit",
 			Other: "Can only rename topmost commit",
 		}, &i18n.Message{
-			ID:    "RenameCommit",
-			Other: "Rename Commit",
+			ID:    "renameCommit",
+			Other: "rename commit",
+		}, &i18n.Message{
+			ID:    "renameCommitEditor",
+			Other: "rename commit with editor",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "potential error in getSelected Commit (mismatched ui and state)",
@@ -319,8 +343,8 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "ForcePushPrompt",
 			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
 		}, &i18n.Message{
-			ID:    "CheckForUpdate",
-			Other: "Check for update",
+			ID:    "checkForUpdate",
+			Other: "check for update",
 		}, &i18n.Message{
 			ID:    "CheckingForUpdates",
 			Other: "Checking for updates...",
@@ -343,8 +367,32 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "GitconfigParseErr",
 			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		}, &i18n.Message{
+			ID:    "removeFile",
+			Other: `delete if untracked / checkout if tracked`,
+		}, &i18n.Message{
+			ID:    "editFile",
+			Other: `edit file`,
+		}, &i18n.Message{
+			ID:    "openFile",
+			Other: `open file`,
+		}, &i18n.Message{
+			ID:    "ignoreFile",
+			Other: `add to .gitignore`,
+		}, &i18n.Message{
+			ID:    "refreshFiles",
+			Other: `refresh files`,
+		}, &i18n.Message{
+			ID:    "resetHard",
+			Other: `reset hard`,
+		}, &i18n.Message{
+			ID:    "mergeIntoCurrentBranch",
+			Other: `merge into currently checked out branch`,
+		}, &i18n.Message{
 			ID:    "ConfirmQuit",
 			Other: `Are you sure you want to quit?`,
+		}, &i18n.Message{
+			ID:    "SwitchRepo",
+			Other: `Switch to a recent repo`,
 		},
 	)
 }

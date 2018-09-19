@@ -73,10 +73,10 @@ type Gui struct {
 }
 
 type guiState struct {
-	Files             []commands.File
-	Branches          []commands.Branch
-	Commits           []commands.Commit
-	StashEntries      []commands.StashEntry
+	Files             []*commands.File
+	Branches          []*commands.Branch
+	Commits           []*commands.Commit
+	StashEntries      []*commands.StashEntry
 	PreviousView      string
 	HasMergeConflicts bool
 	ConflictIndex     int
@@ -91,10 +91,10 @@ type guiState struct {
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
 
 	initialState := guiState{
-		Files:         make([]commands.File, 0),
+		Files:         make([]*commands.File, 0),
 		PreviousView:  "files",
-		Commits:       make([]commands.Commit, 0),
-		StashEntries:  make([]commands.StashEntry, 0),
+		Commits:       make([]*commands.Commit, 0),
+		StashEntries:  make([]*commands.StashEntry, 0),
 		ConflictIndex: 0,
 		ConflictTop:   true,
 		Conflicts:     make([]commands.Conflict, 0),
@@ -385,6 +385,15 @@ func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
 		return gui.renderString(gui.g, "appStatus", appStatus)
 	}
 	return nil
+}
+
+func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
+	return gui.renderOptionsMap(g, map[string]string{
+		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
+		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
+		"esc/q":     gui.Tr.SLocalize("close"),
+		"x":         gui.Tr.SLocalize("menu"),
+	})
 }
 
 func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
