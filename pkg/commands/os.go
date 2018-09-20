@@ -114,7 +114,11 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 // RunCommandWithRealTimeOutput returns the process status
 func (c *OSCommand) RunCommandWithRealTimeOutput(command string) (*cmd.Cmd, error) {
 	splitCmd := str.ToArgv(command)
-	cmdOut := cmd.NewCmd(splitCmd[0], splitCmd[1:]...)
+	ops := cmd.Options{
+		Buffered:  false,
+		Streaming: true,
+	}
+	cmdOut := cmd.NewCmdOptions(ops, splitCmd[0], splitCmd[1:]...)
 	return cmdOut, nil
 }
 
