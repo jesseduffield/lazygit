@@ -55,13 +55,8 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	// }
 
 	if sub != nil {
-		c := sub.Start()
-		// wait until the command is ok
-		res := <-c
-		gui.CmdStatus = strings.Join(res.Stdout, "\n")
-		if err = gui.refreshCommandStatus(g); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
+		status := NewCommandStatus(sub, g)
+		status.Update(gui)
 	}
 
 	gui.refreshFiles()

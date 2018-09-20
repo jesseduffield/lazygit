@@ -331,14 +331,31 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
 
-	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, commitsBranchesBoundary, gocui.LEFT)
-	if err != nil {
-		if err.Error() != "unknown view" {
-			return err
+	// hiding options if there's not enough space
+	if height < 30 {
+		optionsTop = height - 1
+	}
+
+	if gui.Config.GetUserConfig().GetBool("commandStatus") {
+		v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, commitsBranchesBoundary, gocui.LEFT)
+		if err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+			v.Title = gui.Tr.SLocalize("DiffTitle")
+			v.Wrap = true
+			v.FgColor = gocui.ColorWhite
 		}
-		v.Title = gui.Tr.SLocalize("DiffTitle")
-		v.Wrap = true
-		v.FgColor = gocui.ColorWhite
+	} else {
+		v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+		if err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+			v.Title = gui.Tr.SLocalize("DiffTitle")
+			v.Wrap = true
+			v.FgColor = gocui.ColorWhite
+		}
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
@@ -356,7 +373,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		filesView.Highlight = true
 		filesView.Title = gui.Tr.SLocalize("FilesTitle")
-		v.FgColor = gocui.ColorWhite
+		filesView.FgColor = gocui.ColorWhite
 	}
 
 	branchesView, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM)
@@ -508,13 +525,12 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if gui.Config.GetUserConfig().GetBool("commandStatus") {
-		if v, err := g.SetView("commandStatus", leftSideWidth+panelSpacing, commitsBranchesBoundary+panelSpacing, width-1, optionsTop, gocui.LEFT); err != nil {
+		if v, err := g.SetView("commandStatus", leftSideWidth+panelSpacing, commitsBranchesBoundary+panelSpacing, width-1, optionsTop, 0); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-			v.BgColor = gocui.ColorDefault
-			v.FgColor = gocui.ColorGreen
-			v.Frame = false
+			v.Wrap = true
+			v.FgColor = gocui.ColorWhite
 			v.Title = gui.Tr.SLocalize("CommandTitle")
 		}
 	}
