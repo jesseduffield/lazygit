@@ -133,8 +133,15 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 			},
 		)
 		gui.Log.Info(message)
-		gui.State.PreviousView = oldView.Name()
+
+		// second class panels should never have focus restored to them because
+		// once they lose focus they are effectively 'destroyed'
+		secondClassPanels := []string{"confirmation", "menu"}
+		if !utils.IncludesString(secondClassPanels, oldView.Name()) {
+			gui.State.PreviousView = oldView.Name()
+		}
 	}
+
 	newView.Highlight = true
 	message := gui.Tr.TemplateLocalize(
 		"newFocusedViewIs",

@@ -204,3 +204,13 @@ func getDisplayStringArrays(displayables []Displayable) [][]string {
 	}
 	return stringArrays
 }
+
+// IncludesString if the list contains the string
+func IncludesString(list []string, a string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
