@@ -190,7 +190,7 @@ func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
 	}
 	cx, cy := v.Cursor()
 	ox, oy := v.Origin()
-	ly := len(v.BufferLines()) - 1
+	ly := v.ViewLinesHeight() - 1
 	_, height := v.Size()
 	maxY := height - 1
 
@@ -226,7 +226,7 @@ func (gui *Gui) correctCursor(v *gocui.View) error {
 	ox, oy := v.Origin()
 	_, height := v.Size()
 	maxY := height - 1
-	ly := len(v.BufferLines()) - 1
+	ly := v.ViewLinesHeight() - 1
 	if oy+cy <= ly {
 		return nil
 	}
