@@ -447,8 +447,8 @@ func (v *View) ViewBufferLines() []string {
 	return lines
 }
 
-func (v *View) ViewLinesHeight() int {
-	return len(v.viewLines)
+func (v *View) LinesHeight() int {
+	return len(v.lines)
 }
 
 // ViewBuffer returns a string with the contents of the view's buffer that is
