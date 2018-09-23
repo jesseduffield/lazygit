@@ -37,11 +37,13 @@ func (cs *CommandStatus) Update(ui *Gui) {
 		for {
 			select {
 			case status := <-cs.command.Stdout:
+				ui.Log.Infof("collect message:%v", status)
 				if err := cs.refreshCommandStatus(cs.gui, status); err != nil {
 					ui.Log.Errorf("get commandStatus Panel view failed:%v", err.Error())
 					return
 				}
 			case status := <-cs.command.Stderr:
+				ui.Log.Infof("collect error message:%v", status)
 				if err := cs.refreshCommandStatus(cs.gui, status); err != nil {
 					ui.Log.Errorf("get commandStatus Panel view failed:%v", err.Error())
 					return
@@ -60,9 +62,9 @@ func (cs *CommandStatus) refreshCommandStatus(g *gocui.Gui, str string) error {
 	}
 
 	g.Update(func(*gocui.Gui) error {
-		v.Clear()
+		// v.Clear()
 
-		fmt.Fprintf(v, str)
+		fmt.Fprintf(v, "%s\n", str)
 		return nil
 
 	})
