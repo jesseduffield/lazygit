@@ -8,12 +8,6 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-const (
-	// cmdStatusLen is a magic number
-	// that defines the max columns of CommandStatus panel
-	cmdStatusLen = 12
-)
-
 // CommandStatus defines the go-cmd's cmd with a ticker
 type CommandStatus struct {
 	command *cmd.Cmd
@@ -62,7 +56,10 @@ func (cs *CommandStatus) refreshCommandStatus(g *gocui.Gui, str string) error {
 	}
 
 	g.Update(func(*gocui.Gui) error {
-		// v.Clear()
+
+		// DO NOT invoke v.Clear() HERE:
+		// The command status history will be buffered
+		// And will be finally destroyed when user quits lazygit
 
 		fmt.Fprintf(v, "%s\n", str)
 		return nil
