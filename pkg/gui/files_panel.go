@@ -201,14 +201,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
-
 	commitMessageView := gui.getCommitMessageView(g)
-	if commitMessageView.Title == gui.Tr.SLocalize("AmendLastCommit") {
-		commitMessageView.Clear()
-		commitMessageView.SetCursor(0, 0)
-	}
-
-	commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 	g.Update(func(g *gocui.Gui) error {
 		g.SetViewOnTop("commitMessage")
 		gui.switchFocus(g, filesView, commitMessageView)
@@ -222,20 +215,17 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
-	commitMessageView := gui.getCommitMessageView(g)
-	commitMessageView.Clear()
-	commitMessageView.Title = gui.Tr.SLocalize("AmendLastCommit")
+	title := strings.Title(gui.Tr.SLocalize("AmendLastCommit"))
+	question := gui.Tr.SLocalize("SureToAmend")
+	return gui.createConfirmationPanel(g, filesView, title, question, func(g *gocui.Gui, v *gocui.View) error {
+		lastCommitMsg := gui.State.Commits[0].Name
+		_, err := gui.GitCommand.Commit(lastCommitMsg, true)
+		if err != nil {
+			gui.createErrorPanel(g, err.Error())
+		}
 
-	g.Update(func(g *gocui.Gui) error {
-		g.SetViewOnTop("commitMessage")
-		gui.switchFocus(g, filesView, commitMessageView)
-		lastCommitName := gui.State.Commits[0].Name
-		commitMessageView.Write([]byte(lastCommitName))
-		commitMessageView.SetCursor(len(lastCommitName), 0)
-		gui.RenderCommitLength()
-		return nil
-	})
-	return nil
+		return gui.refreshFiles(g)
+	}, nil)
 }
 
 // handleCommitEditorPress - handle when the user wants to commit changes via

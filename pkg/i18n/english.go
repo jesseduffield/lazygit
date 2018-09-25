@@ -44,7 +44,10 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "commit changes",
 		}, &i18n.Message{
 			ID:    "AmendLastCommit",
-			Other: "Amend last commit",
+			Other: "amend last commit",
+		}, &i18n.Message{
+			ID:    "SureToAmend",
+			Other: "Are you sure you want to amend last commit? You can change commit message from commits panel.",
 		}, &i18n.Message{
 			ID:    "CommitChangesWithEditor",
 			Other: "commit changes using git editor",

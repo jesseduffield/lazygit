@@ -12,8 +12,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	if message == "" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CommitWithoutMessageErr"))
 	}
-	amendCommit := v.Title == gui.Tr.SLocalize("AmendLastCommit")
-	sub, err := gui.GitCommand.Commit(message, amendCommit)
+	sub, err := gui.GitCommand.Commit(message, false)
 	if err != nil {
 		// TODO need to find a way to send through this error
 		if err != gui.Errors.ErrSubProcess {
