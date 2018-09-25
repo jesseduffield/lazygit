@@ -1684,3 +1684,82 @@ func TestGitCommandDiff(t *testing.T) {
 		})
 	}
 }
+
+func TestGitCommandGetMergeBase(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"swallows an error if the call to merge-base returns an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+
+				switch args[0] {
+				case "symbolic-ref":
+					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+					return exec.Command("echo", "master")
+				case "merge-base":
+					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
+					return exec.Command("test")
+				}
+				return nil
+			},
+			func(output string, err error) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, "", output)
+			},
+		},
+		{
+			"returns the commit when master",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+
+				switch args[0] {
+				case "symbolic-ref":
+					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+					return exec.Command("echo", "master")
+				case "merge-base":
+					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
+					return exec.Command("echo", "blah")
+				}
+				return nil
+			},
+			func(output string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "blah\n", output)
+			},
+		},
+		{
+			"checks against develop when a feature branch",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+
+				switch args[0] {
+				case "symbolic-ref":
+					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+					return exec.Command("echo", "feature/test")
+				case "merge-base":
+					assert.EqualValues(t, []string{"merge-base", "HEAD", "develop"}, args)
+					return exec.Command("echo", "blah")
+				}
+				return nil
+			},
+			func(output string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "blah\n", output)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.getMergeBase())
+		})
+	}
+}
