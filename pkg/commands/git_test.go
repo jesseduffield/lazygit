@@ -1484,7 +1484,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]*Commit)
+		test     func([]*Commit, error)
 	}
 
 	scenarios := []scenario{
@@ -1500,11 +1500,18 @@ func TestGitCommandGetCommits(t *testing.T) {
 				case "log":
 					assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
 					return exec.Command("echo")
+				case "merge-base":
+					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
+					return exec.Command("test")
+				case "symbolic-ref":
+					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+					return exec.Command("echo", "master")
 				}
 
 				return nil
 			},
-			func(commits []*Commit) {
+			func(commits []*Commit, err error) {
+				assert.NoError(t, err)
 				assert.Len(t, commits, 0)
 			},
 		},
@@ -1520,23 +1527,32 @@ func TestGitCommandGetCommits(t *testing.T) {
 				case "log":
 					assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
 					return exec.Command("echo", "8a2bb0e commit 1\n78976bc commit 2")
+				case "merge-base":
+					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
+					return exec.Command("echo", "78976bc")
+				case "symbolic-ref":
+					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+					return exec.Command("echo", "master")
 				}
 
 				return nil
 			},
-			func(commits []*Commit) {
+			func(commits []*Commit, err error) {
+				assert.NoError(t, err)
 				assert.Len(t, commits, 2)
 				assert.EqualValues(t, []*Commit{
 					{
 						Sha:           "8a2bb0e",
 						Name:          "commit 1",
 						Pushed:        true,
+						Merged:        false,
 						DisplayString: "8a2bb0e commit 1",
 					},
 					{
 						Sha:           "78976bc",
 						Name:          "commit 2",
 						Pushed:        false,
+						Merged:        true,
 						DisplayString: "78976bc commit 2",
 					},
 				}, commits)

@@ -267,6 +267,10 @@ func (c *GitCommand) NewBranch(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -b %s", name))
 }
 
+func (c *GitCommand) CurrentBranchName() (string, error) {
+	return c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+}
+
 // DeleteBranch delete branch
 func (c *GitCommand) DeleteBranch(branch string, force bool) error {
 	command := "git branch -d"
@@ -460,17 +464,27 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
 }
 
-func (c *GitCommand) getMergeBase() string {
-	output, err := c.OSCommand.RunCommandWithOutput("git merge-base HEAD master") // TODO: support develop as well
+func (c *GitCommand) getMergeBase() (string, error) {
+	currentBranch, err := c.CurrentBranchName()
 	if err != nil {
-		c.Log.Error("Could not get merge base")
-		return ""
+		return "", err
 	}
-	return output
+
+	baseBranch := "master"
+	if strings.HasPrefix(currentBranch, "feature/") {
+		baseBranch = "develop"
+	}
+
+	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
+	if err != nil {
+		// swallowing error because it's not a big deal; probably because there are no commits yet
+		c.Log.Error(err)
+	}
+	return output, nil
 }
 
 // GetCommits obtains the commits of the current branch
-func (c *GitCommand) GetCommits() []*Commit {
+func (c *GitCommand) GetCommits() ([]*Commit, error) {
 	pushables := c.GetCommitsToPush()
 	log := c.GetLog()
 
@@ -488,14 +502,16 @@ func (c *GitCommand) GetCommits() []*Commit {
 			DisplayString: strings.Join(splitLine, " "),
 		}
 	}
-	commits = c.setCommitMergedStatuses(commits)
-	return commits
+	return c.setCommitMergedStatuses(commits)
 }
 
-func (c *GitCommand) setCommitMergedStatuses(commits []*Commit) []*Commit {
-	ancestor := c.getMergeBase()
+func (c *GitCommand) setCommitMergedStatuses(commits []*Commit) ([]*Commit, error) {
+	ancestor, err := c.getMergeBase()
+	if err != nil {
+		return nil, err
+	}
 	if ancestor == "" {
-		return commits
+		return commits, nil
 	}
 	passedAncestor := false
 	for i, commit := range commits {
@@ -504,7 +520,7 @@ func (c *GitCommand) setCommitMergedStatuses(commits []*Commit) []*Commit {
 		}
 		commits[i].Merged = passedAncestor
 	}
-	return commits
+	return commits, nil
 }
 
 // GetLog gets the git log (currently limited to 30 commits for performance
