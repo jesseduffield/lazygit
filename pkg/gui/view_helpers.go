@@ -133,8 +133,15 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 			},
 		)
 		gui.Log.Info(message)
-		gui.State.PreviousView = oldView.Name()
+
+		// second class panels should never have focus restored to them because
+		// once they lose focus they are effectively 'destroyed'
+		secondClassPanels := []string{"confirmation", "menu"}
+		if !utils.IncludesString(secondClassPanels, oldView.Name()) {
+			gui.State.PreviousView = oldView.Name()
+		}
 	}
+
 	newView.Highlight = true
 	message := gui.Tr.TemplateLocalize(
 		"newFocusedViewIs",
@@ -183,7 +190,7 @@ func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
 	}
 	cx, cy := v.Cursor()
 	ox, oy := v.Origin()
-	ly := len(v.BufferLines()) - 1
+	ly := v.LinesHeight() - 1
 	_, height := v.Size()
 	maxY := height - 1
 
@@ -219,7 +226,7 @@ func (gui *Gui) correctCursor(v *gocui.View) error {
 	ox, oy := v.Origin()
 	_, height := v.Size()
 	maxY := height - 1
-	ly := len(v.BufferLines()) - 1
+	ly := v.LinesHeight() - 1
 	if oy+cy <= ly {
 		return nil
 	}

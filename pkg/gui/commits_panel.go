@@ -74,7 +74,10 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		}
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
-	commitText := gui.GitCommand.Show(commit.Sha)
+	commitText, err := gui.GitCommand.Show(commit.Sha)
+	if err != nil {
+		return err
+	}
 	return gui.renderString(g, "main", commitText)
 }
 
