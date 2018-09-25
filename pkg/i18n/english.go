@@ -393,6 +393,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ConfirmQuit",
 			Other: `Are you sure you want to quit?`,
+		}, &i18n.Message{
+			ID:    "SwitchRepo",
+			Other: `switch to a recent repo`,
 		},
 	)
 }

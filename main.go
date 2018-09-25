@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -40,13 +41,13 @@ func main() {
 	}
 	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
 	if err != nil {
-		panic(err)
+		log.Fatal(err.Error())
 	}
 
 	app, err := app.Setup(appConfig)
 	if err != nil {
 		app.Log.Error(err.Error())
-		panic(err)
+		log.Fatal(err.Error())
 	}
 
 	app.Gui.RunWithSubprocesses()

@@ -33,6 +33,7 @@ var OverlappingEdges = false
 type SentinelErrors struct {
 	ErrSubProcess error
 	ErrNoFiles    error
+	ErrSwitchRepo error
 }
 
 // GenerateSentinelErrors makes the sentinel errors for the gui. We're defining it here
@@ -49,6 +50,7 @@ func (gui *Gui) GenerateSentinelErrors() {
 	gui.Errors = SentinelErrors{
 		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess")),
 		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles")),
+		ErrSwitchRepo: errors.New("switching repo"),
 	}
 }
 
@@ -71,10 +73,10 @@ type Gui struct {
 }
 
 type guiState struct {
-	Files             []commands.File
-	Branches          []commands.Branch
-	Commits           []commands.Commit
-	StashEntries      []commands.StashEntry
+	Files             []*commands.File
+	Branches          []*commands.Branch
+	Commits           []*commands.Commit
+	StashEntries      []*commands.StashEntry
 	PreviousView      string
 	HasMergeConflicts bool
 	ConflictIndex     int
@@ -83,17 +85,16 @@ type guiState struct {
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
 	Updating          bool
-	Keys              []Binding
 }
 
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
 
 	initialState := guiState{
-		Files:         make([]commands.File, 0),
+		Files:         make([]*commands.File, 0),
 		PreviousView:  "files",
-		Commits:       make([]commands.Commit, 0),
-		StashEntries:  make([]commands.StashEntry, 0),
+		Commits:       make([]*commands.Commit, 0),
+		StashEntries:  make([]*commands.StashEntry, 0),
 		ConflictIndex: 0,
 		ConflictTop:   true,
 		Conflicts:     make([]commands.Conflict, 0),
@@ -293,6 +294,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		// these are only called once (it's a place to put all the things you want
 		// to happen on startup after the screen is first rendered)
 		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+		if err := gui.updateRecentRepoList(); err != nil {
+			return err
+		}
+
 		gui.handleFileSelect(g, filesView)
 		gui.refreshFiles(g)
 		gui.refreshBranches(g)
@@ -401,6 +406,8 @@ func (gui *Gui) RunWithSubprocesses() {
 		if err := gui.Run(); err != nil {
 			if err == gocui.ErrQuit {
 				break
+			} else if err == gui.Errors.ErrSwitchRepo {
+				continue
 			} else if err == gui.Errors.ErrSubProcess {
 				gui.SubProcess.Stdin = os.Stdin
 				gui.SubProcess.Stdout = os.Stdout

@@ -10,8 +10,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/jesseduffield/termbox-go"
 	"github.com/mattn/go-runewidth"
-	"github.com/nsf/termbox-go"
 )
 
 // Constants for overlapping edges
@@ -445,6 +445,10 @@ func (v *View) ViewBufferLines() []string {
 		lines[i] = str
 	}
 	return lines
+}
+
+func (v *View) LinesHeight() int {
+	return len(v.lines)
 }
 
 // ViewBuffer returns a string with the contents of the view's buffer that is
