@@ -121,6 +121,11 @@ For contributor discussion about things not better discussed here in the repo, j
 
 [![Slack](/docs/resources/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/enQtNDE3MjIwNTYyMDA0LTM3Yjk3NzdiYzhhNTA1YjM4Y2M4MWNmNDBkOTI0YTE4YjQ1ZmI2YWRhZTgwNjg2YzhhYjg3NDBlMmQyMTI5N2M)
 
+## Donate
+If you would like to support the development of lazygit, please donate
+
+[![Donate](https://d1iczxrky3cnb2.cloudfront.net/button-medium-blue.png)](https://donorbox.org/lazygit)
+
 ## Work in progress
 This is still a work in progress so there's still bugs to iron out and as this
 is my first project in Go the code could no doubt use an increase in quality,
