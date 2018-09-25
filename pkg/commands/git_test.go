@@ -1763,3 +1763,15 @@ func TestGitCommandGetMergeBase(t *testing.T) {
 		})
 	}
 }
+
+func TestGitCommandCurrentBranchName(t *testing.T) {
+	gitCmd := newDummyGitCommand()
+	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+		assert.Equal(t, "git", cmd)
+		assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+		return exec.Command("echo", "master")
+	}
+	output, err := gitCmd.CurrentBranchName()
+	assert.Equal(t, "master", output)
+	assert.NoError(t, err)
+}

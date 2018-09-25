@@ -268,7 +268,11 @@ func (c *GitCommand) NewBranch(name string) error {
 }
 
 func (c *GitCommand) CurrentBranchName() (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	output, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	if err != nil {
+		return "", err
+	}
+	return utils.TrimTrailingNewline(output), nil
 }
 
 // DeleteBranch delete branch
