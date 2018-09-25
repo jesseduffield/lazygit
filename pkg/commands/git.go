@@ -527,26 +527,22 @@ func (c *GitCommand) Ignore(filename string) error {
 }
 
 // Show shows the diff of a commit
-func (c *GitCommand) Show(sha string) string {
-	result, err := c.OSCommand.RunCommandWithOutput("git show --color " + sha)
-	if err != nil {
-		panic(err)
-	}
-	return result
+func (c *GitCommand) Show(sha string) (string, error) {
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
 }
 
 // Diff returns the diff of a file
 func (c *GitCommand) Diff(file *File) string {
 	cachedArg := ""
+	trackedArg := "--"
 	fileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
 	}
-	trackedArg := "--"
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null"
 	}
-	command := fmt.Sprintf("%s %s %s %s", "git diff --color ", cachedArg, trackedArg, fileName)
+	command := fmt.Sprintf("git diff --color %s %s %s", cachedArg, trackedArg, fileName)
 
 	// for now we assume an error means the file was deleted
 	s, _ := c.OSCommand.RunCommandWithOutput(command)
