@@ -4,15 +4,13 @@ import (
 	"fmt"
 
 	"github.com/go-cmd/cmd"
-	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 )
 
-// CommandStatus defines the go-cmd's cmd with a ticker
+// CommandStatus defines the go-cmd's cmd
 type CommandStatus struct {
 	command *cmd.Cmd
 	gui     *gocui.Gui
-	stack   *stack.Stack
 }
 
 // NewCommandStatus new command status
@@ -20,7 +18,6 @@ func NewCommandStatus(c *cmd.Cmd, gui *gocui.Gui) *CommandStatus {
 	return &CommandStatus{
 		command: c,
 		gui:     gui,
-		stack:   stack.New(),
 	}
 }
 
