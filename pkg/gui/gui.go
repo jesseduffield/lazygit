@@ -199,7 +199,7 @@ func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) scrollUpCommandStatus(g *gocui.Gui, v *gocui.View) error {
-	stView, err := g.View("CommandStatus")
+	stView, err := g.View("commandStatus")
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) scrollDownCommandStatus(g *gocui.Gui, v *gocui.View) error {
-	stView, err := g.View("CommandStatus")
+	stView, err := g.View("commandStatus")
 	if err != nil {
 		return err
 	}
@@ -766,7 +766,7 @@ func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 	}
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
 		// clear command status buffer
-		stView, err := g.View("CommandStatus")
+		stView, err := g.View("commandStatus")
 		if err != nil {
 			return err
 		}

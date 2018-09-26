@@ -498,12 +498,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleOpenOldCommitFile,
 			Description: gui.Tr.SLocalize("openFile"),
 		}, {
-			ViewName: "CommandStatus",
+			ViewName: "",
 			Key:      'J',
 			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownCommandStatus,
 		}, {
-			ViewName: "CommandStatus",
+			ViewName: "",
 			Key:      'K',
 			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpCommandStatus,
