@@ -8,11 +8,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-cmd/cmd"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
+	"github.com/scbizu/cmd"
 	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )

@@ -3,8 +3,8 @@ package gui
 import (
 	"fmt"
 
-	"github.com/go-cmd/cmd"
 	"github.com/jesseduffield/gocui"
+	"github.com/scbizu/cmd"
 )
 
 // CommandStatus defines the go-cmd's cmd
