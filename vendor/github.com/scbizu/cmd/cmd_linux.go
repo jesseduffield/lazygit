@@ -1,3 +1,5 @@
+// +build linux
+
 // Package cmd runs external commands with concurrent access to output and
 // status. It wraps the Go standard library os/exec.Command to correctly handle
 // reading output (STDOUT and STDERR) while a command is running and killing a
@@ -39,6 +41,7 @@
 // on it later. Only one final status is sent to the channel; use Done for
 // multiple goroutines to wait for the command to finish, then call Status to
 // get the final status.
+
 package cmd
 
 import (
@@ -47,6 +50,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"syscall"
@@ -201,7 +205,12 @@ func (c *Cmd) Stop() error {
 	// Signal the process group (-pid), not just the process, so that the process
 	// and all its children are signaled. Else, child procs can keep running and
 	// keep the stdout/stderr fd open and cause cmd.Wait to hang.
-	return syscall.Kill(-c.status.PID, syscall.SIGTERM)
+	p, err := os.FindProcess(-c.status.PID)
+	if err != nil {
+		return err
+	}
+
+	return p.Signal(syscall.SIGTERM)
 }
 
 // Status returns the Status of the command at any time. It is safe to call
@@ -292,10 +301,14 @@ func (c *Cmd) run() {
 		c.stderr = NewOutputBuffer()
 		cmd.Stdout = c.stdout
 		cmd.Stderr = c.stderr
-	} else {
+	} else if c.Stdout != nil {
 		// Streaming only
 		cmd.Stdout = NewOutputStream(c.Stdout)
 		cmd.Stderr = NewOutputStream(c.Stderr)
+	} else {
+		// No output (effectively >/dev/null 2>&1)
+		cmd.Stdout = nil
+		cmd.Stderr = nil
 	}
 
 	// Set the runtime environment for the command as per os/exec.Cmd.  If Env

@@ -48,3 +48,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/spkg/bom"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/scbizu/cmd"

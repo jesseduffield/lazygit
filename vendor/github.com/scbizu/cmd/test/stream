@@ -1,0 +1,10 @@
+#!/bin/bash
+x=1
+y=1
+while [[ ! -f "$1" ]]; do
+  echo "stdout $x"
+  echo "stderr $y" >&2
+  x=$((x + 1))
+  y=$((y + 1))
+  sleep 0.25
+done
