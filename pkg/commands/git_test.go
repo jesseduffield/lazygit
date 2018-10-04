@@ -1570,6 +1570,34 @@ func TestGitCommandGetCommits(t *testing.T) {
 				}, commits)
 			},
 		},
+		{
+			"GetCommits bubbles up an error from setCommitMergedStatuses",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+
+				switch args[0] {
+				case "rev-list":
+					assert.EqualValues(t, []string{"rev-list", "@{u}..head", "--abbrev-commit"}, args)
+					return exec.Command("echo", "8a2bb0e")
+				case "log":
+					assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
+					return exec.Command("echo", "8a2bb0e commit 1\n78976bc commit 2")
+				case "merge-base":
+					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
+					return exec.Command("echo", "78976bc")
+				case "symbolic-ref":
+					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+					// here's where we are returning the error
+					return exec.Command("test")
+				}
+
+				return nil
+			},
+			func(commits []*Commit, err error) {
+				assert.Error(t, err)
+				assert.Len(t, commits, 0)
+			},
+		},
 	}
 
 	for _, s := range scenarios {
@@ -1753,6 +1781,16 @@ func TestGitCommandGetMergeBase(t *testing.T) {
 				assert.Equal(t, "blah\n", output)
 			},
 		},
+		{
+			"bubbles up error if there is one",
+			func(cmd string, args ...string) *exec.Cmd {
+				return exec.Command("test")
+			},
+			func(output string, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, "", output)
+			},
+		},
 	}
 
 	for _, s := range scenarios {
@@ -1765,13 +1803,44 @@ func TestGitCommandGetMergeBase(t *testing.T) {
 }
 
 func TestGitCommandCurrentBranchName(t *testing.T) {
-	gitCmd := newDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
-		assert.Equal(t, "git", cmd)
-		assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
-		return exec.Command("echo", "master")
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(string, error)
 	}
-	output, err := gitCmd.CurrentBranchName()
-	assert.Equal(t, "master", output)
-	assert.NoError(t, err)
+
+	scenarios := []scenario{
+		{
+			"says we are on the master branch if we are",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.Equal(t, "git", cmd)
+				assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+				return exec.Command("echo", "master")
+			},
+			func(output string, err error) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, "master", output)
+			},
+		},
+		{
+			"bubbles up error if there is one",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.Equal(t, "git", cmd)
+				assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+				return exec.Command("test")
+			},
+			func(output string, err error) {
+				assert.Error(t, err)
+				assert.EqualValues(t, "", output)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.CurrentBranchName())
+		})
+	}
 }
