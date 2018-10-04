@@ -11,13 +11,19 @@ import (
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		gui.State.Commits = gui.GitCommand.GetCommits()
+		commits, err := gui.GitCommand.GetCommits()
+		if err != nil {
+			return err
+		}
+
+		gui.State.Commits = commits
 		v, err := g.View("commits")
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		v.Clear()
+
 		list, err := utils.RenderList(gui.State.Commits)
 		if err != nil {
 			return err
