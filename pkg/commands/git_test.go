@@ -970,7 +970,7 @@ func TestGitCommandCommitWithStatus(t *testing.T) {
 				return "true", nil
 			},
 			func(c *cmd.Cmd, usingGPG bool) {
-				assert.NotNil(t, c)
+				assert.Nil(t, c)
 				assert.True(t, usingGPG)
 			},
 		},
