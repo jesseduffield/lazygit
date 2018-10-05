@@ -112,14 +112,14 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 }
 
 // RunCommandWithRealTimeOutput returns the process status
-func (c *OSCommand) RunCommandWithRealTimeOutput(command string) (*cmd.Cmd, error) {
+func (c *OSCommand) RunCommandWithRealTimeOutput(command string) *cmd.Cmd {
 	splitCmd := str.ToArgv(command)
 	ops := cmd.Options{
 		Buffered:  false,
 		Streaming: true,
 	}
 	cmdOut := cmd.NewCmdOptions(ops, splitCmd[0], splitCmd[1:]...)
-	return cmdOut, nil
+	return cmdOut
 }
 
 // RunCommand runs a command and just returns the error
@@ -216,9 +216,13 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *ex
 }
 
 // PrepareSubProcessWithStatus returns real time cmd status
-func (c *OSCommand) PrepareSubProcessWithStatus(cmdName string, commandArgs ...string) (*cmd.Cmd, error) {
-	subprocess := cmd.NewCmd(cmdName, commandArgs...)
-	return subprocess, nil
+func (c *OSCommand) PrepareSubProcessWithStatus(cmdName string, commandArgs ...string) *cmd.Cmd {
+	option := cmd.Options{
+		Buffered:  false,
+		Streaming: true,
+	}
+	subprocess := cmd.NewCmdOptions(option, cmdName, commandArgs...)
+	return subprocess
 }
 
 // Quote wraps a message in platform-specific quotation marks

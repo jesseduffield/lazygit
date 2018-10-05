@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -354,20 +353,14 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 }
 
 // CommitWithStatus commit to git with return status message
-func (c *GitCommand) CommitWithStatus(g *gocui.Gui, message string) (*cmd.Cmd, bool, error) {
+func (c *GitCommand) CommitWithStatus(message string) (*cmd.Cmd, bool) {
 	command := fmt.Sprintf("git commit -m %s", c.OSCommand.Quote(message))
 	if c.usingGpg() {
-		subCmd, err := c.OSCommand.PrepareSubProcessWithStatus(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)
-		if err != nil {
-			return nil, false, err
-		}
-		return subCmd, true, nil
+		subCmd := c.OSCommand.PrepareSubProcessWithStatus(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)
+		return subCmd, true
 	}
-	cmdExec, err := c.OSCommand.RunCommandWithRealTimeOutput(command)
-	if err != nil {
-		return nil, false, err
-	}
-	return cmdExec, false, nil
+	cmdExec := c.OSCommand.RunCommandWithRealTimeOutput(command)
+	return cmdExec, false
 }
 
 // Pull pulls from repo
