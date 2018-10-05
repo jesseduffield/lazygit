@@ -10,6 +10,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/test"
+	"github.com/scbizu/cmd"
 	"github.com/stretchr/testify/assert"
 	gogit "gopkg.in/src-d/go-git.v4"
 )
@@ -951,6 +952,44 @@ func TestGitCommandAmendHead(t *testing.T) {
 			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
 			gitCmd.OSCommand.command = s.command
 			s.test(gitCmd.AmendHead())
+		})
+	}
+}
+
+func TestGitCommandCommitWithStatus(t *testing.T) {
+	type scenario struct {
+		testName           string
+		getGlobalGitConfig func(string) (string, error)
+		test               func(*cmd.Cmd, bool)
+	}
+
+	scenarios := []scenario{
+		{
+			"[Streaming Status]Commit using gpg",
+			func(string) (string, error) {
+				return "true", nil
+			},
+			func(c *cmd.Cmd, usingGPG bool) {
+				assert.NotNil(t, c)
+				assert.True(t, usingGPG)
+			},
+		},
+		{
+			"[Streaming Status]Commit without using gpg",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(c *cmd.Cmd, usingGPG bool) {
+				assert.False(t, usingGPG)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			s.test(gitCmd.CommitWithStatus("test"))
 		})
 	}
 }
