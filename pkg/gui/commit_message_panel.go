@@ -43,21 +43,10 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	sub, _, err := gui.GitCommand.CommitWithStatus(g, message)
-	if err != nil {
-		return err
-	}
-	// if sub != nil {
-	// USE git command directly
-	// gui.SubProcess = sub
-
-	// return gui.Errors.ErrSubProcess
-	// }
-
 	c, isGPG := gui.GitCommand.CommitWithStatus(message)
 	if isGPG {
 		// put it into subprogress
-		sub, err := gui.GitCommand.Commit(message)
+		sub, err := gui.GitCommand.Commit(message, flags)
 		if err != nil {
 			// TODO need to find a way to send through this error
 			if err != gui.Errors.ErrSubProcess {
@@ -74,12 +63,8 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 			status.Update(gui)
 		}
 	}
-<<<<<<< HEAD
 
 	gui.refreshFiles()
-=======
-	gui.refreshFiles(g)
->>>>>>> gui: fix gpg git commands
 	v.Clear()
 	_ = v.SetCursor(0, 0)
 	_ = v.SetOrigin(0, 0)
