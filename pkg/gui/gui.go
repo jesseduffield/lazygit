@@ -359,7 +359,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		optionsTop = height - 1
 	}
 
-	if gui.Config.GetUserConfig().GetBool("commandStatus") {
+	isStreamingStatusEnable := gui.Config.GetUserConfig().GetBool("commandStatus")
+
+	if isStreamingStatusEnable {
 		v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, commitsBranchesBoundary, gocui.LEFT)
 		if err != nil {
 			if err != gocui.ErrUnknownView {
@@ -547,7 +549,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if gui.Config.GetUserConfig().GetBool("commandStatus") {
+	if isStreamingStatusEnable {
 		if v, err := g.SetView("commandStatus", leftSideWidth+panelSpacing, commitsBranchesBoundary+panelSpacing, width-1, optionsTop, 0); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
