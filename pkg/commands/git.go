@@ -356,8 +356,7 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 func (c *GitCommand) CommitWithStatus(message string) (*cmd.Cmd, bool) {
 	command := fmt.Sprintf("git commit -m %s", c.OSCommand.Quote(message))
 	if c.usingGpg() {
-		subCmd := c.OSCommand.PrepareSubProcessWithStatus(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)
-		return subCmd, true
+		return nil, true
 	}
 	cmdExec := c.OSCommand.RunCommandWithRealTimeOutput(command)
 	return cmdExec, false

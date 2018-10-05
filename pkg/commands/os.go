@@ -215,16 +215,6 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *ex
 	return c.command(cmdName, commandArgs...)
 }
 
-// PrepareSubProcessWithStatus returns real time cmd status
-func (c *OSCommand) PrepareSubProcessWithStatus(cmdName string, commandArgs ...string) *cmd.Cmd {
-	option := cmd.Options{
-		Buffered:  false,
-		Streaming: true,
-	}
-	subprocess := cmd.NewCmdOptions(option, cmdName, commandArgs...)
-	return subprocess
-}
-
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
 	message = strings.Replace(message, "`", "\\`", -1)
