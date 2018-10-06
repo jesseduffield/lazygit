@@ -221,11 +221,11 @@ func (c *GitCommand) ResetHard() error {
 // UpstreamDifferenceCount checks how many pushables/pullables there are for the
 // current branch
 func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
-	pushableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --count")
+	pushableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --count")
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list head..@{u} --count")
+	pullableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list HEAD..@{u} --count")
 	if err != nil {
 		return "?", "?"
 	}
@@ -236,7 +236,7 @@ func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
 // to the remote branch of the current branch, a map is returned to ease look up
 func (c *GitCommand) GetCommitsToPush() map[string]bool {
 	pushables := map[string]bool{}
-	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
+	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --abbrev-commit")
 	if err != nil {
 		return pushables
 	}

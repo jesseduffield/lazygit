@@ -224,7 +224,7 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 			gui.createErrorPanel(g, err.Error())
 		}
 
-		return gui.refreshFiles(g)
+		return gui.refreshSidePanels(g)
 	}, nil)
 }
 
