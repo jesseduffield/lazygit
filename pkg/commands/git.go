@@ -267,6 +267,14 @@ func (c *GitCommand) NewBranch(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -b %s", name))
 }
 
+func (c *GitCommand) CurrentBranchName() (string, error) {
+	output, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	if err != nil {
+		return "", err
+	}
+	return utils.TrimTrailingNewline(output), nil
+}
+
 // DeleteBranch delete branch
 func (c *GitCommand) DeleteBranch(branch string, force bool) error {
 	command := "git branch -d"
@@ -464,24 +472,63 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
 }
 
+func (c *GitCommand) getMergeBase() (string, error) {
+	currentBranch, err := c.CurrentBranchName()
+	if err != nil {
+		return "", err
+	}
+
+	baseBranch := "master"
+	if strings.HasPrefix(currentBranch, "feature/") {
+		baseBranch = "develop"
+	}
+
+	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
+	if err != nil {
+		// swallowing error because it's not a big deal; probably because there are no commits yet
+		c.Log.Error(err)
+	}
+	return output, nil
+}
+
 // GetCommits obtains the commits of the current branch
-func (c *GitCommand) GetCommits() []*Commit {
+func (c *GitCommand) GetCommits() ([]*Commit, error) {
 	pushables := c.GetCommitsToPush()
 	log := c.GetLog()
-	commits := []*Commit{}
+
+	lines := utils.SplitLines(log)
+	commits := make([]*Commit, len(lines))
 	// now we can split it up and turn it into commits
-	for _, line := range utils.SplitLines(log) {
+	for i, line := range lines {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
 		_, pushed := pushables[sha]
-		commits = append(commits, &Commit{
+		commits[i] = &Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),
 			Pushed:        pushed,
 			DisplayString: strings.Join(splitLine, " "),
-		})
+		}
 	}
-	return commits
+	return c.setCommitMergedStatuses(commits)
+}
+
+func (c *GitCommand) setCommitMergedStatuses(commits []*Commit) ([]*Commit, error) {
+	ancestor, err := c.getMergeBase()
+	if err != nil {
+		return nil, err
+	}
+	if ancestor == "" {
+		return commits, nil
+	}
+	passedAncestor := false
+	for i, commit := range commits {
+		if strings.HasPrefix(ancestor, commit.Sha) {
+			passedAncestor = true
+		}
+		commits[i].Merged = passedAncestor
+	}
+	return commits, nil
 }
 
 // GetLog gets the git log (currently limited to 30 commits for performance
