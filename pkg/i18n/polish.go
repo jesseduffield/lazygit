@@ -39,6 +39,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "SureToAmend",
 			Other: "Czy na pewno chcesz zmienić ostatnie zatwierdzenie? Możesz zmienić komunikat zatwierdzenia z panelu zatwierdzeń.",
 		}, &i18n.Message{
+			ID:    "NoCommitToAmend",
+			Other: "Nie ma zobowiązania do zmiany.",
+		}, &i18n.Message{
 			ID:    "CommitChangesWithEditor",
 			Other: "commituj zmiany używając edytora z gita",
 		}, &i18n.Message{

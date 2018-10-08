@@ -217,6 +217,11 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 	}
 	title := strings.Title(gui.Tr.SLocalize("AmendLastCommit"))
 	question := gui.Tr.SLocalize("SureToAmend")
+
+	if len(gui.State.Commits) == 0 {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoCommitToAmend"))
+	}
+
 	return gui.createConfirmationPanel(g, filesView, title, question, func(g *gocui.Gui, v *gocui.View) error {
 		lastCommitMsg := gui.State.Commits[0].Name
 		_, err := gui.GitCommand.Commit(lastCommitMsg, true)
