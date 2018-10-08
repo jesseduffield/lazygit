@@ -317,9 +317,9 @@ func (c *GitCommand) usingGpg() bool {
 func (c *GitCommand) Commit(message string, amend bool) (*exec.Cmd, error) {
 	amendParam := ""
 	if amend {
-		amendParam = "--amend"
+		amendParam = " --amend"
 	}
-	command := fmt.Sprintf("git commit %s -m %s", amendParam, c.OSCommand.Quote(message))
+	command := fmt.Sprintf("git commit%s -m %s", amendParam, c.OSCommand.Quote(message))
 	if c.usingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}

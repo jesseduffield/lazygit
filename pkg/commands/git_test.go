@@ -561,7 +561,7 @@ func TestGitCommandUpstreamDifferentCount(t *testing.T) {
 		{
 			"Can't retrieve pullable count",
 			func(cmd string, args ...string) *exec.Cmd {
-				if args[1] == "head..@{u}" {
+				if args[1] == "HEAD..@{u}" {
 					return exec.Command("test")
 				}
 
@@ -575,7 +575,7 @@ func TestGitCommandUpstreamDifferentCount(t *testing.T) {
 		{
 			"Retrieve pullable and pushable count",
 			func(cmd string, args ...string) *exec.Cmd {
-				if args[1] == "head..@{u}" {
+				if args[1] == "HEAD..@{u}" {
 					return exec.Command("echo", "10")
 				}
 
@@ -889,7 +889,76 @@ func TestGitCommandCommit(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.Commit("test"))
+			s.test(gitCmd.Commit("test", false))
+		})
+	}
+}
+
+func TestGitCommandCommitAmendFromFiles(t *testing.T) {
+	type scenario struct {
+		testName           string
+		command            func(string, ...string) *exec.Cmd
+		getGlobalGitConfig func(string) (string, error)
+		test               func(*exec.Cmd, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Amend commit using gpg",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "bash", cmd)
+				assert.EqualValues(t, []string{"-c", `git commit --amend -m 'test'`}, args)
+
+				return exec.Command("echo")
+			},
+			func(string) (string, error) {
+				return "true", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.NotNil(t, cmd)
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Amend commit without using gpg",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--amend", "-m", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.Nil(t, cmd)
+				assert.Nil(t, err)
+			},
+		},
+		{
+			"Amend commit without using gpg with an error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--amend", "-m", "test"}, args)
+
+				return exec.Command("test")
+			},
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.Nil(t, cmd)
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.Commit("test", true))
 		})
 	}
 }
@@ -1507,7 +1576,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 
 				switch args[0] {
 				case "rev-list":
-					assert.EqualValues(t, []string{"rev-list", "@{u}..head", "--abbrev-commit"}, args)
+					assert.EqualValues(t, []string{"rev-list", "@{u}..HEAD", "--abbrev-commit"}, args)
 					return exec.Command("echo")
 				case "log":
 					assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
@@ -1534,7 +1603,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 
 				switch args[0] {
 				case "rev-list":
-					assert.EqualValues(t, []string{"rev-list", "@{u}..head", "--abbrev-commit"}, args)
+					assert.EqualValues(t, []string{"rev-list", "@{u}..HEAD", "--abbrev-commit"}, args)
 					return exec.Command("echo", "8a2bb0e")
 				case "log":
 					assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)
@@ -1577,7 +1646,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 
 				switch args[0] {
 				case "rev-list":
-					assert.EqualValues(t, []string{"rev-list", "@{u}..head", "--abbrev-commit"}, args)
+					assert.EqualValues(t, []string{"rev-list", "@{u}..HEAD", "--abbrev-commit"}, args)
 					return exec.Command("echo", "8a2bb0e")
 				case "log":
 					assert.EqualValues(t, []string{"log", "--oneline", "-30"}, args)

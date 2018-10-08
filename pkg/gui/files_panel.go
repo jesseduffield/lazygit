@@ -226,7 +226,7 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 		lastCommitMsg := gui.State.Commits[0].Name
 		_, err := gui.GitCommand.Commit(lastCommitMsg, true)
 		if err != nil {
-			gui.createErrorPanel(g, err.Error())
+			return gui.createErrorPanel(g, err.Error())
 		}
 
 		return gui.refreshSidePanels(g)
