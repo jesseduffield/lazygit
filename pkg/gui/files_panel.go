@@ -211,6 +211,28 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	return nil
 }
 
+func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) error {
+	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
+	}
+	title := strings.Title(gui.Tr.SLocalize("AmendLastCommit"))
+	question := gui.Tr.SLocalize("SureToAmend")
+
+	if len(gui.State.Commits) == 0 {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoCommitToAmend"))
+	}
+
+	return gui.createConfirmationPanel(g, filesView, title, question, func(g *gocui.Gui, v *gocui.View) error {
+		lastCommitMsg := gui.State.Commits[0].Name
+		_, err := gui.GitCommand.Commit(lastCommitMsg, true)
+		if err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+
+		return gui.refreshSidePanels(g)
+	}, nil)
+}
+
 // handleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
