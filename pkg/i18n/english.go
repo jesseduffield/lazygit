@@ -402,6 +402,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SwitchRepo",
 			Other: `switch to a recent repo`,
+		}, &i18n.Message{
+			ID:    "UnsupportedGitService",
+			Other: `Unsupported git service`,
+		}, &i18n.Message{
+			ID:    "createPullRequest",
+			Other: `create pull request`,
 		},
 	)
 }
