@@ -45,7 +45,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 
 	c, isGPG := gui.GitCommand.CommitWithStatus(message)
 	if isGPG {
-		// put it into subprogress
+		// put it into subprocess
 		sub, err := gui.GitCommand.Commit(message, flags)
 		if err != nil {
 			if err != gui.Errors.ErrSubProcess {
