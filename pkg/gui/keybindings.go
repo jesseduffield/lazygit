@@ -501,12 +501,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName: "",
 			Key:      'J',
 			Modifier: gocui.ModNone,
-			Handler:  gui.scrollDownCommandStatus,
+			Handler:  gui.handleScrollDownByViewName("commandStatus"),
 		}, {
 			ViewName: "",
 			Key:      'K',
 			Modifier: gocui.ModNone,
-			Handler:  gui.scrollUpCommandStatus,
+			Handler:  gui.handleScrollUpByViewName("commandStatus"),
 		},
 	}
 
