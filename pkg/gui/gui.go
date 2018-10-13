@@ -366,26 +366,21 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	isStreamingStatusEnable := gui.Config.GetUserConfig().GetBool("commandStatus")
 
+	var mainViewRightBottom int
 	if isStreamingStatusEnable {
-		v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, commitsBranchesBoundary, gocui.LEFT)
-		if err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
-			}
-			v.Title = gui.Tr.SLocalize("DiffTitle")
-			v.Wrap = true
-			v.FgColor = gocui.ColorWhite
-		}
+		mainViewRightBottom = commitsBranchesBoundary
 	} else {
-		v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
-		if err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
-			}
-			v.Title = gui.Tr.SLocalize("DiffTitle")
-			v.Wrap = true
-			v.FgColor = gocui.ColorWhite
+		mainViewRightBottom = optionsTop
+	}
+
+	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, mainViewRightBottom, gocui.LEFT)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
 		}
+		v.Title = gui.Tr.SLocalize("DiffTitle")
+		v.Wrap = true
+		v.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
