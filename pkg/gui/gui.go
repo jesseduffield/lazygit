@@ -198,16 +198,18 @@ func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	return mainView.SetOrigin(ox, newOy)
 }
 
-func (gui *Gui) scrollUpCommandStatus(g *gocui.Gui, v *gocui.View) error {
-	stView, err := g.View("commandStatus")
-	if err != nil {
-		return err
+func (gui *Gui) handleScrollUpByViewName(viewName string) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		stView, err := g.View(viewName)
+		if err != nil {
+			return err
+		}
+		ox, oy := stView.Origin()
+		if oy >= 1 {
+			return stView.SetOrigin(ox, oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
+		}
+		return nil
 	}
-	ox, oy := stView.Origin()
-	if oy >= 1 {
-		return stView.SetOrigin(ox, oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
-	}
-	return nil
 }
 
 func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
@@ -224,17 +226,20 @@ func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) scrollDownCommandStatus(g *gocui.Gui, v *gocui.View) error {
-	stView, err := g.View("commandStatus")
-	if err != nil {
-		return err
+func (gui *Gui) handleScrollDownByViewName(viewName string) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		stView, err := g.View(viewName)
+		if err != nil {
+			return err
+		}
+		ox, oy := stView.Origin()
+		if oy >= 1 {
+			return stView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
+		}
+		return nil
 	}
-	ox, oy := stView.Origin()
-	if oy < len(stView.BufferLines()) {
-		return stView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
-	}
-	return nil
 }
+
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshSidePanels(g)
 }
@@ -767,13 +772,6 @@ func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 		return gui.createUpdateQuitConfirmation(g, v)
 	}
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
-		// clear command status buffer
-		stView, err := g.View("commandStatus")
-		if err != nil {
-			return err
-		}
-		stView.Clear()
-
 		return gui.createConfirmationPanel(g, v, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
 			return gocui.ErrQuit
 		}, nil)
