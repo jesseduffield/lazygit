@@ -44,7 +44,7 @@ func (cs *CommandStatus) PrintCmdOutput(gui *Gui) {
 		}
 	}()
 
-	cs.command.Start()
+	<-cs.command.Start()
 }
 
 func (cs *CommandStatus) refreshCommandStatus(g *gocui.Gui, cmdStr string) error {
