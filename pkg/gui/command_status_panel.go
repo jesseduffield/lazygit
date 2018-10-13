@@ -21,32 +21,33 @@ func NewCommandStatus(c *cmd.Cmd, gui *gocui.Gui) *CommandStatus {
 	}
 }
 
-// Update updates the command status panel
-func (cs *CommandStatus) Update(ui *Gui) {
+// PrintCmdOutput collect the command output
+// then print it in status panel
+func (cs *CommandStatus) PrintCmdOutput(gui *Gui) {
 
 	go func() {
 		for {
 			select {
-			case status := <-cs.command.Stdout:
-				ui.Log.Infof("collect message:%v", status)
-				if err := cs.refreshCommandStatus(cs.gui, status); err != nil {
-					ui.Log.Errorf("get commandStatus Panel view failed:%v", err.Error())
+			case cmdStdOutStr := <-cs.command.Stdout:
+				gui.Log.Infof("collect message:%v", cmdStdOutStr)
+				if err := cs.refreshCommandStatus(cs.gui, cmdStdOutStr); err != nil {
+					gui.Log.Errorf("get commandStatus Panel view failed:%v", err.Error())
 					return
 				}
-			case status := <-cs.command.Stderr:
-				ui.Log.Infof("collect error message:%v", status)
-				if err := cs.refreshCommandStatus(cs.gui, status); err != nil {
-					ui.Log.Errorf("get commandStatus Panel view failed:%v", err.Error())
+			case cmdErrOutStr := <-cs.command.Stderr:
+				gui.Log.Infof("collect error message:%v", cmdErrOutStr)
+				if err := cs.refreshCommandStatus(cs.gui, cmdErrOutStr); err != nil {
+					gui.Log.Errorf("get commandStatus Panel view failed:%v", err.Error())
 					return
 				}
 			}
 		}
 	}()
 
-	<-cs.command.Start()
+	cs.command.Start()
 }
 
-func (cs *CommandStatus) refreshCommandStatus(g *gocui.Gui, str string) error {
+func (cs *CommandStatus) refreshCommandStatus(g *gocui.Gui, cmdStr string) error {
 	v, err := g.View("commandStatus")
 	if err != nil {
 		return err
@@ -58,7 +59,7 @@ func (cs *CommandStatus) refreshCommandStatus(g *gocui.Gui, str string) error {
 		// The command status history will be buffered
 		// And will be finally destroyed when user quits lazygit
 
-		fmt.Fprintf(v, "%s\n", str)
+		fmt.Fprintf(v, "%s\n", cmdStr)
 		return nil
 
 	})
