@@ -48,7 +48,6 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		// put it into subprogress
 		sub, err := gui.GitCommand.Commit(message, flags)
 		if err != nil {
-			// TODO need to find a way to send through this error
 			if err != gui.Errors.ErrSubProcess {
 				return gui.createErrorPanel(g, err.Error())
 			}
@@ -60,7 +59,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	} else {
 		if c != nil {
 			status := NewCommandStatus(c, g)
-			status.Update(gui)
+			status.PrintCmdOutput(gui)
 		}
 	}
 
