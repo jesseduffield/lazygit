@@ -44,11 +44,11 @@ func getServices() []*Service {
 }
 
 // NewPullRequest creates new instance of PullRequest
-func NewPullRequest(gitCommand *GitCommand) (*PullRequest, error) {
+func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 	return &PullRequest{
 		GitServices: getServices(),
 		GitCommand:  gitCommand,
-	}, nil
+	}
 }
 
 // Create opens link to new pull request in browser

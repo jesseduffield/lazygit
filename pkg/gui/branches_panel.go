@@ -24,7 +24,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch(gui.getBranchesView(g))
-	pullRequest, _ := commands.NewPullRequest(gui.GitCommand)
+	pullRequest := commands.NewPullRequest(gui.GitCommand)
 
 	if err := pullRequest.Create(branch); err != nil {
 		return gui.createErrorPanel(g, err.Error())

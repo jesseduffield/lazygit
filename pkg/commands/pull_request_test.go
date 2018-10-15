@@ -1,10 +1,11 @@
 package commands
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os/exec"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetRepoInfoFromURL(t *testing.T) {
@@ -144,7 +145,7 @@ func TestCreatePullRequest(t *testing.T) {
 			gitCommand := newDummyGitCommand()
 			gitCommand.OSCommand.command = s.command
 			gitCommand.OSCommand.Config.GetUserConfig().Set("os.openCommand", "open {{filename}}")
-			dummyPullRequest, _ := NewPullRequest(gitCommand)
+			dummyPullRequest := NewPullRequest(gitCommand)
 			s.test(dummyPullRequest.Create(s.branch))
 		})
 	}
