@@ -361,7 +361,15 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 	}
 	go func() {
 		branchName := gui.State.Branches[0].Name
-		if err := gui.GitCommand.Push(branchName, force); err != nil {
+		err := gui.GitCommand.Push(branchName, force, func(passOrUname string) string {
+			if passOrUname == "password" {
+				// TODO: ask for password
+				return "some password"
+			}
+			// TODO: ask for username
+			return "some username"
+		})
+		if err != nil {
 			_ = gui.createErrorPanel(gui.g, err.Error())
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)

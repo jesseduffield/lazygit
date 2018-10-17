@@ -333,24 +333,14 @@ func (c *GitCommand) Pull() error {
 }
 
 // Push pushes to a branch
-func (c *GitCommand) Push(branchName string, force bool) error {
+func (c *GitCommand) Push(branchName string, force bool, ask func(string) string) error {
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease "
 	}
 
 	cmd := fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName)
-	return c.OSCommand.DetectUnamePass(cmd, func(passOrUname string) string {
-		if passOrUname == "password" {
-			// ask for password
-			return "some password"
-		}
-		if passOrUname == "username" {
-			// ask for username
-			return "some username"
-		}
-		return ""
-	})
+	return c.OSCommand.DetectUnamePass(cmd, ask)
 }
 
 // SquashPreviousTwoCommits squashes a commit down to the one below it
