@@ -1,13 +1,17 @@
 package commands
 
 import (
+	"bufio"
 	"errors"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
+	"github.com/ionrock/procs"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/kr/pty"
 
 	"github.com/mgutz/str"
 
@@ -55,6 +59,90 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	return sanitisedCommandOutput(
 		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
 	)
+}
+
+// RunCommandWithOutputLive runs a command and return every word that gets written in stdout
+// Output is a function that executes by every word that gets read by bufio
+// As return of output you need to give a string that will be written to stdin
+// NOTE: If the return data is empty it won't written anything to stdin
+// NOTE: You don't have to include a enter in the return data this function will do that for you
+func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string) string) error {
+	splitCmd := str.ToArgv(command)
+	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
+
+	cmd.Env = procs.Env(map[string]string{
+		"LANG":   "en_US.utf8",
+		"LC_ALL": "en_US.UTF-8",
+	}, true)
+
+	tty, err := pty.Start(cmd)
+
+	if err != nil {
+		return err
+	}
+
+	defer func() { _ = tty.Close() }()
+
+	go func() {
+		// Regex to cleanup the command output
+		re := regexp.MustCompile(`(^\s*)|(\s*$)`)
+
+		scanner := bufio.NewScanner(tty)
+		scanner.Split(bufio.ScanWords)
+		for scanner.Scan() {
+			toWrite := output(re.ReplaceAllString(scanner.Text(), ""))
+			if len(toWrite) > 0 {
+				tty.Write([]byte(toWrite + "\n"))
+			}
+		}
+	}()
+
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DetectUnamePass detect a username / password question in a command
+// ask is a function that gets executen when this function detect you need to fillin a password
+// The ask argument will be "username" or "password" and expects the user's password or username back
+func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
+	ttyText := ""
+	errors := []error{}
+	err := c.RunCommandWithOutputLive(command, func(word string) string {
+		ttyText = ttyText + " " + word
+
+		// detect username question
+		detectUname, err := regexp.MatchString(`Username\s*for\s*'.+':`, ttyText)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		if detectUname {
+			// reset the text and return the user's username
+			ttyText = ""
+			return ask("username")
+		}
+
+		// detect password question
+		detectPass, err := regexp.MatchString(`Password\s*for\s*'.+':`, ttyText)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		if detectPass {
+			// reset the text and return the user's username
+			ttyText = ""
+			return ask("password")
+		}
+		return ""
+	})
+	if err != nil {
+		return err
+	}
+	if len(errors) > 0 {
+		return errors[0]
+	}
+	return nil
 }
 
 // RunCommand runs a command and just returns the error

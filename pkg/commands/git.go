@@ -339,7 +339,17 @@ func (c *GitCommand) Push(branchName string, force bool) error {
 		forceFlag = "--force-with-lease "
 	}
 
-	return c.OSCommand.RunCommand(fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName))
+	cmd := fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName)
+	return c.OSCommand.DetectUnamePass(cmd, func(passOrUname string) string {
+		if passOrUname == "password" {
+			return "some password"
+			// ask for password
+		}
+		if passOrUname == "username" {
+			// ask for username
+		}
+		return ""
+	})
 }
 
 // SquashPreviousTwoCommits squashes a commit down to the one below it
