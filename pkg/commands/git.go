@@ -342,11 +342,12 @@ func (c *GitCommand) Push(branchName string, force bool) error {
 	cmd := fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName)
 	return c.OSCommand.DetectUnamePass(cmd, func(passOrUname string) string {
 		if passOrUname == "password" {
-			return "some password"
 			// ask for password
+			return "some password"
 		}
 		if passOrUname == "username" {
 			// ask for username
+			return "some username"
 		}
 		return ""
 	})
