@@ -92,7 +92,8 @@ func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string)
 		for scanner.Scan() {
 			toWrite := output(re.ReplaceAllString(scanner.Text(), ""))
 			if len(toWrite) > 0 {
-				tty.Write([]byte(toWrite + "\n"))
+				_, err := tty.Write([]byte(toWrite + "\n"))
+				logrus.Error(err.Error())
 			}
 		}
 	}()
