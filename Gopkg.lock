@@ -189,11 +189,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:71e6c15797951d3fabaa944d70253e36a6cee96bf54ca0bc43ca3de3b4814bbb"
+  digest = "1:66bb9b4a5abb704642fccba52a84a7f7feef2d9623f87b700e52a6695044723f"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "2cb6e95bbbf850bb32cc1799e07d08ff0f144746"
+  revision = "03e26ff3f1de2c1bc2205113c3aba661312eee00"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3ab130f65766f5b7cc944d557df31c6a007ec017151705ec1e1b8719f2689021"
+  name = "github.com/jesseduffield/termbox-go"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "1e272ff78dcb4c448870f464fda1cdcf2bf0b3dd"
 
 [[projects]]
   digest = "1:ac6d01547ec4f7f673311b4663909269bfb8249952de3279799289467837c3cc"
@@ -293,14 +301,6 @@
   pruneopts = "NUT"
   revision = "a16b91a3ba80db3a2301c70d1d302d42251c9079"
   version = "v2.0.0-beta.5"
-
-[[projects]]
-  branch = "master"
-  digest = "1:34d9354c2c5d916c05864327553047df59fc10e86ff1f408e4136eba0a25a5ec"
-  name = "github.com/nsf/termbox-go"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "5c94acc5e6eb520f1bcd183974e01171cc4c23b3"
 
 [[projects]]
   digest = "1:cf254277d898b713195cc6b4a3fac8bf738b9f1121625df27843b52b267eec6c"

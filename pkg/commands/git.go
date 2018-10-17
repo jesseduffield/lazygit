@@ -65,6 +65,7 @@ type GitCommand struct {
 	Tr                 *i18n.Localizer
 	getGlobalGitConfig func(string) (string, error)
 	getLocalGitConfig  func(string) (string, error)
+	removeFile         func(string) error
 }
 
 // NewGitCommand it runs git commands
@@ -100,21 +101,22 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 		Repo:               repo,
 		getGlobalGitConfig: gitconfig.Global,
 		getLocalGitConfig:  gitconfig.Local,
+		removeFile:         os.RemoveAll,
 	}, nil
 }
 
 // GetStashEntries stash entryies
-func (c *GitCommand) GetStashEntries() []StashEntry {
+func (c *GitCommand) GetStashEntries() []*StashEntry {
 	rawString, _ := c.OSCommand.RunCommandWithOutput("git stash list --pretty='%gs'")
-	stashEntries := []StashEntry{}
+	stashEntries := []*StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
 	}
 	return stashEntries
 }
 
-func stashEntryFromLine(line string, index int) StashEntry {
-	return StashEntry{
+func stashEntryFromLine(line string, index int) *StashEntry {
+	return &StashEntry{
 		Name:          line,
 		Index:         index,
 		DisplayString: line,
@@ -127,10 +129,10 @@ func (c *GitCommand) GetStashEntryDiff(index int) (string, error) {
 }
 
 // GetStatusFiles git status files
-func (c *GitCommand) GetStatusFiles() []File {
+func (c *GitCommand) GetStatusFiles() []*File {
 	statusOutput, _ := c.GitStatus()
 	statusStrings := utils.SplitLines(statusOutput)
-	files := []File{}
+	files := []*File{}
 
 	for _, statusString := range statusStrings {
 		change := statusString[0:2]
@@ -140,7 +142,7 @@ func (c *GitCommand) GetStatusFiles() []File {
 		_, untracked := map[string]bool{"??": true, "A ": true, "AM": true}[change]
 		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
 
-		file := File{
+		file := &File{
 			Name:               filename,
 			DisplayString:      statusString,
 			HasStagedChanges:   !hasNoStagedChanges,
@@ -168,7 +170,7 @@ func (c *GitCommand) StashSave(message string) error {
 }
 
 // MergeStatusFiles merge status files
-func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
+func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*File) []*File {
 	if len(oldFiles) == 0 {
 		return newFiles
 	}
@@ -176,7 +178,7 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []File) []File {
 	appendedIndexes := []int{}
 
 	// retain position of files we already could see
-	result := []File{}
+	result := []*File{}
 	for _, oldFile := range oldFiles {
 		for newIndex, newFile := range newFiles {
 			if oldFile.Name == newFile.Name {
@@ -219,11 +221,11 @@ func (c *GitCommand) ResetHard() error {
 // UpstreamDifferenceCount checks how many pushables/pullables there are for the
 // current branch
 func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
-	pushableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --count")
+	pushableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --count")
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list head..@{u} --count")
+	pullableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list HEAD..@{u} --count")
 	if err != nil {
 		return "?", "?"
 	}
@@ -231,13 +233,18 @@ func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
 }
 
 // GetCommitsToPush Returns the sha's of the commits that have not yet been pushed
-// to the remote branch of the current branch
-func (c *GitCommand) GetCommitsToPush() []string {
-	pushables, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..head --abbrev-commit")
+// to the remote branch of the current branch, a map is returned to ease look up
+func (c *GitCommand) GetCommitsToPush() map[string]bool {
+	pushables := map[string]bool{}
+	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --abbrev-commit")
 	if err != nil {
-		return []string{}
+		return pushables
 	}
-	return utils.SplitLines(pushables)
+	for _, p := range utils.SplitLines(o) {
+		pushables[p] = true
+	}
+
+	return pushables
 }
 
 // RenameCommit renames the topmost commit with the given name
@@ -258,6 +265,14 @@ func (c *GitCommand) ResetToCommit(sha string) error {
 // NewBranch create new branch
 func (c *GitCommand) NewBranch(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -b %s", name))
+}
+
+func (c *GitCommand) CurrentBranchName() (string, error) {
+	output, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	if err != nil {
+		return "", err
+	}
+	return utils.TrimTrailingNewline(output), nil
 }
 
 // DeleteBranch delete branch
@@ -299,8 +314,12 @@ func (c *GitCommand) usingGpg() bool {
 }
 
 // Commit commits to git
-func (c *GitCommand) Commit(message string) (*exec.Cmd, error) {
-	command := fmt.Sprintf("git commit -m %s", c.OSCommand.Quote(message))
+func (c *GitCommand) Commit(message string, amend bool) (*exec.Cmd, error) {
+	amendParam := ""
+	if amend {
+		amendParam = " --amend"
+	}
+	command := fmt.Sprintf("git commit%s -m %s", amendParam, c.OSCommand.Quote(message))
 	if c.usingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
@@ -365,12 +384,12 @@ func (c *GitCommand) SquashFixupCommit(branchName string, shaValue string) error
 
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("cat " + c.OSCommand.Quote(fileName))
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("cat %s", c.OSCommand.Quote(fileName)))
 }
 
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
-	return c.OSCommand.RunCommand("git add " + c.OSCommand.Quote(fileName))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git add %s", c.OSCommand.Quote(fileName)))
 }
 
 // StageAll stages all files
@@ -385,13 +404,11 @@ func (c *GitCommand) UnstageAll() error {
 
 // UnStageFile unstages a file
 func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
-	var command string
+	command := "git rm --cached %s"
 	if tracked {
-		command = "git reset HEAD "
-	} else {
-		command = "git rm --cached "
+		command = "git reset HEAD %s"
 	}
-	return c.OSCommand.RunCommand(command + c.OSCommand.Quote(fileName))
+	return c.OSCommand.RunCommand(fmt.Sprintf(command, c.OSCommand.Quote(fileName)))
 }
 
 // GitStatus returns the plaintext short status of the repo
@@ -409,18 +426,18 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 }
 
 // RemoveFile directly
-func (c *GitCommand) RemoveFile(file File) error {
+func (c *GitCommand) RemoveFile(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges {
-		if err := c.OSCommand.RunCommand("git reset -- " + file.Name); err != nil {
+		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", file.Name)); err != nil {
 			return err
 		}
 	}
 	if !file.Tracked {
-		return os.RemoveAll(file.Name)
+		return c.removeFile(file.Name)
 	}
 	// if the file is tracked, we assume you want to just check it out
-	return c.OSCommand.RunCommand("git checkout -- " + file.Name)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", file.Name))
 }
 
 // Checkout checks out a branch, with --force if you set the force arg to true
@@ -429,7 +446,7 @@ func (c *GitCommand) Checkout(branch string, force bool) error {
 	if force {
 		forceArg = "--force "
 	}
-	return c.OSCommand.RunCommand("git checkout " + forceArg + branch)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout %s %s", forceArg, branch))
 }
 
 // AddPatch prepares a subprocess for adding a patch by patch
@@ -452,37 +469,66 @@ func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 " + branchName)
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
 }
 
-func includesString(list []string, a string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
+func (c *GitCommand) getMergeBase() (string, error) {
+	currentBranch, err := c.CurrentBranchName()
+	if err != nil {
+		return "", err
 	}
-	return false
+
+	baseBranch := "master"
+	if strings.HasPrefix(currentBranch, "feature/") {
+		baseBranch = "develop"
+	}
+
+	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
+	if err != nil {
+		// swallowing error because it's not a big deal; probably because there are no commits yet
+		c.Log.Error(err)
+	}
+	return output, nil
 }
 
 // GetCommits obtains the commits of the current branch
-func (c *GitCommand) GetCommits() []Commit {
+func (c *GitCommand) GetCommits() ([]*Commit, error) {
 	pushables := c.GetCommitsToPush()
 	log := c.GetLog()
-	commits := []Commit{}
-	// now we can split it up and turn it into commits
+
 	lines := utils.SplitLines(log)
-	for _, line := range lines {
+	commits := make([]*Commit, len(lines))
+	// now we can split it up and turn it into commits
+	for i, line := range lines {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
-		pushed := includesString(pushables, sha)
-		commits = append(commits, Commit{
+		_, pushed := pushables[sha]
+		commits[i] = &Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),
 			Pushed:        pushed,
 			DisplayString: strings.Join(splitLine, " "),
-		})
+		}
 	}
-	return commits
+	return c.setCommitMergedStatuses(commits)
+}
+
+func (c *GitCommand) setCommitMergedStatuses(commits []*Commit) ([]*Commit, error) {
+	ancestor, err := c.getMergeBase()
+	if err != nil {
+		return nil, err
+	}
+	if ancestor == "" {
+		return commits, nil
+	}
+	passedAncestor := false
+	for i, commit := range commits {
+		if strings.HasPrefix(ancestor, commit.Sha) {
+			passedAncestor = true
+		}
+		commits[i].Merged = passedAncestor
+	}
+	return commits, nil
 }
 
 // GetLog gets the git log (currently limited to 30 commits for performance
@@ -495,6 +541,7 @@ func (c *GitCommand) GetLog() string {
 		// assume if there is an error there are no commits yet for this branch
 		return ""
 	}
+
 	return result
 }
 
@@ -504,26 +551,22 @@ func (c *GitCommand) Ignore(filename string) error {
 }
 
 // Show shows the diff of a commit
-func (c *GitCommand) Show(sha string) string {
-	result, err := c.OSCommand.RunCommandWithOutput("git show --color " + sha)
-	if err != nil {
-		panic(err)
-	}
-	return result
+func (c *GitCommand) Show(sha string) (string, error) {
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file File) string {
+func (c *GitCommand) Diff(file *File) string {
 	cachedArg := ""
+	trackedArg := "--"
 	fileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
 	}
-	trackedArg := "--"
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null"
 	}
-	command := fmt.Sprintf("%s %s %s %s", "git diff --color ", cachedArg, trackedArg, fileName)
+	command := fmt.Sprintf("git diff --color %s %s %s", cachedArg, trackedArg, fileName)
 
 	// for now we assume an error means the file was deleted
 	s, _ := c.OSCommand.RunCommandWithOutput(command)

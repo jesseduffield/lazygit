@@ -2,33 +2,34 @@ package gui
 
 import (
 	"errors"
+	"fmt"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		gui.State.Commits = gui.GitCommand.GetCommits()
+		commits, err := gui.GitCommand.GetCommits()
+		if err != nil {
+			return err
+		}
+
+		gui.State.Commits = commits
 		v, err := g.View("commits")
 		if err != nil {
-			panic(err)
+			return err
 		}
+
 		v.Clear()
-		red := color.New(color.FgRed)
-		yellow := color.New(color.FgYellow)
-		white := color.New(color.FgWhite)
-		shaColor := white
-		for _, commit := range gui.State.Commits {
-			if commit.Pushed {
-				shaColor = red
-			} else {
-				shaColor = yellow
-			}
-			shaColor.Fprint(v, commit.Sha+" ")
-			white.Fprintln(v, commit.Name)
+
+		list, err := utils.RenderList(gui.State.Commits)
+		if err != nil {
+			return err
 		}
+		fmt.Fprint(v, list)
+
 		gui.refreshStatus(g)
 		if g.CurrentView().Name() == "commits" {
 			gui.handleCommitSelect(g, v)
@@ -73,7 +74,10 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		}
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
-	commitText := gui.GitCommand.Show(commit.Sha)
+	commitText, err := gui.GitCommand.Show(commit.Sha)
+	if err != nil {
+		return err
+	}
 	return gui.renderString(g, "main", commitText)
 }
 
@@ -99,7 +103,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 // TODO: move to files panel
-func (gui *Gui) anyUnStagedChanges(files []commands.File) bool {
+func (gui *Gui) anyUnStagedChanges(files []*commands.File) bool {
 	for _, file := range files {
 		if file.Tracked && file.HasUnstagedChanges {
 			return true
@@ -146,7 +150,6 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		}
 		return gui.handleCommitSelect(g, v)
 	})
-	return nil
 }
 
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
@@ -162,13 +165,13 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) getSelectedCommit(g *gocui.Gui) (commands.Commit, error) {
+func (gui *Gui) getSelectedCommit(g *gocui.Gui) (*commands.Commit, error) {
 	v, err := g.View("commits")
 	if err != nil {
 		panic(err)
 	}
 	if len(gui.State.Commits) == 0 {
-		return commands.Commit{}, errors.New(gui.Tr.SLocalize("NoCommitsThisBranch"))
+		return &commands.Commit{}, errors.New(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 	lineNumber := gui.getItemPosition(v)
 	if lineNumber > len(gui.State.Commits)-1 {

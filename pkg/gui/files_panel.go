@@ -7,16 +7,17 @@ import (
 
 	// "strings"
 
+	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) stagedFiles() []commands.File {
+func (gui *Gui) stagedFiles() []*commands.File {
 	files := gui.State.Files
-	result := make([]commands.File, 0)
+	result := make([]*commands.File, 0)
 	for _, file := range files {
 		if file.HasStagedChanges {
 			result = append(result, file)
@@ -25,9 +26,9 @@ func (gui *Gui) stagedFiles() []commands.File {
 	return result
 }
 
-func (gui *Gui) trackedFiles() []commands.File {
+func (gui *Gui) trackedFiles() []*commands.File {
 	files := gui.State.Files
-	result := make([]commands.File, 0)
+	result := make([]*commands.File, 0)
 	for _, file := range files {
 		if file.Tracked {
 			result = append(result, file)
@@ -116,9 +117,9 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 	return gui.Errors.ErrSubProcess
 }
 
-func (gui *Gui) getSelectedFile(g *gocui.Gui) (commands.File, error) {
+func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 	if len(gui.State.Files) == 0 {
-		return commands.File{}, gui.Errors.ErrNoFiles
+		return &commands.File{}, gui.Errors.ErrNoFiles
 	}
 	filesView, err := g.View("files")
 	if err != nil {
@@ -184,7 +185,9 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 		gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 		return gui.renderfilesOptions(g, nil)
 	}
-	gui.renderfilesOptions(g, &file)
+	if err := gui.renderfilesOptions(g, file); err != nil {
+		return err
+	}
 	var content string
 	if file.HasMergeConflicts {
 		return gui.refreshMergePanel(g)
@@ -206,6 +209,28 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 		return nil
 	})
 	return nil
+}
+
+func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) error {
+	if len(gui.stagedFiles()) == 0 && !gui.State.HasMergeConflicts {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
+	}
+	title := strings.Title(gui.Tr.SLocalize("AmendLastCommit"))
+	question := gui.Tr.SLocalize("SureToAmend")
+
+	if len(gui.State.Commits) == 0 {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoCommitToAmend"))
+	}
+
+	return gui.createConfirmationPanel(g, filesView, title, question, func(g *gocui.Gui, v *gocui.View) error {
+		lastCommitMsg := gui.State.Commits[0].Name
+		_, err := gui.GitCommand.Commit(lastCommitMsg, true)
+		if err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+
+		return gui.refreshSidePanels(g)
+	}, nil)
 }
 
 // handleCommitEditorPress - handle when the user wants to commit changes via
@@ -275,24 +300,6 @@ func (gui *Gui) updateHasMergeConflictStatus() error {
 	return nil
 }
 
-func (gui *Gui) renderFile(file commands.File, filesView *gocui.View) {
-	// potentially inefficient to be instantiating these color
-	// objects with each render
-	red := color.New(color.FgRed)
-	green := color.New(color.FgGreen)
-	if !file.Tracked && !file.HasStagedChanges {
-		red.Fprintln(filesView, file.DisplayString)
-		return
-	}
-	green.Fprint(filesView, file.DisplayString[0:1])
-	red.Fprint(filesView, file.DisplayString[1:3])
-	if file.HasUnstagedChanges {
-		red.Fprintln(filesView, file.Name)
-	} else {
-		green.Fprintln(filesView, file.Name)
-	}
-}
-
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 	item, err := gui.getSelectedFile(g)
 	if err != nil {
@@ -318,10 +325,14 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 		return err
 	}
 	gui.refreshStateFiles()
+
 	filesView.Clear()
-	for _, file := range gui.State.Files {
-		gui.renderFile(file, filesView)
+	list, err := utils.RenderList(gui.State.Files)
+	if err != nil {
+		return err
 	}
+	fmt.Fprint(filesView, list)
+
 	gui.correctCursor(filesView)
 	if filesView == g.CurrentView() {
 		gui.handleFileSelect(g, filesView)

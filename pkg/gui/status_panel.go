@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -51,14 +52,16 @@ func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
-	dashboardString := fmt.Sprintf(
-		"%s\n\n%s\n\n%s\n\n%s\n\n%s",
-		lazygitTitle(),
-		"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md",
-		"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
-		"Tutorial: https://www.youtube.com/watch?v=VDXvbHZYeKY",
-		"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
-	)
+	dashboardString := strings.Join(
+		[]string{
+			lazygitTitle(),
+			"Copyright (c) 2018 Jesse Duffield",
+			"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md",
+			"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
+			"Tutorial: https://www.youtube.com/watch?v=VDXvbHZYeKY",
+			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
+			"Buy Jesse a coffee: https://donorbox.org/lazygit",
+		}, "\n\n")
 
 	if err := gui.renderString(g, "main", dashboardString); err != nil {
 		return err

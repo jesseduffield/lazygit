@@ -43,6 +43,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "commit changes",
 		}, &i18n.Message{
+			ID:    "AmendLastCommit",
+			Other: "amend last commit",
+		}, &i18n.Message{
+			ID:    "SureToAmend",
+			Other: "Are you sure you want to amend last commit? You can change commit message from commits panel.",
+		}, &i18n.Message{
+			ID:    "NoCommitToAmend",
+			Other: "There's no commit to amend.",
+		}, &i18n.Message{
 			ID:    "CommitChangesWithEditor",
 			Other: "commit changes using git editor",
 		}, &i18n.Message{
@@ -390,6 +399,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ConfirmQuit",
 			Other: `Are you sure you want to quit?`,
+		}, &i18n.Message{
+			ID:    "SwitchRepo",
+			Other: `switch to a recent repo`,
 		},
 	)
 }
