@@ -561,6 +561,16 @@ func (c *GitCommand) GetRemoteURL() string {
 	return utils.TrimTrailingNewline(url)
 }
 
+// CheckRemoteBranchExists Returns remote branch
+func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
+	_, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf(
+		"git show-ref --verify -- refs/remotes/origin/%s",
+		branch.Name,
+	))
+
+	return err == nil
+}
+
 // Diff returns the diff of a file
 func (c *GitCommand) Diff(file *File) string {
 	cachedArg := ""

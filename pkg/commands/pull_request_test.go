@@ -144,7 +144,7 @@ func TestCreatePullRequest(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCommand := newDummyGitCommand()
 			gitCommand.OSCommand.command = s.command
-			gitCommand.OSCommand.Config.GetUserConfig().Set("os.openCommand", "open {{filename}}")
+			gitCommand.OSCommand.Config.GetUserConfig().Set("os.openLinkCommand", "open {{link}}")
 			dummyPullRequest := NewPullRequest(gitCommand)
 			s.test(dummyPullRequest.Create(s.branch))
 		})

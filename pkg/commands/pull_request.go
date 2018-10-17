@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 )
 
@@ -53,6 +52,12 @@ func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 
 // Create opens link to new pull request in browser
 func (pr *PullRequest) Create(branch *Branch) error {
+	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(branch)
+
+	if !branchExistsOnRemote {
+		return errors.New(pr.GitCommand.Tr.SLocalize("NoBranchOnRemote"))
+	}
+
 	repoURL := pr.GitCommand.GetRemoteURL()
 	var gitService *Service
 
@@ -69,19 +74,18 @@ func (pr *PullRequest) Create(branch *Branch) error {
 
 	repoInfo := getRepoInfoFromURL(repoURL)
 
-	return pr.GitCommand.OSCommand.OpenFile(fmt.Sprintf(
+	return pr.GitCommand.OSCommand.OpenLink(fmt.Sprintf(
 		gitService.PullRequestURL, repoInfo.Owner, repoInfo.Repository, branch.Name,
 	))
 }
 
 func getRepoInfoFromURL(url string) *RepoInformation {
 	isHTTP := strings.HasPrefix(url, "http")
-	removeGitExtension := regexp.MustCompile(`\.git$`)
 
 	if isHTTP {
 		splits := strings.Split(url, "/")
 		owner := splits[len(splits)-2]
-		repo := removeGitExtension.ReplaceAllString(splits[len(splits)-1], "")
+		repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
 
 		return &RepoInformation{
 			Owner:      owner,
@@ -92,7 +96,7 @@ func getRepoInfoFromURL(url string) *RepoInformation {
 	tmpSplit := strings.Split(url, ":")
 	splits := strings.Split(tmpSplit[1], "/")
 	owner := splits[0]
-	repo := removeGitExtension.ReplaceAllString(splits[1], "")
+	repo := strings.TrimSuffix(splits[1], ".git")
 
 	return &RepoInformation{
 		Owner:      owner,
