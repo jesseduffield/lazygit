@@ -233,7 +233,7 @@ func (gui *Gui) handleScrollDownByViewName(viewName string) func(g *gocui.Gui, v
 			return err
 		}
 		ox, oy := stView.Origin()
-		if oy >= 1 {
+		if oy < len(stView.BufferLines()) {
 			return stView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
 		}
 		return nil

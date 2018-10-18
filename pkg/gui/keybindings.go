@@ -78,22 +78,22 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName: "",
 			Key:      gocui.KeyPgup,
 			Modifier: gocui.ModNone,
-			Handler:  gui.scrollUpMain,
+			Handler:  gui.handleScrollUpByViewName("main"),
 		}, {
 			ViewName: "",
 			Key:      gocui.KeyPgdn,
 			Modifier: gocui.ModNone,
-			Handler:  gui.scrollDownMain,
+			Handler:  gui.handleScrollDownByViewName("main"),
 		}, {
 			ViewName: "",
 			Key:      gocui.KeyCtrlU,
 			Modifier: gocui.ModNone,
-			Handler:  gui.scrollUpMain,
+			Handler:  gui.handleScrollUpByViewName("main"),
 		}, {
 			ViewName: "",
 			Key:      gocui.KeyCtrlD,
 			Modifier: gocui.ModNone,
-			Handler:  gui.scrollDownMain,
+			Handler:  gui.handleScrollDownByViewName("main"),
 		}, {
 			ViewName:    "",
 			Key:         'm',
