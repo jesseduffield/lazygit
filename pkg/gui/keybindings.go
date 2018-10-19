@@ -127,6 +127,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("CommitChanges"),
 		}, {
 			ViewName:    "files",
+			Key:         'A',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleAmendCommitPress,
+			Description: gui.Tr.SLocalize("AmendLastCommit"),
+		}, {
+			ViewName:    "files",
 			Key:         'C',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitEditorPress,
@@ -182,7 +188,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("stashFiles"),
 		}, {
 			ViewName:    "files",
-			Key:         'A',
+			Key:         'M',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleAbortMerge,
 			Description: gui.Tr.SLocalize("abortMerge"),
