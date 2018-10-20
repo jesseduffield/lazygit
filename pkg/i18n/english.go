@@ -5,6 +5,7 @@ Todo list when making a new translation
 - Change the addEnglish() name to the language you want to translate to like addSomeLanguage()
 - change the first function argument of i18nObject.AddMessages( to the language you want to translate to like language.SomeLanguage
 - Remove this todo and the about section
+
 */
 
 package i18n
