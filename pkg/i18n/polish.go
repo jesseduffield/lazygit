@@ -30,6 +30,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessage",
 			Other: "Wiadomość commita",
 		}, &i18n.Message{
+			ID:    "PushUsername",
+			Other: "Username",
+		}, &i18n.Message{
+			ID:    "PushPassword",
+			Other: "Password",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "commituj zmiany",
 		}, &i18n.Message{

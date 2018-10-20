@@ -40,6 +40,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessage",
 			Other: "Commit message",
 		}, &i18n.Message{
+			ID:    "PushUsername",
+			Other: "Username",
+		}, &i18n.Message{
+			ID:    "PushPassword",
+			Other: "Password",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "commit changes",
 		}, &i18n.Message{
