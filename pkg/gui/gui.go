@@ -274,7 +274,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-			g.SetViewOnBottom("pushPassUname")
+			_, err := g.SetViewOnBottom("pushPassUname")
+			if err != nil {
+				return err
+			}
 			pushPassUnameView.Title = gui.Tr.SLocalize("PushUsername")
 			pushPassUnameView.FgColor = gocui.ColorWhite
 			pushPassUnameView.Editable = true
