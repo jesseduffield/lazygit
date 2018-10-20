@@ -7,6 +7,7 @@
 package gui
 
 import (
+	"log"
 	"strings"
 
 	"github.com/fatih/color"
@@ -84,8 +85,14 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 }
 
 func (gui *Gui) onNewPopupPanel() {
-	gui.g.SetViewOnBottom("commitMessage")
-	gui.g.SetViewOnBottom("pushPassUname")
+	_, err := gui.g.SetViewOnBottom("commitMessage")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = gui.g.SetViewOnBottom("pushPassUname")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
