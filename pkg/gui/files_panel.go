@@ -364,6 +364,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, currentView *gocui.View, force b
 		err := gui.GitCommand.Push(branchName, force, func(passOrUname string) string {
 			return gui.waitForPassUname(g, currentView, passOrUname)
 		})
+		_, _ = g.SetViewOnBottom("pushPassUname")
 		if err != nil {
 			errMessage := err.Error()
 			if errMessage == "exit status 128" {

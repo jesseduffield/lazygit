@@ -85,6 +85,7 @@ func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string)
 
 	go func() {
 		// Regex to cleanup the command output
+		// sometimes the output words include unneeded spaces at eatch end of the string
 		re := regexp.MustCompile(`(^\s*)|(\s*$)`)
 
 		scanner := bufio.NewScanner(tty)

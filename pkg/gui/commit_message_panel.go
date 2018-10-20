@@ -60,10 +60,11 @@ var waitForGroupActie = false
 func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUname string) string {
 	waitForGroupActie = true
 	waitForGroup.Add(1)
+
 	pushPassUnameView := gui.getPushPassUnameView(g)
 	if passOrUname == "username" {
 		pushPassUnameView.Title = gui.Tr.SLocalize("PushUsername")
-		// pushPassUnameView.Mask = 1
+		pushPassUnameView.Mask = 0
 	} else {
 		pushPassUnameView.Title = gui.Tr.SLocalize("PushPassword")
 		pushPassUnameView.Mask = '*'
@@ -80,15 +81,23 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 		gui.RenderCommitLength()
 		return nil
 	})
+
+	// wait for username/passwords input
 	waitForGroup.Wait()
 	return unamePassMessage
 }
 
 func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
+	if message == "" {
+		// make sure to input something
+		// if not dune the push progress will run forever
+		message = "-"
+	}
 	unamePassMessage = message
 	if waitForGroupActie {
-		defer waitForGroup.Done()
+		waitForGroup.Done()
+		waitForGroupActie = false
 	}
 	err := gui.refreshFiles(g)
 	if err != nil {
@@ -117,7 +126,8 @@ func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
 	}
 	unamePassMessage = ""
 	if waitForGroupActie {
-		defer waitForGroup.Done()
+		waitForGroup.Done()
+		waitForGroupActie = false
 	}
 	return gui.switchFocus(g, v, gui.getFilesView(g))
 }
