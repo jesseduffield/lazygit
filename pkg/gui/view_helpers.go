@@ -94,6 +94,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	case "commitMessage":
 		return gui.handleCommitFocused(g, v)
+	case "pushPassUname":
+		return gui.handlePushFocused(g, v)
 	case "main":
 		// TODO: pull this out into a 'view focused' function
 		gui.refreshMergePanel(g)
@@ -288,6 +290,11 @@ func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	return v
 }
 
+func (gui *Gui) getPushPassUnameView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("pushPassUname")
+	return v
+}
+
 func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("branches")
 	return v
@@ -304,7 +311,7 @@ func (gui *Gui) currentViewName(g *gocui.Gui) string {
 
 func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
 	v := g.CurrentView()
-	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
+	if v.Name() == "commitMessage" || v.Name() == "pushPassUname" || v.Name() == "confirmation" {
 		return gui.resizePopupPanel(g, v)
 	}
 	return nil

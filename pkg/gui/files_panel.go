@@ -355,22 +355,21 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
+func (gui *Gui) pushWithForceFlag(g *gocui.Gui, currentView *gocui.View, force bool) error {
 	if err := gui.createMessagePanel(gui.g, currentView, "", gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {
 		branchName := gui.State.Branches[0].Name
 		err := gui.GitCommand.Push(branchName, force, func(passOrUname string) string {
-			if passOrUname == "password" {
-				// TODO: ask for password
-				return "some password"
-			}
-			// TODO: ask for username
-			return "some username"
+			return gui.waitForPassUname(g, currentView, passOrUname)
 		})
 		if err != nil {
-			_ = gui.createErrorPanel(gui.g, err.Error())
+			errMessage := err.Error()
+			if errMessage == "exit status 128" {
+				errMessage = gui.Tr.SLocalize("PassUnameWrong")
+			}
+			_ = gui.createErrorPanel(gui.g, errMessage)
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)
 			_ = gui.refreshCommits(gui.g)
@@ -384,10 +383,10 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	// if we have pullables we'll ask if the user wants to force push
 	_, pullables := gui.GitCommand.UpstreamDifferenceCount()
 	if pullables == "?" || pullables == "0" {
-		return gui.pushWithForceFlag(v, false)
+		return gui.pushWithForceFlag(g, v, false)
 	}
 	err := gui.createConfirmationPanel(g, nil, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.pushWithForceFlag(v, true)
+		return gui.pushWithForceFlag(g, v, true)
 	}, nil)
 	return err
 }

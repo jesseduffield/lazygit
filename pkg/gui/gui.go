@@ -268,6 +268,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
+	if gui.getPushPassUnameView(g) == nil {
+		// doesn't matter where this view starts because it will be hidden
+		if pushPassUnameView, err := g.SetView("pushPassUname", 0, 0, width/2, height/2, 0); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+			g.SetViewOnBottom("pushPassUname")
+			pushPassUnameView.Title = gui.Tr.SLocalize("PushUsername")
+			pushPassUnameView.FgColor = gocui.ColorWhite
+			pushPassUnameView.Editable = true
+			pushPassUnameView.Editor = gocui.EditorFunc(gui.simpleEditor)
+		}
+	}
+
 	if appStatusView, err := g.SetView("appStatus", -1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err

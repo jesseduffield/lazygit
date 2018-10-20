@@ -3,6 +3,7 @@ package gui
 import (
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/jesseduffield/gocui"
 )
@@ -38,6 +39,71 @@ func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 	if _, err := g.SetViewOnTop("commitMessage"); err != nil {
+		return err
+	}
+
+	message := gui.Tr.TemplateLocalize(
+		"CloseConfirm",
+		Teml{
+			"keyBindClose":   "esc",
+			"keyBindConfirm": "enter",
+		},
+	)
+	return gui.renderString(g, "options", message)
+}
+
+var unamePassMessage = ""
+var waitForGroup sync.WaitGroup
+var waitForGroupActie = false
+
+// waitForPassUname wait for a username or password input from the pushPassUname popup
+func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUname string) string {
+	pushPassUnameView := gui.getPushPassUnameView(g)
+	if passOrUname == "username" {
+		pushPassUnameView.Title = gui.Tr.SLocalize("PushUsername")
+		// pushPassUnameView.Mask = 1
+	} else {
+		pushPassUnameView.Title = gui.Tr.SLocalize("PushPassword")
+		pushPassUnameView.Mask = '*'
+	}
+	g.Update(func(g *gocui.Gui) error {
+		g.SetViewOnTop("pushPassUname")
+		gui.switchFocus(g, currentView, pushPassUnameView)
+		gui.RenderCommitLength()
+		return nil
+	})
+	waitForGroupActie = true
+	waitForGroup.Add(1)
+	waitForGroup.Wait()
+
+	return unamePassMessage
+}
+
+func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
+	message := gui.trimmedContent(v)
+	unamePassMessage = message
+	if waitForGroupActie {
+		defer waitForGroup.Done()
+	}
+	gui.refreshFiles(g)
+	v.Clear()
+	v.SetCursor(0, 0)
+	g.SetViewOnBottom("pushPassUname")
+	gui.switchFocus(g, v, gui.getFilesView(g))
+	return gui.refreshCommits(g)
+}
+
+func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
+	g.SetViewOnBottom("pushPassUname")
+	unamePassMessage = ""
+	if waitForGroupActie {
+		defer waitForGroup.Done()
+	}
+	return gui.switchFocus(g, v, gui.getFilesView(g))
+}
+
+func (gui *Gui) handlePushFocused(g *gocui.Gui, v *gocui.View) error {
+	if _, err := g.SetViewOnTop("pushPassUname"); err != nil {
 		return err
 	}
 
