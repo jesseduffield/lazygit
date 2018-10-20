@@ -36,6 +36,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "PushPassword",
 			Other: "Password",
 		}, &i18n.Message{
+			ID:    "PassUnameWrong",
+			Other: "Password and/or username wrong",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "commituj zmiany",
 		}, &i18n.Message{

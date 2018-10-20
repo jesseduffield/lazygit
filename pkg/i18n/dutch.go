@@ -38,6 +38,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "PushPassword",
 			Other: "Wachtwoord",
 		}, &i18n.Message{
+			ID:    "PassUnameWrong",
+			Other: "Wachtwoord en/of gebruikersnaam verkeert",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "Commit Veranderingen",
 		}, &i18n.Message{
