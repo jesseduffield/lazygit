@@ -6,5 +6,6 @@ package config
 func GetPlatformDefaultConfig() []byte {
 	return []byte(
 		`os:
-  openCommand: 'open {{filename}}'`)
+  openCommand: 'open {{filename}}'
+  openLinkCommand: 'open {{link}}'`)
 }

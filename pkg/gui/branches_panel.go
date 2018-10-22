@@ -22,6 +22,17 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshSidePanels(g)
 }
 
+func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error {
+	branch := gui.getSelectedBranch(gui.getBranchesView(g))
+	pullRequest := commands.NewPullRequest(gui.GitCommand)
+
+	if err := pullRequest.Create(branch); err != nil {
+		return gui.createErrorPanel(g, err.Error())
+	}
+
+	return nil
+}
+
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch(v)
 	message := gui.Tr.SLocalize("SureForceCheckout")
