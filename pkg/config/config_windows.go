@@ -4,5 +4,6 @@ package config
 func GetPlatformDefaultConfig() []byte {
 	return []byte(
 		`os:
-  openCommand: 'cmd /c "start "" {{filename}}"'`)
+  openCommand: 'cmd /c "start "" {{filename}}"'
+  openLinkCommand: 'cmd /c "start "" {{link}}"'`)
 }

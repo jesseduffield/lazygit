@@ -279,6 +279,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("checkout"),
 		}, {
 			ViewName:    "branches",
+			Key:         'o',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreatePullRequestPress,
+			Description: gui.Tr.SLocalize("createPullRequest"),
+		}, {
+			ViewName:    "branches",
 			Key:         'c',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCheckoutByName,

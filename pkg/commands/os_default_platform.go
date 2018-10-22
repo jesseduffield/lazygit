@@ -13,6 +13,7 @@ func getPlatform() *Platform {
 		shellArg:             "-c",
 		escapedQuote:         "'",
 		openCommand:          "open {{filename}}",
+		openLinkCommand:      "open {{link}}",
 		fallbackEscapedQuote: "\"",
 	}
 }
