@@ -388,6 +388,15 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ConfirmQuit",
 			Other: `Weet je zeker dat je dit programma wil sluiten?`,
+		}, &i18n.Message{
+			ID:    "UnsupportedGitService",
+			Other: `Niet-ondersteunde git-service`,
+		}, &i18n.Message{
+			ID:    "createPullRequest",
+			Other: `maak een pull-aanvraag`,
+		}, &i18n.Message{
+			ID:    "NoBranchOnRemote",
+			Other: `Deze tak bestaat niet op de afstandsbediening. U moet eerst op de afstandsbediening drukken.`,
 		},
 	)
 }

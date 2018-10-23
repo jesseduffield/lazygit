@@ -556,6 +556,22 @@ func (c *GitCommand) Show(sha string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
 }
 
+// GetRemoteURL returns current repo remote url
+func (c *GitCommand) GetRemoteURL() string {
+	url, _ := c.OSCommand.RunCommandWithOutput("git config --get remote.origin.url")
+	return utils.TrimTrailingNewline(url)
+}
+
+// CheckRemoteBranchExists Returns remote branch
+func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
+	_, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf(
+		"git show-ref --verify -- refs/remotes/origin/%s",
+		branch.Name,
+	))
+
+	return err == nil
+}
+
 // Diff returns the diff of a file
 func (c *GitCommand) Diff(file *File) string {
 	cachedArg := ""
