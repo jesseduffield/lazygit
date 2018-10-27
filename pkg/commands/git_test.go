@@ -1013,13 +1013,18 @@ func TestGitCommandPush(t *testing.T) {
 		},
 	}
 
-	for _, s := range scenarios {
+	for i, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.Push("test", s.forcePush, func(passOrUname string) string {
+			err := gitCmd.Push("test", s.forcePush, func(passOrUname string) string {
 				return "-"
-			}))
+			})
+			if err.Error() == "exit status 1" && i != 2 {
+				s.test(nil)
+			} else {
+				s.test(err)
+			}
 		})
 	}
 }

@@ -67,14 +67,13 @@ func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string)
 // The ask argument will be "username" or "password" and expects the user's password or username back
 func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
 	ttyText := ""
-	errors := []error{}
 	err := c.RunCommandWithOutputLive(command, func(word string) string {
 		ttyText = ttyText + " " + word
 
 		// detect username question
 		detectUname, err := regexp.MatchString(`Username\s*for\s*'.+':`, ttyText)
 		if err != nil {
-			errors = append(errors, err)
+			return "-"
 		}
 		if detectUname {
 			// reset the text and return the user's username
@@ -85,7 +84,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		// detect password question
 		detectPass, err := regexp.MatchString(`Password\s*for\s*'.+':`, ttyText)
 		if err != nil {
-			errors = append(errors, err)
+			return "-"
 		}
 		if detectPass {
 			// reset the text and return the user's username
@@ -96,9 +95,6 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	})
 	if err != nil {
 		return err
-	}
-	if len(errors) > 0 {
-		return errors[0]
 	}
 	return nil
 }

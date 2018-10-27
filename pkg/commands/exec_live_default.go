@@ -4,6 +4,7 @@ package commands
 
 import (
 	"bufio"
+	"errors"
 	"os/exec"
 	"regexp"
 
@@ -29,7 +30,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	tty, err := pty.Start(cmd)
 
 	if err != nil {
-		return err
+		return errors.New(err.Error())
 	}
 
 	defer func() { _ = tty.Close() }()
@@ -50,7 +51,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	}()
 
 	if err := cmd.Wait(); err != nil {
-		return err
+		return errors.New(err.Error())
 	}
 
 	return nil
