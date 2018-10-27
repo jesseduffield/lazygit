@@ -411,6 +411,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SwitchRepo",
 			Other: `switch to a recent repo`,
+		}, &i18n.Message{
+			ID:    "UnsupportedGitService",
+			Other: `Unsupported git service`,
+		}, &i18n.Message{
+			ID:    "createPullRequest",
+			Other: `create pull request`,
+		}, &i18n.Message{
+			ID:    "NoBranchOnRemote",
+			Other: `This branch doesn't exist on remote. You need to push it to remote first.`,
 		},
 	)
 }
