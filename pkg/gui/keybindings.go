@@ -309,12 +309,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("deleteBranch"),
 		}, {
 			ViewName:    "branches",
-			Key:         'D',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleForceDeleteBranch,
-			Description: gui.Tr.SLocalize("forceDeleteBranch"),
-		}, {
-			ViewName:    "branches",
 			Key:         'm',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleMerge,

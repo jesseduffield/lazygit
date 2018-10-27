@@ -185,7 +185,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Are you sure you want to delete the branch {{.selectedBranchName}}?",
 		}, &i18n.Message{
 			ID:    "ForceDeleteBranchMessage",
-			Other: "Are you sure you want to force delete the branch {{.selectedBranchName}}?",
+			Other: "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "You cannot merge a branch into itself",
