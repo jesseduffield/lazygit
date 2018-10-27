@@ -365,6 +365,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, currentView *gocui.View, force b
 			return gui.waitForPassUname(g, currentView, passOrUname)
 		})
 		_, _ = g.SetViewOnBottom("pushPassUname")
+		_ = g.DeleteView("pushPassUname")
 		if err != nil {
 			errMessage := err.Error()
 			if errMessage == "exit status 128" {
