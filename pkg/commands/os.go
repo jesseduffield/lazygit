@@ -71,10 +71,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		ttyText = ttyText + " " + word
 
 		// detect username question
-		detectUname, err := regexp.MatchString(`Username\s*for\s*'.+':`, ttyText)
-		if err != nil {
-			return "-"
-		}
+		detectUname, _ := regexp.MatchString(`Username\s*for\s*'.+':`, ttyText)
 		if detectUname {
 			// reset the text and return the user's username
 			ttyText = ""
@@ -82,10 +79,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		}
 
 		// detect password question
-		detectPass, err := regexp.MatchString(`Password\s*for\s*'.+':`, ttyText)
-		if err != nil {
-			return "-"
-		}
+		detectPass, _ := regexp.MatchString(`Password\s*for\s*'.+':`, ttyText)
 		if detectPass {
 			// reset the text and return the user's username
 			ttyText = ""
