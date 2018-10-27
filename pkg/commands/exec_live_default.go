@@ -5,10 +5,10 @@ package commands
 import (
 	"bufio"
 	"errors"
+	"os"
 	"os/exec"
 	"regexp"
 
-	"github.com/ionrock/procs"
 	"github.com/kr/pty"
 	"github.com/mgutz/str"
 )
@@ -22,10 +22,8 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	splitCmd := str.ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
-	cmd.Env = procs.Env(map[string]string{
-		"LANG":   "en_US.utf8",
-		"LC_ALL": "en_US.UTF-8",
-	}, true)
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "LANG=en_US.utf8", "LC_ALL=en_US.UTF-8")
 
 	tty, err := pty.Start(cmd)
 

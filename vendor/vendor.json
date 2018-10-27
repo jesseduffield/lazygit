@@ -9,12 +9,6 @@
 			"revisionTime": "2015-05-15T14:53:56Z"
 		},
 		{
-			"checksumSHA1": "AcczqNgc2/sR/+4gklvFe8zs2eE=",
-			"path": "github.com/ionrock/procs",
-			"revision": "f53ef5630f1a1fd42c4e528a04cdaa81265cc66d",
-			"revisionTime": "2018-01-02T00:55:58Z"
-		},
-		{
 			"checksumSHA1": "KU+GT3javo9S9oVEJfqQUKPPUwo=",
 			"path": "github.com/kr/pty",
 			"revision": "fa756f09eeb418bf1cc6268c66ceaad9bb98f598",
