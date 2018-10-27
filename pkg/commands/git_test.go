@@ -1017,7 +1017,9 @@ func TestGitCommandPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.Push("test", s.forcePush))
+			s.test(gitCmd.Push("test", s.forcePush, func(passOrUname string) string {
+				return "-"
+			}))
 		})
 	}
 }
