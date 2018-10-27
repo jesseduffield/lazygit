@@ -9,7 +9,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/mgutz/str"
 	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
@@ -50,7 +49,7 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 // RunCommandWithOutput wrapper around commands returning their output and error
 func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
-	splitCmd := str.ToArgv(command)
+	splitCmd := ToArgv(command)
 	c.Log.Info(splitCmd)
 	return sanitisedCommandOutput(
 		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),

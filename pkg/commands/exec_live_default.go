@@ -10,7 +10,6 @@ import (
 	"regexp"
 
 	"github.com/kr/pty"
-	"github.com/mgutz/str"
 )
 
 // RunCommandWithOutputLiveWrapper runs a command and return every word that gets written in stdout
@@ -19,7 +18,7 @@ import (
 // NOTE: If the return data is empty it won't written anything to stdin
 // NOTE: You don't have to include a enter in the return data this function will do that for you
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) error {
-	splitCmd := str.ToArgv(command)
+	splitCmd := ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
 	cmd.Env = os.Environ()
