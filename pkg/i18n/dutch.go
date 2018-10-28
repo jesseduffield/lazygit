@@ -30,10 +30,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Stash",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
-			Other: "Commit Bericht",
+			Other: "Commit bericht",
 		}, &i18n.Message{
 			ID:    "CommitChanges",
-			Other: "Commit Veranderingen",
+			Other: "Commit veranderingen",
 		}, &i18n.Message{
 			ID:    "AmendLastCommit",
 			Other: "wijzig laatste commit",
@@ -42,10 +42,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Weet je zeker dat je de laatste commit wilt wijzigen? U kunt het commit-bericht wijzigen vanuit het commits-paneel.",
 		}, &i18n.Message{
 			ID:    "NoCommitToAmend",
-			Other: "Er is geen verplichting om te wijzigen.",
+			Other: "Er is geen commits om te wijzigen.",
 		}, &i18n.Message{
 			ID:    "CommitChangesWithEditor",
-			Other: "commit Veranderingen met de git editor",
+			Other: "commit veranderingen met de git editor",
 		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
@@ -83,11 +83,17 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "refresh",
 			Other: "verversen",
 		}, &i18n.Message{
+			ID:    "push",
+			Other: "push",
+		}, &i18n.Message{
+			ID:    "pull",
+			Other: "pull",
+		}, &i18n.Message{
 			ID:    "addPatch",
 			Other: "verandering toevoegen",
 		}, &i18n.Message{
 			ID:    "edit",
-			Other: "verander",
+			Other: "aanpassen",
 		}, &i18n.Message{
 			ID:    "scroll",
 			Other: "scroll",
@@ -96,13 +102,13 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "samenvoegen afbreken",
 		}, &i18n.Message{
 			ID:    "resolveMergeConflicts",
-			Other: "verhelp samenvoegen fouten",
+			Other: "los merge conflicten op",
 		}, &i18n.Message{
 			ID:    "checkout",
 			Other: "uitchecken",
 		}, &i18n.Message{
 			ID:    "NoChangedFiles",
-			Other: "Geen Bestanden verandert",
+			Other: "Geen bestanden veranderd",
 		}, &i18n.Message{
 			ID:    "FileHasNoUnstagedChanges",
 			Other: "Het bestand heeft geen unstaged veranderingen om toe te voegen",
@@ -119,6 +125,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "NoFilesDisplay",
 			Other: "Geen bestanden om te laten zien",
 		}, &i18n.Message{
+			ID:    "NotAFile",
+			Other: "Dit is geen bestand",
+		}, &i18n.Message{
 			ID:    "PullWait",
 			Other: "Pulling...",
 		}, &i18n.Message{
@@ -129,16 +138,16 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Dit bestand heeft geen merge conflicten",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? het kan dat je hierdoor bestanden verliest",
+			Other: "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? Het kan dat je hierdoor bestanden verliest",
 		}, &i18n.Message{
 			ID:    "SureTo",
-			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijdert)",
+			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijderd)",
 		}, &i18n.Message{
 			ID:    "AlreadyCheckedOutBranch",
-			Other: "Je hebt uitgecheckt op deze branch",
+			Other: "Je hebt deze branch al uitgecheckt",
 		}, &i18n.Message{
 			ID:    "SureForceCheckout",
-			Other: "Weet je zeker dat je het uitchecken wil forceren? al je locale verandering zullen worden verwijdert",
+			Other: "Weet je zeker dat je het uitchecken wil forceren? Al je lokale verandering zullen worden verwijdert",
 		}, &i18n.Message{
 			ID:    "ForceCheckoutBranch",
 			Other: "Forceer uitchecken op deze branch",
@@ -156,7 +165,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Verwijder branch",
 		}, &i18n.Message{
 			ID:    "DeleteBranchMessage",
-			Other: "Weet je zeker dat je branch {{.selectedBranchName}} wil verwijderen?",
+			Other: "Weet je zeker dat je branch {{.selectedBranchName}} wilt verwijderen?",
 		}, &i18n.Message{
 			ID:    "ForceDeleteBranchMessage",
 			Other: "Weet je zeker dat je branch {{.selectedBranchName}} geforceerd wil verwijderen?",
@@ -168,7 +177,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "forceer checkout",
 		}, &i18n.Message{
 			ID:    "merge",
-			Other: "merge",
+			Other: "samenvoegen",
 		}, &i18n.Message{
 			ID:    "checkoutByName",
 			Other: "uitchecken bij naam",
@@ -207,7 +216,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "squash beneden",
 		}, &i18n.Message{
 			ID:    "rename",
-			Other: "hernoem",
+			Other: "hernoemen",
 		}, &i18n.Message{
 			ID:    "resetToThisCommit",
 			Other: "reset naar deze commit",
@@ -249,7 +258,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Geen commits voor deze branch",
 		}, &i18n.Message{
 			ID:    "Error",
-			Other: "Fout",
+			Other: "Foutmelding",
 		}, &i18n.Message{
 			ID:    "resizingPopupPanel",
 			Other: "resizen popup paneel",
@@ -258,16 +267,16 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "subprocess lopend",
 		}, &i18n.Message{
 			ID:    "selectHunk",
-			Other: "selecteer Hunk",
+			Other: "selecteer stuk",
 		}, &i18n.Message{
 			ID:    "navigateConflicts",
 			Other: "navigeer conflicts",
 		}, &i18n.Message{
 			ID:    "pickHunk",
-			Other: "kies Hunk",
+			Other: "kies stuk",
 		}, &i18n.Message{
 			ID:    "pickBothHunks",
-			Other: "kies bijde hunks",
+			Other: "kies beide stukken",
 		}, &i18n.Message{
 			ID:    "undo",
 			Other: "ongedaan maken",
@@ -333,28 +342,31 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Forceer push",
 		}, &i18n.Message{
 			ID:    "ForcePushPrompt",
-			Other: "Jou branch is afgeweken van de remote branch. Druk 'esc' om te anuleren, of 'enter' om geforceert te pushen.",
+			Other: "Jouw branch is afgeweken van de remote branch. Druk 'esc' om te annuleren, of 'enter' om geforceert te pushen.",
 		}, &i18n.Message{
 			ID:    "checkForUpdate",
 			Other: "check voor updates",
 		}, &i18n.Message{
 			ID:    "CheckingForUpdates",
-			Other: "checken voor updates...",
+			Other: "zoeken naar updates...",
 		}, &i18n.Message{
 			ID:    "OnLatestVersionErr",
 			Other: "Je hebt al de laatste versie",
 		}, &i18n.Message{
 			ID:    "MajorVersionErr",
-			Other: "Nieuwe versie ({{.newVersion}}) is niet teruggaand compatibele vergeleken met de huidige versie ({{.currentVersion}})",
+			Other: "Nieuwe versie ({{.newVersion}}) is niet backwards compatibele vergeleken met de huidige versie ({{.currentVersion}})",
 		}, &i18n.Message{
 			ID:    "CouldNotFindBinaryErr",
 			Other: "Kon geen binary vinden op {{.url}}",
 		}, &i18n.Message{
 			ID:    "AnonymousReportingTitle",
-			Other: "Help maak lazygit beter",
+			Other: "Help lazygit te verbeteren",
 		}, &i18n.Message{
 			ID:    "AnonymousReportingPrompt",
 			Other: "Zou je anonieme data rapportage willen aanzetten om lazygit beter te kunnen maken? (enter/esc)",
+		}, &i18n.Message{
+			ID:    "GitconfigParseErr",
+			Other: `Gogit kon je gitconfig bestand niet goed parsen door de aanwezigheid van losstaande '\' tekens. Het weghalen van deze tekens zou het probleem moeten oplossen. `,
 		}, &i18n.Message{
 			ID:    "removeFile",
 			Other: `Verwijder als untracked / uitchecken wordt gevolgd (ga weg)`,
@@ -380,6 +392,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "ConfirmQuit",
 			Other: `Weet je zeker dat je dit programma wil sluiten?`,
 		}, &i18n.Message{
+			ID:    "SwitchRepo",
+			Other: "wissel naar een recente repo",
+		}, &i18n.Message{
 			ID:    "UnsupportedGitService",
 			Other: `Niet-ondersteunde git-service`,
 		}, &i18n.Message{
@@ -387,7 +402,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `maak een pull-aanvraag`,
 		}, &i18n.Message{
 			ID:    "NoBranchOnRemote",
-			Other: `Deze tak bestaat niet op de afstandsbediening. U moet eerst op de afstandsbediening drukken.`,
+			Other: `Deze tak bestaat niet op de afstandsbediening. U moet het eerst naar de remote pushen.`,
 		},
 	)
 }
