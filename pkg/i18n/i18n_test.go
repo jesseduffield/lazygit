@@ -76,7 +76,7 @@ func TestLocalizer(t *testing.T) {
 					},
 				}))
 				assert.Equal(t, "Diff", l.SLocalize("DiffTitle"))
-				assert.Equal(t, "Weet je zeker dat je branch test wil verwijderen?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
+				assert.Equal(t, "Weet je zeker dat je branch test wilt verwijderen?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
 			},
 		},
 	}
