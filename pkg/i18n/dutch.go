@@ -90,10 +90,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "pull",
 		}, &i18n.Message{
 			ID:    "addPatch",
-			Other: "verandering toevoegen",
+			Other: "bewerkingen toevoegen",
 		}, &i18n.Message{
 			ID:    "edit",
-			Other: "aanpassen",
+			Other: "bewerken",
 		}, &i18n.Message{
 			ID:    "scroll",
 			Other: "scroll",
@@ -402,7 +402,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `maak een pull-aanvraag`,
 		}, &i18n.Message{
 			ID:    "NoBranchOnRemote",
-			Other: `Deze tak bestaat niet op de afstandsbediening. U moet het eerst naar de remote pushen.`,
+			Other: `Deze branch bestaat niet op de remote. U moet het eerst naar de remote pushen.`,
 		},
 	)
 }
