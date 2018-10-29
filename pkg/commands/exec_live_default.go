@@ -4,10 +4,10 @@ package commands
 
 import (
 	"bufio"
-	"errors"
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
 
 	"github.com/kr/pty"
 )
@@ -17,7 +17,9 @@ import (
 // As return of output you need to give a string that will be written to stdin
 // NOTE: If the return data is empty it won't written anything to stdin
 // NOTE: You don't have to include a enter in the return data this function will do that for you
-func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) error {
+func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) (errorMessage string, codeError error) {
+	cmdOutput := []string{}
+
 	splitCmd := ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
@@ -27,7 +29,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	tty, err := pty.Start(cmd)
 
 	if err != nil {
-		return errors.New(err.Error())
+		return errorMessage, err
 	}
 
 	defer func() { _ = tty.Close() }()
@@ -40,7 +42,9 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		scanner := bufio.NewScanner(tty)
 		scanner.Split(bufio.ScanWords)
 		for scanner.Scan() {
-			toWrite := output(re.ReplaceAllString(scanner.Text(), ""))
+			toOutput := re.ReplaceAllString(scanner.Text(), "")
+			cmdOutput = append(cmdOutput, toOutput)
+			toWrite := output(toOutput)
 			if len(toWrite) > 0 {
 				_, _ = tty.Write([]byte(toWrite + "\n"))
 			}
@@ -48,8 +52,8 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	}()
 
 	if err := cmd.Wait(); err != nil {
-		return errors.New(err.Error())
+		return strings.Join(cmdOutput, " "), err
 	}
 
-	return nil
+	return errorMessage, nil
 }

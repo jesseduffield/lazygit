@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
@@ -1008,23 +1009,23 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Error(t, err)
+				assert.Nil(t, err)
 			},
 		},
 	}
 
-	for i, s := range scenarios {
+	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
 			err := gitCmd.Push("test", s.forcePush, func(passOrUname string) string {
 				return "-"
 			})
-			if err.Error() == "exit status 1" && i != 2 {
-				s.test(nil)
-			} else {
-				s.test(err)
+			errMessage := err.Error()
+			if strings.Contains(errMessage, "error: src refspec test does not match any.") {
+				err = nil
 			}
+			s.test(err)
 		})
 	}
 }
