@@ -70,11 +70,14 @@ func (b *BranchListBuilder) obtainSafeBranches() []*commands.Branch {
 	bIter, err := b.GitCommand.Repo.Branches()
 	if err != nil {
 		panic(err)
-		err = bIter.ForEach(func(b *plumbing.Reference) error {
-			name := b.Name().Short()
-			branches = append(branches, &commands.Branch{Name: name})
-			return nil
-		})
+	}
+	err = bIter.ForEach(func(b *plumbing.Reference) error {
+		name := b.Name().Short()
+		branches = append(branches, &commands.Branch{Name: name})
+		return nil
+	})
+	if err != nil {
+		panic(err)
 	}
 
 	return branches
