@@ -19,6 +19,7 @@ import (
 // NOTE: You don't have to include a enter in the return data this function will do that for you
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) (errorMessage string, codeError error) {
 	cmdOutput := []string{}
+	isAlreadyClosed := false
 
 	splitCmd := ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
@@ -32,7 +33,12 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		return errorMessage, err
 	}
 
-	defer func() { _ = tty.Close() }()
+	defer func() {
+		if !isAlreadyClosed {
+			isAlreadyClosed = true
+			_ = tty.Close()
+		}
+	}()
 
 	go func() {
 		// Regex to cleanup the command output
@@ -52,6 +58,10 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	}()
 
 	if err := cmd.Wait(); err != nil {
+		if !isAlreadyClosed {
+			isAlreadyClosed = true
+			_ = tty.Close()
+		}
 		return strings.Join(cmdOutput, " "), err
 	}
 
