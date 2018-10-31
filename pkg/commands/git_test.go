@@ -1022,7 +1022,12 @@ func TestGitCommandPush(t *testing.T) {
 				return "-"
 			})
 			errMessage := err.Error()
-			if strings.Contains(errMessage, "error: src refspec test does not match any.") {
+			cutrange := 43
+			if len(errMessage) < 43 {
+				cutrange = len(errMessage)
+			}
+			testMessage := errMessage[:cutrange]
+			if strings.Contains("error: src refspec test does not match any.", testMessage) {
 				err = nil
 			}
 			s.test(err)
