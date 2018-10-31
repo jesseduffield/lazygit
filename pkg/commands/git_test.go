@@ -247,7 +247,7 @@ func TestNewGitCommand(t *testing.T) {
 			},
 			func(gitCmd *GitCommand, err error) {
 				assert.Error(t, err)
-				assert.Regexp(t, `fatal: .ot a git repository ((\(or any of the parent directories \): \.git)|(\(or any parent up to mount point \/\)))`, err.Error())
+				assert.Regexp(t, `fatal: .ot a git repository ((\(or any of the parent directories\): \.git)|(\(or any parent up to mount point \/\)))`, err.Error())
 			},
 		},
 		{
