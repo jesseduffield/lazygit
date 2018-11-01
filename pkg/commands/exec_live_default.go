@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/kr/pty"
 )
@@ -19,7 +20,6 @@ import (
 // NOTE: You don't have to include a enter in the return data this function will do that for you
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) (errorMessage string, codeError error) {
 	cmdOutput := []string{}
-	isAlreadyClosed := false
 
 	splitCmd := ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
@@ -33,11 +33,11 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		return errorMessage, err
 	}
 
+	var waitForBufio sync.WaitGroup
+	waitForBufio.Add(1)
+
 	defer func() {
-		if !isAlreadyClosed {
-			isAlreadyClosed = true
-			_ = tty.Close()
-		}
+		_ = tty.Close()
 	}()
 
 	go func() {
@@ -55,13 +55,11 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 				_, _ = tty.Write([]byte(toWrite + "\n"))
 			}
 		}
+		waitForBufio.Done()
 	}()
 
 	if err := cmd.Wait(); err != nil {
-		if !isAlreadyClosed {
-			isAlreadyClosed = true
-			_ = tty.Close()
-		}
+		waitForBufio.Wait()
 		return strings.Join(cmdOutput, " "), err
 	}
 
