@@ -350,20 +350,21 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 			unamePassOpend = true
 			return gui.waitForPassUname(g, v, passOrUname)
 		})
-		if unamePassOpend {
-			_, _ = g.SetViewOnBottom("pushPassUname")
-			_ = g.DeleteView("pushPassUname")
-		}
 		if err != nil {
 			errMessage := err.Error()
 			if errMessage == "exit status 128" {
 				errMessage = gui.Tr.SLocalize("PassUnameWrong")
 			}
-			_ = gui.createErrorPanel(gui.g, errMessage)
-		} else {
-			_ = gui.closeConfirmationPrompt(gui.g)
-			_ = gui.refreshCommits(gui.g)
-			_ = gui.refreshStatus(gui.g)
+			_ = gui.createErrorPanel(g, errMessage)
+		}
+		if unamePassOpend {
+			_, _ = g.SetViewOnBottom("pushPassUname")
+			_ = g.DeleteView("pushPassUname")
+		}
+		if err == nil {
+			_ = gui.closeConfirmationPrompt(g)
+			_ = gui.refreshCommits(g)
+			_ = gui.refreshStatus(g)
 		}
 		gui.refreshFiles(g)
 	}()
@@ -371,7 +372,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error {
-	if err := gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("PushWait")); err != nil {
+	if err := gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {
@@ -381,20 +382,21 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error
 			unamePassOpend = true
 			return gui.waitForPassUname(g, v, passOrUname)
 		})
-		if unamePassOpend {
-			_, _ = g.SetViewOnBottom("pushPassUname")
-			_ = g.DeleteView("pushPassUname")
-		}
 		if err != nil {
 			errMessage := err.Error()
 			if errMessage == "exit status 128" {
 				errMessage = gui.Tr.SLocalize("PassUnameWrong")
 			}
-			_ = gui.createErrorPanel(gui.g, errMessage)
-		} else {
-			_ = gui.closeConfirmationPrompt(gui.g)
-			_ = gui.refreshCommits(gui.g)
-			_ = gui.refreshStatus(gui.g)
+			_ = gui.createErrorPanel(g, errMessage)
+		}
+		if unamePassOpend {
+			_, _ = g.SetViewOnBottom("pushPassUname")
+			_ = g.DeleteView("pushPassUname")
+		}
+		if err == nil {
+			_ = gui.closeConfirmationPrompt(g)
+			_ = gui.refreshCommits(g)
+			_ = gui.refreshStatus(g)
 		}
 	}()
 	return nil
