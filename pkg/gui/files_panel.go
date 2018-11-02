@@ -359,7 +359,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 			if errMessage == "exit status 128" {
 				errMessage = gui.Tr.SLocalize("PassUnameWrong")
 			}
-			gui.createErrorPanel(gui.g, errMessage)
+			_ = gui.createErrorPanel(gui.g, errMessage)
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g)
 			_ = gui.refreshCommits(gui.g)
