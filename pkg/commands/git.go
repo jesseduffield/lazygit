@@ -328,8 +328,8 @@ func (c *GitCommand) Commit(message string, amend bool) (*exec.Cmd, error) {
 }
 
 // Pull pulls from repo
-func (c *GitCommand) Pull() error {
-	return c.OSCommand.RunCommand("git pull --no-edit")
+func (c *GitCommand) Pull(ask func(string) string) error {
+	return c.OSCommand.DetectUnamePass("git pull --no-edit", ask)
 }
 
 // Push pushes to a branch

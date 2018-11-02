@@ -341,31 +341,50 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 }
 
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
-	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PullWait"))
+	if err := gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("PullWait")); err != nil {
+		return err
+	}
 	go func() {
-		if err := gui.GitCommand.Pull(); err != nil {
-			gui.createErrorPanel(g, err.Error())
+		unamePassOpend := false
+		err := gui.GitCommand.Pull(func(passOrUname string) string {
+			unamePassOpend = true
+			return gui.waitForPassUname(g, v, passOrUname)
+		})
+		if unamePassOpend {
+			_, _ = g.SetViewOnBottom("pushPassUname")
+			_ = g.DeleteView("pushPassUname")
+		}
+		if err != nil {
+			errMessage := err.Error()
+			if errMessage == "exit status 128" {
+				errMessage = gui.Tr.SLocalize("PassUnameWrong")
+			}
+			gui.createErrorPanel(gui.g, errMessage)
 		} else {
-			gui.closeConfirmationPrompt(g)
-			gui.refreshCommits(g)
-			gui.refreshStatus(g)
+			_ = gui.closeConfirmationPrompt(gui.g)
+			_ = gui.refreshCommits(gui.g)
+			_ = gui.refreshStatus(gui.g)
 		}
 		gui.refreshFiles(g)
 	}()
 	return nil
 }
 
-func (gui *Gui) pushWithForceFlag(g *gocui.Gui, currentView *gocui.View, force bool) error {
-	if err := gui.createMessagePanel(gui.g, currentView, "", gui.Tr.SLocalize("PushWait")); err != nil {
+func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error {
+	if err := gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {
+		unamePassOpend := false
 		branchName := gui.State.Branches[0].Name
 		err := gui.GitCommand.Push(branchName, force, func(passOrUname string) string {
-			return gui.waitForPassUname(g, currentView, passOrUname)
+			unamePassOpend = true
+			return gui.waitForPassUname(g, v, passOrUname)
 		})
-		_, _ = g.SetViewOnBottom("pushPassUname")
-		_ = g.DeleteView("pushPassUname")
+		if unamePassOpend {
+			_, _ = g.SetViewOnBottom("pushPassUname")
+			_ = g.DeleteView("pushPassUname")
+		}
 		if err != nil {
 			errMessage := err.Error()
 			if errMessage == "exit status 128" {

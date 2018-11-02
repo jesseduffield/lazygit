@@ -84,6 +84,7 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 
 	// wait for username/passwords input
 	waitForGroup.Wait()
+	_ = gui.switchFocus(g, pushPassUnameView, currentView)
 	return unamePassMessage
 }
 
