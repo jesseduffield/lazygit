@@ -377,6 +377,15 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ConfirmQuit",
 			Other: `Na pewno chcesz wyjść z programu?`,
+		}, &i18n.Message{
+			ID:    "UnsupportedGitService",
+			Other: `Nieobsługiwana usługa git`,
+		}, &i18n.Message{
+			ID:    "createPullRequest",
+			Other: `utwórz żądanie wyciągnięcia`,
+		}, &i18n.Message{
+			ID:    "NoBranchOnRemote",
+			Other: `Ta gałąź nie istnieje na zdalnym. Najpierw musisz go odepchnąć na odległość.`,
 		},
 	)
 }

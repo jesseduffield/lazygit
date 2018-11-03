@@ -8,9 +8,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-
 	"github.com/mgutz/str"
-
 	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
@@ -22,6 +20,7 @@ type Platform struct {
 	shellArg             string
 	escapedQuote         string
 	openCommand          string
+	openLinkCommand      string
 	fallbackEscapedQuote string
 }
 
@@ -103,6 +102,18 @@ func (c *OSCommand) OpenFile(filename string) error {
 	commandTemplate := c.Config.GetUserConfig().GetString("os.openCommand")
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
+	}
+
+	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
+	err := c.RunCommand(command)
+	return err
+}
+
+// OpenFile opens a file with the given
+func (c *OSCommand) OpenLink(link string) error {
+	commandTemplate := c.Config.GetUserConfig().GetString("os.openLinkCommand")
+	templateValues := map[string]string{
+		"link": c.Quote(link),
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)

@@ -176,7 +176,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Are you sure you want to delete the branch {{.selectedBranchName}}?",
 		}, &i18n.Message{
 			ID:    "ForceDeleteBranchMessage",
-			Other: "Are you sure you want to force delete the branch {{.selectedBranchName}}?",
+			Other: "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "You cannot merge a branch into itself",
@@ -402,6 +402,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SwitchRepo",
 			Other: `switch to a recent repo`,
+		}, &i18n.Message{
+			ID:    "UnsupportedGitService",
+			Other: `Unsupported git service`,
+		}, &i18n.Message{
+			ID:    "createPullRequest",
+			Other: `create pull request`,
+		}, &i18n.Message{
+			ID:    "NoBranchOnRemote",
+			Other: `This branch doesn't exist on remote. You need to push it to remote first.`,
 		},
 	)
 }
