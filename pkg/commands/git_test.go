@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 	"testing"
 	"time"
 
@@ -983,7 +982,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Nil(t, err)
+				assert.Equal(t, "exit status 128", err.Error())
 			},
 		},
 		{
@@ -996,7 +995,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			true,
 			func(err error) {
-				assert.Nil(t, err)
+				assert.Equal(t, "exit status 128", err.Error())
 			},
 		},
 		{
@@ -1009,7 +1008,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Nil(t, err)
+				assert.Equal(t, "exit status 128", err.Error())
 			},
 		},
 	}
@@ -1021,15 +1020,6 @@ func TestGitCommandPush(t *testing.T) {
 			err := gitCmd.Push("test", s.forcePush, func(passOrUname string) string {
 				return "-"
 			})
-			errMessage := err.Error()
-			cutrange := 43
-			if len(errMessage) < 43 {
-				cutrange = len(errMessage)
-			}
-			testMessage := errMessage[:cutrange]
-			if strings.Contains("error: src refspec test does not match any.", testMessage) {
-				err = nil
-			}
 			s.test(err)
 		})
 	}

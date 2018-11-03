@@ -20,6 +20,7 @@ import (
 // NOTE: You don't have to include a enter in the return data this function will do that for you
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) (errorMessage string, codeError error) {
 	cmdOutput := []string{}
+	canAsk := true
 
 	splitCmd := ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
@@ -48,17 +49,23 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		scanner := bufio.NewScanner(tty)
 		scanner.Split(bufio.ScanWords)
 		for scanner.Scan() {
-			toOutput := re.ReplaceAllString(scanner.Text(), "")
-			cmdOutput = append(cmdOutput, toOutput)
-			toWrite := output(toOutput)
-			if len(toWrite) > 0 {
-				_, _ = tty.Write([]byte(toWrite + "\n"))
+			// canAsk prefrents calls to output when the program is already closed
+			if canAsk {
+				toOutput := re.ReplaceAllString(scanner.Text(), "")
+				cmdOutput = append(cmdOutput, toOutput)
+				toWrite := output(toOutput)
+				if len(toWrite) > 0 {
+					_, _ = tty.Write([]byte(toWrite + "\n"))
+				}
 			}
 		}
 		waitForBufio.Done()
 	}()
 
 	if err := cmd.Wait(); err != nil {
+		canAsk = false
+
+		//
 		waitForBufio.Wait()
 		return strings.Join(cmdOutput, " "), err
 	}
