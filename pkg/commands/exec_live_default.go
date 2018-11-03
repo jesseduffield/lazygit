@@ -20,7 +20,6 @@ import (
 // NOTE: You don't have to include a enter in the return data this function will do that for you
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) (errorMessage string, codeError error) {
 	cmdOutput := []string{}
-	canAsk := true
 
 	splitCmd := ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
@@ -32,6 +31,19 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 
 	if err != nil {
 		return errorMessage, err
+	}
+
+	var canAskLock sync.Mutex
+	canAskValue := true
+	canAsk := func() bool {
+		canAskLock.Lock()
+		defer canAskLock.Unlock()
+		return canAskValue
+	}
+	stopCanAsk := func() {
+		canAskLock.Lock()
+		defer canAskLock.Unlock()
+		canAskValue = false
 	}
 
 	var waitForBufio sync.WaitGroup
@@ -50,7 +62,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		scanner.Split(bufio.ScanWords)
 		for scanner.Scan() {
 			// canAsk prefrents calls to output when the program is already closed
-			if canAsk {
+			if canAsk() {
 				toOutput := re.ReplaceAllString(scanner.Text(), "")
 				cmdOutput = append(cmdOutput, toOutput)
 				toWrite := output(toOutput)
@@ -63,9 +75,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	}()
 
 	if err := cmd.Wait(); err != nil {
-		canAsk = false
-
-		//
+		stopCanAsk()
 		waitForBufio.Wait()
 		return strings.Join(cmdOutput, " "), err
 	}
