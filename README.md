@@ -69,6 +69,12 @@ and the git version which builds from the most recent commit.
 Instruction of how to install AUR content can be found here:
 https://wiki.archlinux.org/index.php/Arch_User_Repository
 
+### Conda
+Released versions are available for different platforms, see https://anaconda.org/conda-forge/lazygit
+```sh
+conda install -c conda-forge lazygit
+```
+
 ### Binary Release (Windows/Linux/OSX)
 You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases).
 

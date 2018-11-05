@@ -22,6 +22,17 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshSidePanels(g)
 }
 
+func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error {
+	branch := gui.getSelectedBranch(gui.getBranchesView(g))
+	pullRequest := commands.NewPullRequest(gui.GitCommand)
+
+	if err := pullRequest.Create(branch); err != nil {
+		return gui.createErrorPanel(g, err.Error())
+	}
+
+	return nil
+}
+
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch(v)
 	message := gui.Tr.SLocalize("SureForceCheckout")
@@ -76,6 +87,10 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 	if checkedOutBranch.Name == selectedBranch.Name {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
 	}
+	return gui.deleteNamedBranch(g, v, selectedBranch, force)
+}
+
+func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *commands.Branch, force bool) error {
 	title := gui.Tr.SLocalize("DeleteBranch")
 	var messageId string
 	if force {
@@ -91,7 +106,12 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 	)
 	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
-			return gui.createErrorPanel(g, err.Error())
+			errMessage := err.Error()
+			if !force && strings.Contains(errMessage, "is not fully merged") {
+				return gui.deleteNamedBranch(g, v, selectedBranch, true)
+			} else {
+				return gui.createErrorPanel(g, errMessage)
+			}
 		}
 		return gui.refreshSidePanels(g)
 	}, nil)

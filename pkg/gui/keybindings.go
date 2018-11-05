@@ -279,6 +279,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("checkout"),
 		}, {
 			ViewName:    "branches",
+			Key:         'o',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreatePullRequestPress,
+			Description: gui.Tr.SLocalize("createPullRequest"),
+		}, {
+			ViewName:    "branches",
 			Key:         'c',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCheckoutByName,
@@ -301,12 +307,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleDeleteBranch,
 			Description: gui.Tr.SLocalize("deleteBranch"),
-		}, {
-			ViewName:    "branches",
-			Key:         'D',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleForceDeleteBranch,
-			Description: gui.Tr.SLocalize("forceDeleteBranch"),
 		}, {
 			ViewName:    "branches",
 			Key:         'm',
