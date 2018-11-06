@@ -87,8 +87,9 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		return ""
 	})
 	if err != nil {
-		if errorCode := err.Error(); strings.Contains("exit status 128", errorCode) {
-			errMessage = "exit status 128"
+		if strings.Contains("exit status 128", err.Error()) {
+			// errMessage = "exit status 128"
+			errMessage = errMessage
 		}
 		return errors.New(errMessage)
 	}

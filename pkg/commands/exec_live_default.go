@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"unicode/utf8"
 
 	"github.com/kr/pty"
 )
@@ -33,6 +34,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		return errorMessage, err
 	}
 
+	// canAsk makes sure there are no data races in go
 	var canAskLock sync.Mutex
 	canAskValue := true
 	canAsk := func() bool {
@@ -59,7 +61,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		re := regexp.MustCompile(`(^\s*)|(\s*$)`)
 
 		scanner := bufio.NewScanner(tty)
-		scanner.Split(bufio.ScanWords)
+		scanner.Split(scanWordsWithNewLines)
 		for scanner.Scan() {
 			// canAsk prefrents calls to output when the program is already closed
 			if canAsk() {
@@ -74,11 +76,57 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		waitForBufio.Done()
 	}()
 
-	if err := cmd.Wait(); err != nil {
+	if err = cmd.Wait(); err != nil {
 		stopCanAsk()
 		waitForBufio.Wait()
 		return strings.Join(cmdOutput, " "), err
 	}
 
 	return errorMessage, nil
+}
+
+// scanWordsWithNewLines is a copy of bufio.ScanWords but this also captures new lines
+func scanWordsWithNewLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	start := 0
+	for width := 0; start < len(data); start += width {
+		var r rune
+		r, width = utf8.DecodeRune(data[start:])
+		if !isSpace(r) {
+			break
+		}
+	}
+	for width, i := 0, start; i < len(data); i += width {
+		var r rune
+		r, width = utf8.DecodeRune(data[i:])
+		if isSpace(r) {
+			return i + width, data[start:i], nil
+		}
+	}
+	if atEOF && len(data) > start {
+		return len(data), data[start:], nil
+	}
+	return start, nil, nil
+}
+
+// isSpace is also copied form bufio.ScanWords and has been modiefied to also captures new lines
+func isSpace(r rune) bool {
+	if r <= '\u00FF' {
+		// Obvious ASCII ones: \t through \r plus space. Plus two Latin-1 oddballs.
+		switch r {
+		case ' ', '\t', '\v', '\f':
+			return true
+		case '\u0085', '\u00A0':
+			return true
+		}
+		return false
+	}
+	// High-valued ones.
+	if '\u2000' <= r && r <= '\u200a' {
+		return true
+	}
+	switch r {
+	case '\u1680', '\u2028', '\u2029', '\u202f', '\u205f', '\u3000':
+		return true
+	}
+	return false
 }
