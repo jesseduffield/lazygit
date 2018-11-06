@@ -86,6 +86,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 }
 
 // scanWordsWithNewLines is a copy of bufio.ScanWords but this also captures new lines
+// For specific comments about this function take a look at: bufio.ScanWords
 func scanWordsWithNewLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	start := 0
 	for width := 0; start < len(data); start += width {
@@ -108,10 +109,10 @@ func scanWordsWithNewLines(data []byte, atEOF bool) (advance int, token []byte, 
 	return start, nil, nil
 }
 
-// isSpace is also copied form bufio.ScanWords and has been modiefied to also captures new lines
+// isSpace is also copied from the bufio package and has been modified to also captures new lines
+// For specific comments about this function take a look at: bufio.isSpace
 func isSpace(r rune) bool {
 	if r <= '\u00FF' {
-		// Obvious ASCII ones: \t through \r plus space. Plus two Latin-1 oddballs.
 		switch r {
 		case ' ', '\t', '\v', '\f':
 			return true
@@ -120,7 +121,6 @@ func isSpace(r rune) bool {
 		}
 		return false
 	}
-	// High-valued ones.
 	if '\u2000' <= r && r <= '\u200a' {
 		return true
 	}
