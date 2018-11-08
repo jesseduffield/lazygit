@@ -12,14 +12,15 @@ import (
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug       bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version     string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit      string `long:"commit" env:"COMMIT"`
-	BuildDate   string `long:"build-date" env:"BUILD_DATE"`
-	Name        string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig  *viper.Viper
-	AppState    *AppState
+	Debug            bool   `long:"debug" env:"DEBUG" default:"false"`
+	Version          string `long:"version" env:"VERSION" default:"unversioned"`
+	Commit           string `long:"commit" env:"COMMIT"`
+	BuildDate        string `long:"build-date" env:"BUILD_DATE"`
+	Name             string `long:"name" env:"NAME" default:"lazygit"`
+	BuildSource      string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	ScrollPastBottom bool   `long:"scroll-past-bottom" env:"SCROLL_PAST_BOTTOM" default:"false"`
+	UserConfig       *viper.Viper
+	AppState         *AppState
 }
 
 // AppConfigurer interface allows individual app config structs to inherit Fields
@@ -31,6 +32,7 @@ type AppConfigurer interface {
 	GetBuildDate() string
 	GetName() string
 	GetBuildSource() string
+	GetScrollPastBottom() bool
 	GetUserConfig() *viper.Viper
 	GetAppState() *AppState
 	WriteToUserConfig(string, string) error
@@ -39,21 +41,22 @@ type AppConfigurer interface {
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag *bool) (*AppConfig, error) {
+func NewAppConfig(name, version, commit, date string, buildSource string, scrollFlag, debuggingFlag *bool) (*AppConfig, error) {
 	userConfig, err := LoadConfig("config", true)
 	if err != nil {
 		return nil, err
 	}
 
 	appConfig := &AppConfig{
-		Name:        "lazygit",
-		Version:     version,
-		Commit:      commit,
-		BuildDate:   date,
-		Debug:       *debuggingFlag,
-		BuildSource: buildSource,
-		UserConfig:  userConfig,
-		AppState:    &AppState{},
+		Name:             "lazygit",
+		Version:          version,
+		Commit:           commit,
+		BuildDate:        date,
+		Debug:            *debuggingFlag,
+		BuildSource:      buildSource,
+		ScrollPastBottom: *scrollFlag,
+		UserConfig:       userConfig,
+		AppState:         &AppState{},
 	}
 
 	if err := appConfig.LoadAppState(); err != nil {
@@ -92,6 +95,11 @@ func (c *AppConfig) GetName() string {
 // this will be binaryBuild
 func (c *AppConfig) GetBuildSource() string {
 	return c.BuildSource
+}
+
+// GetScrollPastBottom returns whether lazygit let user scroll past the bottom
+func (c *AppConfig) GetScrollPastBottom() bool {
+	return c.ScrollPastBottom
 }
 
 // GetUserConfig returns the user config

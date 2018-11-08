@@ -21,6 +21,7 @@ var (
 	configFlag    = flag.Bool("config", false, "Print the current default config")
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
+	scrollFlag    = flag.Bool("s", false, "Enable scrolling past the bottom")
 )
 
 func projectPath(path string) string {
@@ -39,7 +40,7 @@ func main() {
 		fmt.Printf("%s\n", config.GetDefaultConfig())
 		os.Exit(0)
 	}
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, scrollFlag, debuggingFlag)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
