@@ -130,7 +130,8 @@ func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
-	if oy < len(mainView.BufferLines()) {
+	_, sy := mainView.Size()
+	if oy+sy < len(mainView.BufferLines()) {
 		return mainView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
 	}
 	return nil
