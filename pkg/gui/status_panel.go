@@ -58,7 +58,7 @@ func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
 			"Copyright (c) 2018 Jesse Duffield",
 			"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md",
 			"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
-			"Tutorial: https://www.youtube.com/watch?v=VDXvbHZYeKY",
+			"Tutorial: https://youtu.be/VDXvbHZYeKY",
 			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
 			"Buy Jesse a coffee: https://donorbox.org/lazygit",
 		}, "\n\n")

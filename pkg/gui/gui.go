@@ -181,6 +181,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			}
 			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
 			v.Wrap = true
+			g.SetCurrentView(v.Name())
 		}
 		return nil
 	}
