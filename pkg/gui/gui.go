@@ -70,6 +70,7 @@ type Gui struct {
 	Errors        SentinelErrors
 	Updater       *updates.Updater
 	statusManager *statusManager
+	credentials   credentials
 }
 
 type guiState struct {

@@ -52,14 +52,16 @@ func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 	return gui.renderString(g, "options", message)
 }
 
-var unamePassMessage = ""
-var waitForGroup sync.WaitGroup
-var waitForGroupActie = false
+type credentials struct {
+	unamePassMessage  string
+	waitForGroup      sync.WaitGroup
+	waitForGroupActie bool
+}
 
 // waitForPassUname wait for a username or password input from the pushPassUname popup
 func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUname string) string {
-	waitForGroupActie = true
-	waitForGroup.Add(1)
+	gui.credentials.waitForGroupActie = true
+	gui.credentials.waitForGroup.Add(1)
 
 	pushPassUnameView, _ := g.View("pushPassUname")
 	if passOrUname == "username" {
@@ -83,8 +85,8 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 	})
 
 	// wait for username/passwords input
-	waitForGroup.Wait()
-	return unamePassMessage
+	gui.credentials.waitForGroup.Wait()
+	return gui.credentials.unamePassMessage
 }
 
 func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
@@ -94,10 +96,10 @@ func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
 		// if not dune the push progress will run forever
 		message = "-"
 	}
-	unamePassMessage = message
-	if waitForGroupActie {
-		waitForGroup.Done()
-		waitForGroupActie = false
+	gui.credentials.unamePassMessage = message
+	if gui.credentials.waitForGroupActie {
+		gui.credentials.waitForGroup.Done()
+		gui.credentials.waitForGroupActie = false
 	}
 	err := gui.refreshFiles(g)
 	if err != nil {
@@ -124,10 +126,10 @@ func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	unamePassMessage = ""
-	if waitForGroupActie {
-		waitForGroup.Done()
-		waitForGroupActie = false
+	gui.credentials.unamePassMessage = ""
+	if gui.credentials.waitForGroupActie {
+		gui.credentials.waitForGroup.Done()
+		gui.credentials.waitForGroupActie = false
 	}
 	return gui.switchFocus(g, v, gui.getFilesView(g))
 }
