@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/kr/pty"
+	"github.com/mgutz/str"
 )
 
 // RunCommandWithOutputLiveWrapper runs a command and return every word that gets written in stdout
@@ -21,7 +22,7 @@ import (
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) (errorMessage string, codeError error) {
 	cmdOutput := []string{}
 
-	splitCmd := ToArgv(command)
+	splitCmd := str.ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
 	cmd.Env = os.Environ()
