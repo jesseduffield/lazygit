@@ -33,19 +33,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		return errorMessage, err
 	}
 
-	// canAsk makes sure there are no data races in go
-	var canAskLock sync.Mutex
-	canAskValue := true
-	canAsk := func() bool {
-		canAskLock.Lock()
-		defer canAskLock.Unlock()
-		return canAskValue
-	}
-	stopCanAsk := func() {
-		canAskLock.Lock()
-		defer canAskLock.Unlock()
-		canAskValue = false
-	}
+	stopAsking := make(chan struct{})
 
 	var waitForBufio sync.WaitGroup
 	waitForBufio.Add(1)
@@ -57,9 +45,12 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	go func() {
 		scanner := bufio.NewScanner(tty)
 		scanner.Split(scanWordsWithNewLines)
+	loop:
 		for scanner.Scan() {
-			// canAsk prefrents calls to output when the program is already closed
-			if canAsk() {
+			select {
+			case <-stopAsking:
+				break loop
+			default:
 				toOutput := strings.Trim(scanner.Text(), " ")
 				cmdOutput = append(cmdOutput, toOutput)
 				toWrite := output(toOutput)
@@ -72,7 +63,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	}()
 
 	if err = cmd.Wait(); err != nil {
-		stopCanAsk()
+		stopAsking <- struct{}{}
 		waitForBufio.Wait()
 		return strings.Join(cmdOutput, " "), err
 	}
