@@ -14,7 +14,7 @@ Jira? This is the app for you!
     [Keybindings](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md)
   * [Cool Features](https://github.com/jesseduffield/lazygit#cool-features)
   * [Contributing](https://github.com/jesseduffield/lazygit#contributing)
-  * [Video Tutorial](https://www.youtube.com/watch?v=VDXvbHZYeKY)
+  * [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
   * [Twitch Stream](https://www.twitch.tv/jesseduffield)
 
 ## Installation
@@ -94,7 +94,7 @@ Call `lazygit` in your terminal inside a git repository. If you want, you can
 also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or
 whichever rc file you're using).
 
-  * Basic video tutorial [here](https://www.youtube.com/watch?v=VDXvbHZYeKY).
+  * Basic video tutorial [here](https://youtu.be/VDXvbHZYeKY).
   * List of keybindings
 [here](/docs/Keybindings.md).
 
