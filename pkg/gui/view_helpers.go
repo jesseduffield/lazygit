@@ -290,11 +290,6 @@ func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 	return v
 }
 
-func (gui *Gui) getPushPassUnameView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("pushPassUname")
-	return v
-}
-
 func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("branches")
 	return v

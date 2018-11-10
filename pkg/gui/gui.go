@@ -269,7 +269,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if gui.getPushPassUnameView(g) == nil {
+	if check, _ := g.View("pushPassUname"); check == nil {
 		// doesn't matter where this view starts because it will be hidden
 		if pushPassUnameView, err := g.SetView("pushPassUname", 0, 0, width/2, height/2, 0); err != nil {
 			if err != gocui.ErrUnknownView {

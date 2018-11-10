@@ -61,7 +61,7 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 	waitForGroupActie = true
 	waitForGroup.Add(1)
 
-	pushPassUnameView := gui.getPushPassUnameView(g)
+	pushPassUnameView, _ := g.View("pushPassUname")
 	if passOrUname == "username" {
 		pushPassUnameView.Title = gui.Tr.SLocalize("PushUsername")
 		pushPassUnameView.Mask = 0
