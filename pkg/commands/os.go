@@ -75,11 +75,11 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 			canAskFor bool
 		}
 		prompts := map[string]Prompt{
-			"password": Prompt{
+			"password": {
 				pattern:   `Password\s*for\s*'.+':`,
 				canAskFor: true,
 			},
-			"username": Prompt{
+			"username": {
 				pattern:   `Username\s*for\s*'.+':`,
 				canAskFor: true,
 			},
