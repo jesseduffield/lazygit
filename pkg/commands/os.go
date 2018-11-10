@@ -69,21 +69,20 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	errMessage, err := c.RunCommandWithOutputLive(command, func(word string) string {
 		ttyText = ttyText + " " + word
 
-		// detect username question
-		detectUname, _ := regexp.MatchString(`Username\s*for\s*'.+':`, ttyText)
-		if detectUname {
-			// reset the text and return the user's username
-			ttyText = ""
-			return ask("username")
+		// prompt and patterns to check if the user needs to input a username / password
+		prompts := map[string]string{
+			"password": `Password\s*for\s*'.+':`,
+			"username": `Username\s*for\s*'.+':`,
 		}
 
-		// detect password question
-		detectPass, _ := regexp.MatchString(`Password\s*for\s*'.+':`, ttyText)
-		if detectPass {
-			// reset the text and return the user's username
-			ttyText = ""
-			return ask("password")
+		for prompt, pattern := range prompts {
+			match, _ := regexp.MatchString(pattern, ttyText)
+			if match {
+				ttyText = ""
+				return ask(prompt)
+			}
 		}
+
 		return ""
 	})
 	if err != nil {
