@@ -12,3 +12,4 @@ for d in $( find ./* -maxdepth 10 ! -path "./vendor*" ! -path "./.git*" ! -path 
         fi
     fi
 done
+ 
