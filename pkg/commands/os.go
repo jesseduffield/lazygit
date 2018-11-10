@@ -77,8 +77,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		}
 
 		for prompt, pattern := range prompts {
-			match, _ := regexp.MatchString(pattern, ttyText)
-			if match {
+			if match, _ := regexp.MatchString(pattern, ttyText); match {
 				ttyText = ""
 				return ask(prompt)
 			}

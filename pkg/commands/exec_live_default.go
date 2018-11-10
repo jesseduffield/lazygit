@@ -46,11 +46,10 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	go func() {
 		scanner := bufio.NewScanner(tty)
 		scanner.Split(scanWordsWithNewLines)
-	loop:
 		for scanner.Scan() {
 			select {
 			case <-stopAsking:
-				break loop
+				// just do nothing
 			default:
 				toOutput := strings.Trim(scanner.Text(), " ")
 				cmdOutput = append(cmdOutput, toOutput)
@@ -63,8 +62,12 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		waitForBufio.Done()
 	}()
 
-	if err = cmd.Wait(); err != nil {
+	err = cmd.Wait()
+	go func() {
 		stopAsking <- struct{}{}
+	}()
+	<-stopAsking
+	if err != nil {
 		waitForBufio.Wait()
 		return strings.Join(cmdOutput, " "), err
 	}
