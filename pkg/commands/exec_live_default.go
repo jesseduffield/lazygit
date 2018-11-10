@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -56,16 +55,12 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	}()
 
 	go func() {
-		// Regex to cleanup the command output
-		// sometimes the output words include unneeded spaces at eatch end of the string
-		re := regexp.MustCompile(`(^\s*)|(\s*$)`)
-
 		scanner := bufio.NewScanner(tty)
 		scanner.Split(scanWordsWithNewLines)
 		for scanner.Scan() {
 			// canAsk prefrents calls to output when the program is already closed
 			if canAsk() {
-				toOutput := re.ReplaceAllString(scanner.Text(), "")
+				toOutput := strings.Trim(scanner.Text(), " ")
 				cmdOutput = append(cmdOutput, toOutput)
 				toWrite := output(toOutput)
 				if len(toWrite) > 0 {
