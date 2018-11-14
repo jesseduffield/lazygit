@@ -6,6 +6,7 @@
   gui:
     # stuff relating to the UI
     scrollHeight: 2 # how many lines you scroll by
+    scrollPastBottom: true # enable scrolling past the bottom
     theme:
       activeBorderColor:
         - white
