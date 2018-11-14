@@ -208,11 +208,6 @@ func includesInt(list []int, a int) bool {
 	return false
 }
 
-// GetBranchName branch name
-func (c *GitCommand) GetBranchName() (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
-}
-
 // ResetHard does the equivalent of `git reset --hard HEAD`
 func (c *GitCommand) ResetHard() error {
 	return c.Worktree.Reset(&gogit.ResetOptions{Mode: gogit.HardReset})
@@ -268,11 +263,14 @@ func (c *GitCommand) NewBranch(name string) error {
 }
 
 func (c *GitCommand) CurrentBranchName() (string, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	branchName, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
 	if err != nil {
-		return "", err
+		branchName, err = c.OSCommand.RunCommandWithOutput("git rev-parse --short HEAD")
+		if err != nil {
+			return "", err
+		}
 	}
-	return utils.TrimTrailingNewline(output), nil
+	return utils.TrimTrailingNewline(branchName), nil
 }
 
 // DeleteBranch delete branch

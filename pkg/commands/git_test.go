@@ -1661,6 +1661,10 @@ func TestGitCommandGetCommits(t *testing.T) {
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 					// here's where we are returning the error
 					return exec.Command("test")
+				case "rev-parse":
+					assert.EqualValues(t, []string{"rev-parse", "--short", "HEAD"}, args)
+					// here too
+					return exec.Command("test")
 				}
 
 				return nil
@@ -1886,8 +1890,28 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 			"says we are on the master branch if we are",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.Equal(t, "git", cmd)
-				assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 				return exec.Command("echo", "master")
+			},
+			func(output string, err error) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, "master", output)
+			},
+		},
+		{
+			"falls back to git rev-parse if symbolic-ref fails",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+
+				switch args[0] {
+				case "symbolic-ref":
+					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+					return exec.Command("test")
+				case "rev-parse":
+					assert.EqualValues(t, []string{"rev-parse", "--short", "HEAD"}, args)
+					return exec.Command("echo", "master")
+				}
+
+				return nil
 			},
 			func(output string, err error) {
 				assert.NoError(t, err)
@@ -1898,7 +1922,6 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 			"bubbles up error if there is one",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.Equal(t, "git", cmd)
-				assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 				return exec.Command("test")
 			},
 			func(output string, err error) {
