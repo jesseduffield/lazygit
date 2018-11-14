@@ -66,7 +66,6 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	go func() {
 		stopAsking <- struct{}{}
 	}()
-	<-stopAsking
 	if err != nil {
 		waitForBufio.Wait()
 		return strings.Join(cmdOutput, " "), err
