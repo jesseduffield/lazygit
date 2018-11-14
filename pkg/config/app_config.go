@@ -214,6 +214,7 @@ func GetDefaultConfig() []byte {
 		`gui:
   ## stuff relating to the UI
   scrollHeight: 2
+  scrollPastBottom: true
   theme:
     activeBorderColor:
       - white
