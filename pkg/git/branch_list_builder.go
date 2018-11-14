@@ -35,15 +35,11 @@ func NewBranchListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand) (*
 }
 
 func (b *BranchListBuilder) obtainCurrentBranch() *commands.Branch {
-	// I used go-git for this, but that breaks if you've just done a git init,
-	// even though you're on 'master'
-	branchName, err := b.GitCommand.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	branchName, err := b.GitCommand.CurrentBranchName()
 	if err != nil {
-		branchName, err = b.GitCommand.OSCommand.RunCommandWithOutput("git rev-parse --short HEAD")
-		if err != nil {
-			panic(err.Error())
-		}
+		panic(err.Error())
 	}
+
 	return &commands.Branch{Name: strings.TrimSpace(branchName), Recency: "  *"}
 }
 
