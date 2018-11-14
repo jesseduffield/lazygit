@@ -40,7 +40,7 @@ func (b *BranchListBuilder) obtainCurrentBranch() *commands.Branch {
 		panic(err.Error())
 	}
 
-	return &commands.Branch{Name: strings.TrimSpace(branchName), Recency: "  *"}
+	return &commands.Branch{Name: strings.TrimSpace(branchName)}
 }
 
 func (b *BranchListBuilder) obtainReflogBranches() []*commands.Branch {
@@ -57,7 +57,7 @@ func (b *BranchListBuilder) obtainReflogBranches() []*commands.Branch {
 		branch := &commands.Branch{Name: branchName, Recency: timeNumber + timeUnit}
 		branches = append(branches, branch)
 	}
-	return branches
+	return uniqueByName(branches)
 }
 
 func (b *BranchListBuilder) obtainSafeBranches() []*commands.Branch {
@@ -99,17 +99,20 @@ func (b *BranchListBuilder) Build() []*commands.Branch {
 	branches := make([]*commands.Branch, 0)
 	head := b.obtainCurrentBranch()
 	safeBranches := b.obtainSafeBranches()
-	if len(safeBranches) == 0 {
-		return append(branches, head)
-	}
+
 	reflogBranches := b.obtainReflogBranches()
-	reflogBranches = uniqueByName(append([]*commands.Branch{head}, reflogBranches...))
 	for i, reflogBranch := range reflogBranches {
 		reflogBranches[i].Name = sanitisedReflogName(reflogBranch, safeBranches)
 	}
 
 	branches = b.appendNewBranches(branches, reflogBranches, safeBranches, true)
 	branches = b.appendNewBranches(branches, safeBranches, branches, false)
+
+	if len(branches) == 0 || branches[0].Name != head.Name {
+		branches = append([]*commands.Branch{head}, branches...)
+	}
+
+	branches[0].Recency = "  *"
 
 	return branches
 }
