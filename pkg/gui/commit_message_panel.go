@@ -3,7 +3,6 @@ package gui
 import (
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/gocui"
 )
@@ -52,17 +51,11 @@ func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 	return gui.renderString(g, "options", message)
 }
 
-type credentials struct {
-	unamePassMessage  string
-	waitForGroup      sync.WaitGroup
-	waitForGroupActie bool
-}
+type credentials chan string
 
 // waitForPassUname wait for a username or password input from the pushPassUname popup
 func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUname string) string {
-	gui.credentials.waitForGroupActie = true
-	gui.credentials.waitForGroup.Add(1)
-
+	gui.credentials = make(chan string)
 	pushPassUnameView, _ := g.View("pushPassUname")
 	if passOrUname == "username" {
 		pushPassUnameView.Title = gui.Tr.SLocalize("PushUsername")
@@ -85,8 +78,8 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 	})
 
 	// wait for username/passwords input
-	gui.credentials.waitForGroup.Wait()
-	return gui.credentials.unamePassMessage
+	userInput := <-gui.credentials
+	return userInput
 }
 
 func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
@@ -96,11 +89,7 @@ func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
 		// if not dune the push progress will run forever
 		message = "-"
 	}
-	gui.credentials.unamePassMessage = message
-	if gui.credentials.waitForGroupActie {
-		gui.credentials.waitForGroup.Done()
-		gui.credentials.waitForGroupActie = false
-	}
+	gui.credentials <- message
 	err := gui.refreshFiles(g)
 	if err != nil {
 		return err
@@ -126,11 +115,7 @@ func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	gui.credentials.unamePassMessage = ""
-	if gui.credentials.waitForGroupActie {
-		gui.credentials.waitForGroup.Done()
-		gui.credentials.waitForGroupActie = false
-	}
+	gui.credentials <- ""
 	return gui.switchFocus(g, v, gui.getFilesView(g))
 }
 
