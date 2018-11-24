@@ -1,5 +1,5 @@
 // call from project root with
-// go run bin/push_new_patch.go
+// go run scripts/push_new_patch/main.go
 
 // goreleaser expects a $GITHUB_TOKEN env variable to be defined
 // in order to push the release got github
