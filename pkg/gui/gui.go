@@ -453,7 +453,7 @@ func (gui *Gui) Run() error {
 	go func() {
 		err := gui.fetch(g)
 		if err == nil {
-			gui.goEvery(g, time.Second*10, gui.fetch)
+			gui.goEvery(g, time.Second*60, gui.fetch)
 		}
 	}()
 	gui.goEvery(g, time.Second*10, gui.refreshFiles)
