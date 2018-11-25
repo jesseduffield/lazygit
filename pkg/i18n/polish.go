@@ -395,6 +395,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoBranchOnRemote",
 			Other: `Ta gałąź nie istnieje na zdalnym. Najpierw musisz go odepchnąć na odległość.`,
+		}, &i18n.Message{
+			ID:    "RepoRequiresCredentialsTitle",
+			Other: `Repo requires credentials`,
+		}, &i18n.Message{
+			ID:    "RepoRequiresCredentialsBody",
+			Other: `Lazygit needs credentials to use git fetch`,
 		},
 	)
 }

@@ -11,10 +11,12 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	// "strings"
 
+	"github.com/fatih/color"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -350,9 +352,50 @@ func (gui *Gui) promptAnonymousReporting() error {
 }
 
 func (gui *Gui) fetch(g *gocui.Gui) error {
-	gui.GitCommand.Fetch()
+	err := gui.GitCommand.Fetch(func(passOrUname string) string {
+		if !gui.GitCommand.SavedCredentials.HasAsked {
+			var wg sync.WaitGroup
+			wg.Add(1)
+			gui.GitCommand.SavedCredentials.HasAsked = true
+			close := func(g *gocui.Gui, v *gocui.View) error {
+				wg.Done()
+				return nil
+			}
+			_ = gui.createConfirmationPanel(
+				g,
+				g.CurrentView(),
+				gui.Tr.SLocalize("RepoRequiresCredentialsTitle"),
+				gui.Tr.SLocalize("RepoRequiresCredentialsBody"),
+				close,
+				close,
+			)
+			wg.Wait()
+		}
+		return gui.waitForPassUname(gui.g, gui.g.CurrentView(), passOrUname)
+	}, false)
+
+	var reTryErr error
+	if err != nil && strings.Contains(err.Error(), "exit status 128") {
+		var wg sync.WaitGroup
+		wg.Add(1)
+
+		currentView := g.CurrentView()
+		colorFunction := color.New(color.FgRed).SprintFunc()
+		coloredMessage := colorFunction(strings.TrimSpace(gui.Tr.SLocalize("PassUnameWrong")))
+		close := func(g *gocui.Gui, v *gocui.View) error {
+			wg.Done()
+			return nil
+		}
+		_ = gui.createConfirmationPanel(g, currentView, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
+		wg.Wait()
+		reTryErr = gui.fetch(g)
+	}
+
 	gui.refreshStatus(g)
-	return nil
+	if reTryErr != nil {
+		return reTryErr
+	}
+	return err
 }
 
 func (gui *Gui) updateLoader(g *gocui.Gui) error {
@@ -407,7 +450,12 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
-	gui.goEvery(g, time.Second*60, gui.fetch)
+	go func() {
+		err := gui.fetch(g)
+		if err == nil {
+			gui.goEvery(g, time.Second*10, gui.fetch)
+		}
+	}()
 	gui.goEvery(g, time.Second*10, gui.refreshFiles)
 	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
 	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)

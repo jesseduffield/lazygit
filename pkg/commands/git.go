@@ -63,6 +63,7 @@ type GitCommand struct {
 	Worktree           *gogit.Worktree
 	Repo               *gogit.Repository
 	Tr                 *i18n.Localizer
+	SavedCredentials   SavedCredentials
 	getGlobalGitConfig func(string) (string, error)
 	getLocalGitConfig  func(string) (string, error)
 	removeFile         func(string) error
@@ -93,12 +94,19 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 		}
 	}
 
+	credentials := SavedCredentials{
+		Username: "",
+		Password: "",
+		HasAsked: false,
+	}
+
 	return &GitCommand{
 		Log:                log,
 		OSCommand:          osCommand,
 		Tr:                 tr,
 		Worktree:           worktree,
 		Repo:               repo,
+		SavedCredentials:   credentials,
 		getGlobalGitConfig: gitconfig.Global,
 		getLocalGitConfig:  gitconfig.Local,
 		removeFile:         os.RemoveAll,
@@ -247,9 +255,43 @@ func (c *GitCommand) RenameCommit(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name)))
 }
 
+// SavedCredentials are the user's git login credentials
+type SavedCredentials struct {
+	Username string
+	Password string
+	HasAsked bool
+}
+
 // Fetch fetch git repo
-func (c *GitCommand) Fetch() error {
-	return c.OSCommand.RunCommand("git fetch")
+func (c *GitCommand) Fetch(unamePassQuestion func(string) string, runDry bool) error {
+	newCredentials := SavedCredentials{
+		Username: c.SavedCredentials.Username,
+		Password: c.SavedCredentials.Password,
+	}
+	cmd := "git fetch"
+	if runDry {
+		cmd += " --dry-run"
+	}
+
+	err := c.OSCommand.DetectUnamePass(cmd, func(question string) string {
+		if question == "username" && len(c.SavedCredentials.Username) != 0 {
+			return c.SavedCredentials.Username
+		}
+		if question == "password" && len(c.SavedCredentials.Password) != 0 {
+			return c.SavedCredentials.Password
+		}
+		output := unamePassQuestion(question)
+		if question == "password" {
+			newCredentials.Password = output
+		} else {
+			newCredentials.Username = output
+		}
+		return output
+	})
+	if err == nil {
+		c.SavedCredentials = newCredentials
+	}
+	return err
 }
 
 // ResetToCommit reset to commit
