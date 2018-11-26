@@ -24,3 +24,6 @@ lazygit
 !.goreleaser.yml
 !.circleci/
 !.github/
+
+# Docker volumes
+test/git_server/data/*

@@ -1,0 +1,59 @@
+# to use this server, run `docker-compose up` in this directory, then connect
+# in the browser via http://localhost:3000/
+# when registering an account it'll ask you to configure the database etc, just scroll to the bottom and continue
+# make a new account with any credentials you like, make a repo, then you can clone it and pull/push to it
+# To use SSL, use port 3001, and you'll need to run the following to skip ssl verification
+# git config --global http.sslVerify false
+
+# I haven't gotten username/password requests working yet, I'm not sure how to
+
+# nginx_config/cert.pem is just an auto-generated self-signed certificate
+# generated with:
+# openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+
+# to add a delay to the server requests, comment out the delay lines in nginx_config/conf.d/default.conf
+
+version: '3'
+
+services:
+  nginx:
+    image: openresty/openresty
+    container_name: nginx
+    depends_on:
+      - server
+    volumes:
+      - ./nginx_config/:/etc/nginx/
+    ports:
+      - 3000:80
+      - 3001:443
+      - 22:22
+
+  server:
+    image: gitea/gitea:latest
+    restart: always
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - DB_TYPE=mysql
+      - DB_HOST=db:3306
+      - DB_NAME=gitea
+      - DB_USER=gitea
+      - DB_PASSWD=gitea
+    volumes:
+      - ./data/server:/data
+    expose:
+      - '3000'
+      - '22'
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=gitea
+      - MYSQL_USER=gitea
+      - MYSQL_PASSWORD=gitea
+      - MYSQL_DATABASE=gitea
+    volumes:
+      - ./data/mysql:/var/lib/mysql
