@@ -278,7 +278,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandQuoteSingleQuote tests the quote function with " quotes explicitly for Linux
+// TestOSCommandQuoteDoubleQuote tests the quote function with " quotes explicitly for Linux
 func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	osCommand := newDummyOSCommand()
 
