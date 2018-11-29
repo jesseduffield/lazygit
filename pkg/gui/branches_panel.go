@@ -94,6 +94,27 @@ func (gui *Gui) handleBranchesPrevLine(g *gocui.Gui, v *gocui.View) error {
 
 // specific functions
 
+func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
+
+	selectedBranch := gui.getSelectedBranch(v).Name
+	checkedOutBranch := gui.State.Branches[0].Name
+	title := "Rebasing"
+	prompt := fmt.Sprintf("Are you sure you want to rebase %s onto %s?", checkedOutBranch, selectedBranch)
+
+	return gui.createConfirmationPanel(g, v, title, prompt,
+		func(g *gocui.Gui, v *gocui.View) error {
+			if selectedBranch == checkedOutBranch {
+				return gui.createErrorPanel(g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
+			}
+			if err := gui.GitCommand.RebaseBranch(selectedBranch); err != nil {
+				gui.createErrorPanel(g, "Failed to rebase")
+				return gui.GitCommand.AbortRebaseBranch()
+			}
+
+			return gui.refreshSidePanels(g)
+		}, nil)
+}
+
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 	if gui.State.Panels.Branches.SelectedLine == -1 {
 		return nil
