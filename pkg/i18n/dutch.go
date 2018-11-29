@@ -170,6 +170,12 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "ForceDeleteBranchMessage",
 			Other: "Weet je zeker dat je branch {{.selectedBranchName}} geforceerd wil verwijderen?",
 		}, &i18n.Message{
+			ID:    "rebaseBranch",
+			Other: "rebase branch",
+		}, &i18n.Message{
+			ID:    "CantRebaseOntoSelf",
+			Other: "It is not possible to rebase the branch onto itself!",
+		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Je kan niet een branch in zichzelf mergen",
 		}, &i18n.Message{

@@ -159,6 +159,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "ForceDeleteBranchMessage",
 			Other: "Na pewno wymusić usunięcie gałęzi {{.selectedBranchName}}?",
 		}, &i18n.Message{
+			ID:    "rebaseBranch",
+			Other: "rebase branch",
+		}, &i18n.Message{
+			ID:    "CantRebaseOntoSelf",
+			Other: "It is not possible to rebase the branch onto itself!",
+		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Nie możesz scalić gałęzi do samej siebie",
 		}, &i18n.Message{

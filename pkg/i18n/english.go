@@ -178,6 +178,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "ForceDeleteBranchMessage",
 			Other: "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
 		}, &i18n.Message{
+			ID:    "rebaseBranch",
+			Other: "rebase branch",
+		}, &i18n.Message{
+			ID:    "CantRebaseOntoSelf",
+			Other: "It is not possible to rebase the branch onto itself!",
+		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "You cannot merge a branch into itself",
 		}, &i18n.Message{
