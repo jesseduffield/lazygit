@@ -13,6 +13,7 @@ type Commit struct {
 	DisplayString string
 }
 
+// GetDisplayStrings is a function
 func (c *Commit) GetDisplayStrings() []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgGreen)
