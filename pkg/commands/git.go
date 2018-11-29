@@ -260,6 +260,19 @@ func (c *GitCommand) RenameCommit(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name)))
 }
 
+func (c *GitCommand) RebaseBranch(onto string) error {
+	curBranch, err := c.CurrentBranchName()
+	if err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunCommand(fmt.Sprintf("git rebase %s %s ", onto, curBranch))
+}
+
+func (c *GitCommand) AbortRebaseBranch() error {
+	return c.OSCommand.RunCommand("git rebase --abort")
+}
+
 // Fetch fetch git repo
 func (c *GitCommand) Fetch() error {
 	return c.OSCommand.RunCommand("git fetch")
