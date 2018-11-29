@@ -107,7 +107,9 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 				return gui.createErrorPanel(g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
 			}
 			if err := gui.GitCommand.RebaseBranch(selectedBranch); err != nil {
-				gui.createErrorPanel(g, "Failed to rebase")
+				if err := gui.createErrorPanel(g, "Failed to rebase"); err != nil {
+					gui.Log.Println(err.Error())
+				}
 				return gui.GitCommand.AbortRebaseBranch()
 			}
 
