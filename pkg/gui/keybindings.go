@@ -318,6 +318,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("deleteBranch"),
 		}, {
 			ViewName:    "branches",
+			Key:         'r',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleRebase,
+			Description: gui.Tr.SLocalize("rebaseBranch"),
+		}, {
+			ViewName:    "branches",
 			Key:         'm',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleMerge,
