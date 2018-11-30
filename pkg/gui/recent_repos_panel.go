@@ -14,7 +14,7 @@ type recentRepo struct {
 	path string
 }
 
-// GetDisplayStrings is a function
+// GetDisplayStrings is a function.
 func (r *recentRepo) GetDisplayStrings() []string {
 	yellow := color.New(color.FgMagenta)
 	base := filepath.Base(r.path)

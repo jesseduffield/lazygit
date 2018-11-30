@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestGetRepoInfoFromURL is a function
+// TestGetRepoInfoFromURL is a function.
 func TestGetRepoInfoFromURL(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -42,7 +42,7 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 	}
 }
 
-// TestCreatePullRequest is a function
+// TestCreatePullRequest is a function.
 func TestCreatePullRequest(t *testing.T) {
 	type scenario struct {
 		testName string

@@ -23,32 +23,32 @@ type fileInfoMock struct {
 	sys         interface{}
 }
 
-// Name is a function
+// Name is a function.
 func (f fileInfoMock) Name() string {
 	return f.name
 }
 
-// Size is a function
+// Size is a function.
 func (f fileInfoMock) Size() int64 {
 	return f.size
 }
 
-// Mode is a function
+// Mode is a function.
 func (f fileInfoMock) Mode() os.FileMode {
 	return f.fileMode
 }
 
-// ModTime is a function
+// ModTime is a function.
 func (f fileInfoMock) ModTime() time.Time {
 	return f.fileModTime
 }
 
-// IsDir is a function
+// IsDir is a function.
 func (f fileInfoMock) IsDir() bool {
 	return f.isDir
 }
 
-// Sys is a function
+// Sys is a function.
 func (f fileInfoMock) Sys() interface{} {
 	return f.sys
 }
@@ -70,7 +70,7 @@ func newDummyGitCommand() *GitCommand {
 	}
 }
 
-// TestVerifyInGitRepo is a function
+// TestVerifyInGitRepo is a function.
 func TestVerifyInGitRepo(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -107,7 +107,7 @@ func TestVerifyInGitRepo(t *testing.T) {
 	}
 }
 
-// TestNavigateToRepoRootDirectory is a function
+// TestNavigateToRepoRootDirectory is a function.
 func TestNavigateToRepoRootDirectory(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -164,7 +164,7 @@ func TestNavigateToRepoRootDirectory(t *testing.T) {
 	}
 }
 
-// TestSetupRepositoryAndWorktree is a function
+// TestSetupRepositoryAndWorktree is a function.
 func TestSetupRepositoryAndWorktree(t *testing.T) {
 	type scenario struct {
 		testName          string
@@ -233,7 +233,7 @@ func TestSetupRepositoryAndWorktree(t *testing.T) {
 	}
 }
 
-// TestNewGitCommand is a function
+// TestNewGitCommand is a function.
 func TestNewGitCommand(t *testing.T) {
 	actual, err := os.Getwd()
 	assert.NoError(t, err)
@@ -281,7 +281,7 @@ func TestNewGitCommand(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetStashEntries is a function
+// TestGitCommandGetStashEntries is a function.
 func TestGitCommandGetStashEntries(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -334,7 +334,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetStashEntryDiff is a function
+// TestGitCommandGetStashEntryDiff is a function.
 func TestGitCommandGetStashEntryDiff(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -349,7 +349,7 @@ func TestGitCommandGetStashEntryDiff(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestGitCommandGetStatusFiles is a function
+// TestGitCommandGetStatusFiles is a function.
 func TestGitCommandGetStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -436,7 +436,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 	}
 }
 
-// TestGitCommandStashDo is a function
+// TestGitCommandStashDo is a function.
 func TestGitCommandStashDo(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -449,7 +449,7 @@ func TestGitCommandStashDo(t *testing.T) {
 	assert.NoError(t, gitCmd.StashDo(1, "drop"))
 }
 
-// TestGitCommandStashSave is a function
+// TestGitCommandStashSave is a function.
 func TestGitCommandStashSave(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -462,7 +462,7 @@ func TestGitCommandStashSave(t *testing.T) {
 	assert.NoError(t, gitCmd.StashSave("A stash message"))
 }
 
-// TestGitCommandCommitAmend is a function
+// TestGitCommandCommitAmend is a function.
 func TestGitCommandCommitAmend(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -476,7 +476,7 @@ func TestGitCommandCommitAmend(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestGitCommandMergeStatusFiles is a function
+// TestGitCommandMergeStatusFiles is a function.
 func TestGitCommandMergeStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -557,7 +557,7 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 	}
 }
 
-// TestGitCommandUpstreamDifferentCount is a function
+// TestGitCommandUpstreamDifferentCount is a function.
 func TestGitCommandUpstreamDifferentCount(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -615,7 +615,7 @@ func TestGitCommandUpstreamDifferentCount(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetCommitsToPush is a function
+// TestGitCommandGetCommitsToPush is a function.
 func TestGitCommandGetCommitsToPush(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -654,7 +654,7 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 	}
 }
 
-// TestGitCommandRenameCommit is a function
+// TestGitCommandRenameCommit is a function.
 func TestGitCommandRenameCommit(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -667,7 +667,7 @@ func TestGitCommandRenameCommit(t *testing.T) {
 	assert.NoError(t, gitCmd.RenameCommit("test"))
 }
 
-// TestGitCommandResetToCommit is a function
+// TestGitCommandResetToCommit is a function.
 func TestGitCommandResetToCommit(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -680,7 +680,7 @@ func TestGitCommandResetToCommit(t *testing.T) {
 	assert.NoError(t, gitCmd.ResetToCommit("78976bc"))
 }
 
-// TestGitCommandNewBranch is a function
+// TestGitCommandNewBranch is a function.
 func TestGitCommandNewBranch(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -693,7 +693,7 @@ func TestGitCommandNewBranch(t *testing.T) {
 	assert.NoError(t, gitCmd.NewBranch("test"))
 }
 
-// TestGitCommandDeleteBranch is a function
+// TestGitCommandDeleteBranch is a function.
 func TestGitCommandDeleteBranch(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -743,7 +743,7 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 	}
 }
 
-// TestGitCommandMerge is a function
+// TestGitCommandMerge is a function.
 func TestGitCommandMerge(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -756,7 +756,7 @@ func TestGitCommandMerge(t *testing.T) {
 	assert.NoError(t, gitCmd.Merge("test"))
 }
 
-// TestGitCommandUsingGpg is a function
+// TestGitCommandUsingGpg is a function.
 func TestGitCommandUsingGpg(t *testing.T) {
 	type scenario struct {
 		testName           string
@@ -850,7 +850,7 @@ func TestGitCommandUsingGpg(t *testing.T) {
 	}
 }
 
-// TestGitCommandCommit is a function
+// TestGitCommandCommit is a function.
 func TestGitCommandCommit(t *testing.T) {
 	type scenario struct {
 		testName           string
@@ -920,7 +920,7 @@ func TestGitCommandCommit(t *testing.T) {
 	}
 }
 
-// TestGitCommandCommitAmendFromFiles is a function
+// TestGitCommandCommitAmendFromFiles is a function.
 func TestGitCommandCommitAmendFromFiles(t *testing.T) {
 	type scenario struct {
 		testName           string
@@ -990,7 +990,7 @@ func TestGitCommandCommitAmendFromFiles(t *testing.T) {
 	}
 }
 
-// TestGitCommandPush is a function
+// TestGitCommandPush is a function.
 func TestGitCommandPush(t *testing.T) {
 	type scenario struct {
 		testName  string
@@ -1050,7 +1050,7 @@ func TestGitCommandPush(t *testing.T) {
 	}
 }
 
-// TestGitCommandSquashPreviousTwoCommits is a function
+// TestGitCommandSquashPreviousTwoCommits is a function.
 func TestGitCommandSquashPreviousTwoCommits(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1114,7 +1114,7 @@ func TestGitCommandSquashPreviousTwoCommits(t *testing.T) {
 	}
 }
 
-// TestGitCommandSquashFixupCommit is a function
+// TestGitCommandSquashFixupCommit is a function.
 func TestGitCommandSquashFixupCommit(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1178,7 +1178,7 @@ func TestGitCommandSquashFixupCommit(t *testing.T) {
 	}
 }
 
-// TestGitCommandCatFile is a function
+// TestGitCommandCatFile is a function.
 func TestGitCommandCatFile(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -1193,7 +1193,7 @@ func TestGitCommandCatFile(t *testing.T) {
 	assert.Equal(t, "test", o)
 }
 
-// TestGitCommandStageFile is a function
+// TestGitCommandStageFile is a function.
 func TestGitCommandStageFile(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -1206,7 +1206,7 @@ func TestGitCommandStageFile(t *testing.T) {
 	assert.NoError(t, gitCmd.StageFile("test.txt"))
 }
 
-// TestGitCommandUnstageFile is a function
+// TestGitCommandUnstageFile is a function.
 func TestGitCommandUnstageFile(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1253,7 +1253,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 	}
 }
 
-// TestGitCommandIsInMergeState is a function
+// TestGitCommandIsInMergeState is a function.
 func TestGitCommandIsInMergeState(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1322,7 +1322,7 @@ func TestGitCommandIsInMergeState(t *testing.T) {
 	}
 }
 
-// TestGitCommandRemoveFile is a function
+// TestGitCommandRemoveFile is a function.
 func TestGitCommandRemoveFile(t *testing.T) {
 	type scenario struct {
 		testName   string
@@ -1524,7 +1524,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 	}
 }
 
-// TestGitCommandShow is a function
+// TestGitCommandShow is a function.
 func TestGitCommandShow(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -1538,7 +1538,7 @@ func TestGitCommandShow(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestGitCommandCheckout is a function
+// TestGitCommandCheckout is a function.
 func TestGitCommandCheckout(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1585,7 +1585,7 @@ func TestGitCommandCheckout(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetBranchGraph is a function
+// TestGitCommandGetBranchGraph is a function.
 func TestGitCommandGetBranchGraph(t *testing.T) {
 	gitCmd := newDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
@@ -1599,7 +1599,7 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestGitCommandGetCommits is a function
+// TestGitCommandGetCommits is a function.
 func TestGitCommandGetCommits(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1721,7 +1721,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetLog is a function
+// TestGitCommandGetLog is a function.
 func TestGitCommandGetLog(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1764,7 +1764,7 @@ func TestGitCommandGetLog(t *testing.T) {
 	}
 }
 
-// TestGitCommandDiff is a function
+// TestGitCommandDiff is a function.
 func TestGitCommandDiff(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1827,7 +1827,7 @@ func TestGitCommandDiff(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetMergeBase is a function
+// TestGitCommandGetMergeBase is a function.
 func TestGitCommandGetMergeBase(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -1917,7 +1917,7 @@ func TestGitCommandGetMergeBase(t *testing.T) {
 	}
 }
 
-// TestGitCommandCurrentBranchName is a function
+// TestGitCommandCurrentBranchName is a function.
 func TestGitCommandCurrentBranchName(t *testing.T) {
 	type scenario struct {
 		testName string

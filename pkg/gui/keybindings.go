@@ -21,7 +21,7 @@ func (b *Binding) GetDisplayStrings() []string {
 	return []string{b.GetKey(), b.Description}
 }
 
-// GetKey is a function
+// GetKey is a function.
 func (b *Binding) GetKey() string {
 	r, ok := b.Key.(rune)
 	key := ""
@@ -35,7 +35,7 @@ func (b *Binding) GetKey() string {
 	return key
 }
 
-// GetKeybindings is a function
+// GetKeybindings is a function.
 func (gui *Gui) GetKeybindings() []*Binding {
 	bindings := []*Binding{
 		{

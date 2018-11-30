@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestSplitLines is a function
+// TestSplitLines is a function.
 func TestSplitLines(t *testing.T) {
 	type scenario struct {
 		multilineString string
@@ -37,7 +37,7 @@ func TestSplitLines(t *testing.T) {
 	}
 }
 
-// TestWithPadding is a function
+// TestWithPadding is a function.
 func TestWithPadding(t *testing.T) {
 	type scenario struct {
 		str      string
@@ -63,7 +63,7 @@ func TestWithPadding(t *testing.T) {
 	}
 }
 
-// TestTrimTrailingNewline is a function
+// TestTrimTrailingNewline is a function.
 func TestTrimTrailingNewline(t *testing.T) {
 	type scenario struct {
 		str      string
@@ -86,7 +86,7 @@ func TestTrimTrailingNewline(t *testing.T) {
 	}
 }
 
-// TestNormalizeLinefeeds is a function
+// TestNormalizeLinefeeds is a function.
 func TestNormalizeLinefeeds(t *testing.T) {
 	type scenario struct {
 		byteArray []byte
@@ -120,7 +120,7 @@ func TestNormalizeLinefeeds(t *testing.T) {
 	}
 }
 
-// TestResolvePlaceholderString is a function
+// TestResolvePlaceholderString is a function.
 func TestResolvePlaceholderString(t *testing.T) {
 	type scenario struct {
 		templateString string
@@ -174,7 +174,7 @@ func TestResolvePlaceholderString(t *testing.T) {
 	}
 }
 
-// TestDisplayArraysAligned is a function
+// TestDisplayArraysAligned is a function.
 func TestDisplayArraysAligned(t *testing.T) {
 	type scenario struct {
 		input    [][]string
@@ -203,12 +203,12 @@ type myDisplayable struct {
 
 type myStruct struct{}
 
-// GetDisplayStrings is a function
+// GetDisplayStrings is a function.
 func (d *myDisplayable) GetDisplayStrings() []string {
 	return d.strings
 }
 
-// TestGetDisplayStringArrays is a function
+// TestGetDisplayStringArrays is a function.
 func TestGetDisplayStringArrays(t *testing.T) {
 	type scenario struct {
 		input    []Displayable
@@ -230,7 +230,7 @@ func TestGetDisplayStringArrays(t *testing.T) {
 	}
 }
 
-// TestRenderDisplayableList is a function
+// TestRenderDisplayableList is a function.
 func TestRenderDisplayableList(t *testing.T) {
 	type scenario struct {
 		input          []Displayable
@@ -272,7 +272,7 @@ func TestRenderDisplayableList(t *testing.T) {
 	}
 }
 
-// TestRenderList is a function
+// TestRenderList is a function.
 func TestRenderList(t *testing.T) {
 	type scenario struct {
 		input          interface{}
@@ -311,7 +311,7 @@ func TestRenderList(t *testing.T) {
 	}
 }
 
-// TestGetPaddedDisplayStrings is a function
+// TestGetPaddedDisplayStrings is a function.
 func TestGetPaddedDisplayStrings(t *testing.T) {
 	type scenario struct {
 		stringArrays [][]string
@@ -332,7 +332,7 @@ func TestGetPaddedDisplayStrings(t *testing.T) {
 	}
 }
 
-// TestGetPadWidths is a function
+// TestGetPadWidths is a function.
 func TestGetPadWidths(t *testing.T) {
 	type scenario struct {
 		stringArrays [][]string
@@ -359,7 +359,7 @@ func TestGetPadWidths(t *testing.T) {
 	}
 }
 
-// TestMin is a function
+// TestMin is a function.
 func TestMin(t *testing.T) {
 	type scenario struct {
 		a        int
@@ -390,7 +390,7 @@ func TestMin(t *testing.T) {
 	}
 }
 
-// TestIncludesString is a function
+// TestIncludesString is a function.
 func TestIncludesString(t *testing.T) {
 	type scenario struct {
 		list     []string

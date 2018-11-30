@@ -82,7 +82,7 @@ func (gui *Gui) getBufferLength(view *gocui.View) string {
 	return " " + strconv.Itoa(strings.Count(view.Buffer(), "")-1) + " "
 }
 
-// RenderCommitLength is a function
+// RenderCommitLength is a function.
 func (gui *Gui) RenderCommitLength() {
 	if !gui.Config.GetUserConfig().GetBool("gui.commitLength.show") {
 		return

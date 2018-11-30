@@ -262,7 +262,7 @@ func (c *GitCommand) NewBranch(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -b %s", name))
 }
 
-// CurrentBranchName is a function
+// CurrentBranchName is a function.
 func (c *GitCommand) CurrentBranchName() (string, error) {
 	branchName, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
 	if err != nil {
