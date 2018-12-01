@@ -159,7 +159,7 @@ func getDefaultConfig() []byte {
       optionsTextColor:
         - blue
   git:
-    # git difftool --no-prompt --extcmd="icdiff --cols={{width}}" {{args}} -- {{filename}}
+    # git difftool --no-prompt --extcmd="icdiff --cols={{width}}" {{args}} {{filename}}
     # git diff --color {{args}} -- {{filename}} | diff-so-fancy
     fileDiffTemplate: 'git diff --color {{args}} {{filename}}'
   os:
