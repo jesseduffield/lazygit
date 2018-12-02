@@ -34,7 +34,7 @@ func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error 
 }
 
 func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
-	gui.fetch(g, true)
+	_ = gui.fetch(g, true)
 	return nil
 }
 
