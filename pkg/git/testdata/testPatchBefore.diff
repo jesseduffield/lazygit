@@ -1,0 +1,15 @@
+diff --git a/pkg/git/branch_list_builder.go b/pkg/git/branch_list_builder.go
+index 60ec4e0..db4485d 100644
+--- a/pkg/git/branch_list_builder.go
++++ b/pkg/git/branch_list_builder.go
+@@ -14,8 +14,8 @@ import (
+ 
+ // context:
+ // we want to only show 'safe' branches (ones that haven't e.g. been deleted)
+-// which `git branch -a` gives us, but we also want the recency data that
+-// git reflog gives us.
++// test 2 - if I remove this, I decrement the end counter
++// test
+ // So we get the HEAD, then append get the reflog branches that intersect with
+ // our safe branches, then add the remaining safe branches, ensuring uniqueness
+ // along the way
