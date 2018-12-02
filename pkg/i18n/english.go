@@ -421,11 +421,8 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "NoBranchOnRemote",
 			Other: `This branch doesn't exist on remote. You need to push it to remote first.`,
 		}, &i18n.Message{
-			ID:    "RepoRequiresCredentialsTitle",
-			Other: `Repo requires credentials`,
-		}, &i18n.Message{
-			ID:    "RepoRequiresCredentialsBody",
-			Other: `Lazygit needs credentials to use git fetch`,
+			ID:    "fetch",
+			Other: `fetch`,
 		},
 	)
 }

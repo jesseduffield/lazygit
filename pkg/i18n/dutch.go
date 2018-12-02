@@ -413,11 +413,8 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "NoBranchOnRemote",
 			Other: `Deze branch bestaat niet op de remote. U moet het eerst naar de remote pushen.`,
 		}, &i18n.Message{
-			ID:    "RepoRequiresCredentialsTitle",
-			Other: `Repo heeft inloggegevens nodig`,
-		}, &i18n.Message{
-			ID:    "RepoRequiresCredentialsBody",
-			Other: `Lazygit heeft inloggegevens nodig om git fetch te kunnen gebruiken`,
+			ID:    "fetch",
+			Other: `fetch`,
 		},
 	)
 }

@@ -297,6 +297,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("forceCheckout"),
 		}, {
 			ViewName:    "branches",
+			Key:         'f',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleGitFetch,
+			Description: gui.Tr.SLocalize("fetch"),
+		}, {
+			ViewName:    "branches",
 			Key:         'n',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleNewBranch,

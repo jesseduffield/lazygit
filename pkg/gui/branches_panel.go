@@ -33,6 +33,11 @@ func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error 
 	return nil
 }
 
+func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
+	gui.fetch(g, true)
+	return nil
+}
+
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch(v)
 	message := gui.Tr.SLocalize("SureForceCheckout")

@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"sync"
 	"time"
 
 	// "strings"
@@ -351,50 +350,21 @@ func (gui *Gui) promptAnonymousReporting() error {
 	})
 }
 
-func (gui *Gui) fetch(g *gocui.Gui) error {
+func (gui *Gui) fetch(g *gocui.Gui, canSskForCredentials bool) error {
 	err := gui.GitCommand.Fetch(func(passOrUname string) string {
-		if !gui.GitCommand.SavedCredentials.HasAsked {
-			var wg sync.WaitGroup
-			wg.Add(1)
-			gui.GitCommand.SavedCredentials.HasAsked = true
-			close := func(g *gocui.Gui, v *gocui.View) error {
-				wg.Done()
-				return nil
-			}
-			_ = gui.createConfirmationPanel(
-				g,
-				g.CurrentView(),
-				gui.Tr.SLocalize("RepoRequiresCredentialsTitle"),
-				gui.Tr.SLocalize("RepoRequiresCredentialsBody"),
-				close,
-				close,
-			)
-			wg.Wait()
-		}
 		return gui.waitForPassUname(gui.g, gui.g.CurrentView(), passOrUname)
-	}, false)
+	}, canSskForCredentials)
 
-	var reTryErr error
-	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		var wg sync.WaitGroup
-		wg.Add(1)
-
-		currentView := g.CurrentView()
+	if canSskForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
 		colorFunction := color.New(color.FgRed).SprintFunc()
 		coloredMessage := colorFunction(strings.TrimSpace(gui.Tr.SLocalize("PassUnameWrong")))
 		close := func(g *gocui.Gui, v *gocui.View) error {
-			wg.Done()
 			return nil
 		}
-		_ = gui.createConfirmationPanel(g, currentView, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
-		wg.Wait()
-		reTryErr = gui.fetch(g)
+		_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("Error"), coloredMessage, close, close)
 	}
 
 	gui.refreshStatus(g)
-	if reTryErr != nil {
-		return reTryErr
-	}
 	return err
 }
 
@@ -451,9 +421,12 @@ func (gui *Gui) Run() error {
 	}
 
 	go func() {
-		err := gui.fetch(g)
-		if err == nil {
-			gui.goEvery(g, time.Second*60, gui.fetch)
+		time.Sleep(time.Second * 60)
+		err := gui.fetch(g, false)
+		if err == nil || !strings.Contains(err.Error(), "exit status 128") {
+			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {
+				return gui.fetch(g, false)
+			})
 		}
 	}()
 	gui.goEvery(g, time.Second*10, gui.refreshFiles)
