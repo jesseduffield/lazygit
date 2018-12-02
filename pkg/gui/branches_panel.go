@@ -106,13 +106,19 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 			if selectedBranch == checkedOutBranch {
 				return gui.createErrorPanel(g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
 			}
+
 			if err := gui.GitCommand.RebaseBranch(selectedBranch); err != nil {
-				if err := gui.createErrorPanel(g, "Failed to rebase"); err != nil {
-					gui.Log.Println(err.Error())
+				if err := gui.createConfirmationPanel(g, v, "Rebase failed", "Rebasing failed, would you like to resolve it?",
+					func(g *gocui.Gui, v *gocui.View) error {
+						return nil
+					},
+					func(g *gocui.Gui, v *gocui.View) error {
+						return gui.GitCommand.AbortRebaseBranch()
+					}); err != nil {
 				}
-				return gui.GitCommand.AbortRebaseBranch()
 			}
 
+			gui.Log.Println("Reached refresh")
 			return gui.refreshSidePanels(g)
 		}, nil)
 }
