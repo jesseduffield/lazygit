@@ -108,17 +108,16 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 			}
 
 			if err := gui.GitCommand.RebaseBranch(selectedBranch); err != nil {
+				gui.Log.Errorln(err)
 				if err := gui.createConfirmationPanel(g, v, "Rebase failed", "Rebasing failed, would you like to resolve it?",
 					func(g *gocui.Gui, v *gocui.View) error {
 						return nil
-					},
-					func(g *gocui.Gui, v *gocui.View) error {
+					}, func(g *gocui.Gui, v *gocui.View) error {
 						return gui.GitCommand.AbortRebaseBranch()
 					}); err != nil {
 				}
 			}
 
-			gui.Log.Println("Reached refresh")
 			return gui.refreshSidePanels(g)
 		}, nil)
 }
