@@ -109,7 +109,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 	return err
 }
 
-// OpenFile opens a file with the given
+// OpenLink opens a file with the given
 func (c *OSCommand) OpenLink(link string) error {
 	commandTemplate := c.Config.GetUserConfig().GetString("os.openLinkCommand")
 	templateValues := map[string]string{
