@@ -269,6 +269,10 @@ func (c *GitCommand) RebaseBranch(onto string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git rebase %s %s ", onto, curBranch))
 }
 
+func (c *GitCommand) ContinueRebaseBranch() error {
+	return c.OSCommand.RunCommand("git rebase --continue")
+}
+
 func (c *GitCommand) AbortRebaseBranch() error {
 	return c.OSCommand.RunCommand("git rebase --abort")
 }
@@ -448,6 +452,14 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 		return false, err
 	}
 	return strings.Contains(output, "conclude merge") || strings.Contains(output, "unmerged paths"), nil
+}
+
+func (c *GitCommand) IsInRebaseState() (bool, error) {
+	output, err := c.OSCommand.RunCommandWithOutput("git status --untracked-files=all")
+	if err != nil {
+		return false, err
+	}
+	return strings.Contains(output, "rebase in progress"), nil
 }
 
 // RemoveFile directly
