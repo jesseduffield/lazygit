@@ -213,6 +213,13 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Handler:     gui.handleResetHard,
 			Description: gui.Tr.SLocalize("resetHard"),
 		}, {
+			ViewName:    "files",
+			Key:         gocui.KeyEnter,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSwitchToStagingPanel,
+			Description: gui.Tr.SLocalize("StageLines"),
+			KeyReadable: "enter",
+		}, {
 			ViewName: "main",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
@@ -384,6 +391,26 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:      'q',
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleMenuClose,
+		}, {
+			ViewName: "staging",
+			Key:      gocui.KeyEsc,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStagingEscape,
+		}, {
+			ViewName: "staging",
+			Key:      gocui.KeyArrowUp,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStagingKeyUp,
+		}, {
+			ViewName: "staging",
+			Key:      gocui.KeyArrowDown,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStagingKeyDown,
+		}, {
+			ViewName: "staging",
+			Key:      gocui.KeySpace,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStageLine,
 		},
 	}
 

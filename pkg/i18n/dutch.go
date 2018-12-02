@@ -403,6 +403,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoBranchOnRemote",
 			Other: `Deze branch bestaat niet op de remote. U moet het eerst naar de remote pushen.`,
+		}, &i18n.Message{
+			ID:    "StageLines",
+			Other: `stage individual hunks/lines`,
 		},
 	)
 }

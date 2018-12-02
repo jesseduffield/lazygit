@@ -1822,7 +1822,7 @@ func TestGitCommandDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			gitCmd.Diff(s.file)
+			gitCmd.Diff(s.file, false)
 		})
 	}
 }

@@ -45,6 +45,25 @@ func (gui *Gui) stageSelectedFile(g *gocui.Gui) error {
 	return gui.GitCommand.StageFile(file.Name)
 }
 
+func (gui *Gui) handleSwitchToStagingPanel(g *gocui.Gui, v *gocui.View) error {
+	stagingView, err := g.View("staging")
+	if err != nil {
+		return err
+	}
+	file, err := gui.getSelectedFile(g)
+	if err != nil {
+		if err != gui.Errors.ErrNoFiles {
+			return err
+		}
+		return nil
+	}
+	if !file.Tracked || !file.HasUnstagedChanges {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileStagingRequirements"))
+	}
+	gui.switchFocus(g, v, stagingView)
+	return gui.refreshStagingPanel()
+}
+
 func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
@@ -188,12 +207,11 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.renderfilesOptions(g, file); err != nil {
 		return err
 	}
-	var content string
 	if file.HasMergeConflicts {
 		return gui.refreshMergePanel(g)
 	}
 
-	content = gui.GitCommand.Diff(file)
+	content := gui.GitCommand.Diff(file, false)
 	return gui.renderString(g, "main", content)
 }
 

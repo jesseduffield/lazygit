@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -571,9 +572,10 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file *File) string {
+func (c *GitCommand) Diff(file *File, plain bool) string {
 	cachedArg := ""
 	trackedArg := "--"
+	colorArg := "--color"
 	fileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
@@ -581,9 +583,36 @@ func (c *GitCommand) Diff(file *File) string {
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null"
 	}
-	command := fmt.Sprintf("git diff --color %s %s %s", cachedArg, trackedArg, fileName)
+	if plain {
+		colorArg = ""
+	}
+
+	command := fmt.Sprintf("git diff %s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
 
 	// for now we assume an error means the file was deleted
 	s, _ := c.OSCommand.RunCommandWithOutput(command)
 	return s
+}
+
+func (c *GitCommand) ApplyPatch(patch string) (string, error) {
+
+	content := []byte(patch)
+	tmpfile, err := ioutil.TempFile("", "patch")
+	if err != nil {
+		c.Log.Error(err)
+		return "", errors.New("Could not create patch file") // TODO: i18n
+	}
+
+	defer os.Remove(tmpfile.Name()) // clean up
+
+	if _, err := tmpfile.Write(content); err != nil {
+		c.Log.Error(err)
+		return "", err
+	}
+	if err := tmpfile.Close(); err != nil {
+		c.Log.Error(err)
+		return "", err
+	}
+
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", tmpfile.Name()))
 }

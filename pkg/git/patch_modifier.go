@@ -61,9 +61,13 @@ func (p *PatchModifier) getHunkStart(patchLines []string, lineNumber int) (int, 
 func (p *PatchModifier) getModifiedHunk(patchLines []string, hunkStart int, lineNumber int) ([]string, error) {
 	lineChanges := 0
 	// strip the hunk down to just the line we want to stage
-	newHunk := []string{}
-	for offsetIndex, line := range patchLines[hunkStart:] {
-		index := offsetIndex + hunkStart
+	newHunk := []string{patchLines[hunkStart]}
+	for offsetIndex, line := range patchLines[hunkStart+1:] {
+		index := offsetIndex + hunkStart + 1
+		if strings.HasPrefix(line, "@@") {
+			newHunk = append(newHunk, "\n")
+			break
+		}
 		if index != lineNumber {
 			// we include other removals but treat them like context
 			if strings.HasPrefix(line, "-") {
@@ -98,7 +102,12 @@ func (p *PatchModifier) getModifiedHunk(patchLines []string, hunkStart int, line
 func (p *PatchModifier) updatedHeader(currentHeader string, lineChanges int) (string, error) {
 	// current counter is the number after the second comma
 	re := regexp.MustCompile(`^[^,]+,[^,]+,(\d+)`)
-	prevLengthString := re.FindStringSubmatch(currentHeader)[1]
+	matches := re.FindStringSubmatch(currentHeader)
+	if len(matches) < 2 {
+		re = regexp.MustCompile(`^[^,]+,[^+]+\+(\d+)`)
+		matches = re.FindStringSubmatch(currentHeader)
+	}
+	prevLengthString := matches[1]
 
 	prevLength, err := strconv.Atoi(prevLengthString)
 	if err != nil {

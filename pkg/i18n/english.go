@@ -411,6 +411,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoBranchOnRemote",
 			Other: `This branch doesn't exist on remote. You need to push it to remote first.`,
+		}, &i18n.Message{
+			ID:    "StageLines",
+			Other: `stage individual hunks/lines`,
+		}, &i18n.Message{
+			ID:    "FileStagingRequirements",
+			Other: `Can only stage individual lines for tracked files with unstaged changes`,
+		}, &i18n.Message{
+			ID:    "StagingTitle",
+			Other: `Staging`,
 		},
 	)
 }

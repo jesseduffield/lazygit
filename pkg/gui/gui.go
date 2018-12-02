@@ -72,6 +72,13 @@ type Gui struct {
 	statusManager *statusManager
 }
 
+type stagingState struct {
+	StageableLines   []int
+	HunkStarts       []int
+	CurrentLineIndex int
+	Diff             string
+}
+
 type guiState struct {
 	Files             []*commands.File
 	Branches          []*commands.Branch
@@ -85,6 +92,7 @@ type guiState struct {
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
 	Updating          bool
+	StagingState      *stagingState
 }
 
 // NewGui builds a new gui handler
@@ -206,6 +214,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("DiffTitle")
 		v.Wrap = true
 		v.FgColor = gocui.ColorWhite
+	}
+
+	v, err = g.SetView("staging", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = gui.Tr.SLocalize("StagingTitle")
+		v.Wrap = true
+		v.Highlight = true
+		v.FgColor = gocui.ColorWhite
+		if _, err := g.SetViewOnBottom("staging"); err != nil {
+			return err
+		}
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
