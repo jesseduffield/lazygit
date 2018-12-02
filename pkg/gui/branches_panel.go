@@ -115,6 +115,7 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 					}, func(g *gocui.Gui, v *gocui.View) error {
 						return gui.GitCommand.AbortRebaseBranch()
 					}); err != nil {
+					gui.Log.Errorln(err)
 				}
 			}
 
