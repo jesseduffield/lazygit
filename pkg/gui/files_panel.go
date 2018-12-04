@@ -140,15 +140,12 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
-	if len(gui.State.Files) == 0 {
+	selectedLine := gui.State.Panels.Files.SelectedLine
+	if selectedLine == -1 {
 		return &commands.File{}, gui.Errors.ErrNoFiles
 	}
-	filesView, err := g.View("files")
-	if err != nil {
-		panic(err)
-	}
-	lineNumber := gui.getItemPosition(filesView)
-	return gui.State.Files[lineNumber], nil
+
+	return gui.State.Files[selectedLine], nil
 }
 
 func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
@@ -194,24 +191,21 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshFiles(g)
 }
 
-func (gui *Gui) renderfilesOptions(g *gocui.Gui, file *commands.File) error {
-	return gui.renderGlobalOptions(g)
-}
-
 func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
-		gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
-		return gui.renderfilesOptions(g, nil)
+		return gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
-	if err := gui.renderfilesOptions(g, file); err != nil {
-		return err
-	}
+
 	if file.HasMergeConflicts {
 		return gui.refreshMergePanel(g)
+	}
+
+	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, v); err != nil {
+		return err
 	}
 
 	content := gui.GitCommand.Diff(file, false)
@@ -309,6 +303,7 @@ func (gui *Gui) refreshStateFiles() {
 	// get files to stage
 	files := gui.GitCommand.GetStatusFiles()
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
+	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
 	gui.updateHasMergeConflictStatus()
 }
 
@@ -340,6 +335,20 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 	return cat, nil
 }
 
+func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
+	panelState := gui.State.Panels.Files
+	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), false)
+
+	return gui.handleFileSelect(gui.g, v)
+}
+
+func (gui *Gui) handleFilesPrevLine(g *gocui.Gui, v *gocui.View) error {
+	panelState := gui.State.Panels.Files
+	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), true)
+
+	return gui.handleFileSelect(gui.g, v)
+}
+
 func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 	filesView, err := g.View("files")
 	if err != nil {
@@ -347,17 +356,21 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 	}
 	gui.refreshStateFiles()
 
-	filesView.Clear()
-	list, err := utils.RenderList(gui.State.Files)
-	if err != nil {
-		return err
-	}
-	fmt.Fprint(filesView, list)
+	gui.g.Update(func(g *gocui.Gui) error {
 
-	gui.correctCursor(filesView)
-	if filesView == g.CurrentView() {
-		gui.handleFileSelect(g, filesView)
-	}
+		filesView.Clear()
+		list, err := utils.RenderList(gui.State.Files)
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(filesView, list)
+
+		if filesView == g.CurrentView() {
+			gui.handleFileSelect(g, filesView)
+		}
+		return nil
+	})
+
 	return nil
 }
 

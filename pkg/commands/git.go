@@ -130,6 +130,17 @@ func (c *GitCommand) GetStashEntryDiff(index int) (string, error) {
 
 // GetStatusFiles git status files
 func (c *GitCommand) GetStatusFiles() []*File {
+
+	// files := []*File{}
+	// for i := 0; i < 100; i++ {
+	// 	files = append(files, &File{
+	// 		Name:          strconv.Itoa(i),
+	// 		DisplayString: strconv.Itoa(i),
+	// 		Type:          "file",
+	// 	})
+	// }
+	// return files
+
 	statusOutput, _ := c.GitStatus()
 	statusStrings := utils.SplitLines(statusOutput)
 	files := []*File{}

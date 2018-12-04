@@ -22,6 +22,8 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			return err
 		}
 
+		gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
+
 		v.Clear()
 
 		list, err := utils.RenderList(gui.State.Commits)
@@ -41,9 +43,9 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 
 func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
 	return gui.createConfirmationPanel(g, commitView, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		commit, err := gui.getSelectedCommit(g)
-		if err != nil {
-			panic(err)
+		commit := gui.getSelectedCommit(g)
+		if commit == nil {
+			panic(errors.New(gui.Tr.SLocalize("NoCommitsThisBranch")))
 		}
 		if err := gui.GitCommand.ResetToCommit(commit.Sha); err != nil {
 			return gui.createErrorPanel(g, err.Error())
@@ -59,20 +61,14 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 	}, nil)
 }
 
-func (gui *Gui) renderCommitsOptions(g *gocui.Gui) error {
-	return gui.renderGlobalOptions(g)
-}
-
 func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.renderCommitsOptions(g); err != nil {
-		return err
-	}
-	commit, err := gui.getSelectedCommit(g)
-	if err != nil {
-		if err.Error() != gui.Tr.SLocalize("NoCommitsThisBranch") {
-			return err
-		}
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+	}
+
+	if err := gui.focusPoint(0, gui.State.Panels.Commits.SelectedLine, v); err != nil {
+		return err
 	}
 	commitText, err := gui.GitCommand.Show(commit.Sha)
 	if err != nil {
@@ -85,12 +81,12 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	if gui.getItemPosition(v) != 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlySquashTopmostCommit"))
 	}
-	if len(gui.State.Commits) == 1 {
+	if len(gui.State.Commits) <= 1 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
 	}
-	commit, err := gui.getSelectedCommit(g)
-	if err != nil {
-		return err
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return errors.New(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 	if err := gui.GitCommand.SquashPreviousTwoCommits(commit.Name); err != nil {
 		return gui.createErrorPanel(g, err.Error())
@@ -113,16 +109,16 @@ func (gui *Gui) anyUnStagedChanges(files []*commands.File) bool {
 }
 
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
-	if len(gui.State.Commits) == 1 {
+	if len(gui.State.Commits) <= 1 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
 	}
 	if gui.anyUnStagedChanges(gui.State.Files) {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantFixupWhileUnstagedChanges"))
 	}
 	branch := gui.State.Branches[0]
-	commit, err := gui.getSelectedCommit(g)
-	if err != nil {
-		return err
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 	message := gui.Tr.SLocalize("SureFixupThisCommit")
 	gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Fixup"), message, func(g *gocui.Gui, v *gocui.View) error {
@@ -165,18 +161,27 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) getSelectedCommit(g *gocui.Gui) (*commands.Commit, error) {
-	v, err := g.View("commits")
-	if err != nil {
-		panic(err)
+func (gui *Gui) getSelectedCommit(g *gocui.Gui) *commands.Commit {
+	selectedLine := gui.State.Panels.Commits.SelectedLine
+	if selectedLine == -1 {
+		return nil
 	}
-	if len(gui.State.Commits) == 0 {
-		return &commands.Commit{}, errors.New(gui.Tr.SLocalize("NoCommitsThisBranch"))
-	}
-	lineNumber := gui.getItemPosition(v)
-	if lineNumber > len(gui.State.Commits)-1 {
-		gui.Log.Info(gui.Tr.SLocalize("PotentialErrInGetselectedCommit"), gui.State.Commits, lineNumber)
-		return gui.State.Commits[len(gui.State.Commits)-1], nil
-	}
-	return gui.State.Commits[lineNumber], nil
+
+	return gui.State.Commits[selectedLine]
+}
+
+func (gui *Gui) handleCommitsNextLine(g *gocui.Gui, v *gocui.View) error {
+	gui.Log.Info(utils.AsJson(gui.State.Panels))
+	panelState := gui.State.Panels.Commits
+	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Commits), false)
+
+	return gui.handleCommitSelect(gui.g, v)
+}
+
+func (gui *Gui) handleCommitsPrevLine(g *gocui.Gui, v *gocui.View) error {
+	gui.Log.Info(utils.AsJson(gui.State.Panels))
+	panelState := gui.State.Panels.Commits
+	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Commits), true)
+
+	return gui.handleCommitSelect(gui.g, v)
 }

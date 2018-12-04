@@ -40,23 +40,23 @@ func (gui *Gui) refreshStagingPanel() error {
 		return nil
 	}
 
-	var currentLineIndex int
-	if gui.State.StagingState != nil {
+	var selectedLine int
+	if gui.State.Panels.Staging != nil {
 		end := len(stageableLines) - 1
-		if end < gui.State.StagingState.CurrentLineIndex {
-			currentLineIndex = end
+		if end < gui.State.Panels.Staging.SelectedLine {
+			selectedLine = end
 		} else {
-			currentLineIndex = gui.State.StagingState.CurrentLineIndex
+			selectedLine = gui.State.Panels.Staging.SelectedLine
 		}
 	} else {
-		currentLineIndex = 0
+		selectedLine = 0
 	}
 
-	gui.State.StagingState = &stagingState{
-		StageableLines:   stageableLines,
-		HunkStarts:       hunkStarts,
-		CurrentLineIndex: currentLineIndex,
-		Diff:             diff,
+	gui.State.Panels.Staging = &stagingPanelState{
+		StageableLines: stageableLines,
+		HunkStarts:     hunkStarts,
+		SelectedLine:   selectedLine,
+		Diff:           diff,
 	}
 
 	if len(stageableLines) == 0 {
@@ -74,7 +74,7 @@ func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	gui.State.StagingState = nil
+	gui.State.Panels.Staging = nil
 
 	return gui.switchFocus(gui.g, nil, gui.getFilesView(gui.g))
 }
@@ -96,9 +96,9 @@ func (gui *Gui) handleStagingNextHunk(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCycleHunk(prev bool) error {
-	state := gui.State.StagingState
+	state := gui.State.Panels.Staging
 	lineNumbers := state.StageableLines
-	currentLine := lineNumbers[state.CurrentLineIndex]
+	currentLine := lineNumbers[state.SelectedLine]
 	currentHunkIndex := utils.PrevIndex(state.HunkStarts, currentLine)
 	var newHunkIndex int
 	if prev {
@@ -115,22 +115,22 @@ func (gui *Gui) handleCycleHunk(prev bool) error {
 		}
 	}
 
-	state.CurrentLineIndex = utils.NextIndex(lineNumbers, state.HunkStarts[newHunkIndex])
+	state.SelectedLine = utils.NextIndex(lineNumbers, state.HunkStarts[newHunkIndex])
 
 	return gui.focusLineAndHunk()
 }
 
 func (gui *Gui) handleCycleLine(prev bool) error {
-	state := gui.State.StagingState
+	state := gui.State.Panels.Staging
 	lineNumbers := state.StageableLines
-	currentLine := lineNumbers[state.CurrentLineIndex]
+	currentLine := lineNumbers[state.SelectedLine]
 	var newIndex int
 	if prev {
 		newIndex = utils.PrevIndex(lineNumbers, currentLine)
 	} else {
 		newIndex = utils.NextIndex(lineNumbers, currentLine)
 	}
-	state.CurrentLineIndex = newIndex
+	state.SelectedLine = newIndex
 
 	return gui.focusLineAndHunk()
 }
@@ -139,9 +139,9 @@ func (gui *Gui) handleCycleLine(prev bool) error {
 // selected line and size of the hunk
 func (gui *Gui) focusLineAndHunk() error {
 	stagingView := gui.getStagingView(gui.g)
-	state := gui.State.StagingState
+	state := gui.State.Panels.Staging
 
-	lineNumber := state.StageableLines[state.CurrentLineIndex]
+	lineNumber := state.StageableLines[state.SelectedLine]
 
 	// we want the bottom line of the view buffer to ideally be the bottom line
 	// of the hunk, but if the hunk is too big we'll just go three lines beyond
@@ -170,23 +170,7 @@ func (gui *Gui) focusLineAndHunk() error {
 		bottomLine = lineNumber + 3
 	}
 
-	return gui.focusLine(lineNumber, bottomLine, stagingView)
-}
-
-// focusLine takes a lineNumber to focus, and a bottomLine to ensure we can see
-func (gui *Gui) focusLine(lineNumber int, bottomLine int, v *gocui.View) error {
-	_, height := v.Size()
-	overScroll := bottomLine - height + 1
-	if overScroll < 0 {
-		overScroll = 0
-	}
-	if err := v.SetOrigin(0, overScroll); err != nil {
-		return err
-	}
-	if err := v.SetCursor(0, lineNumber-overScroll); err != nil {
-		return err
-	}
-	return nil
+	return gui.generalFocusLine(lineNumber, bottomLine, stagingView)
 }
 
 func (gui *Gui) handleStageHunk(g *gocui.Gui, v *gocui.View) error {
@@ -198,13 +182,13 @@ func (gui *Gui) handleStageLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStageLineOrHunk(hunk bool) error {
-	state := gui.State.StagingState
+	state := gui.State.Panels.Staging
 	p, err := git.NewPatchModifier(gui.Log)
 	if err != nil {
 		return err
 	}
 
-	currentLine := state.StageableLines[state.CurrentLineIndex]
+	currentLine := state.StageableLines[state.SelectedLine]
 	var patch string
 	if hunk {
 		patch, err = p.ModifyPatchForHunk(state.Diff, state.HunkStarts, currentLine)

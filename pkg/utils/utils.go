@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -234,4 +235,9 @@ func PrevIndex(numbers []int, currentNumber int) int {
 		}
 	}
 	return end
+}
+
+func AsJson(i interface{}) string {
+	bytes, _ := json.MarshalIndent(i, "", "    ")
+	return string(bytes)
 }
