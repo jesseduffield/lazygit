@@ -72,11 +72,35 @@ type Gui struct {
 	statusManager *statusManager
 }
 
-type stagingState struct {
-	StageableLines   []int
-	HunkStarts       []int
-	CurrentLineIndex int
-	Diff             string
+type stagingPanelState struct {
+	SelectedLine   int
+	StageableLines []int
+	HunkStarts     []int
+	Diff           string
+}
+
+type filePanelState struct {
+	SelectedLine int
+}
+
+type branchPanelState struct {
+	SelectedLine int
+}
+
+type commitPanelState struct {
+	SelectedLine int
+}
+
+type stashPanelState struct {
+	SelectedLine int
+}
+
+type panelStates struct {
+	Files    *filePanelState
+	Staging  *stagingPanelState
+	Branches *branchPanelState
+	Commits  *commitPanelState
+	Stash    *stashPanelState
 }
 
 type guiState struct {
@@ -92,7 +116,7 @@ type guiState struct {
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
 	Updating          bool
-	StagingState      *stagingState
+	Panels            *panelStates
 }
 
 // NewGui builds a new gui handler
@@ -108,6 +132,12 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		Conflicts:     make([]commands.Conflict, 0),
 		EditHistory:   stack.New(),
 		Platform:      *oSCommand.Platform,
+		Panels: &panelStates{
+			Files:    &filePanelState{SelectedLine: -1},
+			Branches: &branchPanelState{SelectedLine: 0},
+			Commits:  &commitPanelState{SelectedLine: -1},
+			Stash:    &stashPanelState{SelectedLine: -1},
+		},
 	}
 
 	gui := &Gui{
@@ -193,9 +223,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			}
 			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
 			v.Wrap = true
-			g.SetCurrentView(v.Name())
+			g.SetViewOnTop("limit")
 		}
 		return nil
+	} else {
+		g.SetViewOnBottom("limit")
 	}
 
 	g.DeleteView("limit")
@@ -247,12 +279,13 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+	branchesView, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM)
+	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("BranchesTitle")
-		v.FgColor = gocui.ColorWhite
+		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
+		branchesView.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
@@ -325,11 +358,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		gui.handleFileSelect(g, filesView)
+		gui.g.SetCurrentView(filesView.Name())
 		gui.refreshFiles(g)
 		gui.refreshBranches(g)
 		gui.refreshCommits(g)
 		gui.refreshStashEntries(g)
+		if err := gui.renderGlobalOptions(g); err != nil {
+			return err
+		}
 		if err := gui.switchFocus(g, nil, filesView); err != nil {
 			return err
 		}
@@ -338,6 +374,17 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err := gui.promptAnonymousReporting(); err != nil {
 				return err
 			}
+		}
+	}
+
+	listViews := map[*gocui.View]int{
+		filesView:    gui.State.Panels.Files.SelectedLine,
+		branchesView: gui.State.Panels.Branches.SelectedLine,
+	}
+	for view, selectedLine := range listViews {
+		// check if the selected line is now out of view and if so refocus it
+		if err := gui.focusPoint(0, selectedLine, view); err != nil {
+			return err
 		}
 	}
 
@@ -411,7 +458,7 @@ func (gui *Gui) Run() error {
 	}
 
 	gui.goEvery(g, time.Second*60, gui.fetch)
-	gui.goEvery(g, time.Second*10, gui.refreshFiles)
+	// gui.goEvery(g, time.Second*2, gui.refreshFiles) // TODO: comment back in
 	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
 	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
 

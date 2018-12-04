@@ -42,10 +42,6 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) renderStatusOptions(g *gocui.Gui) error {
-	return gui.renderGlobalOptions(g)
-}
-
 func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
 	return gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("CheckingForUpdates"))
@@ -63,10 +59,7 @@ func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
 			"Buy Jesse a coffee: https://donorbox.org/lazygit",
 		}, "\n\n")
 
-	if err := gui.renderString(g, "main", dashboardString); err != nil {
-		return err
-	}
-	return gui.renderStatusOptions(g)
+	return gui.renderString(g, "main", dashboardString)
 }
 
 func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {

@@ -131,30 +131,30 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) getSelectedBranch(v *gocui.View) *commands.Branch {
-	lineNumber := gui.getItemPosition(v)
-	return gui.State.Branches[lineNumber]
-}
+	selectedLine := gui.State.Panels.Branches.SelectedLine
+	if selectedLine == -1 {
+		return nil
+	}
 
-func (gui *Gui) renderBranchesOptions(g *gocui.Gui) error {
-	return gui.renderGlobalOptions(g)
+	return gui.State.Branches[selectedLine]
 }
 
 // may want to standardise how these select methods work
 func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.renderBranchesOptions(g); err != nil {
-		return err
-	}
 	// This really shouldn't happen: there should always be a master branch
 	if len(gui.State.Branches) == 0 {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
 	}
+	branch := gui.getSelectedBranch(v)
+	if err := gui.focusPoint(0, gui.State.Panels.Branches.SelectedLine, v); err != nil {
+		return err
+	}
 	go func() {
-		branch := gui.getSelectedBranch(v)
-		diff, err := gui.GitCommand.GetBranchGraph(branch.Name)
-		if err != nil && strings.HasPrefix(diff, "fatal: ambiguous argument") {
-			diff = gui.Tr.SLocalize("NoTrackingThisBranch")
+		graph, err := gui.GitCommand.GetBranchGraph(branch.Name)
+		if err != nil && strings.HasPrefix(graph, "fatal: ambiguous argument") {
+			graph = gui.Tr.SLocalize("NoTrackingThisBranch")
 		}
-		gui.renderString(g, "main", diff)
+		_ = gui.renderString(g, "main", graph)
 	}()
 	return nil
 }
@@ -173,6 +173,8 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 		}
 		gui.State.Branches = builder.Build()
 
+		gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
+
 		v.Clear()
 		list, err := utils.RenderList(gui.State.Branches)
 		if err != nil {
@@ -185,4 +187,18 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 		return gui.refreshStatus(g)
 	})
 	return nil
+}
+
+func (gui *Gui) handleBranchesNextLine(g *gocui.Gui, v *gocui.View) error {
+	panelState := gui.State.Panels.Branches
+	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), false)
+
+	return gui.handleBranchSelect(gui.g, v)
+}
+
+func (gui *Gui) handleBranchesPrevLine(g *gocui.Gui, v *gocui.View) error {
+	panelState := gui.State.Panels.Branches
+	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), true)
+
+	return gui.handleBranchSelect(gui.g, v)
 }

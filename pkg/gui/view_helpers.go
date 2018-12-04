@@ -230,19 +230,46 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 // if the cursor down past the last item, move it to the last line
 func (gui *Gui) correctCursor(v *gocui.View) error {
 	cx, cy := v.Cursor()
-	ox, oy := v.Origin()
-	_, height := v.Size()
-	maxY := height - 1
-	ly := v.LinesHeight() - 1
-	if oy+cy <= ly {
+	return gui.focusPoint(cx, cy, v)
+}
+
+// if the cursor down past the last item, move it to the last line
+func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
+	if cy < 0 {
 		return nil
 	}
-	newCy := utils.Min(ly, maxY)
-	if err := v.SetCursor(cx, newCy); err != nil {
-		return err
-	}
-	if err := v.SetOrigin(ox, ly-newCy); err != nil {
-		return err
+	ox, oy := v.Origin()
+	_, height := v.Size()
+	ly := height - 1
+
+	// if line is above origin, move origin and set cursor to zero
+	// if line is below origin + height, move origin and set cursor to max
+	// otherwise set cursor to value - origin
+	if ly > v.LinesHeight() {
+		if err := v.SetCursor(cx, cy); err != nil {
+			return err
+		}
+		if err := v.SetOrigin(ox, 0); err != nil {
+			return err
+		}
+	} else if cy < oy {
+		if err := v.SetCursor(cx, 0); err != nil {
+			return err
+		}
+		if err := v.SetOrigin(ox, cy); err != nil {
+			return err
+		}
+	} else if cy > oy+ly {
+		if err := v.SetCursor(cx, ly); err != nil {
+			return err
+		}
+		if err := v.SetOrigin(ox, cy-ly); err != nil {
+			return err
+		}
+	} else {
+		if err := v.SetCursor(cx, cy-oy); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -333,4 +360,60 @@ func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
 	gui.Log.Info(gui.Tr.SLocalize("resizingPopupPanel"))
 	_, err := g.SetView(v.Name(), x0, y0, x1, y1, 0)
 	return err
+}
+
+// focusLine focuses and selects the given line
+func (gui *Gui) focusLine(lineNumber int, v *gocui.View) error {
+	_, height := v.Size()
+	overScroll := lineNumber - height + 1
+	if overScroll < 0 {
+		overScroll = 0
+	}
+	if err := v.SetOrigin(0, overScroll); err != nil {
+		return err
+	}
+	if err := v.SetCursor(0, lineNumber-overScroll); err != nil {
+		return err
+	}
+	return nil
+}
+
+// generalFocusLine takes a lineNumber to focus, and a bottomLine to ensure we can see
+func (gui *Gui) generalFocusLine(lineNumber int, bottomLine int, v *gocui.View) error {
+	_, height := v.Size()
+	overScroll := bottomLine - height + 1
+	if overScroll < 0 {
+		overScroll = 0
+	}
+	if err := v.SetOrigin(0, overScroll); err != nil {
+		return err
+	}
+	if err := v.SetCursor(0, lineNumber-overScroll); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (gui *Gui) changeSelectedLine(line *int, total int, up bool) {
+	if up {
+		if *line == -1 || *line == 0 {
+			return
+		}
+
+		*line -= 1
+	} else {
+		if *line == -1 || *line == total-1 {
+			return
+		}
+
+		*line += 1
+	}
+}
+
+func (gui *Gui) refreshSelectedLine(line *int, total int) {
+	if *line == -1 && total > 0 {
+		*line = 0
+	} else if total-1 < *line {
+		*line = total - 1
+	}
 }

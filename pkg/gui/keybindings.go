@@ -219,7 +219,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Handler:     gui.handleSwitchToStagingPanel,
 			Description: gui.Tr.SLocalize("StageLines"),
 			KeyReadable: "enter",
-		}, {
+		},
+		{ViewName: "files", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleFilesPrevLine},
+		{ViewName: "files", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleFilesPrevLine},
+		{ViewName: "files", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleFilesNextLine},
+		{ViewName: "files", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleFilesNextLine},
+		{
 			ViewName: "main",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
@@ -322,7 +327,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleMerge,
 			Description: gui.Tr.SLocalize("mergeIntoCurrentBranch"),
-		}, {
+		},
+		{ViewName: "branches", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleBranchesPrevLine},
+		{ViewName: "branches", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleBranchesPrevLine},
+		{ViewName: "branches", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleBranchesNextLine},
+		{ViewName: "branches", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleBranchesNextLine},
+		{
 			ViewName:    "commits",
 			Key:         's',
 			Modifier:    gocui.ModNone,
@@ -352,7 +362,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitFixup,
 			Description: gui.Tr.SLocalize("fixupCommit"),
-		}, {
+		},
+		{ViewName: "commits", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleCommitsPrevLine},
+		{ViewName: "commits", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleCommitsPrevLine},
+		{ViewName: "commits", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleCommitsNextLine},
+		{ViewName: "commits", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleCommitsNextLine},
+		{
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
@@ -455,17 +470,22 @@ func (gui *Gui) GetKeybindings() []*Binding {
 
 	// Would make these keybindings global but that interferes with editing
 	// input in the confirmation panel
-	for _, viewName := range []string{"status", "files", "branches", "commits", "stash", "menu"} {
+	for _, viewName := range []string{"status", "commits", "stash", "menu"} {
+		bindings = append(bindings, []*Binding{
+			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.cursorUp},
+			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.cursorDown},
+			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: gui.cursorUp},
+			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: gui.cursorDown},
+		}...)
+	}
+
+	for _, viewName := range []string{"status", "branches", "files", "commits", "stash", "menu"} {
 		bindings = append(bindings, []*Binding{
 			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},
 			{ViewName: viewName, Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: gui.nextView},
-			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.cursorUp},
-			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.cursorDown},
 			{ViewName: viewName, Key: 'h', Modifier: gocui.ModNone, Handler: gui.previousView},
 			{ViewName: viewName, Key: 'l', Modifier: gocui.ModNone, Handler: gui.nextView},
-			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: gui.cursorUp},
-			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: gui.cursorDown},
 		}...)
 	}
 
