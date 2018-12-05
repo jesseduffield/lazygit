@@ -208,9 +208,9 @@ func includesInt(list []int, a int) bool {
 	return false
 }
 
-// ResetHard does the equivalent of `git reset --hard HEAD`
+// ResetHard clears the working tree to match HEAD
 func (c *GitCommand) ResetHard() error {
-	return c.Worktree.Reset(&gogit.ResetOptions{Mode: gogit.HardReset})
+	return c.OSCommand.RunCommand("git reset --hard HEAD")
 }
 
 // UpstreamDifferenceCount checks how many pushables/pullables there are for the
