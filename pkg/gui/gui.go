@@ -125,6 +125,7 @@ type guiState struct {
 	Platform          commands.Platform
 	Updating          bool
 	Panels            *panelStates
+	WorkingTreeState  string // one of "merging", "rebasing", "normal"
 }
 
 // NewGui builds a new gui handler

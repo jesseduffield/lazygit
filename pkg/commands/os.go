@@ -202,3 +202,14 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 func (c *OSCommand) RemoveFile(filename string) error {
 	return os.Remove(filename)
 }
+
+// FileExists checks whether a file exists at the specified path
+func (c *OSCommand) FileExists(path string) (bool, error) {
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}

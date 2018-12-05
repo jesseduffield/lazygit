@@ -22,11 +22,11 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 		pushables, pullables := gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
 		fmt.Fprint(v, "↑"+pushables+"↓"+pullables)
 		branches := gui.State.Branches
-		if err := gui.updateHasMergeConflictStatus(); err != nil {
+		if err := gui.updateWorkTreeState(); err != nil {
 			return err
 		}
-		if gui.State.HasMergeConflicts {
-			fmt.Fprint(v, utils.ColoredString(" (merging)", color.FgYellow))
+		if gui.State.WorkingTreeState != "normal" {
+			fmt.Fprint(v, utils.ColoredString(fmt.Sprintf(" (%s)", gui.State.WorkingTreeState), color.FgYellow))
 		}
 
 		if len(branches) == 0 {

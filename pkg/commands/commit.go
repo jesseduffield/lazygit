@@ -8,23 +8,30 @@ import (
 type Commit struct {
 	Sha           string
 	Name          string
-	Pushed        bool
-	Merged        bool
+	Status        string // one of "unpushed", "pushed", "merged", or "rebasing"
 	DisplayString string
 }
 
 // GetDisplayStrings is a function.
 func (c *Commit) GetDisplayStrings() []string {
 	red := color.New(color.FgRed)
-	yellow := color.New(color.FgGreen)
-	green := color.New(color.FgYellow)
+	yellow := color.New(color.FgYellow)
+	green := color.New(color.FgGreen)
 	white := color.New(color.FgWhite)
+	blue := color.New(color.FgBlue)
 
-	shaColor := yellow
-	if c.Pushed {
+	var shaColor *color.Color
+	switch c.Status {
+	case "unpushed":
 		shaColor = red
-	} else if !c.Merged {
+	case "pushed":
+		shaColor = yellow
+	case "merged":
 		shaColor = green
+	case "rebasing":
+		shaColor = blue
+	default:
+		shaColor = white
 	}
 
 	return []string{shaColor.Sprint(c.Sha), white.Sprint(c.Name)}

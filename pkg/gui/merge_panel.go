@@ -20,11 +20,12 @@ func (gui *Gui) findConflicts(content string) ([]commands.Conflict, error) {
 	conflicts := make([]commands.Conflict, 0)
 	var newConflict commands.Conflict
 	for i, line := range utils.SplitLines(content) {
-		if line == "<<<<<<< HEAD" || line == "<<<<<<< MERGE_HEAD" || line == "<<<<<<< Updated upstream" {
+		trimmedLine := strings.TrimPrefix(line, "++")
+		if trimmedLine == "<<<<<<< HEAD" || trimmedLine == "<<<<<<< MERGE_HEAD" || trimmedLine == "<<<<<<< Updated upstream" {
 			newConflict = commands.Conflict{Start: i}
-		} else if line == "=======" {
+		} else if trimmedLine == "=======" {
 			newConflict.Middle = i
-		} else if strings.HasPrefix(line, ">>>>>>> ") {
+		} else if strings.HasPrefix(trimmedLine, ">>>>>>> ") {
 			newConflict.End = i
 			conflicts = append(conflicts, newConflict)
 		}
@@ -258,10 +259,16 @@ func (gui *Gui) handleCompleteMerge(g *gocui.Gui) error {
 	gui.refreshFiles(g)
 	if rebase, err := gui.GitCommand.IsInRebaseState(); rebase && err == nil {
 		if err := gui.GitCommand.ContinueRebaseBranch(); err != nil {
-			gui.Log.Errorln(err)
+			if strings.Contains(err.Error(), "No changes - did you forget to use") {
+				if err := gui.GitCommand.SkipRebaseBranch(); err != nil {
+					gui.Log.Errorln(err)
+				}
+			} else {
+				gui.Log.Errorln(err)
+			}
 		}
 		if err := gui.refreshSidePanels(g); err != nil {
-			gui.Log.Errorln(err)
+			return err
 		}
 	}
 	return gui.switchFocus(g, nil, filesView)

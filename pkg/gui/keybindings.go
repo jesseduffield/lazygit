@@ -216,7 +216,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			ViewName:    "files",
 			Key:         gocui.KeyEnter,
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleSwitchToStagingPanel,
+			Handler:     gui.handleEnterFile,
 			Description: gui.Tr.SLocalize("StageLines"),
 			KeyReadable: "enter",
 		}, {

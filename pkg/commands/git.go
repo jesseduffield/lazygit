@@ -3,10 +3,14 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -149,7 +153,7 @@ func (c *GitCommand) GetStatusFiles() []*File {
 			HasUnstagedChanges: unstagedChange != " ",
 			Tracked:            !untracked,
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
-			HasMergeConflicts:  change == "UU",
+			HasMergeConflicts:  change == "UU" || change == "AA",
 			Type:               c.OSCommand.FileType(filename),
 		}
 		files = append(files, file)
@@ -240,9 +244,9 @@ func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
 	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
 }
 
-// GetCommitsToPush Returns the sha's of the commits that have not yet been pushed
+// GetUnpushedCommits Returns the sha's of the commits that have not yet been pushed
 // to the remote branch of the current branch, a map is returned to ease look up
-func (c *GitCommand) GetCommitsToPush() map[string]bool {
+func (c *GitCommand) GetUnpushedCommits() map[string]bool {
 	pushables := map[string]bool{}
 	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --abbrev-commit")
 	if err != nil {
@@ -271,6 +275,10 @@ func (c *GitCommand) RebaseBranch(onto string) error {
 
 func (c *GitCommand) ContinueRebaseBranch() error {
 	return c.OSCommand.RunCommand("git rebase --continue")
+}
+
+func (c *GitCommand) SkipRebaseBranch() error {
+	return c.OSCommand.RunCommand("git rebase --skip")
 }
 
 func (c *GitCommand) AbortRebaseBranch() error {
@@ -455,11 +463,11 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 }
 
 func (c *GitCommand) IsInRebaseState() (bool, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git status --untracked-files=all")
+	exists, err := c.OSCommand.FileExists(".git/rebase-apply")
 	if err != nil {
 		return false, err
 	}
-	return strings.Contains(output, "rebase in progress"), nil
+	return exists, nil
 }
 
 // RemoveFile directly
@@ -527,24 +535,105 @@ func (c *GitCommand) getMergeBase() (string, error) {
 	return output, nil
 }
 
+// GetRebasingCommits obtains the commits that we're in the process of rebasing
+func (c *GitCommand) GetRebasingCommits() ([]*Commit, error) {
+	rebasing, err := c.IsInRebaseState()
+	if err != nil {
+		return nil, err
+	}
+	if !rebasing {
+		return nil, nil
+	}
+
+	rewrittenCount := 0
+	bytesContent, err := ioutil.ReadFile(".git/rebase-apply/rewritten")
+	if err == nil {
+		content := string(bytesContent)
+		rewrittenCount = len(strings.Split(content, "\n"))
+	}
+
+	// we know we're rebasing, so lets get all the files whose names have numbers
+	commits := []*Commit{}
+	err = filepath.Walk(".git/rebase-apply", func(path string, f os.FileInfo, err error) error {
+		if rewrittenCount > 0 {
+			rewrittenCount -= 1
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		re := regexp.MustCompile(`^\d+$`)
+		if !re.MatchString(f.Name()) {
+			return nil
+		}
+		bytesContent, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		content := string(bytesContent)
+		commit, err := c.CommitFromPatch(content)
+		if err != nil {
+			return err
+		}
+		commits = append([]*Commit{commit}, commits...)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return commits, nil
+}
+
+// assuming the file starts like this:
+// From e93d4193e6dd45ca9cf3a5a273d7ba6cd8b8fb20 Mon Sep 17 00:00:00 2001
+// From: Lazygit Tester <test@example.com>
+// Date: Wed, 5 Dec 2018 21:03:23 +1100
+// Subject: second commit on master
+func (c *GitCommand) CommitFromPatch(content string) (*Commit, error) {
+	lines := strings.Split(content, "\n")
+	sha := strings.Split(lines[0], " ")[1][0:7]
+	name := strings.TrimPrefix(lines[3], "Subject: ")
+	return &Commit{
+		Sha:    sha,
+		Name:   name,
+		Status: "rebasing",
+	}, nil
+}
+
 // GetCommits obtains the commits of the current branch
 func (c *GitCommand) GetCommits() ([]*Commit, error) {
-	pushables := c.GetCommitsToPush()
+	commits := []*Commit{}
+	// here we want to also prepend the commits that we're in the process of rebasing
+	rebasingCommits, err := c.GetRebasingCommits()
+	if err != nil {
+		return nil, err
+	}
+	if len(rebasingCommits) > 0 {
+		commits = append(commits, rebasingCommits...)
+	}
+
+	unpushedCommits := c.GetUnpushedCommits()
 	log := c.GetLog()
 
-	lines := utils.SplitLines(log)
-	commits := make([]*Commit, len(lines))
 	// now we can split it up and turn it into commits
-	for i, line := range lines {
+	for _, line := range utils.SplitLines(log) {
 		splitLine := strings.Split(line, " ")
 		sha := splitLine[0]
-		_, pushed := pushables[sha]
-		commits[i] = &Commit{
+		_, unpushed := unpushedCommits[sha]
+		status := map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
+		commits = append(commits, &Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),
-			Pushed:        pushed,
+			Status:        status,
 			DisplayString: strings.Join(splitLine, " "),
-		}
+		})
+	}
+	if len(rebasingCommits) > 0 {
+		currentCommit := commits[len(rebasingCommits)]
+		blue := color.New(color.FgYellow)
+		youAreHere := blue.Sprint("<-- YOU ARE HERE ---")
+		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
 	return c.setCommitMergedStatuses(commits)
 }
@@ -562,7 +651,12 @@ func (c *GitCommand) setCommitMergedStatuses(commits []*Commit) ([]*Commit, erro
 		if strings.HasPrefix(ancestor, commit.Sha) {
 			passedAncestor = true
 		}
-		commits[i].Merged = passedAncestor
+		if commit.Status != "pushed" {
+			continue
+		}
+		if passedAncestor {
+			commits[i].Status = "merged"
+		}
 	}
 	return commits, nil
 }
