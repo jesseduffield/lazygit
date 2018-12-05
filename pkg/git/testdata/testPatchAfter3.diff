@@ -1,0 +1,25 @@
+diff --git a/pkg/git/patch_modifier.go b/pkg/git/patch_modifier.go
+index a8fc600..6d8f7d7 100644
+--- a/pkg/git/patch_modifier.go
++++ b/pkg/git/patch_modifier.go
+@@ -36,18 +36,19 @@ func (p *PatchModifier) ModifyPatchForHunk(patch string, hunkStarts []int, curre
+ 		hunkEnd = hunkStarts[nextHunkStartIndex]
+ 	}
+ 
+ 	headerLength := 4
+ 	output := strings.Join(lines[0:headerLength], "\n") + "\n"
+ 	output += strings.Join(lines[hunkStart:hunkEnd], "\n") + "\n"
+ 
+ 	return output, nil
+ }
+ 
++func getHeaderLength(patchLines []string) (int, error) {
+ // ModifyPatchForLine takes the original patch, which may contain several hunks,
+ // and the line number of the line we want to stage
+ func (p *PatchModifier) ModifyPatchForLine(patch string, lineNumber int) (string, error) {
+ 	lines := strings.Split(patch, "\n")
+ 	headerLength := 4
+ 	output := strings.Join(lines[0:headerLength], "\n") + "\n"
+ 
+ 	hunkStart, err := p.getHunkStart(lines, lineNumber)
+
