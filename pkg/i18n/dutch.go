@@ -406,6 +406,27 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StageLines",
 			Other: `stage individual hunks/lines`,
+		}, &i18n.Message{
+			ID:    "FileStagingRequirements",
+			Other: `Can only stage individual lines for tracked files with unstaged changes`,
+		}, &i18n.Message{
+			ID:    "StagingTitle",
+			Other: `Staging`,
+		}, &i18n.Message{
+			ID:    "StageHunk",
+			Other: `stage hunk`,
+		}, &i18n.Message{
+			ID:    "StageLine",
+			Other: `stage line`,
+		}, &i18n.Message{
+			ID:    "EscapeStaging",
+			Other: `return to files panel`,
+		}, &i18n.Message{
+			ID:    "CantFindHunks",
+			Other: `Could not find any hunks in this patch`,
+		}, &i18n.Message{
+			ID:    "CantFindHunk",
+			Other: `Could not find hunk`,
 		},
 	)
 }
