@@ -433,9 +433,9 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshFiles(g)
 }
 
-func (gui *Gui) handleResetHard(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleResetAndClean(g *gocui.Gui, v *gocui.View) error {
 	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("ClearFilePanel"), gui.Tr.SLocalize("SureResetHardHead"), func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.ResetHard(); err != nil {
+		if err := gui.GitCommand.ResetAndClean(); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshFiles(g)

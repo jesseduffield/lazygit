@@ -208,9 +208,13 @@ func includesInt(list []int, a int) bool {
 	return false
 }
 
-// ResetHard clears the working tree to match HEAD
-func (c *GitCommand) ResetHard() error {
-	return c.OSCommand.RunCommand("git reset --hard HEAD")
+// ResetAndClean removes all unstaged changes and removes all untracked files
+func (c *GitCommand) ResetAndClean() error {
+	if err := c.OSCommand.RunCommand("git reset --hard HEAD"); err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunCommand("git clean -fd")
 }
 
 // UpstreamDifferenceCount checks how many pushables/pullables there are for the
