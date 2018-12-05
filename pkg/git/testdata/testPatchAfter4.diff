@@ -1,0 +1,19 @@
+diff --git a/pkg/git/patch_modifier.go b/pkg/git/patch_modifier.go
+index a8fc600..6d8f7d7 100644
+--- a/pkg/git/patch_modifier.go
++++ b/pkg/git/patch_modifier.go
+@@ -124,13 +140,14 @@ func (p *PatchModifier) getModifiedHunk(patchLines []string, hunkStart int, line
+ // @@ -14,8 +14,9 @@ import (
+ func (p *PatchModifier) updatedHeader(currentHeader string, lineChanges int) (string, error) {
+ 	// current counter is the number after the second comma
+ 	re := regexp.MustCompile(`^[^,]+,[^,]+,(\d+)`)
+ 	matches := re.FindStringSubmatch(currentHeader)
+ 	if len(matches) < 2 {
+ 		re = regexp.MustCompile(`^[^,]+,[^+]+\+(\d+)`)
+ 		matches = re.FindStringSubmatch(currentHeader)
+ 	}
+ 	prevLengthString := matches[1]
++	prevLengthString := re.FindStringSubmatch(currentHeader)[1]
+ 
+ 	prevLength, err := strconv.Atoi(prevLengthString)
+ 	if err != nil {
