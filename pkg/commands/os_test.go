@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -362,5 +363,36 @@ func TestOSCommandFileType(t *testing.T) {
 		s.setup()
 		s.test(newDummyOSCommand().FileType(s.path))
 		_ = os.RemoveAll(s.path)
+	}
+}
+
+func TestOSCommandCreateTempFile(t *testing.T) {
+	type scenario struct {
+		testName string
+		filename string
+		content  string
+		test     func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			"filename",
+			"content",
+			func(path string, err error) {
+				assert.NoError(t, err)
+
+				content, err := ioutil.ReadFile(path)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "content", string(content))
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			s.test(newDummyOSCommand().CreateTempFile(s.filename, s.content))
+		})
 	}
 }

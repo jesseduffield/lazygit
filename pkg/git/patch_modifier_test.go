@@ -19,7 +19,7 @@ func newDummyPatchModifier() *PatchModifier {
 		Log: newDummyLog(),
 	}
 }
-func TestModifyPatch(t *testing.T) {
+func TestModifyPatchForLine(t *testing.T) {
 	type scenario struct {
 		testName              string
 		patchFilename         string
@@ -43,6 +43,27 @@ func TestModifyPatch(t *testing.T) {
 			false,
 			"testdata/testPatchAfter2.diff",
 		},
+		{
+			"Adding one line in top hunk in diff with multiple hunks",
+			"testdata/testPatchBefore2.diff",
+			20,
+			false,
+			"testdata/testPatchAfter3.diff",
+		},
+		{
+			"Adding one line in top hunk in diff with multiple hunks",
+			"testdata/testPatchBefore2.diff",
+			53,
+			false,
+			"testdata/testPatchAfter4.diff",
+		},
+		{
+			"adding unstaged file with a single line",
+			"testdata/addedFile.diff",
+			6,
+			false,
+			"testdata/addedFile.diff",
+		},
 	}
 
 	for _, s := range scenarios {
@@ -52,7 +73,7 @@ func TestModifyPatch(t *testing.T) {
 			if err != nil {
 				panic("Cannot open file at " + s.patchFilename)
 			}
-			afterPatch, err := p.ModifyPatch(string(beforePatch), s.lineNumber)
+			afterPatch, err := p.ModifyPatchForLine(string(beforePatch), s.lineNumber)
 			if s.shouldError {
 				assert.Error(t, err)
 			} else {

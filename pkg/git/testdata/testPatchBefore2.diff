@@ -1,0 +1,57 @@
+diff --git a/pkg/git/patch_modifier.go b/pkg/git/patch_modifier.go
+index a8fc600..6d8f7d7 100644
+--- a/pkg/git/patch_modifier.go
++++ b/pkg/git/patch_modifier.go
+@@ -36,18 +36,34 @@ func (p *PatchModifier) ModifyPatchForHunk(patch string, hunkStarts []int, curre
+ 		hunkEnd = hunkStarts[nextHunkStartIndex]
+ 	}
+ 
+-	headerLength := 4
++	headerLength, err := getHeaderLength(lines)
++	if err != nil {
++		return "", err
++	}
++
+ 	output := strings.Join(lines[0:headerLength], "\n") + "\n"
+ 	output += strings.Join(lines[hunkStart:hunkEnd], "\n") + "\n"
+ 
+ 	return output, nil
+ }
+ 
++func getHeaderLength(patchLines []string) (int, error) {
++	for index, line := range patchLines {
++		if strings.HasPrefix(line, "@@") {
++			return index, nil
++		}
++	}
++	return 0, errors.New("Could not find any hunks in this patch")
++}
++
+ // ModifyPatchForLine takes the original patch, which may contain several hunks,
+ // and the line number of the line we want to stage
+ func (p *PatchModifier) ModifyPatchForLine(patch string, lineNumber int) (string, error) {
+ 	lines := strings.Split(patch, "\n")
+-	headerLength := 4
++	headerLength, err := getHeaderLength(lines)
++	if err != nil {
++		return "", err
++	}
+ 	output := strings.Join(lines[0:headerLength], "\n") + "\n"
+ 
+ 	hunkStart, err := p.getHunkStart(lines, lineNumber)
+@@ -124,13 +140,8 @@ func (p *PatchModifier) getModifiedHunk(patchLines []string, hunkStart int, line
+ // @@ -14,8 +14,9 @@ import (
+ func (p *PatchModifier) updatedHeader(currentHeader string, lineChanges int) (string, error) {
+ 	// current counter is the number after the second comma
+-	re := regexp.MustCompile(`^[^,]+,[^,]+,(\d+)`)
+-	matches := re.FindStringSubmatch(currentHeader)
+-	if len(matches) < 2 {
+-		re = regexp.MustCompile(`^[^,]+,[^+]+\+(\d+)`)
+-		matches = re.FindStringSubmatch(currentHeader)
+-	}
+-	prevLengthString := matches[1]
++	re := regexp.MustCompile(`(\d+) @@`)
++	prevLengthString := re.FindStringSubmatch(currentHeader)[1]
+ 
+ 	prevLength, err := strconv.Atoi(prevLengthString)
+ 	if err != nil {

@@ -1770,6 +1770,7 @@ func TestGitCommandDiff(t *testing.T) {
 		testName string
 		command  func(string, ...string) *exec.Cmd
 		file     *File
+		plain    bool
 	}
 
 	scenarios := []scenario{
@@ -1786,6 +1787,22 @@ func TestGitCommandDiff(t *testing.T) {
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
+			false,
+		},
+		{
+			"Default case",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			&File{
+				Name:             "test.txt",
+				HasStagedChanges: false,
+				Tracked:          true,
+			},
+			true,
 		},
 		{
 			"All changes staged",
@@ -1801,6 +1818,7 @@ func TestGitCommandDiff(t *testing.T) {
 				HasUnstagedChanges: false,
 				Tracked:            true,
 			},
+			false,
 		},
 		{
 			"File not tracked and file has no staged changes",
@@ -1815,6 +1833,7 @@ func TestGitCommandDiff(t *testing.T) {
 				HasStagedChanges: false,
 				Tracked:          false,
 			},
+			false,
 		},
 	}
 
@@ -1822,7 +1841,7 @@ func TestGitCommandDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			gitCmd.Diff(s.file, false)
+			gitCmd.Diff(s.file, s.plain)
 		})
 	}
 }
@@ -1976,6 +1995,64 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
 			s.test(gitCmd.CurrentBranchName())
+		})
+	}
+}
+
+func TestGitCommandApplyPatch(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.Equal(t, "git", cmd)
+				assert.EqualValues(t, []string{"apply", "--cached"}, args[0:2])
+				filename := args[2]
+				content, err := ioutil.ReadFile(filename)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "test", string(content))
+
+				return exec.Command("echo", "done")
+			},
+			func(output string, err error) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, "done\n", output)
+			},
+		},
+		{
+			"command returns error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.Equal(t, "git", cmd)
+				assert.EqualValues(t, []string{"apply", "--cached"}, args[0:2])
+				filename := args[2]
+				// TODO: Ideally we want to mock out OSCommand here so that we're not
+				// double handling testing it's CreateTempFile functionality,
+				// but it is going to take a bit of work to make a proper mock for it
+				// so I'm leaving it for another PR
+				content, err := ioutil.ReadFile(filename)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "test", string(content))
+
+				return exec.Command("test")
+			},
+			func(output string, err error) {
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := newDummyGitCommand()
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.ApplyPatch("test"))
 		})
 	}
 }

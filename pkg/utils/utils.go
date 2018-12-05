@@ -214,3 +214,24 @@ func IncludesString(list []string, a string) bool {
 	}
 	return false
 }
+
+// NextIndex returns the index of the element that comes after the given number
+func NextIndex(numbers []int, currentNumber int) int {
+	for index, number := range numbers {
+		if number > currentNumber {
+			return index
+		}
+	}
+	return 0
+}
+
+// PrevIndex returns the index that comes before the given number, cycling if we reach the end
+func PrevIndex(numbers []int, currentNumber int) int {
+	end := len(numbers) - 1
+	for i := end; i >= 0; i -= 1 {
+		if numbers[i] < currentNumber {
+			return i
+		}
+	}
+	return end
+}

@@ -57,10 +57,13 @@ func (gui *Gui) handleSwitchToStagingPanel(g *gocui.Gui, v *gocui.View) error {
 		}
 		return nil
 	}
-	if !file.Tracked || !file.HasUnstagedChanges {
+	if !file.HasUnstagedChanges {
+		gui.Log.WithField("staging", "staging").Info("making error panel")
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileStagingRequirements"))
 	}
-	gui.switchFocus(g, v, stagingView)
+	if err := gui.switchFocus(g, v, stagingView); err != nil {
+		return err
+	}
 	return gui.refreshStagingPanel()
 }
 

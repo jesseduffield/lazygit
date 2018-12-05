@@ -259,7 +259,6 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 		output := string(bom.Clean([]byte(s)))
 		output = utils.NormalizeLinefeeds(output)
 		fmt.Fprint(v, output)
-		v.Wrap = true
 		return nil
 	})
 	return nil

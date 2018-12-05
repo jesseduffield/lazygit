@@ -6,11 +6,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
 type PatchModifier struct {
 	Log *logrus.Entry
+	Tr  *i18n.Localizer
 }
 
 // NewPatchModifier builds a new branch list builder
@@ -20,11 +23,49 @@ func NewPatchModifier(log *logrus.Entry) (*PatchModifier, error) {
 	}, nil
 }
 
-// ModifyPatch takes the original patch, which may contain several hunks,
-// and the line number of the line we want to stage
-func (p *PatchModifier) ModifyPatch(patch string, lineNumber int) (string, error) {
+// ModifyPatchForHunk takes the original patch, which may contain several hunks,
+// and removes any hunks that aren't the selected hunk
+func (p *PatchModifier) ModifyPatchForHunk(patch string, hunkStarts []int, currentLine int) (string, error) {
+	// get hunk start and end
 	lines := strings.Split(patch, "\n")
-	headerLength := 4
+	hunkStartIndex := utils.PrevIndex(hunkStarts, currentLine)
+	hunkStart := hunkStarts[hunkStartIndex]
+	nextHunkStartIndex := utils.NextIndex(hunkStarts, currentLine)
+	var hunkEnd int
+	if nextHunkStartIndex == 0 {
+		hunkEnd = len(lines) - 1
+	} else {
+		hunkEnd = hunkStarts[nextHunkStartIndex]
+	}
+
+	headerLength, err := p.getHeaderLength(lines)
+	if err != nil {
+		return "", err
+	}
+
+	output := strings.Join(lines[0:headerLength], "\n") + "\n"
+	output += strings.Join(lines[hunkStart:hunkEnd], "\n") + "\n"
+
+	return output, nil
+}
+
+func (p *PatchModifier) getHeaderLength(patchLines []string) (int, error) {
+	for index, line := range patchLines {
+		if strings.HasPrefix(line, "@@") {
+			return index, nil
+		}
+	}
+	return 0, errors.New(p.Tr.SLocalize("CantFindHunks"))
+}
+
+// ModifyPatchForLine takes the original patch, which may contain several hunks,
+// and the line number of the line we want to stage
+func (p *PatchModifier) ModifyPatchForLine(patch string, lineNumber int) (string, error) {
+	lines := strings.Split(patch, "\n")
+	headerLength, err := p.getHeaderLength(lines)
+	if err != nil {
+		return "", err
+	}
 	output := strings.Join(lines[0:headerLength], "\n") + "\n"
 
 	hunkStart, err := p.getHunkStart(lines, lineNumber)
@@ -55,7 +96,8 @@ func (p *PatchModifier) getHunkStart(patchLines []string, lineNumber int) (int, 
 			return hunkStart, nil
 		}
 	}
-	return 0, errors.New("Could not find hunk")
+
+	return 0, errors.New(p.Tr.SLocalize("CantFindHunk"))
 }
 
 func (p *PatchModifier) getModifiedHunk(patchLines []string, hunkStart int, lineNumber int) ([]string, error) {
@@ -101,13 +143,8 @@ func (p *PatchModifier) getModifiedHunk(patchLines []string, hunkStart int, line
 // @@ -14,8 +14,9 @@ import (
 func (p *PatchModifier) updatedHeader(currentHeader string, lineChanges int) (string, error) {
 	// current counter is the number after the second comma
-	re := regexp.MustCompile(`^[^,]+,[^,]+,(\d+)`)
-	matches := re.FindStringSubmatch(currentHeader)
-	if len(matches) < 2 {
-		re = regexp.MustCompile(`^[^,]+,[^+]+\+(\d+)`)
-		matches = re.FindStringSubmatch(currentHeader)
-	}
-	prevLengthString := matches[1]
+	re := regexp.MustCompile(`(\d+) @@`)
+	prevLengthString := re.FindStringSubmatch(currentHeader)[1]
 
 	prevLength, err := strconv.Atoi(prevLengthString)
 	if err != nil {

@@ -21,15 +21,16 @@ func (p *PatchParser) ParsePatch(patch string) ([]int, []int, error) {
 	lines := strings.Split(patch, "\n")
 	hunkStarts := []int{}
 	stageableLines := []int{}
-	headerLength := 4
-	for offsetIndex, line := range lines[headerLength:] {
-		index := offsetIndex + headerLength
+	pastHeader := false
+	for index, line := range lines {
 		if strings.HasPrefix(line, "@@") {
+			pastHeader = true
 			hunkStarts = append(hunkStarts, index)
 		}
-		if strings.HasPrefix(line, "-") || strings.HasPrefix(line, "+") {
+		if pastHeader && (strings.HasPrefix(line, "-") || strings.HasPrefix(line, "+")) {
 			stageableLines = append(stageableLines, index)
 		}
 	}
+	p.Log.WithField("staging", "staging").Info(stageableLines)
 	return hunkStarts, stageableLines, nil
 }

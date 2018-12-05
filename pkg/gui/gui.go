@@ -222,7 +222,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = gui.Tr.SLocalize("StagingTitle")
-		v.Wrap = true
 		v.Highlight = true
 		v.FgColor = gocui.ColorWhite
 		if _, err := g.SetViewOnBottom("staging"); err != nil {

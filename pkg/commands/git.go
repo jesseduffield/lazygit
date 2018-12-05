@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -486,7 +485,6 @@ func (c *GitCommand) getMergeBase() (string, error) {
 	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
 	if err != nil {
 		// swallowing error because it's not a big deal; probably because there are no commits yet
-		c.Log.Error(err)
 	}
 	return output, nil
 }
@@ -595,24 +593,13 @@ func (c *GitCommand) Diff(file *File, plain bool) string {
 }
 
 func (c *GitCommand) ApplyPatch(patch string) (string, error) {
-
-	content := []byte(patch)
-	tmpfile, err := ioutil.TempFile("", "patch")
+	filename, err := c.OSCommand.CreateTempFile("patch", patch)
 	if err != nil {
 		c.Log.Error(err)
-		return "", errors.New("Could not create patch file") // TODO: i18n
-	}
-
-	defer os.Remove(tmpfile.Name()) // clean up
-
-	if _, err := tmpfile.Write(content); err != nil {
-		c.Log.Error(err)
-		return "", err
-	}
-	if err := tmpfile.Close(); err != nil {
-		c.Log.Error(err)
 		return "", err
 	}
 
-	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", tmpfile.Name()))
+	defer func() { _ = c.OSCommand.RemoveFile(filename) }()
+
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", filename))
 }

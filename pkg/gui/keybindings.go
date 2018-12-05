@@ -392,25 +392,64 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleMenuClose,
 		}, {
-			ViewName: "staging",
-			Key:      gocui.KeyEsc,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingEscape,
+			ViewName:    "staging",
+			Key:         gocui.KeyEsc,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleStagingEscape,
+			KeyReadable: "esc",
+			Description: gui.Tr.SLocalize("EscapeStaging"),
 		}, {
 			ViewName: "staging",
 			Key:      gocui.KeyArrowUp,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingKeyUp,
+			Handler:  gui.handleStagingPrevLine,
 		}, {
 			ViewName: "staging",
 			Key:      gocui.KeyArrowDown,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingKeyDown,
+			Handler:  gui.handleStagingNextLine,
 		}, {
 			ViewName: "staging",
-			Key:      gocui.KeySpace,
+			Key:      'k',
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleStageLine,
+			Handler:  gui.handleStagingPrevLine,
+		}, {
+			ViewName: "staging",
+			Key:      'j',
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStagingNextLine,
+		}, {
+			ViewName: "staging",
+			Key:      gocui.KeyArrowLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStagingPrevHunk,
+		}, {
+			ViewName: "staging",
+			Key:      gocui.KeyArrowRight,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStagingNextHunk,
+		}, {
+			ViewName: "staging",
+			Key:      'h',
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStagingPrevHunk,
+		}, {
+			ViewName: "staging",
+			Key:      'l',
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStagingNextHunk,
+		}, {
+			ViewName:    "staging",
+			Key:         gocui.KeySpace,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleStageLine,
+			Description: gui.Tr.SLocalize("StageLine"),
+		}, {
+			ViewName:    "staging",
+			Key:         'a',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleStageHunk,
+			Description: gui.Tr.SLocalize("StageHunk"),
 		},
 	}
 
