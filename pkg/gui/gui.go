@@ -421,9 +421,10 @@ func (gui *Gui) Run() error {
 	}
 
 	go func() {
-		time.Sleep(time.Second * 60)
 		err := gui.fetch(g, false)
-		if err == nil || !strings.Contains(err.Error(), "exit status 128") {
+		if err != nil && strings.Contains(err.Error(), "exit status 128") {
+			gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
+		} else {
 			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {
 				return gui.fetch(g, false)
 			})
