@@ -236,14 +236,16 @@ confirmOnQuit: false
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
-	LastUpdateCheck int64
-	RecentRepos     []string
+	LastUpdateCheck    int64
+	RecentRepos        []string
+	RecentPrivateRepos []string
 }
 
 func getDefaultAppState() []byte {
 	return []byte(`
   lastUpdateCheck: 0
-  recentRepos: []
+	recentRepos: []
+	RecentPrivateRepos: []
 `)
 }
 

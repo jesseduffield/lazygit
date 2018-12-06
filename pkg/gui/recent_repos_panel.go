@@ -59,6 +59,24 @@ func (gui *Gui) updateRecentRepoList() error {
 	return gui.Config.SaveAppState()
 }
 
+// canShowIsPrivateRepo returns true if a private repo is never opend before in lazygit
+func (gui *Gui) canShowIsPrivateRepo() bool {
+	repos := gui.Config.GetAppState().RecentPrivateRepos
+	currentRepo, err := os.Getwd()
+	for _, repo := range repos {
+		if currentRepo == repo {
+			return false
+		}
+	}
+	if err != nil {
+		return true
+	}
+	gui.Config.GetAppState().RecentPrivateRepos = newRecentReposList(repos, currentRepo)
+	_ = gui.Config.SaveAppState()
+	return true
+}
+
+// newRecentReposList returns a new repo list with a new entry but only when it doesn't exist yet
 func newRecentReposList(recentRepos []string, currentRepo string) []string {
 	newRepos := []string{currentRepo}
 	for _, repo := range recentRepos {

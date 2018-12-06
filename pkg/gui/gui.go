@@ -443,7 +443,7 @@ func (gui *Gui) Run() error {
 
 	go func() {
 		err := gui.fetch(g, g.CurrentView(), false)
-		if err != nil && strings.Contains(err.Error(), "exit status 128") {
+		if err != nil && strings.Contains(err.Error(), "exit status 128") && gui.canShowIsPrivateRepo() {
 			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 		} else {
 			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {
