@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestSplitLines is a function.
 func TestSplitLines(t *testing.T) {
 	type scenario struct {
 		multilineString string
@@ -36,6 +37,7 @@ func TestSplitLines(t *testing.T) {
 	}
 }
 
+// TestWithPadding is a function.
 func TestWithPadding(t *testing.T) {
 	type scenario struct {
 		str      string
@@ -61,6 +63,7 @@ func TestWithPadding(t *testing.T) {
 	}
 }
 
+// TestTrimTrailingNewline is a function.
 func TestTrimTrailingNewline(t *testing.T) {
 	type scenario struct {
 		str      string
@@ -83,6 +86,7 @@ func TestTrimTrailingNewline(t *testing.T) {
 	}
 }
 
+// TestNormalizeLinefeeds is a function.
 func TestNormalizeLinefeeds(t *testing.T) {
 	type scenario struct {
 		byteArray []byte
@@ -116,6 +120,7 @@ func TestNormalizeLinefeeds(t *testing.T) {
 	}
 }
 
+// TestResolvePlaceholderString is a function.
 func TestResolvePlaceholderString(t *testing.T) {
 	type scenario struct {
 		templateString string
@@ -169,6 +174,7 @@ func TestResolvePlaceholderString(t *testing.T) {
 	}
 }
 
+// TestDisplayArraysAligned is a function.
 func TestDisplayArraysAligned(t *testing.T) {
 	type scenario struct {
 		input    [][]string
@@ -197,10 +203,12 @@ type myDisplayable struct {
 
 type myStruct struct{}
 
+// GetDisplayStrings is a function.
 func (d *myDisplayable) GetDisplayStrings() []string {
 	return d.strings
 }
 
+// TestGetDisplayStringArrays is a function.
 func TestGetDisplayStringArrays(t *testing.T) {
 	type scenario struct {
 		input    []Displayable
@@ -222,6 +230,7 @@ func TestGetDisplayStringArrays(t *testing.T) {
 	}
 }
 
+// TestRenderDisplayableList is a function.
 func TestRenderDisplayableList(t *testing.T) {
 	type scenario struct {
 		input          []Displayable
@@ -263,6 +272,7 @@ func TestRenderDisplayableList(t *testing.T) {
 	}
 }
 
+// TestRenderList is a function.
 func TestRenderList(t *testing.T) {
 	type scenario struct {
 		input          interface{}
@@ -301,6 +311,7 @@ func TestRenderList(t *testing.T) {
 	}
 }
 
+// TestGetPaddedDisplayStrings is a function.
 func TestGetPaddedDisplayStrings(t *testing.T) {
 	type scenario struct {
 		stringArrays [][]string
@@ -321,6 +332,7 @@ func TestGetPaddedDisplayStrings(t *testing.T) {
 	}
 }
 
+// TestGetPadWidths is a function.
 func TestGetPadWidths(t *testing.T) {
 	type scenario struct {
 		stringArrays [][]string
@@ -347,6 +359,7 @@ func TestGetPadWidths(t *testing.T) {
 	}
 }
 
+// TestMin is a function.
 func TestMin(t *testing.T) {
 	type scenario struct {
 		a        int
@@ -377,6 +390,7 @@ func TestMin(t *testing.T) {
 	}
 }
 
+// TestIncludesString is a function.
 func TestIncludesString(t *testing.T) {
 	type scenario struct {
 		list     []string
@@ -409,5 +423,97 @@ func TestIncludesString(t *testing.T) {
 
 	for _, s := range scenarios {
 		assert.EqualValues(t, s.expected, IncludesString(s.list, s.element))
+	}
+}
+
+func TestNextIndex(t *testing.T) {
+	type scenario struct {
+		testName string
+		list     []int
+		element  int
+		expected int
+	}
+
+	scenarios := []scenario{
+		{
+			// I'm not really fussed about how it behaves here
+			"no elements",
+			[]int{},
+			1,
+			0,
+		},
+		{
+			"one element",
+			[]int{1},
+			1,
+			0,
+		},
+		{
+			"two elements",
+			[]int{1, 2},
+			1,
+			1,
+		},
+		{
+			"two elements, giving second one",
+			[]int{1, 2},
+			2,
+			0,
+		},
+		{
+			"three elements, giving second one",
+			[]int{1, 2, 3},
+			2,
+			2,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.EqualValues(t, s.expected, NextIndex(s.list, s.element))
+		})
+	}
+}
+
+func TestPrevIndex(t *testing.T) {
+	type scenario struct {
+		testName string
+		list     []int
+		element  int
+		expected int
+	}
+
+	scenarios := []scenario{
+		{
+			// I'm not really fussed about how it behaves here
+			"no elements",
+			[]int{},
+			1,
+			-1,
+		},
+		{
+			"one element",
+			[]int{1},
+			1,
+			0,
+		},
+		{
+			"two elements",
+			[]int{1, 2},
+			1,
+			1,
+		},
+		{
+			"three elements, giving second one",
+			[]int{1, 2, 3},
+			2,
+			0,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.EqualValues(t, s.expected, PrevIndex(s.list, s.element))
+		})
 	}
 }

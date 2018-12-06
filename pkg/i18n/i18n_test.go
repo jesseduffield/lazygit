@@ -16,10 +16,13 @@ func getDummyLog() *logrus.Entry {
 	log.Out = ioutil.Discard
 	return log.WithField("test", "test")
 }
+
+// TestNewLocalizer is a function.
 func TestNewLocalizer(t *testing.T) {
 	assert.NotNil(t, NewLocalizer(getDummyLog()))
 }
 
+// TestDetectLanguage is a function.
 func TestDetectLanguage(t *testing.T) {
 	type scenario struct {
 		langDetector func() (string, error)
@@ -46,6 +49,7 @@ func TestDetectLanguage(t *testing.T) {
 	}
 }
 
+// TestLocalizer is a function.
 func TestLocalizer(t *testing.T) {
 	type scenario struct {
 		userLang string
@@ -76,7 +80,7 @@ func TestLocalizer(t *testing.T) {
 					},
 				}))
 				assert.Equal(t, "Diff", l.SLocalize("DiffTitle"))
-				assert.Equal(t, "Weet je zeker dat je branch test wil verwijderen?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
+				assert.Equal(t, "Weet je zeker dat je branch test wilt verwijderen?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
 			},
 		},
 	}

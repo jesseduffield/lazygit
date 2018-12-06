@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -29,6 +30,7 @@ func newDummyAppConfig() *config.AppConfig {
 	return appConfig
 }
 
+// TestOSCommandRunCommandWithOutput is a function.
 func TestOSCommandRunCommandWithOutput(t *testing.T) {
 	type scenario struct {
 		command string
@@ -56,6 +58,7 @@ func TestOSCommandRunCommandWithOutput(t *testing.T) {
 	}
 }
 
+// TestOSCommandRunCommand is a function.
 func TestOSCommandRunCommand(t *testing.T) {
 	type scenario struct {
 		command string
@@ -76,6 +79,7 @@ func TestOSCommandRunCommand(t *testing.T) {
 	}
 }
 
+// TestOSCommandOpenFile is a function.
 func TestOSCommandOpenFile(t *testing.T) {
 	type scenario struct {
 		filename string
@@ -126,6 +130,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 	}
 }
 
+// TestOSCommandEditFile is a function.
 func TestOSCommandEditFile(t *testing.T) {
 	type scenario struct {
 		filename           string
@@ -255,6 +260,7 @@ func TestOSCommandEditFile(t *testing.T) {
 	}
 }
 
+// TestOSCommandQuote is a function.
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := newDummyOSCommand()
 
@@ -278,7 +284,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandQuoteSingleQuote tests the quote function with " quotes explicitly for Linux
+// TestOSCommandQuoteDoubleQuote tests the quote function with " quotes explicitly for Linux
 func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	osCommand := newDummyOSCommand()
 
@@ -291,6 +297,7 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
+// TestOSCommandUnquote is a function.
 func TestOSCommandUnquote(t *testing.T) {
 	osCommand := newDummyOSCommand()
 
@@ -301,6 +308,7 @@ func TestOSCommandUnquote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
+// TestOSCommandFileType is a function.
 func TestOSCommandFileType(t *testing.T) {
 	type scenario struct {
 		path  string
@@ -355,5 +363,36 @@ func TestOSCommandFileType(t *testing.T) {
 		s.setup()
 		s.test(newDummyOSCommand().FileType(s.path))
 		_ = os.RemoveAll(s.path)
+	}
+}
+
+func TestOSCommandCreateTempFile(t *testing.T) {
+	type scenario struct {
+		testName string
+		filename string
+		content  string
+		test     func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			"filename",
+			"content",
+			func(path string, err error) {
+				assert.NoError(t, err)
+
+				content, err := ioutil.ReadFile(path)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "content", string(content))
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			s.test(newDummyOSCommand().CreateTempFile(s.filename, s.content))
+		})
 	}
 }

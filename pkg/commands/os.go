@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -109,7 +110,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 	return err
 }
 
-// OpenFile opens a file with the given
+// OpenLink opens a file with the given
 func (c *OSCommand) OpenLink(link string) error {
 	commandTemplate := c.Config.GetUserConfig().GetString("os.openLinkCommand")
 	templateValues := map[string]string{
@@ -175,4 +176,29 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 
 	_, err = f.WriteString("\n" + line)
 	return err
+}
+
+// CreateTempFile writes a string to a new temp file and returns the file's name
+func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
+	tmpfile, err := ioutil.TempFile("", filename)
+	if err != nil {
+		c.Log.Error(err)
+		return "", err
+	}
+
+	if _, err := tmpfile.Write([]byte(content)); err != nil {
+		c.Log.Error(err)
+		return "", err
+	}
+	if err := tmpfile.Close(); err != nil {
+		c.Log.Error(err)
+		return "", err
+	}
+
+	return tmpfile.Name(), nil
+}
+
+// RemoveFile removes a file at the specified path
+func (c *OSCommand) RemoveFile(filename string) error {
+	return os.Remove(filename)
 }

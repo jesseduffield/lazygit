@@ -208,11 +208,6 @@ func includesInt(list []int, a int) bool {
 	return false
 }
 
-// GetBranchName branch name
-func (c *GitCommand) GetBranchName() (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
-}
-
 // ResetHard does the equivalent of `git reset --hard HEAD`
 func (c *GitCommand) ResetHard() error {
 	return c.Worktree.Reset(&gogit.ResetOptions{Mode: gogit.HardReset})
@@ -267,12 +262,16 @@ func (c *GitCommand) NewBranch(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -b %s", name))
 }
 
+// CurrentBranchName is a function.
 func (c *GitCommand) CurrentBranchName() (string, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	branchName, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
 	if err != nil {
-		return "", err
+		branchName, err = c.OSCommand.RunCommandWithOutput("git rev-parse --short HEAD")
+		if err != nil {
+			return "", err
+		}
 	}
-	return utils.TrimTrailingNewline(output), nil
+	return utils.TrimTrailingNewline(branchName), nil
 }
 
 // DeleteBranch delete branch
@@ -486,7 +485,6 @@ func (c *GitCommand) getMergeBase() (string, error) {
 	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
 	if err != nil {
 		// swallowing error because it's not a big deal; probably because there are no commits yet
-		c.Log.Error(err)
 	}
 	return output, nil
 }
@@ -572,9 +570,10 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file *File) string {
+func (c *GitCommand) Diff(file *File, plain bool) string {
 	cachedArg := ""
 	trackedArg := "--"
+	colorArg := "--color"
 	fileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
@@ -582,9 +581,25 @@ func (c *GitCommand) Diff(file *File) string {
 	if !file.Tracked && !file.HasStagedChanges {
 		trackedArg = "--no-index /dev/null"
 	}
-	command := fmt.Sprintf("git diff --color %s %s %s", cachedArg, trackedArg, fileName)
+	if plain {
+		colorArg = ""
+	}
+
+	command := fmt.Sprintf("git diff %s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
 
 	// for now we assume an error means the file was deleted
 	s, _ := c.OSCommand.RunCommandWithOutput(command)
 	return s
+}
+
+func (c *GitCommand) ApplyPatch(patch string) (string, error) {
+	filename, err := c.OSCommand.CreateTempFile("patch", patch)
+	if err != nil {
+		c.Log.Error(err)
+		return "", err
+	}
+
+	defer func() { _ = c.OSCommand.RemoveFile(filename) }()
+
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", filename))
 }
