@@ -417,10 +417,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `fetch`,
 		}, &i18n.Message{
 			ID:    "NoAutomaticGitFetchTitle",
-			Other: `No automatic git fetch`,
+			Other: `Geen automatiese git fetch`,
 		}, &i18n.Message{
 			ID:    "NoAutomaticGitFetchBody",
-			Other: `Lazygit can't use "git fetch" in a private repo use f in the branches panel to run git fetch manually`,
+			Other: `Lazygit kan niet "git fetch" uitvoeren in een privé repository, gebruik f in het branches paneel om "git fetch" manueel uit te voeren`,
 		}, &i18n.Message{
 			ID:    "StageLines",
 			Other: `stage individual hunks/lines`,

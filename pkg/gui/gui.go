@@ -371,9 +371,9 @@ func (gui *Gui) promptAnonymousReporting() error {
 	})
 }
 
-func (gui *Gui) fetch(g *gocui.Gui, canSskForCredentials bool) error {
+func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canSskForCredentials bool) error {
 	err := gui.GitCommand.Fetch(func(passOrUname string) string {
-		return gui.waitForPassUname(gui.g, gui.g.CurrentView(), passOrUname)
+		return gui.waitForPassUname(gui.g, v, passOrUname)
 	}, canSskForCredentials)
 
 	if canSskForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
@@ -382,7 +382,7 @@ func (gui *Gui) fetch(g *gocui.Gui, canSskForCredentials bool) error {
 		close := func(g *gocui.Gui, v *gocui.View) error {
 			return nil
 		}
-		_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("Error"), coloredMessage, close, close)
+		_ = gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
 	}
 
 	gui.refreshStatus(g)
@@ -442,12 +442,12 @@ func (gui *Gui) Run() error {
 	}
 
 	go func() {
-		err := gui.fetch(g, false)
+		err := gui.fetch(g, g.CurrentView(), false)
 		if err != nil && strings.Contains(err.Error(), "exit status 128") {
 			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 		} else {
 			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {
-				return gui.fetch(g, false)
+				return gui.fetch(g, g.CurrentView(), false)
 			})
 		}
 	}()
