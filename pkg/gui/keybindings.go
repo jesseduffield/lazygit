@@ -386,7 +386,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleStashDrop,
 			Description: gui.Tr.SLocalize("drop"),
-		}, {
+		},
+		{ViewName: "stash", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleStashPrevLine},
+		{ViewName: "stash", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleStashPrevLine},
+		{ViewName: "stash", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleStashNextLine},
+		{ViewName: "stash", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleStashNextLine},
+		{
 			ViewName: "commitMessage",
 			Key:      gocui.KeyEnter,
 			Modifier: gocui.ModNone,
@@ -406,7 +411,11 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:      'q',
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleMenuClose,
-		}, {
+		},
+		{ViewName: "menu", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleMenuPrevLine},
+		{ViewName: "menu", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleMenuPrevLine},
+		{ViewName: "menu", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleMenuNextLine},
+		{ViewName: "menu", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleMenuNextLine}, {
 			ViewName:    "staging",
 			Key:         gocui.KeyEsc,
 			Modifier:    gocui.ModNone,
@@ -466,17 +475,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Handler:     gui.handleStageHunk,
 			Description: gui.Tr.SLocalize("StageHunk"),
 		},
-	}
-
-	// Would make these keybindings global but that interferes with editing
-	// input in the confirmation panel
-	for _, viewName := range []string{"status", "commits", "stash", "menu"} {
-		bindings = append(bindings, []*Binding{
-			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.cursorUp},
-			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.cursorDown},
-			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: gui.cursorUp},
-			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: gui.cursorDown},
-		}...)
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "stash", "menu"} {

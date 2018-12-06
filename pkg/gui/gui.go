@@ -95,12 +95,17 @@ type stashPanelState struct {
 	SelectedLine int
 }
 
+type menuPanelState struct {
+	SelectedLine int
+}
+
 type panelStates struct {
 	Files    *filePanelState
 	Staging  *stagingPanelState
 	Branches *branchPanelState
 	Commits  *commitPanelState
 	Stash    *stashPanelState
+	Menu     *menuPanelState
 }
 
 type guiState struct {
@@ -137,6 +142,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 			Branches: &branchPanelState{SelectedLine: 0},
 			Commits:  &commitPanelState{SelectedLine: -1},
 			Stash:    &stashPanelState{SelectedLine: -1},
+			Menu:     &menuPanelState{SelectedLine: 0},
 		},
 	}
 
@@ -359,12 +365,12 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		gui.g.SetCurrentView(filesView.Name())
-		gui.refreshFiles(g)
-		gui.refreshBranches(g)
-		gui.refreshCommits(g)
-		gui.refreshStashEntries(g)
-		if err := gui.renderGlobalOptions(g); err != nil {
-			return err
+
+		gui.refreshSidePanels(gui.g)
+		if gui.g.CurrentView().Name() != "menu" {
+			if err := gui.renderGlobalOptions(g); err != nil {
+				return err
+			}
 		}
 		if err := gui.switchFocus(g, nil, filesView); err != nil {
 			return err
@@ -387,6 +393,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 	}
+
+	// TODO: comment-out
+	gui.Log.Info(utils.AsJson(gui.State))
 
 	return gui.resizeCurrentPopupPanel(g)
 }

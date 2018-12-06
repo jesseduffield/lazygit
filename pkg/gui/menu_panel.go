@@ -8,11 +8,31 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// list panel functions
+
 func (gui *Gui) handleMenuSelect(g *gocui.Gui, v *gocui.View) error {
-	// doing nothing for now
-	// but it is needed for switch in newLineFocused
-	return nil
+	return gui.focusPoint(0, gui.State.Panels.Menu.SelectedLine, v)
 }
+
+func (gui *Gui) handleMenuNextLine(g *gocui.Gui, v *gocui.View) error {
+	panelState := gui.State.Panels.Menu
+	gui.changeSelectedLine(&panelState.SelectedLine, v.LinesHeight(), false)
+
+	return gui.handleMenuSelect(g, v)
+}
+
+func (gui *Gui) handleMenuPrevLine(g *gocui.Gui, v *gocui.View) error {
+	panelState := gui.State.Panels.Menu
+	gui.changeSelectedLine(&panelState.SelectedLine, v.LinesHeight(), true)
+
+	if err := gui.focusPoint(0, gui.State.Panels.Commits.SelectedLine, v); err != nil {
+		return err
+	}
+
+	return gui.handleMenuSelect(g, v)
+}
+
+// specific functions
 
 func (gui *Gui) renderMenuOptions(g *gocui.Gui) error {
 	optionsMap := map[string]string{
@@ -46,14 +66,15 @@ func (gui *Gui) createMenu(items interface{}, handlePress func(int) error) error
 	menuView.FgColor = gocui.ColorWhite
 	menuView.Clear()
 	fmt.Fprint(menuView, list)
+	gui.State.Panels.Menu.SelectedLine = 0
 
 	if err := gui.renderMenuOptions(gui.g); err != nil {
 		return err
 	}
 
 	wrappedHandlePress := func(g *gocui.Gui, v *gocui.View) error {
-		lineNumber := gui.getItemPosition(v)
-		return handlePress(lineNumber)
+		selectedLine := gui.State.Panels.Menu.SelectedLine
+		return handlePress(selectedLine)
 	}
 
 	if err := gui.g.SetKeybinding("menu", gocui.KeySpace, gocui.ModNone, wrappedHandlePress); err != nil {
