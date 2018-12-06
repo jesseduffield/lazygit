@@ -429,7 +429,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoAutomaticGitFetchBody",
 			Other: `Lazygit can't use "git fetch" in a private repo use f in the branch panel to run git fetch manually`,
-    }, &i18n.Message{
+		}, &i18n.Message{
 			ID:    "StageLines",
 			Other: `stage individual hunks/lines`,
 		}, &i18n.Message{
