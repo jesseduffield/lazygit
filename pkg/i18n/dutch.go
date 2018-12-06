@@ -405,10 +405,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `Deze branch bestaat niet op de remote. U moet het eerst naar de remote pushen.`,
 		}, &i18n.Message{
 			ID:    "StageLines",
-			Other: `stage individual hunks/lines`,
+			Other: `stage individuele hunks/lijnen`,
 		}, &i18n.Message{
 			ID:    "FileStagingRequirements",
-			Other: `Can only stage individual lines for tracked files with unstaged changes`,
+			Other: `Kan alleen individuele lijnen stagen van getrackte bestanden met onstaged veranderingen`,
 		}, &i18n.Message{
 			ID:    "StagingTitle",
 			Other: `Staging`,
@@ -417,16 +417,16 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `stage hunk`,
 		}, &i18n.Message{
 			ID:    "StageLine",
-			Other: `stage line`,
+			Other: `stage lijn`,
 		}, &i18n.Message{
 			ID:    "EscapeStaging",
-			Other: `return to files panel`,
+			Other: `ga terug naar het bestanden paneel`,
 		}, &i18n.Message{
 			ID:    "CantFindHunks",
-			Other: `Could not find any hunks in this patch`,
+			Other: `Kan geen hunks vinden in deze patch`,
 		}, &i18n.Message{
 			ID:    "CantFindHunk",
-			Other: `Could not find hunk`,
+			Other: `kan geen hunk finden`,
 		},
 	)
 }
