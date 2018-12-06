@@ -105,6 +105,9 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleCommitSelect(g, v)
 	case "stash":
 		return gui.handleStashEntrySelect(g, v)
+	case "staging":
+		return nil
+		// return gui.handleStagingSelect(g, v)
 	default:
 		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement"))
 	}
@@ -155,6 +158,10 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	if _, err := g.SetCurrentView(newView.Name()); err != nil {
 		return err
 	}
+	if _, err := g.SetViewOnTop(newView.Name()); err != nil {
+		return err
+	}
+
 	g.Cursor = newView.Editable
 
 	return gui.newLineFocused(g, newView)
@@ -254,7 +261,6 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 		output := string(bom.Clean([]byte(s)))
 		output = utils.NormalizeLinefeeds(output)
 		fmt.Fprint(v, output)
-		v.Wrap = true
 		return nil
 	})
 	return nil
@@ -292,6 +298,11 @@ func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
 
 func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("branches")
+	return v
+}
+
+func (gui *Gui) getStagingView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("staging")
 	return v
 }
 

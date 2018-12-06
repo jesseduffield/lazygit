@@ -8,6 +8,7 @@ package gui
 
 import (
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -73,6 +74,7 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 			return nil, err
 		}
 		confirmationView.Title = title
+		confirmationView.Wrap = true
 		confirmationView.FgColor = gocui.ColorWhite
 	}
 	confirmationView.Clear()
@@ -138,7 +140,15 @@ func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title,
 }
 
 func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
-	gui.Log.Error(message)
+	go func() {
+		// when reporting is switched on this log call sometimes introduces
+		// a delay on the error panel popping up. Here I'm adding a second wait
+		// so that the error is logged while the user is reading the error message
+		time.Sleep(time.Second)
+		gui.Log.Error(message)
+	}()
+
+	// gui.Log.WithField("staging", "staging").Info("creating confirmation panel")
 	currentView := g.CurrentView()
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))
