@@ -59,7 +59,7 @@ func setupRepositoryAndWorktree(openGitRepository func(string) (*gogit.Repositor
 // GitCommand is our main git interface
 type GitCommand struct {
 	Log                *logrus.Entry
-	OSCommand          *OSCommand
+	OSCommand          Command
 	Worktree           *gogit.Worktree
 	Repo               *gogit.Repository
 	Tr                 *i18n.Localizer
@@ -324,7 +324,7 @@ func (c *GitCommand) Commit(message string, amend bool) (*exec.Cmd, error) {
 	}
 	command := fmt.Sprintf("git commit%s -m %s", amendParam, c.OSCommand.Quote(message))
 	if c.usingGpg() {
-		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
+		return c.OSCommand.PrepareSubProcess(c.OSCommand.GetPlatform().shell, c.OSCommand.GetPlatform().shellArg, command), nil
 	}
 
 	return nil, c.OSCommand.RunCommand(command)

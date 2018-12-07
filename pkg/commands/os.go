@@ -27,24 +27,43 @@ type Platform struct {
 
 // OSCommand holds all the os commands
 type OSCommand struct {
-	Log                *logrus.Entry
-	Platform           *Platform
-	Config             config.AppConfigurer
-	command            func(string, ...string) *exec.Cmd
-	getGlobalGitConfig func(string) (string, error)
-	getenv             func(string) string
+	Log      *logrus.Entry
+	Platform *Platform
+	Config   config.AppConfigurer
+}
+
+// regenerate the mock for this interface with
+// mockgen -source=os.go -destination=mock_os.go  -package=commands MockOSCommand
+// Command
+type Command interface {
+	RunCommandWithOutput(command string) (string, error)
+	RunCommand(command string) error
+	FileType(path string) string
+	RunDirectCommand(command string) (string, error)
+	OpenFile(filename string) error
+	OpenLink(link string) error
+	EditFile(filename string) (*exec.Cmd, error)
+	PrepareSubProcess(cmdName string, commandArgs ...string) *exec.Cmd
+	Quote(message string) string
+	Unquote(message string) string
+	AppendLineToFile(filename, line string) error
+	CreateTempFile(filename, content string) (string, error)
+	RemoveFile(filename string) error
+	GetPlatform() *Platform
+	SetGetGlobalGitConfig(func(string) (string, error))
+	GetEnv(string) string
+	Command(string, ...string) *exec.Cmd
 }
 
 // NewOSCommand os command runner
 func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
-	return &OSCommand{
-		Log:                log,
-		Platform:           getPlatform(),
-		Config:             config,
-		command:            exec.Command,
-		getGlobalGitConfig: gitconfig.Global,
-		getenv:             os.Getenv,
+	osCommand := &OSCommand{
+		Log:      log,
+		Platform: getPlatform(),
+		Config:   config,
 	}
+
+	return osCommand
 }
 
 // RunCommandWithOutput wrapper around commands returning their output and error
@@ -53,7 +72,7 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	splitCmd := str.ToArgv(command)
 	c.Log.Info(splitCmd)
 	return sanitisedCommandOutput(
-		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
+		c.Command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
 	)
 }
 
@@ -80,7 +99,7 @@ func (c *OSCommand) RunDirectCommand(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunDirectCommand")
 
 	return sanitisedCommandOutput(
-		c.command(c.Platform.shell, c.Platform.shellArg, command).
+		c.Command(c.Platform.shell, c.Platform.shellArg, command).
 			CombinedOutput(),
 	)
 }
@@ -125,13 +144,13 @@ func (c *OSCommand) OpenLink(link string) error {
 // EditFile opens a file in a subprocess using whatever editor is available,
 // falling back to core.editor, VISUAL, EDITOR, then vi
 func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
-	editor, _ := c.getGlobalGitConfig("core.editor")
+	editor, _ := c.GetGlobalGitConfig("core.editor")
 
 	if editor == "" {
-		editor = c.getenv("VISUAL")
+		editor = c.GetEnv("VISUAL")
 	}
 	if editor == "" {
-		editor = c.getenv("EDITOR")
+		editor = c.GetEnv("EDITOR")
 	}
 	if editor == "" {
 		if err := c.RunCommand("which vi"); err == nil {
@@ -147,7 +166,7 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
 func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *exec.Cmd {
-	return c.command(cmdName, commandArgs...)
+	return c.Command(cmdName, commandArgs...)
 }
 
 // Quote wraps a message in platform-specific quotation marks
@@ -201,4 +220,21 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 // RemoveFile removes a file at the specified path
 func (c *OSCommand) RemoveFile(filename string) error {
 	return os.Remove(filename)
+}
+
+// GetPlatform returns the computer's platform
+func (c *OSCommand) GetPlatform() *Platform {
+	return c.Platform
+}
+
+func (c *OSCommand) GetGlobalGitConfig(s string) (string, error) {
+	return gitconfig.Global(s)
+}
+
+func (c *OSCommand) GetEnv(s string) string {
+	return os.Getenv(s)
+}
+
+func (c *OSCommand) Command(s string, s2 ...string) *exec.Cmd {
+	return exec.Command(s, s2...)
 }
