@@ -115,7 +115,7 @@ func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	gui.credentials <- ""
+	gui.credentials <- "-"
 	return gui.switchFocus(g, v, gui.getFilesView(g))
 }
 

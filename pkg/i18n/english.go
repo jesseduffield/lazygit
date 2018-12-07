@@ -151,6 +151,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "PushWait",
 			Other: "Pushing...",
 		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetching...",
+		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "This file has no merge conflicts",
 		}, &i18n.Message{

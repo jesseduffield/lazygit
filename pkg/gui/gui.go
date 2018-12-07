@@ -371,8 +371,10 @@ func (gui *Gui) promptAnonymousReporting() error {
 	})
 }
 
-func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canSskForCredentials bool) error {
-	err := gui.GitCommand.Fetch(func(passOrUname string) string {
+func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canSskForCredentials bool) (unamePassOpend bool, err error) {
+	unamePassOpend = false
+	err = gui.GitCommand.Fetch(func(passOrUname string) string {
+		unamePassOpend = true
 		return gui.waitForPassUname(gui.g, v, passOrUname)
 	}, canSskForCredentials)
 
@@ -386,7 +388,7 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canSskForCredentials bool) er
 	}
 
 	gui.refreshStatus(g)
-	return err
+	return unamePassOpend, err
 }
 
 func (gui *Gui) updateLoader(g *gocui.Gui) error {
@@ -442,12 +444,13 @@ func (gui *Gui) Run() error {
 	}
 
 	go func() {
-		err := gui.fetch(g, g.CurrentView(), false)
+		_, err := gui.fetch(g, g.CurrentView(), false)
 		if err != nil && strings.Contains(err.Error(), "exit status 128") && gui.canShowIsPrivateRepo() {
 			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 		} else {
 			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {
-				return gui.fetch(g, g.CurrentView(), false)
+				_, err := gui.fetch(g, g.CurrentView(), false)
+				return err
 			})
 		}
 	}()

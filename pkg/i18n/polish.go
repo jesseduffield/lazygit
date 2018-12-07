@@ -132,6 +132,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "PushWait",
 			Other: "Wypychanie zmian...",
 		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetching...",
+		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "Ten plik nie powoduje konfliktów scalania",
 		}, &i18n.Message{

@@ -34,7 +34,29 @@ func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error 
 }
 
 func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
-	return gui.fetch(g, v, true)
+	if err := gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("FetchWait")); err != nil {
+		return err
+	}
+	go func() {
+		unamePassOpend, err := gui.fetch(g, v, true)
+		if err != nil {
+			errMessage := err.Error()
+			if errMessage == "exit status 128" {
+				errMessage = gui.Tr.SLocalize("PassUnameWrong")
+			}
+			_ = gui.createErrorPanel(g, errMessage)
+		}
+		if unamePassOpend {
+			_, _ = g.SetViewOnBottom("pushPassUname")
+			_ = g.DeleteView("pushPassUname")
+		}
+		if err == nil {
+			_ = gui.closeConfirmationPrompt(g)
+			_ = gui.refreshCommits(g)
+			_ = gui.refreshStatus(g)
+		}
+	}()
+	return nil
 }
 
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {

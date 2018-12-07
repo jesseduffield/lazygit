@@ -138,10 +138,13 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Dit is geen bestand",
 		}, &i18n.Message{
 			ID:    "PullWait",
-			Other: "Pulling...",
+			Other: "Pullen...",
 		}, &i18n.Message{
 			ID:    "PushWait",
-			Other: "Pushing...",
+			Other: "Pushen...",
+		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetchen...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "Dit bestand heeft geen merge conflicten",
