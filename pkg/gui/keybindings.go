@@ -210,7 +210,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			ViewName:    "files",
 			Key:         'D',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleResetHard,
+			Handler:     gui.handleResetAndClean,
 			Description: gui.Tr.SLocalize("resetHard"),
 		}, {
 			ViewName:    "files",
