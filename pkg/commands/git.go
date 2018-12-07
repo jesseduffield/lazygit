@@ -130,17 +130,6 @@ func (c *GitCommand) GetStashEntryDiff(index int) (string, error) {
 
 // GetStatusFiles git status files
 func (c *GitCommand) GetStatusFiles() []*File {
-
-	// files := []*File{}
-	// for i := 0; i < 100; i++ {
-	// 	files = append(files, &File{
-	// 		Name:          strconv.Itoa(i),
-	// 		DisplayString: strconv.Itoa(i),
-	// 		Type:          "file",
-	// 	})
-	// }
-	// return files
-
 	statusOutput, _ := c.GitStatus()
 	statusStrings := utils.SplitLines(statusOutput)
 	files := []*File{}
@@ -165,7 +154,6 @@ func (c *GitCommand) GetStatusFiles() []*File {
 		}
 		files = append(files, file)
 	}
-	c.Log.Info(files) // TODO: use a dumper-esque log here
 	return files
 }
 
@@ -228,14 +216,24 @@ func (c *GitCommand) ResetAndClean() error {
 	return c.OSCommand.RunCommand("git clean -fd")
 }
 
-// UpstreamDifferenceCount checks how many pushables/pullables there are for the
+func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
+	return c.GetCommitDifferences("HEAD", "@{u}")
+}
+
+func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string, string) {
+	upstream := "origin" // hardcoded for now
+	return c.GetCommitDifferences(branchName, fmt.Sprintf("%s/%s", upstream, branchName))
+}
+
+// GetCommitDifferences checks how many pushables/pullables there are for the
 // current branch
-func (c *GitCommand) UpstreamDifferenceCount() (string, string) {
-	pushableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --count")
+func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
+	command := "git rev-list %s..%s --count"
+	pushableCount, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf(command, to, from))
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.OSCommand.RunCommandWithOutput("git rev-list HEAD..@{u} --count")
+	pullableCount, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf(command, from, to))
 	if err != nil {
 		return "?", "?"
 	}
@@ -617,4 +615,9 @@ func (c *GitCommand) ApplyPatch(patch string) (string, error) {
 	defer func() { _ = c.OSCommand.RemoveFile(filename) }()
 
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", filename))
+}
+
+func (c *GitCommand) FastForward(branchName string) error {
+	upstream := "origin" // hardcoding for now
+	return c.OSCommand.RunCommand(fmt.Sprintf("git fetch %s %s:%s", upstream, branchName, branchName))
 }

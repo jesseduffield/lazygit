@@ -52,6 +52,9 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 	} else {
 		log = newProductionLogger(config)
 	}
+
+	// highly recommended: tail -f development.log | humanlog
+	// https://github.com/aybabtme/humanlog
 	log.Formatter = &logrus.JSONFormatter{}
 
 	if config.GetUserConfig().GetString("reporting") == "on" {

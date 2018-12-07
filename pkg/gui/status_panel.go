@@ -19,7 +19,7 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 	// contents end up cleared
 	g.Update(func(*gocui.Gui) error {
 		v.Clear()
-		pushables, pullables := gui.GitCommand.UpstreamDifferenceCount()
+		pushables, pullables := gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
 		fmt.Fprint(v, "↑"+pushables+"↓"+pullables)
 		branches := gui.State.Branches
 		if err := gui.updateHasMergeConflictStatus(); err != nil {
@@ -48,6 +48,8 @@ func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
+	blue := color.New(color.FgBlue)
+
 	dashboardString := strings.Join(
 		[]string{
 			lazygitTitle(),
@@ -56,7 +58,7 @@ func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
 			"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
 			"Tutorial: https://youtu.be/VDXvbHZYeKY",
 			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
-			"Buy Jesse a coffee: https://donorbox.org/lazygit",
+			blue.Sprint("Buy Jesse a coffee: https://donorbox.org/lazygit"), // caffeine ain't free
 		}, "\n\n")
 
 	return gui.renderString(g, "main", dashboardString)

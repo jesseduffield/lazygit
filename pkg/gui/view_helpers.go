@@ -13,11 +13,16 @@ import (
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
 
 func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
-	gui.refreshBranches(g)
-	gui.refreshFiles(g)
-	gui.refreshCommits(g)
-	gui.refreshStashEntries(g)
-	return nil
+	if err := gui.refreshBranches(g); err != nil {
+		return err
+	}
+	if err := gui.refreshFiles(g); err != nil {
+		return err
+	}
+	if err := gui.refreshCommits(g); err != nil {
+		return err
+	}
+	return gui.refreshStashEntries(g)
 }
 
 func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
@@ -81,7 +86,7 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	switch v.Name() {
 	case "menu":
-		return nil
+		return gui.handleMenuSelect(g, v)
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
@@ -159,6 +164,10 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	}
 
 	g.Cursor = newView.Editable
+
+	if err := gui.renderPanelOptions(); err != nil {
+		return err
+	}
 
 	return gui.newLineFocused(g, newView)
 }
@@ -240,8 +249,8 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 	return strings.Join(optionsArray, ", ")
 }
 
-func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) error {
-	return gui.renderString(g, "options", gui.optionsMapToString(optionsMap))
+func (gui *Gui) renderOptionsMap(optionsMap map[string]string) error {
+	return gui.renderString(gui.g, "options", gui.optionsMapToString(optionsMap))
 }
 
 // TODO: refactor properly
@@ -312,22 +321,6 @@ func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
 	return err
 }
 
-// focusLine focuses and selects the given line
-func (gui *Gui) focusLine(lineNumber int, v *gocui.View) error {
-	_, height := v.Size()
-	overScroll := lineNumber - height + 1
-	if overScroll < 0 {
-		overScroll = 0
-	}
-	if err := v.SetOrigin(0, overScroll); err != nil {
-		return err
-	}
-	if err := v.SetCursor(0, lineNumber-overScroll); err != nil {
-		return err
-	}
-	return nil
-}
-
 // generalFocusLine takes a lineNumber to focus, and a bottomLine to ensure we can see
 func (gui *Gui) generalFocusLine(lineNumber int, bottomLine int, v *gocui.View) error {
 	_, height := v.Size()
@@ -365,5 +358,30 @@ func (gui *Gui) refreshSelectedLine(line *int, total int) {
 		*line = 0
 	} else if total-1 < *line {
 		*line = total - 1
+	}
+}
+
+func (gui *Gui) renderListPanel(v *gocui.View, items interface{}) error {
+	gui.g.Update(func(g *gocui.Gui) error {
+		list, err := utils.RenderList(items)
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		v.Clear()
+		fmt.Fprint(v, list)
+		return nil
+	})
+	return nil
+}
+
+func (gui *Gui) renderPanelOptions() error {
+	currentView := gui.g.CurrentView()
+	switch currentView.Name() {
+	case "menu":
+		return gui.renderMenuOptions()
+	case "main":
+		return gui.renderMergeOptions()
+	default:
+		return gui.renderGlobalOptions()
 	}
 }

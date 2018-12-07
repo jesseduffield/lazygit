@@ -30,7 +30,7 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 	go func() {
 		// doing this asynchronously cos it can take time
 		diff, _ := gui.GitCommand.GetStashEntryDiff(stashEntry.Index)
-		gui.renderString(g, "main", diff)
+		_ = gui.renderString(g, "main", diff)
 	}()
 	return nil
 }

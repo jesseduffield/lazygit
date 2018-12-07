@@ -96,7 +96,8 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 			panic(err)
 		}
 		gui.resetOrigin(commitView)
-		return gui.handleCommitSelect(g, nil)
+		gui.State.Panels.Commits.SelectedLine = 0
+		return gui.handleCommitSelect(g, commitView)
 	}, nil)
 }
 
