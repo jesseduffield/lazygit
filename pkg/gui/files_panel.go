@@ -64,7 +64,7 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 		fmt.Fprint(filesView, list)
 
 		if filesView == g.CurrentView() {
-			gui.handleFileSelect(g, filesView)
+			return gui.handleFileSelect(g, filesView)
 		}
 		return nil
 	})
@@ -411,7 +411,7 @@ func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
 
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	// if we have pullables we'll ask if the user wants to force push
-	_, pullables := gui.GitCommand.UpstreamDifferenceCount()
+	_, pullables := gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
 	if pullables == "?" || pullables == "0" {
 		return gui.pushWithForceFlag(v, false)
 	}

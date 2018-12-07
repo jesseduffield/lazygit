@@ -72,6 +72,9 @@ type Gui struct {
 	statusManager *statusManager
 }
 
+// for now the staging panel state, unlike the other panel states, is going to be
+// non-mutative, so that we don't accidentally end up
+// with mismatches of data. We might change this in the future
 type stagingPanelState struct {
 	SelectedLine   int
 	StageableLines []int
@@ -233,7 +236,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		return nil
 	} else {
-		g.SetViewOnBottom("limit")
+		_, _ = g.SetViewOnBottom("limit")
 	}
 
 	g.DeleteView("limit")
@@ -364,14 +367,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		gui.g.SetCurrentView(filesView.Name())
-
-		gui.refreshSidePanels(gui.g)
-		if gui.g.CurrentView().Name() != "menu" {
-			if err := gui.renderGlobalOptions(g); err != nil {
-				return err
-			}
+		if _, err := gui.g.SetCurrentView(filesView.Name()); err != nil {
+			return err
 		}
+
+		if err := gui.refreshSidePanels(gui.g); err != nil {
+			return err
+		}
+
 		if err := gui.switchFocus(g, nil, filesView); err != nil {
 			return err
 		}
@@ -394,8 +397,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	// TODO: comment-out
-	gui.Log.Info(utils.AsJson(gui.State))
+	// here is a good place log some stuff
+	// if you download humanlog and do tail -f development.log | humanlog
+	// this will let you see these branches as prettified json
+	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
 
 	return gui.resizeCurrentPopupPanel(g)
 }
@@ -435,8 +440,8 @@ func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
+func (gui *Gui) renderGlobalOptions() error {
+	return gui.renderOptionsMap(map[string]string{
 		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
 		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
 		"esc/q":     gui.Tr.SLocalize("close"),
@@ -467,7 +472,7 @@ func (gui *Gui) Run() error {
 	}
 
 	gui.goEvery(g, time.Second*60, gui.fetch)
-	// gui.goEvery(g, time.Second*2, gui.refreshFiles) // TODO: comment back in
+	gui.goEvery(g, time.Second*2, gui.refreshFiles)
 	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
 	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
 

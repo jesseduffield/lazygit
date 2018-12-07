@@ -25,22 +25,18 @@ func (gui *Gui) handleMenuPrevLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Menu
 	gui.changeSelectedLine(&panelState.SelectedLine, v.LinesHeight(), true)
 
-	if err := gui.focusPoint(0, gui.State.Panels.Commits.SelectedLine, v); err != nil {
-		return err
-	}
-
 	return gui.handleMenuSelect(g, v)
 }
 
 // specific functions
 
-func (gui *Gui) renderMenuOptions(g *gocui.Gui) error {
+func (gui *Gui) renderMenuOptions() error {
 	optionsMap := map[string]string{
 		"esc/q": gui.Tr.SLocalize("close"),
 		"↑ ↓":   gui.Tr.SLocalize("navigate"),
 		"space": gui.Tr.SLocalize("execute"),
 	}
-	return gui.renderOptionsMap(g, optionsMap)
+	return gui.renderOptionsMap(optionsMap)
 }
 
 func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
@@ -67,10 +63,6 @@ func (gui *Gui) createMenu(items interface{}, handlePress func(int) error) error
 	menuView.Clear()
 	fmt.Fprint(menuView, list)
 	gui.State.Panels.Menu.SelectedLine = 0
-
-	if err := gui.renderMenuOptions(gui.g); err != nil {
-		return err
-	}
 
 	wrappedHandlePress := func(g *gocui.Gui, v *gocui.View) error {
 		selectedLine := gui.State.Panels.Menu.SelectedLine

@@ -219,12 +219,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Handler:     gui.handleSwitchToStagingPanel,
 			Description: gui.Tr.SLocalize("StageLines"),
 			KeyReadable: "enter",
-		},
-		{ViewName: "files", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleFilesPrevLine},
-		{ViewName: "files", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleFilesPrevLine},
-		{ViewName: "files", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleFilesNextLine},
-		{ViewName: "files", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleFilesNextLine},
-		{
+		}, {
 			ViewName: "main",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
@@ -327,12 +322,13 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleMerge,
 			Description: gui.Tr.SLocalize("mergeIntoCurrentBranch"),
-		},
-		{ViewName: "branches", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleBranchesPrevLine},
-		{ViewName: "branches", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleBranchesPrevLine},
-		{ViewName: "branches", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleBranchesNextLine},
-		{ViewName: "branches", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleBranchesNextLine},
-		{
+		}, {
+			ViewName:    "branches",
+			Key:         'f',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleFastForward,
+			Description: gui.Tr.SLocalize("FastForward"),
+		}, {
 			ViewName:    "commits",
 			Key:         's',
 			Modifier:    gocui.ModNone,
@@ -362,12 +358,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitFixup,
 			Description: gui.Tr.SLocalize("fixupCommit"),
-		},
-		{ViewName: "commits", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleCommitsPrevLine},
-		{ViewName: "commits", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleCommitsPrevLine},
-		{ViewName: "commits", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleCommitsNextLine},
-		{ViewName: "commits", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleCommitsNextLine},
-		{
+		}, {
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
@@ -386,12 +377,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleStashDrop,
 			Description: gui.Tr.SLocalize("drop"),
-		},
-		{ViewName: "stash", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleStashPrevLine},
-		{ViewName: "stash", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleStashPrevLine},
-		{ViewName: "stash", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleStashNextLine},
-		{ViewName: "stash", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleStashNextLine},
-		{
+		}, {
 			ViewName: "commitMessage",
 			Key:      gocui.KeyEnter,
 			Modifier: gocui.ModNone,
@@ -411,11 +397,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:      'q',
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleMenuClose,
-		},
-		{ViewName: "menu", Key: 'k', Modifier: gocui.ModNone, Handler: gui.handleMenuPrevLine},
-		{ViewName: "menu", Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.handleMenuPrevLine},
-		{ViewName: "menu", Key: 'j', Modifier: gocui.ModNone, Handler: gui.handleMenuNextLine},
-		{ViewName: "menu", Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.handleMenuNextLine}, {
+		}, {
 			ViewName:    "staging",
 			Key:         gocui.KeyEsc,
 			Modifier:    gocui.ModNone,
@@ -484,6 +466,26 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			{ViewName: viewName, Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: 'h', Modifier: gocui.ModNone, Handler: gui.previousView},
 			{ViewName: viewName, Key: 'l', Modifier: gocui.ModNone, Handler: gui.nextView},
+		}...)
+	}
+
+	listPanelMap := map[string]struct {
+		prevLine func(*gocui.Gui, *gocui.View) error
+		nextLine func(*gocui.Gui, *gocui.View) error
+	}{
+		"menu":     {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine},
+		"files":    {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine},
+		"branches": {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine},
+		"commits":  {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine},
+		"stash":    {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine},
+	}
+
+	for viewName, functions := range listPanelMap {
+		bindings = append(bindings, []*Binding{
+			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: functions.prevLine},
+			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: functions.prevLine},
+			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: functions.nextLine},
+			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: functions.nextLine},
 		}...)
 	}
 

@@ -435,6 +435,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CantFindHunk",
 			Other: `Could not find hunk`,
+		}, &i18n.Message{
+			ID:    "FastForward",
+			Other: `fast-forward this branch from its upstream`,
+		}, &i18n.Message{
+			ID:    "Fetching",
+			Other: "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
 		},
 	)
 }
