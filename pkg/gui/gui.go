@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"sync"
 
 	// "io"
 	// "io/ioutil"
@@ -72,6 +73,7 @@ type Gui struct {
 	Updater       *updates.Updater
 	statusManager *statusManager
 	credentials   credentials
+	introAgree    sync.WaitGroup
 }
 
 type stagingState struct {
@@ -365,8 +367,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 func (gui *Gui) promptAnonymousReporting() error {
 	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+		gui.introAgree.Done()
 		return gui.Config.WriteToUserConfig("reporting", "on")
 	}, func(g *gocui.Gui, v *gocui.View) error {
+		gui.introAgree.Done()
 		return gui.Config.WriteToUserConfig("reporting", "off")
 	})
 }
@@ -443,9 +447,14 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
+	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
+		gui.introAgree.Add(1)
+	}
+
 	go func() {
 		_, err := gui.fetch(g, g.CurrentView(), false)
 		if err != nil && strings.Contains(err.Error(), "exit status 128") && gui.canShowIsPrivateRepo() {
+			gui.introAgree.Wait()
 			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 		} else {
 			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {
