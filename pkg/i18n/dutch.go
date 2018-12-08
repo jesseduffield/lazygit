@@ -150,7 +150,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Dit bestand heeft geen merge conflicten",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? Het kan dat je hierdoor bestanden verliest",
+			Other: "Weet je het zeker dat je `reset --hard HEAD` en `clean -fd` wil uitvoeren? Het kan dat je hierdoor bestanden verliest",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijderd)",
@@ -396,7 +396,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `refresh bestanden`,
 		}, &i18n.Message{
 			ID:    "resetHard",
-			Other: `harde reset`,
+			Other: `harde reset and verwijderen ongevolgde bestanden`,
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `merge in met huidige checked out branch`,

@@ -194,9 +194,6 @@ func (gui *Gui) refreshMergePanel(g *gocui.Gui) error {
 		gui.State.ConflictIndex = len(gui.State.Conflicts) - 1
 	}
 	hasFocus := gui.currentViewName(g) == "main"
-	if hasFocus {
-		gui.renderMergeOptions(g)
-	}
 	content, err := gui.coloredConflictFile(cat, gui.State.Conflicts, gui.State.ConflictIndex, gui.State.ConflictTop, hasFocus)
 	if err != nil {
 		return err
@@ -233,8 +230,8 @@ func (gui *Gui) switchToMerging(g *gocui.Gui) error {
 	return gui.refreshMergePanel(g)
 }
 
-func (gui *Gui) renderMergeOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
+func (gui *Gui) renderMergeOptions() error {
+	return gui.renderOptionsMap(map[string]string{
 		"↑ ↓":   gui.Tr.SLocalize("selectHunk"),
 		"← →":   gui.Tr.SLocalize("navigateConflicts"),
 		"space": gui.Tr.SLocalize("pickHunk"),

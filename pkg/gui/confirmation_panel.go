@@ -28,7 +28,7 @@ func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.Vie
 func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui) error {
 	view, err := g.View("confirmation")
 	if err != nil {
-		panic(err)
+		return nil // if it's already been closed we can just return
 	}
 	if err := gui.returnFocus(g, view); err != nil {
 		panic(err)
@@ -77,11 +77,10 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 		confirmationView.Wrap = true
 		confirmationView.FgColor = gocui.ColorWhite
 	}
-	confirmationView.Clear()
-
-	if err := gui.switchFocus(gui.g, currentView, confirmationView); err != nil {
-		return nil, err
-	}
+	gui.g.Update(func(g *gocui.Gui) error {
+		confirmationView.Clear()
+		return gui.switchFocus(gui.g, currentView, confirmationView)
+	})
 	return confirmationView, nil
 }
 

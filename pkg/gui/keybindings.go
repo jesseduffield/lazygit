@@ -210,7 +210,7 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			ViewName:    "files",
 			Key:         'D',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleResetHard,
+			Handler:     gui.handleResetAndClean,
 			Description: gui.Tr.SLocalize("resetHard"),
 		}, {
 			ViewName:    "files",
@@ -328,6 +328,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleMerge,
 			Description: gui.Tr.SLocalize("mergeIntoCurrentBranch"),
+		}, {
+			ViewName:    "branches",
+			Key:         'f',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleFastForward,
+			Description: gui.Tr.SLocalize("FastForward"),
 		}, {
 			ViewName:    "commits",
 			Key:         's',
@@ -469,19 +475,33 @@ func (gui *Gui) GetKeybindings() []*Binding {
 		},
 	}
 
-	// Would make these keybindings global but that interferes with editing
-	// input in the confirmation panel
-	for _, viewName := range []string{"status", "files", "branches", "commits", "stash", "menu"} {
+	for _, viewName := range []string{"status", "branches", "files", "commits", "stash", "menu"} {
 		bindings = append(bindings, []*Binding{
 			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},
 			{ViewName: viewName, Key: gocui.KeyArrowRight, Modifier: gocui.ModNone, Handler: gui.nextView},
-			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: gui.cursorUp},
-			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: gui.cursorDown},
 			{ViewName: viewName, Key: 'h', Modifier: gocui.ModNone, Handler: gui.previousView},
 			{ViewName: viewName, Key: 'l', Modifier: gocui.ModNone, Handler: gui.nextView},
-			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: gui.cursorUp},
-			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: gui.cursorDown},
+		}...)
+	}
+
+	listPanelMap := map[string]struct {
+		prevLine func(*gocui.Gui, *gocui.View) error
+		nextLine func(*gocui.Gui, *gocui.View) error
+	}{
+		"menu":     {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine},
+		"files":    {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine},
+		"branches": {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine},
+		"commits":  {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine},
+		"stash":    {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine},
+	}
+
+	for viewName, functions := range listPanelMap {
+		bindings = append(bindings, []*Binding{
+			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: functions.prevLine},
+			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: functions.prevLine},
+			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: functions.nextLine},
+			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: functions.nextLine},
 		}...)
 	}
 

@@ -557,8 +557,8 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 	}
 }
 
-// TestGitCommandUpstreamDifferentCount is a function.
-func TestGitCommandUpstreamDifferentCount(t *testing.T) {
+// TestGitCommandGetCommitDifferences is a function.
+func TestGitCommandGetCommitDifferences(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
@@ -610,7 +610,7 @@ func TestGitCommandUpstreamDifferentCount(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.UpstreamDifferenceCount())
+			s.test(gitCmd.GetCommitDifferences("HEAD", "@{u}"))
 		})
 	}
 }

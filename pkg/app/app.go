@@ -52,6 +52,11 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 	} else {
 		log = newProductionLogger(config)
 	}
+
+	// highly recommended: tail -f development.log | humanlog
+	// https://github.com/aybabtme/humanlog
+	log.Formatter = &logrus.JSONFormatter{}
+
 	if config.GetUserConfig().GetString("reporting") == "on" {
 		// this isn't really a secret token: it only has permission to push new rollbar items
 		hook := rollrus.NewHook("23432119147a4367abf7c0de2aa99a2d", environment)

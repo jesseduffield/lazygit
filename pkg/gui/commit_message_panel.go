@@ -23,12 +23,12 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		gui.SubProcess = sub
 		return gui.Errors.ErrSubProcess
 	}
-	gui.refreshFiles(g)
 	v.Clear()
-	v.SetCursor(0, 0)
-	g.SetViewOnBottom("commitMessage")
-	gui.switchFocus(g, v, gui.getFilesView(g))
-	return gui.refreshCommits(g)
+	_ = v.SetCursor(0, 0)
+	_ = v.SetOrigin(0, 0)
+	_, _ = g.SetViewOnBottom("commitMessage")
+	_ = gui.switchFocus(g, v, gui.getFilesView(g))
+	return gui.refreshSidePanels(g)
 }
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {

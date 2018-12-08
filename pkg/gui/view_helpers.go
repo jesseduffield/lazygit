@@ -13,10 +13,16 @@ import (
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
 
 func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
-	gui.refreshBranches(g)
-	gui.refreshFiles(g)
-	gui.refreshCommits(g)
-	return nil
+	if err := gui.refreshBranches(g); err != nil {
+		return err
+	}
+	if err := gui.refreshFiles(g); err != nil {
+		return err
+	}
+	if err := gui.refreshCommits(g); err != nil {
+		return err
+	}
+	return gui.refreshStashEntries(g)
 }
 
 func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
@@ -78,9 +84,6 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
-	mainView, _ := g.View("main")
-	mainView.SetOrigin(0, 0)
-
 	switch v.Name() {
 	case "menu":
 		return gui.handleMenuSelect(g, v)
@@ -90,6 +93,10 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleFileSelect(g, v)
 	case "branches":
 		return gui.handleBranchSelect(g, v)
+	case "commits":
+		return gui.handleCommitSelect(g, v)
+	case "stash":
+		return gui.handleStashEntrySelect(g, v)
 	case "confirmation":
 		return nil
 	case "commitMessage":
@@ -101,10 +108,6 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		gui.refreshMergePanel(g)
 		v.Highlight = false
 		return nil
-	case "commits":
-		return gui.handleCommitSelect(g, v)
-	case "stash":
-		return gui.handleStashEntrySelect(g, v)
 	case "staging":
 		return nil
 		// return gui.handleStagingSelect(g, v)
@@ -164,62 +167,11 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 
 	g.Cursor = newView.Editable
 
-	return gui.newLineFocused(g, newView)
-}
-
-func (gui *Gui) getItemPosition(v *gocui.View) int {
-	gui.correctCursor(v)
-	_, cy := v.Cursor()
-	_, oy := v.Origin()
-	return oy + cy
-}
-
-func (gui *Gui) cursorUp(g *gocui.Gui, v *gocui.View) error {
-	// swallowing cursor movements in main
-	if v == nil || v.Name() == "main" {
-		return nil
-	}
-
-	ox, oy := v.Origin()
-	cx, cy := v.Cursor()
-	if err := v.SetCursor(cx, cy-1); err != nil && oy > 0 {
-		if err := v.SetOrigin(ox, oy-1); err != nil {
-			return err
-		}
-	}
-
-	gui.newLineFocused(g, v)
-	return nil
-}
-
-func (gui *Gui) cursorDown(g *gocui.Gui, v *gocui.View) error {
-	// swallowing cursor movements in main
-	if v == nil || v.Name() == "main" {
-		return nil
-	}
-	cx, cy := v.Cursor()
-	ox, oy := v.Origin()
-	ly := v.LinesHeight() - 1
-	_, height := v.Size()
-	maxY := height - 1
-
-	// if we are at the end we just return
-	if cy+oy == ly {
-		return nil
-	}
-
-	var err error
-	if cy < maxY {
-		err = v.SetCursor(cx, cy+1)
-	} else {
-		err = v.SetOrigin(ox, oy+1)
-	}
-	if err != nil {
+	if err := gui.renderPanelOptions(); err != nil {
 		return err
 	}
 
-	gui.newLineFocused(g, v)
-	return nil
+	return gui.newLineFocused(g, newView)
 }
 
 func (gui *Gui) resetOrigin(v *gocui.View) error {
@@ -230,21 +182,42 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 }
 
 // if the cursor down past the last item, move it to the last line
-func (gui *Gui) correctCursor(v *gocui.View) error {
-	cx, cy := v.Cursor()
-	ox, oy := v.Origin()
-	_, height := v.Size()
-	maxY := height - 1
-	ly := v.LinesHeight() - 1
-	if oy+cy <= ly {
+func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
+	if cy < 0 {
 		return nil
 	}
-	newCy := utils.Min(ly, maxY)
-	if err := v.SetCursor(cx, newCy); err != nil {
-		return err
-	}
-	if err := v.SetOrigin(ox, ly-newCy); err != nil {
-		return err
+	ox, oy := v.Origin()
+	_, height := v.Size()
+	ly := height - 1
+
+	// if line is above origin, move origin and set cursor to zero
+	// if line is below origin + height, move origin and set cursor to max
+	// otherwise set cursor to value - origin
+	if ly > v.LinesHeight() {
+		if err := v.SetCursor(cx, cy); err != nil {
+			return err
+		}
+		if err := v.SetOrigin(ox, 0); err != nil {
+			return err
+		}
+	} else if cy < oy {
+		if err := v.SetCursor(cx, 0); err != nil {
+			return err
+		}
+		if err := v.SetOrigin(ox, cy); err != nil {
+			return err
+		}
+	} else if cy > oy+ly {
+		if err := v.SetCursor(cx, ly); err != nil {
+			return err
+		}
+		if err := v.SetOrigin(ox, cy-ly); err != nil {
+			return err
+		}
+	} else {
+		if err := v.SetCursor(cx, cy-oy); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -258,6 +231,9 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 			return nil
 		}
 		v.Clear()
+		if err := v.SetOrigin(0, 0); err != nil {
+			return err
+		}
 		output := string(bom.Clean([]byte(s)))
 		output = utils.NormalizeLinefeeds(output)
 		fmt.Fprint(v, output)
@@ -275,8 +251,8 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 	return strings.Join(optionsArray, ", ")
 }
 
-func (gui *Gui) renderOptionsMap(g *gocui.Gui, optionsMap map[string]string) error {
-	return gui.renderString(g, "options", gui.optionsMapToString(optionsMap))
+func (gui *Gui) renderOptionsMap(optionsMap map[string]string) error {
+	return gui.renderString(gui.g, "options", gui.optionsMapToString(optionsMap))
 }
 
 // TODO: refactor properly
@@ -303,6 +279,16 @@ func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
 
 func (gui *Gui) getStagingView(g *gocui.Gui) *gocui.View {
 	v, _ := g.View("staging")
+	return v
+}
+
+func (gui *Gui) getMainView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("main")
+	return v
+}
+
+func (gui *Gui) getStashView(g *gocui.Gui) *gocui.View {
+	v, _ := g.View("stash")
 	return v
 }
 
@@ -335,4 +321,69 @@ func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
 	gui.Log.Info(gui.Tr.SLocalize("resizingPopupPanel"))
 	_, err := g.SetView(v.Name(), x0, y0, x1, y1, 0)
 	return err
+}
+
+// generalFocusLine takes a lineNumber to focus, and a bottomLine to ensure we can see
+func (gui *Gui) generalFocusLine(lineNumber int, bottomLine int, v *gocui.View) error {
+	_, height := v.Size()
+	overScroll := bottomLine - height + 1
+	if overScroll < 0 {
+		overScroll = 0
+	}
+	if err := v.SetOrigin(0, overScroll); err != nil {
+		return err
+	}
+	if err := v.SetCursor(0, lineNumber-overScroll); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (gui *Gui) changeSelectedLine(line *int, total int, up bool) {
+	if up {
+		if *line == -1 || *line == 0 {
+			return
+		}
+
+		*line -= 1
+	} else {
+		if *line == -1 || *line == total-1 {
+			return
+		}
+
+		*line += 1
+	}
+}
+
+func (gui *Gui) refreshSelectedLine(line *int, total int) {
+	if *line == -1 && total > 0 {
+		*line = 0
+	} else if total-1 < *line {
+		*line = total - 1
+	}
+}
+
+func (gui *Gui) renderListPanel(v *gocui.View, items interface{}) error {
+	gui.g.Update(func(g *gocui.Gui) error {
+		list, err := utils.RenderList(items)
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		v.Clear()
+		fmt.Fprint(v, list)
+		return nil
+	})
+	return nil
+}
+
+func (gui *Gui) renderPanelOptions() error {
+	currentView := gui.g.CurrentView()
+	switch currentView.Name() {
+	case "menu":
+		return gui.renderMenuOptions()
+	case "main":
+		return gui.renderMergeOptions()
+	default:
+		return gui.renderGlobalOptions()
+	}
 }
