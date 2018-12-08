@@ -51,7 +51,7 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			return err
 		}
 
-		v := gui.getCommitsView(gui.g)
+		v := gui.getCommitsView()
 		v.Clear()
 		fmt.Fprint(v, list)
 
@@ -68,6 +68,9 @@ func (gui *Gui) handleCommitsNextLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Commits
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Commits), false)
 
+	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		return err
+	}
 	return gui.handleCommitSelect(gui.g, v)
 }
 
@@ -75,6 +78,9 @@ func (gui *Gui) handleCommitsPrevLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Commits
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Commits), true)
 
+	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		return err
+	}
 	return gui.handleCommitSelect(gui.g, v)
 }
 
@@ -92,7 +98,7 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 		if err := gui.refreshCommits(g); err != nil {
 			panic(err)
 		}
-		if err := gui.refreshFiles(g); err != nil {
+		if err := gui.refreshFiles(); err != nil {
 			panic(err)
 		}
 		gui.resetOrigin(commitView)

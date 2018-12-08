@@ -78,7 +78,6 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 		confirmationView.FgColor = gocui.ColorWhite
 	}
 	gui.g.Update(func(g *gocui.Gui) error {
-		confirmationView.Clear()
 		return gui.switchFocus(gui.g, currentView, confirmationView)
 	})
 	return confirmationView, nil
@@ -86,6 +85,7 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 
 func (gui *Gui) onNewPopupPanel() {
 	gui.g.SetViewOnBottom("commitMessage")
+	gui.g.SetViewOnBottom("menu")
 }
 
 func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {

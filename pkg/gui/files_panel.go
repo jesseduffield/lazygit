@@ -35,23 +35,24 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
-	if file.HasMergeConflicts {
-		return gui.refreshMergePanel(g)
-	}
-
 	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, v); err != nil {
 		return err
+	}
+
+	if file.HasMergeConflicts {
+		return gui.refreshMergePanel(g)
+	} else {
+		if _, err := gui.g.SetViewOnBottom("merging"); err != nil {
+			return err
+		}
 	}
 
 	content := gui.GitCommand.Diff(file, false)
 	return gui.renderString(g, "main", content)
 }
 
-func (gui *Gui) refreshFiles(g *gocui.Gui) error {
-	filesView, err := g.View("files")
-	if err != nil {
-		return err
-	}
+func (gui *Gui) refreshFiles() error {
+	filesView := gui.getFilesView()
 	gui.refreshStateFiles()
 
 	gui.g.Update(func(g *gocui.Gui) error {
@@ -63,8 +64,8 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 		}
 		fmt.Fprint(filesView, list)
 
-		if filesView == g.CurrentView() {
-			return gui.handleFileSelect(g, filesView)
+		if filesView == gui.g.CurrentView() {
+			return gui.handleFileSelect(gui.g, filesView)
 		}
 		return nil
 	})
@@ -76,6 +77,9 @@ func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Files
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), false)
 
+	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		return err
+	}
 	return gui.handleFileSelect(gui.g, v)
 }
 
@@ -83,6 +87,9 @@ func (gui *Gui) handleFilesPrevLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Files
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), true)
 
+	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		return err
+	}
 	return gui.handleFileSelect(gui.g, v)
 }
 
@@ -130,13 +137,9 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleSwitchToMerge(g, v)
 	}
 	if !file.HasUnstagedChanges {
-		gui.Log.WithField("staging", "staging").Info("making error panel")
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileStagingRequirements"))
 	}
-	stagingView, err := g.View("staging")
-	if err != nil {
-		return err
-	}
+	stagingView := gui.getStagingView()
 	if err := gui.switchFocus(g, v, stagingView); err != nil {
 		return err
 	}
@@ -162,7 +165,7 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 		gui.GitCommand.UnStageFile(file.Name, file.Tracked)
 	}
 
-	if err := gui.refreshFiles(g); err != nil {
+	if err := gui.refreshFiles(); err != nil {
 		return err
 	}
 
@@ -189,7 +192,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 		_ = gui.createErrorPanel(g, err.Error())
 	}
 
-	if err := gui.refreshFiles(g); err != nil {
+	if err := gui.refreshFiles(); err != nil {
 		return err
 	}
 
@@ -240,7 +243,7 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RemoveFile(file); err != nil {
 			return err
 		}
-		return gui.refreshFiles(g)
+		return gui.refreshFiles()
 	}, nil)
 }
 
@@ -255,14 +258,14 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.GitCommand.Ignore(file.Name); err != nil {
 		return gui.createErrorPanel(g, err.Error())
 	}
-	return gui.refreshFiles(g)
+	return gui.refreshFiles()
 }
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && gui.State.WorkingTreeState == "normal" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
-	commitMessageView := gui.getCommitMessageView(g)
+	commitMessageView := gui.getCommitMessageView()
 	g.Update(func(g *gocui.Gui) error {
 		g.SetViewOnTop("commitMessage")
 		gui.switchFocus(g, filesView, commitMessageView)
@@ -342,7 +345,7 @@ func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
-	return gui.refreshFiles(g)
+	return gui.refreshFiles()
 }
 
 func (gui *Gui) refreshStateFiles() {
@@ -351,27 +354,6 @@ func (gui *Gui) refreshStateFiles() {
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
 	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
 	gui.updateWorkTreeState()
-}
-
-func (gui *Gui) updateWorkTreeState() error {
-	merging, err := gui.GitCommand.IsInMergeState()
-	if err != nil {
-		return err
-	}
-	if merging {
-		gui.State.WorkingTreeState = "merging"
-		return nil
-	}
-	rebasing, err := gui.GitCommand.IsInRebaseState()
-	if err != nil {
-		return err
-	}
-	if rebasing {
-		gui.State.WorkingTreeState = "rebasing"
-		return nil
-	}
-	gui.State.WorkingTreeState = "normal"
-	return nil
 }
 
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
@@ -403,7 +385,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 			gui.refreshCommits(g)
 			gui.refreshStatus(g)
 		}
-		gui.refreshFiles(g)
+		gui.refreshFiles()
 	}()
 	return nil
 }
@@ -437,10 +419,6 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
-	mergeView, err := g.View("main")
-	if err != nil {
-		return err
-	}
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
@@ -451,8 +429,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 	if !file.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons"))
 	}
-	gui.switchFocus(g, v, mergeView)
-	return gui.refreshMergePanel(g)
+	return gui.switchFocus(g, v, gui.getMergingView())
 }
 
 func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
@@ -461,7 +438,7 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 	}
 	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("MergeAborted"))
 	gui.refreshStatus(g)
-	return gui.refreshFiles(g)
+	return gui.refreshFiles()
 }
 
 func (gui *Gui) handleResetAndClean(g *gocui.Gui, v *gocui.View) error {
@@ -469,7 +446,7 @@ func (gui *Gui) handleResetAndClean(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.ResetAndClean(); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}
-		return gui.refreshFiles(g)
+		return gui.refreshFiles()
 	}, nil)
 }
 
@@ -478,4 +455,13 @@ func (gui *Gui) openFile(filename string) error {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 	return nil
+}
+
+func (gui *Gui) anyFilesWithMergeConflicts() bool {
+	for _, file := range gui.State.Files {
+		if file.HasMergeConflicts {
+			return true
+		}
+	}
+	return false
 }

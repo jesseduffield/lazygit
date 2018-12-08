@@ -48,7 +48,7 @@ func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
-	blue := color.New(color.FgBlue)
+	magenta := color.New(color.FgMagenta)
 
 	dashboardString := strings.Join(
 		[]string{
@@ -58,7 +58,7 @@ func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
 			"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
 			"Tutorial: https://youtu.be/VDXvbHZYeKY",
 			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
-			blue.Sprint("Buy Jesse a coffee: https://donorbox.org/lazygit"), // caffeine ain't free
+			magenta.Sprint("Buy Jesse a coffee: https://donorbox.org/lazygit"), // caffeine ain't free
 		}, "\n\n")
 
 	return gui.renderString(g, "main", dashboardString)
@@ -83,4 +83,25 @@ func lazygitTitle() string {
   |_|\__,_/___|\__, |\__, |_|\__|
                 __/ | __/ |
                |___/ |___/       `
+}
+
+func (gui *Gui) updateWorkTreeState() error {
+	merging, err := gui.GitCommand.IsInMergeState()
+	if err != nil {
+		return err
+	}
+	if merging {
+		gui.State.WorkingTreeState = "merging"
+		return nil
+	}
+	rebasing, err := gui.GitCommand.IsInRebaseState()
+	if err != nil {
+		return err
+	}
+	if rebasing {
+		gui.State.WorkingTreeState = "rebasing"
+		return nil
+	}
+	gui.State.WorkingTreeState = "normal"
+	return nil
 }

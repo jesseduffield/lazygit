@@ -82,6 +82,13 @@ type stagingPanelState struct {
 	Diff           string
 }
 
+type mergingPanelState struct {
+	ConflictIndex int
+	ConflictTop   bool
+	Conflicts     []commands.Conflict
+	EditHistory   *stack.Stack
+}
+
 type filePanelState struct {
 	SelectedLine int
 }
@@ -104,11 +111,12 @@ type menuPanelState struct {
 
 type panelStates struct {
 	Files    *filePanelState
-	Staging  *stagingPanelState
 	Branches *branchPanelState
 	Commits  *commitPanelState
 	Stash    *stashPanelState
 	Menu     *menuPanelState
+	Staging  *stagingPanelState
+	Merging  *mergingPanelState
 }
 
 type guiState struct {
@@ -118,10 +126,6 @@ type guiState struct {
 	StashEntries      []*commands.StashEntry
 	PreviousView      string
 	HasMergeConflicts bool
-	ConflictIndex     int
-	ConflictTop       bool
-	Conflicts         []commands.Conflict
-	EditHistory       *stack.Stack
 	Platform          commands.Platform
 	Updating          bool
 	Panels            *panelStates
@@ -132,21 +136,23 @@ type guiState struct {
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
 
 	initialState := guiState{
-		Files:         make([]*commands.File, 0),
-		PreviousView:  "files",
-		Commits:       make([]*commands.Commit, 0),
-		StashEntries:  make([]*commands.StashEntry, 0),
-		ConflictIndex: 0,
-		ConflictTop:   true,
-		Conflicts:     make([]commands.Conflict, 0),
-		EditHistory:   stack.New(),
-		Platform:      *oSCommand.Platform,
+		Files:        make([]*commands.File, 0),
+		PreviousView: "files",
+		Commits:      make([]*commands.Commit, 0),
+		StashEntries: make([]*commands.StashEntry, 0),
+		Platform:     *oSCommand.Platform,
 		Panels: &panelStates{
 			Files:    &filePanelState{SelectedLine: -1},
 			Branches: &branchPanelState{SelectedLine: 0},
 			Commits:  &commitPanelState{SelectedLine: -1},
 			Stash:    &stashPanelState{SelectedLine: -1},
 			Menu:     &menuPanelState{SelectedLine: 0},
+			Merging: &mergingPanelState{
+				ConflictIndex: 0,
+				ConflictTop:   true,
+				Conflicts:     []commands.Conflict{},
+				EditHistory:   stack.New(),
+			},
 		},
 	}
 
@@ -271,6 +277,18 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
+	v, err = g.SetView("merging", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Title = gui.Tr.SLocalize("MergingTitle")
+		v.FgColor = gocui.ColorWhite
+		if _, err := g.SetViewOnBottom("merging"); err != nil {
+			return err
+		}
+	}
+
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -324,7 +342,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if gui.getCommitMessageView(g) == nil {
+	if gui.getCommitMessageView() == nil {
 		// doesn't matter where this view starts because it will be hidden
 		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width/2, height/2, 0); err != nil {
 			if err != gocui.ErrUnknownView {
@@ -401,7 +419,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// here is a good place log some stuff
 	// if you download humanlog and do tail -f development.log | humanlog
 	// this will let you see these branches as prettified json
-	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
+	// gui.Log.Info(utils.AsJson(gui.State.Files))
 
 	return gui.resizeCurrentPopupPanel(g)
 }
@@ -414,18 +432,18 @@ func (gui *Gui) promptAnonymousReporting() error {
 	})
 }
 
-func (gui *Gui) fetch(g *gocui.Gui) error {
+func (gui *Gui) fetch() error {
 	gui.GitCommand.Fetch()
-	gui.refreshStatus(g)
+	gui.refreshStatus(gui.g)
 	return nil
 }
 
-func (gui *Gui) updateLoader(g *gocui.Gui) error {
-	if view, _ := g.View("confirmation"); view != nil {
+func (gui *Gui) updateLoader() error {
+	if view, _ := gui.g.View("confirmation"); view != nil {
 		content := gui.trimmedContent(view)
 		if strings.Contains(content, "...") {
 			staticContent := strings.Split(content, "...")[0] + "..."
-			if err := gui.renderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
+			if err := gui.renderString(gui.g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
 				return err
 			}
 		}
@@ -433,7 +451,7 @@ func (gui *Gui) updateLoader(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
+func (gui *Gui) renderAppStatus() error {
 	appStatus := gui.statusManager.getStatusString()
 	if appStatus != "" {
 		return gui.renderString(gui.g, "appStatus", appStatus)
@@ -450,10 +468,10 @@ func (gui *Gui) renderGlobalOptions() error {
 	})
 }
 
-func (gui *Gui) goEvery(g *gocui.Gui, interval time.Duration, function func(*gocui.Gui) error) {
+func (gui *Gui) goEvery(interval time.Duration, function func() error) {
 	go func() {
 		for range time.Tick(interval) {
-			function(g)
+			function()
 		}
 	}()
 }
@@ -472,10 +490,10 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
-	gui.goEvery(g, time.Second*60, gui.fetch)
-	gui.goEvery(g, time.Second*2, gui.refreshFiles)
-	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
-	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
+	gui.goEvery(time.Second*60, gui.fetch)
+	gui.goEvery(time.Second*2, gui.refreshFiles)
+	gui.goEvery(time.Millisecond*50, gui.updateLoader)
+	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
 	g.SetManagerFunc(gui.layout)
 

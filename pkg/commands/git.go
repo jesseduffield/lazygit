@@ -285,6 +285,14 @@ func (c *GitCommand) AbortRebaseBranch() error {
 	return c.OSCommand.RunCommand("git rebase --abort")
 }
 
+func (c *GitCommand) ContinueMergeBranch() error {
+	return c.OSCommand.RunCommand("git merge --continue")
+}
+
+func (c *GitCommand) AbortMergeBranch() error {
+	return c.OSCommand.RunCommand("git merge --abort")
+}
+
 // Fetch fetch git repo
 func (c *GitCommand) Fetch() error {
 	return c.OSCommand.RunCommand("git fetch")
@@ -682,7 +690,40 @@ func (c *GitCommand) Ignore(filename string) error {
 
 // Show shows the diff of a commit
 func (c *GitCommand) Show(sha string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
+	show, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
+	if err != nil {
+		return "", err
+	}
+
+	// if this is a merge commit, we need to go a step further and get the diff between the two branches we merged
+	revList, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git rev-list -1 --merges %s^...%s", sha, sha))
+	if err != nil {
+		// turns out we get an error here when it's the first commit. We'll just return the original show
+		return show, nil
+	}
+	if len(revList) == 0 {
+		return show, nil
+	}
+
+	// we want to pull out 1a6a69a and 3b51d7c from this:
+	// commit ccc771d8b13d5b0d4635db4463556366470fd4f6
+	// Merge: 1a6a69a 3b51d7c
+	lines := utils.SplitLines(show)
+	if len(lines) < 2 {
+		return show, nil
+	}
+
+	secondLineWords := strings.Split(lines[1], " ")
+	if len(secondLineWords) < 3 {
+		return show, nil
+	}
+
+	mergeDiff, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git diff --color %s...%s", secondLineWords[1], secondLineWords[2]))
+	if err != nil {
+		return "", err
+	}
+
+	return show + mergeDiff, nil
 }
 
 // GetRemoteURL returns current repo remote url
