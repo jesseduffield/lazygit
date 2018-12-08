@@ -447,7 +447,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `Kan geen hunks vinden in deze patch`,
 		}, &i18n.Message{
 			ID:    "CantFindHunk",
-			Other: `kan geen hunk finden`,
+			Other: `kan geen hunk vinden`,
 		},
 	)
 }
