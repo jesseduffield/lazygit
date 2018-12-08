@@ -242,7 +242,7 @@ type AppState struct {
 }
 
 func getDefaultAppState() []byte {
-  return []byte(`
+	return []byte(`
     lastUpdateCheck: 0
     recentRepos: []
     RecentPrivateRepos: []
