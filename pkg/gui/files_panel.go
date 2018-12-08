@@ -416,8 +416,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error
 		}
 		if err == nil {
 			_ = gui.closeConfirmationPrompt(g)
-			_ = gui.refreshCommits(g)
-			_ = gui.refreshStatus(g)
+			_ = gui.refreshSidePanels(g)
 		}
 	}()
 	return nil

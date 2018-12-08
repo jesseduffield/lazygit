@@ -463,7 +463,7 @@ func (gui *Gui) Run() error {
 			})
 		}
 	}()
-	gui.goEvery(g, time.Second*10, gui.refreshFiles)
+	gui.goEvery(g, time.Second*2, gui.refreshFiles)
 	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
 	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
 
