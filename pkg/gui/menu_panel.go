@@ -2,7 +2,6 @@ package gui
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -50,7 +49,7 @@ func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
 	return gui.returnFocus(g, v)
 }
 
-func (gui *Gui) createMenu(items interface{}, handlePress func(int) error) error {
+func (gui *Gui) createMenu(title string, items interface{}, handlePress func(int) error) error {
 	list, err := utils.RenderList(items)
 	if err != nil {
 		return err
@@ -58,7 +57,7 @@ func (gui *Gui) createMenu(items interface{}, handlePress func(int) error) error
 
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, list)
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
-	menuView.Title = strings.Title(gui.Tr.SLocalize("menu"))
+	menuView.Title = title
 	menuView.FgColor = gocui.ColorWhite
 	menuView.Clear()
 	fmt.Fprint(menuView, list)
@@ -66,7 +65,13 @@ func (gui *Gui) createMenu(items interface{}, handlePress func(int) error) error
 
 	wrappedHandlePress := func(g *gocui.Gui, v *gocui.View) error {
 		selectedLine := gui.State.Panels.Menu.SelectedLine
-		return handlePress(selectedLine)
+		if err := handlePress(selectedLine); err != nil {
+			return err
+		}
+		if _, err := gui.g.SetViewOnBottom("menu"); err != nil {
+			return err
+		}
+		return gui.returnFocus(gui.g, menuView)
 	}
 
 	if err := gui.g.SetKeybinding("menu", gocui.KeySpace, gocui.ModNone, wrappedHandlePress); err != nil {

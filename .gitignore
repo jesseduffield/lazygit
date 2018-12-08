@@ -24,3 +24,5 @@ lazygit
 !.goreleaser.yml
 !.circleci/
 !.github/
+
+test/git_server/data

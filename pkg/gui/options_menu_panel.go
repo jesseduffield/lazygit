@@ -2,6 +2,7 @@ package gui
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 )
@@ -47,5 +48,5 @@ func (gui *Gui) handleCreateOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 		return bindings[index].Handler(g, v)
 	}
 
-	return gui.createMenu(bindings, handleMenuPress)
+	return gui.createMenu(strings.Title(gui.Tr.SLocalize("menu")), bindings, handleMenuPress)
 }

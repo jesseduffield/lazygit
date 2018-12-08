@@ -27,13 +27,13 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	_ = v.SetCursor(0, 0)
 	_ = v.SetOrigin(0, 0)
 	_, _ = g.SetViewOnBottom("commitMessage")
-	_ = gui.switchFocus(g, v, gui.getFilesView(g))
+	_ = gui.switchFocus(g, v, gui.getFilesView())
 	return gui.refreshSidePanels(g)
 }
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 	g.SetViewOnBottom("commitMessage")
-	return gui.switchFocus(g, v, gui.getFilesView(g))
+	return gui.switchFocus(g, v, gui.getFilesView())
 }
 
 func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
@@ -87,6 +87,6 @@ func (gui *Gui) RenderCommitLength() {
 	if !gui.Config.GetUserConfig().GetBool("gui.commitLength.show") {
 		return
 	}
-	v := gui.getCommitMessageView(gui.g)
+	v := gui.getCommitMessageView()
 	v.Subtitle = gui.getBufferLength(v)
 }

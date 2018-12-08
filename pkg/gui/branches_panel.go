@@ -53,7 +53,7 @@ func (gui *Gui) RenderSelectedBranchUpstreamDifferences() error {
 
 	branch := gui.getSelectedBranch()
 	branch.Pushables, branch.Pullables = gui.GitCommand.GetBranchUpstreamDifferenceCount(branch.Name)
-	return gui.renderListPanel(gui.getBranchesView(gui.g), gui.State.Branches)
+	return gui.renderListPanel(gui.getBranchesView(), gui.State.Branches)
 }
 
 // gui.refreshStatus is called at the end of this because that's when we can
@@ -67,9 +67,6 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 		gui.State.Branches = builder.Build()
 
 		gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-		if err := gui.resetOrigin(gui.getBranchesView(gui.g)); err != nil {
-			return err
-		}
 		if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
 			return err
 		}
@@ -82,6 +79,10 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 func (gui *Gui) handleBranchesNextLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Branches
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), false)
+
+	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		return err
+	}
 	return gui.handleBranchSelect(gui.g, v)
 }
 
@@ -89,6 +90,9 @@ func (gui *Gui) handleBranchesPrevLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Branches
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), true)
 
+	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		return err
+	}
 	return gui.handleBranchSelect(gui.g, v)
 }
 
@@ -108,8 +112,7 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 			}
 
 			if err := gui.GitCommand.RebaseBranch(selectedBranch); err != nil {
-				gui.Log.Errorln(err)
-				if err := gui.createConfirmationPanel(g, v, "Rebase failed", "Damn, conflicts! To abort press 'esc', otherwise press 'enter'",
+				return gui.createConfirmationPanel(g, v, "Auto-rebase failed", gui.Tr.SLocalize("FoundConflicts"),
 					func(g *gocui.Gui, v *gocui.View) error {
 						return nil
 					}, func(g *gocui.Gui, v *gocui.View) error {
@@ -117,9 +120,8 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 							return err
 						}
 						return gui.refreshSidePanels(g)
-					}); err != nil {
-					gui.Log.Errorln(err)
-				}
+					},
+				)
 			}
 
 			return gui.refreshSidePanels(g)
@@ -251,6 +253,18 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
 	}
 	if err := gui.GitCommand.Merge(selectedBranch.Name); err != nil {
+		if strings.Contains(err.Error(), "fix conflicts") {
+			return gui.createConfirmationPanel(g, v, "Auto-merge failed", gui.Tr.SLocalize("FoundConflicts"),
+				func(g *gocui.Gui, v *gocui.View) error {
+					return nil
+				}, func(g *gocui.Gui, v *gocui.View) error {
+					if err := gui.GitCommand.AbortMergeBranch(); err != nil {
+						return err
+					}
+					return gui.refreshSidePanels(g)
+				},
+			)
+		}
 		return gui.createErrorPanel(g, err.Error())
 	}
 	return nil

@@ -16,7 +16,7 @@ func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
 	if err := gui.refreshBranches(g); err != nil {
 		return err
 	}
-	if err := gui.refreshFiles(g); err != nil {
+	if err := gui.refreshFiles(); err != nil {
 		return err
 	}
 	if err := gui.refreshCommits(g); err != nil {
@@ -101,7 +101,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	case "commitMessage":
 		return gui.handleCommitFocused(g, v)
-	case "main":
+	case "merging":
 		// TODO: pull this out into a 'view focused' function
 		gui.refreshMergePanel(g)
 		v.Highlight = false
@@ -124,6 +124,20 @@ func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 	return gui.switchFocus(g, v, previousView)
+}
+
+// in lieu of a proper window system, we've got three panels that overlap,
+// the main panel, the staging panel, and the merging panel. We will call this
+// function whenever we might need to hide one of these panels
+// this function introduces some unwanted technical debt but is necessary for this rebasing feature
+func (gui *Gui) showCorrectMainPanel() error {
+	// if the files view is not focused or the current file is not in a merging state we hide the merging panel
+	if gui.g.CurrentView().Name() != "merging" && gui.g.CurrentView().Name() != "confirmation" {
+		if _, err := gui.g.SetViewOnBottom("merging"); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // pass in oldView = nil if you don't want to be able to return to your old view
@@ -166,6 +180,10 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	g.Cursor = newView.Editable
 
 	if err := gui.renderPanelOptions(); err != nil {
+		return err
+	}
+
+	if err := gui.showCorrectMainPanel(); err != nil {
 		return err
 	}
 
@@ -229,9 +247,6 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 			return nil
 		}
 		v.Clear()
-		if err := v.SetOrigin(0, 0); err != nil {
-			return err
-		}
 		output := string(bom.Clean([]byte(s)))
 		output = utils.NormalizeLinefeeds(output)
 		fmt.Fprint(v, output)
@@ -255,38 +270,43 @@ func (gui *Gui) renderOptionsMap(optionsMap map[string]string) error {
 
 // TODO: refactor properly
 // i'm so sorry but had to add this getBranchesView
-func (gui *Gui) getFilesView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("files")
+func (gui *Gui) getFilesView() *gocui.View {
+	v, _ := gui.g.View("files")
 	return v
 }
 
-func (gui *Gui) getCommitsView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("commits")
+func (gui *Gui) getCommitsView() *gocui.View {
+	v, _ := gui.g.View("commits")
 	return v
 }
 
-func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("commitMessage")
+func (gui *Gui) getCommitMessageView() *gocui.View {
+	v, _ := gui.g.View("commitMessage")
 	return v
 }
 
-func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("branches")
+func (gui *Gui) getBranchesView() *gocui.View {
+	v, _ := gui.g.View("branches")
 	return v
 }
 
-func (gui *Gui) getStagingView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("staging")
+func (gui *Gui) getStagingView() *gocui.View {
+	v, _ := gui.g.View("staging")
 	return v
 }
 
-func (gui *Gui) getMainView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("main")
+func (gui *Gui) getMainView() *gocui.View {
+	v, _ := gui.g.View("main")
 	return v
 }
 
-func (gui *Gui) getStashView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("stash")
+func (gui *Gui) getStashView() *gocui.View {
+	v, _ := gui.g.View("stash")
+	return v
+}
+
+func (gui *Gui) getMergingView() *gocui.View {
+	v, _ := gui.g.View("merging")
 	return v
 }
 
