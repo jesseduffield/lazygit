@@ -261,9 +261,9 @@ func (c *GitCommand) RenameCommit(name string) error {
 }
 
 // Fetch fetch git repo
-func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canSskForCredentials bool) error {
+func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCredentials bool) error {
 	return c.OSCommand.DetectUnamePass("git fetch", func(question string) string {
-		if canSskForCredentials {
+		if canAskForCredentials {
 			return unamePassQuestion(question)
 		}
 		return "-"

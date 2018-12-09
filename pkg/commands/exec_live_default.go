@@ -31,7 +31,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	tty, err := pty.Start(cmd)
 
 	if err != nil {
-		return errorMessage, err
+		return "", err
 	}
 
 	stopAsking := make(chan struct{})

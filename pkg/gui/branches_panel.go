@@ -136,12 +136,13 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 				errMessage = gui.Tr.SLocalize("PassUnameWrong")
 			}
 			_ = gui.createErrorPanel(g, errMessage)
-		}
-		if unamePassOpend {
-			_, _ = g.SetViewOnBottom("pushPassUname")
-			_ = g.DeleteView("pushPassUname")
-		}
-		if err == nil {
+			if unamePassOpend {
+				_ = g.DeleteView("pushPassUname")
+			}
+		} else {
+			if unamePassOpend {
+				_ = g.DeleteView("pushPassUname")
+			}
 			_ = gui.closeConfirmationPrompt(g)
 			_ = gui.refreshCommits(g)
 			_ = gui.refreshStatus(g)

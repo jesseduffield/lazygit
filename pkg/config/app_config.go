@@ -245,7 +245,7 @@ func getDefaultAppState() []byte {
 	return []byte(`
     lastUpdateCheck: 0
     recentRepos: []
-    RecentPrivateRepos: []
+    recentPrivateRepos: []
   `)
 }
 
