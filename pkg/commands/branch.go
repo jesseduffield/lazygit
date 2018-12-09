@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
@@ -10,13 +11,21 @@ import (
 // Branch : A git branch
 // duplicating this for now
 type Branch struct {
-	Name    string
-	Recency string
+	Name      string
+	Recency   string
+	Pushables string
+	Pullables string
+	Selected  bool
 }
 
 // GetDisplayStrings returns the dispaly string of branch
 func (b *Branch) GetDisplayStrings() []string {
-	return []string{b.Recency, utils.ColoredString(b.Name, b.GetColor())}
+	displayName := utils.ColoredString(b.Name, b.GetColor())
+	if b.Selected && b.Pushables != "" && b.Pullables != "" {
+		displayName = fmt.Sprintf("↑%s↓%s %s", b.Pushables, b.Pullables, displayName)
+	}
+
+	return []string{b.Recency, displayName}
 }
 
 // GetColor branch color

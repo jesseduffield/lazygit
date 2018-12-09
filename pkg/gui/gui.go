@@ -72,11 +72,43 @@ type Gui struct {
 	statusManager *statusManager
 }
 
-type stagingState struct {
-	StageableLines   []int
-	HunkStarts       []int
-	CurrentLineIndex int
-	Diff             string
+// for now the staging panel state, unlike the other panel states, is going to be
+// non-mutative, so that we don't accidentally end up
+// with mismatches of data. We might change this in the future
+type stagingPanelState struct {
+	SelectedLine   int
+	StageableLines []int
+	HunkStarts     []int
+	Diff           string
+}
+
+type filePanelState struct {
+	SelectedLine int
+}
+
+type branchPanelState struct {
+	SelectedLine int
+}
+
+type commitPanelState struct {
+	SelectedLine int
+}
+
+type stashPanelState struct {
+	SelectedLine int
+}
+
+type menuPanelState struct {
+	SelectedLine int
+}
+
+type panelStates struct {
+	Files    *filePanelState
+	Staging  *stagingPanelState
+	Branches *branchPanelState
+	Commits  *commitPanelState
+	Stash    *stashPanelState
+	Menu     *menuPanelState
 }
 
 type guiState struct {
@@ -92,7 +124,7 @@ type guiState struct {
 	EditHistory       *stack.Stack
 	Platform          commands.Platform
 	Updating          bool
-	StagingState      *stagingState
+	Panels            *panelStates
 }
 
 // NewGui builds a new gui handler
@@ -108,6 +140,13 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		Conflicts:     make([]commands.Conflict, 0),
 		EditHistory:   stack.New(),
 		Platform:      *oSCommand.Platform,
+		Panels: &panelStates{
+			Files:    &filePanelState{SelectedLine: -1},
+			Branches: &branchPanelState{SelectedLine: 0},
+			Commits:  &commitPanelState{SelectedLine: -1},
+			Stash:    &stashPanelState{SelectedLine: -1},
+			Menu:     &menuPanelState{SelectedLine: 0},
+		},
 	}
 
 	gui := &Gui{
@@ -193,9 +232,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			}
 			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
 			v.Wrap = true
-			g.SetCurrentView(v.Name())
+			g.SetViewOnTop("limit")
 		}
 		return nil
+	} else {
+		_, _ = g.SetViewOnBottom("limit")
 	}
 
 	g.DeleteView("limit")
@@ -247,12 +288,13 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+	branchesView, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM)
+	if err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("BranchesTitle")
-		v.FgColor = gocui.ColorWhite
+		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
+		branchesView.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
@@ -325,11 +367,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		gui.handleFileSelect(g, filesView)
-		gui.refreshFiles(g)
-		gui.refreshBranches(g)
-		gui.refreshCommits(g)
-		gui.refreshStashEntries(g)
+		if _, err := gui.g.SetCurrentView(filesView.Name()); err != nil {
+			return err
+		}
+
+		if err := gui.refreshSidePanels(gui.g); err != nil {
+			return err
+		}
+
 		if err := gui.switchFocus(g, nil, filesView); err != nil {
 			return err
 		}
@@ -340,6 +385,22 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			}
 		}
 	}
+
+	listViews := map[*gocui.View]int{
+		filesView:    gui.State.Panels.Files.SelectedLine,
+		branchesView: gui.State.Panels.Branches.SelectedLine,
+	}
+	for view, selectedLine := range listViews {
+		// check if the selected line is now out of view and if so refocus it
+		if err := gui.focusPoint(0, selectedLine, view); err != nil {
+			return err
+		}
+	}
+
+	// here is a good place log some stuff
+	// if you download humanlog and do tail -f development.log | humanlog
+	// this will let you see these branches as prettified json
+	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
 
 	return gui.resizeCurrentPopupPanel(g)
 }
@@ -379,8 +440,8 @@ func (gui *Gui) renderAppStatus(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) renderGlobalOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
+func (gui *Gui) renderGlobalOptions() error {
+	return gui.renderOptionsMap(map[string]string{
 		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
 		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
 		"esc/q":     gui.Tr.SLocalize("close"),
@@ -411,7 +472,7 @@ func (gui *Gui) Run() error {
 	}
 
 	gui.goEvery(g, time.Second*60, gui.fetch)
-	gui.goEvery(g, time.Second*10, gui.refreshFiles)
+	gui.goEvery(g, time.Second*2, gui.refreshFiles)
 	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
 	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
 
