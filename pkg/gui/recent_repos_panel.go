@@ -63,13 +63,13 @@ func (gui *Gui) updateRecentRepoList() error {
 func (gui *Gui) canShowIsPrivateRepo() bool {
 	repos := gui.Config.GetAppState().RecentPrivateRepos
 	currentRepo, err := os.Getwd()
+	if err != nil {
+		return true
+	}
 	for _, repo := range repos {
 		if currentRepo == repo {
 			return false
 		}
-	}
-	if err != nil {
-		return true
 	}
 	gui.Config.GetAppState().RecentPrivateRepos = newRecentReposList(repos, currentRepo)
 	_ = gui.Config.SaveAppState()
