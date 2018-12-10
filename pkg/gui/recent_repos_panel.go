@@ -15,7 +15,7 @@ type recentRepo struct {
 }
 
 // GetDisplayStrings returns the path from a recent repo.
-func (r recentRepo) GetDisplayStrings() []string {
+func (r *recentRepo) GetDisplayStrings() []string {
 	yellow := color.New(color.FgMagenta)
 	base := filepath.Base(r.path)
 	path := yellow.Sprint(r.path)
@@ -26,14 +26,14 @@ func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
 	recentRepoPaths := gui.Config.GetAppState().RecentRepos
 	reposCount := utils.Min(len(recentRepoPaths), 20)
 	// we won't show the current repo hence the -1
-	recentRepos := make([]string, reposCount-1)
-	for i, repo := range recentRepoPaths[1:reposCount] {
-		recentRepos[i] = repo
+	recentRepos := make([]*recentRepo, reposCount-1)
+	for i, path := range recentRepoPaths[1:reposCount] {
+		recentRepos[i] = &recentRepo{path: path}
 	}
 
 	handleMenuPress := func(index int) error {
-		repoPath := recentRepos[index]
-		if err := os.Chdir(repoPath); err != nil {
+		repo := recentRepos[index]
+		if err := os.Chdir(repo.path); err != nil {
 			return err
 		}
 		newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr)
