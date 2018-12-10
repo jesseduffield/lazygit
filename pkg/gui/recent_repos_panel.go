@@ -59,8 +59,8 @@ func (gui *Gui) updateRecentRepoList() error {
 	return gui.Config.SaveAppState()
 }
 
-// canShowIsPrivateRepo returns true if a private repo is never opend before in lazygit
-func (gui *Gui) canShowIsPrivateRepo() bool {
+// IsNewPrivateRepo returns true if a private repo is never opend before in lazygit
+func (gui *Gui) IsNewPrivateRepo() bool {
 	repos := gui.Config.GetAppState().RecentPrivateRepos
 	currentRepo, err := os.Getwd()
 	if err != nil {

@@ -514,7 +514,7 @@ func (gui *Gui) Run() error {
 
 	go func() {
 		_, err := gui.fetch(g, g.CurrentView(), false)
-		if err != nil && strings.Contains(err.Error(), "exit status 128") && gui.canShowIsPrivateRepo() {
+		if err != nil && strings.Contains(err.Error(), "exit status 128") && gui.IsNewPrivateRepo() {
 			gui.introAgree.Wait()
 			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 		} else {
