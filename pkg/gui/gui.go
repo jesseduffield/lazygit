@@ -73,7 +73,7 @@ type Gui struct {
 	Updater       *updates.Updater
 	statusManager *statusManager
 	credentials   credentials
-	introAgree    sync.WaitGroup
+	waitForIntro  sync.WaitGroup
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -387,6 +387,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err := gui.updateRecentRepoList(); err != nil {
 			return err
 		}
+		gui.waitForIntro.Done()
 
 		if _, err := gui.g.SetCurrentView(filesView.Name()); err != nil {
 			return err
@@ -422,16 +423,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if you download humanlog and do tail -f development.log | humanlog
 	// this will let you see these branches as prettified json
 	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
-
 	return gui.resizeCurrentPopupPanel(g)
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
 	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		gui.introAgree.Done()
+		gui.waitForIntro.Done()
 		return gui.Config.WriteToUserConfig("reporting", "on")
 	}, func(g *gocui.Gui, v *gocui.View) error {
-		gui.introAgree.Done()
+		gui.waitForIntro.Done()
 		return gui.Config.WriteToUserConfig("reporting", "off")
 	})
 }
@@ -509,13 +509,19 @@ func (gui *Gui) Run() error {
 	}
 
 	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-		gui.introAgree.Add(1)
+		gui.waitForIntro.Add(2)
+	} else {
+		gui.waitForIntro.Add(1)
 	}
 
 	go func() {
+		gui.waitForIntro.Wait()
+		isNew := gui.Config.GetIsNewRepo()
+		if !isNew {
+			time.After(60 * time.Second)
+		}
 		_, err := gui.fetch(g, g.CurrentView(), false)
-		if err != nil && strings.Contains(err.Error(), "exit status 128") && gui.IsNewPrivateRepo() {
-			gui.introAgree.Wait()
+		if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 		} else {
 			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {

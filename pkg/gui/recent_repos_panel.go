@@ -14,8 +14,8 @@ type recentRepo struct {
 	path string
 }
 
-// GetDisplayStrings is a function.
-func (r *recentRepo) GetDisplayStrings() []string {
+// GetDisplayStrings returns the path from a recent repo.
+func (r recentRepo) GetDisplayStrings() []string {
 	yellow := color.New(color.FgMagenta)
 	base := filepath.Base(r.path)
 	path := yellow.Sprint(r.path)
@@ -26,14 +26,14 @@ func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
 	recentRepoPaths := gui.Config.GetAppState().RecentRepos
 	reposCount := utils.Min(len(recentRepoPaths), 20)
 	// we won't show the current repo hence the -1
-	recentRepos := make([]*recentRepo, reposCount-1)
-	for i, path := range recentRepoPaths[1:reposCount] {
-		recentRepos[i] = &recentRepo{path: path}
+	recentRepos := make([]string, reposCount-1)
+	for i, repo := range recentRepoPaths[1:reposCount] {
+		recentRepos[i] = repo
 	}
 
 	handleMenuPress := func(index int) error {
-		repo := recentRepos[index]
-		if err := os.Chdir(repo.path); err != nil {
+		repoPath := recentRepos[index]
+		if err := os.Chdir(repoPath); err != nil {
 			return err
 		}
 		newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr)
@@ -55,34 +55,22 @@ func (gui *Gui) updateRecentRepoList() error {
 	if err != nil {
 		return err
 	}
-	gui.Config.GetAppState().RecentRepos = newRecentReposList(recentRepos, currentRepo)
+	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
+	gui.Config.SetIsNewRepo(known)
+	gui.Config.GetAppState().RecentRepos = recentRepos
 	return gui.Config.SaveAppState()
 }
 
-// IsNewPrivateRepo returns true if a private repo is never opend before in lazygit
-func (gui *Gui) IsNewPrivateRepo() bool {
-	repos := gui.Config.GetAppState().RecentPrivateRepos
-	currentRepo, err := os.Getwd()
-	if err != nil {
-		return true
-	}
-	for _, repo := range repos {
-		if currentRepo == repo {
-			return false
-		}
-	}
-	gui.Config.GetAppState().RecentPrivateRepos = newRecentReposList(repos, currentRepo)
-	_ = gui.Config.SaveAppState()
-	return true
-}
-
 // newRecentReposList returns a new repo list with a new entry but only when it doesn't exist yet
-func newRecentReposList(recentRepos []string, currentRepo string) []string {
+func newRecentReposList(recentRepos []string, currentRepo string) (bool, []string) {
+	isNew := true
 	newRepos := []string{currentRepo}
 	for _, repo := range recentRepos {
 		if repo != currentRepo {
 			newRepos = append(newRepos, repo)
+		} else {
+			isNew = false
 		}
 	}
-	return newRepos
+	return isNew, newRepos
 }
