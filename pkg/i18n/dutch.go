@@ -32,10 +32,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessage",
 			Other: "Commit bericht",
 		}, &i18n.Message{
-			ID:    "PushUsername",
-			Other: "Gebruikers naam",
+			ID:    "CredentialsUsername",
+			Other: "Gebruikersnaam",
 		}, &i18n.Message{
-			ID:    "PushPassword",
+			ID:    "CredentialsPassword",
 			Other: "Wachtwoord",
 		}, &i18n.Message{
 			ID:    "PassUnameWrong",

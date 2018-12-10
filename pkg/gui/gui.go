@@ -351,7 +351,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err != nil {
 				return err
 			}
-			credentialsView.Title = gui.Tr.SLocalize("PushUsername")
+			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
 			credentialsView.FgColor = gocui.ColorWhite
 			credentialsView.Editable = true
 			credentialsView.Editor = gocui.EditorFunc(gui.simpleEditor)

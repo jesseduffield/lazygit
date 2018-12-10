@@ -58,10 +58,10 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 	gui.credentials = make(chan string)
 	credentialsView, _ := g.View("credentials")
 	if passOrUname == "username" {
-		credentialsView.Title = gui.Tr.SLocalize("PushUsername")
+		credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
 		credentialsView.Mask = 0
 	} else {
-		credentialsView.Title = gui.Tr.SLocalize("PushPassword")
+		credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
 		credentialsView.Mask = '*'
 	}
 	g.Update(func(g *gocui.Gui) error {
