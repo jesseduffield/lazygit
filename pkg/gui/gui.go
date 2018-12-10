@@ -341,20 +341,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if check, _ := g.View("pushPassUname"); check == nil {
+	if check, _ := g.View("credentials"); check == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if pushPassUnameView, err := g.SetView("pushPassUname", 0, 0, width/2, height/2, 0); err != nil {
+		if credentialsView, err := g.SetView("credentials", 0, 0, width/2, height/2, 0); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-			_, err := g.SetViewOnBottom("pushPassUname")
+			_, err := g.SetViewOnBottom("credentials")
 			if err != nil {
 				return err
 			}
-			pushPassUnameView.Title = gui.Tr.SLocalize("PushUsername")
-			pushPassUnameView.FgColor = gocui.ColorWhite
-			pushPassUnameView.Editable = true
-			pushPassUnameView.Editor = gocui.EditorFunc(gui.simpleEditor)
+			credentialsView.Title = gui.Tr.SLocalize("PushUsername")
+			credentialsView.FgColor = gocui.ColorWhite
+			credentialsView.Editable = true
+			credentialsView.Editor = gocui.EditorFunc(gui.simpleEditor)
 		}
 	}
 

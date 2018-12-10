@@ -395,11 +395,11 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 			}
 			_ = gui.createErrorPanel(g, errMessage)
 			if unamePassOpend {
-				_ = g.DeleteView("pushPassUname")
+				_ = g.DeleteView("credentials")
 			}
 		} else {
 			if unamePassOpend {
-				_ = g.DeleteView("pushPassUname")
+				_ = g.DeleteView("credentials")
 			}
 			_ = gui.closeConfirmationPrompt(g)
 			_ = gui.refreshCommits(g)
@@ -428,11 +428,11 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error
 			}
 			_ = gui.createErrorPanel(g, errMessage)
 			if unamePassOpend {
-				_ = g.DeleteView("pushPassUname")
+				_ = g.DeleteView("credentials")
 			}
 		} else {
 			if unamePassOpend {
-				_ = g.DeleteView("pushPassUname")
+				_ = g.DeleteView("credentials")
 			}
 			_ = gui.closeConfirmationPrompt(g)
 			_ = gui.refreshSidePanels(g)

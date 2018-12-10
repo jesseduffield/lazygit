@@ -86,7 +86,7 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 
 func (gui *Gui) onNewPopupPanel() {
 	_, _ = gui.g.SetViewOnBottom("commitMessage")
-	_, _ = gui.g.SetViewOnBottom("pushPassUname")
+	_, _ = gui.g.SetViewOnBottom("credentials")
 }
 
 func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {

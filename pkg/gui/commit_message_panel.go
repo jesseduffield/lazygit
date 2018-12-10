@@ -53,23 +53,23 @@ func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 
 type credentials chan string
 
-// waitForPassUname wait for a username or password input from the pushPassUname popup
+// waitForPassUname wait for a username or password input from the credentials popup
 func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUname string) string {
 	gui.credentials = make(chan string)
-	pushPassUnameView, _ := g.View("pushPassUname")
+	credentialsView, _ := g.View("credentials")
 	if passOrUname == "username" {
-		pushPassUnameView.Title = gui.Tr.SLocalize("PushUsername")
-		pushPassUnameView.Mask = 0
+		credentialsView.Title = gui.Tr.SLocalize("PushUsername")
+		credentialsView.Mask = 0
 	} else {
-		pushPassUnameView.Title = gui.Tr.SLocalize("PushPassword")
-		pushPassUnameView.Mask = '*'
+		credentialsView.Title = gui.Tr.SLocalize("PushPassword")
+		credentialsView.Mask = '*'
 	}
 	g.Update(func(g *gocui.Gui) error {
-		_, err := g.SetViewOnTop("pushPassUname")
+		_, err := g.SetViewOnTop("credentials")
 		if err != nil {
 			return err
 		}
-		err = gui.switchFocus(g, currentView, pushPassUnameView)
+		err = gui.switchFocus(g, currentView, credentialsView)
 		if err != nil {
 			return err
 		}
@@ -99,7 +99,7 @@ func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	_, err = g.SetViewOnBottom("pushPassUname")
+	_, err = g.SetViewOnBottom("credentials")
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
-	_, err := g.SetViewOnBottom("pushPassUname")
+	_, err := g.SetViewOnBottom("credentials")
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handlePushFocused(g *gocui.Gui, v *gocui.View) error {
-	if _, err := g.SetViewOnTop("pushPassUname"); err != nil {
+	if _, err := g.SetViewOnTop("credentials"); err != nil {
 		return err
 	}
 

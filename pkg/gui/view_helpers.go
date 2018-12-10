@@ -101,7 +101,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	case "commitMessage":
 		return gui.handleCommitFocused(g, v)
-	case "pushPassUname":
+	case "credentials":
 		return gui.handlePushFocused(g, v)
 	case "main":
 		// TODO: pull this out into a 'view focused' function
@@ -303,7 +303,7 @@ func (gui *Gui) currentViewName(g *gocui.Gui) string {
 
 func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
 	v := g.CurrentView()
-	if v.Name() == "commitMessage" || v.Name() == "pushPassUname" || v.Name() == "confirmation" {
+	if v.Name() == "commitMessage" || v.Name() == "credentials" || v.Name() == "confirmation" {
 		return gui.resizePopupPanel(g, v)
 	}
 	return nil

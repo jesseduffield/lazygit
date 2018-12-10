@@ -137,11 +137,11 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 			}
 			_ = gui.createErrorPanel(g, errMessage)
 			if unamePassOpend {
-				_ = g.DeleteView("pushPassUname")
+				_ = g.DeleteView("credentials")
 			}
 		} else {
 			if unamePassOpend {
-				_ = g.DeleteView("pushPassUname")
+				_ = g.DeleteView("credentials")
 			}
 			_ = gui.closeConfirmationPrompt(g)
 			_ = gui.refreshCommits(g)
