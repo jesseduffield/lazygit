@@ -130,23 +130,7 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 	}
 	go func() {
 		unamePassOpend, err := gui.fetch(g, v, true)
-		if err != nil {
-			errMessage := err.Error()
-			if errMessage == "exit status 128" {
-				errMessage = gui.Tr.SLocalize("PassUnameWrong")
-			}
-			_ = gui.createErrorPanel(g, errMessage)
-			if unamePassOpend {
-				_ = g.DeleteView("credentials")
-			}
-		} else {
-			if unamePassOpend {
-				_ = g.DeleteView("credentials")
-			}
-			_ = gui.closeConfirmationPrompt(g)
-			_ = gui.refreshCommits(g)
-			_ = gui.refreshStatus(g)
-		}
+		gui.HandleCredentialsPopup(g, unamePassOpend, err)
 	}()
 	return nil
 }

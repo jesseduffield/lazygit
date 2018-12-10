@@ -388,24 +388,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 			unamePassOpend = true
 			return gui.waitForPassUname(g, v, passOrUname)
 		})
-		if err != nil {
-			errMessage := err.Error()
-			if errMessage == "exit status 128" {
-				errMessage = gui.Tr.SLocalize("PassUnameWrong")
-			}
-			_ = gui.createErrorPanel(g, errMessage)
-			if unamePassOpend {
-				_ = g.DeleteView("credentials")
-			}
-		} else {
-			if unamePassOpend {
-				_ = g.DeleteView("credentials")
-			}
-			_ = gui.closeConfirmationPrompt(g)
-			_ = gui.refreshCommits(g)
-			_ = gui.refreshStatus(g)
-		}
-		gui.refreshFiles(g)
+		gui.HandleCredentialsPopup(g, unamePassOpend, err)
 	}()
 	return nil
 }
@@ -421,22 +404,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error
 			unamePassOpend = true
 			return gui.waitForPassUname(g, v, passOrUname)
 		})
-		if err != nil {
-			errMessage := err.Error()
-			if errMessage == "exit status 128" {
-				errMessage = gui.Tr.SLocalize("PassUnameWrong")
-			}
-			_ = gui.createErrorPanel(g, errMessage)
-			if unamePassOpend {
-				_ = g.DeleteView("credentials")
-			}
-		} else {
-			if unamePassOpend {
-				_ = g.DeleteView("credentials")
-			}
-			_ = gui.closeConfirmationPrompt(g)
-			_ = gui.refreshSidePanels(g)
-		}
+		gui.HandleCredentialsPopup(g, unamePassOpend, err)
 	}()
 	return nil
 }

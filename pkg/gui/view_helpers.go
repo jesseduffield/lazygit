@@ -309,6 +309,26 @@ func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
 	return nil
 }
 
+// HandleCredentialsPopup handles the views after executing a command that might ask for credentials
+func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr error) {
+	if cmdErr != nil {
+		errMessage := cmdErr.Error()
+		if errMessage == "exit status 128" {
+			errMessage = gui.Tr.SLocalize("PassUnameWrong")
+		}
+		_ = gui.createErrorPanel(g, errMessage)
+		if popupOpened {
+			_ = g.DeleteView("credentials")
+		}
+	} else {
+		if popupOpened {
+			_ = g.DeleteView("credentials")
+		}
+		_ = gui.closeConfirmationPrompt(g)
+		_ = gui.refreshSidePanels(g)
+	}
+}
+
 func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
 	// If the confirmation panel is already displayed, just resize the width,
 	// otherwise continue
