@@ -51,11 +51,15 @@ func (gui *Gui) genericRebaseCommand(command string) error {
 	commandType := strings.Replace(status, "ing", "e", 1)
 	// we should end up with a command like 'git merge --continue'
 
-	sub := gui.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
-	if sub != nil {
-		gui.SubProcess = sub
-		return gui.Errors.ErrSubProcess
+	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
+	if status == "merging" {
+		sub := gui.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
+		if sub != nil {
+			gui.SubProcess = sub
+			return gui.Errors.ErrSubProcess
+		}
+		return nil
 	}
 
-	return nil
+	return gui.OSCommand.RunCommand(fmt.Sprintf("git %s --%s", commandType, command))
 }

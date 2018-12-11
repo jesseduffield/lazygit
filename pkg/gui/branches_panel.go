@@ -112,9 +112,12 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 			}
 
 			if err := gui.GitCommand.RebaseBranch(selectedBranch); err != nil {
+				if err := gui.refreshSidePanels(g); err != nil {
+					return err
+				}
 				return gui.createConfirmationPanel(g, v, "Auto-rebase failed", gui.Tr.SLocalize("FoundConflicts"),
 					func(g *gocui.Gui, v *gocui.View) error {
-						return nil
+						return gui.refreshSidePanels(g)
 					}, func(g *gocui.Gui, v *gocui.View) error {
 						if err := gui.GitCommand.AbortRebaseBranch(); err != nil {
 							return err
