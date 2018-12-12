@@ -457,15 +457,19 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canSskForCredentials bool) (u
 }
 
 func (gui *Gui) updateLoader(g *gocui.Gui) error {
-	if view, _ := g.View("confirmation"); view != nil {
-		content := gui.trimmedContent(view)
-		if strings.Contains(content, "...") {
-			staticContent := strings.Split(content, "...")[0] + "..."
-			if err := gui.renderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
-				return err
+	gui.g.Update(func(g *gocui.Gui) error {
+		if view, _ := g.View("confirmation"); view != nil {
+			content := gui.trimmedContent(view)
+			if strings.Contains(content, "...") {
+				staticContent := strings.Split(content, "...")[0] + "..."
+				if err := gui.synchronousRenderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
+					return err
+				}
 			}
 		}
-	}
+		return nil
+	})
+
 	return nil
 }
 

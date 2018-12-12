@@ -103,7 +103,11 @@ func (gui *Gui) handlePushConfirm(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	err = gui.switchFocus(g, v, gui.getFilesView(g))
+	nextView, err := gui.g.View("confirmation")
+	if err != nil {
+		nextView = gui.getFilesView(g)
+	}
+	err = gui.switchFocus(g, nil, nextView)
 	if err != nil {
 		return err
 	}
@@ -115,8 +119,9 @@ func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
+
 	gui.credentials <- "-"
-	return gui.switchFocus(g, v, gui.getFilesView(g))
+	return gui.switchFocus(g, nil, gui.getFilesView(g))
 }
 
 func (gui *Gui) handlePushFocused(g *gocui.Gui, v *gocui.View) error {

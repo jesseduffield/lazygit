@@ -222,22 +222,26 @@ func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
 	return nil
 }
 
+func (gui *Gui) synchronousRenderString(g *gocui.Gui, viewName, s string) error {
+	v, err := g.View(viewName)
+	// just in case the view disappeared as this function was called, we'll
+	// silently return if it's not found
+	if err != nil {
+		return nil
+	}
+	v.Clear()
+	if err := v.SetOrigin(0, 0); err != nil {
+		return err
+	}
+	output := string(bom.Clean([]byte(s)))
+	output = utils.NormalizeLinefeeds(output)
+	fmt.Fprint(v, output)
+	return nil
+}
+
 func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 	g.Update(func(*gocui.Gui) error {
-		v, err := g.View(viewName)
-		// just in case the view disappeared as this function was called, we'll
-		// silently return if it's not found
-		if err != nil {
-			return nil
-		}
-		v.Clear()
-		if err := v.SetOrigin(0, 0); err != nil {
-			return err
-		}
-		output := string(bom.Clean([]byte(s)))
-		output = utils.NormalizeLinefeeds(output)
-		fmt.Fprint(v, output)
-		return nil
+		return gui.synchronousRenderString(gui.g, viewName, s)
 	})
 	return nil
 }
@@ -311,19 +315,16 @@ func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
 
 // HandleCredentialsPopup handles the views after executing a command that might ask for credentials
 func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr error) {
+	if popupOpened {
+		_ = g.DeleteView("credentials")
+	}
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
 		if errMessage == "exit status 128" {
 			errMessage = gui.Tr.SLocalize("PassUnameWrong")
 		}
 		_ = gui.createErrorPanel(g, errMessage)
-		if popupOpened {
-			_ = g.DeleteView("credentials")
-		}
 	} else {
-		if popupOpened {
-			_ = g.DeleteView("credentials")
-		}
 		_ = gui.closeConfirmationPrompt(g)
 		_ = gui.refreshSidePanels(g)
 	}

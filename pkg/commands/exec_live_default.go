@@ -30,42 +30,33 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 
 	tty, err := pty.Start(cmd)
 
+	// go func() {
+	// 	_ = tty.Close()
+	// }()
+
 	if err != nil {
 		return "", err
 	}
 
-	stopAsking := make(chan struct{})
-
 	var waitForBufio sync.WaitGroup
 	waitForBufio.Add(1)
-
-	defer func() {
-		_ = tty.Close()
-	}()
 
 	go func() {
 		scanner := bufio.NewScanner(tty)
 		scanner.Split(scanWordsWithNewLines)
 		for scanner.Scan() {
-			select {
-			case <-stopAsking:
-				// just do nothing
-			default:
-				toOutput := strings.Trim(scanner.Text(), " ")
-				cmdOutput = append(cmdOutput, toOutput)
-				toWrite := output(toOutput)
-				if len(toWrite) > 0 {
-					_, _ = tty.Write([]byte(toWrite + "\n"))
-				}
+			toOutput := strings.Trim(scanner.Text(), " ")
+			cmdOutput = append(cmdOutput, toOutput)
+			toWrite := output(toOutput)
+			if len(toWrite) > 0 {
+				_, _ = tty.Write([]byte(toWrite + "\n"))
 			}
 		}
 		waitForBufio.Done()
 	}()
 
 	err = cmd.Wait()
-	go func() {
-		stopAsking <- struct{}{}
-	}()
+	tty.Close()
 	if err != nil {
 		waitForBufio.Wait()
 		return strings.Join(cmdOutput, " "), err
