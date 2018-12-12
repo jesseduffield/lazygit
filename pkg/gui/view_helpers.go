@@ -320,7 +320,7 @@ func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr er
 	}
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
-		if errMessage == "exit status 128" {
+		if strings.Contains(errMessage, "exit status 128") {
 			errMessage = gui.Tr.SLocalize("PassUnameWrong")
 		}
 		_ = gui.createErrorPanel(g, errMessage)

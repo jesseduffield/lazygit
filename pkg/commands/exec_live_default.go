@@ -4,6 +4,7 @@ package commands
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"os/exec"
 	"strings"
@@ -19,8 +20,9 @@ import (
 // As return of output you need to give a string that will be written to stdin
 // NOTE: If the return data is empty it won't written anything to stdin
 // NOTE: You don't have to include a enter in the return data this function will do that for you
-func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) (errorMessage string, codeError error) {
+func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) error {
 	cmdOutput := []string{}
+	cmdOutputOffset := 0
 
 	splitCmd := str.ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
@@ -30,12 +32,8 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 
 	tty, err := pty.Start(cmd)
 
-	// go func() {
-	// 	_ = tty.Close()
-	// }()
-
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	var waitForBufio sync.WaitGroup
@@ -49,6 +47,8 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 			cmdOutput = append(cmdOutput, toOutput)
 			toWrite := output(toOutput)
 			if len(toWrite) > 0 {
+				// don't do -1 because the next value is the username / password
+				cmdOutputOffset = len(cmdOutput)
 				_, _ = tty.Write([]byte(toWrite + "\n"))
 			}
 		}
@@ -59,10 +59,13 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	tty.Close()
 	if err != nil {
 		waitForBufio.Wait()
-		return strings.Join(cmdOutput, " "), err
+		if len(cmdOutput) == cmdOutputOffset {
+			cmdOutputOffset--
+		}
+		return errors.New(err.Error() + ", " + strings.Join(cmdOutput[cmdOutputOffset:], " "))
 	}
 
-	return errorMessage, nil
+	return nil
 }
 
 // scanWordsWithNewLines is a copy of bufio.ScanWords but this also captures new lines

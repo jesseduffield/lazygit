@@ -59,7 +59,7 @@ func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 }
 
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
-func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string) string) (errorMessage string, err error) {
+func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string) string) error {
 	return RunCommandWithOutputLiveWrapper(c, command, output)
 }
 
@@ -68,7 +68,7 @@ func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string)
 // The ask argument will be "username" or "password" and expects the user's password or username back
 func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
 	ttyText := ""
-	errMessage, err := c.RunCommandWithOutputLive(command, func(word string) string {
+	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]string{
@@ -85,13 +85,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 
 		return ""
 	})
-	if err != nil {
-		if strings.Contains("exit status 128", err.Error()) {
-			errMessage = "exit status 128"
-		}
-		return errors.New(errMessage)
-	}
-	return nil
+	return errMessage
 }
 
 // RunCommand runs a command and just returns the error
