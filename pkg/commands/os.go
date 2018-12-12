@@ -71,27 +71,13 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	errMessage, err := c.RunCommandWithOutputLive(command, func(word string) string {
 		ttyText = ttyText + " " + word
 
-		type Prompt struct {
-			pattern   string
-			canAskFor bool
-		}
-		prompts := map[string]Prompt{
-			"password": {
-				pattern:   `Password\s*for\s*'.+':`,
-				canAskFor: true,
-			},
-			"username": {
-				pattern:   `Username\s*for\s*'.+':`,
-				canAskFor: true,
-			},
+		prompts := map[string]string{
+			"password": `Password\s*for\s*'.+':`,
+			"username": `Username\s*for\s*'.+':`,
 		}
 
-		for askFor, prompt := range prompts {
-			if !prompt.canAskFor {
-				continue
-			}
-			if match, _ := regexp.MatchString(prompt.pattern, ttyText); match {
-				prompt.canAskFor = false
+		for askFor, pattern := range prompts {
+			if match, _ := regexp.MatchString(pattern, ttyText); match {
 				ttyText = ""
 				return ask(askFor)
 			}
