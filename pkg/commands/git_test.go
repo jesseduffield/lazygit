@@ -1010,7 +1010,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Contains(t, "exit status 1", err.Error())
+				assert.Contains(t, err.Error(), "exit status 1")
 			},
 		},
 		{
@@ -1023,7 +1023,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			true,
 			func(err error) {
-				assert.Contains(t, "exit status 1", err.Error())
+				assert.Contains(t, err.Error(), "exit status 1")
 			},
 		},
 		{
@@ -1035,7 +1035,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Contains(t, "exit status 1", err.Error())
+				assert.Contains(t, err.Error(), "exit status 1")
 			},
 		},
 	}
