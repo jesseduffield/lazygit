@@ -22,7 +22,7 @@ type Branch struct {
 func (b *Branch) GetDisplayStrings() []string {
 	displayName := utils.ColoredString(b.Name, b.GetColor())
 	if b.Selected && b.Pushables != "" && b.Pullables != "" {
-		displayName = fmt.Sprintf("↑%s↓%s %s", b.Pushables, b.Pullables, displayName)
+		displayName = fmt.Sprintf("%s ↑%s↓%s", displayName, b.Pushables, b.Pullables)
 	}
 
 	return []string{b.Recency, displayName}
