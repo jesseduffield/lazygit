@@ -1031,12 +1031,12 @@ func TestGitCommandPush(t *testing.T) {
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "-u", "origin", "test"}, args)
-
 				return exec.Command("test")
 			},
 			false,
 			func(err error) {
-				assert.Equal(t, "exit status 128", err.Error())
+
+				assert.Contains(t, "exit status 1", err.Error())
 			},
 		},
 	}
