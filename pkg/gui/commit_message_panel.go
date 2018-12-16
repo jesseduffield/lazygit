@@ -65,11 +65,7 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 		credentialsView.Mask = '*'
 	}
 	g.Update(func(g *gocui.Gui) error {
-		_, err := g.SetViewOnTop("credentials")
-		if err != nil {
-			return err
-		}
-		err = gui.switchFocus(g, currentView, credentialsView)
+		err := gui.switchFocus(g, currentView, credentialsView)
 		if err != nil {
 			return err
 		}
@@ -124,7 +120,7 @@ func (gui *Gui) handlePushClose(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchFocus(g, nil, gui.getFilesView(g))
 }
 
-func (gui *Gui) handlePushFocused(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCredentialsViewFocused(g *gocui.Gui, v *gocui.View) error {
 	if _, err := g.SetViewOnTop("credentials"); err != nil {
 		return err
 	}

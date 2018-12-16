@@ -217,7 +217,7 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 		return "", err
 	}
 
-	if _, err := tmpfile.Write([]byte(content)); err != nil {
+	if _, err := tmpfile.WriteString(content); err != nil {
 		c.Log.Error(err)
 		return "", err
 	}

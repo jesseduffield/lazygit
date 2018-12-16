@@ -102,7 +102,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "commitMessage":
 		return gui.handleCommitFocused(g, v)
 	case "credentials":
-		return gui.handlePushFocused(g, v)
+		return gui.handleCredentialsViewFocused(g, v)
 	case "main":
 		// TODO: pull this out into a 'view focused' function
 		gui.refreshMergePanel(g)
@@ -316,14 +316,15 @@ func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
 // HandleCredentialsPopup handles the views after executing a command that might ask for credentials
 func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr error) {
 	if popupOpened {
-		_ = g.DeleteView("credentials")
+		_, _ = gui.g.SetViewOnBottom("credentials")
 	}
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
 		if strings.Contains(errMessage, "exit status 128") {
 			errMessage = gui.Tr.SLocalize("PassUnameWrong")
 		}
-		_ = gui.createErrorPanel(g, errMessage)
+		// we are not logging this error because it may contain a password
+		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(gui.g), false)
 	} else {
 		_ = gui.closeConfirmationPrompt(g)
 		_ = gui.refreshSidePanels(g)

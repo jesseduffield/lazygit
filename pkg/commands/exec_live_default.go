@@ -47,9 +47,9 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 			cmdOutput = append(cmdOutput, toOutput)
 			toWrite := output(toOutput)
 			if len(toWrite) > 0 {
-				// don't do -1 because the next value is the username / password
+				// don't do len(cmdOutput)-1 because the next value is the username / password
 				cmdOutputOffset = len(cmdOutput)
-				_, _ = tty.Write([]byte(toWrite + "\n"))
+				_, _ = tty.WriteString(toWrite + "\n")
 			}
 		}
 		waitForBufio.Done()
@@ -59,8 +59,8 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	tty.Close()
 	if err != nil {
 		waitForBufio.Wait()
-		if len(cmdOutput) == cmdOutputOffset {
-			cmdOutputOffset--
+		if cmdOutputOffset > len(cmdOutput)-1 {
+			cmdOutputOffset = len(cmdOutput) - 1
 		}
 		return errors.New(err.Error() + ", " + strings.Join(cmdOutput[cmdOutputOffset:], " "))
 	}
