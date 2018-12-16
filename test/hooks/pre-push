@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# test pre-push hook for testing the lazygit credentials view
+#
+# to enable, use:
+# chmod +x .git/hooks/pre-push
+#
+# this will hang if you're using git from the command line, so only enable this
+# when you are testing the credentials view in lazygit
+
+exec < /dev/tty
+
+echo -n "Username for 'github': "
+read username
+
+echo -n "Password for 'github': "
+read password
+
+# echo "failed"
+# exit 1
+
+exit 0
