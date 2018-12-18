@@ -397,12 +397,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			ViewName: "credentials",
 			Key:      gocui.KeyEnter,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handlePushConfirm,
+			Handler:  gui.handleSubmitCredential,
 		}, {
 			ViewName: "credentials",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handlePushClose,
+			Handler:  gui.handleCloseCredentialsView,
 		}, {
 			ViewName: "menu",
 			Key:      gocui.KeyEsc,
