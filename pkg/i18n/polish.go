@@ -127,7 +127,7 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			Other: "Ten plik nie powoduje konfliktów scalania",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Jesteś pewny, że chcesz wykonać `reset --hard HEAD`? Możesz stracić wprowadzone zmiany",
+			Other: "Jesteś pewny, że chcesz wykonać `reset --hard HEAD` i `clean -fd`? Możesz stracić wprowadzone zmiany",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Jesteś pewny, że chcesz {{.deleteVerb}} {{.fileName}} (stracisz swoje wprowadzone zmiany)?",
@@ -370,7 +370,7 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			Other: `odśwież pliki`,
 		}, &i18n.Message{
 			ID:    "resetHard",
-			Other: `zresetuj twardo`,
+			Other: `zresetuj twardo i usuń niepotwierdzone pliki`,
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `scal do obecnej gałęzi`,

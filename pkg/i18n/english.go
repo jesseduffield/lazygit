@@ -146,7 +146,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "This file has no merge conflicts",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Are you sure you want `reset --hard HEAD`? You may lose changes",
+			Other: "Are you sure you want `reset --hard HEAD` and `clean -fd`? You may lose changes",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
@@ -392,7 +392,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: `refresh files`,
 		}, &i18n.Message{
 			ID:    "resetHard",
-			Other: `reset hard`,
+			Other: `reset hard and remove untracked files`,
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `merge into currently checked out branch`,
@@ -435,6 +435,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CantFindHunk",
 			Other: `Could not find hunk`,
+		}, &i18n.Message{
+			ID:    "FastForward",
+			Other: `fast-forward this branch from its upstream`,
+		}, &i18n.Message{
+			ID:    "Fetching",
+			Other: "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
 		},
 	)
 }

@@ -148,7 +148,6 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return errors.New("invalid point")
 	}
-
 	var (
 		ry, rcy int
 		err     error
@@ -270,12 +269,19 @@ func (v *View) parseInput(ch rune) []cell {
 		if isEscape {
 			return nil
 		}
-		c := cell{
-			fgColor: v.ei.curFgColor,
-			bgColor: v.ei.curBgColor,
-			chr:     ch,
+		repeatCount := 1
+		if ch == '\t' {
+			ch = ' '
+			repeatCount = 4
 		}
-		cells = append(cells, c)
+		for i := 0; i < repeatCount; i++ {
+			c := cell{
+				fgColor: v.ei.curFgColor,
+				bgColor: v.ei.curBgColor,
+				chr:     ch,
+			}
+			cells = append(cells, c)
+		}
 	}
 
 	return cells
