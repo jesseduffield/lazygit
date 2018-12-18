@@ -18,7 +18,7 @@ require (
 	github.com/heroku/rollrus v0.0.0-20180515183152-fc0cef2ff331
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 	github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63
-	github.com/jesseduffield/gocui v0.0.0-20180921065632-03e26ff3f1de
+	github.com/jesseduffield/gocui v0.0.0-20181209104758-fe55a32c8a4c
 	github.com/jesseduffield/termbox-go v0.0.0-20180919093808-1e272ff78dcb
 	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1
