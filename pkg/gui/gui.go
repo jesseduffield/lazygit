@@ -436,14 +436,14 @@ func (gui *Gui) promptAnonymousReporting() error {
 	})
 }
 
-func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canSskForCredentials bool) (unamePassOpend bool, err error) {
+func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (unamePassOpend bool, err error) {
 	unamePassOpend = false
 	err = gui.GitCommand.Fetch(func(passOrUname string) string {
 		unamePassOpend = true
 		return gui.waitForPassUname(gui.g, v, passOrUname)
-	}, canSskForCredentials)
+	}, canAskForCredentials)
 
-	if canSskForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
+	if canAskForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
 		colorFunction := color.New(color.FgRed).SprintFunc()
 		coloredMessage := colorFunction(strings.TrimSpace(gui.Tr.SLocalize("PassUnameWrong")))
 		close := func(g *gocui.Gui, v *gocui.View) error {
