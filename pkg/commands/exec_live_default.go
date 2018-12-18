@@ -4,14 +4,14 @@ package commands
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"os"
 	"os/exec"
 	"strings"
-	"sync"
 	"unicode/utf8"
 
-	"github.com/kr/pty"
+	"github.com/jesseduffield/pty"
 	"github.com/mgutz/str"
 )
 
@@ -21,57 +21,37 @@ import (
 // NOTE: If the return data is empty it won't written anything to stdin
 // NOTE: You don't have to include a enter in the return data this function will do that for you
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) error {
-	cmdOutput := []string{}
-	cmdOutputOffset := 0
-
 	splitCmd := str.ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "LANG=en_US.utf8", "LC_ALL=en_US.UTF-8")
 
-	tty, err := pty.Start(cmd)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	ptmx, err := pty.Start(cmd)
 
 	if err != nil {
 		return err
 	}
 
-	lastWritten := ""
-
-	var waitForBufio sync.WaitGroup
-	waitForBufio.Add(1)
-
 	go func() {
-		scanner := bufio.NewScanner(tty)
+		scanner := bufio.NewScanner(ptmx)
 		scanner.Split(scanWordsWithNewLines)
 		for scanner.Scan() {
 			toOutput := strings.Trim(scanner.Text(), " ")
-			cmdOutput = append(cmdOutput, toOutput)
 			toWrite := output(toOutput)
 			if len(toWrite) > 0 {
-				toWriteSplit := strings.Split(toWrite, " ")
-				lastWritten = toWriteSplit[len(toWriteSplit)-1]
-				// don't do len(cmdOutput)-1 because the next value is the username / password
-				cmdOutputOffset = len(cmdOutput)
-				_, _ = tty.WriteString(toWrite + "\n")
+				_, _ = ptmx.WriteString(toWrite + "\n")
 			}
 		}
-		waitForBufio.Done()
 	}()
 
 	err = cmd.Wait()
-	tty.Close()
+	ptmx.Close()
 	if err != nil {
-		waitForBufio.Wait()
-		for i, item := range cmdOutput {
-			if lastWritten == item && cmdOutputOffset < i {
-				cmdOutputOffset = i + 1
-			}
-		}
-		if cmdOutputOffset > len(cmdOutput)-1 {
-			cmdOutputOffset = len(cmdOutput) - 1
-		}
-		return errors.New(err.Error() + ", " + strings.Join(cmdOutput[cmdOutputOffset:], " "))
+		return errors.New(stderr.String())
 	}
 
 	return nil
