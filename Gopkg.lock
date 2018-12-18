@@ -196,6 +196,14 @@
   revision = "03e26ff3f1de2c1bc2205113c3aba661312eee00"
 
 [[projects]]
+  digest = "1:15416fd2b58d5b2dfa0bc99185cdff3a8f49e73e022291891cb8d5d820d9760d"
+  name = "github.com/jesseduffield/pty"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "db8e3cd836b82e82e0a9c8edc6896967dd31374f"
+  version = "v1.1.3"
+
+[[projects]]
   branch = "master"
   digest = "1:3ab130f65766f5b7cc944d557df31c6a007ec017151705ec1e1b8719f2689021"
   name = "github.com/jesseduffield/termbox-go"
@@ -616,6 +624,7 @@
     "github.com/heroku/rollrus",
     "github.com/jesseduffield/go-getter",
     "github.com/jesseduffield/gocui",
+    "github.com/jesseduffield/pty",
     "github.com/kardianos/osext",
     "github.com/mgutz/str",
     "github.com/nicksnyder/go-i18n/v2/i18n",
