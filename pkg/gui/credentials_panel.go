@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"strings"
-
 	"github.com/jesseduffield/gocui"
 )
 
@@ -91,12 +89,8 @@ func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr er
 		_, _ = gui.g.SetViewOnBottom("credentials")
 	}
 	if cmdErr != nil {
-		errMessage := cmdErr.Error()
-		if strings.Contains(errMessage, "exit status 128") {
-			errMessage = gui.Tr.SLocalize("PassUnameWrong")
-		}
 		// we are not logging this error because it may contain a password
-		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(gui.g), false)
+		_ = gui.createSpecificErrorPanel(cmdErr.Error(), gui.getFilesView(gui.g), false)
 	} else {
 		_ = gui.closeConfirmationPrompt(g)
 		_ = gui.refreshSidePanels(g)
