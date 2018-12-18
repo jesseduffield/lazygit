@@ -266,7 +266,7 @@ func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCrede
 		if canAskForCredentials {
 			return unamePassQuestion(question)
 		}
-		return "-"
+		return "\n"
 	})
 }
 

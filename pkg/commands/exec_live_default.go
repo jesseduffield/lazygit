@@ -41,10 +41,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		scanner.Split(scanWordsWithNewLines)
 		for scanner.Scan() {
 			toOutput := strings.Trim(scanner.Text(), " ")
-			toWrite := output(toOutput)
-			if len(toWrite) > 0 {
-				_, _ = ptmx.WriteString(toWrite + "\n")
-			}
+			_, _ = ptmx.WriteString(output(toOutput))
 		}
 	}()
 

@@ -1045,7 +1045,7 @@ func TestGitCommandPush(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
 			err := gitCmd.Push("test", s.forcePush, func(passOrUname string) string {
-				return "-"
+				return "\n"
 			})
 			s.test(err)
 		})
