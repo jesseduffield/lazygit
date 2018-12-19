@@ -40,6 +40,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessage",
 			Other: "Commit message",
 		}, &i18n.Message{
+			ID:    "CredentialsUsername",
+			Other: "Username",
+		}, &i18n.Message{
+			ID:    "CredentialsPassword",
+			Other: "Password",
+		}, &i18n.Message{
+			ID:    "PassUnameWrong",
+			Other: "Password and/or username wrong",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "commit changes",
 		}, &i18n.Message{
@@ -141,6 +150,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "PushWait",
 			Other: "Pushing...",
+		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetching...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "This file has no merge conflicts",
@@ -411,6 +423,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoBranchOnRemote",
 			Other: `This branch doesn't exist on remote. You need to push it to remote first.`,
+		}, &i18n.Message{
+			ID:    "fetch",
+			Other: `fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchTitle",
+			Other: `No automatic git fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchBody",
+			Other: `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
 		}, &i18n.Message{
 			ID:    "StageLines",
 			Other: `stage individual hunks/lines`,

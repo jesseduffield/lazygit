@@ -14,7 +14,7 @@ type recentRepo struct {
 	path string
 }
 
-// GetDisplayStrings is a function.
+// GetDisplayStrings returns the path from a recent repo.
 func (r *recentRepo) GetDisplayStrings() []string {
 	yellow := color.New(color.FgMagenta)
 	base := filepath.Base(r.path)
@@ -55,16 +55,22 @@ func (gui *Gui) updateRecentRepoList() error {
 	if err != nil {
 		return err
 	}
-	gui.Config.GetAppState().RecentRepos = newRecentReposList(recentRepos, currentRepo)
+	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
+	gui.Config.SetIsNewRepo(known)
+	gui.Config.GetAppState().RecentRepos = recentRepos
 	return gui.Config.SaveAppState()
 }
 
-func newRecentReposList(recentRepos []string, currentRepo string) []string {
+// newRecentReposList returns a new repo list with a new entry but only when it doesn't exist yet
+func newRecentReposList(recentRepos []string, currentRepo string) (bool, []string) {
+	isNew := true
 	newRepos := []string{currentRepo}
 	for _, repo := range recentRepos {
 		if repo != currentRepo {
 			newRepos = append(newRepos, repo)
+		} else {
+			isNew = false
 		}
 	}
-	return newRepos
+	return isNew, newRepos
 }

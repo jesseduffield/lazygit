@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"sync"
 
 	// "io"
 	// "io/ioutil"
@@ -15,6 +16,7 @@ import (
 
 	// "strings"
 
+	"github.com/fatih/color"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -70,6 +72,8 @@ type Gui struct {
 	Errors        SentinelErrors
 	Updater       *updates.Updater
 	statusManager *statusManager
+	credentials   credentials
+	waitForIntro  sync.WaitGroup
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -337,6 +341,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
+	if check, _ := g.View("credentials"); check == nil {
+		// doesn't matter where this view starts because it will be hidden
+		if credentialsView, err := g.SetView("credentials", 0, 0, width/2, height/2, 0); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+			_, err := g.SetViewOnBottom("credentials")
+			if err != nil {
+				return err
+			}
+			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
+			credentialsView.FgColor = gocui.ColorWhite
+			credentialsView.Editable = true
+			credentialsView.Editor = gocui.EditorFunc(gui.simpleEditor)
+		}
+	}
+
 	if appStatusView, err := g.SetView("appStatus", -1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
@@ -366,6 +387,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err := gui.updateRecentRepoList(); err != nil {
 			return err
 		}
+		gui.waitForIntro.Done()
 
 		if _, err := gui.g.SetCurrentView(filesView.Name()); err != nil {
 			return err
@@ -401,34 +423,53 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if you download humanlog and do tail -f development.log | humanlog
 	// this will let you see these branches as prettified json
 	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
-
 	return gui.resizeCurrentPopupPanel(g)
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
 	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+		gui.waitForIntro.Done()
 		return gui.Config.WriteToUserConfig("reporting", "on")
 	}, func(g *gocui.Gui, v *gocui.View) error {
+		gui.waitForIntro.Done()
 		return gui.Config.WriteToUserConfig("reporting", "off")
 	})
 }
 
-func (gui *Gui) fetch(g *gocui.Gui) error {
-	gui.GitCommand.Fetch()
+func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (unamePassOpend bool, err error) {
+	unamePassOpend = false
+	err = gui.GitCommand.Fetch(func(passOrUname string) string {
+		unamePassOpend = true
+		return gui.waitForPassUname(gui.g, v, passOrUname)
+	}, canAskForCredentials)
+
+	if canAskForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
+		colorFunction := color.New(color.FgRed).SprintFunc()
+		coloredMessage := colorFunction(strings.TrimSpace(gui.Tr.SLocalize("PassUnameWrong")))
+		close := func(g *gocui.Gui, v *gocui.View) error {
+			return nil
+		}
+		_ = gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
+	}
+
 	gui.refreshStatus(g)
-	return nil
+	return unamePassOpend, err
 }
 
 func (gui *Gui) updateLoader(g *gocui.Gui) error {
-	if view, _ := g.View("confirmation"); view != nil {
-		content := gui.trimmedContent(view)
-		if strings.Contains(content, "...") {
-			staticContent := strings.Split(content, "...")[0] + "..."
-			if err := gui.renderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
-				return err
+	gui.g.Update(func(g *gocui.Gui) error {
+		if view, _ := g.View("confirmation"); view != nil {
+			content := gui.trimmedContent(view)
+			if strings.Contains(content, "...") {
+				staticContent := strings.Split(content, "...")[0] + "..."
+				if err := gui.synchronousRenderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
+					return err
+				}
 			}
 		}
-	}
+		return nil
+	})
+
 	return nil
 }
 
@@ -471,7 +512,28 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
-	gui.goEvery(g, time.Second*60, gui.fetch)
+	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
+		gui.waitForIntro.Add(2)
+	} else {
+		gui.waitForIntro.Add(1)
+	}
+
+	go func() {
+		gui.waitForIntro.Wait()
+		isNew := gui.Config.GetIsNewRepo()
+		if !isNew {
+			time.After(60 * time.Second)
+		}
+		_, err := gui.fetch(g, g.CurrentView(), false)
+		if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
+			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
+		} else {
+			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {
+				_, err := gui.fetch(g, g.CurrentView(), false)
+				return err
+			})
+		}
+	}()
 	gui.goEvery(g, time.Second*10, gui.refreshFiles)
 	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
 	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)

@@ -101,6 +101,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	case "commitMessage":
 		return gui.handleCommitFocused(g, v)
+	case "credentials":
+		return gui.handleCredentialsViewFocused(g, v)
 	case "main":
 		// TODO: pull this out into a 'view focused' function
 		gui.refreshMergePanel(g)
@@ -220,22 +222,26 @@ func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
 	return nil
 }
 
+func (gui *Gui) synchronousRenderString(g *gocui.Gui, viewName, s string) error {
+	v, err := g.View(viewName)
+	// just in case the view disappeared as this function was called, we'll
+	// silently return if it's not found
+	if err != nil {
+		return nil
+	}
+	v.Clear()
+	if err := v.SetOrigin(0, 0); err != nil {
+		return err
+	}
+	output := string(bom.Clean([]byte(s)))
+	output = utils.NormalizeLinefeeds(output)
+	fmt.Fprint(v, output)
+	return nil
+}
+
 func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 	g.Update(func(*gocui.Gui) error {
-		v, err := g.View(viewName)
-		// just in case the view disappeared as this function was called, we'll
-		// silently return if it's not found
-		if err != nil {
-			return nil
-		}
-		v.Clear()
-		if err := v.SetOrigin(0, 0); err != nil {
-			return err
-		}
-		output := string(bom.Clean([]byte(s)))
-		output = utils.NormalizeLinefeeds(output)
-		fmt.Fprint(v, output)
-		return nil
+		return gui.synchronousRenderString(gui.g, viewName, s)
 	})
 	return nil
 }
@@ -301,7 +307,7 @@ func (gui *Gui) currentViewName(g *gocui.Gui) string {
 
 func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
 	v := g.CurrentView()
-	if v.Name() == "commitMessage" || v.Name() == "confirmation" {
+	if v.Name() == "commitMessage" || v.Name() == "credentials" || v.Name() == "confirmation" {
 		return gui.resizePopupPanel(g, v)
 	}
 	return nil

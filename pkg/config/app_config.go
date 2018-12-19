@@ -20,6 +20,7 @@ type AppConfig struct {
 	BuildSource string `long:"build-source" env:"BUILD_SOURCE" default:""`
 	UserConfig  *viper.Viper
 	AppState    *AppState
+	IsNewRepo   bool
 }
 
 // AppConfigurer interface allows individual app config structs to inherit Fields
@@ -36,6 +37,8 @@ type AppConfigurer interface {
 	WriteToUserConfig(string, string) error
 	SaveAppState() error
 	LoadAppState() error
+	SetIsNewRepo(bool)
+	GetIsNewRepo() bool
 }
 
 // NewAppConfig makes a new app config
@@ -54,6 +57,7 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		BuildSource: buildSource,
 		UserConfig:  userConfig,
 		AppState:    &AppState{},
+		IsNewRepo:   false,
 	}
 
 	if err := appConfig.LoadAppState(); err != nil {
@@ -61,6 +65,16 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	return appConfig, nil
+}
+
+// GetIsNewRepo returns known repo boolean
+func (c *AppConfig) GetIsNewRepo() bool {
+	return c.IsNewRepo
+}
+
+// SetIsNewRepo set if the current repo is known
+func (c *AppConfig) SetIsNewRepo(toSet bool) {
+	c.IsNewRepo = toSet
 }
 
 // GetDebug returns debug flag
@@ -153,7 +167,7 @@ func prepareConfigFile(filename string) (string, error) {
 }
 
 // LoadAndMergeFile Loads the config/state file, creating
-// the file as an empty one if it does not exist
+// the file has an empty one if it does not exist
 func LoadAndMergeFile(v *viper.Viper, filename string) error {
 	configPath, err := prepareConfigFile(filename)
 	if err != nil {
@@ -242,9 +256,9 @@ type AppState struct {
 
 func getDefaultAppState() []byte {
 	return []byte(`
-  lastUpdateCheck: 0
-  recentRepos: []
-`)
+    lastUpdateCheck: 0
+    recentRepos: []
+  `)
 }
 
 // // commenting this out until we use it again
