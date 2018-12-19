@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -92,11 +91,12 @@ func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr er
 		_, _ = gui.g.SetViewOnBottom("credentials")
 	}
 	if cmdErr != nil {
-		if strings.Contains(cmdErr.Error(), "Invalid username or password") {
-			cmdErr = errors.New(gui.Tr.SLocalize("PassUnameWrong"))
+		errMessage := cmdErr.Error()
+		if strings.Contains(errMessage, "Invalid username or password") {
+			errMessage = gui.Tr.SLocalize("PassUnameWrong")
 		}
 		// we are not logging this error because it may contain a password
-		_ = gui.createSpecificErrorPanel(cmdErr.Error(), gui.getFilesView(gui.g), false)
+		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(gui.g), false)
 	} else {
 		_ = gui.closeConfirmationPrompt(g)
 		_ = gui.refreshSidePanels(g)
