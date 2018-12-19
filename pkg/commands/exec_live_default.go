@@ -25,7 +25,7 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
 	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "LANG=en_US.utf8", "LC_ALL=en_US.UTF-8")
+	cmd.Env = append(cmd.Env, "LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
