@@ -220,6 +220,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("StageLines"),
 			KeyReadable: "enter",
 		}, {
+			ViewName:    "files",
+			Key:         'f',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleGitFetch,
+			Description: gui.Tr.SLocalize("fetch"),
+		}, {
 			ViewName: "main",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
@@ -387,6 +393,16 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCommitClose,
+		}, {
+			ViewName: "credentials",
+			Key:      gocui.KeyEnter,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleSubmitCredential,
+		}, {
+			ViewName: "credentials",
+			Key:      gocui.KeyEsc,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleCloseCredentialsView,
 		}, {
 			ViewName: "menu",
 			Key:      gocui.KeyEsc,

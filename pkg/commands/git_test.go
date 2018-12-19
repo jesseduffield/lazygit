@@ -95,7 +95,7 @@ func TestVerifyInGitRepo(t *testing.T) {
 			},
 			func(err error) {
 				assert.Error(t, err)
-				assert.Regexp(t, "fatal: .ot a git repository \\(or any of the parent directories\\): \\.git", err.Error())
+				assert.Regexp(t, `fatal: .ot a git repository \(or any of the parent directories\s?\/?\): \.git`, err.Error())
 			},
 		},
 	}
@@ -256,7 +256,7 @@ func TestNewGitCommand(t *testing.T) {
 			},
 			func(gitCmd *GitCommand, err error) {
 				assert.Error(t, err)
-				assert.Regexp(t, "fatal: .ot a git repository \\(or any of the parent directories\\): \\.git", err.Error())
+				assert.Regexp(t, `fatal: .ot a git repository ((\(or any of the parent directories\): \.git)|(\(or any parent up to mount point \/\)))`, err.Error())
 			},
 		},
 		{
@@ -1010,7 +1010,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Nil(t, err)
+				assert.Contains(t, err.Error(), "error: failed to push some refs")
 			},
 		},
 		{
@@ -1023,7 +1023,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			true,
 			func(err error) {
-				assert.Nil(t, err)
+				assert.Contains(t, err.Error(), "error: failed to push some refs")
 			},
 		},
 		{
@@ -1031,12 +1031,11 @@ func TestGitCommandPush(t *testing.T) {
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "-u", "origin", "test"}, args)
-
 				return exec.Command("test")
 			},
 			false,
 			func(err error) {
-				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "error: failed to push some refs")
 			},
 		},
 	}
@@ -1045,7 +1044,10 @@ func TestGitCommandPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.Push("test", s.forcePush))
+			err := gitCmd.Push("test", s.forcePush, func(passOrUname string) string {
+				return "\n"
+			})
+			s.test(err)
 		})
 	}
 }

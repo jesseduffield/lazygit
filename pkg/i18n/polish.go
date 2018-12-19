@@ -30,6 +30,15 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessage",
 			Other: "Wiadomość commita",
 		}, &i18n.Message{
+			ID:    "CredentialsUsername",
+			Other: "Username",
+		}, &i18n.Message{
+			ID:    "CredentialsPassword",
+			Other: "Password",
+		}, &i18n.Message{
+			ID:    "PassUnameWrong",
+			Other: "Password and/or username wrong",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "commituj zmiany",
 		}, &i18n.Message{
@@ -122,6 +131,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "PushWait",
 			Other: "Wypychanie zmian...",
+		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetching...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "Ten plik nie powoduje konfliktów scalania",
@@ -386,6 +398,15 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoBranchOnRemote",
 			Other: `Ta gałąź nie istnieje na zdalnym. Najpierw musisz go odepchnąć na odległość.`,
+		}, &i18n.Message{
+			ID:    "fetch",
+			Other: `fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchTitle",
+			Other: `No automatic git fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchBody",
+			Other: `Lazygit can't use "git fetch" in a private repo use f in the branches panel to run "git fetch" manually`,
 		}, &i18n.Message{
 			ID:    "StageLines",
 			Other: `zatwierdź pojedyncze linie`,

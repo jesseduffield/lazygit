@@ -85,9 +85,11 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 }
 
 func (gui *Gui) onNewPopupPanel() {
-	gui.g.SetViewOnBottom("commitMessage")
+	_, _ = gui.g.SetViewOnBottom("commitMessage")
+	_, _ = gui.g.SetViewOnBottom("credentials")
 }
 
+// it is very important that within this function we never include the original prompt in any error messages, because it may contain e.g. a user password
 func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	gui.onNewPopupPanel()
 	g.Update(func(g *gocui.Gui) error {
@@ -137,18 +139,27 @@ func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title,
 	return gui.createConfirmationPanel(g, currentView, title, prompt, nil, nil)
 }
 
-func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
-	go func() {
-		// when reporting is switched on this log call sometimes introduces
-		// a delay on the error panel popping up. Here I'm adding a second wait
-		// so that the error is logged while the user is reading the error message
-		time.Sleep(time.Second)
-		gui.Log.Error(message)
-	}()
+// createSpecificErrorPanel allows you to create an error popup, specifying the
+//  view to be focused when the user closes the popup, and a boolean specifying
+// whether we will log the error. If the message may include a user password,
+// this function is to be used over the more generic createErrorPanel, with
+// willLog set to false
+func (gui *Gui) createSpecificErrorPanel(message string, nextView *gocui.View, willLog bool) error {
+	if willLog {
+		go func() {
+			// when reporting is switched on this log call sometimes introduces
+			// a delay on the error panel popping up. Here I'm adding a second wait
+			// so that the error is logged while the user is reading the error message
+			time.Sleep(time.Second)
+			gui.Log.Error(message)
+		}()
+	}
 
-	// gui.Log.WithField("staging", "staging").Info("creating confirmation panel")
-	currentView := g.CurrentView()
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))
-	return gui.createConfirmationPanel(g, currentView, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
+	return gui.createConfirmationPanel(gui.g, nextView, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
+}
+
+func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
+	return gui.createSpecificErrorPanel(message, g.CurrentView(), true)
 }

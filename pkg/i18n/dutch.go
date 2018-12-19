@@ -32,6 +32,15 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessage",
 			Other: "Commit bericht",
 		}, &i18n.Message{
+			ID:    "CredentialsUsername",
+			Other: "Gebruikersnaam",
+		}, &i18n.Message{
+			ID:    "CredentialsPassword",
+			Other: "Wachtwoord",
+		}, &i18n.Message{
+			ID:    "PassUnameWrong",
+			Other: "Wachtwoord en/of gebruikersnaam verkeert",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "Commit veranderingen",
 		}, &i18n.Message{
@@ -129,10 +138,13 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Dit is geen bestand",
 		}, &i18n.Message{
 			ID:    "PullWait",
-			Other: "Pulling...",
+			Other: "Pullen...",
 		}, &i18n.Message{
 			ID:    "PushWait",
-			Other: "Pushing...",
+			Other: "Pushen...",
+		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetchen...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "Dit bestand heeft geen merge conflicten",
@@ -403,6 +415,15 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoBranchOnRemote",
 			Other: `Deze branch bestaat niet op de remote. U moet het eerst naar de remote pushen.`,
+		}, &i18n.Message{
+			ID:    "fetch",
+			Other: `fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchTitle",
+			Other: `Geen automatiese git fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchBody",
+			Other: `Lazygit kan niet "git fetch" uitvoeren in een privé repository, gebruik f in het branches paneel om "git fetch" manueel uit te voeren`,
 		}, &i18n.Message{
 			ID:    "StageLines",
 			Other: `stage individual hunks/lines`,
