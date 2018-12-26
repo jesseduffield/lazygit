@@ -37,11 +37,16 @@ func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui) error {
 	return g.DeleteView("confirmation")
 }
 
-func (gui *Gui) getMessageHeight(message string, width int) int {
+func (gui *Gui) getMessageHeight(v *gocui.View, message string, width int) int {
 	lines := strings.Split(message, "\n")
 	lineCount := 0
-	for _, line := range lines {
-		lineCount += len(line)/width + 1
+	// if we need to wrap, calculate height to fit content within view's width
+	if v.Wrap {
+		for _, line := range lines {
+			lineCount += len(line)/width + 1
+		}
+	} else {
+		lineCount = len(lines)
 	}
 	return lineCount
 }
@@ -49,7 +54,8 @@ func (gui *Gui) getMessageHeight(message string, width int) int {
 func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int, int) {
 	width, height := g.Size()
 	panelWidth := width / 2
-	panelHeight := gui.getMessageHeight(prompt, panelWidth)
+	view := g.CurrentView()
+	panelHeight := gui.getMessageHeight(view, prompt, panelWidth)
 	return width/2 - panelWidth/2,
 		height/2 - panelHeight/2 - panelHeight%2 - 1,
 		width/2 + panelWidth/2,
