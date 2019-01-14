@@ -54,7 +54,10 @@ func (gui *Gui) getMessageHeight(v *gocui.View, message string, width int) int {
 func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int, int) {
 	width, height := g.Size()
 	panelWidth := width / 2
-	view := g.CurrentView()
+	view, err := gui.g.View("confirmation")
+	if err != nil { // confirmation panel was deleted so we just return empty values
+		return 0,0,0,0 
+	}
 	panelHeight := gui.getMessageHeight(view, prompt, panelWidth)
 	return width/2 - panelWidth/2,
 		height/2 - panelHeight/2 - panelHeight%2 - 1,
