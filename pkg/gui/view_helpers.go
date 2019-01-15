@@ -317,7 +317,7 @@ func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
 	// If the confirmation panel is already displayed, just resize the width,
 	// otherwise continue
 	content := v.Buffer()
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, content)
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, v.Wrap, content)
 	vx0, vy0, vx1, vy1 := v.Dimensions()
 	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
 		return nil
