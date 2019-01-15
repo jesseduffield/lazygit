@@ -90,7 +90,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
-		return gui.handleFileSelect(g, v)
+		return gui.handleFileSelect(g, v, false)
 	case "branches":
 		return gui.handleBranchSelect(g, v)
 	case "commits":
@@ -222,26 +222,28 @@ func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) synchronousRenderString(g *gocui.Gui, viewName, s string) error {
-	v, err := g.View(viewName)
-	// just in case the view disappeared as this function was called, we'll
-	// silently return if it's not found
-	if err != nil {
-		return nil
-	}
-	v.Clear()
-	if err := v.SetOrigin(0, 0); err != nil {
-		return err
-	}
+func (gui *Gui) cleanString(s string) string {
 	output := string(bom.Clean([]byte(s)))
-	output = utils.NormalizeLinefeeds(output)
-	fmt.Fprint(v, output)
+	return utils.NormalizeLinefeeds(output)
+}
+
+func (gui *Gui) setViewContent(g *gocui.Gui, v *gocui.View, s string) error {
+	v.Clear()
+	fmt.Fprint(v, gui.cleanString(s))
 	return nil
 }
 
+// renderString resets the origin of a view and sets its content
 func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 	g.Update(func(*gocui.Gui) error {
-		return gui.synchronousRenderString(gui.g, viewName, s)
+		v, err := g.View(viewName)
+		if err != nil {
+			return nil // return gracefully if view has been deleted
+		}
+		if err := v.SetOrigin(0, 0); err != nil {
+			return err
+		}
+		return gui.setViewContent(gui.g, v, s)
 	})
 	return nil
 }
