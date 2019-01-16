@@ -36,25 +36,24 @@ type Updaterer interface {
 	Update()
 }
 
-var (
-	projectUrl = "https://github.com/jesseduffield/lazygit"
+const (
+	PROJECT_URL = "https://github.com/jesseduffield/lazygit"
 )
 
 // NewUpdater creates a new updater
 func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *commands.OSCommand, tr *i18n.Localizer) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
 
-	updater := &Updater{
+	return &Updater{
 		Log:       contextLogger,
 		Config:    config,
 		OSCommand: osCommand,
 		Tr:        tr,
-	}
-	return updater, nil
+	}, nil
 }
 
 func (u *Updater) getLatestVersionNumber() (string, error) {
-	req, err := http.NewRequest("GET", projectUrl+"/releases/latest", nil)
+	req, err := http.NewRequest("GET", PROJECT_URL+"/releases/latest", nil)
 	if err != nil {
 		return "", err
 	}
@@ -65,17 +64,16 @@ func (u *Updater) getLatestVersionNumber() (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
+
+	dec := json.NewDecoder(resp.Body)
+	data := struct {
+		TagName string `json:"tag_name"`
+	}{}
+	if err := dec.Decode(&data); err != nil {
 		return "", err
 	}
 
-	byt := []byte(body)
-	var dat map[string]interface{}
-	if err := json.Unmarshal(byt, &dat); err != nil {
-		return "", err
-	}
-	return dat["tag_name"].(string), nil
+	return data.TagName, nil
 }
 
 // RecordLastUpdateCheck records last time an update check was performed
@@ -225,14 +223,14 @@ func (u *Updater) getBinaryUrl(newVersion string) (string, error) {
 	}
 	url := fmt.Sprintf(
 		"%s/releases/download/%s/lazygit_%s_%s_%s.%s",
-		projectUrl,
+		PROJECT_URL,
 		newVersion,
 		newVersion[1:],
 		u.mappedOs(runtime.GOOS),
 		u.mappedArch(runtime.GOARCH),
 		extension,
 	)
-	u.Log.Info("url for latest release is " + url)
+	u.Log.Info("Url for latest release is " + url)
 	return url, nil
 }
 
@@ -251,7 +249,7 @@ func (u *Updater) update(newVersion string) error {
 	if err != nil {
 		return err
 	}
-	u.Log.Info("updating with url " + rawUrl)
+	u.Log.Info("Updating with url " + rawUrl)
 	return u.downloadAndInstall(rawUrl)
 }
 
@@ -267,7 +265,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 		return err
 	}
 	defer os.RemoveAll(tempDir)
-	u.Log.Info("temp directory is " + tempDir)
+	u.Log.Info("Temp directory is " + tempDir)
 
 	// Get it!
 	if err := g.Get(tempDir, url); err != nil {
@@ -279,14 +277,14 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	if err != nil {
 		return err
 	}
-	u.Log.Info("binary path is " + binaryPath)
+	u.Log.Info("Binary path is " + binaryPath)
 
 	binaryName := filepath.Base(binaryPath)
-	u.Log.Info("binary name is " + binaryName)
+	u.Log.Info("Binary name is " + binaryName)
 
 	// Verify the main file exists
 	tempPath := filepath.Join(tempDir, binaryName)
-	u.Log.Info("temp path to binary is " + tempPath)
+	u.Log.Info("Temp path to binary is " + tempPath)
 	if _, err := os.Stat(tempPath); err != nil {
 		return err
 	}
@@ -296,7 +294,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	if err != nil {
 		return err
 	}
-	u.Log.Info("update complete!")
+	u.Log.Info("Update complete!")
 
 	return nil
 }

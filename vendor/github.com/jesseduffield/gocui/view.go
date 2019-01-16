@@ -539,7 +539,7 @@ func lineWrap(line []cell, columns int) [][]cell {
 		n += rw
 		if n > columns {
 			n = rw
-			lines = append(lines, line[offset:i-1])
+			lines = append(lines, line[offset:i])
 			offset = i
 		}
 	}
