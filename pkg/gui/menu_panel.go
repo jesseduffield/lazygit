@@ -56,7 +56,7 @@ func (gui *Gui) createMenu(items interface{}, handlePress func(int) error) error
 		return err
 	}
 
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, list)
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, false, list)
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
 	menuView.Title = strings.Title(gui.Tr.SLocalize("menu"))
 	menuView.FgColor = gocui.ColorWhite
