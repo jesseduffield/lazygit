@@ -37,19 +37,24 @@ func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui) error {
 	return g.DeleteView("confirmation")
 }
 
-func (gui *Gui) getMessageHeight(message string, width int) int {
+func (gui *Gui) getMessageHeight(wrap bool, message string, width int) int {
 	lines := strings.Split(message, "\n")
 	lineCount := 0
-	for _, line := range lines {
-		lineCount += len(line)/width + 1
+	// if we need to wrap, calculate height to fit content within view's width
+	if wrap {
+		for _, line := range lines {
+			lineCount += len(line)/width + 1
+		}
+	} else {
+		lineCount = len(lines)
 	}
 	return lineCount
 }
 
-func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int, int) {
+func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, wrap bool, prompt string) (int, int, int, int) {
 	width, height := g.Size()
 	panelWidth := width / 2
-	panelHeight := gui.getMessageHeight(prompt, panelWidth)
+	panelHeight := gui.getMessageHeight(wrap, prompt, panelWidth)
 	return width/2 - panelWidth/2,
 		height/2 - panelHeight/2 - panelHeight%2 - 1,
 		width/2 + panelWidth/2,
@@ -67,7 +72,7 @@ func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title s
 }
 
 func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string) (*gocui.View, error) {
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, prompt)
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, true, prompt)
 	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
 	if err != nil {
 		if err != gocui.ErrUnknownView {
