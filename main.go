@@ -41,9 +41,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	if _, ok := os.LookupEnv("LAZYGIT_ASKS_FOR_PASS"); ok {
-		exitCode := commands.SetupClient()
-		os.Exit(exitCode)
+	if _, ok := os.LookupEnv("LAZYGIT_ASK_FOR_PASS"); ok {
+		commands.SetupClient()
+		os.Exit(0)
 	}
 
 	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
