@@ -9,8 +9,8 @@ import (
 	"runtime"
 
 	"github.com/jesseduffield/lazygit/pkg/app"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/credentials"
 )
 
 var (
@@ -42,7 +42,7 @@ func main() {
 	}
 
 	if _, ok := os.LookupEnv("LAZYGIT_ASKS_FOR_PASS"); ok {
-		exitCode := credentials.SetupClient()
+		exitCode := commands.SetupClient()
 		os.Exit(exitCode)
 	}
 
