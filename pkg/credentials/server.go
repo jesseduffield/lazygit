@@ -3,6 +3,7 @@ package credentials
 import (
 	"fmt"
 	"net"
+	"net/rpc"
 	"os"
 	"os/exec"
 	"sync"
@@ -10,13 +11,16 @@ import (
 	"github.com/mgutz/str"
 )
 
+// ServerListener is the the type that handles is the callback for server responses
 type ServerListener int
 
-func (l *ServerListener) Input() error {
-
+// SInput wait for the server question
+func (l *ServerListener) SInput(in string) error {
+	hasMessage <- in
 	return nil
 }
 
+var hasMessage = make(chan string)
 var hostPort = ""
 var clientPort = ""
 
@@ -46,10 +50,12 @@ func SetupServer(command string, ask func(string) string) error {
 		cmd.Env = os.Environ()
 		cmd.Env = append(
 			cmd.Env,
-			"LAZYGIT_ASK_FOR_PASS=true", // tell the sub lazygit process that this ran from git
-			"LAZYGIT_HOST_PORT="+hostPort,
-			"LAZYGIT_CLIENT_PORT="+clientPort,
-			"GIT_ASKPASS="+ex, // tell git where lazygit is located
+			"LAZYGIT_ASK_FOR_PASS=true",       // tell the sub lazygit process that this ran from git
+			"LAZYGIT_HOST_PORT="+hostPort,     // The main process communication port
+			"LAZYGIT_CLIENT_PORT="+clientPort, // the lazygit process called by git connection port
+			"GIT_ASKPASS="+ex,                 // tell git where lazygit is located,
+			"LANG=en_US.UTF-8",                // Force using EN as language
+			"LC_ALL=en_US.UTF-8",              // Force using EN as language
 		)
 		_, err = cmd.Output()
 		end <- err
@@ -68,12 +74,15 @@ func SetupServer(command string, ask func(string) string) error {
 			return
 		}
 
-		listener := new(ServerListener)
-
 		go func() {
 			waitForServ.Done()
 			// close the server
+			inbound.Close()
 		}()
+
+		listener := new(ServerListener)
+		rpc.Register(listener)
+		rpc.Accept(inbound)
 	}()
 
 	return <-end

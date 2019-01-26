@@ -10,6 +10,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/credentials"
 )
 
 var (
@@ -39,6 +40,12 @@ func main() {
 		fmt.Printf("%s\n", config.GetDefaultConfig())
 		os.Exit(0)
 	}
+
+	if _, ok := os.LookupEnv("LAZYGIT_ASKS_FOR_PASS"); ok {
+		exitCode := credentials.SetupClient()
+		os.Exit(exitCode)
+	}
+
 	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
 	if err != nil {
 		log.Fatal(err.Error())
