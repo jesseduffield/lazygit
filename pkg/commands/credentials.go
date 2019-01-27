@@ -36,7 +36,6 @@ func (l *Listener) Input(in string, out *string) error {
 
 var askFunc func(string) string
 var hostPort = ""
-var clientPort = ""
 
 // DetectUnamePass detect a username / password question in a command
 // ask is a function that gets executen when this function detect you need to fillin a password
@@ -115,10 +114,13 @@ func startServer(started chan struct{}) error {
 		}
 
 		listener := new(Listener)
-		rpc.Register(listener)
-		rpc.Accept(inbound)
+		err = rpc.Register(listener)
+		if err != nil {
+			return err
+		}
 
-		return nil
+		started <- struct{}{}
+		rpc.Accept(inbound)
 	}
 	started <- struct{}{}
 	return nil
@@ -128,7 +130,7 @@ func startServer(started chan struct{}) error {
 func GetFreePort() string {
 	checkFrom := 5000
 	toReturn := ""
-	for true {
+	for {
 		checkFrom++
 		check := fmt.Sprintf("%v", checkFrom)
 		if IsFreePort(check) {
