@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/mgutz/str"
 )
@@ -34,22 +33,22 @@ func (l *Listener) Input(in string, out *string) error {
 	return nil
 }
 
+var totalListener uint32
 var askFunc func(string) string
-var hostPort = ""
 
 // DetectUnamePass detect a username / password question in a command
 // ask is a function that gets executen when this function detect you need to fillin a password
 // The ask argument will be "username" or "password" and expects the user's password or username back
 func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
+	totalListener++
+	currentListener := fmt.Sprintf("%v", totalListener)
 	askFunc = ask
-
 	end := make(chan error)
-
-	if len(hostPort) == 0 {
-		hostPort = GetFreePort()
-	}
-
+	hostPort := GetFreePort()
+	serverRunning := false
 	serverStartedChan := make(chan struct{})
+	var inbound *net.TCPListener
+
 	go func() {
 		<-serverStartedChan
 
@@ -65,9 +64,10 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 			cmd.Env,
 			"LAZYGIT_ASK_FOR_PASS=true",   // tell the sub lazygit process that this ran from git
 			"LAZYGIT_HOST_PORT="+hostPort, // The main process communication port
-			"GIT_ASKPASS="+ex,             // tell git where lazygit is located,
-			"LANG=en_US.UTF-8",            // Force using EN as language
-			"LC_ALL=en_US.UTF-8",          // Force using EN as language
+			"LAZYGIT_LISTENER="+currentListener,
+			"GIT_ASKPASS="+ex,    // tell git where lazygit is located,
+			"LANG=en_US.UTF-8",   // Force using EN as language
+			"LC_ALL=en_US.UTF-8", // Force using EN as language
 		)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
@@ -83,47 +83,41 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	}()
 
 	go func() {
-		serverErr := startServer(serverStartedChan)
-		if serverErr != nil {
-			end <- serverErr
-		}
-	}()
-
-	return <-end
-}
-
-// serverStarted tells if the the server is started yet
-var serverStarted = false
-
-// startServer starts the credentials server if it's not turned on yet
-func startServer(started chan struct{}) error {
-	if !serverStarted {
-		defer func() {
-			// if this server stops for a reason this make sure it can be turned on again
-			serverStarted = false
-		}()
-		serverStarted = true
-		addy, err := net.ResolveTCPAddr("tcp", ":"+hostPort)
+		addy, err := net.ResolveTCPAddr("tcp", "127.0.0.1:"+hostPort)
 		if err != nil {
-			return err
+			end <- err
+			return
 		}
 
-		inbound, err := net.ListenTCP("tcp", addy)
+		in, err := net.ListenTCP("tcp", addy)
+		inbound = in
 		if err != nil {
-			return err
+			end <- err
+			return
 		}
 
 		listener := new(Listener)
-		err = rpc.Register(listener)
+
+		// every listener needs a different name it this is not dune rpc.RegisterName will error
+		err = rpc.RegisterName("Listener"+currentListener, listener)
 		if err != nil {
-			return err
+			end <- err
+			return
 		}
 
-		started <- struct{}{}
+		serverStartedChan <- struct{}{}
 		rpc.Accept(inbound)
+
+		serverRunning = false
+	}()
+
+	err := <-end
+	if serverRunning {
+		inbound.Close()
 	}
-	started <- struct{}{}
-	return nil
+	askFunc = func(i string) string { return "" } // make sure that the program doesn't popup a input for credentials if not needed
+
+	return err
 }
 
 // GetFreePort returns a free port that can be used by lazygit
@@ -155,6 +149,7 @@ func IsFreePort(port string) bool {
 // This will be called if lazygit is called through git
 func SetupClient() {
 	hostPort := os.Getenv("LAZYGIT_HOST_PORT")
+	ListenerNumber := os.Getenv("LAZYGIT_LISTENER")
 
 	client, err := rpc.Dial("tcp", "127.0.0.1:"+hostPort)
 	if err != nil {
@@ -162,12 +157,10 @@ func SetupClient() {
 	}
 
 	var rply *string
-	err = client.Call("Listener.Input", os.Args[1], &rply)
+	err = client.Call("Listener"+ListenerNumber+".Input", os.Args[1], &rply)
 	if err != nil {
 		return
 	}
-
-	time.Sleep(time.Millisecond * 50)
 
 	fmt.Println(*rply)
 }
