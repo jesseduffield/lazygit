@@ -1,6 +1,11 @@
 package commands
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
@@ -13,26 +18,69 @@ import (
 	"github.com/mgutz/str"
 )
 
+// InputQuestion is what is send by the lazygit client
+type InputQuestion struct {
+	ClientPublicKey []byte // the client there public key
+	Message         []byte // This is encrypted using the public key of the host
+}
+
 // Listener is the the type that handles is the callback for server responses
 type Listener int
 
+// ClientError can reports errors from the client to the host
+func (l *Listener) ClientError(err string, toReturn *int) error {
+	// TODO send errors to DetectUnamePass
+	return nil
+}
+
 // Input wait for the server question
-func (l *Listener) Input(in string, out *string) error {
+func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
+	// TODO send errors to DetectUnamePass
+	decryptedMessageRaw, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, hostPrivateKey, fromClient.Message, []byte("TELL HOST"))
+	if err != nil {
+		return errors.New("Decryption failed")
+	}
+
+	decryptedMessage := strings.Split(string(decryptedMessageRaw), "|")
+	if len(decryptedMessage) != 2 {
+		return errors.New("Missing string parts")
+	}
+	validation := decryptedMessage[0]
+	question := decryptedMessage[1]
+
+	if fmt.Sprintf("%x", sha256.Sum256(fromClient.ClientPublicKey)) != validation {
+		return errors.New("Mismatch hash of public key")
+	}
+
+	clientPubBlock, _ := pem.Decode(fromClient.ClientPublicKey)
+	clientPub, err := x509.ParsePKCS1PublicKey(clientPubBlock.Bytes)
+	if err != nil {
+		return errors.New("Can't parse public key")
+	}
+
 	prompts := map[string]string{
 		"password": `Password\s*for\s*'.+':`,
 		"username": `Username\s*for\s*'.+':`,
 	}
 
+	toSend := ""
 	for askFor, pattern := range prompts {
-		if match, _ := regexp.MatchString(pattern, in); match {
-			*out = strings.Replace(askFunc(askFor), "\n", "", -1)
+		if match, _ := regexp.MatchString(pattern, question); match {
+			toSend = strings.Replace(askFunc(askFor), "\n", "", -1)
 			break
 		}
 	}
 
+	encrpytedToSend, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, clientPub, []byte(toSend), []byte("TO PRINT"))
+	if err != nil {
+		return errors.New("Can't encrpyt string")
+	}
+	*out = encrpytedToSend
+
 	return nil
 }
 
+var hostPrivateKey *rsa.PrivateKey
 var totalListener uint32
 var askFunc func(string) string
 
@@ -40,6 +88,13 @@ var askFunc func(string) string
 // ask is a function that gets executen when this function detect you need to fillin a password
 // The ask argument will be "username" or "password" and expects the user's password or username back
 func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
+	hostPriv, err := rsa.GenerateKey(rand.Reader, 3072)
+	hostPrivateKey = hostPriv
+	if err != nil {
+		return err
+	}
+	pubKeyText := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(&hostPriv.PublicKey)}))
+
 	totalListener++
 	currentListener := fmt.Sprintf("%v", totalListener)
 	askFunc = ask
@@ -62,9 +117,11 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		cmd.Env = os.Environ()
 		cmd.Env = append(
 			cmd.Env,
-			"LAZYGIT_ASK_FOR_PASS=true",   // tell the sub lazygit process that this ran from git
-			"LAZYGIT_HOST_PORT="+hostPort, // The main process communication port
-			"LAZYGIT_LISTENER="+currentListener,
+			"LAZYGIT_ASK_FOR_PASS=true",           // tell the sub lazygit process that this ran from git
+			"LAZYGIT_HOST_PORT="+hostPort,         // The main process communication port
+			"LAZYGIT_HOST_PUBLIC_KEY="+pubKeyText, // the public key of the host
+			"LAZYGIT_LISTENER="+currentListener,   // the lisener ID
+
 			"GIT_ASKPASS="+ex,    // tell git where lazygit is located,
 			"LANG=en_US.UTF-8",   // Force using EN as language
 			"LC_ALL=en_US.UTF-8", // Force using EN as language
@@ -111,7 +168,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		serverRunning = false
 	}()
 
-	err := <-end
+	err = <-end
 	if serverRunning {
 		inbound.Close()
 	}
@@ -148,19 +205,61 @@ func IsFreePort(port string) bool {
 // SetupClient sets up the client
 // This will be called if lazygit is called through git
 func SetupClient() {
+	hostPubText := os.Getenv("LAZYGIT_HOST_PUBLIC_KEY")
 	hostPort := os.Getenv("LAZYGIT_HOST_PORT")
-	ListenerNumber := os.Getenv("LAZYGIT_LISTENER")
+	listenerNumber := os.Getenv("LAZYGIT_LISTENER")
 
-	client, err := rpc.Dial("tcp", "127.0.0.1:"+hostPort)
+	sendErr := func(err error) {
+		var out *int
+		_ = SendToLG(hostPort, listenerNumber, "ClientError", err, out)
+	}
+
+	hostPubBlock, _ := pem.Decode([]byte(hostPubText))
+	hostPub, err := x509.ParsePKCS1PublicKey(hostPubBlock.Bytes)
 	if err != nil {
+		sendErr(err)
 		return
 	}
 
-	var rply *string
-	err = client.Call("Listener"+ListenerNumber+".Input", os.Args[1], &rply)
+	clientPriv, err := rsa.GenerateKey(rand.Reader, 3072)
 	if err != nil {
+		sendErr(err)
+		return
+	}
+	clientPub := clientPriv.PublicKey
+	clientPubText := pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(&clientPub)})
+	toSend := fmt.Sprintf("%x|%v", sha256.Sum256(clientPubText), os.Args[1])
+	encryptedData, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, hostPub, []byte(toSend), []byte("TELL HOST"))
+	if err != nil {
+		sendErr(err)
 		return
 	}
 
-	fmt.Println(*rply)
+	var rply *[]byte
+	err = SendToLG(hostPort, listenerNumber, "Input", InputQuestion{
+		ClientPublicKey: clientPubText,
+		Message:         encryptedData,
+	}, &rply)
+	if err != nil {
+		sendErr(err)
+		return
+	}
+
+	msg, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, clientPriv, *rply, []byte("TO PRINT"))
+	if err != nil {
+		sendErr(err)
+		return
+	}
+
+	fmt.Println(msg)
+}
+
+// SendToLG sends a message to the lazygit host
+func SendToLG(port, listenerNumber string, selectFunction string, args interface{}, output interface{}) error {
+	client, err := rpc.Dial("tcp", "127.0.0.1:"+port)
+	if err != nil {
+		return err
+	}
+	err = client.Call("Listener"+listenerNumber+"."+selectFunction, args, &output)
+	return err
 }
