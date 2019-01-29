@@ -20,23 +20,45 @@ import (
 
 // InputQuestion is what is send by the lazygit client
 type InputQuestion struct {
-	ClientPublicKey []byte // the client there public key
-	Message         []byte // This is encrypted using the public key of the host
+	ClientPublicKeyText string // the client there public key
+	Message             []byte // this is encrypted using the public key of the host
+	ListenerKey         string // the listener key
 }
+
+// listenerMetaType is a listener there private key and ask function
+type listenerMetaType struct {
+	HostPrivateKey *rsa.PrivateKey
+	AskFunction    func(string) string
+}
+
+// listenerMetaType is a list of listeners
+var listenerMeta = map[string]listenerMetaType{}
+
+// totalListener is the current amound of listeners
+// this is used to track the amound listeners
+// note: when this number runs out of numbers the application stops working
+var totalListener uint32
 
 // Listener is the the type that handles is the callback for server responses
 type Listener int
 
-// ClientError can reports errors from the client to the host
-func (l *Listener) ClientError(err string, toReturn *int) error {
-	// TODO send errors to DetectUnamePass
-	return nil
-}
-
 // Input wait for the server question
 func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
+	listener, ok := listenerMeta[fromClient.ListenerKey]
+	if !ok {
+		return errors.New("Listener not defined")
+	}
+
+	message := fromClient.Message
+
+	clientPubBlock, _ := pem.Decode([]byte(fromClient.ClientPublicKeyText))
+	clientPub, err := x509.ParsePKCS1PublicKey(clientPubBlock.Bytes)
+	if err != nil {
+		return errors.New("Can't parse public key")
+	}
+
 	// TODO send errors to DetectUnamePass
-	decryptedMessageRaw, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, hostPrivateKey, fromClient.Message, []byte("TELL HOST"))
+	decryptedMessageRaw, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, listener.HostPrivateKey, message, []byte("TELL HOST"))
 	if err != nil {
 		return errors.New("Decryption failed")
 	}
@@ -48,14 +70,8 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 	validation := decryptedMessage[0]
 	question := decryptedMessage[1]
 
-	if fmt.Sprintf("%x", sha256.Sum256(fromClient.ClientPublicKey)) != validation {
+	if fmt.Sprintf("%x", sha256.Sum256([]byte(fromClient.ClientPublicKeyText))) != validation {
 		return errors.New("Mismatch hash of public key")
-	}
-
-	clientPubBlock, _ := pem.Decode(fromClient.ClientPublicKey)
-	clientPub, err := x509.ParsePKCS1PublicKey(clientPubBlock.Bytes)
-	if err != nil {
-		return errors.New("Can't parse public key")
 	}
 
 	prompts := map[string]string{
@@ -66,7 +82,7 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 	toSend := ""
 	for askFor, pattern := range prompts {
 		if match, _ := regexp.MatchString(pattern, question); match {
-			toSend = strings.Replace(askFunc(askFor), "\n", "", -1)
+			toSend = strings.Replace(listener.AskFunction(askFor), "\n", "", -1)
 			break
 		}
 	}
@@ -80,24 +96,26 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 	return nil
 }
 
-var hostPrivateKey *rsa.PrivateKey
-var totalListener uint32
-var askFunc func(string) string
-
 // DetectUnamePass detect a username / password question in a command
 // ask is a function that gets executen when this function detect you need to fillin a password
 // The ask argument will be "username" or "password" and expects the user's password or username back
 func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
+	totalListener++
+	currentListener := fmt.Sprintf("%v", totalListener)
+
 	hostPriv, err := rsa.GenerateKey(rand.Reader, 3072)
-	hostPrivateKey = hostPriv
 	if err != nil {
 		return err
 	}
-	pubKeyText := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(&hostPriv.PublicKey)}))
 
-	totalListener++
-	currentListener := fmt.Sprintf("%v", totalListener)
-	askFunc = ask
+	listener := listenerMetaType{
+		AskFunction:    ask,
+		HostPrivateKey: hostPriv,
+	}
+	listenerMeta[currentListener] = listener
+	defer delete(listenerMeta, currentListener)
+
+	pubKeyText := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(&hostPriv.PublicKey)}))
 	end := make(chan error)
 	hostPort := GetFreePort()
 	serverRunning := false
@@ -172,7 +190,6 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	if serverRunning {
 		inbound.Close()
 	}
-	askFunc = func(i string) string { return "" } // make sure that the program doesn't popup a input for credentials if not needed
 
 	return err
 }
@@ -209,21 +226,14 @@ func SetupClient() {
 	hostPort := os.Getenv("LAZYGIT_HOST_PORT")
 	listenerNumber := os.Getenv("LAZYGIT_LISTENER")
 
-	sendErr := func(err error) {
-		var out *int
-		_ = SendToLG(hostPort, listenerNumber, "ClientError", err, out)
-	}
-
 	hostPubBlock, _ := pem.Decode([]byte(hostPubText))
 	hostPub, err := x509.ParsePKCS1PublicKey(hostPubBlock.Bytes)
 	if err != nil {
-		sendErr(err)
 		return
 	}
 
 	clientPriv, err := rsa.GenerateKey(rand.Reader, 3072)
 	if err != nil {
-		sendErr(err)
 		return
 	}
 	clientPub := clientPriv.PublicKey
@@ -231,35 +241,34 @@ func SetupClient() {
 	toSend := fmt.Sprintf("%x|%v", sha256.Sum256(clientPubText), os.Args[1])
 	encryptedData, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, hostPub, []byte(toSend), []byte("TELL HOST"))
 	if err != nil {
-		sendErr(err)
 		return
 	}
 
-	var rply *[]byte
-	err = SendToLG(hostPort, listenerNumber, "Input", InputQuestion{
-		ClientPublicKey: clientPubText,
-		Message:         encryptedData,
-	}, &rply)
+	rply, err := SendToLG(hostPort, listenerNumber, "Input", InputQuestion{
+		ClientPublicKeyText: string(clientPubText),
+		Message:             encryptedData,
+		ListenerKey:         listenerNumber,
+	})
 	if err != nil {
-		sendErr(err)
 		return
 	}
 
-	msg, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, clientPriv, *rply, []byte("TO PRINT"))
+	msg, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, clientPriv, rply, []byte("TO PRINT"))
 	if err != nil {
-		sendErr(err)
 		return
 	}
 
-	fmt.Println(msg)
+	fmt.Println(string(msg))
 }
 
 // SendToLG sends a message to the lazygit host
-func SendToLG(port, listenerNumber string, selectFunction string, args interface{}, output interface{}) error {
+func SendToLG(port, listenerNumber string, selectFunction string, args interface{}) ([]byte, error) {
 	client, err := rpc.Dial("tcp", "127.0.0.1:"+port)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = client.Call("Listener"+listenerNumber+"."+selectFunction, args, &output)
-	return err
+	var out *[]byte
+	err = client.Call("Listener"+listenerNumber+"."+selectFunction, args, &out)
+	client.Close()
+	return *out, err
 }
