@@ -18,6 +18,12 @@ import (
 	"github.com/mgutz/str"
 )
 
+// AskedFor is what a user has already asked for
+type AskedFor struct {
+	Password bool
+	Username bool
+}
+
 // InputQuestion is what is send by the lazygit client
 type InputQuestion struct {
 	ClientPublicKeyText string // the client there public key
@@ -27,8 +33,10 @@ type InputQuestion struct {
 
 // listenerMetaType is a listener there private key and ask function
 type listenerMetaType struct {
-	HostPrivateKey *rsa.PrivateKey
-	AskFunction    func(string) string
+	HostPrivateKey *rsa.PrivateKey     // the host it's private key
+	AskFunction    func(string) string // the ask function
+	AskedFor       AskedFor            // what has git already asked
+	CurrentlyBuzzy bool                // if this is true it blocks all incomming quesitons (this is for safety precautions)
 }
 
 // listenerMetaType is a list of listeners
@@ -47,6 +55,10 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 	listener, ok := listenerMeta[fromClient.ListenerKey]
 	if !ok {
 		return errors.New("Listener not defined")
+	}
+
+	updateListenerMeta := func() {
+		listenerMeta[fromClient.ListenerKey] = listener
 	}
 
 	message := fromClient.Message
@@ -79,13 +91,33 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 		"username": `Username\s*for\s*'.+':`,
 	}
 
+	if listener.CurrentlyBuzzy {
+		return errors.New("Currently buzzy")
+	}
+
+	listener.CurrentlyBuzzy = true
+	updateListenerMeta()
+
 	toSend := ""
+
 	for askFor, pattern := range prompts {
 		if match, _ := regexp.MatchString(pattern, question); match {
-			toSend = strings.Replace(listener.AskFunction(askFor), "\n", "", -1)
-			break
+			if (askFor == "password" && !listener.AskedFor.Password) || (askFor == "username" && !listener.AskedFor.Username) {
+				toSend = strings.Replace(listener.AskFunction(askFor), "\n", "", -1)
+				switch askFor {
+				case "password":
+					listener.AskedFor.Password = true
+				case "username":
+					listener.AskedFor.Username = true
+				}
+				updateListenerMeta()
+				break
+			}
 		}
 	}
+
+	listener.CurrentlyBuzzy = false
+	updateListenerMeta()
 
 	encrpytedToSend, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, clientPub, []byte(toSend), []byte("TO PRINT"))
 	if err != nil {
@@ -111,6 +143,11 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	listener := listenerMetaType{
 		AskFunction:    ask,
 		HostPrivateKey: hostPriv,
+		AskedFor: AskedFor{
+			Username: false,
+			Password: false,
+		},
+		CurrentlyBuzzy: false,
 	}
 	listenerMeta[currentListener] = listener
 	defer delete(listenerMeta, currentListener)
