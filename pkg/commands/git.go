@@ -138,13 +138,14 @@ func (c *GitCommand) GetStatusFiles() []*File {
 		change := statusString[0:2]
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
-		filename := c.OSCommand.Unquote(statusString[3:])
+		filename := statusString[3:]
+		displayString := statusString[0:3] + c.OSCommand.Unquote(filename)
 		_, untracked := map[string]bool{"??": true, "A ": true, "AM": true}[change]
 		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
 
 		file := &File{
 			Name:               filename,
-			DisplayString:      statusString,
+			DisplayString:      displayString,
 			HasStagedChanges:   !hasNoStagedChanges,
 			HasUnstagedChanges: unstagedChange != " ",
 			Tracked:            !untracked,
@@ -402,12 +403,12 @@ func (c *GitCommand) SquashFixupCommit(branchName string, shaValue string) error
 
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("cat %s", c.OSCommand.Quote(fileName)))
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("cat %s", fileName))
 }
 
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
-	return c.OSCommand.RunCommand(fmt.Sprintf("git add %s", c.OSCommand.Quote(fileName)))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git add %s", fileName))
 }
 
 // StageAll stages all files
@@ -426,7 +427,7 @@ func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 	if tracked {
 		command = "git reset HEAD %s"
 	}
-	return c.OSCommand.RunCommand(fmt.Sprintf(command, c.OSCommand.Quote(fileName)))
+	return c.OSCommand.RunCommand(fmt.Sprintf(command, fileName))
 }
 
 // GitStatus returns the plaintext short status of the repo
@@ -593,7 +594,7 @@ func (c *GitCommand) Diff(file *File, plain bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := "--color"
-	fileName := c.OSCommand.Quote(file.Name)
+	fileName := file.Name
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
 	}

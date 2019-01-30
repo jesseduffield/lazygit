@@ -28,9 +28,9 @@ func (f *File) GetDisplayStrings() []string {
 	output := green.Sprint(f.DisplayString[0:1])
 	output += red.Sprint(f.DisplayString[1:3])
 	if f.HasUnstagedChanges {
-		output += red.Sprint(f.Name)
+		output += red.Sprint(f.DisplayString[3:])
 	} else {
-		output += green.Sprint(f.Name)
+		output += green.Sprint(f.DisplayString[3:])
 	}
 	return []string{output}
 }

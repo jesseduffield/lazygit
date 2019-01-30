@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -192,9 +193,12 @@ func (c *OSCommand) Quote(message string) string {
 }
 
 // Unquote removes wrapping quotations marks if they are present
-// this is needed for removing quotes from staged filenames with spaces
+// this is needed for removing quotes from staged filenames with escape character(s)
 func (c *OSCommand) Unquote(message string) string {
-	return strings.Replace(message, `"`, "", -1)
+	if unquoted, err := strconv.Unquote(message); err == nil {
+		return unquoted
+	}
+	return message
 }
 
 // AppendLineToFile adds a new line in file
