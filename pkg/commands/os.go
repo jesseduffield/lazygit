@@ -134,7 +134,7 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 func (c *OSCommand) OpenFile(filename string) error {
 	commandTemplate := c.Config.GetUserConfig().GetString("os.openCommand")
 	templateValues := map[string]string{
-		"filename": c.Quote(filename),
+		"filename": filename,
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
