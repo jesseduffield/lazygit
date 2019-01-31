@@ -37,6 +37,7 @@ type listenerMetaType struct {
 	AskFunction    func(string) string // the ask function
 	AskedFor       AskedFor            // what has git already asked
 	CurrentlyBuzzy bool                // if this is true it blocks all incomming quesitons (this is for safety precautions)
+	RequestCount   int8                // this counts the total request. because git asks maximum 2 times we block all request later then 2
 }
 
 // listenerMetaType is a list of listeners
@@ -57,9 +58,16 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 		return errors.New("Listener not defined")
 	}
 
+	if listener.RequestCount >= 2 {
+		return errors.New("Maximum amound of calles exsided")
+	}
+
 	updateListenerMeta := func() {
 		listenerMeta[fromClient.ListenerKey] = listener
 	}
+
+	listener.RequestCount++
+	updateListenerMeta()
 
 	message := fromClient.Message
 
