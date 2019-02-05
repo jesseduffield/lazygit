@@ -26,7 +26,7 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 	return gui.State.Files[selectedLine], nil
 }
 
-func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bool) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
@@ -44,10 +44,18 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	content := gui.GitCommand.Diff(file, false)
+	if alreadySelected {
+		g.Update(func(*gocui.Gui) error {
+			return gui.setViewContent(gui.g, gui.getMainView(gui.g), content)
+		})
+		return nil
+	}
 	return gui.renderString(g, "main", content)
 }
 
 func (gui *Gui) refreshFiles(g *gocui.Gui) error {
+	selectedFile, _ := gui.getSelectedFile(gui.g)
+
 	filesView, err := g.View("files")
 	if err != nil {
 		return err
@@ -64,7 +72,9 @@ func (gui *Gui) refreshFiles(g *gocui.Gui) error {
 		fmt.Fprint(filesView, list)
 
 		if filesView == g.CurrentView() {
-			return gui.handleFileSelect(g, filesView)
+			newSelectedFile, _ := gui.getSelectedFile(gui.g)
+			alreadySelected := newSelectedFile.Name == selectedFile.Name
+			return gui.handleFileSelect(g, filesView, alreadySelected)
 		}
 		return nil
 	})
@@ -76,14 +86,14 @@ func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Files
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), false)
 
-	return gui.handleFileSelect(gui.g, v)
+	return gui.handleFileSelect(gui.g, v, false)
 }
 
 func (gui *Gui) handleFilesPrevLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Files
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), true)
 
-	return gui.handleFileSelect(gui.g, v)
+	return gui.handleFileSelect(gui.g, v, false)
 }
 
 // specific functions
@@ -163,7 +173,7 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	return gui.handleFileSelect(g, v)
+	return gui.handleFileSelect(g, v, true)
 }
 
 func (gui *Gui) allFilesStaged() bool {
@@ -186,11 +196,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 		_ = gui.createErrorPanel(g, err.Error())
 	}
 
-	if err := gui.refreshFiles(g); err != nil {
-		return err
-	}
-
-	return gui.handleFileSelect(g, v)
+	return gui.refreshFiles(g)
 }
 
 func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {

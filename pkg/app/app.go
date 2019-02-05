@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/heroku/rollrus"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -11,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
+	"github.com/shibukawa/configdir"
 	"github.com/sirupsen/logrus"
 )
 
@@ -33,9 +35,15 @@ func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
 	return log
 }
 
-func newDevelopmentLogger() *logrus.Logger {
+func globalConfigDir() string {
+	configDirs := configdir.New("jesseduffield", "lazygit")
+	configDir := configDirs.QueryFolders(configdir.Global)[0]
+	return configDir.Path
+}
+
+func newDevelopmentLogger(config config.AppConfigurer) *logrus.Logger {
 	log := logrus.New()
-	file, err := os.OpenFile("development.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(filepath.Join(globalConfigDir(), "development.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
 	}
@@ -48,7 +56,7 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 	environment := "production"
 	if config.GetDebug() {
 		environment = "development"
-		log = newDevelopmentLogger()
+		log = newDevelopmentLogger(config)
 	} else {
 		log = newProductionLogger(config)
 	}

@@ -462,7 +462,7 @@ func (gui *Gui) updateLoader(g *gocui.Gui) error {
 			content := gui.trimmedContent(view)
 			if strings.Contains(content, "...") {
 				staticContent := strings.Split(content, "...")[0] + "..."
-				if err := gui.synchronousRenderString(g, "confirmation", staticContent+" "+utils.Loader()); err != nil {
+				if err := gui.setViewContent(g, view, staticContent+" "+utils.Loader()); err != nil {
 					return err
 				}
 			}
