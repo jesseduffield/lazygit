@@ -50,7 +50,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 	content := gui.GitCommand.Diff(file, false)
 	if alreadySelected {
 		g.Update(func(*gocui.Gui) error {
-			return gui.setViewContent(gui.g, gui.getMainView(gui.g), content)
+			return gui.setViewContent(gui.g, gui.getMainView(), content)
 		})
 		return nil
 	}
@@ -200,7 +200,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	return gui.handleFileSelect(g, v)
+	return gui.handleFileSelect(g, v, false)
 }
 
 func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {

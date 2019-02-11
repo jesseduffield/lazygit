@@ -89,7 +89,7 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 }
 
 func (gui *Gui) onNewPopupPanel() {
-	viewNames = []string{"commitMessage",
+	viewNames := []string{"commitMessage",
 		"credentials",
 		"menu"}
 	for _, viewName := range viewNames {

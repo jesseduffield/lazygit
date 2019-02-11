@@ -237,7 +237,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handlePickHunk,
 			Description: gui.Tr.SLocalize("PickHunk"),
-			KeyReadable: "space",
 		}, {
 			ViewName:    "merging",
 			Key:         'b',

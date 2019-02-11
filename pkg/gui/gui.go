@@ -475,7 +475,7 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 	return unamePassOpend, err
 }
 
-func (gui *Gui) updateLoader(g *gocui.Gui) error {
+func (gui *Gui) updateLoader() error {
 	gui.g.Update(func(g *gocui.Gui) error {
 		if view, _ := g.View("confirmation"); view != nil {
 			content := gui.trimmedContent(view)
@@ -547,15 +547,15 @@ func (gui *Gui) Run() error {
 		if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 		} else {
-			gui.goEvery(g, time.Second*60, func(g *gocui.Gui) error {
-				_, err := gui.fetch(g, g.CurrentView(), false)
+			gui.goEvery(time.Second*60, func() error {
+				_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
 				return err
 			})
 		}
 	}()
-	gui.goEvery(g, time.Second*10, gui.refreshFiles)
-	gui.goEvery(g, time.Millisecond*50, gui.updateLoader)
-	gui.goEvery(g, time.Millisecond*50, gui.renderAppStatus)
+	gui.goEvery(time.Second*10, gui.refreshFiles)
+	gui.goEvery(time.Millisecond*50, gui.updateLoader)
+	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
 	g.SetManagerFunc(gui.layout)
 

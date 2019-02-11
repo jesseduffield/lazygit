@@ -36,7 +36,7 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
 	gui.credentials <- message
-	err := gui.refreshFiles(g)
+	err := gui.refreshFiles()
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	}
 	nextView, err := gui.g.View("confirmation")
 	if err != nil {
-		nextView = gui.getFilesView(g)
+		nextView = gui.getFilesView()
 	}
 	err = gui.switchFocus(g, nil, nextView)
 	if err != nil {
@@ -67,7 +67,7 @@ func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	gui.credentials <- ""
-	return gui.switchFocus(g, nil, gui.getFilesView(g))
+	return gui.switchFocus(g, nil, gui.getFilesView())
 }
 
 func (gui *Gui) handleCredentialsViewFocused(g *gocui.Gui, v *gocui.View) error {
@@ -96,7 +96,7 @@ func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr er
 			errMessage = gui.Tr.SLocalize("PassUnameWrong")
 		}
 		// we are not logging this error because it may contain a password
-		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(gui.g), false)
+		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(), false)
 	} else {
 		_ = gui.closeConfirmationPrompt(g)
 		_ = gui.refreshSidePanels(g)
