@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/go-errors/errors"
 
 	"github.com/fatih/color"
 )
