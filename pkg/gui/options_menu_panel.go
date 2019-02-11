@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/go-errors/errors"
