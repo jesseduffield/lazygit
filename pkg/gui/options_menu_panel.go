@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"errors"
+	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/gocui"
 )

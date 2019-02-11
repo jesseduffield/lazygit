@@ -1,10 +1,11 @@
 package git
 
 import (
-	"errors"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"

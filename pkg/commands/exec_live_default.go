@@ -5,7 +5,7 @@ package commands
 import (
 	"bufio"
 	"bytes"
-	"errors"
+	"github.com/go-errors/errors"
 	"os"
 	"os/exec"
 	"strings"
