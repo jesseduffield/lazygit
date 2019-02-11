@@ -294,8 +294,13 @@ func (c *GitCommand) AbortMergeBranch() error {
 }
 
 // Fetch fetch git repo
-func (c *GitCommand) Fetch() error {
-	return c.OSCommand.RunCommand("git fetch")
+func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCredentials bool) error {
+	return c.OSCommand.DetectUnamePass("git fetch", func(question string) string {
+		if canAskForCredentials {
+			return unamePassQuestion(question)
+		}
+		return "\n"
+	})
 }
 
 // ResetToCommit reset to commit
@@ -373,18 +378,19 @@ func (c *GitCommand) Commit(message string, amend bool) (*exec.Cmd, error) {
 }
 
 // Pull pulls from repo
-func (c *GitCommand) Pull() error {
-	return c.OSCommand.RunCommand("git pull --no-edit")
+func (c *GitCommand) Pull(ask func(string) string) error {
+	return c.OSCommand.DetectUnamePass("git pull --no-edit", ask)
 }
 
 // Push pushes to a branch
-func (c *GitCommand) Push(branchName string, force bool) error {
+func (c *GitCommand) Push(branchName string, force bool, ask func(string) string) error {
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease "
 	}
 
-	return c.OSCommand.RunCommand(fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName))
+	cmd := fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName)
+	return c.OSCommand.DetectUnamePass(cmd, ask)
 }
 
 // SquashPreviousTwoCommits squashes a commit down to the one below it

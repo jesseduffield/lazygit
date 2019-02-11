@@ -26,7 +26,7 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 	return gui.State.Files[selectedLine], nil
 }
 
-func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bool) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
@@ -48,10 +48,18 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	content := gui.GitCommand.Diff(file, false)
+	if alreadySelected {
+		g.Update(func(*gocui.Gui) error {
+			return gui.setViewContent(gui.g, gui.getMainView(gui.g), content)
+		})
+		return nil
+	}
 	return gui.renderString(g, "main", content)
 }
 
 func (gui *Gui) refreshFiles() error {
+	selectedFile, _ := gui.getSelectedFile(gui.g)
+
 	filesView := gui.getFilesView()
 	gui.refreshStateFiles()
 
@@ -64,8 +72,10 @@ func (gui *Gui) refreshFiles() error {
 		}
 		fmt.Fprint(filesView, list)
 
-		if filesView == gui.g.CurrentView() {
-			return gui.handleFileSelect(gui.g, filesView)
+		if filesView == g.CurrentView() {
+			newSelectedFile, _ := gui.getSelectedFile(gui.g)
+			alreadySelected := newSelectedFile.Name == selectedFile.Name
+			return gui.handleFileSelect(g, filesView, alreadySelected)
 		}
 		return nil
 	})
@@ -77,20 +87,14 @@ func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Files
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), false)
 
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.handleFileSelect(gui.g, v)
+	return gui.handleFileSelect(gui.g, v, false)
 }
 
 func (gui *Gui) handleFilesPrevLine(g *gocui.Gui, v *gocui.View) error {
 	panelState := gui.State.Panels.Files
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), true)
 
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.handleFileSelect(gui.g, v)
+	return gui.handleFileSelect(gui.g, v, false)
 }
 
 // specific functions
@@ -169,7 +173,7 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	return gui.handleFileSelect(g, v)
+	return gui.handleFileSelect(g, v, true)
 }
 
 func (gui *Gui) allFilesStaged() bool {
@@ -376,32 +380,32 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 }
 
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
-	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PullWait"))
+	if err := gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("PullWait")); err != nil {
+		return err
+	}
 	go func() {
-		if err := gui.GitCommand.Pull(); err != nil {
-			gui.createErrorPanel(g, err.Error())
-		} else {
-			gui.closeConfirmationPrompt(g)
-			gui.refreshCommits(g)
-			gui.refreshStatus(g)
-		}
-		gui.refreshFiles()
+		unamePassOpend := false
+		err := gui.GitCommand.Pull(func(passOrUname string) string {
+			unamePassOpend = true
+			return gui.waitForPassUname(g, v, passOrUname)
+		})
+		gui.HandleCredentialsPopup(g, unamePassOpend, err)
 	}()
 	return nil
 }
 
-func (gui *Gui) pushWithForceFlag(currentView *gocui.View, force bool) error {
-	if err := gui.createMessagePanel(gui.g, currentView, "", gui.Tr.SLocalize("PushWait")); err != nil {
+func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error {
+	if err := gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {
+		unamePassOpend := false
 		branchName := gui.State.Branches[0].Name
-		if err := gui.GitCommand.Push(branchName, force); err != nil {
-			_ = gui.createErrorPanel(gui.g, err.Error())
-		} else {
-			_ = gui.closeConfirmationPrompt(gui.g)
-			_ = gui.refreshSidePanels(gui.g)
-		}
+		err := gui.GitCommand.Push(branchName, force, func(passOrUname string) string {
+			unamePassOpend = true
+			return gui.waitForPassUname(g, v, passOrUname)
+		})
+		gui.HandleCredentialsPopup(g, unamePassOpend, err)
 	}()
 	return nil
 }
@@ -410,10 +414,10 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	// if we have pullables we'll ask if the user wants to force push
 	_, pullables := gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
 	if pullables == "?" || pullables == "0" {
-		return gui.pushWithForceFlag(v, false)
+		return gui.pushWithForceFlag(g, v, false)
 	}
 	err := gui.createConfirmationPanel(g, nil, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.pushWithForceFlag(v, true)
+		return gui.pushWithForceFlag(g, v, true)
 	}, nil)
 	return err
 }

@@ -12,7 +12,6 @@ type Binding struct {
 	Handler     func(*gocui.Gui, *gocui.View) error
 	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
 	Modifier    gocui.Modifier
-	KeyReadable string
 	Description string
 }
 
@@ -23,16 +22,26 @@ func (b *Binding) GetDisplayStrings() []string {
 
 // GetKey is a function.
 func (b *Binding) GetKey() string {
-	r, ok := b.Key.(rune)
-	key := ""
+	key := 0
 
-	if ok {
-		key = string(r)
-	} else if b.KeyReadable != "" {
-		key = b.KeyReadable
+	switch b.Key.(type) {
+	case rune:
+		key = int(b.Key.(rune))
+	case gocui.Key:
+		key = int(b.Key.(gocui.Key))
 	}
 
-	return key
+	// special keys
+	switch key {
+	case 27:
+		return "esc"
+	case 13:
+		return "enter"
+	case 32:
+		return "space"
+	}
+
+	return string(key)
 }
 
 // GetKeybindings is a function.
@@ -144,7 +153,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleFilePress,
-			KeyReadable: "space",
 			Description: gui.Tr.SLocalize("toggleStaged"),
 		}, {
 			ViewName:    "files",
@@ -212,7 +220,12 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleEnterFile,
 			Description: gui.Tr.SLocalize("StageLines"),
-			KeyReadable: "enter",
+		}, {
+			ViewName:    "files",
+			Key:         'f',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleGitFetch,
+			Description: gui.Tr.SLocalize("fetch"),
 		}, {
 			ViewName: "merging",
 			Key:      gocui.KeyEsc,
@@ -282,7 +295,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleBranchPress,
-			KeyReadable: "space",
 			Description: gui.Tr.SLocalize("checkout"),
 		}, {
 			ViewName:    "branches",
@@ -367,7 +379,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleStashApply,
-			KeyReadable: "space",
 			Description: gui.Tr.SLocalize("apply"),
 		}, {
 			ViewName:    "stash",
@@ -392,6 +403,16 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCommitClose,
 		}, {
+			ViewName: "credentials",
+			Key:      gocui.KeyEnter,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleSubmitCredential,
+		}, {
+			ViewName: "credentials",
+			Key:      gocui.KeyEsc,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleCloseCredentialsView,
+		}, {
 			ViewName: "menu",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
@@ -406,7 +427,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:         gocui.KeyEsc,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleStagingEscape,
-			KeyReadable: "esc",
 			Description: gui.Tr.SLocalize("EscapeStaging"),
 		}, {
 			ViewName: "staging",

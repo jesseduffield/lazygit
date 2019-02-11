@@ -161,6 +161,17 @@ func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error 
 	return nil
 }
 
+func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
+	if err := gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("FetchWait")); err != nil {
+		return err
+	}
+	go func() {
+		unamePassOpend, err := gui.fetch(g, v, true)
+		gui.HandleCredentialsPopup(g, unamePassOpend, err)
+	}()
+	return nil
+}
+
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch()
 	message := gui.Tr.SLocalize("SureForceCheckout")
@@ -223,14 +234,14 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 
 func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *commands.Branch, force bool) error {
 	title := gui.Tr.SLocalize("DeleteBranch")
-	var messageId string
+	var messageID string
 	if force {
-		messageId = "ForceDeleteBranchMessage"
+		messageID = "ForceDeleteBranchMessage"
 	} else {
-		messageId = "DeleteBranchMessage"
+		messageID = "DeleteBranchMessage"
 	}
 	message := gui.Tr.TemplateLocalize(
-		messageId,
+		messageID,
 		Teml{
 			"selectedBranchName": selectedBranch.Name,
 		},
@@ -240,9 +251,8 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 			errMessage := err.Error()
 			if !force && strings.Contains(errMessage, "is not fully merged") {
 				return gui.deleteNamedBranch(g, v, selectedBranch, true)
-			} else {
-				return gui.createErrorPanel(g, errMessage)
 			}
+			return gui.createErrorPanel(g, errMessage)
 		}
 		return gui.refreshSidePanels(g)
 	}, nil)

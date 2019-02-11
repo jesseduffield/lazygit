@@ -33,8 +33,10 @@ github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOl
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63 h1:Nrr/yUxNjXWYK0B3IqcFlYh1ICnesJDB4ogcfOVc5Ns=
 github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63/go.mod h1:fNqjRf+4XnTo2PrGN1JRb79b/BeoHwP4lU00f39SQY0=
-github.com/jesseduffield/gocui v0.0.0-20180919095827-4fca348422d8 h1:XxX+IqNOFDh1PnU4eZDzUomoKbuKCvwyEm5an/IxLQU=
-github.com/jesseduffield/gocui v0.0.0-20180919095827-4fca348422d8/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
+github.com/jesseduffield/gocui v0.0.0-20181209104758-fe55a32c8a4c h1:jEfh/vAtfF3pQ8xFhpYR/0S4iHo11VfaYelJmzZJm94=
+github.com/jesseduffield/gocui v0.0.0-20181209104758-fe55a32c8a4c/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
+github.com/jesseduffield/pty v0.0.0-20181218102224-02db52c7e406 h1:iYMH6h6SuWuBkIzRtymosE8NpSgTK0oRMfyTdVWgxzc=
+github.com/jesseduffield/pty v0.0.0-20181218102224-02db52c7e406/go.mod h1:7jlS40+UhOqkZJDIG1B/H21xnuET/+fvbbnHCa8wSIo=
 github.com/jesseduffield/termbox-go v0.0.0-20180919093808-1e272ff78dcb h1:cFHYEWpQEfzFZVKiKZytCUX4UwQixKSw0kd3WhluPsY=
 github.com/jesseduffield/termbox-go v0.0.0-20180919093808-1e272ff78dcb/go.mod h1:anMibpZtqNxjDbxrcDEAwSdaJ37vyUeM1f/M4uekib4=
 github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8 h1:12VvqtR6Aowv3l/EQUlocDHW2Cp4G9WJVH7uyH8QFJE=
@@ -61,8 +63,8 @@ github.com/mitchellh/mapstructure v0.0.0-20180715050151-f15292f7a699 h1:KXZJFdun
 github.com/mitchellh/mapstructure v0.0.0-20180715050151-f15292f7a699/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/nicksnyder/go-i18n v0.0.0-20180803040939-a16b91a3ba80 h1:7ory6RlsEkeK89iyV7Imz3sVz8YHeSw29w3PehpCWC0=
 github.com/nicksnyder/go-i18n v0.0.0-20180803040939-a16b91a3ba80/go.mod h1:e4Di5xjP9oTVrC6y3C7C0HoSYXjSbhh/dU0eUV32nB4=
-github.com/nicksnyder/go-i18n/v2 v2.0.0-beta.5 h1:/TjjTS4kg7vC+05gD0LE4+97f/+PRFICnK/7wJPk7kE=
-github.com/nicksnyder/go-i18n/v2 v2.0.0-beta.5/go.mod h1:4Opqa6/HIv0lhG3WRAkqzO0afezkRhxXI0P8EJkqeRU=
+github.com/nicksnyder/go-i18n/v2 v2.0.0-beta.6 h1:SooTCzUOOs899x/M7gmSS+dgL+AUfSWqAcHLN3auCic=
+github.com/nicksnyder/go-i18n/v2 v2.0.0-beta.6/go.mod h1:4Opqa6/HIv0lhG3WRAkqzO0afezkRhxXI0P8EJkqeRU=
 github.com/pelletier/go-buffruneio v0.2.0 h1:U4t4R6YkofJ5xHm3dJzuRpPZ0mr5MMCoAWooScCR7aA=
 github.com/pelletier/go-buffruneio v0.2.0/go.mod h1:JkE26KsDizTr40EUHkXVtNPvgGtbSNq5BcowyYOWdKo=
 github.com/pelletier/go-toml v1.2.0 h1:T5zMGML61Wp+FlcbWjRDT7yAxhJNAiPPLOFECq181zc=

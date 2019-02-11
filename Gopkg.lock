@@ -189,11 +189,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:66bb9b4a5abb704642fccba52a84a7f7feef2d9623f87b700e52a6695044723f"
+  digest = "1:9b266d7748a5d94985fd9e323494f5b8ae1ab3e910418e898dfe7f03339ddbcd"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "03e26ff3f1de2c1bc2205113c3aba661312eee00"
+  revision = "cfa9e452ba5ebf014041846851152d64a59dce14"
+
+[[projects]]
+  branch = "master"
+  digest = "1:a46c2f4863e5284ddb255c28750298e04bc8c0fc896bed6056e947673168b7be"
+  name = "github.com/jesseduffield/pty"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "02db52c7e406c7abec44c717a173c7715e4c1b62"
 
 [[projects]]
   branch = "master"
@@ -616,6 +624,7 @@
     "github.com/heroku/rollrus",
     "github.com/jesseduffield/go-getter",
     "github.com/jesseduffield/gocui",
+    "github.com/jesseduffield/pty",
     "github.com/kardianos/osext",
     "github.com/mgutz/str",
     "github.com/nicksnyder/go-i18n/v2/i18n",
