@@ -97,6 +97,14 @@
   version = "v1.4.7"
 
 [[projects]]
+  digest = "1:ea1d5bfdb4ec5c2ee48c97865e6de1a28fa8c4849a3f56b27d521aa619038e06"
+  name = "github.com/go-errors/errors"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "a6af135bd4e28680facf08a3d206b454abc877a4"
+  version = "v1.0.1"
+
+[[projects]]
   digest = "1:74d9b0a7b4107b41e0ade759fac64502876f82d29fb23d77b3dd24b194ee3dd5"
   name = "github.com/go-ini/ini"
   packages = ["."]
@@ -620,6 +628,7 @@
   input-imports = [
     "github.com/cloudfoundry/jibber_jabber",
     "github.com/fatih/color",
+    "github.com/go-errors/errors",
     "github.com/golang-collections/collections/stack",
     "github.com/heroku/rollrus",
     "github.com/jesseduffield/go-getter",
