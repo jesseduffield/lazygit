@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/go-errors/errors"
+
 	"github.com/jesseduffield/gocui"
 )
 

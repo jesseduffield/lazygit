@@ -6,13 +6,14 @@ import (
 	// "io"
 	// "io/ioutil"
 
-	"errors"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/go-errors/errors"
 
 	// "strings"
 
@@ -587,7 +588,9 @@ func (gui *Gui) RunWithSubprocesses() {
 				gui.SubProcess.Stdin = nil
 				gui.SubProcess = nil
 			} else {
-				log.Panicln(err)
+				newErr := errors.Wrap(err, 0)
+				stackTrace := newErr.ErrorStack()
+				log.Panicln(stackTrace)
 			}
 		}
 	}

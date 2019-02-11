@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/go-errors/errors"
 )
 
 // Service is a service that repository is on (Github, Bitbucket, ...)

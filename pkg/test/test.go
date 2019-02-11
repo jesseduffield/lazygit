@@ -1,7 +1,7 @@
 package test
 
 import (
-	"errors"
+	"github.com/go-errors/errors"
 	"os"
 	"os/exec"
 	"path/filepath"

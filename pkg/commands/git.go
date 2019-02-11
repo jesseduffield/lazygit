@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/go-errors/errors"
+
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -31,11 +32,11 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 		}
 
 		if !os.IsNotExist(err) {
-			return err
+			return errors.Wrap(err, 0)
 		}
 
 		if err = chdir(".."); err != nil {
-			return err
+			return errors.Wrap(err, 0)
 		}
 	}
 }

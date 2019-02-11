@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -233,9 +232,9 @@ func TestGetDisplayStringArrays(t *testing.T) {
 // TestRenderDisplayableList is a function.
 func TestRenderDisplayableList(t *testing.T) {
 	type scenario struct {
-		input          []Displayable
-		expectedString string
-		expectedError  error
+		input                []Displayable
+		expectedString       string
+		expectedErrorMessage string
 	}
 
 	scenarios := []scenario{
@@ -245,7 +244,7 @@ func TestRenderDisplayableList(t *testing.T) {
 				Displayable(&myDisplayable{[]string{}}),
 			},
 			"\n",
-			nil,
+			"",
 		},
 		{
 			[]Displayable{
@@ -253,7 +252,7 @@ func TestRenderDisplayableList(t *testing.T) {
 				Displayable(&myDisplayable{[]string{"c", "d"}}),
 			},
 			"aa b\nc  d",
-			nil,
+			"",
 		},
 		{
 			[]Displayable{
@@ -261,23 +260,27 @@ func TestRenderDisplayableList(t *testing.T) {
 				Displayable(&myDisplayable{[]string{"b", "c"}}),
 			},
 			"",
-			errors.New("Each item must return the same number of strings to display"),
+			"Each item must return the same number of strings to display",
 		},
 	}
 
 	for _, s := range scenarios {
 		str, err := renderDisplayableList(s.input)
 		assert.EqualValues(t, s.expectedString, str)
-		assert.EqualValues(t, s.expectedError, err)
+		if s.expectedErrorMessage != "" {
+			assert.EqualError(t, err, s.expectedErrorMessage)
+		} else {
+			assert.NoError(t, err)
+		}
 	}
 }
 
 // TestRenderList is a function.
 func TestRenderList(t *testing.T) {
 	type scenario struct {
-		input          interface{}
-		expectedString string
-		expectedError  error
+		input                interface{}
+		expectedString       string
+		expectedErrorMessage string
 	}
 
 	scenarios := []scenario{
@@ -287,7 +290,7 @@ func TestRenderList(t *testing.T) {
 				{[]string{"c", "d"}},
 			},
 			"aa b\nc  d",
-			nil,
+			"",
 		},
 		{
 			[]*myStruct{
@@ -295,19 +298,23 @@ func TestRenderList(t *testing.T) {
 				{},
 			},
 			"",
-			errors.New("item does not implement the Displayable interface"),
+			"item does not implement the Displayable interface",
 		},
 		{
 			&myStruct{},
 			"",
-			errors.New("RenderList given a non-slice type"),
+			"RenderList given a non-slice type",
 		},
 	}
 
 	for _, s := range scenarios {
 		str, err := RenderList(s.input)
 		assert.EqualValues(t, s.expectedString, str)
-		assert.EqualValues(t, s.expectedError, err)
+		if s.expectedErrorMessage != "" {
+			assert.EqualError(t, err, s.expectedErrorMessage)
+		} else {
+			assert.NoError(t, err)
+		}
 	}
 }
 
