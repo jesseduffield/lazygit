@@ -28,7 +28,11 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 
 	handleMenuPress := func(index int) error {
 		command := options[index].value
-		return gui.genericRebaseCommand(command)
+		err := gui.genericRebaseCommand(command)
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		return nil
 	}
 
 	var title string
