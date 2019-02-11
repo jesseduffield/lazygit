@@ -5,7 +5,7 @@
 package gocui
 
 import (
-	"errors"
+	"github.com/go-errors/errors"
 	"strconv"
 )
 

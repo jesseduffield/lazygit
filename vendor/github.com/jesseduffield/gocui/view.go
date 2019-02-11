@@ -6,9 +6,10 @@ package gocui
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"strings"
+
+	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/termbox-go"
 	"github.com/mattn/go-runewidth"
