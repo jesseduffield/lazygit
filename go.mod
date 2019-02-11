@@ -8,6 +8,7 @@ require (
 	github.com/emirpasic/gods v1.9.0
 	github.com/fatih/color v1.7.0
 	github.com/fsnotify/fsnotify v1.4.7
+	github.com/go-errors/errors v1.0.1
 	github.com/go-ini/ini v1.38.2
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 	github.com/hashicorp/go-cleanhttp v0.0.0-20171218145408-d5fe4b57a186
@@ -18,7 +19,7 @@ require (
 	github.com/heroku/rollrus v0.0.0-20180515183152-fc0cef2ff331
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 	github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63
-	github.com/jesseduffield/gocui v0.0.0-20190115084758-cfa9e452ba5e
+	github.com/jesseduffield/gocui v0.0.0-20190211105959-985c2f8d59e5
 	github.com/jesseduffield/pty v0.0.0-20181218102224-02db52c7e406
 	github.com/jesseduffield/termbox-go v0.0.0-20180919093808-1e272ff78dcb
 	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
