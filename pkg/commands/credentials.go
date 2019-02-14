@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/rpc"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/mgutz/str"
+	"github.com/mitchellh/go-ps"
 )
 
 // AskedFor is what a user has already asked for
@@ -33,6 +35,7 @@ type InputQuestion struct {
 
 // listenerMetaType is a listener there private key and ask function
 type listenerMetaType struct {
+	cmd            *exec.Cmd
 	HostPrivateKey *rsa.PrivateKey     // the host it's private key
 	AskFunction    func(string) string // the ask function
 	AskedFor       AskedFor            // what has git already asked
@@ -60,6 +63,10 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 
 	if listener.RequestCount >= 2 {
 		return errors.New("Maximum amound of calles exsided")
+	}
+
+	if !HasLGAsSubProcess() {
+		return errors.New("LG not found as child process")
 	}
 
 	updateListenerMeta := func() {
@@ -189,6 +196,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 			"LANG=en_US.UTF-8",   // Force using EN as language
 			"LC_ALL=en_US.UTF-8", // Force using EN as language
 		)
+
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			outString := string(out)
@@ -316,4 +324,34 @@ func SendToLG(port, listenerNumber string, selectFunction string, args interface
 	err = client.Call("Listener"+listenerNumber+"."+selectFunction, args, &out)
 	client.Close()
 	return *out, err
+}
+
+// HasLGAsSubProcess returns true if lazygit is a child of this process
+func HasLGAsSubProcess() bool {
+	osPid := os.Getppid()
+	list, err := ps.Processes()
+	if err != nil {
+		log.Fatal(err)
+	}
+	status := false
+firstFor:
+	for _, proc := range list {
+		procName := proc.Executable()
+		if procName != "lazygit" {
+			continue
+		}
+		parrent := proc.PPid()
+		for {
+			proc, err := ps.FindProcess(parrent)
+			if err != nil {
+				continue firstFor
+			}
+			if proc.Pid() == osPid {
+				status = true
+				break firstFor
+			}
+			parrent = proc.PPid()
+		}
+	}
+	return status
 }
