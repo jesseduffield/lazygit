@@ -390,7 +390,7 @@ func (c *GitCommand) Push(branchName string, force bool, ask func(string) string
 		forceFlag = "--force-with-lease "
 	}
 
-	cmd := fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName)
+	cmd := fmt.Sprintf("git push %s-u origin %s", forceFlag, branchName)
 	return c.OSCommand.DetectUnamePass(cmd, ask)
 }
 
@@ -729,7 +729,6 @@ func (c *GitCommand) Show(sha string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return show + mergeDiff, nil
 }
 

@@ -5,10 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/mgutz/str"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	gogit "gopkg.in/src-d/go-git.v4"
@@ -67,6 +69,39 @@ func newDummyGitCommand() *GitCommand {
 		getGlobalGitConfig: func(string) (string, error) { return "", nil },
 		getLocalGitConfig:  func(string) (string, error) { return "", nil },
 		removeFile:         func(string) error { return nil },
+	}
+}
+
+// commandSwapper takes a command, verifies that it is what it's expected to be
+// and then returns a replacement command that will actually be called by the os
+type commandSwapper struct {
+	expect  string
+	replace string
+}
+
+// swapCommand verifies the command is what we expected, and swaps it out for a different command
+func (i *commandSwapper) swapCommand(t *testing.T, cmd string, args []string) *exec.Cmd {
+	splitCmd := str.ToArgv(i.expect)
+	assert.EqualValues(t, splitCmd[0], cmd, fmt.Sprintf("received command: %s %s", cmd, strings.Join(args, " ")))
+	if len(splitCmd) > 1 {
+		assert.EqualValues(t, splitCmd[1:], args, fmt.Sprintf("received command: %s %s", cmd, strings.Join(args, " ")))
+	}
+
+	splitCmd = str.ToArgv(i.replace)
+	return exec.Command(splitCmd[0], splitCmd[1:]...)
+}
+
+func createMockCommand(t *testing.T, swappers []*commandSwapper) func(cmd string, args ...string) *exec.Cmd {
+	commandIndex := 0
+
+	return func(cmd string, args ...string) *exec.Cmd {
+		var command *exec.Cmd
+		if commandIndex > len(swappers)-1 {
+			assert.Fail(t, fmt.Sprintf("too many commands run. This command was (%s %s)", cmd, strings.Join(args, " ")))
+		}
+		command = swappers[commandIndex].swapCommand(t, cmd, args)
+		commandIndex++
+		return command
 	}
 }
 
@@ -615,8 +650,8 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetCommitsToPush is a function.
-func TestGitCommandGetCommitsToPush(t *testing.T) {
+// TestGitCommandGetUnpushedCommits is a function.
+func TestGitCommandGetUnpushedCommits(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
@@ -649,7 +684,7 @@ func TestGitCommandGetCommitsToPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.GetCommitsToPush())
+			s.test(gitCmd.GetUnpushedCommits())
 		})
 	}
 }
@@ -1010,7 +1045,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Contains(t, err.Error(), "error: failed to push some refs")
+				assert.NoError(t, err)
 			},
 		},
 		{
@@ -1023,7 +1058,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			true,
 			func(err error) {
-				assert.Contains(t, err.Error(), "error: failed to push some refs")
+				assert.NoError(t, err)
 			},
 		},
 		{
@@ -1035,7 +1070,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Contains(t, err.Error(), "error: failed to push some refs")
+				assert.Error(t, err)
 			},
 		},
 	}
@@ -1528,16 +1563,62 @@ func TestGitCommandRemoveFile(t *testing.T) {
 
 // TestGitCommandShow is a function.
 func TestGitCommandShow(t *testing.T) {
-	gitCmd := newDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"show", "--color", "456abcde"}, args)
-
-		return exec.Command("echo")
+	type scenario struct {
+		testName string
+		arg      string
+		command  func(string, ...string) *exec.Cmd
+		test     func(string, error)
 	}
 
-	_, err := gitCmd.Show("456abcde")
-	assert.NoError(t, err)
+	scenarios := []scenario{
+		{
+			"regular commit",
+			"456abcde",
+			createMockCommand(t, []*commandSwapper{
+				{
+					expect:  "git show --color 456abcde",
+					replace: "echo \"commit ccc771d8b13d5b0d4635db4463556366470fd4f6\nblah\"",
+				},
+				{
+					expect:  "git rev-list -1 --merges 456abcde^...456abcde",
+					replace: "echo",
+				},
+			}),
+			func(result string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "commit ccc771d8b13d5b0d4635db4463556366470fd4f6\nblah\n", result)
+			},
+		},
+		{
+			"merge commit",
+			"456abcde",
+			createMockCommand(t, []*commandSwapper{
+				{
+					expect:  "git show --color 456abcde",
+					replace: "echo \"commit ccc771d8b13d5b0d4635db4463556366470fd4f6\nMerge: 1a6a69a 3b51d7c\"",
+				},
+				{
+					expect:  "git rev-list -1 --merges 456abcde^...456abcde",
+					replace: "echo aa30e006433628ba9281652952b34d8aacda9c01",
+				},
+				{
+					expect:  "git diff --color 1a6a69a...3b51d7c",
+					replace: "echo blah",
+				},
+			}),
+			func(result string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "commit ccc771d8b13d5b0d4635db4463556366470fd4f6\nMerge: 1a6a69a 3b51d7c\nblah\n", result)
+			},
+		},
+	}
+
+	gitCmd := newDummyGitCommand()
+
+	for _, s := range scenarios {
+		gitCmd.OSCommand.command = s.command
+		s.test(gitCmd.Show(s.arg))
+	}
 }
 
 // TestGitCommandCheckout is a function.
@@ -1638,7 +1719,7 @@ func TestGitCommandGetCommits(t *testing.T) {
 			},
 		},
 		{
-			"GetCommits returns 2 commits, 1 pushed the other not",
+			"GetCommits returns 2 commits, 1 unpushed, the other merged",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 
@@ -1666,15 +1747,13 @@ func TestGitCommandGetCommits(t *testing.T) {
 					{
 						Sha:           "8a2bb0e",
 						Name:          "commit 1",
-						Pushed:        true,
-						Merged:        false,
+						Status:        "unpushed",
 						DisplayString: "8a2bb0e commit 1",
 					},
 					{
 						Sha:           "78976bc",
 						Name:          "commit 2",
-						Pushed:        false,
-						Merged:        true,
+						Status:        "merged",
 						DisplayString: "78976bc commit 2",
 					},
 				}, commits)
