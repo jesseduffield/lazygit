@@ -171,8 +171,7 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 	}
-	gui.refreshMergePanel()
-	return nil
+	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
@@ -194,7 +193,6 @@ func (gui *Gui) refreshMergePanel() error {
 	if cat == "" {
 		return nil
 	}
-	gui.Log.Info(cat)
 	panelState.Conflicts, err = gui.findConflicts(cat)
 	if err != nil {
 		return err
@@ -232,13 +230,10 @@ func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
 	}
 	mergingView := gui.getMainView()
 	conflict := panelState.Conflicts[panelState.ConflictIndex]
-	gui.Log.Info(utils.AsJson(conflict))
 	ox, _ := mergingView.Origin()
 	_, height := mergingView.Size()
 	conflictMiddle := (conflict.End + conflict.Start) / 2
 	newOriginY := int(math.Max(0, float64(conflictMiddle-(height/2))))
-	gui.Log.Info(utils.AsJson("origin Y"))
-	gui.Log.Info(utils.AsJson(newOriginY))
 	gui.g.Update(func(g *gocui.Gui) error {
 		return mergingView.SetOrigin(ox, newOriginY)
 	})
@@ -257,7 +252,9 @@ func (gui *Gui) renderMergeOptions() error {
 
 func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Panels.Merging.EditHistory = stack.New()
-	gui.refreshFiles()
+	if err := gui.refreshFiles(); err != nil {
+		return err
+	}
 	// it's possible this method won't be called from the merging view so we need to
 	// ensure we only 'return' focus if we already have it
 	if gui.g.CurrentView() == gui.getMainView() {
@@ -268,8 +265,12 @@ func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCompleteMerge() error {
 	filesView := gui.getFilesView()
-	gui.stageSelectedFile(gui.g)
-	gui.refreshFiles()
+	if err := gui.stageSelectedFile(gui.g); err != nil {
+		return err
+	}
+	if err := gui.refreshFiles(); err != nil {
+		return err
+	}
 	// if we got conflicts after unstashing, we don't want to call any git
 	// commands to continue rebasing/merging here
 	if gui.State.WorkingTreeState == "normal" {

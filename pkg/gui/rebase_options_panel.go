@@ -52,7 +52,6 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	// TODO: find a way to make the commit automatic
 	if status == "merging" && command != "abort" && gui.Config.GetUserConfig().GetBool("git.merging.manualCommit") {
 		sub := gui.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
 		if sub != nil {
@@ -79,7 +78,6 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
 		return gui.genericMergeCommand("skip")
 	} else if strings.Contains(result.Error(), "When you have resolved this problem") || strings.Contains(result.Error(), "fix conflicts") {
-		// TODO: generalise this title to support merging and rebasing
 		return gui.createConfirmationPanel(gui.g, gui.getFilesView(), gui.Tr.SLocalize("FoundConflictsTitle"), gui.Tr.SLocalize("FoundConflicts"),
 			func(g *gocui.Gui, v *gocui.View) error {
 				return nil
