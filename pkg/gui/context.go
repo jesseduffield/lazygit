@@ -34,7 +34,6 @@ func (gui *Gui) setMainTitle() error {
 }
 
 func (gui *Gui) changeContext(viewName, context string) error {
-	// todo: store somewhere permanently
 	if gui.State.Contexts[viewName] == context {
 		return nil
 	}
