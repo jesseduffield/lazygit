@@ -104,15 +104,11 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "credentials":
 		return gui.handleCredentialsViewFocused(g, v)
 	case "main":
-		// TODO: pull this out into a 'view focused' function
-		gui.refreshMergePanel(g)
+		if gui.State.Contexts["main"] == "merging" {
+			return gui.refreshMergePanel()
+		}
 		v.Highlight = false
 		return nil
-	case "merging":
-		return nil
-	case "staging":
-		return nil
-		// return gui.handleStagingSelect(g, v)
 	default:
 		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement"))
 	}
@@ -128,20 +124,6 @@ func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 	return gui.switchFocus(g, v, previousView)
-}
-
-// in lieu of a proper window system, we've got three panels that overlap,
-// the main panel, the staging panel, and the merging panel. We will call this
-// function whenever we might need to hide one of these panels
-// this function introduces some unwanted technical debt but is necessary for this rebasing feature
-func (gui *Gui) showCorrectMainPanel() error {
-	// if the files view is not focused or the current file is not in a merging state we hide the merging panel
-	if gui.g.CurrentView().Name() != "merging" && gui.g.CurrentView().Name() != "confirmation" {
-		if _, err := gui.g.SetViewOnBottom("merging"); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // pass in oldView = nil if you don't want to be able to return to your old view
@@ -184,10 +166,6 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	g.Cursor = newView.Editable
 
 	if err := gui.renderPanelOptions(); err != nil {
-		return err
-	}
-
-	if err := gui.showCorrectMainPanel(); err != nil {
 		return err
 	}
 
@@ -303,11 +281,6 @@ func (gui *Gui) getBranchesView() *gocui.View {
 	return v
 }
 
-func (gui *Gui) getStagingView() *gocui.View {
-	v, _ := gui.g.View("staging")
-	return v
-}
-
 func (gui *Gui) getMainView() *gocui.View {
 	v, _ := gui.g.View("main")
 	return v
@@ -315,11 +288,6 @@ func (gui *Gui) getMainView() *gocui.View {
 
 func (gui *Gui) getStashView() *gocui.View {
 	v, _ := gui.g.View("stash")
-	return v
-}
-
-func (gui *Gui) getMergingView() *gocui.View {
-	v, _ := gui.g.View("merging")
 	return v
 }
 
@@ -413,8 +381,9 @@ func (gui *Gui) renderPanelOptions() error {
 	case "menu":
 		return gui.renderMenuOptions()
 	case "main":
-		return gui.renderMergeOptions()
-	default:
-		return gui.renderGlobalOptions()
+		if gui.State.Contexts["main"] == "merging" {
+			return gui.renderMergeOptions()
+		}
 	}
+	return gui.renderGlobalOptions()
 }

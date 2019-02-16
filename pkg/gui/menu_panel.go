@@ -68,9 +68,12 @@ func (gui *Gui) createMenu(title string, items interface{}, handlePress func(int
 		if err := handlePress(selectedLine); err != nil {
 			return err
 		}
-		if _, err := gui.g.SetViewOnBottom("menu"); err != nil {
-			return err
+		if _, err := gui.g.View("menu"); err == nil {
+			if _, err := gui.g.SetViewOnBottom("menu"); err != nil {
+				return err
+			}
 		}
+
 		return gui.returnFocus(gui.g, menuView)
 	}
 
@@ -79,8 +82,10 @@ func (gui *Gui) createMenu(title string, items interface{}, handlePress func(int
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if _, err := g.SetViewOnTop("menu"); err != nil {
-			return err
+		if _, err := gui.g.View("menu"); err == nil {
+			if _, err := g.SetViewOnTop("menu"); err != nil {
+				return err
+			}
 		}
 		currentView := gui.g.CurrentView()
 		return gui.switchFocus(gui.g, currentView, menuView)

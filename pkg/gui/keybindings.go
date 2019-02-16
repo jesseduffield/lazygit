@@ -44,8 +44,8 @@ func (b *Binding) GetKey() string {
 	return string(key)
 }
 
-// GetKeybindings is a function.
-func (gui *Gui) GetKeybindings() []*Binding {
+// GetInitialKeybindings is a function.
+func (gui *Gui) GetInitialKeybindings() []*Binding {
 	bindings := []*Binding{
 		{
 			ViewName: "",
@@ -227,69 +227,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Handler:     gui.handleGitFetch,
 			Description: gui.Tr.SLocalize("fetch"),
 		}, {
-			ViewName: "merging",
-			Key:      gocui.KeyEsc,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleEscapeMerge,
-		}, {
-			ViewName:    "merging",
-			Key:         gocui.KeySpace,
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handlePickHunk,
-			Description: gui.Tr.SLocalize("PickHunk"),
-		}, {
-			ViewName:    "merging",
-			Key:         'b',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handlePickBothHunks,
-			Description: gui.Tr.SLocalize("PickBothHunks"),
-		}, {
-			ViewName: "merging",
-			Key:      gocui.KeyArrowLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectPrevConflict,
-		}, {
-			ViewName: "merging",
-			Key:      gocui.KeyArrowRight,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectNextConflict,
-		}, {
-			ViewName: "merging",
-			Key:      gocui.KeyArrowUp,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectTop,
-		}, {
-			ViewName: "merging",
-			Key:      gocui.KeyArrowDown,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectBottom,
-		}, {
-			ViewName: "merging",
-			Key:      'h',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectPrevConflict,
-		}, {
-			ViewName: "merging",
-			Key:      'l',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectNextConflict,
-		}, {
-			ViewName: "merging",
-			Key:      'k',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectTop,
-		}, {
-			ViewName: "merging",
-			Key:      'j',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectBottom,
-		}, {
-			ViewName:    "merging",
-			Key:         'z',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handlePopFileSnapshot,
-			Description: gui.Tr.SLocalize("Undo"),
-		}, {
 			ViewName:    "branches",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
@@ -421,64 +358,6 @@ func (gui *Gui) GetKeybindings() []*Binding {
 			Key:      'q',
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleMenuClose,
-		}, {
-			ViewName:    "staging",
-			Key:         gocui.KeyEsc,
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleStagingEscape,
-			Description: gui.Tr.SLocalize("EscapeStaging"),
-		}, {
-			ViewName: "staging",
-			Key:      gocui.KeyArrowUp,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingPrevLine,
-		}, {
-			ViewName: "staging",
-			Key:      gocui.KeyArrowDown,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingNextLine,
-		}, {
-			ViewName: "staging",
-			Key:      'k',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingPrevLine,
-		}, {
-			ViewName: "staging",
-			Key:      'j',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingNextLine,
-		}, {
-			ViewName: "staging",
-			Key:      gocui.KeyArrowLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingPrevHunk,
-		}, {
-			ViewName: "staging",
-			Key:      gocui.KeyArrowRight,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingNextHunk,
-		}, {
-			ViewName: "staging",
-			Key:      'h',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingPrevHunk,
-		}, {
-			ViewName: "staging",
-			Key:      'l',
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStagingNextHunk,
-		}, {
-			ViewName:    "staging",
-			Key:         gocui.KeySpace,
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleStageLine,
-			Description: gui.Tr.SLocalize("StageLine"),
-		}, {
-			ViewName:    "staging",
-			Key:         'a',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleStageHunk,
-			Description: gui.Tr.SLocalize("StageHunk"),
 		},
 	}
 
@@ -515,13 +394,201 @@ func (gui *Gui) GetKeybindings() []*Binding {
 	return bindings
 }
 
+func (gui *Gui) GetCurrentKeybindings() []*Binding {
+	bindings := gui.GetInitialKeybindings()
+	viewName := gui.currentViewName(gui.g)
+	currentContext := gui.State.Contexts[viewName]
+	contextBindings := gui.getContextMap()[viewName][currentContext]
+
+	return append(bindings, contextBindings...)
+}
+
 func (gui *Gui) keybindings(g *gocui.Gui) error {
-	bindings := gui.GetKeybindings()
+	bindings := gui.GetInitialKeybindings()
 
 	for _, binding := range bindings {
 		if err := g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
 			return err
 		}
 	}
+	if err := gui.setInitialContexts(); err != nil {
+		return err
+	}
 	return nil
+}
+
+func (gui *Gui) setInitialContexts() error {
+	contextMap := gui.getContextMap()
+
+	initialContexts := map[string]string{
+		"main": "merging",
+	}
+
+	for viewName, context := range initialContexts {
+		bindings := contextMap[viewName][context]
+		for _, binding := range bindings {
+			if err := gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
+				return err
+			}
+		}
+	}
+
+	gui.State.Contexts = initialContexts
+
+	return nil
+}
+
+func (gui *Gui) changeContext(viewName, context string) error {
+	// todo: store somewhere permanently
+	if gui.State.Contexts[viewName] == context {
+		return nil
+	}
+
+	contextMap := gui.getContextMap()
+
+	gui.g.DeleteKeybindings(viewName)
+
+	bindings := contextMap[viewName][context]
+	for _, binding := range bindings {
+		if err := gui.g.SetKeybinding(viewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
+			return err
+		}
+	}
+	gui.State.Contexts[viewName] = context
+
+	return nil
+}
+
+func (gui *Gui) getContextMap() map[string]map[string][]*Binding {
+	return map[string]map[string][]*Binding{
+		"main": {
+			"staging": {
+				{
+					ViewName:    "main",
+					Key:         gocui.KeyEsc,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleStagingEscape,
+					Description: gui.Tr.SLocalize("EscapeStaging"),
+				}, {
+					ViewName: "main",
+					Key:      gocui.KeyArrowUp,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleStagingPrevLine,
+				}, {
+					ViewName: "main",
+					Key:      gocui.KeyArrowDown,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleStagingNextLine,
+				}, {
+					ViewName: "main",
+					Key:      'k',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleStagingPrevLine,
+				}, {
+					ViewName: "main",
+					Key:      'j',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleStagingNextLine,
+				}, {
+					ViewName: "main",
+					Key:      gocui.KeyArrowLeft,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleStagingPrevHunk,
+				}, {
+					ViewName: "main",
+					Key:      gocui.KeyArrowRight,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleStagingNextHunk,
+				}, {
+					ViewName: "main",
+					Key:      'h',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleStagingPrevHunk,
+				}, {
+					ViewName: "main",
+					Key:      'l',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleStagingNextHunk,
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeySpace,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleStageLine,
+					Description: gui.Tr.SLocalize("StageLine"),
+				}, {
+					ViewName:    "main",
+					Key:         'a',
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleStageHunk,
+					Description: gui.Tr.SLocalize("StageHunk"),
+				},
+			},
+			"merging": {
+				{
+					ViewName: "main",
+					Key:      gocui.KeyEsc,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleEscapeMerge,
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeySpace,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handlePickHunk,
+					Description: gui.Tr.SLocalize("PickHunk"),
+				}, {
+					ViewName:    "main",
+					Key:         'b',
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handlePickBothHunks,
+					Description: gui.Tr.SLocalize("PickBothHunks"),
+				}, {
+					ViewName: "main",
+					Key:      gocui.KeyArrowLeft,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectPrevConflict,
+				}, {
+					ViewName: "main",
+					Key:      gocui.KeyArrowRight,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectNextConflict,
+				}, {
+					ViewName: "main",
+					Key:      gocui.KeyArrowUp,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectTop,
+				}, {
+					ViewName: "main",
+					Key:      gocui.KeyArrowDown,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectBottom,
+				}, {
+					ViewName: "main",
+					Key:      'h',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectPrevConflict,
+				}, {
+					ViewName: "main",
+					Key:      'l',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectNextConflict,
+				}, {
+					ViewName: "main",
+					Key:      'k',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectTop,
+				}, {
+					ViewName: "main",
+					Key:      'j',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectBottom,
+				}, {
+					ViewName:    "main",
+					Key:         'z',
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handlePopFileSnapshot,
+					Description: gui.Tr.SLocalize("Undo"),
+				},
+			},
+		},
+	}
 }

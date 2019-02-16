@@ -10,11 +10,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/jesseduffield/lazygit/pkg/app"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/app"
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 func writeString(file *os.File, str string) {
@@ -43,6 +44,7 @@ func main() {
 
 	writeString(file, "<pre>\n")
 
+	// TODO: add context-based keybindings
 	for _, binding := range mApp.Gui.GetKeybindings() {
 		if binding.Description == "" {
 			continue

@@ -112,6 +112,10 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 			}
 
 			if err := gui.GitCommand.RebaseBranch(selectedBranch); err != nil {
+				if !strings.Contains(err.Error(), "When you have resolved this problem") {
+					return gui.createErrorPanel(gui.g, err.Error())
+				}
+
 				if err := gui.refreshSidePanels(g); err != nil {
 					return err
 				}

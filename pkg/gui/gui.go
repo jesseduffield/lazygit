@@ -134,6 +134,7 @@ type guiState struct {
 	Updating          bool
 	Panels            *panelStates
 	WorkingTreeState  string // one of "merging", "rebasing", "normal"
+	Contexts          map[string]string
 }
 
 // NewGui builds a new gui handler
@@ -210,6 +211,40 @@ func max(a, b int) int {
 	return b
 }
 
+// getFocusLayout returns a manager function for when view gain and lose focus
+func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
+	var focusedView *gocui.View
+	return func(g *gocui.Gui) error {
+		v := gui.g.CurrentView()
+		if v != focusedView {
+			if err := gui.onFocusLost(focusedView); err != nil {
+				return err
+			}
+			if err := gui.onFocus(v); err != nil {
+				return err
+			}
+			focusedView = v
+		}
+		return nil
+	}
+}
+
+func (gui *Gui) onFocusLost(v *gocui.View) error {
+	if v == nil {
+		return nil
+	}
+	gui.Log.Info(v.Name() + " focus lost")
+	return nil
+}
+
+func (gui *Gui) onFocus(v *gocui.View) error {
+	if v == nil {
+		return nil
+	}
+	gui.Log.Info(v.Name() + " focus gained")
+	return nil
+}
+
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
@@ -268,30 +303,30 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	v, err = g.SetView("staging", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
-	if err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		v.Title = gui.Tr.SLocalize("StagingTitle")
-		v.Highlight = true
-		v.FgColor = gocui.ColorWhite
-		if _, err := g.SetViewOnBottom("staging"); err != nil {
-			return err
-		}
-	}
+	// v, err = g.SetView("staging", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	// if err != nil {
+	// 	if err.Error() != "unknown view" {
+	// 		return err
+	// 	}
+	// 	v.Title = gui.Tr.SLocalize("StagingTitle")
+	// 	v.Highlight = true
+	// 	v.FgColor = gocui.ColorWhite
+	// 	if _, err := g.SetViewOnBottom("staging"); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	v, err = g.SetView("merging", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
-	if err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		v.Title = gui.Tr.SLocalize("MergingTitle")
-		v.FgColor = gocui.ColorWhite
-		if _, err := g.SetViewOnBottom("merging"); err != nil {
-			return err
-		}
-	}
+	// v, err = g.SetView("merging", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	// if err != nil {
+	// 	if err.Error() != "unknown view" {
+	// 		return err
+	// 	}
+	// 	v.Title = gui.Tr.SLocalize("MergingTitle")
+	// 	v.FgColor = gocui.ColorWhite
+	// 	if _, err := g.SetViewOnBottom("merging"); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
 		if err.Error() != "unknown view" {
@@ -539,7 +574,7 @@ func (gui *Gui) Run() error {
 	gui.goEvery(time.Second*10, gui.refreshFiles)
 	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
-	g.SetManagerFunc(gui.layout)
+	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
 	if err = gui.keybindings(g); err != nil {
 		return err

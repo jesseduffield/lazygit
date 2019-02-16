@@ -66,14 +66,19 @@ func (gui *Gui) refreshStagingPanel() error {
 	if err := gui.focusLineAndHunk(); err != nil {
 		return err
 	}
-	return gui.renderString(gui.g, "staging", colorDiff)
+
+	mainView := gui.getMainView()
+	mainView.Highlight = true
+	mainView.Wrap = false
+
+	gui.g.Update(func(*gocui.Gui) error {
+		return gui.setViewContent(gui.g, gui.getMainView(), colorDiff)
+	})
+
+	return nil
 }
 
 func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
-	if _, err := gui.g.SetViewOnBottom("staging"); err != nil {
-		return err
-	}
-
 	gui.State.Panels.Staging = nil
 
 	return gui.switchFocus(gui.g, nil, gui.getFilesView())
@@ -138,7 +143,7 @@ func (gui *Gui) handleCycleLine(prev bool) error {
 // focusLineAndHunk works out the best focus for the staging panel given the
 // selected line and size of the hunk
 func (gui *Gui) focusLineAndHunk() error {
-	stagingView := gui.getStagingView()
+	stagingView := gui.getMainView()
 	state := gui.State.Panels.Staging
 
 	lineNumber := state.StageableLines[state.SelectedLine]

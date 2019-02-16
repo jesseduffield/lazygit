@@ -498,6 +498,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "RebaseOptionsTitle",
 			Other: "Rebase Options",
+		}, &i18n.Message{
+			ID:    "ConflictsResolved",
+			Other: "all merge conflicts resolved. Continue?",
 		},
 	)
 }

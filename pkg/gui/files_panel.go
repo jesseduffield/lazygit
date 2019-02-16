@@ -40,11 +40,12 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 	}
 
 	if file.HasMergeConflicts {
-		return gui.refreshMergePanel(g)
+		return gui.refreshMergePanel()
 	} else {
-		if _, err := gui.g.SetViewOnBottom("merging"); err != nil {
-			return err
-		}
+		// TODO: set title appropriately
+		// if _, err := gui.g.SetViewOnBottom("merging"); err != nil {
+		// 	return err
+		// }
 	}
 
 	content := gui.GitCommand.Diff(file, false)
@@ -143,8 +144,10 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 	if !file.HasUnstagedChanges {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileStagingRequirements"))
 	}
-	stagingView := gui.getStagingView()
-	if err := gui.switchFocus(g, v, stagingView); err != nil {
+	if err := gui.changeContext("main", "staging"); err != nil {
+		return err
+	}
+	if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {
 		return err
 	}
 	return gui.refreshStagingPanel()
@@ -434,7 +437,13 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 	if !file.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons"))
 	}
-	return gui.switchFocus(g, v, gui.getMergingView())
+	if err := gui.changeContext("main", "merging"); err != nil {
+		return err
+	}
+	if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {
+		return err
+	}
+	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {

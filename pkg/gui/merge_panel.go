@@ -68,12 +68,12 @@ func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflic
 
 func (gui *Gui) handleSelectTop(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Panels.Merging.ConflictTop = true
-	return gui.refreshMergePanel(g)
+	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handleSelectBottom(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Panels.Merging.ConflictTop = false
-	return gui.refreshMergePanel(g)
+	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handleSelectNextConflict(g *gocui.Gui, v *gocui.View) error {
@@ -81,7 +81,7 @@ func (gui *Gui) handleSelectNextConflict(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	gui.State.Panels.Merging.ConflictIndex++
-	return gui.refreshMergePanel(g)
+	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handleSelectPrevConflict(g *gocui.Gui, v *gocui.View) error {
@@ -89,7 +89,7 @@ func (gui *Gui) handleSelectPrevConflict(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	gui.State.Panels.Merging.ConflictIndex--
-	return gui.refreshMergePanel(g)
+	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) isIndexToDelete(i int, conflict commands.Conflict, pick string) bool {
@@ -150,7 +150,7 @@ func (gui *Gui) handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	ioutil.WriteFile(gitFile.Name, []byte(prevContent), 0644)
-	return gui.refreshMergePanel(g)
+	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
@@ -171,7 +171,7 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 	}
-	gui.refreshMergePanel(g)
+	gui.refreshMergePanel()
 	return nil
 }
 
@@ -182,12 +182,12 @@ func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		panic(err)
 	}
-	return gui.refreshMergePanel(g)
+	return gui.refreshMergePanel()
 }
 
-func (gui *Gui) refreshMergePanel(g *gocui.Gui) error {
+func (gui *Gui) refreshMergePanel() error {
 	panelState := gui.State.Panels.Merging
-	cat, err := gui.catSelectedFile(g)
+	cat, err := gui.catSelectedFile(gui.g)
 	if err != nil {
 		return err
 	}
@@ -207,18 +207,21 @@ func (gui *Gui) refreshMergePanel(g *gocui.Gui) error {
 		panelState.ConflictIndex = len(panelState.Conflicts) - 1
 	}
 
-	gui.g.SetViewOnTop("merging")
-	hasFocus := gui.currentViewName(g) == "merging"
+	hasFocus := gui.currentViewName(gui.g) == "main"
 	content, err := gui.coloredConflictFile(cat, panelState.Conflicts, panelState.ConflictIndex, panelState.ConflictTop, hasFocus)
 	if err != nil {
 		return err
 	}
-	if err := gui.renderString(g, "merging", content); err != nil {
+	if err := gui.renderString(gui.g, "main", content); err != nil {
 		return err
 	}
-	if err := gui.scrollToConflict(g); err != nil {
+	if err := gui.scrollToConflict(gui.g); err != nil {
 		return err
 	}
+
+	mainView := gui.getMainView()
+	mainView.Wrap = false
+
 	return nil
 }
 
@@ -227,7 +230,7 @@ func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
 	if len(panelState.Conflicts) == 0 {
 		return nil
 	}
-	mergingView := gui.getMergingView()
+	mergingView := gui.getMainView()
 	conflict := panelState.Conflicts[panelState.ConflictIndex]
 	gui.Log.Info(utils.AsJson(conflict))
 	ox, _ := mergingView.Origin()
@@ -242,14 +245,6 @@ func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) switchToMerging(g *gocui.Gui) error {
-	_, err := g.SetCurrentView("merging")
-	if err != nil {
-		return err
-	}
-	return gui.refreshMergePanel(g)
-}
-
 func (gui *Gui) renderMergeOptions() error {
 	return gui.renderOptionsMap(map[string]string{
 		"↑ ↓":   gui.Tr.SLocalize("selectHunk"),
@@ -262,11 +257,10 @@ func (gui *Gui) renderMergeOptions() error {
 
 func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Panels.Merging.EditHistory = stack.New()
-	gui.g.SetViewOnBottom("merging")
 	gui.refreshFiles()
 	// it's possible this method won't be called from the merging view so we need to
 	// ensure we only 'return' focus if we already have it
-	if gui.g.CurrentView() == gui.getMergingView() {
+	if gui.g.CurrentView() == gui.getMainView() {
 		return gui.switchFocus(g, v, gui.getFilesView())
 	}
 	return nil
@@ -279,7 +273,7 @@ func (gui *Gui) handleCompleteMerge() error {
 	// if there are no more files with merge conflicts, we should ask whether the user wants to continue
 	if !gui.anyFilesWithMergeConflicts() {
 		// ask if user wants to continue
-		if err := gui.createConfirmationPanel(gui.g, filesView, "continue", "all merge conflicts, resolved. Continue?", func(g *gocui.Gui, v *gocui.View) error {
+		if err := gui.createConfirmationPanel(gui.g, filesView, "continue", gui.Tr.SLocalize("ConflictsResolved"), func(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.genericRebaseCommand("continue"); err != nil {
 				if err == gui.Errors.ErrSubProcess {
 					return err
@@ -292,6 +286,7 @@ func (gui *Gui) handleCompleteMerge() error {
 						gui.createErrorPanel(gui.g, err.Error())
 					}
 				} else {
+					// HERE is the place for this special error panel
 					gui.createErrorPanel(gui.g, err.Error())
 				}
 			}
@@ -300,5 +295,5 @@ func (gui *Gui) handleCompleteMerge() error {
 			return err
 		}
 	}
-	return gui.handleEscapeMerge(gui.g, gui.getMergingView())
+	return gui.handleEscapeMerge(gui.g, gui.getMainView())
 }

@@ -13,7 +13,7 @@ func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 		bindingsGlobal, bindingsPanel []*Binding
 	)
 
-	bindings := gui.GetKeybindings()
+	bindings := gui.GetCurrentKeybindings()
 
 	for _, binding := range bindings {
 		if binding.GetKey() != "" && binding.Description != "" {
