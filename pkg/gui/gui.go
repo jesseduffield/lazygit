@@ -24,7 +24,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -239,7 +238,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if height < minimumHeight || width < minimumWidth {
 		v, err := g.SetView("limit", 0, 0, max(width-1, 2), max(height-1, 2), 0)
 		if err != nil {
-			if err != gocui.ErrUnknownView {
+			if err.Error() != "unknown view" {
 				return err
 			}
 			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
@@ -261,7 +260,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
 	if err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		v.Title = gui.Tr.SLocalize("DiffTitle")
@@ -295,7 +294,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		v.Title = gui.Tr.SLocalize("StatusTitle")
@@ -304,7 +303,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	filesView, err := g.SetView("files", 0, statusFilesBoundary+panelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
 	if err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		filesView.Highlight = true
@@ -314,7 +313,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	branchesView, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM)
 	if err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
@@ -322,7 +321,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if v, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		v.Title = gui.Tr.SLocalize("CommitsTitle")
@@ -330,7 +329,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if v, err := g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT); err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		v.Title = gui.Tr.SLocalize("StashTitle")
@@ -338,7 +337,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if v, err := g.SetView("options", appStatusOptionsBoundary-1, optionsTop, optionsVersionBoundary-1, optionsTop+2, 0); err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		v.Frame = false
@@ -350,7 +349,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if gui.getCommitMessageView() == nil {
 		// doesn't matter where this view starts because it will be hidden
 		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width/2, height/2, 0); err != nil {
-			if err != gocui.ErrUnknownView {
+			if err.Error() != "unknown view" {
 				return err
 			}
 			g.SetViewOnBottom("commitMessage")
@@ -364,7 +363,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if check, _ := g.View("credentials"); check == nil {
 		// doesn't matter where this view starts because it will be hidden
 		if credentialsView, err := g.SetView("credentials", 0, 0, width/2, height/2, 0); err != nil {
-			if err != gocui.ErrUnknownView {
+			if err.Error() != "unknown view" {
 				return err
 			}
 			_, err := g.SetViewOnBottom("credentials")
@@ -379,7 +378,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if appStatusView, err := g.SetView("appStatus", -1, optionsTop, width, optionsTop+2, 0); err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		appStatusView.BgColor = gocui.ColorDefault
@@ -391,7 +390,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if v, err := g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		v.BgColor = gocui.ColorDefault
@@ -476,23 +475,6 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 	return unamePassOpend, err
 }
 
-func (gui *Gui) updateLoader() error {
-	gui.g.Update(func(g *gocui.Gui) error {
-		if view, _ := g.View("confirmation"); view != nil {
-			content := gui.trimmedContent(view)
-			if strings.Contains(content, "...") {
-				staticContent := strings.Split(content, "...")[0] + "..."
-				if err := gui.setViewContent(g, view, staticContent+" "+utils.Loader()); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	})
-
-	return nil
-}
-
 func (gui *Gui) renderAppStatus() error {
 	appStatus := gui.statusManager.getStatusString()
 	if appStatus != "" {
@@ -555,7 +537,6 @@ func (gui *Gui) Run() error {
 		}
 	}()
 	gui.goEvery(time.Second*10, gui.refreshFiles)
-	gui.goEvery(time.Millisecond*50, gui.updateLoader)
 	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
 	g.SetManagerFunc(gui.layout)

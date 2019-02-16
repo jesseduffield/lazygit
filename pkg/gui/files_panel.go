@@ -380,9 +380,10 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 }
 
 func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("PullWait")); err != nil {
+	if err := gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("PullWait")); err != nil {
 		return err
 	}
+
 	go func() {
 		unamePassOpend := false
 		err := gui.GitCommand.Pull(func(passOrUname string) string {
@@ -395,7 +396,7 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error {
-	if err := gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("PushWait")); err != nil {
+	if err := gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {

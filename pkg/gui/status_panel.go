@@ -44,7 +44,7 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 
 func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("CheckingForUpdates"))
+	return gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("CheckingForUpdates"))
 }
 
 func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {

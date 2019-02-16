@@ -162,7 +162,7 @@ func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error 
 }
 
 func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("FetchWait")); err != nil {
+	if err := gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("FetchWait")); err != nil {
 		return err
 	}
 	go func() {
@@ -306,7 +306,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 	go func() {
-		_ = gui.createMessagePanel(gui.g, v, "", message)
+		_ = gui.createLoaderPanel(gui.g, v, message)
 		if err := gui.GitCommand.FastForward(branch.Name); err != nil {
 			_ = gui.createErrorPanel(gui.g, err.Error())
 		} else {
