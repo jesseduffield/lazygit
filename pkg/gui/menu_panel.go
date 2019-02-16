@@ -50,7 +50,8 @@ func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) createMenu(title string, items interface{}, handlePress func(int) error) error {
-	list, err := utils.RenderList(items)
+	isFocused := gui.g.CurrentView().Name() == "menu"
+	list, err := utils.RenderList(items, isFocused)
 	if err != nil {
 		return err
 	}

@@ -67,7 +67,8 @@ func (gui *Gui) refreshFiles() error {
 	gui.g.Update(func(g *gocui.Gui) error {
 
 		filesView.Clear()
-		list, err := utils.RenderList(gui.State.Files)
+		isFocused := gui.g.CurrentView().Name() == "files"
+		list, err := utils.RenderList(gui.State.Files, isFocused)
 		if err != nil {
 			return err
 		}

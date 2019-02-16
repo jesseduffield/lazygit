@@ -364,7 +364,8 @@ func (gui *Gui) refreshSelectedLine(line *int, total int) {
 
 func (gui *Gui) renderListPanel(v *gocui.View, items interface{}) error {
 	gui.g.Update(func(g *gocui.Gui) error {
-		list, err := utils.RenderList(items)
+		isFocused := gui.g.CurrentView().Name() == v.Name()
+		list, err := utils.RenderList(items, isFocused)
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}

@@ -16,7 +16,7 @@ type File struct {
 }
 
 // GetDisplayStrings returns the display string of a file
-func (f *File) GetDisplayStrings() []string {
+func (f *File) GetDisplayStrings(isFocused bool) []string {
 	// potentially inefficient to be instantiating these color
 	// objects with each render
 	red := color.New(color.FgRed)

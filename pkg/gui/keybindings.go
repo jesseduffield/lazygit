@@ -16,7 +16,7 @@ type Binding struct {
 }
 
 // GetDisplayStrings returns the display string of a file
-func (b *Binding) GetDisplayStrings() []string {
+func (b *Binding) GetDisplayStrings(isFocused bool) []string {
 	return []string{b.GetKey(), b.Description}
 }
 

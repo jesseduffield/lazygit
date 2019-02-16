@@ -13,7 +13,7 @@ type Commit struct {
 }
 
 // GetDisplayStrings is a function.
-func (c *Commit) GetDisplayStrings() []string {
+func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)

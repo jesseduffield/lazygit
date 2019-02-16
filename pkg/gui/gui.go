@@ -233,6 +233,9 @@ func (gui *Gui) onFocusLost(v *gocui.View) error {
 	if v == nil {
 		return nil
 	}
+	if v.Name() == "branches" {
+		gui.renderListPanel(gui.getBranchesView(), gui.State.Branches)
+	}
 	gui.Log.Info(v.Name() + " focus lost")
 	return nil
 }

@@ -8,6 +8,6 @@ type StashEntry struct {
 }
 
 // GetDisplayStrings returns the dispaly string of branch
-func (s *StashEntry) GetDisplayStrings() []string {
+func (s *StashEntry) GetDisplayStrings(isFocused bool) []string {
 	return []string{s.DisplayString}
 }

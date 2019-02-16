@@ -15,7 +15,7 @@ type recentRepo struct {
 }
 
 // GetDisplayStrings returns the path from a recent repo.
-func (r *recentRepo) GetDisplayStrings() []string {
+func (r *recentRepo) GetDisplayStrings(isFocused bool) []string {
 	yellow := color.New(color.FgMagenta)
 	base := filepath.Base(r.path)
 	path := yellow.Sprint(r.path)

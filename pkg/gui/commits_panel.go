@@ -47,7 +47,8 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 
 		gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
 
-		list, err := utils.RenderList(gui.State.Commits)
+		isFocused := gui.g.CurrentView().Name() == "commits"
+		list, err := utils.RenderList(gui.State.Commits, isFocused)
 		if err != nil {
 			return err
 		}

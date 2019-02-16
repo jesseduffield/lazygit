@@ -41,7 +41,8 @@ func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
 
 		gui.refreshSelectedLine(&gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries))
 
-		list, err := utils.RenderList(gui.State.StashEntries)
+		isFocused := gui.g.CurrentView().Name() == "stash"
+		list, err := utils.RenderList(gui.State.StashEntries, isFocused)
 		if err != nil {
 			return err
 		}

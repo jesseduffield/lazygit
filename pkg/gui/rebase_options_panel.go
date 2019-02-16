@@ -12,7 +12,7 @@ type option struct {
 }
 
 // GetDisplayStrings is a function.
-func (r *option) GetDisplayStrings() []string {
+func (r *option) GetDisplayStrings(isFocused bool) []string {
 	return []string{r.value}
 }
 
