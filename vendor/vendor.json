@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "HHmofvwECyD7cZ5XKt+GRnzmpmY=",
+			"path": "github.com/mitchellh/go-ps",
+			"revision": "4fdf99ab29366514c69ccccddab5dc58b8d84062",
+			"revisionTime": "2017-03-09T13:30:38Z"
+		}
+	],
+	"rootPath": "github.com/jesseduffield/lazygit"
+}
