@@ -35,13 +35,17 @@ type InputQuestion struct {
 
 // listenerMetaType is a listener there private key and ask function
 type listenerMetaType struct {
-	cmd            *exec.Cmd
 	HostPrivateKey *rsa.PrivateKey     // the host it's private key
 	AskFunction    func(string) string // the ask function
 	AskedFor       AskedFor            // what has git already asked
 	CurrentlyBuzzy bool                // if this is true it blocks all incomming quesitons (this is for safety precautions)
 	RequestCount   int8                // this counts the total request. because git asks maximum 2 times we block all request later then 2
 }
+
+// generalClientErr this error message will be send to the client when
+// lazygit detects suspicious behavoure
+// this way a suspicious program can not performe actions based on the error message
+const suspiciousErr = "closing message due to suspicious behavior"
 
 // listenerMetaType is a list of listeners
 var listenerMeta = map[string]listenerMetaType{}
@@ -58,15 +62,15 @@ type Listener int
 func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 	listener, ok := listenerMeta[fromClient.ListenerKey]
 	if !ok {
-		return errors.New("Listener not defined")
+		return errors.New(suspiciousErr)
 	}
 
 	if listener.RequestCount >= 2 {
-		return errors.New("Maximum amound of calles exsided")
+		return errors.New(suspiciousErr)
 	}
 
 	if !HasLGAsSubProcess() {
-		return errors.New("LG not found as child process")
+		return errors.New(suspiciousErr)
 	}
 
 	updateListenerMeta := func() {
@@ -81,24 +85,24 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 	clientPubBlock, _ := pem.Decode([]byte(fromClient.ClientPublicKeyText))
 	clientPub, err := x509.ParsePKCS1PublicKey(clientPubBlock.Bytes)
 	if err != nil {
-		return errors.New("Can't parse public key")
+		return errors.New(suspiciousErr)
 	}
 
 	// TODO send errors to DetectUnamePass
 	decryptedMessageRaw, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, listener.HostPrivateKey, message, []byte("TELL HOST"))
 	if err != nil {
-		return errors.New("Decryption failed")
+		return errors.New(suspiciousErr)
 	}
 
 	decryptedMessage := strings.Split(string(decryptedMessageRaw), "|")
 	if len(decryptedMessage) != 2 {
-		return errors.New("Missing string parts")
+		return errors.New(suspiciousErr)
 	}
 	validation := decryptedMessage[0]
 	question := decryptedMessage[1]
 
 	if fmt.Sprintf("%x", sha256.Sum256([]byte(fromClient.ClientPublicKeyText))) != validation {
-		return errors.New("Mismatch hash of public key")
+		return errors.New(suspiciousErr)
 	}
 
 	prompts := map[string]string{
@@ -107,7 +111,7 @@ func (l *Listener) Input(fromClient InputQuestion, out *[]byte) error {
 	}
 
 	if listener.CurrentlyBuzzy {
-		return errors.New("Currently buzzy")
+		return errors.New(suspiciousErr)
 	}
 
 	listener.CurrentlyBuzzy = true
@@ -328,27 +332,32 @@ func SendToLG(port, listenerNumber string, selectFunction string, args interface
 
 // HasLGAsSubProcess returns true if lazygit is a child of this process
 func HasLGAsSubProcess() bool {
-	osPid := os.Getppid()
+	lgHostPid := os.Getpid()
 	list, err := ps.Processes()
 	if err != nil {
 		log.Fatal(err)
 	}
 	status := false
-firstFor:
+procListLoop:
 	for _, proc := range list {
 		procName := proc.Executable()
 		if procName != "lazygit" {
 			continue
 		}
+		stepsBack := 1
 		parrent := proc.PPid()
 		for {
 			proc, err := ps.FindProcess(parrent)
 			if err != nil {
-				continue firstFor
+				continue procListLoop
 			}
-			if proc.Pid() == osPid {
+			if proc.Pid() == lgHostPid {
 				status = true
-				break firstFor
+				break procListLoop
+			}
+			stepsBack++
+			if stepsBack > 3 {
+				continue procListLoop
 			}
 			parrent = proc.PPid()
 		}
