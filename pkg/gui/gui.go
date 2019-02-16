@@ -217,6 +217,9 @@ func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 	return func(g *gocui.Gui) error {
 		v := gui.g.CurrentView()
 		if v != focusedView {
+			if err := gui.onFocusChange(); err != nil {
+				return err
+			}
 			if err := gui.onFocusLost(focusedView); err != nil {
 				return err
 			}
@@ -227,6 +230,14 @@ func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 		}
 		return nil
 	}
+}
+
+func (gui *Gui) onFocusChange() error {
+	currentView := gui.g.CurrentView()
+	for _, view := range gui.g.Views() {
+		view.Highlight = view == currentView
+	}
+	return gui.setMainTitle()
 }
 
 func (gui *Gui) onFocusLost(v *gocui.View) error {
@@ -305,31 +316,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Wrap = true
 		v.FgColor = gocui.ColorWhite
 	}
-
-	// v, err = g.SetView("staging", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
-	// if err != nil {
-	// 	if err.Error() != "unknown view" {
-	// 		return err
-	// 	}
-	// 	v.Title = gui.Tr.SLocalize("StagingTitle")
-	// 	v.Highlight = true
-	// 	v.FgColor = gocui.ColorWhite
-	// 	if _, err := g.SetViewOnBottom("staging"); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	// v, err = g.SetView("merging", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
-	// if err != nil {
-	// 	if err.Error() != "unknown view" {
-	// 		return err
-	// 	}
-	// 	v.Title = gui.Tr.SLocalize("MergingTitle")
-	// 	v.FgColor = gocui.ColorWhite
-	// 	if _, err := g.SetViewOnBottom("merging"); err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
 		if err.Error() != "unknown view" {

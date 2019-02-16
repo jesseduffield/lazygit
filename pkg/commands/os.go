@@ -25,6 +25,7 @@ type Platform struct {
 	openCommand          string
 	openLinkCommand      string
 	fallbackEscapedQuote string
+	skipEditorArg        string
 }
 
 // OSCommand holds all the os commands

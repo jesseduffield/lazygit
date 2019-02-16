@@ -127,19 +127,11 @@ func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 }
 
 // pass in oldView = nil if you don't want to be able to return to your old view
+// TODO: move some of this logic into our onFocusLost and onFocus hooks
 func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	// we assume we'll never want to return focus to a confirmation panel i.e.
 	// we should never stack confirmation panels
 	if oldView != nil && oldView.Name() != "confirmation" {
-		oldView.Highlight = false
-		message := gui.Tr.TemplateLocalize(
-			"settingPreviewsViewTo",
-			Teml{
-				"oldViewName": oldView.Name(),
-			},
-		)
-		gui.Log.Info(message)
-
 		// second class panels should never have focus restored to them because
 		// once they lose focus they are effectively 'destroyed'
 		secondClassPanels := []string{"confirmation", "menu"}
@@ -148,7 +140,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		}
 	}
 
-	newView.Highlight = true
+	gui.Log.Info("setting highlight to true for view" + newView.Name())
 	message := gui.Tr.TemplateLocalize(
 		"newFocusedViewIs",
 		Teml{

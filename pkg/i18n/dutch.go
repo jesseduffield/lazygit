@@ -17,6 +17,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "DiffTitle",
 			Other: "Diff",
 		}, &i18n.Message{
+			ID:    "LogTitle",
+			Other: "Log",
+		}, &i18n.Message{
 			ID:    "FilesTitle",
 			Other: "Bestanden",
 		}, &i18n.Message{
@@ -28,6 +31,12 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashTitle",
 			Other: "Stash",
+		}, &i18n.Message{
+			ID:    "StagingMainTitle",
+			Other: `Stage Lines/Hunks`,
+		}, &i18n.Message{
+			ID:    "MergingMainTitle",
+			Other: "Resolve merge conflicts",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
 			Other: "Commit bericht",
@@ -186,7 +195,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "rebase branch",
 		}, &i18n.Message{
 			ID:    "CantRebaseOntoSelf",
-			Other: "It is not possible to rebase the branch onto itself!",
+			Other: "You cannot rebase a branch onto itself",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Je kan niet een branch in zichzelf mergen",
@@ -332,9 +341,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
 			Other: "Er machen geen weergave met de newLineFocused switch declaratie",
 		}, &i18n.Message{
-			ID:    "settingPreviewsViewTo",
-			Other: "vorige weergave instellen op: {{.oldViewName}}",
-		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "nieuw gefocussed weergave is {{.newFocusedView}}",
 		}, &i18n.Message{
@@ -438,7 +444,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `Kan alleen individuele lijnen stagen van getrackte bestanden met onstaged veranderingen`,
 		}, &i18n.Message{
 			ID:    "StagingTitle",
-			Other: `Staging`,
+			Other: `Stage Lines/Hunks`,
 		}, &i18n.Message{
 			ID:    "StageHunk",
 			Other: `stage hunk`,
@@ -454,6 +460,24 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CantFindHunk",
 			Other: `Kan geen hunk vinden`,
+		}, &i18n.Message{
+			ID:    "RebasingTitle",
+			Other: "Rebasing",
+		}, &i18n.Message{
+			ID:    "MergingTitle",
+			Other: "Merging",
+		}, &i18n.Message{
+			ID:    "ConfirmRebase",
+			Other: "Are you sure you want to rebase {{.checkedOutBranch}} onto {{.selectedBranch}}?",
+		}, &i18n.Message{
+			ID:    "ConfirmMerge",
+			Other: "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
+		}, &i18n.Message{}, &i18n.Message{
+			ID:    "FwdNoUpstream",
+			Other: "Cannot fast-forward a branch with no upstream",
+		}, &i18n.Message{
+			ID:    "FwdCommitsToPush",
+			Other: "Cannot fast-forward a branch with commits to push",
 		},
 	)
 }

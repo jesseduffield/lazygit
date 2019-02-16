@@ -417,48 +417,6 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) setInitialContexts() error {
-	contextMap := gui.getContextMap()
-
-	initialContexts := map[string]string{
-		"main": "merging",
-	}
-
-	for viewName, context := range initialContexts {
-		bindings := contextMap[viewName][context]
-		for _, binding := range bindings {
-			if err := gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
-				return err
-			}
-		}
-	}
-
-	gui.State.Contexts = initialContexts
-
-	return nil
-}
-
-func (gui *Gui) changeContext(viewName, context string) error {
-	// todo: store somewhere permanently
-	if gui.State.Contexts[viewName] == context {
-		return nil
-	}
-
-	contextMap := gui.getContextMap()
-
-	gui.g.DeleteKeybindings(viewName)
-
-	bindings := contextMap[viewName][context]
-	for _, binding := range bindings {
-		if err := gui.g.SetKeybinding(viewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
-			return err
-		}
-	}
-	gui.State.Contexts[viewName] = context
-
-	return nil
-}
-
 func (gui *Gui) getContextMap() map[string]map[string][]*Binding {
 	return map[string]map[string][]*Binding{
 		"main": {

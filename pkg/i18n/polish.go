@@ -15,6 +15,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "DiffTitle",
 			Other: "Różnice",
 		}, &i18n.Message{
+			ID:    "LogTitle",
+			Other: "Log",
+		}, &i18n.Message{
 			ID:    "FilesTitle",
 			Other: "Pliki",
 		}, &i18n.Message{
@@ -26,6 +29,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashTitle",
 			Other: "Schowek",
+		}, &i18n.Message{
+			ID:    "StagingMainTitle",
+			Other: `Stage Lines/Hunks`,
+		}, &i18n.Message{
+			ID:    "MergingMainTitle",
+			Other: "Resolve merge conflicts",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
 			Other: "Wiadomość commita",
@@ -175,7 +184,7 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			Other: "rebase branch",
 		}, &i18n.Message{
 			ID:    "CantRebaseOntoSelf",
-			Other: "It is not possible to rebase the branch onto itself!",
+			Other: "You cannot rebase a branch onto itself",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Nie możesz scalić gałęzi do samej siebie",
@@ -321,9 +330,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
 			Other: "Brak widoku pasującego do instrukcji przełączania newLineFocused",
 		}, &i18n.Message{
-			ID:    "settingPreviewsViewTo",
-			Other: "ustawianie poprzedniego widoku na: {{.oldViewName}}",
-		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "nowy skupiony widok to {{.newFocusedView}}",
 		}, &i18n.Message{
@@ -437,6 +443,24 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CantFindHunk",
 			Other: `Nie można znaleźć kawałka`,
+		}, &i18n.Message{
+			ID:    "RebasingTitle",
+			Other: "Rebasing",
+		}, &i18n.Message{
+			ID:    "MergingTitle",
+			Other: "Merging",
+		}, &i18n.Message{
+			ID:    "ConfirmRebase",
+			Other: "Are you sure you want to rebase {{.checkedOutBranch}} onto {{.selectedBranch}}?",
+		}, &i18n.Message{
+			ID:    "ConfirmMerge",
+			Other: "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
+		}, &i18n.Message{}, &i18n.Message{
+			ID:    "FwdNoUpstream",
+			Other: "Cannot fast-forward a branch with no upstream",
+		}, &i18n.Message{
+			ID:    "FwdCommitsToPush",
+			Other: "Cannot fast-forward a branch with commits to push",
 		},
 	)
 }

@@ -98,43 +98,6 @@ func (gui *Gui) handleBranchesPrevLine(g *gocui.Gui, v *gocui.View) error {
 
 // specific functions
 
-func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
-
-	selectedBranch := gui.getSelectedBranch().Name
-	checkedOutBranch := gui.State.Branches[0].Name
-	title := "Rebasing"
-	prompt := fmt.Sprintf("Are you sure you want to rebase %s onto %s?", checkedOutBranch, selectedBranch)
-
-	return gui.createConfirmationPanel(g, v, title, prompt,
-		func(g *gocui.Gui, v *gocui.View) error {
-			if selectedBranch == checkedOutBranch {
-				return gui.createErrorPanel(g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
-			}
-
-			if err := gui.GitCommand.RebaseBranch(selectedBranch); err != nil {
-				if !strings.Contains(err.Error(), "When you have resolved this problem") {
-					return gui.createErrorPanel(gui.g, err.Error())
-				}
-
-				if err := gui.refreshSidePanels(g); err != nil {
-					return err
-				}
-				return gui.createConfirmationPanel(g, v, "Auto-rebase failed", gui.Tr.SLocalize("FoundConflicts"),
-					func(g *gocui.Gui, v *gocui.View) error {
-						return gui.refreshSidePanels(g)
-					}, func(g *gocui.Gui, v *gocui.View) error {
-						if err := gui.GitCommand.AbortRebaseBranch(); err != nil {
-							return err
-						}
-						return gui.refreshSidePanels(g)
-					},
-				)
-			}
-
-			return gui.refreshSidePanels(g)
-		}, nil)
-}
-
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 	if gui.State.Panels.Branches.SelectedLine == -1 {
 		return nil
@@ -263,28 +226,45 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 }
 
 func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
-	checkedOutBranch := gui.State.Branches[0]
-	selectedBranch := gui.getSelectedBranch()
-	defer gui.refreshSidePanels(g)
-	if checkedOutBranch.Name == selectedBranch.Name {
+	checkedOutBranch := gui.State.Branches[0].Name
+	selectedBranch := gui.getSelectedBranch().Name
+	if checkedOutBranch == selectedBranch {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
 	}
-	if err := gui.GitCommand.Merge(selectedBranch.Name); err != nil {
-		if strings.Contains(err.Error(), "fix conflicts") {
-			return gui.createConfirmationPanel(g, v, "Auto-merge failed", gui.Tr.SLocalize("FoundConflicts"),
-				func(g *gocui.Gui, v *gocui.View) error {
-					return nil
-				}, func(g *gocui.Gui, v *gocui.View) error {
-					if err := gui.GitCommand.AbortMergeBranch(); err != nil {
-						return err
-					}
-					return gui.refreshSidePanels(g)
-				},
-			)
-		}
-		return gui.createErrorPanel(g, err.Error())
+	prompt := gui.Tr.TemplateLocalize(
+		"ConfirmMerge",
+		Teml{
+			"checkedOutBranch": checkedOutBranch,
+			"selectedBranch":   selectedBranch,
+		},
+	)
+	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("MergingTitle"), prompt,
+		func(g *gocui.Gui, v *gocui.View) error {
+
+			err := gui.GitCommand.Merge(selectedBranch)
+			return gui.handleGenericMergeCommandResult(err)
+		}, nil)
+}
+
+func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
+	checkedOutBranch := gui.State.Branches[0].Name
+	selectedBranch := gui.getSelectedBranch().Name
+	if selectedBranch == checkedOutBranch {
+		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
 	}
-	return nil
+	prompt := gui.Tr.TemplateLocalize(
+		"ConfirmRebase",
+		Teml{
+			"checkedOutBranch": checkedOutBranch,
+			"selectedBranch":   selectedBranch,
+		},
+	)
+	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("RebasingTitle"), prompt,
+		func(g *gocui.Gui, v *gocui.View) error {
+
+			err := gui.GitCommand.RebaseBranch(selectedBranch)
+			return gui.handleGenericMergeCommandResult(err)
+		}, nil)
 }
 
 func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
@@ -296,10 +276,10 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if branch.Pushables == "?" {
-		return gui.createErrorPanel(gui.g, "Cannot fast-forward a branch with no upstream")
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("FwdNoUpstream"))
 	}
 	if branch.Pushables != "0" {
-		return gui.createErrorPanel(gui.g, "Cannot fast-forward a branch with commits to push")
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("FwdCommitsToPush"))
 	}
 	upstream := "origin" // hardcoding for now
 	message := gui.Tr.TemplateLocalize(

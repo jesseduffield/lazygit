@@ -274,26 +274,6 @@ func (c *GitCommand) RebaseBranch(onto string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git rebase %s %s ", onto, curBranch))
 }
 
-func (c *GitCommand) ContinueRebaseBranch() error {
-	return c.OSCommand.RunCommand("git rebase --continue")
-}
-
-func (c *GitCommand) SkipRebaseBranch() error {
-	return c.OSCommand.RunCommand("git rebase --skip")
-}
-
-func (c *GitCommand) AbortRebaseBranch() error {
-	return c.OSCommand.RunCommand("git rebase --abort")
-}
-
-func (c *GitCommand) ContinueMergeBranch() error {
-	return c.OSCommand.RunCommand("git merge --continue")
-}
-
-func (c *GitCommand) AbortMergeBranch() error {
-	return c.OSCommand.RunCommand("git merge --abort")
-}
-
 // Fetch fetch git repo
 func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCredentials bool) error {
 	return c.OSCommand.DetectUnamePass("git fetch", func(question string) string {
@@ -786,4 +766,11 @@ func (c *GitCommand) ApplyPatch(patch string) (string, error) {
 func (c *GitCommand) FastForward(branchName string) error {
 	upstream := "origin" // hardcoding for now
 	return c.OSCommand.RunCommand(fmt.Sprintf("git fetch %s %s:%s", upstream, branchName, branchName))
+}
+
+// GenericMerge takes a commandType of "merging" or "rebasing" and a command of "abort", "skip" or "continue"
+// By default we skip the editor in the case where a commit will be made
+func (c *GitCommand) GenericMerge(commandType string, command string) error {
+	gitCommand := fmt.Sprintf("git %s %s --%s", c.OSCommand.Platform.skipEditorArg, commandType, command)
+	return c.OSCommand.RunCommand(gitCommand)
 }

@@ -270,27 +270,16 @@ func (gui *Gui) handleCompleteMerge() error {
 	filesView := gui.getFilesView()
 	gui.stageSelectedFile(gui.g)
 	gui.refreshFiles()
+	// if we got conflicts after unstashing, we don't want to call any git
+	// commands to continue rebasing/merging here
+	if gui.State.WorkingTreeState == "normal" {
+		return gui.handleEscapeMerge(gui.g, gui.getMainView())
+	}
 	// if there are no more files with merge conflicts, we should ask whether the user wants to continue
 	if !gui.anyFilesWithMergeConflicts() {
 		// ask if user wants to continue
 		if err := gui.createConfirmationPanel(gui.g, filesView, "continue", gui.Tr.SLocalize("ConflictsResolved"), func(g *gocui.Gui, v *gocui.View) error {
-			if err := gui.genericRebaseCommand("continue"); err != nil {
-				if err == gui.Errors.ErrSubProcess {
-					return err
-				}
-				if strings.Contains(err.Error(), "No changes - did you forget to use") {
-					if err := gui.genericRebaseCommand("skip"); err != nil {
-						if err == gui.Errors.ErrSubProcess {
-							return err
-						}
-						gui.createErrorPanel(gui.g, err.Error())
-					}
-				} else {
-					// HERE is the place for this special error panel
-					gui.createErrorPanel(gui.g, err.Error())
-				}
-			}
-			return gui.refreshSidePanels(gui.g)
+			return gui.genericMergeCommand("continue")
 		}, nil); err != nil {
 			return err
 		}

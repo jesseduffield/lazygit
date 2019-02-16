@@ -239,6 +239,9 @@ func GetDefaultConfig() []byte {
       - blue
   commitLength:
     show: true
+  git:
+    merging:
+      manualCommit: false
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often a update is checked for

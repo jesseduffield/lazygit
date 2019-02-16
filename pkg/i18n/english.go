@@ -25,6 +25,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "DiffTitle",
 			Other: "Diff",
 		}, &i18n.Message{
+			ID:    "LogTitle",
+			Other: "Log",
+		}, &i18n.Message{
 			ID:    "FilesTitle",
 			Other: "Files",
 		}, &i18n.Message{
@@ -36,6 +39,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashTitle",
 			Other: "Stash",
+		}, &i18n.Message{
+			ID:    "StagingMainTitle",
+			Other: `Stage Lines/Hunks`,
+		}, &i18n.Message{
+			ID:    "MergingMainTitle",
+			Other: "Resolve merge conflicts",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
 			Other: "Commit message",
@@ -194,7 +203,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "rebase branch",
 		}, &i18n.Message{
 			ID:    "CantRebaseOntoSelf",
-			Other: "It is not possible to rebase the branch onto itself!",
+			Other: "You cannot rebase a branch onto itself",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "You cannot merge a branch into itself",
@@ -340,9 +349,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
 			Other: "No view matching newLineFocused switch statement",
 		}, &i18n.Message{
-			ID:    "settingPreviewsViewTo",
-			Other: "setting previous view to: {{.oldViewName}}",
-		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "new focused view is {{.newFocusedView}}",
 		}, &i18n.Message{
@@ -445,9 +451,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "FileStagingRequirements",
 			Other: `Can only stage individual lines for tracked files with unstaged changes`,
 		}, &i18n.Message{
-			ID:    "StagingTitle",
-			Other: `Staging`,
-		}, &i18n.Message{
 			ID:    "StageHunk",
 			Other: `stage hunk`,
 		}, &i18n.Message{
@@ -469,11 +472,11 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "Fetching",
 			Other: "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
 		}, &i18n.Message{
-			ID:    "MergingTitle",
-			Other: "Resolve merge conflicts",
-		}, &i18n.Message{
 			ID:    "FoundConflicts",
 			Other: "Damn, conflicts! To abort press 'esc', otherwise press 'enter'",
+		}, &i18n.Message{
+			ID:    "FoundConflictsTitle",
+			Other: "Auto-merge failed",
 		}, &i18n.Message{
 			ID:    "Undo",
 			Other: "undo",
@@ -501,6 +504,24 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ConflictsResolved",
 			Other: "all merge conflicts resolved. Continue?",
+		}, &i18n.Message{
+			ID:    "RebasingTitle",
+			Other: "Rebasing",
+		}, &i18n.Message{
+			ID:    "MergingTitle",
+			Other: "Merging",
+		}, &i18n.Message{
+			ID:    "ConfirmRebase",
+			Other: "Are you sure you want to rebase {{.checkedOutBranch}} onto {{.selectedBranch}}?",
+		}, &i18n.Message{
+			ID:    "ConfirmMerge",
+			Other: "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
+		}, &i18n.Message{}, &i18n.Message{
+			ID:    "FwdNoUpstream",
+			Other: "Cannot fast-forward a branch with no upstream",
+		}, &i18n.Message{
+			ID:    "FwdCommitsToPush",
+			Other: "Cannot fast-forward a branch with commits to push",
 		},
 	)
 }
