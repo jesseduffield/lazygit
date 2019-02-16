@@ -97,6 +97,14 @@
   version = "v1.4.7"
 
 [[projects]]
+  digest = "1:ea1d5bfdb4ec5c2ee48c97865e6de1a28fa8c4849a3f56b27d521aa619038e06"
+  name = "github.com/go-errors/errors"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "a6af135bd4e28680facf08a3d206b454abc877a4"
+  version = "v1.0.1"
+
+[[projects]]
   digest = "1:74d9b0a7b4107b41e0ade759fac64502876f82d29fb23d77b3dd24b194ee3dd5"
   name = "github.com/go-ini/ini"
   packages = ["."]
@@ -189,11 +197,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9b266d7748a5d94985fd9e323494f5b8ae1ab3e910418e898dfe7f03339ddbcd"
+  digest = "1:a783e08c25b01d2b1b447469bc6e80a666ddac91087fb286864a81c34d9da99d"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "cfa9e452ba5ebf014041846851152d64a59dce14"
+  revision = "985c2f8d59e55de7e78b1ecf72277041df7dd44d"
 
 [[projects]]
   branch = "master"
@@ -620,6 +628,7 @@
   input-imports = [
     "github.com/cloudfoundry/jibber_jabber",
     "github.com/fatih/color",
+    "github.com/go-errors/errors",
     "github.com/golang-collections/collections/stack",
     "github.com/heroku/rollrus",
     "github.com/jesseduffield/go-getter",

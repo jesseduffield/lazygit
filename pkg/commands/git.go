@@ -1,11 +1,12 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -27,11 +28,11 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 		}
 
 		if !os.IsNotExist(err) {
-			return err
+			return errors.Wrap(err, 0)
 		}
 
 		if err = chdir(".."); err != nil {
-			return err
+			return errors.Wrap(err, 0)
 		}
 	}
 }
