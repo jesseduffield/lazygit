@@ -8,7 +8,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/rpc"
 	"os"
@@ -335,9 +334,8 @@ func HasLGAsSubProcess() bool {
 	lgHostPid := os.Getpid()
 	list, err := ps.Processes()
 	if err != nil {
-		log.Fatal(err)
+		return false
 	}
-	status := false
 procListLoop:
 	for _, proc := range list {
 		procName := proc.Executable()
@@ -352,8 +350,7 @@ procListLoop:
 				continue procListLoop
 			}
 			if proc.Pid() == lgHostPid {
-				status = true
-				break procListLoop
+				return true
 			}
 			stepsBack++
 			if stepsBack > 3 {
@@ -362,5 +359,5 @@ procListLoop:
 			parrent = proc.PPid()
 		}
 	}
-	return status
+	return false
 }
