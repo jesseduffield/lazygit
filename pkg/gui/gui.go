@@ -124,17 +124,16 @@ type panelStates struct {
 }
 
 type guiState struct {
-	Files             []*commands.File
-	Branches          []*commands.Branch
-	Commits           []*commands.Commit
-	StashEntries      []*commands.StashEntry
-	PreviousView      string
-	HasMergeConflicts bool
-	Platform          commands.Platform
-	Updating          bool
-	Panels            *panelStates
-	WorkingTreeState  string // one of "merging", "rebasing", "normal"
-	Contexts          map[string]string
+	Files            []*commands.File
+	Branches         []*commands.Branch
+	Commits          []*commands.Commit
+	StashEntries     []*commands.StashEntry
+	PreviousView     string
+	Platform         commands.Platform
+	Updating         bool
+	Panels           *panelStates
+	WorkingTreeState string // one of "merging", "rebasing", "normal"
+	Contexts         map[string]string
 }
 
 // NewGui builds a new gui handler
