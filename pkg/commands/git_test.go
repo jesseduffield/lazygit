@@ -66,6 +66,7 @@ func newDummyGitCommand() *GitCommand {
 		Log:                newDummyLog(),
 		OSCommand:          newDummyOSCommand(),
 		Tr:                 i18n.NewLocalizer(newDummyLog()),
+		Config:             newDummyAppConfig(),
 		getGlobalGitConfig: func(string) (string, error) { return "", nil },
 		getLocalGitConfig:  func(string) (string, error) { return "", nil },
 		removeFile:         func(string) error { return nil },

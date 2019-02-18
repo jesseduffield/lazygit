@@ -40,7 +40,7 @@ func main() {
 		fmt.Printf("%s\n", config.GetDefaultConfig())
 		os.Exit(0)
 	}
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, *debuggingFlag)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

@@ -9,9 +9,12 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/mgutz/str"
+
 	"github.com/fatih/color"
 	"github.com/go-errors/errors"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -68,13 +71,14 @@ type GitCommand struct {
 	Worktree           *gogit.Worktree
 	Repo               *gogit.Repository
 	Tr                 *i18n.Localizer
+	Config             config.AppConfigurer
 	getGlobalGitConfig func(string) (string, error)
 	getLocalGitConfig  func(string) (string, error)
 	removeFile         func(string) error
 }
 
 // NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) (*GitCommand, error) {
+func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*GitCommand, error) {
 	var worktree *gogit.Worktree
 	var repo *gogit.Repository
 
@@ -104,6 +108,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 		Tr:                 tr,
 		Worktree:           worktree,
 		Repo:               repo,
+		Config:             config,
 		getGlobalGitConfig: gitconfig.Global,
 		getLocalGitConfig:  gitconfig.Local,
 		removeFile:         os.RemoveAll,
@@ -773,4 +778,63 @@ func (c *GitCommand) FastForward(branchName string) error {
 func (c *GitCommand) GenericMerge(commandType string, command string) error {
 	gitCommand := fmt.Sprintf("git %s %s --%s", c.OSCommand.Platform.skipEditorArg, commandType, command)
 	return c.OSCommand.RunCommand(gitCommand)
+}
+
+func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action string) (*exec.Cmd, error) {
+	ex, err := os.Executable() // get the executable path for git to use
+	if err != nil {
+		ex = os.Args[0] // fallback to the first call argument if needed
+	}
+
+	// assume for now they won't pick the bottom commit
+	c.Log.Warn(len(commits))
+	c.Log.Warn(index)
+	if len(commits) <= index+1 {
+		// TODO: support more than say 30 commits and ensure this logic is correct, and i18n
+		return nil, errors.New("You cannot interactive rebase onto the first commit")
+	}
+
+	todo := ""
+	for i, commit := range commits[0 : index+1] {
+		a := "pick"
+		if i == index {
+			a = action
+		}
+		todo += a + " " + commit.Sha + "\n"
+	}
+
+	debug := "FALSE"
+	if c.OSCommand.Config.GetDebug() == true {
+		debug = "TRUE"
+	}
+
+	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive %s", commits[index+1].Sha))
+
+	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
+
+	cmd.Env = os.Environ()
+	cmd.Env = append(
+		cmd.Env,
+		"LAZYGIT_CONTEXT=INTERACTIVE_REBASE",
+		"LAZYGIT_REBASE_TODO="+todo,
+		"DEBUG="+debug,
+		"LANG=en_US.UTF-8",   // Force using EN as language
+		"LC_ALL=en_US.UTF-8", // Force using EN as language
+		"GIT_SEQUENCE_EDITOR="+ex,
+	)
+
+	if true {
+		return cmd, nil
+	}
+
+	out, err := cmd.CombinedOutput()
+	outString := string(out)
+	c.Log.Info(outString)
+	if err != nil {
+		if len(outString) == 0 {
+			return nil, err
+		}
+		return nil, errors.New(outString)
+	}
+	return nil, nil
 }

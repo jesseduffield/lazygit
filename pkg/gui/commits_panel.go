@@ -181,14 +181,17 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
-	if gui.State.Panels.Commits.SelectedLine != 0 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+	subProcess, err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "reword")
+	if err != nil {
+		return err
 	}
-
-	gui.SubProcess = gui.GitCommand.PrepareCommitAmendSubProcess()
-	g.Update(func(g *gocui.Gui) error {
+	if subProcess != nil {
+		gui.SubProcess = subProcess
+		// g.Update(func(g *gocui.Gui) error {
+		// 	return gui.Errors.ErrSubProcess
+		// })
 		return gui.Errors.ErrSubProcess
-	})
+	}
 
 	return nil
 }

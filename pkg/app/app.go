@@ -20,13 +20,14 @@ import (
 type App struct {
 	closers []io.Closer
 
-	Config     config.AppConfigurer
-	Log        *logrus.Entry
-	OSCommand  *commands.OSCommand
-	GitCommand *commands.GitCommand
-	Gui        *gui.Gui
-	Tr         *i18n.Localizer
-	Updater    *updates.Updater // may only need this on the Gui
+	Config       config.AppConfigurer
+	Log          *logrus.Entry
+	OSCommand    *commands.OSCommand
+	GitCommand   *commands.GitCommand
+	Gui          *gui.Gui
+	Tr           *i18n.Localizer
+	Updater      *updates.Updater // may only need this on the Gui
+	DemonContext string
 }
 
 func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
@@ -54,7 +55,7 @@ func newDevelopmentLogger(config config.AppConfigurer) *logrus.Logger {
 func newLogger(config config.AppConfigurer) *logrus.Entry {
 	var log *logrus.Logger
 	environment := "production"
-	if config.GetDebug() {
+	if config.GetDebug() || os.Getenv("DEBUG") == "TRUE" {
 		environment = "development"
 		log = newDevelopmentLogger(config)
 	} else {
@@ -86,15 +87,21 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	}
 	var err error
 	app.Log = newLogger(config)
-	app.OSCommand = commands.NewOSCommand(app.Log, config)
-
 	app.Tr = i18n.NewLocalizer(app.Log)
+
+	// if we are being called in 'demon' mode, we can just return here
+	app.DemonContext = os.Getenv("LAZYGIT_CONTEXT")
+	if app.DemonContext != "" {
+		return app, nil
+	}
+
+	app.OSCommand = commands.NewOSCommand(app.Log, config)
 
 	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand, app.Tr)
 	if err != nil {
 		return app, err
 	}
-	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr)
+	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr, app.Config)
 	if err != nil {
 		return app, err
 	}
@@ -106,7 +113,19 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 }
 
 func (app *App) Run() error {
+	if app.DemonContext == "INTERACTIVE_REBASE" {
+		return app.Rebase()
+	}
+
 	return app.Gui.RunWithSubprocesses()
+}
+
+func (app *App) Rebase() error {
+	app.Log.Error("TEST")
+
+	ioutil.WriteFile(".git/rebase-merge/git-rebase-todo", []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0644)
+
+	return nil
 }
 
 // Close closes any resources

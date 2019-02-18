@@ -36,7 +36,7 @@ func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
 		if err := os.Chdir(repo.path); err != nil {
 			return err
 		}
-		newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr)
+		newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
 		if err != nil {
 			return err
 		}
