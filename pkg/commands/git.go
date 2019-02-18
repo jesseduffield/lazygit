@@ -276,7 +276,7 @@ func (c *GitCommand) RebaseBranch(onto string) error {
 		return err
 	}
 
-	return c.OSCommand.RunCommand(fmt.Sprintf("git rebase --autoStash %s %s ", onto, curBranch))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git rebase --autostash %s %s ", onto, curBranch))
 }
 
 // Fetch fetch git repo
@@ -602,8 +602,59 @@ func (c *GitCommand) GetNormalRebasingCommits() ([]*Commit, error) {
 	return commits, nil
 }
 
+// git-rebase-todo example:
+// pick ac446ae94ee560bdb8d1d057278657b251aaef17 ac446ae
+// pick afb893148791a2fbd8091aeb81deba4930c73031 afb8931
+
+// git-rebase-todo.backup example:
+// pick 49cbba374296938ea86bbd4bf4fee2f6ba5cccf6 third commit on master
+// pick ac446ae94ee560bdb8d1d057278657b251aaef17 blah  commit on master
+// pick afb893148791a2fbd8091aeb81deba4930c73031 fourth commit on master
+
+// GetInteractiveRebasingCommits takes our git-rebase-todo and our git-rebase-todo.backup files
+// and extracts out the sha and names of commits that we still have to go
+// in the rebase:
 func (c *GitCommand) GetInteractiveRebasingCommits() ([]*Commit, error) {
-	return nil, nil
+	bytesContent, err := ioutil.ReadFile(".git/rebase-merge/git-rebase-todo")
+	var content []string
+	if err == nil {
+		content = strings.Split(string(bytesContent), "\n")
+		if len(content) > 0 && content[len(content)-1] == "" {
+			content = content[0 : len(content)-1]
+		}
+	}
+
+	// for each of them, grab the matching commit name in the backup
+	bytesContent, err = ioutil.ReadFile(".git/rebase-merge/git-rebase-todo.backup")
+	var backupContent []string
+	if err == nil {
+		backupContent = strings.Split(string(bytesContent), "\n")
+	}
+
+	commits := []*Commit{}
+	for _, todoLine := range content {
+		commit := c.extractCommit(todoLine, backupContent)
+		if commit != nil {
+			commits = append([]*Commit{commit}, commits...)
+		}
+	}
+
+	return commits, nil
+}
+
+func (c *GitCommand) extractCommit(todoLine string, backupContent []string) *Commit {
+	for _, backupLine := range backupContent {
+		split := strings.Split(todoLine, " ")
+		prefix := strings.Join(split[0:2], " ")
+		if strings.HasPrefix(backupLine, prefix) {
+			return &Commit{
+				Sha:    split[2],
+				Name:   strings.TrimPrefix(backupLine, prefix+" "),
+				Status: "rebasing",
+			}
+		}
+	}
+	return nil
 }
 
 // assuming the file starts like this:
@@ -807,7 +858,7 @@ func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, erro
 		return nil, err
 	}
 
-	return c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo)
+	return c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, true)
 }
 
 func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
@@ -824,7 +875,7 @@ func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
 		todo = "pick " + commit.Sha + "\n" + todo
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo)
+	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo, true)
 	if err != nil {
 		return err
 	}
@@ -838,7 +889,8 @@ func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action stri
 		return err
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo)
+	autoStash := action != "edit"
+	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, autoStash)
 	if err != nil {
 		return err
 	}
@@ -846,7 +898,7 @@ func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action stri
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
-func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string) (*exec.Cmd, error) {
+func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, autoStash bool) (*exec.Cmd, error) {
 	ex, err := os.Executable() // get the executable path for git to use
 	if err != nil {
 		ex = os.Args[0] // fallback to the first call argument if needed
@@ -857,7 +909,9 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 		debug = "TRUE"
 	}
 
-	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --autoStash --interactive %s", baseSha))
+	// we do not want to autostash if we are editing
+
+	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive --autostash %s", baseSha))
 
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
