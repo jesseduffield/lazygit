@@ -78,8 +78,8 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 	})
 }
 
-// Setup bootstrap a new application
-func Setup(config config.AppConfigurer) (*App, error) {
+// NewApp bootstrap a new application
+func NewApp(config config.AppConfigurer) (*App, error) {
 	app := &App{
 		closers: []io.Closer{},
 		Config:  config,
@@ -103,6 +103,10 @@ func Setup(config config.AppConfigurer) (*App, error) {
 		return app, err
 	}
 	return app, nil
+}
+
+func (app *App) Run() error {
+	return app.Gui.RunWithSubprocesses()
 }
 
 // Close closes any resources

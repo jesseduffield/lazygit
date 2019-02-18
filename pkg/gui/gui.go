@@ -7,7 +7,6 @@ import (
 	// "io/ioutil"
 
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -577,7 +576,7 @@ func (gui *Gui) Run() error {
 // RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
 // if the error returned from a run is a ErrSubProcess, it runs the subprocess
 // otherwise it handles the error, possibly by quitting the application
-func (gui *Gui) RunWithSubprocesses() {
+func (gui *Gui) RunWithSubprocesses() error {
 	for {
 		if err := gui.Run(); err != nil {
 			if err == gocui.ErrQuit {
@@ -594,12 +593,11 @@ func (gui *Gui) RunWithSubprocesses() {
 				gui.SubProcess.Stdin = nil
 				gui.SubProcess = nil
 			} else {
-				newErr := errors.Wrap(err, 0)
-				stackTrace := newErr.ErrorStack()
-				log.Panicln(stackTrace)
+				return err
 			}
 		}
 	}
+	return nil
 }
 
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {

@@ -478,6 +478,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "FwdCommitsToPush",
 			Other: "Cannot fast-forward a branch with commits to push",
+		}, &i18n.Message{
+			ID:    "ErrorOccurred",
+			Other: "An error occurred! Please create an issue at https://github.com/jesseduffield/lazygit/issues",
 		},
 	)
 }
