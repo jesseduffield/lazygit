@@ -2,16 +2,12 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/mgutz/str"
 
-	"github.com/fatih/color"
 	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -248,21 +244,6 @@ func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
 		return "?", "?"
 	}
 	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
-}
-
-// GetUnpushedCommits Returns the sha's of the commits that have not yet been pushed
-// to the remote branch of the current branch, a map is returned to ease look up
-func (c *GitCommand) GetUnpushedCommits() map[string]bool {
-	pushables := map[string]bool{}
-	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --abbrev-commit")
-	if err != nil {
-		return pushables
-	}
-	for _, p := range utils.SplitLines(o) {
-		pushables[p] = true
-	}
-
-	return pushables
 }
 
 // RenameCommit renames the topmost commit with the given name
@@ -525,226 +506,6 @@ func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
-}
-
-func (c *GitCommand) getMergeBase() (string, error) {
-	currentBranch, err := c.CurrentBranchName()
-	if err != nil {
-		return "", err
-	}
-
-	baseBranch := "master"
-	if strings.HasPrefix(currentBranch, "feature/") {
-		baseBranch = "develop"
-	}
-
-	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
-	if err != nil {
-		// swallowing error because it's not a big deal; probably because there are no commits yet
-	}
-	return output, nil
-}
-
-// GetRebasingCommits obtains the commits that we're in the process of rebasing
-func (c *GitCommand) GetRebasingCommits() ([]*Commit, error) {
-	rebaseMode, err := c.RebaseMode()
-	if err != nil {
-		return nil, err
-	}
-	switch rebaseMode {
-	case "normal":
-		return c.GetNormalRebasingCommits()
-	case "interactive":
-		return c.GetInteractiveRebasingCommits()
-	default:
-		return nil, nil
-	}
-}
-
-func (c *GitCommand) GetNormalRebasingCommits() ([]*Commit, error) {
-	rewrittenCount := 0
-	bytesContent, err := ioutil.ReadFile(".git/rebase-apply/rewritten")
-	if err == nil {
-		content := string(bytesContent)
-		rewrittenCount = len(strings.Split(content, "\n"))
-	}
-
-	// we know we're rebasing, so lets get all the files whose names have numbers
-	commits := []*Commit{}
-	err = filepath.Walk(".git/rebase-apply", func(path string, f os.FileInfo, err error) error {
-		if rewrittenCount > 0 {
-			rewrittenCount -= 1
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		re := regexp.MustCompile(`^\d+$`)
-		if !re.MatchString(f.Name()) {
-			return nil
-		}
-		bytesContent, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		content := string(bytesContent)
-		commit, err := c.CommitFromPatch(content)
-		if err != nil {
-			return err
-		}
-		commits = append([]*Commit{commit}, commits...)
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return commits, nil
-}
-
-// git-rebase-todo example:
-// pick ac446ae94ee560bdb8d1d057278657b251aaef17 ac446ae
-// pick afb893148791a2fbd8091aeb81deba4930c73031 afb8931
-
-// git-rebase-todo.backup example:
-// pick 49cbba374296938ea86bbd4bf4fee2f6ba5cccf6 third commit on master
-// pick ac446ae94ee560bdb8d1d057278657b251aaef17 blah  commit on master
-// pick afb893148791a2fbd8091aeb81deba4930c73031 fourth commit on master
-
-// GetInteractiveRebasingCommits takes our git-rebase-todo and our git-rebase-todo.backup files
-// and extracts out the sha and names of commits that we still have to go
-// in the rebase:
-func (c *GitCommand) GetInteractiveRebasingCommits() ([]*Commit, error) {
-	bytesContent, err := ioutil.ReadFile(".git/rebase-merge/git-rebase-todo")
-	var content []string
-	if err == nil {
-		content = strings.Split(string(bytesContent), "\n")
-		if len(content) > 0 && content[len(content)-1] == "" {
-			content = content[0 : len(content)-1]
-		}
-	}
-
-	// for each of them, grab the matching commit name in the backup
-	bytesContent, err = ioutil.ReadFile(".git/rebase-merge/git-rebase-todo.backup")
-	var backupContent []string
-	if err == nil {
-		backupContent = strings.Split(string(bytesContent), "\n")
-	}
-
-	commits := []*Commit{}
-	for _, todoLine := range content {
-		commit := c.extractCommit(todoLine, backupContent)
-		if commit != nil {
-			commits = append([]*Commit{commit}, commits...)
-		}
-	}
-
-	return commits, nil
-}
-
-func (c *GitCommand) extractCommit(todoLine string, backupContent []string) *Commit {
-	for _, backupLine := range backupContent {
-		split := strings.Split(todoLine, " ")
-		prefix := strings.Join(split[0:2], " ")
-		if strings.HasPrefix(backupLine, prefix) {
-			return &Commit{
-				Sha:    split[2],
-				Name:   strings.TrimPrefix(backupLine, prefix+" "),
-				Status: "rebasing",
-			}
-		}
-	}
-	return nil
-}
-
-// assuming the file starts like this:
-// From e93d4193e6dd45ca9cf3a5a273d7ba6cd8b8fb20 Mon Sep 17 00:00:00 2001
-// From: Lazygit Tester <test@example.com>
-// Date: Wed, 5 Dec 2018 21:03:23 +1100
-// Subject: second commit on master
-func (c *GitCommand) CommitFromPatch(content string) (*Commit, error) {
-	lines := strings.Split(content, "\n")
-	sha := strings.Split(lines[0], " ")[1][0:7]
-	name := strings.TrimPrefix(lines[3], "Subject: ")
-	return &Commit{
-		Sha:    sha,
-		Name:   name,
-		Status: "rebasing",
-	}, nil
-}
-
-// GetCommits obtains the commits of the current branch
-func (c *GitCommand) GetCommits() ([]*Commit, error) {
-	commits := []*Commit{}
-	// here we want to also prepend the commits that we're in the process of rebasing
-	rebasingCommits, err := c.GetRebasingCommits()
-	if err != nil {
-		return nil, err
-	}
-	if len(rebasingCommits) > 0 {
-		commits = append(commits, rebasingCommits...)
-	}
-
-	unpushedCommits := c.GetUnpushedCommits()
-	log := c.GetLog()
-
-	// now we can split it up and turn it into commits
-	for _, line := range utils.SplitLines(log) {
-		splitLine := strings.Split(line, " ")
-		sha := splitLine[0]
-		_, unpushed := unpushedCommits[sha]
-		status := map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
-		commits = append(commits, &Commit{
-			Sha:           sha,
-			Name:          strings.Join(splitLine[1:], " "),
-			Status:        status,
-			DisplayString: strings.Join(splitLine, " "),
-		})
-	}
-	if len(rebasingCommits) > 0 {
-		currentCommit := commits[len(rebasingCommits)]
-		blue := color.New(color.FgYellow)
-		youAreHere := blue.Sprint("<-- YOU ARE HERE ---")
-		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
-	}
-	return c.setCommitMergedStatuses(commits)
-}
-
-func (c *GitCommand) setCommitMergedStatuses(commits []*Commit) ([]*Commit, error) {
-	ancestor, err := c.getMergeBase()
-	if err != nil {
-		return nil, err
-	}
-	if ancestor == "" {
-		return commits, nil
-	}
-	passedAncestor := false
-	for i, commit := range commits {
-		if strings.HasPrefix(ancestor, commit.Sha) {
-			passedAncestor = true
-		}
-		if commit.Status != "pushed" {
-			continue
-		}
-		if passedAncestor {
-			commits[i].Status = "merged"
-		}
-	}
-	return commits, nil
-}
-
-// GetLog gets the git log (currently limited to 30 commits for performance
-// until we work out lazy loading
-func (c *GitCommand) GetLog() string {
-	// currently limiting to 30 for performance reasons
-	// TODO: add lazyloading when you scroll down
-	result, err := c.OSCommand.RunCommandWithOutput("git log --oneline -30")
-	if err != nil {
-		// assume if there is an error there are no commits yet for this branch
-		return ""
-	}
-
-	return result
 }
 
 // Ignore adds a file to the gitignore for the repo

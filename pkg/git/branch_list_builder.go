@@ -20,6 +20,9 @@ import (
 // our safe branches, then add the remaining safe branches, ensuring uniqueness
 // along the way
 
+// if we find out we need to use one of these functions in the git.go file, we
+// can just pull them out of here and put them there and then call them from in here
+
 // BranchListBuilder returns a list of Branch objects for the current repo
 type BranchListBuilder struct {
 	Log        *logrus.Entry

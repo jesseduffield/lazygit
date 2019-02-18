@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/git"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -39,7 +40,11 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		commits, err := gui.GitCommand.GetCommits()
+		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand)
+		if err != nil {
+			return err
+		}
+		commits, err := builder.GetCommits()
 		if err != nil {
 			return err
 		}
