@@ -650,8 +650,8 @@ func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action stri
 		return err
 	}
 
-	autoStash := action != "edit"
-	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, autoStash)
+	// TODO: decide whether to autostash when action == editing
+	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, true)
 	if err != nil {
 		return err
 	}
@@ -670,9 +670,12 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 		debug = "TRUE"
 	}
 
-	// we do not want to autostash if we are editing
+	autoStashFlag := ""
+	if autoStash {
+		autoStashFlag = "--autostash"
+	}
 
-	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive --autostash %s", baseSha))
+	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive %s %s", autoStashFlag, baseSha))
 
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
