@@ -283,6 +283,19 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "renameCommit",
 			Other: "rename commit",
 		}, &i18n.Message{
+
+			ID:    "deleteCommit",
+			Other: "delete commit", // TODO: other languages
+		}, &i18n.Message{
+			ID:    "moveDownCommit",
+			Other: "move commit down one", // TODO: other languages
+		}, &i18n.Message{
+			ID:    "moveUpCommit",
+			Other: "move commit up one", // TODO: other languages
+		}, &i18n.Message{
+			ID:    "editCommit",
+			Other: "edit commit", // TODO: other languages
+		}, &i18n.Message{
 			ID:    "renameCommitEditor",
 			Other: "rename commit with editor",
 		}, &i18n.Message{

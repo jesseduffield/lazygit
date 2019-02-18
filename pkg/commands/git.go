@@ -276,7 +276,7 @@ func (c *GitCommand) RebaseBranch(onto string) error {
 		return err
 	}
 
-	return c.OSCommand.RunCommand(fmt.Sprintf("git rebase %s %s ", onto, curBranch))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git rebase --autoStash %s %s ", onto, curBranch))
 }
 
 // Fetch fetch git repo
@@ -462,12 +462,22 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 	return strings.Contains(output, "conclude merge") || strings.Contains(output, "unmerged paths"), nil
 }
 
-func (c *GitCommand) IsInRebaseState() (bool, error) {
+// RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
+// and "interactive" for interactive rebase
+func (c *GitCommand) RebaseMode() (string, error) {
 	exists, err := c.OSCommand.FileExists(".git/rebase-apply")
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	return exists, nil
+	if exists {
+		return "normal", nil
+	}
+	exists, err = c.OSCommand.FileExists(".git/rebase-merge")
+	if exists {
+		return "interactive", err
+	} else {
+		return "", err
+	}
 }
 
 // RemoveFile directly
@@ -537,14 +547,21 @@ func (c *GitCommand) getMergeBase() (string, error) {
 
 // GetRebasingCommits obtains the commits that we're in the process of rebasing
 func (c *GitCommand) GetRebasingCommits() ([]*Commit, error) {
-	rebasing, err := c.IsInRebaseState()
+	rebaseMode, err := c.RebaseMode()
 	if err != nil {
 		return nil, err
 	}
-	if !rebasing {
+	switch rebaseMode {
+	case "normal":
+		return c.GetNormalRebasingCommits()
+	case "interactive":
+		return c.GetInteractiveRebasingCommits()
+	default:
 		return nil, nil
 	}
+}
 
+func (c *GitCommand) GetNormalRebasingCommits() ([]*Commit, error) {
 	rewrittenCount := 0
 	bytesContent, err := ioutil.ReadFile(".git/rebase-apply/rewritten")
 	if err == nil {
@@ -583,6 +600,10 @@ func (c *GitCommand) GetRebasingCommits() ([]*Commit, error) {
 	}
 
 	return commits, nil
+}
+
+func (c *GitCommand) GetInteractiveRebasingCommits() ([]*Commit, error) {
+	return nil, nil
 }
 
 // assuming the file starts like this:
@@ -780,27 +801,55 @@ func (c *GitCommand) GenericMerge(commandType string, command string) error {
 	return c.OSCommand.RunCommand(gitCommand)
 }
 
-func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action string) (*exec.Cmd, error) {
-	ex, err := os.Executable() // get the executable path for git to use
+func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, error) {
+	todo, err := c.GenerateGenericRebaseTodo(commits, index, "reword")
 	if err != nil {
-		ex = os.Args[0] // fallback to the first call argument if needed
+		return nil, err
 	}
 
-	// assume for now they won't pick the bottom commit
-	c.Log.Warn(len(commits))
-	c.Log.Warn(index)
-	if len(commits) <= index+1 {
+	return c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo)
+}
+
+func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
+	// we must ensure that we have at least two commits after the selected one
+	if len(commits) <= index+2 {
+		// assuming they aren't picking the bottom commit
 		// TODO: support more than say 30 commits and ensure this logic is correct, and i18n
-		return nil, errors.New("You cannot interactive rebase onto the first commit")
+		return errors.New("Not enough room")
 	}
 
 	todo := ""
-	for i, commit := range commits[0 : index+1] {
-		a := "pick"
-		if i == index {
-			a = action
-		}
-		todo += a + " " + commit.Sha + "\n"
+	orderedCommits := append(commits[0:index], commits[index+1], commits[index])
+	for _, commit := range orderedCommits {
+		todo = "pick " + commit.Sha + "\n" + todo
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo)
+	if err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunPreparedCommand(cmd)
+}
+
+func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action string) error {
+	todo, err := c.GenerateGenericRebaseTodo(commits, index, action)
+	if err != nil {
+		return err
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo)
+	if err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunPreparedCommand(cmd)
+}
+
+func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string) (*exec.Cmd, error) {
+	ex, err := os.Executable() // get the executable path for git to use
+	if err != nil {
+		ex = os.Args[0] // fallback to the first call argument if needed
 	}
 
 	debug := "FALSE"
@@ -808,7 +857,7 @@ func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action stri
 		debug = "TRUE"
 	}
 
-	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive %s", commits[index+1].Sha))
+	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --autoStash --interactive %s", baseSha))
 
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
@@ -823,18 +872,27 @@ func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action stri
 		"GIT_SEQUENCE_EDITOR="+ex,
 	)
 
-	if true {
-		return cmd, nil
+	return cmd, nil
+}
+
+func (c *GitCommand) HardReset(baseSha string) error {
+	return c.OSCommand.RunCommand("git reset --hard " + baseSha)
+}
+
+func (v *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, index int, action string) (string, error) {
+	if len(commits) <= index+1 {
+		// assuming they aren't picking the bottom commit
+		// TODO: support more than say 30 commits and ensure this logic is correct, and i18n
+		return "", errors.New("You cannot interactive rebase onto the first commit")
 	}
 
-	out, err := cmd.CombinedOutput()
-	outString := string(out)
-	c.Log.Info(outString)
-	if err != nil {
-		if len(outString) == 0 {
-			return nil, err
+	todo := ""
+	for i, commit := range commits[0 : index+1] {
+		a := "pick"
+		if i == index {
+			a = action
 		}
-		return nil, errors.New(outString)
+		todo = a + " " + commit.Sha + "\n" + todo
 	}
-	return nil, nil
+	return todo, nil
 }

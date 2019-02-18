@@ -181,17 +181,45 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
-	subProcess, err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "reword")
+	subProcess, err := gui.GitCommand.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLine)
 	if err != nil {
-		return err
+		return gui.createErrorPanel(gui.g, err.Error())
 	}
 	if subProcess != nil {
 		gui.SubProcess = subProcess
-		// g.Update(func(g *gocui.Gui) error {
-		// 	return gui.Errors.ErrSubProcess
-		// })
 		return gui.Errors.ErrSubProcess
 	}
 
 	return nil
+}
+
+func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
+	// TODO: i18n
+	return gui.createConfirmationPanel(gui.g, v, "Delete Commit", "Are you sure you want to delete this commit?", func(*gocui.Gui, *gocui.View) error {
+		err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "drop")
+		return gui.handleGenericMergeCommandResult(err)
+	}, nil)
+}
+
+func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
+	gui.State.Panels.Commits.SelectedLine++
+
+	err := gui.GitCommand.MoveCommitDown(gui.State.Commits, gui.State.Panels.Commits.SelectedLine-1)
+	return gui.handleGenericMergeCommandResult(err)
+}
+
+func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
+	if gui.State.Panels.Commits.SelectedLine == 0 {
+		return gui.createErrorPanel(gui.g, "You cannot move the topmost commit up") // TODO: i18n
+	}
+
+	gui.State.Panels.Commits.SelectedLine--
+
+	err := gui.GitCommand.MoveCommitDown(gui.State.Commits, gui.State.Panels.Commits.SelectedLine)
+	return gui.handleGenericMergeCommandResult(err)
+}
+
+func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
+	err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "edit")
+	return gui.handleGenericMergeCommandResult(err)
 }

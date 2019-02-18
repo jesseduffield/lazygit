@@ -121,7 +121,7 @@ func (app *App) Run() error {
 }
 
 func (app *App) Rebase() error {
-	app.Log.Error("TEST")
+	app.Log.Error("Lazygit invokved as interactive rebase demon")
 
 	ioutil.WriteFile(".git/rebase-merge/git-rebase-todo", []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0644)
 

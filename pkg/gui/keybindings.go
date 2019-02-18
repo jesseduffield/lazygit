@@ -311,6 +311,30 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleCommitFixup,
 			Description: gui.Tr.SLocalize("fixupCommit"),
 		}, {
+			ViewName:    "commits",
+			Key:         'd',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitDelete,
+			Description: gui.Tr.SLocalize("deleteCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         'J',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitMoveDown,
+			Description: gui.Tr.SLocalize("moveDownCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         'K',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitMoveUp,
+			Description: gui.Tr.SLocalize("moveUpCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         'e',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitEdit,
+			Description: gui.Tr.SLocalize("editCommit"),
+		}, {
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,

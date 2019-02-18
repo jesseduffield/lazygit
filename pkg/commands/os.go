@@ -247,3 +247,19 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 	}
 	return true, nil
 }
+
+// RunPreparedCommand takes a pointer to an exec.Cmd and runs it
+// this is useful if you need to give your command some environment variables
+// before running it
+func (c *OSCommand) RunPreparedCommand(cmd *exec.Cmd) error {
+	out, err := cmd.CombinedOutput()
+	outString := string(out)
+	c.Log.Info(outString)
+	if err != nil {
+		if len(outString) == 0 {
+			return err
+		}
+		return errors.New(outString)
+	}
+	return nil
+}
