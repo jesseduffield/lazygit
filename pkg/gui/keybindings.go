@@ -84,6 +84,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.scrollDownMain,
 		}, {
 			ViewName:    "",
+			Key:         'm',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateRebaseOptionsMenu,
+			Description: gui.Tr.SLocalize("ViewMergeRebaseOptions"),
+		}, {
+			ViewName:    "",
 			Key:         'P',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.pushFiles,
@@ -161,12 +167,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleFileRemove,
 			Description: gui.Tr.SLocalize("removeFile"),
 		}, {
-			ViewName:    "files", // TODO: might make this for more views as well
-			Key:         'm',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleCreateRebaseOptionsMenu,
-			Description: gui.Tr.SLocalize("ViewMergeRebaseOptions"),
-		}, {
 			ViewName:    "files",
 			Key:         'e',
 			Modifier:    gocui.ModNone,
@@ -192,10 +192,16 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("refreshFiles"),
 		}, {
 			ViewName:    "files",
-			Key:         'S',
+			Key:         's',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleStashSave,
 			Description: gui.Tr.SLocalize("stashFiles"),
+		}, {
+			ViewName:    "files",
+			Key:         'S',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSoftReset,
+			Description: gui.Tr.SLocalize("softReset"),
 		}, {
 			ViewName:    "files",
 			Key:         'a',
@@ -270,7 +276,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("rebaseBranch"),
 		}, {
 			ViewName:    "branches",
-			Key:         'm',
+			Key:         'M',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleMerge,
 			Description: gui.Tr.SLocalize("mergeIntoCurrentBranch"),
@@ -334,6 +340,24 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitEdit,
 			Description: gui.Tr.SLocalize("editCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         'A',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitAmendTo,
+			Description: gui.Tr.SLocalize("amendToCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         'p',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitPick,
+			Description: gui.Tr.SLocalize("pickCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         't',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitRevert,
+			Description: gui.Tr.SLocalize("revertCommit"),
 		}, {
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,

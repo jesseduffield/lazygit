@@ -2,6 +2,7 @@ package commands
 
 import (
 	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Commit : A git commit
@@ -10,6 +11,7 @@ type Commit struct {
 	Name          string
 	Status        string // one of "unpushed", "pushed", "merged", or "rebasing"
 	DisplayString string
+	Action        string // one of "", "pick", "edit", "squash", "reword", "drop", "fixup"
 }
 
 // GetDisplayStrings is a function.
@@ -19,6 +21,7 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 	green := color.New(color.FgGreen)
 	white := color.New(color.FgWhite)
 	blue := color.New(color.FgBlue)
+	cyan := color.New(color.FgCyan)
 
 	var shaColor *color.Color
 	switch c.Status {
@@ -34,5 +37,10 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 		shaColor = white
 	}
 
-	return []string{shaColor.Sprint(c.Sha), white.Sprint(c.Name)}
+	actionString := ""
+	if c.Action != "" {
+		actionString = cyan.Sprint(utils.WithPadding(c.Action, 7)) + " "
+	}
+
+	return []string{shaColor.Sprint(c.Sha), actionString + white.Sprint(c.Name)}
 }

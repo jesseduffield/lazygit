@@ -91,6 +91,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "stashFiles",
 			Other: "stash files",
 		}, &i18n.Message{
+			ID:    "softReset",
+			Other: "soft reset to last commit",
+		}, &i18n.Message{
 			ID:    "open",
 			Other: "open",
 		}, &i18n.Message{
@@ -167,7 +170,13 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "This file has no merge conflicts",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Are you sure you want `reset --hard HEAD` and `clean -fd`? You may lose changes",
+			Other: "Are you sure you want to `reset --hard HEAD` and `clean -fd`? You may lose changes",
+		}, &i18n.Message{
+			ID:    "SoftReset",
+			Other: "Soft reset",
+		}, &i18n.Message{
+			ID:    "ConfirmSoftReset",
+			Other: "Are you sure you want to `reset --soft HEAD^`? The changes in your topmost commit will be placed in your working tree",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
@@ -277,6 +286,18 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "SureFixupThisCommit",
 			Other: "Are you sure you want to fixup this commit? The commit beneath will be squashed up into this one",
 		}, &i18n.Message{
+			ID:    "SureSquashThisCommit",
+			Other: "Are you sure you want to squash this commit into the commit below?", // TODO: i18n
+		}, &i18n.Message{
+			ID:    "Squash",
+			Other: "Squash", // TODO: i18n
+		}, &i18n.Message{
+			ID:    "pickCommit",
+			Other: "pick commit (when mid-rebase)", // TODO: i18n
+		}, &i18n.Message{
+			ID:    "revertCommit",
+			Other: "revert commit", // TODO: i18n
+		}, &i18n.Message{
 			ID:    "OnlyRenameTopCommit",
 			Other: "Can only rename topmost commit",
 		}, &i18n.Message{
@@ -295,6 +316,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "editCommit",
 			Other: "edit commit", // TODO: other languages
+		}, &i18n.Message{
+			ID:    "amendToCommit",
+			Other: "amend commit with staged changes", // TODO: other languages
 		}, &i18n.Message{
 			ID:    "renameCommitEditor",
 			Other: "rename commit with editor",

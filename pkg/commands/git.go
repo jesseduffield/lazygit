@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -360,46 +361,6 @@ func (c *GitCommand) Push(branchName string, force bool, ask func(string) string
 	return c.OSCommand.DetectUnamePass(cmd, ask)
 }
 
-// SquashPreviousTwoCommits squashes a commit down to the one below it
-// retaining the message of the higher commit
-func (c *GitCommand) SquashPreviousTwoCommits(message string) error {
-	// TODO: test this
-	if err := c.OSCommand.RunCommand("git reset --soft HEAD^"); err != nil {
-		return err
-	}
-	// TODO: if password is required, we need to return a subprocess
-	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --amend -m %s", c.OSCommand.Quote(message)))
-}
-
-// SquashFixupCommit squashes a 'FIXUP' commit into the commit beneath it,
-// retaining the commit message of the lower commit
-func (c *GitCommand) SquashFixupCommit(branchName string, shaValue string) error {
-	commands := []string{
-		fmt.Sprintf("git checkout -q %s", shaValue),
-		fmt.Sprintf("git reset --soft %s^", shaValue),
-		fmt.Sprintf("git commit --amend -C %s^", shaValue),
-		fmt.Sprintf("git rebase --onto HEAD %s %s", shaValue, branchName),
-	}
-	for _, command := range commands {
-		c.Log.Info(command)
-
-		if output, err := c.OSCommand.RunCommandWithOutput(command); err != nil {
-			ret := output
-			// We are already in an error state here so we're just going to append
-			// the output of these commands
-			output, _ := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git branch -d %s", shaValue))
-			ret += output
-			output, _ = c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git checkout %s", branchName))
-			ret += output
-
-			c.Log.Info(ret)
-			return errors.New(ret)
-		}
-	}
-
-	return nil
-}
-
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("cat %s", c.OSCommand.Quote(fileName)))
@@ -606,7 +567,7 @@ func (c *GitCommand) FastForward(branchName string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git fetch %s %s:%s", upstream, branchName, branchName))
 }
 
-// GenericMerge takes a commandType of "merging" or "rebasing" and a command of "abort", "skip" or "continue"
+// GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
 func (c *GitCommand) GenericMerge(commandType string, command string) error {
 	gitCommand := fmt.Sprintf("git %s %s --%s", c.OSCommand.Platform.skipEditorArg, commandType, command)
@@ -619,7 +580,7 @@ func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, erro
 		return nil, err
 	}
 
-	return c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, true)
+	return c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, false)
 }
 
 func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
@@ -633,7 +594,7 @@ func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
 	todo := ""
 	orderedCommits := append(commits[0:index], commits[index+1], commits[index])
 	for _, commit := range orderedCommits {
-		todo = "pick " + commit.Sha + "\n" + todo
+		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
 	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo, true)
@@ -650,7 +611,6 @@ func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action stri
 		return err
 	}
 
-	// TODO: decide whether to autostash when action == editing
 	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, true)
 	if err != nil {
 		return err
@@ -659,7 +619,7 @@ func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action stri
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
-func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, autoStash bool) (*exec.Cmd, error) {
+func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (*exec.Cmd, error) {
 	ex, err := os.Executable() // get the executable path for git to use
 	if err != nil {
 		ex = os.Args[0] // fallback to the first call argument if needed
@@ -670,12 +630,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 		debug = "TRUE"
 	}
 
-	autoStashFlag := ""
-	if autoStash {
-		autoStashFlag = "--autostash"
-	}
-
-	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive %s %s", autoStashFlag, baseSha))
+	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive --autostash %s", baseSha))
 
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
@@ -690,6 +645,10 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 		"GIT_SEQUENCE_EDITOR="+ex,
 	)
 
+	if overrideEditor {
+		cmd.Env = append(cmd.Env, "EDITOR="+ex)
+	}
+
 	return cmd, nil
 }
 
@@ -697,7 +656,11 @@ func (c *GitCommand) HardReset(baseSha string) error {
 	return c.OSCommand.RunCommand("git reset --hard " + baseSha)
 }
 
-func (v *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, index int, action string) (string, error) {
+func (c *GitCommand) SoftReset(baseSha string) error {
+	return c.OSCommand.RunCommand("git reset --soft " + baseSha)
+}
+
+func (c *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, index int, action string) (string, error) {
 	if len(commits) <= index+1 {
 		// assuming they aren't picking the bottom commit
 		// TODO: support more than say 30 commits and ensure this logic is correct, and i18n
@@ -710,7 +673,37 @@ func (v *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, index int, act
 		if i == index {
 			a = action
 		}
-		todo = a + " " + commit.Sha + "\n" + todo
+		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 	return todo, nil
+}
+
+// AmendTo amends the given commit with whatever files are staged
+func (c *GitCommand) AmendTo(sha string) error {
+	if err := c.OSCommand.RunCommand(fmt.Sprintf("git commit --fixup=%s", sha)); err != nil {
+		return err
+	}
+	return c.OSCommand.RunCommand(fmt.Sprintf("git %s rebase --interactive --autostash --autosquash %s^", c.OSCommand.Platform.skipEditorArg, sha))
+}
+
+func (c *GitCommand) EditRebaseTodo(index int, action string) error {
+	fileName := ".git/rebase-merge/git-rebase-todo"
+	bytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
+
+	content := strings.Split(string(bytes), "\n")
+
+	contentIndex := len(content) - 2 - index
+	splitLine := strings.Split(content[contentIndex], " ")
+	content[contentIndex] = action + " " + strings.Join(splitLine[1:], " ")
+	result := strings.Join(content, "\n")
+
+	return ioutil.WriteFile(fileName, []byte(result), 0644)
+}
+
+// Revert reverts the selected commit by sha
+func (c *GitCommand) Revert(sha string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git revert %s", sha))
 }

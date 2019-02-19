@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/heroku/rollrus"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -120,10 +121,20 @@ func (app *App) Run() error {
 	return app.Gui.RunWithSubprocesses()
 }
 
+// Rebase contains logic for when we've been run in demon mode, meaning we've
+// given lazygit as a command for git to call e.g. to edit a file
 func (app *App) Rebase() error {
-	app.Log.Error("Lazygit invokved as interactive rebase demon")
+	app.Log.Info("Lazygit invoked as interactive rebase demon")
+	app.Log.Info("args: ", os.Args)
 
-	ioutil.WriteFile(".git/rebase-merge/git-rebase-todo", []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0644)
+	if strings.HasSuffix(os.Args[1], "git-rebase-todo") {
+		ioutil.WriteFile(os.Args[1], []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0644)
+	} else if strings.HasSuffix(os.Args[1], ".git/COMMIT_EDITMSG") {
+		// if we are rebasing and squashing, we'll see a COMMIT_EDITMSG
+		// but in this case we don't need to edit it, so we'll just return
+	} else {
+		app.Log.Info("Lazygit demon did not match on any use cases")
+	}
 
 	return nil
 }

@@ -42,13 +42,20 @@ func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, os
 // GetCommits obtains the commits of the current branch
 func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 	commits := []*commands.Commit{}
-	// here we want to also prepend the commits that we're in the process of rebasing
-	rebasingCommits, err := c.getRebasingCommits()
+	var rebasingCommits []*commands.Commit
+	rebaseMode, err := c.GitCommand.RebaseMode()
 	if err != nil {
 		return nil, err
 	}
-	if len(rebasingCommits) > 0 {
-		commits = append(commits, rebasingCommits...)
+	if rebaseMode != "" {
+		// here we want to also prepend the commits that we're in the process of rebasing
+		rebasingCommits, err = c.getRebasingCommits(rebaseMode)
+		if err != nil {
+			return nil, err
+		}
+		if len(rebasingCommits) > 0 {
+			commits = append(commits, rebasingCommits...)
+		}
 	}
 
 	unpushedCommits := c.getUnpushedCommits()
@@ -67,7 +74,7 @@ func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 			DisplayString: strings.Join(splitLine, " "),
 		})
 	}
-	if len(rebasingCommits) > 0 {
+	if rebaseMode != "" {
 		currentCommit := commits[len(rebasingCommits)]
 		blue := color.New(color.FgYellow)
 		youAreHere := blue.Sprint("<-- YOU ARE HERE ---")
@@ -77,11 +84,7 @@ func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 }
 
 // getRebasingCommits obtains the commits that we're in the process of rebasing
-func (c *CommitListBuilder) getRebasingCommits() ([]*commands.Commit, error) {
-	rebaseMode, err := c.GitCommand.RebaseMode()
-	if err != nil {
-		return nil, err
-	}
+func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*commands.Commit, error) {
 	switch rebaseMode {
 	case "normal":
 		return c.getNormalRebasingCommits()
@@ -147,45 +150,28 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*commands.Commit, erro
 // in the rebase:
 func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*commands.Commit, error) {
 	bytesContent, err := ioutil.ReadFile(".git/rebase-merge/git-rebase-todo")
-	var content []string
-	if err == nil {
-		content = strings.Split(string(bytesContent), "\n")
-		if len(content) > 0 && content[len(content)-1] == "" {
-			content = content[0 : len(content)-1]
-		}
-	}
-
-	// for each of them, grab the matching commit name in the backup
-	bytesContent, err = ioutil.ReadFile(".git/rebase-merge/git-rebase-todo.backup")
-	var backupContent []string
-	if err == nil {
-		backupContent = strings.Split(string(bytesContent), "\n")
+	if err != nil {
+		c.Log.Info(fmt.Sprintf("error occured reading git-rebase-todo: %s", err.Error()))
+		// we assume an error means the file doesn't exist so we just return
+		return nil, nil
 	}
 
 	commits := []*commands.Commit{}
-	for _, todoLine := range content {
-		commit := c.extractCommit(todoLine, backupContent)
-		if commit != nil {
-			commits = append([]*commands.Commit{commit}, commits...)
+	lines := strings.Split(string(bytesContent), "\n")
+	for _, line := range lines {
+		if line == "" {
+			return commits, nil
 		}
+		splitLine := strings.Split(line, " ")
+		commits = append([]*commands.Commit{&commands.Commit{
+			Sha:    splitLine[1][0:7],
+			Name:   strings.Join(splitLine[2:], " "),
+			Status: "rebasing",
+			Action: splitLine[0],
+		}}, commits...)
 	}
 
-	return commits, nil
-}
-
-func (c *CommitListBuilder) extractCommit(todoLine string, backupContent []string) *commands.Commit {
-	for _, backupLine := range backupContent {
-		split := strings.Split(todoLine, " ")
-		prefix := strings.Join(split[0:2], " ")
-		if strings.HasPrefix(backupLine, prefix) {
-			return &commands.Commit{
-				Sha:    split[2],
-				Name:   strings.TrimPrefix(backupLine, prefix+" "),
-				Status: "rebasing",
-			}
-		}
-	}
-	return nil
+	return nil, nil
 }
 
 // assuming the file starts like this:

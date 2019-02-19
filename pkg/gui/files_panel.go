@@ -480,3 +480,16 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 	}
 	return false
 }
+
+func (gui *Gui) handleSoftReset(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("SoftReset"), gui.Tr.SLocalize("ConfirmSoftReset"), func(g *gocui.Gui, v *gocui.View) error {
+		if err := gui.GitCommand.SoftReset("HEAD^"); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+
+		if err := gui.refreshCommits(gui.g); err != nil {
+			return err
+		}
+		return gui.refreshFiles()
+	}, nil)
+}
