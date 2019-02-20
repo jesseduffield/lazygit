@@ -433,8 +433,9 @@ func (c *GitCommand) RebaseMode() (string, error) {
 // RemoveFile directly
 func (c *GitCommand) RemoveFile(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
+	quotedFileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges {
-		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", file.Name)); err != nil {
+		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", quotedFileName)); err != nil {
 			return err
 		}
 	}
@@ -442,7 +443,7 @@ func (c *GitCommand) RemoveFile(file *File) error {
 		return c.removeFile(file.Name)
 	}
 	// if the file is tracked, we assume you want to just check it out
-	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", file.Name))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", quotedFileName))
 }
 
 // Checkout checks out a branch, with --force if you set the force arg to true
@@ -457,7 +458,7 @@ func (c *GitCommand) Checkout(branch string, force bool) error {
 // AddPatch prepares a subprocess for adding a patch by patch
 // this will eventually be swapped out for a better solution inside the Gui
 func (c *GitCommand) AddPatch(filename string) *exec.Cmd {
-	return c.OSCommand.PrepareSubProcess("git", "add", "--patch", filename)
+	return c.OSCommand.PrepareSubProcess("git", "add", "--patch", c.OSCommand.Quote(filename))
 }
 
 // PrepareCommitSubProcess prepares a subprocess for `git commit`
@@ -568,7 +569,7 @@ func (c *GitCommand) ApplyPatch(patch string) (string, error) {
 
 	defer func() { _ = c.OSCommand.RemoveFile(filename) }()
 
-	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", filename))
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", c.OSCommand.Quote(filename)))
 }
 
 func (c *GitCommand) FastForward(branchName string) error {

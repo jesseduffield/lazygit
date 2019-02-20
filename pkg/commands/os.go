@@ -208,7 +208,10 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	defer f.Close()
 
 	_, err = f.WriteString("\n" + line)
-	return errors.Wrap(err, 0)
+	if err != nil {
+		errors.Wrap(err, 0)
+	}
+	return nil
 }
 
 // CreateTempFile writes a string to a new temp file and returns the file's name
