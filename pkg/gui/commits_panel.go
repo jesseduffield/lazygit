@@ -270,8 +270,10 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
-	err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
-	return gui.handleGenericMergeCommandResult(err)
+	return gui.createConfirmationPanel(gui.g, v, "Amend Commit", "Are you sure you want to amend this commit with your staged files?", func(*gocui.Gui, *gocui.View) error {
+		err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
+		return gui.handleGenericMergeCommandResult(err)
+	}, nil)
 }
 
 func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
