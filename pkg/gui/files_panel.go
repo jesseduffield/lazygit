@@ -46,7 +46,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 	mainView := gui.getMainView(g)
 	width, _ := mainView.Size()
 
-	content := gui.GitCommand.Diff(file, width, false)
+	content := gui.GitCommand.Diff(file, width, true, true)
 	if alreadySelected {
 		g.Update(func(*gocui.Gui) error {
 			return gui.setViewContent(gui.g, gui.getMainView(gui.g), content)

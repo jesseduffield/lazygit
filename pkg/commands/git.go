@@ -594,7 +594,7 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file *File, width int, plain bool) string {
+func (c *GitCommand) Diff(file *File, width int, color bool, allowCustomCommand bool) string {
 	fileName := c.OSCommand.Quote(file.Name)
 
 	cachedArg := ""
@@ -607,9 +607,9 @@ func (c *GitCommand) Diff(file *File, width int, plain bool) string {
 		trackedArg = "--no-index /dev/null"
 	}
 
-	colorArg := "--color"
-	if plain {
-		colorArg = ""
+	colorArg := ""
+	if color {
+		colorArg = "--color"
 	}
 
 	templateValues := map[string]string{
@@ -618,7 +618,11 @@ func (c *GitCommand) Diff(file *File, width int, plain bool) string {
 		"filename": fileName,
 	}
 
-	template := c.Config.GetUserConfig().GetString("git.fileDiffTemplate")
+	template := "git diff {{args}} {{filename}}"
+	if allowCustomCommand {
+		template = c.Config.GetUserConfig().GetString("git.fileDiffTemplate")
+	}
+
 	command := utils.ResolvePlaceholderString(template, templateValues)
 	s, _ := c.OSCommand.RunDirectCommand(command)
 	return s

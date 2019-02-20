@@ -25,8 +25,8 @@ func (gui *Gui) refreshStagingPanel() error {
 	mainView := gui.getMainView(gui.g)
 	width, _ := mainView.Size()
 
-	diff := gui.GitCommand.Diff(file, width, true)
-	colorDiff := gui.GitCommand.Diff(file, width, false)
+	diff := gui.GitCommand.Diff(file, width, false, false)
+	colorDiff := gui.GitCommand.Diff(file, width, true, false)
 
 	if len(diff) < 2 {
 		return gui.handleStagingEscape(gui.g, nil)

@@ -1073,6 +1073,8 @@ func TestGitCommandSquashPreviousTwoCommits(t *testing.T) {
 				assert.NotNil(t, err)
 			},
 		},
+
+		// test
 		{
 			"Git commit triggers an error",
 			func(cmd string, args ...string) *exec.Cmd {
@@ -1773,7 +1775,7 @@ func TestGitCommandDiff(t *testing.T) {
 		command  func(string, ...string) *exec.Cmd
 		file     *File
 		width    int
-		plain    bool
+		color    bool
 	}
 
 	scenarios := []scenario{
@@ -1791,7 +1793,7 @@ func TestGitCommandDiff(t *testing.T) {
 				Tracked:          true,
 			},
 			10,
-			false,
+			true,
 		},
 		{
 			"Default case",
@@ -1807,7 +1809,7 @@ func TestGitCommandDiff(t *testing.T) {
 				Tracked:          true,
 			},
 			10,
-			true,
+			false,
 		},
 		{
 			"All changes staged",
@@ -1824,7 +1826,7 @@ func TestGitCommandDiff(t *testing.T) {
 				Tracked:            true,
 			},
 			10,
-			false,
+			true,
 		},
 		{
 			"File not tracked and file has no staged changes",
@@ -1840,7 +1842,7 @@ func TestGitCommandDiff(t *testing.T) {
 				Tracked:          false,
 			},
 			10,
-			false,
+			true,
 		},
 	}
 
@@ -1848,7 +1850,7 @@ func TestGitCommandDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := newDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			gitCmd.Diff(s.file, s.width, s.plain)
+			gitCmd.Diff(s.file, s.width, s.color, false)
 		})
 	}
 }
