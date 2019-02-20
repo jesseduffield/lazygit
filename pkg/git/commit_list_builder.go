@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -28,14 +29,16 @@ type CommitListBuilder struct {
 	Log        *logrus.Entry
 	GitCommand *commands.GitCommand
 	OSCommand  *commands.OSCommand
+	Tr         *i18n.Localizer
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand) (*CommitListBuilder, error) {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand, tr *i18n.Localizer) (*CommitListBuilder, error) {
 	return &CommitListBuilder{
 		Log:        log,
 		GitCommand: gitCommand,
 		OSCommand:  osCommand,
+		Tr:         tr,
 	}, nil
 }
 
@@ -77,7 +80,7 @@ func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 	if rebaseMode != "" {
 		currentCommit := commits[len(rebasingCommits)]
 		blue := color.New(color.FgYellow)
-		youAreHere := blue.Sprint("<-- YOU ARE HERE ---")
+		youAreHere := blue.Sprintf("<-- %s ---", c.Tr.SLocalize("YouAreHere"))
 		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
 	return c.setCommitMergedStatuses(commits)

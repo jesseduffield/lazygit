@@ -565,6 +565,14 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoRoom",
 			Other: "Not enough room",
-		},
+		}, &i18n.Message{
+			ID:    "YouAreHere",
+			Other: "YOU ARE HERE",
+			}, &i18n.Message{
+				ID:    "rewordNotSupported",
+				Other: "rewording commits while interactively rebasing is not currently supported",
+			},
+
+
 	)
 }

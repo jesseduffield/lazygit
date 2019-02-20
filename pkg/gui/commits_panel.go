@@ -40,7 +40,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand)
+		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr)
 		if err != nil {
 			return err
 		}
@@ -212,6 +212,14 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
+	// for now we do not support setting 'reword' because it requires an editor
+	// and that means we either unconditionally wait around for the subprocess to ask for
+	// our input or we set a lazygit client as the EDITOR env variable and have it
+	// request us to edit the commit message when prompted.
+	if action == "reword" {
+		return true, gui.createErrorPanel(gui.g, gui.Tr.SLocalize("rewordNotSupported"))
+	}
+
 	selectedCommit := gui.State.Commits[gui.State.Panels.Commits.SelectedLine]
 	if selectedCommit.Status != "rebasing" {
 		return false, nil
