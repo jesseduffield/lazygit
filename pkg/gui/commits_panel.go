@@ -222,6 +222,21 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	return true, gui.refreshCommits(gui.g)
 }
 
+// handleMoveTodoDown like handleMidRebaseCommand but for moving an item up in the todo list
+func (gui *Gui) handleMoveTodoDown(index int) (bool, error) {
+	selectedCommit := gui.State.Commits[index]
+	if selectedCommit.Status != "rebasing" {
+		return false, nil
+	}
+	if gui.State.Commits[index+1].Status != "rebasing" {
+		return true, nil
+	}
+	if err := gui.GitCommand.MoveTodoDown(index); err != nil {
+		return true, gui.createErrorPanel(gui.g, err.Error())
+	}
+	return true, gui.refreshCommits(gui.g)
+}
+
 func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 	applied, err := gui.handleMidRebaseCommand("drop")
 	if err != nil {
@@ -239,20 +254,45 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
-	gui.State.Panels.Commits.SelectedLine++
+	index := gui.State.Panels.Commits.SelectedLine
+	selectedCommit := gui.State.Commits[index]
+	if selectedCommit.Status == "rebasing" {
+		if gui.State.Commits[index+1].Status != "rebasing" {
+			return nil
+		}
+		if err := gui.GitCommand.MoveTodoDown(index); err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		gui.State.Panels.Commits.SelectedLine++
+		return gui.refreshCommits(gui.g)
+	}
 
-	err := gui.GitCommand.MoveCommitDown(gui.State.Commits, gui.State.Panels.Commits.SelectedLine-1)
+	err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index)
+	if err == nil {
+		gui.State.Panels.Commits.SelectedLine++
+	}
 	return gui.handleGenericMergeCommandResult(err)
 }
 
 func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
-	if gui.State.Panels.Commits.SelectedLine == 0 {
-		return gui.createErrorPanel(gui.g, "You cannot move the topmost commit up") // TODO: i18n
+	index := gui.State.Panels.Commits.SelectedLine
+	if index == 0 {
+		return nil
 	}
 
-	gui.State.Panels.Commits.SelectedLine--
+	selectedCommit := gui.State.Commits[index]
+	if selectedCommit.Status == "rebasing" {
+		if err := gui.GitCommand.MoveTodoDown(index - 1); err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		gui.State.Panels.Commits.SelectedLine--
+		return gui.refreshCommits(gui.g)
+	}
 
-	err := gui.GitCommand.MoveCommitDown(gui.State.Commits, gui.State.Panels.Commits.SelectedLine)
+	err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index-1)
+	if err == nil {
+		gui.State.Panels.Commits.SelectedLine--
+	}
 	return gui.handleGenericMergeCommandResult(err)
 }
 

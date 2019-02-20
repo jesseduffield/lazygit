@@ -598,7 +598,7 @@ func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
 	if len(commits) <= index+2 {
 		// assuming they aren't picking the bottom commit
 		// TODO: support more than say 30 commits and ensure this logic is correct, and i18n
-		return errors.New("Not enough room")
+		return errors.New(c.Tr.SLocalize("NoRoom"))
 	}
 
 	todo := ""
@@ -696,6 +696,7 @@ func (c *GitCommand) AmendTo(sha string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git %s rebase --interactive --autostash --autosquash %s^", c.OSCommand.Platform.skipEditorArg, sha))
 }
 
+// EditRebaseTodo sets the action at a given index in the git-rebase-todo file
 func (c *GitCommand) EditRebaseTodo(index int, action string) error {
 	fileName := ".git/rebase-merge/git-rebase-todo"
 	bytes, err := ioutil.ReadFile(fileName)
@@ -709,6 +710,24 @@ func (c *GitCommand) EditRebaseTodo(index int, action string) error {
 	splitLine := strings.Split(content[contentIndex], " ")
 	content[contentIndex] = action + " " + strings.Join(splitLine[1:], " ")
 	result := strings.Join(content, "\n")
+
+	return ioutil.WriteFile(fileName, []byte(result), 0644)
+}
+
+// MoveTodoDown moves a rebase todo item down by one position
+func (c *GitCommand) MoveTodoDown(index int) error {
+	fileName := ".git/rebase-merge/git-rebase-todo"
+	bytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
+
+	content := strings.Split(string(bytes), "\n")
+	contentIndex := len(content) - 2 - index
+
+	rearrangedContent := append(content[0:contentIndex-1], content[contentIndex], content[contentIndex-1])
+	rearrangedContent = append(rearrangedContent, content[contentIndex+1:]...)
+	result := strings.Join(rearrangedContent, "\n")
 
 	return ioutil.WriteFile(fileName, []byte(result), 0644)
 }

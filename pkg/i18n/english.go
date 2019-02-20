@@ -562,6 +562,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ErrorOccurred",
 			Other: "An error occurred! Please create an issue at https://github.com/jesseduffield/lazygit/issues",
+		}, &i18n.Message{
+			ID:    "NoRoom",
+			Other: "Not enough room",
 		},
 	)
 }
