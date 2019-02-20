@@ -2,18 +2,27 @@ package i18n
 
 import (
 	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewLocalizer(t *testing.T) {
-	assert.NotNil(t, NewLocalizer(logrus.New()))
+func getDummyLog() *logrus.Entry {
+	log := logrus.New()
+	log.Out = ioutil.Discard
+	return log.WithField("test", "test")
 }
 
+// TestNewLocalizer is a function.
+func TestNewLocalizer(t *testing.T) {
+	assert.NotNil(t, NewLocalizer(getDummyLog()))
+}
+
+// TestDetectLanguage is a function.
 func TestDetectLanguage(t *testing.T) {
 	type scenario struct {
 		langDetector func() (string, error)
@@ -40,6 +49,7 @@ func TestDetectLanguage(t *testing.T) {
 	}
 }
 
+// TestLocalizer is a function.
 func TestLocalizer(t *testing.T) {
 	type scenario struct {
 		userLang string
@@ -57,7 +67,7 @@ func TestLocalizer(t *testing.T) {
 					},
 				}))
 				assert.Equal(t, "Diff", l.SLocalize("DiffTitle"))
-				assert.Equal(t, "Are you sure you want delete the branch test ?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
+				assert.Equal(t, "Are you sure you want to delete the branch test?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
 			},
 		},
 		{
@@ -70,12 +80,12 @@ func TestLocalizer(t *testing.T) {
 					},
 				}))
 				assert.Equal(t, "Diff", l.SLocalize("DiffTitle"))
-				assert.Equal(t, "Weet je zeker dat je test branch wil verwijderen?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
+				assert.Equal(t, "Weet je zeker dat je branch test wilt verwijderen?", l.TemplateLocalize("DeleteBranchMessage", Teml{"selectedBranchName": "test"}))
 			},
 		},
 	}
 
 	for _, s := range scenarios {
-		s.test(setupLocalizer(logrus.New(), s.userLang))
+		s.test(setupLocalizer(getDummyLog(), s.userLang))
 	}
 }

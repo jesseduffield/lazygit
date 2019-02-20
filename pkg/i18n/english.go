@@ -40,14 +40,44 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessage",
 			Other: "Commit message",
 		}, &i18n.Message{
+			ID:    "CredentialsUsername",
+			Other: "Username",
+		}, &i18n.Message{
+			ID:    "CredentialsPassword",
+			Other: "Password",
+		}, &i18n.Message{
+			ID:    "PassUnameWrong",
+			Other: "Password and/or username wrong",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "commit changes",
+		}, &i18n.Message{
+			ID:    "AmendLastCommit",
+			Other: "amend last commit",
+		}, &i18n.Message{
+			ID:    "SureToAmend",
+			Other: "Are you sure you want to amend last commit? You can change commit message from commits panel.",
+		}, &i18n.Message{
+			ID:    "NoCommitToAmend",
+			Other: "There's no commit to amend.",
+		}, &i18n.Message{
+			ID:    "CommitChangesWithEditor",
+			Other: "commit changes using git editor",
 		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
+			ID:    "GlobalTitle",
+			Other: "Global",
+		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "navigate",
+		}, &i18n.Message{
+			ID:    "menu",
+			Other: "menu",
+		}, &i18n.Message{
+			ID:    "execute",
+			Other: "execute",
 		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "stash files",
@@ -64,8 +94,17 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "toggleStaged",
 			Other: "toggle staged",
 		}, &i18n.Message{
+			ID:    "toggleStagedAll",
+			Other: "stage/unstage all",
+		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "refresh",
+		}, &i18n.Message{
+			ID:    "push",
+			Other: "push",
+		}, &i18n.Message{
+			ID:    "pull",
+			Other: "pull",
 		}, &i18n.Message{
 			ID:    "addPatch",
 			Other: "add patch",
@@ -103,17 +142,23 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "NoFilesDisplay",
 			Other: "No file to display",
 		}, &i18n.Message{
+			ID:    "NotAFile",
+			Other: "Not a file",
+		}, &i18n.Message{
 			ID:    "PullWait",
 			Other: "Pulling...",
 		}, &i18n.Message{
 			ID:    "PushWait",
 			Other: "Pushing...",
 		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetching...",
+		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "This file has no merge conflicts",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Are you sure you want `reset --hard HEAD`? You may lose changes",
+			Other: "Are you sure you want `reset --hard HEAD` and `clean -fd`? You may lose changes",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
@@ -140,7 +185,10 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Delete Branch",
 		}, &i18n.Message{
 			ID:    "DeleteBranchMessage",
-			Other: "Are you sure you want delete the branch {{.selectedBranchName}} ?",
+			Other: "Are you sure you want to delete the branch {{.selectedBranchName}}?",
+		}, &i18n.Message{
+			ID:    "ForceDeleteBranchMessage",
+			Other: "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "You cannot merge a branch into itself",
@@ -160,6 +208,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "deleteBranch",
 			Other: "delete branch",
 		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "delete branch (force)",
+		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "No branches for this repo",
 		}, &i18n.Message{
@@ -171,6 +222,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
+		}, &i18n.Message{
+			ID:    "close",
+			Other: "close",
 		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Are you sure you want to reset to this commit?",
@@ -211,8 +265,11 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "OnlyRenameTopCommit",
 			Other: "Can only rename topmost commit",
 		}, &i18n.Message{
-			ID:    "RenameCommit",
-			Other: "Rename Commit",
+			ID:    "renameCommit",
+			Other: "rename commit",
+		}, &i18n.Message{
+			ID:    "renameCommitEditor",
+			Other: "rename commit with editor",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "potential error in getSelected Commit (mismatched ui and state)",
@@ -306,6 +363,105 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ForcePushPrompt",
 			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
+		}, &i18n.Message{
+			ID:    "checkForUpdate",
+			Other: "check for update",
+		}, &i18n.Message{
+			ID:    "CheckingForUpdates",
+			Other: "Checking for updates...",
+		}, &i18n.Message{
+			ID:    "OnLatestVersionErr",
+			Other: "You already have the latest version",
+		}, &i18n.Message{
+			ID:    "MajorVersionErr",
+			Other: "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
+		}, &i18n.Message{
+			ID:    "CouldNotFindBinaryErr",
+			Other: "Could not find any binary at {{.url}}",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingTitle",
+			Other: "Help make lazygit better",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingPrompt",
+			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
+		}, &i18n.Message{
+			ID:    "GitconfigParseErr",
+			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
+		}, &i18n.Message{
+			ID:    "removeFile",
+			Other: `delete if untracked / checkout if tracked`,
+		}, &i18n.Message{
+			ID:    "editFile",
+			Other: `edit file`,
+		}, &i18n.Message{
+			ID:    "openFile",
+			Other: `open file`,
+		}, &i18n.Message{
+			ID:    "ignoreFile",
+			Other: `add to .gitignore`,
+		}, &i18n.Message{
+			ID:    "refreshFiles",
+			Other: `refresh files`,
+		}, &i18n.Message{
+			ID:    "resetHard",
+			Other: `reset hard and remove untracked files`,
+		}, &i18n.Message{
+			ID:    "mergeIntoCurrentBranch",
+			Other: `merge into currently checked out branch`,
+		}, &i18n.Message{
+			ID:    "ConfirmQuit",
+			Other: `Are you sure you want to quit?`,
+		}, &i18n.Message{
+			ID:    "SwitchRepo",
+			Other: `switch to a recent repo`,
+		}, &i18n.Message{
+			ID:    "UnsupportedGitService",
+			Other: `Unsupported git service`,
+		}, &i18n.Message{
+			ID:    "createPullRequest",
+			Other: `create pull request`,
+		}, &i18n.Message{
+			ID:    "NoBranchOnRemote",
+			Other: `This branch doesn't exist on remote. You need to push it to remote first.`,
+		}, &i18n.Message{
+			ID:    "fetch",
+			Other: `fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchTitle",
+			Other: `No automatic git fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchBody",
+			Other: `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
+		}, &i18n.Message{
+			ID:    "StageLines",
+			Other: `stage individual hunks/lines`,
+		}, &i18n.Message{
+			ID:    "FileStagingRequirements",
+			Other: `Can only stage individual lines for tracked files with unstaged changes`,
+		}, &i18n.Message{
+			ID:    "StagingTitle",
+			Other: `Staging`,
+		}, &i18n.Message{
+			ID:    "StageHunk",
+			Other: `stage hunk`,
+		}, &i18n.Message{
+			ID:    "StageLine",
+			Other: `stage line`,
+		}, &i18n.Message{
+			ID:    "EscapeStaging",
+			Other: `return to files panel`,
+		}, &i18n.Message{
+			ID:    "CantFindHunks",
+			Other: `Could not find any hunks in this patch`,
+		}, &i18n.Message{
+			ID:    "CantFindHunk",
+			Other: `Could not find hunk`,
+		}, &i18n.Message{
+			ID:    "FastForward",
+			Other: `fast-forward this branch from its upstream`,
+		}, &i18n.Message{
+			ID:    "Fetching",
+			Other: "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
 		},
 	)
 }

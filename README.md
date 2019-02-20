@@ -14,7 +14,7 @@ Jira? This is the app for you!
     [Keybindings](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md)
   * [Cool Features](https://github.com/jesseduffield/lazygit#cool-features)
   * [Contributing](https://github.com/jesseduffield/lazygit#contributing)
-  * [Video Tutorial](https://www.youtube.com/watch?v=VDXvbHZYeKY)
+  * [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
   * [Twitch Stream](https://www.twitch.tv/jesseduffield)
 
 ## Installation
@@ -69,6 +69,12 @@ and the git version which builds from the most recent commit.
 Instruction of how to install AUR content can be found here:
 https://wiki.archlinux.org/index.php/Arch_User_Repository
 
+### Conda
+Released versions are available for different platforms, see https://anaconda.org/conda-forge/lazygit
+```sh
+conda install -c conda-forge lazygit
+```
+
 ### Binary Release (Windows/Linux/OSX)
 You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases).
 
@@ -88,7 +94,7 @@ Call `lazygit` in your terminal inside a git repository. If you want, you can
 also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or
 whichever rc file you're using).
 
-  * Basic video tutorial [here](https://www.youtube.com/watch?v=VDXvbHZYeKY).
+  * Basic video tutorial [here](https://youtu.be/VDXvbHZYeKY).
   * List of keybindings
 [here](/docs/Keybindings.md).
 
@@ -121,6 +127,11 @@ For contributor discussion about things not better discussed here in the repo, j
 
 [![Slack](/docs/resources/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/enQtNDE3MjIwNTYyMDA0LTM3Yjk3NzdiYzhhNTA1YjM4Y2M4MWNmNDBkOTI0YTE4YjQ1ZmI2YWRhZTgwNjg2YzhhYjg3NDBlMmQyMTI5N2M)
 
+## Donate
+If you would like to support the development of lazygit, please donate
+
+[![Donate](https://d1iczxrky3cnb2.cloudfront.net/button-medium-blue.png)](https://donorbox.org/lazygit)
+
 ## Work in progress
 This is still a work in progress so there's still bugs to iron out and as this
 is my first project in Go the code could no doubt use an increase in quality,
@@ -131,3 +142,7 @@ feel free to [raise an issue](https://github.com/jesseduffield/lazygit/issues)/[
 If you want to see what I (Jesse) am up to in terms of development, follow me on
 [twitter](https://twitter.com/DuffieldJesse) or watch me program on
 [twitch](https://www.twitch.tv/jesseduffield).
+
+## Alternatives
+If you find that lazygit doesn't quite satisfy your requirements, these may be a better fit:
+- [tig](https://github.com/jonas/tig)

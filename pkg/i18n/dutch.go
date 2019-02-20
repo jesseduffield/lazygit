@@ -30,16 +30,46 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Stash",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
-			Other: "Commit Bericht",
+			Other: "Commit bericht",
+		}, &i18n.Message{
+			ID:    "CredentialsUsername",
+			Other: "Gebruikersnaam",
+		}, &i18n.Message{
+			ID:    "CredentialsPassword",
+			Other: "Wachtwoord",
+		}, &i18n.Message{
+			ID:    "PassUnameWrong",
+			Other: "Wachtwoord en/of gebruikersnaam verkeert",
 		}, &i18n.Message{
 			ID:    "CommitChanges",
-			Other: "Commit Veranderingen",
+			Other: "Commit veranderingen",
+		}, &i18n.Message{
+			ID:    "AmendLastCommit",
+			Other: "wijzig laatste commit",
+		}, &i18n.Message{
+			ID:    "SureToAmend",
+			Other: "Weet je zeker dat je de laatste commit wilt wijzigen? U kunt het commit-bericht wijzigen vanuit het commits-paneel.",
+		}, &i18n.Message{
+			ID:    "NoCommitToAmend",
+			Other: "Er is geen commits om te wijzigen.",
+		}, &i18n.Message{
+			ID:    "CommitChangesWithEditor",
+			Other: "commit veranderingen met de git editor",
 		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
+			ID:    "GlobalTitle",
+			Other: "Global",
+		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "navigeer",
+		}, &i18n.Message{
+			ID:    "menu",
+			Other: "menu",
+		}, &i18n.Message{
+			ID:    "execute",
+			Other: "uitvoeren",
 		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "stash-bestanden",
@@ -56,14 +86,23 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "toggleStaged",
 			Other: "toggle staged",
 		}, &i18n.Message{
+			ID:    "toggleStagedAll",
+			Other: "toggle staged alle",
+		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "verversen",
 		}, &i18n.Message{
+			ID:    "push",
+			Other: "push",
+		}, &i18n.Message{
+			ID:    "pull",
+			Other: "pull",
+		}, &i18n.Message{
 			ID:    "addPatch",
-			Other: "verandering toevoegen",
+			Other: "bewerkingen toevoegen",
 		}, &i18n.Message{
 			ID:    "edit",
-			Other: "veranderen",
+			Other: "bewerken",
 		}, &i18n.Message{
 			ID:    "scroll",
 			Other: "scroll",
@@ -72,13 +111,13 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "samenvoegen afbreken",
 		}, &i18n.Message{
 			ID:    "resolveMergeConflicts",
-			Other: "verhelp samenvoegen fouten",
+			Other: "los merge conflicten op",
 		}, &i18n.Message{
 			ID:    "checkout",
 			Other: "uitchecken",
 		}, &i18n.Message{
 			ID:    "NoChangedFiles",
-			Other: "Geen Bestanden verandert",
+			Other: "Geen bestanden veranderd",
 		}, &i18n.Message{
 			ID:    "FileHasNoUnstagedChanges",
 			Other: "Het bestand heeft geen unstaged veranderingen om toe te voegen",
@@ -95,26 +134,32 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "NoFilesDisplay",
 			Other: "Geen bestanden om te laten zien",
 		}, &i18n.Message{
+			ID:    "NotAFile",
+			Other: "Dit is geen bestand",
+		}, &i18n.Message{
 			ID:    "PullWait",
-			Other: "Pulling...",
+			Other: "Pullen...",
 		}, &i18n.Message{
 			ID:    "PushWait",
-			Other: "Pushing...",
+			Other: "Pushen...",
+		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetchen...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "Dit bestand heeft geen merge conflicten",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Weet je het zeker dat je `reset --hard HEAD` wil uitvoeren? het kan dat je hierdoor bestanden verliest",
+			Other: "Weet je het zeker dat je `reset --hard HEAD` en `clean -fd` wil uitvoeren? Het kan dat je hierdoor bestanden verliest",
 		}, &i18n.Message{
 			ID:    "SureTo",
-			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijdert)",
+			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijderd)",
 		}, &i18n.Message{
 			ID:    "AlreadyCheckedOutBranch",
-			Other: "Je hebt uitgecheckt op deze branch",
+			Other: "Je hebt deze branch al uitgecheckt",
 		}, &i18n.Message{
 			ID:    "SureForceCheckout",
-			Other: "Weet je zeker dat je het uitchecken wil forceren? al je locale verandering zullen worden verwijdert",
+			Other: "Weet je zeker dat je het uitchecken wil forceren? Al je lokale verandering zullen worden verwijdert",
 		}, &i18n.Message{
 			ID:    "ForceCheckoutBranch",
 			Other: "Forceer uitchecken op deze branch",
@@ -132,7 +177,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Verwijder branch",
 		}, &i18n.Message{
 			ID:    "DeleteBranchMessage",
-			Other: "Weet je zeker dat je {{.selectedBranchName}} branch wil verwijderen?",
+			Other: "Weet je zeker dat je branch {{.selectedBranchName}} wilt verwijderen?",
+		}, &i18n.Message{
+			ID:    "ForceDeleteBranchMessage",
+			Other: "Weet je zeker dat je branch {{.selectedBranchName}} geforceerd wil verwijderen?",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Je kan niet een branch in zichzelf mergen",
@@ -141,7 +189,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "forceer checkout",
 		}, &i18n.Message{
 			ID:    "merge",
-			Other: "merge",
+			Other: "samenvoegen",
 		}, &i18n.Message{
 			ID:    "checkoutByName",
 			Other: "uitchecken bij naam",
@@ -151,6 +199,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "deleteBranch",
 			Other: "verwijder branch",
+		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "verwijder branch (forceer)",
 		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "Geen branches voor deze repo",
@@ -164,6 +215,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
 		}, &i18n.Message{
+			ID:    "close",
+			Other: "sluiten",
+		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Weet je het zeker dat je wil resetten naar deze commit?",
 		}, &i18n.Message{
@@ -174,7 +228,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "squash beneden",
 		}, &i18n.Message{
 			ID:    "rename",
-			Other: "hernoem",
+			Other: "hernoemen",
 		}, &i18n.Message{
 			ID:    "resetToThisCommit",
 			Other: "reset naar deze commit",
@@ -203,8 +257,11 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "OnlyRenameTopCommit",
 			Other: "Je kan alleen de bovenste commit hernoemen",
 		}, &i18n.Message{
-			ID:    "RenameCommit",
-			Other: "Hernoem Commit",
+			ID:    "renameCommit",
+			Other: "hernoem commit",
+		}, &i18n.Message{
+			ID:    "renameCommitEditor",
+			Other: "rename commit with editor",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "Er is mogelijk een error in getSelected Commit (geen match tussen ui en state)",
@@ -213,7 +270,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Geen commits voor deze branch",
 		}, &i18n.Message{
 			ID:    "Error",
-			Other: "Fout",
+			Other: "Foutmelding",
 		}, &i18n.Message{
 			ID:    "resizingPopupPanel",
 			Other: "resizen popup paneel",
@@ -222,16 +279,16 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "subprocess lopend",
 		}, &i18n.Message{
 			ID:    "selectHunk",
-			Other: "selecteer Hunk",
+			Other: "selecteer stuk",
 		}, &i18n.Message{
 			ID:    "navigateConflicts",
 			Other: "navigeer conflicts",
 		}, &i18n.Message{
 			ID:    "pickHunk",
-			Other: "kies Hunk",
+			Other: "kies stuk",
 		}, &i18n.Message{
 			ID:    "pickBothHunks",
-			Other: "kies bijde hunks",
+			Other: "kies beide stukken",
 		}, &i18n.Message{
 			ID:    "undo",
 			Other: "ongedaan maken",
@@ -286,6 +343,111 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
+		}, &i18n.Message{
+			ID:    "OpenConfig",
+			Other: "open config file",
+		}, &i18n.Message{
+			ID:    "EditConfig",
+			Other: "verander config file",
+		}, &i18n.Message{
+			ID:    "ForcePush",
+			Other: "Forceer push",
+		}, &i18n.Message{
+			ID:    "ForcePushPrompt",
+			Other: "Jouw branch is afgeweken van de remote branch. Druk 'esc' om te annuleren, of 'enter' om geforceert te pushen.",
+		}, &i18n.Message{
+			ID:    "checkForUpdate",
+			Other: "check voor updates",
+		}, &i18n.Message{
+			ID:    "CheckingForUpdates",
+			Other: "zoeken naar updates...",
+		}, &i18n.Message{
+			ID:    "OnLatestVersionErr",
+			Other: "Je hebt al de laatste versie",
+		}, &i18n.Message{
+			ID:    "MajorVersionErr",
+			Other: "Nieuwe versie ({{.newVersion}}) is niet backwards compatibele vergeleken met de huidige versie ({{.currentVersion}})",
+		}, &i18n.Message{
+			ID:    "CouldNotFindBinaryErr",
+			Other: "Kon geen binary vinden op {{.url}}",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingTitle",
+			Other: "Help lazygit te verbeteren",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingPrompt",
+			Other: "Zou je anonieme data rapportage willen aanzetten om lazygit beter te kunnen maken? (enter/esc)",
+		}, &i18n.Message{
+			ID:    "GitconfigParseErr",
+			Other: `Gogit kon je gitconfig bestand niet goed parsen door de aanwezigheid van losstaande '\' tekens. Het weghalen van deze tekens zou het probleem moeten oplossen. `,
+		}, &i18n.Message{
+			ID:    "removeFile",
+			Other: `Verwijder als untracked / uitchecken wordt gevolgd (ga weg)`,
+		}, &i18n.Message{
+			ID:    "editFile",
+			Other: `verander bestand`,
+		}, &i18n.Message{
+			ID:    "openFile",
+			Other: `open bestand`,
+		}, &i18n.Message{
+			ID:    "ignoreFile",
+			Other: `voeg toe aan .gitignore`,
+		}, &i18n.Message{
+			ID:    "refreshFiles",
+			Other: `refresh bestanden`,
+		}, &i18n.Message{
+			ID:    "resetHard",
+			Other: `harde reset and verwijderen ongevolgde bestanden`,
+		}, &i18n.Message{
+			ID:    "mergeIntoCurrentBranch",
+			Other: `merge in met huidige checked out branch`,
+		}, &i18n.Message{
+			ID:    "ConfirmQuit",
+			Other: `Weet je zeker dat je dit programma wil sluiten?`,
+		}, &i18n.Message{
+			ID:    "SwitchRepo",
+			Other: "wissel naar een recente repo",
+		}, &i18n.Message{
+			ID:    "UnsupportedGitService",
+			Other: `Niet-ondersteunde git-service`,
+		}, &i18n.Message{
+			ID:    "createPullRequest",
+			Other: `maak een pull-aanvraag`,
+		}, &i18n.Message{
+			ID:    "NoBranchOnRemote",
+			Other: `Deze branch bestaat niet op de remote. U moet het eerst naar de remote pushen.`,
+		}, &i18n.Message{
+			ID:    "fetch",
+			Other: `fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchTitle",
+			Other: `Geen automatiese git fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchBody",
+			Other: `Lazygit kan niet "git fetch" uitvoeren in een privé repository, gebruik f in het branches paneel om "git fetch" manueel uit te voeren`,
+		}, &i18n.Message{
+			ID:    "StageLines",
+			Other: `stage individuele hunks/lijnen`,
+		}, &i18n.Message{
+			ID:    "FileStagingRequirements",
+			Other: `Kan alleen individuele lijnen stagen van getrackte bestanden met onstaged veranderingen`,
+		}, &i18n.Message{
+			ID:    "StagingTitle",
+			Other: `Staging`,
+		}, &i18n.Message{
+			ID:    "StageHunk",
+			Other: `stage hunk`,
+		}, &i18n.Message{
+			ID:    "StageLine",
+			Other: `stage lijn`,
+		}, &i18n.Message{
+			ID:    "EscapeStaging",
+			Other: `ga terug naar het bestanden paneel`,
+		}, &i18n.Message{
+			ID:    "CantFindHunks",
+			Other: `Kan geen hunks vinden in deze patch`,
+		}, &i18n.Message{
+			ID:    "CantFindHunk",
+			Other: `Kan geen hunk vinden`,
 		},
 	)
 }

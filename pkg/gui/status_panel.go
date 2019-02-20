@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -18,7 +19,7 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 	// contents end up cleared
 	g.Update(func(*gocui.Gui) error {
 		v.Clear()
-		pushables, pullables := gui.GitCommand.UpstreamDifferenceCount()
+		pushables, pullables := gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
 		fmt.Fprint(v, "↑"+pushables+"↓"+pullables)
 		branches := gui.State.Branches
 		if err := gui.updateHasMergeConflictStatus(); err != nil {
@@ -41,37 +42,35 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) renderStatusOptions(g *gocui.Gui) error {
-	return gui.renderOptionsMap(g, map[string]string{
-		"o": gui.Tr.SLocalize("OpenConfig"),
-		"e": gui.Tr.SLocalize("EditConfig"),
-	})
+func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
+	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
+	return gui.createMessagePanel(gui.g, v, "", gui.Tr.SLocalize("CheckingForUpdates"))
 }
 
 func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
-	dashboardString := fmt.Sprintf(
-		"%s\n\n%s\n\n%s\n\n%s\n\n%s",
-		lazygitTitle(),
-		"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md",
-		"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
-		"Tutorial: https://www.youtube.com/watch?v=VDXvbHZYeKY",
-		"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
-	)
+	blue := color.New(color.FgBlue)
 
-	if err := gui.renderString(g, "main", dashboardString); err != nil {
-		return err
-	}
-	return gui.renderStatusOptions(g)
+	dashboardString := strings.Join(
+		[]string{
+			lazygitTitle(),
+			"Copyright (c) 2018 Jesse Duffield",
+			"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md",
+			"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
+			"Tutorial: https://youtu.be/VDXvbHZYeKY",
+			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
+			blue.Sprint("Buy Jesse a coffee: https://donorbox.org/lazygit"), // caffeine ain't free
+		}, "\n\n")
+
+	return gui.renderString(g, "main", dashboardString)
 }
 
 func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
-	filename := gui.Config.GetUserConfig().ConfigFileUsed()
-	return gui.genericFileOpen(g, v, filename, gui.OSCommand.OpenFile)
+	return gui.openFile(gui.Config.GetUserConfig().ConfigFileUsed())
 }
 
 func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {
 	filename := gui.Config.GetUserConfig().ConfigFileUsed()
-	return gui.genericFileOpen(g, v, filename, gui.OSCommand.EditFile)
+	return gui.editFile(filename)
 }
 
 func lazygitTitle() string {

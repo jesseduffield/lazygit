@@ -4,7 +4,7 @@
 
 package gocui
 
-import "github.com/nsf/termbox-go"
+import "github.com/jesseduffield/termbox-go"
 
 // Keybidings are used to link a given key-press event with a handler.
 type keybinding struct {
@@ -37,9 +37,6 @@ func (kb *keybinding) matchView(v *View) bool {
 	// if the user is typing in a field, ignore char keys
 	if v.Editable == true && kb.ch != 0 {
 		return false
-	}
-	if kb.viewName == "" {
-		return true
 	}
 	return v != nil && kb.viewName == v.name
 }

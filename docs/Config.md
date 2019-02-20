@@ -6,6 +6,7 @@
   gui:
     # stuff relating to the UI
     scrollHeight: 2 # how many lines you scroll by
+    scrollPastBottom: true # enable scrolling past the bottom
     theme:
       activeBorderColor:
         - white
@@ -14,10 +15,45 @@
         - white
       optionsTextColor:
         - blue
-  git:
-    # stuff relating to git
+    commitLength:
+      show: true
+  update:
+    method: prompt # can be: prompt | background | never
+    days: 14 # how often an update is checked for
+  reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
+  confirmOnQuit: false
+```
+
+## Platform Defaults:
+
+### Windows:
+
+```
   os:
-    # stuff relating to the OS
+    openCommand: 'cmd /c "start "" {{filename}}"'
+```
+
+### Linux:
+
+```
+  os:
+    openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'
+```
+
+### OSX:
+
+```
+  os:
+    openCommand: 'open {{filename}}'
+```
+
+### Recommended Config Values:
+
+for users of VSCode
+
+```
+  os:
+    openCommand: 'code -r {{filename}}'
 ```
 
 ## Color Attributes:

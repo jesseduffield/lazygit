@@ -8,17 +8,17 @@ package gui
 
 import (
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.View) error) func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		if function != nil {
 			if err := function(g, v); err != nil {
-				panic(err)
+				return err
 			}
 		}
 		return gui.closeConfirmationPrompt(g)
@@ -28,7 +28,7 @@ func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.Vie
 func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui) error {
 	view, err := g.View("confirmation")
 	if err != nil {
-		panic(err)
+		return nil // if it's already been closed we can just return
 	}
 	if err := gui.returnFocus(g, view); err != nil {
 		panic(err)
@@ -37,19 +37,24 @@ func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui) error {
 	return g.DeleteView("confirmation")
 }
 
-func (gui *Gui) getMessageHeight(message string, width int) int {
+func (gui *Gui) getMessageHeight(wrap bool, message string, width int) int {
 	lines := strings.Split(message, "\n")
 	lineCount := 0
-	for _, line := range lines {
-		lineCount += len(line)/width + 1
+	// if we need to wrap, calculate height to fit content within view's width
+	if wrap {
+		for _, line := range lines {
+			lineCount += len(line)/width + 1
+		}
+	} else {
+		lineCount = len(lines)
 	}
 	return lineCount
 }
 
-func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int, int, int, int) {
+func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, wrap bool, prompt string) (int, int, int, int) {
 	width, height := g.Size()
 	panelWidth := width / 2
-	panelHeight := gui.getMessageHeight(prompt, panelWidth)
+	panelHeight := gui.getMessageHeight(wrap, prompt, panelWidth)
 	return width/2 - panelWidth/2,
 		height/2 - panelHeight/2 - panelHeight%2 - 1,
 		width/2 + panelWidth/2,
@@ -58,26 +63,38 @@ func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, prompt string) (int
 
 func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
 	gui.onNewPopupPanel()
-	// only need to fit one line
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, "")
-	if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-
-		confirmationView.Editable = true
-		confirmationView.Title = title
-		confirmationView.FgColor = gocui.ColorWhite
-		gui.switchFocus(g, currentView, confirmationView)
-		return gui.setKeyBindings(g, handleConfirm, nil)
+	confirmationView, err := gui.prepareConfirmationPanel(currentView, title, "")
+	if err != nil {
+		return err
 	}
-	return nil
+	confirmationView.Editable = true
+	return gui.setKeyBindings(g, handleConfirm, nil)
+}
+
+func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string) (*gocui.View, error) {
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, true, prompt)
+	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
+	if err != nil {
+		if err != gocui.ErrUnknownView {
+			return nil, err
+		}
+		confirmationView.Title = title
+		confirmationView.Wrap = true
+		confirmationView.FgColor = gocui.ColorWhite
+	}
+	gui.g.Update(func(g *gocui.Gui) error {
+		confirmationView.Clear()
+		return gui.switchFocus(gui.g, currentView, confirmationView)
+	})
+	return confirmationView, nil
 }
 
 func (gui *Gui) onNewPopupPanel() {
-	gui.g.SetViewOnBottom("commitMessage")
+	_, _ = gui.g.SetViewOnBottom("commitMessage")
+	_, _ = gui.g.SetViewOnBottom("credentials")
 }
 
+// it is very important that within this function we never include the original prompt in any error messages, because it may contain e.g. a user password
 func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	gui.onNewPopupPanel()
 	g.Update(func(g *gocui.Gui) error {
@@ -93,33 +110,16 @@ func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, t
 				gui.Log.Error(errMessage)
 			}
 		}
-		x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, prompt)
-		if confirmationView, err := g.SetView("confirmation", x0, y0, x1, y1, 0); err != nil {
-			if err != gocui.ErrUnknownView {
-				return err
-			}
-			confirmationView.Title = title
-			confirmationView.FgColor = gocui.ColorWhite
-			gui.renderString(g, "confirmation", prompt)
-			gui.switchFocus(g, currentView, confirmationView)
-			return gui.setKeyBindings(g, handleConfirm, handleClose)
-		}
-		return nil
-	})
-	return nil
-}
-
-func (gui *Gui) handleNewline(g *gocui.Gui, v *gocui.View) error {
-	// resising ahead of time so that the top line doesn't get hidden to make
-	// room for the cursor on the second line
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, v.Buffer())
-	if _, err := g.SetView("confirmation", x0, y0, x1, y1+1, 0); err != nil {
-		if err != gocui.ErrUnknownView {
+		confirmationView, err := gui.prepareConfirmationPanel(currentView, title, prompt)
+		if err != nil {
 			return err
 		}
-	}
-
-	v.EditNewLine()
+		confirmationView.Editable = false
+		if err := gui.renderString(g, "confirmation", prompt); err != nil {
+			return err
+		}
+		return gui.setKeyBindings(g, handleConfirm, handleClose)
+	})
 	return nil
 }
 
@@ -131,11 +131,10 @@ func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*go
 			"keyBindConfirm": "enter",
 		},
 	)
-	gui.renderString(g, "options", actions)
-	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm)); err != nil {
+	if err := gui.renderString(g, "options", actions); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("confirmation", gocui.KeyTab, gocui.ModNone, gui.handleNewline); err != nil {
+	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm)); err != nil {
 		return err
 	}
 	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, gui.wrappedConfirmationFunction(handleClose))
@@ -145,23 +144,27 @@ func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title,
 	return gui.createConfirmationPanel(g, currentView, title, prompt, nil, nil)
 }
 
-func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
-	currentView := g.CurrentView()
+// createSpecificErrorPanel allows you to create an error popup, specifying the
+//  view to be focused when the user closes the popup, and a boolean specifying
+// whether we will log the error. If the message may include a user password,
+// this function is to be used over the more generic createErrorPanel, with
+// willLog set to false
+func (gui *Gui) createSpecificErrorPanel(message string, nextView *gocui.View, willLog bool) error {
+	if willLog {
+		go func() {
+			// when reporting is switched on this log call sometimes introduces
+			// a delay on the error panel popping up. Here I'm adding a second wait
+			// so that the error is logged while the user is reading the error message
+			time.Sleep(time.Second)
+			gui.Log.Error(message)
+		}()
+	}
+
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))
-	return gui.createConfirmationPanel(g, currentView, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
+	return gui.createConfirmationPanel(gui.g, nextView, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
 }
 
-func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
-	// If the confirmation panel is already displayed, just resize the width,
-	// otherwise continue
-	content := utils.TrimTrailingNewline(v.Buffer())
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(g, content)
-	vx0, vy0, vx1, vy1 := v.Dimensions()
-	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
-		return nil
-	}
-	gui.Log.Info(gui.Tr.SLocalize("resizingPopupPanel"))
-	_, err := g.SetView(v.Name(), x0, y0, x1, y1, 0)
-	return err
+func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {
+	return gui.createSpecificErrorPanel(message, g.CurrentView(), true)
 }

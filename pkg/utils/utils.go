@@ -1,11 +1,16 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
+	"time"
+
+	"github.com/go-errors/errors"
 
 	"github.com/fatih/color"
 )
@@ -82,10 +87,158 @@ func GetProjectRoot() string {
 	return strings.Split(dir, "lazygit")[0] + "lazygit"
 }
 
+// Loader dumps a string to be displayed as a loader
+func Loader() string {
+	characters := "|/-\\"
+	now := time.Now()
+	nanos := now.UnixNano()
+	index := nanos / 50000000 % int64(len(characters))
+	return characters[index : index+1]
+}
+
 // ResolvePlaceholderString populates a template with values
 func ResolvePlaceholderString(str string, arguments map[string]string) string {
 	for key, value := range arguments {
 		str = strings.Replace(str, "{{"+key+"}}", value, -1)
 	}
 	return str
+}
+
+// Min returns the minimum of two integers
+func Min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+type Displayable interface {
+	GetDisplayStrings() []string
+}
+
+// RenderList takes a slice of items, confirms they implement the Displayable
+// interface, then generates a list of their displaystrings to write to a panel's
+// buffer
+func RenderList(slice interface{}) (string, error) {
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		return "", errors.New("RenderList given a non-slice type")
+	}
+
+	displayables := make([]Displayable, s.Len())
+
+	for i := 0; i < s.Len(); i++ {
+		value, ok := s.Index(i).Interface().(Displayable)
+		if !ok {
+			return "", errors.New("item does not implement the Displayable interface")
+		}
+		displayables[i] = value
+	}
+
+	return renderDisplayableList(displayables)
+}
+
+// renderDisplayableList takes a list of displayable items, obtains their display
+// strings via GetDisplayStrings() and then returns a single string containing
+// each item's string representation on its own line, with appropriate horizontal
+// padding between the item's own strings
+func renderDisplayableList(items []Displayable) (string, error) {
+	if len(items) == 0 {
+		return "", nil
+	}
+
+	stringArrays := getDisplayStringArrays(items)
+
+	if !displayArraysAligned(stringArrays) {
+		return "", errors.New("Each item must return the same number of strings to display")
+	}
+
+	padWidths := getPadWidths(stringArrays)
+	paddedDisplayStrings := getPaddedDisplayStrings(stringArrays, padWidths)
+
+	return strings.Join(paddedDisplayStrings, "\n"), nil
+}
+
+func getPadWidths(stringArrays [][]string) []int {
+	if len(stringArrays[0]) <= 1 {
+		return []int{}
+	}
+	padWidths := make([]int, len(stringArrays[0])-1)
+	for i := range padWidths {
+		for _, strings := range stringArrays {
+			if len(strings[i]) > padWidths[i] {
+				padWidths[i] = len(strings[i])
+			}
+		}
+	}
+	return padWidths
+}
+
+func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) []string {
+	paddedDisplayStrings := make([]string, len(stringArrays))
+	for i, stringArray := range stringArrays {
+		if len(stringArray) == 0 {
+			continue
+		}
+		for j, padWidth := range padWidths {
+			paddedDisplayStrings[i] += WithPadding(stringArray[j], padWidth) + " "
+		}
+		paddedDisplayStrings[i] += stringArray[len(padWidths)]
+	}
+	return paddedDisplayStrings
+}
+
+// displayArraysAligned returns true if every string array returned from our
+// list of displayables has the same length
+func displayArraysAligned(stringArrays [][]string) bool {
+	for _, strings := range stringArrays {
+		if len(strings) != len(stringArrays[0]) {
+			return false
+		}
+	}
+	return true
+}
+
+func getDisplayStringArrays(displayables []Displayable) [][]string {
+	stringArrays := make([][]string, len(displayables))
+	for i, item := range displayables {
+		stringArrays[i] = item.GetDisplayStrings()
+	}
+	return stringArrays
+}
+
+// IncludesString if the list contains the string
+func IncludesString(list []string, a string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+// NextIndex returns the index of the element that comes after the given number
+func NextIndex(numbers []int, currentNumber int) int {
+	for index, number := range numbers {
+		if number > currentNumber {
+			return index
+		}
+	}
+	return 0
+}
+
+// PrevIndex returns the index that comes before the given number, cycling if we reach the end
+func PrevIndex(numbers []int, currentNumber int) int {
+	end := len(numbers) - 1
+	for i := end; i >= 0; i -= 1 {
+		if numbers[i] < currentNumber {
+			return i
+		}
+	}
+	return end
+}
+
+func AsJson(i interface{}) string {
+	bytes, _ := json.MarshalIndent(i, "", "    ")
+	return string(bytes)
 }

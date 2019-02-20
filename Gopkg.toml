@@ -38,6 +38,10 @@
   name = "github.com/jesseduffield/gocui"
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/jesseduffield/pty"
+
+[[constraint]]
   name = "gopkg.in/src-d/go-git.v4"
   revision = "43d17e14b714665ab5bc2ecc220b6740779d733f"
 

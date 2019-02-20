@@ -30,14 +30,44 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessage",
 			Other: "Wiadomość commita",
 		}, &i18n.Message{
+			ID:    "CredentialsUsername",
+			Other: "Username",
+		}, &i18n.Message{
+			ID:    "CredentialsPassword",
+			Other: "Password",
+		}, &i18n.Message{
+			ID:    "PassUnameWrong",
+			Other: "Password and/or username wrong",
+		}, &i18n.Message{
 			ID:    "CommitChanges",
 			Other: "commituj zmiany",
+		}, &i18n.Message{
+			ID:    "AmendLastCommit",
+			Other: "zmień ostatnie zatwierdzenie",
+		}, &i18n.Message{
+			ID:    "SureToAmend",
+			Other: "Czy na pewno chcesz zmienić ostatnie zatwierdzenie? Możesz zmienić komunikat zatwierdzenia z panelu zatwierdzeń.",
+		}, &i18n.Message{
+			ID:    "NoCommitToAmend",
+			Other: "Nie ma zobowiązania do zmiany.",
+		}, &i18n.Message{
+			ID:    "CommitChangesWithEditor",
+			Other: "commituj zmiany używając edytora z gita",
 		}, &i18n.Message{
 			ID:    "StatusTitle",
 			Other: "Status",
 		}, &i18n.Message{
+			ID:    "GlobalTitle",
+			Other: "Globalne",
+		}, &i18n.Message{
 			ID:    "navigate",
 			Other: "nawiguj",
+		}, &i18n.Message{
+			ID:    "menu",
+			Other: "menu",
+		}, &i18n.Message{
+			ID:    "execute",
+			Other: "wykonaj",
 		}, &i18n.Message{
 			ID:    "stashFiles",
 			Other: "przechowaj pliki",
@@ -53,6 +83,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "toggleStaged",
 			Other: "przełącz zatwierdzenie",
+		}, &i18n.Message{
+			ID:    "toggleStagedAll",
+			Other: "przełącz wszystkie zatwierdzenia",
 		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "odśwież",
@@ -99,11 +132,14 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "PushWait",
 			Other: "Wypychanie zmian...",
 		}, &i18n.Message{
+			ID:    "FetchWait",
+			Other: "Fetching...",
+		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
 			Other: "Ten plik nie powoduje konfliktów scalania",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
-			Other: "Jesteś pewny, że chcesz wykonać `reset --hard HEAD`? Możesz stracić wprowadzone zmiany",
+			Other: "Jesteś pewny, że chcesz wykonać `reset --hard HEAD` i `clean -fd`? Możesz stracić wprowadzone zmiany",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Jesteś pewny, że chcesz {{.deleteVerb}} {{.fileName}} (stracisz swoje wprowadzone zmiany)?",
@@ -132,6 +168,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "DeleteBranchMessage",
 			Other: "Jesteś pewien, że chcesz usunąć gałąź {{.selectedBranchName}} ?",
 		}, &i18n.Message{
+			ID:    "ForceDeleteBranchMessage",
+			Other: "Na pewno wymusić usunięcie gałęzi {{.selectedBranchName}}?",
+		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "Nie możesz scalić gałęzi do samej siebie",
 		}, &i18n.Message{
@@ -150,6 +189,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "deleteBranch",
 			Other: "usuń gałąź",
 		}, &i18n.Message{
+			ID:    "forceDeleteBranch",
+			Other: "usuń gałąź (wymuś)",
+		}, &i18n.Message{
 			ID:    "NoBranchesThisRepo",
 			Other: "Brak gałęzi dla tego repozytorium",
 		}, &i18n.Message{
@@ -161,6 +203,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
 			Other: "{{.keyBindClose}}: zamknij, {{.keyBindConfirm}}: potwierdź",
+		}, &i18n.Message{
+			ID:    "close",
+			Other: "zamknij",
 		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Jesteś pewny, że chcesz zresetować ten commit?",
@@ -201,8 +246,11 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "OnlyRenameTopCommit",
 			Other: "Można przmianować tylko najwyższy commit",
 		}, &i18n.Message{
-			ID:    "RenameCommit",
-			Other: "Przemianuj commit",
+			ID:    "renameCommit",
+			Other: "przemianuj commit",
+		}, &i18n.Message{
+			ID:    "renameCommitEditor",
+			Other: "przemianuj commit w edytorze",
 		}, &i18n.Message{
 			ID:    "PotentialErrInGetselectedCommit",
 			Other: "potencjalny błąd w getSelected Commit (niedopasowane ui i stan)",
@@ -284,6 +332,105 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Scalanie anulowane",
+		}, &i18n.Message{
+			ID:    "OpenConfig",
+			Other: "otwórz plik konfiguracyjny",
+		}, &i18n.Message{
+			ID:    "EditConfig",
+			Other: "edytuj plik konfiguracyjny",
+		}, &i18n.Message{
+			ID:    "ForcePush",
+			Other: "Wymuś wypchnięcie",
+		}, &i18n.Message{
+			ID:    "ForcePushPrompt",
+			Other: "Twoja gałąź rozeszła się z gałęzią zdalną. Wciśnij 'esc' aby anulować lub 'enter' aby wymusić wypchnięcie.",
+		}, &i18n.Message{
+			ID:    "checkForUpdate",
+			Other: "sprawdź aktualizacje",
+		}, &i18n.Message{
+			ID:    "CheckingForUpdates",
+			Other: "Sprawdzanie aktualizacji...",
+		}, &i18n.Message{
+			ID:    "OnLatestVersionErr",
+			Other: "Już posiadasz najnowszą wersję",
+		}, &i18n.Message{
+			ID:    "MajorVersionErr",
+			Other: "Nowa wersja ({{.newVersion}}) posiada niekompatybilne zmiany w porównaniu do obecnej wersji ({{.currentVersion}})",
+		}, &i18n.Message{
+			ID:    "CouldNotFindBinaryErr",
+			Other: "Nie można znaleźć pliku binarnego w {{.url}}",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingTitle",
+			Other: "Help make lazygit better",
+		}, &i18n.Message{
+			ID:    "AnonymousReportingPrompt",
+			Other: "Włączyć anonimowe raportowanie błędów w celu pomocy w usprawnianiu lazygita (enter/esc)?",
+		}, &i18n.Message{
+			ID:    "removeFile",
+			Other: `usuń jeśli nie śledzony / przełącz jeśli śledzony`,
+		}, &i18n.Message{
+			ID:    "editFile",
+			Other: `edytuj plik`,
+		}, &i18n.Message{
+			ID:    "openFile",
+			Other: `otwórz plik`,
+		}, &i18n.Message{
+			ID:    "ignoreFile",
+			Other: `dodaj do .gitignore`,
+		}, &i18n.Message{
+			ID:    "refreshFiles",
+			Other: `odśwież pliki`,
+		}, &i18n.Message{
+			ID:    "resetHard",
+			Other: `zresetuj twardo i usuń niepotwierdzone pliki`,
+		}, &i18n.Message{
+			ID:    "mergeIntoCurrentBranch",
+			Other: `scal do obecnej gałęzi`,
+		}, &i18n.Message{
+			ID:    "ConfirmQuit",
+			Other: `Na pewno chcesz wyjść z programu?`,
+		}, &i18n.Message{
+			ID:    "UnsupportedGitService",
+			Other: `Nieobsługiwana usługa git`,
+		}, &i18n.Message{
+			ID:    "createPullRequest",
+			Other: `utwórz żądanie wyciągnięcia`,
+		}, &i18n.Message{
+			ID:    "NoBranchOnRemote",
+			Other: `Ta gałąź nie istnieje na zdalnym. Najpierw musisz go odepchnąć na odległość.`,
+		}, &i18n.Message{
+			ID:    "fetch",
+			Other: `fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchTitle",
+			Other: `No automatic git fetch`,
+		}, &i18n.Message{
+			ID:    "NoAutomaticGitFetchBody",
+			Other: `Lazygit can't use "git fetch" in a private repo use f in the branches panel to run "git fetch" manually`,
+		}, &i18n.Message{
+			ID:    "StageLines",
+			Other: `zatwierdź pojedyncze linie`,
+		}, &i18n.Message{
+			ID:    "FileStagingRequirements",
+			Other: `Można tylko zatwierdzić pojedyncze linie dla śledzonych plików z niezatwierdzonymi zmianami`,
+		}, &i18n.Message{
+			ID:    "StagingTitle",
+			Other: `Zatwierdzanie`,
+		}, &i18n.Message{
+			ID:    "StageHunk",
+			Other: `zatwierdź kawałek`,
+		}, &i18n.Message{
+			ID:    "StageLine",
+			Other: `zatwierdź linię`,
+		}, &i18n.Message{
+			ID:    "EscapeStaging",
+			Other: `wróć do panelu plików`,
+		}, &i18n.Message{
+			ID:    "CantFindHunks",
+			Other: `Nie można znaleźć żadnych kawałków w tej łatce`,
+		}, &i18n.Message{
+			ID:    "CantFindHunk",
+			Other: `Nie można znaleźć kawałka`,
 		},
 	)
 }

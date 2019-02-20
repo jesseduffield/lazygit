@@ -5,9 +5,9 @@
 package gocui
 
 import (
-	"errors"
+	"github.com/go-errors/errors"
 
-	"github.com/nsf/termbox-go"
+	"github.com/jesseduffield/termbox-go"
 )
 
 var (
@@ -476,6 +476,11 @@ func (g *Gui) flush() error {
 					return err
 				}
 			}
+			if v.Subtitle != "" {
+				if err := g.drawSubtitle(v, fgColor, bgColor); err != nil {
+					return err
+				}
+			}
 		}
 		if err := g.draw(v); err != nil {
 			return err
@@ -582,6 +587,25 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 	return nil
 }
 
+// drawSubtitle draws the subtitle of the view.
+func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
+	if v.y0 < 0 || v.y0 >= g.maxY {
+		return nil
+	}
+
+	start := v.x1 - 5 - len(v.Subtitle)
+	for i, ch := range v.Subtitle {
+		x := start + i
+		if x >= v.x1 {
+			break
+		}
+		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // draw manages the cursor and calls the draw function of a view.
 func (g *Gui) draw(v *View) error {
 	if g.Cursor {
@@ -653,17 +677,31 @@ func (g *Gui) onKey(ev *termbox.Event) error {
 // execKeybindings executes the keybinding handlers that match the passed view
 // and event. The value of matched is true if there is a match and no errors.
 func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err error) {
-	matched = false
+	var globalKb *keybinding
 	for _, kb := range g.keybindings {
 		if kb.handler == nil {
 			continue
 		}
-		if kb.matchKeypress(Key(ev.Key), ev.Ch, Modifier(ev.Mod)) && kb.matchView(v) {
-			if err := kb.handler(g, v); err != nil {
-				return false, err
-			}
-			matched = true
+		if !kb.matchKeypress(Key(ev.Key), ev.Ch, Modifier(ev.Mod)) {
+			continue
+		}
+		if kb.matchView(v) {
+			return g.execKeybinding(v, kb)
+		}
+		if kb.viewName == "" && (!v.Editable || kb.ch == 0) {
+			globalKb = kb
 		}
 	}
-	return matched, nil
+	if globalKb != nil {
+		return g.execKeybinding(v, globalKb)
+	}
+	return false, nil
+}
+
+// execKeybinding executes a given keybinding
+func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
+	if err := kb.handler(g, v); err != nil {
+		return false, err
+	}
+	return true, nil
 }

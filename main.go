@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,10 +13,12 @@ import (
 )
 
 var (
-	commit  string
-	version = "unversioned"
-	date    string
+	commit      string
+	version     = "unversioned"
+	date        string
+	buildSource = "unknown"
 
+	configFlag    = flag.Bool("config", false, "Print the current default config")
 	debuggingFlag = flag.Bool("debug", false, "a boolean")
 	versionFlag   = flag.Bool("v", false, "Print the current version")
 )
@@ -28,22 +31,24 @@ func projectPath(path string) string {
 func main() {
 	flag.Parse()
 	if *versionFlag {
-		fmt.Printf("commit=%s, build date=%s, version=%s, os=%s, arch=%s\n", commit, date, version, runtime.GOOS, runtime.GOARCH)
+		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s\n", commit, date, buildSource, version, runtime.GOOS, runtime.GOARCH)
 		os.Exit(0)
 	}
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, debuggingFlag)
+
+	if *configFlag {
+		fmt.Printf("%s\n", config.GetDefaultConfig())
+		os.Exit(0)
+	}
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
 	if err != nil {
-		panic(err)
+		log.Fatal(err.Error())
 	}
 
-	app, err := app.NewApp(appConfig)
+	app, err := app.Setup(appConfig)
 	if err != nil {
-		// TODO: remove this call to panic after anonymous error reporting
-		// is setup (right now the call to panic logs nothing to the screen which
-		// would make debugging difficult
-		panic(err)
-		// app.Log.Panic(err.Error())
+		app.Log.Error(err.Error())
+		log.Fatal(err.Error())
 	}
-	app.GitCommand.SetupGit()
+
 	app.Gui.RunWithSubprocesses()
 }

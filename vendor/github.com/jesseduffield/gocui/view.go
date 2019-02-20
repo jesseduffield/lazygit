@@ -6,11 +6,13 @@ package gocui
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"strings"
 
-	"github.com/nsf/termbox-go"
+	"github.com/go-errors/errors"
+
+	"github.com/jesseduffield/termbox-go"
+	"github.com/mattn/go-runewidth"
 )
 
 // Constants for overlapping edges
@@ -75,6 +77,9 @@ type View struct {
 
 	// If Frame is true, Title allows to configure a title for the view.
 	Title string
+
+	// If Frame is true, Subtitle allows to configure a subtitle for the view.
+	Subtitle string
 
 	// If Mask is true, the View will display the mask instead of the real
 	// content
@@ -144,7 +149,6 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return errors.New("invalid point")
 	}
-
 	var (
 		ry, rcy int
 		err     error
@@ -266,12 +270,19 @@ func (v *View) parseInput(ch rune) []cell {
 		if isEscape {
 			return nil
 		}
-		c := cell{
-			fgColor: v.ei.curFgColor,
-			bgColor: v.ei.curBgColor,
-			chr:     ch,
+		repeatCount := 1
+		if ch == '\t' {
+			ch = ' '
+			repeatCount = 4
 		}
-		cells = append(cells, c)
+		for i := 0; i < repeatCount; i++ {
+			c := cell{
+				fgColor: v.ei.curFgColor,
+				bgColor: v.ei.curBgColor,
+				chr:     ch,
+			}
+			cells = append(cells, c)
+		}
 	}
 
 	return cells
@@ -312,24 +323,14 @@ func (v *View) draw() error {
 	if v.tainted {
 		v.viewLines = nil
 		for i, line := range v.lines {
+			wrap := 0
 			if v.Wrap {
-				if len(line) < maxX {
-					vline := viewLine{linesX: 0, linesY: i, line: line}
-					v.viewLines = append(v.viewLines, vline)
-					continue
-				} else {
-					for n := 0; n <= len(line); n += maxX {
-						if len(line[n:]) <= maxX {
-							vline := viewLine{linesX: n, linesY: i, line: line[n:]}
-							v.viewLines = append(v.viewLines, vline)
-						} else {
-							vline := viewLine{linesX: n, linesY: i, line: line[n : n+maxX]}
-							v.viewLines = append(v.viewLines, vline)
-						}
-					}
-				}
-			} else {
-				vline := viewLine{linesX: 0, linesY: i, line: line}
+				wrap = maxX
+			}
+
+			ls := lineWrap(line, wrap)
+			for j := range ls {
+				vline := viewLine{linesX: j, linesY: i, line: ls[j]}
 				v.viewLines = append(v.viewLines, vline)
 			}
 		}
@@ -368,7 +369,7 @@ func (v *View) draw() error {
 			if err := v.setRune(x, y, c.chr, fgColor, bgColor); err != nil {
 				return err
 			}
-			x++
+			x += runewidth.RuneWidth(c.chr)
 		}
 		y++
 	}
@@ -438,11 +439,7 @@ func (v *View) BufferLines() []string {
 // Buffer returns a string with the contents of the view's internal
 // buffer.
 func (v *View) Buffer() string {
-	str := ""
-	for _, l := range v.lines {
-		str += lineType(l).String() + "\n"
-	}
-	return strings.Replace(str, "\x00", " ", -1)
+	return linesToString(v.lines)
 }
 
 // ViewBufferLines returns the lines in the view's internal
@@ -457,14 +454,19 @@ func (v *View) ViewBufferLines() []string {
 	return lines
 }
 
+func (v *View) LinesHeight() int {
+	return len(v.lines)
+}
+
 // ViewBuffer returns a string with the contents of the view's buffer that is
 // shown to the user.
 func (v *View) ViewBuffer() string {
-	str := ""
-	for _, l := range v.viewLines {
-		str += lineType(l.line).String() + "\n"
+	lines := make([][]cell, len(v.viewLines))
+	for i := range v.viewLines {
+		lines[i] = v.viewLines[i].line
 	}
-	return strings.Replace(str, "\x00", " ", -1)
+
+	return linesToString(lines)
 }
 
 // Line returns a string with the line of the view's internal buffer
@@ -515,4 +517,50 @@ func (v *View) Word(x, y int) (string, error) {
 // and 0.
 func indexFunc(r rune) bool {
 	return r == ' ' || r == 0
+}
+
+func lineWidth(line []cell) (n int) {
+	for i := range line {
+		n += runewidth.RuneWidth(line[i].chr)
+	}
+
+	return
+}
+
+func lineWrap(line []cell, columns int) [][]cell {
+	if columns == 0 {
+		return [][]cell{line}
+	}
+
+	var n int
+	var offset int
+	lines := make([][]cell, 0, 1)
+	for i := range line {
+		rw := runewidth.RuneWidth(line[i].chr)
+		n += rw
+		if n > columns {
+			n = rw
+			lines = append(lines, line[offset:i])
+			offset = i
+		}
+	}
+
+	lines = append(lines, line[offset:])
+	return lines
+}
+
+func linesToString(lines [][]cell) string {
+	str := make([]string, len(lines))
+	for i := range lines {
+		rns := make([]rune, 0, len(lines[i]))
+		line := lineType(lines[i]).String()
+		for _, c := range line {
+			if c != '\x00' {
+				rns = append(rns, c)
+			}
+		}
+		str[i] = string(rns)
+	}
+
+	return strings.Join(str, "\n")
 }
