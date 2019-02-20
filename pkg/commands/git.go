@@ -387,7 +387,15 @@ func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 	if tracked {
 		command = "git reset HEAD %s"
 	}
-	return c.OSCommand.RunCommand(fmt.Sprintf(command, c.OSCommand.Quote(fileName)))
+
+	// renamed files look like "file1 -> file2"
+	fileNames := strings.Split(fileName, " -> ")
+	for _, name := range fileNames {
+		if err := c.OSCommand.RunCommand(fmt.Sprintf(command, c.OSCommand.Quote(name))); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // GitStatus returns the plaintext short status of the repo
@@ -532,7 +540,8 @@ func (c *GitCommand) Diff(file *File, plain bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := "--color"
-	fileName := c.OSCommand.Quote(file.Name)
+	split := strings.Split(file.Name, " -> ") // in case of a renamed file we get the new filename
+	fileName := c.OSCommand.Quote(split[len(split)-1])
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
 	}
