@@ -117,3 +117,7 @@ func processes() ([]Process, error) {
 
 	return results, nil
 }
+
+func supported() bool {
+	return true
+}

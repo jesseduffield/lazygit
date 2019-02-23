@@ -38,3 +38,8 @@ func Processes() ([]Process, error) {
 func FindProcess(pid int) (Process, error) {
 	return findProcess(pid)
 }
+
+// Supported returns true if this pacakge won't use the fallback functions
+func Supported() bool {
+	return supported()
+}

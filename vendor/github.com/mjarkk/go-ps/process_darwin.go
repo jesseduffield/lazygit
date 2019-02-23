@@ -136,3 +136,7 @@ type kinfoProc struct {
 	PPid int32
 	_    [84]byte
 }
+
+func supported() bool {
+	return true
+}

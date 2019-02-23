@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"github.com/mgutz/str"
-	"github.com/mitchellh/go-ps"
+	"github.com/mjarkk/go-ps"
 )
 
 // AskedFor is what a user has already asked for
@@ -331,6 +331,10 @@ func SendToLG(port, listenerNumber string, selectFunction string, args interface
 
 // HasLGAsSubProcess returns true if lazygit is a child of this process
 func HasLGAsSubProcess() bool {
+	if !ps.Supported() {
+		return true
+	}
+
 	lgHostPid := os.Getpid()
 	list, err := ps.Processes()
 	if err != nil {

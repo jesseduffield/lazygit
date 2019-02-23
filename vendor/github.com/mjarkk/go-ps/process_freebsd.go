@@ -258,3 +258,7 @@ func newUnixProcess(pid int) (*UnixProcess, error) {
 	p := &UnixProcess{pid: pid}
 	return p, p.Refresh()
 }
+
+func supported() bool {
+	return true
+}
