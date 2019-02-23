@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/mgutz/str"
@@ -335,6 +336,10 @@ func HasLGAsSubProcess() bool {
 		return true
 	}
 
+	if runtime.GOOS == "windows" {
+		return true
+	}
+
 	lgHostPid := os.Getpid()
 	list, err := ps.Processes()
 	if err != nil {
@@ -357,7 +362,7 @@ procListLoop:
 				return true
 			}
 			stepsBack++
-			if stepsBack > 5 {
+			if stepsBack > 3 {
 				continue procListLoop
 			}
 			parrent = proc.PPid()
