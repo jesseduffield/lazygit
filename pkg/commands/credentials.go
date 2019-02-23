@@ -331,7 +331,9 @@ func SendToLG(port, listenerNumber string, selectFunction string, args interface
 
 // HasLGAsSubProcess returns true if lazygit is a child of this process
 func HasLGAsSubProcess() bool {
-	return true
+	if !ps.Supported() {
+		return true
+	}
 
 	lgHostPid := os.Getpid()
 	list, err := ps.Processes()
