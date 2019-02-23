@@ -65,7 +65,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "amend last commit",
 		}, &i18n.Message{
 			ID:    "SureToAmend",
-			Other: "Are you sure you want to amend last commit? You can change commit message from commits panel.",
+			Other: "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",
 		}, &i18n.Message{
 			ID:    "NoCommitToAmend",
 			Other: "There's no commit to amend.",
@@ -284,7 +284,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Fixup",
 		}, &i18n.Message{
 			ID:    "SureFixupThisCommit",
-			Other: "Are you sure you want to fixup this commit? The commit beneath will be squashed up into this one",
+			Other: "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
 		}, &i18n.Message{
 			ID:    "SureSquashThisCommit",
 			Other: "Are you sure you want to squash this commit into the commit below?", // TODO: i18n
@@ -568,11 +568,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "YouAreHere",
 			Other: "YOU ARE HERE",
-			}, &i18n.Message{
-				ID:    "rewordNotSupported",
-				Other: "rewording commits while interactively rebasing is not currently supported",
-			},
-
-
+		}, &i18n.Message{
+			ID:    "rewordNotSupported",
+			Other: "rewording commits while interactively rebasing is not currently supported",
+		},
 	)
 }

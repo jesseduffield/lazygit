@@ -212,6 +212,11 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
+	selectedCommit := gui.State.Commits[gui.State.Panels.Commits.SelectedLine]
+	if selectedCommit.Status != "rebasing" {
+		return false, nil
+	}
+
 	// for now we do not support setting 'reword' because it requires an editor
 	// and that means we either unconditionally wait around for the subprocess to ask for
 	// our input or we set a lazygit client as the EDITOR env variable and have it
@@ -220,10 +225,6 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 		return true, gui.createErrorPanel(gui.g, gui.Tr.SLocalize("rewordNotSupported"))
 	}
 
-	selectedCommit := gui.State.Commits[gui.State.Panels.Commits.SelectedLine]
-	if selectedCommit.Status != "rebasing" {
-		return false, nil
-	}
 	if err := gui.GitCommand.EditRebaseTodo(gui.State.Panels.Commits.SelectedLine, action); err != nil {
 		return false, gui.createErrorPanel(gui.g, err.Error())
 	}
@@ -318,6 +319,7 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
+	// TODO: i18n
 	return gui.createConfirmationPanel(gui.g, v, "Amend Commit", "Are you sure you want to amend this commit with your staged files?", func(*gocui.Gui, *gocui.View) error {
 		err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
 		return gui.handleGenericMergeCommandResult(err)

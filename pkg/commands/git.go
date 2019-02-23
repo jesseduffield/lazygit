@@ -252,13 +252,14 @@ func (c *GitCommand) RenameCommit(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name)))
 }
 
-func (c *GitCommand) RebaseBranch(onto string) error {
-	curBranch, err := c.CurrentBranchName()
+// RebaseBranch interactive rebases onto a branch
+func (c *GitCommand) RebaseBranch(branchName string) error {
+	cmd, err := c.PrepareInteractiveRebaseCommand(branchName, "", false)
 	if err != nil {
 		return err
 	}
 
-	return c.OSCommand.RunCommand(fmt.Sprintf("git rebase --autostash %s %s ", onto, curBranch))
+	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
 // Fetch fetch git repo
@@ -332,12 +333,18 @@ func (c *GitCommand) usingGpg() bool {
 }
 
 // Commit commits to git
-func (c *GitCommand) Commit(message string, amend bool) (*exec.Cmd, error) {
-	amendParam := ""
-	if amend {
-		amendParam = " --amend"
+func (c *GitCommand) Commit(message string) (*exec.Cmd, error) {
+	command := fmt.Sprintf("git commit -m %s", c.OSCommand.Quote(message))
+	if c.usingGpg() {
+		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
-	command := fmt.Sprintf("git commit%s -m %s", amendParam, c.OSCommand.Quote(message))
+
+	return nil, c.OSCommand.RunCommand(command)
+}
+
+// AmendHead amends HEAD with whatever is staged in your working tree
+func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
+	command := "git commit --amend --no-edit"
 	if c.usingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
@@ -644,6 +651,11 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 
+	gitSequenceEditor := ex
+	if todo == "" {
+		gitSequenceEditor = "true"
+	}
+
 	cmd.Env = os.Environ()
 	cmd.Env = append(
 		cmd.Env,
@@ -652,7 +664,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 		"DEBUG="+debug,
 		"LANG=en_US.UTF-8",   // Force using EN as language
 		"LC_ALL=en_US.UTF-8", // Force using EN as language
-		"GIT_SEQUENCE_EDITOR="+ex,
+		"GIT_SEQUENCE_EDITOR="+gitSequenceEditor,
 	)
 
 	if overrideEditor {
@@ -706,7 +718,17 @@ func (c *GitCommand) EditRebaseTodo(index int, action string) error {
 
 	content := strings.Split(string(bytes), "\n")
 
-	contentIndex := len(content) - 2 - index
+	// count lines that are not blank and are not comments
+	commitCount := 0
+	for _, line := range content {
+		if line != "" && !strings.HasPrefix(line, "#") {
+			commitCount++
+		}
+	}
+
+	// we have the most recent commit at the bottom whereas the todo file has
+	// it at the bottom, so we need to subtract our index from the commit count
+	contentIndex := commitCount - 1 - index
 	splitLine := strings.Split(content[contentIndex], " ")
 	content[contentIndex] = action + " " + strings.Join(splitLine[1:], " ")
 	result := strings.Join(content, "\n")

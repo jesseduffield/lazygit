@@ -287,18 +287,16 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 	if len(gui.stagedFiles()) == 0 && gui.State.WorkingTreeState == "normal" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
-	title := strings.Title(gui.Tr.SLocalize("AmendLastCommit"))
-	question := gui.Tr.SLocalize("SureToAmend")
-
 	if len(gui.State.Commits) == 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoCommitToAmend"))
 	}
 
+	title := strings.Title(gui.Tr.SLocalize("AmendLastCommit"))
+	question := gui.Tr.SLocalize("SureToAmend")
+
 	return gui.createConfirmationPanel(g, filesView, title, question, func(g *gocui.Gui, v *gocui.View) error {
-		lastCommitMsg := gui.State.Commits[0].Name
-		_, err := gui.GitCommand.Commit(lastCommitMsg, true)
-		if err != nil {
-			return gui.createErrorPanel(g, err.Error())
+		if err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead()); err != nil {
+			return err
 		}
 
 		return gui.refreshSidePanels(g)
@@ -324,15 +322,7 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) {
 }
 
 func (gui *Gui) editFile(filename string) error {
-	sub, err := gui.OSCommand.EditFile(filename)
-	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
-	}
-	if sub != nil {
-		gui.SubProcess = sub
-		return gui.Errors.ErrSubProcess
-	}
-	return nil
+	return gui.runSyncOrAsyncCommand(gui.OSCommand.EditFile(filename))
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
