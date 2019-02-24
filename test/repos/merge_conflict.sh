@@ -24,6 +24,57 @@ git add file1
 git add directory
 git commit -m "first commit"
 
+git checkout -b feature/cherry-picking
+
+echo "this is file number 1 that I'm going to cherry-pick" > cherrypicking1
+echo "this is file number 2 that I'm going to cherry-pick" > cherrypicking2
+
+git add .
+
+git commit -am "first commit freshman year"
+
+echo "this is file number 3 that I'm going to cherry-pick" > cherrypicking3
+
+git add .
+
+git commit -am "second commit subway eat fresh"
+
+echo "this is file number 4 that I'm going to cherry-pick" > cherrypicking4
+
+git add .
+
+git commit -am "third commit fresh"
+
+echo "this is file number 5 that I'm going to cherry-pick" > cherrypicking5
+
+git add .
+
+git commit -am "fourth commit cool"
+
+echo "this is file number 6 that I'm going to cherry-pick" > cherrypicking6
+
+git add .
+
+git commit -am "fifth commit nice"
+
+echo "this is file number 7 that I'm going to cherry-pick" > cherrypicking7
+
+git add .
+
+git commit -am "sixth commit haha"
+
+echo "this is file number 8 that I'm going to cherry-pick" > cherrypicking8
+
+git add .
+
+git commit -am "seventh commit yeah"
+
+echo "this is file number 9 that I'm going to cherry-pick" > cherrypicking9
+
+git add .
+
+git commit -am "eighth commit woo"
+
 
 git checkout -b develop
 echo "once upon a time there was a dog" >> file1
