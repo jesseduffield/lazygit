@@ -2,6 +2,8 @@ package gui
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/go-errors/errors"
 
@@ -40,7 +42,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr)
+		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedShas)
 		if err != nil {
 			return err
 		}
@@ -346,4 +348,68 @@ func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 	}
 	gui.State.Panels.Commits.SelectedLine++
 	return gui.refreshCommits(gui.g)
+}
+
+func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
+	// get currently selected commit, add the sha to state.
+	sha := gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha
+
+	// we will un-copy it if it's already copied
+	for index, cherryPickedSha := range gui.State.CherryPickedShas {
+		if sha == cherryPickedSha {
+			gui.State.CherryPickedShas = append(gui.State.CherryPickedShas[0:index], gui.State.CherryPickedShas[index+1:]...)
+			gui.Log.Info("removed copied sha. New shas:\n" + strings.Join(gui.State.CherryPickedShas, "\n"))
+			return gui.refreshCommits(gui.g)
+		}
+	}
+
+	gui.addCommitToCherryPickedShas(gui.State.Panels.Commits.SelectedLine)
+	return gui.refreshCommits(gui.g)
+}
+
+func (gui *Gui) addCommitToCherryPickedShas(index int) {
+	defer func() { gui.Log.Info("new copied shas:\n" + strings.Join(gui.State.CherryPickedShas, "\n")) }()
+
+	// not super happy with modifying the state of the Commits array here
+	// but the alternative would be very tricky
+	gui.State.Commits[index].Copied = true
+
+	newShas := []string{}
+	for _, commit := range gui.State.Commits {
+		if commit.Copied {
+			newShas = append(newShas, commit.Sha)
+		}
+	}
+
+	gui.State.CherryPickedShas = newShas
+}
+
+func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
+	// whenever I add a commit, I need to make sure I retain its order
+
+	// find the last commit that is copied that's above our position
+	// if there are none, startIndex = 0
+	startIndex := 0
+	for index, commit := range gui.State.Commits[0:gui.State.Panels.Commits.SelectedLine] {
+		if commit.Copied {
+			startIndex = index
+		}
+	}
+
+	gui.Log.Info("commit copy start index: " + strconv.Itoa(startIndex))
+
+	for index := startIndex; index <= gui.State.Panels.Commits.SelectedLine; index++ {
+		gui.addCommitToCherryPickedShas(index)
+	}
+
+	return gui.refreshCommits(gui.g)
+}
+
+// HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
+func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("CherryPick"), gui.Tr.SLocalize("SureCherryPick"), func(g *gocui.Gui, v *gocui.View) error {
+		err := gui.GitCommand.CherryPickShas(gui.State.CherryPickedShas)
+		return gui.handleGenericMergeCommandResult(err)
+	}, nil)
+
 }

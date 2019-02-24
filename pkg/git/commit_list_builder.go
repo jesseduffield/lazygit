@@ -23,19 +23,21 @@ import (
 
 // CommitListBuilder returns a list of Branch objects for the current repo
 type CommitListBuilder struct {
-	Log        *logrus.Entry
-	GitCommand *commands.GitCommand
-	OSCommand  *commands.OSCommand
-	Tr         *i18n.Localizer
+	Log              *logrus.Entry
+	GitCommand       *commands.GitCommand
+	OSCommand        *commands.OSCommand
+	Tr               *i18n.Localizer
+	CherryPickedShas []string
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand, tr *i18n.Localizer) (*CommitListBuilder, error) {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand, tr *i18n.Localizer, cherryPickedShas []string) (*CommitListBuilder, error) {
 	return &CommitListBuilder{
-		Log:        log,
-		GitCommand: gitCommand,
-		OSCommand:  osCommand,
-		Tr:         tr,
+		Log:              log,
+		GitCommand:       gitCommand,
+		OSCommand:        osCommand,
+		Tr:               tr,
+		CherryPickedShas: cherryPickedShas,
 	}, nil
 }
 
@@ -80,7 +82,18 @@ func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 		youAreHere := blue.Sprintf("<-- %s ---", c.Tr.SLocalize("YouAreHere"))
 		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
-	return c.setCommitMergedStatuses(commits)
+
+	commits, err = c.setCommitMergedStatuses(commits)
+	if err != nil {
+		return nil, err
+	}
+
+	commits, err = c.setCommitCherryPickStatuses(commits)
+	if err != nil {
+		return nil, err
+	}
+
+	return commits, nil
 }
 
 // git-rebase-todo example:
@@ -106,7 +119,7 @@ func (c *CommitListBuilder) getRebasingCommits() ([]*commands.Commit, error) {
 	commits := []*commands.Commit{}
 	lines := strings.Split(string(bytesContent), "\n")
 	for _, line := range lines {
-		if line == "" {
+		if line == "" || line == "noop" {
 			return commits, nil
 		}
 		splitLine := strings.Split(line, " ")
@@ -139,6 +152,17 @@ func (c *CommitListBuilder) setCommitMergedStatuses(commits []*commands.Commit) 
 		}
 		if passedAncestor {
 			commits[i].Status = "merged"
+		}
+	}
+	return commits, nil
+}
+
+func (c *CommitListBuilder) setCommitCherryPickStatuses(commits []*commands.Commit) ([]*commands.Commit, error) {
+	for _, commit := range commits {
+		for _, sha := range c.CherryPickedShas {
+			if commit.Sha == sha {
+				commit.Copied = true
+			}
 		}
 	}
 	return commits, nil

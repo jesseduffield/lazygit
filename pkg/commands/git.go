@@ -745,3 +745,18 @@ func (c *GitCommand) MoveTodoDown(index int) error {
 func (c *GitCommand) Revert(sha string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git revert %s", sha))
 }
+
+// CherryPickShas begins an interactive rebase with the given shas being cherry picked onto HEAD
+func (c *GitCommand) CherryPickShas(shas []string) error {
+	todo := ""
+	for _, sha := range shas {
+		todo = "pick " + sha + "\n" + todo
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand("HEAD", todo, false)
+	if err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunPreparedCommand(cmd)
+}

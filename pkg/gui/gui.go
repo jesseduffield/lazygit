@@ -133,17 +133,19 @@ type guiState struct {
 	Panels           *panelStates
 	WorkingTreeState string // one of "merging", "rebasing", "normal"
 	Contexts         map[string]string
+	CherryPickedShas []string
 }
 
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
 
 	initialState := guiState{
-		Files:        make([]*commands.File, 0),
-		PreviousView: "files",
-		Commits:      make([]*commands.Commit, 0),
-		StashEntries: make([]*commands.StashEntry, 0),
-		Platform:     *oSCommand.Platform,
+		Files:            make([]*commands.File, 0),
+		PreviousView:     "files",
+		Commits:          make([]*commands.Commit, 0),
+		CherryPickedShas: []string{},
+		StashEntries:     make([]*commands.StashEntry, 0),
+		Platform:         *oSCommand.Platform,
 		Panels: &panelStates{
 			Files:    &filePanelState{SelectedLine: -1},
 			Branches: &branchPanelState{SelectedLine: 0},

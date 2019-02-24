@@ -571,6 +571,21 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "rewordNotSupported",
 			Other: "rewording commits while interactively rebasing is not currently supported",
+		}, &i18n.Message{
+			ID:    "cherryPickCopy",
+			Other: "copy commit (cherry-pick)",
+		}, &i18n.Message{
+			ID:    "cherryPickCopyRange",
+			Other: "copy commit range (cherry-pick)",
+		}, &i18n.Message{
+			ID:    "pasteCommits",
+			Other: "paste commits (cherry-pick)",
+		}, &i18n.Message{
+			ID:    "SureCherryPick",
+			Other: "Are you sure you want to cherry-pick the copied commits onto this branch?",
+		}, &i18n.Message{
+			ID:    "CherryPick",
+			Other: "Cherry-Pick",
 		},
 	)
 }

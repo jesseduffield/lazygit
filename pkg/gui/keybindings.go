@@ -359,12 +359,31 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleCommitRevert,
 			Description: gui.Tr.SLocalize("revertCommit"),
 		}, {
+			ViewName:    "commits",
+			Key:         'c',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCopyCommit,
+			Description: gui.Tr.SLocalize("cherryPickCopy"),
+		}, {
+			ViewName:    "commits",
+			Key:         'C',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCopyCommitRange,
+			Description: gui.Tr.SLocalize("cherryPickCopyRange"),
+		}, {
+			ViewName:    "commits",
+			Key:         'v',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.HandlePasteCommits,
+			Description: gui.Tr.SLocalize("pasteCommits"),
+		}, {
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleStashApply,
 			Description: gui.Tr.SLocalize("apply"),
 		}, {
+
 			ViewName:    "stash",
 			Key:         'g',
 			Modifier:    gocui.ModNone,
