@@ -299,12 +299,11 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "revert commit", // TODO: i18n
 		}, &i18n.Message{
 			ID:    "OnlyRenameTopCommit",
-			Other: "Can only rename topmost commit",
+			Other: "Can only rename topmost commit from within lazygit. Use shift+R instead",
 		}, &i18n.Message{
 			ID:    "renameCommit",
 			Other: "rename commit",
 		}, &i18n.Message{
-
 			ID:    "deleteCommit",
 			Other: "delete commit", // TODO: other languages
 		}, &i18n.Message{
@@ -586,6 +585,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CherryPick",
 			Other: "Cherry-Pick",
+		}, &i18n.Message{
+			ID:    "CannotRebaseOntoFirstCommit",
+			Other: "You cannot interactive rebase onto the first commit",
 		},
 	)
 }

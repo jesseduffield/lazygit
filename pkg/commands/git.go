@@ -591,7 +591,6 @@ func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
 	// we must ensure that we have at least two commits after the selected one
 	if len(commits) <= index+2 {
 		// assuming they aren't picking the bottom commit
-		// TODO: support more than say 30 commits and ensure this logic is correct, and i18n
 		return errors.New(c.Tr.SLocalize("NoRoom"))
 	}
 
@@ -672,8 +671,7 @@ func (c *GitCommand) SoftReset(baseSha string) error {
 func (c *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, index int, action string) (string, error) {
 	if len(commits) <= index+1 {
 		// assuming they aren't picking the bottom commit
-		// TODO: support more than say 30 commits and ensure this logic is correct, and i18n
-		return "", errors.New("You cannot interactive rebase onto the first commit")
+		return "", errors.New(c.Tr.SLocalize("CannotRebaseOntoFirstCommit"))
 	}
 
 	todo := ""

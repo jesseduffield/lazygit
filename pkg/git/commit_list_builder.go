@@ -123,7 +123,7 @@ func (c *CommitListBuilder) getRebasingCommits() ([]*commands.Commit, error) {
 			return commits, nil
 		}
 		splitLine := strings.Split(line, " ")
-		commits = append([]*commands.Commit{&commands.Commit{
+		commits = append([]*commands.Commit{{
 			Sha:    splitLine[1][0:7],
 			Name:   strings.Join(splitLine[2:], " "),
 			Status: "rebasing",
