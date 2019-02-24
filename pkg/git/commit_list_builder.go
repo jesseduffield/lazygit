@@ -3,9 +3,6 @@ package git
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/fatih/color"
@@ -46,13 +43,13 @@ func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, os
 func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 	commits := []*commands.Commit{}
 	var rebasingCommits []*commands.Commit
-	rebaseMode, err := c.GitCommand.RebaseMode()
+	isRebasing, err := c.GitCommand.IsInRebasingState()
 	if err != nil {
 		return nil, err
 	}
-	if rebaseMode != "" {
+	if isRebasing {
 		// here we want to also prepend the commits that we're in the process of rebasing
-		rebasingCommits, err = c.getRebasingCommits(rebaseMode)
+		rebasingCommits, err = c.getRebasingCommits()
 		if err != nil {
 			return nil, err
 		}
@@ -77,66 +74,13 @@ func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 			DisplayString: strings.Join(splitLine, " "),
 		})
 	}
-	if rebaseMode != "" {
+	if isRebasing {
 		currentCommit := commits[len(rebasingCommits)]
 		blue := color.New(color.FgYellow)
 		youAreHere := blue.Sprintf("<-- %s ---", c.Tr.SLocalize("YouAreHere"))
 		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
 	return c.setCommitMergedStatuses(commits)
-}
-
-// getRebasingCommits obtains the commits that we're in the process of rebasing
-func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*commands.Commit, error) {
-	switch rebaseMode {
-	case "normal":
-		return c.getNormalRebasingCommits()
-	case "interactive":
-		return c.getInteractiveRebasingCommits()
-	default:
-		return nil, nil
-	}
-}
-
-func (c *CommitListBuilder) getNormalRebasingCommits() ([]*commands.Commit, error) {
-	rewrittenCount := 0
-	bytesContent, err := ioutil.ReadFile(".git/rebase-apply/rewritten")
-	if err == nil {
-		content := string(bytesContent)
-		rewrittenCount = len(strings.Split(content, "\n"))
-	}
-
-	// we know we're rebasing, so lets get all the files whose names have numbers
-	commits := []*commands.Commit{}
-	err = filepath.Walk(".git/rebase-apply", func(path string, f os.FileInfo, err error) error {
-		if rewrittenCount > 0 {
-			rewrittenCount--
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		re := regexp.MustCompile(`^\d+$`)
-		if !re.MatchString(f.Name()) {
-			return nil
-		}
-		bytesContent, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		content := string(bytesContent)
-		commit, err := c.commitFromPatch(content)
-		if err != nil {
-			return err
-		}
-		commits = append([]*commands.Commit{commit}, commits...)
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return commits, nil
 }
 
 // git-rebase-todo example:
@@ -148,10 +92,10 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*commands.Commit, erro
 // pick ac446ae94ee560bdb8d1d057278657b251aaef17 blah  commit on master
 // pick afb893148791a2fbd8091aeb81deba4930c73031 fourth commit on master
 
-// getInteractiveRebasingCommits takes our git-rebase-todo and our git-rebase-todo.backup files
+// getRebasingCommits takes our git-rebase-todo and our git-rebase-todo.backup files
 // and extracts out the sha and names of commits that we still have to go
 // in the rebase:
-func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*commands.Commit, error) {
+func (c *CommitListBuilder) getRebasingCommits() ([]*commands.Commit, error) {
 	bytesContent, err := ioutil.ReadFile(".git/rebase-merge/git-rebase-todo")
 	if err != nil {
 		c.Log.Info(fmt.Sprintf("error occured reading git-rebase-todo: %s", err.Error()))
@@ -175,22 +119,6 @@ func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*commands.Commit,
 	}
 
 	return nil, nil
-}
-
-// assuming the file starts like this:
-// From e93d4193e6dd45ca9cf3a5a273d7ba6cd8b8fb20 Mon Sep 17 00:00:00 2001
-// From: Lazygit Tester <test@example.com>
-// Date: Wed, 5 Dec 2018 21:03:23 +1100
-// Subject: second commit on master
-func (c *CommitListBuilder) commitFromPatch(content string) (*commands.Commit, error) {
-	lines := strings.Split(content, "\n")
-	sha := strings.Split(lines[0], " ")[1][0:7]
-	name := strings.TrimPrefix(lines[3], "Subject: ")
-	return &commands.Commit{
-		Sha:    sha,
-		Name:   name,
-		Status: "rebasing",
-	}, nil
 }
 
 func (c *CommitListBuilder) setCommitMergedStatuses(commits []*commands.Commit) ([]*commands.Commit, error) {

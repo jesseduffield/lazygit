@@ -419,22 +419,9 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 	return strings.Contains(output, "conclude merge") || strings.Contains(output, "unmerged paths"), nil
 }
 
-// RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
-// and "interactive" for interactive rebase
-func (c *GitCommand) RebaseMode() (string, error) {
-	exists, err := c.OSCommand.FileExists(".git/rebase-apply")
-	if err != nil {
-		return "", err
-	}
-	if exists {
-		return "normal", nil
-	}
-	exists, err = c.OSCommand.FileExists(".git/rebase-merge")
-	if exists {
-		return "interactive", err
-	} else {
-		return "", err
-	}
+// IsInRebasingState tells us if we are rebasing
+func (c *GitCommand) IsInRebasingState() (bool, error) {
+	return c.OSCommand.FileExists(".git/rebase-merge")
 }
 
 // RemoveFile directly

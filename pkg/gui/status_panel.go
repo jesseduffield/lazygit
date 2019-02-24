@@ -94,14 +94,14 @@ func (gui *Gui) updateWorkTreeState() error {
 		gui.State.WorkingTreeState = "merging"
 		return nil
 	}
-	rebaseMode, err := gui.GitCommand.RebaseMode()
+	isRebasing, err := gui.GitCommand.IsInRebasingState()
 	if err != nil {
 		return err
 	}
-	if rebaseMode != "" {
+	if isRebasing {
 		gui.State.WorkingTreeState = "rebasing"
-		return nil
+	} else {
+		gui.State.WorkingTreeState = "normal"
 	}
-	gui.State.WorkingTreeState = "normal"
 	return nil
 }
