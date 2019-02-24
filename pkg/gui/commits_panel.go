@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/go-errors/errors"
 
@@ -42,7 +41,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedShas)
+		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits)
 		if err != nil {
 			return err
 		}
@@ -352,36 +351,34 @@ func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
 	// get currently selected commit, add the sha to state.
-	sha := gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha
+	commit := gui.State.Commits[gui.State.Panels.Commits.SelectedLine]
 
 	// we will un-copy it if it's already copied
-	for index, cherryPickedSha := range gui.State.CherryPickedShas {
-		if sha == cherryPickedSha {
-			gui.State.CherryPickedShas = append(gui.State.CherryPickedShas[0:index], gui.State.CherryPickedShas[index+1:]...)
-			gui.Log.Info("removed copied sha. New shas:\n" + strings.Join(gui.State.CherryPickedShas, "\n"))
+	for index, cherryPickedCommit := range gui.State.CherryPickedCommits {
+		if commit.Sha == cherryPickedCommit.Sha {
+			gui.State.CherryPickedCommits = append(gui.State.CherryPickedCommits[0:index], gui.State.CherryPickedCommits[index+1:]...)
 			return gui.refreshCommits(gui.g)
 		}
 	}
 
-	gui.addCommitToCherryPickedShas(gui.State.Panels.Commits.SelectedLine)
+	gui.addCommitToCherryPickedCommits(gui.State.Panels.Commits.SelectedLine)
 	return gui.refreshCommits(gui.g)
 }
 
-func (gui *Gui) addCommitToCherryPickedShas(index int) {
-	defer func() { gui.Log.Info("new copied shas:\n" + strings.Join(gui.State.CherryPickedShas, "\n")) }()
-
+func (gui *Gui) addCommitToCherryPickedCommits(index int) {
 	// not super happy with modifying the state of the Commits array here
 	// but the alternative would be very tricky
 	gui.State.Commits[index].Copied = true
 
-	newShas := []string{}
+	newCommits := []*commands.Commit{}
 	for _, commit := range gui.State.Commits {
 		if commit.Copied {
-			newShas = append(newShas, commit.Sha)
+			// duplicating just the things we need to put in the rebase TODO list
+			newCommits = append(newCommits, &commands.Commit{Name: commit.Name, Sha: commit.Sha})
 		}
 	}
 
-	gui.State.CherryPickedShas = newShas
+	gui.State.CherryPickedCommits = newCommits
 }
 
 func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
@@ -399,7 +396,7 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 	gui.Log.Info("commit copy start index: " + strconv.Itoa(startIndex))
 
 	for index := startIndex; index <= gui.State.Panels.Commits.SelectedLine; index++ {
-		gui.addCommitToCherryPickedShas(index)
+		gui.addCommitToCherryPickedCommits(index)
 	}
 
 	return gui.refreshCommits(gui.g)
@@ -408,8 +405,7 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
 func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
 	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("CherryPick"), gui.Tr.SLocalize("SureCherryPick"), func(g *gocui.Gui, v *gocui.View) error {
-		err := gui.GitCommand.CherryPickShas(gui.State.CherryPickedShas)
+		err := gui.GitCommand.CherryPickCommits(gui.State.CherryPickedCommits)
 		return gui.handleGenericMergeCommandResult(err)
 	}, nil)
-
 }

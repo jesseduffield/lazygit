@@ -23,21 +23,21 @@ import (
 
 // CommitListBuilder returns a list of Branch objects for the current repo
 type CommitListBuilder struct {
-	Log              *logrus.Entry
-	GitCommand       *commands.GitCommand
-	OSCommand        *commands.OSCommand
-	Tr               *i18n.Localizer
-	CherryPickedShas []string
+	Log                 *logrus.Entry
+	GitCommand          *commands.GitCommand
+	OSCommand           *commands.OSCommand
+	Tr                  *i18n.Localizer
+	CherryPickedCommits []*commands.Commit
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand, tr *i18n.Localizer, cherryPickedShas []string) (*CommitListBuilder, error) {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand, tr *i18n.Localizer, cherryPickedCommits []*commands.Commit) (*CommitListBuilder, error) {
 	return &CommitListBuilder{
-		Log:              log,
-		GitCommand:       gitCommand,
-		OSCommand:        osCommand,
-		Tr:               tr,
-		CherryPickedShas: cherryPickedShas,
+		Log:                 log,
+		GitCommand:          gitCommand,
+		OSCommand:           osCommand,
+		Tr:                  tr,
+		CherryPickedCommits: cherryPickedCommits,
 	}, nil
 }
 
@@ -159,8 +159,8 @@ func (c *CommitListBuilder) setCommitMergedStatuses(commits []*commands.Commit) 
 
 func (c *CommitListBuilder) setCommitCherryPickStatuses(commits []*commands.Commit) ([]*commands.Commit, error) {
 	for _, commit := range commits {
-		for _, sha := range c.CherryPickedShas {
-			if commit.Sha == sha {
+		for _, cherryPickedCommit := range c.CherryPickedCommits {
+			if commit.Sha == cherryPickedCommit.Sha {
 				commit.Copied = true
 			}
 		}

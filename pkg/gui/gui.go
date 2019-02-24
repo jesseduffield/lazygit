@@ -123,29 +123,29 @@ type panelStates struct {
 }
 
 type guiState struct {
-	Files            []*commands.File
-	Branches         []*commands.Branch
-	Commits          []*commands.Commit
-	StashEntries     []*commands.StashEntry
-	PreviousView     string
-	Platform         commands.Platform
-	Updating         bool
-	Panels           *panelStates
-	WorkingTreeState string // one of "merging", "rebasing", "normal"
-	Contexts         map[string]string
-	CherryPickedShas []string
+	Files               []*commands.File
+	Branches            []*commands.Branch
+	Commits             []*commands.Commit
+	StashEntries        []*commands.StashEntry
+	PreviousView        string
+	Platform            commands.Platform
+	Updating            bool
+	Panels              *panelStates
+	WorkingTreeState    string // one of "merging", "rebasing", "normal"
+	Contexts            map[string]string
+	CherryPickedCommits []*commands.Commit
 }
 
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
 
 	initialState := guiState{
-		Files:            make([]*commands.File, 0),
-		PreviousView:     "files",
-		Commits:          make([]*commands.Commit, 0),
-		CherryPickedShas: []string{},
-		StashEntries:     make([]*commands.StashEntry, 0),
-		Platform:         *oSCommand.Platform,
+		Files:               make([]*commands.File, 0),
+		PreviousView:        "files",
+		Commits:             make([]*commands.Commit, 0),
+		CherryPickedCommits: make([]*commands.Commit, 0),
+		StashEntries:        make([]*commands.StashEntry, 0),
+		Platform:            *oSCommand.Platform,
 		Panels: &panelStates{
 			Files:    &filePanelState{SelectedLine: -1},
 			Branches: &branchPanelState{SelectedLine: 0},
