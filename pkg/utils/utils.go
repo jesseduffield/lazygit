@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -159,6 +160,11 @@ func renderDisplayableList(items []Displayable, isFocused bool) (string, error) 
 	return strings.Join(paddedDisplayStrings, "\n"), nil
 }
 
+func decolorise(str string) string {
+	re := regexp.MustCompile(`\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]`)
+	return re.ReplaceAllString(str, "")
+}
+
 func getPadWidths(stringArrays [][]string) []int {
 	if len(stringArrays[0]) <= 1 {
 		return []int{}
@@ -166,8 +172,9 @@ func getPadWidths(stringArrays [][]string) []int {
 	padWidths := make([]int, len(stringArrays[0])-1)
 	for i := range padWidths {
 		for _, strings := range stringArrays {
-			if len(strings[i]) > padWidths[i] {
-				padWidths[i] = len(strings[i])
+			uncoloredString := decolorise(strings[i])
+			if len(uncoloredString) > padWidths[i] {
+				padWidths[i] = len(uncoloredString)
 			}
 		}
 	}
