@@ -20,6 +20,13 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 }
 
 func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+		return err
+	}
 	stashEntry := gui.getSelectedStashEntry(v)
 	if stashEntry == nil {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoStashEntries"))
@@ -60,6 +67,10 @@ func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
 }
 
 func (gui *Gui) handleStashNextLine(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	panelState := gui.State.Panels.Stash
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.StashEntries), false)
 
@@ -70,6 +81,10 @@ func (gui *Gui) handleStashNextLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStashPrevLine(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	panelState := gui.State.Panels.Stash
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.StashEntries), true)
 

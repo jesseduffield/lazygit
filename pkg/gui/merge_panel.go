@@ -205,7 +205,7 @@ func (gui *Gui) refreshMergePanel() error {
 		panelState.ConflictIndex = len(panelState.Conflicts) - 1
 	}
 
-	hasFocus := gui.currentViewName(gui.g) == "main"
+	hasFocus := gui.currentViewName() == "main"
 	content, err := gui.coloredConflictFile(cat, panelState.Conflicts, panelState.ConflictIndex, panelState.ConflictTop, hasFocus)
 	if err != nil {
 		return err

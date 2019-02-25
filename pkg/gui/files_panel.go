@@ -26,6 +26,30 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 	return gui.State.Files[selectedLine], nil
 }
 
+func (gui *Gui) handleFilesFocus(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	cx, cy := v.Cursor()
+	_, oy := v.Origin()
+
+	prevSelectedLine := gui.State.Panels.Files.SelectedLine
+	newSelectedLine := cy - oy
+
+	if newSelectedLine > len(gui.State.Files)-1 || len(utils.Decolorise(gui.State.Files[newSelectedLine].DisplayString)) < cx {
+		return gui.handleFileSelect(gui.g, v, false)
+	}
+
+	gui.State.Panels.Files.SelectedLine = newSelectedLine
+
+	if prevSelectedLine == newSelectedLine && gui.currentViewName() == v.Name() {
+		return gui.handleFilePress(gui.g, v)
+	} else {
+		return gui.handleFileSelect(gui.g, v, true)
+	}
+}
+
 func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bool) error {
 	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
 		return err
@@ -87,6 +111,10 @@ func (gui *Gui) refreshFiles() error {
 }
 
 func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	panelState := gui.State.Panels.Files
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), false)
 
@@ -94,6 +122,10 @@ func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleFilesPrevLine(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	panelState := gui.State.Panels.Files
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), true)
 

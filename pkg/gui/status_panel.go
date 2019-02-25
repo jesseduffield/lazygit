@@ -48,6 +48,13 @@ func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+		return err
+	}
 	magenta := color.New(color.FgMagenta)
 
 	dashboardString := strings.Join(

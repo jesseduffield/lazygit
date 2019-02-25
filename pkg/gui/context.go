@@ -15,6 +15,7 @@ func (gui *Gui) contextTitleMap() map[string]map[string]string {
 		"main": {
 			"staging": gui.Tr.SLocalize("StagingMainTitle"),
 			"merging": gui.Tr.SLocalize("MergingMainTitle"),
+			"normal":  "",
 		},
 	}
 }
@@ -56,7 +57,7 @@ func (gui *Gui) setInitialContexts() error {
 	contextMap := gui.GetContextMap()
 
 	initialContexts := map[string]string{
-		"main": "merging",
+		"main": "normal",
 	}
 
 	for viewName, context := range initialContexts {

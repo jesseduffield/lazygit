@@ -84,6 +84,10 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 }
 
 func (gui *Gui) handleBranchesNextLine(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	panelState := gui.State.Panels.Branches
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), false)
 
@@ -94,6 +98,10 @@ func (gui *Gui) handleBranchesNextLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleBranchesPrevLine(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	panelState := gui.State.Panels.Branches
 	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), true)
 

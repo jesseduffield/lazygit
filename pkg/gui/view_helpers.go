@@ -287,8 +287,8 @@ func (gui *Gui) trimmedContent(v *gocui.View) string {
 	return strings.TrimSpace(v.Buffer())
 }
 
-func (gui *Gui) currentViewName(g *gocui.Gui) string {
-	currentView := g.CurrentView()
+func (gui *Gui) currentViewName() string {
+	currentView := gui.g.CurrentView()
 	return currentView.Name()
 }
 
@@ -379,4 +379,21 @@ func (gui *Gui) renderPanelOptions() error {
 		}
 	}
 	return gui.renderGlobalOptions()
+}
+
+func (gui *Gui) handleFocusView(g *gocui.Gui, v *gocui.View) error {
+	_, err := gui.g.SetCurrentView(v.Name())
+	return err
+}
+
+func (gui *Gui) popupPanelFocused() bool {
+	viewNames := []string{"commitMessage",
+		"credentials",
+		"menu"}
+	for _, viewName := range viewNames {
+		if gui.currentViewName() == viewName {
+			return true
+		}
+	}
+	return false
 }

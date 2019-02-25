@@ -160,7 +160,8 @@ func renderDisplayableList(items []Displayable, isFocused bool) (string, error) 
 	return strings.Join(paddedDisplayStrings, "\n"), nil
 }
 
-func decolorise(str string) string {
+// Decolorise strips a string of color
+func Decolorise(str string) string {
 	re := regexp.MustCompile(`\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]`)
 	return re.ReplaceAllString(str, "")
 }
@@ -172,7 +173,7 @@ func getPadWidths(stringArrays [][]string) []int {
 	padWidths := make([]int, len(stringArrays[0])-1)
 	for i := range padWidths {
 		for _, strings := range stringArrays {
-			uncoloredString := decolorise(strings[i])
+			uncoloredString := Decolorise(strings[i])
 			if len(uncoloredString) > padWidths[i] {
 				padWidths[i] = len(uncoloredString)
 			}
