@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"runtime"
 	"strings"
 
 	"github.com/mgutz/str"
@@ -137,14 +136,13 @@ func runGit(serverStartedChan chan struct{}, end chan error, command, hostPort, 
 
 	splitCmd := str.ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
-	cmd.Env = os.Environ()
 	cmd.Env = append(
-		cmd.Env,
-		"LAZYGIT_ASK_FOR_PASS=true",
+		os.Environ(),
 		"LAZYGIT_HOST_PORT="+hostPort,
-		"LAZYGIT_LISTENER="+currentListener, // the lisener ID
+		"LAZYGIT_LISTENER="+currentListener,
 
-		"GIT_ASKPASS="+ex,    // tell git where lazygit is located so it can ask lazygit for credentials
+		"GIT_ASKPASS="+ex, // tell git where lazygit is located so it can ask lazygit for credentials
+
 		"LANG=en_US.UTF-8",   // Force using EN as language
 		"LC_ALL=en_US.UTF-8", // Force using EN as language
 	)
@@ -267,10 +265,6 @@ func HasLGAsSubProcess() bool {
 		return true
 	}
 
-	if runtime.GOOS == "windows" {
-		return true
-	}
-
 	lgHostPid := os.Getpid()
 	list, err := ps.Processes()
 	if err != nil {
@@ -279,7 +273,7 @@ func HasLGAsSubProcess() bool {
 procListLoop:
 	for _, proc := range list {
 		procName := proc.Executable()
-		if procName != "lazygit" {
+		if procName != "lazygit" && procName != "lazygit.exe" {
 			continue
 		}
 		parrent := proc.PPid()
@@ -293,6 +287,10 @@ procListLoop:
 			}
 			if proc.Pid() == lgHostPid {
 				return true
+			}
+			ex := proc.Executable()
+			if !strings.Contains(ex, "git") && !strings.Contains(ex, "GIT") {
+				continue procListLoop
 			}
 			parrent = proc.PPid()
 		}

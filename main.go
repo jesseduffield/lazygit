@@ -41,7 +41,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if _, ok := os.LookupEnv("LAZYGIT_ASK_FOR_PASS"); ok {
+	if _, ok := os.LookupEnv("LAZYGIT_HOST_PORT"); ok {
 		commands.SetupClient()
 		os.Exit(0)
 	}
