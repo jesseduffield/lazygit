@@ -209,13 +209,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("refreshFiles"),
 		}, {
 			ViewName:    "files",
-			Key:         's',
+			Key:         'S',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleStashSave,
 			Description: gui.Tr.SLocalize("stashFiles"),
 		}, {
 			ViewName:    "files",
-			Key:         'S',
+			Key:         's',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleSoftReset,
 			Description: gui.Tr.SLocalize("softReset"),
