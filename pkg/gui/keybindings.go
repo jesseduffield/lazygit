@@ -564,16 +564,6 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 					Modifier: gocui.ModNone,
 					Handler:  gui.handleStagingNextLine,
 				}, {
-					ViewName: "main",
-					Key:      gocui.KeyArrowLeft,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingPrevLine,
-				}, {
-					ViewName: "main",
-					Key:      gocui.MouseWheelDown,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingNextLine,
-				}, {
 					ViewName:    "main",
 					Key:         gocui.KeyArrowLeft,
 					Modifier:    gocui.ModNone,

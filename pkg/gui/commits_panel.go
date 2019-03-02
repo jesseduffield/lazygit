@@ -271,8 +271,7 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	// TODO: i18n
-	return gui.createConfirmationPanel(gui.g, v, "Delete Commit", "Are you sure you want to delete this commit?", func(*gocui.Gui, *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("DeleteCommitTitle"), gui.Tr.SLocalize("DeleteCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
 		err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "drop")
 		return gui.handleGenericMergeCommandResult(err)
 	}, nil)
@@ -335,8 +334,7 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
-	// TODO: i18n
-	return gui.createConfirmationPanel(gui.g, v, "Amend Commit", "Are you sure you want to amend this commit with your staged files?", func(*gocui.Gui, *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("AmendCommitTitle"), gui.Tr.SLocalize("AmendCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
 		err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
 		return gui.handleGenericMergeCommandResult(err)
 	}, nil)

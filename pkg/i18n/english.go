@@ -299,16 +299,16 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
 		}, &i18n.Message{
 			ID:    "SureSquashThisCommit",
-			Other: "Are you sure you want to squash this commit into the commit below?", // TODO: i18n
+			Other: "Are you sure you want to squash this commit into the commit below?",
 		}, &i18n.Message{
 			ID:    "Squash",
-			Other: "Squash", // TODO: i18n
+			Other: "Squash",
 		}, &i18n.Message{
 			ID:    "pickCommit",
-			Other: "pick commit (when mid-rebase)", // TODO: i18n
+			Other: "pick commit (when mid-rebase)",
 		}, &i18n.Message{
 			ID:    "revertCommit",
-			Other: "revert commit", // TODO: i18n
+			Other: "revert commit",
 		}, &i18n.Message{
 			ID:    "OnlyRenameTopCommit",
 			Other: "Can only reword topmost commit from within lazygit. Use shift+R instead",
@@ -317,19 +317,19 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "reword commit",
 		}, &i18n.Message{
 			ID:    "deleteCommit",
-			Other: "delete commit", // TODO: other languages
+			Other: "delete commit",
 		}, &i18n.Message{
 			ID:    "moveDownCommit",
-			Other: "move commit down one", // TODO: other languages
+			Other: "move commit down one",
 		}, &i18n.Message{
 			ID:    "moveUpCommit",
-			Other: "move commit up one", // TODO: other languages
+			Other: "move commit up one",
 		}, &i18n.Message{
 			ID:    "editCommit",
-			Other: "edit commit", // TODO: other languages
+			Other: "edit commit",
 		}, &i18n.Message{
 			ID:    "amendToCommit",
-			Other: "amend commit with staged changes", // TODO: other languages
+			Other: "amend commit with staged changes",
 		}, &i18n.Message{
 			ID:    "renameCommitEditor",
 			Other: "rename commit with editor",
@@ -633,6 +633,18 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ScrollUp",
 			Other: "scroll up",
+		}, &i18n.Message{
+			ID:    "AmendCommitTitle",
+			Other: "Amend Commit",
+		}, &i18n.Message{
+			ID:    "AmendCommitPrompt",
+			Other: "Are you sure you want to amend this commit with your staged files?",
+		}, &i18n.Message{
+			ID:    "DeleteCommitTitle",
+			Other: "Delete Commit",
+		}, &i18n.Message{
+			ID:    "DeleteCommitPrompt",
+			Other: "Are you sure you want to delete this commit?",
 		},
 	)
 }
