@@ -715,14 +715,7 @@ func (c *GitCommand) EditRebaseTodo(index int, action string) error {
 	}
 
 	content := strings.Split(string(bytes), "\n")
-
-	// count lines that are not blank and are not comments
-	commitCount := 0
-	for _, line := range content {
-		if line != "" && !strings.HasPrefix(line, "#") {
-			commitCount++
-		}
-	}
+	commitCount := c.getTodoCommitCount(content)
 
 	// we have the most recent commit at the bottom whereas the todo file has
 	// it at the bottom, so we need to subtract our index from the commit count
@@ -734,6 +727,17 @@ func (c *GitCommand) EditRebaseTodo(index int, action string) error {
 	return ioutil.WriteFile(fileName, []byte(result), 0644)
 }
 
+func (c *GitCommand) getTodoCommitCount(content []string) int {
+	// count lines that are not blank and are not comments
+	commitCount := 0
+	for _, line := range content {
+		if line != "" && !strings.HasPrefix(line, "#") {
+			commitCount++
+		}
+	}
+	return commitCount
+}
+
 // MoveTodoDown moves a rebase todo item down by one position
 func (c *GitCommand) MoveTodoDown(index int) error {
 	fileName := ".git/rebase-merge/git-rebase-todo"
@@ -743,7 +747,8 @@ func (c *GitCommand) MoveTodoDown(index int) error {
 	}
 
 	content := strings.Split(string(bytes), "\n")
-	contentIndex := len(content) - 2 - index
+	commitCount := c.getTodoCommitCount(content)
+	contentIndex := commitCount - 1 - index
 
 	rearrangedContent := append(content[0:contentIndex-1], content[contentIndex], content[contentIndex-1])
 	rearrangedContent = append(rearrangedContent, content[contentIndex+1:]...)
