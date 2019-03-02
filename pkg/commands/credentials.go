@@ -282,19 +282,17 @@ procListLoop:
 		if procName != "lazygit" {
 			continue
 		}
-		stepsBack := 1
 		parrent := proc.PPid()
 		for {
+			if parrent < 30 {
+				continue procListLoop
+			}
 			proc, err := ps.FindProcess(parrent)
 			if err != nil {
 				continue procListLoop
 			}
 			if proc.Pid() == lgHostPid {
 				return true
-			}
-			stepsBack++
-			if stepsBack > 3 {
-				continue procListLoop
 			}
 			parrent = proc.PPid()
 		}
