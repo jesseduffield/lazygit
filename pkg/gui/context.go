@@ -38,7 +38,7 @@ func (gui *Gui) changeContext(viewName, context string) error {
 		return nil
 	}
 
-	contextMap := gui.getContextMap()
+	contextMap := gui.GetContextMap()
 
 	gui.g.DeleteKeybindings(viewName)
 
@@ -53,7 +53,7 @@ func (gui *Gui) changeContext(viewName, context string) error {
 }
 
 func (gui *Gui) setInitialContexts() error {
-	contextMap := gui.getContextMap()
+	contextMap := gui.GetContextMap()
 
 	initialContexts := map[string]string{
 		"main": "merging",

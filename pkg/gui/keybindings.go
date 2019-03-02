@@ -13,6 +13,7 @@ type Binding struct {
 	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
 	Modifier    gocui.Modifier
 	Description string
+	panic       bool
 }
 
 // GetDisplayStrings returns the display string of a file
@@ -31,6 +32,10 @@ func (b *Binding) GetKey() string {
 		key = int(b.Key.(gocui.Key))
 	}
 
+	if b.panic {
+		panic(key)
+	}
+
 	// special keys
 	switch key {
 	case 27:
@@ -39,6 +44,18 @@ func (b *Binding) GetKey() string {
 		return "enter"
 	case 32:
 		return "space"
+	case 65514:
+		return "►"
+	case 65515:
+		return "◄"
+	case 65517:
+		return "▲"
+	case 65516:
+		return "▼"
+	case 65508:
+		return "PgUp"
+	case 65507:
+		return "PgDn"
 	}
 
 	return string(key)
@@ -461,11 +478,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	return bindings
 }
 
+// GetCurrentKeybindings gets the list of keybindings given the current context
 func (gui *Gui) GetCurrentKeybindings() []*Binding {
 	bindings := gui.GetInitialKeybindings()
 	viewName := gui.currentViewName(gui.g)
 	currentContext := gui.State.Contexts[viewName]
-	contextBindings := gui.getContextMap()[viewName][currentContext]
+	contextBindings := gui.GetContextMap()[viewName][currentContext]
 
 	return append(bindings, contextBindings...)
 }
@@ -484,9 +502,24 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) getContextMap() map[string]map[string][]*Binding {
+func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 	return map[string]map[string][]*Binding{
 		"main": {
+			"normal": {
+				{
+					ViewName:    "main",
+					Key:         gocui.MouseWheelDown,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.scrollDownMain,
+					Description: gui.Tr.SLocalize("ScrollDown"),
+				}, {
+					ViewName:    "main",
+					Key:         gocui.MouseWheelUp,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.scrollUpMain,
+					Description: gui.Tr.SLocalize("ScrollUp"),
+				},
+			},
 			"staging": {
 				{
 					ViewName:    "main",
@@ -495,15 +528,17 @@ func (gui *Gui) getContextMap() map[string]map[string][]*Binding {
 					Handler:     gui.handleStagingEscape,
 					Description: gui.Tr.SLocalize("EscapeStaging"),
 				}, {
-					ViewName: "main",
-					Key:      gocui.KeyArrowUp,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingPrevLine,
+					ViewName:    "main",
+					Key:         gocui.KeyArrowUp,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleStagingPrevLine,
+					Description: gui.Tr.SLocalize("PrevLine"),
 				}, {
-					ViewName: "main",
-					Key:      gocui.KeyArrowDown,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingNextLine,
+					ViewName:    "main",
+					Key:         gocui.KeyArrowDown,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleStagingNextLine,
+					Description: gui.Tr.SLocalize("NextLine"),
 				}, {
 					ViewName: "main",
 					Key:      'k',
@@ -516,14 +551,26 @@ func (gui *Gui) getContextMap() map[string]map[string][]*Binding {
 					Handler:  gui.handleStagingNextLine,
 				}, {
 					ViewName: "main",
-					Key:      gocui.KeyArrowLeft,
+					Key:      gocui.MouseWheelUp,
 					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingPrevHunk,
+					Handler:  gui.handleStagingPrevLine,
 				}, {
 					ViewName: "main",
-					Key:      gocui.KeyArrowRight,
+					Key:      gocui.MouseWheelDown,
 					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingNextHunk,
+					Handler:  gui.handleStagingNextLine,
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeyArrowLeft,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleStagingPrevHunk,
+					Description: gui.Tr.SLocalize("PrevHunk"),
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeyArrowRight,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleStagingNextHunk,
+					Description: gui.Tr.SLocalize("NextHunk"),
 				}, {
 					ViewName: "main",
 					Key:      'h',
@@ -550,10 +597,11 @@ func (gui *Gui) getContextMap() map[string]map[string][]*Binding {
 			},
 			"merging": {
 				{
-					ViewName: "main",
-					Key:      gocui.KeyEsc,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleEscapeMerge,
+					ViewName:    "main",
+					Key:         gocui.KeyEsc,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleEscapeMerge,
+					Description: gui.Tr.SLocalize("EscapeStaging"),
 				}, {
 					ViewName:    "main",
 					Key:         gocui.KeySpace,
@@ -567,25 +615,31 @@ func (gui *Gui) getContextMap() map[string]map[string][]*Binding {
 					Handler:     gui.handlePickBothHunks,
 					Description: gui.Tr.SLocalize("PickBothHunks"),
 				}, {
-					ViewName: "main",
-					Key:      gocui.KeyArrowLeft,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleSelectPrevConflict,
+					ViewName:    "main",
+					Key:         gocui.KeyArrowLeft,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleSelectPrevConflict,
+					Description: gui.Tr.SLocalize("PrevConflict"),
 				}, {
 					ViewName: "main",
 					Key:      gocui.KeyArrowRight,
 					Modifier: gocui.ModNone,
 					Handler:  gui.handleSelectNextConflict,
+
+					Description: gui.Tr.SLocalize("NextConflict"),
 				}, {
 					ViewName: "main",
 					Key:      gocui.KeyArrowUp,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleSelectTop,
+
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleSelectTop,
+					Description: gui.Tr.SLocalize("SelectTop"),
 				}, {
-					ViewName: "main",
-					Key:      gocui.KeyArrowDown,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleSelectBottom,
+					ViewName:    "main",
+					Key:         gocui.KeyArrowDown,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleSelectBottom,
+					Description: gui.Tr.SLocalize("SelectBottom"),
 				}, {
 					ViewName: "main",
 					Key:      'h',

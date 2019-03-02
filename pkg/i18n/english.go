@@ -46,6 +46,18 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "MergingMainTitle",
 			Other: "Resolve merge conflicts",
 		}, &i18n.Message{
+			ID:    "MainTitle",
+			Other: "Main",
+		}, &i18n.Message{
+			ID:    "StagingTitle",
+			Other: "Staging",
+		}, &i18n.Message{
+			ID:    "MergingTitle",
+			Other: "Merging",
+		}, &i18n.Message{
+			ID:    "NormalTitle",
+			Other: "Normal",
+		}, &i18n.Message{
 			ID:    "CommitMessage",
 			Other: "Commit message",
 		}, &i18n.Message{
@@ -588,6 +600,39 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CannotRebaseOntoFirstCommit",
 			Other: "You cannot interactive rebase onto the first commit",
+		}, &i18n.Message{
+			ID:    "Donate",
+			Other: "Donate",
+		}, &i18n.Message{
+			ID:    "PrevLine",
+			Other: "select previous line",
+		}, &i18n.Message{
+			ID:    "NextLine",
+			Other: "select next line",
+		}, &i18n.Message{
+			ID:    "PrevHunk",
+			Other: "select previous hunk",
+		}, &i18n.Message{
+			ID:    "NextHunk",
+			Other: "select next hunk",
+		}, &i18n.Message{
+			ID:    "PrevConflict",
+			Other: "select previous conflict",
+		}, &i18n.Message{
+			ID:    "NextConflict",
+			Other: "select next conflict",
+		}, &i18n.Message{
+			ID:    "SelectTop",
+			Other: "select top hunk",
+		}, &i18n.Message{
+			ID:    "SelectBottom",
+			Other: "select bottom hunk",
+		}, &i18n.Message{
+			ID:    "ScrollDown",
+			Other: "scroll down",
+		}, &i18n.Message{
+			ID:    "ScrollUp",
+			Other: "scroll up",
 		},
 	)
 }

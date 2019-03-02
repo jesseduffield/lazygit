@@ -16,6 +16,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui"
 )
 
 func writeString(file *os.File, str string) {
@@ -25,27 +26,36 @@ func writeString(file *os.File, str string) {
 	}
 }
 
-func getTitle(mApp *app.App, viewName string) string {
-	viewTitle := strings.Title(viewName) + "Title"
-	translatedTitle := mApp.Tr.SLocalize(viewTitle)
-	formattedTitle := fmt.Sprintf("\n## %s\n\n", translatedTitle)
-	return formattedTitle
+func localisedTitle(mApp *app.App, str string) string {
+	viewTitle := strings.Title(str) + "Title"
+	return mApp.Tr.SLocalize(viewTitle)
 }
 
+func formatTitle(title string) string {
+	return fmt.Sprintf("\n## %s\n\n", title)
+}
+
+func writeBinding(file *os.File, binding *gui.Binding) {
+	info := fmt.Sprintf("  <kbd>%s</kbd>: %s\n", binding.GetKey(), binding.Description)
+	writeString(file, info)
+}
+
+// I should really just build an array of tuples, one thing with a string and the other with a list of bindings, and then build them like that.
+
 func main() {
-	mConfig, _ := config.NewAppConfig("", "", "", "", "", new(bool))
-	mApp, _ := app.Setup(mConfig)
+	mConfig, _ := config.NewAppConfig("", "", "", "", "", true)
+	mApp, _ := app.NewApp(mConfig)
 	lang := mApp.Tr.GetLanguage()
 	file, _ := os.Create("Keybindings_" + lang + ".md")
 	current := ""
 
 	writeString(file, fmt.Sprintf("# Lazygit %s\n", mApp.Tr.SLocalize("menu")))
-	writeString(file, getTitle(mApp, "global"))
+	writeString(file, formatTitle(localisedTitle(mApp, "global")))
 
 	writeString(file, "<pre>\n")
 
 	// TODO: add context-based keybindings
-	for _, binding := range mApp.Gui.GetKeybindings() {
+	for _, binding := range mApp.Gui.GetInitialKeybindings() {
 		if binding.Description == "" {
 			continue
 		}
@@ -53,13 +63,29 @@ func main() {
 		if binding.ViewName != current {
 			current = binding.ViewName
 			writeString(file, "</pre>\n")
-			writeString(file, getTitle(mApp, current))
+			writeString(file, formatTitle(localisedTitle(mApp, current)))
 			writeString(file, "<pre>\n")
 		}
 
-		info := fmt.Sprintf("  <kbd>%s</kbd>: %s\n", binding.GetKey(), binding.Description)
-		writeString(file, info)
+		writeBinding(file, binding)
 	}
 
 	writeString(file, "</pre>\n")
+
+	for view, contexts := range mApp.Gui.GetContextMap() {
+		for contextName, contextBindings := range contexts {
+			translatedView := localisedTitle(mApp, view)
+			translatedContextName := localisedTitle(mApp, contextName)
+			writeString(file, fmt.Sprintf("\n## %s (%s)\n\n", translatedView, translatedContextName))
+			writeString(file, "<pre>\n")
+			for _, binding := range contextBindings {
+				if binding.Description == "" {
+					continue
+				}
+
+				writeBinding(file, binding)
+			}
+			writeString(file, "</pre>\n")
+		}
+	}
 }
