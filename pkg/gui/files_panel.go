@@ -27,6 +27,10 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 }
 
 func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bool) error {
+	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+		return err
+	}
+
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
@@ -41,11 +45,6 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 
 	if file.HasMergeConflicts {
 		return gui.refreshMergePanel()
-	} else {
-		// TODO: set title appropriately
-		// if _, err := gui.g.SetViewOnBottom("merging"); err != nil {
-		// 	return err
-		// }
 	}
 
 	content := gui.GitCommand.Diff(file, false)
@@ -62,7 +61,9 @@ func (gui *Gui) refreshFiles() error {
 	selectedFile, _ := gui.getSelectedFile(gui.g)
 
 	filesView := gui.getFilesView()
-	gui.refreshStateFiles()
+	if err := gui.refreshStateFiles(); err != nil {
+		return err
+	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
 
@@ -346,12 +347,12 @@ func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshFiles()
 }
 
-func (gui *Gui) refreshStateFiles() {
+func (gui *Gui) refreshStateFiles() error {
 	// get files to stage
 	files := gui.GitCommand.GetStatusFiles()
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
 	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
-	gui.updateWorkTreeState()
+	return gui.updateWorkTreeState()
 }
 
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {

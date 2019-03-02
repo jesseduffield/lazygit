@@ -215,7 +215,7 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 
 	_, err = f.WriteString("\n" + line)
 	if err != nil {
-		errors.Wrap(err, 0)
+		return errors.Wrap(err, 0)
 	}
 	return nil
 }

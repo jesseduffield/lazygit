@@ -248,6 +248,15 @@ func (gui *Gui) onFocusLost(v *gocui.View) error {
 		if err := gui.renderListPanel(gui.getBranchesView(), gui.State.Branches); err != nil {
 			return err
 		}
+	} else if v.Name() == "main" {
+		// if we have lost focus to a popup panel, that's okay
+		if gui.popupPanelFocused() {
+			return nil
+		}
+
+		if err := gui.changeContext("main", "normal"); err != nil {
+			return err
+		}
 	}
 	gui.Log.Info(v.Name() + " focus lost")
 	return nil
@@ -521,7 +530,7 @@ func (gui *Gui) renderGlobalOptions() error {
 func (gui *Gui) goEvery(interval time.Duration, function func() error) {
 	go func() {
 		for range time.Tick(interval) {
-			function()
+			_ = function()
 		}
 	}()
 }

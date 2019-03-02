@@ -128,7 +128,10 @@ func (app *App) Rebase() error {
 	app.Log.Info("args: ", os.Args)
 
 	if strings.HasSuffix(os.Args[1], "git-rebase-todo") {
-		ioutil.WriteFile(os.Args[1], []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0644)
+		if err := ioutil.WriteFile(os.Args[1], []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0644); err != nil {
+			return err
+		}
+
 	} else if strings.HasSuffix(os.Args[1], ".git/COMMIT_EDITMSG") {
 		// if we are rebasing and squashing, we'll see a COMMIT_EDITMSG
 		// but in this case we don't need to edit it, so we'll just return

@@ -49,8 +49,7 @@ func (gui *Gui) changeContext(viewName, context string) error {
 		}
 	}
 	gui.State.Contexts[viewName] = context
-	gui.setMainTitle()
-	return nil
+	return gui.setMainTitle()
 }
 
 func (gui *Gui) setInitialContexts() error {

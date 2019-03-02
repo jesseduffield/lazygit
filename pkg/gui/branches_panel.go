@@ -22,6 +22,13 @@ func (gui *Gui) getSelectedBranch() *commands.Branch {
 
 // may want to standardise how these select methods work
 func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+		return err
+	}
 	// This really shouldn't happen: there should always be a master branch
 	if len(gui.State.Branches) == 0 {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
