@@ -50,6 +50,12 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 	}
 }
 
+// SetCommand sets the command function used by the struct.
+// To be used for testing only
+func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
+	c.command = cmd
+}
+
 // RunCommandWithOutput wrapper around commands returning their output and error
 func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")

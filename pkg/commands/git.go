@@ -635,7 +635,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 
 	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive --autostash %s", baseSha))
 
-	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
+	cmd := c.OSCommand.command(splitCmd[0], splitCmd[1:]...)
 
 	gitSequenceEditor := ex
 	if todo == "" {
