@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -104,6 +105,10 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	}
 	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr, app.Config)
 	if err != nil {
+		if strings.Contains(err.Error(), "Not a git repository") {
+			fmt.Println("Not in a git repository. Use `git init` to create a new one")
+			os.Exit(1)
+		}
 		return app, err
 	}
 	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater)
