@@ -104,39 +104,45 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 
 	end := make(chan error)
 	hostPort := GetFreePort()
-	serverRunning := false
 	serverStartedChan := make(chan struct{})
-	var inbound *net.TCPListener
 
-	go runGit(&serverStartedChan, &end, &command, &hostPort, &currentListener)
+	go runGit(
+		serverStartedChan,
+		end,
+		command,
+		hostPort,
+		currentListener,
+	)
 
-	go runServer(&serverRunning, &currentListener, &hostPort, &end, &serverStartedChan, inbound)
+	go runServer(
+		serverStartedChan,
+		end,
+		hostPort,
+		currentListener,
+	)
 
 	err := <-end
-	if serverRunning {
-		inbound.Close()
-	}
 
 	return err
 }
 
 // runGit runs the actual git command with the needed git
-func runGit(serverStartedChan *chan struct{}, end *chan error, command, hostPort, currentListener *string) {
-	<-*serverStartedChan
+func runGit(serverStartedChan chan struct{}, end chan error, command, hostPort, currentListener string) {
+	<-serverStartedChan
 
 	ex, err := os.Executable()
 	if err != nil {
 		ex = os.Args[0]
 	}
 
-	splitCmd := str.ToArgv(*command)
+	splitCmd := str.ToArgv(command)
 	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
 	cmd.Env = os.Environ()
 	cmd.Env = append(
 		cmd.Env,
 		"LAZYGIT_ASK_FOR_PASS=true",
-		"LAZYGIT_HOST_PORT="+*hostPort,
-		"LAZYGIT_LISTENER="+*currentListener, // the lisener ID
+		"LAZYGIT_HOST_PORT="+hostPort,
+		"LAZYGIT_LISTENER="+currentListener, // the lisener ID
 
 		"GIT_ASKPASS="+ex,    // tell git where lazygit is located so it can ask lazygit for credentials
 		"LANG=en_US.UTF-8",   // Force using EN as language
@@ -147,43 +153,52 @@ func runGit(serverStartedChan *chan struct{}, end *chan error, command, hostPort
 	if err != nil {
 		outString := string(out)
 		if len(outString) == 0 {
-			*end <- err
+			end <- err
 			return
 		}
-		*end <- errors.New(outString)
+		end <- errors.New(outString)
 		return
 	}
-	*end <- nil
+	end <- nil
 }
 
 // runServer starts the server that waits for events from the lazygit client
-func runServer(serverRunning *bool, currentListener, hostPort *string, end *chan error, serverStartedChan *chan struct{}, inbound *net.TCPListener) {
-	addy, err := net.ResolveTCPAddr("tcp", "127.0.0.1:"+*hostPort)
+func runServer(serverStartedChan chan struct{}, end chan error, hostPort, currentListener string) {
+	serverRunning := false
+
+	addy, err := net.ResolveTCPAddr("tcp", "127.0.0.1:"+hostPort)
 	if err != nil {
-		*end <- err
+		end <- err
 		return
 	}
 
-	in, err := net.ListenTCP("tcp", addy)
-	inbound = in
+	inbound, err := net.ListenTCP("tcp", addy)
 	if err != nil {
-		*end <- err
+		end <- err
 		return
 	}
+
+	go func() {
+		<-end
+		if serverRunning {
+			inbound.Close()
+		}
+	}()
 
 	listener := new(Listener)
 
 	// every listener needs a different name it this is not dune rpc.RegisterName will error
-	err = rpc.RegisterName("Listener"+*currentListener, listener)
+	err = rpc.RegisterName("Listener"+currentListener, listener)
 	if err != nil {
-		*end <- err
+		end <- err
 		return
 	}
 
-	*serverStartedChan <- struct{}{}
-	rpc.Accept(inbound)
+	serverStartedChan <- struct{}{}
 
-	*serverRunning = false
+	serverRunning = true
+	rpc.Accept(inbound)
+	serverRunning = false
 }
 
 // GetFreePort returns a free port that can be used by lazygit
@@ -234,6 +249,9 @@ func SetupClient() {
 		PublicKey: publicKey,
 	}, &data)
 	client.Close()
+	if err != nil {
+		return
+	}
 
 	msg, err := decryptMessage(privateKey, *data)
 	if err != nil {
@@ -241,7 +259,6 @@ func SetupClient() {
 	}
 
 	fmt.Println(msg)
-	return
 }
 
 // HasLGAsSubProcess returns true if lazygit is a child of this process
