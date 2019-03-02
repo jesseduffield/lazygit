@@ -13,7 +13,6 @@ type Binding struct {
 	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
 	Modifier    gocui.Modifier
 	Description string
-	panic       bool
 }
 
 // GetDisplayStrings returns the display string of a file
@@ -30,10 +29,6 @@ func (b *Binding) GetKey() string {
 		key = int(b.Key.(rune))
 	case gocui.Key:
 		key = int(b.Key.(gocui.Key))
-	}
-
-	if b.panic {
-		panic(key)
 	}
 
 	// special keys

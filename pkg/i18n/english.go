@@ -311,10 +311,10 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "revert commit", // TODO: i18n
 		}, &i18n.Message{
 			ID:    "OnlyRenameTopCommit",
-			Other: "Can only rename topmost commit from within lazygit. Use shift+R instead",
+			Other: "Can only reword topmost commit from within lazygit. Use shift+R instead",
 		}, &i18n.Message{
 			ID:    "renameCommit",
-			Other: "rename commit",
+			Other: "reword commit",
 		}, &i18n.Message{
 			ID:    "deleteCommit",
 			Other: "delete commit", // TODO: other languages

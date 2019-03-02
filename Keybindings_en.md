@@ -30,8 +30,8 @@
   <kbd>o</kbd>: open file
   <kbd>i</kbd>: add to .gitignore
   <kbd>r</kbd>: refresh files
-  <kbd>s</kbd>: stash files
-  <kbd>S</kbd>: soft reset to last commit
+  <kbd>S</kbd>: stash files
+  <kbd>s</kbd>: soft reset to last commit
   <kbd>a</kbd>: stage/unstage all
   <kbd>t</kbd>: add patch
   <kbd>D</kbd>: reset hard and remove untracked files
@@ -57,7 +57,7 @@
 
 <pre>
   <kbd>s</kbd>: squash down
-  <kbd>r</kbd>: rename commit
+  <kbd>r</kbd>: reword commit
   <kbd>R</kbd>: rename commit with editor
   <kbd>g</kbd>: reset to this commit
   <kbd>f</kbd>: fixup commit
