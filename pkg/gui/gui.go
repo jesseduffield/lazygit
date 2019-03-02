@@ -554,7 +554,7 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
-	g.Mouse = true
+	// g.Mouse = true // disabling until this feature is ready
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
