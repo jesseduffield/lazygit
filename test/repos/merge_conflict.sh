@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -ex; rm -rf repo; mkdir repo; cd repo
 
 git init
