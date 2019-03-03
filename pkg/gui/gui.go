@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"math"
 	"sync"
 
 	// "io"
@@ -181,10 +182,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	mainView, _ := g.View("main")
 	ox, oy := mainView.Origin()
-	if oy >= 1 {
-		return mainView.SetOrigin(ox, oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
-	}
-	return nil
+	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))))
+	return mainView.SetOrigin(ox, newOy)
 }
 
 func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
