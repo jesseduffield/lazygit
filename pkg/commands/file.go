@@ -5,14 +5,15 @@ import "github.com/fatih/color"
 // File : A file from git status
 // duplicating this for now
 type File struct {
-	Name               string
-	HasStagedChanges   bool
-	HasUnstagedChanges bool
-	Tracked            bool
-	Deleted            bool
-	HasMergeConflicts  bool
-	DisplayString      string
-	Type               string // one of 'file', 'directory', and 'other'
+	Name                    string
+	HasStagedChanges        bool
+	HasUnstagedChanges      bool
+	Tracked                 bool
+	Deleted                 bool
+	HasMergeConflicts       bool
+	HasInlineMergeConflicts bool
+	DisplayString           string
+	Type                    string // one of 'file', 'directory', and 'other'
 }
 
 // GetDisplayStrings returns the display string of a file

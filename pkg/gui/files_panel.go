@@ -67,7 +67,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 		return err
 	}
 
-	if file.HasMergeConflicts {
+	if file.HasInlineMergeConflicts {
 		return gui.refreshMergePanel()
 	}
 
@@ -172,10 +172,10 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 		}
 		return nil
 	}
-	if file.HasMergeConflicts {
+	if file.HasInlineMergeConflicts {
 		return gui.handleSwitchToMerge(g, v)
 	}
-	if !file.HasUnstagedChanges {
+	if !file.HasUnstagedChanges || file.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileStagingRequirements"))
 	}
 	if err := gui.changeContext("main", "staging"); err != nil {
@@ -196,7 +196,7 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	if file.HasMergeConflicts {
+	if file.HasInlineMergeConflicts {
 		return gui.handleSwitchToMerge(g, v)
 	}
 
@@ -458,7 +458,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		}
 		return nil
 	}
-	if !file.HasMergeConflicts {
+	if !file.HasInlineMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons"))
 	}
 	if err := gui.changeContext("main", "merging"); err != nil {

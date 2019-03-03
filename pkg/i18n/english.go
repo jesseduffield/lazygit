@@ -179,7 +179,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Fetching...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
-			Other: "This file has no merge conflicts",
+			Other: "This file has no inline merge conflicts",
 		}, &i18n.Message{
 			ID:    "SureResetHardHead",
 			Other: "Are you sure you want to `reset --hard HEAD` and `clean -fd`? You may lose changes",

@@ -150,14 +150,15 @@ func (c *GitCommand) GetStatusFiles() []*File {
 		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
 
 		file := &File{
-			Name:               filename,
-			DisplayString:      statusString,
-			HasStagedChanges:   !hasNoStagedChanges,
-			HasUnstagedChanges: unstagedChange != " ",
-			Tracked:            !untracked,
-			Deleted:            unstagedChange == "D" || stagedChange == "D",
-			HasMergeConflicts:  change == "UU" || change == "AA" || change == "DU",
-			Type:               c.OSCommand.FileType(filename),
+			Name:                    filename,
+			DisplayString:           statusString,
+			HasStagedChanges:        !hasNoStagedChanges,
+			HasUnstagedChanges:      unstagedChange != " ",
+			Tracked:                 !untracked,
+			Deleted:                 unstagedChange == "D" || stagedChange == "D",
+			HasMergeConflicts:       change == "UU" || change == "AA" || change == "DU",
+			HasInlineMergeConflicts: change == "UU" || change == "AA",
+			Type:                    c.OSCommand.FileType(filename),
 		}
 		files = append(files, file)
 	}
