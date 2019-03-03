@@ -144,8 +144,10 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Squash"), gui.Tr.SLocalize("SureSquashThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "squash")
-		return gui.handleGenericMergeCommandResult(err)
+		return gui.WithWaitingStatus("squashing", func() error {
+			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "squash")
+			return gui.handleGenericMergeCommandResult(err)
+		})
 	}, nil)
 	return nil
 }
@@ -174,8 +176,10 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Fixup"), gui.Tr.SLocalize("SureFixupThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "fixup")
-		return gui.handleGenericMergeCommandResult(err)
+		return gui.WithWaitingStatus("fixing up", func() error {
+			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "fixup")
+			return gui.handleGenericMergeCommandResult(err)
+		})
 	}, nil)
 	return nil
 }
@@ -272,8 +276,10 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("DeleteCommitTitle"), gui.Tr.SLocalize("DeleteCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
-		err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "drop")
-		return gui.handleGenericMergeCommandResult(err)
+		return gui.WithWaitingStatus("deleting", func() error {
+			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "drop")
+			return gui.handleGenericMergeCommandResult(err)
+		})
 	}, nil)
 }
 
@@ -291,11 +297,13 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommits(gui.g)
 	}
 
-	err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index)
-	if err == nil {
-		gui.State.Panels.Commits.SelectedLine++
-	}
-	return gui.handleGenericMergeCommandResult(err)
+	return gui.WithWaitingStatus("moving", func() error {
+		err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index)
+		if err == nil {
+			gui.State.Panels.Commits.SelectedLine++
+		}
+		return gui.handleGenericMergeCommandResult(err)
+	})
 }
 
 func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
@@ -303,7 +311,6 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 	if index == 0 {
 		return nil
 	}
-
 	selectedCommit := gui.State.Commits[index]
 	if selectedCommit.Status == "rebasing" {
 		if err := gui.GitCommand.MoveTodoDown(index - 1); err != nil {
@@ -313,11 +320,13 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommits(gui.g)
 	}
 
-	err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index-1)
-	if err == nil {
-		gui.State.Panels.Commits.SelectedLine--
-	}
-	return gui.handleGenericMergeCommandResult(err)
+	return gui.WithWaitingStatus("moving", func() error {
+		err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index-1)
+		if err == nil {
+			gui.State.Panels.Commits.SelectedLine--
+		}
+		return gui.handleGenericMergeCommandResult(err)
+	})
 }
 
 func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
@@ -329,14 +338,18 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	err = gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "edit")
-	return gui.handleGenericMergeCommandResult(err)
+	return gui.WithWaitingStatus("rebasing", func() error {
+		err = gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "edit")
+		return gui.handleGenericMergeCommandResult(err)
+	})
 }
 
 func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
 	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("AmendCommitTitle"), gui.Tr.SLocalize("AmendCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
-		err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
-		return gui.handleGenericMergeCommandResult(err)
+		return gui.WithWaitingStatus("amending", func() error {
+			err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
+			return gui.handleGenericMergeCommandResult(err)
+		})
 	}, nil)
 }
 
