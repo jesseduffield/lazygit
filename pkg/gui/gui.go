@@ -282,11 +282,12 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
-	filesBranchesBoundary := 2 * height / 5   // height - 20
-	commitsBranchesBoundary := 3 * height / 5 // height - 10
-	commitsStashBoundary := height - 5        // height - 5
+	filesBranchesBoundary := 2 * height / 5
+	commitsBranchesBoundary := 3 * height / 5
+	optionsTop := height - 2
+	commitsStashBoundary := optionsTop - 3
 	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
-	minimumHeight := 16
+	minimumHeight := 18
 	minimumWidth := 10
 
 	appStatus := gui.statusManager.getStatusString()
@@ -314,12 +315,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
-
-	optionsTop := height - 2
-	// hiding options if there's not enough space
-	if height < 30 {
-		optionsTop = height - 1
-	}
 
 	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
 	if err != nil {
