@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"github.com/go-errors/errors"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/git"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -60,7 +58,7 @@ func (gui *Gui) refreshStagingPanel() error {
 	}
 
 	if len(stageableLines) == 0 {
-		return errors.New("No lines to stage")
+		return gui.createErrorPanel(gui.g, "No lines to stage")
 	}
 
 	if err := gui.focusLineAndHunk(); err != nil {
