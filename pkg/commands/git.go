@@ -156,7 +156,7 @@ func (c *GitCommand) GetStatusFiles() []*File {
 			HasUnstagedChanges: unstagedChange != " ",
 			Tracked:            !untracked,
 			Deleted:            unstagedChange == "D" || stagedChange == "D",
-			HasMergeConflicts:  change == "UU" || change == "AA",
+			HasMergeConflicts:  change == "UU" || change == "AA" || change == "DU",
 			Type:               c.OSCommand.FileType(filename),
 		}
 		files = append(files, file)
