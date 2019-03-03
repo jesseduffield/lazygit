@@ -15,6 +15,5 @@ func getPlatform() *Platform {
 		openCommand:          "open {{filename}}",
 		openLinkCommand:      "open {{link}}",
 		fallbackEscapedQuote: "\"",
-		skipEditorArg:        "-c core.editor=true",
 	}
 }

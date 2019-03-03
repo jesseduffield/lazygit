@@ -584,11 +584,26 @@ func (c *GitCommand) FastForward(branchName string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git fetch %s %s:%s", upstream, branchName, branchName))
 }
 
+func (c *GitCommand) RunSkipEditorCommand(command string) error {
+	cmd := c.OSCommand.ExecutableFromString(command)
+	cmd.Env = append(
+		os.Environ(),
+		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+		"EDITOR="+c.OSCommand.GetLazygitPath(),
+	)
+	return c.OSCommand.RunExecutable(cmd)
+}
+
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
 func (c *GitCommand) GenericMerge(commandType string, command string) error {
-	gitCommand := fmt.Sprintf("git %s %s --%s", c.OSCommand.Platform.skipEditorArg, commandType, command)
-	return c.OSCommand.RunCommand(gitCommand)
+	return c.RunSkipEditorCommand(
+		fmt.Sprintf(
+			"git %s --%s",
+			commandType,
+			command,
+		),
+	)
 }
 
 func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, error) {
@@ -635,11 +650,11 @@ func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action stri
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
+// PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
+// we tell git to run lazygit to edit the todo list, and we pass the client
+// lazygit a todo string to write to the todo file
 func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (*exec.Cmd, error) {
-	ex, err := os.Executable() // get the executable path for git to use
-	if err != nil {
-		ex = os.Args[0] // fallback to the first call argument if needed
-	}
+	ex := c.OSCommand.GetLazygitPath()
 
 	debug := "FALSE"
 	if c.OSCommand.Config.GetDebug() == true {
@@ -658,7 +673,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	cmd.Env = os.Environ()
 	cmd.Env = append(
 		cmd.Env,
-		"LAZYGIT_CONTEXT=INTERACTIVE_REBASE",
+		"LAZYGIT_CLIENT_COMMAND=INTERACTIVE_REBASE",
 		"LAZYGIT_REBASE_TODO="+todo,
 		"DEBUG="+debug,
 		"LANG=en_US.UTF-8",   // Force using EN as language
@@ -703,7 +718,11 @@ func (c *GitCommand) AmendTo(sha string) error {
 	if err := c.OSCommand.RunCommand(fmt.Sprintf("git commit --fixup=%s", sha)); err != nil {
 		return err
 	}
-	return c.OSCommand.RunCommand(fmt.Sprintf("git %s rebase --interactive --autostash --autosquash %s^", c.OSCommand.Platform.skipEditorArg, sha))
+	return c.RunSkipEditorCommand(
+		fmt.Sprintf(
+			"git rebase --interactive --autostash --autosquash %s^", sha,
+		),
+	)
 }
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file

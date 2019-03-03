@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -25,7 +26,6 @@ type Platform struct {
 	openCommand          string
 	openLinkCommand      string
 	fallbackEscapedQuote string
-	skipEditorArg        string
 }
 
 // OSCommand holds all the os commands
@@ -59,11 +59,26 @@ func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
 // RunCommandWithOutput wrapper around commands returning their output and error
 func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
-	splitCmd := str.ToArgv(command)
+	cmd := c.ExecutableFromString(command)
+	return sanitisedCommandOutput(cmd.CombinedOutput())
+}
+
+// RunExecutableWithOutput runs an executable file and returns its output
+func (c *OSCommand) RunExecutableWithOutput(cmd *exec.Cmd) (string, error) {
+	return sanitisedCommandOutput(cmd.CombinedOutput())
+}
+
+// RunExecutable runs an executable file and returns an error if there was one
+func (c *OSCommand) RunExecutable(cmd *exec.Cmd) error {
+	_, err := c.RunExecutableWithOutput(cmd)
+	return err
+}
+
+// ExecutableFromString takes a string like `git status` and returns an executable command for it
+func (c *OSCommand) ExecutableFromString(commandStr string) *exec.Cmd {
+	splitCmd := str.ToArgv(commandStr)
 	c.Log.Info(splitCmd)
-	return sanitisedCommandOutput(
-		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
-	)
+	return c.command(splitCmd[0], splitCmd[1:]...)
 }
 
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
@@ -271,4 +286,13 @@ func (c *OSCommand) RunPreparedCommand(cmd *exec.Cmd) error {
 		return errors.New(outString)
 	}
 	return nil
+}
+
+// GetLazygitPath returns the path of the currently executed file
+func (c *OSCommand) GetLazygitPath() string {
+	ex, err := os.Executable() // get the executable path for git to use
+	if err != nil {
+		ex = os.Args[0] // fallback to the first call argument if needed
+	}
+	return filepath.ToSlash(ex)
 }

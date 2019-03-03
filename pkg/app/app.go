@@ -22,14 +22,14 @@ import (
 type App struct {
 	closers []io.Closer
 
-	Config       config.AppConfigurer
-	Log          *logrus.Entry
-	OSCommand    *commands.OSCommand
-	GitCommand   *commands.GitCommand
-	Gui          *gui.Gui
-	Tr           *i18n.Localizer
-	Updater      *updates.Updater // may only need this on the Gui
-	DemonContext string
+	Config        config.AppConfigurer
+	Log           *logrus.Entry
+	OSCommand     *commands.OSCommand
+	GitCommand    *commands.GitCommand
+	Gui           *gui.Gui
+	Tr            *i18n.Localizer
+	Updater       *updates.Updater // may only need this on the Gui
+	ClientContext string
 }
 
 func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
@@ -92,8 +92,8 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	app.Tr = i18n.NewLocalizer(app.Log)
 
 	// if we are being called in 'demon' mode, we can just return here
-	app.DemonContext = os.Getenv("LAZYGIT_CONTEXT")
-	if app.DemonContext != "" {
+	app.ClientContext = os.Getenv("LAZYGIT_CLIENT_COMMAND")
+	if app.ClientContext != "" {
 		return app, nil
 	}
 
@@ -119,8 +119,12 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 }
 
 func (app *App) Run() error {
-	if app.DemonContext == "INTERACTIVE_REBASE" {
+	if app.ClientContext == "INTERACTIVE_REBASE" {
 		return app.Rebase()
+	}
+
+	if app.ClientContext == "EXIT_IMMEDIATELY" {
+		os.Exit(0)
 	}
 
 	return app.Gui.RunWithSubprocesses()
