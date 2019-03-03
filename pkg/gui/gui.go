@@ -275,14 +275,17 @@ func (gui *Gui) onFocus(v *gocui.View) error {
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
-	donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
-	version := donate + " " + gui.Config.GetVersion()
+	information := gui.Config.GetVersion()
+	if gui.g.Mouse {
+		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
+		information = donate + " " + information
+	}
 	leftSideWidth := width / 3
 	statusFilesBoundary := 2
 	filesBranchesBoundary := 2 * height / 5   // height - 20
 	commitsBranchesBoundary := 3 * height / 5 // height - 10
 	commitsStashBoundary := height - 5        // height - 5
-	optionsVersionBoundary := width - max(len(utils.Decolorise(version)), 1)
+	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
 	minimumHeight := 16
 	minimumWidth := 10
 
@@ -308,10 +311,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			g.SetViewOnTop("limit")
 		}
 		return nil
-	} else {
-		_, _ = g.SetViewOnBottom("limit")
 	}
-
+	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
 
 	optionsTop := height - 2
@@ -428,14 +429,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if v, err := g.SetView("version", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("information", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorGreen
 		v.Frame = false
-		if err := gui.renderString(g, "version", version); err != nil {
+		if err := gui.renderString(g, "information", information); err != nil {
 			return err
 		}
 
@@ -637,6 +638,10 @@ func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleDonate(g *gocui.Gui, v *gocui.View) error {
+	if !gui.g.Mouse {
+		return nil
+	}
+
 	cx, _ := v.Cursor()
 	if cx > len(gui.Tr.SLocalize("Donate")) {
 		return nil
