@@ -10,12 +10,32 @@ package main
 
 import (
 	"fmt"
-	"github.com/jesseduffield/lazygit/pkg/app"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/app"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui"
 )
+
+type bindingSection struct {
+	title    string
+	bindings []*gui.Binding
+}
+
+func main() {
+	mConfig, _ := config.NewAppConfig("", "", "", "", "", true)
+	mApp, _ := app.NewApp(mConfig)
+	lang := mApp.Tr.GetLanguage()
+	file, _ := os.Create("Keybindings_" + lang + ".md")
+
+	bindingSections := getBindingSections(mApp)
+
+	content := formatSections(mApp, bindingSections)
+
+	writeString(file, content)
+}
 
 func writeString(file *os.File, str string) {
 	_, err := file.WriteString(str)
@@ -24,40 +44,83 @@ func writeString(file *os.File, str string) {
 	}
 }
 
-func getTitle(mApp *app.App, viewName string) string {
-	viewTitle := strings.Title(viewName) + "Title"
-	translatedTitle := mApp.Tr.SLocalize(viewTitle)
-	formattedTitle := fmt.Sprintf("\n## %s\n\n", translatedTitle)
-	return formattedTitle
+func localisedTitle(mApp *app.App, str string) string {
+	viewTitle := strings.Title(str) + "Title"
+	return mApp.Tr.SLocalize(viewTitle)
 }
 
-func main() {
-	mConfig, _ := config.NewAppConfig("", "", "", "", "", new(bool))
-	mApp, _ := app.Setup(mConfig)
-	lang := mApp.Tr.GetLanguage()
-	file, _ := os.Create("Keybindings_" + lang + ".md")
-	current := ""
+func formatTitle(title string) string {
+	return fmt.Sprintf("\n## %s\n\n", title)
+}
 
-	writeString(file, fmt.Sprintf("# Lazygit %s\n", mApp.Tr.SLocalize("menu")))
-	writeString(file, getTitle(mApp, "global"))
+func formatBinding(binding *gui.Binding) string {
+	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", binding.GetKey(), binding.Description)
+}
 
-	writeString(file, "<pre>\n")
+func getBindingSections(mApp *app.App) []*bindingSection {
+	bindingSections := []*bindingSection{}
 
-	for _, binding := range mApp.Gui.GetKeybindings() {
+	// TODO: add context-based keybindings
+	for _, binding := range mApp.Gui.GetInitialKeybindings() {
 		if binding.Description == "" {
 			continue
 		}
 
-		if binding.ViewName != current {
-			current = binding.ViewName
-			writeString(file, "</pre>\n")
-			writeString(file, getTitle(mApp, current))
-			writeString(file, "<pre>\n")
+		viewName := binding.ViewName
+		if viewName == "" {
+			viewName = "global"
 		}
+		title := localisedTitle(mApp, viewName)
 
-		info := fmt.Sprintf("  <kbd>%s</kbd>: %s\n", binding.GetKey(), binding.Description)
-		writeString(file, info)
+		bindingSections = addBinding(title, bindingSections, binding)
 	}
 
-	writeString(file, "</pre>\n")
+	for view, contexts := range mApp.Gui.GetContextMap() {
+		for contextName, contextBindings := range contexts {
+			translatedView := localisedTitle(mApp, view)
+			translatedContextName := localisedTitle(mApp, contextName)
+			title := fmt.Sprintf("%s (%s)", translatedView, translatedContextName)
+
+			for _, binding := range contextBindings {
+				bindingSections = addBinding(title, bindingSections, binding)
+			}
+		}
+	}
+
+	return bindingSections
+}
+
+func addBinding(title string, bindingSections []*bindingSection, binding *gui.Binding) []*bindingSection {
+	if binding.Description == "" {
+		return bindingSections
+	}
+
+	for _, section := range bindingSections {
+		if title == section.title {
+			section.bindings = append(section.bindings, binding)
+			return bindingSections
+		}
+	}
+
+	section := &bindingSection{
+		title:    title,
+		bindings: []*gui.Binding{binding},
+	}
+
+	return append(bindingSections, section)
+}
+
+func formatSections(mApp *app.App, bindingSections []*bindingSection) string {
+	content := fmt.Sprintf("# Lazygit %s\n", mApp.Tr.SLocalize("menu"))
+
+	for _, section := range bindingSections {
+		content += formatTitle(section.title)
+		content += "<pre>\n"
+		for _, binding := range section.bindings {
+			content += formatBinding(binding)
+		}
+		content += "</pre>\n"
+	}
+
+	return content
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -113,13 +114,13 @@ func Min(x, y int) int {
 }
 
 type Displayable interface {
-	GetDisplayStrings() []string
+	GetDisplayStrings(bool) []string
 }
 
 // RenderList takes a slice of items, confirms they implement the Displayable
 // interface, then generates a list of their displaystrings to write to a panel's
 // buffer
-func RenderList(slice interface{}) (string, error) {
+func RenderList(slice interface{}, isFocused bool) (string, error) {
 	s := reflect.ValueOf(slice)
 	if s.Kind() != reflect.Slice {
 		return "", errors.New("RenderList given a non-slice type")
@@ -135,19 +136,19 @@ func RenderList(slice interface{}) (string, error) {
 		displayables[i] = value
 	}
 
-	return renderDisplayableList(displayables)
+	return renderDisplayableList(displayables, isFocused)
 }
 
 // renderDisplayableList takes a list of displayable items, obtains their display
 // strings via GetDisplayStrings() and then returns a single string containing
 // each item's string representation on its own line, with appropriate horizontal
 // padding between the item's own strings
-func renderDisplayableList(items []Displayable) (string, error) {
+func renderDisplayableList(items []Displayable, isFocused bool) (string, error) {
 	if len(items) == 0 {
 		return "", nil
 	}
 
-	stringArrays := getDisplayStringArrays(items)
+	stringArrays := getDisplayStringArrays(items, isFocused)
 
 	if !displayArraysAligned(stringArrays) {
 		return "", errors.New("Each item must return the same number of strings to display")
@@ -159,6 +160,12 @@ func renderDisplayableList(items []Displayable) (string, error) {
 	return strings.Join(paddedDisplayStrings, "\n"), nil
 }
 
+// Decolorise strips a string of color
+func Decolorise(str string) string {
+	re := regexp.MustCompile(`\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]`)
+	return re.ReplaceAllString(str, "")
+}
+
 func getPadWidths(stringArrays [][]string) []int {
 	if len(stringArrays[0]) <= 1 {
 		return []int{}
@@ -166,8 +173,9 @@ func getPadWidths(stringArrays [][]string) []int {
 	padWidths := make([]int, len(stringArrays[0])-1)
 	for i := range padWidths {
 		for _, strings := range stringArrays {
-			if len(strings[i]) > padWidths[i] {
-				padWidths[i] = len(strings[i])
+			uncoloredString := Decolorise(strings[i])
+			if len(uncoloredString) > padWidths[i] {
+				padWidths[i] = len(uncoloredString)
 			}
 		}
 	}
@@ -199,10 +207,10 @@ func displayArraysAligned(stringArrays [][]string) bool {
 	return true
 }
 
-func getDisplayStringArrays(displayables []Displayable) [][]string {
+func getDisplayStringArrays(displayables []Displayable, isFocused bool) [][]string {
 	stringArrays := make([][]string, len(displayables))
 	for i, item := range displayables {
-		stringArrays[i] = item.GetDisplayStrings()
+		stringArrays[i] = item.GetDisplayStrings(isFocused)
 	}
 	return stringArrays
 }
