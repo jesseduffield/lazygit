@@ -39,8 +39,10 @@ func (gui *Gui) renderMenuOptions() error {
 }
 
 func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
-	if err := g.DeleteKeybinding("menu", gocui.KeySpace, gocui.ModNone); err != nil {
-		return err
+	for _, key := range []gocui.Key{gocui.KeySpace, gocui.KeyEnter} {
+		if err := g.DeleteKeybinding("menu", key, gocui.ModNone); err != nil {
+			return err
+		}
 	}
 	err := g.DeleteView("menu")
 	if err != nil {
@@ -78,8 +80,10 @@ func (gui *Gui) createMenu(title string, items interface{}, handlePress func(int
 		return gui.returnFocus(gui.g, menuView)
 	}
 
-	if err := gui.g.SetKeybinding("menu", gocui.KeySpace, gocui.ModNone, wrappedHandlePress); err != nil {
-		return err
+	for _, key := range []gocui.Key{gocui.KeySpace, gocui.KeyEnter} {
+		if err := gui.g.SetKeybinding("menu", key, gocui.ModNone, wrappedHandlePress); err != nil {
+			return err
+		}
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
