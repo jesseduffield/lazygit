@@ -550,7 +550,9 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
-	// g.Mouse = true // disabling until this feature is ready
+	if gui.Config.GetUserConfig().GetBool("gui.mouseEvents") {
+		g.Mouse = true
+	}
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
