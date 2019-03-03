@@ -264,7 +264,6 @@ func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCompleteMerge() error {
-	filesView := gui.getFilesView()
 	if err := gui.stageSelectedFile(gui.g); err != nil {
 		return err
 	}
@@ -278,12 +277,14 @@ func (gui *Gui) handleCompleteMerge() error {
 	}
 	// if there are no more files with merge conflicts, we should ask whether the user wants to continue
 	if !gui.anyFilesWithMergeConflicts() {
-		// ask if user wants to continue
-		if err := gui.createConfirmationPanel(gui.g, filesView, "continue", gui.Tr.SLocalize("ConflictsResolved"), func(g *gocui.Gui, v *gocui.View) error {
-			return gui.genericMergeCommand("continue")
-		}, nil); err != nil {
-			return err
-		}
+		return gui.promptToContinue()
 	}
 	return gui.handleEscapeMerge(gui.g, gui.getMainView())
+}
+
+// promptToContinue asks the user if they want to continue the rebase/merge that's in progress
+func (gui *Gui) promptToContinue() error {
+	return gui.createConfirmationPanel(gui.g, gui.getFilesView(), "continue", gui.Tr.SLocalize("ConflictsResolved"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.genericMergeCommand("continue")
+	}, nil)
 }

@@ -144,7 +144,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Squash"), gui.Tr.SLocalize("SureSquashThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.WithWaitingStatus("squashing", func() error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("SquashingStatus"), func() error {
 			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "squash")
 			return gui.handleGenericMergeCommandResult(err)
 		})
@@ -176,7 +176,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Fixup"), gui.Tr.SLocalize("SureFixupThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.WithWaitingStatus("fixing up", func() error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("FixingStatus"), func() error {
 			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "fixup")
 			return gui.handleGenericMergeCommandResult(err)
 		})
@@ -276,7 +276,7 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("DeleteCommitTitle"), gui.Tr.SLocalize("DeleteCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
-		return gui.WithWaitingStatus("deleting", func() error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("DeletingStatus"), func() error {
 			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "drop")
 			return gui.handleGenericMergeCommandResult(err)
 		})
@@ -297,7 +297,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommits(gui.g)
 	}
 
-	return gui.WithWaitingStatus("moving", func() error {
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
 		err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index)
 		if err == nil {
 			gui.State.Panels.Commits.SelectedLine++
@@ -320,7 +320,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommits(gui.g)
 	}
 
-	return gui.WithWaitingStatus("moving", func() error {
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
 		err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index-1)
 		if err == nil {
 			gui.State.Panels.Commits.SelectedLine--
@@ -338,7 +338,7 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	return gui.WithWaitingStatus("rebasing", func() error {
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 		err = gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "edit")
 		return gui.handleGenericMergeCommandResult(err)
 	})
@@ -346,7 +346,7 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
 	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("AmendCommitTitle"), gui.Tr.SLocalize("AmendCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
-		return gui.WithWaitingStatus("amending", func() error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("AmendingStatus"), func() error {
 			err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
 			return gui.handleGenericMergeCommandResult(err)
 		})
@@ -431,7 +431,9 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
 func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
 	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("CherryPick"), gui.Tr.SLocalize("SureCherryPick"), func(g *gocui.Gui, v *gocui.View) error {
-		err := gui.GitCommand.CherryPickCommits(gui.State.CherryPickedCommits)
-		return gui.handleGenericMergeCommandResult(err)
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("CherryPickingStatus"), func() error {
+			err := gui.GitCommand.CherryPickCommits(gui.State.CherryPickedCommits)
+			return gui.handleGenericMergeCommandResult(err)
+		})
 	}, nil)
 }

@@ -622,6 +622,27 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "DeleteCommitPrompt",
 			Other: "Are you sure you want to delete this commit?",
+		}, &i18n.Message{
+			ID:    "SquashingStatus",
+			Other: "squashing",
+		}, &i18n.Message{
+			ID:    "FixingStatus",
+			Other: "fixing up",
+		}, &i18n.Message{
+			ID:    "DeletingStatus",
+			Other: "deleting",
+		}, &i18n.Message{
+			ID:    "MovingStatus",
+			Other: "moving",
+		}, &i18n.Message{
+			ID:    "RebasingStatus",
+			Other: "rebasing",
+		}, &i18n.Message{
+			ID:    "AmendingStatus",
+			Other: "amending",
+		}, &i18n.Message{
+			ID:    "CherryPickingStatus",
+			Other: "cherry-picking",
 		},
 	)
 }
