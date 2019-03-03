@@ -49,6 +49,7 @@ type Gui struct {
 	keybindings []*keybinding
 	maxX, maxY  int
 	outputMode  OutputMode
+	stop        chan struct{}
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -92,6 +93,8 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 	g.outputMode = mode
 	termbox.SetOutputMode(termbox.OutputMode(mode))
 
+	g.stop = make(chan struct{}, 0)
+
 	g.tbEvents = make(chan termbox.Event, 20)
 	g.userEvents = make(chan userEvent, 20)
 
@@ -110,6 +113,9 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 // Close finalizes the library. It should be called after a successful
 // initialization and when gocui is not needed anymore.
 func (g *Gui) Close() {
+	go func() {
+		g.stop <- struct{}{}
+	}()
 	termbox.Close()
 }
 
@@ -371,9 +377,15 @@ func (g *Gui) MainLoop() error {
 	if err := g.flush(); err != nil {
 		return err
 	}
+
 	go func() {
 		for {
-			g.tbEvents <- termbox.PollEvent()
+			select {
+			case <-g.stop:
+				return
+			default:
+				g.tbEvents <- termbox.PollEvent()
+			}
 		}
 	}()
 
