@@ -104,7 +104,7 @@ whichever rc file you're using).
 
 - Basic video tutorial [here](https://youtu.be/VDXvbHZYeKY).
 - List of keybindings
-  [here](/docs/Keybindings.md).
+  [here](/docs/Keybindings_en.md).
 
 ## Cool features
 
@@ -122,16 +122,6 @@ whichever rc file you're using).
 ### Viewing commit diffs
 
 ![Viewing Commit Diffs](/docs/resources/viewing-commit-diffs.png)
-
-## Milestones
-
-- [x] Easy Installation (homebrew, release binaries)
-- [ ] Configurable Keybindings
-- [ ] Configurable Color Themes
-- [ ] Spawning Subprocesses (help needed - have a look at https://github.com/jesseduffield/lazygit/pull/18)
-- [ ] Maintainability
-- [ ] Performance
-- [ ] i18n
 
 ## Contributing
 
