@@ -119,9 +119,9 @@ whichever rc file you're using).
 
 ![Gif](/docs/resources/resolving-merge-conflicts.gif)
 
-### Viewing commit diffs
+### Interactive Rebasing
 
-![Viewing Commit Diffs](/docs/resources/viewing-commit-diffs.png)
+![Interactive Rebasing](/docs/resources/interactive-rebase.png)
 
 ## Contributing
 
