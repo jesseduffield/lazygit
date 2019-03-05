@@ -643,6 +643,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CherryPickingStatus",
 			Other: "cherry-picking",
+		}, &i18n.Message{
+			ID:    "NoLinesToStage",
+			Other: "No lines to stage",
 		},
 	)
 }

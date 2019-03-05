@@ -61,7 +61,7 @@ func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
 		[]string{
 			lazygitTitle(),
 			"Copyright (c) 2018 Jesse Duffield",
-			"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings.md",
+			"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings_en.md",
 			"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
 			"Tutorial: https://youtu.be/VDXvbHZYeKY",
 			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",

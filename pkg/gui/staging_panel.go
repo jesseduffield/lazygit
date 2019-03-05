@@ -61,7 +61,7 @@ func (gui *Gui) refreshStagingPanel() error {
 	}
 
 	if len(stageableLines) == 0 {
-		return gui.createErrorPanel(gui.g, "No lines to stage")
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoLinesToStage"))
 	}
 
 	if err := gui.focusLineAndHunk(); err != nil {
