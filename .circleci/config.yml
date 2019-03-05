@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.11
+      - image: circleci/golang:1.12
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
@@ -28,7 +28,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - pkg-cache-{{ checksum "Gopkg.lock" }}-v3
+            - pkg-cache-{{ checksum "Gopkg.lock" }}-v4
       - run:
           name: Run tests
           command: |
@@ -43,7 +43,7 @@ jobs:
           command: |
             bash <(curl -s https://codecov.io/bash)
       - save_cache:
-          key: pkg-cache-{{ checksum "Gopkg.lock" }}-v3
+          key: pkg-cache-{{ checksum "Gopkg.lock" }}-v4
           paths:
             - ~/.cache/go-build
 
