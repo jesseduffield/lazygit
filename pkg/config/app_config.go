@@ -228,12 +228,15 @@ func (c *AppConfig) LoadAppState() error {
 }
 
 // GetDefaultConfig returns the application default configuration
+// NOTE: editing this in vscode is a pain in the ass: it keeps auto-replacing whitespace
+// spaces before the edited items with tabs, so watch out for that.
 func GetDefaultConfig() []byte {
 	return []byte(
 		`gui:
   ## stuff relating to the UI
   scrollHeight: 2
   scrollPastBottom: true
+  # sidePanelWidth: 40 # for people who need more space to view side-by-side diffs
   mouseEvents: false # will default to true when the feature is complete
   theme:
     activeBorderColor:
@@ -274,12 +277,3 @@ func getDefaultAppState() []byte {
     recentRepos: []
   `)
 }
-
-// // commenting this out until we use it again
-// func homeDirectory() string {
-// 	usr, err := user.Current()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	return usr.HomeDir
-// }

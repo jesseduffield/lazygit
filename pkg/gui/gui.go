@@ -279,7 +279,12 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
 		information = donate + " " + information
 	}
-	leftSideWidth := width / 3
+
+	leftSideWidth := gui.Config.GetUserConfig().GetInt("gui.sidePanelWidth")
+	if leftSideWidth == 0 {
+		leftSideWidth = width / 3
+	}
+
 	statusFilesBoundary := 2
 	filesBranchesBoundary := 2 * height / 5
 	commitsBranchesBoundary := 3 * height / 5
