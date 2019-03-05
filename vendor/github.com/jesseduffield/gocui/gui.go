@@ -724,7 +724,7 @@ func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
 
 func (g *Gui) loaderTick() {
 	go func() {
-		for range time.Tick(time.Millisecond) {
+		for range time.Tick(time.Millisecond * 50) {
 			for _, view := range g.Views() {
 				if view.HasLoader {
 					g.userEvents <- userEvent{func(g *Gui) error { return nil }}
