@@ -110,7 +110,6 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		getGlobalGitConfig: gitconfig.Global,
 		getLocalGitConfig:  gitconfig.Local,
 		removeFile:         os.RemoveAll,
-		Config:             config,
 	}, nil
 }
 

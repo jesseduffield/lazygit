@@ -20,7 +20,7 @@ func (gui *Gui) refreshStagingPanel() error {
 	}
 
 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
-	mainView := gui.getMainView(gui.g)
+	mainView := gui.getMainView()
 	width, _ := mainView.Size()
 
 	diff := gui.GitCommand.Diff(file, width, false, false)
@@ -68,7 +68,6 @@ func (gui *Gui) refreshStagingPanel() error {
 		return err
 	}
 
-	mainView := gui.getMainView()
 	mainView.Highlight = true
 	mainView.Wrap = false
 

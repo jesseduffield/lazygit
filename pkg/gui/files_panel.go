@@ -67,7 +67,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 		return err
 	}
 
-	mainView := gui.getMainView(g)
+	mainView := gui.getMainView()
 	width, _ := mainView.Size()
 
 	if file.HasInlineMergeConflicts {
