@@ -5,11 +5,11 @@ package commands
 import (
 	"bufio"
 	"bytes"
-	"github.com/go-errors/errors"
 	"os"
-	"os/exec"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/pty"
 	"github.com/mgutz/str"
@@ -21,7 +21,7 @@ import (
 // NOTE: If the return data is empty it won't written anything to stdin
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) error {
 	splitCmd := str.ToArgv(command)
-	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
+	cmd := c.command(splitCmd[0], splitCmd[1:]...)
 
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")

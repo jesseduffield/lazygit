@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/shibukawa/configdir"
@@ -42,10 +43,14 @@ type AppConfigurer interface {
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag *bool) (*AppConfig, error) {
+func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
 	userConfig, err := LoadConfig("config", true)
 	if err != nil {
 		return nil, err
+	}
+
+	if os.Getenv("DEBUG") == "TRUE" {
+		debuggingFlag = true
 	}
 
 	appConfig := &AppConfig{
@@ -53,7 +58,7 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		Version:     version,
 		Commit:      commit,
 		BuildDate:   date,
-		Debug:       *debuggingFlag,
+		Debug:       debuggingFlag,
 		BuildSource: buildSource,
 		UserConfig:  userConfig,
 		AppState:    &AppState{},
@@ -229,6 +234,7 @@ func GetDefaultConfig() []byte {
   ## stuff relating to the UI
   scrollHeight: 2
   scrollPastBottom: true
+  mouseEvents: false # will default to true when the feature is complete
   theme:
     activeBorderColor:
       - white
@@ -243,6 +249,8 @@ git:
   # git difftool --no-prompt --extcmd="icdiff --cols={{width}}" {{args}} {{filename}}
   # git diff --color {{args}} -- {{filename}} | diff-so-fancy
   fileDiffTemplate: 'git diff --color {{args}} {{filename}}'
+  merging:
+    manualCommit: false
 os:
   # stuff relating to the OS
 update:

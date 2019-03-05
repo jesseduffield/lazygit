@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"github.com/go-errors/errors"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/git"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -63,23 +61,28 @@ func (gui *Gui) refreshStagingPanel() error {
 	}
 
 	if len(stageableLines) == 0 {
-		return errors.New("No lines to stage")
+		return gui.createErrorPanel(gui.g, "No lines to stage")
 	}
 
 	if err := gui.focusLineAndHunk(); err != nil {
 		return err
 	}
-	return gui.renderString(gui.g, "staging", colorDiff)
+
+	mainView := gui.getMainView()
+	mainView.Highlight = true
+	mainView.Wrap = false
+
+	gui.g.Update(func(*gocui.Gui) error {
+		return gui.setViewContent(gui.g, gui.getMainView(), colorDiff)
+	})
+
+	return nil
 }
 
 func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
-	if _, err := gui.g.SetViewOnBottom("staging"); err != nil {
-		return err
-	}
-
 	gui.State.Panels.Staging = nil
 
-	return gui.switchFocus(gui.g, nil, gui.getFilesView(gui.g))
+	return gui.switchFocus(gui.g, nil, gui.getFilesView())
 }
 
 func (gui *Gui) handleStagingPrevLine(g *gocui.Gui, v *gocui.View) error {
@@ -141,7 +144,7 @@ func (gui *Gui) handleCycleLine(prev bool) error {
 // focusLineAndHunk works out the best focus for the staging panel given the
 // selected line and size of the hunk
 func (gui *Gui) focusLineAndHunk() error {
-	stagingView := gui.getMainView(gui.g)
+	stagingView := gui.getMainView()
 	state := gui.State.Panels.Staging
 
 	lineNumber := state.StageableLines[state.SelectedLine]
@@ -212,7 +215,7 @@ func (gui *Gui) handleStageLineOrHunk(hunk bool) error {
 		return err
 	}
 
-	if err := gui.refreshFiles(gui.g); err != nil {
+	if err := gui.refreshFiles(); err != nil {
 		return err
 	}
 	if err := gui.refreshStagingPanel(); err != nil {

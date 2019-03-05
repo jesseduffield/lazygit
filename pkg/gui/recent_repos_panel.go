@@ -15,7 +15,7 @@ type recentRepo struct {
 }
 
 // GetDisplayStrings returns the path from a recent repo.
-func (r *recentRepo) GetDisplayStrings() []string {
+func (r *recentRepo) GetDisplayStrings(isFocused bool) []string {
 	yellow := color.New(color.FgMagenta)
 	base := filepath.Base(r.path)
 	path := yellow.Sprint(r.path)
@@ -44,7 +44,7 @@ func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
 		return gui.Errors.ErrSwitchRepo
 	}
 
-	return gui.createMenu(recentRepos, handleMenuPress)
+	return gui.createMenu(gui.Tr.SLocalize("RecentRepos"), recentRepos, handleMenuPress)
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,

@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -49,14 +50,35 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 	}
 }
 
+// SetCommand sets the command function used by the struct.
+// To be used for testing only
+func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
+	c.command = cmd
+}
+
 // RunCommandWithOutput wrapper around commands returning their output and error
 func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
-	splitCmd := str.ToArgv(command)
+	cmd := c.ExecutableFromString(command)
+	return sanitisedCommandOutput(cmd.CombinedOutput())
+}
+
+// RunExecutableWithOutput runs an executable file and returns its output
+func (c *OSCommand) RunExecutableWithOutput(cmd *exec.Cmd) (string, error) {
+	return sanitisedCommandOutput(cmd.CombinedOutput())
+}
+
+// RunExecutable runs an executable file and returns an error if there was one
+func (c *OSCommand) RunExecutable(cmd *exec.Cmd) error {
+	_, err := c.RunExecutableWithOutput(cmd)
+	return err
+}
+
+// ExecutableFromString takes a string like `git status` and returns an executable command for it
+func (c *OSCommand) ExecutableFromString(commandStr string) *exec.Cmd {
+	splitCmd := str.ToArgv(commandStr)
 	c.Log.Info(splitCmd)
-	return sanitisedCommandOutput(
-		c.command(splitCmd[0], splitCmd[1:]...).CombinedOutput(),
-	)
+	return c.command(splitCmd[0], splitCmd[1:]...)
 }
 
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
@@ -206,7 +228,10 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	defer f.Close()
 
 	_, err = f.WriteString("\n" + line)
-	return errors.Wrap(err, 0)
+	if err != nil {
+		return errors.Wrap(err, 0)
+	}
+	return nil
 }
 
 // CreateTempFile writes a string to a new temp file and returns the file's name
@@ -233,4 +258,40 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 func (c *OSCommand) RemoveFile(filename string) error {
 	err := os.Remove(filename)
 	return errors.Wrap(err, 0)
+}
+
+// FileExists checks whether a file exists at the specified path
+func (c *OSCommand) FileExists(path string) (bool, error) {
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// RunPreparedCommand takes a pointer to an exec.Cmd and runs it
+// this is useful if you need to give your command some environment variables
+// before running it
+func (c *OSCommand) RunPreparedCommand(cmd *exec.Cmd) error {
+	out, err := cmd.CombinedOutput()
+	outString := string(out)
+	c.Log.Info(outString)
+	if err != nil {
+		if len(outString) == 0 {
+			return err
+		}
+		return errors.New(outString)
+	}
+	return nil
+}
+
+// GetLazygitPath returns the path of the currently executed file
+func (c *OSCommand) GetLazygitPath() string {
+	ex, err := os.Executable() // get the executable path for git to use
+	if err != nil {
+		ex = os.Args[0] // fallback to the first call argument if needed
+	}
+	return filepath.ToSlash(ex)
 }

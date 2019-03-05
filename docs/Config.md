@@ -17,6 +17,10 @@
         - blue
     commitLength:
       show: true
+  git:
+    merging:
+      # only applicable to unix users
+      manualCommit: false
   update:
     method: prompt # can be: prompt | background | never
     days: 14 # how often an update is checked for

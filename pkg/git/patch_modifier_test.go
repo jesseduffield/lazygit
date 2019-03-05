@@ -4,21 +4,17 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/sirupsen/logrus"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/stretchr/testify/assert"
 )
 
-func newDummyLog() *logrus.Entry {
-	log := logrus.New()
-	log.Out = ioutil.Discard
-	return log.WithField("test", "test")
-}
-
-func newDummyPatchModifier() *PatchModifier {
+// NewDummyPatchModifier constructs a new dummy patch modifier for testing
+func NewDummyPatchModifier() *PatchModifier {
 	return &PatchModifier{
-		Log: newDummyLog(),
+		Log: commands.NewDummyLog(),
 	}
 }
+
 func TestModifyPatchForLine(t *testing.T) {
 	type scenario struct {
 		testName              string
@@ -68,7 +64,7 @@ func TestModifyPatchForLine(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			p := newDummyPatchModifier()
+			p := NewDummyPatchModifier()
 			beforePatch, err := ioutil.ReadFile(s.patchFilename)
 			if err != nil {
 				panic("Cannot open file at " + s.patchFilename)
