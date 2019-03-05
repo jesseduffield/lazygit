@@ -1,5 +1,7 @@
 module github.com/jesseduffield/lazygit
 
+go 1.12
+
 require (
 	github.com/aws/aws-sdk-go v1.15.21
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
@@ -19,7 +21,7 @@ require (
 	github.com/heroku/rollrus v0.0.0-20180515183152-fc0cef2ff331
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 	github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63
-	github.com/jesseduffield/gocui v0.0.0-20190303031804-b502ee11d674
+	github.com/jesseduffield/gocui v0.0.0-20190305102456-f0f0ab442e6c
 	github.com/jesseduffield/pty v0.0.0-20181218102224-02db52c7e406
 	github.com/jesseduffield/termbox-go v0.0.0-20180919093808-1e272ff78dcb
 	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
