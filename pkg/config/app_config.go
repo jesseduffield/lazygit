@@ -254,7 +254,8 @@ git:
   fileDiffTemplate: 'git diff --color {{args}} {{filename}}'
   merging:
     manualCommit: false
-os:
+# for some reason when this (os) was set with no children, the user's config didn't override it, causing a crash when we tried to open a file. Not sure what's going on here but I'm commenting this out for now
+# os:
   # stuff relating to the OS
 update:
   method: prompt # can be: prompt | background | never
