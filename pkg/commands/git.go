@@ -577,7 +577,7 @@ func (c *GitCommand) Diff(file *File, width int, color bool, allowCustomCommand 
 	}
 
 	command := utils.ResolvePlaceholderString(template, templateValues)
-	s, _ := c.OSCommand.RunDirectCommand(command)
+	s, _ := c.OSCommand.RunCommandWithOutput(command)
 	return s
 }
 
