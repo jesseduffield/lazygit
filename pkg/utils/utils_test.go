@@ -203,15 +203,19 @@ type myDisplayable struct {
 type myStruct struct{}
 
 // GetDisplayStrings is a function.
-func (d *myDisplayable) GetDisplayStrings() []string {
+func (d *myDisplayable) GetDisplayStrings(isFocused bool) []string {
+	if isFocused {
+		return append(d.strings, "blah")
+	}
 	return d.strings
 }
 
 // TestGetDisplayStringArrays is a function.
 func TestGetDisplayStringArrays(t *testing.T) {
 	type scenario struct {
-		input    []Displayable
-		expected [][]string
+		input     []Displayable
+		isFocused bool
+		expected  [][]string
 	}
 
 	scenarios := []scenario{
@@ -220,12 +224,21 @@ func TestGetDisplayStringArrays(t *testing.T) {
 				Displayable(&myDisplayable{[]string{"a", "b"}}),
 				Displayable(&myDisplayable{[]string{"c", "d"}}),
 			},
+			false,
 			[][]string{{"a", "b"}, {"c", "d"}},
+		},
+		{
+			[]Displayable{
+				Displayable(&myDisplayable{[]string{"a", "b"}}),
+				Displayable(&myDisplayable{[]string{"c", "d"}}),
+			},
+			true,
+			[][]string{{"a", "b", "blah"}, {"c", "d", "blah"}},
 		},
 	}
 
 	for _, s := range scenarios {
-		assert.EqualValues(t, s.expected, getDisplayStringArrays(s.input))
+		assert.EqualValues(t, s.expected, getDisplayStringArrays(s.input, s.isFocused))
 	}
 }
 
@@ -233,6 +246,7 @@ func TestGetDisplayStringArrays(t *testing.T) {
 func TestRenderDisplayableList(t *testing.T) {
 	type scenario struct {
 		input                []Displayable
+		isFocused            bool
 		expectedString       string
 		expectedErrorMessage string
 	}
@@ -243,6 +257,7 @@ func TestRenderDisplayableList(t *testing.T) {
 				Displayable(&myDisplayable{[]string{}}),
 				Displayable(&myDisplayable{[]string{}}),
 			},
+			false,
 			"\n",
 			"",
 		},
@@ -251,6 +266,7 @@ func TestRenderDisplayableList(t *testing.T) {
 				Displayable(&myDisplayable{[]string{"aa", "b"}}),
 				Displayable(&myDisplayable{[]string{"c", "d"}}),
 			},
+			false,
 			"aa b\nc  d",
 			"",
 		},
@@ -259,13 +275,23 @@ func TestRenderDisplayableList(t *testing.T) {
 				Displayable(&myDisplayable{[]string{"a"}}),
 				Displayable(&myDisplayable{[]string{"b", "c"}}),
 			},
+			false,
 			"",
 			"Each item must return the same number of strings to display",
+		},
+		{
+			[]Displayable{
+				Displayable(&myDisplayable{[]string{"a"}}),
+				Displayable(&myDisplayable{[]string{"b"}}),
+			},
+			true,
+			"a blah\nb blah",
+			"",
 		},
 	}
 
 	for _, s := range scenarios {
-		str, err := renderDisplayableList(s.input)
+		str, err := renderDisplayableList(s.input, s.isFocused)
 		assert.EqualValues(t, s.expectedString, str)
 		if s.expectedErrorMessage != "" {
 			assert.EqualError(t, err, s.expectedErrorMessage)
@@ -279,6 +305,7 @@ func TestRenderDisplayableList(t *testing.T) {
 func TestRenderList(t *testing.T) {
 	type scenario struct {
 		input                interface{}
+		isFocused            bool
 		expectedString       string
 		expectedErrorMessage string
 	}
@@ -289,6 +316,7 @@ func TestRenderList(t *testing.T) {
 				{[]string{"aa", "b"}},
 				{[]string{"c", "d"}},
 			},
+			false,
 			"aa b\nc  d",
 			"",
 		},
@@ -297,18 +325,28 @@ func TestRenderList(t *testing.T) {
 				{},
 				{},
 			},
+			false,
 			"",
 			"item does not implement the Displayable interface",
 		},
 		{
 			&myStruct{},
+			false,
 			"",
 			"RenderList given a non-slice type",
+		},
+		{
+			[]*myDisplayable{
+				{[]string{"a"}},
+			},
+			true,
+			"a blah",
+			"",
 		},
 	}
 
 	for _, s := range scenarios {
-		str, err := RenderList(s.input)
+		str, err := RenderList(s.input, s.isFocused)
 		assert.EqualValues(t, s.expectedString, str)
 		if s.expectedErrorMessage != "" {
 			assert.EqualError(t, err, s.expectedErrorMessage)

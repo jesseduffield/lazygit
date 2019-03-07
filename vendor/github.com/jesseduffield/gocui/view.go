@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/go-errors/errors"
 
@@ -87,6 +88,9 @@ type View struct {
 
 	// Overlaps describes which edges are overlapping with another view's edges
 	Overlaps byte
+
+	// If HasLoader is true, the message will be appended with a spinning loader animation
+	HasLoader bool
 }
 
 type viewLine struct {
@@ -322,7 +326,11 @@ func (v *View) draw() error {
 	}
 	if v.tainted {
 		v.viewLines = nil
-		for i, line := range v.lines {
+		lines := v.lines
+		if v.HasLoader {
+			lines = v.loaderLines()
+		}
+		for i, line := range lines {
 			wrap := 0
 			if v.Wrap {
 				wrap = maxX
@@ -334,7 +342,9 @@ func (v *View) draw() error {
 				v.viewLines = append(v.viewLines, vline)
 			}
 		}
-		v.tainted = false
+		if !v.HasLoader {
+			v.tainted = false
+		}
 	}
 
 	if v.Autoscroll && len(v.viewLines) > maxY {
@@ -563,4 +573,33 @@ func linesToString(lines [][]cell) string {
 	}
 
 	return strings.Join(str, "\n")
+}
+
+func (v *View) loaderLines() [][]cell {
+	duplicate := make([][]cell, len(v.lines))
+	for i := range v.lines {
+		if i < len(v.lines)-1 {
+			duplicate[i] = make([]cell, len(v.lines[i]))
+			copy(duplicate[i], v.lines[i])
+		} else {
+			duplicate[i] = make([]cell, len(v.lines[i])+2)
+			copy(duplicate[i], v.lines[i])
+			duplicate[i][len(duplicate[i])-2] = cell{chr: ' '}
+			duplicate[i][len(duplicate[i])-1] = Loader()
+		}
+	}
+
+	return duplicate
+}
+
+func Loader() cell {
+	characters := "|/-\\"
+	now := time.Now()
+	nanos := now.UnixNano()
+	index := nanos / 50000000 % int64(len(characters))
+	str := characters[index : index+1]
+	chr := []rune(str)[0]
+	return cell{
+		chr: chr,
+	}
 }

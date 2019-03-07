@@ -4,14 +4,17 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/stretchr/testify/assert"
 )
 
-func newDummyPatchParser() *PatchParser {
+// NewDummyPatchParser constructs a new dummy patch parser for testing
+func NewDummyPatchParser() *PatchParser {
 	return &PatchParser{
-		Log: newDummyLog(),
+		Log: commands.NewDummyLog(),
 	}
 }
+
 func TestParsePatch(t *testing.T) {
 	type scenario struct {
 		testName               string
@@ -47,7 +50,7 @@ func TestParsePatch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			p := newDummyPatchParser()
+			p := NewDummyPatchParser()
 			beforePatch, err := ioutil.ReadFile(s.patchFilename)
 			if err != nil {
 				panic("Cannot open file at " + s.patchFilename)

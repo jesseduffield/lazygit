@@ -6,29 +6,8 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	yaml "gopkg.in/yaml.v2"
 )
-
-func newDummyOSCommand() *OSCommand {
-	return NewOSCommand(newDummyLog(), newDummyAppConfig())
-}
-
-func newDummyAppConfig() *config.AppConfig {
-	appConfig := &config.AppConfig{
-		Name:        "lazygit",
-		Version:     "unversioned",
-		Commit:      "",
-		BuildDate:   "",
-		Debug:       false,
-		BuildSource: "",
-		UserConfig:  viper.New(),
-	}
-	_ = yaml.Unmarshal([]byte{}, appConfig.AppState)
-	return appConfig
-}
 
 // TestOSCommandRunCommandWithOutput is a function.
 func TestOSCommandRunCommandWithOutput(t *testing.T) {
@@ -54,7 +33,7 @@ func TestOSCommandRunCommandWithOutput(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(newDummyOSCommand().RunCommandWithOutput(s.command))
+		s.test(NewDummyOSCommand().RunCommandWithOutput(s.command))
 	}
 }
 
@@ -75,7 +54,7 @@ func TestOSCommandRunCommand(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(newDummyOSCommand().RunCommand(s.command))
+		s.test(NewDummyOSCommand().RunCommand(s.command))
 	}
 }
 
@@ -122,7 +101,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		OSCmd := newDummyOSCommand()
+		OSCmd := NewDummyOSCommand()
 		OSCmd.command = s.command
 		OSCmd.Config.GetUserConfig().Set("os.openCommand", "open {{filename}}")
 
@@ -251,7 +230,7 @@ func TestOSCommandEditFile(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		OSCmd := newDummyOSCommand()
+		OSCmd := NewDummyOSCommand()
 		OSCmd.command = s.command
 		OSCmd.getGlobalGitConfig = s.getGlobalGitConfig
 		OSCmd.getenv = s.getenv
@@ -262,7 +241,7 @@ func TestOSCommandEditFile(t *testing.T) {
 
 // TestOSCommandQuote is a function.
 func TestOSCommandQuote(t *testing.T) {
-	osCommand := newDummyOSCommand()
+	osCommand := NewDummyOSCommand()
 
 	actual := osCommand.Quote("hello `test`")
 
@@ -273,7 +252,7 @@ func TestOSCommandQuote(t *testing.T) {
 
 // TestOSCommandQuoteSingleQuote tests the quote function with ' quotes explicitly for Linux
 func TestOSCommandQuoteSingleQuote(t *testing.T) {
-	osCommand := newDummyOSCommand()
+	osCommand := NewDummyOSCommand()
 
 	osCommand.Platform.os = "linux"
 
@@ -286,7 +265,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 
 // TestOSCommandQuoteDoubleQuote tests the quote function with " quotes explicitly for Linux
 func TestOSCommandQuoteDoubleQuote(t *testing.T) {
-	osCommand := newDummyOSCommand()
+	osCommand := NewDummyOSCommand()
 
 	osCommand.Platform.os = "linux"
 
@@ -299,7 +278,7 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 
 // TestOSCommandUnquote is a function.
 func TestOSCommandUnquote(t *testing.T) {
-	osCommand := newDummyOSCommand()
+	osCommand := NewDummyOSCommand()
 
 	actual := osCommand.Unquote(`hello "test"`)
 
@@ -361,7 +340,7 @@ func TestOSCommandFileType(t *testing.T) {
 
 	for _, s := range scenarios {
 		s.setup()
-		s.test(newDummyOSCommand().FileType(s.path))
+		s.test(NewDummyOSCommand().FileType(s.path))
 		_ = os.RemoveAll(s.path)
 	}
 }
@@ -392,7 +371,7 @@ func TestOSCommandCreateTempFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(newDummyOSCommand().CreateTempFile(s.filename, s.content))
+			s.test(NewDummyOSCommand().CreateTempFile(s.filename, s.content))
 		})
 	}
 }
