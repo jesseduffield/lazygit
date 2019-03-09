@@ -95,6 +95,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleBranchSelect(g, v)
 	case "commits":
 		return gui.handleCommitSelect(g, v)
+	case "commit files":
+		return gui.handleCommitFileSelect(g, v)
 	case "stash":
 		return gui.handleStashEntrySelect(g, v)
 	case "confirmation":

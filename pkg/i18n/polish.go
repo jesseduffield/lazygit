@@ -626,6 +626,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CherryPickingStatus",
 			Other: "cherry-picking",
+		}, &i18n.Message{
+			ID:    "CommitFiles",
+			Other: "Commit files",
+		}, &i18n.Message{
+			ID:    "NoCommiteFiles",
+			Other: "No files for this commit",
 		},
 	)
 }

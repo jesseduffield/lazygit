@@ -114,14 +114,19 @@ type menuPanelState struct {
 	SelectedLine int
 }
 
+type commitFilesPanelState struct {
+	SelectedLine int
+}
+
 type panelStates struct {
-	Files    *filePanelState
-	Branches *branchPanelState
-	Commits  *commitPanelState
-	Stash    *stashPanelState
-	Menu     *menuPanelState
-	Staging  *stagingPanelState
-	Merging  *mergingPanelState
+	Files       *filePanelState
+	Branches    *branchPanelState
+	Commits     *commitPanelState
+	Stash       *stashPanelState
+	Menu        *menuPanelState
+	Staging     *stagingPanelState
+	Merging     *mergingPanelState
+	CommitFiles *commitFilesPanelState
 }
 
 type guiState struct {
@@ -129,6 +134,7 @@ type guiState struct {
 	Branches            []*commands.Branch
 	Commits             []*commands.Commit
 	StashEntries        []*commands.StashEntry
+	CommitFiles         []*commands.CommitFile
 	PreviousView        string
 	Platform            commands.Platform
 	Updating            bool
@@ -350,6 +356,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
 		branchesView.FgColor = gocui.ColorWhite
+	}
+
+	if v, err := g.SetView("commit files", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+		v.Title = gui.Tr.SLocalize("CommitFiles")
+		v.FgColor = gocui.ColorWhite
 	}
 
 	commitsView, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM)
