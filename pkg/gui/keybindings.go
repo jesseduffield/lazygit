@@ -389,6 +389,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.HandlePasteCommits,
 			Description: gui.Tr.SLocalize("pasteCommits"),
 		}, {
+			ViewName:    "commits",
+			Key:         gocui.KeyEnter,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSwitchToCommitFilesPanel,
+			Description: gui.Tr.SLocalize("CommitFiles"),
+		}, {
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
@@ -441,6 +447,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleDonate,
+		}, {
+			ViewName:    "commit files",
+			Key:         gocui.KeyEsc,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSwitchToCommitsPanel,
+			Description: gui.Tr.SLocalize("CommitsTitle"),
 		},
 	}
 
@@ -459,12 +471,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		nextLine func(*gocui.Gui, *gocui.View) error
 		focus    func(*gocui.Gui, *gocui.View) error
 	}{
-		"menu":     {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
-		"files":    {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
-		"branches": {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
-		"commits":  {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
-		"stash":    {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
-		"status":   {focus: gui.handleStatusSelect},
+		"menu":         {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
+		"files":        {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
+		"branches":     {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
+		"commits":      {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
+		"stash":        {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
+		"status":       {focus: gui.handleStatusSelect},
+		"commit files": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine},
 	}
 
 	for viewName, functions := range listPanelMap {

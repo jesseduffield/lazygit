@@ -796,3 +796,15 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
+
+// CommitFiles get the specified commit files
+func (c *GitCommand) CommitFiles(commitID string) (string, error) {
+	cmd := fmt.Sprintf("git show --pretty= --name-only %s", commitID)
+	return c.OSCommand.RunCommandWithOutput(cmd)
+}
+
+// ShowCommitFile get the diff of specified commit file
+func (c *GitCommand) ShowCommitFile(commitID, file string) (string, error) {
+	cmd := fmt.Sprintf("git show --color %s -- %s", commitID, file)
+	return c.OSCommand.RunCommandWithOutput(cmd)
+}
