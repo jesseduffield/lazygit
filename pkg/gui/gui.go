@@ -260,9 +260,18 @@ func (gui *Gui) onFocusLost(v *gocui.View) error {
 			return nil
 		}
 
+		// if we have lost focus to a first-class panel, we need to do some cleanup
 		if err := gui.changeContext("main", "normal"); err != nil {
 			return err
 		}
+
+	} else if v.Name() == "commitFiles" {
+		// if we have lost focus to a popup panel, that's okay
+		if gui.popupPanelFocused() {
+			return nil
+		}
+
+		gui.g.SetViewOnBottom(v.Name())
 	}
 	gui.Log.Info(v.Name() + " focus lost")
 	return nil
@@ -358,7 +367,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("commit files", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+	if v, err := g.SetView("commitFiles", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}

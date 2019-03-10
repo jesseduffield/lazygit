@@ -17,7 +17,7 @@ func (gui *Gui) getSelectedCommitFile(g *gocui.Gui) *commands.CommitFile {
 func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 	commitFile := gui.getSelectedCommitFile(g)
 	if commitFile == nil {
-		return gui.renderString(g, "commit files", gui.Tr.SLocalize("NoCommiteFiles"))
+		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 	}
 
 	if err := gui.focusPoint(0, gui.State.Panels.CommitFiles.SelectedLine, v); err != nil {

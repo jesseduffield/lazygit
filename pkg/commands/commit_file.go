@@ -8,6 +8,6 @@ type CommitFile struct {
 }
 
 // GetDisplayStrings is a function.
-func (f *CommitFile) GetDisplayStrings() []string {
+func (f *CommitFile) GetDisplayStrings(isFocused bool) []string {
 	return []string{f.DisplayString}
 }
