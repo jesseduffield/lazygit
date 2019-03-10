@@ -62,8 +62,8 @@ func (l *Listener) Input(in InputQuestion, out *EncryptedMessage) error {
 	question := in.Question
 
 	prompts := map[string]prompt{
-		"password": prompt{Pattern: `Password\s*for\s*'.+':`, AskedFor: &listener.AskedFor.Password},
-		"username": prompt{Pattern: `Username\s*for\s*'.+':`, AskedFor: &listener.AskedFor.Username},
+		"password": {Pattern: `Password\s*for\s*'.+':`, AskedFor: &listener.AskedFor.Password},
+		"username": {Pattern: `Username\s*for\s*'.+':`, AskedFor: &listener.AskedFor.Username},
 	}
 
 	var toSend string
