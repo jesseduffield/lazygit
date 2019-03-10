@@ -954,7 +954,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			false,
 			func(err error) {
-				assert.Error(t, err)
+				assert.NoError(t, err)
 			},
 		},
 		{
@@ -967,7 +967,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 			true,
 			func(err error) {
-				assert.Error(t, err)
+				assert.NoError(t, err)
 			},
 		},
 		{
