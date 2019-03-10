@@ -445,7 +445,7 @@ func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) erro
 		return nil
 	}
 
-	commitfileView, err := g.View("commit files")
+	commitfileView, err := g.View("commitFiles")
 	if err != nil {
 		return err
 	}
@@ -470,6 +470,6 @@ func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) erro
 		})
 	}
 
-	gui.renderString(g, "commit files", files)
+	gui.renderListPanel(gui.getCommitFilesView(), gui.State.CommitFiles)
 	return gui.switchFocus(g, v, commitfileView)
 }

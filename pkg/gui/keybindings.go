@@ -393,7 +393,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gocui.KeyEnter,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleSwitchToCommitFilesPanel,
-			Description: gui.Tr.SLocalize("CommitFiles"),
+			Description: gui.Tr.SLocalize("viewCommitFiles"),
 		}, {
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,
@@ -448,11 +448,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleDonate,
 		}, {
-			ViewName:    "commit files",
+			ViewName:    "commitFiles",
 			Key:         gocui.KeyEsc,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleSwitchToCommitsPanel,
-			Description: gui.Tr.SLocalize("CommitsTitle"),
+			Description: gui.Tr.SLocalize("goBack"),
 		},
 	}
 
@@ -477,7 +477,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		"commits":      {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
 		"stash":        {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
 		"status":       {focus: gui.handleStatusSelect},
-		"commit files": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine},
+		"commitFiles": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine, focus: gui.handleCommitFileSelect},
 	}
 
 	for viewName, functions := range listPanelMap {
