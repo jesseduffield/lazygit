@@ -158,7 +158,7 @@ func (c *GitCommand) GetStatusFiles() []*File {
 			Deleted:                 unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:       change == "UU" || change == "AA" || change == "DU",
 			HasInlineMergeConflicts: change == "UU" || change == "AA",
-			Type:                    c.OSCommand.FileType(filename),
+			Type: c.OSCommand.FileType(filename),
 		}
 		files = append(files, file)
 	}
@@ -265,7 +265,7 @@ func (c *GitCommand) RebaseBranch(branchName string) error {
 
 // Fetch fetch git repo
 func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCredentials bool) error {
-	return c.OSCommand.DetectUnamePass("git fetch", func(question string) string {
+	return c.OSCommand.RunWithCredentialListener("git fetch", func(question string) string {
 		if canAskForCredentials {
 			return unamePassQuestion(question)
 		}
@@ -355,7 +355,7 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 
 // Pull pulls from repo
 func (c *GitCommand) Pull(ask func(string) string) error {
-	return c.OSCommand.DetectUnamePass("git pull --no-edit", ask)
+	return c.OSCommand.RunWithCredentialListener("git pull --no-edit", ask)
 }
 
 // Push pushes to a branch
@@ -366,7 +366,7 @@ func (c *GitCommand) Push(branchName string, force bool, ask func(string) string
 	}
 
 	cmd := fmt.Sprintf("git push %s-u origin %s", forceFlag, branchName)
-	return c.OSCommand.DetectUnamePass(cmd, ask)
+	return c.OSCommand.RunWithCredentialListener(cmd, ask)
 }
 
 // CatFile obtains the content of a file

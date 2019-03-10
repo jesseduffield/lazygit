@@ -6,11 +6,9 @@ import (
 	"net"
 	"net/rpc"
 	"os"
-	"os/exec"
 	"regexp"
 	"strings"
 
-	"github.com/mgutz/str"
 	"github.com/mjarkk/go-ps"
 )
 
@@ -31,6 +29,11 @@ type listenerMetaType struct {
 		Password bool
 		Username bool
 	}
+}
+
+type prompt struct {
+	Pattern  string
+	AskedFor *bool
 }
 
 var listenerMeta = map[string]listenerMetaType{} // a list of listeners
@@ -57,22 +60,17 @@ func (l *Listener) Input(in InputQuestion, out *EncryptedMessage) error {
 
 	question := in.Question
 
-	prompts := map[string]string{
-		"password": `Password\s*for\s*'.+':`,
-		"username": `Username\s*for\s*'.+':`,
+	prompts := map[string]prompt{
+		"password": prompt{Pattern: `Password\s*for\s*'.+':`, AskedFor: &listener.AskedFor.Password},
+		"username": prompt{Pattern: `Username\s*for\s*'.+':`, AskedFor: &listener.AskedFor.Username},
 	}
 
 	var toSend string
 
-	for askFor, pattern := range prompts {
-		match, _ := regexp.MatchString(pattern, question)
-		if match && ((askFor == "password" && !listener.AskedFor.Password) || (askFor == "username" && !listener.AskedFor.Username)) {
-			switch askFor {
-			case "password":
-				listener.AskedFor.Password = true
-			case "username":
-				listener.AskedFor.Username = true
-			}
+	for askFor, prompt := range prompts {
+		match, _ := regexp.MatchString(prompt.Pattern, question)
+		if match && !*prompt.AskedFor {
+			*prompt.AskedFor = true
 			updateListenerMeta()
 			toSend = strings.Replace(listener.AskFunction(askFor), "\n", "", -1)
 			break
@@ -89,10 +87,10 @@ func (l *Listener) Input(in InputQuestion, out *EncryptedMessage) error {
 	return nil
 }
 
-// DetectUnamePass runs git commands that need credentials
+// RunWithCredentialListener runs git commands that need credentials
 // ask() gets executed when git needs credentials
 // The ask argument will be "username" or "password"
-func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
+func (c *OSCommand) RunWithCredentialListener(command string, ask func(string) string) error {
 	totalListener++
 	currentListener := fmt.Sprintf("%v", totalListener)
 
@@ -105,7 +103,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	hostPort := GetFreePort()
 	serverStartedChan := make(chan struct{})
 
-	go runGit(
+	go c.runGit(
 		serverStartedChan,
 		end,
 		command,
@@ -125,8 +123,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 	return err
 }
 
-// runGit runs the actual git command with the needed git
-func runGit(serverStartedChan chan struct{}, end chan error, command, hostPort, currentListener string) {
+func (c *OSCommand) runGit(serverStartedChan chan struct{}, end chan error, command, hostPort, currentListener string) {
 	<-serverStartedChan
 
 	ex, err := os.Executable()
@@ -134,17 +131,14 @@ func runGit(serverStartedChan chan struct{}, end chan error, command, hostPort, 
 		ex = os.Args[0]
 	}
 
-	splitCmd := str.ToArgv(command)
-	cmd := exec.Command(splitCmd[0], splitCmd[1:]...)
+	cmd := c.ExecutableFromString(command)
 	cmd.Env = append(
 		os.Environ(),
 		"LAZYGIT_HOST_PORT="+hostPort,
 		"LAZYGIT_LISTENER="+currentListener,
-
 		"GIT_ASKPASS="+ex, // tell git where lazygit is located so it can ask lazygit for credentials
-
-		"LANG=en_US.UTF-8",   // Force using EN as language
-		"LC_ALL=en_US.UTF-8", // Force using EN as language
+		"LANG=en_US.UTF-8",
+		"LC_ALL=en_US.UTF-8",
 	)
 
 	out, err := cmd.CombinedOutput()
@@ -202,16 +196,13 @@ func runServer(serverStartedChan chan struct{}, end chan error, hostPort, curren
 // GetFreePort returns a free port that can be used by lazygit
 func GetFreePort() string {
 	checkFrom := 5000
-	toReturn := ""
 	for {
 		checkFrom++
 		check := fmt.Sprintf("%v", checkFrom)
 		if IsFreePort(check) {
-			toReturn = check
-			break
+			return check
 		}
 	}
-	return toReturn
 }
 
 // IsFreePort return true if the port if not in use

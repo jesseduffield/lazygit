@@ -60,8 +60,8 @@ func createGCM(key string) (cipher.AEAD, error) {
 	return cipher.NewGCM(aesCipher)
 }
 
-// encryptWithKeyPair encrypts a string using a public key
-func encryptWithKeyPair(publicKey, data string) ([]byte, error) {
+// encryptWithPublicKey encrypts a string using a public key
+func encryptWithPublicKey(publicKey, data string) ([]byte, error) {
 	pubBlock, _ := pem.Decode([]byte(publicKey))
 	pub, err := x509.ParsePKCS1PublicKey(pubBlock.Bytes)
 	if err != nil {
@@ -71,8 +71,8 @@ func encryptWithKeyPair(publicKey, data string) ([]byte, error) {
 	return rsa.EncryptOAEP(sha256.New(), rand.Reader, pub, []byte(data), []byte{})
 }
 
-// decryptWithKeyPair decrypts data to a string using a private key
-func decryptWithKeyPair(privateKey *rsa.PrivateKey, data []byte) (string, error) {
+// decryptWithPrivateKey decrypts data to a string using a private key
+func decryptWithPrivateKey(privateKey *rsa.PrivateKey, data []byte) (string, error) {
 	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privateKey, data, []byte{})
 	if err != nil {
 		return "", err
@@ -102,7 +102,7 @@ type EncryptedMessage struct {
 }
 
 func decryptMessage(privateKey *rsa.PrivateKey, data EncryptedMessage) (string, error) {
-	pass, err := decryptWithKeyPair(privateKey, data.EncryptedKey)
+	pass, err := decryptWithPrivateKey(privateKey, data.EncryptedKey)
 	if err != nil {
 		return "", err
 	}
@@ -123,7 +123,7 @@ func encryptMessage(publicKey, message string) (EncryptedMessage, error) {
 		return encryptedMessage, err
 	}
 
-	encryptedMessage.EncryptedKey, err = encryptWithKeyPair(publicKey, pass)
+	encryptedMessage.EncryptedKey, err = encryptWithPublicKey(publicKey, pass)
 	if err != nil {
 		return encryptedMessage, err
 	}
