@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mjarkk/go-ps"
+	"github.com/sirupsen/logrus"
 )
 
 // Listener is the the type that handles is the callback for server responses
@@ -134,6 +135,7 @@ func (c *OSCommand) runGit(serverStartedChan chan struct{}, end chan error, comm
 	cmd := c.ExecutableFromString(command)
 	cmd.Env = append(
 		os.Environ(),
+		"LAZYGIT_CLIENT_COMMAND=GET_CREDENTIAL",
 		"LAZYGIT_HOST_PORT="+hostPort,
 		"LAZYGIT_LISTENER="+currentListener,
 		"GIT_ASKPASS="+ex, // tell git where lazygit is located so it can ask lazygit for credentials
@@ -217,17 +219,19 @@ func IsFreePort(port string) bool {
 
 // SetupClient sets up the client
 // This will be called if lazygit is called through git
-func SetupClient() {
+func SetupClient(log *logrus.Entry) {
 	port := os.Getenv("LAZYGIT_HOST_PORT")
 	listener := os.Getenv("LAZYGIT_LISTENER")
 
 	privateKey, publicKey, err := generateKeyPair()
 	if err != nil {
+		log.Errorln(err)
 		return
 	}
 
 	client, err := rpc.Dial("tcp", "127.0.0.1:"+port)
 	if err != nil {
+		log.Errorln(err)
 		return
 	}
 
@@ -239,11 +243,13 @@ func SetupClient() {
 	}, &data)
 	client.Close()
 	if err != nil {
+		log.Errorln(err)
 		return
 	}
 
 	msg, err := decryptMessage(privateKey, *data)
 	if err != nil {
+		log.Errorln(err)
 		return
 	}
 

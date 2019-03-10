@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/app"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
@@ -39,11 +38,6 @@ func main() {
 
 	if *configFlag {
 		fmt.Printf("%s\n", config.GetDefaultConfig())
-		os.Exit(0)
-	}
-
-	if _, ok := os.LookupEnv("LAZYGIT_HOST_PORT"); ok {
-		commands.SetupClient()
 		os.Exit(0)
 	}
 

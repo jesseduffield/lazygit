@@ -127,6 +127,11 @@ func (app *App) Run() error {
 		os.Exit(0)
 	}
 
+	if app.ClientContext == "GET_CREDENTIAL" {
+		commands.SetupClient(app.Log)
+		os.Exit(0)
+	}
+
 	return app.Gui.RunWithSubprocesses()
 }
 
