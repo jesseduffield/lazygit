@@ -655,6 +655,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoCommiteFiles",
 			Other: "No files for this commit",
+		}, &i18n.Message{
+			ID:    "checkoutCommitFile",
+			Other: "checkout file",
 		},
 	)
 }

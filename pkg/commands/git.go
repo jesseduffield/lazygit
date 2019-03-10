@@ -808,3 +808,9 @@ func (c *GitCommand) ShowCommitFile(commitID, file string) (string, error) {
 	cmd := fmt.Sprintf("git show --color %s -- %s", commitID, file)
 	return c.OSCommand.RunCommandWithOutput(cmd)
 }
+
+// CheckoutFile checks out the file for the given commit
+func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
+	cmd := fmt.Sprintf("git checkout %s %s", commitSha, fileName)
+	return c.OSCommand.RunCommand(cmd)
+}

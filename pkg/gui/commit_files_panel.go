@@ -51,3 +51,14 @@ func (gui *Gui) handleSwitchToCommitsPanel(g *gocui.Gui, v *gocui.View) error {
 	}
 	return gui.switchFocus(g, v, commitsView)
 }
+
+func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
+	commitSha := gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha
+	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
+
+	if err := gui.GitCommand.CheckoutFile(commitSha, fileName); err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+
+	return gui.refreshFiles()
+}
