@@ -453,6 +453,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleSwitchToCommitsPanel,
 			Description: gui.Tr.SLocalize("goBack"),
+		}, {
+			ViewName:    "commitFiles",
+			Key:         'c',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCheckoutCommitFile,
+			Description: gui.Tr.SLocalize("checkoutCommitFile"),
 		},
 	}
 
@@ -471,12 +477,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		nextLine func(*gocui.Gui, *gocui.View) error
 		focus    func(*gocui.Gui, *gocui.View) error
 	}{
-		"menu":         {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
-		"files":        {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
-		"branches":     {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
-		"commits":      {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
-		"stash":        {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
-		"status":       {focus: gui.handleStatusSelect},
+		"menu":        {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
+		"files":       {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
+		"branches":    {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
+		"commits":     {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
+		"stash":       {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
+		"status":      {focus: gui.handleStatusSelect},
 		"commitFiles": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine, focus: gui.handleCommitFileSelect},
 	}
 
