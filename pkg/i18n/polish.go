@@ -650,6 +650,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "DiscardFileChangesPrompt",
 			Other: "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
+		}, &i18n.Message{
+			ID:    "DisabledForGPG",
+			Other: "Feature not available for users using GPG",
 		},
 	)
 }
