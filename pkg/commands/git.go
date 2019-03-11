@@ -836,7 +836,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
 	if c.usingGpg() {
-		errors.New("feature not available for users using GPG")
+		errors.New(c.Tr.SLocalize("DisabledForGPG"))
 	}
 
 	commitSha := commits[commitIndex].Sha
