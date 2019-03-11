@@ -143,17 +143,7 @@ func (c *OSCommand) runGit(serverStartedChan chan struct{}, end chan error, comm
 		"LC_ALL=en_US.UTF-8",
 	)
 
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		outString := string(out)
-		if len(outString) == 0 {
-			end <- err
-			return
-		}
-		end <- errors.New(outString)
-		return
-	}
-	end <- nil
+	end <- c.RunExecutable(cmd)
 }
 
 // runServer starts the server that waits for events from the lazygit client
