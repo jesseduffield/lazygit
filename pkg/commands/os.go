@@ -145,7 +145,7 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 		// errors like 'exit status 1' are not very useful so we'll create an error
 		// from the combined output
 		if outputString == "" {
-			return "", errors.Wrap(err, 0)
+			return "", WrapError(err)
 		}
 		return outputString, errors.New(outputString)
 	}
@@ -224,13 +224,13 @@ func (c *OSCommand) Unquote(message string) string {
 func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return WrapError(err)
 	}
 	defer f.Close()
 
 	_, err = f.WriteString("\n" + line)
 	if err != nil {
-		return errors.Wrap(err, 0)
+		return WrapError(err)
 	}
 	return nil
 }
@@ -240,16 +240,16 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 	tmpfile, err := ioutil.TempFile("", filename)
 	if err != nil {
 		c.Log.Error(err)
-		return "", errors.Wrap(err, 0)
+		return "", WrapError(err)
 	}
 
 	if _, err := tmpfile.WriteString(content); err != nil {
 		c.Log.Error(err)
-		return "", errors.Wrap(err, 0)
+		return "", WrapError(err)
 	}
 	if err := tmpfile.Close(); err != nil {
 		c.Log.Error(err)
-		return "", errors.Wrap(err, 0)
+		return "", WrapError(err)
 	}
 
 	return tmpfile.Name(), nil
@@ -258,7 +258,7 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 // RemoveFile removes a file at the specified path
 func (c *OSCommand) RemoveFile(filename string) error {
 	err := os.Remove(filename)
-	return errors.Wrap(err, 0)
+	return WrapError(err)
 }
 
 // FileExists checks whether a file exists at the specified path

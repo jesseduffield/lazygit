@@ -459,10 +459,16 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCheckoutCommitFile,
 			Description: gui.Tr.SLocalize("checkoutCommitFile"),
+		}, {
+			ViewName:    "commitFiles",
+			Key:         'd',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleDiscardOldFileChange,
+			Description: gui.Tr.SLocalize("discardOldFileChange"),
 		},
 	}
 
-	for _, viewName := range []string{"status", "branches", "files", "commits", "stash", "menu"} {
+	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
 		bindings = append(bindings, []*Binding{
 			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},

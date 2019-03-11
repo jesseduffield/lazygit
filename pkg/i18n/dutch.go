@@ -658,6 +658,15 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "checkoutCommitFile",
 			Other: "checkout file",
+		}, &i18n.Message{
+			ID:    "discardOldFileChange",
+			Other: "discard this commit's changes to this file",
+		}, &i18n.Message{
+			ID:    "DiscardFileChangesTitle",
+			Other: "Discard file changes",
+		}, &i18n.Message{
+			ID:    "DiscardFileChangesPrompt",
+			Other: "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
 		},
 	)
 }
