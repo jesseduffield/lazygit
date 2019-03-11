@@ -32,11 +32,11 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 		}
 
 		if !os.IsNotExist(err) {
-			return errors.Wrap(err, 0)
+			return WrapError(err)
 		}
 
 		if err = chdir(".."); err != nil {
-			return errors.Wrap(err, 0)
+			return WrapError(err)
 		}
 	}
 }
@@ -797,10 +797,25 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
-// CommitFiles get the specified commit files
-func (c *GitCommand) CommitFiles(commitID string) (string, error) {
+// GetCommitFiles get the specified commit files
+func (c *GitCommand) GetCommitFiles(commitID string) ([]*CommitFile, error) {
 	cmd := fmt.Sprintf("git show --pretty= --name-only %s", commitID)
-	return c.OSCommand.RunCommandWithOutput(cmd)
+	files, err := c.OSCommand.RunCommandWithOutput(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	commitFiles := make([]*CommitFile, 0)
+
+	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
+		commitFiles = append(commitFiles, &CommitFile{
+			Sha:           commitID,
+			Name:          file,
+			DisplayString: file,
+		})
+	}
+
+	return commitFiles, nil
 }
 
 // ShowCommitFile get the diff of specified commit file
@@ -813,4 +828,56 @@ func (c *GitCommand) ShowCommitFile(commitID, file string) (string, error) {
 func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
 	cmd := fmt.Sprintf("git checkout %s %s", commitSha, fileName)
 	return c.OSCommand.RunCommand(cmd)
+}
+
+// DiscardOldFileChanges discards changes to a file from an old commit
+func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, fileName string) error {
+	// we can make this GPG thing possible it just means we need to do this in two parts:
+	// one where we handle the possibility of a credential request, and the other
+	// where we continue the rebase
+	if c.usingGpg() {
+		errors.New("feature not available for users using GPG")
+	}
+
+	commitSha := commits[commitIndex].Sha
+
+	todo, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
+	if err != nil {
+		return err
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand(commitSha+"^", todo, true)
+	if err != nil {
+		return err
+	}
+
+	if err := c.OSCommand.RunPreparedCommand(cmd); err != nil {
+		return err
+	}
+
+	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
+	if err := c.OSCommand.RunCommand(fmt.Sprintf("git cat-file -e HEAD^:%s", fileName)); err != nil {
+		if err := c.OSCommand.RemoveFile(fileName); err != nil {
+			return err
+		}
+		if err := c.StageFile(fileName); err != nil {
+			return err
+		}
+	} else {
+		if err := c.CheckoutFile("HEAD^", fileName); err != nil {
+			return err
+		}
+	}
+
+	// amend the commit
+	cmd, err = c.AmendHead()
+	if cmd != nil {
+		errors.New("received unexpected pointer to cmd")
+	}
+	if err != nil {
+		return err
+	}
+
+	// continue
+	return c.GenericMerge("rebase", "continue")
 }

@@ -53,12 +53,49 @@ func (gui *Gui) handleSwitchToCommitsPanel(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
-	commitSha := gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha
-	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
+	file := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine]
 
-	if err := gui.GitCommand.CheckoutFile(commitSha, fileName); err != nil {
+	if err := gui.GitCommand.CheckoutFile(file.Sha, file.Name); err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
 	return gui.refreshFiles()
+}
+
+func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
+	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
+
+	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("DiscardFileChangesTitle"), gui.Tr.SLocalize("DiscardFileChangesPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
+			if err := gui.GitCommand.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, fileName); err != nil {
+				if err := gui.handleGenericMergeCommandResult(err); err != nil {
+					return err
+				}
+			}
+
+			return gui.refreshSidePanels(gui.g)
+		})
+	}, nil)
+}
+
+func (gui *Gui) refreshCommitFilesView() error {
+	commit := gui.getSelectedCommit(gui.g)
+	if commit == nil {
+		return nil
+	}
+
+	files, err := gui.GitCommand.GetCommitFiles(commit.Sha)
+	if err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+
+	gui.State.CommitFiles = files
+
+	gui.refreshSelectedLine(&gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles))
+
+	if err := gui.renderListPanel(gui.getCommitFilesView(), gui.State.CommitFiles); err != nil {
+		return err
+	}
+
+	return gui.handleCommitFileSelect(gui.g, gui.getCommitFilesView())
 }

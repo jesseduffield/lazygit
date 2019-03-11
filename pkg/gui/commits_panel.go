@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/go-errors/errors"
 
@@ -72,8 +71,11 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		fmt.Fprint(v, list)
 
 		gui.refreshStatus(g)
-		if v == g.CurrentView() {
+		if g.CurrentView() == v {
 			gui.handleCommitSelect(g, v)
+		}
+		if g.CurrentView() == gui.getCommitFilesView() {
+			gui.refreshCommitFilesView()
 		}
 		return nil
 	})
@@ -440,36 +442,9 @@ func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) error {
-	commit := gui.getSelectedCommit(g)
-	if commit == nil {
-		return nil
-	}
-
-	commitfileView, err := g.View("commitFiles")
-	if err != nil {
+	if err := gui.refreshCommitFilesView(); err != nil {
 		return err
 	}
 
-	files, err := gui.GitCommand.CommitFiles(commit.Sha)
-	if err != nil {
-		return gui.createErrorPanel(g, err.Error())
-	}
-
-	gui.State.Panels.CommitFiles = &commitFilesPanelState{SelectedLine: 0}
-	gui.State.CommitFiles = make([]*commands.CommitFile, 0)
-
-	if files == "" {
-		gui.State.Panels.CommitFiles.SelectedLine = -1
-	}
-
-	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
-		gui.State.CommitFiles = append(gui.State.CommitFiles, &commands.CommitFile{
-			Sha:           commit.Sha,
-			Name:          file,
-			DisplayString: file,
-		})
-	}
-
-	gui.renderListPanel(gui.getCommitFilesView(), gui.State.CommitFiles)
-	return gui.switchFocus(g, v, commitfileView)
+	return gui.switchFocus(g, v, gui.getCommitFilesView())
 }
