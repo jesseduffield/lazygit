@@ -718,6 +718,12 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SureCreateFixupCommit",
 			Other: `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
+		}, &i18n.Message{
+			ID:    "executeCustomCommand",
+			Other: "execute custom command",
+		}, &i18n.Message{
+			ID:    "CustomCommand",
+			Other: "Custom Command:",
 		},
 	)
 }

@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"bytes"
+	"io"
 	"math"
 	"sync"
 
@@ -62,19 +64,20 @@ type Teml i18n.Teml
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g             *gocui.Gui
-	Log           *logrus.Entry
-	GitCommand    *commands.GitCommand
-	OSCommand     *commands.OSCommand
-	SubProcess    *exec.Cmd
-	State         guiState
-	Config        config.AppConfigurer
-	Tr            *i18n.Localizer
-	Errors        SentinelErrors
-	Updater       *updates.Updater
-	statusManager *statusManager
-	credentials   credentials
-	waitForIntro  sync.WaitGroup
+	g              *gocui.Gui
+	Log            *logrus.Entry
+	GitCommand     *commands.GitCommand
+	OSCommand      *commands.OSCommand
+	SubProcess     *exec.Cmd
+	subProcessChan chan (*exec.Cmd)
+	State          guiState
+	Config         config.AppConfigurer
+	Tr             *i18n.Localizer
+	Errors         SentinelErrors
+	Updater        *updates.Updater
+	statusManager  *statusManager
+	credentials    credentials
+	waitForIntro   sync.WaitGroup
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -145,6 +148,7 @@ type guiState struct {
 	WorkingTreeState    string // one of "merging", "rebasing", "normal"
 	Contexts            map[string]string
 	CherryPickedCommits []*commands.Commit
+	SubProcessOutput    string
 }
 
 // NewGui builds a new gui handler
@@ -457,30 +461,29 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		// these are only called once (it's a place to put all the things you want
-		// to happen on startup after the screen is first rendered)
-		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
-		if err := gui.updateRecentRepoList(); err != nil {
+		// doing this here because it'll only happen once
+		if err := gui.loadNewRepo(); err != nil {
 			return err
 		}
-		gui.waitForIntro.Done()
+	}
 
-		if _, err := gui.g.SetCurrentView(filesView.Name()); err != nil {
-			return err
-		}
-
-		if err := gui.refreshSidePanels(gui.g); err != nil {
+	if gui.g.CurrentView() == nil {
+		if _, err := gui.g.SetCurrentView(gui.getFilesView().Name()); err != nil {
 			return err
 		}
 
-		if err := gui.switchFocus(g, nil, filesView); err != nil {
+		if err := gui.switchFocus(gui.g, nil, gui.getFilesView()); err != nil {
 			return err
 		}
+	}
 
-		if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-			if err := gui.promptAnonymousReporting(); err != nil {
-				return err
-			}
+	if gui.State.SubProcessOutput != "" {
+		output := gui.State.SubProcessOutput
+		gui.State.SubProcessOutput = ""
+		x, y := gui.g.Size()
+		// if we just came back from vim, we don't want vim's output to show up in our popup
+		if float64(len(output))*1.5 < float64(x*y) {
+			return gui.createMessagePanel(gui.g, nil, "Output", output)
 		}
 	}
 
@@ -512,6 +515,27 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// this will let you see these branches as prettified json
 	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
 	return gui.resizeCurrentPopupPanel(g)
+}
+
+func (gui *Gui) loadNewRepo() error {
+	gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+	if err := gui.updateRecentRepoList(); err != nil {
+		return err
+	}
+	gui.waitForIntro.Done()
+
+	if err := gui.refreshSidePanels(gui.g); err != nil {
+		return err
+	}
+
+	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
+		if err := gui.promptAnonymousReporting(); err != nil {
+			return err
+		}
+	}
+
+	go gui.listenForSubprocesses()
+	return nil
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
@@ -622,6 +646,24 @@ func (gui *Gui) Run() error {
 	return err
 }
 
+func (gui *Gui) listenForSubprocesses() {
+	// every time there is a subprocess, we're going to halt the execution of the UI via an update block, and wait for the command to finish
+	gui.subProcessChan = make(chan *exec.Cmd, 0)
+	for {
+		subProcess := <-gui.subProcessChan
+		gui.g.Update(func(*gocui.Gui) error {
+			subProcess.Stdin = os.Stdin
+			output, _ := runCommand(subProcess)
+			gui.State.SubProcessOutput = output
+
+			subProcess.Stdout = ioutil.Discard
+			subProcess.Stderr = ioutil.Discard
+			subProcess.Stdin = nil
+			return nil
+		})
+	}
+}
+
 // RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
 // if the error returned from a run is a ErrSubProcess, it runs the subprocess
 // otherwise it handles the error, possibly by quitting the application
@@ -634,9 +676,11 @@ func (gui *Gui) RunWithSubprocesses() error {
 				continue
 			} else if err == gui.Errors.ErrSubProcess {
 				gui.SubProcess.Stdin = os.Stdin
-				gui.SubProcess.Stdout = os.Stdout
-				gui.SubProcess.Stderr = os.Stderr
-				gui.SubProcess.Run()
+				output, err := gui.runCommand(gui.SubProcess)
+				if err != nil {
+					return err
+				}
+				gui.State.SubProcessOutput = output
 				gui.SubProcess.Stdout = ioutil.Discard
 				gui.SubProcess.Stderr = ioutil.Discard
 				gui.SubProcess.Stdin = nil
@@ -647,6 +691,46 @@ func (gui *Gui) RunWithSubprocesses() error {
 		}
 	}
 	return nil
+}
+
+// adapted from https://blog.kowalczyk.info/article/wOYk/advanced-command-execution-in-go-with-osexec.html
+func (gui *Gui) runCommand(cmd *exec.Cmd) (string, error) {
+	var stdoutBuf bytes.Buffer
+	stdoutIn, _ := cmd.StdoutPipe()
+	stderrIn, _ := cmd.StderrPipe()
+
+	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
+	stderr := io.MultiWriter(os.Stderr, &stdoutBuf)
+	err := cmd.Start()
+	if err != nil {
+		return "", err
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		if _, err := io.Copy(stdout, stdoutIn); err != nil {
+			gui.Log.Error(err)
+		}
+
+		wg.Done()
+	}()
+
+	if _, err := io.Copy(stderr, stderrIn); err != nil {
+		return "", err
+	}
+
+	wg.Wait()
+
+	if err := cmd.Wait(); err != nil {
+		// not handling the error explicitly because usually we're going to see it
+		// in the output anyway
+		gui.Log.Error(err)
+	}
+
+	outStr := stdoutBuf.String()
+	return outStr, nil
 }
 
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {

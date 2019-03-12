@@ -239,6 +239,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleGitFetch,
 			Description: gui.Tr.SLocalize("fetch"),
 		}, {
+			ViewName:    "files",
+			Key:         'X',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCustomCommand,
+			Description: gui.Tr.SLocalize("executeCustomCommand"),
+		}, {
 			ViewName:    "branches",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
