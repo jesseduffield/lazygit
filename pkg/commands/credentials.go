@@ -187,24 +187,17 @@ func runServer(serverStartedChan chan struct{}, end chan error, hostPort, curren
 
 // GetFreePort returns a free port that can be used by lazygit
 func GetFreePort() string {
-	checkFrom := 5000
+	portCheckFrom := 5000
 	for {
-		checkFrom++
-		check := fmt.Sprintf("%v", checkFrom)
-		if IsFreePort(check) {
-			return check
+		portCheckFrom++
+		port := fmt.Sprintf("%v", portCheckFrom)
+		conn, err := net.Dial("tcp", "127.0.0.1:"+port)
+		if err == nil {
+			go conn.Close()
+			continue
 		}
+		return port
 	}
-}
-
-// IsFreePort return true if the port if not in use
-func IsFreePort(port string) bool {
-	conn, err := net.Dial("tcp", "127.0.0.1:"+port)
-	if err == nil {
-		go conn.Close()
-		return false
-	}
-	return true
 }
 
 // SetupClient sets up the client
