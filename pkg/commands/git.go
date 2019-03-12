@@ -832,6 +832,10 @@ func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
 
 // DiscardOldFileChanges discards changes to a file from an old commit
 func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, fileName string) error {
+	if len(commits)-1 < commitIndex {
+		return errors.New("index outside of range of commits")
+	}
+
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
