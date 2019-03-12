@@ -23,10 +23,6 @@ func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
 		return err
 	}
 
-	if err := gui.refreshCommitFilesView(); err != nil {
-		return err
-	}
-
 	return gui.refreshStashEntries(g)
 }
 
