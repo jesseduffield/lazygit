@@ -265,7 +265,9 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 		}
 
 	} else if v.Name() == "commitFiles" {
-		gui.g.SetViewOnBottom(v.Name())
+		if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
+			return err
+		}
 	}
 	gui.Log.Info(v.Name() + " focus lost")
 	return nil

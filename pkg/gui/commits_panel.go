@@ -75,7 +75,7 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			gui.handleCommitSelect(g, v)
 		}
 		if g.CurrentView() == gui.getCommitFilesView() {
-			gui.refreshCommitFilesView()
+			return gui.refreshCommitFilesView()
 		}
 		return nil
 	})

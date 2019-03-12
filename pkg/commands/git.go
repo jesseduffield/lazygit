@@ -836,7 +836,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
 	if c.usingGpg() {
-		errors.New(c.Tr.SLocalize("DisabledForGPG"))
+		return errors.New(c.Tr.SLocalize("DisabledForGPG"))
 	}
 
 	commitSha := commits[commitIndex].Sha
@@ -872,7 +872,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 	// amend the commit
 	cmd, err = c.AmendHead()
 	if cmd != nil {
-		errors.New("received unexpected pointer to cmd")
+		return errors.New("received unexpected pointer to cmd")
 	}
 	if err != nil {
 		return err
