@@ -798,8 +798,8 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 }
 
 // GetCommitFiles get the specified commit files
-func (c *GitCommand) GetCommitFiles(commitID string) ([]*CommitFile, error) {
-	cmd := fmt.Sprintf("git show --pretty= --name-only %s", commitID)
+func (c *GitCommand) GetCommitFiles(commitSha string) ([]*CommitFile, error) {
+	cmd := fmt.Sprintf("git show --pretty= --name-only %s", commitSha)
 	files, err := c.OSCommand.RunCommandWithOutput(cmd)
 	if err != nil {
 		return nil, err
@@ -809,7 +809,7 @@ func (c *GitCommand) GetCommitFiles(commitID string) ([]*CommitFile, error) {
 
 	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
 		commitFiles = append(commitFiles, &CommitFile{
-			Sha:           commitID,
+			Sha:           commitSha,
 			Name:          file,
 			DisplayString: file,
 		})
@@ -819,8 +819,8 @@ func (c *GitCommand) GetCommitFiles(commitID string) ([]*CommitFile, error) {
 }
 
 // ShowCommitFile get the diff of specified commit file
-func (c *GitCommand) ShowCommitFile(commitID, file string) (string, error) {
-	cmd := fmt.Sprintf("git show --color %s -- %s", commitID, file)
+func (c *GitCommand) ShowCommitFile(commitSha, fileName string) (string, error) {
+	cmd := fmt.Sprintf("git show --color %s -- %s", commitSha, fileName)
 	return c.OSCommand.RunCommandWithOutput(cmd)
 }
 
