@@ -35,6 +35,7 @@ type App struct {
 func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
 	log := logrus.New()
 	log.Out = ioutil.Discard
+	log.SetLevel(logrus.ErrorLevel)
 	return log
 }
 
@@ -44,8 +45,18 @@ func globalConfigDir() string {
 	return configDir.Path
 }
 
+func getLogLevel() logrus.Level {
+	strLevel := os.Getenv("LOG_LEVEL")
+	level, err := logrus.ParseLevel(strLevel)
+	if err != nil {
+		return logrus.DebugLevel
+	}
+	return level
+}
+
 func newDevelopmentLogger(config config.AppConfigurer) *logrus.Logger {
 	log := logrus.New()
+	log.SetLevel(getLogLevel())
 	file, err := os.OpenFile(filepath.Join(globalConfigDir(), "development.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
