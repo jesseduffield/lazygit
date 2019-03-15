@@ -1855,3 +1855,80 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 		})
 	}
 }
+
+// TestGitCommandShowCommitFile is a function.
+func TestGitCommandShowCommitFile(t *testing.T) {
+	type scenario struct {
+		testName  string
+		commitSha string
+		fileName  string
+		command   func(string, ...string) *exec.Cmd
+		test      func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			"123456",
+			"hello.txt",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  "git show --color 123456 -- hello.txt",
+					Replace: "echo -n hello",
+				},
+			}),
+			func(str string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "hello", str)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.ShowCommitFile(s.commitSha, s.fileName))
+		})
+	}
+}
+
+// TestGitCommandGetCommitFiles is a function.
+func TestGitCommandGetCommitFiles(t *testing.T) {
+	type scenario struct {
+		testName  string
+		commitSha string
+		command   func(string, ...string) *exec.Cmd
+		test      func([]*CommitFile, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			"123456",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  "git show --pretty= --name-only 123456",
+					Replace: "echo 'hello\nworld'",
+				},
+			}),
+			func(commitFiles []*CommitFile, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, []*CommitFile{
+					{Sha: "123456", Name: "hello", DisplayString: "hello"},
+					{Sha: "123456", Name: "world", DisplayString: "world"},
+				}, commitFiles)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.GetCommitFiles(s.commitSha))
+		})
+	}
+}
