@@ -466,6 +466,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleDiscardOldFileChange,
 			Description: gui.Tr.SLocalize("discardOldFileChange"),
 		},
+		{
+			ViewName:    "commitFiles",
+			Key:         'o',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleOpenOldCommitFile,
+			Description: gui.Tr.SLocalize("openFile"),
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {

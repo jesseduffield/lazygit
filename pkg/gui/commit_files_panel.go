@@ -99,3 +99,8 @@ func (gui *Gui) refreshCommitFilesView() error {
 
 	return gui.handleCommitFileSelect(gui.g, gui.getCommitFilesView())
 }
+
+func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
+	file := gui.getSelectedCommitFile(g)
+	return gui.openFile(file.Name)
+}
