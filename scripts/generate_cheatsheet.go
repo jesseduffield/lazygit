@@ -25,16 +25,18 @@ type bindingSection struct {
 }
 
 func main() {
+	langs := []string{"pl", "nl", "en"}
 	mConfig, _ := config.NewAppConfig("", "", "", "", "", true)
-	mApp, _ := app.NewApp(mConfig)
-	lang := mApp.Tr.GetLanguage()
-	file, _ := os.Create("Keybindings_" + lang + ".md")
 
-	bindingSections := getBindingSections(mApp)
+	for _, lang := range langs {
+		os.Setenv("LC_ALL", lang)
+		mApp, _ := app.NewApp(mConfig)
+		file, _ := os.Create("Keybindings_" + lang + ".md")
 
-	content := formatSections(mApp, bindingSections)
-
-	writeString(file, content)
+		bindingSections := getBindingSections(mApp)
+		content := formatSections(mApp, bindingSections)
+		writeString(file, content)
+	}
 }
 
 func writeString(file *os.File, str string) {
