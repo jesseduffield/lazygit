@@ -633,6 +633,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "viewCommitFiles",
 			Other: "view commit's files",
 		}, &i18n.Message{
+			ID:    "CommitFilesTitle",
+			Other: "Commit files",
+		}, &i18n.Message{
 			ID:    "goBack",
 			Other: "go back",
 		}, &i18n.Message{

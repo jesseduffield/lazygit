@@ -6,61 +6,61 @@
   <kbd>m</kbd>: view merge/rebase options
   <kbd>P</kbd>: push
   <kbd>p</kbd>: pull
-  <kbd>R</kbd>: refresh
+  <kbd>R</kbd>: verversen
 </pre>
 
 ## Status
 
 <pre>
-  <kbd>e</kbd>: edit config file
+  <kbd>e</kbd>: verander config file
   <kbd>o</kbd>: open config file
-  <kbd>u</kbd>: check for update
-  <kbd>s</kbd>: switch to a recent repo
+  <kbd>u</kbd>: check voor updates
+  <kbd>s</kbd>: wissel naar een recente repo
 </pre>
 
-## Files
+## Bestanden
 
 <pre>
-  <kbd>c</kbd>: commit changes
-  <kbd>A</kbd>: amend last commit
-  <kbd>C</kbd>: commit changes using git editor
+  <kbd>c</kbd>: Commit veranderingen
+  <kbd>A</kbd>: wijzig laatste commit
+  <kbd>C</kbd>: commit veranderingen met de git editor
   <kbd>space</kbd>: toggle staged
-  <kbd>d</kbd>: delete if untracked / checkout if tracked
-  <kbd>e</kbd>: edit file
-  <kbd>o</kbd>: open file
-  <kbd>i</kbd>: add to .gitignore
-  <kbd>r</kbd>: refresh files
-  <kbd>S</kbd>: stash files
+  <kbd>d</kbd>: Verwijder als untracked / uitchecken wordt gevolgd (ga weg)
+  <kbd>e</kbd>: verander bestand
+  <kbd>o</kbd>: open bestand
+  <kbd>i</kbd>: voeg toe aan .gitignore
+  <kbd>r</kbd>: refresh bestanden
+  <kbd>S</kbd>: stash-bestanden
   <kbd>s</kbd>: soft reset to last commit
-  <kbd>a</kbd>: stage/unstage all
-  <kbd>t</kbd>: add patch
-  <kbd>D</kbd>: reset hard and remove untracked files
-  <kbd>enter</kbd>: stage individual hunks/lines
+  <kbd>a</kbd>: toggle staged alle
+  <kbd>t</kbd>: bewerkingen toevoegen
+  <kbd>D</kbd>: harde reset and verwijderen ongevolgde bestanden
+  <kbd>enter</kbd>: stage individuele hunks/lijnen
   <kbd>f</kbd>: fetch
 </pre>
 
 ## Branches
 
 <pre>
-  <kbd>space</kbd>: checkout
-  <kbd>o</kbd>: create pull request
-  <kbd>c</kbd>: checkout by name
-  <kbd>F</kbd>: force checkout
-  <kbd>n</kbd>: new branch
-  <kbd>d</kbd>: delete branch
+  <kbd>space</kbd>: uitchecken
+  <kbd>o</kbd>: maak een pull-aanvraag
+  <kbd>c</kbd>: uitchecken bij naam
+  <kbd>F</kbd>: forceer checkout
+  <kbd>n</kbd>: nieuwe branch
+  <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
-  <kbd>M</kbd>: merge into currently checked out branch
+  <kbd>M</kbd>: merge in met huidige checked out branch
   <kbd>f</kbd>: fast-forward this branch from its upstream
 </pre>
 
 ## Commits
 
 <pre>
-  <kbd>s</kbd>: squash down
-  <kbd>r</kbd>: reword commit
+  <kbd>s</kbd>: squash beneden
+  <kbd>r</kbd>: hernoem commit
   <kbd>R</kbd>: rename commit with editor
-  <kbd>g</kbd>: reset to this commit
-  <kbd>f</kbd>: fixup commit
+  <kbd>g</kbd>: reset naar deze commit
+  <kbd>f</kbd>: Fixup commit
   <kbd>d</kbd>: delete commit
   <kbd>J</kbd>: move commit down one
   <kbd>K</kbd>: move commit up one
@@ -77,7 +77,7 @@
 ## Stash
 
 <pre>
-  <kbd>space</kbd>: apply
+  <kbd>space</kbd>: toepassen
   <kbd>g</kbd>: pop
   <kbd>d</kbd>: drop
 </pre>
@@ -88,7 +88,7 @@
   <kbd>esc</kbd>: go back
   <kbd>c</kbd>: checkout file
   <kbd>d</kbd>: discard this commit's changes to this file
-  <kbd>o</kbd>: open file
+  <kbd>o</kbd>: open bestand
 </pre>
 
 ## Main (Normal)
@@ -98,22 +98,22 @@
   <kbd>PgUp</kbd>: scroll up
 </pre>
 
-## Main (Staging)
+## Main (Stage Lines/Hunks)
 
 <pre>
-  <kbd>esc</kbd>: return to files panel
+  <kbd>esc</kbd>: ga terug naar het bestanden paneel
   <kbd>▲</kbd>: select previous line
   <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
   <kbd>►</kbd>: select next hunk
-  <kbd>space</kbd>: stage line
+  <kbd>space</kbd>: stage lijn
   <kbd>a</kbd>: stage hunk
 </pre>
 
 ## Main (Merging)
 
 <pre>
-  <kbd>esc</kbd>: return to files panel
+  <kbd>esc</kbd>: ga terug naar het bestanden paneel
   <kbd>space</kbd>: pick hunk
   <kbd>b</kbd>: pick both hunks
   <kbd>◄</kbd>: select previous conflict
