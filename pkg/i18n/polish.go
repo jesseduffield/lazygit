@@ -656,6 +656,15 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CreateRepo",
 			Other: "Not in a git repository. Create a new git repository? (y/n): ",
+		}, &i18n.Message{
+			ID:    "AutoStashTitle",
+			Other: "Autostash?",
+		}, &i18n.Message{
+			ID:    "AutoStashPrompt",
+			Other: "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
+		}, &i18n.Message{
+			ID:    "StashPrefix",
+			Other: "Auto-stashing changes for ",
 		},
 	)
 }
