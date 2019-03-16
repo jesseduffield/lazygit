@@ -693,6 +693,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "DisabledForGPG",
 			Other: "Feature not available for users using GPG",
+		}, &i18n.Message{
+			ID:    "CreateRepo",
+			Other: "Not in a git repository. Create a new git repository? (y/n): ",
 		},
 	)
 }
