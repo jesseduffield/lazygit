@@ -361,7 +361,7 @@ func (gui *Gui) editFile(filename string) error {
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		return err
+		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
 	return gui.editFile(file.Name)
@@ -370,7 +370,7 @@ func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
-		return err
+		return gui.createErrorPanel(gui.g, err.Error())
 	}
 	return gui.openFile(file.Name)
 }
@@ -454,7 +454,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
-			return err
+			return gui.createErrorPanel(gui.g, err.Error())
 		}
 		return nil
 	}
