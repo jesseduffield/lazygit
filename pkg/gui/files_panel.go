@@ -282,7 +282,7 @@ func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
 	)
 	return gui.createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RemoveFile(file); err != nil {
-			return err
+			return gui.createErrorPanel(gui.g, err.Error())
 		}
 		return gui.refreshFiles()
 	}, nil)
