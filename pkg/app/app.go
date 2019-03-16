@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -114,12 +115,13 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	if err != nil {
 		return app, err
 	}
+
+	if err := app.setupRepo(); err != nil {
+		return app, err
+	}
+
 	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr, app.Config)
 	if err != nil {
-		if strings.Contains(err.Error(), "Not a git repository") {
-			fmt.Println("Not in a git repository. Use `git init` to create a new one")
-			os.Exit(1)
-		}
 		return app, err
 	}
 	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater)
@@ -127,6 +129,24 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 		return app, err
 	}
 	return app, nil
+}
+
+func (app *App) setupRepo() error {
+	// if we are not in a git repo, we ask if we want to `git init`
+	if err := app.OSCommand.RunCommand("git status"); err != nil {
+		if !strings.Contains(err.Error(), "Not a git repository") {
+			return err
+		}
+		fmt.Print(app.Tr.SLocalize("CreateRepo"))
+		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+		if strings.Trim(response, " \n") != "y" {
+			os.Exit(1)
+		}
+		if err := app.OSCommand.RunCommand("git init"); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (app *App) Run() error {
