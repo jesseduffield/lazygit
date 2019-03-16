@@ -114,14 +114,19 @@ type menuPanelState struct {
 	SelectedLine int
 }
 
+type commitFilesPanelState struct {
+	SelectedLine int
+}
+
 type panelStates struct {
-	Files    *filePanelState
-	Branches *branchPanelState
-	Commits  *commitPanelState
-	Stash    *stashPanelState
-	Menu     *menuPanelState
-	Staging  *stagingPanelState
-	Merging  *mergingPanelState
+	Files       *filePanelState
+	Branches    *branchPanelState
+	Commits     *commitPanelState
+	Stash       *stashPanelState
+	Menu        *menuPanelState
+	Staging     *stagingPanelState
+	Merging     *mergingPanelState
+	CommitFiles *commitFilesPanelState
 }
 
 type guiState struct {
@@ -129,6 +134,7 @@ type guiState struct {
 	Branches            []*commands.Branch
 	Commits             []*commands.Commit
 	StashEntries        []*commands.StashEntry
+	CommitFiles         []*commands.CommitFile
 	PreviousView        string
 	Platform            commands.Platform
 	Updating            bool
@@ -149,11 +155,12 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		StashEntries:        make([]*commands.StashEntry, 0),
 		Platform:            *oSCommand.Platform,
 		Panels: &panelStates{
-			Files:    &filePanelState{SelectedLine: -1},
-			Branches: &branchPanelState{SelectedLine: 0},
-			Commits:  &commitPanelState{SelectedLine: -1},
-			Stash:    &stashPanelState{SelectedLine: -1},
-			Menu:     &menuPanelState{SelectedLine: 0},
+			Files:       &filePanelState{SelectedLine: -1},
+			Branches:    &branchPanelState{SelectedLine: 0},
+			Commits:     &commitPanelState{SelectedLine: -1},
+			CommitFiles: &commitFilesPanelState{SelectedLine: -1},
+			Stash:       &stashPanelState{SelectedLine: -1},
+			Menu:        &menuPanelState{SelectedLine: 0},
 			Merging: &mergingPanelState{
 				ConflictIndex: 0,
 				ConflictTop:   true,
@@ -213,20 +220,21 @@ func max(a, b int) int {
 
 // getFocusLayout returns a manager function for when view gain and lose focus
 func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
-	var focusedView *gocui.View
+	var previousView *gocui.View
 	return func(g *gocui.Gui) error {
-		v := gui.g.CurrentView()
-		if v != focusedView {
-			if err := gui.onFocusChange(); err != nil {
+		newView := gui.g.CurrentView()
+		if err := gui.onFocusChange(); err != nil {
+			return err
+		}
+		// for now we don't consider losing focus to a popup panel as actually losing focus
+		if newView != previousView && !gui.isPopupPanel(newView.Name()) {
+			if err := gui.onFocusLost(previousView, newView); err != nil {
 				return err
 			}
-			if err := gui.onFocusLost(focusedView); err != nil {
+			if err := gui.onFocus(newView); err != nil {
 				return err
 			}
-			if err := gui.onFocus(v); err != nil {
-				return err
-			}
-			focusedView = v
+			previousView = newView
 		}
 		return nil
 	}
@@ -240,21 +248,24 @@ func (gui *Gui) onFocusChange() error {
 	return gui.setMainTitle()
 }
 
-func (gui *Gui) onFocusLost(v *gocui.View) error {
+func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 	if v == nil {
 		return nil
 	}
 	if v.Name() == "branches" {
+		// This stops the branches panel from showing the upstream/downstream changes to the selected branch, when it loses focus
+		// inside renderListPanel it checks to see if the panel has focus
 		if err := gui.renderListPanel(gui.getBranchesView(), gui.State.Branches); err != nil {
 			return err
 		}
 	} else if v.Name() == "main" {
-		// if we have lost focus to a popup panel, that's okay
-		if gui.popupPanelFocused() {
-			return nil
+		// if we have lost focus to a first-class panel, we need to do some cleanup
+		if err := gui.changeContext("main", "normal"); err != nil {
+			return err
 		}
 
-		if err := gui.changeContext("main", "normal"); err != nil {
+	} else if v.Name() == "commitFiles" {
+		if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
 			return err
 		}
 	}
@@ -350,6 +361,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
 		branchesView.FgColor = gocui.ColorWhite
+	}
+
+	if v, err := g.SetView("commitFiles", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+		v.Title = gui.Tr.SLocalize("CommitFiles")
+		v.FgColor = gocui.ColorWhite
 	}
 
 	commitsView, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM)

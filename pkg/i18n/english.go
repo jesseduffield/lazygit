@@ -666,6 +666,33 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CherryPickingStatus",
 			Other: "cherry-picking",
+		}, &i18n.Message{
+			ID:    "CommitFiles",
+			Other: "Commit files",
+		}, &i18n.Message{
+			ID:    "viewCommitFiles",
+			Other: "view commit's files",
+		}, &i18n.Message{
+			ID:    "goBack",
+			Other: "go back",
+		}, &i18n.Message{
+			ID:    "NoCommiteFiles",
+			Other: "No files for this commit",
+		}, &i18n.Message{
+			ID:    "checkoutCommitFile",
+			Other: "checkout file",
+		}, &i18n.Message{
+			ID:    "discardOldFileChange",
+			Other: "discard this commit's changes to this file",
+		}, &i18n.Message{
+			ID:    "DiscardFileChangesTitle",
+			Other: "Discard file changes",
+		}, &i18n.Message{
+			ID:    "DiscardFileChangesPrompt",
+			Other: "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
+		}, &i18n.Message{
+			ID:    "DisabledForGPG",
+			Other: "Feature not available for users using GPG",
 		},
 	)
 }
