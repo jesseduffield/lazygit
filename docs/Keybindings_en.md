@@ -71,6 +71,15 @@
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
+  <kbd>enter</kbd>: display commit files
+</pre>
+
+## Commit files
+<pre>
+  <kbd>esc</kbd>: go back
+  <kbd>c</kbd>: checkout file
+  <kbd>d</kbd>: discard this commit's changes to this file
+  <kbd>o</kbd>: open file
 </pre>
 
 ## Stash
