@@ -389,6 +389,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.HandlePasteCommits,
 			Description: gui.Tr.SLocalize("pasteCommits"),
 		}, {
+			ViewName:    "commits",
+			Key:         gocui.KeyEnter,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSwitchToCommitFilesPanel,
+			Description: gui.Tr.SLocalize("viewCommitFiles"),
+		}, {
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
@@ -441,10 +447,35 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleDonate,
+		}, {
+			ViewName:    "commitFiles",
+			Key:         gocui.KeyEsc,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSwitchToCommitsPanel,
+			Description: gui.Tr.SLocalize("goBack"),
+		}, {
+			ViewName:    "commitFiles",
+			Key:         'c',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCheckoutCommitFile,
+			Description: gui.Tr.SLocalize("checkoutCommitFile"),
+		}, {
+			ViewName:    "commitFiles",
+			Key:         'd',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleDiscardOldFileChange,
+			Description: gui.Tr.SLocalize("discardOldFileChange"),
+		},
+		{
+			ViewName:    "commitFiles",
+			Key:         'o',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleOpenOldCommitFile,
+			Description: gui.Tr.SLocalize("openFile"),
 		},
 	}
 
-	for _, viewName := range []string{"status", "branches", "files", "commits", "stash", "menu"} {
+	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
 		bindings = append(bindings, []*Binding{
 			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.nextView},
 			{ViewName: viewName, Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone, Handler: gui.previousView},
@@ -459,12 +490,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		nextLine func(*gocui.Gui, *gocui.View) error
 		focus    func(*gocui.Gui, *gocui.View) error
 	}{
-		"menu":     {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
-		"files":    {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
-		"branches": {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
-		"commits":  {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
-		"stash":    {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
-		"status":   {focus: gui.handleStatusSelect},
+		"menu":        {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
+		"files":       {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
+		"branches":    {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
+		"commits":     {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
+		"stash":       {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
+		"status":      {focus: gui.handleStatusSelect},
+		"commitFiles": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine, focus: gui.handleCommitFileSelect},
 	}
 
 	for viewName, functions := range listPanelMap {

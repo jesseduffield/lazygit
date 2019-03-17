@@ -133,4 +133,23 @@ echo "once upon a time there was a horse" >> file5
 git add file5
 git commit -m "fourth commit on master"
 
-# git merge develop # should have a merge conflict here
+
+# this is for the autostash feature
+
+git checkout -b base_branch
+
+echo "original1\noriginal2\noriginal3" > file
+git add file
+git commit -m "file"
+
+git checkout -b other_branch
+
+git checkout base_branch
+
+echo "new1\noriginal2\noriginal3" > file
+git add file
+git commit -m "file changed"
+
+git checkout other_branch
+
+echo "new2\noriginal2\noriginal3" > file

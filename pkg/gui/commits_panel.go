@@ -71,8 +71,11 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		fmt.Fprint(v, list)
 
 		gui.refreshStatus(g)
-		if v == g.CurrentView() {
+		if g.CurrentView() == v {
 			gui.handleCommitSelect(g, v)
+		}
+		if g.CurrentView() == gui.getCommitFilesView() {
+			return gui.refreshCommitFilesView()
 		}
 		return nil
 	})
@@ -436,4 +439,12 @@ func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
 			return gui.handleGenericMergeCommandResult(err)
 		})
 	}, nil)
+}
+
+func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) error {
+	if err := gui.refreshCommitFilesView(); err != nil {
+		return err
+	}
+
+	return gui.switchFocus(g, v, gui.getCommitFilesView())
 }

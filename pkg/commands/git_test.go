@@ -1707,7 +1707,228 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 
 	for _, s := range scenarios {
-		gitCmd.OSCommand.command = s.command
-		s.test(gitCmd.RebaseBranch(s.arg))
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.RebaseBranch(s.arg))
+		})
+	}
+}
+
+// TestGitCommandCheckoutFile is a function.
+func TestGitCommandCheckoutFile(t *testing.T) {
+	type scenario struct {
+		testName  string
+		commitSha string
+		fileName  string
+		command   func(string, ...string) *exec.Cmd
+		test      func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"typical case",
+			"11af912",
+			"test999.txt",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  "git checkout 11af912 test999.txt",
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"returns error if there is one",
+			"11af912",
+			"test999.txt",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  "git checkout 11af912 test999.txt",
+					Replace: "test",
+				},
+			}),
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.CheckoutFile(s.commitSha, s.fileName))
+		})
+	}
+}
+
+// TestGitCommandDiscardOldFileChanges is a function.
+func TestGitCommandDiscardOldFileChanges(t *testing.T) {
+	type scenario struct {
+		testName          string
+		getLocalGitConfig func(string) (string, error)
+		commits           []*Commit
+		commitIndex       int
+		fileName          string
+		command           func(string, ...string) *exec.Cmd
+		test              func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"returns error when index outside of range of commits",
+			func(string) (string, error) {
+				return "", nil
+			},
+			[]*Commit{},
+			0,
+			"test999.txt",
+			nil,
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+		{
+			"returns error when using gpg",
+			func(string) (string, error) {
+				return "true", nil
+			},
+			[]*Commit{{Name: "commit", Sha: "123456"}},
+			0,
+			"test999.txt",
+			nil,
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+		{
+			"checks out file if it already existed",
+			func(string) (string, error) {
+				return "", nil
+			},
+			[]*Commit{
+				{Name: "commit", Sha: "123456"},
+				{Name: "commit2", Sha: "abcdef"},
+			},
+			0,
+			"test999.txt",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  "git rebase --interactive --autostash 123456^",
+					Replace: "echo",
+				},
+				{
+					Expect:  "git cat-file -e HEAD^:test999.txt",
+					Replace: "echo",
+				},
+				{
+					Expect:  "git checkout HEAD^ test999.txt",
+					Replace: "echo",
+				},
+				{
+					Expect:  "git commit --amend --no-edit",
+					Replace: "echo",
+				},
+				{
+					Expect:  "git rebase --continue",
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		// test for when the file was created within the commit requires a refactor to support proper mocks
+		// currently we'd need to mock out the os.Remove function and that's gonna introduce tech debt
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			gitCmd.getLocalGitConfig = s.getLocalGitConfig
+			s.test(gitCmd.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
+		})
+	}
+}
+
+// TestGitCommandShowCommitFile is a function.
+func TestGitCommandShowCommitFile(t *testing.T) {
+	type scenario struct {
+		testName  string
+		commitSha string
+		fileName  string
+		command   func(string, ...string) *exec.Cmd
+		test      func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			"123456",
+			"hello.txt",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  "git show --color 123456 -- hello.txt",
+					Replace: "echo -n hello",
+				},
+			}),
+			func(str string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "hello", str)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.ShowCommitFile(s.commitSha, s.fileName))
+		})
+	}
+}
+
+// TestGitCommandGetCommitFiles is a function.
+func TestGitCommandGetCommitFiles(t *testing.T) {
+	type scenario struct {
+		testName  string
+		commitSha string
+		command   func(string, ...string) *exec.Cmd
+		test      func([]*CommitFile, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			"123456",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  "git show --pretty= --name-only 123456",
+					Replace: "echo 'hello\nworld'",
+				},
+			}),
+			func(commitFiles []*CommitFile, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, []*CommitFile{
+					{Sha: "123456", Name: "hello", DisplayString: "hello"},
+					{Sha: "123456", Name: "world", DisplayString: "world"},
+				}, commitFiles)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.GetCommitFiles(s.commitSha))
+		})
 	}
 }
