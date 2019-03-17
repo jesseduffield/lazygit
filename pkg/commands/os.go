@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
+	gitcredentialhelper "github.com/mjarkk/go-git-http-credentials-helper"
 	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
 )
@@ -264,4 +265,33 @@ func (c *OSCommand) GetLazygitPath() string {
 		ex = os.Args[0] // fallback to the first call argument if needed
 	}
 	return filepath.ToSlash(ex)
+}
+
+// RunWithCredentialListener runs git commands that need credentials
+// ask() gets executed when git needs credentials
+// The ask argument will be "username" or "password"
+func (c *OSCommand) RunWithCredentialListener(command string, ask func(string) string) error {
+	cmd := c.ExecutableFromString(command)
+
+	cmd.Env = append(
+		os.Environ(),
+		"LAZYGIT_CLIENT_COMMAND=GET_CREDENTIAL",
+	)
+
+	out, err := gitcredentialhelper.Run(cmd, ask)
+	if err != nil {
+		if len(out) > 0 {
+			return errors.New(string(out))
+		}
+		return err
+	}
+	return nil
+}
+
+// SetupClient sets up the client
+// This will be called if lazygit is called through git
+func SetupClient(log *logrus.Entry) {
+	gitcredentialhelper.SetupClient(func(err error) {
+		log.Errorln(err)
+	})
 }

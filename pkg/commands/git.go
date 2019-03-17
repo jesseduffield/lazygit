@@ -158,7 +158,7 @@ func (c *GitCommand) GetStatusFiles() []*File {
 			Deleted:                 unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:       change == "UU" || change == "AA" || change == "DU",
 			HasInlineMergeConflicts: change == "UU" || change == "AA",
-			Type:                    c.OSCommand.FileType(filename),
+			Type: c.OSCommand.FileType(filename),
 		}
 		files = append(files, file)
 	}
@@ -265,6 +265,7 @@ func (c *GitCommand) RebaseBranch(branchName string) error {
 
 // Fetch fetch git repo
 func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCredentials bool) error {
+
 	return c.OSCommand.RunWithCredentialListener("git fetch", func(question string) string {
 		if canAskForCredentials {
 			return unamePassQuestion(question)
