@@ -158,7 +158,7 @@ func (c *GitCommand) GetStatusFiles() []*File {
 			Deleted:                 unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:       change == "UU" || change == "AA" || change == "DU",
 			HasInlineMergeConflicts: change == "UU" || change == "AA",
-			Type: c.OSCommand.FileType(filename),
+			Type:                    c.OSCommand.FileType(filename),
 		}
 		files = append(files, file)
 	}
