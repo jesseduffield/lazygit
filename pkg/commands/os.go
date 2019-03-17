@@ -278,7 +278,9 @@ func (c *OSCommand) RunWithCredentialListener(command string, ask func(string) s
 		"LAZYGIT_CLIENT_COMMAND=GET_CREDENTIAL",
 	)
 
-	out, err := gitcredentialhelper.Run(cmd, ask)
+	out, err := gitcredentialhelper.Run(cmd, ask, gitcredentialhelper.Options{
+		AppName: "lazygit",
+	})
 	if err != nil {
 		if len(out) > 0 {
 			return errors.New(string(out))
