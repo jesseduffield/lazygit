@@ -905,3 +905,8 @@ func (c *GitCommand) RemoveUntrackedFiles() error {
 func (c *GitCommand) ResetHardHead() error {
 	return c.OSCommand.RunCommand("git reset --hard HEAD")
 }
+
+// ResetSoftHead runs `git reset --soft HEAD`
+func (c *GitCommand) ResetSoftHead() error {
+	return c.OSCommand.RunCommand("git reset --soft HEAD")
+}

@@ -389,9 +389,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "refreshFiles",
 			Other: `refresh bestanden`,
 		}, &i18n.Message{
-			ID:    "resetHard",
-			Other: `harde reset and verwijderen ongevolgde bestanden`,
-		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `merge in met huidige checked out branch`,
 		}, &i18n.Message{
@@ -471,13 +468,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Normal",
 		}, &i18n.Message{
 			ID:    "softReset",
-			Other: "soft reset to last commit",
-		}, &i18n.Message{
-			ID:    "SoftReset",
-			Other: "Soft reset",
-		}, &i18n.Message{
-			ID:    "ConfirmSoftReset",
-			Other: "Are you sure you want to `reset --soft HEAD^`? The changes in your topmost commit will be placed in your working tree",
+			Other: "soft reset",
 		}, &i18n.Message{
 			ID:    "CantRebaseOntoSelf",
 			Other: "You cannot rebase a branch onto itself",
@@ -697,6 +688,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "discardUntrackedFiles",
 			Other: "discard untracked files",
+		}, &i18n.Message{
+			ID:    "viewResetOptions",
+			Other: `view reset options`,
 		}, &i18n.Message{
 			ID:    "hardReset",
 			Other: "hard reset",
