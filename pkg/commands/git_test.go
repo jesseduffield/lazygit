@@ -1933,8 +1933,8 @@ func TestGitCommandGetCommitFiles(t *testing.T) {
 	}
 }
 
-// TestGitCommandDiscardUnstagedChanges is a function.
-func TestGitCommandDiscardUnstagedChanges(t *testing.T) {
+// TestGitCommandDiscardUnstagedFileChanges is a function.
+func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 	type scenario struct {
 		testName string
 		file     *File
@@ -1964,6 +1964,105 @@ func TestGitCommandDiscardUnstagedChanges(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
 			s.test(gitCmd.DiscardUnstagedFileChanges(s.file))
+		})
+	}
+}
+
+// TestGitCommandDiscardAnyUnstagedFileChanges is a function.
+func TestGitCommandDiscardAnyUnstagedFileChanges(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git checkout -- .`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.DiscardAnyUnstagedFileChanges())
+		})
+	}
+}
+
+// TestGitCommandRemoveUntrackedFiles is a function.
+func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git clean -fd`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.RemoveUntrackedFiles())
+		})
+	}
+}
+
+// TestGitCommandResetHardHead is a function.
+func TestGitCommandResetHardHead(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git reset --hard HEAD`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.ResetHardHead())
 		})
 	}
 }

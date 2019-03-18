@@ -158,9 +158,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "FileNoMergeCons",
 			Other: "Dit bestand heeft geen merge conflicten",
 		}, &i18n.Message{
-			ID:    "SureResetHardHead",
-			Other: "Weet je het zeker dat je `reset --hard HEAD` en `clean -fd` wil uitvoeren? Het kan dat je hierdoor bestanden verliest",
-		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijderd)",
 		}, &i18n.Message{
@@ -340,9 +337,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CantCloseConfirmationPrompt",
 			Other: "Kon de bevestiging prompt niet sluiten: {{.error}}",
-		}, &i18n.Message{
-			ID:    "ClearFilePanel",
-			Other: "maak bestandsvenster leeg",
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
@@ -694,6 +688,18 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "discardUnstagedChanges",
 			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardAllChangesToAllFiles",
+			Other: "nuke working tree",
+		}, &i18n.Message{
+			ID:    "discardAnyUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardUntrackedFiles",
+			Other: "discard untracked files",
+		}, &i18n.Message{
+			ID:    "hardReset",
+			Other: "hard reset",
 		},
 	)
 }

@@ -181,9 +181,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "FileNoMergeCons",
 			Other: "This file has no inline merge conflicts",
 		}, &i18n.Message{
-			ID:    "SureResetHardHead",
-			Other: "Are you sure you want to `reset --hard HEAD` and `clean -fd`? You may lose changes",
-		}, &i18n.Message{
 			ID:    "SoftReset",
 			Other: "Soft reset",
 		}, &i18n.Message{
@@ -405,9 +402,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoChangedFiles",
 			Other: "No changed files",
-		}, &i18n.Message{
-			ID:    "ClearFilePanel",
-			Other: "Clear file panel",
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge aborted",
@@ -717,6 +711,18 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "discardUnstagedChanges",
 			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardAllChangesToAllFiles",
+			Other: "nuke working tree",
+		}, &i18n.Message{
+			ID:    "discardAnyUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardUntrackedFiles",
+			Other: "discard untracked files",
+		}, &i18n.Message{
+			ID:    "hardReset",
+			Other: "hard reset",
 		},
 	)
 }
