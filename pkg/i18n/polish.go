@@ -147,9 +147,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "FileNoMergeCons",
 			Other: "Ten plik nie powoduje konfliktów scalania",
 		}, &i18n.Message{
-			ID:    "SureResetHardHead",
-			Other: "Jesteś pewny, że chcesz wykonać `reset --hard HEAD` i `clean -fd`? Możesz stracić wprowadzone zmiany",
-		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Jesteś pewny, że chcesz {{.deleteVerb}} {{.fileName}} (stracisz swoje wprowadzone zmiany)?",
 		}, &i18n.Message{
@@ -332,9 +329,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CantCloseConfirmationPrompt",
 			Other: "Nie można zamknąć monitu potwierdzenia: {{.error}}",
-		}, &i18n.Message{
-			ID:    "ClearFilePanel",
-			Other: "Wyczyść panel plików",
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Scalanie anulowane",
@@ -677,6 +671,18 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "discardUnstagedChanges",
 			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardAllChangesToAllFiles",
+			Other: "nuke working tree",
+		}, &i18n.Message{
+			ID:    "discardAnyUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardUntrackedFiles",
+			Other: "discard untracked files",
+		}, &i18n.Message{
+			ID:    "hardReset",
+			Other: "hard reset",
 		},
 	)
 }

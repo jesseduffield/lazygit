@@ -217,11 +217,11 @@ func includesInt(list []int, a int) bool {
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
 func (c *GitCommand) ResetAndClean() error {
-	if err := c.OSCommand.RunCommand("git reset --hard HEAD"); err != nil {
+	if err := c.ResetHardHead(); err != nil {
 		return err
 	}
 
-	return c.OSCommand.RunCommand("git clean -fd")
+	return c.RemoveUntrackedFiles()
 }
 
 func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
@@ -889,4 +889,19 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 
 	// continue
 	return c.GenericMerge("rebase", "continue")
+}
+
+// DiscardAnyUnstagedFileChanges discards any unstages file changes via `git checkout -- .`
+func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
+	return c.OSCommand.RunCommand("git checkout -- .")
+}
+
+// RemoveUntrackedFiles runs `git clean -fd`
+func (c *GitCommand) RemoveUntrackedFiles() error {
+	return c.OSCommand.RunCommand("git clean -fd")
+}
+
+// ResetHardHead runs `git reset --hard HEAD`
+func (c *GitCommand) ResetHardHead() error {
+	return c.OSCommand.RunCommand("git reset --hard HEAD")
 }
