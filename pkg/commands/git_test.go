@@ -1140,8 +1140,8 @@ func TestGitCommandIsInMergeState(t *testing.T) {
 	}
 }
 
-// TestGitCommandRemoveFile is a function.
-func TestGitCommandRemoveFile(t *testing.T) {
+// TestGitCommandDiscardAllFileChanges is a function.
+func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 	type scenario struct {
 		testName   string
 		command    func() (func(string, ...string) *exec.Cmd, *[][]string)
@@ -1337,7 +1337,7 @@ func TestGitCommandRemoveFile(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command, cmdsCalled = s.command()
 			gitCmd.removeFile = s.removeFile
-			s.test(cmdsCalled, gitCmd.RemoveFile(s.file))
+			s.test(cmdsCalled, gitCmd.DiscardAllFileChanges(s.file))
 		})
 	}
 }
@@ -1929,6 +1929,41 @@ func TestGitCommandGetCommitFiles(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
 			s.test(gitCmd.GetCommitFiles(s.commitSha))
+		})
+	}
+}
+
+// TestGitCommandDiscardUnstagedChanges is a function.
+func TestGitCommandDiscardUnstagedChanges(t *testing.T) {
+	type scenario struct {
+		testName string
+		file     *File
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			&File{Name: "test.txt"},
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git checkout -- "test.txt"`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.DiscardUnstagedFileChanges(s.file))
 		})
 	}
 }

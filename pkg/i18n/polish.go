@@ -372,9 +372,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "AnonymousReportingPrompt",
 			Other: "Włączyć anonimowe raportowanie błędów w celu pomocy w usprawnianiu lazygita (enter/esc)?",
 		}, &i18n.Message{
-			ID:    "removeFile",
-			Other: `usuń jeśli nie śledzony / przełącz jeśli śledzony`,
-		}, &i18n.Message{
 			ID:    "editFile",
 			Other: `edytuj plik`,
 		}, &i18n.Message{
@@ -668,6 +665,18 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashPrefix",
 			Other: "Auto-stashing changes for ",
+		}, &i18n.Message{
+			ID:    "viewDiscardOptions",
+			Other: "view 'discard changes' options",
+		}, &i18n.Message{
+			ID:    "cancel",
+			Other: "cancel",
+		}, &i18n.Message{
+			ID:    "discardAllChanges",
+			Other: "discard all changes",
+		}, &i18n.Message{
+			ID:    "discardUnstagedChanges",
+			Other: "discard unstaged changes",
 		},
 	)
 }

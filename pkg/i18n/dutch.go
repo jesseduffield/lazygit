@@ -383,9 +383,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "GitconfigParseErr",
 			Other: `Gogit kon je gitconfig bestand niet goed parsen door de aanwezigheid van losstaande '\' tekens. Het weghalen van deze tekens zou het probleem moeten oplossen. `,
 		}, &i18n.Message{
-			ID:    "removeFile",
-			Other: `Verwijder als untracked / uitchecken wordt gevolgd (ga weg)`,
-		}, &i18n.Message{
 			ID:    "editFile",
 			Other: `verander bestand`,
 		}, &i18n.Message{
@@ -685,6 +682,18 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashPrefix",
 			Other: "Auto-stashing changes for ",
+		}, &i18n.Message{
+			ID:    "viewDiscardOptions",
+			Other: "view 'discard changes' options",
+		}, &i18n.Message{
+			ID:    "cancel",
+			Other: "cancel",
+		}, &i18n.Message{
+			ID:    "discardAllChanges",
+			Other: "discard all changes",
+		}, &i18n.Message{
+			ID:    "discardUnstagedChanges",
+			Other: "discard unstaged changes",
 		},
 	)
 }

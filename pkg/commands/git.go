@@ -438,8 +438,8 @@ func (c *GitCommand) RebaseMode() (string, error) {
 	}
 }
 
-// RemoveFile directly
-func (c *GitCommand) RemoveFile(file *File) error {
+// DiscardAllFileChanges directly
+func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges {
@@ -450,7 +450,12 @@ func (c *GitCommand) RemoveFile(file *File) error {
 	if !file.Tracked {
 		return c.removeFile(file.Name)
 	}
-	// if the file is tracked, we assume you want to just check it out
+	return c.DiscardUnstagedFileChanges(file)
+}
+
+// DiscardUnstagedFileChanges directly
+func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
+	quotedFileName := c.OSCommand.Quote(file.Name)
 	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", quotedFileName))
 }
 
@@ -575,7 +580,7 @@ func (c *GitCommand) ApplyPatch(patch string) (string, error) {
 		return "", err
 	}
 
-	defer func() { _ = c.OSCommand.RemoveFile(filename) }()
+	defer func() { _ = c.OSCommand.Remove(filename) }()
 
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", c.OSCommand.Quote(filename)))
 }
@@ -861,7 +866,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
 	if err := c.OSCommand.RunCommand(fmt.Sprintf("git cat-file -e HEAD^:%s", fileName)); err != nil {
-		if err := c.OSCommand.RemoveFile(fileName); err != nil {
+		if err := c.OSCommand.Remove(fileName); err != nil {
 			return err
 		}
 		if err := c.StageFile(fileName); err != nil {
