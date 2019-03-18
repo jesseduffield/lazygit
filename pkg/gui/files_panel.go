@@ -259,35 +259,6 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 	return gui.Errors.ErrSubProcess
 }
 
-func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
-	if err != nil {
-		if err == gui.Errors.ErrNoFiles {
-			return nil
-		}
-		return err
-	}
-	var deleteVerb string
-	if file.Tracked {
-		deleteVerb = gui.Tr.SLocalize("checkout")
-	} else {
-		deleteVerb = gui.Tr.SLocalize("delete")
-	}
-	message := gui.Tr.TemplateLocalize(
-		"SureTo",
-		Teml{
-			"deleteVerb": deleteVerb,
-			"fileName":   file.Name,
-		},
-	)
-	return gui.createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.RemoveFile(file); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
-		}
-		return gui.refreshFiles()
-	}, nil)
-}
-
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
@@ -520,4 +491,66 @@ func (gui *Gui) handleSoftReset(g *gocui.Gui, v *gocui.View) error {
 		}
 		return gui.refreshFiles()
 	}, nil)
+}
+
+type discardOption struct {
+	handler     func(fileName *commands.File) error
+	description string
+}
+
+type discardOptionValue int
+
+// GetDisplayStrings is a function.
+func (r *discardOption) GetDisplayStrings(isFocused bool) []string {
+	return []string{r.description}
+}
+
+func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
+	file, err := gui.getSelectedFile(g)
+	if err != nil {
+		if err != gui.Errors.ErrNoFiles {
+			return err
+		}
+		return nil
+	}
+
+	options := []*discardOption{
+		{
+			description: gui.Tr.SLocalize("discardAllChanges"),
+			handler: func(file *commands.File) error {
+				if err := gui.GitCommand.DiscardAllFileChanges(file); err != nil {
+					return err
+				}
+
+				return gui.refreshFiles()
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("cancel"),
+			handler: func(file *commands.File) error {
+				return nil
+			},
+		},
+	}
+
+	if file.HasStagedChanges && file.HasUnstagedChanges {
+		discardUnstagedChanges := &discardOption{
+			description: gui.Tr.SLocalize("discardUnstagedChanges"),
+			handler: func(file *commands.File) error {
+				if err := gui.GitCommand.DiscardUnstagedFileChanges(file); err != nil {
+					return err
+				}
+
+				return gui.refreshFiles()
+			},
+		}
+
+		options = append(options[:1], append([]*discardOption{discardUnstagedChanges}, options[1:]...)...)
+	}
+
+	handleMenuPress := func(index int) error {
+		return options[index].handler(file)
+	}
+
+	return gui.createMenu(file.Name, options, handleMenuPress)
 }

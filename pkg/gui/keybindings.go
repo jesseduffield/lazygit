@@ -176,8 +176,8 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "files",
 			Key:         'd',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleFileRemove,
-			Description: gui.Tr.SLocalize("removeFile"),
+			Handler:     gui.handleCreateDiscardMenu,
+			Description: gui.Tr.SLocalize("viewDiscardOptions"),
 		}, {
 			ViewName:    "files",
 			Key:         'e',
