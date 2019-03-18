@@ -103,9 +103,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "stashFiles",
 			Other: "stash files",
 		}, &i18n.Message{
-			ID:    "softReset",
-			Other: "soft reset to last commit",
-		}, &i18n.Message{
 			ID:    "open",
 			Other: "open",
 		}, &i18n.Message{
@@ -181,11 +178,8 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "FileNoMergeCons",
 			Other: "This file has no inline merge conflicts",
 		}, &i18n.Message{
-			ID:    "SoftReset",
-			Other: "Soft reset",
-		}, &i18n.Message{
-			ID:    "ConfirmSoftReset",
-			Other: "Are you sure you want to `reset --soft HEAD^`? The changes in your topmost commit will be placed in your working tree",
+			ID:    "softReset",
+			Other: "soft reset",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
@@ -454,9 +448,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "refreshFiles",
 			Other: `refresh files`,
 		}, &i18n.Message{
-			ID:    "resetHard",
-			Other: `reset hard and remove untracked files`,
-		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `merge into currently checked out branch`,
 		}, &i18n.Message{
@@ -723,6 +714,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "hardReset",
 			Other: "hard reset",
+		}, &i18n.Message{
+			ID:    "viewResetOptions",
+			Other: `view reset options`,
 		},
 	)
 }

@@ -378,9 +378,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "refreshFiles",
 			Other: `odśwież pliki`,
 		}, &i18n.Message{
-			ID:    "resetHard",
-			Other: `zresetuj twardo i usuń niepotwierdzone pliki`,
-		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `scal do obecnej gałęzi`,
 		}, &i18n.Message{
@@ -457,13 +454,7 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			Other: "Normal",
 		}, &i18n.Message{
 			ID:    "softReset",
-			Other: "soft reset to last commit",
-		}, &i18n.Message{
-			ID:    "SoftReset",
-			Other: "Soft reset",
-		}, &i18n.Message{
-			ID:    "ConfirmSoftReset",
-			Other: "Are you sure you want to `reset --soft HEAD^`? The changes in your topmost commit will be placed in your working tree",
+			Other: "soft reset",
 		}, &i18n.Message{
 			ID:    "SureSquashThisCommit",
 			Other: "Are you sure you want to squash this commit into the commit below?",
@@ -683,6 +674,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "hardReset",
 			Other: "hard reset",
+		}, &i18n.Message{
+			ID:    "viewResetOptions",
+			Other: `view reset options`,
 		},
 	)
 }

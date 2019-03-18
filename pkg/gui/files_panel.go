@@ -472,19 +472,6 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 	return false
 }
 
-func (gui *Gui) handleSoftReset(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("SoftReset"), gui.Tr.SLocalize("ConfirmSoftReset"), func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.SoftReset("HEAD^"); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-
-		if err := gui.refreshCommits(gui.g); err != nil {
-			return err
-		}
-		return gui.refreshFiles()
-	}, nil)
-}
-
 type discardOption struct {
 	handler     func(fileName *commands.File) error
 	description string
@@ -552,7 +539,7 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 	return gui.createMenu(file.Name, options, handleMenuPress)
 }
 
-func (gui *Gui) handleResetAndClean(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 	options := []*discardAllOption{
 		{
 			description: gui.Tr.SLocalize("discardAllChangesToAllFiles"),
@@ -573,6 +560,13 @@ func (gui *Gui) handleResetAndClean(g *gocui.Gui, v *gocui.View) error {
 			command:     "git clean -fd",
 			handler: func() error {
 				return gui.GitCommand.RemoveUntrackedFiles()
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("softReset"),
+			command:     "git reset --soft HEAD",
+			handler: func() error {
+				return gui.GitCommand.ResetSoftHead()
 			},
 		},
 		{

@@ -210,12 +210,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("stashFiles"),
 		}, {
 			ViewName:    "files",
-			Key:         's',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleSoftReset,
-			Description: gui.Tr.SLocalize("softReset"),
-		}, {
-			ViewName:    "files",
 			Key:         'a',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleStageAll,
@@ -230,8 +224,8 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "files",
 			Key:         'D',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleResetAndClean,
-			Description: gui.Tr.SLocalize("resetHard"),
+			Handler:     gui.handleCreateResetMenu,
+			Description: gui.Tr.SLocalize("viewResetOptions"),
 		}, {
 			ViewName:    "files",
 			Key:         gocui.KeyEnter,
