@@ -7,19 +7,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Ensure go.mod file is up to date
-          command: |
-            export GO111MODULE=on
-            rm go.sum
-            mv go.mod /tmp/
-            go mod init
-            export GO111MODULE=auto
-
-            if [ $(diff /tmp/go.mod go.mod|wc -l) -gt 0 ]; then
-              diff /tmp/go.mod go.mod
-              exit 1;
-            fi
-      - run:
           name: Run gofmt -s
           command: |
             if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
