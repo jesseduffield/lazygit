@@ -91,6 +91,19 @@
   <kbd>o</kbd>: open file
 </pre>
 
+## Main (Merging)
+
+<pre>
+  <kbd>esc</kbd>: return to files panel
+  <kbd>space</kbd>: pick hunk
+  <kbd>b</kbd>: pick both hunks
+  <kbd>◄</kbd>: select previous conflict
+  <kbd>►</kbd>: select next conflict
+  <kbd>▲</kbd>: select top hunk
+  <kbd>▼</kbd>: select bottom hunk
+  <kbd>z</kbd>: undo
+</pre>
+
 ## Main (Normal)
 
 <pre>
@@ -108,17 +121,4 @@
   <kbd>►</kbd>: select next hunk
   <kbd>space</kbd>: stage line
   <kbd>a</kbd>: stage hunk
-</pre>
-
-## Main (Merging)
-
-<pre>
-  <kbd>esc</kbd>: return to files panel
-  <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick both hunks
-  <kbd>◄</kbd>: select previous conflict
-  <kbd>►</kbd>: select next conflict
-  <kbd>▲</kbd>: select top hunk
-  <kbd>▼</kbd>: select bottom hunk
-  <kbd>z</kbd>: undo
 </pre>
