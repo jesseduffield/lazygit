@@ -31,7 +31,10 @@ func main() {
 	for _, lang := range langs {
 		os.Setenv("LC_ALL", lang)
 		mApp, _ := app.NewApp(mConfig)
-		file, _ := os.Create("Keybindings_" + lang + ".md")
+		file, err := os.Create(getProjectRoot() + "/docs/keybindings/Keybindings_" + lang + ".md")
+		if err != nil {
+			panic(err)
+		}
 
 		bindingSections := getBindingSections(mApp)
 		content := formatSections(mApp, bindingSections)
@@ -125,4 +128,12 @@ func formatSections(mApp *app.App, bindingSections []*bindingSection) string {
 	}
 
 	return content
+}
+
+func getProjectRoot() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return strings.Split(dir, "lazygit")[0] + "lazygit"
 }
