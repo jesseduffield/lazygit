@@ -27,6 +27,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitsTitle",
 			Other: "Commity",
 		}, &i18n.Message{
+			ID:    "CommitsDiffTitle",
+			Other: "Commits(specific diff mode)",
+		}, &i18n.Message{
+			ID:    "CommitsDiff",
+			Other: "diff specific commits",
+		}, &i18n.Message{
 			ID:    "StashTitle",
 			Other: "Schowek",
 		}, &i18n.Message{

@@ -103,7 +103,8 @@ type branchPanelState struct {
 }
 
 type commitPanelState struct {
-	SelectedLine int
+	SelectedLine     int
+	SpecificDiffMode bool
 }
 
 type stashPanelState struct {
@@ -135,6 +136,7 @@ type guiState struct {
 	Commits             []*commands.Commit
 	StashEntries        []*commands.StashEntry
 	CommitFiles         []*commands.CommitFile
+	DiffEntries         map[string]*commands.Commit
 	MenuItemCount       int // can't store the actual list because it's of interface{} type
 	PreviousView        string
 	Platform            commands.Platform
@@ -154,6 +156,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		Commits:             make([]*commands.Commit, 0),
 		CherryPickedCommits: make([]*commands.Commit, 0),
 		StashEntries:        make([]*commands.StashEntry, 0),
+		DiffEntries:         make(map[string]*commands.Commit),
 		Platform:            *oSCommand.Platform,
 		Panels: &panelStates{
 			Files:       &filePanelState{SelectedLine: -1},

@@ -25,16 +25,15 @@
   <kbd>A</kbd>: amend last commit
   <kbd>C</kbd>: commit changes using git editor
   <kbd>space</kbd>: toggle staged
-  <kbd>d</kbd>: delete if untracked / checkout if tracked
+  <kbd>d</kbd>: view 'discard changes' options
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
   <kbd>i</kbd>: add to .gitignore
   <kbd>r</kbd>: refresh files
   <kbd>S</kbd>: stash files
-  <kbd>s</kbd>: soft reset to last commit
   <kbd>a</kbd>: stage/unstage all
   <kbd>t</kbd>: add patch
-  <kbd>D</kbd>: reset hard and remove untracked files
+  <kbd>D</kbd>: view reset options
   <kbd>enter</kbd>: stage individual hunks/lines
   <kbd>f</kbd>: fetch
 </pre>
@@ -72,6 +71,7 @@
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>enter</kbd>: view commit's files
+  <kbd>space</kbd>: diff specific commits
 </pre>
 
 ## Stash
@@ -91,19 +91,6 @@
   <kbd>o</kbd>: open file
 </pre>
 
-## Main (Merging)
-
-<pre>
-  <kbd>esc</kbd>: return to files panel
-  <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick both hunks
-  <kbd>◄</kbd>: select previous conflict
-  <kbd>►</kbd>: select next conflict
-  <kbd>▲</kbd>: select top hunk
-  <kbd>▼</kbd>: select bottom hunk
-  <kbd>z</kbd>: undo
-</pre>
-
 ## Main (Normal)
 
 <pre>
@@ -121,4 +108,17 @@
   <kbd>►</kbd>: select next hunk
   <kbd>space</kbd>: stage line
   <kbd>a</kbd>: stage hunk
+</pre>
+
+## Main (Merging)
+
+<pre>
+  <kbd>esc</kbd>: return to files panel
+  <kbd>space</kbd>: pick hunk
+  <kbd>b</kbd>: pick both hunks
+  <kbd>◄</kbd>: select previous conflict
+  <kbd>►</kbd>: select next conflict
+  <kbd>▲</kbd>: select top hunk
+  <kbd>▼</kbd>: select bottom hunk
+  <kbd>z</kbd>: undo
 </pre>
