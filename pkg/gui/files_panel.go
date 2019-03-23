@@ -541,7 +541,7 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshFiles()
 	}
 
-	return gui.createMenu(file.Name, options, handleMenuPress)
+	return gui.createMenu(file.Name, options, len(options), handleMenuPress)
 }
 
 func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
@@ -597,5 +597,5 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshFiles()
 	}
 
-	return gui.createMenu("", options, handleMenuPress)
+	return gui.createMenu("", options, len(options), handleMenuPress)
 }
