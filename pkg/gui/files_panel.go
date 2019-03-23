@@ -529,6 +529,11 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	handleMenuPress := func(index int) error {
+		file, err := gui.getSelectedFile(g)
+		if err != nil {
+			return err
+		}
+
 		if err := options[index].handler(file); err != nil {
 			return err
 		}
