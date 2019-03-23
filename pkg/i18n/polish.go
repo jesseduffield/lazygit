@@ -147,9 +147,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "FileNoMergeCons",
 			Other: "Ten plik nie powoduje konfliktów scalania",
 		}, &i18n.Message{
-			ID:    "SureResetHardHead",
-			Other: "Jesteś pewny, że chcesz wykonać `reset --hard HEAD` i `clean -fd`? Możesz stracić wprowadzone zmiany",
-		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Jesteś pewny, że chcesz {{.deleteVerb}} {{.fileName}} (stracisz swoje wprowadzone zmiany)?",
 		}, &i18n.Message{
@@ -333,9 +330,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CantCloseConfirmationPrompt",
 			Other: "Nie można zamknąć monitu potwierdzenia: {{.error}}",
 		}, &i18n.Message{
-			ID:    "ClearFilePanel",
-			Other: "Wyczyść panel plików",
-		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Scalanie anulowane",
 		}, &i18n.Message{
@@ -372,9 +366,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "AnonymousReportingPrompt",
 			Other: "Włączyć anonimowe raportowanie błędów w celu pomocy w usprawnianiu lazygita (enter/esc)?",
 		}, &i18n.Message{
-			ID:    "removeFile",
-			Other: `usuń jeśli nie śledzony / przełącz jeśli śledzony`,
-		}, &i18n.Message{
 			ID:    "editFile",
 			Other: `edytuj plik`,
 		}, &i18n.Message{
@@ -386,9 +377,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "refreshFiles",
 			Other: `odśwież pliki`,
-		}, &i18n.Message{
-			ID:    "resetHard",
-			Other: `zresetuj twardo i usuń niepotwierdzone pliki`,
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `scal do obecnej gałęzi`,
@@ -466,13 +454,7 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			Other: "Normal",
 		}, &i18n.Message{
 			ID:    "softReset",
-			Other: "soft reset to last commit",
-		}, &i18n.Message{
-			ID:    "SoftReset",
-			Other: "Soft reset",
-		}, &i18n.Message{
-			ID:    "ConfirmSoftReset",
-			Other: "Are you sure you want to `reset --soft HEAD^`? The changes in your topmost commit will be placed in your working tree",
+			Other: "soft reset",
 		}, &i18n.Message{
 			ID:    "SureSquashThisCommit",
 			Other: "Are you sure you want to squash this commit into the commit below?",
@@ -668,6 +650,33 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashPrefix",
 			Other: "Auto-stashing changes for ",
+		}, &i18n.Message{
+			ID:    "viewDiscardOptions",
+			Other: "view 'discard changes' options",
+		}, &i18n.Message{
+			ID:    "cancel",
+			Other: "cancel",
+		}, &i18n.Message{
+			ID:    "discardAllChanges",
+			Other: "discard all changes",
+		}, &i18n.Message{
+			ID:    "discardUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardAllChangesToAllFiles",
+			Other: "nuke working tree",
+		}, &i18n.Message{
+			ID:    "discardAnyUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardUntrackedFiles",
+			Other: "discard untracked files",
+		}, &i18n.Message{
+			ID:    "hardReset",
+			Other: "hard reset",
+		}, &i18n.Message{
+			ID:    "viewResetOptions",
+			Other: `view reset options`,
 		},
 	)
 }

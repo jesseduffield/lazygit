@@ -49,5 +49,5 @@ func (gui *Gui) handleCreateOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 		return bindings[index].Handler(g, v)
 	}
 
-	return gui.createMenu(strings.Title(gui.Tr.SLocalize("menu")), bindings, handleMenuPress)
+	return gui.createMenu(strings.Title(gui.Tr.SLocalize("menu")), bindings, len(bindings), handleMenuPress)
 }

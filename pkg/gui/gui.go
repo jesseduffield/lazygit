@@ -135,6 +135,7 @@ type guiState struct {
 	Commits             []*commands.Commit
 	StashEntries        []*commands.StashEntry
 	CommitFiles         []*commands.CommitFile
+	MenuItemCount       int // can't store the actual list because it's of interface{} type
 	PreviousView        string
 	Platform            commands.Platform
 	Updating            bool
@@ -480,20 +481,25 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	listViews := map[*gocui.View]int{
-		filesView:    gui.State.Panels.Files.SelectedLine,
-		branchesView: gui.State.Panels.Branches.SelectedLine,
-		commitsView:  gui.State.Panels.Commits.SelectedLine,
-		stashView:    gui.State.Panels.Stash.SelectedLine,
+	type listViewState struct {
+		selectedLine int
+		lineCount    int
+	}
+
+	listViews := map[*gocui.View]listViewState{
+		filesView:    {selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files)},
+		branchesView: {selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
+		commitsView:  {selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
+		stashView:    {selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
 	}
 
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
-		listViews[menuView] = gui.State.Panels.Menu.SelectedLine
+		listViews[menuView] = listViewState{selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount}
 	}
-	for view, selectedLine := range listViews {
+	for view, state := range listViews {
 		// check if the selected line is now out of view and if so refocus it
-		if err := gui.focusPoint(0, selectedLine, view); err != nil {
+		if err := gui.focusPoint(0, state.selectedLine, state.lineCount, view); err != nil {
 			return err
 		}
 	}

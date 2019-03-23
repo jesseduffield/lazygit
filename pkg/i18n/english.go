@@ -103,9 +103,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "stashFiles",
 			Other: "stash files",
 		}, &i18n.Message{
-			ID:    "softReset",
-			Other: "soft reset to last commit",
-		}, &i18n.Message{
 			ID:    "open",
 			Other: "open",
 		}, &i18n.Message{
@@ -181,14 +178,8 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "FileNoMergeCons",
 			Other: "This file has no inline merge conflicts",
 		}, &i18n.Message{
-			ID:    "SureResetHardHead",
-			Other: "Are you sure you want to `reset --hard HEAD` and `clean -fd`? You may lose changes",
-		}, &i18n.Message{
-			ID:    "SoftReset",
-			Other: "Soft reset",
-		}, &i18n.Message{
-			ID:    "ConfirmSoftReset",
-			Other: "Are you sure you want to `reset --soft HEAD^`? The changes in your topmost commit will be placed in your working tree",
+			ID:    "softReset",
+			Other: "soft reset",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
@@ -406,9 +397,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "NoChangedFiles",
 			Other: "No changed files",
 		}, &i18n.Message{
-			ID:    "ClearFilePanel",
-			Other: "Clear file panel",
-		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge aborted",
 		}, &i18n.Message{
@@ -448,9 +436,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "GitconfigParseErr",
 			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		}, &i18n.Message{
-			ID:    "removeFile",
-			Other: `delete if untracked / checkout if tracked`,
-		}, &i18n.Message{
 			ID:    "editFile",
 			Other: `edit file`,
 		}, &i18n.Message{
@@ -462,9 +447,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "refreshFiles",
 			Other: `refresh files`,
-		}, &i18n.Message{
-			ID:    "resetHard",
-			Other: `reset hard and remove untracked files`,
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `merge into currently checked out branch`,
@@ -708,6 +690,33 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashPrefix",
 			Other: "Auto-stashing changes for ",
+		}, &i18n.Message{
+			ID:    "viewDiscardOptions",
+			Other: "view 'discard changes' options",
+		}, &i18n.Message{
+			ID:    "cancel",
+			Other: "cancel",
+		}, &i18n.Message{
+			ID:    "discardAllChanges",
+			Other: "discard all changes",
+		}, &i18n.Message{
+			ID:    "discardUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardAllChangesToAllFiles",
+			Other: "nuke working tree",
+		}, &i18n.Message{
+			ID:    "discardAnyUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardUntrackedFiles",
+			Other: "discard untracked files",
+		}, &i18n.Message{
+			ID:    "hardReset",
+			Other: "hard reset",
+		}, &i18n.Message{
+			ID:    "viewResetOptions",
+			Other: `view reset options`,
 		},
 	)
 }

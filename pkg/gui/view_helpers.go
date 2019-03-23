@@ -180,8 +180,8 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 }
 
 // if the cursor down past the last item, move it to the last line
-func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
-	if cy < 0 {
+func (gui *Gui) focusPoint(cx int, cy int, lineCount int, v *gocui.View) error {
+	if cy < 0 || cy > lineCount {
 		return nil
 	}
 	ox, oy := v.Origin()
@@ -191,7 +191,7 @@ func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
 	// if line is above origin, move origin and set cursor to zero
 	// if line is below origin + height, move origin and set cursor to max
 	// otherwise set cursor to value - origin
-	if ly > v.LinesHeight() {
+	if ly > lineCount {
 		if err := v.SetCursor(cx, cy); err != nil {
 			return err
 		}

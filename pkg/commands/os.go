@@ -225,9 +225,9 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 	return tmpfile.Name(), nil
 }
 
-// RemoveFile removes a file at the specified path
-func (c *OSCommand) RemoveFile(filename string) error {
-	err := os.Remove(filename)
+// Remove removes a file or directory at the specified path
+func (c *OSCommand) Remove(filename string) error {
+	err := os.RemoveAll(filename)
 	return WrapError(err)
 }
 

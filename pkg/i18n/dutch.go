@@ -158,9 +158,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "FileNoMergeCons",
 			Other: "Dit bestand heeft geen merge conflicten",
 		}, &i18n.Message{
-			ID:    "SureResetHardHead",
-			Other: "Weet je het zeker dat je `reset --hard HEAD` en `clean -fd` wil uitvoeren? Het kan dat je hierdoor bestanden verliest",
-		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Weet je het zeker dat je {{.fileName}} wilt {{.deleteVerb}} (je veranderingen zullen worden verwijderd)",
 		}, &i18n.Message{
@@ -341,9 +338,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CantCloseConfirmationPrompt",
 			Other: "Kon de bevestiging prompt niet sluiten: {{.error}}",
 		}, &i18n.Message{
-			ID:    "ClearFilePanel",
-			Other: "maak bestandsvenster leeg",
-		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
 		}, &i18n.Message{
@@ -383,9 +377,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "GitconfigParseErr",
 			Other: `Gogit kon je gitconfig bestand niet goed parsen door de aanwezigheid van losstaande '\' tekens. Het weghalen van deze tekens zou het probleem moeten oplossen. `,
 		}, &i18n.Message{
-			ID:    "removeFile",
-			Other: `Verwijder als untracked / uitchecken wordt gevolgd (ga weg)`,
-		}, &i18n.Message{
 			ID:    "editFile",
 			Other: `verander bestand`,
 		}, &i18n.Message{
@@ -397,9 +388,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "refreshFiles",
 			Other: `refresh bestanden`,
-		}, &i18n.Message{
-			ID:    "resetHard",
-			Other: `harde reset and verwijderen ongevolgde bestanden`,
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `merge in met huidige checked out branch`,
@@ -480,13 +468,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Normal",
 		}, &i18n.Message{
 			ID:    "softReset",
-			Other: "soft reset to last commit",
-		}, &i18n.Message{
-			ID:    "SoftReset",
-			Other: "Soft reset",
-		}, &i18n.Message{
-			ID:    "ConfirmSoftReset",
-			Other: "Are you sure you want to `reset --soft HEAD^`? The changes in your topmost commit will be placed in your working tree",
+			Other: "soft reset",
 		}, &i18n.Message{
 			ID:    "CantRebaseOntoSelf",
 			Other: "You cannot rebase a branch onto itself",
@@ -685,6 +667,33 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashPrefix",
 			Other: "Auto-stashing changes for ",
+		}, &i18n.Message{
+			ID:    "viewDiscardOptions",
+			Other: "view 'discard changes' options",
+		}, &i18n.Message{
+			ID:    "cancel",
+			Other: "cancel",
+		}, &i18n.Message{
+			ID:    "discardAllChanges",
+			Other: "discard all changes",
+		}, &i18n.Message{
+			ID:    "discardUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardAllChangesToAllFiles",
+			Other: "nuke working tree",
+		}, &i18n.Message{
+			ID:    "discardAnyUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardUntrackedFiles",
+			Other: "discard untracked files",
+		}, &i18n.Message{
+			ID:    "viewResetOptions",
+			Other: `view reset options`,
+		}, &i18n.Message{
+			ID:    "hardReset",
+			Other: "hard reset",
 		},
 	)
 }

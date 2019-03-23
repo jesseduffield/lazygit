@@ -10,7 +10,7 @@ Jira? This is the app for you!
 
 - [Installation](https://github.com/jesseduffield/lazygit#installation)
 - [Usage](https://github.com/jesseduffield/lazygit#usage),
-  [Keybindings](https://github.com/jesseduffield/lazygit/blob/master/docs/Keybindings_en.md)
+  [Keybindings](/docs/keybindings)
 - [Cool Features](https://github.com/jesseduffield/lazygit#cool-features)
 - [Contributing](https://github.com/jesseduffield/lazygit#contributing)
 - [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
@@ -104,7 +104,7 @@ whichever rc file you're using).
 
 - Basic video tutorial [here](https://youtu.be/VDXvbHZYeKY).
 - List of keybindings
-  [here](/docs/Keybindings_en.md).
+  [here](/docs/keybindings).
 
 ## Cool features
 

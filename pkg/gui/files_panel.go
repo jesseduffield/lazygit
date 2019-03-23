@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -63,7 +64,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
-	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, v); err != nil {
+	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, len(gui.State.Files), v); err != nil {
 		return err
 	}
 
@@ -259,35 +260,6 @@ func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
 	return gui.Errors.ErrSubProcess
 }
 
-func (gui *Gui) handleFileRemove(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
-	if err != nil {
-		if err == gui.Errors.ErrNoFiles {
-			return nil
-		}
-		return err
-	}
-	var deleteVerb string
-	if file.Tracked {
-		deleteVerb = gui.Tr.SLocalize("checkout")
-	} else {
-		deleteVerb = gui.Tr.SLocalize("delete")
-	}
-	message := gui.Tr.TemplateLocalize(
-		"SureTo",
-		Teml{
-			"deleteVerb": deleteVerb,
-			"fileName":   file.Name,
-		},
-	)
-	return gui.createConfirmationPanel(g, v, strings.Title(deleteVerb)+" file", message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.RemoveFile(file); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
-		}
-		return gui.refreshFiles()
-	}, nil)
-}
-
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {
@@ -328,8 +300,12 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 	question := gui.Tr.SLocalize("SureToAmend")
 
 	return gui.createConfirmationPanel(g, filesView, title, question, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead()); err != nil {
+		ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
+		if err != nil {
 			return err
+		}
+		if !ok {
+			return nil
 		}
 
 		return gui.refreshSidePanels(g)
@@ -355,7 +331,8 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) {
 }
 
 func (gui *Gui) editFile(filename string) error {
-	return gui.runSyncOrAsyncCommand(gui.OSCommand.EditFile(filename))
+	_, err := gui.runSyncOrAsyncCommand(gui.OSCommand.EditFile(filename))
+	return err
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
@@ -479,15 +456,6 @@ func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshFiles()
 }
 
-func (gui *Gui) handleResetAndClean(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("ClearFilePanel"), gui.Tr.SLocalize("SureResetHardHead"), func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.ResetAndClean(); err != nil {
-			gui.createErrorPanel(g, err.Error())
-		}
-		return gui.refreshFiles()
-	}, nil)
-}
-
 func (gui *Gui) openFile(filename string) error {
 	if err := gui.OSCommand.OpenFile(filename); err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
@@ -504,15 +472,130 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 	return false
 }
 
-func (gui *Gui) handleSoftReset(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("SoftReset"), gui.Tr.SLocalize("ConfirmSoftReset"), func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.SoftReset("HEAD^"); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
+type discardOption struct {
+	handler     func(fileName *commands.File) error
+	description string
+}
 
-		if err := gui.refreshCommits(gui.g); err != nil {
+type discardAllOption struct {
+	handler     func() error
+	description string
+	command     string
+}
+
+// GetDisplayStrings is a function.
+func (r *discardOption) GetDisplayStrings(isFocused bool) []string {
+	return []string{r.description}
+}
+
+// GetDisplayStrings is a function.
+func (r *discardAllOption) GetDisplayStrings(isFocused bool) []string {
+	return []string{r.description, color.New(color.FgRed).Sprint(r.command)}
+}
+
+func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
+	file, err := gui.getSelectedFile(g)
+	if err != nil {
+		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
+		return nil
+	}
+
+	options := []*discardOption{
+		{
+			description: gui.Tr.SLocalize("discardAllChanges"),
+			handler: func(file *commands.File) error {
+				return gui.GitCommand.DiscardAllFileChanges(file)
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("cancel"),
+			handler: func(file *commands.File) error {
+				return nil
+			},
+		},
+	}
+
+	if file.HasStagedChanges && file.HasUnstagedChanges {
+		discardUnstagedChanges := &discardOption{
+			description: gui.Tr.SLocalize("discardUnstagedChanges"),
+			handler: func(file *commands.File) error {
+				return gui.GitCommand.DiscardUnstagedFileChanges(file)
+			},
+		}
+
+		options = append(options[:1], append([]*discardOption{discardUnstagedChanges}, options[1:]...)...)
+	}
+
+	handleMenuPress := func(index int) error {
+		file, err := gui.getSelectedFile(g)
+		if err != nil {
+			return err
+		}
+
+		if err := options[index].handler(file); err != nil {
+			return err
+		}
+
 		return gui.refreshFiles()
-	}, nil)
+	}
+
+	return gui.createMenu(file.Name, options, len(options), handleMenuPress)
+}
+
+func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
+	options := []*discardAllOption{
+		{
+			description: gui.Tr.SLocalize("discardAllChangesToAllFiles"),
+			command:     "reset --hard HEAD && git clean -fd",
+			handler: func() error {
+				return gui.GitCommand.ResetAndClean()
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("discardAnyUnstagedChanges"),
+			command:     "git checkout -- .",
+			handler: func() error {
+				return gui.GitCommand.DiscardAnyUnstagedFileChanges()
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("discardUntrackedFiles"),
+			command:     "git clean -fd",
+			handler: func() error {
+				return gui.GitCommand.RemoveUntrackedFiles()
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("softReset"),
+			command:     "git reset --soft HEAD",
+			handler: func() error {
+				return gui.GitCommand.ResetSoftHead()
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("hardReset"),
+			command:     "git reset --hard HEAD",
+			handler: func() error {
+				return gui.GitCommand.ResetHardHead()
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("cancel"),
+			handler: func() error {
+				return nil
+			},
+		},
+	}
+
+	handleMenuPress := func(index int) error {
+		if err := options[index].handler(); err != nil {
+			return err
+		}
+
+		return gui.refreshFiles()
+	}
+
+	return gui.createMenu("", options, len(options), handleMenuPress)
 }

@@ -217,11 +217,11 @@ func includesInt(list []int, a int) bool {
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
 func (c *GitCommand) ResetAndClean() error {
-	if err := c.OSCommand.RunCommand("git reset --hard HEAD"); err != nil {
+	if err := c.ResetHardHead(); err != nil {
 		return err
 	}
 
-	return c.OSCommand.RunCommand("git clean -fd")
+	return c.RemoveUntrackedFiles()
 }
 
 func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
@@ -439,8 +439,8 @@ func (c *GitCommand) RebaseMode() (string, error) {
 	}
 }
 
-// RemoveFile directly
-func (c *GitCommand) RemoveFile(file *File) error {
+// DiscardAllFileChanges directly
+func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges {
@@ -451,7 +451,12 @@ func (c *GitCommand) RemoveFile(file *File) error {
 	if !file.Tracked {
 		return c.removeFile(file.Name)
 	}
-	// if the file is tracked, we assume you want to just check it out
+	return c.DiscardUnstagedFileChanges(file)
+}
+
+// DiscardUnstagedFileChanges directly
+func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
+	quotedFileName := c.OSCommand.Quote(file.Name)
 	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", quotedFileName))
 }
 
@@ -576,7 +581,7 @@ func (c *GitCommand) ApplyPatch(patch string) (string, error) {
 		return "", err
 	}
 
-	defer func() { _ = c.OSCommand.RemoveFile(filename) }()
+	defer func() { _ = c.OSCommand.Remove(filename) }()
 
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", c.OSCommand.Quote(filename)))
 }
@@ -862,7 +867,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
 	if err := c.OSCommand.RunCommand(fmt.Sprintf("git cat-file -e HEAD^:%s", fileName)); err != nil {
-		if err := c.OSCommand.RemoveFile(fileName); err != nil {
+		if err := c.OSCommand.Remove(fileName); err != nil {
 			return err
 		}
 		if err := c.StageFile(fileName); err != nil {
@@ -885,4 +890,24 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 
 	// continue
 	return c.GenericMerge("rebase", "continue")
+}
+
+// DiscardAnyUnstagedFileChanges discards any unstages file changes via `git checkout -- .`
+func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
+	return c.OSCommand.RunCommand("git checkout -- .")
+}
+
+// RemoveUntrackedFiles runs `git clean -fd`
+func (c *GitCommand) RemoveUntrackedFiles() error {
+	return c.OSCommand.RunCommand("git clean -fd")
+}
+
+// ResetHardHead runs `git reset --hard HEAD`
+func (c *GitCommand) ResetHardHead() error {
+	return c.OSCommand.RunCommand("git reset --hard HEAD")
+}
+
+// ResetSoftHead runs `git reset --soft HEAD`
+func (c *GitCommand) ResetSoftHead() error {
+	return c.OSCommand.RunCommand("git reset --soft HEAD")
 }

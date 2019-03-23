@@ -20,7 +20,7 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 	}
 
-	if err := gui.focusPoint(0, gui.State.Panels.CommitFiles.SelectedLine, v); err != nil {
+	if err := gui.focusPoint(0, gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles), v); err != nil {
 		return err
 	}
 	commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name)

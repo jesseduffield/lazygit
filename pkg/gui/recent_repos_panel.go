@@ -44,7 +44,7 @@ func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
 		return gui.Errors.ErrSwitchRepo
 	}
 
-	return gui.createMenu(gui.Tr.SLocalize("RecentRepos"), recentRepos, handleMenuPress)
+	return gui.createMenu(gui.Tr.SLocalize("RecentRepos"), recentRepos, len(recentRepos), handleMenuPress)
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
