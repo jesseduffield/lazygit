@@ -910,3 +910,9 @@ func (c *GitCommand) ResetHardHead() error {
 func (c *GitCommand) ResetSoftHead() error {
 	return c.OSCommand.RunCommand("git reset --soft HEAD")
 }
+
+// DiffCommits show diff between commits
+func (c *GitCommand) DiffCommits(sha1, sha2 string) (string, error) {
+	cmd := fmt.Sprintf("git diff --color %s %s", sha1, sha2)
+	return c.OSCommand.RunCommandWithOutput(cmd)
+}

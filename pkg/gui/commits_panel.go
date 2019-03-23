@@ -39,6 +39,12 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.focusPoint(0, gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits), v); err != nil {
 		return err
 	}
+
+	// if specific diff mode is on, don't show diff
+	if gui.State.Panels.Commits.SpecificDiffMode {
+		return nil
+	}
+
 	commitText, err := gui.GitCommand.Show(commit.Sha)
 	if err != nil {
 		return err
@@ -56,6 +62,13 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		if err != nil {
 			return err
 		}
+
+		for _, commit := range commits {
+			if _, has := gui.State.DiffEntries[commit.Sha]; has {
+				commit.Selected = true
+			}
+		}
+
 		gui.State.Commits = commits
 
 		gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
@@ -447,4 +460,57 @@ func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) erro
 	}
 
 	return gui.switchFocus(g, v, gui.getCommitFilesView())
+}
+
+func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
+	selectLimit := 2
+
+	// get selected commit
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+	}
+
+	// if already selected commit delete
+	if _, has := gui.State.DiffEntries[commit.Sha]; has {
+		delete(gui.State.DiffEntries, commit.Sha)
+		gui.setDiffMode()
+	} else {
+		if len(gui.State.DiffEntries) == selectLimit {
+			return gui.createErrorPanel(gui.g, "you have already selected two commit, please deselect one of two")
+		}
+		gui.State.DiffEntries[commit.Sha] = commit
+		gui.setDiffMode()
+	}
+
+	// if selected tow commits, display diff between
+	if len(gui.State.DiffEntries) == selectLimit {
+		var entries []string
+		for _, entry := range gui.State.DiffEntries {
+			entries = append(entries, entry.Sha)
+		}
+
+		commitText, err := gui.GitCommand.DiffCommits(entries[0], entries[1])
+
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+
+		return gui.renderString(g, "main", commitText)
+	}
+
+	return nil
+}
+
+func (gui *Gui) setDiffMode() {
+	v := gui.getCommitsView()
+	if len(gui.State.DiffEntries) != 0 {
+		gui.State.Panels.Commits.SpecificDiffMode = true
+		v.Title = gui.Tr.SLocalize("CommitsDiffTitle")
+	} else {
+		gui.State.Panels.Commits.SpecificDiffMode = false
+		v.Title = gui.Tr.SLocalize("CommitsTitle")
+	}
+
+	gui.refreshCommits(gui.g)
 }

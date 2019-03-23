@@ -13,6 +13,7 @@ type Commit struct {
 	DisplayString string
 	Action        string // one of "", "pick", "edit", "squash", "reword", "drop", "fixup"
 	Copied        bool   // to know if this commit is ready to be cherry-picked somewhere
+	Selected      bool
 }
 
 // GetDisplayStrings is a function.
@@ -52,5 +53,12 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 		actionString = cyan.Sprint(utils.WithPadding(c.Action, 7)) + " "
 	}
 
-	return []string{shaColor.Sprint(c.Sha), actionString + white.Sprint(c.Name)}
+	name := ""
+	if c.Selected {
+		name = color.New(color.FgMagenta).Sprint(c.Name)
+	} else {
+		name = white.Sprint(c.Name)
+	}
+
+	return []string{shaColor.Sprint(c.Sha), actionString + name}
 }

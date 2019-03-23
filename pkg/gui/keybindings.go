@@ -389,6 +389,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleSwitchToCommitFilesPanel,
 			Description: gui.Tr.SLocalize("viewCommitFiles"),
 		}, {
+			ViewName:    "commits",
+			Key:         gocui.KeySpace,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleToggleDiffCommit,
+			Description: gui.Tr.SLocalize("CommitsDiff"),
+		}, {
 			ViewName:    "stash",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
