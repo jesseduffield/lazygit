@@ -63,7 +63,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
-	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, v); err != nil {
+	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, len(gui.State.Files), v); err != nil {
 		return err
 	}
 

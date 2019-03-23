@@ -38,7 +38,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 		title = gui.Tr.SLocalize("RebaseOptionsTitle")
 	}
 
-	return gui.createMenu(title, options, handleMenuPress)
+	return gui.createMenu(title, options, len(options), handleMenuPress)
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
