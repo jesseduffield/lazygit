@@ -16,12 +16,13 @@ func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
 	if err := gui.refreshBranches(g); err != nil {
 		return err
 	}
-	if err := gui.refreshFiles(g); err != nil {
+	if err := gui.refreshFiles(); err != nil {
 		return err
 	}
 	if err := gui.refreshCommits(g); err != nil {
 		return err
 	}
+
 	return gui.refreshStashEntries(g)
 }
 
@@ -30,8 +31,13 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 	if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
 		focusedViewName = cyclableViews[0]
 	} else {
+		// if we're in the commitFiles view we'll act like we're in the commits view
+		viewName := v.Name()
+		if viewName == "commitFiles" {
+			viewName = "commits"
+		}
 		for i := range cyclableViews {
-			if v.Name() == cyclableViews[i] {
+			if viewName == cyclableViews[i] {
 				focusedViewName = cyclableViews[i+1]
 				break
 			}
@@ -39,7 +45,7 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 				message := gui.Tr.TemplateLocalize(
 					"IssntListOfViews",
 					Teml{
-						"name": v.Name(),
+						"name": viewName,
 					},
 				)
 				gui.Log.Info(message)
@@ -59,8 +65,13 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 	if v == nil || v.Name() == cyclableViews[0] {
 		focusedViewName = cyclableViews[len(cyclableViews)-1]
 	} else {
+		// if we're in the commitFiles view we'll act like we're in the commits view
+		viewName := v.Name()
+		if viewName == "commitFiles" {
+			viewName = "commits"
+		}
 		for i := range cyclableViews {
-			if v.Name() == cyclableViews[i] {
+			if viewName == cyclableViews[i] {
 				focusedViewName = cyclableViews[i-1] // TODO: make this work properly
 				break
 			}
@@ -68,7 +79,7 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 				message := gui.Tr.TemplateLocalize(
 					"IssntListOfViews",
 					Teml{
-						"name": v.Name(),
+						"name": viewName,
 					},
 				)
 				gui.Log.Info(message)
@@ -95,6 +106,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleBranchSelect(g, v)
 	case "commits":
 		return gui.handleCommitSelect(g, v)
+	case "commitFiles":
+		return gui.handleCommitFileSelect(g, v)
 	case "stash":
 		return gui.handleStashEntrySelect(g, v)
 	case "confirmation":
@@ -104,13 +117,11 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "credentials":
 		return gui.handleCredentialsViewFocused(g, v)
 	case "main":
-		// TODO: pull this out into a 'view focused' function
-		gui.refreshMergePanel(g)
+		if gui.State.Contexts["main"] == "merging" {
+			return gui.refreshMergePanel()
+		}
 		v.Highlight = false
 		return nil
-	case "staging":
-		return nil
-		// return gui.handleStagingSelect(g, v)
 	default:
 		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement"))
 	}
@@ -129,28 +140,15 @@ func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 }
 
 // pass in oldView = nil if you don't want to be able to return to your old view
+// TODO: move some of this logic into our onFocusLost and onFocus hooks
 func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
-	// we assume we'll never want to return focus to a confirmation panel i.e.
-	// we should never stack confirmation panels
-	if oldView != nil && oldView.Name() != "confirmation" {
-		oldView.Highlight = false
-		message := gui.Tr.TemplateLocalize(
-			"settingPreviewsViewTo",
-			Teml{
-				"oldViewName": oldView.Name(),
-			},
-		)
-		gui.Log.Info(message)
-
-		// second class panels should never have focus restored to them because
-		// once they lose focus they are effectively 'destroyed'
-		secondClassPanels := []string{"confirmation", "menu"}
-		if !utils.IncludesString(secondClassPanels, oldView.Name()) {
-			gui.State.PreviousView = oldView.Name()
-		}
+	// we assume we'll never want to return focus to a popup panel i.e.
+	// we should never stack popup panels
+	if oldView != nil && !gui.isPopupPanel(oldView.Name()) {
+		gui.State.PreviousView = oldView.Name()
 	}
 
-	newView.Highlight = true
+	gui.Log.Info("setting highlight to true for view" + newView.Name())
 	message := gui.Tr.TemplateLocalize(
 		"newFocusedViewIs",
 		Teml{
@@ -182,8 +180,8 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 }
 
 // if the cursor down past the last item, move it to the last line
-func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
-	if cy < 0 {
+func (gui *Gui) focusPoint(cx int, cy int, lineCount int, v *gocui.View) error {
+	if cy < 0 || cy > lineCount {
 		return nil
 	}
 	ox, oy := v.Origin()
@@ -193,7 +191,7 @@ func (gui *Gui) focusPoint(cx int, cy int, v *gocui.View) error {
 	// if line is above origin, move origin and set cursor to zero
 	// if line is below origin + height, move origin and set cursor to max
 	// otherwise set cursor to value - origin
-	if ly > v.LinesHeight() {
+	if ly > lineCount {
 		if err := v.SetCursor(cx, cy); err != nil {
 			return err
 		}
@@ -263,38 +261,38 @@ func (gui *Gui) renderOptionsMap(optionsMap map[string]string) error {
 
 // TODO: refactor properly
 // i'm so sorry but had to add this getBranchesView
-func (gui *Gui) getFilesView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("files")
+func (gui *Gui) getFilesView() *gocui.View {
+	v, _ := gui.g.View("files")
 	return v
 }
 
-func (gui *Gui) getCommitsView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("commits")
+func (gui *Gui) getCommitsView() *gocui.View {
+	v, _ := gui.g.View("commits")
 	return v
 }
 
-func (gui *Gui) getCommitMessageView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("commitMessage")
+func (gui *Gui) getCommitMessageView() *gocui.View {
+	v, _ := gui.g.View("commitMessage")
 	return v
 }
 
-func (gui *Gui) getBranchesView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("branches")
+func (gui *Gui) getBranchesView() *gocui.View {
+	v, _ := gui.g.View("branches")
 	return v
 }
 
-func (gui *Gui) getStagingView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("staging")
+func (gui *Gui) getMainView() *gocui.View {
+	v, _ := gui.g.View("main")
 	return v
 }
 
-func (gui *Gui) getMainView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("main")
+func (gui *Gui) getStashView() *gocui.View {
+	v, _ := gui.g.View("stash")
 	return v
 }
 
-func (gui *Gui) getStashView(g *gocui.Gui) *gocui.View {
-	v, _ := g.View("stash")
+func (gui *Gui) getCommitFilesView() *gocui.View {
+	v, _ := gui.g.View("commitFiles")
 	return v
 }
 
@@ -302,14 +300,14 @@ func (gui *Gui) trimmedContent(v *gocui.View) string {
 	return strings.TrimSpace(v.Buffer())
 }
 
-func (gui *Gui) currentViewName(g *gocui.Gui) string {
-	currentView := g.CurrentView()
+func (gui *Gui) currentViewName() string {
+	currentView := gui.g.CurrentView()
 	return currentView.Name()
 }
 
 func (gui *Gui) resizeCurrentPopupPanel(g *gocui.Gui) error {
 	v := g.CurrentView()
-	if v.Name() == "commitMessage" || v.Name() == "credentials" || v.Name() == "confirmation" {
+	if gui.isPopupPanel(v.Name()) {
 		return gui.resizePopupPanel(g, v)
 	}
 	return nil
@@ -371,7 +369,8 @@ func (gui *Gui) refreshSelectedLine(line *int, total int) {
 
 func (gui *Gui) renderListPanel(v *gocui.View, items interface{}) error {
 	gui.g.Update(func(g *gocui.Gui) error {
-		list, err := utils.RenderList(items)
+		isFocused := gui.g.CurrentView().Name() == v.Name()
+		list, err := utils.RenderList(items, isFocused)
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
@@ -388,8 +387,22 @@ func (gui *Gui) renderPanelOptions() error {
 	case "menu":
 		return gui.renderMenuOptions()
 	case "main":
-		return gui.renderMergeOptions()
-	default:
-		return gui.renderGlobalOptions()
+		if gui.State.Contexts["main"] == "merging" {
+			return gui.renderMergeOptions()
+		}
 	}
+	return gui.renderGlobalOptions()
+}
+
+func (gui *Gui) handleFocusView(g *gocui.Gui, v *gocui.View) error {
+	_, err := gui.g.SetCurrentView(v.Name())
+	return err
+}
+
+func (gui *Gui) isPopupPanel(viewName string) bool {
+	return viewName == "commitMessage" || viewName == "credentials" || viewName == "confirmation" || viewName == "menu"
+}
+
+func (gui *Gui) popupPanelFocused() bool {
+	return gui.isPopupPanel(gui.currentViewName())
 }

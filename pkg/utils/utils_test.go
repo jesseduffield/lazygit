@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -204,15 +203,19 @@ type myDisplayable struct {
 type myStruct struct{}
 
 // GetDisplayStrings is a function.
-func (d *myDisplayable) GetDisplayStrings() []string {
+func (d *myDisplayable) GetDisplayStrings(isFocused bool) []string {
+	if isFocused {
+		return append(d.strings, "blah")
+	}
 	return d.strings
 }
 
 // TestGetDisplayStringArrays is a function.
 func TestGetDisplayStringArrays(t *testing.T) {
 	type scenario struct {
-		input    []Displayable
-		expected [][]string
+		input     []Displayable
+		isFocused bool
+		expected  [][]string
 	}
 
 	scenarios := []scenario{
@@ -221,21 +224,31 @@ func TestGetDisplayStringArrays(t *testing.T) {
 				Displayable(&myDisplayable{[]string{"a", "b"}}),
 				Displayable(&myDisplayable{[]string{"c", "d"}}),
 			},
+			false,
 			[][]string{{"a", "b"}, {"c", "d"}},
+		},
+		{
+			[]Displayable{
+				Displayable(&myDisplayable{[]string{"a", "b"}}),
+				Displayable(&myDisplayable{[]string{"c", "d"}}),
+			},
+			true,
+			[][]string{{"a", "b", "blah"}, {"c", "d", "blah"}},
 		},
 	}
 
 	for _, s := range scenarios {
-		assert.EqualValues(t, s.expected, getDisplayStringArrays(s.input))
+		assert.EqualValues(t, s.expected, getDisplayStringArrays(s.input, s.isFocused))
 	}
 }
 
 // TestRenderDisplayableList is a function.
 func TestRenderDisplayableList(t *testing.T) {
 	type scenario struct {
-		input          []Displayable
-		expectedString string
-		expectedError  error
+		input                []Displayable
+		isFocused            bool
+		expectedString       string
+		expectedErrorMessage string
 	}
 
 	scenarios := []scenario{
@@ -244,40 +257,57 @@ func TestRenderDisplayableList(t *testing.T) {
 				Displayable(&myDisplayable{[]string{}}),
 				Displayable(&myDisplayable{[]string{}}),
 			},
+			false,
 			"\n",
-			nil,
+			"",
 		},
 		{
 			[]Displayable{
 				Displayable(&myDisplayable{[]string{"aa", "b"}}),
 				Displayable(&myDisplayable{[]string{"c", "d"}}),
 			},
+			false,
 			"aa b\nc  d",
-			nil,
+			"",
 		},
 		{
 			[]Displayable{
 				Displayable(&myDisplayable{[]string{"a"}}),
 				Displayable(&myDisplayable{[]string{"b", "c"}}),
 			},
+			false,
 			"",
-			errors.New("Each item must return the same number of strings to display"),
+			"Each item must return the same number of strings to display",
+		},
+		{
+			[]Displayable{
+				Displayable(&myDisplayable{[]string{"a"}}),
+				Displayable(&myDisplayable{[]string{"b"}}),
+			},
+			true,
+			"a blah\nb blah",
+			"",
 		},
 	}
 
 	for _, s := range scenarios {
-		str, err := renderDisplayableList(s.input)
+		str, err := renderDisplayableList(s.input, s.isFocused)
 		assert.EqualValues(t, s.expectedString, str)
-		assert.EqualValues(t, s.expectedError, err)
+		if s.expectedErrorMessage != "" {
+			assert.EqualError(t, err, s.expectedErrorMessage)
+		} else {
+			assert.NoError(t, err)
+		}
 	}
 }
 
 // TestRenderList is a function.
 func TestRenderList(t *testing.T) {
 	type scenario struct {
-		input          interface{}
-		expectedString string
-		expectedError  error
+		input                interface{}
+		isFocused            bool
+		expectedString       string
+		expectedErrorMessage string
 	}
 
 	scenarios := []scenario{
@@ -286,28 +316,43 @@ func TestRenderList(t *testing.T) {
 				{[]string{"aa", "b"}},
 				{[]string{"c", "d"}},
 			},
+			false,
 			"aa b\nc  d",
-			nil,
+			"",
 		},
 		{
 			[]*myStruct{
 				{},
 				{},
 			},
+			false,
 			"",
-			errors.New("item does not implement the Displayable interface"),
+			"item does not implement the Displayable interface",
 		},
 		{
 			&myStruct{},
+			false,
 			"",
-			errors.New("RenderList given a non-slice type"),
+			"RenderList given a non-slice type",
+		},
+		{
+			[]*myDisplayable{
+				{[]string{"a"}},
+			},
+			true,
+			"a blah",
+			"",
 		},
 	}
 
 	for _, s := range scenarios {
-		str, err := RenderList(s.input)
+		str, err := RenderList(s.input, s.isFocused)
 		assert.EqualValues(t, s.expectedString, str)
-		assert.EqualValues(t, s.expectedError, err)
+		if s.expectedErrorMessage != "" {
+			assert.EqualError(t, err, s.expectedErrorMessage)
+		} else {
+			assert.NoError(t, err)
+		}
 	}
 }
 

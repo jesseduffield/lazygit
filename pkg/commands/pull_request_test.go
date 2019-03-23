@@ -64,7 +64,7 @@ func TestCreatePullRequest(t *testing.T) {
 				}
 
 				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?t=feature/profile-page"})
+				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1"})
 				return exec.Command("echo")
 			},
 			func(err error) {
@@ -83,7 +83,7 @@ func TestCreatePullRequest(t *testing.T) {
 				}
 
 				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?t=feature/events"})
+				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events&t=1"})
 				return exec.Command("echo")
 			},
 			func(err error) {
@@ -144,7 +144,7 @@ func TestCreatePullRequest(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCommand := newDummyGitCommand()
+			gitCommand := NewDummyGitCommand()
 			gitCommand.OSCommand.command = s.command
 			gitCommand.OSCommand.Config.GetUserConfig().Set("os.openLinkCommand", "open {{link}}")
 			dummyPullRequest := NewPullRequest(gitCommand)

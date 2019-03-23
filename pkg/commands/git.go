@@ -1,12 +1,17 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/mgutz/str"
+
+	"github.com/go-errors/errors"
+
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -27,11 +32,11 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 		}
 
 		if !os.IsNotExist(err) {
-			return err
+			return WrapError(err)
 		}
 
 		if err = chdir(".."); err != nil {
-			return err
+			return WrapError(err)
 		}
 	}
 }
@@ -63,13 +68,14 @@ type GitCommand struct {
 	Worktree           *gogit.Worktree
 	Repo               *gogit.Repository
 	Tr                 *i18n.Localizer
+	Config             config.AppConfigurer
 	getGlobalGitConfig func(string) (string, error)
 	getLocalGitConfig  func(string) (string, error)
 	removeFile         func(string) error
 }
 
 // NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) (*GitCommand, error) {
+func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*GitCommand, error) {
 	var worktree *gogit.Worktree
 	var repo *gogit.Repository
 
@@ -99,6 +105,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer) 
 		Tr:                 tr,
 		Worktree:           worktree,
 		Repo:               repo,
+		Config:             config,
 		getGlobalGitConfig: gitconfig.Global,
 		getLocalGitConfig:  gitconfig.Local,
 		removeFile:         os.RemoveAll,
@@ -143,14 +150,15 @@ func (c *GitCommand) GetStatusFiles() []*File {
 		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
 
 		file := &File{
-			Name:               filename,
-			DisplayString:      statusString,
-			HasStagedChanges:   !hasNoStagedChanges,
-			HasUnstagedChanges: unstagedChange != " ",
-			Tracked:            !untracked,
-			Deleted:            unstagedChange == "D" || stagedChange == "D",
-			HasMergeConflicts:  change == "UU",
-			Type:               c.OSCommand.FileType(filename),
+			Name:                    filename,
+			DisplayString:           statusString,
+			HasStagedChanges:        !hasNoStagedChanges,
+			HasUnstagedChanges:      unstagedChange != " ",
+			Tracked:                 !untracked,
+			Deleted:                 unstagedChange == "D" || stagedChange == "D",
+			HasMergeConflicts:       change == "UU" || change == "AA" || change == "DU",
+			HasInlineMergeConflicts: change == "UU" || change == "AA",
+			Type:                    c.OSCommand.FileType(filename),
 		}
 		files = append(files, file)
 	}
@@ -209,11 +217,11 @@ func includesInt(list []int, a int) bool {
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
 func (c *GitCommand) ResetAndClean() error {
-	if err := c.OSCommand.RunCommand("git reset --hard HEAD"); err != nil {
+	if err := c.ResetHardHead(); err != nil {
 		return err
 	}
 
-	return c.OSCommand.RunCommand("git clean -fd")
+	return c.RemoveUntrackedFiles()
 }
 
 func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
@@ -240,24 +248,19 @@ func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
 	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
 }
 
-// GetCommitsToPush Returns the sha's of the commits that have not yet been pushed
-// to the remote branch of the current branch, a map is returned to ease look up
-func (c *GitCommand) GetCommitsToPush() map[string]bool {
-	pushables := map[string]bool{}
-	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --abbrev-commit")
-	if err != nil {
-		return pushables
-	}
-	for _, p := range utils.SplitLines(o) {
-		pushables[p] = true
-	}
-
-	return pushables
-}
-
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name)))
+}
+
+// RebaseBranch interactive rebases onto a branch
+func (c *GitCommand) RebaseBranch(branchName string) error {
+	cmd, err := c.PrepareInteractiveRebaseCommand(branchName, "", false)
+	if err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
 // Fetch fetch git repo
@@ -331,12 +334,18 @@ func (c *GitCommand) usingGpg() bool {
 }
 
 // Commit commits to git
-func (c *GitCommand) Commit(message string, amend bool) (*exec.Cmd, error) {
-	amendParam := ""
-	if amend {
-		amendParam = " --amend"
+func (c *GitCommand) Commit(message string) (*exec.Cmd, error) {
+	command := fmt.Sprintf("git commit -m %s", c.OSCommand.Quote(message))
+	if c.usingGpg() {
+		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
-	command := fmt.Sprintf("git commit%s -m %s", amendParam, c.OSCommand.Quote(message))
+
+	return nil, c.OSCommand.RunCommand(command)
+}
+
+// AmendHead amends HEAD with whatever is staged in your working tree
+func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
+	command := "git commit --amend --no-edit"
 	if c.usingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
@@ -356,48 +365,8 @@ func (c *GitCommand) Push(branchName string, force bool, ask func(string) string
 		forceFlag = "--force-with-lease "
 	}
 
-	cmd := fmt.Sprintf("git push %s -u origin %s", forceFlag, branchName)
+	cmd := fmt.Sprintf("git push %s-u origin %s", forceFlag, branchName)
 	return c.OSCommand.DetectUnamePass(cmd, ask)
-}
-
-// SquashPreviousTwoCommits squashes a commit down to the one below it
-// retaining the message of the higher commit
-func (c *GitCommand) SquashPreviousTwoCommits(message string) error {
-	// TODO: test this
-	if err := c.OSCommand.RunCommand("git reset --soft HEAD^"); err != nil {
-		return err
-	}
-	// TODO: if password is required, we need to return a subprocess
-	return c.OSCommand.RunCommand(fmt.Sprintf("git commit --amend -m %s", c.OSCommand.Quote(message)))
-}
-
-// SquashFixupCommit squashes a 'FIXUP' commit into the commit beneath it,
-// retaining the commit message of the lower commit
-func (c *GitCommand) SquashFixupCommit(branchName string, shaValue string) error {
-	commands := []string{
-		fmt.Sprintf("git checkout -q %s", shaValue),
-		fmt.Sprintf("git reset --soft %s^", shaValue),
-		fmt.Sprintf("git commit --amend -C %s^", shaValue),
-		fmt.Sprintf("git rebase --onto HEAD %s %s", shaValue, branchName),
-	}
-	for _, command := range commands {
-		c.Log.Info(command)
-
-		if output, err := c.OSCommand.RunCommandWithOutput(command); err != nil {
-			ret := output
-			// We are already in an error state here so we're just going to append
-			// the output of these commands
-			output, _ := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git branch -d %s", shaValue))
-			ret += output
-			output, _ = c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git checkout %s", branchName))
-			ret += output
-
-			c.Log.Info(ret)
-			return errors.New(ret)
-		}
-	}
-
-	return nil
 }
 
 // CatFile obtains the content of a file
@@ -426,7 +395,15 @@ func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 	if tracked {
 		command = "git reset HEAD %s"
 	}
-	return c.OSCommand.RunCommand(fmt.Sprintf(command, c.OSCommand.Quote(fileName)))
+
+	// renamed files look like "file1 -> file2"
+	fileNames := strings.Split(fileName, " -> ")
+	for _, name := range fileNames {
+		if err := c.OSCommand.RunCommand(fmt.Sprintf(command, c.OSCommand.Quote(name))); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // GitStatus returns the plaintext short status of the repo
@@ -443,19 +420,43 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 	return strings.Contains(output, "conclude merge") || strings.Contains(output, "unmerged paths"), nil
 }
 
-// RemoveFile directly
-func (c *GitCommand) RemoveFile(file *File) error {
+// RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
+// and "interactive" for interactive rebase
+func (c *GitCommand) RebaseMode() (string, error) {
+	exists, err := c.OSCommand.FileExists(".git/rebase-apply")
+	if err != nil {
+		return "", err
+	}
+	if exists {
+		return "normal", nil
+	}
+	exists, err = c.OSCommand.FileExists(".git/rebase-merge")
+	if exists {
+		return "interactive", err
+	} else {
+		return "", err
+	}
+}
+
+// DiscardAllFileChanges directly
+func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
+	quotedFileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges {
-		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", file.Name)); err != nil {
+		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", quotedFileName)); err != nil {
 			return err
 		}
 	}
 	if !file.Tracked {
 		return c.removeFile(file.Name)
 	}
-	// if the file is tracked, we assume you want to just check it out
-	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", file.Name))
+	return c.DiscardUnstagedFileChanges(file)
+}
+
+// DiscardUnstagedFileChanges directly
+func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
+	quotedFileName := c.OSCommand.Quote(file.Name)
+	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", quotedFileName))
 }
 
 // Checkout checks out a branch, with --force if you set the force arg to true
@@ -470,7 +471,7 @@ func (c *GitCommand) Checkout(branch string, force bool) error {
 // AddPatch prepares a subprocess for adding a patch by patch
 // this will eventually be swapped out for a better solution inside the Gui
 func (c *GitCommand) AddPatch(filename string) *exec.Cmd {
-	return c.OSCommand.PrepareSubProcess("git", "add", "--patch", filename)
+	return c.OSCommand.PrepareSubProcess("git", "add", "--patch", c.OSCommand.Quote(filename))
 }
 
 // PrepareCommitSubProcess prepares a subprocess for `git commit`
@@ -490,78 +491,6 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
 }
 
-func (c *GitCommand) getMergeBase() (string, error) {
-	currentBranch, err := c.CurrentBranchName()
-	if err != nil {
-		return "", err
-	}
-
-	baseBranch := "master"
-	if strings.HasPrefix(currentBranch, "feature/") {
-		baseBranch = "develop"
-	}
-
-	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
-	if err != nil {
-		// swallowing error because it's not a big deal; probably because there are no commits yet
-	}
-	return output, nil
-}
-
-// GetCommits obtains the commits of the current branch
-func (c *GitCommand) GetCommits() ([]*Commit, error) {
-	pushables := c.GetCommitsToPush()
-	log := c.GetLog()
-
-	lines := utils.SplitLines(log)
-	commits := make([]*Commit, len(lines))
-	// now we can split it up and turn it into commits
-	for i, line := range lines {
-		splitLine := strings.Split(line, " ")
-		sha := splitLine[0]
-		_, pushed := pushables[sha]
-		commits[i] = &Commit{
-			Sha:           sha,
-			Name:          strings.Join(splitLine[1:], " "),
-			Pushed:        pushed,
-			DisplayString: strings.Join(splitLine, " "),
-		}
-	}
-	return c.setCommitMergedStatuses(commits)
-}
-
-func (c *GitCommand) setCommitMergedStatuses(commits []*Commit) ([]*Commit, error) {
-	ancestor, err := c.getMergeBase()
-	if err != nil {
-		return nil, err
-	}
-	if ancestor == "" {
-		return commits, nil
-	}
-	passedAncestor := false
-	for i, commit := range commits {
-		if strings.HasPrefix(ancestor, commit.Sha) {
-			passedAncestor = true
-		}
-		commits[i].Merged = passedAncestor
-	}
-	return commits, nil
-}
-
-// GetLog gets the git log (currently limited to 30 commits for performance
-// until we work out lazy loading
-func (c *GitCommand) GetLog() string {
-	// currently limiting to 30 for performance reasons
-	// TODO: add lazyloading when you scroll down
-	result, err := c.OSCommand.RunCommandWithOutput("git log --oneline -30")
-	if err != nil {
-		// assume if there is an error there are no commits yet for this branch
-		return ""
-	}
-
-	return result
-}
-
 // Ignore adds a file to the gitignore for the repo
 func (c *GitCommand) Ignore(filename string) error {
 	return c.OSCommand.AppendLineToFile(".gitignore", filename)
@@ -569,7 +498,39 @@ func (c *GitCommand) Ignore(filename string) error {
 
 // Show shows the diff of a commit
 func (c *GitCommand) Show(sha string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
+	show, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
+	if err != nil {
+		return "", err
+	}
+
+	// if this is a merge commit, we need to go a step further and get the diff between the two branches we merged
+	revList, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git rev-list -1 --merges %s^...%s", sha, sha))
+	if err != nil {
+		// turns out we get an error here when it's the first commit. We'll just return the original show
+		return show, nil
+	}
+	if len(revList) == 0 {
+		return show, nil
+	}
+
+	// we want to pull out 1a6a69a and 3b51d7c from this:
+	// commit ccc771d8b13d5b0d4635db4463556366470fd4f6
+	// Merge: 1a6a69a 3b51d7c
+	lines := utils.SplitLines(show)
+	if len(lines) < 2 {
+		return show, nil
+	}
+
+	secondLineWords := strings.Split(lines[1], " ")
+	if len(secondLineWords) < 3 {
+		return show, nil
+	}
+
+	mergeDiff, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git diff --color %s...%s", secondLineWords[1], secondLineWords[2]))
+	if err != nil {
+		return "", err
+	}
+	return show + mergeDiff, nil
 }
 
 // GetRemoteURL returns current repo remote url
@@ -593,7 +554,8 @@ func (c *GitCommand) Diff(file *File, plain bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := "--color"
-	fileName := c.OSCommand.Quote(file.Name)
+	split := strings.Split(file.Name, " -> ") // in case of a renamed file we get the new filename
+	fileName := c.OSCommand.Quote(split[len(split)-1])
 	if file.HasStagedChanges && !file.HasUnstagedChanges {
 		cachedArg = "--cached"
 	}
@@ -618,12 +580,333 @@ func (c *GitCommand) ApplyPatch(patch string) (string, error) {
 		return "", err
 	}
 
-	defer func() { _ = c.OSCommand.RemoveFile(filename) }()
+	defer func() { _ = c.OSCommand.Remove(filename) }()
 
-	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", filename))
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", c.OSCommand.Quote(filename)))
 }
 
 func (c *GitCommand) FastForward(branchName string) error {
 	upstream := "origin" // hardcoding for now
 	return c.OSCommand.RunCommand(fmt.Sprintf("git fetch %s %s:%s", upstream, branchName, branchName))
+}
+
+func (c *GitCommand) RunSkipEditorCommand(command string) error {
+	cmd := c.OSCommand.ExecutableFromString(command)
+	cmd.Env = append(
+		os.Environ(),
+		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+		"EDITOR="+c.OSCommand.GetLazygitPath(),
+	)
+	return c.OSCommand.RunExecutable(cmd)
+}
+
+// GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
+// By default we skip the editor in the case where a commit will be made
+func (c *GitCommand) GenericMerge(commandType string, command string) error {
+	return c.RunSkipEditorCommand(
+		fmt.Sprintf(
+			"git %s --%s",
+			commandType,
+			command,
+		),
+	)
+}
+
+func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, error) {
+	todo, err := c.GenerateGenericRebaseTodo(commits, index, "reword")
+	if err != nil {
+		return nil, err
+	}
+
+	return c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, false)
+}
+
+func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
+	// we must ensure that we have at least two commits after the selected one
+	if len(commits) <= index+2 {
+		// assuming they aren't picking the bottom commit
+		return errors.New(c.Tr.SLocalize("NoRoom"))
+	}
+
+	todo := ""
+	orderedCommits := append(commits[0:index], commits[index+1], commits[index])
+	for _, commit := range orderedCommits {
+		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo, true)
+	if err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunPreparedCommand(cmd)
+}
+
+func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action string) error {
+	todo, err := c.GenerateGenericRebaseTodo(commits, index, action)
+	if err != nil {
+		return err
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, true)
+	if err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunPreparedCommand(cmd)
+}
+
+// PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
+// we tell git to run lazygit to edit the todo list, and we pass the client
+// lazygit a todo string to write to the todo file
+func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (*exec.Cmd, error) {
+	ex := c.OSCommand.GetLazygitPath()
+
+	debug := "FALSE"
+	if c.OSCommand.Config.GetDebug() == true {
+		debug = "TRUE"
+	}
+
+	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive --autostash %s", baseSha))
+
+	cmd := c.OSCommand.command(splitCmd[0], splitCmd[1:]...)
+
+	gitSequenceEditor := ex
+	if todo == "" {
+		gitSequenceEditor = "true"
+	}
+
+	cmd.Env = os.Environ()
+	cmd.Env = append(
+		cmd.Env,
+		"LAZYGIT_CLIENT_COMMAND=INTERACTIVE_REBASE",
+		"LAZYGIT_REBASE_TODO="+todo,
+		"DEBUG="+debug,
+		"LANG=en_US.UTF-8",   // Force using EN as language
+		"LC_ALL=en_US.UTF-8", // Force using EN as language
+		"GIT_SEQUENCE_EDITOR="+gitSequenceEditor,
+	)
+
+	if overrideEditor {
+		cmd.Env = append(cmd.Env, "EDITOR="+ex)
+	}
+
+	return cmd, nil
+}
+
+func (c *GitCommand) HardReset(baseSha string) error {
+	return c.OSCommand.RunCommand("git reset --hard " + baseSha)
+}
+
+func (c *GitCommand) SoftReset(baseSha string) error {
+	return c.OSCommand.RunCommand("git reset --soft " + baseSha)
+}
+
+func (c *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, index int, action string) (string, error) {
+	if len(commits) <= index+1 {
+		// assuming they aren't picking the bottom commit
+		return "", errors.New(c.Tr.SLocalize("CannotRebaseOntoFirstCommit"))
+	}
+
+	todo := ""
+	for i, commit := range commits[0 : index+1] {
+		a := "pick"
+		if i == index {
+			a = action
+		}
+		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
+	}
+	return todo, nil
+}
+
+// AmendTo amends the given commit with whatever files are staged
+func (c *GitCommand) AmendTo(sha string) error {
+	if err := c.OSCommand.RunCommand(fmt.Sprintf("git commit --fixup=%s", sha)); err != nil {
+		return err
+	}
+	return c.RunSkipEditorCommand(
+		fmt.Sprintf(
+			"git rebase --interactive --autostash --autosquash %s^", sha,
+		),
+	)
+}
+
+// EditRebaseTodo sets the action at a given index in the git-rebase-todo file
+func (c *GitCommand) EditRebaseTodo(index int, action string) error {
+	fileName := ".git/rebase-merge/git-rebase-todo"
+	bytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
+
+	content := strings.Split(string(bytes), "\n")
+	commitCount := c.getTodoCommitCount(content)
+
+	// we have the most recent commit at the bottom whereas the todo file has
+	// it at the bottom, so we need to subtract our index from the commit count
+	contentIndex := commitCount - 1 - index
+	splitLine := strings.Split(content[contentIndex], " ")
+	content[contentIndex] = action + " " + strings.Join(splitLine[1:], " ")
+	result := strings.Join(content, "\n")
+
+	return ioutil.WriteFile(fileName, []byte(result), 0644)
+}
+
+func (c *GitCommand) getTodoCommitCount(content []string) int {
+	// count lines that are not blank and are not comments
+	commitCount := 0
+	for _, line := range content {
+		if line != "" && !strings.HasPrefix(line, "#") {
+			commitCount++
+		}
+	}
+	return commitCount
+}
+
+// MoveTodoDown moves a rebase todo item down by one position
+func (c *GitCommand) MoveTodoDown(index int) error {
+	fileName := ".git/rebase-merge/git-rebase-todo"
+	bytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
+
+	content := strings.Split(string(bytes), "\n")
+	commitCount := c.getTodoCommitCount(content)
+	contentIndex := commitCount - 1 - index
+
+	rearrangedContent := append(content[0:contentIndex-1], content[contentIndex], content[contentIndex-1])
+	rearrangedContent = append(rearrangedContent, content[contentIndex+1:]...)
+	result := strings.Join(rearrangedContent, "\n")
+
+	return ioutil.WriteFile(fileName, []byte(result), 0644)
+}
+
+// Revert reverts the selected commit by sha
+func (c *GitCommand) Revert(sha string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git revert %s", sha))
+}
+
+// CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
+func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
+	todo := ""
+	for _, commit := range commits {
+		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand("HEAD", todo, false)
+	if err != nil {
+		return err
+	}
+
+	return c.OSCommand.RunPreparedCommand(cmd)
+}
+
+// GetCommitFiles get the specified commit files
+func (c *GitCommand) GetCommitFiles(commitSha string) ([]*CommitFile, error) {
+	cmd := fmt.Sprintf("git show --pretty= --name-only %s", commitSha)
+	files, err := c.OSCommand.RunCommandWithOutput(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	commitFiles := make([]*CommitFile, 0)
+
+	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
+		commitFiles = append(commitFiles, &CommitFile{
+			Sha:           commitSha,
+			Name:          file,
+			DisplayString: file,
+		})
+	}
+
+	return commitFiles, nil
+}
+
+// ShowCommitFile get the diff of specified commit file
+func (c *GitCommand) ShowCommitFile(commitSha, fileName string) (string, error) {
+	cmd := fmt.Sprintf("git show --color %s -- %s", commitSha, fileName)
+	return c.OSCommand.RunCommandWithOutput(cmd)
+}
+
+// CheckoutFile checks out the file for the given commit
+func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
+	cmd := fmt.Sprintf("git checkout %s %s", commitSha, fileName)
+	return c.OSCommand.RunCommand(cmd)
+}
+
+// DiscardOldFileChanges discards changes to a file from an old commit
+func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, fileName string) error {
+	if len(commits)-1 < commitIndex {
+		return errors.New("index outside of range of commits")
+	}
+
+	// we can make this GPG thing possible it just means we need to do this in two parts:
+	// one where we handle the possibility of a credential request, and the other
+	// where we continue the rebase
+	if c.usingGpg() {
+		return errors.New(c.Tr.SLocalize("DisabledForGPG"))
+	}
+
+	commitSha := commits[commitIndex].Sha
+
+	todo, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
+	if err != nil {
+		return err
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand(commitSha+"^", todo, true)
+	if err != nil {
+		return err
+	}
+
+	if err := c.OSCommand.RunPreparedCommand(cmd); err != nil {
+		return err
+	}
+
+	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
+	if err := c.OSCommand.RunCommand(fmt.Sprintf("git cat-file -e HEAD^:%s", fileName)); err != nil {
+		if err := c.OSCommand.Remove(fileName); err != nil {
+			return err
+		}
+		if err := c.StageFile(fileName); err != nil {
+			return err
+		}
+	} else {
+		if err := c.CheckoutFile("HEAD^", fileName); err != nil {
+			return err
+		}
+	}
+
+	// amend the commit
+	cmd, err = c.AmendHead()
+	if cmd != nil {
+		return errors.New("received unexpected pointer to cmd")
+	}
+	if err != nil {
+		return err
+	}
+
+	// continue
+	return c.GenericMerge("rebase", "continue")
+}
+
+// DiscardAnyUnstagedFileChanges discards any unstages file changes via `git checkout -- .`
+func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
+	return c.OSCommand.RunCommand("git checkout -- .")
+}
+
+// RemoveUntrackedFiles runs `git clean -fd`
+func (c *GitCommand) RemoveUntrackedFiles() error {
+	return c.OSCommand.RunCommand("git clean -fd")
+}
+
+// ResetHardHead runs `git reset --hard HEAD`
+func (c *GitCommand) ResetHardHead() error {
+	return c.OSCommand.RunCommand("git reset --hard HEAD")
+}
+
+// ResetSoftHead runs `git reset --soft HEAD`
+func (c *GitCommand) ResetSoftHead() error {
+	return c.OSCommand.RunCommand("git reset --soft HEAD")
 }

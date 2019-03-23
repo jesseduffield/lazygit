@@ -1,7 +1,9 @@
 package gui
 
 import (
-	"errors"
+	"strings"
+
+	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/gocui"
 )
@@ -11,7 +13,7 @@ func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 		bindingsGlobal, bindingsPanel []*Binding
 	)
 
-	bindings := gui.GetKeybindings()
+	bindings := gui.GetCurrentKeybindings()
 
 	for _, binding := range bindings {
 		if binding.GetKey() != "" && binding.Description != "" {
@@ -47,5 +49,5 @@ func (gui *Gui) handleCreateOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 		return bindings[index].Handler(g, v)
 	}
 
-	return gui.createMenu(bindings, handleMenuPress)
+	return gui.createMenu(strings.Title(gui.Tr.SLocalize("menu")), bindings, len(bindings), handleMenuPress)
 }

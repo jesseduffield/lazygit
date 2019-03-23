@@ -25,6 +25,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "DiffTitle",
 			Other: "Diff",
 		}, &i18n.Message{
+			ID:    "LogTitle",
+			Other: "Log",
+		}, &i18n.Message{
 			ID:    "FilesTitle",
 			Other: "Files",
 		}, &i18n.Message{
@@ -36,6 +39,24 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "StashTitle",
 			Other: "Stash",
+		}, &i18n.Message{
+			ID:    "StagingMainTitle",
+			Other: `Stage Lines/Hunks`,
+		}, &i18n.Message{
+			ID:    "MergingMainTitle",
+			Other: "Resolve merge conflicts",
+		}, &i18n.Message{
+			ID:    "MainTitle",
+			Other: "Main",
+		}, &i18n.Message{
+			ID:    "StagingTitle",
+			Other: "Staging",
+		}, &i18n.Message{
+			ID:    "MergingTitle",
+			Other: "Merging",
+		}, &i18n.Message{
+			ID:    "NormalTitle",
+			Other: "Normal",
 		}, &i18n.Message{
 			ID:    "CommitMessage",
 			Other: "Commit message",
@@ -56,7 +77,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "amend last commit",
 		}, &i18n.Message{
 			ID:    "SureToAmend",
-			Other: "Are you sure you want to amend last commit? You can change commit message from commits panel.",
+			Other: "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",
 		}, &i18n.Message{
 			ID:    "NoCommitToAmend",
 			Other: "There's no commit to amend.",
@@ -155,10 +176,10 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Fetching...",
 		}, &i18n.Message{
 			ID:    "FileNoMergeCons",
-			Other: "This file has no merge conflicts",
+			Other: "This file has no inline merge conflicts",
 		}, &i18n.Message{
-			ID:    "SureResetHardHead",
-			Other: "Are you sure you want `reset --hard HEAD` and `clean -fd`? You may lose changes",
+			ID:    "softReset",
+			Other: "soft reset",
 		}, &i18n.Message{
 			ID:    "SureTo",
 			Other: "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
@@ -189,6 +210,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ForceDeleteBranchMessage",
 			Other: "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
+		}, &i18n.Message{
+			ID:    "rebaseBranch",
+			Other: "rebase branch",
+		}, &i18n.Message{
+			ID:    "CantRebaseOntoSelf",
+			Other: "You cannot rebase a branch onto itself",
 		}, &i18n.Message{
 			ID:    "CantMergeBranchIntoItself",
 			Other: "You cannot merge a branch into itself",
@@ -260,13 +287,40 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Fixup",
 		}, &i18n.Message{
 			ID:    "SureFixupThisCommit",
-			Other: "Are you sure you want to fixup this commit? The commit beneath will be squashed up into this one",
+			Other: "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
+		}, &i18n.Message{
+			ID:    "SureSquashThisCommit",
+			Other: "Are you sure you want to squash this commit into the commit below?",
+		}, &i18n.Message{
+			ID:    "Squash",
+			Other: "Squash",
+		}, &i18n.Message{
+			ID:    "pickCommit",
+			Other: "pick commit (when mid-rebase)",
+		}, &i18n.Message{
+			ID:    "revertCommit",
+			Other: "revert commit",
 		}, &i18n.Message{
 			ID:    "OnlyRenameTopCommit",
-			Other: "Can only rename topmost commit",
+			Other: "Can only reword topmost commit from within lazygit. Use shift+R instead",
 		}, &i18n.Message{
 			ID:    "renameCommit",
-			Other: "rename commit",
+			Other: "reword commit",
+		}, &i18n.Message{
+			ID:    "deleteCommit",
+			Other: "delete commit",
+		}, &i18n.Message{
+			ID:    "moveDownCommit",
+			Other: "move commit down one",
+		}, &i18n.Message{
+			ID:    "moveUpCommit",
+			Other: "move commit up one",
+		}, &i18n.Message{
+			ID:    "editCommit",
+			Other: "edit commit",
+		}, &i18n.Message{
+			ID:    "amendToCommit",
+			Other: "amend commit with staged changes",
 		}, &i18n.Message{
 			ID:    "renameCommitEditor",
 			Other: "rename commit with editor",
@@ -334,9 +388,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
 			Other: "No view matching newLineFocused switch statement",
 		}, &i18n.Message{
-			ID:    "settingPreviewsViewTo",
-			Other: "setting previous view to: {{.oldViewName}}",
-		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "new focused view is {{.newFocusedView}}",
 		}, &i18n.Message{
@@ -345,9 +396,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoChangedFiles",
 			Other: "No changed files",
-		}, &i18n.Message{
-			ID:    "ClearFilePanel",
-			Other: "Clear file panel",
 		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge aborted",
@@ -388,9 +436,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "GitconfigParseErr",
 			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		}, &i18n.Message{
-			ID:    "removeFile",
-			Other: `delete if untracked / checkout if tracked`,
-		}, &i18n.Message{
 			ID:    "editFile",
 			Other: `edit file`,
 		}, &i18n.Message{
@@ -402,9 +447,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "refreshFiles",
 			Other: `refresh files`,
-		}, &i18n.Message{
-			ID:    "resetHard",
-			Other: `reset hard and remove untracked files`,
 		}, &i18n.Message{
 			ID:    "mergeIntoCurrentBranch",
 			Other: `merge into currently checked out branch`,
@@ -439,9 +481,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "FileStagingRequirements",
 			Other: `Can only stage individual lines for tracked files with unstaged changes`,
 		}, &i18n.Message{
-			ID:    "StagingTitle",
-			Other: `Staging`,
-		}, &i18n.Message{
 			ID:    "StageHunk",
 			Other: `stage hunk`,
 		}, &i18n.Message{
@@ -462,6 +501,222 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "Fetching",
 			Other: "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
+		}, &i18n.Message{
+			ID:    "FoundConflicts",
+			Other: "Damn, conflicts! To abort press 'esc', otherwise press 'enter'",
+		}, &i18n.Message{
+			ID:    "FoundConflictsTitle",
+			Other: "Auto-merge failed",
+		}, &i18n.Message{
+			ID:    "Undo",
+			Other: "undo",
+		}, &i18n.Message{
+			ID:    "PickHunk",
+			Other: "pick hunk",
+		}, &i18n.Message{
+			ID:    "PickBothHunks",
+			Other: "pick both hunks",
+		}, &i18n.Message{
+			ID:    "ViewMergeRebaseOptions",
+			Other: "view merge/rebase options",
+		}, &i18n.Message{
+			ID:    "NotMergingOrRebasing",
+			Other: "You are currently neither rebasing nor merging",
+		}, &i18n.Message{
+			ID:    "RecentRepos",
+			Other: "recent repositories",
+		}, &i18n.Message{
+			ID:    "MergeOptionsTitle",
+			Other: "Merge Options",
+		}, &i18n.Message{
+			ID:    "RebaseOptionsTitle",
+			Other: "Rebase Options",
+		}, &i18n.Message{
+			ID:    "ConflictsResolved",
+			Other: "all merge conflicts resolved. Continue?",
+		}, &i18n.Message{
+			ID:    "RebasingTitle",
+			Other: "Rebasing",
+		}, &i18n.Message{
+			ID:    "MergingTitle",
+			Other: "Merging",
+		}, &i18n.Message{
+			ID:    "ConfirmRebase",
+			Other: "Are you sure you want to rebase {{.checkedOutBranch}} onto {{.selectedBranch}}?",
+		}, &i18n.Message{
+			ID:    "ConfirmMerge",
+			Other: "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
+		}, &i18n.Message{}, &i18n.Message{
+			ID:    "FwdNoUpstream",
+			Other: "Cannot fast-forward a branch with no upstream",
+		}, &i18n.Message{
+			ID:    "FwdCommitsToPush",
+			Other: "Cannot fast-forward a branch with commits to push",
+		}, &i18n.Message{
+			ID:    "ErrorOccurred",
+			Other: "An error occurred! Please create an issue at https://github.com/jesseduffield/lazygit/issues",
+		}, &i18n.Message{
+			ID:    "NoRoom",
+			Other: "Not enough room",
+		}, &i18n.Message{
+			ID:    "YouAreHere",
+			Other: "YOU ARE HERE",
+		}, &i18n.Message{
+			ID:    "rewordNotSupported",
+			Other: "rewording commits while interactively rebasing is not currently supported",
+		}, &i18n.Message{
+			ID:    "cherryPickCopy",
+			Other: "copy commit (cherry-pick)",
+		}, &i18n.Message{
+			ID:    "cherryPickCopyRange",
+			Other: "copy commit range (cherry-pick)",
+		}, &i18n.Message{
+			ID:    "pasteCommits",
+			Other: "paste commits (cherry-pick)",
+		}, &i18n.Message{
+			ID:    "SureCherryPick",
+			Other: "Are you sure you want to cherry-pick the copied commits onto this branch?",
+		}, &i18n.Message{
+			ID:    "CherryPick",
+			Other: "Cherry-Pick",
+		}, &i18n.Message{
+			ID:    "CannotRebaseOntoFirstCommit",
+			Other: "You cannot interactive rebase onto the first commit",
+		}, &i18n.Message{
+			ID:    "Donate",
+			Other: "Donate",
+		}, &i18n.Message{
+			ID:    "PrevLine",
+			Other: "select previous line",
+		}, &i18n.Message{
+			ID:    "NextLine",
+			Other: "select next line",
+		}, &i18n.Message{
+			ID:    "PrevHunk",
+			Other: "select previous hunk",
+		}, &i18n.Message{
+			ID:    "NextHunk",
+			Other: "select next hunk",
+		}, &i18n.Message{
+			ID:    "PrevConflict",
+			Other: "select previous conflict",
+		}, &i18n.Message{
+			ID:    "NextConflict",
+			Other: "select next conflict",
+		}, &i18n.Message{
+			ID:    "SelectTop",
+			Other: "select top hunk",
+		}, &i18n.Message{
+			ID:    "SelectBottom",
+			Other: "select bottom hunk",
+		}, &i18n.Message{
+			ID:    "ScrollDown",
+			Other: "scroll down",
+		}, &i18n.Message{
+			ID:    "ScrollUp",
+			Other: "scroll up",
+		}, &i18n.Message{
+			ID:    "AmendCommitTitle",
+			Other: "Amend Commit",
+		}, &i18n.Message{
+			ID:    "AmendCommitPrompt",
+			Other: "Are you sure you want to amend this commit with your staged files?",
+		}, &i18n.Message{
+			ID:    "DeleteCommitTitle",
+			Other: "Delete Commit",
+		}, &i18n.Message{
+			ID:    "DeleteCommitPrompt",
+			Other: "Are you sure you want to delete this commit?",
+		}, &i18n.Message{
+			ID:    "SquashingStatus",
+			Other: "squashing",
+		}, &i18n.Message{
+			ID:    "FixingStatus",
+			Other: "fixing up",
+		}, &i18n.Message{
+			ID:    "DeletingStatus",
+			Other: "deleting",
+		}, &i18n.Message{
+			ID:    "MovingStatus",
+			Other: "moving",
+		}, &i18n.Message{
+			ID:    "RebasingStatus",
+			Other: "rebasing",
+		}, &i18n.Message{
+			ID:    "AmendingStatus",
+			Other: "amending",
+		}, &i18n.Message{
+			ID:    "CherryPickingStatus",
+			Other: "cherry-picking",
+		}, &i18n.Message{
+			ID:    "CommitFiles",
+			Other: "Commit files",
+		}, &i18n.Message{
+			ID:    "viewCommitFiles",
+			Other: "view commit's files",
+		}, &i18n.Message{
+			ID:    "CommitFilesTitle",
+			Other: "Commit files",
+		}, &i18n.Message{
+			ID:    "goBack",
+			Other: "go back",
+		}, &i18n.Message{
+			ID:    "NoCommiteFiles",
+			Other: "No files for this commit",
+		}, &i18n.Message{
+			ID:    "checkoutCommitFile",
+			Other: "checkout file",
+		}, &i18n.Message{
+			ID:    "discardOldFileChange",
+			Other: "discard this commit's changes to this file",
+		}, &i18n.Message{
+			ID:    "DiscardFileChangesTitle",
+			Other: "Discard file changes",
+		}, &i18n.Message{
+			ID:    "DiscardFileChangesPrompt",
+			Other: "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
+		}, &i18n.Message{
+			ID:    "DisabledForGPG",
+			Other: "Feature not available for users using GPG",
+		}, &i18n.Message{
+			ID:    "CreateRepo",
+			Other: "Not in a git repository. Create a new git repository? (y/n): ",
+		}, &i18n.Message{
+			ID:    "AutoStashTitle",
+			Other: "Autostash?",
+		}, &i18n.Message{
+			ID:    "AutoStashPrompt",
+			Other: "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
+		}, &i18n.Message{
+			ID:    "StashPrefix",
+			Other: "Auto-stashing changes for ",
+		}, &i18n.Message{
+			ID:    "viewDiscardOptions",
+			Other: "view 'discard changes' options",
+		}, &i18n.Message{
+			ID:    "cancel",
+			Other: "cancel",
+		}, &i18n.Message{
+			ID:    "discardAllChanges",
+			Other: "discard all changes",
+		}, &i18n.Message{
+			ID:    "discardUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardAllChangesToAllFiles",
+			Other: "nuke working tree",
+		}, &i18n.Message{
+			ID:    "discardAnyUnstagedChanges",
+			Other: "discard unstaged changes",
+		}, &i18n.Message{
+			ID:    "discardUntrackedFiles",
+			Other: "discard untracked files",
+		}, &i18n.Message{
+			ID:    "hardReset",
+			Other: "hard reset",
+		}, &i18n.Message{
+			ID:    "viewResetOptions",
+			Other: `view reset options`,
 		},
 	)
 }

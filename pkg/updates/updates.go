@@ -2,7 +2,6 @@ package updates
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +11,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/go-errors/errors"
 
 	"github.com/kardianos/osext"
 

@@ -2,23 +2,10 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.11
+      - image: circleci/golang:1.12
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
-      - run:
-          name: Ensure go.mod file is up to date
-          command: |
-            export GO111MODULE=on
-            rm go.sum
-            mv go.mod /tmp/
-            go mod init
-            export GO111MODULE=auto
-
-            if [ $(diff /tmp/go.mod go.mod|wc -l) -gt 0 ]; then
-              diff /tmp/go.mod go.mod
-              exit 1;
-            fi
       - run:
           name: Run gofmt -s
           command: |
@@ -28,22 +15,22 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - pkg-cache-{{ checksum "Gopkg.lock" }}-v3
+            - pkg-cache-{{ checksum "Gopkg.lock" }}-v4
       - run:
           name: Run tests
           command: |
             ./test.sh
       - run:
+          name: Push on codecov result
+          command: |
+            bash <(curl -s https://codecov.io/bash)
+      - run:
           name: Compile project on every platform
           command: |
             go get github.com/mitchellh/gox
             gox -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
-      - run:
-          name: Push on codecov result
-          command: |
-            bash <(curl -s https://codecov.io/bash)
       - save_cache:
-          key: pkg-cache-{{ checksum "Gopkg.lock" }}-v3
+          key: pkg-cache-{{ checksum "Gopkg.lock" }}-v4
           paths:
             - ~/.cache/go-build
 

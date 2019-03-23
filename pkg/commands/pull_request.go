@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/go-errors/errors"
 )
 
 // Service is a service that repository is on (Github, Bitbucket, ...)
@@ -33,7 +34,7 @@ func getServices() []*Service {
 		},
 		{
 			Name:           "bitbucket.org",
-			PullRequestURL: "https://bitbucket.org/%s/%s/pull-requests/new?t=%s",
+			PullRequestURL: "https://bitbucket.org/%s/%s/pull-requests/new?source=%s&t=1",
 		},
 		{
 			Name:           "gitlab.com",

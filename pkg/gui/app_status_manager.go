@@ -1,6 +1,9 @@
 package gui
 
-import "github.com/jesseduffield/lazygit/pkg/utils"
+import (
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+)
 
 type appStatus struct {
 	name       string
@@ -41,4 +44,27 @@ func (m *statusManager) getStatusString() string {
 		return topStatus.name + " " + utils.Loader()
 	}
 	return topStatus.name
+}
+
+// WithWaitingStatus wraps a function and shows a waiting status while the function is still executing
+func (gui *Gui) WithWaitingStatus(name string, f func() error) error {
+	go func() {
+		gui.g.Update(func(g *gocui.Gui) error {
+			gui.statusManager.addWaitingStatus(name)
+			return nil
+		})
+
+		defer gui.g.Update(func(g *gocui.Gui) error {
+			gui.statusManager.removeStatus(name)
+			return nil
+		})
+
+		if err := f(); err != nil {
+			gui.g.Update(func(g *gocui.Gui) error {
+				return gui.createErrorPanel(gui.g, err.Error())
+			})
+		}
+	}()
+
+	return nil
 }

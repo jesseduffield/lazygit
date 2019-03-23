@@ -5,17 +5,20 @@
 package gocui
 
 import (
-	"errors"
+	standardErrors "errors"
+	"time"
+
+	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/termbox-go"
 )
 
 var (
 	// ErrQuit is used to decide if the MainLoop finished successfully.
-	ErrQuit = errors.New("quit")
+	ErrQuit = standardErrors.New("quit")
 
 	// ErrUnknownView allows to assert if a View must be initialized.
-	ErrUnknownView = errors.New("unknown view")
+	ErrUnknownView = standardErrors.New("unknown view")
 )
 
 // OutputMode represents the terminal's output mode (8 or 256 colors).
@@ -46,6 +49,7 @@ type Gui struct {
 	keybindings []*keybinding
 	maxX, maxY  int
 	outputMode  OutputMode
+	stop        chan struct{}
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -89,6 +93,8 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 	g.outputMode = mode
 	termbox.SetOutputMode(termbox.OutputMode(mode))
 
+	g.stop = make(chan struct{}, 0)
+
 	g.tbEvents = make(chan termbox.Event, 20)
 	g.userEvents = make(chan userEvent, 20)
 
@@ -107,6 +113,9 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 // Close finalizes the library. It should be called after a successful
 // initialization and when gocui is not needed anymore.
 func (g *Gui) Close() {
+	go func() {
+		g.stop <- struct{}{}
+	}()
 	termbox.Close()
 }
 
@@ -163,7 +172,7 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 	v.SelBgColor, v.SelFgColor = g.SelBgColor, g.SelFgColor
 	v.Overlaps = overlaps
 	g.views = append(g.views, v)
-	return v, ErrUnknownView
+	return v, errors.Wrap(ErrUnknownView, 0)
 }
 
 // SetViewOnTop sets the given view on top of the existing ones.
@@ -175,7 +184,7 @@ func (g *Gui) SetViewOnTop(name string) (*View, error) {
 			return v, nil
 		}
 	}
-	return nil, ErrUnknownView
+	return nil, errors.Wrap(ErrUnknownView, 0)
 }
 
 // SetViewOnBottom sets the given view on bottom of the existing ones.
@@ -187,7 +196,7 @@ func (g *Gui) SetViewOnBottom(name string) (*View, error) {
 			return v, nil
 		}
 	}
-	return nil, ErrUnknownView
+	return nil, errors.Wrap(ErrUnknownView, 0)
 }
 
 // Views returns all the views in the GUI.
@@ -203,7 +212,7 @@ func (g *Gui) View(name string) (*View, error) {
 			return v, nil
 		}
 	}
-	return nil, ErrUnknownView
+	return nil, errors.Wrap(ErrUnknownView, 0)
 }
 
 // ViewByPosition returns a pointer to a view matching the given position, or
@@ -216,7 +225,7 @@ func (g *Gui) ViewByPosition(x, y int) (*View, error) {
 			return v, nil
 		}
 	}
-	return nil, ErrUnknownView
+	return nil, errors.Wrap(ErrUnknownView, 0)
 }
 
 // ViewPosition returns the coordinates of the view with the given name, or
@@ -227,7 +236,7 @@ func (g *Gui) ViewPosition(name string) (x0, y0, x1, y1 int, err error) {
 			return v.x0, v.y0, v.x1, v.y1, nil
 		}
 	}
-	return 0, 0, 0, 0, ErrUnknownView
+	return 0, 0, 0, 0, errors.Wrap(ErrUnknownView, 0)
 }
 
 // DeleteView deletes a view by name.
@@ -238,7 +247,7 @@ func (g *Gui) DeleteView(name string) error {
 			return nil
 		}
 	}
-	return ErrUnknownView
+	return errors.Wrap(ErrUnknownView, 0)
 }
 
 // SetCurrentView gives the focus to a given view.
@@ -249,7 +258,7 @@ func (g *Gui) SetCurrentView(name string) (*View, error) {
 			return v, nil
 		}
 	}
-	return nil, ErrUnknownView
+	return nil, errors.Wrap(ErrUnknownView, 0)
 }
 
 // CurrentView returns the currently focused view, or nil if no view
@@ -364,12 +373,19 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
+	g.loaderTick()
 	if err := g.flush(); err != nil {
 		return err
 	}
+
 	go func() {
 		for {
-			g.tbEvents <- termbox.PollEvent()
+			select {
+			case <-g.stop:
+				return
+			default:
+				g.tbEvents <- termbox.PollEvent()
+			}
 		}
 	}()
 
@@ -704,4 +720,17 @@ func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (g *Gui) loaderTick() {
+	go func() {
+		for range time.Tick(time.Millisecond * 50) {
+			for _, view := range g.Views() {
+				if view.HasLoader {
+					g.userEvents <- userEvent{func(g *Gui) error { return nil }}
+					break
+				}
+			}
+		}
+	}()
 }
