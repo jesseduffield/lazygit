@@ -10,7 +10,7 @@ import (
 // list panel functions
 
 func (gui *Gui) handleMenuSelect(g *gocui.Gui, v *gocui.View) error {
-	return gui.focusPoint(0, gui.State.Panels.Menu.SelectedLine, v)
+	return gui.focusPoint(0, gui.State.Panels.Menu.SelectedLine, gui.State.MenuItemCount, v)
 }
 
 func (gui *Gui) handleMenuNextLine(g *gocui.Gui, v *gocui.View) error {
@@ -51,8 +51,9 @@ func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
 	return gui.returnFocus(g, v)
 }
 
-func (gui *Gui) createMenu(title string, items interface{}, handlePress func(int) error) error {
+func (gui *Gui) createMenu(title string, items interface{}, itemCount int, handlePress func(int) error) error {
 	isFocused := gui.g.CurrentView().Name() == "menu"
+	gui.State.MenuItemCount = itemCount
 	list, err := utils.RenderList(items, isFocused)
 	if err != nil {
 		return err

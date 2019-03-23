@@ -31,7 +31,7 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 	if stashEntry == nil {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoStashEntries"))
 	}
-	if err := gui.focusPoint(0, gui.State.Panels.Stash.SelectedLine, v); err != nil {
+	if err := gui.focusPoint(0, gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries), v); err != nil {
 		return err
 	}
 	go func() {

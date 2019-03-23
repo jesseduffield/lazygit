@@ -34,7 +34,7 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
 	}
 	branch := gui.getSelectedBranch()
-	if err := gui.focusPoint(0, gui.State.Panels.Branches.SelectedLine, v); err != nil {
+	if err := gui.focusPoint(0, gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches), v); err != nil {
 		return err
 	}
 	go func() {
