@@ -11,17 +11,18 @@ import (
 // runSyncOrAsyncCommand takes the output of a command that may have returned
 // either no error, an error, or a subprocess to execute, and if a subprocess
 // needs to be set on the gui object, it does so, and then returns the error
-func (gui *Gui) runSyncOrAsyncCommand(sub *exec.Cmd, err error) error {
+// the bool returned tells us whether the calling code should continue
+func (gui *Gui) runSyncOrAsyncCommand(sub *exec.Cmd, err error) (bool, error) {
 	if err != nil {
 		if err != gui.Errors.ErrSubProcess {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return false, gui.createErrorPanel(gui.g, err.Error())
 		}
 	}
 	if sub != nil {
 		gui.SubProcess = sub
-		return gui.Errors.ErrSubProcess
+		return false, gui.Errors.ErrSubProcess
 	}
-	return nil
+	return true, nil
 }
 
 func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
@@ -29,8 +30,12 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	if message == "" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CommitWithoutMessageErr"))
 	}
-	if err := gui.runSyncOrAsyncCommand(gui.GitCommand.Commit(message)); err != nil {
+	ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.Commit(message))
+	if err != nil {
 		return err
+	}
+	if !ok {
+		return nil
 	}
 
 	v.Clear()
