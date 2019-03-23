@@ -328,8 +328,12 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 	question := gui.Tr.SLocalize("SureToAmend")
 
 	return gui.createConfirmationPanel(g, filesView, title, question, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead()); err != nil {
+		ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
+		if err != nil {
 			return err
+		}
+		if !ok {
+			return nil
 		}
 
 		return gui.refreshSidePanels(g)
@@ -355,7 +359,8 @@ func (gui *Gui) PrepareSubProcess(g *gocui.Gui, commands ...string) {
 }
 
 func (gui *Gui) editFile(filename string) error {
-	return gui.runSyncOrAsyncCommand(gui.OSCommand.EditFile(filename))
+	_, err := gui.runSyncOrAsyncCommand(gui.OSCommand.EditFile(filename))
+	return err
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
