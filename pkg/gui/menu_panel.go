@@ -82,6 +82,8 @@ func (gui *Gui) createMenu(title string, items interface{}, itemCount int, handl
 	}
 
 	for _, key := range []gocui.Key{gocui.KeySpace, gocui.KeyEnter} {
+		_ = gui.g.DeleteKeybinding("menu", key, gocui.ModNone)
+
 		if err := gui.g.SetKeybinding("menu", key, gocui.ModNone, wrappedHandlePress); err != nil {
 			return err
 		}
