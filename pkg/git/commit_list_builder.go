@@ -31,16 +31,18 @@ type CommitListBuilder struct {
 	OSCommand           *commands.OSCommand
 	Tr                  *i18n.Localizer
 	CherryPickedCommits []*commands.Commit
+	DiffEntries         []*commands.Commit
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand, tr *i18n.Localizer, cherryPickedCommits []*commands.Commit) (*CommitListBuilder, error) {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand, tr *i18n.Localizer, cherryPickedCommits []*commands.Commit, diffEntries []*commands.Commit) (*CommitListBuilder, error) {
 	return &CommitListBuilder{
 		Log:                 log,
 		GitCommand:          gitCommand,
 		OSCommand:           osCommand,
 		Tr:                  tr,
 		CherryPickedCommits: cherryPickedCommits,
+		DiffEntries:         diffEntries,
 	}, nil
 }
 
@@ -94,6 +96,14 @@ func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 	commits, err = c.setCommitCherryPickStatuses(commits)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, commit := range commits {
+		for _, entry := range c.DiffEntries {
+			if entry.Sha == commit.Sha {
+				commit.Status = "selected"
+			}
+		}
 	}
 
 	return commits, nil
