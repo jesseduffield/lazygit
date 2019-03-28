@@ -30,10 +30,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Commits",
 		}, &i18n.Message{
 			ID:    "CommitsDiffTitle",
-			Other: "Commits(specific diff mode)",
+			Other: "Commits (specific diff mode)",
 		}, &i18n.Message{
 			ID:    "CommitsDiff",
-			Other: "diff specific commits",
+			Other: "select commit to diff with another commit",
 		}, &i18n.Message{
 			ID:    "StashTitle",
 			Other: "Stash",

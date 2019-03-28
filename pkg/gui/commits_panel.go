@@ -54,7 +54,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits)
+		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
 		if err != nil {
 			return err
 		}
@@ -62,13 +62,6 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		if err != nil {
 			return err
 		}
-
-		for _, commit := range commits {
-			if _, has := gui.State.DiffEntries[commit.Sha]; has {
-				commit.Selected = true
-			}
-		}
-
 		gui.State.Commits = commits
 
 		gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
@@ -472,25 +465,20 @@ func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	// if already selected commit delete
-	if _, has := gui.State.DiffEntries[commit.Sha]; has {
-		delete(gui.State.DiffEntries, commit.Sha)
-		gui.setDiffMode()
+	if idx, has := gui.hasCommit(gui.State.DiffEntries, commit.Sha); has {
+		gui.State.DiffEntries = gui.unchooseCommit(gui.State.DiffEntries, idx)
 	} else {
 		if len(gui.State.DiffEntries) == selectLimit {
-			return gui.createErrorPanel(gui.g, "you have already selected two commit, please deselect one of two")
+			gui.State.DiffEntries = gui.unchooseCommit(gui.State.DiffEntries, 0)
 		}
-		gui.State.DiffEntries[commit.Sha] = commit
-		gui.setDiffMode()
+		gui.State.DiffEntries = append(gui.State.DiffEntries, commit)
 	}
 
-	// if selected tow commits, display diff between
-	if len(gui.State.DiffEntries) == selectLimit {
-		var entries []string
-		for _, entry := range gui.State.DiffEntries {
-			entries = append(entries, entry.Sha)
-		}
+	gui.setDiffMode()
 
-		commitText, err := gui.GitCommand.DiffCommits(entries[0], entries[1])
+	// if selected two commits, display diff between
+	if len(gui.State.DiffEntries) == selectLimit {
+		commitText, err := gui.GitCommand.DiffCommits(gui.State.DiffEntries[0].Sha, gui.State.DiffEntries[1].Sha)
 
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
@@ -513,4 +501,17 @@ func (gui *Gui) setDiffMode() {
 	}
 
 	gui.refreshCommits(gui.g)
+}
+
+func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool) {
+	for idx, commit := range commits {
+		if commit.Sha == target {
+			return idx, true
+		}
+	}
+	return -1, false
+}
+
+func (gui *Gui) unchooseCommit(commits []*commands.Commit, i int) []*commands.Commit {
+	return append(commits[:i], commits[i+1:]...)
 }
