@@ -277,8 +277,8 @@ func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCrede
 }
 
 // ResetToCommit reset to commit
-func (c *GitCommand) ResetToCommit(sha string) error {
-	return c.OSCommand.RunCommand(fmt.Sprintf("git reset %s", sha))
+func (c *GitCommand) ResetToCommit(sha string, strength string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git reset --%s %s", strength, sha))
 }
 
 // NewBranch create new branch

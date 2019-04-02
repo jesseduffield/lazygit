@@ -327,7 +327,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Key:         'g',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleResetToCommit,
+			Handler:     gui.handleCreateCommitResetMenu,
 			Description: gui.Tr.SLocalize("resetToThisCommit"),
 		}, {
 			ViewName:    "commits",
