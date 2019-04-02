@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/fatih/color"
 	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/gocui"
@@ -124,7 +125,8 @@ func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error 
 		if commit == nil {
 			panic(errors.New(gui.Tr.SLocalize("NoCommitsThisBranch")))
 		}
-		if err := gui.GitCommand.ResetToCommit(commit.Sha); err != nil {
+
+		if err := gui.GitCommand.ResetToCommit(commit.Sha, "mixed"); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
 		if err := gui.refreshCommits(g); err != nil {
@@ -553,4 +555,51 @@ func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) er
 			return gui.handleGenericMergeCommandResult(err)
 		})
 	}, nil)
+}
+
+type resetOption struct {
+	description string
+	command     string
+}
+
+// GetDisplayStrings is a function.
+func (r *resetOption) GetDisplayStrings(isFocused bool) []string {
+	return []string{r.description, color.New(color.FgRed).Sprint(r.command)}
+}
+
+func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoCommitsThisBranch"))
+	}
+
+	strengths := []string{"soft", "mixed", "hard"}
+	options := make([]*resetOption, len(strengths))
+	for i, strength := range strengths {
+		options[i] = &resetOption{
+			description: fmt.Sprintf("%s reset", strength),
+			command:     fmt.Sprintf("reset --%s %s", strength, commit.Sha),
+		}
+	}
+
+	handleMenuPress := func(index int) error {
+		if err := gui.GitCommand.ResetToCommit(commit.Sha, strengths[index]); err != nil {
+			return err
+		}
+
+		if err := gui.refreshCommits(g); err != nil {
+			return err
+		}
+		if err := gui.refreshFiles(); err != nil {
+			return err
+		}
+		if err := gui.resetOrigin(gui.getCommitsView()); err != nil {
+			return err
+		}
+
+		gui.State.Panels.Commits.SelectedLine = 0
+		return gui.handleCommitSelect(g, gui.getCommitsView())
+	}
+
+	return gui.createMenu(fmt.Sprintf("%s %s", gui.Tr.SLocalize("resetTo"), commit.Sha), options, len(options), handleMenuPress)
 }
