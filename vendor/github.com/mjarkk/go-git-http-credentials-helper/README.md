@@ -82,10 +82,6 @@ Beside all of that this is the offical way to do these kinds of things with git 
 TL;DR Yes.  
 The long answer is no, it's probebly possible to break this libary. Though i could not succeed in breaking this and if someone did break it would be still a 50% change to get any input due to security measures. It's easier for someone to add a keylogger in your terminal than to break this.
 
-> Why so menny functions to inplement this?  
-
-Most things are the result of security measures to check if it's really your program that is asking for someones password.
-
 ## Known issues:
 - The credential manager on windows can break this if the popup is closed by the user. As user the best thing to do in that case is to remove the credential manager from git: `git config --system --unset credential.helper`
 - This does not work with the `go run ...` 

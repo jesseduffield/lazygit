@@ -3,10 +3,10 @@
 	"ignore": "",
 	"package": [
 		{
-			"checksumSHA1": "7pVEhbo71w+EaNCsrKY5DJe1TSY=",
+			"checksumSHA1": "C5Wl8U5Yzq+bCCdO3mw6cBb9DpU=",
 			"path": "github.com/mjarkk/go-git-http-credentials-helper",
-			"revision": "ebb2ad755634be3d61b4d89c21522779141e1433",
-			"revisionTime": "2019-03-17T13:38:40Z"
+			"revision": "3a9b4b9a7893bbcd4af41e01cda6aa75ecb85ea7",
+			"revisionTime": "2019-04-03T12:59:02Z"
 		},
 		{
 			"checksumSHA1": "dhI27jf7kp8x9Q3Ah/l5FeWbPfk=",

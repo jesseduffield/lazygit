@@ -5,13 +5,14 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
 	"io"
 	"math/big"
 	mathRand "math/rand"
+
+	"golang.org/x/crypto/sha3"
 )
 
 // encrypt text using the key
@@ -55,7 +56,9 @@ func decrypt(data []byte, key string) (string, error) {
 }
 
 func createGCM(key string) (cipher.AEAD, error) {
-	sha256Key := sha256.Sum256([]byte(key))
+	h := sha3.New256()
+	h.Write([]byte(key))
+	sha256Key := h.Sum(nil)
 	aesCipher, err := aes.NewCipher(sha256Key[:])
 	if err != nil {
 		return nil, err
@@ -72,12 +75,12 @@ func encryptWithPublicKey(publicKey, data string) ([]byte, error) {
 		return nil, err
 	}
 
-	return rsa.EncryptOAEP(sha256.New(), rand.Reader, pub, []byte(data), []byte{})
+	return rsa.EncryptOAEP(sha3.New256(), rand.Reader, pub, []byte(data), []byte{})
 }
 
 // decryptWithPrivateKey decrypts data to a string using a private key
 func decryptWithPrivateKey(privateKey *rsa.PrivateKey, data []byte) (string, error) {
-	output, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privateKey, data, []byte{})
+	output, err := rsa.DecryptOAEP(sha3.New256(), rand.Reader, privateKey, data, []byte{})
 	if err != nil {
 		return "", err
 	}
