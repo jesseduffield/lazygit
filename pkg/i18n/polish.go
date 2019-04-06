@@ -549,6 +549,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CannotRebaseOntoFirstCommit",
 			Other: "You cannot interactive rebase onto the first commit",
 		}, &i18n.Message{
+			ID:    "CannotSquashOntoSecondCommit",
+			Other: "You cannot squash/fixup onto the second commit",
+		}, &i18n.Message{
 			ID:    "Donate",
 			Other: "Donate",
 		}, &i18n.Message{

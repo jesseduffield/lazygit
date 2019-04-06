@@ -613,12 +613,12 @@ func (c *GitCommand) GenericMerge(commandType string, command string) error {
 }
 
 func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, error) {
-	todo, err := c.GenerateGenericRebaseTodo(commits, index, "reword")
+	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, "reword")
 	if err != nil {
 		return nil, err
 	}
 
-	return c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, false)
+	return c.PrepareInteractiveRebaseCommand(sha, todo, false)
 }
 
 func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
@@ -643,12 +643,12 @@ func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
 }
 
 func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action string) error {
-	todo, err := c.GenerateGenericRebaseTodo(commits, index, action)
+	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, action)
 	if err != nil {
 		return err
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+1].Sha, todo, true)
+	cmd, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
 	if err != nil {
 		return err
 	}
@@ -702,21 +702,31 @@ func (c *GitCommand) SoftReset(baseSha string) error {
 	return c.OSCommand.RunCommand("git reset --soft " + baseSha)
 }
 
-func (c *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, index int, action string) (string, error) {
-	if len(commits) <= index+1 {
-		// assuming they aren't picking the bottom commit
-		return "", errors.New(c.Tr.SLocalize("CannotRebaseOntoFirstCommit"))
+func (c *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, actionIndex int, action string) (string, string, error) {
+	baseIndex := actionIndex + 1
+
+	if len(commits) <= baseIndex {
+		return "", "", errors.New(c.Tr.SLocalize("CannotRebaseOntoFirstCommit"))
+	}
+
+	if action == "squash" || action == "fixup" {
+		baseIndex++
+
+		if len(commits) <= baseIndex {
+			return "", "", errors.New(c.Tr.SLocalize("CannotSquashOntoSecondCommit"))
+		}
 	}
 
 	todo := ""
-	for i, commit := range commits[0 : index+1] {
+	for i, commit := range commits[0:baseIndex] {
 		a := "pick"
-		if i == index {
+		if i == actionIndex {
 			a = action
 		}
 		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
-	return todo, nil
+
+	return todo, commits[baseIndex].Sha, nil
 }
 
 // AmendTo amends the given commit with whatever files are staged
@@ -845,14 +855,12 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 		return errors.New(c.Tr.SLocalize("DisabledForGPG"))
 	}
 
-	commitSha := commits[commitIndex].Sha
-
-	todo, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
+	todo, sha, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
 	if err != nil {
 		return err
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(commitSha+"^", todo, true)
+	cmd, err := c.PrepareInteractiveRebaseCommand(sha+"^", todo, true)
 	if err != nil {
 		return err
 	}
