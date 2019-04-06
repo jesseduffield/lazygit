@@ -21,7 +21,6 @@ Jira? This is the app for you!
 ### Homebrew
 
 ```sh
-brew tap jesseduffield/lazygit
 brew install lazygit
 ```
 
