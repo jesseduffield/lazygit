@@ -863,7 +863,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 		return err
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(sha+"^", todo, true)
+	cmd, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
 	if err != nil {
 		return err
 	}

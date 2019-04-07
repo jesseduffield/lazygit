@@ -1817,7 +1817,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 			"test999.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git rebase --interactive --autostash 123456^",
+					Expect:  "git rebase --interactive --autostash abcdef",
 					Replace: "echo",
 				},
 				{
