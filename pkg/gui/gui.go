@@ -64,20 +64,19 @@ type Teml i18n.Teml
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g              *gocui.Gui
-	Log            *logrus.Entry
-	GitCommand     *commands.GitCommand
-	OSCommand      *commands.OSCommand
-	SubProcess     *exec.Cmd
-	subProcessChan chan (*exec.Cmd)
-	State          guiState
-	Config         config.AppConfigurer
-	Tr             *i18n.Localizer
-	Errors         SentinelErrors
-	Updater        *updates.Updater
-	statusManager  *statusManager
-	credentials    credentials
-	waitForIntro   sync.WaitGroup
+	g             *gocui.Gui
+	Log           *logrus.Entry
+	GitCommand    *commands.GitCommand
+	OSCommand     *commands.OSCommand
+	SubProcess    *exec.Cmd
+	State         guiState
+	Config        config.AppConfigurer
+	Tr            *i18n.Localizer
+	Errors        SentinelErrors
+	Updater       *updates.Updater
+	statusManager *statusManager
+	credentials   credentials
+	waitForIntro  sync.WaitGroup
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -533,8 +532,6 @@ func (gui *Gui) loadNewRepo() error {
 			return err
 		}
 	}
-
-	go gui.listenForSubprocesses()
 	return nil
 }
 
@@ -644,24 +641,6 @@ func (gui *Gui) Run() error {
 
 	err = g.MainLoop()
 	return err
-}
-
-func (gui *Gui) listenForSubprocesses() {
-	// every time there is a subprocess, we're going to halt the execution of the UI via an update block, and wait for the command to finish
-	gui.subProcessChan = make(chan *exec.Cmd, 0)
-	for {
-		subProcess := <-gui.subProcessChan
-		gui.g.Update(func(*gocui.Gui) error {
-			subProcess.Stdin = os.Stdin
-			output, _ := runCommand(subProcess)
-			gui.State.SubProcessOutput = output
-
-			subProcess.Stdout = ioutil.Discard
-			subProcess.Stderr = ioutil.Discard
-			subProcess.Stdin = nil
-			return nil
-		})
-	}
 }
 
 // RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
