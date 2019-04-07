@@ -324,6 +324,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("fixupCommit"),
 		}, {
 			ViewName:    "commits",
+			Key:         'F',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateFixupCommit,
+			Description: gui.Tr.SLocalize("createFixupCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         'S',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSquashAllAboveFixupCommits,
+			Description: gui.Tr.SLocalize("squashAboveCommits"),
+		}, {
+			ViewName:    "commits",
 			Key:         'd',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitDelete,

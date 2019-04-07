@@ -683,6 +683,24 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "viewResetOptions",
 			Other: `view reset options`,
+		}, &i18n.Message{
+			ID:    "createFixupCommit",
+			Other: `create fixup commit for this commit`,
+		}, &i18n.Message{
+			ID:    "squashAboveCommits",
+			Other: `squash above commits`,
+		}, &i18n.Message{
+			ID:    "SquashAboveCommits",
+			Other: `Squash above commits`,
+		}, &i18n.Message{
+			ID:    "SureSquashAboveCommits",
+			Other: `Are you sure you want to squash all fixup! commits above {{.commit}}?`,
+		}, &i18n.Message{
+			ID:    "CreateFixupCommit",
+			Other: `Create fixup commit`,
+		}, &i18n.Message{
+			ID:    "SureCreateFixupCommit",
+			Other: `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
 		},
 	)
 }
