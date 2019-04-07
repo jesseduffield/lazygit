@@ -601,10 +601,6 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
-	// gui.subProcessChan <- gui.OSCommand.RunCustomCommand(`read -p "Name: " name; echo $name; read -p "Okay: " okay; echo $okay`)
-
-	// return nil
-
 	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("CustomCommand"), func(g *gocui.Gui, v *gocui.View) error {
 		command := gui.trimmedContent(v)
 		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
