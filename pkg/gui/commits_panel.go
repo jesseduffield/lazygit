@@ -515,3 +515,42 @@ func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool)
 func (gui *Gui) unchooseCommit(commits []*commands.Commit, i int) []*commands.Commit {
 	return append(commits[:i], commits[i+1:]...)
 }
+
+func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return nil
+	}
+
+	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("CreateFixupCommit"), gui.Tr.TemplateLocalize(
+		"SureCreateFixupCommit",
+		Teml{
+			"commit": commit.Sha,
+		},
+	), func(g *gocui.Gui, v *gocui.View) error {
+		if err := gui.GitCommand.CreateFixupCommit(commit.Sha); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+
+		return gui.refreshSidePanels(gui.g)
+	}, nil)
+}
+
+func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) error {
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return nil
+	}
+
+	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("SquashAboveCommits"), gui.Tr.TemplateLocalize(
+		"SureSquashAboveCommits",
+		Teml{
+			"commit": commit.Sha,
+		},
+	), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("SquashingStatus"), func() error {
+			err := gui.GitCommand.SquashAllAboveFixupCommits(commit.Sha)
+			return gui.handleGenericMergeCommandResult(err)
+		})
+	}, nil)
+}
