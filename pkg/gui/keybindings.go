@@ -239,6 +239,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleGitFetch,
 			Description: gui.Tr.SLocalize("fetch"),
 		}, {
+			ViewName:    "files",
+			Key:         'X',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCustomCommand,
+			Description: gui.Tr.SLocalize("executeCustomCommand"),
+		}, {
 			ViewName:    "branches",
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
@@ -322,6 +328,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitFixup,
 			Description: gui.Tr.SLocalize("fixupCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         'F',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateFixupCommit,
+			Description: gui.Tr.SLocalize("createFixupCommit"),
+		}, {
+			ViewName:    "commits",
+			Key:         'S',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSquashAllAboveFixupCommits,
+			Description: gui.Tr.SLocalize("squashAboveCommits"),
 		}, {
 			ViewName:    "commits",
 			Key:         'd',

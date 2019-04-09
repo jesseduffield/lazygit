@@ -731,14 +731,11 @@ func (c *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, actionIndex in
 
 // AmendTo amends the given commit with whatever files are staged
 func (c *GitCommand) AmendTo(sha string) error {
-	if err := c.OSCommand.RunCommand(fmt.Sprintf("git commit --fixup=%s", sha)); err != nil {
+	if err := c.CreateFixupCommit(sha); err != nil {
 		return err
 	}
-	return c.RunSkipEditorCommand(
-		fmt.Sprintf(
-			"git rebase --interactive --autostash --autosquash %s^", sha,
-		),
-	)
+
+	return c.SquashAllAboveFixupCommits(sha)
 }
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
@@ -923,4 +920,20 @@ func (c *GitCommand) ResetSoftHead() error {
 func (c *GitCommand) DiffCommits(sha1, sha2 string) (string, error) {
 	cmd := fmt.Sprintf("git diff --color %s %s", sha1, sha2)
 	return c.OSCommand.RunCommandWithOutput(cmd)
+}
+
+// CreateFixupCommit creates a commit that fixes up a previous commit
+func (c *GitCommand) CreateFixupCommit(sha string) error {
+	cmd := fmt.Sprintf("git commit --fixup=%s", sha)
+	return c.OSCommand.RunCommand(cmd)
+}
+
+// SquashAllAboveFixupCommits squashes all fixup! commits above the given one
+func (c *GitCommand) SquashAllAboveFixupCommits(sha string) error {
+	return c.RunSkipEditorCommand(
+		fmt.Sprintf(
+			"git rebase --interactive --autostash --autosquash %s^",
+			sha,
+		),
+	)
 }

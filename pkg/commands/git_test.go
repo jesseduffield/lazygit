@@ -2066,3 +2066,38 @@ func TestGitCommandResetHardHead(t *testing.T) {
 		})
 	}
 }
+
+// TestGitCommandCreateFixupCommit is a function.
+func TestGitCommandCreateFixupCommit(t *testing.T) {
+	type scenario struct {
+		testName string
+		sha      string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			"12345",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git commit --fixup=12345`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.CreateFixupCommit(s.sha))
+		})
+	}
+}

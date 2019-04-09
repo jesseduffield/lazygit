@@ -599,3 +599,11 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.createMenu("", options, len(options), handleMenuPress)
 }
+
+func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
+	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("CustomCommand"), func(g *gocui.Gui, v *gocui.View) error {
+		command := gui.trimmedContent(v)
+		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
+		return gui.Errors.ErrSubProcess
+	})
+}
