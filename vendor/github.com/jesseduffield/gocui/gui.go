@@ -610,6 +610,9 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 	}
 
 	start := v.x1 - 5 - len(v.Subtitle)
+	if start < v.x0 {
+		return nil
+	}
 	for i, ch := range v.Subtitle {
 		x := start + i
 		if x >= v.x1 {
