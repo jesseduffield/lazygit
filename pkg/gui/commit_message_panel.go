@@ -30,7 +30,12 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	if message == "" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CommitWithoutMessageErr"))
 	}
-	ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.Commit(message))
+	flags := ""
+	skipHookPrefix := gui.Config.GetUserConfig().GetString("git.skipHookPrefix")
+	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
+		flags = "--no-verify"
+	}
+	ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.Commit(message, flags))
 	if err != nil {
 		return err
 	}
