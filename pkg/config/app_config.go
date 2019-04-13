@@ -248,6 +248,7 @@ func GetDefaultConfig() []byte {
   git:
     merging:
       manualCommit: false
+    skipHookPrefix: 'WIP'
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often a update is checked for
