@@ -154,6 +154,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitPress,
 			Description: gui.Tr.SLocalize("CommitChanges"),
+		},
+		{
+			ViewName:    "files",
+			Key:         'w',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleWIPCommitPress,
+			Description: gui.Tr.SLocalize("commitChangesWithoutHook"),
 		}, {
 			ViewName:    "files",
 			Key:         'A',

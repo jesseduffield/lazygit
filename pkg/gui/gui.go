@@ -408,7 +408,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if gui.getCommitMessageView() == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width/2, height/2, 0); err != nil {
+		if commitMessageView, err := g.SetView("commitMessage", width, height, width*2, height*2, 0); err != nil {
 			if err.Error() != "unknown view" {
 				return err
 			}
@@ -422,7 +422,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if check, _ := g.View("credentials"); check == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if credentialsView, err := g.SetView("credentials", 0, 0, width/2, height/2, 0); err != nil {
+		if credentialsView, err := g.SetView("credentials", width, height, width*2, height*2, 0); err != nil {
 			if err.Error() != "unknown view" {
 				return err
 			}
