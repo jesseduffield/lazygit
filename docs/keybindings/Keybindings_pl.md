@@ -25,16 +25,15 @@
   <kbd>A</kbd>: zmień ostatnie zatwierdzenie
   <kbd>C</kbd>: commituj zmiany używając edytora z gita
   <kbd>space</kbd>: przełącz zatwierdzenie
-  <kbd>d</kbd>: usuń jeśli nie śledzony / przełącz jeśli śledzony
+  <kbd>d</kbd>: view 'discard changes' options
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
   <kbd>i</kbd>: dodaj do .gitignore
   <kbd>r</kbd>: odśwież pliki
   <kbd>S</kbd>: przechowaj pliki
-  <kbd>s</kbd>: soft reset to last commit
   <kbd>a</kbd>: przełącz wszystkie zatwierdzenia
   <kbd>t</kbd>: dodaj łatkę
-  <kbd>D</kbd>: zresetuj twardo i usuń niepotwierdzone pliki
+  <kbd>D</kbd>: view reset options
   <kbd>enter</kbd>: zatwierdź pojedyncze linie
   <kbd>f</kbd>: fetch
 </pre>
@@ -72,6 +71,7 @@
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>enter</kbd>: view commit's files
+  <kbd>space</kbd>: diff specific commits
 </pre>
 
 ## Schowek

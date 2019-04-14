@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"bytes"
+	"io"
 	"math"
 	"sync"
 
@@ -103,7 +105,8 @@ type branchPanelState struct {
 }
 
 type commitPanelState struct {
-	SelectedLine int
+	SelectedLine     int
+	SpecificDiffMode bool
 }
 
 type stashPanelState struct {
@@ -135,6 +138,7 @@ type guiState struct {
 	Commits             []*commands.Commit
 	StashEntries        []*commands.StashEntry
 	CommitFiles         []*commands.CommitFile
+	DiffEntries         []*commands.Commit
 	MenuItemCount       int // can't store the actual list because it's of interface{} type
 	PreviousView        string
 	Platform            commands.Platform
@@ -143,6 +147,7 @@ type guiState struct {
 	WorkingTreeState    string // one of "merging", "rebasing", "normal"
 	Contexts            map[string]string
 	CherryPickedCommits []*commands.Commit
+	SubProcessOutput    string
 }
 
 // NewGui builds a new gui handler
@@ -154,6 +159,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		Commits:             make([]*commands.Commit, 0),
 		CherryPickedCommits: make([]*commands.Commit, 0),
 		StashEntries:        make([]*commands.StashEntry, 0),
+		DiffEntries:         make([]*commands.Commit, 0),
 		Platform:            *oSCommand.Platform,
 		Panels: &panelStates{
 			Files:       &filePanelState{SelectedLine: -1},
@@ -402,7 +408,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if gui.getCommitMessageView() == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if commitMessageView, err := g.SetView("commitMessage", 0, 0, width/2, height/2, 0); err != nil {
+		if commitMessageView, err := g.SetView("commitMessage", width, height, width*2, height*2, 0); err != nil {
 			if err.Error() != "unknown view" {
 				return err
 			}
@@ -416,7 +422,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if check, _ := g.View("credentials"); check == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if credentialsView, err := g.SetView("credentials", 0, 0, width/2, height/2, 0); err != nil {
+		if credentialsView, err := g.SetView("credentials", width, height, width*2, height*2, 0); err != nil {
 			if err.Error() != "unknown view" {
 				return err
 			}
@@ -454,30 +460,29 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		// these are only called once (it's a place to put all the things you want
-		// to happen on startup after the screen is first rendered)
-		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
-		if err := gui.updateRecentRepoList(); err != nil {
+		// doing this here because it'll only happen once
+		if err := gui.loadNewRepo(); err != nil {
 			return err
 		}
-		gui.waitForIntro.Done()
+	}
 
-		if _, err := gui.g.SetCurrentView(filesView.Name()); err != nil {
-			return err
-		}
-
-		if err := gui.refreshSidePanels(gui.g); err != nil {
+	if gui.g.CurrentView() == nil {
+		if _, err := gui.g.SetCurrentView(gui.getFilesView().Name()); err != nil {
 			return err
 		}
 
-		if err := gui.switchFocus(g, nil, filesView); err != nil {
+		if err := gui.switchFocus(gui.g, nil, gui.getFilesView()); err != nil {
 			return err
 		}
+	}
 
-		if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-			if err := gui.promptAnonymousReporting(); err != nil {
-				return err
-			}
+	if gui.State.SubProcessOutput != "" {
+		output := gui.State.SubProcessOutput
+		gui.State.SubProcessOutput = ""
+		x, y := gui.g.Size()
+		// if we just came back from vim, we don't want vim's output to show up in our popup
+		if float64(len(output))*1.5 < float64(x*y) {
+			return gui.createMessagePanel(gui.g, nil, "Output", output)
 		}
 	}
 
@@ -509,6 +514,25 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// this will let you see these branches as prettified json
 	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
 	return gui.resizeCurrentPopupPanel(g)
+}
+
+func (gui *Gui) loadNewRepo() error {
+	gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+	if err := gui.updateRecentRepoList(); err != nil {
+		return err
+	}
+	gui.waitForIntro.Done()
+
+	if err := gui.refreshSidePanels(gui.g); err != nil {
+		return err
+	}
+
+	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
+		if err := gui.promptAnonymousReporting(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
@@ -631,9 +655,11 @@ func (gui *Gui) RunWithSubprocesses() error {
 				continue
 			} else if err == gui.Errors.ErrSubProcess {
 				gui.SubProcess.Stdin = os.Stdin
-				gui.SubProcess.Stdout = os.Stdout
-				gui.SubProcess.Stderr = os.Stderr
-				gui.SubProcess.Run()
+				output, err := gui.runCommand(gui.SubProcess)
+				if err != nil {
+					return err
+				}
+				gui.State.SubProcessOutput = output
 				gui.SubProcess.Stdout = ioutil.Discard
 				gui.SubProcess.Stderr = ioutil.Discard
 				gui.SubProcess.Stdin = nil
@@ -644,6 +670,46 @@ func (gui *Gui) RunWithSubprocesses() error {
 		}
 	}
 	return nil
+}
+
+// adapted from https://blog.kowalczyk.info/article/wOYk/advanced-command-execution-in-go-with-osexec.html
+func (gui *Gui) runCommand(cmd *exec.Cmd) (string, error) {
+	var stdoutBuf bytes.Buffer
+	stdoutIn, _ := cmd.StdoutPipe()
+	stderrIn, _ := cmd.StderrPipe()
+
+	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
+	stderr := io.MultiWriter(os.Stderr, &stdoutBuf)
+	err := cmd.Start()
+	if err != nil {
+		return "", err
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		if _, err := io.Copy(stdout, stdoutIn); err != nil {
+			gui.Log.Error(err)
+		}
+
+		wg.Done()
+	}()
+
+	if _, err := io.Copy(stderr, stderrIn); err != nil {
+		return "", err
+	}
+
+	wg.Wait()
+
+	if err := cmd.Wait(); err != nil {
+		// not handling the error explicitly because usually we're going to see it
+		// in the output anyway
+		gui.Log.Error(err)
+	}
+
+	outStr := stdoutBuf.String()
+	return outStr, nil
 }
 
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {

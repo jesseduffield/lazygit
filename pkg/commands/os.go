@@ -297,3 +297,8 @@ func SetupClient(log *logrus.Entry) {
 		log.Errorln(err)
 	})
 }
+
+// RunCustomCommand returns the pointer to a custom command
+func (c *OSCommand) RunCustomCommand(command string) *exec.Cmd {
+	return c.PrepareSubProcess(c.Platform.shell, c.Platform.shellArg, command)
+}

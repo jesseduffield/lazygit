@@ -801,6 +801,7 @@ func TestGitCommandCommit(t *testing.T) {
 		command            func(string, ...string) *exec.Cmd
 		getGlobalGitConfig func(string) (string, error)
 		test               func(*exec.Cmd, error)
+		flags              string
 	}
 
 	scenarios := []scenario{
@@ -808,7 +809,7 @@ func TestGitCommandCommit(t *testing.T) {
 			"Commit using gpg",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "bash", cmd)
-				assert.EqualValues(t, []string{"-c", `git commit -m 'test'`}, args)
+				assert.EqualValues(t, []string{"-c", `git commit  -m 'test'`}, args)
 
 				return exec.Command("echo")
 			},
@@ -819,6 +820,7 @@ func TestGitCommandCommit(t *testing.T) {
 				assert.NotNil(t, cmd)
 				assert.Nil(t, err)
 			},
+			"",
 		},
 		{
 			"Commit without using gpg",
@@ -835,6 +837,24 @@ func TestGitCommandCommit(t *testing.T) {
 				assert.Nil(t, cmd)
 				assert.Nil(t, err)
 			},
+			"",
+		},
+		{
+			"Commit with --no-verify flag",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"commit", "--no-verify", "-m", "test"}, args)
+
+				return exec.Command("echo")
+			},
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.Nil(t, cmd)
+				assert.Nil(t, err)
+			},
+			"--no-verify",
 		},
 		{
 			"Commit without using gpg with an error",
@@ -851,6 +871,7 @@ func TestGitCommandCommit(t *testing.T) {
 				assert.Nil(t, cmd)
 				assert.Error(t, err)
 			},
+			"",
 		},
 	}
 
@@ -859,7 +880,7 @@ func TestGitCommandCommit(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.Commit("test"))
+			s.test(gitCmd.Commit("test", s.flags))
 		})
 	}
 }
@@ -1817,7 +1838,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 			"test999.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git rebase --interactive --autostash 123456^",
+					Expect:  "git rebase --interactive --autostash abcdef",
 					Replace: "echo",
 				},
 				{
@@ -2063,6 +2084,41 @@ func TestGitCommandResetHardHead(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
 			s.test(gitCmd.ResetHardHead())
+		})
+	}
+}
+
+// TestGitCommandCreateFixupCommit is a function.
+func TestGitCommandCreateFixupCommit(t *testing.T) {
+	type scenario struct {
+		testName string
+		sha      string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			"12345",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git commit --fixup=12345`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.command = s.command
+			s.test(gitCmd.CreateFixupCommit(s.sha))
 		})
 	}
 }

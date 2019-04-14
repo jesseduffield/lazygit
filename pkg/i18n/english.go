@@ -37,6 +37,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitsTitle",
 			Other: "Commits",
 		}, &i18n.Message{
+			ID:    "CommitsDiffTitle",
+			Other: "Commits (specific diff mode)",
+		}, &i18n.Message{
+			ID:    "CommitsDiff",
+			Other: "select commit to diff with another commit",
+		}, &i18n.Message{
 			ID:    "StashTitle",
 			Other: "Stash",
 		}, &i18n.Message{
@@ -583,6 +589,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CannotRebaseOntoFirstCommit",
 			Other: "You cannot interactive rebase onto the first commit",
 		}, &i18n.Message{
+			ID:    "CannotSquashOntoSecondCommit",
+			Other: "You cannot squash/fixup onto the second commit",
+		}, &i18n.Message{
 			ID:    "Donate",
 			Other: "Donate",
 		}, &i18n.Message{
@@ -717,6 +726,36 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "viewResetOptions",
 			Other: `view reset options`,
+		}, &i18n.Message{
+			ID:    "createFixupCommit",
+			Other: `create fixup commit for this commit`,
+		}, &i18n.Message{
+			ID:    "squashAboveCommits",
+			Other: `squash above commits`,
+		}, &i18n.Message{
+			ID:    "SquashAboveCommits",
+			Other: `Squash above commits`,
+		}, &i18n.Message{
+			ID:    "SureSquashAboveCommits",
+			Other: `Are you sure you want to squash all fixup! commits above {{.commit}}?`,
+		}, &i18n.Message{
+			ID:    "CreateFixupCommit",
+			Other: `Create fixup commit`,
+		}, &i18n.Message{
+			ID:    "SureCreateFixupCommit",
+			Other: `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
+		}, &i18n.Message{
+			ID:    "executeCustomCommand",
+			Other: "execute custom command",
+		}, &i18n.Message{
+			ID:    "CustomCommand",
+			Other: "Custom Command:",
+		}, &i18n.Message{
+			ID:    "commitChangesWithoutHook",
+			Other: "commit changes without pre-commit hook",
+		}, &i18n.Message{
+			ID:    "SkipHookPrefixNotConfigured",
+			Other: "You have not configured a commit message prefix for skipping hooks. Set `git.skipHookPrefix = 'WIP'` in your config",
 		},
 	)
 }

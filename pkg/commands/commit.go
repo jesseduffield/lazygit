@@ -9,7 +9,7 @@ import (
 type Commit struct {
 	Sha           string
 	Name          string
-	Status        string // one of "unpushed", "pushed", "merged", or "rebasing"
+	Status        string // one of "unpushed", "pushed", "merged", "rebasing" or "selected"
 	DisplayString string
 	Action        string // one of "", "pick", "edit", "squash", "reword", "drop", "fixup"
 	Copied        bool   // to know if this commit is ready to be cherry-picked somewhere
@@ -23,6 +23,7 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 	blue := color.New(color.FgBlue)
 	cyan := color.New(color.FgCyan)
 	white := color.New(color.FgWhite)
+	magenta := color.New(color.FgMagenta)
 
 	// for some reason, setting the background to blue pads out the other commits
 	// horizontally. For the sake of accessibility I'm considering this a feature,
@@ -39,6 +40,8 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 		shaColor = green
 	case "rebasing":
 		shaColor = blue
+	case "selected":
+		shaColor = magenta
 	default:
 		shaColor = white
 	}

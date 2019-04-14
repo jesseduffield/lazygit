@@ -25,16 +25,15 @@
   <kbd>A</kbd>: wijzig laatste commit
   <kbd>C</kbd>: commit veranderingen met de git editor
   <kbd>space</kbd>: toggle staged
-  <kbd>d</kbd>: Verwijder als untracked / uitchecken wordt gevolgd (ga weg)
+  <kbd>d</kbd>: view 'discard changes' options
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
   <kbd>i</kbd>: voeg toe aan .gitignore
   <kbd>r</kbd>: refresh bestanden
   <kbd>S</kbd>: stash-bestanden
-  <kbd>s</kbd>: soft reset to last commit
   <kbd>a</kbd>: toggle staged alle
   <kbd>t</kbd>: bewerkingen toevoegen
-  <kbd>D</kbd>: harde reset and verwijderen ongevolgde bestanden
+  <kbd>D</kbd>: view reset options
   <kbd>enter</kbd>: stage individuele hunks/lijnen
   <kbd>f</kbd>: fetch
 </pre>
@@ -72,6 +71,7 @@
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>enter</kbd>: view commit's files
+  <kbd>space</kbd>: diff specific commits
 </pre>
 
 ## Stash

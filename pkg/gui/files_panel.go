@@ -274,6 +274,22 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshFiles()
 }
 
+func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error {
+	skipHookPreifx := gui.Config.GetUserConfig().GetString("git.skipHookPrefix")
+	if skipHookPreifx == "" {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("SkipHookPrefixNotConfigured"))
+	}
+
+	if err := gui.renderString(g, "commitMessage", skipHookPreifx); err != nil {
+		return err
+	}
+	if err := gui.getCommitMessageView().SetCursor(len(skipHookPreifx), 0); err != nil {
+		return err
+	}
+
+	return gui.handleCommitPress(g, filesView)
+}
+
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	if len(gui.stagedFiles()) == 0 && gui.State.WorkingTreeState == "normal" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
@@ -598,4 +614,12 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.createMenu("", options, len(options), handleMenuPress)
+}
+
+func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
+	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("CustomCommand"), func(g *gocui.Gui, v *gocui.View) error {
+		command := gui.trimmedContent(v)
+		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
+		return gui.Errors.ErrSubProcess
+	})
 }
