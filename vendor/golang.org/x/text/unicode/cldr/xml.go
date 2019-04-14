@@ -1237,7 +1237,7 @@ type TimeZoneNames struct {
 	} `xml:"metazone"`
 }
 
-// LocaleDisplayNames specifies localized display names for for scripts, languages,
+// LocaleDisplayNames specifies localized display names for scripts, languages,
 // countries, currencies, and variants.
 type LocaleDisplayNames struct {
 	Common

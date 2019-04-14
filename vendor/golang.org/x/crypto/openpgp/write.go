@@ -271,6 +271,7 @@ func Encrypt(ciphertext io.Writer, to []*Entity, signed *Entity, hints *FileHint
 	// These are the possible hash functions that we'll use for the signature.
 	candidateHashes := []uint8{
 		hashToHashId(crypto.SHA256),
+		hashToHashId(crypto.SHA384),
 		hashToHashId(crypto.SHA512),
 		hashToHashId(crypto.SHA1),
 		hashToHashId(crypto.RIPEMD160),
@@ -349,6 +350,7 @@ func Sign(output io.Writer, signed *Entity, hints *FileHints, config *packet.Con
 	// These are the possible hash functions that we'll use for the signature.
 	candidateHashes := []uint8{
 		hashToHashId(crypto.SHA256),
+		hashToHashId(crypto.SHA384),
 		hashToHashId(crypto.SHA512),
 		hashToHashId(crypto.SHA1),
 		hashToHashId(crypto.RIPEMD160),

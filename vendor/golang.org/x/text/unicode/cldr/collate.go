@@ -27,7 +27,7 @@ const (
 	// cldrIndex is a Unicode-reserved sentinel value used to mark the start
 	// of a grouping within an index.
 	// We ignore any rule that starts with this rune.
-	// See http://unicode.org/reports/tr35/#Collation_Elements for details.
+	// See https://unicode.org/reports/tr35/#Collation_Elements for details.
 	cldrIndex = "\uFDD0"
 
 	// specialAnchor is the format in which to represent logical reset positions,
@@ -51,7 +51,7 @@ func (c Collation) Process(p RuleProcessor) (err error) {
 }
 
 // processRules parses rules in the Collation Rule Syntax defined in
-// http://www.unicode.org/reports/tr35/tr35-collation.html#Collation_Tailorings.
+// https://www.unicode.org/reports/tr35/tr35-collation.html#Collation_Tailorings.
 func processRules(p RuleProcessor, s string) (err error) {
 	chk := func(s string, e error) string {
 		if err == nil {

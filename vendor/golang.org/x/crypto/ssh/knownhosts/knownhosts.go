@@ -350,8 +350,8 @@ func (db *hostKeyDB) check(address string, remote net.Addr, remoteKey ssh.Public
 	return db.checkAddr(hostToCheck, remoteKey)
 }
 
-// checkAddrs checks if we can find the given public key for any of
-// the given addresses.  If we only find an entry for the IP address,
+// checkAddr checks if we can find the given public key for the
+// given address.  If we only find an entry for the IP address,
 // or only the hostname, then this still succeeds.
 func (db *hostKeyDB) checkAddr(a addr, remoteKey ssh.PublicKey) error {
 	// TODO(hanwen): are these the right semantics? What if there

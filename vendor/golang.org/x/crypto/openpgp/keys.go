@@ -333,7 +333,6 @@ func ReadEntity(packets *packet.Reader) (*Entity, error) {
 		return nil, errors.StructuralError("primary key cannot be used for signatures")
 	}
 
-	var current *Identity
 	var revocations []*packet.Signature
 EachPacket:
 	for {
@@ -346,36 +345,8 @@ EachPacket:
 
 		switch pkt := p.(type) {
 		case *packet.UserId:
-			// Make a new Identity object, that we might wind up throwing away.
-			// We'll only add it if we get a valid self-signature over this
-			// userID.
-			current = new(Identity)
-			current.Name = pkt.Id
-			current.UserId = pkt
-
-			for {
-				p, err = packets.Next()
-				if err == io.EOF {
-					break EachPacket
-				} else if err != nil {
-					return nil, err
-				}
-
-				sig, ok := p.(*packet.Signature)
-				if !ok {
-					packets.Unread(p)
-					continue EachPacket
-				}
-
-				if (sig.SigType == packet.SigTypePositiveCert || sig.SigType == packet.SigTypeGenericCert) && sig.IssuerKeyId != nil && *sig.IssuerKeyId == e.PrimaryKey.KeyId {
-					if err = e.PrimaryKey.VerifyUserIdSignature(pkt.Id, e.PrimaryKey, sig); err != nil {
-						return nil, errors.StructuralError("user ID self-signature invalid: " + err.Error())
-					}
-					current.SelfSignature = sig
-					e.Identities[pkt.Id] = current
-				} else {
-					current.Signatures = append(current.Signatures, sig)
-				}
+			if err := addUserID(e, packets, pkt); err != nil {
+				return nil, err
 			}
 		case *packet.Signature:
 			if pkt.SigType == packet.SigTypeKeyRevocation {
@@ -384,11 +355,9 @@ EachPacket:
 				// TODO: RFC4880 5.2.1 permits signatures
 				// directly on keys (eg. to bind additional
 				// revocation keys).
-			} else if current == nil {
-				return nil, errors.StructuralError("signature packet found before user id packet")
-			} else {
-				current.Signatures = append(current.Signatures, pkt)
 			}
+			// Else, ignoring the signature as it does not follow anything
+			// we would know to attach it to.
 		case *packet.PrivateKey:
 			if pkt.IsSubkey == false {
 				packets.Unread(p)
@@ -429,31 +398,103 @@ EachPacket:
 	return e, nil
 }
 
+func addUserID(e *Entity, packets *packet.Reader, pkt *packet.UserId) error {
+	// Make a new Identity object, that we might wind up throwing away.
+	// We'll only add it if we get a valid self-signature over this
+	// userID.
+	identity := new(Identity)
+	identity.Name = pkt.Id
+	identity.UserId = pkt
+
+	for {
+		p, err := packets.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		sig, ok := p.(*packet.Signature)
+		if !ok {
+			packets.Unread(p)
+			break
+		}
+
+		if (sig.SigType == packet.SigTypePositiveCert || sig.SigType == packet.SigTypeGenericCert) && sig.IssuerKeyId != nil && *sig.IssuerKeyId == e.PrimaryKey.KeyId {
+			if err = e.PrimaryKey.VerifyUserIdSignature(pkt.Id, e.PrimaryKey, sig); err != nil {
+				return errors.StructuralError("user ID self-signature invalid: " + err.Error())
+			}
+			identity.SelfSignature = sig
+			e.Identities[pkt.Id] = identity
+		} else {
+			identity.Signatures = append(identity.Signatures, sig)
+		}
+	}
+
+	return nil
+}
+
 func addSubkey(e *Entity, packets *packet.Reader, pub *packet.PublicKey, priv *packet.PrivateKey) error {
 	var subKey Subkey
 	subKey.PublicKey = pub
 	subKey.PrivateKey = priv
-	p, err := packets.Next()
-	if err == io.EOF {
-		return io.ErrUnexpectedEOF
+
+	for {
+		p, err := packets.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return errors.StructuralError("subkey signature invalid: " + err.Error())
+		}
+
+		sig, ok := p.(*packet.Signature)
+		if !ok {
+			packets.Unread(p)
+			break
+		}
+
+		if sig.SigType != packet.SigTypeSubkeyBinding && sig.SigType != packet.SigTypeSubkeyRevocation {
+			return errors.StructuralError("subkey signature with wrong type")
+		}
+
+		if err := e.PrimaryKey.VerifyKeySignature(subKey.PublicKey, sig); err != nil {
+			return errors.StructuralError("subkey signature invalid: " + err.Error())
+		}
+
+		switch sig.SigType {
+		case packet.SigTypeSubkeyRevocation:
+			subKey.Sig = sig
+		case packet.SigTypeSubkeyBinding:
+
+			if shouldReplaceSubkeySig(subKey.Sig, sig) {
+				subKey.Sig = sig
+			}
+		}
 	}
-	if err != nil {
-		return errors.StructuralError("subkey signature invalid: " + err.Error())
-	}
-	var ok bool
-	subKey.Sig, ok = p.(*packet.Signature)
-	if !ok {
+
+	if subKey.Sig == nil {
 		return errors.StructuralError("subkey packet not followed by signature")
 	}
-	if subKey.Sig.SigType != packet.SigTypeSubkeyBinding && subKey.Sig.SigType != packet.SigTypeSubkeyRevocation {
-		return errors.StructuralError("subkey signature with wrong type")
-	}
-	err = e.PrimaryKey.VerifyKeySignature(subKey.PublicKey, subKey.Sig)
-	if err != nil {
-		return errors.StructuralError("subkey signature invalid: " + err.Error())
-	}
+
 	e.Subkeys = append(e.Subkeys, subKey)
+
 	return nil
+}
+
+func shouldReplaceSubkeySig(existingSig, potentialNewSig *packet.Signature) bool {
+	if potentialNewSig == nil {
+		return false
+	}
+
+	if existingSig == nil {
+		return true
+	}
+
+	if existingSig.SigType == packet.SigTypeSubkeyRevocation {
+		return false // never override a revocation signature
+	}
+
+	return potentialNewSig.CreationTime.After(existingSig.CreationTime)
 }
 
 const defaultRSAKeyBits = 2048

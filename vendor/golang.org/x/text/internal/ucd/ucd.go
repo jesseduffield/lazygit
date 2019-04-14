@@ -3,8 +3,8 @@
 // license that can be found in the LICENSE file.
 
 // Package ucd provides a parser for Unicode Character Database files, the
-// format of which is defined in http://www.unicode.org/reports/tr44/. See
-// http://www.unicode.org/Public/UCD/latest/ucd/ for example files.
+// format of which is defined in https://www.unicode.org/reports/tr44/. See
+// https://www.unicode.org/Public/UCD/latest/ucd/ for example files.
 //
 // It currently does not support substitutions of missing fields.
 package ucd // import "golang.org/x/text/internal/ucd"

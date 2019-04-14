@@ -5,14 +5,15 @@
 //go:generate go run makexml.go -output xml.go
 
 // Package cldr provides a parser for LDML and related XML formats.
-// This package is intended to be used by the table generation tools
-// for the various internationalization-related packages.
-// As the XML types are generated from the CLDR DTD, and as the CLDR standard
-// is periodically amended, this package may change considerably over time.
-// This mostly means that data may appear and disappear between versions.
-// That is, old code should keep compiling for newer versions, but data
-// may have moved or changed.
-// CLDR version 22 is the first version supported by this package.
+//
+// This package is intended to be used by the table generation tools for the
+// various packages in x/text and is not internal for historical reasons.
+//
+// As the XML types are generated from the CLDR DTD, and as the CLDR standard is
+// periodically amended, this package may change considerably over time. This
+// mostly means that data may appear and disappear between versions. That is,
+// old code should keep compiling for newer versions, but data may have moved or
+// changed. CLDR version 22 is the first version supported by this package.
 // Older versions may not work.
 package cldr // import "golang.org/x/text/unicode/cldr"
 
@@ -94,6 +95,12 @@ func (cldr *CLDR) RawLDML(loc string) *LDML {
 
 // LDML returns the fully resolved LDML XML for loc, which must be one of
 // the strings returned by Locales.
+//
+// Deprecated: use RawLDML and implement inheritance manually or using the
+// internal cldrtree package.
+// Inheritance has changed quite a bit since the onset of this package and in
+// practice data often represented in a way where knowledge of how it was
+// inherited is relevant.
 func (cldr *CLDR) LDML(loc string) (*LDML, error) {
 	return cldr.resolve(loc)
 }
