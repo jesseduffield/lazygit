@@ -509,7 +509,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
 		}, &i18n.Message{
 			ID:    "FoundConflicts",
-			Other: "Damn, conflicts! To abort press 'esc', otherwise press 'enter'",
+			Other: "Conflicts! To abort press 'esc', otherwise press 'enter'",
 		}, &i18n.Message{
 			ID:    "FoundConflictsTitle",
 			Other: "Auto-merge failed",
