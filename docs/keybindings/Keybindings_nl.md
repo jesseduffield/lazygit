@@ -64,14 +64,14 @@
   <kbd>J</kbd>: verplaats commit 1 omlaag
   <kbd>K</kbd>: verplaats commit 1 omhoog
   <kbd>e</kbd>: wijzig commit
-  <kbd>A</kbd>: wijzig commit met gestagte veranderingen
+  <kbd>A</kbd>: Wijzig commit met opgeslagen verandering
   <kbd>p</kbd>: pick commit (when mid-rebase)
-  <kbd>t</kbd>: zet commit terug
+  <kbd>t</kbd>: Maak commit ongedaan
   <kbd>c</kbd>: kopiëer commit (cherry-pick)
   <kbd>C</kbd>: kopiëer commit range (cherry-pick)
   <kbd>v</kbd>: plak commits (cherry-pick)
-  <kbd>enter</kbd>: bekijk commited bestanden
-  <kbd>space</kbd>: diff specifieke commit's
+  <kbd>enter</kbd>: bekijk gecommite bestanden
+  <kbd>space</kbd>: Bekijk verschillen tussen specifieke commits
 </pre>
 
 ## Stash
@@ -87,15 +87,15 @@
 <pre>
   <kbd>esc</kbd>: ga terug
   <kbd>c</kbd>: checkout bestand
-  <kbd>d</kbd>: uitsluit deze commit zijn veranderingen aan dit bestand
+  <kbd>d</kbd>: Verwijder wijzigingen van dit bestand
   <kbd>o</kbd>: open bestand
 </pre>
 
 ## Main (Normal)
 
 <pre>
-  <kbd>PgDn</kbd>: scroll omhoog
-  <kbd>PgUp</kbd>: scroll omlaag
+  <kbd>PgDn</kbd>: scroll omlaag
+  <kbd>PgUp</kbd>: scroll omhoog
 </pre>
 
 ## Main (Stage Lines/Hunks)
@@ -115,7 +115,7 @@
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
   <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick bijde hunks
+  <kbd>b</kbd>: pick beide hunks
   <kbd>◄</kbd>: selecteer vorige conflict
   <kbd>►</kbd>: selecteer volgende conflict
   <kbd>▲</kbd>: selecteer bovenste hunk

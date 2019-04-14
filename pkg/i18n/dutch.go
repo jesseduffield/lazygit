@@ -453,19 +453,19 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Merging",
 		}, &i18n.Message{
 			ID:    "ConfirmRebase",
-			Other: "Weet je zeker dat je {{.checkedOutBranch}} naar {{.selectedBranch}} wil rebasen?",
+			Other: "Weet je zeker dat je {{.checkedOutBranch}} op {{.selectedBranch}} wil rebasen?",
 		}, &i18n.Message{
 			ID:    "ConfirmMerge",
 			Other: "Weet je zeker dat je {{.selectedBranch}} in {{.checkedOutBranch}} wil mergen?",
 		}, &i18n.Message{
 			ID:    "FwdNoUpstream",
-			Other: "can niet de branch niet vooruitspoelen met upstream",
+			Other: "Kan niet de branch vooruitspoelen zonder upstream",
 		}, &i18n.Message{
 			ID:    "ErrorOccurred",
-			Other: "Er is iets fout gegaan! Zou je een issue willen maken hier https://github.com/jesseduffield/lazygit/issues",
+			Other: "Er is iets fout gegaan! Zou je hier een issue aan willen maken: https://github.com/jesseduffield/lazygit/issues",
 		}, &i18n.Message{
 			ID:    "FwdCommitsToPush",
-			Other: "Kan niet vooruitspoelen, er zijn commits not niet gepushed",
+			Other: "Je kan niet vooruitspoelen als de branch geen nieuwe commits heeft",
 		}, &i18n.Message{
 			ID:    "MainTitle",
 			Other: "Hoofd",
@@ -480,7 +480,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Je kan niet een branch rebasen op zichzelf",
 		}, &i18n.Message{
 			ID:    "SureSquashThisCommit",
-			Other: "Weet je zeker dat je deze commit wil squashen in de commit hieronder?",
+			Other: "Weet je zeker dat je deze commit wil samenvoegen met de commit hieronder?",
 		}, &i18n.Message{
 			ID:    "Squash",
 			Other: "Squash",
@@ -489,7 +489,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "pick commit (when mid-rebase)",
 		}, &i18n.Message{
 			ID:    "revertCommit",
-			Other: "terug naar commit",
+			Other: "commit omgedaan maken",
 		}, &i18n.Message{
 			ID:    "deleteCommit",
 			Other: "verwijder commit",
@@ -519,7 +519,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "pick hunk",
 		}, &i18n.Message{
 			ID:    "PickBothHunks",
-			Other: "pick bijde hunks",
+			Other: "pick beide hunks",
 		}, &i18n.Message{
 			ID:    "ViewMergeRebaseOptions",
 			Other: "bekijk merge/rebase opties",
@@ -537,7 +537,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Rebase Opties",
 		}, &i18n.Message{
 			ID:    "ConflictsResolved",
-			Other: "alle merge conflicten zijn opgelost. Verder?",
+			Other: "alle merge conflicten zijn opgelost. Wilt je verder gaan?",
 		}, &i18n.Message{
 			ID:    "NoRoom",
 			Other: "Niet genoeg ruimte",
@@ -546,7 +546,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "JE BENT HIER",
 		}, &i18n.Message{
 			ID:    "rewordNotSupported",
-			Other: "herformatteren van commits in interactiev rebasen is nog niet gesupport",
+			Other: "herformatteren van commits in interactief rebasen is nog niet ondersteund",
 		}, &i18n.Message{
 			ID:    "cherryPickCopy",
 			Other: "kopiëer commit (cherry-pick)",
@@ -564,7 +564,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Cherry-Pick",
 		}, &i18n.Message{
 			ID:    "CannotRebaseOntoFirstCommit",
-			Other: "Je kan niet interactiev rebasen naar de eerste commit",
+			Other: "Je kan niet interactief rebasen naar de eerste commit",
 		}, &i18n.Message{
 			ID:    "CannotSquashOntoSecondCommit",
 			Other: "Je kan niet een squash/fixup doen naar de 2de commit",
