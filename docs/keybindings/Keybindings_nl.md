@@ -25,7 +25,7 @@
   <kbd>A</kbd>: wijzig laatste commit
   <kbd>C</kbd>: commit veranderingen met de git editor
   <kbd>space</kbd>: toggle staged
-  <kbd>d</kbd>: view 'discard changes' options
+  <kbd>d</kbd>: bekijk 'ongedaan maken' opties
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
   <kbd>i</kbd>: voeg toe aan .gitignore
@@ -57,55 +57,55 @@
 <pre>
   <kbd>s</kbd>: squash beneden
   <kbd>r</kbd>: hernoem commit
-  <kbd>R</kbd>: rename commit with editor
+  <kbd>R</kbd>: hernoem commit met editor
   <kbd>g</kbd>: reset naar deze commit
   <kbd>f</kbd>: Fixup commit
-  <kbd>d</kbd>: delete commit
-  <kbd>J</kbd>: move commit down one
-  <kbd>K</kbd>: move commit up one
-  <kbd>e</kbd>: edit commit
-  <kbd>A</kbd>: amend commit with staged changes
+  <kbd>d</kbd>: verwijder commit
+  <kbd>J</kbd>: verplaats commit 1 omlaag
+  <kbd>K</kbd>: verplaats commit 1 omhoog
+  <kbd>e</kbd>: wijzig commit
+  <kbd>A</kbd>: wijzig commit met gestagte veranderingen
   <kbd>p</kbd>: pick commit (when mid-rebase)
-  <kbd>t</kbd>: revert commit
-  <kbd>c</kbd>: copy commit (cherry-pick)
-  <kbd>C</kbd>: copy commit range (cherry-pick)
-  <kbd>v</kbd>: paste commits (cherry-pick)
-  <kbd>enter</kbd>: view commit's files
-  <kbd>space</kbd>: diff specific commits
+  <kbd>t</kbd>: zet commit terug
+  <kbd>c</kbd>: kopiëer commit (cherry-pick)
+  <kbd>C</kbd>: kopiëer commit range (cherry-pick)
+  <kbd>v</kbd>: plak commits (cherry-pick)
+  <kbd>enter</kbd>: bekijk commited bestanden
+  <kbd>space</kbd>: diff specifieke commit's
 </pre>
 
 ## Stash
 
 <pre>
   <kbd>space</kbd>: toepassen
-  <kbd>g</kbd>: pop
+  <kbd>g</kbd>: poppen
   <kbd>d</kbd>: drop
 </pre>
 
 ## Commit files
 
 <pre>
-  <kbd>esc</kbd>: go back
-  <kbd>c</kbd>: checkout file
-  <kbd>d</kbd>: discard this commit's changes to this file
+  <kbd>esc</kbd>: ga terug
+  <kbd>c</kbd>: checkout bestand
+  <kbd>d</kbd>: uitsluit deze commit zijn veranderingen aan dit bestand
   <kbd>o</kbd>: open bestand
 </pre>
 
 ## Main (Normal)
 
 <pre>
-  <kbd>PgDn</kbd>: scroll down
-  <kbd>PgUp</kbd>: scroll up
+  <kbd>PgDn</kbd>: scroll omhoog
+  <kbd>PgUp</kbd>: scroll omlaag
 </pre>
 
 ## Main (Stage Lines/Hunks)
 
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
-  <kbd>▲</kbd>: select previous line
-  <kbd>▼</kbd>: select next line
-  <kbd>◄</kbd>: select previous hunk
-  <kbd>►</kbd>: select next hunk
+  <kbd>▲</kbd>: selecteer vorige line
+  <kbd>▼</kbd>: selecteer volgende line
+  <kbd>◄</kbd>: selecteer vorige hunk
+  <kbd>►</kbd>: selecteer volgende hunk
   <kbd>space</kbd>: stage lijn
   <kbd>a</kbd>: stage hunk
 </pre>
@@ -115,10 +115,10 @@
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
   <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick both hunks
-  <kbd>◄</kbd>: select previous conflict
-  <kbd>►</kbd>: select next conflict
-  <kbd>▲</kbd>: select top hunk
-  <kbd>▼</kbd>: select bottom hunk
-  <kbd>z</kbd>: undo
+  <kbd>b</kbd>: pick bijde hunks
+  <kbd>◄</kbd>: selecteer vorige conflict
+  <kbd>►</kbd>: selecteer volgende conflict
+  <kbd>▲</kbd>: selecteer bovenste hunk
+  <kbd>▼</kbd>: selecteer laatste hunk
+  <kbd>z</kbd>: ongedaan maken
 </pre>
