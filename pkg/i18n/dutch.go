@@ -417,7 +417,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: `fetch`,
 		}, &i18n.Message{
 			ID:    "NoAutomaticGitFetchTitle",
-			Other: `Geen automatiese git fetch`,
+			Other: `Geen automatische git fetch`,
 		}, &i18n.Message{
 			ID:    "NoAutomaticGitFetchBody",
 			Other: `Lazygit kan niet "git fetch" uitvoeren in een privé repository, gebruik f in het branches paneel om "git fetch" manueel uit te voeren`,
@@ -594,7 +594,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "selecteer bovenste hunk",
 		}, &i18n.Message{
 			ID:    "SelectBottom",
-			Other: "selecteer bodem hunk",
+			Other: "selecteer onderste hunk",
 		}, &i18n.Message{
 			ID:    "ScrollDown",
 			Other: "scroll omlaag",
@@ -672,7 +672,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Autostash?",
 		}, &i18n.Message{
 			ID:    "AutoStashPrompt",
-			Other: "Je moet je veranderingen stashen en poppen om ze over te bregen. Dit automaties doen? (enter/esc)",
+			Other: "Je moet je veranderingen stashen en poppen om ze over te bregen. Dit automatisch doen? (enter/esc)",
 		}, &i18n.Message{
 			ID:    "StashPrefix",
 			Other: "Auto-stashing veranderingen voor ",
