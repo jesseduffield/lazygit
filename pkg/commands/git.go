@@ -353,8 +353,8 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 }
 
 // CommitWithStatus commit to git with return status message
-func (c *GitCommand) CommitWithStatus(message string) (*cmd.Cmd, bool) {
-	command := fmt.Sprintf("git commit -m %s", c.OSCommand.Quote(message))
+func (c *GitCommand) CommitWithStatus(message string, flags string) (*cmd.Cmd, bool) {
+	command := fmt.Sprintf("git commit %s -m %s", flags, c.OSCommand.Quote(message))
 	if c.usingGpg() {
 		return nil, true
 	}

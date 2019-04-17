@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/scbizu/cmd"
 )
 
 // runSyncOrAsyncCommand takes the output of a command that may have returned
@@ -35,35 +36,26 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
 		flags = "--no-verify"
 	}
-	ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.Commit(message, flags))
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return nil
-	}
 
-	c, isGPG := gui.GitCommand.CommitWithStatus(message)
+	c, isGPG := gui.GitCommand.CommitWithStatus(message, flags)
 	if isGPG {
 		// put it into subprocess
-		sub, err := gui.GitCommand.Commit(message, flags)
+		ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.Commit(message, flags))
 		if err != nil {
-			if err != gui.Errors.ErrSubProcess {
-				return gui.createErrorPanel(g, err.Error())
-			}
+			return err
 		}
-		if sub != nil {
-			gui.SubProcess = sub
-			return gui.Errors.ErrSubProcess
+		if !ok {
+			return nil
 		}
 	} else {
 		if c != nil {
-			status := NewCommandStatus(c, g)
-			status.PrintCmdOutput(gui)
+			go func(c *cmd.Cmd, g *gocui.Gui, gui *Gui) {
+				status := NewCommandStatus(c, g)
+				status.PrintCmdOutput(gui)
+			}(c, g, gui)
 		}
 	}
 
-	gui.refreshFiles()
 	v.Clear()
 	_ = v.SetCursor(0, 0)
 	_ = v.SetOrigin(0, 0)

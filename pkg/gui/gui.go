@@ -375,7 +375,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, mainViewRightBottom, gocui.LEFT)
 	if err != nil {
-		if err != gocui.ErrUnknownView {
+		if err.Error() != "unknown view" {
 			return err
 		}
 		v.Title = gui.Tr.SLocalize("DiffTitle")
@@ -551,7 +551,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if isStreamingStatusEnable {
 		if v, err := g.SetView("commandStatus", leftSideWidth+panelSpacing, commitsBranchesBoundary+panelSpacing, width-1, optionsTop, 0); err != nil {
-			if err != gocui.ErrUnknownView {
+			if err.Error() != "unknown view" {
 				return err
 			}
 			v.Wrap = true
