@@ -1,0 +1,4 @@
+#!/bin/bash
+trap "exit 0" SIGTERM
+sleep 5
+exit 1

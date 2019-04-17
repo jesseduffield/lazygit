@@ -1,0 +1,7 @@
+resource "null_resource" "some_command" {
+  provisioner "local-exec" {
+    command = "${echo '
+some newlines
+and additonal output'}"
+  }
+}

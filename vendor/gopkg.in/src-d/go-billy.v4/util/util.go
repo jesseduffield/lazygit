@@ -168,6 +168,45 @@ func TempFile(fs billy.Basic, dir, prefix string) (f billy.File, err error) {
 	return
 }
 
+// TempDir creates a new temporary directory in the directory dir
+// with a name beginning with prefix and returns the path of the
+// new directory. If dir is the empty string, TempDir uses the
+// default directory for temporary files (see os.TempDir).
+// Multiple programs calling TempDir simultaneously
+// will not choose the same directory. It is the caller's responsibility
+// to remove the directory when no longer needed.
+func TempDir(fs billy.Dir, dir, prefix string) (name string, err error) {
+	// This implementation is based on stdlib ioutil.TempDir
+
+	if dir == "" {
+		dir = os.TempDir()
+	}
+
+	nconflict := 0
+	for i := 0; i < 10000; i++ {
+		try := filepath.Join(dir, prefix+nextSuffix())
+		err = fs.MkdirAll(try, 0700)
+		if os.IsExist(err) {
+			if nconflict++; nconflict > 10 {
+				randmu.Lock()
+				rand = reseed()
+				randmu.Unlock()
+			}
+			continue
+		}
+		if os.IsNotExist(err) {
+			if _, err := os.Stat(dir); os.IsNotExist(err) {
+				return "", err
+			}
+		}
+		if err == nil {
+			name = try
+		}
+		break
+	}
+	return
+}
+
 type underlying interface {
 	Underlying() billy.Basic
 }

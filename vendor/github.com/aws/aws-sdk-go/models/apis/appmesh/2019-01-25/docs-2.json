@@ -1,0 +1,954 @@
+{
+  "version": "2.0",
+  "service": "<p>AWS App Mesh is a service mesh based on the Envoy proxy that makes it easy to monitor and\n         control microservices. App Mesh standardizes how your microservices communicate, giving you\n         end-to-end visibility and helping to ensure high availability for your applications.</p>\n         <p>App Mesh gives you consistent visibility and network traffic controls for every\n         microservice in an application. You can use App Mesh with AWS Fargate, Amazon ECS, Amazon EKS, and\n         Kubernetes on AWS.</p>\n         <note>\n            <p>App Mesh supports microservice applications that use service discovery naming for their\n            components. To use App Mesh, you must have an application running on Amazon EC2 instances,\n            hosted in either Amazon ECS, Amazon EKS, or Kubernetes on AWS. For more information about\n            service discovery on Amazon ECS, see <a href=\"http://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html\">Service\n               Discovery</a> in the <i>Amazon Elastic Container Service Developer Guide</i>. Kubernetes\n               <code>kube-dns</code> and <code>coredns</code> are supported. For more information,\n            see <a href=\"https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/\">DNS\n               for Services and Pods</a> in the Kubernetes documentation.</p>\n         </note>",
+  "operations": {
+    "CreateMesh": "<p>Creates a service mesh. A service mesh is a logical boundary for network traffic\n         between the services that reside within it.</p>\n         <p>After you create your service mesh, you can create virtual services, virtual nodes,\n         virtual routers, and routes to distribute traffic between the applications in your\n         mesh.</p>",
+    "CreateRoute": "<p>Creates a route that is associated with a virtual router.</p>\n         <p>You can use the <code>prefix</code> parameter in your route specification for path-based\n         routing of requests. For example, if your virtual service name is\n            <code>my-service.local</code> and you want the route to match requests to\n            <code>my-service.local/metrics</code>, your prefix should be\n         <code>/metrics</code>.</p>\n         <p>If your route matches a request, you can distribute traffic to one or more target\n         virtual nodes with relative weighting.</p>",
+    "CreateVirtualNode": "<p>Creates a virtual node within a service mesh.</p>\n         <p>A virtual node acts as a logical pointer to a particular task group, such as an Amazon ECS\n         service or a Kubernetes deployment. When you create a virtual node, you must specify the\n         DNS service discovery hostname for your task group.</p>\n         <p>Any inbound traffic that your virtual node expects should be specified as a\n            <code>listener</code>. Any outbound traffic that your virtual node expects to reach\n         should be specified as a <code>backend</code>.</p>\n         <p>The response metadata for your new virtual node contains the <code>arn</code> that is\n         associated with the virtual node. Set this value (either the full ARN or the truncated\n         resource name: for example, <code>mesh/default/virtualNode/simpleapp</code>) as the\n            <code>APPMESH_VIRTUAL_NODE_NAME</code> environment variable for your task group's Envoy\n         proxy container in your task definition or pod spec. This is then mapped to the\n            <code>node.id</code> and <code>node.cluster</code> Envoy parameters.</p>\n         <note>\n            <p>If you require your Envoy stats or tracing to use a different name, you can override\n            the <code>node.cluster</code> value that is set by\n               <code>APPMESH_VIRTUAL_NODE_NAME</code> with the\n               <code>APPMESH_VIRTUAL_NODE_CLUSTER</code> environment variable.</p>\n         </note>",
+    "CreateVirtualRouter": "<p>Creates a virtual router within a service mesh.</p>\n         <p>Any inbound traffic that your virtual router expects should be specified as a\n            <code>listener</code>. </p>\n         <p>Virtual routers handle traffic for one or more virtual services within your mesh. After\n         you create your virtual router, create and associate routes for your virtual router that\n         direct incoming requests to different virtual nodes.</p>",
+    "CreateVirtualService": "<p>Creates a virtual service within a service mesh.</p>\n         <p>A virtual service is an abstraction of a real service that is provided by a\n         virtual node directly or indirectly by means of a virtual router. Dependent services call\n         your virtual service by its <code>virtualServiceName</code>, and those requests are routed\n         to the virtual node or virtual router that is specified as the provider for the virtual\n         service.</p>",
+    "DeleteMesh": "<p>Deletes an existing service mesh.</p>\n         <p>You must delete all resources (virtual services, routes, virtual routers, and virtual nodes)\n         in the service mesh before you can delete the mesh itself.</p>",
+    "DeleteRoute": "<p>Deletes an existing route.</p>",
+    "DeleteVirtualNode": "<p>Deletes an existing virtual node.</p>\n         <p>You must delete any virtual services that list a virtual node as a service provider\n         before you can delete the virtual node itself.</p>",
+    "DeleteVirtualRouter": "<p>Deletes an existing virtual router.</p>\n         <p>You must delete any routes associated with the virtual router before you can delete the\n         router itself.</p>",
+    "DeleteVirtualService": "<p>Deletes an existing virtual service.</p>",
+    "DescribeMesh": "<p>Describes an existing service mesh.</p>",
+    "DescribeRoute": "<p>Describes an existing route.</p>",
+    "DescribeVirtualNode": "<p>Describes an existing virtual node.</p>",
+    "DescribeVirtualRouter": "<p>Describes an existing virtual router.</p>",
+    "DescribeVirtualService": "<p>Describes an existing virtual service.</p>",
+    "ListMeshes": "<p>Returns a list of existing service meshes.</p>",
+    "ListRoutes": "<p>Returns a list of existing routes in a service mesh.</p>",
+    "ListTagsForResource": "<p>List the tags for an App Mesh resource.</p>",
+    "ListVirtualNodes": "<p>Returns a list of existing virtual nodes.</p>",
+    "ListVirtualRouters": "<p>Returns a list of existing virtual routers in a service mesh.</p>",
+    "ListVirtualServices": "<p>Returns a list of existing virtual services in a service mesh.</p>",
+    "TagResource": "<p>Associates the specified tags to a resource with the specified\n         <code>resourceArn</code>. If existing tags on a resource aren't specified in the\n         request parameters, they aren't changed. When a resource is deleted, the tags\n         associated with that resource are also deleted.</p>",
+    "UntagResource": "<p>Deletes specified tags from a resource.</p>",
+    "UpdateMesh": "<p>Updates an existing service mesh.</p>",
+    "UpdateRoute": "<p>Updates an existing route for a specified service mesh and virtual router.</p>",
+    "UpdateVirtualNode": "<p>Updates an existing virtual node in a specified service mesh.</p>",
+    "UpdateVirtualRouter": "<p>Updates an existing virtual router in a specified service mesh.</p>",
+    "UpdateVirtualService": "<p>Updates an existing virtual service in a specified service mesh.</p>"
+  },
+  "shapes": {
+    "AccessLog": {
+      "base": "<p>An object representing the access logging information for a virtual node.</p>",
+      "refs": {
+        "AccessLog$file": "<p>The file object to send virtual node access logs to.</p>"
+      }
+    },
+    "Arn": {
+      "base": null,
+      "refs": { }
+    },
+    "Backend": {
+      "base": "<p>An object representing the backends that a virtual node is expected to send outbound\n         traffic to. </p>",
+      "refs": {
+        "Backend$virtualService": "<p>Specifies a virtual service to use as a backend for a virtual node. </p>"
+      }
+    },
+    "Backends": {
+      "base": null,
+      "refs": {
+        "Backends$member": null
+      }
+    },
+    "BadRequestException": {
+      "base": "<p>The request syntax was malformed. Check your request syntax and try again.</p>",
+      "refs": { }
+    },
+    "ConflictException": {
+      "base": "<p>The request contains a client token that was used for a previous update resource call\n         with different specifications. Try the request again with a new client token.</p>",
+      "refs": { }
+    },
+    "CreateMeshInput": {
+      "base": "",
+      "refs": {
+        "CreateMeshInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "CreateMeshInput$meshName": "<p>The name to use for the service mesh.</p>",
+        "CreateMeshInput$spec": "<p>The service mesh specification to apply.</p>",
+        "CreateMeshInput$tags": "<p>Optional metadata that you can apply to the service mesh to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
+      }
+    },
+    "CreateMeshOutput": {
+      "base": "",
+      "refs": {
+        "CreateMeshOutput$mesh": "<p>The full description of your service mesh following the create call.</p>"
+      }
+    },
+    "CreateRouteInput": {
+      "base": "",
+      "refs": {
+        "CreateRouteInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "CreateRouteInput$meshName": "<p>The name of the service mesh to create the route in.</p>",
+        "CreateRouteInput$routeName": "<p>The name to use for the route.</p>",
+        "CreateRouteInput$spec": "<p>The route specification to apply.</p>",
+        "CreateRouteInput$tags": "<p>Optional metadata that you can apply to the route to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>",
+        "CreateRouteInput$virtualRouterName": "<p>The name of the virtual router in which to create the route.</p>"
+      }
+    },
+    "CreateRouteOutput": {
+      "base": "",
+      "refs": {
+        "CreateRouteOutput$route": "<p>The full description of your mesh following the create call.</p>"
+      }
+    },
+    "CreateVirtualNodeInput": {
+      "base": "",
+      "refs": {
+        "CreateVirtualNodeInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "CreateVirtualNodeInput$meshName": "<p>The name of the service mesh to create the virtual node in.</p>",
+        "CreateVirtualNodeInput$spec": "<p>The virtual node specification to apply.</p>",
+        "CreateVirtualNodeInput$tags": "<p>Optional metadata that you can apply to the virtual node to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>",
+        "CreateVirtualNodeInput$virtualNodeName": "<p>The name to use for the virtual node.</p>"
+      }
+    },
+    "CreateVirtualNodeOutput": {
+      "base": "",
+      "refs": {
+        "CreateVirtualNodeOutput$virtualNode": "<p>The full description of your virtual node following the create call.</p>"
+      }
+    },
+    "CreateVirtualRouterInput": {
+      "base": "",
+      "refs": {
+        "CreateVirtualRouterInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "CreateVirtualRouterInput$meshName": "<p>The name of the service mesh to create the virtual router in.</p>",
+        "CreateVirtualRouterInput$spec": "<p>The virtual router specification to apply.</p>",
+        "CreateVirtualRouterInput$tags": "<p>Optional metadata that you can apply to the virtual router to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>",
+        "CreateVirtualRouterInput$virtualRouterName": "<p>The name to use for the virtual router.</p>"
+      }
+    },
+    "CreateVirtualRouterOutput": {
+      "base": "",
+      "refs": {
+        "CreateVirtualRouterOutput$virtualRouter": "<p>The full description of your virtual router following the create call.</p>"
+      }
+    },
+    "CreateVirtualServiceInput": {
+      "base": "",
+      "refs": {
+        "CreateVirtualServiceInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "CreateVirtualServiceInput$meshName": "<p>The name of the service mesh to create the virtual service in.</p>",
+        "CreateVirtualServiceInput$spec": "<p>The virtual service specification to apply.</p>",
+        "CreateVirtualServiceInput$tags": "<p>Optional metadata that you can apply to the virtual service to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>",
+        "CreateVirtualServiceInput$virtualServiceName": "<p>The name to use for the virtual service.</p>"
+      }
+    },
+    "CreateVirtualServiceOutput": {
+      "base": "",
+      "refs": {
+        "CreateVirtualServiceOutput$virtualService": "<p>The full description of your virtual service following the create call.</p>"
+      }
+    },
+    "DeleteMeshInput": {
+      "base": "",
+      "refs": {
+        "DeleteMeshInput$meshName": "<p>The name of the service mesh to delete.</p>"
+      }
+    },
+    "DeleteMeshOutput": {
+      "base": "",
+      "refs": {
+        "DeleteMeshOutput$mesh": "<p>The service mesh that was deleted.</p>"
+      }
+    },
+    "DeleteRouteInput": {
+      "base": "",
+      "refs": {
+        "DeleteRouteInput$meshName": "<p>The name of the service mesh to delete the route in.</p>",
+        "DeleteRouteInput$routeName": "<p>The name of the route to delete.</p>",
+        "DeleteRouteInput$virtualRouterName": "<p>The name of the virtual router to delete the route in.</p>"
+      }
+    },
+    "DeleteRouteOutput": {
+      "base": "",
+      "refs": {
+        "DeleteRouteOutput$route": "<p>The route that was deleted.</p>"
+      }
+    },
+    "DeleteVirtualNodeInput": {
+      "base": "",
+      "refs": {
+        "DeleteVirtualNodeInput$meshName": "<p>The name of the service mesh to delete the virtual node in.</p>",
+        "DeleteVirtualNodeInput$virtualNodeName": "<p>The name of the virtual node to delete.</p>"
+      }
+    },
+    "DeleteVirtualNodeOutput": {
+      "base": "",
+      "refs": {
+        "DeleteVirtualNodeOutput$virtualNode": "<p>The virtual node that was deleted.</p>"
+      }
+    },
+    "DeleteVirtualRouterInput": {
+      "base": "",
+      "refs": {
+        "DeleteVirtualRouterInput$meshName": "<p>The name of the service mesh to delete the virtual router in.</p>",
+        "DeleteVirtualRouterInput$virtualRouterName": "<p>The name of the virtual router to delete.</p>"
+      }
+    },
+    "DeleteVirtualRouterOutput": {
+      "base": "",
+      "refs": {
+        "DeleteVirtualRouterOutput$virtualRouter": "<p>The virtual router that was deleted.</p>"
+      }
+    },
+    "DeleteVirtualServiceInput": {
+      "base": "",
+      "refs": {
+        "DeleteVirtualServiceInput$meshName": "<p>The name of the service mesh to delete the virtual service in.</p>",
+        "DeleteVirtualServiceInput$virtualServiceName": "<p>The name of the virtual service to delete.</p>"
+      }
+    },
+    "DeleteVirtualServiceOutput": {
+      "base": "",
+      "refs": {
+        "DeleteVirtualServiceOutput$virtualService": "<p>The virtual service that was deleted.</p>"
+      }
+    },
+    "DescribeMeshInput": {
+      "base": "",
+      "refs": {
+        "DescribeMeshInput$meshName": "<p>The name of the service mesh to describe.</p>"
+      }
+    },
+    "DescribeMeshOutput": {
+      "base": "",
+      "refs": {
+        "DescribeMeshOutput$mesh": "<p>The full description of your service mesh.</p>"
+      }
+    },
+    "DescribeRouteInput": {
+      "base": "",
+      "refs": {
+        "DescribeRouteInput$meshName": "<p>The name of the service mesh that the route resides in.</p>",
+        "DescribeRouteInput$routeName": "<p>The name of the route to describe.</p>",
+        "DescribeRouteInput$virtualRouterName": "<p>The name of the virtual router that the route is associated with.</p>"
+      }
+    },
+    "DescribeRouteOutput": {
+      "base": "",
+      "refs": {
+        "DescribeRouteOutput$route": "<p>The full description of your route.</p>"
+      }
+    },
+    "DescribeVirtualNodeInput": {
+      "base": "",
+      "refs": {
+        "DescribeVirtualNodeInput$meshName": "<p>The name of the service mesh that the virtual node resides in.</p>",
+        "DescribeVirtualNodeInput$virtualNodeName": "<p>The name of the virtual node to describe.</p>"
+      }
+    },
+    "DescribeVirtualNodeOutput": {
+      "base": "",
+      "refs": {
+        "DescribeVirtualNodeOutput$virtualNode": "<p>The full description of your virtual node.</p>"
+      }
+    },
+    "DescribeVirtualRouterInput": {
+      "base": "",
+      "refs": {
+        "DescribeVirtualRouterInput$meshName": "<p>The name of the service mesh that the virtual router resides in.</p>",
+        "DescribeVirtualRouterInput$virtualRouterName": "<p>The name of the virtual router to describe.</p>"
+      }
+    },
+    "DescribeVirtualRouterOutput": {
+      "base": "",
+      "refs": {
+        "DescribeVirtualRouterOutput$virtualRouter": "<p>The full description of your virtual router.</p>"
+      }
+    },
+    "DescribeVirtualServiceInput": {
+      "base": "",
+      "refs": {
+        "DescribeVirtualServiceInput$meshName": "<p>The name of the service mesh that the virtual service resides in.</p>",
+        "DescribeVirtualServiceInput$virtualServiceName": "<p>The name of the virtual service to describe.</p>"
+      }
+    },
+    "DescribeVirtualServiceOutput": {
+      "base": "",
+      "refs": {
+        "DescribeVirtualServiceOutput$virtualService": "<p>The full description of your virtual service.</p>"
+      }
+    },
+    "DnsServiceDiscovery": {
+      "base": "<p>An object representing the DNS service discovery information for your virtual\n         node.</p>",
+      "refs": {
+        "DnsServiceDiscovery$hostname": "<p>Specifies the DNS service discovery hostname for the virtual node. </p>"
+      }
+    },
+    "EgressFilter": {
+      "base": "<p>An object representing the egress filter rules for a service mesh.</p>",
+      "refs": {
+        "EgressFilter$type": "<p>The egress filter type. By default, the type is <code>DROP_ALL</code>, which allows\n         egress only from virtual nodes to other defined resources in the service mesh (and any traffic\n         to <code>*.amazonaws.com</code> for AWS API calls). You can set the egress filter type to\n            <code>ALLOW_ALL</code> to allow egress to any endpoint inside or outside of the service\n         mesh.</p>"
+      }
+    },
+    "EgressFilterType": {
+      "base": null,
+      "refs": { }
+    },
+    "FileAccessLog": {
+      "base": "<p>An object representing an access log file.</p>",
+      "refs": {
+        "FileAccessLog$path": "<p>The file path to write access logs to. You can use <code>/dev/stdout</code> to send\n         access logs to standard out and configure your Envoy container to use a log driver, such as\n            <code>awslogs</code>, to export the access logs to a log storage service such as Amazon CloudWatch\n         Logs. You can also specify a path in the Envoy container's file system to write the files\n         to disk.</p>\n         <note>\n            <p>The Envoy process must have write permissions to the path that you specify here.\n            Otherwise, Envoy fails to bootstrap properly.</p>\n         </note>"
+      }
+    },
+    "FilePath": {
+      "base": null,
+      "refs": { }
+    },
+    "ForbiddenException": {
+      "base": "<p>You don't have permissions to perform this action.</p>",
+      "refs": { }
+    },
+    "HealthCheckIntervalMillis": {
+      "base": null,
+      "refs": { }
+    },
+    "HealthCheckPolicy": {
+      "base": "<p>An object representing the health check policy for a virtual node's listener.</p>",
+      "refs": {
+        "HealthCheckPolicy$healthyThreshold": "<p>The number of consecutive successful health checks that must occur before declaring\n         listener healthy.</p>",
+        "HealthCheckPolicy$intervalMillis": "<p>The time period in milliseconds between each health check execution.</p>",
+        "HealthCheckPolicy$path": "<p>The destination path for the health check request. This is required only if the\n         specified protocol is HTTP. If the protocol is TCP, this parameter is ignored.</p>",
+        "HealthCheckPolicy$port": "<p>The destination port for the health check request. This port must match the port defined\n         in the <a>PortMapping</a> for the listener.</p>",
+        "HealthCheckPolicy$protocol": "<p>The protocol for the health check request.</p>",
+        "HealthCheckPolicy$timeoutMillis": "<p>The amount of time to wait when receiving a response from the health check, in\n         milliseconds.</p>",
+        "HealthCheckPolicy$unhealthyThreshold": "<p>The number of consecutive failed health checks that must occur before declaring a\n         virtual node unhealthy. </p>"
+      }
+    },
+    "HealthCheckThreshold": {
+      "base": null,
+      "refs": { }
+    },
+    "HealthCheckTimeoutMillis": {
+      "base": null,
+      "refs": { }
+    },
+    "Hostname": {
+      "base": null,
+      "refs": { }
+    },
+    "HttpRoute": {
+      "base": "<p>An object representing the HTTP routing specification for a route.</p>",
+      "refs": {
+        "HttpRoute$action": "<p>The action to take if a match is determined.</p>",
+        "HttpRoute$match": "<p>The criteria for determining an HTTP request match.</p>"
+      }
+    },
+    "HttpRouteAction": {
+      "base": "<p>An object representing the traffic distribution requirements for matched HTTP\n         requests.</p>",
+      "refs": {
+        "HttpRouteAction$weightedTargets": "<p>The targets that traffic is routed to when a request matches the route. You can specify\n         one or more targets and their relative weights to distribute traffic with.</p>"
+      }
+    },
+    "HttpRouteMatch": {
+      "base": "<p>An object representing the requirements for a route to match HTTP requests for a virtual\n         router.</p>",
+      "refs": {
+        "HttpRouteMatch$prefix": "<p>Specifies the path to match requests with. This parameter must always start with\n            <code>/</code>, which by itself matches all requests to the virtual service name. You\n         can also match for path-based routing of requests. For example, if your virtual service\n         name is <code>my-service.local</code> and you want the route to match requests to\n            <code>my-service.local/metrics</code>, your prefix should be\n         <code>/metrics</code>.</p>"
+      }
+    },
+    "InternalServerErrorException": {
+      "base": "<p>The request processing has failed because of an unknown error, exception, or failure.</p>",
+      "refs": { }
+    },
+    "LimitExceededException": {
+      "base": "<p>You have exceeded a service limit for your account. For more information, see <a href=\"https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html\">Service Limits</a> in the <i>AWS App Mesh User Guide</i>.</p>",
+      "refs": { }
+    },
+    "ListMeshesInput": {
+      "base": "",
+      "refs": {
+        "ListMeshesInput$limit": "<p>The maximum number of results returned by <code>ListMeshes</code> in paginated output.\n         When you use this parameter, <code>ListMeshes</code> returns only <code>limit</code>\n         results in a single page along with a <code>nextToken</code> response element. You can see the\n         remaining results of the initial request by sending another\n            <code>ListMeshes</code> request with the returned <code>nextToken</code> value. This\n         value can be between 1 and 100. If you don't use this parameter,\n         <code>ListMeshes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
+        "ListMeshesInput$nextToken": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListMeshes</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>\n         <note>\n            <p>This token should be treated as an opaque identifier that is used only to\n                retrieve the next items in a list and not for other programmatic purposes.</p>\n        </note>"
+      }
+    },
+    "ListMeshesLimit": {
+      "base": null,
+      "refs": { }
+    },
+    "ListMeshesOutput": {
+      "base": "",
+      "refs": {
+        "ListMeshesOutput$meshes": "<p>The list of existing service meshes.</p>",
+        "ListMeshesOutput$nextToken": "<p>The <code>nextToken</code> value to include in a future <code>ListMeshes</code>\n         request. When the results of a <code>ListMeshes</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>"
+      }
+    },
+    "ListRoutesInput": {
+      "base": "",
+      "refs": {
+        "ListRoutesInput$limit": "<p>The maximum number of results returned by <code>ListRoutes</code> in paginated output.\n         When you use this parameter, <code>ListRoutes</code> returns only <code>limit</code>\n         results in a single page along with a <code>nextToken</code> response element. You can see the\n         remaining results of the initial request by sending another\n            <code>ListRoutes</code> request with the returned <code>nextToken</code> value. This\n         value can be between 1 and 100. If you don't use this parameter,\n         <code>ListRoutes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
+        "ListRoutesInput$meshName": "<p>The name of the service mesh to list routes in.</p>",
+        "ListRoutesInput$nextToken": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListRoutes</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>",
+        "ListRoutesInput$virtualRouterName": "<p>The name of the virtual router to list routes in.</p>"
+      }
+    },
+    "ListRoutesLimit": {
+      "base": null,
+      "refs": { }
+    },
+    "ListRoutesOutput": {
+      "base": "",
+      "refs": {
+        "ListRoutesOutput$nextToken": "<p>The <code>nextToken</code> value to include in a future <code>ListRoutes</code>\n         request. When the results of a <code>ListRoutes</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>",
+        "ListRoutesOutput$routes": "<p>The list of existing routes for the specified service mesh and virtual router.</p>"
+      }
+    },
+    "ListTagsForResourceInput": {
+      "base": "",
+      "refs": {
+        "ListTagsForResourceInput$limit": "<p>The maximum number of tag results returned by <code>ListTagsForResource</code> in\n         paginated output. When this parameter is used, <code>ListTagsForResource</code> returns only\n         <code>limit</code> results in a single page along with a <code>nextToken</code>\n         response element. You can see the remaining results of the initial request by sending\n         another <code>ListTagsForResource</code> request with the returned <code>nextToken</code>\n         value. This value can be between 1 and 100. If you don't use this\n         parameter, <code>ListTagsForResource</code> returns up to\n         100 results and a <code>nextToken</code> value if applicable.</p>",
+        "ListTagsForResourceInput$nextToken": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListTagsForResource</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>",
+        "ListTagsForResourceInput$resourceArn": "<p>The Amazon Resource Name (ARN) that identifies the resource to list the tags for.</p>"
+      }
+    },
+    "ListTagsForResourceOutput": {
+      "base": "",
+      "refs": {
+        "ListTagsForResourceOutput$nextToken": "<p>The <code>nextToken</code> value to include in a future <code>ListTagsForResource</code>\n         request. When the results of a <code>ListTagsForResource</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>",
+        "ListTagsForResourceOutput$tags": "<p>The tags for the resource.</p>"
+      }
+    },
+    "ListVirtualNodesInput": {
+      "base": "",
+      "refs": {
+        "ListVirtualNodesInput$limit": "<p>The maximum number of results returned by <code>ListVirtualNodes</code> in paginated\n         output. When you use this parameter, <code>ListVirtualNodes</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualNodes</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this parameter,\n         <code>ListVirtualNodes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
+        "ListVirtualNodesInput$meshName": "<p>The name of the service mesh to list virtual nodes in.</p>",
+        "ListVirtualNodesInput$nextToken": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListVirtualNodes</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>"
+      }
+    },
+    "ListVirtualNodesLimit": {
+      "base": null,
+      "refs": { }
+    },
+    "ListVirtualNodesOutput": {
+      "base": "",
+      "refs": {
+        "ListVirtualNodesOutput$nextToken": "<p>The <code>nextToken</code> value to include in a future <code>ListVirtualNodes</code>\n         request. When the results of a <code>ListVirtualNodes</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>",
+        "ListVirtualNodesOutput$virtualNodes": "<p>The list of existing virtual nodes for the specified service mesh.</p>"
+      }
+    },
+    "ListVirtualRoutersInput": {
+      "base": "",
+      "refs": {
+        "ListVirtualRoutersInput$limit": "<p>The maximum number of results returned by <code>ListVirtualRouters</code> in paginated\n         output. When you use this parameter, <code>ListVirtualRouters</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualRouters</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this parameter, \n         <code>ListVirtualRouters</code> returns up to 100 results and\n         a <code>nextToken</code> value if applicable.</p>",
+        "ListVirtualRoutersInput$meshName": "<p>The name of the service mesh to list virtual routers in.</p>",
+        "ListVirtualRoutersInput$nextToken": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListVirtualRouters</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>"
+      }
+    },
+    "ListVirtualRoutersLimit": {
+      "base": null,
+      "refs": { }
+    },
+    "ListVirtualRoutersOutput": {
+      "base": "",
+      "refs": {
+        "ListVirtualRoutersOutput$nextToken": "<p>The <code>nextToken</code> value to include in a future <code>ListVirtualRouters</code>\n         request. When the results of a <code>ListVirtualRouters</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>",
+        "ListVirtualRoutersOutput$virtualRouters": "<p>The list of existing virtual routers for the specified service mesh.</p>"
+      }
+    },
+    "ListVirtualServicesInput": {
+      "base": "",
+      "refs": {
+        "ListVirtualServicesInput$limit": "<p>The maximum number of results returned by <code>ListVirtualServices</code> in paginated\n         output. When you use this parameter, <code>ListVirtualServices</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualServices</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this parameter,\n         <code>ListVirtualServices</code> returns up to 100 results and\n         a <code>nextToken</code> value if applicable.</p>",
+        "ListVirtualServicesInput$meshName": "<p>The name of the service mesh to list virtual services in.</p>",
+        "ListVirtualServicesInput$nextToken": "<p>The <code>nextToken</code> value returned from a previous paginated\n            <code>ListVirtualServices</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>"
+      }
+    },
+    "ListVirtualServicesLimit": {
+      "base": null,
+      "refs": { }
+    },
+    "ListVirtualServicesOutput": {
+      "base": "",
+      "refs": {
+        "ListVirtualServicesOutput$nextToken": "<p>The <code>nextToken</code> value to include in a future <code>ListVirtualServices</code>\n         request. When the results of a <code>ListVirtualServices</code> request exceed\n            <code>limit</code>, you can use this value to retrieve the next page of results. This\n         value is <code>null</code> when there are no more results to return.</p>",
+        "ListVirtualServicesOutput$virtualServices": "<p>The list of existing virtual services for the specified service mesh.</p>"
+      }
+    },
+    "Listener": {
+      "base": "<p>An object representing a listener for a virtual node.</p>",
+      "refs": {
+        "Listener$healthCheck": "<p>The health check information for the listener.</p>",
+        "Listener$portMapping": "<p>The port mapping information for the listener.</p>"
+      }
+    },
+    "Listeners": {
+      "base": null,
+      "refs": {
+        "Listeners$member": null
+      }
+    },
+    "Logging": {
+      "base": "<p>An object representing the logging information for a virtual node.</p>",
+      "refs": {
+        "Logging$accessLog": "<p>The access log configuration for a virtual node.</p>"
+      }
+    },
+    "Long": {
+      "base": null,
+      "refs": { }
+    },
+    "MeshData": {
+      "base": "<p>An object representing a service mesh returned by a describe operation.</p>",
+      "refs": {
+        "MeshData$meshName": "<p>The name of the service mesh.</p>",
+        "MeshData$metadata": "<p>The associated metadata for the service mesh.</p>",
+        "MeshData$spec": "<p>The associated specification for the service mesh.</p>",
+        "MeshData$status": "<p>The status of the service mesh.</p>"
+      }
+    },
+    "MeshList": {
+      "base": null,
+      "refs": {
+        "MeshList$member": null
+      }
+    },
+    "MeshRef": {
+      "base": "<p>An object representing a service mesh returned by a list operation.</p>",
+      "refs": {
+        "MeshRef$arn": "<p>The full Amazon Resource Name (ARN) of the service mesh.</p>",
+        "MeshRef$meshName": "<p>The name of the service mesh.</p>"
+      }
+    },
+    "MeshSpec": {
+      "base": "<p>An object representing the specification of a service mesh.</p>",
+      "refs": {
+        "MeshSpec$egressFilter": "<p>The egress filter rules for the service mesh.</p>"
+      }
+    },
+    "MeshStatus": {
+      "base": "<p>An object representing the status of a service mesh.</p>",
+      "refs": {
+        "MeshStatus$status": "<p>The current mesh status.</p>"
+      }
+    },
+    "MeshStatusCode": {
+      "base": null,
+      "refs": { }
+    },
+    "NotFoundException": {
+      "base": "<p>The specified resource doesn't exist. Check your request syntax and try again.</p>",
+      "refs": { }
+    },
+    "PercentInt": {
+      "base": null,
+      "refs": { }
+    },
+    "PortMapping": {
+      "base": "<p>An object representing a virtual node or virtual router listener port mapping.</p>",
+      "refs": {
+        "PortMapping$port": "<p>The port used for the port mapping.</p>",
+        "PortMapping$protocol": "<p>The protocol used for the port mapping.</p>"
+      }
+    },
+    "PortNumber": {
+      "base": null,
+      "refs": { }
+    },
+    "PortProtocol": {
+      "base": null,
+      "refs": { }
+    },
+    "ResourceInUseException": {
+      "base": "<p>You can't delete the specified resource because it's in use or required by another resource.</p>",
+      "refs": { }
+    },
+    "ResourceMetadata": {
+      "base": "<p>An object representing metadata for a resource.</p>",
+      "refs": {
+        "ResourceMetadata$arn": "<p>The full Amazon Resource Name (ARN) for the resource.</p>",
+        "ResourceMetadata$createdAt": "<p>The Unix epoch timestamp in seconds for when the resource was created.</p>",
+        "ResourceMetadata$lastUpdatedAt": "<p>The Unix epoch timestamp in seconds for when the resource was last updated.</p>",
+        "ResourceMetadata$uid": "<p>The unique identifier for the resource.</p>",
+        "ResourceMetadata$version": "<p>The version of the resource. Resources are created at version 1, and this version is\n         incremented each time that they're updated.</p>"
+      }
+    },
+    "ResourceName": {
+      "base": null,
+      "refs": { }
+    },
+    "RouteData": {
+      "base": "<p>An object representing a route returned by a describe operation.</p>",
+      "refs": {
+        "RouteData$meshName": "<p>The name of the service mesh that the route resides in.</p>",
+        "RouteData$metadata": "<p>The associated metadata for the route.</p>",
+        "RouteData$routeName": "<p>The name of the route.</p>",
+        "RouteData$spec": "<p>The specifications of the route.</p>",
+        "RouteData$status": "<p>The status of the route.</p>",
+        "RouteData$virtualRouterName": "<p>The virtual router that the route is associated with.</p>"
+      }
+    },
+    "RouteList": {
+      "base": null,
+      "refs": {
+        "RouteList$member": null
+      }
+    },
+    "RouteRef": {
+      "base": "<p>An object representing a route returned by a list operation.</p>",
+      "refs": {
+        "RouteRef$arn": "<p>The full Amazon Resource Name (ARN) for the route.</p>",
+        "RouteRef$meshName": "<p>The name of the service mesh that the route resides in.</p>",
+        "RouteRef$routeName": "<p>The name of the route.</p>",
+        "RouteRef$virtualRouterName": "<p>The virtual router that the route is associated with.</p>"
+      }
+    },
+    "RouteSpec": {
+      "base": "<p>An object representing the specification of a route.</p>",
+      "refs": {
+        "RouteSpec$httpRoute": "<p>The HTTP routing information for the route.</p>",
+        "RouteSpec$tcpRoute": "<p>The TCP routing information for the route.</p>"
+      }
+    },
+    "RouteStatus": {
+      "base": "<p>An object representing the current status of a route.</p>",
+      "refs": {
+        "RouteStatus$status": "<p>The current status for the route.</p>"
+      }
+    },
+    "RouteStatusCode": {
+      "base": null,
+      "refs": { }
+    },
+    "ServiceDiscovery": {
+      "base": "<p>An object representing the service discovery information for a virtual node.</p>",
+      "refs": {
+        "ServiceDiscovery$dns": "<p>Specifies the DNS information for the virtual node.</p>"
+      }
+    },
+    "ServiceName": {
+      "base": null,
+      "refs": { }
+    },
+    "ServiceUnavailableException": {
+      "base": "<p>The request has failed due to a temporary failure of the service.</p>",
+      "refs": { }
+    },
+    "String": {
+      "base": null,
+      "refs": { }
+    },
+    "TagKey": {
+      "base": null,
+      "refs": { }
+    },
+    "TagKeyList": {
+      "base": null,
+      "refs": {
+        "TagKeyList$member": null
+      }
+    },
+    "TagList": {
+      "base": null,
+      "refs": {
+        "TagList$member": null
+      }
+    },
+    "TagRef": {
+      "base": "<p>Optional metadata that you apply to a resource to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>",
+      "refs": {
+        "TagRef$key": "<p>One part of a key-value pair that make up a tag. A <code>key</code> is a general label\n         that acts like a category for more specific tag values.</p>",
+        "TagRef$value": "<p>The optional part of a key-value pair that make up a tag. A <code>value</code> acts as\n         a descriptor within a tag category (key).</p>"
+      }
+    },
+    "TagResourceInput": {
+      "base": "",
+      "refs": {
+        "TagResourceInput$resourceArn": "<p>The Amazon Resource Name (ARN) of the resource to add tags to.</p>",
+        "TagResourceInput$tags": "<p>The tags to add to the resource. A tag is an array of key-value pairs.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
+      }
+    },
+    "TagResourceOutput": {
+      "base": "",
+      "refs": { }
+    },
+    "TagValue": {
+      "base": null,
+      "refs": { }
+    },
+    "TagsLimit": {
+      "base": null,
+      "refs": { }
+    },
+    "TcpRoute": {
+      "base": "<p>An object representing the TCP routing specification for a route.</p>",
+      "refs": {
+        "TcpRoute$action": "<p>The action to take if a match is determined.</p>"
+      }
+    },
+    "TcpRouteAction": {
+      "base": "<p>An object representing the traffic distribution requirements for matched TCP\n         requests.</p>",
+      "refs": {
+        "TcpRouteAction$weightedTargets": "<p>The targets that traffic is routed to when a request matches the route. You can specify\n         one or more targets and their relative weights to distribute traffic with.</p>"
+      }
+    },
+    "Timestamp": {
+      "base": null,
+      "refs": { }
+    },
+    "TooManyRequestsException": {
+      "base": "<p>The maximum request rate permitted by the App Mesh APIs has been exceeded for your\n         account. For best results, use an increasing or variable sleep interval between requests.</p>",
+      "refs": { }
+    },
+    "TooManyTagsException": {
+      "base": "<p>The request exceeds the maximum allowed number of tags allowed per resource. The current\n         limit is 50 user tags per resource. You must reduce the number of tags in the request. None\n         of the tags in this request were applied.</p>",
+      "refs": { }
+    },
+    "UntagResourceInput": {
+      "base": "",
+      "refs": {
+        "UntagResourceInput$resourceArn": "<p>The Amazon Resource Name (ARN) of the resource to delete tags from.</p>",
+        "UntagResourceInput$tagKeys": "<p>The keys of the tags to be removed.</p>"
+      }
+    },
+    "UntagResourceOutput": {
+      "base": "",
+      "refs": { }
+    },
+    "UpdateMeshInput": {
+      "base": "",
+      "refs": {
+        "UpdateMeshInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "UpdateMeshInput$meshName": "<p>The name of the service mesh to update.</p>",
+        "UpdateMeshInput$spec": "<p>The service mesh specification to apply.</p>"
+      }
+    },
+    "UpdateMeshOutput": {
+      "base": "",
+      "refs": { }
+    },
+    "UpdateRouteInput": {
+      "base": "",
+      "refs": {
+        "UpdateRouteInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "UpdateRouteInput$meshName": "<p>The name of the service mesh that the route resides in.</p>",
+        "UpdateRouteInput$routeName": "<p>The name of the route to update.</p>",
+        "UpdateRouteInput$spec": "<p>The new route specification to apply. This overwrites the existing data.</p>",
+        "UpdateRouteInput$virtualRouterName": "<p>The name of the virtual router that the route is associated with.</p>"
+      }
+    },
+    "UpdateRouteOutput": {
+      "base": "",
+      "refs": {
+        "UpdateRouteOutput$route": "<p>A full description of the route that was updated.</p>"
+      }
+    },
+    "UpdateVirtualNodeInput": {
+      "base": "",
+      "refs": {
+        "UpdateVirtualNodeInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "UpdateVirtualNodeInput$meshName": "<p>The name of the service mesh that the virtual node resides in.</p>",
+        "UpdateVirtualNodeInput$spec": "<p>The new virtual node specification to apply. This overwrites the existing data.</p>",
+        "UpdateVirtualNodeInput$virtualNodeName": "<p>The name of the virtual node to update.</p>"
+      }
+    },
+    "UpdateVirtualNodeOutput": {
+      "base": "",
+      "refs": {
+        "UpdateVirtualNodeOutput$virtualNode": "<p>A full description of the virtual node that was updated.</p>"
+      }
+    },
+    "UpdateVirtualRouterInput": {
+      "base": "",
+      "refs": {
+        "UpdateVirtualRouterInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "UpdateVirtualRouterInput$meshName": "<p>The name of the service mesh that the virtual router resides in.</p>",
+        "UpdateVirtualRouterInput$spec": "<p>The new virtual router specification to apply. This overwrites the existing data.</p>",
+        "UpdateVirtualRouterInput$virtualRouterName": "<p>The name of the virtual router to update.</p>"
+      }
+    },
+    "UpdateVirtualRouterOutput": {
+      "base": "",
+      "refs": {
+        "UpdateVirtualRouterOutput$virtualRouter": "<p>A full description of the virtual router that was updated.</p>"
+      }
+    },
+    "UpdateVirtualServiceInput": {
+      "base": "",
+      "refs": {
+        "UpdateVirtualServiceInput$clientToken": "<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the\nrequest. Up to 36 letters, numbers, hyphens, and underscores are allowed.</p>",
+        "UpdateVirtualServiceInput$meshName": "<p>The name of the service mesh that the virtual service resides in.</p>",
+        "UpdateVirtualServiceInput$spec": "<p>The new virtual service specification to apply. This overwrites the existing\n         data.</p>",
+        "UpdateVirtualServiceInput$virtualServiceName": "<p>The name of the virtual service to update.</p>"
+      }
+    },
+    "UpdateVirtualServiceOutput": {
+      "base": "",
+      "refs": {
+        "UpdateVirtualServiceOutput$virtualService": "<p>A full description of the virtual service that was updated.</p>"
+      }
+    },
+    "VirtualNodeData": {
+      "base": "<p>An object representing a virtual node returned by a describe operation.</p>",
+      "refs": {
+        "VirtualNodeData$meshName": "<p>The name of the service mesh that the virtual node resides in.</p>",
+        "VirtualNodeData$metadata": "<p>The associated metadata for the virtual node.</p>",
+        "VirtualNodeData$spec": "<p>The specifications of the virtual node.</p>",
+        "VirtualNodeData$status": "<p>The current status for the virtual node.</p>",
+        "VirtualNodeData$virtualNodeName": "<p>The name of the virtual node.</p>"
+      }
+    },
+    "VirtualNodeList": {
+      "base": null,
+      "refs": {
+        "VirtualNodeList$member": null
+      }
+    },
+    "VirtualNodeRef": {
+      "base": "<p>An object representing a virtual node returned by a list operation.</p>",
+      "refs": {
+        "VirtualNodeRef$arn": "<p>The full Amazon Resource Name (ARN) for the virtual node.</p>",
+        "VirtualNodeRef$meshName": "<p>The name of the service mesh that the virtual node resides in.</p>",
+        "VirtualNodeRef$virtualNodeName": "<p>The name of the virtual node.</p>"
+      }
+    },
+    "VirtualNodeServiceProvider": {
+      "base": "<p>An object representing a virtual node service provider.</p>",
+      "refs": {
+        "VirtualNodeServiceProvider$virtualNodeName": "<p>The name of the virtual node that is acting as a service provider.</p>"
+      }
+    },
+    "VirtualNodeSpec": {
+      "base": "<p>An object representing the specification of a virtual node.</p>",
+      "refs": {
+        "VirtualNodeSpec$backends": "<p>The backends that the virtual node is expected to send outbound traffic to.</p>",
+        "VirtualNodeSpec$listeners": "<p>The listeners that the virtual node is expected to receive inbound traffic from. Currently only one listener is supported per virtual node.</p>",
+        "VirtualNodeSpec$logging": "<p>The inbound and outbound access logging information for the virtual node.</p>",
+        "VirtualNodeSpec$serviceDiscovery": "<p>The service discovery information for the virtual node. If your virtual node does not\n         expect ingress traffic, you can omit this parameter.</p>"
+      }
+    },
+    "VirtualNodeStatus": {
+      "base": "<p>An object representing the current status of the virtual node.</p>",
+      "refs": {
+        "VirtualNodeStatus$status": "<p>The current status of the virtual node.</p>"
+      }
+    },
+    "VirtualNodeStatusCode": {
+      "base": null,
+      "refs": { }
+    },
+    "VirtualRouterData": {
+      "base": "<p>An object representing a virtual router returned by a describe operation.</p>",
+      "refs": {
+        "VirtualRouterData$meshName": "<p>The name of the service mesh that the virtual router resides in.</p>",
+        "VirtualRouterData$metadata": "<p>The associated metadata for the virtual router.</p>",
+        "VirtualRouterData$spec": "<p>The specifications of the virtual router.</p>",
+        "VirtualRouterData$status": "<p>The current status of the virtual router.</p>",
+        "VirtualRouterData$virtualRouterName": "<p>The name of the virtual router.</p>"
+      }
+    },
+    "VirtualRouterList": {
+      "base": null,
+      "refs": {
+        "VirtualRouterList$member": null
+      }
+    },
+    "VirtualRouterListener": {
+      "base": "<p>An object representing a virtual router listener.</p>",
+      "refs": { }
+    },
+    "VirtualRouterListeners": {
+      "base": null,
+      "refs": {
+        "VirtualRouterListeners$member": null
+      }
+    },
+    "VirtualRouterRef": {
+      "base": "<p>An object representing a virtual router returned by a list operation.</p>",
+      "refs": {
+        "VirtualRouterRef$arn": "<p>The full Amazon Resource Name (ARN) for the virtual router.</p>",
+        "VirtualRouterRef$meshName": "<p>The name of the service mesh that the virtual router resides in.</p>",
+        "VirtualRouterRef$virtualRouterName": "<p>The name of the virtual router.</p>"
+      }
+    },
+    "VirtualRouterServiceProvider": {
+      "base": "<p>An object representing a virtual node service provider.</p>",
+      "refs": {
+        "VirtualRouterServiceProvider$virtualRouterName": "<p>The name of the virtual router that is acting as a service provider.</p>"
+      }
+    },
+    "VirtualRouterSpec": {
+      "base": "<p>An object representing the specification of a virtual router.</p>",
+      "refs": {
+        "VirtualRouterSpec$listeners": "<p>The listeners that the virtual router is expected to receive inbound traffic from. Currently only one listener is supported per virtual router.</p>"
+      }
+    },
+    "VirtualRouterStatus": {
+      "base": "<p>An object representing the status of a virtual router. </p>",
+      "refs": {
+        "VirtualRouterStatus$status": "<p>The current status of the virtual router.</p>"
+      }
+    },
+    "VirtualRouterStatusCode": {
+      "base": null,
+      "refs": { }
+    },
+    "VirtualServiceBackend": {
+      "base": "<p>An object representing a virtual service backend for a virtual node.</p>",
+      "refs": {
+        "VirtualServiceBackend$virtualServiceName": "<p>The name of the virtual service that is acting as a virtual node backend.</p>"
+      }
+    },
+    "VirtualServiceData": {
+      "base": "<p>An object representing a virtual service returned by a describe operation.</p>",
+      "refs": {
+        "VirtualServiceData$meshName": "<p>The name of the service mesh that the virtual service resides in.</p>",
+        "VirtualServiceData$spec": "<p>The specifications of the virtual service.</p>",
+        "VirtualServiceData$status": "<p>The current status of the virtual service.</p>",
+        "VirtualServiceData$virtualServiceName": "<p>The name of the virtual service.</p>"
+      }
+    },
+    "VirtualServiceList": {
+      "base": null,
+      "refs": {
+        "VirtualServiceList$member": null
+      }
+    },
+    "VirtualServiceProvider": {
+      "base": "<p>An object representing the provider for a virtual service.</p>",
+      "refs": {
+        "VirtualServiceProvider$virtualNode": "<p>The virtual node associated with a virtual service.</p>",
+        "VirtualServiceProvider$virtualRouter": "<p>The virtual router associated with a virtual service.</p>"
+      }
+    },
+    "VirtualServiceRef": {
+      "base": "<p>An object representing a virtual service returned by a list operation.</p>",
+      "refs": {
+        "VirtualServiceRef$arn": "<p>The full Amazon Resource Name (ARN) for the virtual service.</p>",
+        "VirtualServiceRef$meshName": "<p>The name of the service mesh that the virtual service resides in.</p>",
+        "VirtualServiceRef$virtualServiceName": "<p>The name of the virtual service.</p>"
+      }
+    },
+    "VirtualServiceSpec": {
+      "base": "<p>An object representing the specification of a virtual service.</p>",
+      "refs": {
+        "VirtualServiceSpec$provider": "<p>The App Mesh object that is acting as the provider for a virtual service. You can specify\n         a single virtual node or virtual router.</p>"
+      }
+    },
+    "VirtualServiceStatus": {
+      "base": "<p>An object representing the status of a virtual service.</p>",
+      "refs": {
+        "VirtualServiceStatus$status": "<p>The current status of the virtual service.</p>"
+      }
+    },
+    "VirtualServiceStatusCode": {
+      "base": null,
+      "refs": { }
+    },
+    "WeightedTarget": {
+      "base": "<p>An object representing a target and its relative weight. Traffic is distributed across\n         targets according to their relative weight. For example, a weighted target with a relative\n         weight of 50 receives five times as much traffic as one with a relative weight of\n         10.</p>",
+      "refs": {
+        "WeightedTarget$virtualNode": "<p>The virtual node to associate with the weighted target.</p>",
+        "WeightedTarget$weight": "<p>The relative weight of the weighted target.</p>"
+      }
+    },
+    "WeightedTargets": {
+      "base": null,
+      "refs": {
+        "WeightedTargets$member": null
+      }
+    }
+  }
+}

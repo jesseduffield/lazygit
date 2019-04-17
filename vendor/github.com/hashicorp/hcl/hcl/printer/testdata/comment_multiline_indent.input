@@ -1,0 +1,13 @@
+resource "provider" "resource" {
+  /*
+  SPACE_SENSITIVE_CODE = <<EOF
+yaml code:
+   foo: ""
+   bar: ""
+EOF
+  */
+
+  /*
+       OTHER
+                */
+}

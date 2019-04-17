@@ -1,0 +1,19 @@
+variable "foo" {}
+variable "bar" {}
+variable "baz" {}
+
+variable "qux" {}
+variable "foo" { foo = "bar" }
+
+variable "foo" {}
+# lead comment
+variable "bar" {}
+
+variable "foo" { default = "bar" }
+variable "bar" {}
+
+# Purposeful newline check below:
+
+variable "foo" {}
+
+variable "purposeful-newline" {}

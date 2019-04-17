@@ -1,0 +1,1966 @@
+{
+  "version": "2.0",
+  "service": "<fullname>AWS CodeCommit</fullname> <p>This is the <i>AWS CodeCommit API Reference</i>. This reference provides descriptions of the operations and data types for AWS CodeCommit API along with usage examples.</p> <p>You can use the AWS CodeCommit API to work with the following objects:</p> <p>Repositories, by calling the following:</p> <ul> <li> <p> <a>BatchGetRepositories</a>, which returns information about one or more repositories associated with your AWS account.</p> </li> <li> <p> <a>CreateRepository</a>, which creates an AWS CodeCommit repository.</p> </li> <li> <p> <a>DeleteRepository</a>, which deletes an AWS CodeCommit repository.</p> </li> <li> <p> <a>GetRepository</a>, which returns information about a specified repository.</p> </li> <li> <p> <a>ListRepositories</a>, which lists all AWS CodeCommit repositories associated with your AWS account.</p> </li> <li> <p> <a>UpdateRepositoryDescription</a>, which sets or updates the description of the repository.</p> </li> <li> <p> <a>UpdateRepositoryName</a>, which changes the name of the repository. If you change the name of a repository, no other users of that repository will be able to access it until you send them the new HTTPS or SSH URL to use.</p> </li> </ul> <p>Branches, by calling the following:</p> <ul> <li> <p> <a>CreateBranch</a>, which creates a new branch in a specified repository.</p> </li> <li> <p> <a>DeleteBranch</a>, which deletes the specified branch in a repository unless it is the default branch.</p> </li> <li> <p> <a>GetBranch</a>, which returns information about a specified branch.</p> </li> <li> <p> <a>ListBranches</a>, which lists all branches for a specified repository.</p> </li> <li> <p> <a>UpdateDefaultBranch</a>, which changes the default branch for a repository.</p> </li> </ul> <p>Files, by calling the following:</p> <ul> <li> <p> <a>DeleteFile</a>, which deletes the content of a specified file from a specified branch.</p> </li> <li> <p> <a>GetFile</a>, which returns the base-64 encoded content of a specified file.</p> </li> <li> <p> <a>GetFolder</a>, which returns the contents of a specified folder or directory.</p> </li> <li> <p> <a>PutFile</a>, which adds or modifies a file in a specified repository and branch.</p> </li> </ul> <p>Information about committed code in a repository, by calling the following:</p> <ul> <li> <p> <a>CreateCommit</a>, which creates a commit for changes to a repository.</p> </li> <li> <p> <a>GetBlob</a>, which returns the base-64 encoded content of an individual Git blob object within a repository.</p> </li> <li> <p> <a>GetCommit</a>, which returns information about a commit, including commit messages and author and committer information.</p> </li> <li> <p> <a>GetDifferences</a>, which returns information about the differences in a valid commit specifier (such as a branch, tag, HEAD, commit ID or other fully qualified reference).</p> </li> </ul> <p>Pull requests, by calling the following:</p> <ul> <li> <p> <a>CreatePullRequest</a>, which creates a pull request in a specified repository.</p> </li> <li> <p> <a>DescribePullRequestEvents</a>, which returns information about one or more pull request events.</p> </li> <li> <p> <a>GetCommentsForPullRequest</a>, which returns information about comments on a specified pull request.</p> </li> <li> <p> <a>GetMergeConflicts</a>, which returns information about merge conflicts between the source and destination branch in a pull request.</p> </li> <li> <p> <a>GetPullRequest</a>, which returns information about a specified pull request.</p> </li> <li> <p> <a>ListPullRequests</a>, which lists all pull requests for a repository.</p> </li> <li> <p> <a>MergePullRequestByFastForward</a>, which merges the source destination branch of a pull request into the specified destination branch for that pull request using the fast-forward merge option.</p> </li> <li> <p> <a>PostCommentForPullRequest</a>, which posts a comment to a pull request at the specified line, file, or request.</p> </li> <li> <p> <a>UpdatePullRequestDescription</a>, which updates the description of a pull request.</p> </li> <li> <p> <a>UpdatePullRequestStatus</a>, which updates the status of a pull request.</p> </li> <li> <p> <a>UpdatePullRequestTitle</a>, which updates the title of a pull request.</p> </li> </ul> <p>Information about comments in a repository, by calling the following:</p> <ul> <li> <p> <a>DeleteCommentContent</a>, which deletes the content of a comment on a commit in a repository.</p> </li> <li> <p> <a>GetComment</a>, which returns information about a comment on a commit.</p> </li> <li> <p> <a>GetCommentsForComparedCommit</a>, which returns information about comments on the comparison between two commit specifiers in a repository.</p> </li> <li> <p> <a>PostCommentForComparedCommit</a>, which creates a comment on the comparison between two commit specifiers in a repository.</p> </li> <li> <p> <a>PostCommentReply</a>, which creates a reply to a comment.</p> </li> <li> <p> <a>UpdateComment</a>, which updates the content of a comment on a commit in a repository.</p> </li> </ul> <p>Triggers, by calling the following:</p> <ul> <li> <p> <a>GetRepositoryTriggers</a>, which returns information about triggers configured for a repository.</p> </li> <li> <p> <a>PutRepositoryTriggers</a>, which replaces all triggers for a repository and can be used to create or delete triggers.</p> </li> <li> <p> <a>TestRepositoryTriggers</a>, which tests the functionality of a repository trigger by sending data to the trigger target.</p> </li> </ul> <p>For information about how to use AWS CodeCommit, see the <a href=\"http://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html\">AWS CodeCommit User Guide</a>.</p>",
+  "operations": {
+    "BatchGetRepositories": "<p>Returns information about one or more repositories.</p> <note> <p>The description field for a repository accepts all HTML characters and all valid Unicode characters. Applications that do not HTML-encode the description and display it in a web page could expose users to potentially malicious code. Make sure that you HTML-encode the description field in any application that uses this API to display the repository description on a web page.</p> </note>",
+    "CreateBranch": "<p>Creates a new branch in a repository and points the branch to a commit.</p> <note> <p>Calling the create branch operation does not set a repository's default branch. To do this, call the update default branch operation.</p> </note>",
+    "CreateCommit": "<p>Creates a commit for a repository on the tip of a specified branch.</p>",
+    "CreatePullRequest": "<p>Creates a pull request in the specified repository.</p>",
+    "CreateRepository": "<p>Creates a new, empty repository.</p>",
+    "DeleteBranch": "<p>Deletes a branch from a repository, unless that branch is the default branch for the repository. </p>",
+    "DeleteCommentContent": "<p>Deletes the content of a comment made on a change, file, or commit in a repository.</p>",
+    "DeleteFile": "<p>Deletes a specified file from a specified branch. A commit is created on the branch that contains the revision. The file will still exist in the commits prior to the commit that contains the deletion.</p>",
+    "DeleteRepository": "<p>Deletes a repository. If a specified repository was already deleted, a null repository ID will be returned.</p> <important> <p>Deleting a repository also deletes all associated objects and metadata. After a repository is deleted, all future push calls to the deleted repository will fail.</p> </important>",
+    "DescribePullRequestEvents": "<p>Returns information about one or more pull request events.</p>",
+    "GetBlob": "<p>Returns the base-64 encoded content of an individual blob within a repository.</p>",
+    "GetBranch": "<p>Returns information about a repository branch, including its name and the last commit ID.</p>",
+    "GetComment": "<p>Returns the content of a comment made on a change, file, or commit in a repository.</p>",
+    "GetCommentsForComparedCommit": "<p>Returns information about comments made on the comparison between two commits.</p>",
+    "GetCommentsForPullRequest": "<p>Returns comments made on a pull request.</p>",
+    "GetCommit": "<p>Returns information about a commit, including commit message and committer information.</p>",
+    "GetDifferences": "<p>Returns information about the differences in a valid commit specifier (such as a branch, tag, HEAD, commit ID or other fully qualified reference). Results can be limited to a specified path.</p>",
+    "GetFile": "<p>Returns the base-64 encoded contents of a specified file and its metadata.</p>",
+    "GetFolder": "<p>Returns the contents of a specified folder in a repository.</p>",
+    "GetMergeConflicts": "<p>Returns information about merge conflicts between the before and after commit IDs for a pull request in a repository.</p>",
+    "GetPullRequest": "<p>Gets information about a pull request in a specified repository.</p>",
+    "GetRepository": "<p>Returns information about a repository.</p> <note> <p>The description field for a repository accepts all HTML characters and all valid Unicode characters. Applications that do not HTML-encode the description and display it in a web page could expose users to potentially malicious code. Make sure that you HTML-encode the description field in any application that uses this API to display the repository description on a web page.</p> </note>",
+    "GetRepositoryTriggers": "<p>Gets information about triggers configured for a repository.</p>",
+    "ListBranches": "<p>Gets information about one or more branches in a repository.</p>",
+    "ListPullRequests": "<p>Returns a list of pull requests for a specified repository. The return list can be refined by pull request status or pull request author ARN.</p>",
+    "ListRepositories": "<p>Gets information about one or more repositories.</p>",
+    "MergePullRequestByFastForward": "<p>Closes a pull request and attempts to merge the source commit of a pull request into the specified destination branch for that pull request at the specified commit using the fast-forward merge option.</p>",
+    "PostCommentForComparedCommit": "<p>Posts a comment on the comparison between two commits.</p>",
+    "PostCommentForPullRequest": "<p>Posts a comment on a pull request.</p>",
+    "PostCommentReply": "<p>Posts a comment in reply to an existing comment on a comparison between commits or a pull request.</p>",
+    "PutFile": "<p>Adds or updates a file in a branch in an AWS CodeCommit repository, and generates a commit for the addition in the specified branch.</p>",
+    "PutRepositoryTriggers": "<p>Replaces all triggers for a repository. This can be used to create or delete triggers.</p>",
+    "TestRepositoryTriggers": "<p>Tests the functionality of repository triggers by sending information to the trigger target. If real data is available in the repository, the test will send data from the last commit. If no data is available, sample data will be generated.</p>",
+    "UpdateComment": "<p>Replaces the contents of a comment.</p>",
+    "UpdateDefaultBranch": "<p>Sets or changes the default branch name for the specified repository.</p> <note> <p>If you use this operation to change the default branch name to the current default branch name, a success message is returned even though the default branch did not change.</p> </note>",
+    "UpdatePullRequestDescription": "<p>Replaces the contents of the description of a pull request.</p>",
+    "UpdatePullRequestStatus": "<p>Updates the status of a pull request. </p>",
+    "UpdatePullRequestTitle": "<p>Replaces the title of a pull request.</p>",
+    "UpdateRepositoryDescription": "<p>Sets or changes the comment or description for a repository.</p> <note> <p>The description field for a repository accepts all HTML characters and all valid Unicode characters. Applications that do not HTML-encode the description and display it in a web page could expose users to potentially malicious code. Make sure that you HTML-encode the description field in any application that uses this API to display the repository description on a web page.</p> </note>",
+    "UpdateRepositoryName": "<p>Renames a repository. The repository name must be unique across the calling AWS account. In addition, repository names are limited to 100 alphanumeric, dash, and underscore characters, and cannot include certain characters. The suffix \".git\" is prohibited. For a full description of the limits on repository names, see <a href=\"http://docs.aws.amazon.com/codecommit/latest/userguide/limits.html\">Limits</a> in the AWS CodeCommit User Guide.</p>"
+  },
+  "shapes": {
+    "AccountId": {
+      "base": null,
+      "refs": {
+        "RepositoryMetadata$accountId": "<p>The ID of the AWS account associated with the repository.</p>"
+      }
+    },
+    "ActorDoesNotExistException": {
+      "base": "<p>The specified Amazon Resource Name (ARN) does not exist in the AWS account.</p>",
+      "refs": {
+      }
+    },
+    "AdditionalData": {
+      "base": null,
+      "refs": {
+        "Commit$additionalData": "<p>Any additional data associated with the specified commit.</p>"
+      }
+    },
+    "Arn": {
+      "base": null,
+      "refs": {
+        "Comment$authorArn": "<p>The Amazon Resource Name (ARN) of the person who posted the comment.</p>",
+        "DescribePullRequestEventsInput$actorArn": "<p>The Amazon Resource Name (ARN) of the user whose actions resulted in the event. Examples include updating the pull request with additional commits or changing the status of a pull request.</p>",
+        "ListPullRequestsInput$authorArn": "<p>Optional. The Amazon Resource Name (ARN) of the user who created the pull request. If used, this filters the results to pull requests created by that user.</p>",
+        "MergeMetadata$mergedBy": "<p>The Amazon Resource Name (ARN) of the user who merged the branches.</p>",
+        "PullRequest$authorArn": "<p>The Amazon Resource Name (ARN) of the user who created the pull request.</p>",
+        "PullRequestEvent$actorArn": "<p>The Amazon Resource Name (ARN) of the user whose actions resulted in the event. Examples include updating the pull request with additional commits or changing the status of a pull request.</p>",
+        "RepositoryMetadata$Arn": "<p>The Amazon Resource Name (ARN) of the repository.</p>",
+        "RepositoryTrigger$destinationArn": "<p>The ARN of the resource that is the target for a trigger. For example, the ARN of a topic in Amazon Simple Notification Service (SNS).</p>"
+      }
+    },
+    "AuthorDoesNotExistException": {
+      "base": "<p>The specified Amazon Resource Name (ARN) does not exist in the AWS account.</p>",
+      "refs": {
+      }
+    },
+    "BatchGetRepositoriesInput": {
+      "base": "<p>Represents the input of a batch get repositories operation.</p>",
+      "refs": {
+      }
+    },
+    "BatchGetRepositoriesOutput": {
+      "base": "<p>Represents the output of a batch get repositories operation.</p>",
+      "refs": {
+      }
+    },
+    "BeforeCommitIdAndAfterCommitIdAreSameException": {
+      "base": "<p>The before commit ID and the after commit ID are the same, which is not valid. The before commit ID and the after commit ID must be different commit IDs.</p>",
+      "refs": {
+      }
+    },
+    "BlobIdDoesNotExistException": {
+      "base": "<p>The specified blob does not exist.</p>",
+      "refs": {
+      }
+    },
+    "BlobIdRequiredException": {
+      "base": "<p>A blob ID is required but was not specified.</p>",
+      "refs": {
+      }
+    },
+    "BlobMetadata": {
+      "base": "<p>Returns information about a specific Git blob object.</p>",
+      "refs": {
+        "Difference$beforeBlob": "<p>Information about a <code>beforeBlob</code> data type object, including the ID, the file mode permission code, and the path.</p>",
+        "Difference$afterBlob": "<p>Information about an <code>afterBlob</code> data type object, including the ID, the file mode permission code, and the path.</p>"
+      }
+    },
+    "BranchDoesNotExistException": {
+      "base": "<p>The specified branch does not exist.</p>",
+      "refs": {
+      }
+    },
+    "BranchInfo": {
+      "base": "<p>Returns information about a branch.</p>",
+      "refs": {
+        "DeleteBranchOutput$deletedBranch": "<p>Information about the branch deleted by the operation, including the branch name and the commit ID that was the tip of the branch.</p>",
+        "GetBranchOutput$branch": "<p>The name of the branch.</p>"
+      }
+    },
+    "BranchName": {
+      "base": null,
+      "refs": {
+        "BranchInfo$branchName": "<p>The name of the branch.</p>",
+        "BranchNameList$member": null,
+        "CreateBranchInput$branchName": "<p>The name of the new branch to create.</p>",
+        "CreateCommitInput$branchName": "<p>The name of the branch where you will create the commit.</p>",
+        "DeleteBranchInput$branchName": "<p>The name of the branch to delete.</p>",
+        "DeleteFileInput$branchName": "<p>The name of the branch where the commit will be made deleting the file.</p>",
+        "GetBranchInput$branchName": "<p>The name of the branch for which you want to retrieve information.</p>",
+        "PutFileInput$branchName": "<p>The name of the branch where you want to add or update the file. If this is an empty repository, this branch will be created.</p>",
+        "RepositoryMetadata$defaultBranch": "<p>The repository's default branch name.</p>",
+        "UpdateDefaultBranchInput$defaultBranchName": "<p>The name of the branch to set as the default.</p>"
+      }
+    },
+    "BranchNameExistsException": {
+      "base": "<p>The specified branch name already exists.</p>",
+      "refs": {
+      }
+    },
+    "BranchNameIsTagNameException": {
+      "base": "<p>The specified branch name is not valid because it is a tag name. Type the name of a current branch in the repository. For a list of valid branch names, use <a>ListBranches</a>.</p>",
+      "refs": {
+      }
+    },
+    "BranchNameList": {
+      "base": null,
+      "refs": {
+        "ListBranchesOutput$branches": "<p>The list of branch names.</p>",
+        "RepositoryTrigger$branches": "<p>The branches that will be included in the trigger configuration. If you specify an empty array, the trigger will apply to all branches.</p> <note> <p>While no content is required in the array, you must include the array itself.</p> </note>"
+      }
+    },
+    "BranchNameRequiredException": {
+      "base": "<p>A branch name is required but was not specified.</p>",
+      "refs": {
+      }
+    },
+    "ChangeTypeEnum": {
+      "base": null,
+      "refs": {
+        "Difference$changeType": "<p>Whether the change type of the difference is an addition (A), deletion (D), or modification (M).</p>"
+      }
+    },
+    "ClientRequestToken": {
+      "base": null,
+      "refs": {
+        "Comment$clientRequestToken": "<p>A unique, client-generated idempotency token that when provided in a request, ensures the request cannot be repeated with a changed parameter. If a request is received with the same parameters and a token is included, the request will return information about the initial request that used that token.</p>",
+        "CreatePullRequestInput$clientRequestToken": "<p>A unique, client-generated idempotency token that when provided in a request, ensures the request cannot be repeated with a changed parameter. If a request is received with the same parameters and a token is included, the request will return information about the initial request that used that token.</p> <note> <p>The AWS SDKs prepopulate client request tokens. If using an AWS SDK, you do not have to generate an idempotency token, as this will be done for you.</p> </note>",
+        "PostCommentForComparedCommitInput$clientRequestToken": "<p>A unique, client-generated idempotency token that when provided in a request, ensures the request cannot be repeated with a changed parameter. If a request is received with the same parameters and a token is included, the request will return information about the initial request that used that token.</p>",
+        "PostCommentForPullRequestInput$clientRequestToken": "<p>A unique, client-generated idempotency token that when provided in a request, ensures the request cannot be repeated with a changed parameter. If a request is received with the same parameters and a token is included, the request will return information about the initial request that used that token.</p>",
+        "PostCommentReplyInput$clientRequestToken": "<p>A unique, client-generated idempotency token that when provided in a request, ensures the request cannot be repeated with a changed parameter. If a request is received with the same parameters and a token is included, the request will return information about the initial request that used that token.</p>",
+        "PullRequest$clientRequestToken": "<p>A unique, client-generated idempotency token that when provided in a request, ensures the request cannot be repeated with a changed parameter. If a request is received with the same parameters and a token is included, the request will return information about the initial request that used that token.</p>"
+      }
+    },
+    "ClientRequestTokenRequiredException": {
+      "base": "<p>A client request token is required. A client request token is an unique, client-generated idempotency token that when provided in a request, ensures the request cannot be repeated with a changed parameter. If a request is received with the same parameters and a token is included, the request will return information about the initial request that used that token.</p>",
+      "refs": {
+      }
+    },
+    "CloneUrlHttp": {
+      "base": null,
+      "refs": {
+        "RepositoryMetadata$cloneUrlHttp": "<p>The URL to use for cloning the repository over HTTPS.</p>"
+      }
+    },
+    "CloneUrlSsh": {
+      "base": null,
+      "refs": {
+        "RepositoryMetadata$cloneUrlSsh": "<p>The URL to use for cloning the repository over SSH.</p>"
+      }
+    },
+    "Comment": {
+      "base": "<p>Returns information about a specific comment.</p>",
+      "refs": {
+        "Comments$member": null,
+        "DeleteCommentContentOutput$comment": "<p>Information about the comment you just deleted.</p>",
+        "GetCommentOutput$comment": "<p>The contents of the comment.</p>",
+        "PostCommentForComparedCommitOutput$comment": "<p>The content of the comment you posted.</p>",
+        "PostCommentForPullRequestOutput$comment": "<p>The content of the comment you posted.</p>",
+        "PostCommentReplyOutput$comment": "<p>Information about the reply to a comment.</p>",
+        "UpdateCommentOutput$comment": "<p>Information about the updated comment.</p>"
+      }
+    },
+    "CommentContentRequiredException": {
+      "base": "<p>The comment is empty. You must provide some content for a comment. The content cannot be null.</p>",
+      "refs": {
+      }
+    },
+    "CommentContentSizeLimitExceededException": {
+      "base": "<p>The comment is too large. Comments are limited to 1,000 characters.</p>",
+      "refs": {
+      }
+    },
+    "CommentDeletedException": {
+      "base": "<p>This comment has already been deleted. You cannot edit or delete a deleted comment.</p>",
+      "refs": {
+      }
+    },
+    "CommentDoesNotExistException": {
+      "base": "<p>No comment exists with the provided ID. Verify that you have provided the correct ID, and then try again.</p>",
+      "refs": {
+      }
+    },
+    "CommentId": {
+      "base": null,
+      "refs": {
+        "Comment$commentId": "<p>The system-generated comment ID.</p>",
+        "Comment$inReplyTo": "<p>The ID of the comment for which this comment is a reply, if any.</p>",
+        "DeleteCommentContentInput$commentId": "<p>The unique, system-generated ID of the comment. To get this ID, use <a>GetCommentsForComparedCommit</a> or <a>GetCommentsForPullRequest</a>.</p>",
+        "GetCommentInput$commentId": "<p>The unique, system-generated ID of the comment. To get this ID, use <a>GetCommentsForComparedCommit</a> or <a>GetCommentsForPullRequest</a>.</p>",
+        "PostCommentReplyInput$inReplyTo": "<p>The system-generated ID of the comment to which you want to reply. To get this ID, use <a>GetCommentsForComparedCommit</a> or <a>GetCommentsForPullRequest</a>.</p>",
+        "UpdateCommentInput$commentId": "<p>The system-generated ID of the comment you want to update. To get this ID, use <a>GetCommentsForComparedCommit</a> or <a>GetCommentsForPullRequest</a>.</p>"
+      }
+    },
+    "CommentIdRequiredException": {
+      "base": "<p>The comment ID is missing or null. A comment ID is required.</p>",
+      "refs": {
+      }
+    },
+    "CommentNotCreatedByCallerException": {
+      "base": "<p>You cannot modify or delete this comment. Only comment authors can modify or delete their comments.</p>",
+      "refs": {
+      }
+    },
+    "Comments": {
+      "base": null,
+      "refs": {
+        "CommentsForComparedCommit$comments": "<p>An array of comment objects. Each comment object contains information about a comment on the comparison between commits.</p>",
+        "CommentsForPullRequest$comments": "<p>An array of comment objects. Each comment object contains information about a comment on the pull request.</p>"
+      }
+    },
+    "CommentsForComparedCommit": {
+      "base": "<p>Returns information about comments on the comparison between two commits.</p>",
+      "refs": {
+        "CommentsForComparedCommitData$member": null
+      }
+    },
+    "CommentsForComparedCommitData": {
+      "base": null,
+      "refs": {
+        "GetCommentsForComparedCommitOutput$commentsForComparedCommitData": "<p>A list of comment objects on the compared commit.</p>"
+      }
+    },
+    "CommentsForPullRequest": {
+      "base": "<p>Returns information about comments on a pull request.</p>",
+      "refs": {
+        "CommentsForPullRequestData$member": null
+      }
+    },
+    "CommentsForPullRequestData": {
+      "base": null,
+      "refs": {
+        "GetCommentsForPullRequestOutput$commentsForPullRequestData": "<p>An array of comment objects on the pull request.</p>"
+      }
+    },
+    "Commit": {
+      "base": "<p>Returns information about a specific commit.</p>",
+      "refs": {
+        "GetCommitOutput$commit": "<p>A commit data type object that contains information about the specified commit.</p>"
+      }
+    },
+    "CommitDoesNotExistException": {
+      "base": "<p>The specified commit does not exist or no commit was specified, and the specified repository has no default branch.</p>",
+      "refs": {
+      }
+    },
+    "CommitId": {
+      "base": null,
+      "refs": {
+        "BranchInfo$commitId": "<p>The ID of the last commit made to the branch.</p>",
+        "CommentsForComparedCommit$beforeCommitId": "<p>The full commit ID of the commit used to establish the 'before' of the comparison.</p>",
+        "CommentsForComparedCommit$afterCommitId": "<p>The full commit ID of the commit used to establish the 'after' of the comparison.</p>",
+        "CommentsForPullRequest$beforeCommitId": "<p>The full commit ID of the commit that was the tip of the destination branch when the pull request was created. This commit will be superceded by the after commit in the source branch when and if you merge the source branch into the destination branch.</p>",
+        "CommentsForPullRequest$afterCommitId": "<p>he full commit ID of the commit that was the tip of the source branch at the time the comment was made. </p>",
+        "CreateBranchInput$commitId": "<p>The ID of the commit to point the new branch to.</p>",
+        "CreateCommitInput$parentCommitId": "<p>The ID of the commit that is the parent of the commit you will create. If this is an empty repository, this is not required.</p>",
+        "DeleteFileInput$parentCommitId": "<p>The ID of the commit that is the tip of the branch where you want to create the commit that will delete the file. This must be the HEAD commit for the branch. The commit that deletes the file will be created from this commit ID.</p>",
+        "GetCommentsForComparedCommitInput$beforeCommitId": "<p>To establish the directionality of the comparison, the full commit ID of the 'before' commit.</p>",
+        "GetCommentsForComparedCommitInput$afterCommitId": "<p>To establish the directionality of the comparison, the full commit ID of the 'after' commit.</p>",
+        "GetCommentsForPullRequestInput$beforeCommitId": "<p>The full commit ID of the commit in the destination branch that was the tip of the branch at the time the pull request was created.</p>",
+        "GetCommentsForPullRequestInput$afterCommitId": "<p>The full commit ID of the commit in the source branch that was the tip of the branch at the time the comment was made.</p>",
+        "GetMergeConflictsOutput$destinationCommitId": "<p>The commit ID of the destination commit specifier that was used in the merge evaluation.</p>",
+        "GetMergeConflictsOutput$sourceCommitId": "<p>The commit ID of the source commit specifier that was used in the merge evaluation.</p>",
+        "MergePullRequestByFastForwardInput$sourceCommitId": "<p>The full commit ID of the original or updated commit in the pull request source branch. Pass this value if you want an exception thrown if the current commit ID of the tip of the source branch does not match this commit ID.</p>",
+        "PostCommentForComparedCommitInput$beforeCommitId": "<p>To establish the directionality of the comparison, the full commit ID of the 'before' commit.</p>",
+        "PostCommentForComparedCommitInput$afterCommitId": "<p>To establish the directionality of the comparison, the full commit ID of the 'after' commit.</p>",
+        "PostCommentForComparedCommitOutput$beforeCommitId": "<p>In the directionality you established, the full commit ID of the 'before' commit.</p>",
+        "PostCommentForComparedCommitOutput$afterCommitId": "<p>In the directionality you established, the full commit ID of the 'after' commit.</p>",
+        "PostCommentForPullRequestInput$beforeCommitId": "<p>The full commit ID of the commit in the destination branch that was the tip of the branch at the time the pull request was created.</p>",
+        "PostCommentForPullRequestInput$afterCommitId": "<p>The full commit ID of the commit in the source branch that is the current tip of the branch for the pull request when you post the comment.</p>",
+        "PostCommentForPullRequestOutput$beforeCommitId": "<p>The full commit ID of the commit in the source branch used to create the pull request, or in the case of an updated pull request, the full commit ID of the commit used to update the pull request.</p>",
+        "PostCommentForPullRequestOutput$afterCommitId": "<p>The full commit ID of the commit in the destination branch where the pull request will be merged.</p>",
+        "PullRequestCreatedEventMetadata$sourceCommitId": "<p>The commit ID on the source branch used when the pull request was created.</p>",
+        "PullRequestCreatedEventMetadata$destinationCommitId": "<p>The commit ID of the tip of the branch specified as the destination branch when the pull request was created.</p>",
+        "PullRequestCreatedEventMetadata$mergeBase": "<p>The commit ID of the most recent commit that the source branch and the destination branch have in common.</p>",
+        "PullRequestSourceReferenceUpdatedEventMetadata$beforeCommitId": "<p>The full commit ID of the commit in the destination branch that was the tip of the branch at the time the pull request was updated.</p>",
+        "PullRequestSourceReferenceUpdatedEventMetadata$afterCommitId": "<p>The full commit ID of the commit in the source branch that was the tip of the branch at the time the pull request was updated.</p>",
+        "PullRequestSourceReferenceUpdatedEventMetadata$mergeBase": "<p>The commit ID of the most recent commit that the source branch and the destination branch have in common.</p>",
+        "PullRequestTarget$destinationCommit": "<p>The full commit ID that is the tip of the destination branch. This is the commit where the pull request was or will be merged.</p>",
+        "PullRequestTarget$sourceCommit": "<p>The full commit ID of the tip of the source branch used to create the pull request. If the pull request branch is updated by a push while the pull request is open, the commit ID will change to reflect the new tip of the branch.</p>",
+        "PullRequestTarget$mergeBase": "<p>The commit ID of the most recent commit that the source branch and the destination branch have in common.</p>",
+        "PutFileInput$parentCommitId": "<p>The full commit ID of the head commit in the branch where you want to add or update the file. If this is an empty repository, no commit ID is required. If this is not an empty repository, a commit ID is required. </p> <p>The commit ID must match the ID of the head commit at the time of the operation, or an error will occur, and the file will not be added or updated.</p>"
+      }
+    },
+    "CommitIdDoesNotExistException": {
+      "base": "<p>The specified commit ID does not exist.</p>",
+      "refs": {
+      }
+    },
+    "CommitIdRequiredException": {
+      "base": "<p>A commit ID was not specified.</p>",
+      "refs": {
+      }
+    },
+    "CommitMessageLengthExceededException": {
+      "base": "<p>The commit message is too long. Provide a shorter string. </p>",
+      "refs": {
+      }
+    },
+    "CommitName": {
+      "base": null,
+      "refs": {
+        "GetDifferencesInput$beforeCommitSpecifier": "<p>The branch, tag, HEAD, or other fully qualified reference used to identify a commit. For example, the full commit ID. Optional. If not specified, all changes prior to the <code>afterCommitSpecifier</code> value will be shown. If you do not use <code>beforeCommitSpecifier</code> in your request, consider limiting the results with <code>maxResults</code>.</p>",
+        "GetDifferencesInput$afterCommitSpecifier": "<p>The branch, tag, HEAD, or other fully qualified reference used to identify a commit.</p>",
+        "GetFileInput$commitSpecifier": "<p>The fully-quaified reference that identifies the commit that contains the file. For example, you could specify a full commit ID, a tag, a branch name, or a reference such as refs/heads/master. If none is provided, then the head commit will be used.</p>",
+        "GetFolderInput$commitSpecifier": "<p>A fully-qualified reference used to identify a commit that contains the version of the folder's content to return. A fully-qualified reference can be a commit ID, branch name, tag, or reference such as HEAD. If no specifier is provided, the folder content will be returned as it exists in the HEAD commit.</p>",
+        "GetMergeConflictsInput$destinationCommitSpecifier": "<p>The branch, tag, HEAD, or other fully qualified reference used to identify a commit. For example, a branch name or a full commit ID.</p>",
+        "GetMergeConflictsInput$sourceCommitSpecifier": "<p>The branch, tag, HEAD, or other fully qualified reference used to identify a commit. For example, a branch name or a full commit ID.</p>"
+      }
+    },
+    "CommitRequiredException": {
+      "base": "<p>A commit was not specified.</p>",
+      "refs": {
+      }
+    },
+    "Content": {
+      "base": null,
+      "refs": {
+        "Comment$content": "<p>The content of the comment.</p>",
+        "PostCommentForComparedCommitInput$content": "<p>The content of the comment you want to make.</p>",
+        "PostCommentForPullRequestInput$content": "<p>The content of your comment on the change.</p>",
+        "PostCommentReplyInput$content": "<p>The contents of your reply to a comment.</p>",
+        "UpdateCommentInput$content": "<p>The updated content with which you want to replace the existing content of the comment.</p>"
+      }
+    },
+    "CreateBranchInput": {
+      "base": "<p>Represents the input of a create branch operation.</p>",
+      "refs": {
+      }
+    },
+    "CreateCommitInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateCommitOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreatePullRequestInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreatePullRequestOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateRepositoryInput": {
+      "base": "<p>Represents the input of a create repository operation.</p>",
+      "refs": {
+      }
+    },
+    "CreateRepositoryOutput": {
+      "base": "<p>Represents the output of a create repository operation.</p>",
+      "refs": {
+      }
+    },
+    "CreationDate": {
+      "base": null,
+      "refs": {
+        "Comment$creationDate": "<p>The date and time the comment was created, in timestamp format.</p>",
+        "PullRequest$creationDate": "<p>The date and time the pull request was originally created, in timestamp format.</p>",
+        "RepositoryMetadata$creationDate": "<p>The date and time the repository was created, in timestamp format.</p>"
+      }
+    },
+    "Date": {
+      "base": null,
+      "refs": {
+        "UserInfo$date": "<p>The date when the specified commit was commited, in timestamp format with GMT offset.</p>"
+      }
+    },
+    "DefaultBranchCannotBeDeletedException": {
+      "base": "<p>The specified branch is the default branch for the repository, and cannot be deleted. To delete this branch, you must first set another branch as the default branch.</p>",
+      "refs": {
+      }
+    },
+    "DeleteBranchInput": {
+      "base": "<p>Represents the input of a delete branch operation.</p>",
+      "refs": {
+      }
+    },
+    "DeleteBranchOutput": {
+      "base": "<p>Represents the output of a delete branch operation.</p>",
+      "refs": {
+      }
+    },
+    "DeleteCommentContentInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteCommentContentOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteFileEntries": {
+      "base": null,
+      "refs": {
+        "CreateCommitInput$deleteFiles": "<p>The files to delete in this commit. These files will still exist in prior commits.</p>"
+      }
+    },
+    "DeleteFileEntry": {
+      "base": "<p>A file that will be deleted as part of a commit.</p>",
+      "refs": {
+        "DeleteFileEntries$member": null
+      }
+    },
+    "DeleteFileInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteFileOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteRepositoryInput": {
+      "base": "<p>Represents the input of a delete repository operation.</p>",
+      "refs": {
+      }
+    },
+    "DeleteRepositoryOutput": {
+      "base": "<p>Represents the output of a delete repository operation.</p>",
+      "refs": {
+      }
+    },
+    "DescribePullRequestEventsInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DescribePullRequestEventsOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Description": {
+      "base": null,
+      "refs": {
+        "CreatePullRequestInput$description": "<p>A description of the pull request.</p>",
+        "PullRequest$description": "<p>The user-defined description of the pull request. This description can be used to clarify what should be reviewed and other details of the request.</p>",
+        "UpdatePullRequestDescriptionInput$description": "<p>The updated content of the description for the pull request. This content will replace the existing description.</p>"
+      }
+    },
+    "Difference": {
+      "base": "<p>Returns information about a set of differences for a commit specifier.</p>",
+      "refs": {
+        "DifferenceList$member": null
+      }
+    },
+    "DifferenceList": {
+      "base": null,
+      "refs": {
+        "GetDifferencesOutput$differences": "<p>A differences data type object that contains information about the differences, including whether the difference is added, modified, or deleted (A, D, M).</p>"
+      }
+    },
+    "DirectoryNameConflictsWithFileNameException": {
+      "base": "<p>A file cannot be added to the repository because the specified path name has the same name as a file that already exists in this repository. Either provide a different name for the file, or specify a different path for the file.</p>",
+      "refs": {
+      }
+    },
+    "Email": {
+      "base": null,
+      "refs": {
+        "CreateCommitInput$email": "<p>The email address of the person who created the commit.</p>",
+        "DeleteFileInput$email": "<p>The email address for the commit that deletes the file. If no email address is specified, the email address will be left blank.</p>",
+        "PutFileInput$email": "<p>An email address for the person adding or updating the file.</p>",
+        "UserInfo$email": "<p>The email address associated with the user who made the commit, if any.</p>"
+      }
+    },
+    "EncryptionIntegrityChecksFailedException": {
+      "base": "<p>An encryption integrity check failed.</p>",
+      "refs": {
+      }
+    },
+    "EncryptionKeyAccessDeniedException": {
+      "base": "<p>An encryption key could not be accessed.</p>",
+      "refs": {
+      }
+    },
+    "EncryptionKeyDisabledException": {
+      "base": "<p>The encryption key is disabled.</p>",
+      "refs": {
+      }
+    },
+    "EncryptionKeyNotFoundException": {
+      "base": "<p>No encryption key was found.</p>",
+      "refs": {
+      }
+    },
+    "EncryptionKeyUnavailableException": {
+      "base": "<p>The encryption key is not available.</p>",
+      "refs": {
+      }
+    },
+    "EventDate": {
+      "base": null,
+      "refs": {
+        "PullRequestEvent$eventDate": "<p>The day and time of the pull request event, in timestamp format.</p>"
+      }
+    },
+    "File": {
+      "base": "<p>Returns information about a file in a repository.</p>",
+      "refs": {
+        "FileList$member": null
+      }
+    },
+    "FileContent": {
+      "base": null,
+      "refs": {
+        "GetFileOutput$fileContent": "<p>The base-64 encoded binary data object that represents the content of the file.</p>",
+        "PutFileEntry$fileContent": "<p>The content of the file, if a source file is not specified.</p>",
+        "PutFileInput$fileContent": "<p>The content of the file, in binary object format. </p>"
+      }
+    },
+    "FileContentAndSourceFileSpecifiedException": {
+      "base": "<p>The commit cannot be created because both a source file and file content have been specified for the same file. You cannot provide both. Either specify a source file, or provide the file content directly.</p>",
+      "refs": {
+      }
+    },
+    "FileContentRequiredException": {
+      "base": "<p>The file cannot be added because it is empty. Empty files cannot be added to the repository with this API.</p>",
+      "refs": {
+      }
+    },
+    "FileContentSizeLimitExceededException": {
+      "base": "<p>The file cannot be added because it is too large. The maximum file size that can be added using PutFile is 6 MB, and the combined file content change size is 7 MB. Consider making these changes using a Git client.</p>",
+      "refs": {
+      }
+    },
+    "FileDoesNotExistException": {
+      "base": "<p>The specified file does not exist. Verify that you have provided the correct name of the file, including its full path and extension.</p>",
+      "refs": {
+      }
+    },
+    "FileEntryRequiredException": {
+      "base": "<p>The commit cannot be created because no files have been specified as added, updated, or changed (PutFile or DeleteFile) for the commit.</p>",
+      "refs": {
+      }
+    },
+    "FileList": {
+      "base": null,
+      "refs": {
+        "GetFolderOutput$files": "<p>The list of files that exist in the specified folder, if any.</p>"
+      }
+    },
+    "FileMetadata": {
+      "base": "<p>A file that will be added, updated, or deleted as part of a commit.</p>",
+      "refs": {
+        "FilesMetadata$member": null
+      }
+    },
+    "FileModeRequiredException": {
+      "base": "<p>The commit cannot be created because a file mode is required to update mode permissions for an existing file, but no file mode has been specified.</p>",
+      "refs": {
+      }
+    },
+    "FileModeTypeEnum": {
+      "base": null,
+      "refs": {
+        "File$fileMode": "<p>The extrapolated file mode permissions for the file. Valid values include EXECUTABLE and NORMAL.</p>",
+        "FileMetadata$fileMode": "<p>The extrapolated file mode permissions for the file. Valid values include EXECUTABLE and NORMAL.</p>",
+        "GetFileOutput$fileMode": "<p>The extrapolated file mode permissions of the blob. Valid values include strings such as EXECUTABLE and not numeric values.</p> <note> <p>The file mode permissions returned by this API are not the standard file mode permission values, such as 100644, but rather extrapolated values. See below for a full list of supported return values.</p> </note>",
+        "PutFileEntry$fileMode": "<p>The extrapolated file mode permissions for the file. Valid values include EXECUTABLE and NORMAL.</p>",
+        "PutFileInput$fileMode": "<p>The file mode permissions of the blob. Valid file mode permissions are listed below.</p>",
+        "SetFileModeEntry$fileMode": "<p>The file mode for the file.</p>",
+        "SymbolicLink$fileMode": "<p>The file mode permissions of the blob that cotains information about the symbolic link.</p>"
+      }
+    },
+    "FileNameConflictsWithDirectoryNameException": {
+      "base": "<p>A file cannot be added to the repository because the specified file name has the same name as a directory in this repository. Either provide another name for the file, or add the file in a directory that does not match the file name.</p>",
+      "refs": {
+      }
+    },
+    "FilePathConflictsWithSubmodulePathException": {
+      "base": "<p>The commit cannot be created because a specified file path points to a submodule. Verify that the destination files have valid file paths that do not point to a submodule.</p>",
+      "refs": {
+      }
+    },
+    "FileTooLargeException": {
+      "base": "<p>The specified file exceeds the file size limit for AWS CodeCommit. For more information about limits in AWS CodeCommit, see <a href=\"http://docs.aws.amazon.com/codecommit/latest/userguide/limits.html\">AWS CodeCommit User Guide</a>.</p>",
+      "refs": {
+      }
+    },
+    "FilesMetadata": {
+      "base": null,
+      "refs": {
+        "CreateCommitOutput$filesAdded": "<p>The files added as part of the committed file changes.</p>",
+        "CreateCommitOutput$filesUpdated": "<p>The files updated as part of the commited file changes.</p>",
+        "CreateCommitOutput$filesDeleted": "<p>The files deleted as part of the committed file changes.</p>"
+      }
+    },
+    "Folder": {
+      "base": "<p>Returns information about a folder in a repository.</p>",
+      "refs": {
+        "FolderList$member": null
+      }
+    },
+    "FolderContentSizeLimitExceededException": {
+      "base": "<p>The commit cannot be created because at least one of the overall changes in the commit result in a folder contents exceeding the limit of 6 MB. Either reduce the number and size of your changes, or split the changes across multiple folders.</p>",
+      "refs": {
+      }
+    },
+    "FolderDoesNotExistException": {
+      "base": "<p>The specified folder does not exist. Either the folder name is not correct, or you did not provide the full path to the folder.</p>",
+      "refs": {
+      }
+    },
+    "FolderList": {
+      "base": null,
+      "refs": {
+        "GetFolderOutput$subFolders": "<p>The list of folders that exist beneath the specified folder, if any.</p>"
+      }
+    },
+    "GetBlobInput": {
+      "base": "<p>Represents the input of a get blob operation.</p>",
+      "refs": {
+      }
+    },
+    "GetBlobOutput": {
+      "base": "<p>Represents the output of a get blob operation.</p>",
+      "refs": {
+      }
+    },
+    "GetBranchInput": {
+      "base": "<p>Represents the input of a get branch operation.</p>",
+      "refs": {
+      }
+    },
+    "GetBranchOutput": {
+      "base": "<p>Represents the output of a get branch operation.</p>",
+      "refs": {
+      }
+    },
+    "GetCommentInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetCommentOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetCommentsForComparedCommitInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetCommentsForComparedCommitOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetCommentsForPullRequestInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetCommentsForPullRequestOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetCommitInput": {
+      "base": "<p>Represents the input of a get commit operation.</p>",
+      "refs": {
+      }
+    },
+    "GetCommitOutput": {
+      "base": "<p>Represents the output of a get commit operation.</p>",
+      "refs": {
+      }
+    },
+    "GetDifferencesInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetDifferencesOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetFileInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetFileOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetFolderInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetFolderOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetMergeConflictsInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetMergeConflictsOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetPullRequestInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetPullRequestOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetRepositoryInput": {
+      "base": "<p>Represents the input of a get repository operation.</p>",
+      "refs": {
+      }
+    },
+    "GetRepositoryOutput": {
+      "base": "<p>Represents the output of a get repository operation.</p>",
+      "refs": {
+      }
+    },
+    "GetRepositoryTriggersInput": {
+      "base": "<p>Represents the input of a get repository triggers operation.</p>",
+      "refs": {
+      }
+    },
+    "GetRepositoryTriggersOutput": {
+      "base": "<p>Represents the output of a get repository triggers operation.</p>",
+      "refs": {
+      }
+    },
+    "IdempotencyParameterMismatchException": {
+      "base": "<p>The client request token is not valid. Either the token is not in a valid format, or the token has been used in a previous request and cannot be re-used.</p>",
+      "refs": {
+      }
+    },
+    "InvalidActorArnException": {
+      "base": "<p>The Amazon Resource Name (ARN) is not valid. Make sure that you have provided the full ARN for the user who initiated the change for the pull request, and then try again.</p>",
+      "refs": {
+      }
+    },
+    "InvalidAuthorArnException": {
+      "base": "<p>The Amazon Resource Name (ARN) is not valid. Make sure that you have provided the full ARN for the author of the pull request, and then try again.</p>",
+      "refs": {
+      }
+    },
+    "InvalidBlobIdException": {
+      "base": "<p>The specified blob is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidBranchNameException": {
+      "base": "<p>The specified reference name is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidClientRequestTokenException": {
+      "base": "<p>The client request token is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidCommentIdException": {
+      "base": "<p>The comment ID is not in a valid format. Make sure that you have provided the full comment ID.</p>",
+      "refs": {
+      }
+    },
+    "InvalidCommitException": {
+      "base": "<p>The specified commit is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidCommitIdException": {
+      "base": "<p>The specified commit ID is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidContinuationTokenException": {
+      "base": "<p>The specified continuation token is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidDeletionParameterException": {
+      "base": "<p>The specified deletion parameter is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidDescriptionException": {
+      "base": "<p>The pull request description is not valid. Descriptions are limited to 1,000 characters in length.</p>",
+      "refs": {
+      }
+    },
+    "InvalidDestinationCommitSpecifierException": {
+      "base": "<p>The destination commit specifier is not valid. You must provide a valid branch name, tag, or full commit ID. </p>",
+      "refs": {
+      }
+    },
+    "InvalidEmailException": {
+      "base": "<p>The specified email address either contains one or more characters that are not allowed, or it exceeds the maximum number of characters allowed for an email address.</p>",
+      "refs": {
+      }
+    },
+    "InvalidFileLocationException": {
+      "base": "<p>The location of the file is not valid. Make sure that you include the extension of the file as well as the file name.</p>",
+      "refs": {
+      }
+    },
+    "InvalidFileModeException": {
+      "base": "<p>The specified file mode permission is not valid. For a list of valid file mode permissions, see <a>PutFile</a>. </p>",
+      "refs": {
+      }
+    },
+    "InvalidFilePositionException": {
+      "base": "<p>The position is not valid. Make sure that the line number exists in the version of the file you want to comment on.</p>",
+      "refs": {
+      }
+    },
+    "InvalidMaxResultsException": {
+      "base": "<p>The specified number of maximum results is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidMergeOptionException": {
+      "base": "<p>The specified merge option is not valid. The only valid value is FAST_FORWARD_MERGE.</p>",
+      "refs": {
+      }
+    },
+    "InvalidOrderException": {
+      "base": "<p>The specified sort order is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidParentCommitIdException": {
+      "base": "<p>The parent commit ID is not valid. The commit ID cannot be empty, and must match the head commit ID for the branch of the repository where you want to add or update a file.</p>",
+      "refs": {
+      }
+    },
+    "InvalidPathException": {
+      "base": "<p>The specified path is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidPullRequestEventTypeException": {
+      "base": "<p>The pull request event type is not valid. </p>",
+      "refs": {
+      }
+    },
+    "InvalidPullRequestIdException": {
+      "base": "<p>The pull request ID is not valid. Make sure that you have provided the full ID and that the pull request is in the specified repository, and then try again.</p>",
+      "refs": {
+      }
+    },
+    "InvalidPullRequestStatusException": {
+      "base": "<p>The pull request status is not valid. The only valid values are <code>OPEN</code> and <code>CLOSED</code>.</p>",
+      "refs": {
+      }
+    },
+    "InvalidPullRequestStatusUpdateException": {
+      "base": "<p>The pull request status update is not valid. The only valid update is from <code>OPEN</code> to <code>CLOSED</code>.</p>",
+      "refs": {
+      }
+    },
+    "InvalidReferenceNameException": {
+      "base": "<p>The specified reference name format is not valid. Reference names must conform to the Git references format, for example refs/heads/master. For more information, see <a href=\"https://git-scm.com/book/en/v2/Git-Internals-Git-References\">Git Internals - Git References</a> or consult your Git documentation.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRelativeFileVersionEnumException": {
+      "base": "<p>Either the enum is not in a valid format, or the specified file version enum is not valid in respect to the current file version.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRepositoryDescriptionException": {
+      "base": "<p>The specified repository description is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRepositoryNameException": {
+      "base": "<p>At least one specified repository name is not valid.</p> <note> <p>This exception only occurs when a specified repository name is not valid. Other exceptions occur when a required repository parameter is missing, or when a specified repository does not exist.</p> </note>",
+      "refs": {
+      }
+    },
+    "InvalidRepositoryTriggerBranchNameException": {
+      "base": "<p>One or more branch names specified for the trigger is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRepositoryTriggerCustomDataException": {
+      "base": "<p>The custom data provided for the trigger is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRepositoryTriggerDestinationArnException": {
+      "base": "<p>The Amazon Resource Name (ARN) for the trigger is not valid for the specified destination. The most common reason for this error is that the ARN does not meet the requirements for the service type.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRepositoryTriggerEventsException": {
+      "base": "<p>One or more events specified for the trigger is not valid. Check to make sure that all events specified match the requirements for allowed events.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRepositoryTriggerNameException": {
+      "base": "<p>The name of the trigger is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRepositoryTriggerRegionException": {
+      "base": "<p>The region for the trigger target does not match the region for the repository. Triggers must be created in the same region as the target for the trigger.</p>",
+      "refs": {
+      }
+    },
+    "InvalidSortByException": {
+      "base": "<p>The specified sort by value is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidSourceCommitSpecifierException": {
+      "base": "<p>The source commit specifier is not valid. You must provide a valid branch name, tag, or full commit ID.</p>",
+      "refs": {
+      }
+    },
+    "InvalidTargetException": {
+      "base": "<p>The target for the pull request is not valid. A target must contain the full values for the repository name, source branch, and destination branch for the pull request.</p>",
+      "refs": {
+      }
+    },
+    "InvalidTargetsException": {
+      "base": "<p>The targets for the pull request is not valid or not in a valid format. Targets are a list of target objects. Each target object must contain the full values for the repository name, source branch, and destination branch for a pull request.</p>",
+      "refs": {
+      }
+    },
+    "InvalidTitleException": {
+      "base": "<p>The title of the pull request is not valid. Pull request titles cannot exceed 100 characters in length.</p>",
+      "refs": {
+      }
+    },
+    "IsCommentDeleted": {
+      "base": null,
+      "refs": {
+        "Comment$deleted": "<p>A Boolean value indicating whether the comment has been deleted.</p>"
+      }
+    },
+    "IsMergeable": {
+      "base": null,
+      "refs": {
+        "GetMergeConflictsOutput$mergeable": "<p>A Boolean value that indicates whether the code is mergable by the specified merge option.</p>"
+      }
+    },
+    "IsMerged": {
+      "base": null,
+      "refs": {
+        "MergeMetadata$isMerged": "<p>A Boolean value indicating whether the merge has been made.</p>"
+      }
+    },
+    "IsMove": {
+      "base": null,
+      "refs": {
+        "SourceFileSpecifier$isMove": "<p>Whether to remove the source file from the parent commit.</p>"
+      }
+    },
+    "KeepEmptyFolders": {
+      "base": null,
+      "refs": {
+        "CreateCommitInput$keepEmptyFolders": "<p>If the commit contains deletions, whether to keep a folder or folder structure if the changes leave the folders empty. If this is specified as true, a .gitkeep file will be created for empty folders.</p>",
+        "DeleteFileInput$keepEmptyFolders": "<p>Specifies whether to delete the folder or directory that contains the file you want to delete if that file is the only object in the folder or directory. By default, empty folders will be deleted. This includes empty folders that are part of the directory structure. For example, if the path to a file is dir1/dir2/dir3/dir4, and dir2 and dir3 are empty, deleting the last file in dir4 will also delete the empty folders dir4, dir3, and dir2.</p>"
+      }
+    },
+    "LastModifiedDate": {
+      "base": null,
+      "refs": {
+        "Comment$lastModifiedDate": "<p>The date and time the comment was most recently modified, in timestamp format.</p>",
+        "PullRequest$lastActivityDate": "<p>The day and time of the last user or system activity on the pull request, in timestamp format.</p>",
+        "RepositoryMetadata$lastModifiedDate": "<p>The date and time the repository was last modified, in timestamp format.</p>"
+      }
+    },
+    "Limit": {
+      "base": null,
+      "refs": {
+        "GetDifferencesInput$MaxResults": "<p>A non-negative integer used to limit the number of returned results.</p>"
+      }
+    },
+    "ListBranchesInput": {
+      "base": "<p>Represents the input of a list branches operation.</p>",
+      "refs": {
+      }
+    },
+    "ListBranchesOutput": {
+      "base": "<p>Represents the output of a list branches operation.</p>",
+      "refs": {
+      }
+    },
+    "ListPullRequestsInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListPullRequestsOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListRepositoriesInput": {
+      "base": "<p>Represents the input of a list repositories operation.</p>",
+      "refs": {
+      }
+    },
+    "ListRepositoriesOutput": {
+      "base": "<p>Represents the output of a list repositories operation.</p>",
+      "refs": {
+      }
+    },
+    "Location": {
+      "base": "<p>Returns information about the location of a change or comment in the comparison between two commits or a pull request.</p>",
+      "refs": {
+        "CommentsForComparedCommit$location": "<p>Location information about the comment on the comparison, including the file name, line number, and whether the version of the file where the comment was made is 'BEFORE' or 'AFTER'.</p>",
+        "CommentsForPullRequest$location": "<p>Location information about the comment on the pull request, including the file name, line number, and whether the version of the file where the comment was made is 'BEFORE' (destination branch) or 'AFTER' (source branch).</p>",
+        "PostCommentForComparedCommitInput$location": "<p>The location of the comparison where you want to comment.</p>",
+        "PostCommentForComparedCommitOutput$location": "<p>The location of the comment in the comparison between the two commits.</p>",
+        "PostCommentForPullRequestInput$location": "<p>The location of the change where you want to post your comment. If no location is provided, the comment will be posted as a general comment on the pull request difference between the before commit ID and the after commit ID.</p>",
+        "PostCommentForPullRequestOutput$location": "<p>The location of the change where you posted your comment.</p>"
+      }
+    },
+    "ManualMergeRequiredException": {
+      "base": "<p>The pull request cannot be merged automatically into the destination branch. You must manually merge the branches and resolve any conflicts.</p>",
+      "refs": {
+      }
+    },
+    "MaxResults": {
+      "base": null,
+      "refs": {
+        "DescribePullRequestEventsInput$maxResults": "<p>A non-negative integer used to limit the number of returned results. The default is 100 events, which is also the maximum number of events that can be returned in a result.</p>",
+        "GetCommentsForComparedCommitInput$maxResults": "<p>A non-negative integer used to limit the number of returned results. The default is 100 comments, and is configurable up to 500.</p>",
+        "GetCommentsForPullRequestInput$maxResults": "<p>A non-negative integer used to limit the number of returned results. The default is 100 comments. You can return up to 500 comments with a single request.</p>",
+        "ListPullRequestsInput$maxResults": "<p>A non-negative integer used to limit the number of returned results.</p>"
+      }
+    },
+    "MaximumBranchesExceededException": {
+      "base": "<p>The number of branches for the trigger was exceeded.</p>",
+      "refs": {
+      }
+    },
+    "MaximumFileEntriesExceededException": {
+      "base": "<p>The number of specified files to change as part of this commit exceeds the maximum number of files that can be changed in a single commit. Consider using a Git client for these changes.</p>",
+      "refs": {
+      }
+    },
+    "MaximumOpenPullRequestsExceededException": {
+      "base": "<p>You cannot create the pull request because the repository has too many open pull requests. The maximum number of open pull requests for a repository is 1,000. Close one or more open pull requests, and then try again.</p>",
+      "refs": {
+      }
+    },
+    "MaximumRepositoryNamesExceededException": {
+      "base": "<p>The maximum number of allowed repository names was exceeded. Currently, this number is 25.</p>",
+      "refs": {
+      }
+    },
+    "MaximumRepositoryTriggersExceededException": {
+      "base": "<p>The number of triggers allowed for the repository was exceeded.</p>",
+      "refs": {
+      }
+    },
+    "MergeMetadata": {
+      "base": "<p>Returns information about a merge or potential merge between a source reference and a destination reference in a pull request.</p>",
+      "refs": {
+        "PullRequestMergedStateChangedEventMetadata$mergeMetadata": "<p>Information about the merge state change event.</p>",
+        "PullRequestTarget$mergeMetadata": "<p>Returns metadata about the state of the merge, including whether the merge has been made.</p>"
+      }
+    },
+    "MergeOptionRequiredException": {
+      "base": "<p>A merge option or stategy is required, and none was provided.</p>",
+      "refs": {
+      }
+    },
+    "MergeOptionTypeEnum": {
+      "base": null,
+      "refs": {
+        "GetMergeConflictsInput$mergeOption": "<p>The merge option or strategy you want to use to merge the code. The only valid value is FAST_FORWARD_MERGE.</p>"
+      }
+    },
+    "MergePullRequestByFastForwardInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "MergePullRequestByFastForwardOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Message": {
+      "base": null,
+      "refs": {
+        "Commit$message": "<p>The commit message associated with the specified commit.</p>",
+        "CreateCommitInput$commitMessage": "<p>The commit message you want to include as part of creating the commit. Commit messages are limited to 256 KB. If no message is specified, a default message will be used.</p>",
+        "DeleteFileInput$commitMessage": "<p>The commit message you want to include as part of deleting the file. Commit messages are limited to 256 KB. If no message is specified, a default message will be used.</p>",
+        "PutFileInput$commitMessage": "<p>A message about why this file was added or updated. While optional, adding a message is strongly encouraged in order to provide a more useful commit history for your repository.</p>"
+      }
+    },
+    "Mode": {
+      "base": null,
+      "refs": {
+        "BlobMetadata$mode": "<p>The file mode permissions of the blob. File mode permission codes include:</p> <ul> <li> <p> <code>100644</code> indicates read/write</p> </li> <li> <p> <code>100755</code> indicates read/write/execute</p> </li> <li> <p> <code>160000</code> indicates a submodule</p> </li> <li> <p> <code>120000</code> indicates a symlink</p> </li> </ul>"
+      }
+    },
+    "MultipleRepositoriesInPullRequestException": {
+      "base": "<p>You cannot include more than one repository in a pull request. Make sure you have specified only one repository name in your request, and then try again.</p>",
+      "refs": {
+      }
+    },
+    "Name": {
+      "base": null,
+      "refs": {
+        "CreateCommitInput$authorName": "<p>The name of the author who created the commit. This information will be used as both the author and committer for the commit.</p>",
+        "DeleteFileInput$name": "<p>The name of the author of the commit that deletes the file. If no name is specified, the user's ARN will be used as the author name and committer name.</p>",
+        "PutFileInput$name": "<p>The name of the person adding or updating the file. While optional, adding a name is strongly encouraged in order to provide a more useful commit history for your repository.</p>",
+        "UserInfo$name": "<p>The name of the user who made the specified commit.</p>"
+      }
+    },
+    "NameLengthExceededException": {
+      "base": "<p>The user name is not valid because it has exceeded the character limit for file names. File names, including the path to the file, cannot exceed the character limit. </p>",
+      "refs": {
+      }
+    },
+    "NextToken": {
+      "base": null,
+      "refs": {
+        "DescribePullRequestEventsInput$nextToken": "<p>An enumeration token that when provided in a request, returns the next batch of the results.</p>",
+        "DescribePullRequestEventsOutput$nextToken": "<p>An enumeration token that can be used in a request to return the next batch of the results.</p>",
+        "GetCommentsForComparedCommitInput$nextToken": "<p>An enumeration token that when provided in a request, returns the next batch of the results. </p>",
+        "GetCommentsForComparedCommitOutput$nextToken": "<p>An enumeration token that can be used in a request to return the next batch of the results.</p>",
+        "GetCommentsForPullRequestInput$nextToken": "<p>An enumeration token that when provided in a request, returns the next batch of the results.</p>",
+        "GetCommentsForPullRequestOutput$nextToken": "<p>An enumeration token that can be used in a request to return the next batch of the results.</p>",
+        "GetDifferencesInput$NextToken": "<p>An enumeration token that when provided in a request, returns the next batch of the results.</p>",
+        "GetDifferencesOutput$NextToken": "<p>An enumeration token that can be used in a request to return the next batch of the results.</p>",
+        "ListBranchesInput$nextToken": "<p>An enumeration token that allows the operation to batch the results.</p>",
+        "ListBranchesOutput$nextToken": "<p>An enumeration token that returns the batch of the results.</p>",
+        "ListPullRequestsInput$nextToken": "<p>An enumeration token that when provided in a request, returns the next batch of the results.</p>",
+        "ListPullRequestsOutput$nextToken": "<p>An enumeration token that when provided in a request, returns the next batch of the results.</p>",
+        "ListRepositoriesInput$nextToken": "<p>An enumeration token that allows the operation to batch the results of the operation. Batch sizes are 1,000 for list repository operations. When the client sends the token back to AWS CodeCommit, another page of 1,000 records is retrieved.</p>",
+        "ListRepositoriesOutput$nextToken": "<p>An enumeration token that allows the operation to batch the results of the operation. Batch sizes are 1,000 for list repository operations. When the client sends the token back to AWS CodeCommit, another page of 1,000 records is retrieved.</p>"
+      }
+    },
+    "NoChangeException": {
+      "base": "<p>The commit cannot be created because no changes will be made to the repository as a result of this commit. A commit must contain at least one change.</p>",
+      "refs": {
+      }
+    },
+    "ObjectId": {
+      "base": null,
+      "refs": {
+        "BlobMetadata$blobId": "<p>The full ID of the blob.</p>",
+        "CommentsForComparedCommit$beforeBlobId": "<p>The full blob ID of the commit used to establish the 'before' of the comparison.</p>",
+        "CommentsForComparedCommit$afterBlobId": "<p>The full blob ID of the commit used to establish the 'after' of the comparison.</p>",
+        "CommentsForPullRequest$beforeBlobId": "<p>The full blob ID of the file on which you want to comment on the destination commit.</p>",
+        "CommentsForPullRequest$afterBlobId": "<p>The full blob ID of the file on which you want to comment on the source commit.</p>",
+        "Commit$commitId": "<p>The full SHA of the specified commit. </p>",
+        "Commit$treeId": "<p>Tree information for the specified commit.</p>",
+        "CreateCommitOutput$commitId": "<p>The full commit ID of the commit that contains your committed file changes.</p>",
+        "CreateCommitOutput$treeId": "<p>The full SHA-1 pointer of the tree information for the commit that contains the commited file changes.</p>",
+        "DeleteFileOutput$commitId": "<p>The full commit ID of the commit that contains the change that deletes the file.</p>",
+        "DeleteFileOutput$blobId": "<p>The blob ID removed from the tree as part of deleting the file.</p>",
+        "DeleteFileOutput$treeId": "<p>The full SHA-1 pointer of the tree information for the commit that contains the delete file change.</p>",
+        "File$blobId": "<p>The blob ID that contains the file information.</p>",
+        "FileMetadata$blobId": "<p>The blob ID that contains the file information.</p>",
+        "Folder$treeId": "<p>The full SHA-1 pointer of the tree information for the commit that contains the folder.</p>",
+        "GetBlobInput$blobId": "<p>The ID of the blob, which is its SHA-1 pointer.</p>",
+        "GetCommitInput$commitId": "<p>The commit ID. Commit IDs are the full SHA of the commit.</p>",
+        "GetFileOutput$commitId": "<p>The full commit ID of the commit that contains the content returned by GetFile.</p>",
+        "GetFileOutput$blobId": "<p>The blob ID of the object that represents the file content.</p>",
+        "GetFolderOutput$commitId": "<p>The full commit ID used as a reference for which version of the folder content is returned.</p>",
+        "GetFolderOutput$treeId": "<p>The full SHA-1 pointer of the tree information for the commit that contains the folder.</p>",
+        "ParentList$member": null,
+        "PostCommentForComparedCommitOutput$beforeBlobId": "<p>In the directionality you established, the blob ID of the 'before' blob.</p>",
+        "PostCommentForComparedCommitOutput$afterBlobId": "<p>In the directionality you established, the blob ID of the 'after' blob.</p>",
+        "PostCommentForPullRequestOutput$beforeBlobId": "<p>In the directionality of the pull request, the blob ID of the 'before' blob.</p>",
+        "PostCommentForPullRequestOutput$afterBlobId": "<p>In the directionality of the pull request, the blob ID of the 'after' blob.</p>",
+        "PutFileOutput$commitId": "<p>The full SHA of the commit that contains this file change.</p>",
+        "PutFileOutput$blobId": "<p>The ID of the blob, which is its SHA-1 pointer.</p>",
+        "PutFileOutput$treeId": "<p>The full SHA-1 pointer of the tree information for the commit that contains this file change.</p>",
+        "SubModule$commitId": "<p>The commit ID that contains the reference to the submodule.</p>",
+        "SymbolicLink$blobId": "<p>The blob ID that contains the information about the symbolic link.</p>"
+      }
+    },
+    "ObjectSize": {
+      "base": null,
+      "refs": {
+        "GetFileOutput$fileSize": "<p>The size of the contents of the file, in bytes.</p>"
+      }
+    },
+    "OrderEnum": {
+      "base": null,
+      "refs": {
+        "ListRepositoriesInput$order": "<p>The order in which to sort the results of a list repositories operation.</p>"
+      }
+    },
+    "ParentCommitDoesNotExistException": {
+      "base": "<p>The parent commit ID is not valid because it does not exist. The specified parent commit ID does not exist in the specified branch of the repository.</p>",
+      "refs": {
+      }
+    },
+    "ParentCommitIdOutdatedException": {
+      "base": "<p>The file could not be added because the provided parent commit ID is not the current tip of the specified branch. To view the full commit ID of the current head of the branch, use <a>GetBranch</a>.</p>",
+      "refs": {
+      }
+    },
+    "ParentCommitIdRequiredException": {
+      "base": "<p>A parent commit ID is required. To view the full commit ID of a branch in a repository, use <a>GetBranch</a> or a Git command (for example, git pull or git log).</p>",
+      "refs": {
+      }
+    },
+    "ParentList": {
+      "base": null,
+      "refs": {
+        "Commit$parents": "<p>A list of parent commits for the specified commit. Each parent commit ID is the full commit ID.</p>"
+      }
+    },
+    "Path": {
+      "base": null,
+      "refs": {
+        "BlobMetadata$path": "<p>The path to the blob and any associated file name, if any.</p>",
+        "DeleteFileEntry$filePath": "<p>The full path of the file that will be deleted, including the name of the file.</p>",
+        "DeleteFileInput$filePath": "<p>The fully-qualified path to the file that will be deleted, including the full name and extension of that file. For example, /examples/file.md is a fully qualified path to a file named file.md in a folder named examples.</p>",
+        "DeleteFileOutput$filePath": "<p>The fully-qualified path to the file that will be deleted, including the full name and extension of that file.</p>",
+        "File$absolutePath": "<p>The fully-qualified path to the file in the repository.</p>",
+        "File$relativePath": "<p>The relative path of the file from the folder where the query originated.</p>",
+        "FileMetadata$absolutePath": "<p>The full path to the file that will be added or updated, including the name of the file.</p>",
+        "Folder$absolutePath": "<p>The fully-qualified path of the folder in the repository.</p>",
+        "Folder$relativePath": "<p>The relative path of the specified folder from the folder where the query originated.</p>",
+        "GetDifferencesInput$beforePath": "<p>The file path in which to check for differences. Limits the results to this path. Can also be used to specify the previous name of a directory or folder. If <code>beforePath</code> and <code>afterPath</code> are not specified, differences will be shown for all paths.</p>",
+        "GetDifferencesInput$afterPath": "<p>The file path in which to check differences. Limits the results to this path. Can also be used to specify the changed name of a directory or folder, if it has changed. If not specified, differences will be shown for all paths.</p>",
+        "GetFileInput$filePath": "<p>The fully-qualified path to the file, including the full name and extension of the file. For example, /examples/file.md is the fully-qualified path to a file named file.md in a folder named examples.</p>",
+        "GetFileOutput$filePath": "<p>The fully qualified path to the specified file. This returns the name and extension of the file.</p>",
+        "GetFolderInput$folderPath": "<p>The fully-qualified path to the folder whose contents will be returned, including the folder name. For example, /examples is a fully-qualified path to a folder named examples that was created off of the root directory (/) of a repository. </p>",
+        "GetFolderOutput$folderPath": "<p>The fully-qualified path of the folder whose contents are returned.</p>",
+        "Location$filePath": "<p>The name of the file being compared, including its extension and subdirectory, if any.</p>",
+        "PutFileEntry$filePath": "<p>The full path to the file in the repository, including the name of the file.</p>",
+        "PutFileInput$filePath": "<p>The name of the file you want to add or update, including the relative path to the file in the repository.</p> <note> <p>If the path does not currently exist in the repository, the path will be created as part of adding the file.</p> </note>",
+        "SetFileModeEntry$filePath": "<p>The full path to the file, including the name of the file.</p>",
+        "SourceFileSpecifier$filePath": "<p>The full path to the file, including the name of the file.</p>",
+        "SubModule$absolutePath": "<p>The fully qualified path to the folder that contains the reference to the submodule.</p>",
+        "SubModule$relativePath": "<p>The relative path of the submodule from the folder where the query originated.</p>",
+        "SymbolicLink$absolutePath": "<p>The fully-qualified path to the folder that contains the symbolic link.</p>",
+        "SymbolicLink$relativePath": "<p>The relative path of the symbolic link from the folder where the query originated.</p>"
+      }
+    },
+    "PathDoesNotExistException": {
+      "base": "<p>The specified path does not exist.</p>",
+      "refs": {
+      }
+    },
+    "PathRequiredException": {
+      "base": "<p>The folderPath for a location cannot be null.</p>",
+      "refs": {
+      }
+    },
+    "Position": {
+      "base": null,
+      "refs": {
+        "Location$filePosition": "<p>The position of a change within a compared file, in line number format.</p>"
+      }
+    },
+    "PostCommentForComparedCommitInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PostCommentForComparedCommitOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PostCommentForPullRequestInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PostCommentForPullRequestOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PostCommentReplyInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PostCommentReplyOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PullRequest": {
+      "base": "<p>Returns information about a pull request.</p>",
+      "refs": {
+        "CreatePullRequestOutput$pullRequest": "<p>Information about the newly created pull request.</p>",
+        "GetPullRequestOutput$pullRequest": "<p>Information about the specified pull request.</p>",
+        "MergePullRequestByFastForwardOutput$pullRequest": "<p>Information about the specified pull request, including information about the merge.</p>",
+        "UpdatePullRequestDescriptionOutput$pullRequest": "<p>Information about the updated pull request.</p>",
+        "UpdatePullRequestStatusOutput$pullRequest": "<p>Information about the pull request.</p>",
+        "UpdatePullRequestTitleOutput$pullRequest": "<p>Information about the updated pull request.</p>"
+      }
+    },
+    "PullRequestAlreadyClosedException": {
+      "base": "<p>The pull request status cannot be updated because it is already closed.</p>",
+      "refs": {
+      }
+    },
+    "PullRequestCreatedEventMetadata": {
+      "base": "<p>Metadata about the pull request that is used when comparing the pull request source with its destination.</p>",
+      "refs": {
+        "PullRequestEvent$pullRequestCreatedEventMetadata": "<p>Information about the source and destination branches for the pull request.</p>"
+      }
+    },
+    "PullRequestDoesNotExistException": {
+      "base": "<p>The pull request ID could not be found. Make sure that you have specified the correct repository name and pull request ID, and then try again.</p>",
+      "refs": {
+      }
+    },
+    "PullRequestEvent": {
+      "base": "<p>Returns information about a pull request event.</p>",
+      "refs": {
+        "PullRequestEventList$member": null
+      }
+    },
+    "PullRequestEventList": {
+      "base": null,
+      "refs": {
+        "DescribePullRequestEventsOutput$pullRequestEvents": "<p>Information about the pull request events.</p>"
+      }
+    },
+    "PullRequestEventType": {
+      "base": null,
+      "refs": {
+        "DescribePullRequestEventsInput$pullRequestEventType": "<p>Optional. The pull request event type about which you want to return information.</p>",
+        "PullRequestEvent$pullRequestEventType": "<p>The type of the pull request event, for example a status change event (PULL_REQUEST_STATUS_CHANGED) or update event (PULL_REQUEST_SOURCE_REFERENCE_UPDATED).</p>"
+      }
+    },
+    "PullRequestId": {
+      "base": null,
+      "refs": {
+        "CommentsForPullRequest$pullRequestId": "<p>The system-generated ID of the pull request.</p>",
+        "DescribePullRequestEventsInput$pullRequestId": "<p>The system-generated ID of the pull request. To get this ID, use <a>ListPullRequests</a>.</p>",
+        "GetCommentsForPullRequestInput$pullRequestId": "<p>The system-generated ID of the pull request. To get this ID, use <a>ListPullRequests</a>.</p>",
+        "GetPullRequestInput$pullRequestId": "<p>The system-generated ID of the pull request. To get this ID, use <a>ListPullRequests</a>.</p>",
+        "MergePullRequestByFastForwardInput$pullRequestId": "<p>The system-generated ID of the pull request. To get this ID, use <a>ListPullRequests</a>.</p>",
+        "PostCommentForPullRequestInput$pullRequestId": "<p>The system-generated ID of the pull request. To get this ID, use <a>ListPullRequests</a>.</p>",
+        "PostCommentForPullRequestOutput$pullRequestId": "<p>The system-generated ID of the pull request. </p>",
+        "PullRequest$pullRequestId": "<p>The system-generated ID of the pull request. </p>",
+        "PullRequestEvent$pullRequestId": "<p>The system-generated ID of the pull request.</p>",
+        "PullRequestIdList$member": null,
+        "UpdatePullRequestDescriptionInput$pullRequestId": "<p>The system-generated ID of the pull request. To get this ID, use <a>ListPullRequests</a>.</p>",
+        "UpdatePullRequestStatusInput$pullRequestId": "<p>The system-generated ID of the pull request. To get this ID, use <a>ListPullRequests</a>.</p>",
+        "UpdatePullRequestTitleInput$pullRequestId": "<p>The system-generated ID of the pull request. To get this ID, use <a>ListPullRequests</a>.</p>"
+      }
+    },
+    "PullRequestIdList": {
+      "base": null,
+      "refs": {
+        "ListPullRequestsOutput$pullRequestIds": "<p>The system-generated IDs of the pull requests.</p>"
+      }
+    },
+    "PullRequestIdRequiredException": {
+      "base": "<p>A pull request ID is required, but none was provided.</p>",
+      "refs": {
+      }
+    },
+    "PullRequestMergedStateChangedEventMetadata": {
+      "base": "<p>Returns information about the change in the merge state for a pull request event. </p>",
+      "refs": {
+        "PullRequestEvent$pullRequestMergedStateChangedEventMetadata": "<p>Information about the change in mergability state for the pull request event.</p>"
+      }
+    },
+    "PullRequestSourceReferenceUpdatedEventMetadata": {
+      "base": "<p>Information about an update to the source branch of a pull request.</p>",
+      "refs": {
+        "PullRequestEvent$pullRequestSourceReferenceUpdatedEventMetadata": "<p>Information about the updated source branch for the pull request event. </p>"
+      }
+    },
+    "PullRequestStatusChangedEventMetadata": {
+      "base": "<p>Information about a change to the status of a pull request.</p>",
+      "refs": {
+        "PullRequestEvent$pullRequestStatusChangedEventMetadata": "<p>Information about the change in status for the pull request event.</p>"
+      }
+    },
+    "PullRequestStatusEnum": {
+      "base": null,
+      "refs": {
+        "ListPullRequestsInput$pullRequestStatus": "<p>Optional. The status of the pull request. If used, this refines the results to the pull requests that match the specified status.</p>",
+        "PullRequest$pullRequestStatus": "<p>The status of the pull request. Pull request status can only change from <code>OPEN</code> to <code>CLOSED</code>.</p>",
+        "PullRequestStatusChangedEventMetadata$pullRequestStatus": "<p>The changed status of the pull request.</p>",
+        "UpdatePullRequestStatusInput$pullRequestStatus": "<p>The status of the pull request. The only valid operations are to update the status from <code>OPEN</code> to <code>OPEN</code>, <code>OPEN</code> to <code>CLOSED</code> or from from <code>CLOSED</code> to <code>CLOSED</code>.</p>"
+      }
+    },
+    "PullRequestStatusRequiredException": {
+      "base": "<p>A pull request status is required, but none was provided.</p>",
+      "refs": {
+      }
+    },
+    "PullRequestTarget": {
+      "base": "<p>Returns information about a pull request target.</p>",
+      "refs": {
+        "PullRequestTargetList$member": null
+      }
+    },
+    "PullRequestTargetList": {
+      "base": null,
+      "refs": {
+        "PullRequest$pullRequestTargets": "<p>The targets of the pull request, including the source branch and destination branch for the pull request.</p>"
+      }
+    },
+    "PutFileEntries": {
+      "base": null,
+      "refs": {
+        "CreateCommitInput$putFiles": "<p>The files to add or update in this commit.</p>"
+      }
+    },
+    "PutFileEntry": {
+      "base": "<p>Information about a file that will be added or updated as part of a commit.</p>",
+      "refs": {
+        "PutFileEntries$member": null
+      }
+    },
+    "PutFileEntryConflictException": {
+      "base": "<p>The commit cannot be created because one or more files specified in the commit reference both a file and a folder.</p>",
+      "refs": {
+      }
+    },
+    "PutFileInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutFileOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutRepositoryTriggersInput": {
+      "base": "<p>Represents the input ofa put repository triggers operation.</p>",
+      "refs": {
+      }
+    },
+    "PutRepositoryTriggersOutput": {
+      "base": "<p>Represents the output of a put repository triggers operation.</p>",
+      "refs": {
+      }
+    },
+    "ReferenceDoesNotExistException": {
+      "base": "<p>The specified reference does not exist. You must provide a full commit ID.</p>",
+      "refs": {
+      }
+    },
+    "ReferenceName": {
+      "base": null,
+      "refs": {
+        "PullRequestMergedStateChangedEventMetadata$destinationReference": "<p>The name of the branch that the pull request will be merged into.</p>",
+        "PullRequestTarget$sourceReference": "<p>The branch of the repository that contains the changes for the pull request. Also known as the source branch.</p>",
+        "PullRequestTarget$destinationReference": "<p>The branch of the repository where the pull request changes will be merged into. Also known as the destination branch. </p>",
+        "Target$sourceReference": "<p>The branch of the repository that contains the changes for the pull request. Also known as the source branch.</p>",
+        "Target$destinationReference": "<p>The branch of the repository where the pull request changes will be merged into. Also known as the destination branch.</p>"
+      }
+    },
+    "ReferenceNameRequiredException": {
+      "base": "<p>A reference name is required, but none was provided.</p>",
+      "refs": {
+      }
+    },
+    "ReferenceTypeNotSupportedException": {
+      "base": "<p>The specified reference is not a supported type. </p>",
+      "refs": {
+      }
+    },
+    "RelativeFileVersionEnum": {
+      "base": null,
+      "refs": {
+        "Location$relativeFileVersion": "<p>In a comparison of commits or a pull request, whether the change is in the 'before' or 'after' of that comparison.</p>"
+      }
+    },
+    "RepositoryDescription": {
+      "base": null,
+      "refs": {
+        "CreateRepositoryInput$repositoryDescription": "<p>A comment or description about the new repository.</p> <note> <p>The description field for a repository accepts all HTML characters and all valid Unicode characters. Applications that do not HTML-encode the description and display it in a web page could expose users to potentially malicious code. Make sure that you HTML-encode the description field in any application that uses this API to display the repository description on a web page.</p> </note>",
+        "RepositoryMetadata$repositoryDescription": "<p>A comment or description about the repository.</p>",
+        "UpdateRepositoryDescriptionInput$repositoryDescription": "<p>The new comment or description for the specified repository. Repository descriptions are limited to 1,000 characters.</p>"
+      }
+    },
+    "RepositoryDoesNotExistException": {
+      "base": "<p>The specified repository does not exist.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryId": {
+      "base": null,
+      "refs": {
+        "DeleteRepositoryOutput$repositoryId": "<p>The ID of the repository that was deleted.</p>",
+        "RepositoryMetadata$repositoryId": "<p>The ID of the repository.</p>",
+        "RepositoryNameIdPair$repositoryId": "<p>The ID associated with the repository.</p>"
+      }
+    },
+    "RepositoryLimitExceededException": {
+      "base": "<p>A repository resource limit was exceeded.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryMetadata": {
+      "base": "<p>Information about a repository.</p>",
+      "refs": {
+        "CreateRepositoryOutput$repositoryMetadata": "<p>Information about the newly created repository.</p>",
+        "GetRepositoryOutput$repositoryMetadata": "<p>Information about the repository.</p>",
+        "RepositoryMetadataList$member": null
+      }
+    },
+    "RepositoryMetadataList": {
+      "base": null,
+      "refs": {
+        "BatchGetRepositoriesOutput$repositories": "<p>A list of repositories returned by the batch get repositories operation.</p>"
+      }
+    },
+    "RepositoryName": {
+      "base": null,
+      "refs": {
+        "CommentsForComparedCommit$repositoryName": "<p>The name of the repository that contains the compared commits.</p>",
+        "CommentsForPullRequest$repositoryName": "<p>The name of the repository that contains the pull request.</p>",
+        "CreateBranchInput$repositoryName": "<p>The name of the repository in which you want to create the new branch.</p>",
+        "CreateCommitInput$repositoryName": "<p>The name of the repository where you will create the commit.</p>",
+        "CreateRepositoryInput$repositoryName": "<p>The name of the new repository to be created.</p> <note> <p>The repository name must be unique across the calling AWS account. In addition, repository names are limited to 100 alphanumeric, dash, and underscore characters, and cannot include certain characters. For a full description of the limits on repository names, see <a href=\"http://docs.aws.amazon.com/codecommit/latest/userguide/limits.html\">Limits</a> in the AWS CodeCommit User Guide. The suffix \".git\" is prohibited.</p> </note>",
+        "DeleteBranchInput$repositoryName": "<p>The name of the repository that contains the branch to be deleted.</p>",
+        "DeleteFileInput$repositoryName": "<p>The name of the repository that contains the file to delete.</p>",
+        "DeleteRepositoryInput$repositoryName": "<p>The name of the repository to delete.</p>",
+        "GetBlobInput$repositoryName": "<p>The name of the repository that contains the blob.</p>",
+        "GetBranchInput$repositoryName": "<p>The name of the repository that contains the branch for which you want to retrieve information.</p>",
+        "GetCommentsForComparedCommitInput$repositoryName": "<p>The name of the repository where you want to compare commits.</p>",
+        "GetCommentsForPullRequestInput$repositoryName": "<p>The name of the repository that contains the pull request.</p>",
+        "GetCommitInput$repositoryName": "<p>The name of the repository to which the commit was made.</p>",
+        "GetDifferencesInput$repositoryName": "<p>The name of the repository where you want to get differences.</p>",
+        "GetFileInput$repositoryName": "<p>The name of the repository that contains the file.</p>",
+        "GetFolderInput$repositoryName": "<p>The name of the repository.</p>",
+        "GetMergeConflictsInput$repositoryName": "<p>The name of the repository where the pull request was created.</p>",
+        "GetRepositoryInput$repositoryName": "<p>The name of the repository to get information about.</p>",
+        "GetRepositoryTriggersInput$repositoryName": "<p>The name of the repository for which the trigger is configured.</p>",
+        "ListBranchesInput$repositoryName": "<p>The name of the repository that contains the branches.</p>",
+        "ListPullRequestsInput$repositoryName": "<p>The name of the repository for which you want to list pull requests.</p>",
+        "MergePullRequestByFastForwardInput$repositoryName": "<p>The name of the repository where the pull request was created.</p>",
+        "PostCommentForComparedCommitInput$repositoryName": "<p>The name of the repository where you want to post a comment on the comparison between commits.</p>",
+        "PostCommentForComparedCommitOutput$repositoryName": "<p>The name of the repository where you posted a comment on the comparison between commits.</p>",
+        "PostCommentForPullRequestInput$repositoryName": "<p>The name of the repository where you want to post a comment on a pull request.</p>",
+        "PostCommentForPullRequestOutput$repositoryName": "<p>The name of the repository where you posted a comment on a pull request.</p>",
+        "PullRequestCreatedEventMetadata$repositoryName": "<p>The name of the repository where the pull request was created.</p>",
+        "PullRequestMergedStateChangedEventMetadata$repositoryName": "<p>The name of the repository where the pull request was created.</p>",
+        "PullRequestSourceReferenceUpdatedEventMetadata$repositoryName": "<p>The name of the repository where the pull request was updated.</p>",
+        "PullRequestTarget$repositoryName": "<p>The name of the repository that contains the pull request source and destination branches.</p>",
+        "PutFileInput$repositoryName": "<p>The name of the repository where you want to add or update the file.</p>",
+        "PutRepositoryTriggersInput$repositoryName": "<p>The name of the repository where you want to create or update the trigger.</p>",
+        "RepositoryMetadata$repositoryName": "<p>The repository's name.</p>",
+        "RepositoryNameIdPair$repositoryName": "<p>The name associated with the repository.</p>",
+        "RepositoryNameList$member": null,
+        "RepositoryNotFoundList$member": null,
+        "Target$repositoryName": "<p>The name of the repository that contains the pull request.</p>",
+        "TestRepositoryTriggersInput$repositoryName": "<p>The name of the repository in which to test the triggers.</p>",
+        "UpdateDefaultBranchInput$repositoryName": "<p>The name of the repository to set or change the default branch for.</p>",
+        "UpdateRepositoryDescriptionInput$repositoryName": "<p>The name of the repository to set or change the comment or description for.</p>",
+        "UpdateRepositoryNameInput$oldName": "<p>The existing name of the repository.</p>",
+        "UpdateRepositoryNameInput$newName": "<p>The new name for the repository.</p>"
+      }
+    },
+    "RepositoryNameExistsException": {
+      "base": "<p>The specified repository name already exists.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryNameIdPair": {
+      "base": "<p>Information about a repository name and ID.</p>",
+      "refs": {
+        "RepositoryNameIdPairList$member": null
+      }
+    },
+    "RepositoryNameIdPairList": {
+      "base": null,
+      "refs": {
+        "ListRepositoriesOutput$repositories": "<p>Lists the repositories called by the list repositories operation.</p>"
+      }
+    },
+    "RepositoryNameList": {
+      "base": null,
+      "refs": {
+        "BatchGetRepositoriesInput$repositoryNames": "<p>The names of the repositories to get information about.</p>"
+      }
+    },
+    "RepositoryNameRequiredException": {
+      "base": "<p>A repository name is required but was not specified.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryNamesRequiredException": {
+      "base": "<p>A repository names object is required but was not specified.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryNotAssociatedWithPullRequestException": {
+      "base": "<p>The repository does not contain any pull requests with that pull request ID. Use GetPullRequest to verify the correct repository name for the pull request ID.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryNotFoundList": {
+      "base": null,
+      "refs": {
+        "BatchGetRepositoriesOutput$repositoriesNotFound": "<p>Returns a list of repository names for which information could not be found.</p>"
+      }
+    },
+    "RepositoryTrigger": {
+      "base": "<p>Information about a trigger for a repository.</p>",
+      "refs": {
+        "RepositoryTriggersList$member": null
+      }
+    },
+    "RepositoryTriggerBranchNameListRequiredException": {
+      "base": "<p>At least one branch name is required but was not specified in the trigger configuration.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryTriggerCustomData": {
+      "base": null,
+      "refs": {
+        "RepositoryTrigger$customData": "<p>Any custom data associated with the trigger that will be included in the information sent to the target of the trigger.</p>"
+      }
+    },
+    "RepositoryTriggerDestinationArnRequiredException": {
+      "base": "<p>A destination ARN for the target service for the trigger is required but was not specified.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryTriggerEventEnum": {
+      "base": null,
+      "refs": {
+        "RepositoryTriggerEventList$member": null
+      }
+    },
+    "RepositoryTriggerEventList": {
+      "base": null,
+      "refs": {
+        "RepositoryTrigger$events": "<p>The repository events that will cause the trigger to run actions in another service, such as sending a notification through Amazon Simple Notification Service (SNS). </p> <note> <p>The valid value \"all\" cannot be used with any other values.</p> </note>"
+      }
+    },
+    "RepositoryTriggerEventsListRequiredException": {
+      "base": "<p>At least one event for the trigger is required but was not specified.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryTriggerExecutionFailure": {
+      "base": "<p>A trigger failed to run.</p>",
+      "refs": {
+        "RepositoryTriggerExecutionFailureList$member": null
+      }
+    },
+    "RepositoryTriggerExecutionFailureList": {
+      "base": null,
+      "refs": {
+        "TestRepositoryTriggersOutput$failedExecutions": "<p>The list of triggers that were not able to be tested. This list provides the names of the triggers that could not be tested, separated by commas.</p>"
+      }
+    },
+    "RepositoryTriggerExecutionFailureMessage": {
+      "base": null,
+      "refs": {
+        "RepositoryTriggerExecutionFailure$failureMessage": "<p>Additional message information about the trigger that did not run.</p>"
+      }
+    },
+    "RepositoryTriggerName": {
+      "base": null,
+      "refs": {
+        "RepositoryTrigger$name": "<p>The name of the trigger.</p>",
+        "RepositoryTriggerExecutionFailure$trigger": "<p>The name of the trigger that did not run.</p>",
+        "RepositoryTriggerNameList$member": null
+      }
+    },
+    "RepositoryTriggerNameList": {
+      "base": null,
+      "refs": {
+        "TestRepositoryTriggersOutput$successfulExecutions": "<p>The list of triggers that were successfully tested. This list provides the names of the triggers that were successfully tested, separated by commas.</p>"
+      }
+    },
+    "RepositoryTriggerNameRequiredException": {
+      "base": "<p>A name for the trigger is required but was not specified.</p>",
+      "refs": {
+      }
+    },
+    "RepositoryTriggersConfigurationId": {
+      "base": null,
+      "refs": {
+        "GetRepositoryTriggersOutput$configurationId": "<p>The system-generated unique ID for the trigger.</p>",
+        "PutRepositoryTriggersOutput$configurationId": "<p>The system-generated unique ID for the create or update operation.</p>"
+      }
+    },
+    "RepositoryTriggersList": {
+      "base": null,
+      "refs": {
+        "GetRepositoryTriggersOutput$triggers": "<p>The JSON block of configuration information for each trigger.</p>",
+        "PutRepositoryTriggersInput$triggers": "<p>The JSON block of configuration information for each trigger.</p>",
+        "TestRepositoryTriggersInput$triggers": "<p>The list of triggers to test.</p>"
+      }
+    },
+    "RepositoryTriggersListRequiredException": {
+      "base": "<p>The list of triggers for the repository is required but was not specified.</p>",
+      "refs": {
+      }
+    },
+    "RestrictedSourceFileException": {
+      "base": "<p>The commit cannot be created because one of the changes specifies copying or moving a .gitkeep file.</p>",
+      "refs": {
+      }
+    },
+    "SameFileContentException": {
+      "base": "<p>The file was not added or updated because the content of the file is exactly the same as the content of that file in the repository and branch that you specified.</p>",
+      "refs": {
+      }
+    },
+    "SamePathRequestException": {
+      "base": "<p>The commit cannot be created because one or more changes in this commit duplicate actions in the same file path. For example, you cannot make the same delete request to the same file in the same file path twice, or make a delete request and a move request to the same file as part of the same commit.</p>",
+      "refs": {
+      }
+    },
+    "SetFileModeEntries": {
+      "base": null,
+      "refs": {
+        "CreateCommitInput$setFileModes": "<p>The file modes to update for files in this commit.</p>"
+      }
+    },
+    "SetFileModeEntry": {
+      "base": "<p>Information about the file mode changes.</p>",
+      "refs": {
+        "SetFileModeEntries$member": null
+      }
+    },
+    "SortByEnum": {
+      "base": null,
+      "refs": {
+        "ListRepositoriesInput$sortBy": "<p>The criteria used to sort the results of a list repositories operation.</p>"
+      }
+    },
+    "SourceAndDestinationAreSameException": {
+      "base": "<p>The source branch and the destination branch for the pull request are the same. You must specify different branches for the source and destination.</p>",
+      "refs": {
+      }
+    },
+    "SourceFileOrContentRequiredException": {
+      "base": "<p>The commit cannot be created because no source files or file content have been specified for the commit.</p>",
+      "refs": {
+      }
+    },
+    "SourceFileSpecifier": {
+      "base": "<p>Information about a source file that is part of changes made in a commit.</p>",
+      "refs": {
+        "PutFileEntry$sourceFile": "<p>The name and full path of the file that contains the changes you want to make as part of the commit, if you are not providing the file content directly.</p>"
+      }
+    },
+    "SubModule": {
+      "base": "<p>Returns information about a submodule reference in a repository folder.</p>",
+      "refs": {
+        "SubModuleList$member": null
+      }
+    },
+    "SubModuleList": {
+      "base": null,
+      "refs": {
+        "GetFolderOutput$subModules": "<p>The list of submodules that exist in the specified folder, if any.</p>"
+      }
+    },
+    "SymbolicLink": {
+      "base": "<p>Returns information about a symbolic link in a repository folder.</p>",
+      "refs": {
+        "SymbolicLinkList$member": null
+      }
+    },
+    "SymbolicLinkList": {
+      "base": null,
+      "refs": {
+        "GetFolderOutput$symbolicLinks": "<p>The list of symbolic links to other files and folders that exist in the specified folder, if any.</p>"
+      }
+    },
+    "Target": {
+      "base": "<p>Returns information about a target for a pull request.</p>",
+      "refs": {
+        "TargetList$member": null
+      }
+    },
+    "TargetList": {
+      "base": null,
+      "refs": {
+        "CreatePullRequestInput$targets": "<p>The targets for the pull request, including the source of the code to be reviewed (the source branch), and the destination where the creator of the pull request intends the code to be merged after the pull request is closed (the destination branch).</p>"
+      }
+    },
+    "TargetRequiredException": {
+      "base": "<p>A pull request target is required. It cannot be empty or null. A pull request target must contain the full values for the repository name, source branch, and destination branch for the pull request.</p>",
+      "refs": {
+      }
+    },
+    "TargetsRequiredException": {
+      "base": "<p>An array of target objects is required. It cannot be empty or null.</p>",
+      "refs": {
+      }
+    },
+    "TestRepositoryTriggersInput": {
+      "base": "<p>Represents the input of a test repository triggers operation.</p>",
+      "refs": {
+      }
+    },
+    "TestRepositoryTriggersOutput": {
+      "base": "<p>Represents the output of a test repository triggers operation.</p>",
+      "refs": {
+      }
+    },
+    "TipOfSourceReferenceIsDifferentException": {
+      "base": "<p>The tip of the source branch in the destination repository does not match the tip of the source branch specified in your request. The pull request might have been updated. Make sure that you have the latest changes.</p>",
+      "refs": {
+      }
+    },
+    "TipsDivergenceExceededException": {
+      "base": "<p>The divergence between the tips of the provided commit specifiers is too great to determine whether there might be any merge conflicts. Locally compare the specifiers using <code>git diff</code> or a diff tool.</p>",
+      "refs": {
+      }
+    },
+    "Title": {
+      "base": null,
+      "refs": {
+        "CreatePullRequestInput$title": "<p>The title of the pull request. This title will be used to identify the pull request to other users in the repository.</p>",
+        "PullRequest$title": "<p>The user-defined title of the pull request. This title is displayed in the list of pull requests to other users of the repository.</p>",
+        "UpdatePullRequestTitleInput$title": "<p>The updated title of the pull request. This will replace the existing title.</p>"
+      }
+    },
+    "TitleRequiredException": {
+      "base": "<p>A pull request title is required. It cannot be empty or null.</p>",
+      "refs": {
+      }
+    },
+    "UpdateCommentInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateCommentOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateDefaultBranchInput": {
+      "base": "<p>Represents the input of an update default branch operation.</p>",
+      "refs": {
+      }
+    },
+    "UpdatePullRequestDescriptionInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdatePullRequestDescriptionOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdatePullRequestStatusInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdatePullRequestStatusOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdatePullRequestTitleInput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdatePullRequestTitleOutput": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateRepositoryDescriptionInput": {
+      "base": "<p>Represents the input of an update repository description operation.</p>",
+      "refs": {
+      }
+    },
+    "UpdateRepositoryNameInput": {
+      "base": "<p>Represents the input of an update repository description operation.</p>",
+      "refs": {
+      }
+    },
+    "UserInfo": {
+      "base": "<p>Information about the user who made a specified commit.</p>",
+      "refs": {
+        "Commit$author": "<p>Information about the author of the specified commit. Information includes the date in timestamp format with GMT offset, the name of the author, and the email address for the author, as configured in Git.</p>",
+        "Commit$committer": "<p>Information about the person who committed the specified commit, also known as the committer. Information includes the date in timestamp format with GMT offset, the name of the committer, and the email address for the committer, as configured in Git.</p> <p>For more information about the difference between an author and a committer in Git, see <a href=\"http://git-scm.com/book/ch2-3.html\">Viewing the Commit History</a> in Pro Git by Scott Chacon and Ben Straub.</p>"
+      }
+    },
+    "blob": {
+      "base": null,
+      "refs": {
+        "GetBlobOutput$content": "<p>The content of the blob, usually a file.</p>"
+      }
+    }
+  }
+}

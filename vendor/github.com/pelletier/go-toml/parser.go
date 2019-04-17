@@ -77,8 +77,10 @@ func (p *tomlParser) parseStart() tomlParserStateFn {
 		return p.parseAssign
 	case tokenEOF:
 		return nil
+	case tokenError:
+		p.raiseError(tok, "parsing error: %s", tok.String())
 	default:
-		p.raiseError(tok, "unexpected token")
+		p.raiseError(tok, "unexpected token %s", tok.typ)
 	}
 	return nil
 }
@@ -165,6 +167,11 @@ func (p *tomlParser) parseAssign() tomlParserStateFn {
 	key := p.getToken()
 	p.assume(tokenEqual)
 
+	parsedKey, err := parseKey(key.val)
+	if err != nil {
+		p.raiseError(key, "invalid key: %s", err.Error())
+	}
+
 	value := p.parseRvalue()
 	var tableKey []string
 	if len(p.currentTable) > 0 {
@@ -173,6 +180,9 @@ func (p *tomlParser) parseAssign() tomlParserStateFn {
 		tableKey = []string{}
 	}
 
+	prefixKey := parsedKey[0 : len(parsedKey)-1]
+	tableKey = append(tableKey, prefixKey...)
+
 	// find the table to assign, looking out for arrays of tables
 	var targetNode *Tree
 	switch node := p.tree.GetPath(tableKey).(type) {
@@ -180,17 +190,19 @@ func (p *tomlParser) parseAssign() tomlParserStateFn {
 		targetNode = node[len(node)-1]
 	case *Tree:
 		targetNode = node
+	case nil:
+		// create intermediate
+		if err := p.tree.createSubTree(tableKey, key.Position); err != nil {
+			p.raiseError(key, "could not create intermediate group: %s", err)
+		}
+		targetNode = p.tree.GetPath(tableKey).(*Tree)
 	default:
 		p.raiseError(key, "Unknown table type for path: %s",
 			strings.Join(tableKey, "."))
 	}
 
 	// assign value to the found table
-	keyVals := []string{key.val}
-	if len(keyVals) != 1 {
-		p.raiseError(key, "Invalid key")
-	}
-	keyVal := keyVals[0]
+	keyVal := parsedKey[len(parsedKey)-1]
 	localKey := []string{keyVal}
 	finalKey := append(tableKey, keyVal)
 	if targetNode.GetPath(localKey) != nil {
@@ -338,7 +350,7 @@ Loop:
 		case tokenRightCurlyBrace:
 			p.getToken()
 			break Loop
-		case tokenKey:
+		case tokenKey, tokenInteger, tokenString:
 			if !tokenIsComma(previous) && previous != nil {
 				p.raiseError(follow, "comma expected between fields in inline table")
 			}

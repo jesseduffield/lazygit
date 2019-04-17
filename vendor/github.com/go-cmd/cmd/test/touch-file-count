@@ -1,0 +1,10 @@
+#!/bin/bash
+n=0
+count() {
+  n=$((n+1))
+  echo "$n"
+}
+while true; do
+  [[ -f "$1" ]] && count && rm -f "$1"
+  sleep 0.2
+done

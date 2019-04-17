@@ -1,0 +1,34 @@
+{
+  "program_greeting": {
+    "other": "Hello world"
+  },
+
+  "person_greeting": {
+    "other": "Hello {{.Person}}"
+  },
+
+  "my_height_in_meters": {
+    "one":  "I am {{.Count}} meter tall.",
+    "other":  "I am {{.Count}} meters tall."
+  },
+
+  "your_unread_email_count": {
+    "one":  "You have {{.Count}} unread email.",
+    "other":  "You have {{.Count}} unread emails."
+  },
+
+  "person_unread_email_count": {
+    "one":  "{{.Person}} has {{.Count}} unread email.",
+    "other":  "{{.Person}} has {{.Count}} unread emails."
+  },
+
+  "person_unread_email_count_timeframe": {
+    "one":  "{{.Person}} has {{.Count}} unread email in the past {{.Timeframe}}.",
+    "other":  "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}."
+  },
+
+  "d_days": {
+    "one":  "{{.Count}} day.",
+    "other":  "{{.Count}} days."
+  }
+}

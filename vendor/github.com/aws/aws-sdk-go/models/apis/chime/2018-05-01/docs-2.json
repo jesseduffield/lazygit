@@ -1,0 +1,1205 @@
+{
+  "version": "2.0",
+  "service": "<p>The Amazon Chime API (application programming interface) is designed for administrators to use to perform key tasks, such as creating and managing Amazon Chime accounts and users. This guide provides detailed information about the Amazon Chime API, including operations, types, inputs and outputs, and error codes.</p> <p>You can use an AWS SDK, the AWS Command Line Interface (AWS CLI), or the REST API to make API calls. We recommend using an AWS SDK or the AWS CLI. Each API operation includes links to information about using it with a language-specific AWS SDK or the AWS CLI.</p> <dl> <dt>Using an AWS SDK</dt> <dd> <p>You don't need to write code to calculate a signature for request authentication. The SDK clients authenticate your requests by using access keys that you provide. For more information about AWS SDKs, see the <a href=\"http://aws.amazon.com/developer/\">AWS Developer Center</a>.</p> </dd> <dt>Using the AWS CLI</dt> <dd> <p>Use your access keys with the AWS CLI to make API calls. For information about setting up the AWS CLI, see <a href=\"https://docs.aws.amazon.com/cli/latest/userguide/installing.html\">Installing the AWS Command Line Interface</a> in the <i>AWS Command Line Interface User Guide</i>. For a list of available Amazon Chime commands, see the <a href=\"https://docs.aws.amazon.com/cli/latest/reference/chime/index.html\">Amazon Chime commands</a> in the <i>AWS CLI Command Reference</i>.</p> </dd> <dt>Using REST API</dt> <dd> <p>If you use REST to make API calls, you must authenticate your request by providing a signature. Amazon Chime supports signature version 4. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html\">Signature Version 4 Signing Process</a> in the <i>Amazon Web Services General Reference</i>.</p> <p>When making REST API calls, use the service name <code>chime</code> and REST endpoint <code>https://service.chime.aws.amazon.com</code>.</p> </dd> </dl> <p>Administrative permissions are controlled using AWS Identity and Access Management (IAM). For more information, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/control-access.html\">Control Access to the Amazon Chime Console</a> in the <i>Amazon Chime Administration Guide</i>.</p>",
+  "operations": {
+    "AssociatePhoneNumberWithUser": "<p>Associates a phone number with the specified Amazon Chime user.</p>",
+    "AssociatePhoneNumbersWithVoiceConnector": "<p>Associates a phone number with the specified Amazon Chime Voice Connector.</p>",
+    "BatchDeletePhoneNumber": "<p>Moves phone numbers into the <b>Deletion queue</b>. Phone numbers must be disassociated from any users or Amazon Chime Voice Connectors before they can be deleted.</p> <p>Phone numbers remain in the <b>Deletion queue</b> for 7 days before they are deleted permanently.</p>",
+    "BatchSuspendUser": "<p>Suspends up to 50 users from a <code>Team</code> or <code>EnterpriseLWA</code> Amazon Chime account. For more information about different account types, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/manage-chime-account.html\">Managing Your Amazon Chime Accounts</a> in the <i>Amazon Chime Administration Guide</i>.</p> <p>Users suspended from a <code>Team</code> account are dissociated from the account, but they can continue to use Amazon Chime as free users. To remove the suspension from suspended <code>Team</code> account users, invite them to the <code>Team</code> account again. You can use the <a>InviteUsers</a> action to do so.</p> <p>Users suspended from an <code>EnterpriseLWA</code> account are immediately signed out of Amazon Chime and can no longer sign in. To remove the suspension from suspended <code>EnterpriseLWA</code> account users, use the <a>BatchUnsuspendUser</a> action. </p> <p>To sign out users without suspending them, use the <a>LogoutUser</a> action.</p>",
+    "BatchUnsuspendUser": "<p>Removes the suspension from up to 50 previously suspended users for the specified Amazon Chime <code>EnterpriseLWA</code> account. Only users on <code>EnterpriseLWA</code> accounts can be unsuspended using this action. For more information about different account types, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/manage-chime-account.html\">Managing Your Amazon Chime Accounts</a> in the <i>Amazon Chime Administration Guide</i>.</p> <p>Previously suspended users who are unsuspended using this action are returned to <code>Registered</code> status. Users who are not previously suspended are ignored.</p>",
+    "BatchUpdatePhoneNumber": "<p>Updates phone number product types. Choose from Amazon Chime Business Calling and Amazon Chime Voice Connector product types.</p>",
+    "BatchUpdateUser": "<p>Updates user details within the <a>UpdateUserRequestItem</a> object for up to 20 users for the specified Amazon Chime account. Currently, only <code>LicenseType</code> updates are supported for this action.</p>",
+    "CreateAccount": "<p>Creates an Amazon Chime account under the administrator's AWS account. Only <code>Team</code> account types are currently supported for this action. For more information about different account types, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/manage-chime-account.html\">Managing Your Amazon Chime Accounts</a> in the <i>Amazon Chime Administration Guide</i>.</p>",
+    "CreatePhoneNumberOrder": "<p>Creates an order for phone numbers to be provisioned. Choose from Amazon Chime Business Calling and Amazon Chime Voice Connector product types.</p>",
+    "CreateVoiceConnector": "<p>Creates an Amazon Chime Voice Connector under the administrator's AWS account. Enabling <a>CreateVoiceConnectorRequest$RequireEncryption</a> configures your Amazon Chime Voice Connector to use TLS transport for SIP signaling and Secure RTP (SRTP) for media. Inbound calls use TLS transport, and unencrypted outbound calls are blocked.</p>",
+    "DeleteAccount": "<p>Deletes the specified Amazon Chime account. You must suspend all users before deleting a <code>Team</code> account. You can use the <a>BatchSuspendUser</a> action to do so.</p> <p>For <code>EnterpriseLWA</code> and <code>EnterpriseAD</code> accounts, you must release the claimed domains for your Amazon Chime account before deletion. As soon as you release the domain, all users under that account are suspended.</p> <p>Deleted accounts appear in your <code>Disabled</code> accounts list for 90 days. To restore a deleted account from your <code>Disabled</code> accounts list, you must contact AWS Support.</p> <p>After 90 days, deleted accounts are permanently removed from your <code>Disabled</code> accounts list.</p>",
+    "DeletePhoneNumber": "<p>Moves the specified phone number into the <b>Deletion queue</b>. A phone number must be disassociated from any users or Amazon Chime Voice Connectors before it can be deleted.</p> <p>Deleted phone numbers remain in the <b>Deletion queue</b> for 7 days before they are deleted permanently.</p>",
+    "DeleteVoiceConnector": "<p>Deletes the specified Amazon Chime Voice Connector. Any phone numbers assigned to the Amazon Chime Voice Connector must be unassigned from it before it can be deleted.</p>",
+    "DeleteVoiceConnectorOrigination": "<p>Deletes the origination settings for the specified Amazon Chime Voice Connector.</p>",
+    "DeleteVoiceConnectorTermination": "<p>Deletes the termination settings for the specified Amazon Chime Voice Connector.</p>",
+    "DeleteVoiceConnectorTerminationCredentials": "<p>Deletes the specified SIP credentials used by your equipment to authenticate during call termination.</p>",
+    "DisassociatePhoneNumberFromUser": "<p>Disassociates the primary provisioned phone number from the specified Amazon Chime user.</p>",
+    "DisassociatePhoneNumbersFromVoiceConnector": "<p>Disassociates the specified phone number from the specified Amazon Chime Voice Connector.</p>",
+    "GetAccount": "<p>Retrieves details for the specified Amazon Chime account, such as account type and supported licenses.</p>",
+    "GetAccountSettings": "<p>Retrieves account settings for the specified Amazon Chime account ID, such as remote control and dial out settings. For more information about these settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/policies.html\">Use the Policies Page</a> in the <i>Amazon Chime Administration Guide</i>.</p>",
+    "GetGlobalSettings": "<p>Retrieves global settings for the administrator's AWS account, such as Amazon Chime Business Calling and Amazon Chime Voice Connector settings.</p>",
+    "GetPhoneNumber": "<p>Retrieves details for the specified phone number ID, such as associations, capabilities, and product type.</p>",
+    "GetPhoneNumberOrder": "<p>Retrieves details for the specified phone number order, such as order creation timestamp, phone numbers in E.164 format, product type, and order status.</p>",
+    "GetUser": "<p>Retrieves details for the specified user ID, such as primary email address, license type, and personal meeting PIN.</p> <p>To retrieve user details with an email address instead of a user ID, use the <a>ListUsers</a> action, and then filter by email address.</p>",
+    "GetUserSettings": "<p>Retrieves settings for the specified user ID, such as any associated phone number settings.</p>",
+    "GetVoiceConnector": "<p>Retrieves details for the specified Amazon Chime Voice Connector, such as timestamps, name, outbound host, and encryption requirements.</p>",
+    "GetVoiceConnectorOrigination": "<p>Retrieves origination setting details for the specified Amazon Chime Voice Connector.</p>",
+    "GetVoiceConnectorTermination": "<p>Retrieves termination setting details for the specified Amazon Chime Voice Connector.</p>",
+    "GetVoiceConnectorTerminationHealth": "<p>Retrieves information about the last time a SIP <code>OPTIONS</code> ping was received from your SIP infrastructure for the specified Amazon Chime Voice Connector.</p>",
+    "InviteUsers": "<p>Sends email invites to as many as 50 users, inviting them to the specified Amazon Chime <code>Team</code> account. Only <code>Team</code> account types are currently supported for this action. </p>",
+    "ListAccounts": "<p>Lists the Amazon Chime accounts under the administrator's AWS account. You can filter accounts by account name prefix. To find out which Amazon Chime account a user belongs to, you can filter by the user's email address, which returns one account result.</p>",
+    "ListPhoneNumberOrders": "<p>Lists the phone number orders for the administrator's Amazon Chime account.</p>",
+    "ListPhoneNumbers": "<p>Lists the phone numbers for the specified Amazon Chime account, Amazon Chime user, or Amazon Chime Voice Connector.</p>",
+    "ListUsers": "<p>Lists the users that belong to the specified Amazon Chime account. You can specify an email address to list only the user that the email address belongs to.</p>",
+    "ListVoiceConnectorTerminationCredentials": "<p>Lists the SIP credentials for the specified Amazon Chime Voice Connector.</p>",
+    "ListVoiceConnectors": "<p>Lists the Amazon Chime Voice Connectors for the administrator's AWS account.</p>",
+    "LogoutUser": "<p>Logs out the specified user from all of the devices they are currently logged into.</p>",
+    "PutVoiceConnectorOrigination": "<p>Adds origination settings for the specified Amazon Chime Voice Connector.</p>",
+    "PutVoiceConnectorTermination": "<p>Adds termination settings for the specified Amazon Chime Voice Connector.</p>",
+    "PutVoiceConnectorTerminationCredentials": "<p>Adds termination SIP credentials for the specified Amazon Chime Voice Connector.</p>",
+    "ResetPersonalPIN": "<p>Resets the personal meeting PIN for the specified user on an Amazon Chime account. Returns the <a>User</a> object with the updated personal meeting PIN.</p>",
+    "RestorePhoneNumber": "<p>Moves a phone number from the <b>Deletion queue</b> back into the phone number <b>Inventory</b>.</p>",
+    "SearchAvailablePhoneNumbers": "<p>Searches phone numbers that can be ordered.</p>",
+    "UpdateAccount": "<p>Updates account details for the specified Amazon Chime account. Currently, only account name updates are supported for this action.</p>",
+    "UpdateAccountSettings": "<p>Updates the settings for the specified Amazon Chime account. You can update settings for remote control of shared screens, or for the dial-out option. For more information about these settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/policies.html\">Use the Policies Page</a> in the <i>Amazon Chime Administration Guide</i>.</p>",
+    "UpdateGlobalSettings": "<p>Updates global settings for the administrator's AWS account, such as Amazon Chime Business Calling and Amazon Chime Voice Connector settings.</p>",
+    "UpdatePhoneNumber": "<p>Updates phone number details, such as product type, for the specified phone number ID.</p>",
+    "UpdateUser": "<p>Updates user details for a specified user ID. Currently, only <code>LicenseType</code> updates are supported for this action.</p>",
+    "UpdateUserSettings": "<p>Updates the settings for the specified user, such as phone number settings.</p>",
+    "UpdateVoiceConnector": "<p>Updates details for the specified Amazon Chime Voice Connector.</p>"
+  },
+  "shapes": {
+    "Account": {
+      "base": "<p>The Amazon Chime account details. An AWS account can have multiple Amazon Chime accounts.</p>",
+      "refs": {
+        "AccountList$member": null,
+        "CreateAccountResponse$Account": "<p>The Amazon Chime account details.</p>",
+        "GetAccountResponse$Account": "<p>The Amazon Chime account details.</p>",
+        "UpdateAccountResponse$Account": "<p>The updated Amazon Chime account details.</p>"
+      }
+    },
+    "AccountList": {
+      "base": null,
+      "refs": {
+        "ListAccountsResponse$Accounts": "<p>List of Amazon Chime accounts and account details.</p>"
+      }
+    },
+    "AccountName": {
+      "base": null,
+      "refs": {
+        "CreateAccountRequest$Name": "<p>The name of the Amazon Chime account.</p>",
+        "ListAccountsRequest$Name": "<p>Amazon Chime account name prefix with which to filter results.</p>",
+        "UpdateAccountRequest$Name": "<p>The new name for the specified Amazon Chime account.</p>"
+      }
+    },
+    "AccountSettings": {
+      "base": "<p>Settings related to the Amazon Chime account. This includes settings that start or stop remote control of shared screens, or start or stop the dial-out option in the Amazon Chime web application. For more information about these settings, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/policies.html\">Use the Policies Page</a> in the <i>Amazon Chime Administration Guide</i>.</p>",
+      "refs": {
+        "GetAccountSettingsResponse$AccountSettings": "<p>The Amazon Chime account settings.</p>",
+        "UpdateAccountSettingsRequest$AccountSettings": "<p>The Amazon Chime account settings to update.</p>"
+      }
+    },
+    "AccountType": {
+      "base": null,
+      "refs": {
+        "Account$AccountType": "<p>The Amazon Chime account type. For more information about different account types, see <a href=\"https://docs.aws.amazon.com/chime/latest/ag/manage-chime-account.html\">Managing Your Amazon Chime Accounts</a> in the <i>Amazon Chime Administration Guide</i>.</p>"
+      }
+    },
+    "AssociatePhoneNumberWithUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociatePhoneNumberWithUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociatePhoneNumbersWithVoiceConnectorRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociatePhoneNumbersWithVoiceConnectorResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BadRequestException": {
+      "base": "<p>The input parameters don't match the service's restrictions.</p>",
+      "refs": {
+      }
+    },
+    "BatchDeletePhoneNumberRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchDeletePhoneNumberResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchSuspendUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchSuspendUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchUnsuspendUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchUnsuspendUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchUpdatePhoneNumberRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchUpdatePhoneNumberResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchUpdateUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "BatchUpdateUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Boolean": {
+      "base": null,
+      "refs": {
+        "AccountSettings$DisableRemoteControl": "<p>Setting that stops or starts remote control of shared screens during meetings.</p>",
+        "AccountSettings$EnableDialOut": "<p>Setting that allows meeting participants to choose the <b>Call me at a phone number</b> option. For more information, see <a href=\"https://docs.aws.amazon.com/chime/latest/ug/chime-join-meeting.html\">Join a Meeting without the Amazon Chime App</a>.</p>",
+        "CreateVoiceConnectorRequest$RequireEncryption": "<p>When enabled, requires encryption for the Amazon Chime Voice Connector.</p>",
+        "Origination$Disabled": "<p>When origination settings are disabled, inbound calls are not enabled for your Amazon Chime Voice Connector.</p>",
+        "TelephonySettings$InboundCalling": "<p>Allows or denies inbound calling.</p>",
+        "TelephonySettings$OutboundCalling": "<p>Allows or denies outbound calling.</p>",
+        "TelephonySettings$SMS": "<p>Allows or denies SMS messaging.</p>",
+        "Termination$Disabled": "<p>When termination settings are disabled, outbound calls can not be made.</p>",
+        "UpdateVoiceConnectorRequest$RequireEncryption": "<p>When enabled, requires encryption for the Amazon Chime Voice Connector.</p>",
+        "VoiceConnector$RequireEncryption": "<p>Designates whether encryption is required for the Amazon Chime Voice Connector.</p>"
+      }
+    },
+    "BusinessCallingSettings": {
+      "base": "<p>The Amazon Chime Business Calling settings for the administrator's AWS account. Includes any Amazon S3 buckets designated for storing call detail records.</p>",
+      "refs": {
+        "GetGlobalSettingsResponse$BusinessCalling": "<p>The Amazon Chime Business Calling settings.</p>",
+        "UpdateGlobalSettingsRequest$BusinessCalling": "<p>The Amazon Chime Business Calling settings.</p>"
+      }
+    },
+    "CallingRegion": {
+      "base": null,
+      "refs": {
+        "CallingRegionList$member": null
+      }
+    },
+    "CallingRegionList": {
+      "base": null,
+      "refs": {
+        "Termination$CallingRegions": "<p>The countries to which calls are allowed.</p>"
+      }
+    },
+    "ConflictException": {
+      "base": "<p>The request could not be processed because of conflict in the current state of the resource.</p>",
+      "refs": {
+      }
+    },
+    "CpsLimit": {
+      "base": null,
+      "refs": {
+        "Termination$CpsLimit": "<p>The limit on calls per second. Max value based on account service limit. Default value of 1.</p>"
+      }
+    },
+    "CreateAccountRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateAccountResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreatePhoneNumberOrderRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreatePhoneNumberOrderResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateVoiceConnectorRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateVoiceConnectorResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Credential": {
+      "base": "<p>The SIP credentials used to authenticate requests to your Amazon Chime Voice Connector.</p>",
+      "refs": {
+        "CredentialList$member": null
+      }
+    },
+    "CredentialList": {
+      "base": null,
+      "refs": {
+        "PutVoiceConnectorTerminationCredentialsRequest$Credentials": "<p>The termination SIP credentials.</p>"
+      }
+    },
+    "DeleteAccountRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteAccountResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeletePhoneNumberRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteVoiceConnectorOriginationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteVoiceConnectorRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteVoiceConnectorTerminationCredentialsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteVoiceConnectorTerminationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociatePhoneNumberFromUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociatePhoneNumberFromUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociatePhoneNumbersFromVoiceConnectorRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociatePhoneNumbersFromVoiceConnectorResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "E164PhoneNumber": {
+      "base": null,
+      "refs": {
+        "AssociatePhoneNumberWithUserRequest$E164PhoneNumber": "<p>The phone number, in E.164 format.</p>",
+        "E164PhoneNumberList$member": null,
+        "OrderedPhoneNumber$E164PhoneNumber": "<p>The phone number, in E.164 format.</p>",
+        "PhoneNumber$E164PhoneNumber": "<p>The phone number, in E.164 format.</p>",
+        "Termination$DefaultPhoneNumber": "<p>The default caller ID phone number.</p>"
+      }
+    },
+    "E164PhoneNumberList": {
+      "base": null,
+      "refs": {
+        "AssociatePhoneNumbersWithVoiceConnectorRequest$E164PhoneNumbers": "<p>List of phone numbers, in E.164 format.</p>",
+        "CreatePhoneNumberOrderRequest$E164PhoneNumbers": "<p>List of phone numbers, in E.164 format.</p>",
+        "DisassociatePhoneNumbersFromVoiceConnectorRequest$E164PhoneNumbers": "<p>List of phone numbers, in E.164 format.</p>",
+        "SearchAvailablePhoneNumbersResponse$E164PhoneNumbers": "<p>List of phone numbers, in E.164 format.</p>"
+      }
+    },
+    "EmailAddress": {
+      "base": null,
+      "refs": {
+        "Invite$EmailAddress": "<p>The email address to which the invite is sent.</p>",
+        "ListAccountsRequest$UserEmail": "<p>User email address with which to filter results.</p>",
+        "ListUsersRequest$UserEmail": "<p>Optional. The user email address used to filter results. Maximum 1.</p>",
+        "User$PrimaryEmail": "<p>The primary email address of the user.</p>",
+        "UserEmailList$member": null
+      }
+    },
+    "EmailStatus": {
+      "base": null,
+      "refs": {
+        "Invite$EmailStatus": "<p>The status of the invite email.</p>"
+      }
+    },
+    "ErrorCode": {
+      "base": null,
+      "refs": {
+        "BadRequestException$Code": null,
+        "ConflictException$Code": null,
+        "ForbiddenException$Code": null,
+        "NotFoundException$Code": null,
+        "PhoneNumberError$ErrorCode": "<p>The error code.</p>",
+        "ServiceFailureException$Code": null,
+        "ServiceUnavailableException$Code": null,
+        "ThrottledClientException$Code": null,
+        "UnauthorizedClientException$Code": null,
+        "UnprocessableEntityException$Code": null,
+        "UserError$ErrorCode": "<p>The error code.</p>"
+      }
+    },
+    "ForbiddenException": {
+      "base": "<p>The client is permanently forbidden from making the request. For example, when a user tries to create an account from an unsupported region.</p>",
+      "refs": {
+      }
+    },
+    "GetAccountRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAccountResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAccountSettingsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAccountSettingsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetGlobalSettingsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetPhoneNumberOrderRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetPhoneNumberOrderResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetPhoneNumberRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetPhoneNumberResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetUserSettingsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetUserSettingsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetVoiceConnectorOriginationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetVoiceConnectorOriginationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetVoiceConnectorRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetVoiceConnectorResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetVoiceConnectorTerminationHealthRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetVoiceConnectorTerminationHealthResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetVoiceConnectorTerminationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetVoiceConnectorTerminationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GuidString": {
+      "base": null,
+      "refs": {
+        "GetPhoneNumberOrderRequest$PhoneNumberOrderId": "<p>The ID for the phone number order.</p>",
+        "PhoneNumberOrder$PhoneNumberOrderId": "<p>The phone number order ID.</p>"
+      }
+    },
+    "Invite": {
+      "base": "<p>Invitation object returned after emailing users to invite them to join the Amazon Chime <code>Team</code> account.</p>",
+      "refs": {
+        "InviteList$member": null
+      }
+    },
+    "InviteList": {
+      "base": null,
+      "refs": {
+        "InviteUsersResponse$Invites": "<p>The invite details.</p>"
+      }
+    },
+    "InviteStatus": {
+      "base": null,
+      "refs": {
+        "Invite$Status": "<p>The status of the invite.</p>",
+        "User$UserInvitationStatus": "<p>The user invite status.</p>"
+      }
+    },
+    "InviteUsersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "InviteUsersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Iso8601Timestamp": {
+      "base": null,
+      "refs": {
+        "Account$CreatedTimestamp": "<p>The Amazon Chime account creation timestamp, in ISO 8601 format.</p>",
+        "PhoneNumber$CreatedTimestamp": "<p>The phone number creation timestamp, in ISO 8601 format.</p>",
+        "PhoneNumber$UpdatedTimestamp": "<p>The updated phone number timestamp, in ISO 8601 format.</p>",
+        "PhoneNumber$DeletionTimestamp": "<p>The deleted phone number timestamp, in ISO 8601 format.</p>",
+        "PhoneNumberAssociation$AssociatedTimestamp": "<p>The timestamp of the phone number association, in ISO 8601 format.</p>",
+        "PhoneNumberOrder$CreatedTimestamp": "<p>The phone number order creation timestamp, in ISO 8601 format.</p>",
+        "PhoneNumberOrder$UpdatedTimestamp": "<p>The updated phone number order timestamp, in ISO 8601 format.</p>",
+        "TerminationHealth$Timestamp": "<p>The timestamp, in ISO 8601 format.</p>",
+        "User$RegisteredOn": "<p>Date and time when the user is registered, in ISO 8601 format.</p>",
+        "User$InvitedOn": "<p>Date and time when the user is invited to the Amazon Chime account, in ISO 8601 format.</p>",
+        "VoiceConnector$CreatedTimestamp": "<p>The Amazon Chime Voice Connector creation timestamp, in ISO 8601 format.</p>",
+        "VoiceConnector$UpdatedTimestamp": "<p>The updated Amazon Chime Voice Connector timestamp, in ISO 8601 format.</p>"
+      }
+    },
+    "License": {
+      "base": null,
+      "refs": {
+        "Account$DefaultLicense": "<p>The default license for the Amazon Chime account.</p>",
+        "LicenseList$member": null,
+        "UpdateUserRequest$LicenseType": "<p>The user license type to update. This must be a supported license type for the Amazon Chime account that the user belongs to.</p>",
+        "UpdateUserRequestItem$LicenseType": "<p>The user license type.</p>",
+        "User$LicenseType": "<p>The license type for the user.</p>"
+      }
+    },
+    "LicenseList": {
+      "base": null,
+      "refs": {
+        "Account$SupportedLicenses": "<p>Supported licenses for the Amazon Chime account.</p>"
+      }
+    },
+    "ListAccountsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListAccountsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListPhoneNumberOrdersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListPhoneNumberOrdersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListPhoneNumbersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListPhoneNumbersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListUsersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListUsersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListVoiceConnectorTerminationCredentialsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListVoiceConnectorTerminationCredentialsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListVoiceConnectorsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListVoiceConnectorsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "LogoutUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "LogoutUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "NonEmptyString": {
+      "base": null,
+      "refs": {
+        "AssociatePhoneNumbersWithVoiceConnectorRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "BatchSuspendUserRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "BatchUnsuspendUserRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "BatchUpdateUserRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "DeleteAccountRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "DeleteVoiceConnectorOriginationRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "DeleteVoiceConnectorRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "DeleteVoiceConnectorTerminationCredentialsRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "DeleteVoiceConnectorTerminationRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "DisassociatePhoneNumbersFromVoiceConnectorRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "GetAccountRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "GetAccountSettingsRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "GetUserRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "GetUserRequest$UserId": "<p>The user ID.</p>",
+        "GetVoiceConnectorOriginationRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "GetVoiceConnectorRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "GetVoiceConnectorTerminationHealthRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "GetVoiceConnectorTerminationRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "InviteUsersRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "ListUsersRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "ListVoiceConnectorTerminationCredentialsRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "LogoutUserRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "LogoutUserRequest$UserId": "<p>The user ID.</p>",
+        "PhoneNumberError$PhoneNumberId": "<p>The phone number ID for which the action failed.</p>",
+        "PutVoiceConnectorOriginationRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "PutVoiceConnectorTerminationCredentialsRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "PutVoiceConnectorTerminationRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "ResetPersonalPINRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "ResetPersonalPINRequest$UserId": "<p>The user ID.</p>",
+        "RestorePhoneNumberRequest$PhoneNumberId": "<p>The phone number.</p>",
+        "UpdateAccountRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "UpdateAccountSettingsRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "UpdatePhoneNumberRequestItem$PhoneNumberId": "<p>The phone number ID to update.</p>",
+        "UpdateUserRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "UpdateUserRequest$UserId": "<p>The user ID.</p>",
+        "UpdateUserRequestItem$UserId": "<p>The user ID.</p>",
+        "UpdateVoiceConnectorRequest$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>",
+        "UserError$UserId": "<p>The user ID for which the action failed.</p>",
+        "UserIdList$member": null,
+        "VoiceConnector$VoiceConnectorId": "<p>The Amazon Chime Voice Connector ID.</p>"
+      }
+    },
+    "NonEmptyStringList": {
+      "base": null,
+      "refs": {
+        "BatchDeletePhoneNumberRequest$PhoneNumberIds": "<p>List of phone number IDs.</p>"
+      }
+    },
+    "NotFoundException": {
+      "base": "<p>One or more of the resources in the request does not exist in the system.</p>",
+      "refs": {
+      }
+    },
+    "NullableBoolean": {
+      "base": null,
+      "refs": {
+        "PhoneNumberCapabilities$InboundCall": "<p>Allows or denies inbound calling for the specified phone number.</p>",
+        "PhoneNumberCapabilities$OutboundCall": "<p>Allows or denies outbound calling for the specified phone number.</p>",
+        "PhoneNumberCapabilities$InboundSMS": "<p>Allows or denies inbound SMS messaging for the specified phone number.</p>",
+        "PhoneNumberCapabilities$OutboundSMS": "<p>Allows or denies outbound SMS messaging for the specified phone number.</p>",
+        "PhoneNumberCapabilities$InboundMMS": "<p>Allows or denies inbound MMS messaging for the specified phone number.</p>",
+        "PhoneNumberCapabilities$OutboundMMS": "<p>Allows or denies outbound MMS messaging for the specified phone number.</p>"
+      }
+    },
+    "OrderedPhoneNumber": {
+      "base": "<p>A phone number for which an order has been placed.</p>",
+      "refs": {
+        "OrderedPhoneNumberList$member": null
+      }
+    },
+    "OrderedPhoneNumberList": {
+      "base": null,
+      "refs": {
+        "PhoneNumberOrder$OrderedPhoneNumbers": "<p>The ordered phone number details, such as the phone number in E.164 format and the phone number status.</p>"
+      }
+    },
+    "OrderedPhoneNumberStatus": {
+      "base": null,
+      "refs": {
+        "OrderedPhoneNumber$Status": "<p>The phone number status.</p>"
+      }
+    },
+    "Origination": {
+      "base": "<p>Origination settings enable your SIP hosts to receive inbound calls using your Amazon Chime Voice Connector.</p>",
+      "refs": {
+        "GetVoiceConnectorOriginationResponse$Origination": "<p>The origination setting details.</p>",
+        "PutVoiceConnectorOriginationRequest$Origination": "<p>The origination setting details to add.</p>",
+        "PutVoiceConnectorOriginationResponse$Origination": "<p>The updated origination setting details.</p>"
+      }
+    },
+    "OriginationRoute": {
+      "base": "<p>Origination routes define call distribution properties for your SIP hosts to receive inbound calls using your Amazon Chime Voice Connector. Limit: 10 origination routes per Amazon Chime Voice Connector.</p>",
+      "refs": {
+        "OriginationRouteList$member": null
+      }
+    },
+    "OriginationRouteList": {
+      "base": null,
+      "refs": {
+        "Origination$Routes": "<p>The call distribution properties defined for your SIP hosts. Valid range: Minimum value of 1. Maximum value of 20.</p>"
+      }
+    },
+    "OriginationRoutePriority": {
+      "base": null,
+      "refs": {
+        "OriginationRoute$Priority": "<p>The priority associated with the host, with 1 being the highest priority. Higher priority hosts are attempted first.</p>"
+      }
+    },
+    "OriginationRouteProtocol": {
+      "base": null,
+      "refs": {
+        "OriginationRoute$Protocol": "<p>The protocol to use for the origination route. Encryption-enabled Amazon Chime Voice Connectors use TCP protocol by default.</p>"
+      }
+    },
+    "OriginationRouteWeight": {
+      "base": null,
+      "refs": {
+        "OriginationRoute$Weight": "<p>The weight associated with the host. If hosts are equal in priority, calls are distributed among them based on their relative weight.</p>"
+      }
+    },
+    "PhoneNumber": {
+      "base": "<p>A phone number used for Amazon Chime Business Calling or an Amazon Chime Voice Connector.</p>",
+      "refs": {
+        "GetPhoneNumberResponse$PhoneNumber": "<p>The phone number details.</p>",
+        "PhoneNumberList$member": null,
+        "RestorePhoneNumberResponse$PhoneNumber": "<p>The phone number details.</p>",
+        "UpdatePhoneNumberResponse$PhoneNumber": "<p>The updated phone number details.</p>"
+      }
+    },
+    "PhoneNumberAssociation": {
+      "base": "<p>The phone number associations, such as Amazon Chime account ID, Amazon Chime user ID, or Amazon Chime Voice Connector ID.</p>",
+      "refs": {
+        "PhoneNumberAssociationList$member": null
+      }
+    },
+    "PhoneNumberAssociationList": {
+      "base": null,
+      "refs": {
+        "PhoneNumber$Associations": "<p>The phone number associations.</p>"
+      }
+    },
+    "PhoneNumberAssociationName": {
+      "base": null,
+      "refs": {
+        "ListPhoneNumbersRequest$FilterName": "<p>The filter to use to limit the number of results.</p>",
+        "PhoneNumberAssociation$Name": "<p>Defines the association with an Amazon Chime account ID, user ID, or Amazon Chime Voice Connector ID.</p>"
+      }
+    },
+    "PhoneNumberCapabilities": {
+      "base": "<p>The phone number capabilities, such as enabled inbound and outbound calling and text messaging.</p>",
+      "refs": {
+        "PhoneNumber$Capabilities": "<p>The phone number capabilities.</p>"
+      }
+    },
+    "PhoneNumberError": {
+      "base": "<p>If the phone number action fails for one or more of the phone numbers in the request, a list of the phone numbers is returned, along with error codes and error messages.</p>",
+      "refs": {
+        "PhoneNumberErrorList$member": null
+      }
+    },
+    "PhoneNumberErrorList": {
+      "base": null,
+      "refs": {
+        "AssociatePhoneNumbersWithVoiceConnectorResponse$PhoneNumberErrors": "<p>If the action fails for one or more of the phone numbers in the request, a list of the phone numbers is returned, along with error codes and error messages.</p>",
+        "BatchDeletePhoneNumberResponse$PhoneNumberErrors": "<p>If the action fails for one or more of the phone numbers in the request, a list of the phone numbers is returned, along with error codes and error messages.</p>",
+        "BatchUpdatePhoneNumberResponse$PhoneNumberErrors": "<p>If the action fails for one or more of the phone numbers in the request, a list of the phone numbers is returned, along with error codes and error messages.</p>",
+        "DisassociatePhoneNumbersFromVoiceConnectorResponse$PhoneNumberErrors": "<p>If the action fails for one or more of the phone numbers in the request, a list of the phone numbers is returned, along with error codes and error messages.</p>"
+      }
+    },
+    "PhoneNumberList": {
+      "base": null,
+      "refs": {
+        "ListPhoneNumbersResponse$PhoneNumbers": "<p>The phone number details.</p>"
+      }
+    },
+    "PhoneNumberMaxResults": {
+      "base": null,
+      "refs": {
+        "SearchAvailablePhoneNumbersRequest$MaxResults": "<p>The maximum number of results to return in a single call.</p>"
+      }
+    },
+    "PhoneNumberOrder": {
+      "base": "<p>The details of a phone number order created for Amazon Chime.</p>",
+      "refs": {
+        "CreatePhoneNumberOrderResponse$PhoneNumberOrder": "<p>The phone number order details.</p>",
+        "GetPhoneNumberOrderResponse$PhoneNumberOrder": "<p>The phone number order details.</p>",
+        "PhoneNumberOrderList$member": null
+      }
+    },
+    "PhoneNumberOrderList": {
+      "base": null,
+      "refs": {
+        "ListPhoneNumberOrdersResponse$PhoneNumberOrders": "<p>The phone number order details.</p>"
+      }
+    },
+    "PhoneNumberOrderStatus": {
+      "base": null,
+      "refs": {
+        "PhoneNumberOrder$Status": "<p>The status of the phone number order.</p>"
+      }
+    },
+    "PhoneNumberProductType": {
+      "base": null,
+      "refs": {
+        "CreatePhoneNumberOrderRequest$ProductType": "<p>The phone number product type.</p>",
+        "ListPhoneNumbersRequest$ProductType": "<p>The phone number product type.</p>",
+        "PhoneNumber$ProductType": "<p>The phone number product type.</p>",
+        "PhoneNumberOrder$ProductType": "<p>The phone number order product type.</p>",
+        "UpdatePhoneNumberRequest$ProductType": "<p>The product type.</p>",
+        "UpdatePhoneNumberRequestItem$ProductType": "<p>The product type to update.</p>"
+      }
+    },
+    "PhoneNumberStatus": {
+      "base": null,
+      "refs": {
+        "ListPhoneNumbersRequest$Status": "<p>The phone number status.</p>",
+        "PhoneNumber$Status": "<p>The phone number status.</p>"
+      }
+    },
+    "Port": {
+      "base": null,
+      "refs": {
+        "OriginationRoute$Port": "<p>The designated origination route port. Defaults to 5060.</p>"
+      }
+    },
+    "ProfileServiceMaxResults": {
+      "base": null,
+      "refs": {
+        "ListAccountsRequest$MaxResults": "<p>The maximum number of results to return in a single call. Defaults to 100.</p>",
+        "ListUsersRequest$MaxResults": "<p>The maximum number of results to return in a single call. Defaults to 100.</p>"
+      }
+    },
+    "PutVoiceConnectorOriginationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutVoiceConnectorOriginationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutVoiceConnectorTerminationCredentialsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutVoiceConnectorTerminationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutVoiceConnectorTerminationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RegistrationStatus": {
+      "base": null,
+      "refs": {
+        "User$UserRegistrationStatus": "<p>The user registration status.</p>"
+      }
+    },
+    "ResetPersonalPINRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ResetPersonalPINResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RestorePhoneNumberRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RestorePhoneNumberResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ResultMax": {
+      "base": null,
+      "refs": {
+        "ListPhoneNumberOrdersRequest$MaxResults": "<p>The maximum number of results to return in a single call.</p>",
+        "ListPhoneNumbersRequest$MaxResults": "<p>The maximum number of results to return in a single call.</p>",
+        "ListVoiceConnectorsRequest$MaxResults": "<p>The maximum number of results to return in a single call.</p>"
+      }
+    },
+    "SearchAvailablePhoneNumbersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchAvailablePhoneNumbersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SensitiveString": {
+      "base": null,
+      "refs": {
+        "Credential$Username": "<p>The RFC2617 compliant user name associated with the SIP credentials, in US-ASCII format.</p>",
+        "Credential$Password": "<p>The RFC2617 compliant password associated with the SIP credentials, in US-ASCII format.</p>",
+        "SensitiveStringList$member": null,
+        "User$PrimaryProvisionedNumber": "<p>The primary phone number associated with the user.</p>",
+        "User$DisplayName": "<p>The display name of the user.</p>"
+      }
+    },
+    "SensitiveStringList": {
+      "base": null,
+      "refs": {
+        "DeleteVoiceConnectorTerminationCredentialsRequest$Usernames": "<p>The RFC2617 compliant username associated with the SIP credentials, in US-ASCII format.</p>",
+        "ListVoiceConnectorTerminationCredentialsResponse$Usernames": "<p>A list of user names.</p>"
+      }
+    },
+    "ServiceFailureException": {
+      "base": "<p>The service encountered an unexpected error.</p>",
+      "refs": {
+      }
+    },
+    "ServiceUnavailableException": {
+      "base": "<p>The service is currently unavailable.</p>",
+      "refs": {
+      }
+    },
+    "String": {
+      "base": null,
+      "refs": {
+        "Account$AwsAccountId": "<p>The AWS account ID.</p>",
+        "Account$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "Account$Name": "<p>The Amazon Chime account name.</p>",
+        "AssociatePhoneNumberWithUserRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "AssociatePhoneNumberWithUserRequest$UserId": "<p>The user ID.</p>",
+        "BadRequestException$Message": null,
+        "BusinessCallingSettings$CdrBucket": "<p>The Amazon S3 bucket designated for call detail record storage.</p>",
+        "ConflictException$Message": null,
+        "DeletePhoneNumberRequest$PhoneNumberId": "<p>The phone number ID.</p>",
+        "DisassociatePhoneNumberFromUserRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "DisassociatePhoneNumberFromUserRequest$UserId": "<p>The user ID.</p>",
+        "ForbiddenException$Message": null,
+        "GetPhoneNumberRequest$PhoneNumberId": "<p>The phone number ID.</p>",
+        "GetUserSettingsRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "GetUserSettingsRequest$UserId": "<p>The user ID.</p>",
+        "Invite$InviteId": "<p>The invite ID.</p>",
+        "ListAccountsRequest$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListAccountsResponse$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListPhoneNumberOrdersRequest$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListPhoneNumberOrdersResponse$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListPhoneNumbersRequest$FilterValue": "<p>The value to use for the filter.</p>",
+        "ListPhoneNumbersRequest$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListPhoneNumbersResponse$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListUsersRequest$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListUsersResponse$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListVoiceConnectorsRequest$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ListVoiceConnectorsResponse$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "NonEmptyStringList$member": null,
+        "NotFoundException$Message": null,
+        "OriginationRoute$Host": "<p>The FODN or IP address to contact for origination traffic.</p>",
+        "PhoneNumber$PhoneNumberId": "<p>The phone number ID.</p>",
+        "PhoneNumberAssociation$Value": "<p>Contains the ID for the entity specified in Name.</p>",
+        "PhoneNumberError$ErrorMessage": "<p>The error message.</p>",
+        "SearchAvailablePhoneNumbersRequest$AreaCode": "<p>The area code used to filter results.</p>",
+        "SearchAvailablePhoneNumbersRequest$City": "<p>The city used to filter results.</p>",
+        "SearchAvailablePhoneNumbersRequest$Country": "<p>The country used to filter results.</p>",
+        "SearchAvailablePhoneNumbersRequest$State": "<p>The state used to filter results.</p>",
+        "SearchAvailablePhoneNumbersRequest$NextToken": "<p>The token to use to retrieve the next page of results.</p>",
+        "ServiceFailureException$Message": null,
+        "ServiceUnavailableException$Message": null,
+        "StringList$member": null,
+        "TerminationHealth$Source": "<p>The source IP address.</p>",
+        "ThrottledClientException$Message": null,
+        "UnauthorizedClientException$Message": null,
+        "UnprocessableEntityException$Message": null,
+        "UpdatePhoneNumberRequest$PhoneNumberId": "<p>The phone number ID.</p>",
+        "UpdateUserSettingsRequest$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "UpdateUserSettingsRequest$UserId": "<p>The user ID.</p>",
+        "User$UserId": "<p>The user ID.</p>",
+        "User$AccountId": "<p>The Amazon Chime account ID.</p>",
+        "User$PersonalPIN": "<p>The user's personal meeting PIN.</p>",
+        "UserError$ErrorMessage": "<p>The error message.</p>",
+        "VoiceConnector$OutboundHostName": "<p>The outbound host name for the Amazon Chime Voice Connector.</p>",
+        "VoiceConnectorSettings$CdrBucket": "<p>The Amazon S3 bucket designated for call detail record storage.</p>"
+      }
+    },
+    "StringList": {
+      "base": null,
+      "refs": {
+        "Termination$CidrAllowedList": "<p>The IP addresses allowed to make calls, in CIDR format.</p>"
+      }
+    },
+    "TelephonySettings": {
+      "base": "<p>Settings that allow management of telephony permissions for an Amazon Chime user, such as inbound and outbound calling and text messaging.</p>",
+      "refs": {
+        "UserSettings$Telephony": "<p>The telephony settings associated with the user.</p>"
+      }
+    },
+    "Termination": {
+      "base": "<p>Termination settings enable your SIP hosts to make outbound calls using your Amazon Chime Voice Connector.</p>",
+      "refs": {
+        "GetVoiceConnectorTerminationResponse$Termination": "<p>The termination setting details.</p>",
+        "PutVoiceConnectorTerminationRequest$Termination": "<p>The termination setting details to add.</p>",
+        "PutVoiceConnectorTerminationResponse$Termination": "<p>The updated termination setting details.</p>"
+      }
+    },
+    "TerminationHealth": {
+      "base": "<p>The termination health details, including the source IP address and timestamp of the last successful SIP <code>OPTIONS</code> message from your SIP infrastructure.</p>",
+      "refs": {
+        "GetVoiceConnectorTerminationHealthResponse$TerminationHealth": "<p>The termination health details.</p>"
+      }
+    },
+    "ThrottledClientException": {
+      "base": "<p>The client exceeded its request rate limit.</p>",
+      "refs": {
+      }
+    },
+    "UnauthorizedClientException": {
+      "base": "<p>The client is not currently authorized to make the request.</p>",
+      "refs": {
+      }
+    },
+    "UnprocessableEntityException": {
+      "base": "<p>The request was well-formed but was unable to be followed due to semantic errors.</p>",
+      "refs": {
+      }
+    },
+    "UpdateAccountRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateAccountResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateAccountSettingsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateAccountSettingsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateGlobalSettingsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdatePhoneNumberRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdatePhoneNumberRequestItem": {
+      "base": "<p>The phone number ID and product type fields to update, used with the <a>BatchUpdatePhoneNumber</a> and <a>UpdatePhoneNumber</a> actions.</p>",
+      "refs": {
+        "UpdatePhoneNumberRequestItemList$member": null
+      }
+    },
+    "UpdatePhoneNumberRequestItemList": {
+      "base": null,
+      "refs": {
+        "BatchUpdatePhoneNumberRequest$UpdatePhoneNumberRequestItems": "<p>The request containing the phone number IDs and product types to update.</p>"
+      }
+    },
+    "UpdatePhoneNumberResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateUserRequestItem": {
+      "base": "<p>The user ID and user fields to update, used with the <a>BatchUpdateUser</a> action.</p>",
+      "refs": {
+        "UpdateUserRequestItemList$member": null
+      }
+    },
+    "UpdateUserRequestItemList": {
+      "base": null,
+      "refs": {
+        "BatchUpdateUserRequest$UpdateUserRequestItems": "<p>The request containing the user IDs and details to update.</p>"
+      }
+    },
+    "UpdateUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateUserSettingsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateVoiceConnectorRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateVoiceConnectorResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "User": {
+      "base": "<p>The user on the Amazon Chime account.</p>",
+      "refs": {
+        "GetUserResponse$User": "<p>The user details.</p>",
+        "ResetPersonalPINResponse$User": "<p>The user details and new personal meeting PIN.</p>",
+        "UpdateUserResponse$User": "<p>The updated user details.</p>",
+        "UserList$member": null
+      }
+    },
+    "UserEmailList": {
+      "base": null,
+      "refs": {
+        "InviteUsersRequest$UserEmailList": "<p>The user email addresses to which to send the invite.</p>"
+      }
+    },
+    "UserError": {
+      "base": "<p>The list of errors returned when errors are encountered during the <a>BatchSuspendUser</a>, <a>BatchUnsuspendUser</a>, or <a>BatchUpdateUser</a> actions. This includes user IDs, error codes, and error messages.</p>",
+      "refs": {
+        "UserErrorList$member": null
+      }
+    },
+    "UserErrorList": {
+      "base": null,
+      "refs": {
+        "BatchSuspendUserResponse$UserErrors": "<p>If the <a>BatchSuspendUser</a> action fails for one or more of the user IDs in the request, a list of the user IDs is returned, along with error codes and error messages.</p>",
+        "BatchUnsuspendUserResponse$UserErrors": "<p>If the <a>BatchUnsuspendUser</a> action fails for one or more of the user IDs in the request, a list of the user IDs is returned, along with error codes and error messages.</p>",
+        "BatchUpdateUserResponse$UserErrors": "<p>If the <a>BatchUpdateUser</a> action fails for one or more of the user IDs in the request, a list of the user IDs is returned, along with error codes and error messages.</p>"
+      }
+    },
+    "UserIdList": {
+      "base": null,
+      "refs": {
+        "BatchSuspendUserRequest$UserIdList": "<p>The request containing the user IDs to suspend.</p>",
+        "BatchUnsuspendUserRequest$UserIdList": "<p>The request containing the user IDs to unsuspend.</p>"
+      }
+    },
+    "UserList": {
+      "base": null,
+      "refs": {
+        "ListUsersResponse$Users": "<p>List of users and user details.</p>"
+      }
+    },
+    "UserSettings": {
+      "base": "<p>Settings associated with an Amazon Chime user, including inbound and outbound calling and text messaging.</p>",
+      "refs": {
+        "GetUserSettingsResponse$UserSettings": "<p>The user settings.</p>",
+        "UpdateUserSettingsRequest$UserSettings": "<p>The user settings to update.</p>"
+      }
+    },
+    "VoiceConnector": {
+      "base": "<p>The Amazon Chime Voice Connector configuration, including outbound host name and encryption settings.</p>",
+      "refs": {
+        "CreateVoiceConnectorResponse$VoiceConnector": "<p>The Amazon Chime Voice Connector details.</p>",
+        "GetVoiceConnectorResponse$VoiceConnector": "<p>The Amazon Chime Voice Connector details.</p>",
+        "UpdateVoiceConnectorResponse$VoiceConnector": "<p>The Amazon Chime Voice Connector details.</p>",
+        "VoiceConnectorList$member": null
+      }
+    },
+    "VoiceConnectorList": {
+      "base": null,
+      "refs": {
+        "ListVoiceConnectorsResponse$VoiceConnectors": "<p>The details of the Amazon Chime Voice Connectors.</p>"
+      }
+    },
+    "VoiceConnectorName": {
+      "base": null,
+      "refs": {
+        "CreateVoiceConnectorRequest$Name": "<p>The name of the Amazon Chime Voice Connector.</p>",
+        "UpdateVoiceConnectorRequest$Name": "<p>The name of the Amazon Chime Voice Connector.</p>",
+        "VoiceConnector$Name": "<p>The name of the Amazon Chime Voice Connector.</p>"
+      }
+    },
+    "VoiceConnectorSettings": {
+      "base": "<p>The Amazon Chime Voice Connector settings. Includes any Amazon S3 buckets designated for storing call detail records.</p>",
+      "refs": {
+        "GetGlobalSettingsResponse$VoiceConnector": "<p>The Amazon Chime Voice Connector settings.</p>",
+        "UpdateGlobalSettingsRequest$VoiceConnector": "<p>The Amazon Chime Voice Connector settings.</p>"
+      }
+    }
+  }
+}

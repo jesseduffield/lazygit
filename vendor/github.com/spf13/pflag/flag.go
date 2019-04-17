@@ -925,13 +925,16 @@ func stripUnknownFlagValue(args []string) []string {
 	}
 
 	first := args[0]
-	if first[0] == '-' {
+	if len(first) > 0 && first[0] == '-' {
 		//--unknown --next-flag ...
 		return args
 	}
 
 	//--unknown arg ... (args will be arg ...)
-	return args[1:]
+	if len(args) > 1 {
+		return args[1:]
+	}
+	return nil
 }
 
 func (f *FlagSet) parseLongArg(s string, args []string, fn parseFunc) (a []string, err error) {

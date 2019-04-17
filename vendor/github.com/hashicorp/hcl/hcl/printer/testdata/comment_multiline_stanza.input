@@ -1,0 +1,10 @@
+# This is a multiline comment
+# That has values like this:
+#
+#     ami-abcd1234
+#
+# Do not delete this comment
+
+resource "aws_instance" "web" {
+ami_id = "ami-abcd1234"
+}

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "d_days",
+    "translation": {
+      "few": "new arabic few translation of d_days",
+      "many": "",
+      "one": "arabic one translation of d_days",
+      "other": "",
+      "two": "",
+      "zero": ""
+    }
+  },
+  {
+    "id": "person_greeting",
+    "translation": "new arabic translation of person_greeting"
+  },
+  {
+    "id": "person_unread_email_count",
+    "translation": {
+      "few": "",
+      "many": "",
+      "one": "",
+      "other": "arabic other translation of person_unread_email_count",
+      "two": "arabic two translation of person_unread_email_count",
+      "zero": "arabic zero translation of person_unread_email_count"
+    }
+  },
+  {
+    "id": "person_unread_email_count_timeframe",
+    "translation": {
+      "few": "",
+      "many": "",
+      "one": "",
+      "other": "",
+      "two": "",
+      "zero": ""
+    }
+  },
+  {
+    "id": "program_greeting",
+    "translation": ""
+  },
+  {
+    "id": "your_unread_email_count",
+    "translation": {
+      "few": "",
+      "many": "",
+      "one": "",
+      "other": "",
+      "two": "",
+      "zero": ""
+    }
+  }
+]

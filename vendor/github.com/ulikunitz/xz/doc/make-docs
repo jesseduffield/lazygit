@@ -1,0 +1,4 @@
+#!/bin/sh
+
+set -x
+pandoc -t html5 -f markdown -s --css=md.css -o LZMA2.html LZMA2.md

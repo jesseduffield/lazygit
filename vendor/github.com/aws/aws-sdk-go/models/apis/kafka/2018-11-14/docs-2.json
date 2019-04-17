@@ -1,0 +1,268 @@
+{
+  "version" : "2.0",
+  "service" : "<p>The operations for managing an Amazon MSK cluster.</p>",
+  "operations" : {
+    "CreateCluster" : "<p>Creates a new MSK cluster.</p>",
+    "DeleteCluster" : "<p>Deletes the MSK cluster specified by the Amazon Resource Name (ARN) in the request.</p>",
+    "DescribeCluster" : "<p>Returns a description of the MSK cluster whose Amazon Resource Name (ARN) is specified in the request.</p>",
+    "GetBootstrapBrokers" : "<p>A list of brokers that a client application can use to bootstrap.</p>",
+    "ListClusters" : "<p>Returns a list of clusters in an account.</p>",
+    "ListNodes" : "<p>Returns a list of the broker nodes in the cluster.</p>"
+  },
+  "shapes" : {
+    "BadRequestException" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "BrokerAZDistribution" : {
+      "base" : "<p>The distribution of broker nodes across Availability Zones. By default, broker nodes are distributed among three Availability Zones. Currently, the only supported value is DEFAULT. You can either specify this value explicitly or leave it out.</p>",
+      "refs" : {
+        "BrokerNodeGroupInfo$BrokerAZDistribution" : "<p>The distribution of broker nodes across Availability Zones.</p>"
+      }
+    },
+    "BrokerNodeGroupInfo" : {
+      "base" : "<p>Describes the setup to be used for Kafka broker nodes in the cluster.</p>",
+      "refs" : {
+        "ClusterInfo$BrokerNodeGroupInfo" : "<p>Information about the broker nodes.</p>",
+        "CreateClusterRequest$BrokerNodeGroupInfo" : "<p>Information about the broker nodes in the cluster.</p>"
+      }
+    },
+    "BrokerNodeInfo" : {
+      "base" : "<p>BrokerNodeInfo</p>",
+      "refs" : {
+        "NodeInfo$BrokerNodeInfo" : "<p>The broker node info.</p>"
+      }
+    },
+    "BrokerSoftwareInfo" : {
+      "base" : "<p>Information about the current software installed on the cluster.</p>",
+      "refs" : {
+        "BrokerNodeInfo$CurrentBrokerSoftwareInfo" : "<p>Information about the version of software currently deployed on the Kafka brokers in the cluster.</p>",
+        "ClusterInfo$CurrentBrokerSoftwareInfo" : "<p>Information about the version of software currently deployed on the Kafka brokers in the cluster.</p>"
+      }
+    },
+    "ClusterInfo" : {
+      "base" : "<p>Returns information about a cluster.</p>",
+      "refs" : {
+        "DescribeClusterResponse$ClusterInfo" : "<p>The cluster information.</p>",
+        "__listOfClusterInfo$member" : null
+      }
+    },
+    "ClusterState" : {
+      "base" : "<p>The state of a Kafka cluster.</p>",
+      "refs" : {
+        "ClusterInfo$State" : "<p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>",
+        "CreateClusterResponse$State" : "<p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>",
+        "DeleteClusterResponse$State" : "<p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>"
+      }
+    },
+    "ConflictException" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "CreateClusterRequest" : {
+      "base" : "<p>Creates a cluster.</p>",
+      "refs" : { }
+    },
+    "CreateClusterResponse" : {
+      "base" : "<p>Returns information about the created cluster.</p>",
+      "refs" : { }
+    },
+    "DeleteClusterResponse" : {
+      "base" : "<p>Returns information about the deleted cluster.</p>",
+      "refs" : { }
+    },
+    "DescribeClusterResponse" : {
+      "base" : "<p>Returns information about a cluster.</p>",
+      "refs" : { }
+    },
+    "EBSStorageInfo" : {
+      "base" : "<p>Contains information about the EBS storage volumes attached to Kafka broker nodes.</p>",
+      "refs" : {
+        "StorageInfo$EbsStorageInfo" : "<p>EBS volume information.</p>"
+      }
+    },
+    "EncryptionAtRest" : {
+      "base" : "<p>The data volume encryption details.</p>",
+      "refs" : {
+        "EncryptionInfo$EncryptionAtRest" : "<p>The data volume encryption details.</p>"
+      }
+    },
+    "EncryptionInfo" : {
+      "base" : "<p>Includes encryption-related information, such as the AWS KMS key used for encrypting data at rest.</p>",
+      "refs" : {
+        "ClusterInfo$EncryptionInfo" : "<p>Includes all encryption-related information.</p>",
+        "CreateClusterRequest$EncryptionInfo" : "<p>Includes all encryption-related information.</p>"
+      }
+    },
+    "EnhancedMonitoring" : {
+      "base" : "<p>Specifies which metrics are gathered for the MSK cluster. This property has three possible values: DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER.</p>",
+      "refs" : {
+        "ClusterInfo$EnhancedMonitoring" : "<p>Specifies which metrics are gathered for the MSK cluster. This property has three possible values: DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER.</p>",
+        "CreateClusterRequest$EnhancedMonitoring" : "<p>Specifies the level of monitoring for the MSK cluster. The possible values are DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER.</p>"
+      }
+    },
+    "Error" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "ForbiddenException" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "GetBootstrapBrokersResponse" : {
+      "base" : "<p>Returns a string containing one or more hostname:port pairs.</p>",
+      "refs" : { }
+    },
+    "InternalServerErrorException" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "ListClustersResponse" : {
+      "base" : "<p>The response contains an array containing cluster information and a next token if the response is truncated.</p>",
+      "refs" : { }
+    },
+    "ListNodesResponse" : {
+      "base" : "<p>Information about nodes in the cluster.</p>",
+      "refs" : { }
+    },
+    "NodeInfo" : {
+      "base" : "<p>The node information object.</p>",
+      "refs" : {
+        "__listOfNodeInfo$member" : null
+      }
+    },
+    "NodeType" : {
+      "base" : "<p>The broker or Zookeeper node.</p>",
+      "refs" : {
+        "NodeInfo$NodeType" : "<p>The node type.</p>"
+      }
+    },
+    "NotFoundException" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "ServiceUnavailableException" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "StorageInfo" : {
+      "base" : "<p>Contains information about storage volumes attached to MSK broker nodes.</p>",
+      "refs" : {
+        "BrokerNodeGroupInfo$StorageInfo" : "<p>Contains information about storage volumes attached to MSK broker nodes.</p>"
+      }
+    },
+    "TooManyRequestsException" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "UnauthorizedException" : {
+      "base" : "<p>Returns information about an error.</p>",
+      "refs" : { }
+    },
+    "ZookeeperNodeInfo" : {
+      "base" : "<p>Zookeeper node information.</p>",
+      "refs" : {
+        "NodeInfo$ZookeeperNodeInfo" : "<p>The ZookeeperNodeInfo.</p>"
+      }
+    },
+    "__double" : {
+      "base" : null,
+      "refs" : {
+        "BrokerNodeInfo$BrokerId" : "<p>The ID of the broker.</p>",
+        "ZookeeperNodeInfo$ZookeeperId" : "<p>The role-specific ID for Zookeeper.</p>"
+      }
+    },
+    "__integer" : {
+      "base" : null,
+      "refs" : {
+        "ClusterInfo$NumberOfBrokerNodes" : "<p>The number of Kafka broker nodes in the cluster.</p>"
+      }
+    },
+    "__integerMin1Max15" : {
+      "base" : null,
+      "refs" : {
+        "CreateClusterRequest$NumberOfBrokerNodes" : "<p>The number of Kafka broker nodes in the Amazon MSK cluster.</p>"
+      }
+    },
+    "__integerMin1Max16384" : {
+      "base" : null,
+      "refs" : {
+        "EBSStorageInfo$VolumeSize" : "<p>The size in GiB of the EBS volume for the data drive on each broker node.</p>"
+      }
+    },
+    "__listOfClusterInfo" : {
+      "base" : null,
+      "refs" : {
+        "ListClustersResponse$ClusterInfoList" : "<p>Information on each of the MSK clusters in the response.</p>"
+      }
+    },
+    "__listOfNodeInfo" : {
+      "base" : null,
+      "refs" : {
+        "ListNodesResponse$NodeInfoList" : "<p>List containing a NodeInfo object.</p>"
+      }
+    },
+    "__listOf__string" : {
+      "base" : null,
+      "refs" : {
+        "BrokerNodeGroupInfo$ClientSubnets" : "<p>The list of subnets to connect to in the client virtual private cloud (VPC). AWS creates elastic network interfaces inside these subnets. Client applications use elastic network interfaces to produce and consume data. Client subnets can't be in Availability Zone us-east-1e.</p>",
+        "BrokerNodeGroupInfo$SecurityGroups" : "<p>The AWS security groups to associate with the elastic network interfaces in order to specify who can connect to and communicate with the Amazon MSK cluster.</p>"
+      }
+    },
+    "__string" : {
+      "base" : null,
+      "refs" : {
+        "BrokerNodeInfo$AttachedENIId" : "<p>The attached elastic network interface of the broker.</p>",
+        "BrokerNodeInfo$ClientSubnet" : "<p>The client subnet to which this broker node belongs.</p>",
+        "BrokerNodeInfo$ClientVpcIpAddress" : "<p>The virtual private cloud (VPC) of the client.</p>",
+        "BrokerSoftwareInfo$ConfigurationArn" : "<p>The Amazon Resource Name (ARN) of the configuration used for the cluster.</p>",
+        "BrokerSoftwareInfo$ConfigurationRevision" : "<p>The revision of the configuration to use.</p>",
+        "BrokerSoftwareInfo$KafkaVersion" : "<p>The version of Apache Kafka.</p>",
+        "ClusterInfo$ClusterArn" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the cluster.</p>",
+        "ClusterInfo$ClusterName" : "<p>The name of the cluster.</p>",
+        "ClusterInfo$CurrentVersion" : "<p>The current version of the MSK cluster.</p>",
+        "ClusterInfo$ZookeeperConnectString" : "<p>The connection string to use to connect to the Apache ZooKeeper cluster.</p>",
+        "CreateClusterResponse$ClusterArn" : "<p>The Amazon Resource Name (ARN) of the cluster.</p>",
+        "CreateClusterResponse$ClusterName" : "<p>The name of the MSK cluster.</p>",
+        "DeleteClusterResponse$ClusterArn" : "<p>The Amazon Resource Name (ARN) of the cluster.</p>",
+        "EncryptionAtRest$DataVolumeKMSKeyId" : "<p>The AWS KMS key used for data encryption.</p>",
+        "Error$InvalidParameter" : "<p>The parameter that caused the error.</p>",
+        "Error$Message" : "<p>The description of the error.</p>",
+        "GetBootstrapBrokersResponse$BootstrapBrokerString" : "<p>A string containing one or more hostname:port pairs.</p>",
+        "ListClustersResponse$NextToken" : "<p>The paginated results marker. When the result of a ListClusters operation is truncated, the call returns NextToken in the response. \n To get another batch of clusters, provide this token in your next request.</p>",
+        "ListNodesResponse$NextToken" : "<p>The paginated results marker. When the result of a ListNodes operation is truncated, the call returns NextToken in the response. \n To get another batch of nodes, provide this token in your next request.</p>",
+        "NodeInfo$AddedToClusterTime" : "<p>The start time.</p>",
+        "NodeInfo$InstanceType" : "<p>The instance type.</p>",
+        "NodeInfo$NodeARN" : "<p>The Amazon Resource Name (ARN) of the node.</p>",
+        "ZookeeperNodeInfo$AttachedENIId" : "<p>The attached elastic network interface of the broker.</p>",
+        "ZookeeperNodeInfo$ClientVpcIpAddress" : "<p>The virtual private cloud (VPC) IP address of the client.</p>",
+        "ZookeeperNodeInfo$ZookeeperVersion" : "<p>The version of Zookeeper.</p>",
+        "__listOf__string$member" : null
+      }
+    },
+    "__stringMin1Max128" : {
+      "base" : null,
+      "refs" : {
+        "CreateClusterRequest$KafkaVersion" : "<p>The version of Apache Kafka.</p>"
+      }
+    },
+    "__stringMin1Max64" : {
+      "base" : null,
+      "refs" : {
+        "CreateClusterRequest$ClusterName" : "<p>The name of the cluster.</p>"
+      }
+    },
+    "__stringMin5Max32" : {
+      "base" : null,
+      "refs" : {
+        "BrokerNodeGroupInfo$InstanceType" : "<p>The type of Amazon EC2 instances to use for Kafka brokers. The following instance types are allowed: kafka.m5.large, kafka.m5.xlarge, kafka.m5.2xlarge,\nkafka.m5.4xlarge, kafka.m5.12xlarge, and kafka.m5.24xlarge.</p>"
+      }
+    },
+    "__timestampIso8601" : {
+      "base" : null,
+      "refs" : {
+        "ClusterInfo$CreationTime" : "<p>The time when the cluster was created.</p>"
+      }
+    }
+  }
+}

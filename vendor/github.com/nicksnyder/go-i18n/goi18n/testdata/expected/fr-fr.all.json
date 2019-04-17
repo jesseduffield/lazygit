@@ -1,0 +1,45 @@
+[
+  {
+    "id": "d_days",
+    "translation": {
+      "one": "",
+      "other": ""
+    }
+  },
+  {
+    "id": "my_height_in_meters",
+    "translation": {
+      "one": "",
+      "other": ""
+    }
+  },
+  {
+    "id": "person_greeting",
+    "translation": ""
+  },
+  {
+    "id": "person_unread_email_count",
+    "translation": {
+      "one": "",
+      "other": ""
+    }
+  },
+  {
+    "id": "person_unread_email_count_timeframe",
+    "translation": {
+      "one": "",
+      "other": ""
+    }
+  },
+  {
+    "id": "program_greeting",
+    "translation": ""
+  },
+  {
+    "id": "your_unread_email_count",
+    "translation": {
+      "one": "",
+      "other": ""
+    }
+  }
+]

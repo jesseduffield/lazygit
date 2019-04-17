@@ -1,0 +1,7 @@
+{
+  "variable": {
+    "poc": {
+      "default": "${replace(\"europe-west\", \"-\", \" \")}"
+    }
+  }
+}

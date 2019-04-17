@@ -1,0 +1,3 @@
+{
+  "default": "${replace(\"europe-west\", \"-\", \" \")}"
+}

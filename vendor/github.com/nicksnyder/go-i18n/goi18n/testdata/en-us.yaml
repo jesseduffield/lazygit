@@ -1,0 +1,35 @@
+
+
+
+# Comment
+# Comment
+- id: program_greeting
+  translation: "Hello world"
+
+- id: person_greeting
+  translation: "Hello {{.Person}}"
+
+- id: my_height_in_meters
+  translation:
+    one: "I am {{.Count}} meter tall."
+    other: "I am {{.Count}} meters tall."
+
+- id: your_unread_email_count
+  translation:
+    one: "You have {{.Count}} unread email."
+    other: "You have {{.Count}} unread emails."
+
+- id: person_unread_email_count
+  translation:
+    one: "{{.Person}} has {{.Count}} unread email."
+    other: "{{.Person}} has {{.Count}} unread emails."
+
+- id: person_unread_email_count_timeframe
+  translation:
+    one: "{{.Person}} has {{.Count}} unread email in the past {{.Timeframe}}."
+    other: "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}."
+
+- id: d_days
+  translation:
+    one: "{{.Count}} day"
+    other: "{{.Count}} days"

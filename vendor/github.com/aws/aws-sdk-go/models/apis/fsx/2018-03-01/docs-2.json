@@ -1,0 +1,685 @@
+{
+  "version": "2.0",
+  "service": "<p>Amazon FSx is a fully managed service that makes it easy for storage and application administrators to launch and use shared file storage.</p>",
+  "operations": {
+    "CreateBackup": "<p>Creates a backup of an existing Amazon FSx for Windows File Server file system. Creating regular backups for your file system is a best practice that complements the replication that Amazon FSx for Windows File Server performs for your file system. It also enables you to restore from user modification of data.</p> <p>If a backup with the specified client request token exists, and the parameters match, this operation returns the description of the existing backup. If a backup specified client request token exists, and the parameters don't match, this operation returns <code>IncompatibleParameterError</code>. If a backup with the specified client request token doesn't exist, <code>CreateBackup</code> does the following: </p> <ul> <li> <p>Creates a new Amazon FSx backup with an assigned ID, and an initial lifecycle state of <code>CREATING</code>.</p> </li> <li> <p>Returns the description of the backup.</p> </li> </ul> <p>By using the idempotent operation, you can retry a <code>CreateBackup</code> operation without the risk of creating an extra backup. This approach can be useful when an initial call fails in a way that makes it unclear whether a backup was created. If you use the same client request token and the initial call created a backup, the operation returns a successful result because all the parameters are the same.</p> <p>The <code>CreateFileSystem</code> operation returns while the backup's lifecycle state is still <code>CREATING</code>. You can check the file system creation status by calling the <a>DescribeBackups</a> operation, which returns the backup state along with other information.</p> <note> <p/> </note>",
+    "CreateFileSystem": "<p>Creates a new, empty Amazon FSx file system.</p> <p>If a file system with the specified client request token exists and the parameters match, <code>CreateFileSystem</code> returns the description of the existing file system. If a file system specified client request token exists and the parameters don't match, this call returns <code>IncompatibleParameterError</code>. If a file system with the specified client request token doesn't exist, <code>CreateFileSystem</code> does the following: </p> <ul> <li> <p>Creates a new, empty Amazon FSx file system with an assigned ID, and an initial lifecycle state of <code>CREATING</code>.</p> </li> <li> <p>Returns the description of the file system.</p> </li> </ul> <p>This operation requires a client request token in the request that Amazon FSx uses to ensure idempotent creation. This means that calling the operation multiple times with the same client request token has no effect. By using the idempotent operation, you can retry a <code>CreateFileSystem</code> operation without the risk of creating an extra file system. This approach can be useful when an initial call fails in a way that makes it unclear whether a file system was created. Examples are if a transport level timeout occurred, or your connection was reset. If you use the same client request token and the initial call created a file system, the client receives success as long as the parameters are the same.</p> <note> <p>The <code>CreateFileSystem</code> call returns while the file system's lifecycle state is still <code>CREATING</code>. You can check the file-system creation status by calling the <a>DescribeFileSystems</a> operation, which returns the file system state along with other information.</p> </note>",
+    "CreateFileSystemFromBackup": "<p>Creates a new Amazon FSx file system from an existing Amazon FSx for Windows File Server backup.</p> <p>If a file system with the specified client request token exists and the parameters match, this call returns the description of the existing file system. If a client request token specified by the file system exists and the parameters don't match, this call returns <code>IncompatibleParameterError</code>. If a file system with the specified client request token doesn't exist, this operation does the following:</p> <ul> <li> <p>Creates a new Amazon FSx file system from backup with an assigned ID, and an initial lifecycle state of <code>CREATING</code>.</p> </li> <li> <p>Returns the description of the file system.</p> </li> </ul> <p>Parameters like Active Directory, default share name, automatic backup, and backup settings default to the parameters of the file system that was backed up, unless overridden. You can explicitly supply other settings.</p> <p>By using the idempotent operation, you can retry a <code>CreateFileSystemFromBackup</code> call without the risk of creating an extra file system. This approach can be useful when an initial call fails in a way that makes it unclear whether a file system was created. Examples are if a transport level timeout occurred, or your connection was reset. If you use the same client request token and the initial call created a file system, the client receives success as long as the parameters are the same.</p> <note> <p>The <code>CreateFileSystemFromBackup</code> call returns while the file system's lifecycle state is still <code>CREATING</code>. You can check the file-system creation status by calling the <a>DescribeFileSystems</a> operation, which returns the file system state along with other information.</p> </note>",
+    "DeleteBackup": "<p>Deletes an Amazon FSx for Windows File Server backup, deleting its contents. After deletion, the backup no longer exists, and its data is gone.</p> <p>The <code>DeleteBackup</code> call returns instantly. The backup will not show up in later <code>DescribeBackups</code> calls.</p> <important> <p>The data in a deleted backup is also deleted and can't be recovered by any means.</p> </important>",
+    "DeleteFileSystem": "<p>Deletes a file system, deleting its contents. After deletion, the file system no longer exists, and its data is gone. Any existing automatic backups will also be deleted.</p> <p>By default, when you delete an Amazon FSx for Windows File Server file system, a final backup is created upon deletion. This final backup is not subject to the file system's retention policy, and must be manually deleted.</p> <p>The <code>DeleteFileSystem</code> action returns while the file system has the <code>DELETING</code> status. You can check the file system deletion status by calling the <a>DescribeFileSystems</a> action, which returns a list of file systems in your account. If you pass the file system ID for a deleted file system, the <a>DescribeFileSystems</a> returns a <code>FileSystemNotFound</code> error.</p> <important> <p>The data in a deleted file system is also deleted and can't be recovered by any means.</p> </important>",
+    "DescribeBackups": "<p>Returns the description of specific Amazon FSx for Windows File Server backups, if a <code>BackupIds</code> value is provided for that backup. Otherwise, it returns all backups owned by your AWS account in the AWS Region of the endpoint that you're calling.</p> <p>When retrieving all backups, you can optionally specify the <code>MaxResults</code> parameter to limit the number of backups in a response. If more backups remain, Amazon FSx returns a <code>NextToken</code> value in the response. In this case, send a later request with the <code>NextToken</code> request parameter set to the value of <code>NextToken</code> from the last response.</p> <p>This action is used in an iterative process to retrieve a list of your backups. <code>DescribeBackups</code> is called first without a <code>NextToken</code>value. Then the action continues to be called with the <code>NextToken</code> parameter set to the value of the last <code>NextToken</code> value until a response has no <code>NextToken</code>.</p> <p>When using this action, keep the following in mind:</p> <ul> <li> <p>The implementation might return fewer than <code>MaxResults</code> file system descriptions while still including a <code>NextToken</code> value.</p> </li> <li> <p>The order of backups returned in the response of one <code>DescribeBackups</code> call and the order of backups returned across the responses of a multi-call iteration is unspecified.</p> </li> </ul>",
+    "DescribeFileSystems": "<p>Returns the description of specific Amazon FSx file systems, if a <code>FileSystemIds</code> value is provided for that file system. Otherwise, it returns descriptions of all file systems owned by your AWS account in the AWS Region of the endpoint that you're calling.</p> <p>When retrieving all file system descriptions, you can optionally specify the <code>MaxResults</code> parameter to limit the number of descriptions in a response. If more file system descriptions remain, Amazon FSx returns a <code>NextToken</code> value in the response. In this case, send a later request with the <code>NextToken</code> request parameter set to the value of <code>NextToken</code> from the last response.</p> <p>This action is used in an iterative process to retrieve a list of your file system descriptions. <code>DescribeFileSystems</code> is called first without a <code>NextToken</code>value. Then the action continues to be called with the <code>NextToken</code> parameter set to the value of the last <code>NextToken</code> value until a response has no <code>NextToken</code>.</p> <p>When using this action, keep the following in mind:</p> <ul> <li> <p>The implementation might return fewer than <code>MaxResults</code> file system descriptions while still including a <code>NextToken</code> value.</p> </li> <li> <p>The order of file systems returned in the response of one <code>DescribeFileSystems</code> call and the order of file systems returned across the responses of a multicall iteration is unspecified.</p> </li> </ul>",
+    "ListTagsForResource": "<p>Lists tags for an Amazon FSx file systems and backups in the case of Amazon FSx for Windows File Server.</p> <p>When retrieving all tags, you can optionally specify the <code>MaxResults</code> parameter to limit the number of tags in a response. If more tags remain, Amazon FSx returns a <code>NextToken</code> value in the response. In this case, send a later request with the <code>NextToken</code> request parameter set to the value of <code>NextToken</code> from the last response.</p> <p>This action is used in an iterative process to retrieve a list of your tags. <code>ListTagsForResource</code> is called first without a <code>NextToken</code>value. Then the action continues to be called with the <code>NextToken</code> parameter set to the value of the last <code>NextToken</code> value until a response has no <code>NextToken</code>.</p> <p>When using this action, keep the following in mind:</p> <ul> <li> <p>The implementation might return fewer than <code>MaxResults</code> file system descriptions while still including a <code>NextToken</code> value.</p> </li> <li> <p>The order of tags returned in the response of one <code>ListTagsForResource</code> call and the order of tags returned across the responses of a multi-call iteration is unspecified.</p> </li> </ul>",
+    "TagResource": "<p>Tags an Amazon FSx resource.</p>",
+    "UntagResource": "<p>This action removes a tag from an Amazon FSx resource.</p>",
+    "UpdateFileSystem": "<p>Updates a file system configuration.</p>"
+  },
+  "shapes": {
+    "AWSAccountId": {
+      "base": "<p>An AWS account ID. This ID is a 12-digit number that you use to construct Amazon Resource Names (ARNs) for resources.</p>",
+      "refs": {
+        "FileSystem$OwnerId": "<p>The AWS account that created the file system. If the file system was created by an IAM user, the AWS account to which the IAM user belongs is the owner.</p>"
+      }
+    },
+    "ActiveDirectoryError": {
+      "base": "<p>An Active Directory error.</p>",
+      "refs": {
+      }
+    },
+    "ActiveDirectoryErrorType": {
+      "base": "<p>The type of error relating to Microsoft Active Directory. NOT_FOUND means that no directory was found by specifying the given directory. INCOMPATIBLE_MODE means that the directory specified is not a Microsoft AD directory. WRONG_VPC means that the specified directory isn't accessible from the specified VPC. WRONG_STAGE means that the specified directory isn't currently in the ACTIVE state.</p>",
+      "refs": {
+        "ActiveDirectoryError$Type": "<p>The type of Active Directory error.</p>"
+      }
+    },
+    "ArchivePath": {
+      "base": null,
+      "refs": {
+        "CreateFileSystemLustreConfiguration$ImportPath": "<p>(Optional) The path to the Amazon S3 bucket (including the optional prefix) that you're using as the data repository for your Amazon FSx for Lustre file system. The root of your FSx for Lustre file system will be mapped to the root of the Amazon S3 bucket you select. An example is <code>s3://import-bucket/optional-prefix</code>. If you specify a prefix after the Amazon S3 bucket name, only object keys with that prefix are loaded into the file system.</p>",
+        "CreateFileSystemLustreConfiguration$ExportPath": "<p>(Optional) The path in Amazon S3 where the root of your Amazon FSx file system is exported. The path must use the same Amazon S3 bucket as specified in ImportPath. You can provide an optional prefix to which new and changed data is to be exported from your Amazon FSx for Lustre file system. If an <code>ExportPath</code> value is not provided, Amazon FSx sets a default export path, <code>s3://import-bucket/FSxLustre[creation-timestamp]</code>. The timestamp is in UTC format, for example <code>s3://import-bucket/FSxLustre20181105T222312Z</code>.</p> <p>The Amazon S3 export bucket must be the same as the import bucket specified by <code>ImportPath</code>. If you only specify a bucket name, such as <code>s3://import-bucket</code>, you get a 1:1 mapping of file system objects to S3 bucket objects. This mapping means that the input data in S3 is overwritten on export. If you provide a custom prefix in the export path, such as <code>s3://import-bucket/[custom-optional-prefix]</code>, Amazon FSx exports the contents of your file system to that export prefix in the Amazon S3 bucket.</p>",
+        "DataRepositoryConfiguration$ImportPath": "<p>The import path to the Amazon S3 bucket (and optional prefix) that you're using as the data repository for your FSx for Lustre file system, for example <code>s3://import-bucket/optional-prefix</code>. If a prefix is specified after the Amazon S3 bucket name, only object keys with that prefix are loaded into the file system.</p>",
+        "DataRepositoryConfiguration$ExportPath": "<p>The export path to the Amazon S3 bucket (and prefix) that you are using to store new and changed Lustre file system files in S3.</p>"
+      }
+    },
+    "AutomaticBackupRetentionDays": {
+      "base": "<p>The number of days to retain automatic backups. Setting this to 0 disables automatic backups. You can retain automatic backups for a maximum of 35 days.</p>",
+      "refs": {
+        "CreateFileSystemWindowsConfiguration$AutomaticBackupRetentionDays": "<p>The number of days to retain automatic backups. The default is to retain backups for 7 days. Setting this value to 0 disables the creation of automatic backups. The maximum retention period for backups is 35 days.</p>",
+        "UpdateFileSystemWindowsConfiguration$AutomaticBackupRetentionDays": "<p>The number of days to retain automatic backups. Setting this to 0 disables automatic backups. You can retain automatic backups for a maximum of 35 days.</p>",
+        "WindowsFileSystemConfiguration$AutomaticBackupRetentionDays": "<p>The number of days to retain automatic backups. Setting this to 0 disables automatic backups. You can retain automatic backups for a maximum of 35 days.</p>"
+      }
+    },
+    "Backup": {
+      "base": "<p>A backup of an Amazon FSx for Windows File Server file system. You can create a new file system from a backup to protect against data loss.</p>",
+      "refs": {
+        "Backups$member": null,
+        "CreateBackupResponse$Backup": "<p>A description of the backup.</p>"
+      }
+    },
+    "BackupFailureDetails": {
+      "base": "<p>If backup creation fails, this structure contains the details of that failure.</p>",
+      "refs": {
+        "Backup$FailureDetails": "<p>Details explaining any failures that occur when creating a backup.</p>"
+      }
+    },
+    "BackupId": {
+      "base": "<p>The ID of the backup.</p>",
+      "refs": {
+        "Backup$BackupId": "<p>The ID of the backup.</p>",
+        "BackupIds$member": null,
+        "CreateFileSystemFromBackupRequest$BackupId": null,
+        "DeleteBackupRequest$BackupId": "<p>The ID of the backup you want to delete.</p>",
+        "DeleteBackupResponse$BackupId": "<p>The ID of the backup deleted.</p>",
+        "DeleteFileSystemWindowsResponse$FinalBackupId": "<p>The ID of the final backup for this file system.</p>"
+      }
+    },
+    "BackupIds": {
+      "base": "<p>A list of backup IDs.</p>",
+      "refs": {
+        "DescribeBackupsRequest$BackupIds": "<p>(Optional) IDs of the backups you want to retrieve (String). This overrides any filters. If any IDs are not found, BackupNotFound will be thrown.</p>"
+      }
+    },
+    "BackupInProgress": {
+      "base": "<p>Another backup is already under way. Wait for completion before initiating additional backups of this file system.</p>",
+      "refs": {
+      }
+    },
+    "BackupLifecycle": {
+      "base": "<p>The lifecycle status of the backup.</p>",
+      "refs": {
+        "Backup$Lifecycle": "<p>The lifecycle status of the backup.</p>",
+        "DeleteBackupResponse$Lifecycle": "<p>The lifecycle of the backup. Should be <code>DELETED</code>.</p>"
+      }
+    },
+    "BackupNotFound": {
+      "base": "<p>No Amazon FSx backups were found based upon the supplied parameters.</p>",
+      "refs": {
+      }
+    },
+    "BackupRestoring": {
+      "base": "<p>You can't delete a backup while it's being used to restore a file system.</p>",
+      "refs": {
+      }
+    },
+    "BackupType": {
+      "base": "<p>The type of the backup.</p>",
+      "refs": {
+        "Backup$Type": "<p>The type of the backup.</p>"
+      }
+    },
+    "Backups": {
+      "base": "<p>A list of backups.</p>",
+      "refs": {
+        "DescribeBackupsResponse$Backups": "<p>Any array of backups.</p>"
+      }
+    },
+    "BadRequest": {
+      "base": "<p>A generic error indicating a failure with a client request.</p>",
+      "refs": {
+      }
+    },
+    "ClientRequestToken": {
+      "base": "<p>(Optional) An idempotency token for resource creation, in a string of up to 64 ASCII characters. This token is automatically filled on your behalf when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.</p>",
+      "refs": {
+        "CreateBackupRequest$ClientRequestToken": "<p>(Optional) A string of up to 64 ASCII characters that Amazon FSx uses to ensure idempotent creation. This string is automatically filled on your behalf when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.</p>",
+        "CreateFileSystemFromBackupRequest$ClientRequestToken": "<p>(Optional) A string of up to 64 ASCII characters that Amazon FSx uses to ensure idempotent creation. This string is automatically filled on your behalf when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.</p>",
+        "CreateFileSystemRequest$ClientRequestToken": "<p>(Optional) A string of up to 64 ASCII characters that Amazon FSx uses to ensure idempotent creation. This string is automatically filled on your behalf when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.</p>",
+        "DeleteBackupRequest$ClientRequestToken": "<p>(Optional) A string of up to 64 ASCII characters that Amazon FSx uses to ensure idempotent deletion. This is automatically filled on your behalf when using the AWS CLI or SDK.</p>",
+        "DeleteFileSystemRequest$ClientRequestToken": "<p>(Optional) A string of up to 64 ASCII characters that Amazon FSx uses to ensure idempotent deletion. This is automatically filled on your behalf when using the AWS CLI or SDK.</p>",
+        "UpdateFileSystemRequest$ClientRequestToken": "<p>(Optional) A string of up to 64 ASCII characters that Amazon FSx uses to ensure idempotent updates. This string is automatically filled on your behalf when you use the AWS Command Line Interface (AWS CLI) or an AWS SDK.</p>"
+      }
+    },
+    "CreateBackupRequest": {
+      "base": "<p>The request object for the <code>CreateBackup</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "CreateBackupResponse": {
+      "base": "<p>The response object for the <code>CreateBackup</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "CreateFileSystemFromBackupRequest": {
+      "base": "<p>The request object for the <code>CreateFileSystemFromBackup</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "CreateFileSystemFromBackupResponse": {
+      "base": "<p>The response object for the <code>CreateFileSystemFromBackup</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "CreateFileSystemLustreConfiguration": {
+      "base": "<p>The configuration object for Lustre file systems used in the <code>CreateFileSystem</code> operation.</p>",
+      "refs": {
+        "CreateFileSystemRequest$LustreConfiguration": null
+      }
+    },
+    "CreateFileSystemRequest": {
+      "base": "<p>The request object for the <code>CreateFileSystem</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "CreateFileSystemResponse": {
+      "base": "<p>The response object for the <code>CreateFileSystem</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "CreateFileSystemWindowsConfiguration": {
+      "base": "<p>The configuration object for the Microsoft Windows file system used in <code>CreateFileSystem</code> and <code>CreateFileSystemFromBackup</code> operations.</p>",
+      "refs": {
+        "CreateFileSystemFromBackupRequest$WindowsConfiguration": "<p>The configuration for this Microsoft Windows file system.</p>",
+        "CreateFileSystemRequest$WindowsConfiguration": "<p>The configuration for this Microsoft Windows file system.</p>"
+      }
+    },
+    "CreationTime": {
+      "base": "<p>The time that the resource was created, in seconds (since 1970-01-01T00:00:00Z), also known as Unix time.</p>",
+      "refs": {
+        "Backup$CreationTime": "<p>The time when a particular backup was created.</p>",
+        "FileSystem$CreationTime": "<p>The time that the file system was created, in seconds (since 1970-01-01T00:00:00Z), also known as Unix time.</p>"
+      }
+    },
+    "DNSName": {
+      "base": "<p>The Domain Name Service (DNS) name for the file system. You can mount your file system using its DNS name.</p>",
+      "refs": {
+        "FileSystem$DNSName": "<p>The DNS name for the file system.</p>"
+      }
+    },
+    "DailyTime": {
+      "base": "<p>A recurring daily time, in the format <code>HH:MM</code>. <code>HH</code> is the zero-padded hour of the day (0-23), and <code>MM</code> is the zero-padded minute of the hour. For example, <code>05:00</code> specifies 5 AM daily. </p>",
+      "refs": {
+        "CreateFileSystemWindowsConfiguration$DailyAutomaticBackupStartTime": "<p>The preferred time to take daily automatic backups, in the UTC time zone.</p>",
+        "UpdateFileSystemWindowsConfiguration$DailyAutomaticBackupStartTime": "<p>The preferred time to take daily automatic backups, in the UTC time zone.</p>",
+        "WindowsFileSystemConfiguration$DailyAutomaticBackupStartTime": "<p>The preferred time to take daily automatic backups, in the UTC time zone.</p>"
+      }
+    },
+    "DataRepositoryConfiguration": {
+      "base": "<p>The data repository configuration object for Lustre file systems returned in the response of the <code>CreateFileSystem</code> operation.</p>",
+      "refs": {
+        "LustreFileSystemConfiguration$DataRepositoryConfiguration": null
+      }
+    },
+    "DeleteBackupRequest": {
+      "base": "<p>The request object for <code>DeleteBackup</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "DeleteBackupResponse": {
+      "base": "<p>The response object for <code>DeleteBackup</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "DeleteFileSystemRequest": {
+      "base": "<p>The request object for <code>DeleteFileSystem</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "DeleteFileSystemResponse": {
+      "base": "<p>The response object for the <code>DeleteFileSystem</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "DeleteFileSystemWindowsConfiguration": {
+      "base": "<p>The configuration object for the Microsoft Windows file system used in the <code>DeleteFileSystem</code> operation.</p>",
+      "refs": {
+        "DeleteFileSystemRequest$WindowsConfiguration": null
+      }
+    },
+    "DeleteFileSystemWindowsResponse": {
+      "base": "<p>The response object for the Microsoft Windows file system used in the <code>DeleteFileSystem</code> operation.</p>",
+      "refs": {
+        "DeleteFileSystemResponse$WindowsResponse": null
+      }
+    },
+    "DescribeBackupsRequest": {
+      "base": "<p>The request object for <code>DescribeBackups</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "DescribeBackupsResponse": {
+      "base": "<p>Response object for <code>DescribeBackups</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "DescribeFileSystemsRequest": {
+      "base": "<p>The request object for <code>DescribeFileSystems</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "DescribeFileSystemsResponse": {
+      "base": "<p>The response object for <code>DescribeFileSystems</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "DirectoryId": {
+      "base": null,
+      "refs": {
+        "ActiveDirectoryError$ActiveDirectoryId": "<p>The directory ID of the directory that an error pertains to.</p>",
+        "CreateFileSystemWindowsConfiguration$ActiveDirectoryId": "<p>The ID for an existing Microsoft Active Directory instance that the file system should join when it's created.</p>",
+        "WindowsFileSystemConfiguration$ActiveDirectoryId": "<p>The ID for an existing Microsoft Active Directory instance that the file system should join when it's created.</p>"
+      }
+    },
+    "ErrorMessage": {
+      "base": "<p>A detailed error message.</p>",
+      "refs": {
+        "ActiveDirectoryError$Message": null,
+        "BackupFailureDetails$Message": "<p>A message describing the backup creation failure.</p>",
+        "BackupInProgress$Message": null,
+        "BackupNotFound$Message": null,
+        "BackupRestoring$Message": null,
+        "BadRequest$Message": null,
+        "FileSystemFailureDetails$Message": "<p>Message describing the failures that occurred during file system creation.</p>",
+        "FileSystemNotFound$Message": null,
+        "IncompatibleParameterError$Message": null,
+        "InternalServerError$Message": null,
+        "InvalidExportPath$Message": null,
+        "InvalidImportPath$Message": null,
+        "InvalidNetworkSettings$Message": null,
+        "MissingFileSystemConfiguration$Message": null,
+        "NotServiceResourceError$Message": null,
+        "ResourceDoesNotSupportTagging$Message": null,
+        "ResourceNotFound$Message": null,
+        "ServiceLimitExceeded$Message": null
+      }
+    },
+    "FileSystem": {
+      "base": "<p>A description of a specific Amazon FSx file system.</p>",
+      "refs": {
+        "Backup$FileSystem": "<p>Metadata of the file system associated with the backup. This metadata is persisted even if the file system is deleted.</p>",
+        "CreateFileSystemFromBackupResponse$FileSystem": "<p>A description of the file system.</p>",
+        "CreateFileSystemResponse$FileSystem": "<p>A description of the file system.</p>",
+        "FileSystems$member": null,
+        "UpdateFileSystemResponse$FileSystem": "<p>A description of the file system.</p>"
+      }
+    },
+    "FileSystemFailureDetails": {
+      "base": "<p>Structure providing details of any failures that occur when creating the file system has failed.</p>",
+      "refs": {
+        "FileSystem$FailureDetails": null
+      }
+    },
+    "FileSystemId": {
+      "base": "<p>The globally unique ID of the file system, assigned by Amazon FSx.</p>",
+      "refs": {
+        "BackupRestoring$FileSystemId": "<p>The ID of a file system being restored from the backup.</p>",
+        "CreateBackupRequest$FileSystemId": "<p>The ID of the file system to back up.</p>",
+        "DeleteFileSystemRequest$FileSystemId": "<p>The ID of the file system you want to delete.</p>",
+        "DeleteFileSystemResponse$FileSystemId": "<p>The ID of the file system being deleted.</p>",
+        "FileSystem$FileSystemId": "<p>The eight-digit ID of the file system that was automatically assigned by Amazon FSx.</p>",
+        "FileSystemIds$member": null,
+        "UpdateFileSystemRequest$FileSystemId": null
+      }
+    },
+    "FileSystemIds": {
+      "base": "<p>A list of <code>FileSystemId</code>s.</p>",
+      "refs": {
+        "DescribeFileSystemsRequest$FileSystemIds": "<p>(Optional) IDs of the file systems whose descriptions you want to retrieve (String).</p>"
+      }
+    },
+    "FileSystemLifecycle": {
+      "base": "<p>The lifecycle status of the file system.</p>",
+      "refs": {
+        "DeleteFileSystemResponse$Lifecycle": "<p>The file system lifecycle for the deletion request. Should be <code>DELETING</code>.</p>",
+        "FileSystem$Lifecycle": "<p>The lifecycle status of the file system.</p>"
+      }
+    },
+    "FileSystemMaintenanceOperation": {
+      "base": "<p>An enumeration specifying the currently ongoing maintenance operation.</p>",
+      "refs": {
+        "FileSystemMaintenanceOperations$member": null
+      }
+    },
+    "FileSystemMaintenanceOperations": {
+      "base": "<p>A list of maintenance operations.</p>",
+      "refs": {
+        "WindowsFileSystemConfiguration$MaintenanceOperationsInProgress": "<p>The list of maintenance operations in progress for this file system.</p>"
+      }
+    },
+    "FileSystemNotFound": {
+      "base": "<p>No Amazon FSx file systems were found based upon supplied parameters.</p>",
+      "refs": {
+      }
+    },
+    "FileSystemType": {
+      "base": "<p>The type of file system.</p>",
+      "refs": {
+        "CreateFileSystemRequest$FileSystemType": "<p>The type of file system.</p>",
+        "FileSystem$FileSystemType": "<p>Type of file system. Currently the only supported type is WINDOWS.</p>"
+      }
+    },
+    "FileSystems": {
+      "base": "<p>A list of file systems.</p>",
+      "refs": {
+        "DescribeFileSystemsResponse$FileSystems": "<p>An array of file system descriptions.</p>"
+      }
+    },
+    "Filter": {
+      "base": "<p>A filter used to restrict the results of describe calls. You can use multiple filters to return results that meet all applied filter requirements.</p>",
+      "refs": {
+        "Filters$member": null
+      }
+    },
+    "FilterName": {
+      "base": "<p>The name for a filter.</p>",
+      "refs": {
+        "Filter$Name": "<p>The name for this filter.</p>"
+      }
+    },
+    "FilterValue": {
+      "base": "<p>The value for a filter.</p>",
+      "refs": {
+        "FilterValues$member": null
+      }
+    },
+    "FilterValues": {
+      "base": "<p>A list of filter values.</p>",
+      "refs": {
+        "Filter$Values": "<p>The values of the filter. These are all the values for any of the applied filters.</p>"
+      }
+    },
+    "Filters": {
+      "base": "<p>A list of <code>Filter</code> elements.</p>",
+      "refs": {
+        "DescribeBackupsRequest$Filters": "<p>(Optional) Filters structure. Supported names are file-system-id and backup-type.</p>"
+      }
+    },
+    "Flag": {
+      "base": null,
+      "refs": {
+        "CreateFileSystemWindowsConfiguration$CopyTagsToBackups": "<p>A boolean flag indicating whether tags on the file system should be copied to backups. This value defaults to false. If it's set to true, all tags on the file system are copied to all automatic backups and any user-initiated backups where the user doesn't specify any tags. If this value is true, and you specify one or more tags, only the specified tags are copied to backups.</p>",
+        "DeleteFileSystemWindowsConfiguration$SkipFinalBackup": "<p>By default, Amazon FSx for Windows takes a final backup on your behalf when the <code>DeleteFileSystem</code> operation is invoked. Doing this helps protect you from data loss, and we highly recommend taking the final backup. If you want to skip this backup, use this flag to do so.</p>",
+        "WindowsFileSystemConfiguration$CopyTagsToBackups": "<p>A boolean flag indicating whether tags on the file system should be copied to backups. This value defaults to false. If it's set to true, all tags on the file system are copied to all automatic backups and any user-initiated backups where the user doesn't specify any tags. If this value is true, and you specify one or more tags, only the specified tags are copied to backups.</p>"
+      }
+    },
+    "IncompatibleParameterError": {
+      "base": "<p>The error returned when a second request is received with the same client request token but different parameters settings. A client request token should always uniquely identify a single request.</p>",
+      "refs": {
+      }
+    },
+    "InternalServerError": {
+      "base": "<p>A generic error indicating a server-side failure.</p>",
+      "refs": {
+      }
+    },
+    "InvalidExportPath": {
+      "base": "<p>The path provided for data repository export isn't valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidImportPath": {
+      "base": "<p>The path provided for data repository import isn't valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidNetworkSettings": {
+      "base": "<p>One or more network settings specified in the request are invalid. <code>InvalidVpcId</code> means that the ID passed for the virtual private cloud (VPC) is invalid. <code>InvalidSubnetIds</code> returns the list of IDs for subnets that are either invalid or not part of the VPC specified. <code>InvalidSecurityGroupIds</code> returns the list of IDs for security groups that are either invalid or not part of the VPC specified.</p>",
+      "refs": {
+      }
+    },
+    "KmsKeyId": {
+      "base": "<p>The ID of your AWS Key Management Service (AWS KMS) key. This ID is used to encrypt the data in your file system at rest. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html\">Encrypt</a> in the <i>AWS Key Management Service API Reference</i>.</p>",
+      "refs": {
+        "Backup$KmsKeyId": "<p>The ID of the AWS Key Management Service (AWS KMS) key used to encrypt this backup's data.</p>",
+        "CreateFileSystemRequest$KmsKeyId": null,
+        "FileSystem$KmsKeyId": "<p>The ID of the AWS Key Management Service (AWS KMS) key used to encrypt the file system's data for an Amazon FSx for Windows File Server file system.</p>"
+      }
+    },
+    "ListTagsForResourceRequest": {
+      "base": "<p>The request object for <code>ListTagsForResource</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "ListTagsForResourceResponse": {
+      "base": "<p>The response object for <code>ListTagsForResource</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "LustreFileSystemConfiguration": {
+      "base": "<p>The configuration for the Amazon FSx for Lustre file system.</p>",
+      "refs": {
+        "FileSystem$LustreConfiguration": null
+      }
+    },
+    "MaxResults": {
+      "base": "<p>The maximum number of resources to return in the response. This value must be an integer greater than zero.</p>",
+      "refs": {
+        "DescribeBackupsRequest$MaxResults": "<p>(Optional) Maximum number of backups to return in the response (integer). This parameter value must be greater than 0. The number of items that Amazon FSx returns is the minimum of the <code>MaxResults</code> parameter specified in the request and the service's internal maximum number of items per page.</p>",
+        "DescribeFileSystemsRequest$MaxResults": "<p>(Optional) Maximum number of file systems to return in the response (integer). This parameter value must be greater than 0. The number of items that Amazon FSx returns is the minimum of the <code>MaxResults</code> parameter specified in the request and the service's internal maximum number of items per page.</p>",
+        "ListTagsForResourceRequest$MaxResults": "<p>(Optional) Maximum number of tags to return in the response (integer). This parameter value must be greater than 0. The number of items that Amazon FSx returns is the minimum of the <code>MaxResults</code> parameter specified in the request and the service's internal maximum number of items per page.</p>"
+      }
+    },
+    "Megabytes": {
+      "base": null,
+      "refs": {
+        "CreateFileSystemLustreConfiguration$ImportedFileChunkSize": "<p>(Optional) For files imported from a data repository, this value determines the stripe count and maximum amount of data per file (in MiB) stored on a single physical disk. The maximum number of disks that a single file can be striped across is limited by the total number of disks that make up the file system.</p> <p>The chunk size default is 1,024 MiB (1 GiB) and can go as high as 512,000 MiB (500 GiB). Amazon S3 objects have a maximum size of 5 TB.</p>",
+        "DataRepositoryConfiguration$ImportedFileChunkSize": "<p>For files imported from a data repository, this value determines the stripe count and maximum amount of data per file (in MiB) stored on a single physical disk. The maximum number of disks that a single file can be striped across is limited by the total number of disks that make up the file system.</p> <p>The default chunk size is 1,024 MiB (1 GiB) and can go as high as 512,000 MiB (500 GiB). Amazon S3 objects have a maximum size of 5 TB.</p>"
+      }
+    },
+    "MegabytesPerSecond": {
+      "base": "<p>MBps sustained throughput of an Amazon FSx file system.</p>",
+      "refs": {
+        "CreateFileSystemWindowsConfiguration$ThroughputCapacity": "<p>The throughput of an Amazon FSx file system, measured in megabytes per second.</p>",
+        "WindowsFileSystemConfiguration$ThroughputCapacity": "<p>The throughput of an Amazon FSx file system, measured in megabytes per second.</p>"
+      }
+    },
+    "MissingFileSystemConfiguration": {
+      "base": "<p>File system configuration is required for this operation.</p>",
+      "refs": {
+      }
+    },
+    "NetworkInterfaceId": {
+      "base": "<p>An elastic network interface ID. An elastic network interface is a logical networking component in a virtual private cloud (VPC) that represents a virtual network card. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html\">Elastic Network Interfaces</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>.</p>",
+      "refs": {
+        "NetworkInterfaceIds$member": null
+      }
+    },
+    "NetworkInterfaceIds": {
+      "base": "<p>A list of network interface IDs.</p>",
+      "refs": {
+        "FileSystem$NetworkInterfaceIds": "<p>The IDs of the elastic network interface from which a specific file system is accessible. The elastic network interface is automatically created in the same VPC that the Amazon FSx file system was created in. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html\">Elastic Network Interfaces</a> in the <i>Amazon EC2 User Guide.</i> </p> <p>For an Amazon FSx for Windows File Server file system, you can have one network interface Id. For an Amazon FSx for Lustre file system, you can have more than one.</p>"
+      }
+    },
+    "NextToken": {
+      "base": "<p>(Optional) Opaque pagination token returned from a previous operation (String). If present, this token indicates from what point you can continue processing the request, where the previous <code>NextToken</code> value left off.</p>",
+      "refs": {
+        "DescribeBackupsRequest$NextToken": "<p>(Optional) Opaque pagination token returned from a previous <code>DescribeBackups</code> operation (String). If a token present, the action continues the list from where the returning call left off.</p>",
+        "DescribeBackupsResponse$NextToken": "<p>This is present if there are more backups than returned in the response (String). You can use the <code>NextToken</code> value in the later request to fetch the backups. </p>",
+        "DescribeFileSystemsRequest$NextToken": "<p>(Optional) Opaque pagination token returned from a previous <code>DescribeFileSystems</code> operation (String). If a token present, the action continues the list from where the returning call left off.</p>",
+        "DescribeFileSystemsResponse$NextToken": "<p>Present if there are more file systems than returned in the response (String). You can use the <code>NextToken</code> value in the later request to fetch the descriptions. </p>",
+        "ListTagsForResourceRequest$NextToken": "<p>(Optional) Opaque pagination token returned from a previous <code>ListTagsForResource</code> operation (String). If a token present, the action continues the list from where the returning call left off.</p>",
+        "ListTagsForResourceResponse$NextToken": "<p>This is present if there are more tags than returned in the response (String). You can use the <code>NextToken</code> value in the later request to fetch the tags. </p>"
+      }
+    },
+    "NotServiceResourceError": {
+      "base": "<p>The resource specified for the tagging operation is not a resource type owned by Amazon FSx. Use the API of the relevant service to perform the operation. </p>",
+      "refs": {
+      }
+    },
+    "Parameter": {
+      "base": "<p>The name of a parameter for the request. Parameter names are returned in PascalCase.</p>",
+      "refs": {
+        "IncompatibleParameterError$Parameter": "<p>A parameter that is incompatible with the earlier request.</p>"
+      }
+    },
+    "ProgressPercent": {
+      "base": "<p>The current percent of progress of an asynchronous task.</p>",
+      "refs": {
+        "Backup$ProgressPercent": null
+      }
+    },
+    "ResourceARN": {
+      "base": "<p>The Amazon Resource Name (ARN) for a given resource. ARNs uniquely identify AWS resources. We require an ARN when you need to specify a resource unambiguously across all of AWS. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html\">Amazon Resource Names (ARNs) and AWS Service Namespaces</a> in the <i>AWS General Reference</i>.</p>",
+      "refs": {
+        "Backup$ResourceARN": "<p>The Amazon Resource Name (ARN) for the backup resource.</p>",
+        "FileSystem$ResourceARN": "<p>The resource ARN of the file system.</p>",
+        "ListTagsForResourceRequest$ResourceARN": "<p>The ARN of the Amazon FSx resource that will have its tags listed.</p>",
+        "NotServiceResourceError$ResourceARN": "<p>The Amazon Resource Name (ARN) of the non-Amazon FSx resource.</p>",
+        "ResourceDoesNotSupportTagging$ResourceARN": "<p>The Amazon Resource Name (ARN) of the resource that doesn't support tagging.</p>",
+        "ResourceNotFound$ResourceARN": "<p>The resource ARN of the resource that can't be found.</p>",
+        "TagResourceRequest$ResourceARN": "<p>The Amazon Resource Name (ARN) of the Amazon FSx resource that you want to tag.</p>",
+        "UntagResourceRequest$ResourceARN": "<p>The ARN of the Amazon FSx resource to untag.</p>"
+      }
+    },
+    "ResourceDoesNotSupportTagging": {
+      "base": "<p>The resource specified does not support tagging. </p>",
+      "refs": {
+      }
+    },
+    "ResourceNotFound": {
+      "base": "<p>The resource specified by the Amazon Resource Name (ARN) can't be found.</p>",
+      "refs": {
+      }
+    },
+    "SecurityGroupId": {
+      "base": "<p>The ID of your Amazon EC2 security group. This ID is used to control network access to the endpoint that Amazon FSx creates on your behalf in each subnet. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html\">Amazon EC2 Security Groups for Linux Instances</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+      "refs": {
+        "InvalidNetworkSettings$InvalidSecurityGroupId": null,
+        "SecurityGroupIds$member": null
+      }
+    },
+    "SecurityGroupIds": {
+      "base": "<p>A list of security group IDs.</p>",
+      "refs": {
+        "CreateFileSystemFromBackupRequest$SecurityGroupIds": "<p>A list of IDs for the security groups that apply to the specified network interfaces created for file system access. These security groups apply to all network interfaces. This value isn't returned in later describe requests.</p>",
+        "CreateFileSystemRequest$SecurityGroupIds": "<p>A list of IDs for the security groups that apply to the specified network interfaces created for file system access. These security groups will apply to all network interfaces. This list isn't returned in later describe requests.</p>"
+      }
+    },
+    "ServiceLimit": {
+      "base": "<p>The types of limits on your service utilization. Limits include file system count, total throughput capacity, total storage, and total user-initiated backups. These limits apply for a specific account in a specific AWS Region. You can increase some of them by contacting AWS Support. </p>",
+      "refs": {
+        "ServiceLimitExceeded$Limit": "<p>Enumeration of the service limit that was exceeded. </p>"
+      }
+    },
+    "ServiceLimitExceeded": {
+      "base": "<p>An error indicating that a particular service limit was exceeded. You can increase some service limits by contacting AWS Support. </p>",
+      "refs": {
+      }
+    },
+    "StorageCapacity": {
+      "base": "<p>The storage capacity for your Amazon FSx file system, in gibibytes.</p>",
+      "refs": {
+        "CreateFileSystemRequest$StorageCapacity": "<p>The storage capacity of the file system.</p> <p>For Windows file systems, the storage capacity has a minimum of 300 GiB, and a maximum of 65,536 GiB.</p> <p>For Lustre file systems, the storage capacity has a minimum of 3,600 GiB. Storage capacity is provisioned in increments of 3,600 GiB.</p>",
+        "FileSystem$StorageCapacity": "<p>The storage capacity of the file system in gigabytes.</p>"
+      }
+    },
+    "SubnetId": {
+      "base": "<p>The ID for a subnet. A <i>subnet</i> is a range of IP addresses in your virtual private cloud (VPC). For more information, see <a href=\"https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html\">VPC and Subnets</a> in the <i>Amazon VPC User Guide.</i> </p>",
+      "refs": {
+        "InvalidNetworkSettings$InvalidSubnetId": null,
+        "SubnetIds$member": null
+      }
+    },
+    "SubnetIds": {
+      "base": "<p>A list of subnet IDs. Currently, you can specify only one subnet ID in a call to the <code>CreateFileSystem</code> operation.</p>",
+      "refs": {
+        "CreateFileSystemFromBackupRequest$SubnetIds": "<p>A list of IDs for the subnets that the file system will be accessible from. Currently, you can specify only one subnet. The file server is also launched in that subnet's Availability Zone.</p>",
+        "CreateFileSystemRequest$SubnetIds": "<p>A list of IDs for the subnets that the file system will be accessible from. File systems support only one subnet. The file server is also launched in that subnet's Availability Zone.</p>",
+        "FileSystem$SubnetIds": "<p>The IDs of the subnets to contain the endpoint for the file system. One and only one is supported. The file system is launched in the Availability Zone associated with this subnet.</p>"
+      }
+    },
+    "Tag": {
+      "base": "<p>Specifies a key-value pair for a resource tag.</p>",
+      "refs": {
+        "Tags$member": null
+      }
+    },
+    "TagKey": {
+      "base": "<p>A string of 1 to 128 characters that specifies the key for a tag. Tag keys must be unique for the resource to which they are attached.</p>",
+      "refs": {
+        "Tag$Key": "<p>A value that specifies the <code>TagKey</code>, the name of the tag. Tag keys must be unique for the resource to which they are attached.</p>",
+        "TagKeys$member": null
+      }
+    },
+    "TagKeys": {
+      "base": "<p>A list of <code>TagKey</code> values, with a maximum of 50 elements.</p>",
+      "refs": {
+        "UntagResourceRequest$TagKeys": "<p>A list of keys of tags on the resource to untag. In case the tag key doesn't exist, the call will still succeed to be idempotent.</p>"
+      }
+    },
+    "TagResourceRequest": {
+      "base": "<p>The request object for the <code>TagResource</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "TagResourceResponse": {
+      "base": "<p>The response object for the <code>TagResource</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "TagValue": {
+      "base": "<p>A string of 0 to 256 characters that specifies the value for a tag. Tag values can be null and don't have to be unique in a tag set.</p>",
+      "refs": {
+        "Tag$Value": "<p>A value that specifies the <code>TagValue</code>, the value assigned to the corresponding tag key. Tag values can be null and don't have to be unique in a tag set. For example, you can have a key-value pair in a tag set of <code>finances : April</code> and also of <code>payroll : April</code>.</p>"
+      }
+    },
+    "Tags": {
+      "base": "<p>A list of <code>Tag</code> values, with a maximum of 50 elements.</p>",
+      "refs": {
+        "Backup$Tags": "<p>Tags associated with a particular file system.</p>",
+        "CreateBackupRequest$Tags": "<p>The tags to apply to the backup at backup creation. The key value of the <code>Name</code> tag appears in the console as the backup name.</p>",
+        "CreateFileSystemFromBackupRequest$Tags": "<p>The tags to be applied to the file system at file system creation. The key value of the <code>Name</code> tag appears in the console as the file system name.</p>",
+        "CreateFileSystemRequest$Tags": "<p>The tags to be applied to the file system at file system creation. The key value of the <code>Name</code> tag appears in the console as the file system name.</p>",
+        "DeleteFileSystemWindowsConfiguration$FinalBackupTags": "<p>A set of tags for your final backup.</p>",
+        "DeleteFileSystemWindowsResponse$FinalBackupTags": "<p>The set of tags applied to the final backup.</p>",
+        "FileSystem$Tags": "<p>The tags to associate with the file system. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tagging Your Amazon EC2 Resources</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+        "ListTagsForResourceResponse$Tags": "<p>A list of tags on the resource.</p>",
+        "TagResourceRequest$Tags": "<p>A list of tags for the resource. If a tag with a given key already exists, the value is replaced by the one specified in this parameter.</p>"
+      }
+    },
+    "UntagResourceRequest": {
+      "base": "<p>The request object for <code>UntagResource</code> action.</p>",
+      "refs": {
+      }
+    },
+    "UntagResourceResponse": {
+      "base": "<p>The response object for <code>UntagResource</code> action.</p>",
+      "refs": {
+      }
+    },
+    "UpdateFileSystemLustreConfiguration": {
+      "base": "<p>The configuration object for Amazon FSx for Lustre file systems used in the <code>UpdateFileSystem</code> operation.</p>",
+      "refs": {
+        "UpdateFileSystemRequest$LustreConfiguration": null
+      }
+    },
+    "UpdateFileSystemRequest": {
+      "base": "<p>The request object for the <code>UpdateFileSystem</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "UpdateFileSystemResponse": {
+      "base": "<p>The response object for the <code>UpdateFileSystem</code> operation.</p>",
+      "refs": {
+      }
+    },
+    "UpdateFileSystemWindowsConfiguration": {
+      "base": "<p>The configuration object for the Microsoft Windows file system used in the <code>UpdateFileSystem</code> operation.</p>",
+      "refs": {
+        "UpdateFileSystemRequest$WindowsConfiguration": "<p>The configuration for this Microsoft Windows file system. The only supported options are for backup and maintenance.</p>"
+      }
+    },
+    "VpcId": {
+      "base": "<p>The ID of your virtual private cloud (VPC). For more information, see <a href=\"https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html\">VPC and Subnets</a> in the <i>Amazon VPC User Guide</i>.</p>",
+      "refs": {
+        "FileSystem$VpcId": "<p>The ID of the primary VPC for the file system.</p>"
+      }
+    },
+    "WeeklyTime": {
+      "base": "<p>A recurring weekly time, in the format <code>D:HH:MM</code>. </p> <p> <code>D</code> is the day of the week, for which 1 represents Monday and 7 represents Sunday. For further details, see <a href=\"https://en.wikipedia.org/wiki/ISO_week_date\">the ISO-8601 spec as described on Wikipedia</a>.</p> <p> <code>HH</code> is the zero-padded hour of the day (0-23), and <code>MM</code> is the zero-padded minute of the hour. </p> <p>For example, <code>1:05:00</code> specifies maintenance at 5 AM Monday.</p>",
+      "refs": {
+        "CreateFileSystemLustreConfiguration$WeeklyMaintenanceStartTime": "<p>The preferred time to perform weekly maintenance, in the UTC time zone.</p>",
+        "CreateFileSystemWindowsConfiguration$WeeklyMaintenanceStartTime": "<p>The preferred start time to perform weekly maintenance, in the UTC time zone.</p>",
+        "LustreFileSystemConfiguration$WeeklyMaintenanceStartTime": "<p>The UTC time that you want to begin your weekly maintenance window.</p>",
+        "UpdateFileSystemLustreConfiguration$WeeklyMaintenanceStartTime": "<p>The preferred time to perform weekly maintenance, in the UTC time zone.</p>",
+        "UpdateFileSystemWindowsConfiguration$WeeklyMaintenanceStartTime": "<p>The preferred time to perform weekly maintenance, in the UTC time zone.</p>",
+        "WindowsFileSystemConfiguration$WeeklyMaintenanceStartTime": "<p>The preferred time to perform weekly maintenance, in the UTC time zone.</p>"
+      }
+    },
+    "WindowsFileSystemConfiguration": {
+      "base": "<p>The configuration for this Microsoft Windows file system.</p>",
+      "refs": {
+        "FileSystem$WindowsConfiguration": "<p>The configuration for this Microsoft Windows file system.</p>"
+      }
+    }
+  }
+}

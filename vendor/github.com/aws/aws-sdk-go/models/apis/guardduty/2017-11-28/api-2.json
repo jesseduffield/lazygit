@@ -1,0 +1,3039 @@
+{
+  "metadata" : {
+    "apiVersion" : "2017-11-28",
+    "endpointPrefix" : "guardduty",
+    "signingName" : "guardduty",
+    "serviceFullName" : "Amazon GuardDuty",
+    "serviceId" : "GuardDuty",
+    "protocol" : "rest-json",
+    "jsonVersion" : "1.1",
+    "uid" : "guardduty-2017-11-28",
+    "signatureVersion" : "v4"
+  },
+  "operations" : {
+    "AcceptInvitation" : {
+      "name" : "AcceptInvitation",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/master",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "AcceptInvitationRequest"
+      },
+      "output" : {
+        "shape" : "AcceptInvitationResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "ArchiveFindings" : {
+      "name" : "ArchiveFindings",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/findings/archive",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ArchiveFindingsRequest"
+      },
+      "output" : {
+        "shape" : "ArchiveFindingsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "CreateDetector" : {
+      "name" : "CreateDetector",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "CreateDetectorRequest"
+      },
+      "output" : {
+        "shape" : "CreateDetectorResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "CreateFilter" : {
+      "name" : "CreateFilter",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/filter",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "CreateFilterRequest"
+      },
+      "output" : {
+        "shape" : "CreateFilterResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "CreateIPSet" : {
+      "name" : "CreateIPSet",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/ipset",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "CreateIPSetRequest"
+      },
+      "output" : {
+        "shape" : "CreateIPSetResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "CreateMembers" : {
+      "name" : "CreateMembers",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/member",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "CreateMembersRequest"
+      },
+      "output" : {
+        "shape" : "CreateMembersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "CreateSampleFindings" : {
+      "name" : "CreateSampleFindings",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/findings/create",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "CreateSampleFindingsRequest"
+      },
+      "output" : {
+        "shape" : "CreateSampleFindingsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "CreateThreatIntelSet" : {
+      "name" : "CreateThreatIntelSet",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/threatintelset",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "CreateThreatIntelSetRequest"
+      },
+      "output" : {
+        "shape" : "CreateThreatIntelSetResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DeclineInvitations" : {
+      "name" : "DeclineInvitations",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/invitation/decline",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeclineInvitationsRequest"
+      },
+      "output" : {
+        "shape" : "DeclineInvitationsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DeleteDetector" : {
+      "name" : "DeleteDetector",
+      "http" : {
+        "method" : "DELETE",
+        "requestUri" : "/detector/{detectorId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeleteDetectorRequest"
+      },
+      "output" : {
+        "shape" : "DeleteDetectorResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DeleteFilter" : {
+      "name" : "DeleteFilter",
+      "http" : {
+        "method" : "DELETE",
+        "requestUri" : "/detector/{detectorId}/filter/{filterName}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeleteFilterRequest"
+      },
+      "output" : {
+        "shape" : "DeleteFilterResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DeleteIPSet" : {
+      "name" : "DeleteIPSet",
+      "http" : {
+        "method" : "DELETE",
+        "requestUri" : "/detector/{detectorId}/ipset/{ipSetId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeleteIPSetRequest"
+      },
+      "output" : {
+        "shape" : "DeleteIPSetResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DeleteInvitations" : {
+      "name" : "DeleteInvitations",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/invitation/delete",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeleteInvitationsRequest"
+      },
+      "output" : {
+        "shape" : "DeleteInvitationsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DeleteMembers" : {
+      "name" : "DeleteMembers",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/member/delete",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeleteMembersRequest"
+      },
+      "output" : {
+        "shape" : "DeleteMembersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DeleteThreatIntelSet" : {
+      "name" : "DeleteThreatIntelSet",
+      "http" : {
+        "method" : "DELETE",
+        "requestUri" : "/detector/{detectorId}/threatintelset/{threatIntelSetId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeleteThreatIntelSetRequest"
+      },
+      "output" : {
+        "shape" : "DeleteThreatIntelSetResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DisassociateFromMasterAccount" : {
+      "name" : "DisassociateFromMasterAccount",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/master/disassociate",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DisassociateFromMasterAccountRequest"
+      },
+      "output" : {
+        "shape" : "DisassociateFromMasterAccountResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "DisassociateMembers" : {
+      "name" : "DisassociateMembers",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/member/disassociate",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DisassociateMembersRequest"
+      },
+      "output" : {
+        "shape" : "DisassociateMembersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetDetector" : {
+      "name" : "GetDetector",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetDetectorRequest"
+      },
+      "output" : {
+        "shape" : "GetDetectorResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetFilter" : {
+      "name" : "GetFilter",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/filter/{filterName}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetFilterRequest"
+      },
+      "output" : {
+        "shape" : "GetFilterResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetFindings" : {
+      "name" : "GetFindings",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/findings/get",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetFindingsRequest"
+      },
+      "output" : {
+        "shape" : "GetFindingsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetFindingsStatistics" : {
+      "name" : "GetFindingsStatistics",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/findings/statistics",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetFindingsStatisticsRequest"
+      },
+      "output" : {
+        "shape" : "GetFindingsStatisticsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetIPSet" : {
+      "name" : "GetIPSet",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/ipset/{ipSetId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetIPSetRequest"
+      },
+      "output" : {
+        "shape" : "GetIPSetResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetInvitationsCount" : {
+      "name" : "GetInvitationsCount",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/invitation/count",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetInvitationsCountRequest"
+      },
+      "output" : {
+        "shape" : "GetInvitationsCountResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetMasterAccount" : {
+      "name" : "GetMasterAccount",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/master",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetMasterAccountRequest"
+      },
+      "output" : {
+        "shape" : "GetMasterAccountResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetMembers" : {
+      "name" : "GetMembers",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/member/get",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetMembersRequest"
+      },
+      "output" : {
+        "shape" : "GetMembersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "GetThreatIntelSet" : {
+      "name" : "GetThreatIntelSet",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/threatintelset/{threatIntelSetId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetThreatIntelSetRequest"
+      },
+      "output" : {
+        "shape" : "GetThreatIntelSetResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "InviteMembers" : {
+      "name" : "InviteMembers",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/member/invite",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "InviteMembersRequest"
+      },
+      "output" : {
+        "shape" : "InviteMembersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "ListDetectors" : {
+      "name" : "ListDetectors",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListDetectorsRequest"
+      },
+      "output" : {
+        "shape" : "ListDetectorsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "ListFilters" : {
+      "name" : "ListFilters",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/filter",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListFiltersRequest"
+      },
+      "output" : {
+        "shape" : "ListFiltersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "ListFindings" : {
+      "name" : "ListFindings",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/findings",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListFindingsRequest"
+      },
+      "output" : {
+        "shape" : "ListFindingsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "ListIPSets" : {
+      "name" : "ListIPSets",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/ipset",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListIPSetsRequest"
+      },
+      "output" : {
+        "shape" : "ListIPSetsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "ListInvitations" : {
+      "name" : "ListInvitations",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/invitation",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListInvitationsRequest"
+      },
+      "output" : {
+        "shape" : "ListInvitationsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "ListMembers" : {
+      "name" : "ListMembers",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/member",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListMembersRequest"
+      },
+      "output" : {
+        "shape" : "ListMembersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "ListThreatIntelSets" : {
+      "name" : "ListThreatIntelSets",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/threatintelset",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListThreatIntelSetsRequest"
+      },
+      "output" : {
+        "shape" : "ListThreatIntelSetsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "StartMonitoringMembers" : {
+      "name" : "StartMonitoringMembers",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/member/start",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "StartMonitoringMembersRequest"
+      },
+      "output" : {
+        "shape" : "StartMonitoringMembersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "StopMonitoringMembers" : {
+      "name" : "StopMonitoringMembers",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/member/stop",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "StopMonitoringMembersRequest"
+      },
+      "output" : {
+        "shape" : "StopMonitoringMembersResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "UnarchiveFindings" : {
+      "name" : "UnarchiveFindings",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/findings/unarchive",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UnarchiveFindingsRequest"
+      },
+      "output" : {
+        "shape" : "UnarchiveFindingsResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "UpdateDetector" : {
+      "name" : "UpdateDetector",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UpdateDetectorRequest"
+      },
+      "output" : {
+        "shape" : "UpdateDetectorResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "UpdateFilter" : {
+      "name" : "UpdateFilter",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/filter/{filterName}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UpdateFilterRequest"
+      },
+      "output" : {
+        "shape" : "UpdateFilterResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "UpdateFindingsFeedback" : {
+      "name" : "UpdateFindingsFeedback",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/findings/feedback",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UpdateFindingsFeedbackRequest"
+      },
+      "output" : {
+        "shape" : "UpdateFindingsFeedbackResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "UpdateIPSet" : {
+      "name" : "UpdateIPSet",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/ipset/{ipSetId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UpdateIPSetRequest"
+      },
+      "output" : {
+        "shape" : "UpdateIPSetResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    },
+    "UpdateThreatIntelSet" : {
+      "name" : "UpdateThreatIntelSet",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/threatintelset/{threatIntelSetId}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UpdateThreatIntelSetRequest"
+      },
+      "output" : {
+        "shape" : "UpdateThreatIntelSetResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException"
+      }, {
+        "shape" : "InternalServerErrorException"
+      } ]
+    }
+  },
+  "shapes" : {
+    "AcceptInvitationRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "InvitationId" : {
+          "shape" : "InvitationId",
+          "locationName" : "invitationId"
+        },
+        "MasterId" : {
+          "shape" : "MasterId",
+          "locationName" : "masterId"
+        }
+      },
+      "required" : [ "DetectorId", "MasterId", "InvitationId" ]
+    },
+    "AcceptInvitationResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "AccessKeyDetails" : {
+      "type" : "structure",
+      "members" : {
+        "AccessKeyId" : {
+          "shape" : "__string",
+          "locationName" : "accessKeyId"
+        },
+        "PrincipalId" : {
+          "shape" : "__string",
+          "locationName" : "principalId"
+        },
+        "UserName" : {
+          "shape" : "__string",
+          "locationName" : "userName"
+        },
+        "UserType" : {
+          "shape" : "__string",
+          "locationName" : "userType"
+        }
+      }
+    },
+    "AccountDetail" : {
+      "type" : "structure",
+      "members" : {
+        "AccountId" : {
+          "shape" : "AccountId",
+          "locationName" : "accountId"
+        },
+        "Email" : {
+          "shape" : "Email",
+          "locationName" : "email"
+        }
+      },
+      "required" : [ "Email", "AccountId" ]
+    },
+    "AccountDetails" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "AccountDetail"
+      }
+    },
+    "AccountId" : {
+      "type" : "string"
+    },
+    "AccountIds" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "__string"
+      }
+    },
+    "Action" : {
+      "type" : "structure",
+      "members" : {
+        "ActionType" : {
+          "shape" : "__string",
+          "locationName" : "actionType"
+        },
+        "AwsApiCallAction" : {
+          "shape" : "AwsApiCallAction",
+          "locationName" : "awsApiCallAction"
+        },
+        "DnsRequestAction" : {
+          "shape" : "DnsRequestAction",
+          "locationName" : "dnsRequestAction"
+        },
+        "NetworkConnectionAction" : {
+          "shape" : "NetworkConnectionAction",
+          "locationName" : "networkConnectionAction"
+        },
+        "PortProbeAction" : {
+          "shape" : "PortProbeAction",
+          "locationName" : "portProbeAction"
+        }
+      }
+    },
+    "Activate" : {
+      "type" : "boolean"
+    },
+    "ArchiveFindingsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FindingIds" : {
+          "shape" : "FindingIds",
+          "locationName" : "findingIds"
+        }
+      },
+      "required" : [ "DetectorId", "FindingIds" ]
+    },
+    "ArchiveFindingsResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "AwsApiCallAction" : {
+      "type" : "structure",
+      "members" : {
+        "Api" : {
+          "shape" : "__string",
+          "locationName" : "api"
+        },
+        "CallerType" : {
+          "shape" : "__string",
+          "locationName" : "callerType"
+        },
+        "DomainDetails" : {
+          "shape" : "DomainDetails",
+          "locationName" : "domainDetails"
+        },
+        "RemoteIpDetails" : {
+          "shape" : "RemoteIpDetails",
+          "locationName" : "remoteIpDetails"
+        },
+        "ServiceName" : {
+          "shape" : "__string",
+          "locationName" : "serviceName"
+        }
+      }
+    },
+    "BadRequestException" : {
+      "type" : "structure",
+      "members" : {
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message"
+        },
+        "Type" : {
+          "shape" : "__string",
+          "locationName" : "__type"
+        }
+      },
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 400
+      }
+    },
+    "City" : {
+      "type" : "structure",
+      "members" : {
+        "CityName" : {
+          "shape" : "__string",
+          "locationName" : "cityName"
+        }
+      }
+    },
+    "Comments" : {
+      "type" : "string"
+    },
+    "Condition" : {
+      "type" : "structure",
+      "members" : {
+        "Eq" : {
+          "shape" : "Eq",
+          "locationName" : "eq"
+        },
+        "Gt" : {
+          "shape" : "__integer",
+          "locationName" : "gt"
+        },
+        "Gte" : {
+          "shape" : "__integer",
+          "locationName" : "gte"
+        },
+        "Lt" : {
+          "shape" : "__integer",
+          "locationName" : "lt"
+        },
+        "Lte" : {
+          "shape" : "__integer",
+          "locationName" : "lte"
+        },
+        "Neq" : {
+          "shape" : "Neq",
+          "locationName" : "neq"
+        }
+      }
+    },
+    "CountBySeverityFindingStatistic" : {
+      "type" : "integer"
+    },
+    "Country" : {
+      "type" : "structure",
+      "members" : {
+        "CountryCode" : {
+          "shape" : "__string",
+          "locationName" : "countryCode"
+        },
+        "CountryName" : {
+          "shape" : "__string",
+          "locationName" : "countryName"
+        }
+      }
+    },
+    "CreateDetectorRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ClientToken" : {
+          "shape" : "__stringMin0Max64",
+          "locationName" : "clientToken",
+          "idempotencyToken" : true
+        },
+        "Enable" : {
+          "shape" : "Enable",
+          "locationName" : "enable"
+        },
+        "FindingPublishingFrequency" : {
+          "shape" : "FindingPublishingFrequency",
+          "locationName" : "findingPublishingFrequency"
+        }
+      },
+      "required" : [ "Enable" ]
+    },
+    "CreateDetectorResponse" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "DetectorId",
+          "locationName" : "detectorId"
+        }
+      }
+    },
+    "CreateFilterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Action" : {
+          "shape" : "FilterAction",
+          "locationName" : "action"
+        },
+        "ClientToken" : {
+          "shape" : "__stringMin0Max64",
+          "locationName" : "clientToken",
+          "idempotencyToken" : true
+        },
+        "Description" : {
+          "shape" : "FilterDescription",
+          "locationName" : "description"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FindingCriteria" : {
+          "shape" : "FindingCriteria",
+          "locationName" : "findingCriteria"
+        },
+        "Name" : {
+          "shape" : "FilterName",
+          "locationName" : "name"
+        },
+        "Rank" : {
+          "shape" : "FilterRank",
+          "locationName" : "rank"
+        }
+      },
+      "required" : [ "DetectorId", "FindingCriteria", "Name" ]
+    },
+    "CreateFilterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Name" : {
+          "shape" : "FilterName",
+          "locationName" : "name"
+        }
+      }
+    },
+    "CreateIPSetRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Activate" : {
+          "shape" : "Activate",
+          "locationName" : "activate"
+        },
+        "ClientToken" : {
+          "shape" : "__stringMin0Max64",
+          "locationName" : "clientToken",
+          "idempotencyToken" : true
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "Format" : {
+          "shape" : "IpSetFormat",
+          "locationName" : "format"
+        },
+        "Location" : {
+          "shape" : "Location",
+          "locationName" : "location"
+        },
+        "Name" : {
+          "shape" : "Name",
+          "locationName" : "name"
+        }
+      },
+      "required" : [ "DetectorId", "Format", "Activate", "Location", "Name" ]
+    },
+    "CreateIPSetResponse" : {
+      "type" : "structure",
+      "members" : {
+        "IpSetId" : {
+          "shape" : "IpSetId",
+          "locationName" : "ipSetId"
+        }
+      }
+    },
+    "CreateMembersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountDetails" : {
+          "shape" : "AccountDetails",
+          "locationName" : "accountDetails"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId", "AccountDetails" ]
+    },
+    "CreateMembersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "CreateSampleFindingsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FindingTypes" : {
+          "shape" : "FindingTypes",
+          "locationName" : "findingTypes"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "CreateSampleFindingsResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "CreateThreatIntelSetRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Activate" : {
+          "shape" : "Activate",
+          "locationName" : "activate"
+        },
+        "ClientToken" : {
+          "shape" : "__stringMin0Max64",
+          "locationName" : "clientToken",
+          "idempotencyToken" : true
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "Format" : {
+          "shape" : "ThreatIntelSetFormat",
+          "locationName" : "format"
+        },
+        "Location" : {
+          "shape" : "Location",
+          "locationName" : "location"
+        },
+        "Name" : {
+          "shape" : "Name",
+          "locationName" : "name"
+        }
+      },
+      "required" : [ "DetectorId", "Format", "Activate", "Location", "Name" ]
+    },
+    "CreateThreatIntelSetResponse" : {
+      "type" : "structure",
+      "members" : {
+        "ThreatIntelSetId" : {
+          "shape" : "ThreatIntelSetId",
+          "locationName" : "threatIntelSetId"
+        }
+      }
+    },
+    "CreatedAt" : {
+      "type" : "string"
+    },
+    "DeclineInvitationsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountIds" : {
+          "shape" : "AccountIds",
+          "locationName" : "accountIds"
+        }
+      },
+      "required" : [ "AccountIds" ]
+    },
+    "DeclineInvitationsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "DeleteDetectorRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "DeleteDetectorResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "DeleteFilterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FilterName" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "filterName"
+        }
+      },
+      "required" : [ "DetectorId", "FilterName" ]
+    },
+    "DeleteFilterResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "DeleteIPSetRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "IpSetId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "ipSetId"
+        }
+      },
+      "required" : [ "DetectorId", "IpSetId" ]
+    },
+    "DeleteIPSetResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "DeleteInvitationsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountIds" : {
+          "shape" : "AccountIds",
+          "locationName" : "accountIds"
+        }
+      },
+      "required" : [ "AccountIds" ]
+    },
+    "DeleteInvitationsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "DeleteMembersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountIds" : {
+          "shape" : "AccountIds",
+          "locationName" : "accountIds"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId", "AccountIds" ]
+    },
+    "DeleteMembersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "DeleteThreatIntelSetRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "ThreatIntelSetId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "threatIntelSetId"
+        }
+      },
+      "required" : [ "ThreatIntelSetId", "DetectorId" ]
+    },
+    "DeleteThreatIntelSetResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "DetectorId" : {
+      "type" : "string"
+    },
+    "DetectorIds" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "DetectorId"
+      }
+    },
+    "DetectorStatus" : {
+      "type" : "string",
+      "enum" : [ "ENABLED", "DISABLED" ]
+    },
+    "DisassociateFromMasterAccountRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "DisassociateFromMasterAccountResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "DisassociateMembersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountIds" : {
+          "shape" : "AccountIds",
+          "locationName" : "accountIds"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId", "AccountIds" ]
+    },
+    "DisassociateMembersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "DnsRequestAction" : {
+      "type" : "structure",
+      "members" : {
+        "Domain" : {
+          "shape" : "Domain",
+          "locationName" : "domain"
+        }
+      }
+    },
+    "Domain" : {
+      "type" : "string"
+    },
+    "DomainDetails" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "Email" : {
+      "type" : "string"
+    },
+    "Enable" : {
+      "type" : "boolean"
+    },
+    "Eq" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "__string"
+      }
+    },
+    "ErrorResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message"
+        },
+        "Type" : {
+          "shape" : "__string",
+          "locationName" : "__type"
+        }
+      }
+    },
+    "Feedback" : {
+      "type" : "string",
+      "enum" : [ "USEFUL", "NOT_USEFUL" ]
+    },
+    "FilterAction" : {
+      "type" : "string",
+      "enum" : [ "NOOP", "ARCHIVE" ]
+    },
+    "FilterDescription" : {
+      "type" : "string"
+    },
+    "FilterName" : {
+      "type" : "string"
+    },
+    "FilterNames" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "FilterName"
+      }
+    },
+    "FilterRank" : {
+      "type" : "integer"
+    },
+    "Finding" : {
+      "type" : "structure",
+      "members" : {
+        "AccountId" : {
+          "shape" : "__string",
+          "locationName" : "accountId"
+        },
+        "Arn" : {
+          "shape" : "__string",
+          "locationName" : "arn"
+        },
+        "Confidence" : {
+          "shape" : "__double",
+          "locationName" : "confidence"
+        },
+        "CreatedAt" : {
+          "shape" : "CreatedAt",
+          "locationName" : "createdAt"
+        },
+        "Description" : {
+          "shape" : "__string",
+          "locationName" : "description"
+        },
+        "Id" : {
+          "shape" : "__string",
+          "locationName" : "id"
+        },
+        "Partition" : {
+          "shape" : "__string",
+          "locationName" : "partition"
+        },
+        "Region" : {
+          "shape" : "__string",
+          "locationName" : "region"
+        },
+        "Resource" : {
+          "shape" : "Resource",
+          "locationName" : "resource"
+        },
+        "SchemaVersion" : {
+          "shape" : "__string",
+          "locationName" : "schemaVersion"
+        },
+        "Service" : {
+          "shape" : "Service",
+          "locationName" : "service"
+        },
+        "Severity" : {
+          "shape" : "__double",
+          "locationName" : "severity"
+        },
+        "Title" : {
+          "shape" : "__string",
+          "locationName" : "title"
+        },
+        "Type" : {
+          "shape" : "__string",
+          "locationName" : "type"
+        },
+        "UpdatedAt" : {
+          "shape" : "UpdatedAt",
+          "locationName" : "updatedAt"
+        }
+      },
+      "required" : [ "AccountId", "SchemaVersion", "CreatedAt", "Resource", "Severity", "UpdatedAt", "Type", "Region", "Id", "Arn" ]
+    },
+    "FindingCriteria" : {
+      "type" : "structure",
+      "members" : {
+        "Criterion" : {
+          "shape" : "__mapOfCondition",
+          "locationName" : "criterion"
+        }
+      }
+    },
+    "FindingId" : {
+      "type" : "string"
+    },
+    "FindingIds" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "FindingId"
+      }
+    },
+    "FindingPublishingFrequency" : {
+      "type" : "string",
+      "enum" : [ "FIFTEEN_MINUTES", "ONE_HOUR", "SIX_HOURS" ]
+    },
+    "FindingStatisticType" : {
+      "type" : "string",
+      "enum" : [ "COUNT_BY_SEVERITY" ]
+    },
+    "FindingStatisticTypes" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "FindingStatisticType"
+      }
+    },
+    "FindingStatistics" : {
+      "type" : "structure",
+      "members" : {
+        "CountBySeverity" : {
+          "shape" : "__mapOfCountBySeverityFindingStatistic",
+          "locationName" : "countBySeverity"
+        }
+      }
+    },
+    "FindingType" : {
+      "type" : "string"
+    },
+    "FindingTypes" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "FindingType"
+      }
+    },
+    "Findings" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "Finding"
+      }
+    },
+    "GeoLocation" : {
+      "type" : "structure",
+      "members" : {
+        "Lat" : {
+          "shape" : "__double",
+          "locationName" : "lat"
+        },
+        "Lon" : {
+          "shape" : "__double",
+          "locationName" : "lon"
+        }
+      }
+    },
+    "GetDetectorRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "GetDetectorResponse" : {
+      "type" : "structure",
+      "members" : {
+        "CreatedAt" : {
+          "shape" : "CreatedAt",
+          "locationName" : "createdAt"
+        },
+        "FindingPublishingFrequency" : {
+          "shape" : "FindingPublishingFrequency",
+          "locationName" : "findingPublishingFrequency"
+        },
+        "ServiceRole" : {
+          "shape" : "ServiceRole",
+          "locationName" : "serviceRole"
+        },
+        "Status" : {
+          "shape" : "DetectorStatus",
+          "locationName" : "status"
+        },
+        "UpdatedAt" : {
+          "shape" : "UpdatedAt",
+          "locationName" : "updatedAt"
+        }
+      }
+    },
+    "GetFilterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FilterName" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "filterName"
+        }
+      },
+      "required" : [ "DetectorId", "FilterName" ]
+    },
+    "GetFilterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Action" : {
+          "shape" : "FilterAction",
+          "locationName" : "action"
+        },
+        "Description" : {
+          "shape" : "FilterDescription",
+          "locationName" : "description"
+        },
+        "FindingCriteria" : {
+          "shape" : "FindingCriteria",
+          "locationName" : "findingCriteria"
+        },
+        "Name" : {
+          "shape" : "FilterName",
+          "locationName" : "name"
+        },
+        "Rank" : {
+          "shape" : "FilterRank",
+          "locationName" : "rank"
+        }
+      }
+    },
+    "GetFindingsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FindingIds" : {
+          "shape" : "FindingIds",
+          "locationName" : "findingIds"
+        },
+        "SortCriteria" : {
+          "shape" : "SortCriteria",
+          "locationName" : "sortCriteria"
+        }
+      },
+      "required" : [ "DetectorId", "FindingIds" ]
+    },
+    "GetFindingsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Findings" : {
+          "shape" : "Findings",
+          "locationName" : "findings"
+        }
+      }
+    },
+    "GetFindingsStatisticsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FindingCriteria" : {
+          "shape" : "FindingCriteria",
+          "locationName" : "findingCriteria"
+        },
+        "FindingStatisticTypes" : {
+          "shape" : "FindingStatisticTypes",
+          "locationName" : "findingStatisticTypes"
+        }
+      },
+      "required" : [ "DetectorId", "FindingStatisticTypes" ]
+    },
+    "GetFindingsStatisticsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "FindingStatistics" : {
+          "shape" : "FindingStatistics",
+          "locationName" : "findingStatistics"
+        }
+      }
+    },
+    "GetIPSetRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "IpSetId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "ipSetId"
+        }
+      },
+      "required" : [ "DetectorId", "IpSetId" ]
+    },
+    "GetIPSetResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Format" : {
+          "shape" : "IpSetFormat",
+          "locationName" : "format"
+        },
+        "Location" : {
+          "shape" : "Location",
+          "locationName" : "location"
+        },
+        "Name" : {
+          "shape" : "Name",
+          "locationName" : "name"
+        },
+        "Status" : {
+          "shape" : "IpSetStatus",
+          "locationName" : "status"
+        }
+      }
+    },
+    "GetInvitationsCountRequest" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "GetInvitationsCountResponse" : {
+      "type" : "structure",
+      "members" : {
+        "InvitationsCount" : {
+          "shape" : "__integer",
+          "locationName" : "invitationsCount"
+        }
+      }
+    },
+    "GetMasterAccountRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "GetMasterAccountResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Master" : {
+          "shape" : "Master",
+          "locationName" : "master"
+        }
+      }
+    },
+    "GetMembersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountIds" : {
+          "shape" : "AccountIds",
+          "locationName" : "accountIds"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId", "AccountIds" ]
+    },
+    "GetMembersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Members" : {
+          "shape" : "Members",
+          "locationName" : "members"
+        },
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "GetThreatIntelSetRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "ThreatIntelSetId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "threatIntelSetId"
+        }
+      },
+      "required" : [ "ThreatIntelSetId", "DetectorId" ]
+    },
+    "GetThreatIntelSetResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Format" : {
+          "shape" : "ThreatIntelSetFormat",
+          "locationName" : "format"
+        },
+        "Location" : {
+          "shape" : "Location",
+          "locationName" : "location"
+        },
+        "Name" : {
+          "shape" : "Name",
+          "locationName" : "name"
+        },
+        "Status" : {
+          "shape" : "ThreatIntelSetStatus",
+          "locationName" : "status"
+        }
+      }
+    },
+    "IamInstanceProfile" : {
+      "type" : "structure",
+      "members" : {
+        "Arn" : {
+          "shape" : "__string",
+          "locationName" : "arn"
+        },
+        "Id" : {
+          "shape" : "__string",
+          "locationName" : "id"
+        }
+      }
+    },
+    "InstanceDetails" : {
+      "type" : "structure",
+      "members" : {
+        "AvailabilityZone" : {
+          "shape" : "__string",
+          "locationName" : "availabilityZone"
+        },
+        "IamInstanceProfile" : {
+          "shape" : "IamInstanceProfile",
+          "locationName" : "iamInstanceProfile"
+        },
+        "ImageDescription" : {
+          "shape" : "__string",
+          "locationName" : "imageDescription"
+        },
+        "ImageId" : {
+          "shape" : "__string",
+          "locationName" : "imageId"
+        },
+        "InstanceId" : {
+          "shape" : "__string",
+          "locationName" : "instanceId"
+        },
+        "InstanceState" : {
+          "shape" : "__string",
+          "locationName" : "instanceState"
+        },
+        "InstanceType" : {
+          "shape" : "__string",
+          "locationName" : "instanceType"
+        },
+        "LaunchTime" : {
+          "shape" : "__string",
+          "locationName" : "launchTime"
+        },
+        "NetworkInterfaces" : {
+          "shape" : "NetworkInterfaces",
+          "locationName" : "networkInterfaces"
+        },
+        "Platform" : {
+          "shape" : "__string",
+          "locationName" : "platform"
+        },
+        "ProductCodes" : {
+          "shape" : "ProductCodes",
+          "locationName" : "productCodes"
+        },
+        "Tags" : {
+          "shape" : "Tags",
+          "locationName" : "tags"
+        }
+      }
+    },
+    "InternalServerErrorException" : {
+      "type" : "structure",
+      "members" : {
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message"
+        },
+        "Type" : {
+          "shape" : "__string",
+          "locationName" : "__type"
+        }
+      },
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 500
+      }
+    },
+    "Invitation" : {
+      "type" : "structure",
+      "members" : {
+        "AccountId" : {
+          "shape" : "__string",
+          "locationName" : "accountId"
+        },
+        "InvitationId" : {
+          "shape" : "InvitationId",
+          "locationName" : "invitationId"
+        },
+        "InvitedAt" : {
+          "shape" : "InvitedAt",
+          "locationName" : "invitedAt"
+        },
+        "RelationshipStatus" : {
+          "shape" : "__string",
+          "locationName" : "relationshipStatus"
+        }
+      }
+    },
+    "InvitationId" : {
+      "type" : "string"
+    },
+    "Invitations" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "Invitation"
+      }
+    },
+    "InviteMembersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountIds" : {
+          "shape" : "AccountIds",
+          "locationName" : "accountIds"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "DisableEmailNotification" : {
+          "shape" : "__boolean",
+          "locationName" : "disableEmailNotification"
+        },
+        "Message" : {
+          "shape" : "Message",
+          "locationName" : "message"
+        }
+      },
+      "required" : [ "DetectorId", "AccountIds" ]
+    },
+    "InviteMembersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "InvitedAt" : {
+      "type" : "string"
+    },
+    "IpSetFormat" : {
+      "type" : "string",
+      "enum" : [ "TXT", "STIX", "OTX_CSV", "ALIEN_VAULT", "PROOF_POINT", "FIRE_EYE" ]
+    },
+    "IpSetId" : {
+      "type" : "string"
+    },
+    "IpSetIds" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "IpSetId"
+      }
+    },
+    "IpSetStatus" : {
+      "type" : "string",
+      "enum" : [ "INACTIVE", "ACTIVATING", "ACTIVE", "DEACTIVATING", "ERROR", "DELETE_PENDING", "DELETED" ]
+    },
+    "Ipv6Address" : {
+      "type" : "string"
+    },
+    "Ipv6Addresses" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "Ipv6Address"
+      }
+    },
+    "ListDetectorsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListDetectorsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorIds" : {
+          "shape" : "DetectorIds",
+          "locationName" : "detectorIds"
+        },
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListFiltersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "ListFiltersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "FilterNames" : {
+          "shape" : "FilterNames",
+          "locationName" : "filterNames"
+        },
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListFindingsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FindingCriteria" : {
+          "shape" : "FindingCriteria",
+          "locationName" : "findingCriteria"
+        },
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "locationName" : "maxResults"
+        },
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        },
+        "SortCriteria" : {
+          "shape" : "SortCriteria",
+          "locationName" : "sortCriteria"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "ListFindingsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "FindingIds" : {
+          "shape" : "FindingIds",
+          "locationName" : "findingIds"
+        },
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListIPSetsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "ListIPSetsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "IpSetIds" : {
+          "shape" : "IpSetIds",
+          "locationName" : "ipSetIds"
+        },
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListInvitationsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListInvitationsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Invitations" : {
+          "shape" : "Invitations",
+          "locationName" : "invitations"
+        },
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListMembersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken"
+        },
+        "OnlyAssociated" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "onlyAssociated"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "ListMembersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Members" : {
+          "shape" : "Members",
+          "locationName" : "members"
+        },
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListThreatIntelSetsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "ListThreatIntelSetsResponse" : {
+      "type" : "structure",
+      "members" : {
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        },
+        "ThreatIntelSetIds" : {
+          "shape" : "ThreatIntelSetIds",
+          "locationName" : "threatIntelSetIds"
+        }
+      }
+    },
+    "LocalPortDetails" : {
+      "type" : "structure",
+      "members" : {
+        "Port" : {
+          "shape" : "__integer",
+          "locationName" : "port"
+        },
+        "PortName" : {
+          "shape" : "__string",
+          "locationName" : "portName"
+        }
+      }
+    },
+    "Location" : {
+      "type" : "string"
+    },
+    "Master" : {
+      "type" : "structure",
+      "members" : {
+        "AccountId" : {
+          "shape" : "__string",
+          "locationName" : "accountId"
+        },
+        "InvitationId" : {
+          "shape" : "InvitationId",
+          "locationName" : "invitationId"
+        },
+        "InvitedAt" : {
+          "shape" : "InvitedAt",
+          "locationName" : "invitedAt"
+        },
+        "RelationshipStatus" : {
+          "shape" : "__string",
+          "locationName" : "relationshipStatus"
+        }
+      }
+    },
+    "MasterId" : {
+      "type" : "string"
+    },
+    "MaxResults" : {
+      "type" : "integer",
+      "min" : 1,
+      "max" : 50
+    },
+    "Member" : {
+      "type" : "structure",
+      "members" : {
+        "AccountId" : {
+          "shape" : "AccountId",
+          "locationName" : "accountId"
+        },
+        "DetectorId" : {
+          "shape" : "DetectorId",
+          "locationName" : "detectorId"
+        },
+        "Email" : {
+          "shape" : "Email",
+          "locationName" : "email"
+        },
+        "InvitedAt" : {
+          "shape" : "InvitedAt",
+          "locationName" : "invitedAt"
+        },
+        "MasterId" : {
+          "shape" : "MasterId",
+          "locationName" : "masterId"
+        },
+        "RelationshipStatus" : {
+          "shape" : "__string",
+          "locationName" : "relationshipStatus"
+        },
+        "UpdatedAt" : {
+          "shape" : "UpdatedAt",
+          "locationName" : "updatedAt"
+        }
+      },
+      "required" : [ "Email", "AccountId", "MasterId", "UpdatedAt", "RelationshipStatus" ]
+    },
+    "Members" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "Member"
+      }
+    },
+    "Message" : {
+      "type" : "string"
+    },
+    "Name" : {
+      "type" : "string"
+    },
+    "Neq" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "__string"
+      }
+    },
+    "NetworkConnectionAction" : {
+      "type" : "structure",
+      "members" : {
+        "Blocked" : {
+          "shape" : "__boolean",
+          "locationName" : "blocked"
+        },
+        "ConnectionDirection" : {
+          "shape" : "__string",
+          "locationName" : "connectionDirection"
+        },
+        "LocalPortDetails" : {
+          "shape" : "LocalPortDetails",
+          "locationName" : "localPortDetails"
+        },
+        "Protocol" : {
+          "shape" : "__string",
+          "locationName" : "protocol"
+        },
+        "RemoteIpDetails" : {
+          "shape" : "RemoteIpDetails",
+          "locationName" : "remoteIpDetails"
+        },
+        "RemotePortDetails" : {
+          "shape" : "RemotePortDetails",
+          "locationName" : "remotePortDetails"
+        }
+      }
+    },
+    "NetworkInterface" : {
+      "type" : "structure",
+      "members" : {
+        "Ipv6Addresses" : {
+          "shape" : "Ipv6Addresses",
+          "locationName" : "ipv6Addresses"
+        },
+        "NetworkInterfaceId" : {
+          "shape" : "NetworkInterfaceId",
+          "locationName" : "networkInterfaceId"
+        },
+        "PrivateDnsName" : {
+          "shape" : "PrivateDnsName",
+          "locationName" : "privateDnsName"
+        },
+        "PrivateIpAddress" : {
+          "shape" : "PrivateIpAddress",
+          "locationName" : "privateIpAddress"
+        },
+        "PrivateIpAddresses" : {
+          "shape" : "PrivateIpAddresses",
+          "locationName" : "privateIpAddresses"
+        },
+        "PublicDnsName" : {
+          "shape" : "__string",
+          "locationName" : "publicDnsName"
+        },
+        "PublicIp" : {
+          "shape" : "__string",
+          "locationName" : "publicIp"
+        },
+        "SecurityGroups" : {
+          "shape" : "SecurityGroups",
+          "locationName" : "securityGroups"
+        },
+        "SubnetId" : {
+          "shape" : "__string",
+          "locationName" : "subnetId"
+        },
+        "VpcId" : {
+          "shape" : "__string",
+          "locationName" : "vpcId"
+        }
+      }
+    },
+    "NetworkInterfaceId" : {
+      "type" : "string"
+    },
+    "NetworkInterfaces" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "NetworkInterface"
+      }
+    },
+    "NextToken" : {
+      "type" : "string"
+    },
+    "OrderBy" : {
+      "type" : "string",
+      "enum" : [ "ASC", "DESC" ]
+    },
+    "Organization" : {
+      "type" : "structure",
+      "members" : {
+        "Asn" : {
+          "shape" : "__string",
+          "locationName" : "asn"
+        },
+        "AsnOrg" : {
+          "shape" : "__string",
+          "locationName" : "asnOrg"
+        },
+        "Isp" : {
+          "shape" : "__string",
+          "locationName" : "isp"
+        },
+        "Org" : {
+          "shape" : "__string",
+          "locationName" : "org"
+        }
+      }
+    },
+    "PortProbeAction" : {
+      "type" : "structure",
+      "members" : {
+        "Blocked" : {
+          "shape" : "__boolean",
+          "locationName" : "blocked"
+        },
+        "PortProbeDetails" : {
+          "shape" : "__listOfPortProbeDetail",
+          "locationName" : "portProbeDetails"
+        }
+      }
+    },
+    "PortProbeDetail" : {
+      "type" : "structure",
+      "members" : {
+        "LocalPortDetails" : {
+          "shape" : "LocalPortDetails",
+          "locationName" : "localPortDetails"
+        },
+        "RemoteIpDetails" : {
+          "shape" : "RemoteIpDetails",
+          "locationName" : "remoteIpDetails"
+        }
+      }
+    },
+    "PrivateDnsName" : {
+      "type" : "string"
+    },
+    "PrivateIpAddress" : {
+      "type" : "string"
+    },
+    "PrivateIpAddressDetails" : {
+      "type" : "structure",
+      "members" : {
+        "PrivateDnsName" : {
+          "shape" : "PrivateDnsName",
+          "locationName" : "privateDnsName"
+        },
+        "PrivateIpAddress" : {
+          "shape" : "PrivateIpAddress",
+          "locationName" : "privateIpAddress"
+        }
+      }
+    },
+    "PrivateIpAddresses" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "PrivateIpAddressDetails"
+      }
+    },
+    "ProductCode" : {
+      "type" : "structure",
+      "members" : {
+        "Code" : {
+          "shape" : "__string",
+          "locationName" : "code"
+        },
+        "ProductType" : {
+          "shape" : "__string",
+          "locationName" : "productType"
+        }
+      }
+    },
+    "ProductCodes" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "ProductCode"
+      }
+    },
+    "RemoteIpDetails" : {
+      "type" : "structure",
+      "members" : {
+        "City" : {
+          "shape" : "City",
+          "locationName" : "city"
+        },
+        "Country" : {
+          "shape" : "Country",
+          "locationName" : "country"
+        },
+        "GeoLocation" : {
+          "shape" : "GeoLocation",
+          "locationName" : "geoLocation"
+        },
+        "IpAddressV4" : {
+          "shape" : "__string",
+          "locationName" : "ipAddressV4"
+        },
+        "Organization" : {
+          "shape" : "Organization",
+          "locationName" : "organization"
+        }
+      }
+    },
+    "RemotePortDetails" : {
+      "type" : "structure",
+      "members" : {
+        "Port" : {
+          "shape" : "__integer",
+          "locationName" : "port"
+        },
+        "PortName" : {
+          "shape" : "__string",
+          "locationName" : "portName"
+        }
+      }
+    },
+    "Resource" : {
+      "type" : "structure",
+      "members" : {
+        "AccessKeyDetails" : {
+          "shape" : "AccessKeyDetails",
+          "locationName" : "accessKeyDetails"
+        },
+        "InstanceDetails" : {
+          "shape" : "InstanceDetails",
+          "locationName" : "instanceDetails"
+        },
+        "ResourceType" : {
+          "shape" : "__string",
+          "locationName" : "resourceType"
+        }
+      }
+    },
+    "SecurityGroup" : {
+      "type" : "structure",
+      "members" : {
+        "GroupId" : {
+          "shape" : "__string",
+          "locationName" : "groupId"
+        },
+        "GroupName" : {
+          "shape" : "__string",
+          "locationName" : "groupName"
+        }
+      }
+    },
+    "SecurityGroups" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "SecurityGroup"
+      }
+    },
+    "Service" : {
+      "type" : "structure",
+      "members" : {
+        "Action" : {
+          "shape" : "Action",
+          "locationName" : "action"
+        },
+        "Archived" : {
+          "shape" : "__boolean",
+          "locationName" : "archived"
+        },
+        "Count" : {
+          "shape" : "__integer",
+          "locationName" : "count"
+        },
+        "DetectorId" : {
+          "shape" : "DetectorId",
+          "locationName" : "detectorId"
+        },
+        "EventFirstSeen" : {
+          "shape" : "__string",
+          "locationName" : "eventFirstSeen"
+        },
+        "EventLastSeen" : {
+          "shape" : "__string",
+          "locationName" : "eventLastSeen"
+        },
+        "ResourceRole" : {
+          "shape" : "__string",
+          "locationName" : "resourceRole"
+        },
+        "ServiceName" : {
+          "shape" : "__string",
+          "locationName" : "serviceName"
+        },
+        "UserFeedback" : {
+          "shape" : "__string",
+          "locationName" : "userFeedback"
+        }
+      }
+    },
+    "ServiceRole" : {
+      "type" : "string"
+    },
+    "SortCriteria" : {
+      "type" : "structure",
+      "members" : {
+        "AttributeName" : {
+          "shape" : "__string",
+          "locationName" : "attributeName"
+        },
+        "OrderBy" : {
+          "shape" : "OrderBy",
+          "locationName" : "orderBy"
+        }
+      }
+    },
+    "StartMonitoringMembersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountIds" : {
+          "shape" : "AccountIds",
+          "locationName" : "accountIds"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId", "AccountIds" ]
+    },
+    "StartMonitoringMembersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "StopMonitoringMembersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "AccountIds" : {
+          "shape" : "AccountIds",
+          "locationName" : "accountIds"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        }
+      },
+      "required" : [ "DetectorId", "AccountIds" ]
+    },
+    "StopMonitoringMembersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "UnprocessedAccounts" : {
+          "shape" : "UnprocessedAccounts",
+          "locationName" : "unprocessedAccounts"
+        }
+      }
+    },
+    "Tag" : {
+      "type" : "structure",
+      "members" : {
+        "Key" : {
+          "shape" : "__string",
+          "locationName" : "key"
+        },
+        "Value" : {
+          "shape" : "__string",
+          "locationName" : "value"
+        }
+      }
+    },
+    "Tags" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "Tag"
+      }
+    },
+    "ThreatIntelSetFormat" : {
+      "type" : "string",
+      "enum" : [ "TXT", "STIX", "OTX_CSV", "ALIEN_VAULT", "PROOF_POINT", "FIRE_EYE" ]
+    },
+    "ThreatIntelSetId" : {
+      "type" : "string"
+    },
+    "ThreatIntelSetIds" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "ThreatIntelSetId"
+      }
+    },
+    "ThreatIntelSetStatus" : {
+      "type" : "string",
+      "enum" : [ "INACTIVE", "ACTIVATING", "ACTIVE", "DEACTIVATING", "ERROR", "DELETE_PENDING", "DELETED" ]
+    },
+    "UnarchiveFindingsRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FindingIds" : {
+          "shape" : "FindingIds",
+          "locationName" : "findingIds"
+        }
+      },
+      "required" : [ "DetectorId", "FindingIds" ]
+    },
+    "UnarchiveFindingsResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "UnprocessedAccount" : {
+      "type" : "structure",
+      "members" : {
+        "AccountId" : {
+          "shape" : "__string",
+          "locationName" : "accountId"
+        },
+        "Result" : {
+          "shape" : "__string",
+          "locationName" : "result"
+        }
+      },
+      "required" : [ "AccountId", "Result" ]
+    },
+    "UnprocessedAccounts" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "UnprocessedAccount"
+      }
+    },
+    "UpdateDetectorRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "Enable" : {
+          "shape" : "Enable",
+          "locationName" : "enable"
+        },
+        "FindingPublishingFrequency" : {
+          "shape" : "FindingPublishingFrequency",
+          "locationName" : "findingPublishingFrequency"
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "UpdateDetectorResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "UpdateFilterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Action" : {
+          "shape" : "FilterAction",
+          "locationName" : "action"
+        },
+        "Description" : {
+          "shape" : "FilterDescription",
+          "locationName" : "description"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "FilterName" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "filterName"
+        },
+        "FindingCriteria" : {
+          "shape" : "FindingCriteria",
+          "locationName" : "findingCriteria"
+        },
+        "Rank" : {
+          "shape" : "FilterRank",
+          "locationName" : "rank"
+        }
+      },
+      "required" : [ "DetectorId", "FilterName" ]
+    },
+    "UpdateFilterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Name" : {
+          "shape" : "FilterName",
+          "locationName" : "name"
+        }
+      }
+    },
+    "UpdateFindingsFeedbackRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Comments" : {
+          "shape" : "Comments",
+          "locationName" : "comments"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "Feedback" : {
+          "shape" : "Feedback",
+          "locationName" : "feedback"
+        },
+        "FindingIds" : {
+          "shape" : "FindingIds",
+          "locationName" : "findingIds"
+        }
+      },
+      "required" : [ "DetectorId", "Feedback", "FindingIds" ]
+    },
+    "UpdateFindingsFeedbackResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "UpdateIPSetRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Activate" : {
+          "shape" : "Activate",
+          "locationName" : "activate"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "IpSetId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "ipSetId"
+        },
+        "Location" : {
+          "shape" : "Location",
+          "locationName" : "location"
+        },
+        "Name" : {
+          "shape" : "Name",
+          "locationName" : "name"
+        }
+      },
+      "required" : [ "DetectorId", "IpSetId" ]
+    },
+    "UpdateIPSetResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "UpdateThreatIntelSetRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Activate" : {
+          "shape" : "Activate",
+          "locationName" : "activate"
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId"
+        },
+        "Location" : {
+          "shape" : "Location",
+          "locationName" : "location"
+        },
+        "Name" : {
+          "shape" : "Name",
+          "locationName" : "name"
+        },
+        "ThreatIntelSetId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "threatIntelSetId"
+        }
+      },
+      "required" : [ "ThreatIntelSetId", "DetectorId" ]
+    },
+    "UpdateThreatIntelSetResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "UpdatedAt" : {
+      "type" : "string"
+    },
+    "__boolean" : {
+      "type" : "boolean"
+    },
+    "__double" : {
+      "type" : "double"
+    },
+    "__integer" : {
+      "type" : "integer"
+    },
+    "__listOfPortProbeDetail" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "PortProbeDetail"
+      }
+    },
+    "__long" : {
+      "type" : "long"
+    },
+    "__mapOfCondition" : {
+      "type" : "map",
+      "key" : {
+        "shape" : "__string"
+      },
+      "value" : {
+        "shape" : "Condition"
+      }
+    },
+    "__mapOfCountBySeverityFindingStatistic" : {
+      "type" : "map",
+      "key" : {
+        "shape" : "__string"
+      },
+      "value" : {
+        "shape" : "CountBySeverityFindingStatistic"
+      }
+    },
+    "__string" : {
+      "type" : "string"
+    },
+    "__stringMin0Max64" : {
+      "type" : "string",
+      "min" : 0,
+      "max" : 64
+    },
+    "__timestamp" : {
+      "type" : "timestamp"
+    }
+  }
+}

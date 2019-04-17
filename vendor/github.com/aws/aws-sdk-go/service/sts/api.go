@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
 )
 
@@ -15,7 +16,7 @@ const opAssumeRole = "AssumeRole"
 // AssumeRoleRequest generates a "aws/request.Request" representing the
 // client's request for the AssumeRole operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -209,7 +210,7 @@ const opAssumeRoleWithSAML = "AssumeRoleWithSAML"
 // AssumeRoleWithSAMLRequest generates a "aws/request.Request" representing the
 // client's request for the AssumeRoleWithSAML operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -243,6 +244,7 @@ func (c *STS) AssumeRoleWithSAMLRequest(input *AssumeRoleWithSAMLInput) (req *re
 
 	output = &AssumeRoleWithSAMLOutput{}
 	req = c.newRequest(op, input, output)
+	req.Config.Credentials = credentials.AnonymousCredentials
 	return
 }
 
@@ -391,7 +393,7 @@ const opAssumeRoleWithWebIdentity = "AssumeRoleWithWebIdentity"
 // AssumeRoleWithWebIdentityRequest generates a "aws/request.Request" representing the
 // client's request for the AssumeRoleWithWebIdentity operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -425,6 +427,7 @@ func (c *STS) AssumeRoleWithWebIdentityRequest(input *AssumeRoleWithWebIdentityI
 
 	output = &AssumeRoleWithWebIdentityOutput{}
 	req = c.newRequest(op, input, output)
+	req.Config.Credentials = credentials.AnonymousCredentials
 	return
 }
 
@@ -602,7 +605,7 @@ const opDecodeAuthorizationMessage = "DecodeAuthorizationMessage"
 // DecodeAuthorizationMessageRequest generates a "aws/request.Request" representing the
 // client's request for the DecodeAuthorizationMessage operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -714,7 +717,7 @@ const opGetCallerIdentity = "GetCallerIdentity"
 // GetCallerIdentityRequest generates a "aws/request.Request" representing the
 // client's request for the GetCallerIdentity operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -789,7 +792,7 @@ const opGetFederationToken = "GetFederationToken"
 // GetFederationTokenRequest generates a "aws/request.Request" representing the
 // client's request for the GetFederationToken operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -958,7 +961,7 @@ const opGetSessionToken = "GetSessionToken"
 // GetSessionTokenRequest generates a "aws/request.Request" representing the
 // client's request for the GetSessionToken operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.

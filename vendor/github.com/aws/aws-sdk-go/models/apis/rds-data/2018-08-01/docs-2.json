@@ -1,0 +1,182 @@
+{
+          "version": "2.0",
+        "service": "AWS RDS DataService provides Http Endpoint to query RDS databases.",
+        "operations": {
+          "ExecuteSql": "Executes any SQL statement on the target database synchronously"
+          },
+          "shapes": {
+        "Arn": {
+          "base": null,
+            "refs": { }
+            },
+            "ArrayValues": {
+          "base": "Array value",
+            "refs": {
+              "ArrayValues$member": null
+              }
+            },
+            "BadRequestException": {
+            "base": "Invalid Request exception",
+            "refs": {
+                "BadRequestException$message": "Error message"
+              }
+            },
+            "Blob": {
+          "base": null,
+            "refs": { }
+          },
+          "Boolean": {
+          "base": null,
+            "refs": { }
+          },
+            "ColumnMetadata": {
+          "base": "Column Metadata",
+            "refs": {
+              "ColumnMetadata$arrayBaseColumnType": "Homogenous array base SQL type from java.sql.Types.",
+            "ColumnMetadata$isAutoIncrement": "Whether the designated column is automatically numbered",
+            "ColumnMetadata$isCaseSensitive": "Whether values in the designated column's case matters",
+              "ColumnMetadata$isCurrency": "Whether values in the designated column is a cash value",
+              "ColumnMetadata$isSigned": "Whether values in the designated column are signed numbers",
+                "ColumnMetadata$label": "Usually specified by the SQL AS. If not specified, return column name.",
+                "ColumnMetadata$name": "Name of the column.",
+                "ColumnMetadata$nullable": "Indicates the nullability of values in the designated column. One of columnNoNulls (0), columnNullable (1), columnNullableUnknown (2)",
+              "ColumnMetadata$precision": "Get the designated column's specified column size.For numeric data, this is the maximum precision.  For character data, this is the length in characters. For datetime datatypes, this is the length in characters of the String representation (assuming the maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, this is the length in bytes. 0 is returned for data types where the column size is not applicable.",
+                "ColumnMetadata$scale": "Designated column's number of digits to right of the decimal point. 0 is returned for data types where the scale is not applicable.",
+            "ColumnMetadata$schemaName": "Designated column's table's schema",
+              "ColumnMetadata$tableName": "Designated column's table name",
+              "ColumnMetadata$type": "SQL type from java.sql.Types.",
+              "ColumnMetadata$typeName": "Database-specific type name."
+          }
+        },
+        "ColumnMetadataList": {
+            "base": "List of Column metadata",
+            "refs": {
+              "ColumnMetadataList$member": null
+              }
+            },
+            "DbName": {
+              "base": null,
+              "refs": { }
+            },
+            "Double": {
+              "base": null,
+              "refs": { }
+    },
+    "ExecuteSqlRequest": {
+      "base": "Execute SQL Request",
+      "refs": {
+        "ExecuteSqlRequest$awsSecretStoreArn": "ARN of the db credentials in AWS Secret Store or the friendly secret name",
+        "ExecuteSqlRequest$database": "Target DB name",
+        "ExecuteSqlRequest$dbClusterOrInstanceArn": "ARN of the target db cluster or instance",
+        "ExecuteSqlRequest$schema": "Target Schema name",
+        "ExecuteSqlRequest$sqlStatements": "SQL statement(s) to be executed. Statements can be chained by using semicolons"
+      }
+    },
+    "ExecuteSqlResponse": {
+      "base": "Execute SQL response",
+      "refs": {
+        "ExecuteSqlResponse$sqlStatementResults": "Results returned by executing the sql statement(s)"
+      }
+    },
+    "Float": {
+      "base": null,
+      "refs": { }
+    },
+    "ForbiddenException": {
+      "base": "Access denied exception",
+      "refs": {
+        "ForbiddenException$message": "Error message"
+      }
+    },
+    "Integer": {
+      "base": null,
+      "refs": { }
+    },
+    "InternalServerErrorException": {
+      "base": "Internal service error",
+      "refs": { }
+    },
+    "Long": {
+      "base": null,
+      "refs": { }
+    },
+    "Record": {
+      "base": "Row or Record",
+      "refs": {
+        "Record$values": "Record"
+      }
+    },
+    "Records": {
+      "base": "List of records",
+      "refs": {
+        "Records$member": null
+      }
+    },
+    "ResultFrame": {
+      "base": "Result Frame",
+      "refs": {
+        "ResultFrame$records": "ResultSet Metadata.",
+        "ResultFrame$resultSetMetadata": "ResultSet Metadata."
+      }
+    },
+    "ResultSetMetadata": {
+      "base": "List of columns and their types.",
+      "refs": {
+        "ResultSetMetadata$columnCount": "Number of columns",
+        "ResultSetMetadata$columnMetadata": "List of columns and their types"
+      }
+    },
+    "Row": {
+      "base": "List of column values",
+      "refs": {
+        "Row$member": null
+      }
+    },
+    "ServiceUnavailableError": {
+      "base": "Internal service unavailable error",
+      "refs": { }
+    },
+    "SqlStatement": {
+      "base": null,
+      "refs": { }
+    },
+    "SqlStatementResult": {
+      "base": "SQL statement execution result",
+      "refs": {
+        "SqlStatementResult$numberOfRecordsUpdated": "Number of rows updated.",
+        "SqlStatementResult$resultFrame": "ResultFrame returned by executing the sql statement"
+      }
+    },
+    "SqlStatementResults": {
+      "base": "SQL statement execution results",
+      "refs": {
+        "SqlStatementResults$member": null
+      }
+    },
+    "String": {
+      "base": null,
+      "refs": { }
+    },
+    "StructValue": {
+      "base": "User Defined Type",
+      "refs": {
+        "StructValue$attributes": "Struct or UDT"
+      }
+    },
+    "Value": {
+      "base": "Column value",
+      "refs": {
+        "Value$arrayValues": "Arbitrarily nested arrays",
+        "Value$bigIntValue": "Long value",
+        "Value$bitValue": "Bit value",
+        "Value$blobValue": "Blob value",
+        "Value$doubleValue": "Double value",
+        "Value$intValue": "Integer value",
+        "Value$isNull": "Is column null",
+        "Value$realValue": "Float value",
+        "Value$stringValue": "String value",
+        "Value$structValue": "Struct or UDT"
+      }
+    }
+  }
+}

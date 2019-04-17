@@ -542,7 +542,7 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 			r, s, err = ecdsa.Sign(config.Random(), pk, digest)
 		} else {
 			var b []byte
-			b, err = priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, nil)
+			b, err = priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, sig.Hash)
 			if err == nil {
 				r, s, err = unwrapECDSASig(b)
 			}

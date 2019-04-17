@@ -1,0 +1,37 @@
+[d_days]
+few = "arabic few translation of d_days"
+many = "arabic many translation of d_days"
+one = ""
+other = ""
+two = ""
+zero = ""
+
+[person_greeting]
+other = "arabic translation of person_greeting"
+
+[person_unread_email_count]
+few = "arabic few translation of person_unread_email_count"
+many = "arabic many translation of person_unread_email_count"
+one = "arabic one translation of person_unread_email_count"
+other = ""
+two = ""
+zero = ""
+
+[person_unread_email_count_timeframe]
+few = ""
+many = ""
+one = ""
+other = ""
+two = ""
+zero = ""
+
+[program_greeting]
+other = ""
+
+[your_unread_email_count]
+few = ""
+many = ""
+one = ""
+other = ""
+two = ""
+zero = ""

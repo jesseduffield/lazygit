@@ -13,7 +13,11 @@ import (
 func copyMultipartStatusOKUnmarhsalError(r *request.Request) {
 	b, err := ioutil.ReadAll(r.HTTPResponse.Body)
 	if err != nil {
-		r.Error = awserr.New("SerializationError", "unable to read response body", err)
+		r.Error = awserr.NewRequestFailure(
+			awserr.New("SerializationError", "unable to read response body", err),
+			r.HTTPResponse.StatusCode,
+			r.RequestID,
+		)
 		return
 	}
 	body := bytes.NewReader(b)

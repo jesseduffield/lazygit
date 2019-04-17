@@ -1,0 +1,324 @@
+{
+  "version": "2.0",
+  "service": "<fullname>Amazon Data Lifecycle Manager</fullname> <p>With Amazon Data Lifecycle Manager, you can manage the lifecycle of your AWS resources. You create lifecycle policies, which are used to automate operations on the specified resources.</p> <p>Amazon DLM supports Amazon EBS volumes and snapshots. For information about using Amazon DLM with Amazon EBS, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshot-lifecycle.html\">Automating the Amazon EBS Snapshot Lifecycle</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+  "operations": {
+    "CreateLifecyclePolicy": "<p>Creates a policy to manage the lifecycle of the specified AWS resources. You can create up to 100 lifecycle policies.</p>",
+    "DeleteLifecyclePolicy": "<p>Deletes the specified lifecycle policy and halts the automated operations that the policy specified.</p>",
+    "GetLifecyclePolicies": "<p>Gets summary information about all or the specified data lifecycle policies.</p> <p>To get complete information about a policy, use <a>GetLifecyclePolicy</a>.</p>",
+    "GetLifecyclePolicy": "<p>Gets detailed information about the specified lifecycle policy.</p>",
+    "UpdateLifecyclePolicy": "<p>Updates the specified lifecycle policy.</p>"
+  },
+  "shapes": {
+    "CopyTags": {
+      "base": null,
+      "refs": {
+        "Schedule$CopyTags": null
+      }
+    },
+    "Count": {
+      "base": null,
+      "refs": {
+        "RetainRule$Count": "<p>The number of snapshots to keep for each volume, up to a maximum of 1000.</p>"
+      }
+    },
+    "CreateLifecyclePolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateLifecyclePolicyResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateRule": {
+      "base": "<p>Specifies when to create snapshots of EBS volumes.</p>",
+      "refs": {
+        "Schedule$CreateRule": "<p>The create rule.</p>"
+      }
+    },
+    "DeleteLifecyclePolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteLifecyclePolicyResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ErrorCode": {
+      "base": null,
+      "refs": {
+        "InternalServerException$Code": null,
+        "InvalidRequestException$Code": null,
+        "LimitExceededException$Code": null,
+        "ResourceNotFoundException$Code": null
+      }
+    },
+    "ErrorMessage": {
+      "base": null,
+      "refs": {
+        "InternalServerException$Message": null,
+        "InvalidRequestException$Message": null,
+        "LimitExceededException$Message": null,
+        "ResourceNotFoundException$Message": null
+      }
+    },
+    "ExecutionRoleArn": {
+      "base": null,
+      "refs": {
+        "CreateLifecyclePolicyRequest$ExecutionRoleArn": "<p>The Amazon Resource Name (ARN) of the IAM role used to run the operations specified by the lifecycle policy.</p>",
+        "LifecyclePolicy$ExecutionRoleArn": "<p>The Amazon Resource Name (ARN) of the IAM role used to run the operations specified by the lifecycle policy.</p>",
+        "UpdateLifecyclePolicyRequest$ExecutionRoleArn": "<p>The Amazon Resource Name (ARN) of the IAM role used to run the operations specified by the lifecycle policy.</p>"
+      }
+    },
+    "GetLifecyclePoliciesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetLifecyclePoliciesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetLifecyclePolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetLifecyclePolicyResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GettablePolicyStateValues": {
+      "base": null,
+      "refs": {
+        "GetLifecyclePoliciesRequest$State": "<p>The activation state.</p>",
+        "LifecyclePolicy$State": "<p>The activation state of the lifecycle policy.</p>",
+        "LifecyclePolicySummary$State": "<p>The activation state of the lifecycle policy.</p>"
+      }
+    },
+    "InternalServerException": {
+      "base": "<p>The service failed in an unexpected way.</p>",
+      "refs": {
+      }
+    },
+    "Interval": {
+      "base": null,
+      "refs": {
+        "CreateRule$Interval": "<p>The interval. The supported values are 12 and 24.</p>"
+      }
+    },
+    "IntervalUnitValues": {
+      "base": null,
+      "refs": {
+        "CreateRule$IntervalUnit": "<p>The interval unit.</p>"
+      }
+    },
+    "InvalidRequestException": {
+      "base": "<p>Bad request. The request is missing required parameters or has invalid parameters.</p>",
+      "refs": {
+      }
+    },
+    "LifecyclePolicy": {
+      "base": "<p>Detailed information about a lifecycle policy.</p>",
+      "refs": {
+        "GetLifecyclePolicyResponse$Policy": "<p>Detailed information about the lifecycle policy.</p>"
+      }
+    },
+    "LifecyclePolicySummary": {
+      "base": "<p>Summary information about a lifecycle policy.</p>",
+      "refs": {
+        "LifecyclePolicySummaryList$member": null
+      }
+    },
+    "LifecyclePolicySummaryList": {
+      "base": null,
+      "refs": {
+        "GetLifecyclePoliciesResponse$Policies": "<p>Summary information about the lifecycle policies.</p>"
+      }
+    },
+    "LimitExceededException": {
+      "base": "<p>The request failed because a limit was exceeded.</p>",
+      "refs": {
+      }
+    },
+    "Parameter": {
+      "base": null,
+      "refs": {
+        "ParameterList$member": null
+      }
+    },
+    "ParameterList": {
+      "base": null,
+      "refs": {
+        "InvalidRequestException$RequiredParameters": "<p>The request omitted one or more required parameters.</p>",
+        "InvalidRequestException$MutuallyExclusiveParameters": "<p>The request included parameters that cannot be provided together.</p>"
+      }
+    },
+    "PolicyDescription": {
+      "base": null,
+      "refs": {
+        "CreateLifecyclePolicyRequest$Description": "<p>A description of the lifecycle policy. The characters ^[0-9A-Za-z _-]+$ are supported.</p>",
+        "LifecyclePolicy$Description": "<p>The description of the lifecycle policy.</p>",
+        "LifecyclePolicySummary$Description": "<p>The description of the lifecycle policy.</p>",
+        "UpdateLifecyclePolicyRequest$Description": "<p>A description of the lifecycle policy.</p>"
+      }
+    },
+    "PolicyDetails": {
+      "base": "<p>Specifies the configuration of a lifecycle policy.</p>",
+      "refs": {
+        "CreateLifecyclePolicyRequest$PolicyDetails": "<p>The configuration details of the lifecycle policy.</p> <p>Target tags cannot be re-used across lifecycle policies.</p>",
+        "LifecyclePolicy$PolicyDetails": "<p>The configuration of the lifecycle policy</p>",
+        "UpdateLifecyclePolicyRequest$PolicyDetails": "<p>The configuration of the lifecycle policy.</p> <p>Target tags cannot be re-used across policies.</p>"
+      }
+    },
+    "PolicyId": {
+      "base": null,
+      "refs": {
+        "CreateLifecyclePolicyResponse$PolicyId": "<p>The identifier of the lifecycle policy.</p>",
+        "DeleteLifecyclePolicyRequest$PolicyId": "<p>The identifier of the lifecycle policy.</p>",
+        "GetLifecyclePolicyRequest$PolicyId": "<p>The identifier of the lifecycle policy.</p>",
+        "LifecyclePolicy$PolicyId": "<p>The identifier of the lifecycle policy.</p>",
+        "LifecyclePolicySummary$PolicyId": "<p>The identifier of the lifecycle policy.</p>",
+        "PolicyIdList$member": null,
+        "UpdateLifecyclePolicyRequest$PolicyId": "<p>The identifier of the lifecycle policy.</p>"
+      }
+    },
+    "PolicyIdList": {
+      "base": null,
+      "refs": {
+        "GetLifecyclePoliciesRequest$PolicyIds": "<p>The identifiers of the data lifecycle policies.</p>",
+        "ResourceNotFoundException$ResourceIds": "<p>Value is a list of resource IDs that were not found.</p>"
+      }
+    },
+    "ResourceNotFoundException": {
+      "base": "<p>A requested resource was not found.</p>",
+      "refs": {
+      }
+    },
+    "ResourceTypeValues": {
+      "base": null,
+      "refs": {
+        "ResourceTypeValuesList$member": null
+      }
+    },
+    "ResourceTypeValuesList": {
+      "base": null,
+      "refs": {
+        "GetLifecyclePoliciesRequest$ResourceTypes": "<p>The resource type.</p>",
+        "PolicyDetails$ResourceTypes": "<p>The resource type.</p>"
+      }
+    },
+    "RetainRule": {
+      "base": "<p>Specifies the number of snapshots to keep for each EBS volume.</p>",
+      "refs": {
+        "Schedule$RetainRule": "<p>The retain rule.</p>"
+      }
+    },
+    "Schedule": {
+      "base": "<p>Specifies a schedule.</p>",
+      "refs": {
+        "ScheduleList$member": null
+      }
+    },
+    "ScheduleList": {
+      "base": null,
+      "refs": {
+        "PolicyDetails$Schedules": "<p>The schedule of policy-defined actions.</p>"
+      }
+    },
+    "ScheduleName": {
+      "base": null,
+      "refs": {
+        "Schedule$Name": "<p>The name of the schedule.</p>"
+      }
+    },
+    "SettablePolicyStateValues": {
+      "base": null,
+      "refs": {
+        "CreateLifecyclePolicyRequest$State": "<p>The desired activation state of the lifecycle policy after creation.</p>",
+        "UpdateLifecyclePolicyRequest$State": "<p>The desired activation state of the lifecycle policy after creation.</p>"
+      }
+    },
+    "String": {
+      "base": null,
+      "refs": {
+        "LimitExceededException$ResourceType": "<p>Value is the type of resource for which a limit was exceeded.</p>",
+        "ResourceNotFoundException$ResourceType": "<p>Value is the type of resource that was not found.</p>",
+        "Tag$Key": "<p>The tag key.</p>",
+        "Tag$Value": "<p>The tag value.</p>"
+      }
+    },
+    "Tag": {
+      "base": "<p>Specifies a tag for a resource.</p>",
+      "refs": {
+        "TagsToAddList$member": null,
+        "TargetTagList$member": null
+      }
+    },
+    "TagFilter": {
+      "base": null,
+      "refs": {
+        "TagsToAddFilterList$member": null,
+        "TargetTagsFilterList$member": null
+      }
+    },
+    "TagsToAddFilterList": {
+      "base": null,
+      "refs": {
+        "GetLifecyclePoliciesRequest$TagsToAdd": "<p>The tags to add to objects created by the policy.</p> <p>Tags are strings in the format <code>key=value</code>.</p> <p>These user-defined tags are added in addition to the AWS-added lifecycle tags.</p>"
+      }
+    },
+    "TagsToAddList": {
+      "base": null,
+      "refs": {
+        "Schedule$TagsToAdd": "<p>The tags to apply to policy-created resources. These user-defined tags are in addition to the AWS-added lifecycle tags.</p>"
+      }
+    },
+    "TargetTagList": {
+      "base": null,
+      "refs": {
+        "PolicyDetails$TargetTags": "<p>The single tag that identifies targeted resources for this policy.</p>"
+      }
+    },
+    "TargetTagsFilterList": {
+      "base": null,
+      "refs": {
+        "GetLifecyclePoliciesRequest$TargetTags": "<p>The target tag for a policy.</p> <p>Tags are strings in the format <code>key=value</code>.</p>"
+      }
+    },
+    "Time": {
+      "base": null,
+      "refs": {
+        "TimesList$member": null
+      }
+    },
+    "TimesList": {
+      "base": null,
+      "refs": {
+        "CreateRule$Times": "<p>The time, in UTC, to start the operation.</p> <p>The operation occurs within a one-hour window following the specified time.</p>"
+      }
+    },
+    "Timestamp": {
+      "base": null,
+      "refs": {
+        "LifecyclePolicy$DateCreated": "<p>The local date and time when the lifecycle policy was created.</p>",
+        "LifecyclePolicy$DateModified": "<p>The local date and time when the lifecycle policy was last modified.</p>"
+      }
+    },
+    "UpdateLifecyclePolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateLifecyclePolicyResponse": {
+      "base": null,
+      "refs": {
+      }
+    }
+  }
+}

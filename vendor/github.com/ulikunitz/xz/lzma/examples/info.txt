@@ -1,0 +1,20 @@
+GOOD archives:
+
+a.lzma
+  the stream was compressed with default properties lp=0 lc=3 pb=2 and 64 KiB dictionary
+a_eos.lzma
+  the stream has EOS marker
+a_eos_and_size.lzma
+  the stream has EOS marker and unpack size is defined
+a_lp1_lc2_pb1.lzma
+  the stream was compressed with lp=1 lc=2 pb=1 properties
+
+
+BAD ARCHIVES:
+
+bad_corrupted.lzma
+  some bytes in compressed stream were changed
+bad_eos_incorrect_size.lzma
+  the stream has EOS marker and unpack size in header is larger than real uncompressed size
+bad_incorrect_size.lzma
+  the header contains incorrect size (290). The correct size is 327

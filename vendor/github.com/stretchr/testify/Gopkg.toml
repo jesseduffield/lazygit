@@ -1,0 +1,16 @@
+[prune]
+  unused-packages = true
+  non-go = true
+  go-tests = true
+
+[[constraint]]
+  name = "github.com/davecgh/go-spew"
+  version = "~1.1.0"
+
+[[constraint]]
+  name = "github.com/pmezard/go-difflib"
+  version = "~1.0.0"
+
+[[constraint]]
+  name = "github.com/stretchr/objx"
+  version = "~0.1.0"

@@ -3,9 +3,9 @@
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
-  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/csm","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/sdkio","internal/sdkrand","internal/sdkuri","internal/shareddefaults","private/protocol","private/protocol/eventstream","private/protocol/eventstream/eventstreamapi","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/sts"]
-  revision = "a5158a897b80d434ed8704bb42fed46ff9bf8b91"
-  version = "v1.15.44"
+  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/processcreds","aws/credentials/stscreds","aws/csm","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/ini","internal/s3err","internal/sdkio","internal/sdkrand","internal/sdkuri","internal/shareddefaults","private/protocol","private/protocol/eventstream","private/protocol/eventstream/eventstreamapi","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/sts"]
+  revision = "cf58d169c2d60e36f54964ceb4b9baa3434dbfe7"
+  version = "v1.19.12"
 
 [[projects]]
   branch = "master"
@@ -44,28 +44,16 @@
   version = "v1.4.7"
 
 [[projects]]
-<<<<<<< HEAD
-  digest = "1:ea1d5bfdb4ec5c2ee48c97865e6de1a28fa8c4849a3f56b27d521aa619038e06"
-  name = "github.com/go-errors/errors"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "a6af135bd4e28680facf08a3d206b454abc877a4"
-  version = "v1.0.1"
-
-[[projects]]
-  digest = "1:74d9b0a7b4107b41e0ade759fac64502876f82d29fb23d77b3dd24b194ee3dd5"
-=======
   name = "github.com/go-cmd/cmd"
   packages = ["."]
-  revision = "b84ca4f2247327f07f46331c260675cba1a1dc7a"
-  version = "v1.0.3"
+  revision = "db1a8287640cedff487674c2f4439805b58f42aa"
+  version = "v1.0.4"
 
 [[projects]]
->>>>>>> vendor: add go-cmd dependency
-  name = "github.com/go-ini/ini"
+  name = "github.com/go-errors/errors"
   packages = ["."]
-  revision = "5cf292cae48347c2490ac1a58fe36735fb78df7e"
-  version = "v1.38.2"
+  revision = "a6af135bd4e28680facf08a3d206b454abc877a4"
+  version = "v1.0.1"
 
 [[projects]]
   branch = "master"
@@ -76,14 +64,14 @@
 [[projects]]
   name = "github.com/hashicorp/go-cleanhttp"
   packages = ["."]
-  revision = "e8ab9daed8d1ddd2d3c4efba338fe2eeae2e4f18"
-  version = "v0.5.0"
+  revision = "eda1e5db218aad1db63ca4642c8906b26bcf2744"
+  version = "v0.5.1"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/go-getter"
   packages = ["helper/url"]
-  revision = "4bda8fa99001c61db3cad96b421d4c12a81f256d"
+  revision = "e1437d0bbb37a1fa61cdb924b034352c823cb89b"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/hashicorp/go-safetemp"
@@ -94,8 +82,8 @@
 [[projects]]
   name = "github.com/hashicorp/go-version"
   packages = ["."]
-  revision = "b5a281d3160aa11950a6182bd9a9dc2cb1e02d50"
-  version = "v1.0.0"
+  revision = "d40cf49b3a77bba84a7afdbd7f1dc295d114efb1"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/hashicorp/hcl"
@@ -107,7 +95,7 @@
   branch = "master"
   name = "github.com/heroku/rollrus"
   packages = ["."]
-  revision = "fc0cef2ff331aebb24cd4e9ded7e20650f3d7006"
+  revision = "fde2a6b0b07d2ac4af3fec2ccbdf20f963291f99"
 
 [[projects]]
   branch = "master"
@@ -123,25 +111,15 @@
 
 [[projects]]
   branch = "master"
-<<<<<<< HEAD
-  digest = "1:198f2036bd458e6587db5143be8cbda46c3c59937320f62219c77b93c99bb1f1"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
-  pruneopts = "NUT"
   revision = "1b91467ea2d44e4036e493f6ba47710beba18955"
 
 [[projects]]
   branch = "master"
-  digest = "1:a46c2f4863e5284ddb255c28750298e04bc8c0fc896bed6056e947673168b7be"
   name = "github.com/jesseduffield/pty"
   packages = ["."]
-  pruneopts = "NUT"
   revision = "02db52c7e406c7abec44c717a173c7715e4c1b62"
-=======
-  name = "github.com/jesseduffield/gocui"
-  packages = ["."]
-  revision = "03e26ff3f1de2c1bc2205113c3aba661312eee00"
->>>>>>> Fix up module dependency
 
 [[projects]]
   branch = "master"
@@ -152,13 +130,13 @@
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
-  revision = "0b12d6b5"
+  revision = "c2b33e84"
 
 [[projects]]
   branch = "master"
   name = "github.com/kardianos/osext"
   packages = ["."]
-  revision = "ae77be60afb1dcacde03767a8c37337fad28ac14"
+  revision = "2bc1f35cddc0cc527b4bc3dce8578fc2a6c11384"
 
 [[projects]]
   name = "github.com/kevinburke/ssh_config"
@@ -167,10 +145,10 @@
   version = "0.5"
 
 [[projects]]
-  branch = "master"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
-  revision = "b729f2633dfe35f4d1d8a32385f6685610ce1cb5"
+  revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
+  version = "v1.0.2"
 
 [[projects]]
   name = "github.com/magiconair/properties"
@@ -187,14 +165,14 @@
 [[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
-  version = "v0.0.4"
+  revision = "c2a7a6ca930a4cd0bc33a3f298eb71960732a3a7"
+  version = "v0.0.7"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
-  revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
-  version = "v0.0.3"
+  revision = "3ee7d812e62a0804a7d0a324e0249ca2db3476d3"
+  version = "v0.0.4"
 
 [[projects]]
   name = "github.com/mgutz/str"
@@ -205,8 +183,8 @@
 [[projects]]
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
-  revision = "ae18d6b8b3205b561c79e8e5f69bff09736185f4"
-  version = "v1.0.0"
+  revision = "af06845cf3004701891bf4fdb884bfe4920b3727"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/mitchellh/go-testing-interface"
@@ -217,14 +195,14 @@
 [[projects]]
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
-  revision = "fa473d140ef3c6adf42d6b391fe76707f1f243c8"
-  version = "v1.0.0"
+  revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
+  version = "v1.1.2"
 
 [[projects]]
   name = "github.com/nicksnyder/go-i18n"
   packages = ["v2/i18n","v2/internal","v2/internal/plural"]
-  revision = "a16b91a3ba80db3a2301c70d1d302d42251c9079"
-  version = "v2.0.0-beta.5"
+  revision = "9c0db6e2b3a591b2dfabb8ef487e53cd080c57bf"
+  version = "v2.0.0-beta.6"
 
 [[projects]]
   name = "github.com/pelletier/go-buffruneio"
@@ -235,14 +213,14 @@
 [[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
-  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
-  version = "v1.2.0"
+  revision = "63909f0a90ab0f36909e8e044e46ace10cf13ba2"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -251,10 +229,10 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/scbizu/cmd"
   packages = ["."]
-  revision = "f5b62585a524ac6c0ad087fab4b0089e88dc4143"
+  revision = "b84ca4f2247327f07f46331c260675cba1a1dc7a"
+  version = "v1.0.3"
 
 [[projects]]
   name = "github.com/sergi/go-diff"
@@ -271,38 +249,38 @@
 [[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
-  version = "v1.1.0"
+  revision = "8bdbc7bcc01dcbb8ec23dc8a28e332258d25251f"
+  version = "v1.4.1"
 
 [[projects]]
   name = "github.com/spf13/afero"
   packages = [".","mem"]
-  revision = "d40851caa0d747393da1ffb28f7f9d8b4eeffebd"
-  version = "v1.1.2"
+  revision = "588a75ec4f32903aa5e39a2619ba6a4631e28424"
+  version = "v1.2.2"
 
 [[projects]]
   name = "github.com/spf13/cast"
   packages = ["."]
-  revision = "8965335b8c7107321228e3e3702cab9832751bac"
-  version = "v1.2.0"
+  revision = "8c9545af88b134710ab1cd196795e7f2388358d7"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/spf13/jwalterweatherman"
   packages = ["."]
-  revision = "4a4406e478ca629068e7768fc33f3f044173c0a6"
-  version = "v1.0.0"
+  revision = "94f6ae3ed3bceceafa716478c5fbf8d29ca601a1"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
-  revision = "9a97c102cda95a86cec2345a6f09f55a939babf5"
-  version = "v1.0.2"
+  revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
+  version = "v1.0.3"
 
 [[projects]]
   name = "github.com/spf13/viper"
   packages = ["."]
-  revision = "8fb642006536c8d3760c99d4fa2389f5e2205631"
-  version = "v1.2.0"
+  revision = "9e56dacc08fbbf8c9ee2dbc717553c758ce42bc9"
+  version = "v1.3.2"
 
 [[projects]]
   branch = "master"
@@ -313,14 +291,14 @@
 [[projects]]
   name = "github.com/src-d/gcfg"
   packages = [".","scanner","token","types"]
-  revision = "f187355171c936ac84a82793659ebb4936bc1c23"
-  version = "v1.3.0"
+  revision = "1ac3a1ac202429a54835fe8408a92880156b489d"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/stretchr/testify"
   packages = ["assert"]
-  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
-  version = "v1.2.2"
+  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -337,32 +315,32 @@
 [[projects]]
   name = "github.com/ulikunitz/xz"
   packages = [".","internal/hash","internal/xlog","lzma"]
-  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
-  version = "v0.5.4"
+  revision = "6f934d456d51e742b4eeab20d925a827ef22320a"
+  version = "v0.5.6"
 
 [[projects]]
   name = "github.com/xanzy/ssh-agent"
   packages = ["."]
-  revision = "640f0ab560aeb89d523bb6ac322b1244d5c3796c"
-  version = "v0.2.0"
+  revision = "6a3e2ff9e7c564f36873c2e36413f634534f1c44"
+  version = "v0.2.1"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["cast5","curve25519","ed25519","ed25519/internal/edwards25519","internal/chacha20","internal/subtle","openpgp","openpgp/armor","openpgp/elgamal","openpgp/errors","openpgp/packet","openpgp/s2k","poly1305","ssh","ssh/agent","ssh/knownhosts","ssh/terminal"]
-  revision = "5295e8364332db77d75fce11f1d19c053919a9c9"
+  packages = ["cast5","curve25519","ed25519","ed25519/internal/edwards25519","internal/chacha20","internal/subtle","openpgp","openpgp/armor","openpgp/elgamal","openpgp/errors","openpgp/packet","openpgp/s2k","poly1305","ssh","ssh/agent","ssh/knownhosts"]
+  revision = "88737f569e3a9c7ab309cdc09a07fe7fc87233c3"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "4dfa2610cdf3b287375bbba5b8f2a14d3b01d8de"
+  revision = "1da14a5a36f220ea3f03470682b737b1dfd5de22"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
-  revision = "dad3d9fb7b6e83d0f9ac8f54670f6334c3a287b4"
+  packages = ["cpu","unix","windows"]
+  revision = "12500544f89f9420afe9529ba8940bf72d294972"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -390,42 +368,12 @@
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
-  version = "v2.2.1"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-<<<<<<< HEAD
-<<<<<<< HEAD
-  input-imports = [
-    "github.com/cloudfoundry/jibber_jabber",
-    "github.com/fatih/color",
-    "github.com/go-errors/errors",
-    "github.com/golang-collections/collections/stack",
-    "github.com/heroku/rollrus",
-    "github.com/jesseduffield/go-getter",
-    "github.com/jesseduffield/gocui",
-    "github.com/jesseduffield/pty",
-    "github.com/kardianos/osext",
-    "github.com/mgutz/str",
-    "github.com/nicksnyder/go-i18n/v2/i18n",
-    "github.com/shibukawa/configdir",
-    "github.com/sirupsen/logrus",
-    "github.com/spf13/viper",
-    "github.com/spkg/bom",
-    "github.com/stretchr/testify/assert",
-    "github.com/tcnksm/go-gitconfig",
-    "golang.org/x/text/language",
-    "gopkg.in/src-d/go-git.v4",
-    "gopkg.in/src-d/go-git.v4/plumbing",
-    "gopkg.in/yaml.v2",
-  ]
-=======
-  inputs-digest = "fcac3c7b0c906d332f40d5a002adc51112e6144ad6769b0bc13ebc678e8bc29d"
->>>>>>> vendor: add go-cmd dependency
-=======
-  inputs-digest = "f0c184d543c5d04d83c4c753e988ea61c3c1c88a9863d5732a8074b4f8646e74"
->>>>>>> Fix up module dependency
+  inputs-digest = "fa3f18ade8b4eabf6769482cc868ea21fa4ca9f2a0d07521ef6b27288fa6de38"
   solver-name = "gps-cdcl"
   solver-version = 1

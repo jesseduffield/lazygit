@@ -1,0 +1,1103 @@
+{
+  "version": "2.0",
+  "service": "<fullname>AAWS Sever Migration Service</fullname> <p>This is the <i>AWS Sever Migration Service API Reference</i>. It provides descriptions, syntax, and usage examples for each of the actions and data types for the AWS Sever Migration Service (AWS SMS). The topic for each action shows the Query API request parameters and the XML response. You can also view the XML request elements in the WSDL.</p> <p>Alternatively, you can use one of the AWS SDKs to access an API that's tailored to the programming language or platform that you're using. For more information, see <a href=\"http://aws.amazon.com/tools/#SDKs\">AWS SDKs</a>.</p> <p>To learn more about the Server Migration Service, see the following resources:</p> <ul> <li> <p> <a href=\"https://aws.amazon.com/server-migration-service/\">AWS Sever Migration Service product page</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/server-migration-service/latest/userguide/server-migration.html\">AWS Sever Migration Service User Guide</a> </p> </li> </ul>",
+  "operations": {
+    "CreateApp": "<p>Creates an application. An application consists of one or more server groups. Each server group contain one or more servers.</p>",
+    "CreateReplicationJob": "<p>Creates a replication job. The replication job schedules periodic replication runs to replicate your server to AWS. Each replication run creates an Amazon Machine Image (AMI).</p>",
+    "DeleteApp": "<p>Deletes an existing application. Optionally deletes the launched stack associated with the application and all AWS SMS replication jobs for servers in the application.</p>",
+    "DeleteAppLaunchConfiguration": "<p>Deletes existing launch configuration for an application.</p>",
+    "DeleteAppReplicationConfiguration": "<p>Deletes existing replication configuration for an application.</p>",
+    "DeleteReplicationJob": "<p>Deletes the specified replication job.</p> <p>After you delete a replication job, there are no further replication runs. AWS deletes the contents of the Amazon S3 bucket used to store AWS SMS artifacts. The AMIs created by the replication runs are not deleted.</p>",
+    "DeleteServerCatalog": "<p>Deletes all servers from your server catalog.</p>",
+    "DisassociateConnector": "<p>Disassociates the specified connector from AWS SMS.</p> <p>After you disassociate a connector, it is no longer available to support replication jobs.</p>",
+    "GenerateChangeSet": "<p>Generates a target change set for a currently launched stack and writes it to an Amazon S3 object in the customer’s Amazon S3 bucket.</p>",
+    "GenerateTemplate": "<p>Generates an Amazon CloudFormation template based on the current launch configuration and writes it to an Amazon S3 object in the customer’s Amazon S3 bucket.</p>",
+    "GetApp": "<p>Retrieve information about an application.</p>",
+    "GetAppLaunchConfiguration": "<p>Retrieves the application launch configuration associated with an application.</p>",
+    "GetAppReplicationConfiguration": "<p>Retrieves an application replication configuration associatd with an application.</p>",
+    "GetConnectors": "<p>Describes the connectors registered with the AWS SMS.</p>",
+    "GetReplicationJobs": "<p>Describes the specified replication job or all of your replication jobs.</p>",
+    "GetReplicationRuns": "<p>Describes the replication runs for the specified replication job.</p>",
+    "GetServers": "<p>Describes the servers in your server catalog.</p> <p>Before you can describe your servers, you must import them using <a>ImportServerCatalog</a>.</p>",
+    "ImportServerCatalog": "<p>Gathers a complete list of on-premises servers. Connectors must be installed and monitoring all servers that you want to import.</p> <p>This call returns immediately, but might take additional time to retrieve all the servers.</p>",
+    "LaunchApp": "<p>Launches an application stack.</p>",
+    "ListApps": "<p>Returns a list of summaries for all applications.</p>",
+    "PutAppLaunchConfiguration": "<p>Creates a launch configuration for an application.</p>",
+    "PutAppReplicationConfiguration": "<p>Creates or updates a replication configuration for an application.</p>",
+    "StartAppReplication": "<p>Starts replicating an application.</p>",
+    "StartOnDemandReplicationRun": "<p>Starts an on-demand replication run for the specified replication job. This replication run starts immediately. This replication run is in addition to the ones already scheduled.</p> <p>There is a limit on the number of on-demand replications runs you can request in a 24-hour period.</p>",
+    "StopAppReplication": "<p>Stops replicating an application.</p>",
+    "TerminateApp": "<p>Terminates the stack for an application.</p>",
+    "UpdateApp": "<p>Updates an application.</p>",
+    "UpdateReplicationJob": "<p>Updates the specified settings for the specified replication job.</p>"
+  },
+  "shapes": {
+    "AmiId": {
+      "base": null,
+      "refs": {
+        "ReplicationJob$latestAmiId": "<p>The ID of the latest Amazon Machine Image (AMI).</p>",
+        "ReplicationRun$amiId": "<p>The identifier of the Amazon Machine Image (AMI) from the replication run.</p>"
+      }
+    },
+    "AppDescription": {
+      "base": null,
+      "refs": {
+        "AppSummary$description": "<p>Description of the application.</p>",
+        "CreateAppRequest$description": "<p>Description of the new application</p>",
+        "UpdateAppRequest$description": "<p>New description of the application.</p>"
+      }
+    },
+    "AppId": {
+      "base": null,
+      "refs": {
+        "AppIds$member": null,
+        "AppSummary$appId": "<p>Unique ID of the application.</p>",
+        "DeleteAppLaunchConfigurationRequest$appId": "<p>ID of the application associated with the launch configuration.</p>",
+        "DeleteAppReplicationConfigurationRequest$appId": "<p>ID of the application associated with the replication configuration.</p>",
+        "DeleteAppRequest$appId": "<p>ID of the application to delete.</p>",
+        "GenerateChangeSetRequest$appId": "<p>ID of the application associated with the change set.</p>",
+        "GenerateTemplateRequest$appId": "<p>ID of the application associated with the Amazon CloudFormation template.</p>",
+        "GetAppLaunchConfigurationRequest$appId": "<p>ID of the application launch configuration.</p>",
+        "GetAppLaunchConfigurationResponse$appId": "<p>ID of the application associated with the launch configuration.</p>",
+        "GetAppReplicationConfigurationRequest$appId": "<p>ID of the application associated with the replication configuration.</p>",
+        "GetAppRequest$appId": "<p>ID of the application whose information is being retrieved.</p>",
+        "LaunchAppRequest$appId": "<p>ID of the application to launch.</p>",
+        "PutAppLaunchConfigurationRequest$appId": "<p>ID of the application associated with the launch configuration.</p>",
+        "PutAppReplicationConfigurationRequest$appId": "<p>ID of the application tassociated with the replication configuration.</p>",
+        "StartAppReplicationRequest$appId": "<p>ID of the application to replicate.</p>",
+        "StopAppReplicationRequest$appId": "<p>ID of the application to stop replicating.</p>",
+        "TerminateAppRequest$appId": "<p>ID of the application to terminate.</p>",
+        "UpdateAppRequest$appId": "<p>ID of the application to update.</p>"
+      }
+    },
+    "AppIds": {
+      "base": null,
+      "refs": {
+        "ListAppsRequest$appIds": "<p/>"
+      }
+    },
+    "AppLaunchStatus": {
+      "base": null,
+      "refs": {
+        "AppSummary$launchStatus": "<p>Launch status of the application.</p>"
+      }
+    },
+    "AppLaunchStatusMessage": {
+      "base": null,
+      "refs": {
+        "AppSummary$launchStatusMessage": "<p>A message related to the launch status of the application.</p>"
+      }
+    },
+    "AppName": {
+      "base": null,
+      "refs": {
+        "AppSummary$name": "<p>Name of the application.</p>",
+        "CreateAppRequest$name": "<p>Name of the new application.</p>",
+        "UpdateAppRequest$name": "<p>New name of the application.</p>"
+      }
+    },
+    "AppReplicationStatus": {
+      "base": null,
+      "refs": {
+        "AppSummary$replicationStatus": "<p>Replication status of the application.</p>"
+      }
+    },
+    "AppReplicationStatusMessage": {
+      "base": null,
+      "refs": {
+        "AppSummary$replicationStatusMessage": "<p>A message related to the replication status of the application.</p>"
+      }
+    },
+    "AppStatus": {
+      "base": null,
+      "refs": {
+        "AppSummary$status": "<p>Status of the application.</p>"
+      }
+    },
+    "AppStatusMessage": {
+      "base": null,
+      "refs": {
+        "AppSummary$statusMessage": "<p>A message related to the status of the application</p>"
+      }
+    },
+    "AppSummary": {
+      "base": "<p>Information about the application.</p>",
+      "refs": {
+        "Apps$member": null,
+        "CreateAppResponse$appSummary": "<p>Summary description of the application.</p>",
+        "GetAppResponse$appSummary": "<p>Information about the application.</p>",
+        "UpdateAppResponse$appSummary": "<p>Summary description of the application.</p>"
+      }
+    },
+    "Apps": {
+      "base": null,
+      "refs": {
+        "ListAppsResponse$apps": "<p>A list of application summaries.</p>"
+      }
+    },
+    "AssociatePublicIpAddress": {
+      "base": null,
+      "refs": {
+        "ServerLaunchConfiguration$associatePublicIpAddress": "<p>If true, a publicly accessible IP address is created when launching the server.</p>"
+      }
+    },
+    "BucketName": {
+      "base": null,
+      "refs": {
+        "S3Location$bucket": "<p>Amazon S3 bucket name.</p>"
+      }
+    },
+    "ClientToken": {
+      "base": null,
+      "refs": {
+        "CreateAppRequest$clientToken": "<p>A unique, case-sensitive identifier you provide to ensure idempotency of application creation.</p>"
+      }
+    },
+    "Connector": {
+      "base": "<p>Represents a connector.</p>",
+      "refs": {
+        "ConnectorList$member": null
+      }
+    },
+    "ConnectorCapability": {
+      "base": null,
+      "refs": {
+        "ConnectorCapabilityList$member": null
+      }
+    },
+    "ConnectorCapabilityList": {
+      "base": null,
+      "refs": {
+        "Connector$capabilityList": "<p>The capabilities of the connector.</p>"
+      }
+    },
+    "ConnectorId": {
+      "base": null,
+      "refs": {
+        "Connector$connectorId": "<p>The identifier of the connector.</p>",
+        "DisassociateConnectorRequest$connectorId": "<p>The identifier of the connector.</p>"
+      }
+    },
+    "ConnectorList": {
+      "base": null,
+      "refs": {
+        "GetConnectorsResponse$connectorList": "<p>Information about the registered connectors.</p>"
+      }
+    },
+    "ConnectorStatus": {
+      "base": null,
+      "refs": {
+        "Connector$status": "<p>The status of the connector.</p>"
+      }
+    },
+    "ConnectorVersion": {
+      "base": null,
+      "refs": {
+        "Connector$version": "<p>The connector version.</p>"
+      }
+    },
+    "CreateAppRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateAppResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateReplicationJobRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateReplicationJobResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteAppLaunchConfigurationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteAppLaunchConfigurationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteAppReplicationConfigurationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteAppReplicationConfigurationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteAppRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteAppResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteReplicationJobRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteReplicationJobResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteServerCatalogRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteServerCatalogResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Description": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobRequest$description": "<p>The description of the replication job.</p>",
+        "ReplicationJob$description": "<p>The description of the replication job.</p>",
+        "ReplicationRun$description": "<p>The description of the replication run.</p>",
+        "StartOnDemandReplicationRunRequest$description": "<p>The description of the replication run.</p>",
+        "UpdateReplicationJobRequest$description": "<p>The description of the replication job.</p>"
+      }
+    },
+    "DisassociateConnectorRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateConnectorResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "EC2KeyName": {
+      "base": null,
+      "refs": {
+        "ServerLaunchConfiguration$ec2KeyName": "<p>Name of the EC2 SSH Key to be used for connecting to the launched server.</p>"
+      }
+    },
+    "Encrypted": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobRequest$encrypted": "<p>When <i>true</i>, the replication job produces encrypted AMIs. See also <code>KmsKeyId</code> below.</p>",
+        "ReplicationJob$encrypted": "<p>Whether the replication job should produce encrypted AMIs or not. See also <code>KmsKeyId</code> below.</p>",
+        "ReplicationRun$encrypted": "<p>Whether the replication run should produce encrypted AMI or not. See also <code>KmsKeyId</code> below.</p>",
+        "ServerReplicationParameters$encrypted": "<p>When true, the replication job produces encrypted AMIs. See also <code>KmsKeyId</code> below.</p>",
+        "UpdateReplicationJobRequest$encrypted": "<p>When true, the replication job produces encrypted AMIs . See also <code>KmsKeyId</code> below.</p>"
+      }
+    },
+    "ErrorMessage": {
+      "base": null,
+      "refs": {
+        "InternalError$message": null,
+        "InvalidParameterException$message": null,
+        "MissingRequiredParameterException$message": null,
+        "NoConnectorsAvailableException$message": null,
+        "OperationNotPermittedException$message": null,
+        "ReplicationJobAlreadyExistsException$message": null,
+        "ReplicationJobNotFoundException$message": null,
+        "ReplicationRunLimitExceededException$message": null,
+        "ServerCannotBeReplicatedException$message": null,
+        "UnauthorizedOperationException$message": null
+      }
+    },
+    "ForceStopAppReplication": {
+      "base": null,
+      "refs": {
+        "DeleteAppRequest$forceStopAppReplication": "<p>While deleting the application, stop all replication jobs corresponding to the servers in the application.</p>"
+      }
+    },
+    "ForceTerminateApp": {
+      "base": null,
+      "refs": {
+        "DeleteAppRequest$forceTerminateApp": "<p>While deleting the application, terminate the stack corresponding to the application.</p>"
+      }
+    },
+    "Frequency": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobRequest$frequency": "<p>The time between consecutive replication runs, in hours.</p>",
+        "ReplicationJob$frequency": "<p>The time between consecutive replication runs, in hours.</p>",
+        "ServerReplicationParameters$frequency": "<p>Frequency of creating replication jobs for the server.</p>",
+        "UpdateReplicationJobRequest$frequency": "<p>The time between consecutive replication runs, in hours.</p>"
+      }
+    },
+    "GenerateChangeSetRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GenerateChangeSetResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GenerateTemplateRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GenerateTemplateResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAppLaunchConfigurationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAppLaunchConfigurationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAppReplicationConfigurationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAppReplicationConfigurationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAppRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAppResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetConnectorsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetConnectorsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetReplicationJobsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetReplicationJobsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetReplicationRunsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetReplicationRunsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetServersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetServersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ImportServerCatalogRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ImportServerCatalogResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "InstanceType": {
+      "base": null,
+      "refs": {
+        "ServerLaunchConfiguration$instanceType": "<p>Instance type to be used for launching the server.</p>"
+      }
+    },
+    "InternalError": {
+      "base": "<p>An internal error occurred.</p>",
+      "refs": {
+      }
+    },
+    "InvalidParameterException": {
+      "base": "<p>A specified parameter is not valid.</p>",
+      "refs": {
+      }
+    },
+    "IpAddress": {
+      "base": null,
+      "refs": {
+        "Connector$ipAddress": "<p>The IP address of the connector.</p>"
+      }
+    },
+    "KeyName": {
+      "base": null,
+      "refs": {
+        "S3Location$key": "<p>Amazon S3 bucket key.</p>"
+      }
+    },
+    "KmsKeyId": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobRequest$kmsKeyId": "<p>KMS key ID for replication jobs that produce encrypted AMIs. Can be any of the following: </p> <ul> <li> <p>KMS key ID</p> </li> <li> <p>KMS key alias</p> </li> <li> <p>ARN referring to KMS key ID</p> </li> <li> <p>ARN referring to KMS key alias</p> </li> </ul> <p> If encrypted is <i>true</i> but a KMS key id is not specified, the customer's default KMS key for EBS is used. </p>",
+        "ReplicationJob$kmsKeyId": "<p>KMS key ID for replication jobs that produce encrypted AMIs. Can be any of the following: </p> <ul> <li> <p>KMS key ID</p> </li> <li> <p>KMS key alias</p> </li> <li> <p>ARN referring to KMS key ID</p> </li> <li> <p>ARN referring to KMS key alias</p> </li> </ul> <p> If encrypted is <i>true</i> but a KMS key id is not specified, the customer's default KMS key for EBS is used. </p>",
+        "ReplicationRun$kmsKeyId": "<p>KMS key ID for replication jobs that produce encrypted AMIs. Can be any of the following: </p> <ul> <li> <p>KMS key ID</p> </li> <li> <p>KMS key alias</p> </li> <li> <p>ARN referring to KMS key ID</p> </li> <li> <p>ARN referring to KMS key alias</p> </li> </ul> <p> If encrypted is <i>true</i> but a KMS key id is not specified, the customer's default KMS key for EBS is used. </p>",
+        "ServerReplicationParameters$kmsKeyId": "<p/> <p>KMS key ID for replication jobs that produce encrypted AMIs. Can be any of the following: </p> <ul> <li> <p>KMS key ID</p> </li> <li> <p>KMS key alias</p> </li> <li> <p>ARN referring to KMS key ID</p> </li> <li> <p>ARN referring to KMS key alias</p> </li> </ul> <p> If encrypted is <i>true</i> but a KMS key id is not specified, the customer's default KMS key for EBS is used. </p>",
+        "UpdateReplicationJobRequest$kmsKeyId": "<p/> <p>KMS key ID for replication jobs that produce encrypted AMIs. Can be any of the following: </p> <ul> <li> <p>KMS key ID</p> </li> <li> <p>KMS key alias</p> </li> <li> <p>ARN referring to KMS key ID</p> </li> <li> <p>ARN referring to KMS key alias</p> </li> </ul> <p> If encrypted is <i>true</i> but a KMS key id is not specified, the customer's default KMS key for EBS is used. </p>"
+      }
+    },
+    "LaunchAppRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "LaunchAppResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "LaunchDetails": {
+      "base": "<p>Details about the latest launch of an application.</p>",
+      "refs": {
+        "AppSummary$launchDetails": "<p>Details about the latest launch of the application.</p>"
+      }
+    },
+    "LaunchOrder": {
+      "base": null,
+      "refs": {
+        "ServerGroupLaunchConfiguration$launchOrder": "<p>Launch order of servers in the server group.</p>"
+      }
+    },
+    "LicenseType": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobRequest$licenseType": "<p>The license type to be used for the AMI created by a successful replication run.</p>",
+        "ReplicationJob$licenseType": "<p>The license type to be used for the AMI created by a successful replication run.</p>",
+        "ServerReplicationParameters$licenseType": "<p>License type for creating a replication job for the server.</p>",
+        "UpdateReplicationJobRequest$licenseType": "<p>The license type to be used for the AMI created by a successful replication run.</p>"
+      }
+    },
+    "ListAppsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListAppsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "LogicalId": {
+      "base": null,
+      "refs": {
+        "ServerLaunchConfiguration$logicalId": "<p>Logical ID of the server in the Amazon CloudFormation template.</p>"
+      }
+    },
+    "MacAddress": {
+      "base": null,
+      "refs": {
+        "Connector$macAddress": "<p>The MAC address of the connector.</p>"
+      }
+    },
+    "MaxResults": {
+      "base": null,
+      "refs": {
+        "GetConnectorsRequest$maxResults": "<p>The maximum number of results to return in a single call. The default value is 50. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
+        "GetReplicationJobsRequest$maxResults": "<p>The maximum number of results to return in a single call. The default value is 50. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
+        "GetReplicationRunsRequest$maxResults": "<p>The maximum number of results to return in a single call. The default value is 50. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
+        "GetServersRequest$maxResults": "<p>The maximum number of results to return in a single call. The default value is 50. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
+        "ListAppsRequest$maxResults": "<p>The maximum number of results to return in a single call. The default value is 50. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value. </p>"
+      }
+    },
+    "MissingRequiredParameterException": {
+      "base": "<p>A required parameter is missing.</p>",
+      "refs": {
+      }
+    },
+    "NextToken": {
+      "base": null,
+      "refs": {
+        "GetConnectorsRequest$nextToken": "<p>The token for the next set of results.</p>",
+        "GetConnectorsResponse$nextToken": "<p>The token required to retrieve the next set of results. This value is null when there are no more results to return.</p>",
+        "GetReplicationJobsRequest$nextToken": "<p>The token for the next set of results.</p>",
+        "GetReplicationJobsResponse$nextToken": "<p>The token required to retrieve the next set of results. This value is null when there are no more results to return.</p>",
+        "GetReplicationRunsRequest$nextToken": "<p>The token for the next set of results.</p>",
+        "GetReplicationRunsResponse$nextToken": "<p>The token required to retrieve the next set of results. This value is null when there are no more results to return.</p>",
+        "GetServersRequest$nextToken": "<p>The token for the next set of results.</p>",
+        "GetServersResponse$nextToken": "<p>The token required to retrieve the next set of results. This value is null when there are no more results to return.</p>",
+        "ListAppsRequest$nextToken": "<p>The token for the next set of results.</p>",
+        "ListAppsResponse$nextToken": "<p>The token required to retrieve the next set of results. This value is null when there are no more results to return.</p>"
+      }
+    },
+    "NoConnectorsAvailableException": {
+      "base": "<p>There are no connectors available.</p>",
+      "refs": {
+      }
+    },
+    "NumberOfRecentAmisToKeep": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobRequest$numberOfRecentAmisToKeep": "<p>The maximum number of SMS-created AMIs to retain. The oldest will be deleted once the maximum number is reached and a new AMI is created.</p>",
+        "ReplicationJob$numberOfRecentAmisToKeep": "<p>Number of recent AMIs to keep in the customer's account for a replication job. By default the value is set to zero, meaning that all AMIs are kept.</p>",
+        "ServerReplicationParameters$numberOfRecentAmisToKeep": "<p>Number of recent AMIs to keep when creating a replication job for this server.</p>",
+        "UpdateReplicationJobRequest$numberOfRecentAmisToKeep": "<p>The maximum number of SMS-created AMIs to retain. The oldest will be deleted once the maximum number is reached and a new AMI is created.</p>"
+      }
+    },
+    "OperationNotPermittedException": {
+      "base": "<p>This operation is not allowed.</p>",
+      "refs": {
+      }
+    },
+    "OutputFormat": {
+      "base": null,
+      "refs": {
+        "GenerateChangeSetRequest$changesetFormat": "<p>Format for the change set.</p>",
+        "GenerateTemplateRequest$templateFormat": "<p>Format for generating the Amazon CloudFormation template.</p>"
+      }
+    },
+    "PutAppLaunchConfigurationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutAppLaunchConfigurationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutAppReplicationConfigurationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutAppReplicationConfigurationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ReplicationJob": {
+      "base": "<p>Represents a replication job.</p>",
+      "refs": {
+        "GetReplicationRunsResponse$replicationJob": "<p>Information about the replication job.</p>",
+        "ReplicationJobList$member": null
+      }
+    },
+    "ReplicationJobAlreadyExistsException": {
+      "base": "<p>The specified replication job already exists.</p>",
+      "refs": {
+      }
+    },
+    "ReplicationJobId": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobResponse$replicationJobId": "<p>The unique identifier of the replication job.</p>",
+        "DeleteReplicationJobRequest$replicationJobId": "<p>The identifier of the replication job.</p>",
+        "GetReplicationJobsRequest$replicationJobId": "<p>The identifier of the replication job.</p>",
+        "GetReplicationRunsRequest$replicationJobId": "<p>The identifier of the replication job.</p>",
+        "ReplicationJob$replicationJobId": "<p>The identifier of the replication job.</p>",
+        "Server$replicationJobId": "<p>The identifier of the replication job.</p>",
+        "StartOnDemandReplicationRunRequest$replicationJobId": "<p>The identifier of the replication job.</p>",
+        "UpdateReplicationJobRequest$replicationJobId": "<p>The identifier of the replication job.</p>"
+      }
+    },
+    "ReplicationJobList": {
+      "base": null,
+      "refs": {
+        "GetReplicationJobsResponse$replicationJobList": "<p>Information about the replication jobs.</p>"
+      }
+    },
+    "ReplicationJobNotFoundException": {
+      "base": "<p>The specified replication job does not exist.</p>",
+      "refs": {
+      }
+    },
+    "ReplicationJobState": {
+      "base": null,
+      "refs": {
+        "ReplicationJob$state": "<p>The state of the replication job.</p>"
+      }
+    },
+    "ReplicationJobStatusMessage": {
+      "base": null,
+      "refs": {
+        "ReplicationJob$statusMessage": "<p>The description of the current status of the replication job.</p>"
+      }
+    },
+    "ReplicationJobTerminated": {
+      "base": null,
+      "refs": {
+        "Server$replicationJobTerminated": "<p>Indicates whether the replication job is deleted or failed.</p>"
+      }
+    },
+    "ReplicationRun": {
+      "base": "<p>Represents a replication run.</p>",
+      "refs": {
+        "ReplicationRunList$member": null
+      }
+    },
+    "ReplicationRunId": {
+      "base": null,
+      "refs": {
+        "ReplicationRun$replicationRunId": "<p>The identifier of the replication run.</p>",
+        "StartOnDemandReplicationRunResponse$replicationRunId": "<p>The identifier of the replication run.</p>"
+      }
+    },
+    "ReplicationRunLimitExceededException": {
+      "base": "<p>You have exceeded the number of on-demand replication runs you can request in a 24-hour period.</p>",
+      "refs": {
+      }
+    },
+    "ReplicationRunList": {
+      "base": null,
+      "refs": {
+        "GetReplicationRunsResponse$replicationRunList": "<p>Information about the replication runs.</p>",
+        "ReplicationJob$replicationRunList": "<p>Information about the replication runs.</p>"
+      }
+    },
+    "ReplicationRunStage": {
+      "base": null,
+      "refs": {
+        "ReplicationRunStageDetails$stage": "<p>String describing the current stage of a replication run.</p>"
+      }
+    },
+    "ReplicationRunStageDetails": {
+      "base": "<p>Details of the current stage of a replication run.</p>",
+      "refs": {
+        "ReplicationRun$stageDetails": "<p>Details of the current stage of the replication run.</p>"
+      }
+    },
+    "ReplicationRunStageProgress": {
+      "base": null,
+      "refs": {
+        "ReplicationRunStageDetails$stageProgress": "<p>String describing the progress of the current stage of a replication run.</p>"
+      }
+    },
+    "ReplicationRunState": {
+      "base": null,
+      "refs": {
+        "ReplicationRun$state": "<p>The state of the replication run.</p>"
+      }
+    },
+    "ReplicationRunStatusMessage": {
+      "base": null,
+      "refs": {
+        "ReplicationRun$statusMessage": "<p>The description of the current status of the replication job.</p>"
+      }
+    },
+    "ReplicationRunType": {
+      "base": null,
+      "refs": {
+        "ReplicationRun$type": "<p>The type of replication run.</p>"
+      }
+    },
+    "RoleName": {
+      "base": null,
+      "refs": {
+        "AppSummary$roleName": "<p>Name of the service role in the customer's account used by AWS SMS.</p>",
+        "CreateAppRequest$roleName": "<p>Name of service role in customer's account to be used by AWS SMS.</p>",
+        "CreateReplicationJobRequest$roleName": "<p>The name of the IAM role to be used by the AWS SMS.</p>",
+        "GetAppLaunchConfigurationResponse$roleName": "<p>Name of the service role in the customer's account that Amazon CloudFormation uses to launch the application.</p>",
+        "PutAppLaunchConfigurationRequest$roleName": "<p>Name of service role in the customer's account that Amazon CloudFormation uses to launch the application.</p>",
+        "ReplicationJob$roleName": "<p>The name of the IAM role to be used by the Server Migration Service.</p>",
+        "UpdateAppRequest$roleName": "<p>Name of the service role in the customer's account used by AWS SMS.</p>",
+        "UpdateReplicationJobRequest$roleName": "<p>The name of the IAM role to be used by AWS SMS.</p>"
+      }
+    },
+    "RunOnce": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobRequest$runOnce": "<p/>",
+        "ReplicationJob$runOnce": "<p/>",
+        "ServerReplicationParameters$runOnce": "<p/>"
+      }
+    },
+    "S3Location": {
+      "base": "<p>Location of the Amazon S3 object in the customer's account.</p>",
+      "refs": {
+        "GenerateChangeSetResponse$s3Location": "<p>Location of the Amazon S3 object.</p>",
+        "GenerateTemplateResponse$s3Location": "<p>Location of the Amazon S3 object.</p>",
+        "UserData$s3Location": "<p>Amazon S3 location of the user-data script.</p>"
+      }
+    },
+    "SecurityGroup": {
+      "base": null,
+      "refs": {
+        "ServerLaunchConfiguration$securityGroup": "<p>Identifier of the security group that applies to the launched server.</p>"
+      }
+    },
+    "Server": {
+      "base": "<p>Represents a server.</p>",
+      "refs": {
+        "ServerLaunchConfiguration$server": "<p>Identifier of the server the launch configuration is associated with.</p>",
+        "ServerList$member": null,
+        "ServerReplicationConfiguration$server": "<p>Identifier of the server this replication configuration is associated with.</p>"
+      }
+    },
+    "ServerCannotBeReplicatedException": {
+      "base": "<p>The specified server cannot be replicated.</p>",
+      "refs": {
+      }
+    },
+    "ServerCatalogStatus": {
+      "base": null,
+      "refs": {
+        "GetServersResponse$serverCatalogStatus": "<p>The status of the server catalog.</p>"
+      }
+    },
+    "ServerGroup": {
+      "base": "<p>A logical grouping of servers.</p>",
+      "refs": {
+        "ServerGroups$member": null
+      }
+    },
+    "ServerGroupId": {
+      "base": null,
+      "refs": {
+        "ServerGroup$serverGroupId": "<p>Identifier of a server group.</p>",
+        "ServerGroupLaunchConfiguration$serverGroupId": "<p>Identifier of the server group the launch configuration is associated with.</p>",
+        "ServerGroupReplicationConfiguration$serverGroupId": "<p>Identifier of the server group this replication configuration is associated with.</p>"
+      }
+    },
+    "ServerGroupLaunchConfiguration": {
+      "base": "<p>Launch configuration for a server group.</p>",
+      "refs": {
+        "ServerGroupLaunchConfigurations$member": null
+      }
+    },
+    "ServerGroupLaunchConfigurations": {
+      "base": null,
+      "refs": {
+        "GetAppLaunchConfigurationResponse$serverGroupLaunchConfigurations": "<p>List of launch configurations for server groups in this application.</p>",
+        "PutAppLaunchConfigurationRequest$serverGroupLaunchConfigurations": "<p>Launch configurations for server groups in the application.</p>"
+      }
+    },
+    "ServerGroupName": {
+      "base": null,
+      "refs": {
+        "ServerGroup$name": "<p>Name of a server group.</p>"
+      }
+    },
+    "ServerGroupReplicationConfiguration": {
+      "base": "<p>Replication configuration for a server group.</p>",
+      "refs": {
+        "ServerGroupReplicationConfigurations$member": null
+      }
+    },
+    "ServerGroupReplicationConfigurations": {
+      "base": null,
+      "refs": {
+        "GetAppReplicationConfigurationResponse$serverGroupReplicationConfigurations": "<p>Replication configurations associated with server groups in this application.</p>",
+        "PutAppReplicationConfigurationRequest$serverGroupReplicationConfigurations": "<p>Replication configurations for server groups in the application.</p>"
+      }
+    },
+    "ServerGroups": {
+      "base": null,
+      "refs": {
+        "CreateAppRequest$serverGroups": "<p>List of server groups to include in the application.</p>",
+        "CreateAppResponse$serverGroups": "<p>List of server groups included in the application.</p>",
+        "GetAppResponse$serverGroups": "<p>List of server groups belonging to the application.</p>",
+        "UpdateAppRequest$serverGroups": "<p>List of server groups in the application to update.</p>",
+        "UpdateAppResponse$serverGroups": "<p>List of updated server groups in the application.</p>"
+      }
+    },
+    "ServerId": {
+      "base": null,
+      "refs": {
+        "CreateReplicationJobRequest$serverId": "<p>The identifier of the server.</p>",
+        "ReplicationJob$serverId": "<p>The identifier of the server.</p>",
+        "Server$serverId": "<p>The identifier of the server.</p>"
+      }
+    },
+    "ServerLaunchConfiguration": {
+      "base": "<p>Launch configuration for a server.</p>",
+      "refs": {
+        "ServerLaunchConfigurations$member": null
+      }
+    },
+    "ServerLaunchConfigurations": {
+      "base": null,
+      "refs": {
+        "ServerGroupLaunchConfiguration$serverLaunchConfigurations": "<p>Launch configuration for servers in the server group.</p>"
+      }
+    },
+    "ServerList": {
+      "base": null,
+      "refs": {
+        "GetServersResponse$serverList": "<p>Information about the servers.</p>",
+        "ServerGroup$serverList": "<p>List of servers belonging to a server group.</p>"
+      }
+    },
+    "ServerReplicationConfiguration": {
+      "base": "<p>Replication configuration of a server.</p>",
+      "refs": {
+        "ServerReplicationConfigurations$member": null
+      }
+    },
+    "ServerReplicationConfigurations": {
+      "base": null,
+      "refs": {
+        "ServerGroupReplicationConfiguration$serverReplicationConfigurations": "<p>Replication configuration for servers in the server group.</p>"
+      }
+    },
+    "ServerReplicationParameters": {
+      "base": "<p>Replication parameters for replicating a server.</p>",
+      "refs": {
+        "ServerReplicationConfiguration$serverReplicationParameters": "<p>Parameters for replicating the server.</p>"
+      }
+    },
+    "ServerType": {
+      "base": null,
+      "refs": {
+        "ReplicationJob$serverType": "<p>The type of server.</p>",
+        "Server$serverType": "<p>The type of server.</p>"
+      }
+    },
+    "StackId": {
+      "base": null,
+      "refs": {
+        "LaunchDetails$stackId": "<p>Identifier of the latest stack launched for this application.</p>"
+      }
+    },
+    "StackName": {
+      "base": null,
+      "refs": {
+        "LaunchDetails$stackName": "<p>Name of the latest stack launched for this application.</p>"
+      }
+    },
+    "StartAppReplicationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "StartAppReplicationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "StartOnDemandReplicationRunRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "StartOnDemandReplicationRunResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "StopAppReplicationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "StopAppReplicationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Subnet": {
+      "base": null,
+      "refs": {
+        "ServerLaunchConfiguration$subnet": "<p>Identifier of the subnet the server should be launched into.</p>"
+      }
+    },
+    "Tag": {
+      "base": "<p>A label that can be assigned to an application.</p>",
+      "refs": {
+        "Tags$member": null
+      }
+    },
+    "TagKey": {
+      "base": null,
+      "refs": {
+        "Tag$key": "<p>Tag key.</p>"
+      }
+    },
+    "TagValue": {
+      "base": null,
+      "refs": {
+        "Tag$value": "<p>Tag value.</p>"
+      }
+    },
+    "Tags": {
+      "base": null,
+      "refs": {
+        "CreateAppRequest$tags": "<p>List of tags to be associated with the application.</p>",
+        "CreateAppResponse$tags": "<p>List of taags associated with the application.</p>",
+        "GetAppResponse$tags": "<p>List of tags associated with the application.</p>",
+        "UpdateAppRequest$tags": "<p>List of tags to associate with the application.</p>",
+        "UpdateAppResponse$tags": "<p>List of tags associated with the application.</p>"
+      }
+    },
+    "TemporarilyUnavailableException": {
+      "base": "<p>The service is temporarily unavailable.</p>",
+      "refs": {
+      }
+    },
+    "TerminateAppRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "TerminateAppResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Timestamp": {
+      "base": null,
+      "refs": {
+        "AppSummary$latestReplicationTime": "<p>Timestamp of the application's most recent successful replication.</p>",
+        "AppSummary$creationTime": "<p>Time of creation of this application.</p>",
+        "AppSummary$lastModified": "<p>Timestamp of the application's creation.</p>",
+        "Connector$associatedOn": "<p>The time the connector was associated.</p>",
+        "CreateReplicationJobRequest$seedReplicationTime": "<p>The seed replication time.</p>",
+        "GetServersResponse$lastModifiedOn": "<p>The time when the server was last modified.</p>",
+        "LaunchDetails$latestLaunchTime": "<p>Latest time this application was launched successfully.</p>",
+        "ReplicationJob$seedReplicationTime": "<p>The seed replication time.</p>",
+        "ReplicationJob$nextReplicationRunStartTime": "<p>The start time of the next replication run.</p>",
+        "ReplicationRun$scheduledStartTime": "<p>The start time of the next replication run.</p>",
+        "ReplicationRun$completedTime": "<p>The completion time of the last replication run.</p>",
+        "ServerReplicationParameters$seedTime": "<p>Seed time for creating a replication job for the server.</p>",
+        "UpdateReplicationJobRequest$nextReplicationRunStartTime": "<p>The start time of the next replication run.</p>"
+      }
+    },
+    "TotalServerGroups": {
+      "base": null,
+      "refs": {
+        "AppSummary$totalServerGroups": "<p>Number of server groups present in the application.</p>"
+      }
+    },
+    "TotalServers": {
+      "base": null,
+      "refs": {
+        "AppSummary$totalServers": "<p>Number of servers present in the application.</p>"
+      }
+    },
+    "UnauthorizedOperationException": {
+      "base": "<p>You lack permissions needed to perform this operation. Check your IAM policies, and ensure that you are using the correct access keys.</p>",
+      "refs": {
+      }
+    },
+    "UpdateAppRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateAppResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateReplicationJobRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateReplicationJobResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UserData": {
+      "base": "<p>A script that runs on first launch of an Amazon EC2 instance. Used for configuring the server during launch.</p>",
+      "refs": {
+        "ServerLaunchConfiguration$userData": "<p>Location of the user-data script to be executed when launching the server.</p>"
+      }
+    },
+    "VPC": {
+      "base": null,
+      "refs": {
+        "ServerLaunchConfiguration$vpc": "<p>Identifier of the VPC the server should be launched into.</p>"
+      }
+    },
+    "VmId": {
+      "base": null,
+      "refs": {
+        "VmServerAddress$vmId": "<p>The identifier of the VM.</p>"
+      }
+    },
+    "VmManagerId": {
+      "base": null,
+      "refs": {
+        "Connector$vmManagerId": "<p>The identifier of the VM manager.</p>",
+        "VmServerAddress$vmManagerId": "<p>The identifier of the VM manager.</p>"
+      }
+    },
+    "VmManagerName": {
+      "base": null,
+      "refs": {
+        "Connector$vmManagerName": "<p>The name of the VM manager.</p>",
+        "VmServer$vmManagerName": "<p>The name of the VM manager.</p>"
+      }
+    },
+    "VmManagerType": {
+      "base": null,
+      "refs": {
+        "Connector$vmManagerType": "<p>The VM management product.</p>",
+        "VmServer$vmManagerType": "<p>The type of VM management product.</p>"
+      }
+    },
+    "VmName": {
+      "base": null,
+      "refs": {
+        "VmServer$vmName": "<p>The name of the VM.</p>"
+      }
+    },
+    "VmPath": {
+      "base": null,
+      "refs": {
+        "VmServer$vmPath": "<p>The VM folder path in the vCenter Server virtual machine inventory tree.</p>"
+      }
+    },
+    "VmServer": {
+      "base": "<p>Represents a VM server.</p>",
+      "refs": {
+        "ReplicationJob$vmServer": "<p>Information about the VM server.</p>",
+        "Server$vmServer": "<p>Information about the VM server.</p>"
+      }
+    },
+    "VmServerAddress": {
+      "base": "<p>Represents a VM server location.</p>",
+      "refs": {
+        "VmServer$vmServerAddress": "<p>Information about the VM server location.</p>",
+        "VmServerAddressList$member": null
+      }
+    },
+    "VmServerAddressList": {
+      "base": null,
+      "refs": {
+        "GetServersRequest$vmServerAddressList": "<p>List of <code>VmServerAddress</code> objects</p>"
+      }
+    }
+  }
+}

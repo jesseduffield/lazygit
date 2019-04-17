@@ -1,0 +1,19 @@
+- id: program_greeting
+  translation: Hello world
+
+- id: your_unread_email_count
+  translation:
+    one: You have {{.Count}} unread email.
+    other: You have {{.Count}} unread emails.
+
+- id: my_height_in_meters
+  translation:
+    one: I am {{.Count}} meter tall.
+    other: I am {{.Count}} meters tall.
+
+- id: person_unread_email_count_timeframe
+  translation:
+    one: "{{.Person}} has {{.Count}} unread email in the past {{.Timeframe}}."
+    
+- id: d_days
+  translation: this should get overwritten

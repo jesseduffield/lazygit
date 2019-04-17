@@ -99,7 +99,7 @@ handler logs every request and its payload made by a service client:
 
 	sess.Handlers.Send.PushFront(func(r *request.Request) {
 		// Log every request made and its payload
-		logger.Println("Request: %s/%s, Payload: %s",
+		logger.Printf("Request: %s/%s, Payload: %s",
 			r.ClientInfo.ServiceName, r.Operation, r.Params)
 	})
 
@@ -183,7 +183,7 @@ be returned when creating the session.
     // from assumed role.
     svc := s3.New(sess)
 
-To setup assume role outside of a session see the stscrds.AssumeRoleProvider
+To setup assume role outside of a session see the stscreds.AssumeRoleProvider
 documentation.
 
 Environment Variables

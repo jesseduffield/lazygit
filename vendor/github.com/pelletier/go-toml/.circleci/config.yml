@@ -1,0 +1,140 @@
+version: 2.1
+
+executors:
+    golang:
+        parameters:
+            version:
+                type: string
+        docker:
+            - image: circleci/golang:<< parameters.version >>
+
+commands:
+    get_deps:
+        description: "Get go dependencies"
+        steps:
+            - run: go get github.com/jstemmer/go-junit-report
+
+    run_test:
+        description: "Run unit tests for a go module"
+        parameters:
+            test_name:
+                type: string
+            module:
+                type: string
+            coverage:
+                default: false
+                type: boolean
+            allow_fail:
+                type: boolean
+                default: false
+        steps:
+            - run:
+                name: "Run tests for <<parameters.test_name>>"
+                command: |
+                    TEST_DIR="/tmp/test-results/<<parameters.test_name>>"
+                    mkdir -p ${TEST_DIR}
+                    trap "go-junit-report </tmp/test-results/go-test.out > ${TEST_DIR}/go-test-report.xml" EXIT
+                    go test <<parameters.module>> -race -v \
+                        <<# parameters.coverage >>-coverprofile=/tmp/workspace/coverage.txt -covermode=atomic<</ parameters.coverage >> \
+                        | tee /tmp/test-results/go-test.out <<# parameters.allow_fail >>|| true<</ parameters.allow_fail >>
+
+jobs:
+    go:
+        parameters:
+            version:
+                type: string
+            allow_fail:
+                type: boolean
+                default: false
+        executor:
+            name: golang
+            version: "<<parameters.version>>"
+        working_directory: /go/src/github.com/pelletier/go-toml
+        environment:
+          GO111MODULE: "on"
+        steps:
+            - checkout
+            - run: mkdir -p /tmp/workspace
+            - run: go fmt ./... <<# parameters.allow_fail >>|| true<</ parameters.allow_fail >>
+            - get_deps
+            - run_test:
+                test_name: "go-toml"
+                module: "github.com/pelletier/go-toml"
+                coverage: true
+                allow_fail: <<parameters.allow_fail>>
+            - run_test:
+                test_name: "tomljson"
+                module: "github.com/pelletier/go-toml/cmd/tomljson"
+                allow_fail: <<parameters.allow_fail>>
+            - run_test:
+                test_name: "tomll"
+                module: "github.com/pelletier/go-toml/cmd/tomll"
+                allow_fail: <<parameters.allow_fail>>
+            - run_test:
+                test_name: "query"
+                module: "github.com/pelletier/go-toml/query"
+                allow_fail: <<parameters.allow_fail>>
+            - store_test_results:
+                path: /tmp/test-results
+    codecov:
+        docker:
+            - image: "circleci/golang:1.12"
+        steps:
+            - attach_workspace:
+                at: /tmp/workspace
+            - run:
+                name: "upload to codecov"
+                working_directory: /tmp/workspace
+                command: |
+                    curl https://codecov.io/bash > codecov.sh
+                    bash codecov.sh -v
+
+workflows:
+    version: 2.1
+    build:
+        jobs:
+            - go:
+                name: "go1_11"
+                version: "1.11"
+            - go:
+                name: "go1_12"
+                version: "1.12"
+                post-steps:
+                    - run: go tool cover -html=/tmp/workspace/coverage.txt -o coverage.html
+                    - store_artifacts:
+                        path: /tmp/workspace/coverage.txt
+                    - store_artifacts:
+                        path: coverage.html
+                    - persist_to_workspace:
+                        root: /tmp/workspace
+                        paths:
+                            - coverage.txt
+            - go:
+                name: "gotip"
+                version: "1.12" # use as base
+                allow_fail: true
+                pre-steps:
+                    - restore_cache:
+                        keys:
+                            - go-tip-source
+                    - run:
+                        name: "Compile go tip"
+                        command: |
+                            if [ ! -d "/tmp/go" ]; then
+                                git clone https://go.googlesource.com/go /tmp/go
+                            fi
+                            cd /tmp/go
+                            git checkout master
+                            git pull
+                            cd src
+                            ./make.bash
+                            echo 'export PATH="/tmp/go/bin:$PATH"' >> $BASH_ENV
+                    - run: go version
+                    - save_cache:
+                        key: go-tip-source
+                        paths:
+                            - "/tmp/go"
+            - codecov:
+                requires:
+                    - go1_11
+                    - go1_12

@@ -309,7 +309,7 @@ func (l *tomlLexer) lexKey() tomlLexStateFn {
 			if err != nil {
 				return l.errorf(err.Error())
 			}
-			growingString += str
+			growingString += "\"" + str + "\""
 			l.next()
 			continue
 		} else if r == '\'' {
@@ -318,13 +318,15 @@ func (l *tomlLexer) lexKey() tomlLexStateFn {
 			if err != nil {
 				return l.errorf(err.Error())
 			}
-			growingString += str
+			growingString += "'" + str + "'"
 			l.next()
 			continue
 		} else if r == '\n' {
 			return l.errorf("keys cannot contain new lines")
 		} else if isSpace(r) {
 			break
+		} else if r == '.' {
+			// skip
 		} else if !isValidBareChar(r) {
 			return l.errorf("keys cannot contain %c character", r)
 		}

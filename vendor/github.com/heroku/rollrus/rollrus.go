@@ -37,7 +37,7 @@ var defaultTriggerLevels = []logrus.Level{
 type Hook struct {
 	roll.Client
 	triggers        []logrus.Level
-	ignoredErrors   map[error]struct{}
+	ignoredErrors   []error
 	ignoreErrorFunc func(error) bool
 	ignoreFunc      func(error, map[string]string) bool
 
@@ -78,12 +78,10 @@ func WithMinLevel(level logrus.Level) OptionFunc {
 }
 
 // WithIgnoredErrors is an OptionFunc that whitelists certain errors to prevent
-// them from firing.
+// them from firing. See https://golang.org/ref/spec#Comparison_operators
 func WithIgnoredErrors(errors ...error) OptionFunc {
 	return func(h *Hook) {
-		for _, e := range errors {
-			h.ignoredErrors[e] = struct{}{}
-		}
+		h.ignoredErrors = append(h.ignoredErrors, errors...)
 	}
 }
 
@@ -120,7 +118,7 @@ func NewHookForLevels(token string, env string, levels []logrus.Level) *Hook {
 	return &Hook{
 		Client:          roll.New(token, env),
 		triggers:        levels,
-		ignoredErrors:   make(map[error]struct{}),
+		ignoredErrors:   make([]error, 0),
 		ignoreErrorFunc: func(error) bool { return false },
 		ignoreFunc:      func(error, map[string]string) bool { return false },
 	}
@@ -179,8 +177,10 @@ func (r *Hook) Levels() []logrus.Level {
 // returned by Levels().
 func (r *Hook) Fire(entry *logrus.Entry) error {
 	trace, cause := extractError(entry)
-	if _, ok := r.ignoredErrors[cause]; ok {
-		return nil
+	for _, ie := range r.ignoredErrors {
+		if ie == cause {
+			return nil
+		}
 	}
 
 	if r.ignoreErrorFunc(cause) {

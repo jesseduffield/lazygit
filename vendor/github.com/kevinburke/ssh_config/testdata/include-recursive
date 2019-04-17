@@ -1,0 +1,4 @@
+Host kevinburke.ssh_config.test.example.com
+	# This file (or files) needs to be found in ~/.ssh or /etc/ssh, depending on
+	# the test. It should include itself.
+	Include kevinburke-ssh-config-recursive-include

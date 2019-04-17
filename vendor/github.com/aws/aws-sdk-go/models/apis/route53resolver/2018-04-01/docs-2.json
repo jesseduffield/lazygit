@@ -1,0 +1,728 @@
+{
+  "version": "2.0",
+  "service": "<p>Here's how you set up to query an Amazon Route 53 private hosted zone from your network:</p> <ol> <li> <p>Connect your network to a VPC using AWS Direct Connect or a VPN.</p> </li> <li> <p>Run the following AWS CLI command to create a Resolver endpoint:</p> <p> <code>create-resolver-endpoint --name [endpoint_name] --direction INBOUND --creator-request-id [unique_string] --security-group-ids [security_group_with_inbound_rules] --ip-addresses SubnetId=[subnet_id] SubnetId=[subnet_id_in_different_AZ]</code> </p> <p>Note the resolver endpoint ID that appears in the response. You'll use it in step 3.</p> </li> <li> <p>Get the IP addresses for the Resolver endpoints:</p> <p> <code>get-resolver-endpoint --resolver-endpoint-id [resolver_endpoint_id]</code> </p> </li> <li> <p>In your network configuration, define the IP addresses that you got in step 3 as DNS servers.</p> <p>You can now query instance names in your VPCs and the names of records in your private hosted zone.</p> </li> </ol> <p>You can also perform the following operations using the AWS CLI:</p> <ul> <li> <p> <code>list-resolver-endpoints</code>: List all endpoints. The syntax includes options for pagination and filtering.</p> </li> <li> <p> <code>update-resolver-endpoints</code>: Add IP addresses to an endpoint or remove IP addresses from an endpoint. </p> </li> </ul> <p>To delete an endpoint, use the following AWS CLI command:</p> <p> <code>delete-resolver-endpoint --resolver-endpoint-id [resolver_endpoint_id]</code> </p>",
+  "operations": {
+    "AssociateResolverEndpointIpAddress": "<p>Adds IP addresses to an inbound or an outbound resolver endpoint. If you want to adding more than one IP address, submit one <code>AssociateResolverEndpointIpAddress</code> request for each IP address.</p> <p>To remove an IP address from an endpoint, see <a>DisassociateResolverEndpointIpAddress</a>.</p>",
+    "AssociateResolverRule": "<p>Associates a resolver rule with a VPC. When you associate a rule with a VPC, Resolver forwards all DNS queries for the domain name that is specified in the rule and that originate in the VPC. The queries are forwarded to the IP addresses for the DNS resolvers that are specified in the rule. For more information about rules, see <a>CreateResolverRule</a>. </p>",
+    "CreateResolverEndpoint": "<p>Creates a resolver endpoint. There are two types of resolver endpoints, inbound and outbound:</p> <ul> <li> <p>An <i>inbound resolver endpoint</i> forwards DNS queries to the DNS service for a VPC from your network or another VPC.</p> </li> <li> <p>An <i>outbound resolver endpoint</i> forwards DNS queries from the DNS service for a VPC to your network or another VPC.</p> </li> </ul>",
+    "CreateResolverRule": "<p>For DNS queries that originate in your VPCs, specifies which resolver endpoint the queries pass through, one domain name that you want to forward to your network, and the IP addresses of the DNS resolvers in your network.</p>",
+    "DeleteResolverEndpoint": "<p>Deletes a resolver endpoint. The effect of deleting a resolver endpoint depends on whether it's an inbound or an outbound resolver endpoint:</p> <ul> <li> <p> <b>Inbound</b>: DNS queries from your network or another VPC are no longer routed to the DNS service for the specified VPC.</p> </li> <li> <p> <b>Outbound</b>: DNS queries from a VPC are no longer routed to your network or to another VPC.</p> </li> </ul>",
+    "DeleteResolverRule": "<p>Deletes a resolver rule. Before you can delete a resolver rule, you must disassociate it from all the VPCs that you associated the resolver rule with. For more infomation, see <a>DisassociateResolverRule</a>.</p>",
+    "DisassociateResolverEndpointIpAddress": "<p>Removes IP addresses from an inbound or an outbound resolver endpoint. If you want to remove more than one IP address, submit one <code>DisassociateResolverEndpointIpAddress</code> request for each IP address.</p> <p>To add an IP address to an endpoint, see <a>AssociateResolverEndpointIpAddress</a>.</p>",
+    "DisassociateResolverRule": "<p>Removes the association between a specified resolver rule and a specified VPC.</p> <important> <p>If you disassociate a resolver rule from a VPC, Resolver stops forwarding DNS queries for the domain name that you specified in the resolver rule. </p> </important>",
+    "GetResolverEndpoint": "<p>Gets information about a specified resolver endpoint, such as whether it's an inbound or an outbound resolver endpoint, and the current status of the endpoint.</p>",
+    "GetResolverRule": "<p>Gets information about a specified resolver rule, such as the domain name that the rule forwards DNS queries for and the ID of the outbound resolver endpoint that the rule is associated with.</p>",
+    "GetResolverRuleAssociation": "<p>Gets information about an association between a specified resolver rule and a VPC. You associate a resolver rule and a VPC using <a>AssociateResolverRule</a>. </p>",
+    "GetResolverRulePolicy": "<p>Gets information about a resolver rule policy. A resolver rule policy specifies the Resolver operations and resources that you want to allow another AWS account to be able to use. </p>",
+    "ListResolverEndpointIpAddresses": "<p>Gets the IP addresses for a specified resolver endpoint.</p>",
+    "ListResolverEndpoints": "<p>Lists all the resolver endpoints that were created using the current AWS account.</p>",
+    "ListResolverRuleAssociations": "<p>Lists the associations that were created between resolver rules and VPCs using the current AWS account.</p>",
+    "ListResolverRules": "<p>Lists the resolver rules that were created using the current AWS account.</p>",
+    "ListTagsForResource": "<p>Lists the tags that you associated with the specified resource.</p>",
+    "PutResolverRulePolicy": "<p>Specifies the Resolver operations and resources that you want to allow another AWS account to be able to use.</p>",
+    "TagResource": "<p>Adds one or more tags to a specified resource.</p>",
+    "UntagResource": "<p>Removes one or more tags from a specified resource.</p>",
+    "UpdateResolverEndpoint": "<p>Updates the name of an inbound or an outbound resolver endpoint. </p>",
+    "UpdateResolverRule": "<p>Updates settings for a specified resolver rule. <code>ResolverRuleId</code> is required, and all other parameters are optional. If you don't specify a parameter, it retains its current value.</p>"
+  },
+  "shapes": {
+    "AccountId": {
+      "base": null,
+      "refs": {
+        "ResolverRule$OwnerId": "<p>When a rule is shared with another AWS account, the account ID of the account that the rule is shared with.</p>"
+      }
+    },
+    "Arn": {
+      "base": null,
+      "refs": {
+        "GetResolverRulePolicyRequest$Arn": "<p>The ID of the resolver rule policy that you want to get information about.</p>",
+        "ListTagsForResourceRequest$ResourceArn": "<p>The Amazon Resource Name (ARN) for the resource that you want to list tags for.</p>",
+        "PutResolverRulePolicyRequest$Arn": "<p>The Amazon Resource Name (ARN) of the account that you want to grant permissions to.</p>",
+        "ResolverEndpoint$Arn": "<p>The ARN (Amazon Resource Name) for the resolver endpoint.</p>",
+        "ResolverRule$Arn": "<p>The ARN (Amazon Resource Name) for the resolver rule specified by <code>Id</code>.</p>",
+        "TagResourceRequest$ResourceArn": "<p>The Amazon Resource Name (ARN) for the resource that you want to add tags to. To get the ARN for a resource, use the applicable <code>Get</code> or <code>List</code> command: </p> <ul> <li> <p> <a>GetResolverEndpoint</a> </p> </li> <li> <p> <a>GetResolverRule</a> </p> </li> <li> <p> <a>GetResolverRuleAssociation</a> </p> </li> <li> <p> <a>ListResolverEndpoints</a> </p> </li> <li> <p> <a>ListResolverRuleAssociations</a> </p> </li> <li> <p> <a>ListResolverRules</a> </p> </li> </ul>",
+        "UntagResourceRequest$ResourceArn": "<p>The Amazon Resource Name (ARN) for the resource that you want to remove tags from. To get the ARN for a resource, use the applicable <code>Get</code> or <code>List</code> command: </p> <ul> <li> <p> <a>GetResolverEndpoint</a> </p> </li> <li> <p> <a>GetResolverRule</a> </p> </li> <li> <p> <a>GetResolverRuleAssociation</a> </p> </li> <li> <p> <a>ListResolverEndpoints</a> </p> </li> <li> <p> <a>ListResolverRuleAssociations</a> </p> </li> <li> <p> <a>ListResolverRules</a> </p> </li> </ul>"
+      }
+    },
+    "AssociateResolverEndpointIpAddressRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateResolverEndpointIpAddressResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateResolverRuleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateResolverRuleResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Boolean": {
+      "base": null,
+      "refs": {
+        "PutResolverRulePolicyResponse$ReturnValue": "<p>Whether the <code>PutResolverRulePolicy</code> request was successful.</p>"
+      }
+    },
+    "CreateResolverEndpointRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateResolverEndpointResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateResolverRuleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateResolverRuleResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreatorRequestId": {
+      "base": null,
+      "refs": {
+        "CreateResolverEndpointRequest$CreatorRequestId": "<p>A unique string that identifies the request and that allows failed requests to be retried without the risk of executing the operation twice. <code>CreatorRequestId</code> can be any unique string, for example, a date/time stamp. </p>",
+        "CreateResolverRuleRequest$CreatorRequestId": "<p>A unique string that identifies the request and that allows failed requests to be retried without the risk of executing the operation twice. <code>CreatorRequestId</code> can be any unique string, for example, a date/time stamp. </p>",
+        "ResolverEndpoint$CreatorRequestId": "<p>A unique string that identifies the request that created the resolver endpoint. The <code>CreatorRequestId</code> allows failed requests to be retried without the risk of executing the operation twice.</p>",
+        "ResolverRule$CreatorRequestId": "<p>A unique string that you specified when you created the resolver rule. <code>CreatorRequestId</code>identifies the request and allows failed requests to be retried without the risk of executing the operation twice. </p>"
+      }
+    },
+    "DeleteResolverEndpointRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteResolverEndpointResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteResolverRuleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteResolverRuleResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateResolverEndpointIpAddressRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateResolverEndpointIpAddressResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateResolverRuleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateResolverRuleResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DomainName": {
+      "base": null,
+      "refs": {
+        "CreateResolverRuleRequest$DomainName": "<p>DNS queries for this domain name are forwarded to the IP addresses that you specify in <code>TargetIps</code>. If a query matches multiple resolver rules (example.com and www.example.com), outbound DNS queries are routed using the resolver rule that contains the most specific domain name (www.example.com).</p>",
+        "ResolverRule$DomainName": "<p>DNS queries for this domain name are forwarded to the IP addresses that are specified in <code>TargetIps</code>. If a query matches multiple resolver rules (example.com and www.example.com), the query is routed using the resolver rule that contains the most specific domain name (www.example.com).</p>"
+      }
+    },
+    "ExceptionMessage": {
+      "base": null,
+      "refs": {
+        "InternalServiceErrorException$Message": null,
+        "InvalidParameterException$Message": null,
+        "InvalidPolicyDocument$Message": null,
+        "InvalidRequestException$Message": null,
+        "InvalidTagException$Message": null,
+        "ThrottlingException$Message": null,
+        "UnknownResourceException$Message": null
+      }
+    },
+    "Filter": {
+      "base": "<p>For <code>List</code> operations, an optional specification to return a subset of objects, such as resolver endpoints or resolver rules.</p>",
+      "refs": {
+        "Filters$member": null
+      }
+    },
+    "FilterName": {
+      "base": null,
+      "refs": {
+        "Filter$Name": "<p>When you're using a <code>List</code> operation and you want the operation to return a subset of objects, such as resolver endpoints or resolver rules, the name of the parameter that you want to use to filter objects. For example, to list only inbound resolver endpoints, specify <code>Direction</code> for the value of <code>Name</code>.</p>"
+      }
+    },
+    "FilterValue": {
+      "base": null,
+      "refs": {
+        "FilterValues$member": null
+      }
+    },
+    "FilterValues": {
+      "base": null,
+      "refs": {
+        "Filter$Values": "<p>When you're using a <code>List</code> operation and you want the operation to return a subset of objects, such as resolver endpoints or resolver rules, the value of the parameter that you want to use to filter objects. For example, to list only inbound resolver endpoints, specify <code>INBOUND</code> for the value of <code>Values</code>.</p>"
+      }
+    },
+    "Filters": {
+      "base": null,
+      "refs": {
+        "ListResolverEndpointsRequest$Filters": "<p>An optional specification to return a subset of resolver endpoints, such as all inbound resolver endpoints.</p> <note> <p>If you submit a second or subsequent <code>ListResolverEndpoints</code> request and specify the <code>NextToken</code> parameter, you must use the same values for <code>Filters</code>, if any, as in the previous request.</p> </note>",
+        "ListResolverRuleAssociationsRequest$Filters": "<p>An optional specification to return a subset of resolver rules, such as resolver rules that are associated with the same VPC ID.</p> <note> <p>If you submit a second or subsequent <code>ListResolverRuleAssociations</code> request and specify the <code>NextToken</code> parameter, you must use the same values for <code>Filters</code>, if any, as in the previous request.</p> </note>",
+        "ListResolverRulesRequest$Filters": "<p>An optional specification to return a subset of resolver rules, such as all resolver rules that are associated with the same resolver endpoint.</p> <note> <p>If you submit a second or subsequent <code>ListResolverRules</code> request and specify the <code>NextToken</code> parameter, you must use the same values for <code>Filters</code>, if any, as in the previous request.</p> </note>"
+      }
+    },
+    "GetResolverEndpointRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResolverEndpointResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResolverRuleAssociationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResolverRuleAssociationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResolverRulePolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResolverRulePolicyResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResolverRuleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResolverRuleResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "InternalServiceErrorException": {
+      "base": "<p>We encountered an unknown error. Try again in a few minutes.</p>",
+      "refs": {
+      }
+    },
+    "InvalidNextTokenException": {
+      "base": "<p>The value that you specified for <code>NextToken</code> in a <code>List</code> request isn't valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidParameterException": {
+      "base": "<p>One or more parameters in this request are not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidPolicyDocument": {
+      "base": "<p>The specified resolver rule policy is invalid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRequestException": {
+      "base": "<p>The request is invalid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidTagException": {
+      "base": "<p>The specified tag is invalid.</p>",
+      "refs": {
+      }
+    },
+    "Ip": {
+      "base": null,
+      "refs": {
+        "IpAddressRequest$Ip": "<p>The IP address that you want to use for DNS queries.</p>",
+        "IpAddressResponse$Ip": "<p>One IP address that the resolver endpoint uses for DNS queries.</p>",
+        "IpAddressUpdate$Ip": "<p>The new IP address.</p>",
+        "TargetAddress$Ip": "<p>One IP address that you want to forward DNS queries to. You can specify only IPv4 addresses.</p>"
+      }
+    },
+    "IpAddressCount": {
+      "base": null,
+      "refs": {
+        "ResolverEndpoint$IpAddressCount": "<p>The number of IP addresses that the resolver endpoint can use for DNS queries.</p>"
+      }
+    },
+    "IpAddressRequest": {
+      "base": "<p>In an <a>CreateResolverEndpoint</a> request, a subnet and IP address that you want to use for DNS queries.</p>",
+      "refs": {
+        "IpAddressesRequest$member": null
+      }
+    },
+    "IpAddressResponse": {
+      "base": "<p>In the response to a <a>GetResolverEndpoint</a> request, information about the IP addresses that the resolver endpoint uses for DNS queries.</p>",
+      "refs": {
+        "IpAddressesResponse$member": null
+      }
+    },
+    "IpAddressStatus": {
+      "base": null,
+      "refs": {
+        "IpAddressResponse$Status": "<p>A status code that gives the current status of the request.</p>"
+      }
+    },
+    "IpAddressUpdate": {
+      "base": "<p>In an <a>UpdateResolverEndpoint</a> request, information about an IP address to update.</p>",
+      "refs": {
+        "AssociateResolverEndpointIpAddressRequest$IpAddress": "<p>Either the IPv4 address that you want to add to a resolver endpoint or a subnet ID. If you specify a subnet ID, Resolver chooses an IP address for you from the available IPs in the specified subnet.</p>",
+        "DisassociateResolverEndpointIpAddressRequest$IpAddress": "<p>The IPv4 address that you want to remove from a resolver endpoint.</p>"
+      }
+    },
+    "IpAddressesRequest": {
+      "base": null,
+      "refs": {
+        "CreateResolverEndpointRequest$IpAddresses": "<p>The subnets and IP addresses in your VPC that you want DNS queries to pass through on the way from your VPCs to your network (for outbound endpoints) or on the way from your network to your VPCs (for inbound resolver endpoints). </p>"
+      }
+    },
+    "IpAddressesResponse": {
+      "base": null,
+      "refs": {
+        "ListResolverEndpointIpAddressesResponse$IpAddresses": "<p>The IP addresses that DNS queries pass through on their way to your network (outbound endpoint) or on the way to Resolver (inbound endpoint).</p>"
+      }
+    },
+    "LimitExceededException": {
+      "base": "<p>The request caused one or more limits to be exceeded.</p>",
+      "refs": {
+      }
+    },
+    "ListResolverEndpointIpAddressesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResolverEndpointIpAddressesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResolverEndpointsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResolverEndpointsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResolverRuleAssociationsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResolverRuleAssociationsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResolverRulesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResolverRulesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListTagsForResourceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListTagsForResourceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "MaxResults": {
+      "base": null,
+      "refs": {
+        "ListResolverEndpointIpAddressesRequest$MaxResults": "<p>The maximum number of IP addresses that you want to return in the response to a <code>ListResolverEndpointIpAddresses</code> request. If you don't specify a value for <code>MaxResults</code>, Resolver returns up to 100 IP addresses. </p>",
+        "ListResolverEndpointIpAddressesResponse$MaxResults": "<p>The value that you specified for <code>MaxResults</code> in the request.</p>",
+        "ListResolverEndpointsRequest$MaxResults": "<p>The maximum number of resolver endpoints that you want to return in the response to a <code>ListResolverEndpoints</code> request. If you don't specify a value for <code>MaxResults</code>, Resolver returns up to 100 resolver endpoints. </p>",
+        "ListResolverEndpointsResponse$MaxResults": "<p>The value that you specified for <code>MaxResults</code> in the request.</p>",
+        "ListResolverRuleAssociationsRequest$MaxResults": "<p>The maximum number of rule associations that you want to return in the response to a <code>ListResolverRuleAssociations</code> request. If you don't specify a value for <code>MaxResults</code>, Resolver returns up to 100 rule associations. </p>",
+        "ListResolverRuleAssociationsResponse$MaxResults": "<p>The value that you specified for <code>MaxResults</code> in the request.</p>",
+        "ListResolverRulesRequest$MaxResults": "<p>The maximum number of resolver rules that you want to return in the response to a <code>ListResolverRules</code> request. If you don't specify a value for <code>MaxResults</code>, Resolver returns up to 100 resolver rules.</p>",
+        "ListResolverRulesResponse$MaxResults": "<p>The value that you specified for <code>MaxResults</code> in the request.</p>",
+        "ListTagsForResourceRequest$MaxResults": "<p>The maximum number of tags that you want to return in the response to a <code>ListTagsForResource</code> request. If you don't specify a value for <code>MaxResults</code>, Resolver returns up to 100 tags.</p>"
+      }
+    },
+    "Name": {
+      "base": null,
+      "refs": {
+        "AssociateResolverRuleRequest$Name": "<p>A name for the association that you're creating between a resolver rule and a VPC.</p>",
+        "CreateResolverEndpointRequest$Name": "<p>A friendly name that lets you easily find a configuration in the Resolver dashboard in the Route 53 console.</p>",
+        "CreateResolverRuleRequest$Name": "<p>A friendly name that lets you easily find a rule in the Resolver dashboard in the Route 53 console.</p>",
+        "ResolverEndpoint$Name": "<p>The name that you assigned to the resolver endpoint when you submitted a <a>CreateResolverEndpoint</a> request.</p>",
+        "ResolverRule$Name": "<p>The name for the resolver rule, which you specified when you created the resolver rule.</p>",
+        "ResolverRuleAssociation$Name": "<p>The name of an association between a resolver rule and a VPC.</p>",
+        "ResolverRuleConfig$Name": "<p>The new name for the resolver rule. The name that you specify appears in the Resolver dashboard in the Route 53 console. </p>",
+        "UpdateResolverEndpointRequest$Name": "<p>The name of the resolver endpoint that you want to update.</p>"
+      }
+    },
+    "NextToken": {
+      "base": null,
+      "refs": {
+        "ListResolverEndpointIpAddressesRequest$NextToken": "<p>For the first <code>ListResolverEndpointIpAddresses</code> request, omit this value.</p> <p>If the specified resolver endpoint has more than <code>MaxResults</code> IP addresses, you can submit another <code>ListResolverEndpointIpAddresses</code> request to get the next group of IP addresses. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListResolverEndpointIpAddressesResponse$NextToken": "<p>If the specified endpoint has more than <code>MaxResults</code> IP addresses, you can submit another <code>ListResolverEndpointIpAddresses</code> request to get the next group of IP addresses. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListResolverEndpointsRequest$NextToken": "<p>For the first <code>ListResolverEndpoints</code> request, omit this value.</p> <p>If you have more than <code>MaxResults</code> resolver endpoints, you can submit another <code>ListResolverEndpoints</code> request to get the next group of resolver endpoints. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListResolverEndpointsResponse$NextToken": "<p>If more than <code>MaxResults</code> IP addresses match the specified criteria, you can submit another <code>ListResolverEndpoint</code> request to get the next group of results. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListResolverRuleAssociationsRequest$NextToken": "<p>For the first <code>ListResolverRuleAssociation</code> request, omit this value.</p> <p>If you have more than <code>MaxResults</code> rule associations, you can submit another <code>ListResolverRuleAssociation</code> request to get the next group of rule associations. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListResolverRuleAssociationsResponse$NextToken": "<p>If more than <code>MaxResults</code> rule associations match the specified criteria, you can submit another <code>ListResolverRuleAssociation</code> request to get the next group of results. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListResolverRulesRequest$NextToken": "<p>For the first <code>ListResolverRules</code> request, omit this value.</p> <p>If you have more than <code>MaxResults</code> resolver rules, you can submit another <code>ListResolverRules</code> request to get the next group of resolver rules. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListResolverRulesResponse$NextToken": "<p>If more than <code>MaxResults</code> resolver rules match the specified criteria, you can submit another <code>ListResolverRules</code> request to get the next group of results. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListTagsForResourceRequest$NextToken": "<p>For the first <code>ListTagsForResource</code> request, omit this value.</p> <p>If you have more than <code>MaxResults</code> tags, you can submit another <code>ListTagsForResource</code> request to get the next group of tags for the resource. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>",
+        "ListTagsForResourceResponse$NextToken": "<p>If more than <code>MaxResults</code> tags match the specified criteria, you can submit another <code>ListTagsForResource</code> request to get the next group of results. In the next request, specify the value of <code>NextToken</code> from the previous response. </p>"
+      }
+    },
+    "Port": {
+      "base": null,
+      "refs": {
+        "TargetAddress$Port": "<p>The port at <code>Ip</code> that you want to forward DNS queries to.</p>"
+      }
+    },
+    "PutResolverRulePolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutResolverRulePolicyResponse": {
+      "base": "<p>The response to a <code>PutResolverRulePolicy</code> request.</p>",
+      "refs": {
+      }
+    },
+    "ResolverEndpoint": {
+      "base": "<p>In the response to a <a>CreateResolverEndpoint</a>, <a>DeleteResolverEndpoint</a>, <a>GetResolverEndpoint</a>, <a>ListResolverEndpoints</a>, or <a>UpdateResolverEndpoint</a> request, a complex type that contains settings for an existing inbound or outbound resolver endpoint.</p>",
+      "refs": {
+        "AssociateResolverEndpointIpAddressResponse$ResolverEndpoint": "<p>The response to an <code>AssociateResolverEndpointIpAddress</code> request.</p>",
+        "CreateResolverEndpointResponse$ResolverEndpoint": "<p>Information about the <code>CreateResolverEndpoint</code> request, including the status of the request.</p>",
+        "DeleteResolverEndpointResponse$ResolverEndpoint": "<p>Information about the <code>DeleteResolverEndpoint</code> request, including the status of the request.</p>",
+        "DisassociateResolverEndpointIpAddressResponse$ResolverEndpoint": "<p>The response to an <code>DisassociateResolverEndpointIpAddress</code> request.</p>",
+        "GetResolverEndpointResponse$ResolverEndpoint": "<p>Information about the resolver endpoint that you specified in a <code>GetResolverEndpoint</code> request.</p>",
+        "ResolverEndpoints$member": null,
+        "UpdateResolverEndpointResponse$ResolverEndpoint": "<p>The response to an <code>UpdateResolverEndpoint</code> request.</p>"
+      }
+    },
+    "ResolverEndpointDirection": {
+      "base": null,
+      "refs": {
+        "CreateResolverEndpointRequest$Direction": "<p>Specify the applicable value:</p> <ul> <li> <p> <code>INBOUND</code>: Resolver forwards DNS queries to the DNS service for a VPC from your network or another VPC</p> </li> <li> <p> <code>OUTBOUND</code>: Resolver forwards DNS queries from the DNS service for a VPC to your network or another VPC</p> </li> </ul>",
+        "ResolverEndpoint$Direction": "<p>Indicates whether the resolver endpoint allows inbound or outbound DNS queries:</p> <ul> <li> <p> <code>INBOUND</code>: allows DNS queries to your VPC from your network or another VPC</p> </li> <li> <p> <code>OUTBOUND</code>: allows DNS queries from your VPC to your network or another VPC</p> </li> </ul>"
+      }
+    },
+    "ResolverEndpointStatus": {
+      "base": null,
+      "refs": {
+        "ResolverEndpoint$Status": "<p>A code that specifies the current status of the resolver endpoint.</p>"
+      }
+    },
+    "ResolverEndpoints": {
+      "base": null,
+      "refs": {
+        "ListResolverEndpointsResponse$ResolverEndpoints": "<p>The resolver endpoints that were created by using the current AWS account, and that match the specified filters, if any.</p>"
+      }
+    },
+    "ResolverRule": {
+      "base": "<p>For queries that originate in your VPC, detailed information about a resolver rule, which specifies how to route DNS queries out of the VPC. The <code>ResolverRule</code> parameter appears in the response to a <a>CreateResolverRule</a>, <a>DeleteResolverRule</a>, <a>GetResolverRule</a>, <a>ListResolverRules</a>, or <a>UpdateResolverRule</a> request.</p>",
+      "refs": {
+        "CreateResolverRuleResponse$ResolverRule": "<p>Information about the <code>CreateResolverRule</code> request, including the status of the request.</p>",
+        "DeleteResolverRuleResponse$ResolverRule": "<p>Information about the <code>DeleteResolverRule</code> request, including the status of the request.</p>",
+        "GetResolverRuleResponse$ResolverRule": "<p>Information about the resolver rule that you specified in a <code>GetResolverRule</code> request.</p>",
+        "ResolverRules$member": null,
+        "UpdateResolverRuleResponse$ResolverRule": "<p>The response to an <code>UpdateResolverRule</code> request.</p>"
+      }
+    },
+    "ResolverRuleAssociation": {
+      "base": "<p>In the response to an <a>AssociateResolverRule</a>, <a>DisassociateResolverRule</a>, or <a>ListResolverRuleAssociations</a> request, information about an association between a resolver rule and a VPC.</p>",
+      "refs": {
+        "AssociateResolverRuleResponse$ResolverRuleAssociation": "<p>Information about the <code>AssociateResolverRule</code> request, including the status of the request.</p>",
+        "DisassociateResolverRuleResponse$ResolverRuleAssociation": "<p>Information about the <code>DisassociateResolverRule</code> request, including the status of the request.</p>",
+        "GetResolverRuleAssociationResponse$ResolverRuleAssociation": "<p>Information about the resolver rule association that you specified in a <code>GetResolverRuleAssociation</code> request.</p>",
+        "ResolverRuleAssociations$member": null
+      }
+    },
+    "ResolverRuleAssociationStatus": {
+      "base": null,
+      "refs": {
+        "ResolverRuleAssociation$Status": "<p>A code that specifies the current status of the association between a resolver rule and a VPC.</p>"
+      }
+    },
+    "ResolverRuleAssociations": {
+      "base": null,
+      "refs": {
+        "ListResolverRuleAssociationsResponse$ResolverRuleAssociations": "<p>The associations that were created between resolver rules and VPCs using the current AWS account, and that match the specified filters, if any.</p>"
+      }
+    },
+    "ResolverRuleConfig": {
+      "base": "<p>In an <a>UpdateResolverRule</a> request, information about the changes that you want to make.</p>",
+      "refs": {
+        "UpdateResolverRuleRequest$Config": "<p>The new settings for the resolver rule.</p>"
+      }
+    },
+    "ResolverRulePolicy": {
+      "base": null,
+      "refs": {
+        "GetResolverRulePolicyResponse$ResolverRulePolicy": "<p>Information about the resolver rule policy that you specified in a <code>GetResolverRulePolicy</code> request.</p>",
+        "PutResolverRulePolicyRequest$ResolverRulePolicy": "<p>An AWS Identity and Access Management policy statement that lists the permissions that you want to grant to another AWS account.</p>"
+      }
+    },
+    "ResolverRuleStatus": {
+      "base": null,
+      "refs": {
+        "ResolverRule$Status": "<p>A code that specifies the current status of the resolver rule.</p>"
+      }
+    },
+    "ResolverRules": {
+      "base": null,
+      "refs": {
+        "ListResolverRulesResponse$ResolverRules": "<p>The resolver rules that were created using the current AWS account and that match the specified filters, if any.</p>"
+      }
+    },
+    "ResourceExistsException": {
+      "base": "<p>The resource that you tried to create already exists.</p>",
+      "refs": {
+      }
+    },
+    "ResourceId": {
+      "base": null,
+      "refs": {
+        "AssociateResolverEndpointIpAddressRequest$ResolverEndpointId": "<p>The ID of the resolver endpoint that you want to associate IP addresses with.</p>",
+        "AssociateResolverRuleRequest$ResolverRuleId": "<p>The ID of the resolver rule that you want to associate with the VPC. To list the existing resolver rules, use <a>ListResolverRules</a>.</p>",
+        "AssociateResolverRuleRequest$VPCId": "<p>The ID of the VPC that you want to associate the resolver rule with.</p>",
+        "CreateResolverRuleRequest$ResolverEndpointId": "<p>The ID of the outbound resolver endpoint that you want to use to route DNS queries to the IP addresses that you specify in <code>TargetIps</code>.</p>",
+        "DeleteResolverEndpointRequest$ResolverEndpointId": "<p>The ID of the resolver endpoint that you want to delete.</p>",
+        "DeleteResolverRuleRequest$ResolverRuleId": "<p>The ID of the resolver rule that you want to delete.</p>",
+        "DisassociateResolverEndpointIpAddressRequest$ResolverEndpointId": "<p>The ID of the resolver endpoint that you want to disassociate an IP address from.</p>",
+        "DisassociateResolverRuleRequest$VPCId": "<p>The ID of the VPC that you want to disassociate the resolver rule from.</p>",
+        "DisassociateResolverRuleRequest$ResolverRuleId": "<p>The ID of the resolver rule that you want to disassociate from the specified VPC.</p>",
+        "GetResolverEndpointRequest$ResolverEndpointId": "<p>The ID of the resolver endpoint that you want to get information about.</p>",
+        "GetResolverRuleAssociationRequest$ResolverRuleAssociationId": "<p>The ID of the resolver rule association that you want to get information about.</p>",
+        "GetResolverRuleRequest$ResolverRuleId": "<p>The ID of the resolver rule that you want to get information about.</p>",
+        "IpAddressResponse$IpId": "<p>The ID of one IP address.</p>",
+        "IpAddressUpdate$IpId": "<p> <i>Only when removing an IP address from a resolver endpoint</i>: The ID of the IP address that you want to remove. To get this ID, use <a>GetResolverEndpoint</a>.</p>",
+        "ListResolverEndpointIpAddressesRequest$ResolverEndpointId": "<p>The ID of the resolver endpoint that you want to get IP addresses for.</p>",
+        "ResolverEndpoint$Id": "<p>The ID of the resolver endpoint.</p>",
+        "ResolverEndpoint$HostVPCId": "<p>The ID of the VPC that you want to create the resolver endpoint in.</p>",
+        "ResolverRule$Id": "<p>The ID that Resolver assigned to the resolver rule when you created it.</p>",
+        "ResolverRule$ResolverEndpointId": "<p>The ID of the endpoint that the rule is associated with.</p>",
+        "ResolverRuleAssociation$Id": "<p>The ID of the association between a resolver rule and a VPC. Resolver assigns this value when you submit an <a>AssociateResolverRule</a> request.</p>",
+        "ResolverRuleAssociation$ResolverRuleId": "<p>The ID of the resolver rule that you associated with the VPC that is specified by <code>VPCId</code>.</p>",
+        "ResolverRuleAssociation$VPCId": "<p>The ID of the VPC that you associated the resolver rule with.</p>",
+        "ResolverRuleConfig$ResolverEndpointId": "<p>The ID of the new outbound resolver endpoint that you want to use to route DNS queries to the IP addresses that you specify in <code>TargetIps</code>.</p>",
+        "SecurityGroupIds$member": null,
+        "UpdateResolverEndpointRequest$ResolverEndpointId": "<p>The ID of the resolver endpoint that you want to update.</p>",
+        "UpdateResolverRuleRequest$ResolverRuleId": "<p>The ID of the resolver rule that you want to update.</p>"
+      }
+    },
+    "ResourceInUseException": {
+      "base": "<p>The resource that you tried to update or delete is currently in use.</p>",
+      "refs": {
+      }
+    },
+    "ResourceNotFoundException": {
+      "base": "<p>The specified resource doesn't exist.</p>",
+      "refs": {
+      }
+    },
+    "ResourceUnavailableException": {
+      "base": "<p>The specified resource isn't available.</p>",
+      "refs": {
+      }
+    },
+    "Rfc3339TimeString": {
+      "base": null,
+      "refs": {
+        "IpAddressResponse$CreationTime": "<p>The date and time that the IP address was created, in Unix time format and Coordinated Universal Time (UTC).</p>",
+        "IpAddressResponse$ModificationTime": "<p>The date and time that the IP address was last modified, in Unix time format and Coordinated Universal Time (UTC).</p>",
+        "ResolverEndpoint$CreationTime": "<p>The date and time that the endpoint was created, in Unix time format and Coordinated Universal Time (UTC).</p>",
+        "ResolverEndpoint$ModificationTime": "<p>The date and time that the endpoint was last modified, in Unix time format and Coordinated Universal Time (UTC).</p>"
+      }
+    },
+    "RuleTypeOption": {
+      "base": null,
+      "refs": {
+        "CreateResolverRuleRequest$RuleType": "<p>Specify <code>FORWARD</code>. Other resolver rule types aren't supported.</p>",
+        "ResolverRule$RuleType": "<p>This value is always <code>FORWARD</code>. Other resolver rule types aren't supported.</p>"
+      }
+    },
+    "SecurityGroupIds": {
+      "base": null,
+      "refs": {
+        "CreateResolverEndpointRequest$SecurityGroupIds": "<p>The ID of one or more security groups that you want to use to control access to this VPC. The security group that you specify must include one or more inbound rules (for inbound resolver endpoints) or outbound rules (for outbound resolver endpoints).</p>",
+        "ResolverEndpoint$SecurityGroupIds": "<p>The ID of one or more security groups that control access to this VPC. The security group must include one or more inbound resolver rules.</p>"
+      }
+    },
+    "ShareStatus": {
+      "base": null,
+      "refs": {
+        "ResolverRule$ShareStatus": "<p>Whether the rules is shared and, if so, whether the current account is sharing the rule with another account, or another account is sharing the rule with the current account.</p>"
+      }
+    },
+    "StatusMessage": {
+      "base": null,
+      "refs": {
+        "IpAddressResponse$StatusMessage": "<p>A message that provides additional information about the status of the request.</p>",
+        "ResolverEndpoint$StatusMessage": "<p>A detailed description of the status of the resolver endpoint.</p>",
+        "ResolverRule$StatusMessage": "<p>A detailed description of the status of a resolver rule.</p>",
+        "ResolverRuleAssociation$StatusMessage": "<p>A detailed description of the status of the association between a resolver rule and a VPC.</p>"
+      }
+    },
+    "String": {
+      "base": null,
+      "refs": {
+        "InvalidNextTokenException$Message": null,
+        "InvalidParameterException$FieldName": "<p>For an <code>InvalidParameterException</code> error, the name of the parameter that's invalid.</p>",
+        "LimitExceededException$Message": null,
+        "LimitExceededException$ResourceType": "<p>For a <code>LimitExceededException</code> error, the type of resource that exceeded the current limit.</p>",
+        "ResourceExistsException$Message": null,
+        "ResourceExistsException$ResourceType": "<p>For a <code>ResourceExistsException</code> error, the type of resource that the error applies to.</p>",
+        "ResourceInUseException$Message": null,
+        "ResourceInUseException$ResourceType": "<p>For a <code>ResourceInUseException</code> error, the type of resource that is currently in use.</p>",
+        "ResourceNotFoundException$Message": null,
+        "ResourceNotFoundException$ResourceType": "<p>For a <code>ResourceNotFoundException</code> error, the type of resource that doesn't exist.</p>",
+        "ResourceUnavailableException$Message": null,
+        "ResourceUnavailableException$ResourceType": "<p>For a <code>ResourceUnavailableException</code> error, the type of resource that isn't available.</p>"
+      }
+    },
+    "SubnetId": {
+      "base": null,
+      "refs": {
+        "IpAddressRequest$SubnetId": "<p>The subnet that contains the IP address.</p>",
+        "IpAddressResponse$SubnetId": "<p>The ID of one subnet.</p>",
+        "IpAddressUpdate$SubnetId": "<p>The ID of the subnet that includes the IP address that you want to update. To get this ID, use <a>GetResolverEndpoint</a>.</p>"
+      }
+    },
+    "Tag": {
+      "base": "<p>One tag that you want to add to the specified resource. A tag consists of a <code>Key</code> (a name for the tag) and a <code>Value</code>.</p>",
+      "refs": {
+        "TagList$member": null
+      }
+    },
+    "TagKey": {
+      "base": null,
+      "refs": {
+        "Tag$Key": "<p>The name for the tag. For example, if you want to associate Resolver resources with the account IDs of your customers for billing purposes, the value of <code>Key</code> might be <code>account-id</code>.</p>",
+        "TagKeyList$member": null
+      }
+    },
+    "TagKeyList": {
+      "base": null,
+      "refs": {
+        "UntagResourceRequest$TagKeys": "<p>The tags that you want to remove to the specified resource.</p>"
+      }
+    },
+    "TagList": {
+      "base": null,
+      "refs": {
+        "CreateResolverEndpointRequest$Tags": "<p>A list of the tag keys and values that you want to associate with the endpoint.</p>",
+        "CreateResolverRuleRequest$Tags": "<p>A list of the tag keys and values that you want to associate with the endpoint.</p>",
+        "ListTagsForResourceResponse$Tags": "<p>The tags that are associated with the resource that you specified in the <code>ListTagsForResource</code> request.</p>",
+        "TagResourceRequest$Tags": "<p>The tags that you want to add to the specified resource.</p>"
+      }
+    },
+    "TagResourceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "TagResourceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "TagValue": {
+      "base": null,
+      "refs": {
+        "Tag$Value": "<p>The value for the tag. For example, if <code>Key</code> is <code>account-id</code>, then <code>Value</code> might be the ID of the customer account that you're creating the resource for.</p>"
+      }
+    },
+    "TargetAddress": {
+      "base": "<p>In a <a>CreateResolverRule</a> request, an array of the IPs that you want to forward DNS queries to.</p>",
+      "refs": {
+        "TargetList$member": null
+      }
+    },
+    "TargetList": {
+      "base": null,
+      "refs": {
+        "CreateResolverRuleRequest$TargetIps": "<p>The IPs that you want Resolver to forward DNS queries to. You can specify only IPv4 addresses. Separate IP addresses with a comma.</p>",
+        "ResolverRule$TargetIps": "<p>An array that contains the IP addresses and ports that you want to forward </p>",
+        "ResolverRuleConfig$TargetIps": "<p>For DNS queries that originate in your VPC, the new IP addresses that you want to route outbound DNS queries to.</p>"
+      }
+    },
+    "ThrottlingException": {
+      "base": "<p>The request was throttled. Try again in a few minutes.</p>",
+      "refs": {
+      }
+    },
+    "UnknownResourceException": {
+      "base": "<p>The specified resource doesn't exist.</p>",
+      "refs": {
+      }
+    },
+    "UntagResourceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UntagResourceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateResolverEndpointRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateResolverEndpointResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateResolverRuleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateResolverRuleResponse": {
+      "base": null,
+      "refs": {
+      }
+    }
+  }
+}

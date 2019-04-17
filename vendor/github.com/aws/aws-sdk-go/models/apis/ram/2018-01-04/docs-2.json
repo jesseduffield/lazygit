@@ -1,0 +1,620 @@
+{
+  "version": "2.0",
+  "service": "<p>Use AWS Resource Access Manager to share AWS resources between AWS accounts. To share a resource, you create a resource share, associate the resource with the resource share, and specify the principals that can access the resource. The following principals are supported:</p> <ul> <li> <p>The ID of an AWS account</p> </li> <li> <p>The Amazon Resource Name (ARN) of an OU from AWS Organizations</p> </li> <li> <p>The Amazon Resource Name (ARN) of an organization from AWS Organizations</p> </li> </ul> <p>If you specify an AWS account that doesn't exist in the same organization as the account that owns the resource share, the owner of the specified account receives an invitation to accept the resource share. After the owner accepts the invitation, they can access the resources in the resource share. An administrator of the specified account can use IAM policies to restrict access resources in the resource share.</p>",
+  "operations": {
+    "AcceptResourceShareInvitation": "<p>Accepts an invitation to a resource share from another AWS account.</p>",
+    "AssociateResourceShare": "<p>Associates the specified resource share with the specified principals and resources.</p>",
+    "CreateResourceShare": "<p>Creates a resource share.</p>",
+    "DeleteResourceShare": "<p>Deletes the specified resource share.</p>",
+    "DisassociateResourceShare": "<p>Disassociates the specified principals or resources from the specified resource share.</p>",
+    "EnableSharingWithAwsOrganization": "<p>Enables resource sharing within your organization.</p>",
+    "GetResourcePolicies": "<p>Gets the policies for the specifies resources.</p>",
+    "GetResourceShareAssociations": "<p>Gets the associations for the specified resource share.</p>",
+    "GetResourceShareInvitations": "<p>Gets the specified invitations for resource sharing.</p>",
+    "GetResourceShares": "<p>Gets the specified resource shares or all of your resource shares.</p>",
+    "ListPrincipals": "<p>Lists the principals with access to the specified resource.</p>",
+    "ListResources": "<p>Lists the resources that the specified principal can access.</p>",
+    "RejectResourceShareInvitation": "<p>Rejects an invitation to a resource share from another AWS account.</p>",
+    "TagResource": "<p>Adds the specified tags to the specified resource share.</p>",
+    "UntagResource": "<p>Removes the specified tags from the specified resource share.</p>",
+    "UpdateResourceShare": "<p>Updates the specified resource share.</p>"
+  },
+  "shapes": {
+    "AcceptResourceShareInvitationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AcceptResourceShareInvitationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateResourceShareRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateResourceShareResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Boolean": {
+      "base": null,
+      "refs": {
+        "CreateResourceShareRequest$allowExternalPrincipals": "<p>Indicates whether principals outside your organization can be associated with a resource share.</p>",
+        "DeleteResourceShareResponse$returnValue": "<p>Indicates whether the request succeeded.</p>",
+        "EnableSharingWithAwsOrganizationResponse$returnValue": "<p>Indicates whether the request succeeded.</p>",
+        "Principal$external": "<p>Indicates whether the principal belongs to the same organization as the AWS account that owns the resource share.</p>",
+        "ResourceShare$allowExternalPrincipals": "<p>Indicates whether principals outside your organization can be associated with a resource share.</p>",
+        "ResourceShareAssociation$external": "<p>Indicates whether the principal belongs to the same organization as the AWS account that owns the resource share.</p>",
+        "UpdateResourceShareRequest$allowExternalPrincipals": "<p>Indicates whether principals outside your organization can be associated with a resource share.</p>"
+      }
+    },
+    "CreateResourceShareRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateResourceShareResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DateTime": {
+      "base": null,
+      "refs": {
+        "Principal$creationTime": "<p>The time when the principal was associated with the resource share.</p>",
+        "Principal$lastUpdatedTime": "<p>The time when the association was last updated.</p>",
+        "Resource$creationTime": "<p>The time when the resource was associated with the resource share.</p>",
+        "Resource$lastUpdatedTime": "<p>The time when the association was last updated.</p>",
+        "ResourceShare$creationTime": "<p>The time when the resource share was created.</p>",
+        "ResourceShare$lastUpdatedTime": "<p>The time when the resource share was last updated.</p>",
+        "ResourceShareAssociation$creationTime": "<p>The time when the association was created.</p>",
+        "ResourceShareAssociation$lastUpdatedTime": "<p>The time when the association was last updated.</p>",
+        "ResourceShareInvitation$invitationTimestamp": "<p>The date and time when the invitation was sent.</p>"
+      }
+    },
+    "DeleteResourceShareRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteResourceShareResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateResourceShareRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateResourceShareResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "EnableSharingWithAwsOrganizationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "EnableSharingWithAwsOrganizationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResourcePoliciesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResourcePoliciesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResourceShareAssociationsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResourceShareAssociationsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResourceShareInvitationsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResourceShareInvitationsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResourceSharesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetResourceSharesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "IdempotentParameterMismatchException": {
+      "base": "<p>A client token input parameter was reused with an operation, but at least one of the other input parameters is different from the previous call to the operation.</p>",
+      "refs": {
+      }
+    },
+    "InvalidClientTokenException": {
+      "base": "<p>A client token is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidMaxResultsException": {
+      "base": "<p>The specified value for MaxResults is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidNextTokenException": {
+      "base": "<p>The specified value for NextToken is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidParameterException": {
+      "base": "<p>A parameter is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidResourceTypeException": {
+      "base": "<p>The specified resource type is not valid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidStateTransitionException": {
+      "base": "<p>The requested state transition is not valid.</p>",
+      "refs": {
+      }
+    },
+    "ListPrincipalsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListPrincipalsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResourcesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListResourcesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "MalformedArnException": {
+      "base": "<p>The format of an Amazon Resource Name (ARN) is not valid.</p>",
+      "refs": {
+      }
+    },
+    "MaxResults": {
+      "base": null,
+      "refs": {
+        "GetResourcePoliciesRequest$maxResults": "<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>",
+        "GetResourceShareAssociationsRequest$maxResults": "<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>",
+        "GetResourceShareInvitationsRequest$maxResults": "<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>",
+        "GetResourceSharesRequest$maxResults": "<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>",
+        "ListPrincipalsRequest$maxResults": "<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>",
+        "ListResourcesRequest$maxResults": "<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
+      }
+    },
+    "MissingRequiredParameterException": {
+      "base": "<p>A required input parameter is missing.</p>",
+      "refs": {
+      }
+    },
+    "OperationNotPermittedException": {
+      "base": "<p>The requested operation is not permitted.</p>",
+      "refs": {
+      }
+    },
+    "Policy": {
+      "base": null,
+      "refs": {
+        "PolicyList$member": null
+      }
+    },
+    "PolicyList": {
+      "base": null,
+      "refs": {
+        "GetResourcePoliciesResponse$policies": "<p>A key policy document, in JSON format.</p>"
+      }
+    },
+    "Principal": {
+      "base": "<p>Describes a principal for use with AWS Resource Access Manager.</p>",
+      "refs": {
+        "PrincipalList$member": null
+      }
+    },
+    "PrincipalArnOrIdList": {
+      "base": null,
+      "refs": {
+        "AssociateResourceShareRequest$principals": "<p>The principals.</p>",
+        "CreateResourceShareRequest$principals": "<p>The principals to associate with the resource share. The possible values are IDs of AWS accounts, the ARN of an OU or organization from AWS Organizations.</p>",
+        "DisassociateResourceShareRequest$principals": "<p>The principals.</p>",
+        "ListPrincipalsRequest$principals": "<p>The principals.</p>"
+      }
+    },
+    "PrincipalList": {
+      "base": null,
+      "refs": {
+        "ListPrincipalsResponse$principals": "<p>The principals.</p>"
+      }
+    },
+    "RejectResourceShareInvitationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RejectResourceShareInvitationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Resource": {
+      "base": "<p>Describes a resource associated with a resource share.</p>",
+      "refs": {
+        "ResourceList$member": null
+      }
+    },
+    "ResourceArnList": {
+      "base": null,
+      "refs": {
+        "AssociateResourceShareRequest$resourceArns": "<p>The Amazon Resource Names (ARN) of the resources.</p>",
+        "CreateResourceShareRequest$resourceArns": "<p>The Amazon Resource Names (ARN) of the resources to associate with the resource share.</p>",
+        "DisassociateResourceShareRequest$resourceArns": "<p>The Amazon Resource Names (ARN) of the resources.</p>",
+        "GetResourcePoliciesRequest$resourceArns": "<p>The Amazon Resource Names (ARN) of the resources.</p>",
+        "ListResourcesRequest$resourceArns": "<p>The Amazon Resource Names (ARN) of the resources.</p>"
+      }
+    },
+    "ResourceArnNotFoundException": {
+      "base": "<p>An Amazon Resource Name (ARN) was not found.</p>",
+      "refs": {
+      }
+    },
+    "ResourceList": {
+      "base": null,
+      "refs": {
+        "ListResourcesResponse$resources": "<p>Information about the resources.</p>"
+      }
+    },
+    "ResourceOwner": {
+      "base": null,
+      "refs": {
+        "GetResourceSharesRequest$resourceOwner": "<p>The type of owner.</p>",
+        "ListPrincipalsRequest$resourceOwner": "<p>The type of owner.</p>",
+        "ListResourcesRequest$resourceOwner": "<p>The type of owner.</p>"
+      }
+    },
+    "ResourceShare": {
+      "base": "<p>Describes a resource share.</p>",
+      "refs": {
+        "CreateResourceShareResponse$resourceShare": "<p>Information about the resource share.</p>",
+        "ResourceShareList$member": null,
+        "UpdateResourceShareResponse$resourceShare": "<p>Information about the resource share.</p>"
+      }
+    },
+    "ResourceShareArnList": {
+      "base": null,
+      "refs": {
+        "GetResourceShareAssociationsRequest$resourceShareArns": "<p>The Amazon Resource Names (ARN) of the resource shares.</p>",
+        "GetResourceShareInvitationsRequest$resourceShareArns": "<p>The Amazon Resource Names (ARN) of the resource shares.</p>",
+        "GetResourceSharesRequest$resourceShareArns": "<p>The Amazon Resource Names (ARN) of the resource shares.</p>",
+        "ListPrincipalsRequest$resourceShareArns": "<p>The Amazon Resource Names (ARN) of the resource shares.</p>",
+        "ListResourcesRequest$resourceShareArns": "<p>The Amazon Resource Names (ARN) of the resource shares.</p>"
+      }
+    },
+    "ResourceShareAssociation": {
+      "base": "<p>Describes an association with a resource share.</p>",
+      "refs": {
+        "ResourceShareAssociationList$member": null
+      }
+    },
+    "ResourceShareAssociationList": {
+      "base": null,
+      "refs": {
+        "AssociateResourceShareResponse$resourceShareAssociations": "<p>Information about the associations.</p>",
+        "DisassociateResourceShareResponse$resourceShareAssociations": "<p>Information about the associations.</p>",
+        "GetResourceShareAssociationsResponse$resourceShareAssociations": "<p>Information about the association.</p>",
+        "ResourceShareInvitation$resourceShareAssociations": "<p>The resources associated with the resource share.</p>"
+      }
+    },
+    "ResourceShareAssociationStatus": {
+      "base": null,
+      "refs": {
+        "GetResourceShareAssociationsRequest$associationStatus": "<p>The status of the association.</p>",
+        "ResourceShareAssociation$status": "<p>The status of the association.</p>"
+      }
+    },
+    "ResourceShareAssociationType": {
+      "base": null,
+      "refs": {
+        "GetResourceShareAssociationsRequest$associationType": "<p>The association type.</p>",
+        "ResourceShareAssociation$associationType": "<p>The association type.</p>"
+      }
+    },
+    "ResourceShareInvitation": {
+      "base": "<p>Describes an invitation to join a resource share.</p>",
+      "refs": {
+        "AcceptResourceShareInvitationResponse$resourceShareInvitation": "<p>Information about the invitation.</p>",
+        "RejectResourceShareInvitationResponse$resourceShareInvitation": "<p>Information about the invitation.</p>",
+        "ResourceShareInvitationList$member": null
+      }
+    },
+    "ResourceShareInvitationAlreadyAcceptedException": {
+      "base": "<p>The invitation was already accepted.</p>",
+      "refs": {
+      }
+    },
+    "ResourceShareInvitationAlreadyRejectedException": {
+      "base": "<p>The invitation was already rejected.</p>",
+      "refs": {
+      }
+    },
+    "ResourceShareInvitationArnList": {
+      "base": null,
+      "refs": {
+        "GetResourceShareInvitationsRequest$resourceShareInvitationArns": "<p>The Amazon Resource Names (ARN) of the invitations.</p>"
+      }
+    },
+    "ResourceShareInvitationArnNotFoundException": {
+      "base": "<p>The Amazon Resource Name (ARN) for an invitation was not found.</p>",
+      "refs": {
+      }
+    },
+    "ResourceShareInvitationExpiredException": {
+      "base": "<p>The invitation is expired.</p>",
+      "refs": {
+      }
+    },
+    "ResourceShareInvitationList": {
+      "base": null,
+      "refs": {
+        "GetResourceShareInvitationsResponse$resourceShareInvitations": "<p>Information about the invitations.</p>"
+      }
+    },
+    "ResourceShareInvitationStatus": {
+      "base": null,
+      "refs": {
+        "ResourceShareInvitation$status": "<p>The status of the invitation.</p>"
+      }
+    },
+    "ResourceShareLimitExceededException": {
+      "base": "<p>The requested resource share exceeds the limit for your account.</p>",
+      "refs": {
+      }
+    },
+    "ResourceShareList": {
+      "base": null,
+      "refs": {
+        "GetResourceSharesResponse$resourceShares": "<p>Information about the resource shares.</p>"
+      }
+    },
+    "ResourceShareStatus": {
+      "base": null,
+      "refs": {
+        "GetResourceSharesRequest$resourceShareStatus": "<p>The status of the resource share.</p>",
+        "ResourceShare$status": "<p>The status of the resource share.</p>"
+      }
+    },
+    "ResourceStatus": {
+      "base": null,
+      "refs": {
+        "Resource$status": "<p>The status of the resource.</p>"
+      }
+    },
+    "ServerInternalException": {
+      "base": "<p>The service could not respond to the request due to an internal problem.</p>",
+      "refs": {
+      }
+    },
+    "ServiceUnavailableException": {
+      "base": "<p>The service is not available.</p>",
+      "refs": {
+      }
+    },
+    "String": {
+      "base": null,
+      "refs": {
+        "AcceptResourceShareInvitationRequest$resourceShareInvitationArn": "<p>The Amazon Resource Name (ARN) of the invitation.</p>",
+        "AcceptResourceShareInvitationRequest$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "AcceptResourceShareInvitationResponse$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "AssociateResourceShareRequest$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "AssociateResourceShareRequest$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "AssociateResourceShareResponse$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "CreateResourceShareRequest$name": "<p>The name of the resource share.</p>",
+        "CreateResourceShareRequest$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "CreateResourceShareResponse$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "DeleteResourceShareRequest$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "DeleteResourceShareRequest$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "DeleteResourceShareResponse$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "DisassociateResourceShareRequest$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "DisassociateResourceShareRequest$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "DisassociateResourceShareResponse$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "GetResourcePoliciesRequest$principal": "<p>The principal.</p>",
+        "GetResourcePoliciesRequest$nextToken": "<p>The token for the next page of results.</p>",
+        "GetResourcePoliciesResponse$nextToken": "<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+        "GetResourceShareAssociationsRequest$resourceArn": "<p>The Amazon Resource Name (ARN) of the resource.</p>",
+        "GetResourceShareAssociationsRequest$principal": "<p>The principal.</p>",
+        "GetResourceShareAssociationsRequest$nextToken": "<p>The token for the next page of results.</p>",
+        "GetResourceShareAssociationsResponse$nextToken": "<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+        "GetResourceShareInvitationsRequest$nextToken": "<p>The token for the next page of results.</p>",
+        "GetResourceShareInvitationsResponse$nextToken": "<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+        "GetResourceSharesRequest$name": "<p>The name of the resource share.</p>",
+        "GetResourceSharesRequest$nextToken": "<p>The token for the next page of results.</p>",
+        "GetResourceSharesResponse$nextToken": "<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+        "IdempotentParameterMismatchException$message": null,
+        "InvalidClientTokenException$message": null,
+        "InvalidMaxResultsException$message": null,
+        "InvalidNextTokenException$message": null,
+        "InvalidParameterException$message": null,
+        "InvalidResourceTypeException$message": null,
+        "InvalidStateTransitionException$message": null,
+        "ListPrincipalsRequest$resourceArn": "<p>The Amazon Resource Name (ARN) of the resource.</p>",
+        "ListPrincipalsRequest$resourceType": "<p>The resource type.</p>",
+        "ListPrincipalsRequest$nextToken": "<p>The token for the next page of results.</p>",
+        "ListPrincipalsResponse$nextToken": "<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+        "ListResourcesRequest$principal": "<p>The principal.</p>",
+        "ListResourcesRequest$resourceType": "<p>The resource type.</p>",
+        "ListResourcesRequest$nextToken": "<p>The token for the next page of results.</p>",
+        "ListResourcesResponse$nextToken": "<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+        "MalformedArnException$message": null,
+        "MissingRequiredParameterException$message": null,
+        "OperationNotPermittedException$message": null,
+        "Principal$id": "<p>The ID of the principal.</p>",
+        "Principal$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "PrincipalArnOrIdList$member": null,
+        "RejectResourceShareInvitationRequest$resourceShareInvitationArn": "<p>The Amazon Resource Name (ARN) of the invitation.</p>",
+        "RejectResourceShareInvitationRequest$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "RejectResourceShareInvitationResponse$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "Resource$arn": "<p>The Amazon Resource Name (ARN) of the resource.</p>",
+        "Resource$type": "<p>The resource type.</p>",
+        "Resource$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "Resource$statusMessage": "<p>A message about the status of the resource.</p>",
+        "ResourceArnList$member": null,
+        "ResourceArnNotFoundException$message": null,
+        "ResourceShare$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "ResourceShare$name": "<p>The name of the resource share.</p>",
+        "ResourceShare$owningAccountId": "<p>The ID of the AWS account that owns the resource share.</p>",
+        "ResourceShare$statusMessage": "<p>A message about the status of the resource share.</p>",
+        "ResourceShareArnList$member": null,
+        "ResourceShareAssociation$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "ResourceShareAssociation$associatedEntity": "<p>The associated entity. For resource associations, this is the ARN of the resource. For principal associations, this is the ID of an AWS account or the ARN of an OU or organization from AWS Organizations.</p>",
+        "ResourceShareAssociation$statusMessage": "<p>A message about the status of the association.</p>",
+        "ResourceShareInvitation$resourceShareInvitationArn": "<p>The Amazon Resource Name (ARN) of the invitation.</p>",
+        "ResourceShareInvitation$resourceShareName": "<p>The name of the resource share.</p>",
+        "ResourceShareInvitation$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "ResourceShareInvitation$senderAccountId": "<p>The ID of the AWS account that sent the invitation.</p>",
+        "ResourceShareInvitation$receiverAccountId": "<p>The ID of the AWS account that received the invitation.</p>",
+        "ResourceShareInvitationAlreadyAcceptedException$message": null,
+        "ResourceShareInvitationAlreadyRejectedException$message": null,
+        "ResourceShareInvitationArnList$member": null,
+        "ResourceShareInvitationArnNotFoundException$message": null,
+        "ResourceShareInvitationExpiredException$message": null,
+        "ResourceShareLimitExceededException$message": null,
+        "ServerInternalException$message": null,
+        "ServiceUnavailableException$message": null,
+        "TagLimitExceededException$message": null,
+        "TagResourceRequest$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "UnknownResourceException$message": null,
+        "UntagResourceRequest$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "UpdateResourceShareRequest$resourceShareArn": "<p>The Amazon Resource Name (ARN) of the resource share.</p>",
+        "UpdateResourceShareRequest$name": "<p>The name of the resource share.</p>",
+        "UpdateResourceShareRequest$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+        "UpdateResourceShareResponse$clientToken": "<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>"
+      }
+    },
+    "Tag": {
+      "base": "<p>Information about a tag.</p>",
+      "refs": {
+        "TagList$member": null
+      }
+    },
+    "TagFilter": {
+      "base": "<p>Used to filter information based on tags.</p>",
+      "refs": {
+        "TagFilters$member": null
+      }
+    },
+    "TagFilters": {
+      "base": null,
+      "refs": {
+        "GetResourceSharesRequest$tagFilters": "<p>One or more tag filters.</p>"
+      }
+    },
+    "TagKey": {
+      "base": null,
+      "refs": {
+        "Tag$key": "<p>The key of the tag.</p>",
+        "TagFilter$tagKey": "<p>The tag key.</p>",
+        "TagKeyList$member": null
+      }
+    },
+    "TagKeyList": {
+      "base": null,
+      "refs": {
+        "UntagResourceRequest$tagKeys": "<p>The tag keys of the tags to remove.</p>"
+      }
+    },
+    "TagLimitExceededException": {
+      "base": "<p>The requested tags exceed the limit for your account.</p>",
+      "refs": {
+      }
+    },
+    "TagList": {
+      "base": null,
+      "refs": {
+        "CreateResourceShareRequest$tags": "<p>One or more tags.</p>",
+        "ResourceShare$tags": "<p>The tags for the resource share.</p>",
+        "TagResourceRequest$tags": "<p>One or more tags.</p>"
+      }
+    },
+    "TagResourceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "TagResourceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "TagValue": {
+      "base": null,
+      "refs": {
+        "Tag$value": "<p>The value of the tag.</p>",
+        "TagValueList$member": null
+      }
+    },
+    "TagValueList": {
+      "base": null,
+      "refs": {
+        "TagFilter$tagValues": "<p>The tag values.</p>"
+      }
+    },
+    "UnknownResourceException": {
+      "base": "<p>A specified resource was not found.</p>",
+      "refs": {
+      }
+    },
+    "UntagResourceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UntagResourceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateResourceShareRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateResourceShareResponse": {
+      "base": null,
+      "refs": {
+      }
+    }
+  }
+}

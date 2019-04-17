@@ -1,0 +1,31 @@
+Host bastion.*.i.*.example.net
+  User simon.thulbourn
+  Port 22
+  ForwardAgent yes
+  IdentityFile /Users/%u/.ssh/example.net/%r/id_rsa
+  UseKeychain yes
+
+Host 10.*
+  User simon.thulbourn
+  Port 23
+  ForwardAgent yes
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  IdentityFile /Users/%u/.ssh/example.net/%r/id_rsa
+  UseKeychain yes
+  ProxyCommand >&1; h="%h"; exec ssh -q $(ssh-bastion -ip $h) nc %h %p
+
+Host 20.20.20.?
+  User simon.thulbourn
+  Port 24
+  ForwardAgent yes
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  IdentityFile /Users/%u/.ssh/example.net/%r/id_rsa
+  UseKeychain yes
+  ProxyCommand >&1; h="%h"; exec ssh -q $(ssh-bastion -ip $h) nc %h %p
+
+Host *
+  IdentityFile /Users/%u/.ssh/%h/%r/id_rsa
+  UseKeychain yes
+  Port 25

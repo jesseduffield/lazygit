@@ -1,0 +1,26 @@
+[
+  {
+    "id": "person_greeting",
+    "translation": "Hello {{.Person}}"
+  },
+  {
+    "id": "person_unread_email_count",
+    "translation": {
+      "one": "{{.Person}} has {{.Count}} unread email.",
+      "other": "{{.Person}} has {{.Count}} unread emails."
+    }
+  },
+  {
+    "id": "person_unread_email_count_timeframe",
+    "translation": {
+      "other": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}."
+    }
+  },
+  {
+    "id": "d_days",
+    "translation": {
+      "one": "{{.Count}} day",
+      "other": "{{.Count}} days"
+    }
+  }
+]

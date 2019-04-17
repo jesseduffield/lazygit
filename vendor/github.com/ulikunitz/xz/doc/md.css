@@ -1,0 +1,20 @@
+/* md.css */
+
+body {
+	font-family: "Verdana", sans-serif;
+	font-size: 10pt;
+	width: 40em;
+	background-color: #FFFAF0;
+}
+
+h1 { font-size: 18pt; }
+
+h2 { font-size: 14pt; }
+
+h3 { font-size: 12pt; }
+
+h4 { font-size: 10pt; }
+
+code { font-size: 10pt; }
+
+.nobr { white-space: nowrap; }

@@ -24,8 +24,9 @@ func (c *EC2Metadata) GetMetadata(p string) (string, error) {
 
 	output := &metadataOutput{}
 	req := c.NewRequest(op, nil, output)
+	err := req.Send()
 
-	return output.Content, req.Send()
+	return output.Content, err
 }
 
 // GetUserData returns the userdata that was configured for the service. If
@@ -45,8 +46,9 @@ func (c *EC2Metadata) GetUserData() (string, error) {
 			r.Error = awserr.New("NotFoundError", "user-data not found", r.Error)
 		}
 	})
+	err := req.Send()
 
-	return output.Content, req.Send()
+	return output.Content, err
 }
 
 // GetDynamicData uses the path provided to request information from the EC2
@@ -61,8 +63,9 @@ func (c *EC2Metadata) GetDynamicData(p string) (string, error) {
 
 	output := &metadataOutput{}
 	req := c.NewRequest(op, nil, output)
+	err := req.Send()
 
-	return output.Content, req.Send()
+	return output.Content, err
 }
 
 // GetInstanceIdentityDocument retrieves an identity document describing an
@@ -116,6 +119,10 @@ func (c *EC2Metadata) Region() (string, error) {
 	resp, err := c.GetMetadata("placement/availability-zone")
 	if err != nil {
 		return "", err
+	}
+
+	if len(resp) == 0 {
+		return "", awserr.New("EC2MetadataError", "invalid Region response", nil)
 	}
 
 	// returns region without the suffix. Eg: us-west-2a becomes us-west-2

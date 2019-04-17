@@ -1,0 +1,45 @@
+[
+  {
+    "id": "d_days",
+    "translation": {
+      "one": "{{.Count}} days",
+      "other": "{{.Count}} days"
+    }
+  },
+  {
+    "id": "my_height_in_meters",
+    "translation": {
+      "one": "I am {{.Count}} meters tall.",
+      "other": "I am {{.Count}} meters tall."
+    }
+  },
+  {
+    "id": "person_greeting",
+    "translation": "Hello {{.Person}}"
+  },
+  {
+    "id": "person_unread_email_count",
+    "translation": {
+      "one": "{{.Person}} has {{.Count}} unread emails.",
+      "other": "{{.Person}} has {{.Count}} unread emails."
+    }
+  },
+  {
+    "id": "person_unread_email_count_timeframe",
+    "translation": {
+      "one": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}.",
+      "other": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}."
+    }
+  },
+  {
+    "id": "program_greeting",
+    "translation": "Hello world"
+  },
+  {
+    "id": "your_unread_email_count",
+    "translation": {
+      "one": "You have {{.Count}} unread emails.",
+      "other": "You have {{.Count}} unread emails."
+    }
+  }
+]

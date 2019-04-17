@@ -182,6 +182,10 @@ func (r *keyring) Add(key AddedKey) error {
 
 // Sign returns a signature for the data.
 func (r *keyring) Sign(key ssh.PublicKey, data []byte) (*ssh.Signature, error) {
+	return r.SignWithFlags(key, data, 0)
+}
+
+func (r *keyring) SignWithFlags(key ssh.PublicKey, data []byte, flags SignatureFlags) (*ssh.Signature, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.locked {
@@ -192,7 +196,24 @@ func (r *keyring) Sign(key ssh.PublicKey, data []byte) (*ssh.Signature, error) {
 	wanted := key.Marshal()
 	for _, k := range r.keys {
 		if bytes.Equal(k.signer.PublicKey().Marshal(), wanted) {
-			return k.signer.Sign(rand.Reader, data)
+			if flags == 0 {
+				return k.signer.Sign(rand.Reader, data)
+			} else {
+				if algorithmSigner, ok := k.signer.(ssh.AlgorithmSigner); !ok {
+					return nil, fmt.Errorf("agent: signature does not support non-default signature algorithm: %T", k.signer)
+				} else {
+					var algorithm string
+					switch flags {
+					case SignatureFlagRsaSha256:
+						algorithm = ssh.SigAlgoRSASHA2256
+					case SignatureFlagRsaSha512:
+						algorithm = ssh.SigAlgoRSASHA2512
+					default:
+						return nil, fmt.Errorf("agent: unsupported signature flags: %d", flags)
+					}
+					return algorithmSigner.SignWithAlgorithm(rand.Reader, data, algorithm)
+				}
+			}
 		}
 	}
 	return nil, errors.New("not found")
@@ -212,4 +233,9 @@ func (r *keyring) Signers() ([]ssh.Signer, error) {
 		s = append(s, k.signer)
 	}
 	return s, nil
+}
+
+// The keyring does not support any extensions
+func (r *keyring) Extension(extensionType string, contents []byte) ([]byte, error) {
+	return nil, ErrExtensionUnsupported
 }

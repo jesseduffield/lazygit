@@ -1,0 +1,173 @@
+{
+  "version": "2.0",
+  "service": "<p> Comprehend Medical extracts structured information from unstructured clinical text. Use these actions to gain insight in your documents. </p>",
+  "operations": {
+    "DetectEntities": "<p> Inspects the clinical text for a variety of medical entities and returns specific information about them such as entity category, location, and confidence score on that information .</p>",
+    "DetectPHI": "<p> Inspects the clinical text for personal health information (PHI) entities and entity category, location, and confidence score on that information.</p>"
+  },
+  "shapes": {
+    "Attribute": {
+      "base": "<p> An extracted segment of the text that is an attribute of an entity, or otherwise related to an entity, such as the dosage of a medication taken. It contains information about the attribute such as id, begin and end offset within the input text, and the segment of the input text. </p>",
+      "refs": {
+        "AttributeList$member": null,
+        "UnmappedAttribute$Attribute": "<p> The specific attribute that has been extracted but not mapped to an entity. </p>"
+      }
+    },
+    "AttributeList": {
+      "base": null,
+      "refs": {
+        "Entity$Attributes": "<p> The extracted attributes that relate to this entity.</p>"
+      }
+    },
+    "AttributeName": {
+      "base": null,
+      "refs": {
+        "Trait$Name": "<p> Provides a name or contextual description about the trait. </p>"
+      }
+    },
+    "BoundedLengthString": {
+      "base": null,
+      "refs": {
+        "DetectEntitiesRequest$Text": "<p> A UTF-8 text string containing the clinical content being examined for entities. Each string must contain fewer than 20,000 bytes of characters.</p>",
+        "DetectPHIRequest$Text": "<p> A UTF-8 text string containing the clinical content being examined for PHI entities. Each string must contain fewer than 20,000 bytes of characters. </p>"
+      }
+    },
+    "DetectEntitiesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DetectEntitiesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DetectPHIRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DetectPHIResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Entity": {
+      "base": "<p> Provides information about an extracted medical entity.</p>",
+      "refs": {
+        "EntityList$member": null
+      }
+    },
+    "EntityList": {
+      "base": null,
+      "refs": {
+        "DetectEntitiesResponse$Entities": "<p> The collection of medical entities extracted from the input text and their associated information. For each entity, the response provides the entity text, the entity category, where the entity text begins and ends, and the level of confidence that Comprehend Medical has in the detection and analysis. Attributes and traits of the entity are also returned.</p>",
+        "DetectPHIResponse$Entities": "<p> The collection of PHI entities extracted from the input text and their associated information. For each entity, the response provides the entity text, the entity category, where the entity text begins and ends, and the level of confidence that Comprehend Medical has in its detection. </p>"
+      }
+    },
+    "EntitySubType": {
+      "base": null,
+      "refs": {
+        "Attribute$Type": "<p> The type of attribute. </p>",
+        "Entity$Type": "<p> Describes the specific type of entity with category of entities. </p>"
+      }
+    },
+    "EntityType": {
+      "base": null,
+      "refs": {
+        "Entity$Category": "<p> The category of the entity.</p>",
+        "UnmappedAttribute$Type": "<p> The type of the attribute, could be one of the following values: \"MEDICATION\", \"MEDICAL_CONDITION\", \"ANATOMY\", \"TEST_AND_TREATMENT_PROCEDURE\" or \"PERSONAL_HEALTH_INFORMATION\". </p>"
+      }
+    },
+    "Float": {
+      "base": null,
+      "refs": {
+        "Attribute$Score": "<p> The level of confidence that Comprehend Medical has that the segment of text is correctly recognized as an attribute. </p>",
+        "Attribute$RelationshipScore": "<p> The level of confidence that Comprehend Medical has that this attribute is correctly related to this entity. </p>",
+        "Entity$Score": "<p>The level of confidence that Comprehend Medical has in the accuracy of the detection.</p>",
+        "Trait$Score": "<p> The level of confidence that Comprehend Medical has in the accuracy of this trait.</p>"
+      }
+    },
+    "Integer": {
+      "base": null,
+      "refs": {
+        "Attribute$Id": "<p> The numeric identifier for this attribute. This is a monotonically increasing id unique within this response rather than a global unique identifier. </p>",
+        "Attribute$BeginOffset": "<p> The 0-based character offset in the input text that shows where the attribute begins. The offset returns the UTF-8 code point in the string. </p>",
+        "Attribute$EndOffset": "<p> The 0-based character offset in the input text that shows where the attribute ends. The offset returns the UTF-8 code point in the string. </p>",
+        "Entity$Id": "<p> The numeric identifier for the entity. This is a monotonically increasing id unique within this response rather than a global unique identifier. </p>",
+        "Entity$BeginOffset": "<p> The 0-based character offset in the input text that shows where the entity begins. The offset returns the UTF-8 code point in the string. </p>",
+        "Entity$EndOffset": "<p> The 0-based character offset in the input text that shows where the entity ends. The offset returns the UTF-8 code point in the string. </p>"
+      }
+    },
+    "InternalServerException": {
+      "base": "<p> An internal server error occurred. Retry your request. </p>",
+      "refs": {
+      }
+    },
+    "InvalidEncodingException": {
+      "base": "<p> The input text was not in valid UTF-8 character encoding. Check your text then retry your request.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRequestException": {
+      "base": "<p> The request that you made is invalid. Check your request to determine why it's invalid and then retry the request.</p>",
+      "refs": {
+      }
+    },
+    "ServiceUnavailableException": {
+      "base": "<p> The Comprehend Medical service is temporarily unavailable. Please wait and then retry your request. </p>",
+      "refs": {
+      }
+    },
+    "String": {
+      "base": null,
+      "refs": {
+        "Attribute$Text": "<p> The segment of input text extracted as this attribute.</p>",
+        "DetectEntitiesResponse$PaginationToken": "<p> If the result of the previous request to DetectEntities was truncated, include the Paginationtoken to fetch the next page of entities.</p>",
+        "DetectPHIResponse$PaginationToken": "<p> If the result of the previous request to DetectPHI was truncated, include the Paginationtoken to fetch the next page of PHI entities. </p>",
+        "Entity$Text": "<p> The segment of input text extracted as this entity.</p>",
+        "InternalServerException$Message": null,
+        "InvalidEncodingException$Message": null,
+        "InvalidRequestException$Message": null,
+        "ServiceUnavailableException$Message": null,
+        "TextSizeLimitExceededException$Message": null,
+        "TooManyRequestsException$Message": null
+      }
+    },
+    "TextSizeLimitExceededException": {
+      "base": "<p> The size of the text you submitted exceeds the size limit. Reduce the size of the text or use a smaller document and then retry your request. </p>",
+      "refs": {
+      }
+    },
+    "TooManyRequestsException": {
+      "base": "<p> You have made too many requests within a short period of time. Wait for a short time and then try your request again. Contact customer support for more information about a service limit increase. </p>",
+      "refs": {
+      }
+    },
+    "Trait": {
+      "base": "<p> Provides contextual information about the extracted entity. </p>",
+      "refs": {
+        "TraitList$member": null
+      }
+    },
+    "TraitList": {
+      "base": null,
+      "refs": {
+        "Attribute$Traits": "<p> Contextual information for this attribute. </p>",
+        "Entity$Traits": "<p>Contextual information for the entity</p>"
+      }
+    },
+    "UnmappedAttribute": {
+      "base": "<p> An attribute that we extracted, but were unable to relate to an entity. </p>",
+      "refs": {
+        "UnmappedAttributeList$member": null
+      }
+    },
+    "UnmappedAttributeList": {
+      "base": null,
+      "refs": {
+        "DetectEntitiesResponse$UnmappedAttributes": "<p> Attributes extracted from the input text that we were unable to relate to an entity.</p>"
+      }
+    }
+  }
+}

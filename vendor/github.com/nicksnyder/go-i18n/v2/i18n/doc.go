@@ -4,6 +4,9 @@
 // Create a Bundle to use for the lifetime of your application.
 //     bundle := &i18n.Bundle{DefaultLanguage: language.English}
 //
+// Load translations into your bundle during initialization.
+//     bundle.LoadMessageFile("en-US.yaml")
+//
 // Create a Localizer to use for a set of language preferences.
 //     func(w http.ResponseWriter, r *http.Request) {
 //         lang := r.FormValue("lang")

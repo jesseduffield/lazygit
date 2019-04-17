@@ -1,0 +1,16 @@
+program_greeting:
+  other: "Hello world"
+
+your_unread_email_count:
+  one: "You have {{.Count}} unread email."
+  other: "You have {{.Count}} unread emails."
+
+my_height_in_meters:
+  one: "I am {{.Count}} meter tall."
+  other: "I am {{.Count}} meters tall."
+
+person_unread_email_count_timeframe:
+  other: "{{.Person}} has {{.Count}} unread email in the past {{.Timeframe}}."
+
+d_days:
+  other: "this should get overwritten"

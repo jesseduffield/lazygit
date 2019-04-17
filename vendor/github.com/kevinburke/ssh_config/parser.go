@@ -96,6 +96,9 @@ func (p *sshParser) parseKV() sshParserStateFn {
 	}
 	comment := ""
 	tok := p.peek()
+	if tok == nil {
+		tok = &token{typ: tokenEOF}
+	}
 	if tok.typ == tokenComment && tok.Position.Line == val.Position.Line {
 		tok = p.getToken()
 		comment = tok.val

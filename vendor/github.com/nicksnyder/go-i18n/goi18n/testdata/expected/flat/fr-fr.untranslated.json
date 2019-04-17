@@ -1,0 +1,27 @@
+{
+  "d_days": {
+    "one": "{{.Count}} days",
+    "other": "{{.Count}} days"
+  },
+  "my_height_in_meters": {
+    "one": "I am {{.Count}} meters tall.",
+    "other": "I am {{.Count}} meters tall."
+  },
+  "person_greeting": {
+    "other": "Hello {{.Person}}"
+  },
+  "person_unread_email_count": {
+    "one": "{{.Person}} has {{.Count}} unread emails.",
+    "other": "{{.Person}} has {{.Count}} unread emails."
+  },
+  "person_unread_email_count_timeframe": {
+    "other": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}."
+  },
+  "program_greeting": {
+    "other": "Hello world"
+  },
+  "your_unread_email_count": {
+    "one": "You have {{.Count}} unread emails.",
+    "other": "You have {{.Count}} unread emails."
+  }
+}

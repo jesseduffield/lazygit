@@ -1,0 +1,50 @@
+[
+  {
+    "id": "d_days",
+    "translation": {
+      "few": "new arabic few translation of d_days",
+      "many": "arabic many translation of d_days",
+      "one": "arabic one translation of d_days",
+      "other": "{{.Count}} days",
+      "two": "{{.Count}} days",
+      "zero": "{{.Count}} days"
+    }
+  },
+  {
+    "id": "my_height_in_meters",
+    "translation": {
+      "few": "I am {{.Count}} meters tall.",
+      "many": "I am {{.Count}} meters tall.",
+      "one": "I am {{.Count}} meters tall.",
+      "other": "I am {{.Count}} meters tall.",
+      "two": "I am {{.Count}} meters tall.",
+      "zero": "I am {{.Count}} meters tall."
+    }
+  },
+  {
+    "id": "person_unread_email_count_timeframe",
+    "translation": {
+      "few": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}.",
+      "many": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}.",
+      "one": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}.",
+      "other": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}.",
+      "two": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}.",
+      "zero": "{{.Person}} has {{.Count}} unread emails in the past {{.Timeframe}}."
+    }
+  },
+  {
+    "id": "program_greeting",
+    "translation": "Hello world"
+  },
+  {
+    "id": "your_unread_email_count",
+    "translation": {
+      "few": "You have {{.Count}} unread emails.",
+      "many": "You have {{.Count}} unread emails.",
+      "one": "You have {{.Count}} unread emails.",
+      "other": "You have {{.Count}} unread emails.",
+      "two": "You have {{.Count}} unread emails.",
+      "zero": "You have {{.Count}} unread emails."
+    }
+  }
+]

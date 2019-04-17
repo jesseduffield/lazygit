@@ -11,7 +11,7 @@ import (
 
 // opLenMargin provides the upper limit of the number of bytes required
 // to encode a single operation.
-const opLenMargin = 10
+const opLenMargin = 16
 
 // compressFlags control the compression process.
 type compressFlags uint32

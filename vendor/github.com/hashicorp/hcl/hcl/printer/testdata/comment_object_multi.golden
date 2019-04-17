@@ -1,0 +1,9 @@
+variable "environment" {
+  default = {}
+
+  # default {
+  #    "region" = "us-west-2"
+  #    "sg"     = "playground"
+  #    "env"    = "prod"
+  #  }
+}

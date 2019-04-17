@@ -1,0 +1,27 @@
+{
+  "d_days": {
+    "one": "",
+    "other": ""
+  },
+  "my_height_in_meters": {
+    "one": "",
+    "other": ""
+  },
+  "person_greeting": {
+    "other": ""
+  },
+  "person_unread_email_count": {
+    "one": "",
+    "other": ""
+  },
+  "person_unread_email_count_timeframe": {
+    "other": ""
+  },
+  "program_greeting": {
+    "other": ""
+  },
+  "your_unread_email_count": {
+    "one": "",
+    "other": ""
+  }
+}

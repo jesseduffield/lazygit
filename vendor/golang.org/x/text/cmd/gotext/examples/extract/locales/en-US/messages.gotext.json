@@ -1,0 +1,82 @@
+{
+    "language": "en-US",
+    "messages": [
+        {
+"id": "Hello world!\n",
+            "key": "Hello world!\n",
+            "message": "Hello world!\n",
+            "translation":  "Hello world!\n",
+            "position": "golang.org/x/text/cmd/gotext/examples/extract/main.go:27:10"
+        },
+        {
+            "id": "Hello {City}!\n",
+            "key": "Hello %s!\n",
+            "message": "Hello {City}!\n",
+            "translation": "Hello {City}!\n"
+        },
+        {
+            "id": "Hello {Town}!\n",
+            "key": "Hello %s!\n",
+            "message": "Hello {Town}!\n",
+            "translation": "Hello {Town}!\n",
+            "placeholders": [
+                {
+                    "id": "Town",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "town",
+                    "comment": "Town"
+                }
+            ]
+        },
+        {
+            "id": "{Person} is visiting {Place}!\n",
+            "key": "%s is visiting %s!\n",
+            "message": "{Person} is visiting {Place}!\n",
+            "translation": "{Person} is visiting {Place}!\n"
+        },
+        {
+            "id": "{Person} is visiting {Place}!\n",
+            "key": "%[1]s is visiting %[3]s!\n",
+            "message": "{Person} is visiting {Place}!\n",
+            "translation": "{Person} is visiting {Place}!\n",
+            "comment": "Person visiting a place."
+        },
+        {
+            "id": "{N} more files remaining!",
+            "key": "%d more files remaining!",
+            "message": "{N} more files remaining!",
+            "translation": {
+                "select": {
+                    "feature": "plural",
+                    "arg": "N",
+                    "cases": {
+                        "one": "One file remaining!",
+                        "other": "There are {N} more files remaining!"
+                    }
+                }
+            }
+        },
+        {
+            "id": "Use the following code for your discount: {ReferralCode}\n",
+            "key": "Use the following code for your discount: %d\n",
+            "message": "Use the following code for your discount: {ReferralCode}\n",
+            "translation": ""
+        },
+        {
+            "id": [ "msgOutOfOrder", "{Device} is out of order!" ],
+            "key": "%s is out of order!",
+            "message": "{Device} is out of order!",
+            "translation": "{Device} is out of order!",
+            "comment": "FOO\n"
+        },
+        {
+            "id": "{Miles} miles traveled ({Miles_1})",
+            "key": "%.2[1]f miles traveled (%[1]f)",
+            "message": "{Miles} miles traveled ({Miles_1})",
+            "translation": "{Miles} miles traveled ({Miles_1})"
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+builds:
+  - binary: goi18n
+    main: ./goi18n/
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=0
+archive:
+  format: binary
+  name_template: "{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+before:
+  hooks:
+    - go mod download
+checksum:
+  name_template: "checksums.txt"

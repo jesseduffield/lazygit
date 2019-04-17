@@ -1,6 +1,7 @@
+
 # Gopkg.toml example
 #
-# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
 # for detailed Gopkg.toml documentation.
 #
 # required = ["github.com/user/thing/cmd/thing"]
@@ -16,9 +17,9 @@
 #   source = "github.com/myfork/project2"
 #
 # [[override]]
-#   name = "github.com/x/y"
-#   version = "2.4.0"
-#
+#  name = "github.com/x/y"
+#  version = "2.4.0"
+
 
 [prune]
   go-tests = true
@@ -48,7 +49,3 @@
 [[constraint]]
   branch = "master"
   name = "github.com/spkg/bom"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/scbizu/cmd"

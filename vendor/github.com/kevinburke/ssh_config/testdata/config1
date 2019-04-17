@@ -1,0 +1,39 @@
+Host localhost 127.0.0.1 # A comment at the end of a host line.
+  NoHostAuthenticationForLocalhost yes
+
+# A comment
+    # A comment with leading spaces.
+
+Host wap
+  User root
+  KexAlgorithms diffie-hellman-group1-sha1
+
+Host [some stuff behind a NAT]
+  Compression yes
+  ProxyCommand ssh -qW %h:%p [NATrouter]
+
+Host wopr # there are 2 proxies available for this one...
+  User root
+  ProxyCommand sh -c "ssh proxy1 -qW %h:22 || ssh proxy2 -qW %h:22"
+
+Host dhcp-??
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  User root
+
+Host [my boxes] [*.mydomain]
+  ForwardAgent yes
+  ForwardX11 yes
+  ForwardX11Trusted yes
+
+Host *
+  #ControlMaster auto
+  #ControlPath /tmp/ssh-master-%C
+  #ControlPath /tmp/ssh-%u-%r@%h:%p
+  #ControlPersist yes
+  ForwardX11Timeout 52w
+  XAuthLocation /usr/bin/xauth
+  SendEnv LANG LC_*
+  HostKeyAlgorithms ssh-ed25519,ssh-rsa
+  AddressFamily inet
+  #UpdateHostKeys ask

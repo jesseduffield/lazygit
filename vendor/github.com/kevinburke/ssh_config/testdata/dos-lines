@@ -1,0 +1,10 @@
+# Config file with dos line endings
+Host wap
+  HostName wap.example.org	
+  Port 22
+  User root
+  KexAlgorithms diffie-hellman-group1-sha1
+
+Host wap2
+  HostName 8.8.8.8
+  User google	

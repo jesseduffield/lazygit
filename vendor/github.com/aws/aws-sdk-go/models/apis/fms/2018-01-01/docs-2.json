@@ -1,0 +1,482 @@
+{
+  "version": "2.0",
+  "service": "<fullname>AWS Firewall Manager</fullname> <p>This is the <i>AWS Firewall Manager API Reference</i>. This guide is for developers who need detailed information about the AWS Firewall Manager API actions, data types, and errors. For detailed information about AWS Firewall Manager features, see the <a href=\"https://docs.aws.amazon.com/waf/latest/developerguide/fms-chapter.html\">AWS Firewall Manager Developer Guide</a>.</p>",
+  "operations": {
+    "AssociateAdminAccount": "<p>Sets the AWS Firewall Manager administrator account. AWS Firewall Manager must be associated with the master account your AWS organization or associated with a member account that has the appropriate permissions. If the account ID that you submit is not an AWS Organizations master account, AWS Firewall Manager will set the appropriate permissions for the given member account.</p> <p>The account that you associate with AWS Firewall Manager is called the AWS Firewall Manager administrator account. </p>",
+    "DeleteNotificationChannel": "<p>Deletes an AWS Firewall Manager association with the IAM role and the Amazon Simple Notification Service (SNS) topic that is used to record AWS Firewall Manager SNS logs.</p>",
+    "DeletePolicy": "<p>Permanently deletes an AWS Firewall Manager policy. </p>",
+    "DisassociateAdminAccount": "<p>Disassociates the account that has been set as the AWS Firewall Manager administrator account. To set a different account as the administrator account, you must submit an <code>AssociateAdminAccount</code> request .</p>",
+    "GetAdminAccount": "<p>Returns the AWS Organizations master account that is associated with AWS Firewall Manager as the AWS Firewall Manager administrator.</p>",
+    "GetComplianceDetail": "<p>Returns detailed compliance information about the specified member account. Details include resources that are in and out of compliance with the specified policy. Resources are considered non-compliant if the specified policy has not been applied to them.</p>",
+    "GetNotificationChannel": "<p>Returns information about the Amazon Simple Notification Service (SNS) topic that is used to record AWS Firewall Manager SNS logs.</p>",
+    "GetPolicy": "<p>Returns information about the specified AWS Firewall Manager policy.</p>",
+    "GetProtectionStatus": "<p>If you created a Shield Advanced policy, returns policy-level attack summary information in the event of a potential DDoS attack.</p>",
+    "ListComplianceStatus": "<p>Returns an array of <code>PolicyComplianceStatus</code> objects in the response. Use <code>PolicyComplianceStatus</code> to get a summary of which member accounts are protected by the specified policy. </p>",
+    "ListMemberAccounts": "<p>Returns a <code>MemberAccounts</code> object that lists the member accounts in the administrator's AWS organization.</p> <p>The <code>ListMemberAccounts</code> must be submitted by the account that is set as the AWS Firewall Manager administrator.</p>",
+    "ListPolicies": "<p>Returns an array of <code>PolicySummary</code> objects in the response.</p>",
+    "PutNotificationChannel": "<p>Designates the IAM role and Amazon Simple Notification Service (SNS) topic that AWS Firewall Manager uses to record SNS logs.</p>",
+    "PutPolicy": "<p>Creates an AWS Firewall Manager policy.</p> <p>Firewall Manager provides two types of policies: A Shield Advanced policy, which applies Shield Advanced protection to specified accounts and resources, or a WAF policy, which contains a rule group and defines which resources are to be protected by that rule group. A policy is specific to either WAF or Shield Advanced. If you want to enforce both WAF rules and Shield Advanced protection across accounts, you can create multiple policies. You can create one or more policies for WAF rules, and one or more policies for Shield Advanced.</p> <p>You must be subscribed to Shield Advanced to create a Shield Advanced policy. For more information on subscribing to Shield Advanced, see <a href=\"https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_CreateSubscription.html\">CreateSubscription</a>.</p>"
+  },
+  "shapes": {
+    "AWSAccountId": {
+      "base": null,
+      "refs": {
+        "AssociateAdminAccountRequest$AdminAccount": "<p>The AWS account ID to associate with AWS Firewall Manager as the AWS Firewall Manager administrator account. This can be an AWS Organizations master account or a member account. For more information about AWS Organizations and master accounts, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts.html\">Managing the AWS Accounts in Your Organization</a>.</p>",
+        "GetAdminAccountResponse$AdminAccount": "<p>The AWS account that is set as the AWS Firewall Manager administrator.</p>",
+        "GetComplianceDetailRequest$MemberAccount": "<p>The AWS account that owns the resources that you want to get the details for.</p>",
+        "GetProtectionStatusRequest$MemberAccountId": "<p>The AWS account that is in scope of the policy that you want to get the details for.</p>",
+        "GetProtectionStatusResponse$AdminAccountId": "<p>The ID of the AWS Firewall administrator account for this policy.</p>",
+        "MemberAccounts$member": null,
+        "PolicyComplianceDetail$PolicyOwner": "<p>The AWS account that created the AWS Firewall Manager policy.</p>",
+        "PolicyComplianceDetail$MemberAccount": "<p>The AWS account ID.</p>",
+        "PolicyComplianceStatus$PolicyOwner": "<p>The AWS account that created the AWS Firewall Manager policy.</p>",
+        "PolicyComplianceStatus$MemberAccount": "<p>The member account ID.</p>"
+      }
+    },
+    "AccountRoleStatus": {
+      "base": null,
+      "refs": {
+        "GetAdminAccountResponse$RoleStatus": "<p>The status of the AWS account that you set as the AWS Firewall Manager administrator.</p>"
+      }
+    },
+    "AssociateAdminAccountRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Boolean": {
+      "base": null,
+      "refs": {
+        "DeletePolicyRequest$DeleteAllPolicyResources": "<p>If <code>True</code>, the request will also perform a clean-up process that will:</p> <ul> <li> <p>Delete rule groups created by AWS Firewall Manager</p> </li> <li> <p>Remove web ACLs from in-scope resources</p> </li> <li> <p>Delete web ACLs that contain no rules or rule groups</p> </li> </ul> <p>After the cleanup, in-scope resources will no longer be protected by web ACLs in this policy. Protection of out-of-scope resources will remain unchanged. Scope is determined by tags and accounts associated with the policy. When creating the policy, if you specified that only resources in specific accounts or with specific tags be protected by the policy, those resources are in-scope. All others are out of scope. If you did not specify tags or accounts, all resources are in-scope. </p>",
+        "EvaluationResult$EvaluationLimitExceeded": "<p>Indicates that over 100 resources are non-compliant with the AWS Firewall Manager policy.</p>",
+        "Policy$ExcludeResourceTags": "<p>If set to <code>True</code>, resources with the tags that are specified in the <code>ResourceTag</code> array are not protected by the policy. If set to <code>False</code>, and the <code>ResourceTag</code> array is not null, only resources with the specified tags are associated with the policy.</p>",
+        "Policy$RemediationEnabled": "<p>Indicates if the policy should be automatically applied to new resources.</p>",
+        "PolicyComplianceDetail$EvaluationLimitExceeded": "<p>Indicates if over 100 resources are non-compliant with the AWS Firewall Manager policy.</p>",
+        "PolicySummary$RemediationEnabled": "<p>Indicates if the policy should be automatically applied to new resources.</p>"
+      }
+    },
+    "ComplianceViolator": {
+      "base": "<p>Details of the resource that is not protected by the policy.</p>",
+      "refs": {
+        "ComplianceViolators$member": null
+      }
+    },
+    "ComplianceViolators": {
+      "base": null,
+      "refs": {
+        "PolicyComplianceDetail$Violators": "<p>An array of resources that are not protected by the policy.</p>"
+      }
+    },
+    "CustomerPolicyScopeId": {
+      "base": null,
+      "refs": {
+        "CustomerPolicyScopeIdList$member": null
+      }
+    },
+    "CustomerPolicyScopeIdList": {
+      "base": null,
+      "refs": {
+        "CustomerPolicyScopeMap$value": null
+      }
+    },
+    "CustomerPolicyScopeIdType": {
+      "base": null,
+      "refs": {
+        "CustomerPolicyScopeMap$key": null
+      }
+    },
+    "CustomerPolicyScopeMap": {
+      "base": null,
+      "refs": {
+        "Policy$IncludeMap": "<p>Specifies the AWS account IDs to include in the policy. If <code>IncludeMap</code> is null, all accounts in the organization in AWS Organizations are included in the policy. If <code>IncludeMap</code> is not null, only values listed in <code>IncludeMap</code> are included in the policy.</p> <p>The key to the map is <code>ACCOUNT</code>. For example, a valid <code>IncludeMap</code> would be <code>{“ACCOUNT” : [“accountID1”, “accountID2”]}</code>.</p>",
+        "Policy$ExcludeMap": "<p>Specifies the AWS account IDs to exclude from the policy. The <code>IncludeMap</code> values are evaluated first, with all the appropriate account IDs added to the policy. Then the accounts listed in <code>ExcludeMap</code> are removed, resulting in the final list of accounts to add to the policy.</p> <p>The key to the map is <code>ACCOUNT</code>. For example, a valid <code>ExcludeMap</code> would be <code>{“ACCOUNT” : [“accountID1”, “accountID2”]}</code>.</p>"
+      }
+    },
+    "DeleteNotificationChannelRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeletePolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DependentServiceName": {
+      "base": null,
+      "refs": {
+        "IssueInfoMap$key": null
+      }
+    },
+    "DetailedInfo": {
+      "base": null,
+      "refs": {
+        "IssueInfoMap$value": null
+      }
+    },
+    "DisassociateAdminAccountRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ErrorMessage": {
+      "base": null,
+      "refs": {
+        "InternalErrorException$Message": null,
+        "InvalidInputException$Message": null,
+        "InvalidOperationException$Message": null,
+        "InvalidTypeException$Message": null,
+        "LimitExceededException$Message": null,
+        "ResourceNotFoundException$Message": null
+      }
+    },
+    "EvaluationResult": {
+      "base": "<p>Describes the compliance status for the account. An account is considered non-compliant if it includes resources that are not protected by the specified policy.</p>",
+      "refs": {
+        "EvaluationResults$member": null
+      }
+    },
+    "EvaluationResults": {
+      "base": null,
+      "refs": {
+        "PolicyComplianceStatus$EvaluationResults": "<p>An array of <code>EvaluationResult</code> objects.</p>"
+      }
+    },
+    "GetAdminAccountRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAdminAccountResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetComplianceDetailRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetComplianceDetailResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetNotificationChannelRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetNotificationChannelResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetPolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetPolicyResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetProtectionStatusRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetProtectionStatusResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "InternalErrorException": {
+      "base": "<p>The operation failed because of a system problem, even though the request was valid. Retry your request.</p>",
+      "refs": {
+      }
+    },
+    "InvalidInputException": {
+      "base": "<p>The parameters of the request were invalid.</p>",
+      "refs": {
+      }
+    },
+    "InvalidOperationException": {
+      "base": "<p>The operation failed because there was nothing to do. For example, you might have submitted an <code>AssociateAdminAccount</code> request, but the account ID that you submitted was already set as the AWS Firewall Manager administrator.</p>",
+      "refs": {
+      }
+    },
+    "InvalidTypeException": {
+      "base": "<p>The value of the <code>Type</code> parameter is invalid.</p>",
+      "refs": {
+      }
+    },
+    "IssueInfoMap": {
+      "base": null,
+      "refs": {
+        "PolicyComplianceDetail$IssueInfoMap": "<p>Details about problems with dependent services, such as AWS WAF or AWS Config, that are causing a resource to be non-compliant. The details include the name of the dependent service and the error message received that indicates the problem with the service.</p>",
+        "PolicyComplianceStatus$IssueInfoMap": "<p>Details about problems with dependent services, such as AWS WAF or AWS Config, that are causing a resource to be non-compliant. The details include the name of the dependent service and the error message received that indicates the problem with the service.</p>"
+      }
+    },
+    "LimitExceededException": {
+      "base": "<p>The operation exceeds a resource limit, for example, the maximum number of <code>policy</code> objects that you can create for an AWS account. For more information, see <a href=\"https://docs.aws.amazon.com/waf/latest/developerguide/fms-limits.html\">Firewall Manager Limits</a> in the <i>AWS WAF Developer Guide</i>.</p>",
+      "refs": {
+      }
+    },
+    "ListComplianceStatusRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListComplianceStatusResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListMemberAccountsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListMemberAccountsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListPoliciesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListPoliciesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ManagedServiceData": {
+      "base": null,
+      "refs": {
+        "SecurityServicePolicyData$ManagedServiceData": "<p>Details about the service. This contains <code>WAF</code> data in JSON format, as shown in the following example:</p> <p> <code>ManagedServiceData\": \"{\\\"type\\\": \\\"WAF\\\", \\\"ruleGroups\\\": [{\\\"id\\\": \\\"12345678-1bcd-9012-efga-0987654321ab\\\", \\\"overrideAction\\\" : {\\\"type\\\": \\\"COUNT\\\"}}], \\\"defaultAction\\\": {\\\"type\\\": \\\"BLOCK\\\"}}</code> </p> <p>If this is a Shield Advanced policy, this string will be empty.</p>"
+      }
+    },
+    "MemberAccounts": {
+      "base": null,
+      "refs": {
+        "ListMemberAccountsResponse$MemberAccounts": "<p>An array of account IDs.</p>"
+      }
+    },
+    "PaginationMaxResults": {
+      "base": null,
+      "refs": {
+        "GetProtectionStatusRequest$MaxResults": "<p>Specifies the number of objects that you want AWS Firewall Manager to return for this request. If you have more objects than the number that you specify for <code>MaxResults</code>, the response includes a <code>NextToken</code> value that you can use to get another batch of objects.</p>",
+        "ListComplianceStatusRequest$MaxResults": "<p>Specifies the number of <code>PolicyComplianceStatus</code> objects that you want AWS Firewall Manager to return for this request. If you have more <code>PolicyComplianceStatus</code> objects than the number that you specify for <code>MaxResults</code>, the response includes a <code>NextToken</code> value that you can use to get another batch of <code>PolicyComplianceStatus</code> objects.</p>",
+        "ListMemberAccountsRequest$MaxResults": "<p>Specifies the number of member account IDs that you want AWS Firewall Manager to return for this request. If you have more IDs than the number that you specify for <code>MaxResults</code>, the response includes a <code>NextToken</code> value that you can use to get another batch of member account IDs.</p>",
+        "ListPoliciesRequest$MaxResults": "<p>Specifies the number of <code>PolicySummary</code> objects that you want AWS Firewall Manager to return for this request. If you have more <code>PolicySummary</code> objects than the number that you specify for <code>MaxResults</code>, the response includes a <code>NextToken</code> value that you can use to get another batch of <code>PolicySummary</code> objects.</p>"
+      }
+    },
+    "PaginationToken": {
+      "base": null,
+      "refs": {
+        "GetProtectionStatusRequest$NextToken": "<p>If you specify a value for <code>MaxResults</code> and you have more objects than the number that you specify for <code>MaxResults</code>, AWS Firewall Manager returns a <code>NextToken</code> value in the response that allows you to list another group of objects. For the second and subsequent <code>GetProtectionStatus</code> requests, specify the value of <code>NextToken</code> from the previous response to get information about another batch of objects.</p>",
+        "GetProtectionStatusResponse$NextToken": "<p>If you have more objects than the number that you specified for <code>MaxResults</code> in the request, the response includes a <code>NextToken</code> value. To list more objects, submit another <code>GetProtectionStatus</code> request, and specify the <code>NextToken</code> value from the response in the <code>NextToken</code> value in the next request.</p> <p>AWS SDKs provide auto-pagination that identify <code>NextToken</code> in a response and make subsequent request calls automatically on your behalf. However, this feature is not supported by <code>GetProtectionStatus</code>. You must submit subsequent requests with <code>NextToken</code> using your own processes. </p>",
+        "ListComplianceStatusRequest$NextToken": "<p>If you specify a value for <code>MaxResults</code> and you have more <code>PolicyComplianceStatus</code> objects than the number that you specify for <code>MaxResults</code>, AWS Firewall Manager returns a <code>NextToken</code> value in the response that allows you to list another group of <code>PolicyComplianceStatus</code> objects. For the second and subsequent <code>ListComplianceStatus</code> requests, specify the value of <code>NextToken</code> from the previous response to get information about another batch of <code>PolicyComplianceStatus</code> objects.</p>",
+        "ListComplianceStatusResponse$NextToken": "<p>If you have more <code>PolicyComplianceStatus</code> objects than the number that you specified for <code>MaxResults</code> in the request, the response includes a <code>NextToken</code> value. To list more <code>PolicyComplianceStatus</code> objects, submit another <code>ListComplianceStatus</code> request, and specify the <code>NextToken</code> value from the response in the <code>NextToken</code> value in the next request.</p>",
+        "ListMemberAccountsRequest$NextToken": "<p>If you specify a value for <code>MaxResults</code> and you have more account IDs than the number that you specify for <code>MaxResults</code>, AWS Firewall Manager returns a <code>NextToken</code> value in the response that allows you to list another group of IDs. For the second and subsequent <code>ListMemberAccountsRequest</code> requests, specify the value of <code>NextToken</code> from the previous response to get information about another batch of member account IDs.</p>",
+        "ListMemberAccountsResponse$NextToken": "<p>If you have more member account IDs than the number that you specified for <code>MaxResults</code> in the request, the response includes a <code>NextToken</code> value. To list more IDs, submit another <code>ListMemberAccounts</code> request, and specify the <code>NextToken</code> value from the response in the <code>NextToken</code> value in the next request.</p>",
+        "ListPoliciesRequest$NextToken": "<p>If you specify a value for <code>MaxResults</code> and you have more <code>PolicySummary</code> objects than the number that you specify for <code>MaxResults</code>, AWS Firewall Manager returns a <code>NextToken</code> value in the response that allows you to list another group of <code>PolicySummary</code> objects. For the second and subsequent <code>ListPolicies</code> requests, specify the value of <code>NextToken</code> from the previous response to get information about another batch of <code>PolicySummary</code> objects.</p>",
+        "ListPoliciesResponse$NextToken": "<p>If you have more <code>PolicySummary</code> objects than the number that you specified for <code>MaxResults</code> in the request, the response includes a <code>NextToken</code> value. To list more <code>PolicySummary</code> objects, submit another <code>ListPolicies</code> request, and specify the <code>NextToken</code> value from the response in the <code>NextToken</code> value in the next request.</p>"
+      }
+    },
+    "Policy": {
+      "base": "<p>An AWS Firewall Manager policy.</p>",
+      "refs": {
+        "GetPolicyResponse$Policy": "<p>Information about the specified AWS Firewall Manager policy.</p>",
+        "PutPolicyRequest$Policy": "<p>The details of the AWS Firewall Manager policy to be created.</p>",
+        "PutPolicyResponse$Policy": "<p>The details of the AWS Firewall Manager policy that was created.</p>"
+      }
+    },
+    "PolicyComplianceDetail": {
+      "base": "<p>Describes the non-compliant resources in a member account for a specific AWS Firewall Manager policy. A maximum of 100 entries are displayed. If more than 100 resources are non-compliant, <code>EvaluationLimitExceeded</code> is set to <code>True</code>.</p>",
+      "refs": {
+        "GetComplianceDetailResponse$PolicyComplianceDetail": "<p>Information about the resources and the policy that you specified in the <code>GetComplianceDetail</code> request.</p>"
+      }
+    },
+    "PolicyComplianceStatus": {
+      "base": "<p>Indicates whether the account is compliant with the specified policy. An account is considered non-compliant if it includes resources that are not protected by the policy.</p>",
+      "refs": {
+        "PolicyComplianceStatusList$member": null
+      }
+    },
+    "PolicyComplianceStatusList": {
+      "base": null,
+      "refs": {
+        "ListComplianceStatusResponse$PolicyComplianceStatusList": "<p>An array of <code>PolicyComplianceStatus</code> objects.</p>"
+      }
+    },
+    "PolicyComplianceStatusType": {
+      "base": null,
+      "refs": {
+        "EvaluationResult$ComplianceStatus": "<p>Describes an AWS account's compliance with the AWS Firewall Manager policy.</p>"
+      }
+    },
+    "PolicyId": {
+      "base": null,
+      "refs": {
+        "DeletePolicyRequest$PolicyId": "<p>The ID of the policy that you want to delete. <code>PolicyId</code> is returned by <code>PutPolicy</code> and by <code>ListPolicies</code>.</p>",
+        "GetComplianceDetailRequest$PolicyId": "<p>The ID of the policy that you want to get the details for. <code>PolicyId</code> is returned by <code>PutPolicy</code> and by <code>ListPolicies</code>.</p>",
+        "GetPolicyRequest$PolicyId": "<p>The ID of the AWS Firewall Manager policy that you want the details for.</p>",
+        "GetProtectionStatusRequest$PolicyId": "<p>The ID of the policy for which you want to get the attack information.</p>",
+        "ListComplianceStatusRequest$PolicyId": "<p>The ID of the AWS Firewall Manager policy that you want the details for.</p>",
+        "Policy$PolicyId": "<p>The ID of the AWS Firewall Manager policy.</p>",
+        "PolicyComplianceDetail$PolicyId": "<p>The ID of the AWS Firewall Manager policy.</p>",
+        "PolicyComplianceStatus$PolicyId": "<p>The ID of the AWS Firewall Manager policy.</p>",
+        "PolicySummary$PolicyId": "<p>The ID of the specified policy.</p>"
+      }
+    },
+    "PolicySummary": {
+      "base": "<p>Details of the AWS Firewall Manager policy. </p>",
+      "refs": {
+        "PolicySummaryList$member": null
+      }
+    },
+    "PolicySummaryList": {
+      "base": null,
+      "refs": {
+        "ListPoliciesResponse$PolicyList": "<p>An array of <code>PolicySummary</code> objects.</p>"
+      }
+    },
+    "PolicyUpdateToken": {
+      "base": null,
+      "refs": {
+        "Policy$PolicyUpdateToken": "<p>A unique identifier for each update to the policy. When issuing a <code>PutPolicy</code> request, the <code>PolicyUpdateToken</code> in the request must match the <code>PolicyUpdateToken</code> of the current policy version. To get the <code>PolicyUpdateToken</code> of the current policy version, use a <code>GetPolicy</code> request.</p>"
+      }
+    },
+    "ProtectionData": {
+      "base": null,
+      "refs": {
+        "GetProtectionStatusResponse$Data": "<p>Details about the attack, including the following:</p> <ul> <li> <p>Attack type</p> </li> <li> <p>Account ID</p> </li> <li> <p>ARN of the resource attacked</p> </li> <li> <p>Start time of the attack</p> </li> <li> <p>End time of the attack (ongoing attacks will not have an end time)</p> </li> </ul> <p>The details are in JSON format. An example is shown in the Examples section below.</p>"
+      }
+    },
+    "PutNotificationChannelRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutPolicyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutPolicyResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ResourceArn": {
+      "base": null,
+      "refs": {
+        "GetNotificationChannelResponse$SnsTopicArn": "<p>The SNS topic that records AWS Firewall Manager activity. </p>",
+        "GetNotificationChannelResponse$SnsRoleName": "<p>The IAM role that is used by AWS Firewall Manager to record activity to SNS.</p>",
+        "GetPolicyResponse$PolicyArn": "<p>The Amazon Resource Name (ARN) of the specified policy.</p>",
+        "PolicySummary$PolicyArn": "<p>The Amazon Resource Name (ARN) of the specified policy.</p>",
+        "PutNotificationChannelRequest$SnsTopicArn": "<p>The Amazon Resource Name (ARN) of the SNS topic that collects notifications from AWS Firewall Manager.</p>",
+        "PutNotificationChannelRequest$SnsRoleName": "<p>The Amazon Resource Name (ARN) of the IAM role that allows Amazon SNS to record AWS Firewall Manager activity. </p>",
+        "PutPolicyResponse$PolicyArn": "<p>The Amazon Resource Name (ARN) of the policy that was created.</p>"
+      }
+    },
+    "ResourceCount": {
+      "base": null,
+      "refs": {
+        "EvaluationResult$ViolatorCount": "<p>Number of resources that are non-compliant with the specified policy. A resource is considered non-compliant if it is not associated with the specified policy.</p>"
+      }
+    },
+    "ResourceId": {
+      "base": null,
+      "refs": {
+        "ComplianceViolator$ResourceId": "<p>The resource ID.</p>"
+      }
+    },
+    "ResourceName": {
+      "base": null,
+      "refs": {
+        "Policy$PolicyName": "<p>The friendly name of the AWS Firewall Manager policy.</p>",
+        "PolicyComplianceStatus$PolicyName": "<p>The friendly name of the AWS Firewall Manager policy.</p>",
+        "PolicySummary$PolicyName": "<p>The friendly name of the specified policy.</p>"
+      }
+    },
+    "ResourceNotFoundException": {
+      "base": "<p>The specified resource was not found.</p>",
+      "refs": {
+      }
+    },
+    "ResourceTag": {
+      "base": "<p>The resource tags that AWS Firewall Manager uses to determine if a particular resource should be included or excluded from protection by the AWS Firewall Manager policy. Tags enable you to categorize your AWS resources in different ways, for example, by purpose, owner, or environment. Each tag consists of a key and an optional value, both of which you define. Tags are combined with an \"OR.\" That is, if you add more than one tag, if any of the tags matches, the resource is considered a match for the include or exclude. <a href=\"https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/tag-editor.html\">Working with Tag Editor</a>.</p>",
+      "refs": {
+        "ResourceTags$member": null
+      }
+    },
+    "ResourceTags": {
+      "base": null,
+      "refs": {
+        "Policy$ResourceTags": "<p>An array of <code>ResourceTag</code> objects.</p>"
+      }
+    },
+    "ResourceType": {
+      "base": null,
+      "refs": {
+        "ComplianceViolator$ResourceType": "<p>The resource type. This is in the format shown in <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html\">AWS Resource Types Reference</a>. For example: <code>AWS::ElasticLoadBalancingV2::LoadBalancer</code> or <code>AWS::CloudFront::Distribution</code>.</p>",
+        "Policy$ResourceType": "<p>The type of resource to protect with the policy. This is in the format shown in <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html\">AWS Resource Types Reference</a>. For example: <code>AWS::ElasticLoadBalancingV2::LoadBalancer</code> or <code>AWS::CloudFront::Distribution</code>.</p>",
+        "PolicySummary$ResourceType": "<p>The type of resource to protect with the policy. This is in the format shown in <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html\">AWS Resource Types Reference</a>. For example: <code>AWS::ElasticLoadBalancingV2::LoadBalancer</code> or <code>AWS::CloudFront::Distribution</code>.</p>",
+        "ResourceTypeList$member": null
+      }
+    },
+    "ResourceTypeList": {
+      "base": null,
+      "refs": {
+        "Policy$ResourceTypeList": "<p>An array of <code>ResourceType</code>.</p>"
+      }
+    },
+    "SecurityServicePolicyData": {
+      "base": "<p>Details about the security service that is being used to protect the resources.</p>",
+      "refs": {
+        "Policy$SecurityServicePolicyData": "<p>Details about the security service that is being used to protect the resources.</p>"
+      }
+    },
+    "SecurityServiceType": {
+      "base": null,
+      "refs": {
+        "GetProtectionStatusResponse$ServiceType": "<p>The service type that is protected by the policy. Currently, this is always <code>SHIELD_ADVANCED</code>.</p>",
+        "PolicySummary$SecurityServiceType": "<p>The service that the policy is using to protect the resources. This specifies the type of policy that is created, either a WAF policy or Shield Advanced policy.</p>",
+        "SecurityServicePolicyData$Type": "<p>The service that the policy is using to protect the resources. This specifies the type of policy that is created, either a WAF policy or Shield Advanced policy.</p>"
+      }
+    },
+    "TagKey": {
+      "base": null,
+      "refs": {
+        "ResourceTag$Key": "<p>The resource tag key.</p>"
+      }
+    },
+    "TagValue": {
+      "base": null,
+      "refs": {
+        "ResourceTag$Value": "<p>The resource tag value.</p>"
+      }
+    },
+    "TimeStamp": {
+      "base": null,
+      "refs": {
+        "GetProtectionStatusRequest$StartTime": "<p>The start of the time period to query for the attacks. This is a <code>timestamp</code> type. The sample request above indicates a number type because the default used by AWS Firewall Manager is Unix time in seconds. However, any valid <code>timestamp</code> format is allowed.</p>",
+        "GetProtectionStatusRequest$EndTime": "<p>The end of the time period to query for the attacks. This is a <code>timestamp</code> type. The sample request above indicates a number type because the default used by AWS Firewall Manager is Unix time in seconds. However, any valid <code>timestamp</code> format is allowed.</p>",
+        "PolicyComplianceDetail$ExpiredAt": "<p>A time stamp that indicates when the returned information should be considered out-of-date.</p>",
+        "PolicyComplianceStatus$LastUpdated": "<p>Time stamp of the last update to the <code>EvaluationResult</code> objects.</p>"
+      }
+    },
+    "ViolationReason": {
+      "base": null,
+      "refs": {
+        "ComplianceViolator$ViolationReason": "<p>The reason that the resource is not protected by the policy.</p>"
+      }
+    }
+  }
+}

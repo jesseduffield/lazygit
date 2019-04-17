@@ -1,0 +1,6 @@
+resource "blah" "blah" {}
+
+//
+//
+//
+

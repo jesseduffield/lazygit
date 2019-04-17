@@ -155,6 +155,9 @@ func buildHeader(header *http.Header, v reflect.Value, name string, tag reflect.
 		return awserr.New("SerializationError", "failed to encode REST request", err)
 	}
 
+	name = strings.TrimSpace(name)
+	str = strings.TrimSpace(str)
+
 	header.Add(name, str)
 
 	return nil
@@ -170,8 +173,10 @@ func buildHeaderMap(header *http.Header, v reflect.Value, tag reflect.StructTag)
 			return awserr.New("SerializationError", "failed to encode REST request", err)
 
 		}
+		keyStr := strings.TrimSpace(key.String())
+		str = strings.TrimSpace(str)
 
-		header.Add(prefix+key.String(), str)
+		header.Add(prefix+keyStr, str)
 	}
 	return nil
 }

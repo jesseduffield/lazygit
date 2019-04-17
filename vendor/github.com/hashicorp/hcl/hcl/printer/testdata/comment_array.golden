@@ -1,0 +1,13 @@
+banana = [
+  # I really want to comment this item in the array.
+  "a",
+
+  # This as well
+  "b",
+
+  "c", # And C
+  "d",
+
+  # And another
+  "e",
+]

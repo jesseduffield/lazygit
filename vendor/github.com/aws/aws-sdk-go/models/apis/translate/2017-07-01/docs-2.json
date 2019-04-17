@@ -1,0 +1,299 @@
+{
+  "version": "2.0",
+  "service": "<p>Provides translation between one source language and another of the same set of languages.</p>",
+  "operations": {
+    "DeleteTerminology": "<p>A synchronous action that deletes a custom terminology.</p>",
+    "GetTerminology": "<p>Retrieves a custom terminology.</p>",
+    "ImportTerminology": "<p>Creates or updates a custom terminology, depending on whether or not one already exists for the given terminology name. Importing a terminology with the same name as an existing one will merge the terminologies based on the chosen merge strategy. Currently, the only supported merge strategy is OVERWRITE, and so the imported terminology will overwrite an existing terminology of the same name.</p> <p>If you import a terminology that overwrites an existing one, the new terminology take up to 10 minutes to fully propagate and be available for use in a translation due to cache policies with the DataPlane service that performs the translations.</p>",
+    "ListTerminologies": "<p>Provides a list of custom terminologies associated with your account.</p>",
+    "TranslateText": "<p>Translates input text from the source language to the target language. It is not necessary to use English (en) as either the source or the target language but not all language combinations are supported by Amazon Translate. For more information, see <a href=\"http://docs.aws.amazon.com/translate/latest/dg/pairs.html\">Supported Language Pairs</a>.</p> <ul> <li> <p>Arabic (ar)</p> </li> <li> <p>Chinese (Simplified) (zh)</p> </li> <li> <p>Chinese (Traditional) (zh-TW)</p> </li> <li> <p>Czech (cs)</p> </li> <li> <p>Danish (da)</p> </li> <li> <p>Dutch (nl)</p> </li> <li> <p>English (en)</p> </li> <li> <p>Finnish (fi)</p> </li> <li> <p>French (fr)</p> </li> <li> <p>German (de)</p> </li> <li> <p>Hebrew (he)</p> </li> <li> <p>Indonesian (id)</p> </li> <li> <p>Italian (it)</p> </li> <li> <p>Japanese (ja)</p> </li> <li> <p>Korean (ko)</p> </li> <li> <p>Polish (pl)</p> </li> <li> <p>Portuguese (pt)</p> </li> <li> <p>Russian (ru)</p> </li> <li> <p>Spanish (es)</p> </li> <li> <p>Swedish (sv)</p> </li> <li> <p>Turkish (tr)</p> </li> </ul> <p>To have Amazon Translate determine the source language of your text, you can specify <code>auto</code> in the <code>SourceLanguageCode</code> field. If you specify <code>auto</code>, Amazon Translate will call Amazon Comprehend to determine the source language.</p>"
+  },
+  "shapes": {
+    "AppliedTerminology": {
+      "base": "<p>The custom terminology applied to the input text by Amazon Translate for the translated text response. This is optional in the response and will only be present if you specified terminology input in the request. Currently, only one terminology can be applied per TranslateText request.</p>",
+      "refs": {
+        "AppliedTerminologyList$member": null
+      }
+    },
+    "AppliedTerminologyList": {
+      "base": null,
+      "refs": {
+        "TranslateTextResponse$AppliedTerminologies": "<p>The names of the custom terminologies applied to the input text by Amazon Translate for the translated text response.</p>"
+      }
+    },
+    "BoundedLengthString": {
+      "base": null,
+      "refs": {
+        "TranslateTextRequest$Text": "<p>The text to translate. The text string can be a maximum of 5,000 bytes long. Depending on your character set, this may be fewer than 5,000 characters.</p>"
+      }
+    },
+    "DeleteTerminologyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Description": {
+      "base": null,
+      "refs": {
+        "ImportTerminologyRequest$Description": "<p>The description of the custom terminology being imported.</p>",
+        "TerminologyProperties$Description": "<p>The description of the custom terminology properties.</p>"
+      }
+    },
+    "DetectedLanguageLowConfidenceException": {
+      "base": "<p>The confidence that Amazon Comprehend accurately detected the source language is low. If a low confidence level is acceptable for your application, you can use the language in the exception to call Amazon Translate again. For more information, see the <a href=\"https://docs.aws.amazon.com/comprehend/latest/dg/API_DetectDominantLanguage.html\">DetectDominantLanguage</a> operation in the <i>Amazon Comprehend Developer Guide</i>. </p>",
+      "refs": {
+      }
+    },
+    "EncryptionKey": {
+      "base": "<p>The encryption key used to encrypt the custom terminologies used by Amazon Translate.</p>",
+      "refs": {
+        "ImportTerminologyRequest$EncryptionKey": "<p>The encryption key for the custom terminology being imported.</p>",
+        "TerminologyProperties$EncryptionKey": "<p>The encryption key for the custom terminology.</p>"
+      }
+    },
+    "EncryptionKeyID": {
+      "base": null,
+      "refs": {
+        "EncryptionKey$Id": "<p>The Amazon Resource Name (ARN) of the encryption key being used to encrypt the custom terminology.</p>"
+      }
+    },
+    "EncryptionKeyType": {
+      "base": null,
+      "refs": {
+        "EncryptionKey$Type": "<p>The type of encryption key used by Amazon Translate to encrypt custom terminologies.</p>"
+      }
+    },
+    "GetTerminologyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetTerminologyResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ImportTerminologyRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ImportTerminologyResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Integer": {
+      "base": null,
+      "refs": {
+        "TerminologyProperties$SizeBytes": "<p>The size of the file used when importing a custom terminology.</p>",
+        "TerminologyProperties$TermCount": "<p>The number of terms included in the custom terminology.</p>"
+      }
+    },
+    "InternalServerException": {
+      "base": "<p> An internal server error occurred. Retry your request.</p>",
+      "refs": {
+      }
+    },
+    "InvalidParameterValueException": {
+      "base": "<p>The value of the parameter is invalid. Review the value of the parameter you are using to correct it, and then retry your operation.</p>",
+      "refs": {
+      }
+    },
+    "InvalidRequestException": {
+      "base": "<p> The request that you made is invalid. Check your request to determine why it's invalid and then retry the request. </p>",
+      "refs": {
+      }
+    },
+    "LanguageCodeString": {
+      "base": null,
+      "refs": {
+        "DetectedLanguageLowConfidenceException$DetectedLanguageCode": "<p>The language code of the auto-detected language from Amazon Comprehend.</p>",
+        "LanguageCodeStringList$member": null,
+        "TerminologyProperties$SourceLanguageCode": "<p>The language code for the source text of the translation request for which the custom terminology is being used.</p>",
+        "TranslateTextRequest$SourceLanguageCode": "<p>The language code for the language of the source text. The language must be a language supported by Amazon Translate. </p> <p>To have Amazon Translate determine the source language of your text, you can specify <code>auto</code> in the <code>SourceLanguageCode</code> field. If you specify <code>auto</code>, Amazon Translate will call Amazon Comprehend to determine the source language.</p>",
+        "TranslateTextRequest$TargetLanguageCode": "<p>The language code requested for the language of the target text. The language must be a language supported by Amazon Translate.</p>",
+        "TranslateTextResponse$SourceLanguageCode": "<p>The language code for the language of the source text. </p>",
+        "TranslateTextResponse$TargetLanguageCode": "<p>The language code for the language of the target text. </p>",
+        "UnsupportedLanguagePairException$SourceLanguageCode": "<p>The language code for the language of the input text. </p>",
+        "UnsupportedLanguagePairException$TargetLanguageCode": "<p>The language code for the language of the translated text. </p>"
+      }
+    },
+    "LanguageCodeStringList": {
+      "base": null,
+      "refs": {
+        "TerminologyProperties$TargetLanguageCodes": "<p>The language codes for the target languages available with the custom terminology file. All possible target languages are returned in array.</p>"
+      }
+    },
+    "LimitExceededException": {
+      "base": "<p>The specified limit has been exceeded. Review your request and retry it with a quantity below the stated limit.</p>",
+      "refs": {
+      }
+    },
+    "ListTerminologiesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListTerminologiesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "MaxResultsInteger": {
+      "base": null,
+      "refs": {
+        "ListTerminologiesRequest$MaxResults": "<p>The maximum number of custom terminologies returned per list request.</p>"
+      }
+    },
+    "MergeStrategy": {
+      "base": null,
+      "refs": {
+        "ImportTerminologyRequest$MergeStrategy": "<p>The merge strategy of the custom terminology being imported. Currently, only the OVERWRITE merge strategy is supported. In this case, the imported terminology will overwrite an existing terminology of the same name.</p>"
+      }
+    },
+    "NextToken": {
+      "base": null,
+      "refs": {
+        "ListTerminologiesRequest$NextToken": "<p>If the result of the request to ListTerminologies was truncated, include the NextToken to fetch the next group of custom terminologies. </p>",
+        "ListTerminologiesResponse$NextToken": "<p> If the response to the ListTerminologies was truncated, the NextToken fetches the next group of custom terminologies. </p>"
+      }
+    },
+    "ResourceName": {
+      "base": null,
+      "refs": {
+        "AppliedTerminology$Name": "<p>The name of the custom terminology applied to the input text by Amazon Translate for the translated text response.</p>",
+        "DeleteTerminologyRequest$Name": "<p>The name of the custom terminology being deleted. </p>",
+        "GetTerminologyRequest$Name": "<p>The name of the custom terminology being retrieved.</p>",
+        "ImportTerminologyRequest$Name": "<p>The name of the custom terminology being imported.</p>",
+        "ResourceNameList$member": null,
+        "TerminologyProperties$Name": "<p>The name of the custom terminology.</p>"
+      }
+    },
+    "ResourceNameList": {
+      "base": null,
+      "refs": {
+        "TranslateTextRequest$TerminologyNames": "<p>The TerminologyNames list that is taken as input to the TranslateText request. This has a minimum length of 0 and a maximum length of 1.</p>"
+      }
+    },
+    "ResourceNotFoundException": {
+      "base": "<p>The resource you are looking for has not been found. Review the resource you're looking for and see if a different resource will accomplish your needs before retrying the revised request. .</p>",
+      "refs": {
+      }
+    },
+    "ServiceUnavailableException": {
+      "base": "<p>The Amazon Translate service is temporarily unavailable. Please wait a bit and then retry your request.</p>",
+      "refs": {
+      }
+    },
+    "String": {
+      "base": null,
+      "refs": {
+        "DetectedLanguageLowConfidenceException$Message": null,
+        "InternalServerException$Message": null,
+        "InvalidParameterValueException$Message": null,
+        "InvalidRequestException$Message": null,
+        "LimitExceededException$Message": null,
+        "ResourceNotFoundException$Message": null,
+        "ServiceUnavailableException$Message": null,
+        "Term$SourceText": "<p>The source text of the term being translated by the custom terminology.</p>",
+        "Term$TargetText": "<p>The target text of the term being translated by the custom terminology.</p>",
+        "TerminologyDataLocation$RepositoryType": "<p>The repository type for the custom terminology data.</p>",
+        "TerminologyDataLocation$Location": "<p>The location of the custom terminology data.</p>",
+        "TextSizeLimitExceededException$Message": null,
+        "TooManyRequestsException$Message": null,
+        "TranslateTextResponse$TranslatedText": "<p>The the translated text. The maximum length of this text is 5kb.</p>",
+        "UnsupportedLanguagePairException$Message": null
+      }
+    },
+    "Term": {
+      "base": "<p>The term being translated by the custom terminology.</p>",
+      "refs": {
+        "TermList$member": null
+      }
+    },
+    "TermList": {
+      "base": null,
+      "refs": {
+        "AppliedTerminology$Terms": "<p>The specific terms of the custom terminology applied to the input text by Amazon Translate for the translated text response. A maximum of 250 terms will be returned, and the specific terms applied will be the first 250 terms in the source text. </p>"
+      }
+    },
+    "TerminologyArn": {
+      "base": null,
+      "refs": {
+        "TerminologyProperties$Arn": "<p> The Amazon Resource Name (ARN) of the custom terminology. </p>"
+      }
+    },
+    "TerminologyData": {
+      "base": "<p>The data associated with the custom terminology.</p>",
+      "refs": {
+        "ImportTerminologyRequest$TerminologyData": "<p>The terminology data for the custom terminology being imported.</p>"
+      }
+    },
+    "TerminologyDataFormat": {
+      "base": null,
+      "refs": {
+        "GetTerminologyRequest$TerminologyDataFormat": "<p>The data format of the custom terminology being retrieved, either CSV or TMX.</p>",
+        "TerminologyData$Format": "<p>The data format of the custom terminology. Either CSV or TMX.</p>"
+      }
+    },
+    "TerminologyDataLocation": {
+      "base": "<p>The location of the custom terminology data.</p>",
+      "refs": {
+        "GetTerminologyResponse$TerminologyDataLocation": "<p>The data location of the custom terminology being retrieved. The custom terminology file is returned in a presigned url that has a 30 minute expiration.</p>"
+      }
+    },
+    "TerminologyFile": {
+      "base": null,
+      "refs": {
+        "TerminologyData$File": "<p>The file containing the custom terminology data.</p>"
+      }
+    },
+    "TerminologyProperties": {
+      "base": "<p>The properties of the custom terminology.</p>",
+      "refs": {
+        "GetTerminologyResponse$TerminologyProperties": "<p>The properties of the custom terminology being retrieved.</p>",
+        "ImportTerminologyResponse$TerminologyProperties": "<p>The properties of the custom terminology being imported.</p>",
+        "TerminologyPropertiesList$member": null
+      }
+    },
+    "TerminologyPropertiesList": {
+      "base": null,
+      "refs": {
+        "ListTerminologiesResponse$TerminologyPropertiesList": "<p>The properties list of the custom terminologies returned on the list request.</p>"
+      }
+    },
+    "TextSizeLimitExceededException": {
+      "base": "<p> The size of the text you submitted exceeds the size limit. Reduce the size of the text or use a smaller document and then retry your request. </p>",
+      "refs": {
+      }
+    },
+    "Timestamp": {
+      "base": null,
+      "refs": {
+        "TerminologyProperties$CreatedAt": "<p>The time at which the custom terminology was created, based on the timestamp.</p>",
+        "TerminologyProperties$LastUpdatedAt": "<p>The time at which the custom terminology was last update, based on the timestamp.</p>"
+      }
+    },
+    "TooManyRequestsException": {
+      "base": "<p> You have made too many requests within a short period of time. Wait for a short time and then try your request again.</p>",
+      "refs": {
+      }
+    },
+    "TranslateTextRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "TranslateTextResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UnsupportedLanguagePairException": {
+      "base": "<p>Amazon Translate does not support translation from the language of the source text into the requested target language. For more information, see <a>how-to-error-msg</a>. </p>",
+      "refs": {
+      }
+    }
+  }
+}

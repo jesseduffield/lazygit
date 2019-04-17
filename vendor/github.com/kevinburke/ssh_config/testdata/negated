@@ -1,0 +1,5 @@
+Host *.example.com !*.dialup.example.com
+  Port 1234
+
+Host *
+  Port 5678

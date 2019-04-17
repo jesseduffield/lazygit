@@ -122,6 +122,18 @@ func ToStringMapBool(i interface{}) map[string]bool {
 	return v
 }
 
+// ToStringMapInt casts an interface to a map[string]int type.
+func ToStringMapInt(i interface{}) map[string]int {
+	v, _ := ToStringMapIntE(i)
+	return v
+}
+
+// ToStringMapInt64 casts an interface to a map[string]int64 type.
+func ToStringMapInt64(i interface{}) map[string]int64 {
+	v, _ := ToStringMapInt64E(i)
+	return v
+}
+
 // ToStringMap casts an interface to a map[string]interface{} type.
 func ToStringMap(i interface{}) map[string]interface{} {
 	v, _ := ToStringMapE(i)

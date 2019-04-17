@@ -1,0 +1,2241 @@
+{
+  "version": "2.0",
+  "service": "<p>Alexa for Business helps you use Alexa in your organization. Alexa for Business provides you with the tools to manage Alexa devices, enroll your users, and assign skills, at scale. You can build your own context-aware voice skills using the Alexa Skills Kit and the Alexa for Business API operations. You can also make these available as private skills for your organization. Alexa for Business makes it efficient to voice-enable your products and services, thus providing context-aware voice experiences for your customers. Device makers building with the Alexa Voice Service (AVS) can create fully integrated solutions, register their products with Alexa for Business, and manage them as shared devices in their organization. </p>",
+  "operations": {
+    "ApproveSkill": "<p>Associates a skill with the organization under the customer's AWS account. If a skill is private, the user implicitly accepts access to this skill during enablement.</p>",
+    "AssociateContactWithAddressBook": "<p>Associates a contact with a given address book.</p>",
+    "AssociateDeviceWithRoom": "<p>Associates a device with a given room. This applies all the settings from the room profile to the device, and all the skills in any skill groups added to that room. This operation requires the device to be online, or else a manual sync is required. </p>",
+    "AssociateSkillGroupWithRoom": "<p>Associates a skill group with a given room. This enables all skills in the associated skill group on all devices in the room.</p>",
+    "AssociateSkillWithSkillGroup": "<p>Associates a skill with a skill group.</p>",
+    "AssociateSkillWithUsers": "<p>Makes a private skill available for enrolled users to enable on their devices.</p>",
+    "CreateAddressBook": "<p>Creates an address book with the specified details.</p>",
+    "CreateBusinessReportSchedule": "<p>Creates a recurring schedule for usage reports to deliver to the specified S3 location with a specified daily or weekly interval.</p>",
+    "CreateConferenceProvider": "<p>Adds a new conference provider under the user's AWS account.</p>",
+    "CreateContact": "<p>Creates a contact with the specified details.</p>",
+    "CreateProfile": "<p>Creates a new room profile with the specified details.</p>",
+    "CreateRoom": "<p>Creates a room with the specified details.</p>",
+    "CreateSkillGroup": "<p>Creates a skill group with a specified name and description.</p>",
+    "CreateUser": "<p>Creates a user.</p>",
+    "DeleteAddressBook": "<p>Deletes an address book by the address book ARN.</p>",
+    "DeleteBusinessReportSchedule": "<p>Deletes the recurring report delivery schedule with the specified schedule ARN.</p>",
+    "DeleteConferenceProvider": "<p>Deletes a conference provider.</p>",
+    "DeleteContact": "<p>Deletes a contact by the contact ARN.</p>",
+    "DeleteDevice": "<p>Removes a device from Alexa For Business.</p>",
+    "DeleteProfile": "<p>Deletes a room profile by the profile ARN.</p>",
+    "DeleteRoom": "<p>Deletes a room by the room ARN.</p>",
+    "DeleteRoomSkillParameter": "<p>Deletes room skill parameter details by room, skill, and parameter key ID.</p>",
+    "DeleteSkillAuthorization": "<p>Unlinks a third-party account from a skill.</p>",
+    "DeleteSkillGroup": "<p>Deletes a skill group by skill group ARN.</p>",
+    "DeleteUser": "<p>Deletes a specified user by user ARN and enrollment ARN.</p>",
+    "DisassociateContactFromAddressBook": "<p>Disassociates a contact from a given address book.</p>",
+    "DisassociateDeviceFromRoom": "<p>Disassociates a device from its current room. The device continues to be connected to the Wi-Fi network and is still registered to the account. The device settings and skills are removed from the room.</p>",
+    "DisassociateSkillFromSkillGroup": "<p>Disassociates a skill from a skill group.</p>",
+    "DisassociateSkillFromUsers": "<p>Makes a private skill unavailable for enrolled users and prevents them from enabling it on their devices.</p>",
+    "DisassociateSkillGroupFromRoom": "<p>Disassociates a skill group from a specified room. This disables all skills in the skill group on all devices in the room.</p>",
+    "ForgetSmartHomeAppliances": "<p>Forgets smart home appliances associated to a room.</p>",
+    "GetAddressBook": "<p>Gets address the book details by the address book ARN.</p>",
+    "GetConferencePreference": "<p>Retrieves the existing conference preferences.</p>",
+    "GetConferenceProvider": "<p>Gets details about a specific conference provider.</p>",
+    "GetContact": "<p>Gets the contact details by the contact ARN.</p>",
+    "GetDevice": "<p>Gets the details of a device by device ARN.</p>",
+    "GetInvitationConfiguration": "<p>Retrieves the configured values for the user enrollment invitation email template.</p>",
+    "GetProfile": "<p>Gets the details of a room profile by profile ARN.</p>",
+    "GetRoom": "<p>Gets room details by room ARN.</p>",
+    "GetRoomSkillParameter": "<p>Gets room skill parameter details by room, skill, and parameter key ARN.</p>",
+    "GetSkillGroup": "<p>Gets skill group details by skill group ARN.</p>",
+    "ListBusinessReportSchedules": "<p>Lists the details of the schedules that a user configured.</p>",
+    "ListConferenceProviders": "<p>Lists conference providers under a specific AWS account.</p>",
+    "ListDeviceEvents": "<p>Lists the device event history, including device connection status, for up to 30 days.</p>",
+    "ListSkills": "<p>Lists all enabled skills in a specific skill group.</p>",
+    "ListSkillsStoreCategories": "<p>Lists all categories in the Alexa skill store.</p>",
+    "ListSkillsStoreSkillsByCategory": "<p>Lists all skills in the Alexa skill store by category.</p>",
+    "ListSmartHomeAppliances": "<p>Lists all of the smart home appliances associated with a room.</p>",
+    "ListTags": "<p>Lists all tags for the specified resource.</p>",
+    "PutConferencePreference": "<p>Sets the conference preferences on a specific conference provider at the account level.</p>",
+    "PutInvitationConfiguration": "<p>Configures the email template for the user enrollment invitation with the specified attributes.</p>",
+    "PutRoomSkillParameter": "<p>Updates room skill parameter details by room, skill, and parameter key ID. Not all skills have a room skill parameter.</p>",
+    "PutSkillAuthorization": "<p>Links a user's account to a third-party skill provider. If this API operation is called by an assumed IAM role, the skill being linked must be a private skill. Also, the skill must be owned by the AWS account that assumed the IAM role.</p>",
+    "RegisterAVSDevice": "<p>Registers an Alexa-enabled device built by an Original Equipment Manufacturer (OEM) using Alexa Voice Service (AVS).</p>",
+    "RejectSkill": "<p>Disassociates a skill from the organization under a user's AWS account. If the skill is a private skill, it moves to an AcceptStatus of PENDING. Any private or public skill that is rejected can be added later by calling the ApproveSkill API. </p>",
+    "ResolveRoom": "<p>Determines the details for the room from which a skill request was invoked. This operation is used by skill developers.</p>",
+    "RevokeInvitation": "<p>Revokes an invitation and invalidates the enrollment URL.</p>",
+    "SearchAddressBooks": "<p>Searches address books and lists the ones that meet a set of filter and sort criteria.</p>",
+    "SearchContacts": "<p>Searches contacts and lists the ones that meet a set of filter and sort criteria.</p>",
+    "SearchDevices": "<p>Searches devices and lists the ones that meet a set of filter criteria.</p>",
+    "SearchProfiles": "<p>Searches room profiles and lists the ones that meet a set of filter criteria.</p>",
+    "SearchRooms": "<p>Searches rooms and lists the ones that meet a set of filter and sort criteria.</p>",
+    "SearchSkillGroups": "<p>Searches skill groups and lists the ones that meet a set of filter and sort criteria.</p>",
+    "SearchUsers": "<p>Searches users and lists the ones that meet a set of filter and sort criteria.</p>",
+    "SendInvitation": "<p>Sends an enrollment invitation email with a URL to a user. The URL is valid for 72 hours or until you call this operation again, whichever comes first. </p>",
+    "StartDeviceSync": "<p>Resets a device and its account to the known default settings, by clearing all information and settings set by previous users.</p>",
+    "StartSmartHomeApplianceDiscovery": "<p>Initiates the discovery of any smart home appliances associated with the room.</p>",
+    "TagResource": "<p>Adds metadata tags to a specified resource.</p>",
+    "UntagResource": "<p>Removes metadata tags from a specified resource.</p>",
+    "UpdateAddressBook": "<p>Updates address book details by the address book ARN.</p>",
+    "UpdateBusinessReportSchedule": "<p>Updates the configuration of the report delivery schedule with the specified schedule ARN.</p>",
+    "UpdateConferenceProvider": "<p>Updates an existing conference provider's settings.</p>",
+    "UpdateContact": "<p>Updates the contact details by the contact ARN.</p>",
+    "UpdateDevice": "<p>Updates the device name by device ARN.</p>",
+    "UpdateProfile": "<p>Updates an existing room profile by room profile ARN.</p>",
+    "UpdateRoom": "<p>Updates room details by room ARN.</p>",
+    "UpdateSkillGroup": "<p>Updates skill group details by skill group ARN.</p>"
+  },
+  "shapes": {
+    "Address": {
+      "base": null,
+      "refs": {
+        "CreateProfileRequest$Address": "<p>The valid address for the room.</p>",
+        "Profile$Address": "<p>The address of a room profile.</p>",
+        "ProfileData$Address": "<p>The address of a room profile.</p>",
+        "UpdateProfileRequest$Address": "<p>The updated address for the room profile.</p>"
+      }
+    },
+    "AddressBook": {
+      "base": "<p>An address book with attributes.</p>",
+      "refs": {
+        "GetAddressBookResponse$AddressBook": "<p>The details of the requested address book.</p>"
+      }
+    },
+    "AddressBookData": {
+      "base": "<p>Information related to an address book.</p>",
+      "refs": {
+        "AddressBookDataList$member": null
+      }
+    },
+    "AddressBookDataList": {
+      "base": null,
+      "refs": {
+        "SearchAddressBooksResponse$AddressBooks": "<p>The address books that meet the specified set of filter criteria, in sort order.</p>"
+      }
+    },
+    "AddressBookDescription": {
+      "base": null,
+      "refs": {
+        "AddressBook$Description": "<p>The description of the address book.</p>",
+        "AddressBookData$Description": "<p>The description of the address book.</p>",
+        "CreateAddressBookRequest$Description": "<p>The description of the address book.</p>",
+        "UpdateAddressBookRequest$Description": "<p>The updated description of the room.</p>"
+      }
+    },
+    "AddressBookName": {
+      "base": null,
+      "refs": {
+        "AddressBook$Name": "<p>The name of the address book.</p>",
+        "AddressBookData$Name": "<p>The name of the address book.</p>",
+        "CreateAddressBookRequest$Name": "<p>The name of the address book.</p>",
+        "UpdateAddressBookRequest$Name": "<p>The updated name of the room.</p>"
+      }
+    },
+    "AlreadyExistsException": {
+      "base": "<p>The resource being created already exists.</p>",
+      "refs": {
+      }
+    },
+    "AmazonId": {
+      "base": null,
+      "refs": {
+        "RegisterAVSDeviceRequest$AmazonId": "<p>The device type ID for your AVS device generated by Amazon when the OEM creates a new product on Amazon's Developer Console.</p>"
+      }
+    },
+    "ApplianceDescription": {
+      "base": null,
+      "refs": {
+        "SmartHomeAppliance$Description": "<p>The description of the smart home appliance.</p>"
+      }
+    },
+    "ApplianceFriendlyName": {
+      "base": null,
+      "refs": {
+        "SmartHomeAppliance$FriendlyName": "<p>The friendly name of the smart home appliance.</p>"
+      }
+    },
+    "ApplianceManufacturerName": {
+      "base": null,
+      "refs": {
+        "SmartHomeAppliance$ManufacturerName": "<p>The name of the manufacturer of the smart home appliance.</p>"
+      }
+    },
+    "ApproveSkillRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ApproveSkillResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Arn": {
+      "base": null,
+      "refs": {
+        "AddressBook$AddressBookArn": "<p>The ARN of the address book.</p>",
+        "AddressBookData$AddressBookArn": "<p>The ARN of the address book.</p>",
+        "AssociateContactWithAddressBookRequest$ContactArn": "<p>The ARN of the contact to associate with an address book.</p>",
+        "AssociateContactWithAddressBookRequest$AddressBookArn": "<p>The ARN of the address book with which to associate the contact.</p>",
+        "AssociateDeviceWithRoomRequest$DeviceArn": "<p>The ARN of the device to associate to a room. Required.</p>",
+        "AssociateDeviceWithRoomRequest$RoomArn": "<p>The ARN of the room with which to associate the device. Required.</p>",
+        "AssociateSkillGroupWithRoomRequest$SkillGroupArn": "<p>The ARN of the skill group to associate with a room. Required.</p>",
+        "AssociateSkillGroupWithRoomRequest$RoomArn": "<p>The ARN of the room with which to associate the skill group. Required.</p>",
+        "AssociateSkillWithSkillGroupRequest$SkillGroupArn": "<p>The ARN of the skill group to associate the skill to. Required.</p>",
+        "BusinessReportSchedule$ScheduleArn": "<p>The ARN of the business report schedule.</p>",
+        "ConferencePreference$DefaultConferenceProviderArn": "<p>The ARN of the default conference provider.</p>",
+        "ConferenceProvider$Arn": "<p>The ARN of the newly created conference provider.</p>",
+        "Contact$ContactArn": "<p>The ARN of the contact.</p>",
+        "ContactData$ContactArn": "<p>The ARN of the contact.</p>",
+        "CreateAddressBookResponse$AddressBookArn": "<p>The ARN of the newly created address book.</p>",
+        "CreateBusinessReportScheduleResponse$ScheduleArn": "<p>The ARN of the business report schedule.</p>",
+        "CreateConferenceProviderResponse$ConferenceProviderArn": "<p>The ARN of the newly-created conference provider.</p>",
+        "CreateContactResponse$ContactArn": "<p>The ARN of the newly created address book.</p>",
+        "CreateProfileResponse$ProfileArn": "<p>The ARN of the newly created room profile in the response.</p>",
+        "CreateRoomRequest$ProfileArn": "<p>The profile ARN for the room.</p>",
+        "CreateRoomResponse$RoomArn": "<p>The ARN of the newly created room in the response.</p>",
+        "CreateSkillGroupResponse$SkillGroupArn": "<p>The ARN of the newly created skill group in the response.</p>",
+        "CreateUserResponse$UserArn": "<p>The ARN of the newly created user in the response.</p>",
+        "DeleteAddressBookRequest$AddressBookArn": "<p>The ARN of the address book to delete.</p>",
+        "DeleteBusinessReportScheduleRequest$ScheduleArn": "<p>The ARN of the business report schedule.</p>",
+        "DeleteConferenceProviderRequest$ConferenceProviderArn": "<p>The ARN of the conference provider.</p>",
+        "DeleteContactRequest$ContactArn": "<p>The ARN of the contact to delete.</p>",
+        "DeleteDeviceRequest$DeviceArn": "<p>The ARN of the device for which to request details.</p>",
+        "DeleteProfileRequest$ProfileArn": "<p>The ARN of the room profile to delete. Required.</p>",
+        "DeleteRoomRequest$RoomArn": "<p>The ARN of the room to delete. Required.</p>",
+        "DeleteRoomSkillParameterRequest$RoomArn": "<p>The ARN of the room from which to remove the room skill parameter details.</p>",
+        "DeleteSkillAuthorizationRequest$RoomArn": "<p>The room that the skill is authorized for.</p>",
+        "DeleteSkillGroupRequest$SkillGroupArn": "<p>The ARN of the skill group to delete. Required.</p>",
+        "DeleteUserRequest$UserArn": "<p>The ARN of the user to delete in the organization. Required.</p>",
+        "Device$DeviceArn": "<p>The ARN of a device.</p>",
+        "Device$RoomArn": "<p>The room ARN of a device.</p>",
+        "DeviceData$DeviceArn": "<p>The ARN of a device.</p>",
+        "DeviceData$RoomArn": "<p>The room ARN associated with a device.</p>",
+        "DisassociateContactFromAddressBookRequest$ContactArn": "<p>The ARN of the contact to disassociate from an address book.</p>",
+        "DisassociateContactFromAddressBookRequest$AddressBookArn": "<p>The ARN of the address from which to disassociate the contact.</p>",
+        "DisassociateDeviceFromRoomRequest$DeviceArn": "<p>The ARN of the device to disassociate from a room. Required.</p>",
+        "DisassociateSkillFromSkillGroupRequest$SkillGroupArn": "<p>The unique identifier of a skill. Required.</p>",
+        "DisassociateSkillGroupFromRoomRequest$SkillGroupArn": "<p>The ARN of the skill group to disassociate from a room. Required.</p>",
+        "DisassociateSkillGroupFromRoomRequest$RoomArn": "<p>The ARN of the room from which the skill group is to be disassociated. Required.</p>",
+        "ForgetSmartHomeAppliancesRequest$RoomArn": "<p>The room that the appliances are associated with.</p>",
+        "GetAddressBookRequest$AddressBookArn": "<p>The ARN of the address book for which to request details.</p>",
+        "GetConferenceProviderRequest$ConferenceProviderArn": "<p>The ARN of the newly created conference provider.</p>",
+        "GetContactRequest$ContactArn": "<p>The ARN of the contact for which to request details.</p>",
+        "GetDeviceRequest$DeviceArn": "<p>The ARN of the device for which to request details. Required.</p>",
+        "GetProfileRequest$ProfileArn": "<p>The ARN of the room profile for which to request details. Required.</p>",
+        "GetRoomRequest$RoomArn": "<p>The ARN of the room for which to request details. Required.</p>",
+        "GetRoomSkillParameterRequest$RoomArn": "<p>The ARN of the room from which to get the room skill parameter details. </p>",
+        "GetSkillGroupRequest$SkillGroupArn": "<p>The ARN of the skill group for which to get details. Required.</p>",
+        "ListDeviceEventsRequest$DeviceArn": "<p>The ARN of a device.</p>",
+        "ListSkillsRequest$SkillGroupArn": "<p>The ARN of the skill group for which to list enabled skills. Required.</p>",
+        "ListSmartHomeAppliancesRequest$RoomArn": "<p>The room that the appliances are associated with.</p>",
+        "ListTagsRequest$Arn": "<p>The ARN of the specified resource for which to list tags.</p>",
+        "Profile$ProfileArn": "<p>The ARN of a room profile.</p>",
+        "Profile$AddressBookArn": "<p>The ARN of the address book.</p>",
+        "ProfileData$ProfileArn": "<p>The ARN of a room profile.</p>",
+        "PutRoomSkillParameterRequest$RoomArn": "<p>The ARN of the room associated with the room skill parameter. Required.</p>",
+        "PutSkillAuthorizationRequest$RoomArn": "<p>The room that the skill is authorized for.</p>",
+        "RegisterAVSDeviceResponse$DeviceArn": "<p>The ARN of the device.</p>",
+        "ResolveRoomResponse$RoomArn": "<p>The ARN of the room from which the skill request was invoked.</p>",
+        "RevokeInvitationRequest$UserArn": "<p>The ARN of the user for whom to revoke an enrollment invitation. Required.</p>",
+        "Room$RoomArn": "<p>The ARN of a room.</p>",
+        "Room$ProfileArn": "<p>The profile ARN of a room.</p>",
+        "RoomData$RoomArn": "<p>The ARN of a room.</p>",
+        "RoomData$ProfileArn": "<p>The profile ARN of a room.</p>",
+        "SendInvitationRequest$UserArn": "<p>The ARN of the user to whom to send an invitation. Required.</p>",
+        "SkillGroup$SkillGroupArn": "<p>The ARN of a skill group.</p>",
+        "SkillGroupData$SkillGroupArn": "<p>The skill group ARN of a skill group.</p>",
+        "StartDeviceSyncRequest$RoomArn": "<p>The ARN of the room with which the device to sync is associated. Required.</p>",
+        "StartDeviceSyncRequest$DeviceArn": "<p>The ARN of the device to sync. Required.</p>",
+        "StartSmartHomeApplianceDiscoveryRequest$RoomArn": "<p>The room where smart home appliance discovery was initiated.</p>",
+        "TagResourceRequest$Arn": "<p>The ARN of the resource to which to add metadata tags. Required. </p>",
+        "UntagResourceRequest$Arn": "<p>The ARN of the resource from which to remove metadata tags. Required. </p>",
+        "UpdateAddressBookRequest$AddressBookArn": "<p>The ARN of the room to update.</p>",
+        "UpdateBusinessReportScheduleRequest$ScheduleArn": "<p>The ARN of the business report schedule.</p>",
+        "UpdateConferenceProviderRequest$ConferenceProviderArn": "<p>The ARN of the conference provider.</p>",
+        "UpdateContactRequest$ContactArn": "<p>The ARN of the contact to update.</p>",
+        "UpdateDeviceRequest$DeviceArn": "<p>The ARN of the device to update. Required.</p>",
+        "UpdateProfileRequest$ProfileArn": "<p>The ARN of the room profile to update. Required.</p>",
+        "UpdateRoomRequest$RoomArn": "<p>The ARN of the room to update. </p>",
+        "UpdateRoomRequest$ProfileArn": "<p>The updated profile ARN for the room.</p>",
+        "UpdateSkillGroupRequest$SkillGroupArn": "<p>The ARN of the skill group to update. </p>",
+        "UserData$UserArn": "<p>The ARN of a user.</p>"
+      }
+    },
+    "AssociateContactWithAddressBookRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateContactWithAddressBookResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateDeviceWithRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateDeviceWithRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateSkillGroupWithRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateSkillGroupWithRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateSkillWithSkillGroupRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateSkillWithSkillGroupResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateSkillWithUsersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AssociateSkillWithUsersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "AuthorizationResult": {
+      "base": null,
+      "refs": {
+        "PutSkillAuthorizationRequest$AuthorizationResult": "<p>The authorization result specific to OAUTH code grant output. \"Code” must be populated in the AuthorizationResult map to establish the authorization.</p>"
+      }
+    },
+    "Boolean": {
+      "base": null,
+      "refs": {
+        "CreateProfileRequest$SetupModeDisabled": "<p>Whether room profile setup is enabled.</p>",
+        "CreateProfileRequest$PSTNEnabled": "<p>Whether PSTN calling is enabled.</p>",
+        "Profile$IsDefault": "<p>Retrieves if the profile is default or not.</p>",
+        "Profile$SetupModeDisabled": "<p>The setup mode of a room profile.</p>",
+        "Profile$PSTNEnabled": "<p>The PSTN setting of a room profile.</p>",
+        "ProfileData$IsDefault": "<p>Retrieves if the profile data is default or not.</p>",
+        "UpdateProfileRequest$IsDefault": "<p>Sets the profile as default if selected. If this is missing, no update is done to the default status.</p>",
+        "UpdateProfileRequest$SetupModeDisabled": "<p>Whether the setup mode of the profile is enabled.</p>",
+        "UpdateProfileRequest$PSTNEnabled": "<p>Whether the PSTN setting of the room profile is enabled.</p>"
+      }
+    },
+    "BulletPoint": {
+      "base": null,
+      "refs": {
+        "BulletPoints$member": null,
+        "NewInThisVersionBulletPoints$member": null
+      }
+    },
+    "BulletPoints": {
+      "base": null,
+      "refs": {
+        "SkillDetails$BulletPoints": "<p>The details about what the skill supports organized as bullet points.</p>"
+      }
+    },
+    "BusinessReport": {
+      "base": "<p>Usage report with specified parameters.</p>",
+      "refs": {
+        "BusinessReportSchedule$LastBusinessReport": "<p>The details of the last business report delivery for a specified time interval.</p>"
+      }
+    },
+    "BusinessReportContentRange": {
+      "base": "<p>The content range of the report.</p>",
+      "refs": {
+        "BusinessReportSchedule$ContentRange": "<p>The content range of the reports.</p>",
+        "CreateBusinessReportScheduleRequest$ContentRange": "<p>The content range of the reports.</p>"
+      }
+    },
+    "BusinessReportDownloadUrl": {
+      "base": null,
+      "refs": {
+        "BusinessReport$DownloadUrl": "<p>The download link where a user can download the report.</p>"
+      }
+    },
+    "BusinessReportFailureCode": {
+      "base": null,
+      "refs": {
+        "BusinessReport$FailureCode": "<p>The failure code.</p>"
+      }
+    },
+    "BusinessReportFormat": {
+      "base": null,
+      "refs": {
+        "BusinessReportSchedule$Format": "<p>The format of the generated report (individual CSV files or zipped files of individual files).</p>",
+        "CreateBusinessReportScheduleRequest$Format": "<p>The format of the generated report (individual CSV files or zipped files of individual files).</p>",
+        "UpdateBusinessReportScheduleRequest$Format": "<p>The format of the generated report (individual CSV files or zipped files of individual files).</p>"
+      }
+    },
+    "BusinessReportInterval": {
+      "base": null,
+      "refs": {
+        "BusinessReportContentRange$Interval": "<p>The interval of the content range.</p>"
+      }
+    },
+    "BusinessReportRecurrence": {
+      "base": "<p>The recurrence of the reports.</p>",
+      "refs": {
+        "BusinessReportSchedule$Recurrence": "<p>The recurrence of the reports.</p>",
+        "CreateBusinessReportScheduleRequest$Recurrence": "<p>The recurrence of the reports. If this isn't specified, the report will only be delivered one time when the API is called. </p>",
+        "UpdateBusinessReportScheduleRequest$Recurrence": "<p>The recurrence of the reports.</p>"
+      }
+    },
+    "BusinessReportS3Location": {
+      "base": "<p>The S3 location of the output reports.</p>",
+      "refs": {
+        "BusinessReport$S3Location": "<p>The S3 location of the output reports.</p>"
+      }
+    },
+    "BusinessReportS3Path": {
+      "base": null,
+      "refs": {
+        "BusinessReportS3Location$Path": "<p>The path of the business report.</p>"
+      }
+    },
+    "BusinessReportSchedule": {
+      "base": "<p>The schedule of the usage report.</p>",
+      "refs": {
+        "BusinessReportScheduleList$member": null
+      }
+    },
+    "BusinessReportScheduleList": {
+      "base": null,
+      "refs": {
+        "ListBusinessReportSchedulesResponse$BusinessReportSchedules": "<p>The schedule of the reports.</p>"
+      }
+    },
+    "BusinessReportScheduleName": {
+      "base": null,
+      "refs": {
+        "BusinessReportSchedule$ScheduleName": "<p>The name identifier of the schedule.</p>",
+        "CreateBusinessReportScheduleRequest$ScheduleName": "<p>The name identifier of the schedule.</p>",
+        "UpdateBusinessReportScheduleRequest$ScheduleName": "<p>The name identifier of the schedule.</p>"
+      }
+    },
+    "BusinessReportStatus": {
+      "base": null,
+      "refs": {
+        "BusinessReport$Status": "<p>The status of the report generation execution (RUNNING, SUCCEEDED, or FAILED).</p>"
+      }
+    },
+    "Category": {
+      "base": "<p>The skill store category that is shown. Alexa skills are assigned a specific skill category during creation, such as News, Social, and Sports.</p>",
+      "refs": {
+        "CategoryList$member": null
+      }
+    },
+    "CategoryId": {
+      "base": null,
+      "refs": {
+        "Category$CategoryId": "<p>The ID of the skill store category.</p>",
+        "ListSkillsStoreSkillsByCategoryRequest$CategoryId": "<p>The category ID for which the skills are being retrieved from the skill store.</p>"
+      }
+    },
+    "CategoryList": {
+      "base": null,
+      "refs": {
+        "ListSkillsStoreCategoriesResponse$CategoryList": "<p>The list of categories.</p>"
+      }
+    },
+    "CategoryName": {
+      "base": null,
+      "refs": {
+        "Category$CategoryName": "<p>The name of the skill store category.</p>"
+      }
+    },
+    "ClientId": {
+      "base": null,
+      "refs": {
+        "RegisterAVSDeviceRequest$ClientId": "<p>The client ID of the OEM used for code-based linking authorization on an AVS device.</p>"
+      }
+    },
+    "ClientRequestToken": {
+      "base": null,
+      "refs": {
+        "CreateAddressBookRequest$ClientRequestToken": "<p>A unique, user-specified identifier for the request that ensures idempotency.</p>",
+        "CreateBusinessReportScheduleRequest$ClientRequestToken": "<p>The client request token.</p>",
+        "CreateConferenceProviderRequest$ClientRequestToken": "<p>The request token of the client.</p>",
+        "CreateContactRequest$ClientRequestToken": "<p>A unique, user-specified identifier for this request that ensures idempotency.</p>",
+        "CreateProfileRequest$ClientRequestToken": "<p>The user-specified token that is used during the creation of a profile.</p>",
+        "CreateRoomRequest$ClientRequestToken": "<p>A unique, user-specified identifier for this request that ensures idempotency. </p>",
+        "CreateSkillGroupRequest$ClientRequestToken": "<p>A unique, user-specified identifier for this request that ensures idempotency. </p>",
+        "CreateUserRequest$ClientRequestToken": "<p>A unique, user-specified identifier for this request that ensures idempotency. </p>",
+        "ResourceInUseException$ClientRequestToken": null
+      }
+    },
+    "CommsProtocol": {
+      "base": null,
+      "refs": {
+        "IPDialIn$CommsProtocol": "<p>The protocol, including SIP, SIPS, and H323.</p>"
+      }
+    },
+    "ConcurrentModificationException": {
+      "base": "<p>There is a concurrent modification of resources.</p>",
+      "refs": {
+      }
+    },
+    "ConferencePreference": {
+      "base": "<p>The default conference provider that is used if no other scheduled meetings are detected.</p>",
+      "refs": {
+        "GetConferencePreferenceResponse$Preference": "<p>The conference preference.</p>",
+        "PutConferencePreferenceRequest$ConferencePreference": "<p>The conference preference of a specific conference provider.</p>"
+      }
+    },
+    "ConferenceProvider": {
+      "base": "<p>An entity that provides a conferencing solution. Alexa for Business acts as the voice interface and mediator that connects users to their preferred conference provider. Examples of conference providers include Amazon Chime, Zoom, Cisco, and Polycom. </p>",
+      "refs": {
+        "ConferenceProvidersList$member": null,
+        "GetConferenceProviderResponse$ConferenceProvider": "<p>The conference provider.</p>"
+      }
+    },
+    "ConferenceProviderName": {
+      "base": null,
+      "refs": {
+        "ConferenceProvider$Name": "<p>The name of the conference provider.</p>",
+        "CreateConferenceProviderRequest$ConferenceProviderName": "<p>The name of the conference provider.</p>"
+      }
+    },
+    "ConferenceProviderType": {
+      "base": null,
+      "refs": {
+        "ConferenceProvider$Type": "<p>The type of conference providers.</p>",
+        "CreateConferenceProviderRequest$ConferenceProviderType": "<p>Represents a type within a list of predefined types.</p>",
+        "UpdateConferenceProviderRequest$ConferenceProviderType": "<p>The type of the conference provider.</p>"
+      }
+    },
+    "ConferenceProvidersList": {
+      "base": null,
+      "refs": {
+        "ListConferenceProvidersResponse$ConferenceProviders": "<p>The conference providers.</p>"
+      }
+    },
+    "ConnectionStatus": {
+      "base": null,
+      "refs": {
+        "DeviceStatusInfo$ConnectionStatus": "<p>The latest available information about the connection status of a device. </p>"
+      }
+    },
+    "Contact": {
+      "base": "<p>A contact with attributes.</p>",
+      "refs": {
+        "GetContactResponse$Contact": "<p>The details of the requested contact.</p>"
+      }
+    },
+    "ContactData": {
+      "base": "<p>Information related to a contact.</p>",
+      "refs": {
+        "ContactDataList$member": null
+      }
+    },
+    "ContactDataList": {
+      "base": null,
+      "refs": {
+        "SearchContactsResponse$Contacts": "<p>The contacts that meet the specified set of filter criteria, in sort order.</p>"
+      }
+    },
+    "ContactName": {
+      "base": null,
+      "refs": {
+        "Contact$DisplayName": "<p>The name of the contact to display on the console.</p>",
+        "Contact$FirstName": "<p>The first name of the contact, used to call the contact on the device.</p>",
+        "Contact$LastName": "<p>The last name of the contact, used to call the contact on the device.</p>",
+        "ContactData$DisplayName": "<p>The name of the contact to display on the console.</p>",
+        "ContactData$FirstName": "<p>The first name of the contact, used to call the contact on the device.</p>",
+        "ContactData$LastName": "<p>The last name of the contact, used to call the contact on the device.</p>",
+        "CreateContactRequest$DisplayName": "<p>The name of the contact to display on the console.</p>",
+        "CreateContactRequest$FirstName": "<p>The first name of the contact that is used to call the contact on the device.</p>",
+        "CreateContactRequest$LastName": "<p>The last name of the contact that is used to call the contact on the device.</p>",
+        "UpdateContactRequest$DisplayName": "<p>The updated display name of the contact.</p>",
+        "UpdateContactRequest$FirstName": "<p>The updated first name of the contact.</p>",
+        "UpdateContactRequest$LastName": "<p>The updated last name of the contact.</p>"
+      }
+    },
+    "CountryCode": {
+      "base": null,
+      "refs": {
+        "PSTNDialIn$CountryCode": "<p>The zip code.</p>"
+      }
+    },
+    "CreateAddressBookRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateAddressBookResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateBusinessReportScheduleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateBusinessReportScheduleResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateConferenceProviderRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateConferenceProviderResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateContactRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateContactResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateProfileRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateProfileResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateSkillGroupRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateSkillGroupResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CreateUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "CustomerS3BucketName": {
+      "base": null,
+      "refs": {
+        "BusinessReportS3Location$BucketName": "<p>The S3 bucket name of the output reports.</p>",
+        "BusinessReportSchedule$S3BucketName": "<p>The S3 bucket name of the output reports.</p>",
+        "CreateBusinessReportScheduleRequest$S3BucketName": "<p>The S3 bucket name of the output reports. If this isn't specified, the report can be retrieved from a download link by calling ListBusinessReportSchedule. </p>",
+        "UpdateBusinessReportScheduleRequest$S3BucketName": "<p>The S3 location of the output reports.</p>"
+      }
+    },
+    "Date": {
+      "base": null,
+      "refs": {
+        "BusinessReportRecurrence$StartDate": "<p>The start date.</p>"
+      }
+    },
+    "DeleteAddressBookRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteAddressBookResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteBusinessReportScheduleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteBusinessReportScheduleResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteConferenceProviderRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteConferenceProviderResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteContactRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteContactResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteDeviceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteDeviceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteProfileRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteProfileResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteRoomSkillParameterRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteRoomSkillParameterResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteSkillAuthorizationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteSkillAuthorizationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteSkillGroupRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteSkillGroupResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteUserRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeleteUserResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DeveloperInfo": {
+      "base": "<p>The details about the developer that published the skill.</p>",
+      "refs": {
+        "SkillDetails$DeveloperInfo": "<p>The details about the developer that published the skill.</p>"
+      }
+    },
+    "DeveloperName": {
+      "base": null,
+      "refs": {
+        "DeveloperInfo$DeveloperName": "<p>The name of the developer.</p>"
+      }
+    },
+    "Device": {
+      "base": "<p>A device with attributes.</p>",
+      "refs": {
+        "GetDeviceResponse$Device": "<p>The details of the device requested. Required.</p>"
+      }
+    },
+    "DeviceData": {
+      "base": "<p>Device attributes.</p>",
+      "refs": {
+        "DeviceDataList$member": null
+      }
+    },
+    "DeviceDataList": {
+      "base": null,
+      "refs": {
+        "SearchDevicesResponse$Devices": "<p>The devices that meet the specified set of filter criteria, in sort order.</p>"
+      }
+    },
+    "DeviceEvent": {
+      "base": "<p>The list of device events.</p>",
+      "refs": {
+        "DeviceEventList$member": null
+      }
+    },
+    "DeviceEventList": {
+      "base": null,
+      "refs": {
+        "ListDeviceEventsResponse$DeviceEvents": "<p>The device events requested for the device ARN.</p>"
+      }
+    },
+    "DeviceEventType": {
+      "base": null,
+      "refs": {
+        "DeviceEvent$Type": "<p>The type of device event.</p>",
+        "ListDeviceEventsRequest$EventType": "<p>The event type to filter device events. If EventType isn't specified, this returns a list of all device events in reverse chronological order. If EventType is specified, this returns a list of device events for that EventType in reverse chronological order. </p>"
+      }
+    },
+    "DeviceEventValue": {
+      "base": null,
+      "refs": {
+        "DeviceEvent$Value": "<p>The value of the event.</p>"
+      }
+    },
+    "DeviceName": {
+      "base": null,
+      "refs": {
+        "Device$DeviceName": "<p>The name of a device.</p>",
+        "DeviceData$DeviceName": "<p>The name of a device.</p>",
+        "UpdateDeviceRequest$DeviceName": "<p>The updated device name. Required.</p>"
+      }
+    },
+    "DeviceNotRegisteredException": {
+      "base": "<p>The request failed because this device is no longer registered and therefore no longer managed by this account.</p>",
+      "refs": {
+      }
+    },
+    "DeviceSerialNumber": {
+      "base": null,
+      "refs": {
+        "Device$DeviceSerialNumber": "<p>The serial number of a device.</p>",
+        "DeviceData$DeviceSerialNumber": "<p>The serial number of a device.</p>"
+      }
+    },
+    "DeviceSerialNumberForAVS": {
+      "base": null,
+      "refs": {
+        "RegisterAVSDeviceRequest$DeviceSerialNumber": "<p>The key generated by the OEM that uniquely identifies a specified instance of your AVS device.</p>"
+      }
+    },
+    "DeviceStatus": {
+      "base": null,
+      "refs": {
+        "Device$DeviceStatus": "<p>The status of a device. If the status is not READY, check the DeviceStatusInfo value for details.</p>",
+        "DeviceData$DeviceStatus": "<p>The status of a device.</p>"
+      }
+    },
+    "DeviceStatusDetail": {
+      "base": "<p>Details of a device’s status.</p>",
+      "refs": {
+        "DeviceStatusDetails$member": null
+      }
+    },
+    "DeviceStatusDetailCode": {
+      "base": null,
+      "refs": {
+        "DeviceStatusDetail$Code": "<p>The device status detail code.</p>"
+      }
+    },
+    "DeviceStatusDetails": {
+      "base": null,
+      "refs": {
+        "DeviceStatusInfo$DeviceStatusDetails": "<p>One or more device status detail descriptions.</p>"
+      }
+    },
+    "DeviceStatusInfo": {
+      "base": "<p>Detailed information about a device's status.</p>",
+      "refs": {
+        "Device$DeviceStatusInfo": "<p>Detailed information about a device's status.</p>",
+        "DeviceData$DeviceStatusInfo": "<p>Detailed information about a device's status.</p>"
+      }
+    },
+    "DeviceType": {
+      "base": null,
+      "refs": {
+        "Device$DeviceType": "<p>The type of a device.</p>",
+        "DeviceData$DeviceType": "<p>The type of a device.</p>"
+      }
+    },
+    "DisassociateContactFromAddressBookRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateContactFromAddressBookResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateDeviceFromRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateDeviceFromRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateSkillFromSkillGroupRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateSkillFromSkillGroupResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateSkillFromUsersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateSkillFromUsersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateSkillGroupFromRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DisassociateSkillGroupFromRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "DistanceUnit": {
+      "base": null,
+      "refs": {
+        "CreateProfileRequest$DistanceUnit": "<p>The distance unit to be used by devices in the profile.</p>",
+        "Profile$DistanceUnit": "<p>The distance unit of a room profile.</p>",
+        "ProfileData$DistanceUnit": "<p>The distance unit of a room profile.</p>",
+        "UpdateProfileRequest$DistanceUnit": "<p>The updated distance unit for the room profile.</p>"
+      }
+    },
+    "E164PhoneNumber": {
+      "base": null,
+      "refs": {
+        "Contact$PhoneNumber": "<p>The phone number of the contact.</p>",
+        "ContactData$PhoneNumber": "<p>The phone number of the contact.</p>",
+        "CreateContactRequest$PhoneNumber": "<p>The phone number of the contact in E.164 format.</p>",
+        "UpdateContactRequest$PhoneNumber": "<p>The updated phone number of the contact.</p>"
+      }
+    },
+    "Email": {
+      "base": null,
+      "refs": {
+        "CreateUserRequest$Email": "<p>The email address for the user.</p>",
+        "DeveloperInfo$Email": "<p>The email of the developer.</p>",
+        "GetInvitationConfigurationResponse$ContactEmail": "<p>The email ID of the organization or individual contact that the enrolled user can use. </p>",
+        "PutInvitationConfigurationRequest$ContactEmail": "<p>The email ID of the organization or individual contact that the enrolled user can use. </p>",
+        "UserData$Email": "<p>The email of a user.</p>"
+      }
+    },
+    "EnablementType": {
+      "base": null,
+      "refs": {
+        "SkillSummary$EnablementType": "<p>Whether the skill is enabled under the user's account, or if it requires linking to be used.</p>"
+      }
+    },
+    "EnablementTypeFilter": {
+      "base": null,
+      "refs": {
+        "ListSkillsRequest$EnablementType": "<p>Whether the skill is enabled under the user's account, or if it requires linking to be used.</p>"
+      }
+    },
+    "EndUserLicenseAgreement": {
+      "base": null,
+      "refs": {
+        "SkillDetails$EndUserLicenseAgreement": "<p>The URL of the end user license agreement.</p>"
+      }
+    },
+    "Endpoint": {
+      "base": null,
+      "refs": {
+        "IPDialIn$Endpoint": "<p>The IP address.</p>"
+      }
+    },
+    "EnrollmentId": {
+      "base": null,
+      "refs": {
+        "DeleteUserRequest$EnrollmentId": "<p>The ARN of the user's enrollment in the organization. Required.</p>",
+        "RevokeInvitationRequest$EnrollmentId": "<p>The ARN of the enrollment invitation to revoke. Required.</p>",
+        "UserData$EnrollmentId": "<p>The enrollment ARN of a user.</p>"
+      }
+    },
+    "EnrollmentStatus": {
+      "base": null,
+      "refs": {
+        "UserData$EnrollmentStatus": "<p>The enrollment status of a user.</p>"
+      }
+    },
+    "ErrorMessage": {
+      "base": null,
+      "refs": {
+        "AlreadyExistsException$Message": null,
+        "ConcurrentModificationException$Message": null,
+        "DeviceNotRegisteredException$Message": null,
+        "InvalidCertificateAuthorityException$Message": null,
+        "InvalidDeviceException$Message": null,
+        "InvalidUserStatusException$Message": null,
+        "LimitExceededException$Message": null,
+        "NameInUseException$Message": null,
+        "NotFoundException$Message": null,
+        "ResourceInUseException$Message": null,
+        "SkillNotLinkedException$Message": null,
+        "UnauthorizedException$Message": null
+      }
+    },
+    "Feature": {
+      "base": null,
+      "refs": {
+        "Features$member": null
+      }
+    },
+    "Features": {
+      "base": null,
+      "refs": {
+        "StartDeviceSyncRequest$Features": "<p>Request structure to start the device sync. Required.</p>"
+      }
+    },
+    "Filter": {
+      "base": "<p>A filter name and value pair that is used to return a more specific list of results. Filters can be used to match a set of resources by various criteria.</p>",
+      "refs": {
+        "FilterList$member": null
+      }
+    },
+    "FilterKey": {
+      "base": null,
+      "refs": {
+        "Filter$Key": "<p>The key of a filter.</p>"
+      }
+    },
+    "FilterList": {
+      "base": null,
+      "refs": {
+        "SearchAddressBooksRequest$Filters": "<p>The filters to use to list a specified set of address books. The supported filter key is AddressBookName.</p>",
+        "SearchContactsRequest$Filters": "<p>The filters to use to list a specified set of address books. The supported filter keys are DisplayName, FirstName, LastName, and AddressBookArns.</p>",
+        "SearchDevicesRequest$Filters": "<p>The filters to use to list a specified set of devices. Supported filter keys are DeviceName, DeviceStatus, DeviceStatusDetailCode, RoomName, DeviceType, DeviceSerialNumber, UnassociatedOnly, and ConnectionStatus (ONLINE and OFFLINE).</p>",
+        "SearchProfilesRequest$Filters": "<p>The filters to use to list a specified set of room profiles. Supported filter keys are ProfileName and Address. Required. </p>",
+        "SearchRoomsRequest$Filters": "<p>The filters to use to list a specified set of rooms. The supported filter keys are RoomName and ProfileName.</p>",
+        "SearchSkillGroupsRequest$Filters": "<p>The filters to use to list a specified set of skill groups. The supported filter key is SkillGroupName. </p>",
+        "SearchUsersRequest$Filters": "<p>The filters to use for listing a specific set of users. Required. Supported filter keys are UserId, FirstName, LastName, Email, and EnrollmentStatus.</p>"
+      }
+    },
+    "FilterValue": {
+      "base": null,
+      "refs": {
+        "FilterValueList$member": null
+      }
+    },
+    "FilterValueList": {
+      "base": null,
+      "refs": {
+        "Filter$Values": "<p>The values of a filter.</p>"
+      }
+    },
+    "ForgetSmartHomeAppliancesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ForgetSmartHomeAppliancesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GenericKeyword": {
+      "base": null,
+      "refs": {
+        "GenericKeywords$member": null
+      }
+    },
+    "GenericKeywords": {
+      "base": null,
+      "refs": {
+        "SkillDetails$GenericKeywords": "<p>The generic keywords associated with the skill that can be used to find a skill.</p>"
+      }
+    },
+    "GetAddressBookRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetAddressBookResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetConferencePreferenceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetConferencePreferenceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetConferenceProviderRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetConferenceProviderResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetContactRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetContactResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetDeviceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetDeviceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetInvitationConfigurationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetInvitationConfigurationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetProfileRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetProfileResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetRoomSkillParameterRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetRoomSkillParameterResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetSkillGroupRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "GetSkillGroupResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "IPDialIn": {
+      "base": "<p>The IP endpoint and protocol for calling.</p>",
+      "refs": {
+        "ConferenceProvider$IPDialIn": "<p>The IP endpoint and protocol for calling.</p>",
+        "CreateConferenceProviderRequest$IPDialIn": "<p>The IP endpoint and protocol for calling.</p>",
+        "UpdateConferenceProviderRequest$IPDialIn": "<p>The IP endpoint and protocol for calling.</p>"
+      }
+    },
+    "IconUrl": {
+      "base": null,
+      "refs": {
+        "SkillsStoreSkill$IconUrl": "<p>The URL where the skill icon resides.</p>"
+      }
+    },
+    "InvalidCertificateAuthorityException": {
+      "base": "<p>The Certificate Authority can't issue or revoke a certificate.</p>",
+      "refs": {
+      }
+    },
+    "InvalidDeviceException": {
+      "base": "<p>The device is in an invalid state.</p>",
+      "refs": {
+      }
+    },
+    "InvalidUserStatusException": {
+      "base": "<p>The attempt to update a user is invalid due to the user's current status.</p>",
+      "refs": {
+      }
+    },
+    "InvocationPhrase": {
+      "base": null,
+      "refs": {
+        "SkillDetails$InvocationPhrase": "<p>The phrase used to trigger the skill.</p>"
+      }
+    },
+    "Key": {
+      "base": null,
+      "refs": {
+        "AuthorizationResult$key": null
+      }
+    },
+    "LimitExceededException": {
+      "base": "<p>You are performing an action that would put you beyond your account's limits.</p>",
+      "refs": {
+      }
+    },
+    "ListBusinessReportSchedulesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListBusinessReportSchedulesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListConferenceProvidersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListConferenceProvidersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListDeviceEventsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListDeviceEventsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListSkillsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListSkillsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListSkillsStoreCategoriesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListSkillsStoreCategoriesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListSkillsStoreSkillsByCategoryRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListSkillsStoreSkillsByCategoryResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListSmartHomeAppliancesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListSmartHomeAppliancesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListTagsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ListTagsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "MacAddress": {
+      "base": null,
+      "refs": {
+        "Device$MacAddress": "<p>The MAC address of a device.</p>",
+        "DeviceData$MacAddress": "<p>The MAC address of a device.</p>"
+      }
+    },
+    "MaxResults": {
+      "base": null,
+      "refs": {
+        "ListBusinessReportSchedulesRequest$MaxResults": "<p>The maximum number of schedules listed in the call.</p>",
+        "ListConferenceProvidersRequest$MaxResults": "<p>The maximum number of conference providers to be returned, per paginated calls.</p>",
+        "ListDeviceEventsRequest$MaxResults": "<p>The maximum number of results to include in the response. The default value is 50. If more results exist than the specified MaxResults value, a token is included in the response so that the remaining results can be retrieved. </p>",
+        "ListSkillsStoreCategoriesRequest$MaxResults": "<p>The maximum number of categories returned, per paginated calls.</p>",
+        "ListSmartHomeAppliancesRequest$MaxResults": "<p>The maximum number of appliances to be returned, per paginated calls.</p>",
+        "ListTagsRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved.</p>",
+        "SearchAddressBooksRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified MaxResults value, a token is included in the response so that the remaining results can be retrieved.</p>",
+        "SearchContactsRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified MaxResults value, a token is included in the response so that the remaining results can be retrieved.</p>",
+        "SearchDevicesRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved.</p>",
+        "SearchProfilesRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved.</p>",
+        "SearchRoomsRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved. </p>",
+        "SearchSkillGroupsRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved. </p>",
+        "SearchUsersRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved. Required.</p>"
+      }
+    },
+    "MaxVolumeLimit": {
+      "base": null,
+      "refs": {
+        "CreateProfileRequest$MaxVolumeLimit": "<p>The maximum volume limit for a room profile.</p>",
+        "Profile$MaxVolumeLimit": "<p>The max volume limit of a room profile.</p>",
+        "UpdateProfileRequest$MaxVolumeLimit": "<p>The updated maximum volume limit for the room profile.</p>"
+      }
+    },
+    "MeetingSetting": {
+      "base": "<p>The values that indicate whether a pin is always required (YES), never required (NO), or OPTIONAL.</p> <ul> <li> <p>If YES, Alexa will always ask for a meeting pin.</p> </li> <li> <p>If NO, Alexa will never ask for a meeting pin.</p> </li> <li> <p>If OPTIONAL, Alexa will ask if you have a meeting pin and if the customer responds with yes, it will ask for the meeting pin.</p> </li> </ul>",
+      "refs": {
+        "ConferenceProvider$MeetingSetting": "<p>The meeting settings for the conference provider.</p>",
+        "CreateConferenceProviderRequest$MeetingSetting": "<p>The meeting settings for the conference provider.</p>",
+        "UpdateConferenceProviderRequest$MeetingSetting": "<p>The meeting settings for the conference provider.</p>"
+      }
+    },
+    "NameInUseException": {
+      "base": "<p>The name sent in the request is already in use.</p>",
+      "refs": {
+      }
+    },
+    "NewInThisVersionBulletPoints": {
+      "base": null,
+      "refs": {
+        "SkillDetails$NewInThisVersionBulletPoints": "<p>The updates added in bullet points.</p>"
+      }
+    },
+    "NextToken": {
+      "base": null,
+      "refs": {
+        "ListBusinessReportSchedulesRequest$NextToken": "<p>The token used to list the remaining schedules from the previous API call.</p>",
+        "ListBusinessReportSchedulesResponse$NextToken": "<p>The token used to list the remaining schedules from the previous API call.</p>",
+        "ListConferenceProvidersRequest$NextToken": "<p>The tokens used for pagination.</p>",
+        "ListConferenceProvidersResponse$NextToken": "<p>The tokens used for pagination.</p>",
+        "ListDeviceEventsRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response only includes results beyond the token, up to the value specified by MaxResults. When the end of results is reached, the response has a value of null.</p>",
+        "ListDeviceEventsResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "ListSkillsRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response includes only results beyond the token, up to the value specified by <code>MaxResults</code>. Required.</p>",
+        "ListSkillsResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "ListSkillsStoreCategoriesRequest$NextToken": "<p>The tokens used for pagination.</p>",
+        "ListSkillsStoreCategoriesResponse$NextToken": "<p>The tokens used for pagination.</p>",
+        "ListSkillsStoreSkillsByCategoryRequest$NextToken": "<p>The tokens used for pagination.</p>",
+        "ListSkillsStoreSkillsByCategoryResponse$NextToken": "<p>The tokens used for pagination.</p>",
+        "ListSmartHomeAppliancesRequest$NextToken": "<p>The tokens used for pagination.</p>",
+        "ListSmartHomeAppliancesResponse$NextToken": "<p>The tokens used for pagination.</p>",
+        "ListTagsRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response includes only results beyond the token, up to the value specified by <code>MaxResults</code>. </p>",
+        "ListTagsResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "SearchAddressBooksRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response only includes results beyond the token, up to the value specified by MaxResults.</p>",
+        "SearchAddressBooksResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "SearchContactsRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response only includes results beyond the token, up to the value specified by MaxResults.</p>",
+        "SearchContactsResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "SearchDevicesRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response includes only results beyond the token, up to the value specified by <code>MaxResults</code>.</p>",
+        "SearchDevicesResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "SearchProfilesRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response includes only results beyond the token, up to the value specified by <code>MaxResults</code>.</p>",
+        "SearchProfilesResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "SearchRoomsRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response includes only results beyond the token, up to the value specified by <code>MaxResults</code>.</p>",
+        "SearchRoomsResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "SearchSkillGroupsRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response includes only results beyond the token, up to the value specified by <code>MaxResults</code>. Required.</p>",
+        "SearchSkillGroupsResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>",
+        "SearchUsersRequest$NextToken": "<p>An optional token returned from a prior request. Use this token for pagination of results from this action. If this parameter is specified, the response includes only results beyond the token, up to the value specified by <code>MaxResults</code>. Required.</p>",
+        "SearchUsersResponse$NextToken": "<p>The token returned to indicate that there is more data available.</p>"
+      }
+    },
+    "NotFoundException": {
+      "base": "<p>The resource is not found.</p>",
+      "refs": {
+      }
+    },
+    "OneClickIdDelay": {
+      "base": null,
+      "refs": {
+        "PSTNDialIn$OneClickIdDelay": "<p>The delay duration before Alexa enters the conference ID with dual-tone multi-frequency (DTMF). Each number on the dial pad corresponds to a DTMF tone, which is how we send data over the telephone network.</p>"
+      }
+    },
+    "OneClickPinDelay": {
+      "base": null,
+      "refs": {
+        "PSTNDialIn$OneClickPinDelay": "<p>The delay duration before Alexa enters the conference pin with dual-tone multi-frequency (DTMF). Each number on the dial pad corresponds to a DTMF tone, which is how we send data over the telephone network.</p>"
+      }
+    },
+    "OrganizationName": {
+      "base": null,
+      "refs": {
+        "GetInvitationConfigurationResponse$OrganizationName": "<p>The name of the organization sending the enrollment invite to a user.</p>",
+        "PutInvitationConfigurationRequest$OrganizationName": "<p>The name of the organization sending the enrollment invite to a user.</p>"
+      }
+    },
+    "OutboundPhoneNumber": {
+      "base": null,
+      "refs": {
+        "PSTNDialIn$PhoneNumber": "<p>The phone number to call to join the conference.</p>"
+      }
+    },
+    "PSTNDialIn": {
+      "base": "<p>The information for public switched telephone network (PSTN) conferencing.</p>",
+      "refs": {
+        "ConferenceProvider$PSTNDialIn": "<p>The information for PSTN conferencing.</p>",
+        "CreateConferenceProviderRequest$PSTNDialIn": "<p>The information for PSTN conferencing.</p>",
+        "UpdateConferenceProviderRequest$PSTNDialIn": "<p>The information for PSTN conferencing.</p>"
+      }
+    },
+    "PrivacyPolicy": {
+      "base": null,
+      "refs": {
+        "DeveloperInfo$PrivacyPolicy": "<p>The URL of the privacy policy.</p>"
+      }
+    },
+    "ProductDescription": {
+      "base": null,
+      "refs": {
+        "SkillDetails$ProductDescription": "<p>The description of the product.</p>"
+      }
+    },
+    "ProductId": {
+      "base": null,
+      "refs": {
+        "RegisterAVSDeviceRequest$ProductId": "<p>The product ID used to identify your AVS device during authorization.</p>"
+      }
+    },
+    "Profile": {
+      "base": "<p>A room profile with attributes.</p>",
+      "refs": {
+        "GetProfileResponse$Profile": "<p>The details of the room profile requested. Required.</p>"
+      }
+    },
+    "ProfileData": {
+      "base": "<p>The data of a room profile.</p>",
+      "refs": {
+        "ProfileDataList$member": null
+      }
+    },
+    "ProfileDataList": {
+      "base": null,
+      "refs": {
+        "SearchProfilesResponse$Profiles": "<p>The profiles that meet the specified set of filter criteria, in sort order.</p>"
+      }
+    },
+    "ProfileName": {
+      "base": null,
+      "refs": {
+        "CreateProfileRequest$ProfileName": "<p>The name of a room profile.</p>",
+        "Profile$ProfileName": "<p>The name of a room profile.</p>",
+        "ProfileData$ProfileName": "<p>The name of a room profile.</p>",
+        "RoomData$ProfileName": "<p>The profile name of a room.</p>",
+        "UpdateProfileRequest$ProfileName": "<p>The updated name for the room profile.</p>"
+      }
+    },
+    "ProviderCalendarId": {
+      "base": null,
+      "refs": {
+        "CreateRoomRequest$ProviderCalendarId": "<p>The calendar ARN for the room.</p>",
+        "Room$ProviderCalendarId": "<p>The provider calendar ARN of a room.</p>",
+        "RoomData$ProviderCalendarId": "<p>The provider calendar ARN of a room.</p>",
+        "UpdateRoomRequest$ProviderCalendarId": "<p>The updated provider calendar ARN for the room.</p>"
+      }
+    },
+    "PutConferencePreferenceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutConferencePreferenceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutInvitationConfigurationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutInvitationConfigurationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutRoomSkillParameterRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutRoomSkillParameterResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutSkillAuthorizationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "PutSkillAuthorizationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RegisterAVSDeviceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RegisterAVSDeviceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RejectSkillRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RejectSkillResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ReleaseDate": {
+      "base": null,
+      "refs": {
+        "SkillDetails$ReleaseDate": "<p>The date when the skill was released.</p>"
+      }
+    },
+    "RequirePin": {
+      "base": null,
+      "refs": {
+        "MeetingSetting$RequirePin": "<p>The values that indicate whether the pin is always required.</p>"
+      }
+    },
+    "ResolveRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ResolveRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ResourceInUseException": {
+      "base": "<p>The resource in the request is already in use.</p>",
+      "refs": {
+      }
+    },
+    "ReviewKey": {
+      "base": null,
+      "refs": {
+        "Reviews$key": null
+      }
+    },
+    "ReviewValue": {
+      "base": null,
+      "refs": {
+        "Reviews$value": null
+      }
+    },
+    "Reviews": {
+      "base": null,
+      "refs": {
+        "SkillDetails$Reviews": "<p>The list of reviews for the skill, including Key and Value pair.</p>"
+      }
+    },
+    "RevokeInvitationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "RevokeInvitationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Room": {
+      "base": "<p>A room with attributes.</p>",
+      "refs": {
+        "GetRoomResponse$Room": "<p>The details of the room requested.</p>"
+      }
+    },
+    "RoomData": {
+      "base": "<p>The data of a room.</p>",
+      "refs": {
+        "RoomDataList$member": null
+      }
+    },
+    "RoomDataList": {
+      "base": null,
+      "refs": {
+        "SearchRoomsResponse$Rooms": "<p>The rooms that meet the specified set of filter criteria, in sort order.</p>"
+      }
+    },
+    "RoomDescription": {
+      "base": null,
+      "refs": {
+        "CreateRoomRequest$Description": "<p>The description for the room.</p>",
+        "Room$Description": "<p>The description of a room.</p>",
+        "RoomData$Description": "<p>The description of a room.</p>",
+        "UpdateRoomRequest$Description": "<p>The updated description for the room.</p>"
+      }
+    },
+    "RoomName": {
+      "base": null,
+      "refs": {
+        "CreateRoomRequest$RoomName": "<p>The name for the room.</p>",
+        "DeviceData$RoomName": "<p>The name of the room associated with a device.</p>",
+        "ResolveRoomResponse$RoomName": "<p>The name of the room from which the skill request was invoked.</p>",
+        "Room$RoomName": "<p>The name of a room.</p>",
+        "RoomData$RoomName": "<p>The name of a room.</p>",
+        "UpdateRoomRequest$RoomName": "<p>The updated name for the room.</p>"
+      }
+    },
+    "RoomSkillParameter": {
+      "base": "<p>A skill parameter associated with a room.</p>",
+      "refs": {
+        "GetRoomSkillParameterResponse$RoomSkillParameter": "<p>The details of the room skill parameter requested. Required.</p>",
+        "PutRoomSkillParameterRequest$RoomSkillParameter": "<p>The updated room skill parameter. Required.</p>",
+        "RoomSkillParameters$member": null
+      }
+    },
+    "RoomSkillParameterKey": {
+      "base": null,
+      "refs": {
+        "DeleteRoomSkillParameterRequest$ParameterKey": "<p>The room skill parameter key for which to remove details.</p>",
+        "GetRoomSkillParameterRequest$ParameterKey": "<p>The room skill parameter key for which to get details. Required.</p>",
+        "RoomSkillParameter$ParameterKey": "<p>The parameter key of a room skill parameter. ParameterKey is an enumerated type that only takes “DEFAULT” or “SCOPE” as valid values.</p>"
+      }
+    },
+    "RoomSkillParameterValue": {
+      "base": null,
+      "refs": {
+        "RoomSkillParameter$ParameterValue": "<p>The parameter value of a room skill parameter.</p>"
+      }
+    },
+    "RoomSkillParameters": {
+      "base": null,
+      "refs": {
+        "ResolveRoomResponse$RoomSkillParameters": "<p>Response to get the room profile request. Required.</p>"
+      }
+    },
+    "S3KeyPrefix": {
+      "base": null,
+      "refs": {
+        "BusinessReportSchedule$S3KeyPrefix": "<p>The S3 key where the report is delivered.</p>",
+        "CreateBusinessReportScheduleRequest$S3KeyPrefix": "<p>The S3 key where the report is delivered.</p>",
+        "UpdateBusinessReportScheduleRequest$S3KeyPrefix": "<p>The S3 key where the report is delivered.</p>"
+      }
+    },
+    "SampleUtterances": {
+      "base": null,
+      "refs": {
+        "SkillsStoreSkill$SampleUtterances": "<p>Sample utterances that interact with the skill.</p>"
+      }
+    },
+    "SearchAddressBooksRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchAddressBooksResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchContactsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchContactsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchDevicesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchDevicesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchProfilesRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchProfilesResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchRoomsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchRoomsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchSkillGroupsRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchSkillGroupsResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchUsersRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SearchUsersResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SendInvitationRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "SendInvitationResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "ShortDescription": {
+      "base": null,
+      "refs": {
+        "SkillsStoreSkill$ShortDescription": "<p>Short description about the skill.</p>"
+      }
+    },
+    "ShortSkillIdList": {
+      "base": null,
+      "refs": {
+        "GetInvitationConfigurationResponse$PrivateSkillIds": "<p>The list of private skill IDs that you want to recommend to the user to enable in the invitation.</p>",
+        "PutInvitationConfigurationRequest$PrivateSkillIds": "<p>The list of private skill IDs that you want to recommend to the user to enable in the invitation.</p>"
+      }
+    },
+    "SkillDetails": {
+      "base": "<p>Granular information about the skill.</p>",
+      "refs": {
+        "SkillsStoreSkill$SkillDetails": "<p>Information about the skill.</p>"
+      }
+    },
+    "SkillGroup": {
+      "base": "<p>A skill group with attributes.</p>",
+      "refs": {
+        "GetSkillGroupResponse$SkillGroup": "<p>The details of the skill group requested. Required.</p>"
+      }
+    },
+    "SkillGroupData": {
+      "base": "<p>The attributes of a skill group.</p>",
+      "refs": {
+        "SkillGroupDataList$member": null
+      }
+    },
+    "SkillGroupDataList": {
+      "base": null,
+      "refs": {
+        "SearchSkillGroupsResponse$SkillGroups": "<p>The skill groups that meet the filter criteria, in sort order.</p>"
+      }
+    },
+    "SkillGroupDescription": {
+      "base": null,
+      "refs": {
+        "CreateSkillGroupRequest$Description": "<p>The description for the skill group.</p>",
+        "SkillGroup$Description": "<p>The description of a skill group.</p>",
+        "SkillGroupData$Description": "<p>The description of a skill group.</p>",
+        "UpdateSkillGroupRequest$Description": "<p>The updated description for the skill group.</p>"
+      }
+    },
+    "SkillGroupName": {
+      "base": null,
+      "refs": {
+        "CreateSkillGroupRequest$SkillGroupName": "<p>The name for the skill group.</p>",
+        "SkillGroup$SkillGroupName": "<p>The name of a skill group.</p>",
+        "SkillGroupData$SkillGroupName": "<p>The skill group name of a skill group.</p>",
+        "UpdateSkillGroupRequest$SkillGroupName": "<p>The updated name for the skill group.</p>"
+      }
+    },
+    "SkillId": {
+      "base": null,
+      "refs": {
+        "ApproveSkillRequest$SkillId": "<p>The unique identifier of the skill.</p>",
+        "AssociateSkillWithSkillGroupRequest$SkillId": "<p>The unique identifier of the skill.</p>",
+        "AssociateSkillWithUsersRequest$SkillId": "<p>The private skill ID you want to make available to enrolled users.</p>",
+        "DeleteRoomSkillParameterRequest$SkillId": "<p>The ID of the skill from which to remove the room skill parameter details.</p>",
+        "DeleteSkillAuthorizationRequest$SkillId": "<p>The unique identifier of a skill.</p>",
+        "DisassociateSkillFromSkillGroupRequest$SkillId": "<p>The ARN of a skill group to associate to a skill.</p>",
+        "DisassociateSkillFromUsersRequest$SkillId": "<p> The private skill ID you want to make unavailable for enrolled users.</p>",
+        "GetRoomSkillParameterRequest$SkillId": "<p>The ARN of the skill from which to get the room skill parameter details. Required.</p>",
+        "PutRoomSkillParameterRequest$SkillId": "<p>The ARN of the skill associated with the room skill parameter. Required.</p>",
+        "PutSkillAuthorizationRequest$SkillId": "<p>The unique identifier of a skill.</p>",
+        "RejectSkillRequest$SkillId": "<p>The unique identifier of the skill.</p>",
+        "ResolveRoomRequest$SkillId": "<p>The ARN of the skill that was requested. Required.</p>",
+        "ShortSkillIdList$member": null,
+        "SkillSummary$SkillId": "<p>The ARN of the skill summary.</p>",
+        "SkillsStoreSkill$SkillId": "<p>The ARN of the skill.</p>"
+      }
+    },
+    "SkillListMaxResults": {
+      "base": null,
+      "refs": {
+        "ListSkillsRequest$MaxResults": "<p>The maximum number of results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved. Required.</p>",
+        "ListSkillsStoreSkillsByCategoryRequest$MaxResults": "<p>The maximum number of skills returned per paginated calls.</p>"
+      }
+    },
+    "SkillName": {
+      "base": null,
+      "refs": {
+        "SkillSummary$SkillName": "<p>The name of the skill.</p>",
+        "SkillsStoreSkill$SkillName": "<p>The name of the skill.</p>"
+      }
+    },
+    "SkillNotLinkedException": {
+      "base": "<p>The skill must be linked to a third-party account.</p>",
+      "refs": {
+      }
+    },
+    "SkillStoreType": {
+      "base": null,
+      "refs": {
+        "SkillTypes$member": null
+      }
+    },
+    "SkillSummary": {
+      "base": "<p>The summary of skills.</p>",
+      "refs": {
+        "SkillSummaryList$member": null
+      }
+    },
+    "SkillSummaryList": {
+      "base": null,
+      "refs": {
+        "ListSkillsResponse$SkillSummaries": "<p>The list of enabled skills requested. Required.</p>"
+      }
+    },
+    "SkillType": {
+      "base": null,
+      "refs": {
+        "SkillSummary$SkillType": "<p>Whether the skill is publicly available or is a private skill.</p>"
+      }
+    },
+    "SkillTypeFilter": {
+      "base": null,
+      "refs": {
+        "ListSkillsRequest$SkillType": "<p>Whether the skill is publicly available or is a private skill.</p>"
+      }
+    },
+    "SkillTypes": {
+      "base": null,
+      "refs": {
+        "SkillDetails$SkillTypes": "<p>The types of skills.</p>"
+      }
+    },
+    "SkillsStoreSkill": {
+      "base": "<p>The detailed information about an Alexa skill.</p>",
+      "refs": {
+        "SkillsStoreSkillList$member": null
+      }
+    },
+    "SkillsStoreSkillList": {
+      "base": null,
+      "refs": {
+        "ListSkillsStoreSkillsByCategoryResponse$SkillsStoreSkills": "<p>The skill store skills.</p>"
+      }
+    },
+    "SmartHomeAppliance": {
+      "base": "<p>A smart home appliance that can connect to a central system. Any domestic device can be a smart appliance. </p>",
+      "refs": {
+        "SmartHomeApplianceList$member": null
+      }
+    },
+    "SmartHomeApplianceList": {
+      "base": null,
+      "refs": {
+        "ListSmartHomeAppliancesResponse$SmartHomeAppliances": "<p>The smart home appliances.</p>"
+      }
+    },
+    "SoftwareVersion": {
+      "base": null,
+      "refs": {
+        "Device$SoftwareVersion": "<p>The software version of a device.</p>",
+        "DeviceData$SoftwareVersion": "<p>The software version of a device.</p>"
+      }
+    },
+    "Sort": {
+      "base": "<p>An object representing a sort criteria. </p>",
+      "refs": {
+        "SortList$member": null
+      }
+    },
+    "SortKey": {
+      "base": null,
+      "refs": {
+        "Sort$Key": "<p>The sort key of a sort object.</p>"
+      }
+    },
+    "SortList": {
+      "base": null,
+      "refs": {
+        "SearchAddressBooksRequest$SortCriteria": "<p>The sort order to use in listing the specified set of address books. The supported sort key is AddressBookName.</p>",
+        "SearchContactsRequest$SortCriteria": "<p>The sort order to use in listing the specified set of contacts. The supported sort keys are DisplayName, FirstName, and LastName.</p>",
+        "SearchDevicesRequest$SortCriteria": "<p>The sort order to use in listing the specified set of devices. Supported sort keys are DeviceName, DeviceStatus, RoomName, DeviceType, DeviceSerialNumber, and ConnectionStatus.</p>",
+        "SearchProfilesRequest$SortCriteria": "<p>The sort order to use in listing the specified set of room profiles. Supported sort keys are ProfileName and Address.</p>",
+        "SearchRoomsRequest$SortCriteria": "<p>The sort order to use in listing the specified set of rooms. The supported sort keys are RoomName and ProfileName.</p>",
+        "SearchSkillGroupsRequest$SortCriteria": "<p>The sort order to use in listing the specified set of skill groups. The supported sort key is SkillGroupName. </p>",
+        "SearchUsersRequest$SortCriteria": "<p>The sort order to use in listing the filtered set of users. Required. Supported sort keys are UserId, FirstName, LastName, Email, and EnrollmentStatus.</p>"
+      }
+    },
+    "SortValue": {
+      "base": null,
+      "refs": {
+        "Sort$Value": "<p>The sort value of a sort object.</p>"
+      }
+    },
+    "StartDeviceSyncRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "StartDeviceSyncResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "StartSmartHomeApplianceDiscoveryRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "StartSmartHomeApplianceDiscoveryResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Tag": {
+      "base": "<p>A key-value pair that can be associated with a resource. </p>",
+      "refs": {
+        "TagList$member": null
+      }
+    },
+    "TagKey": {
+      "base": null,
+      "refs": {
+        "Tag$Key": "<p>The key of a tag. Tag keys are case-sensitive. </p>",
+        "TagKeyList$member": null
+      }
+    },
+    "TagKeyList": {
+      "base": null,
+      "refs": {
+        "UntagResourceRequest$TagKeys": "<p>The tags to be removed from the specified resource. Do not provide system tags. Required. </p>"
+      }
+    },
+    "TagList": {
+      "base": null,
+      "refs": {
+        "CreateRoomRequest$Tags": "<p>The tags for the room.</p>",
+        "CreateUserRequest$Tags": "<p>The tags for the user.</p>",
+        "ListTagsResponse$Tags": "<p>The tags requested for the specified resource.</p>",
+        "TagResourceRequest$Tags": "<p>The tags to be added to the specified resource. Do not provide system tags. Required. </p>"
+      }
+    },
+    "TagResourceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "TagResourceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "TagValue": {
+      "base": null,
+      "refs": {
+        "Tag$Value": "<p>The value of a tag. Tag values are case-sensitive and can be null.</p>"
+      }
+    },
+    "TemperatureUnit": {
+      "base": null,
+      "refs": {
+        "CreateProfileRequest$TemperatureUnit": "<p>The temperature unit to be used by devices in the profile.</p>",
+        "Profile$TemperatureUnit": "<p>The temperature unit of a room profile.</p>",
+        "ProfileData$TemperatureUnit": "<p>The temperature unit of a room profile.</p>",
+        "UpdateProfileRequest$TemperatureUnit": "<p>The updated temperature unit for the room profile.</p>"
+      }
+    },
+    "Timestamp": {
+      "base": null,
+      "refs": {
+        "BusinessReport$DeliveryTime": "<p>The time of report delivery.</p>",
+        "DeviceEvent$Timestamp": "<p>The time (in epoch) when the event occurred. </p>"
+      }
+    },
+    "Timezone": {
+      "base": null,
+      "refs": {
+        "CreateProfileRequest$Timezone": "<p>The time zone used by a room profile.</p>",
+        "Profile$Timezone": "<p>The time zone of a room profile.</p>",
+        "ProfileData$Timezone": "<p>The timezone of a room profile.</p>",
+        "UpdateProfileRequest$Timezone": "<p>The updated timezone for the room profile.</p>"
+      }
+    },
+    "TotalCount": {
+      "base": null,
+      "refs": {
+        "SearchAddressBooksResponse$TotalCount": "<p>The total number of address books returned.</p>",
+        "SearchContactsResponse$TotalCount": "<p>The total number of contacts returned.</p>",
+        "SearchDevicesResponse$TotalCount": "<p>The total number of devices returned.</p>",
+        "SearchProfilesResponse$TotalCount": "<p>The total number of room profiles returned.</p>",
+        "SearchRoomsResponse$TotalCount": "<p>The total number of rooms returned.</p>",
+        "SearchSkillGroupsResponse$TotalCount": "<p>The total number of skill groups returned.</p>",
+        "SearchUsersResponse$TotalCount": "<p>The total number of users returned.</p>"
+      }
+    },
+    "UnauthorizedException": {
+      "base": "<p>The caller has no permissions to operate on the resource involved in the API call.</p>",
+      "refs": {
+      }
+    },
+    "UntagResourceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UntagResourceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateAddressBookRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateAddressBookResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateBusinessReportScheduleRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateBusinessReportScheduleResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateConferenceProviderRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateConferenceProviderResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateContactRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateContactResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateDeviceRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateDeviceResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateProfileRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateProfileResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateRoomRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateRoomResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateSkillGroupRequest": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "UpdateSkillGroupResponse": {
+      "base": null,
+      "refs": {
+      }
+    },
+    "Url": {
+      "base": null,
+      "refs": {
+        "DeveloperInfo$Url": "<p>The website of the developer.</p>"
+      }
+    },
+    "UserCode": {
+      "base": null,
+      "refs": {
+        "RegisterAVSDeviceRequest$UserCode": "<p>The code that is obtained after your AVS device has made a POST request to LWA as a part of the Device Authorization Request component of the OAuth code-based linking specification.</p>"
+      }
+    },
+    "UserData": {
+      "base": "<p>Information related to a user.</p>",
+      "refs": {
+        "UserDataList$member": null
+      }
+    },
+    "UserDataList": {
+      "base": null,
+      "refs": {
+        "SearchUsersResponse$Users": "<p>The users that meet the specified set of filter criteria, in sort order.</p>"
+      }
+    },
+    "UserId": {
+      "base": null,
+      "refs": {
+        "ResolveRoomRequest$UserId": "<p>The ARN of the user. Required.</p>"
+      }
+    },
+    "Utterance": {
+      "base": null,
+      "refs": {
+        "SampleUtterances$member": null
+      }
+    },
+    "Value": {
+      "base": null,
+      "refs": {
+        "AuthorizationResult$value": null
+      }
+    },
+    "WakeWord": {
+      "base": null,
+      "refs": {
+        "CreateProfileRequest$WakeWord": "<p>A wake word for Alexa, Echo, Amazon, or a computer.</p>",
+        "Profile$WakeWord": "<p>The wake word of a room profile.</p>",
+        "ProfileData$WakeWord": "<p>The wake word of a room profile.</p>",
+        "UpdateProfileRequest$WakeWord": "<p>The updated wake word for the room profile.</p>"
+      }
+    },
+    "boolean": {
+      "base": null,
+      "refs": {
+        "SkillSummary$SupportsLinking": "<p>Linking support for a skill.</p>",
+        "SkillsStoreSkill$SupportsLinking": "<p>Linking support for a skill.</p>"
+      }
+    },
+    "user_FirstName": {
+      "base": null,
+      "refs": {
+        "CreateUserRequest$FirstName": "<p>The first name for the user.</p>",
+        "UserData$FirstName": "<p>The first name of a user.</p>"
+      }
+    },
+    "user_LastName": {
+      "base": null,
+      "refs": {
+        "CreateUserRequest$LastName": "<p>The last name for the user.</p>",
+        "UserData$LastName": "<p>The last name of a user.</p>"
+      }
+    },
+    "user_UserId": {
+      "base": null,
+      "refs": {
+        "CreateUserRequest$UserId": "<p>The ARN for the user.</p>"
+      }
+    }
+  }
+}
