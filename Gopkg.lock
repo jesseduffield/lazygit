@@ -229,10 +229,10 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/scbizu/cmd"
   packages = ["."]
-  revision = "b84ca4f2247327f07f46331c260675cba1a1dc7a"
-  version = "v1.0.3"
+  revision = "f5b62585a524ac6c0ad087fab4b0089e88dc4143"
 
 [[projects]]
   name = "github.com/sergi/go-diff"
@@ -374,6 +374,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fa3f18ade8b4eabf6769482cc868ea21fa4ca9f2a0d07521ef6b27288fa6de38"
+  inputs-digest = "56fe11e324ace9c99c8810d669320a6098f531cabdd1e2603d798f306cc21fb6"
   solver-name = "gps-cdcl"
   solver-version = 1
