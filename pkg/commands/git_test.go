@@ -987,9 +987,9 @@ func TestGitCommandCommitWithStatus(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := newDummyGitCommand()
+			gitCmd := NewDummyGitCommand()
 			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
-			s.test(gitCmd.CommitWithStatus("test"))
+			s.test(gitCmd.CommitWithStatus("test", ""))
 		})
 	}
 }
