@@ -141,6 +141,7 @@ type guiState struct {
 	DiffEntries         []*commands.Commit
 	MenuItemCount       int // can't store the actual list because it's of interface{} type
 	PreviousView        string
+	SmallUI             bool
 	Platform            commands.Platform
 	Updating            bool
 	Panels              *panelStates
@@ -292,32 +293,18 @@ func (gui *Gui) onFocus(v *gocui.View) error {
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
+
+	smallUI := height < 28
+	gui.State.SmallUI = smallUI
+
 	information := gui.Config.GetVersion()
 	if gui.g.Mouse {
 		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
 		information = donate + " " + information
 	}
-	leftSideWidth := width / 3
-	statusFilesBoundary := 2
-	filesBranchesBoundary := 2 * height / 5
-	commitsBranchesBoundary := 3 * height / 5
-	optionsTop := height - 2
-	commitsStashBoundary := optionsTop - 3
-	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
-	minimumHeight := 18
+
+	minimumHeight := 16
 	minimumWidth := 10
-
-	appStatus := gui.statusManager.getStatusString()
-	appStatusOptionsBoundary := 0
-	if appStatus != "" {
-		appStatusOptionsBoundary = len(appStatus) + 2
-	}
-
-	panelSpacing := 1
-	if OverlappingEdges {
-		panelSpacing = 0
-	}
-
 	if height < minimumHeight || width < minimumWidth {
 		v, err := g.SetView("limit", 0, 0, max(width-1, 2), max(height-1, 2), 0)
 		if err != nil {
@@ -330,6 +317,72 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		return nil
 	}
+
+	var statusFilesBoundary int
+	var filesBranchesBoundary int
+	var commitsBranchesBoundary int
+	var commitsStashBoundary int
+	optionsTop := height - 2
+
+	if smallUI {
+		currView := gui.g.CurrentView()
+		currentCyclebleView := "files"
+		if currView == nil {
+			currentCyclebleView = gui.State.PreviousView
+		} else {
+			viewName := currView.Name()
+			usePreviouseView := true
+			for _, view := range cyclableViews {
+				if view == viewName {
+					currentCyclebleView = viewName
+					usePreviouseView = false
+					break
+				}
+			}
+			if usePreviouseView {
+				currentCyclebleView = gui.State.PreviousView
+			}
+		}
+
+		statusFilesBoundary = optionsTop - 12
+		filesBranchesBoundary = optionsTop - 9
+		commitsBranchesBoundary = optionsTop - 6
+		commitsStashBoundary = optionsTop - 3
+
+		switch currentCyclebleView {
+		case "stash":
+			commitsStashBoundary = 11
+			fallthrough
+		case "commits":
+			commitsBranchesBoundary = 8
+			fallthrough
+		case "branches":
+			filesBranchesBoundary = 5
+			fallthrough
+		case "files":
+			statusFilesBoundary = 2
+		}
+	} else {
+		statusFilesBoundary = 2
+		filesBranchesBoundary = 2 * height / 5
+		commitsBranchesBoundary = 3 * height / 5
+		commitsStashBoundary = optionsTop - 3
+	}
+
+	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
+	leftSideWidth := width / 3
+
+	appStatus := gui.statusManager.getStatusString()
+	appStatusOptionsBoundary := 0
+	if appStatus != "" {
+		appStatusOptionsBoundary = len(appStatus) + 2
+	}
+
+	panelSpacing := 1
+	if OverlappingEdges {
+		panelSpacing = 0
+	}
+
 	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
 
