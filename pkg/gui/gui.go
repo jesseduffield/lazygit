@@ -313,7 +313,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			}
 			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
 			v.Wrap = true
-			g.SetViewOnTop("limit")
+			_, _ = g.SetViewOnTop("limit")
 		}
 		return nil
 	}
