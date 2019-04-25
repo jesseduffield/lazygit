@@ -344,23 +344,44 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			}
 		}
 
-		statusFilesBoundary = optionsTop - 12
-		filesBranchesBoundary = optionsTop - 9
-		commitsBranchesBoundary = optionsTop - 6
-		commitsStashBoundary = optionsTop - 3
+		if height < 21 {
+			statusFilesBoundary = optionsTop - 8
+			filesBranchesBoundary = optionsTop - 6
+			commitsBranchesBoundary = optionsTop - 4
+			commitsStashBoundary = optionsTop - 2
 
-		switch currentCyclebleView {
-		case "stash":
-			commitsStashBoundary = 11
-			fallthrough
-		case "commits":
-			commitsBranchesBoundary = 8
-			fallthrough
-		case "branches":
-			filesBranchesBoundary = 5
-			fallthrough
-		case "files":
-			statusFilesBoundary = 2
+			switch currentCyclebleView {
+			case "stash":
+				commitsStashBoundary = 7
+				fallthrough
+			case "commits":
+				commitsBranchesBoundary = 5
+				fallthrough
+			case "branches":
+				filesBranchesBoundary = 3
+				fallthrough
+			case "files":
+				statusFilesBoundary = 1
+			}
+		} else {
+			statusFilesBoundary = optionsTop - 12
+			filesBranchesBoundary = optionsTop - 9
+			commitsBranchesBoundary = optionsTop - 6
+			commitsStashBoundary = optionsTop - 3
+
+			switch currentCyclebleView {
+			case "stash":
+				commitsStashBoundary = 11
+				fallthrough
+			case "commits":
+				commitsBranchesBoundary = 8
+				fallthrough
+			case "branches":
+				filesBranchesBoundary = 5
+				fallthrough
+			case "files":
+				statusFilesBoundary = 2
+			}
 		}
 	} else {
 		statusFilesBoundary = 2
