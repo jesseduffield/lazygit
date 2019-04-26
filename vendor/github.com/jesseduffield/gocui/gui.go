@@ -151,7 +151,7 @@ func (g *Gui) Rune(x, y int) (rune, error) {
 // ErrUnknownView is returned, which allows to assert if the View must
 // be initialized. It checks if the position is valid.
 func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, error) {
-	if x0 >= x1 || y0 >= y1 {
+	if x0 >= x1 {
 		return nil, errors.New("invalid dimensions")
 	}
 	if name == "" {
@@ -471,6 +471,9 @@ func (g *Gui) flush() error {
 		}
 	}
 	for _, v := range g.views {
+		if v.y1 < v.y0 {
+			continue
+		}
 		if v.Frame {
 			var fgColor, bgColor Attribute
 			if g.Highlight && v == g.currentView {
@@ -557,6 +560,10 @@ func corner(v *View, directions byte) rune {
 
 // drawFrameCorners draws the corners of the view.
 func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
+	if v.y0 == v.y1 {
+		return nil
+	}
+
 	runeTL, runeTR, runeBL, runeBR := '┌', '┐', '└', '┘'
 	if g.SupportOverlaps {
 		runeTL = corner(v, BOTTOM|RIGHT)

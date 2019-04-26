@@ -1,0 +1,14 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "dCLAQjvVss19hSDdcLATFHKiqFI=",
+			"origin": "github.com/jesseduffield/lazygit/vendor/github.com/jesseduffield/gocui",
+			"path": "github.com/jesseduffield/gocui",
+			"revision": "af5a758d6c8637e4f2fdad4c0aed1c5362fc4d99",
+			"revisionTime": "2019-04-26T03:40:05Z"
+		}
+	],
+	"rootPath": "github.com/jesseduffield/lazygit"
+}

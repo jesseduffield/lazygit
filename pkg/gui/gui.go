@@ -303,7 +303,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		information = donate + " " + information
 	}
 
-	minimumHeight := 16
+	minimumHeight := 9
 	minimumWidth := 10
 	if height < minimumHeight || width < minimumWidth {
 		v, err := g.SetView("limit", 0, 0, max(width-1, 2), max(height-1, 2), 0)
@@ -345,23 +345,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		if height < 21 {
-			statusFilesBoundary = optionsTop - 8
-			filesBranchesBoundary = optionsTop - 6
-			commitsBranchesBoundary = optionsTop - 4
-			commitsStashBoundary = optionsTop - 2
+			statusFilesBoundary = optionsTop - 4
+			filesBranchesBoundary = optionsTop - 3
+			commitsBranchesBoundary = optionsTop - 2
+			commitsStashBoundary = optionsTop - 1
 
 			switch currentCyclebleView {
 			case "stash":
-				commitsStashBoundary = 7
+				commitsStashBoundary = 3
 				fallthrough
 			case "commits":
-				commitsBranchesBoundary = 5
+				commitsBranchesBoundary = 2
 				fallthrough
 			case "branches":
-				filesBranchesBoundary = 3
+				filesBranchesBoundary = 1
 				fallthrough
 			case "files":
-				statusFilesBoundary = 1
+				statusFilesBoundary = 0
 			}
 		} else {
 			statusFilesBoundary = optionsTop - 12
