@@ -13,6 +13,7 @@ type Binding struct {
 	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
 	Modifier    gocui.Modifier
 	Description string
+	Alternative string
 }
 
 // GetDisplayStrings returns the display string of a file
@@ -75,15 +76,17 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.quit,
 		}, {
-			ViewName: "",
-			Key:      gocui.KeyPgup,
-			Modifier: gocui.ModNone,
-			Handler:  gui.scrollUpMain,
+			ViewName:    "",
+			Key:         gocui.KeyPgup,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.scrollUpMain,
+			Alternative: "fn+up",
 		}, {
-			ViewName: "",
-			Key:      gocui.KeyPgdn,
-			Modifier: gocui.ModNone,
-			Handler:  gui.scrollDownMain,
+			ViewName:    "",
+			Key:         gocui.KeyPgdn,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.scrollDownMain,
+			Alternative: "fn+down",
 		}, {
 			ViewName: "",
 			Key:      gocui.KeyCtrlU,
