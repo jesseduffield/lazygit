@@ -27,8 +27,11 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 	for {
 		f, err := stat(".git")
 
-		if err == nil && f.IsDir() {
-			return nil
+		if err == nil {
+			if f.IsDir() {
+				return nil
+			}
+			return errors.New("expected .git to be a directory")
 		}
 
 		if !os.IsNotExist(err) {
