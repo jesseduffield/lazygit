@@ -59,6 +59,9 @@ func formatTitle(title string) string {
 }
 
 func formatBinding(binding *gui.Binding) string {
+	if binding.Alternative != "" {
+		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", binding.GetKey(), binding.Description, binding.Alternative)
+	}
 	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", binding.GetKey(), binding.Description)
 }
 
