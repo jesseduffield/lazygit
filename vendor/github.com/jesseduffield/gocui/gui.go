@@ -175,6 +175,17 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 	return v, errors.Wrap(ErrUnknownView, 0)
 }
 
+// SetViewBeneath sets a view stacked beneath another view
+func (g *Gui) SetViewBeneath(name string, aboveViewName string, height int) (*View, error) {
+	aboveView, err := g.View(aboveViewName)
+	if err != nil {
+		return nil, err
+	}
+
+	viewTop := aboveView.y1 + 1
+	return g.SetView(name, aboveView.x0, viewTop, aboveView.x1, viewTop+height-1, 0)
+}
+
 // SetViewOnTop sets the given view on top of the existing ones.
 func (g *Gui) SetViewOnTop(name string) (*View, error) {
 	for i, v := range g.views {
@@ -561,6 +572,14 @@ func corner(v *View, directions byte) rune {
 // drawFrameCorners draws the corners of the view.
 func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
 	if v.y0 == v.y1 {
+		if !g.SupportOverlaps {
+			if err := g.SetRune(v.x0, v.y0, '╶', fgColor, bgColor); err != nil {
+				return err
+			}
+			if err := g.SetRune(v.x1, v.y0, '╴', fgColor, bgColor); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
