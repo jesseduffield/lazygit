@@ -141,7 +141,6 @@ type guiState struct {
 	DiffEntries         []*commands.Commit
 	MenuItemCount       int // can't store the actual list because it's of interface{} type
 	PreviousView        string
-	SmallUI             bool
 	Platform            commands.Platform
 	Updating            bool
 	Panels              *panelStates
@@ -294,9 +293,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
 
-	smallUI := height < 28
-	gui.State.SmallUI = smallUI
-
 	information := gui.Config.GetVersion()
 	if gui.g.Mouse {
 		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
@@ -318,76 +314,53 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return nil
 	}
 
-	var statusFilesBoundary int
-	var filesBranchesBoundary int
-	var commitsBranchesBoundary int
-	var commitsStashBoundary int
-	optionsTop := height - 2
-
-	if smallUI {
-		currView := gui.g.CurrentView()
-		currentCyclebleView := "files"
-		if currView == nil {
-			currentCyclebleView = gui.State.PreviousView
-		} else {
-			viewName := currView.Name()
-			usePreviouseView := true
-			for _, view := range cyclableViews {
-				if view == viewName {
-					currentCyclebleView = viewName
-					usePreviouseView = false
-					break
-				}
-			}
-			if usePreviouseView {
-				currentCyclebleView = gui.State.PreviousView
-			}
-		}
-
-		if height < 21 {
-			statusFilesBoundary = optionsTop - 4
-			filesBranchesBoundary = optionsTop - 3
-			commitsBranchesBoundary = optionsTop - 2
-			commitsStashBoundary = optionsTop - 1
-
-			switch currentCyclebleView {
-			case "stash":
-				commitsStashBoundary = 3
-				fallthrough
-			case "commits":
-				commitsBranchesBoundary = 2
-				fallthrough
-			case "branches":
-				filesBranchesBoundary = 1
-				fallthrough
-			case "files":
-				statusFilesBoundary = 0
-			}
-		} else {
-			statusFilesBoundary = optionsTop - 12
-			filesBranchesBoundary = optionsTop - 9
-			commitsBranchesBoundary = optionsTop - 6
-			commitsStashBoundary = optionsTop - 3
-
-			switch currentCyclebleView {
-			case "stash":
-				commitsStashBoundary = 11
-				fallthrough
-			case "commits":
-				commitsBranchesBoundary = 8
-				fallthrough
-			case "branches":
-				filesBranchesBoundary = 5
-				fallthrough
-			case "files":
-				statusFilesBoundary = 2
-			}
-		}
+	currView := gui.g.CurrentView()
+	currentCyclebleView := "files"
+	if currView == nil {
+		currentCyclebleView = gui.State.PreviousView
 	} else {
-		statusFilesBoundary = 2
-		filesBranchesBoundary = 2 * height / 5
-		commitsBranchesBoundary = 3 * height / 5
-		commitsStashBoundary = optionsTop - 3
+		viewName := currView.Name()
+		usePreviouseView := true
+		for _, view := range cyclableViews {
+			if view == viewName {
+				currentCyclebleView = viewName
+				usePreviouseView = false
+				break
+			}
+		}
+		if usePreviouseView {
+			currentCyclebleView = gui.State.PreviousView
+		}
+	}
+
+	usableSpace := height - 7
+	extraSpace := usableSpace - (usableSpace/3)*3
+
+	vHeights := map[string]int{
+		"status":   3,
+		"files":    (usableSpace / 3) + extraSpace,
+		"branches": usableSpace / 3,
+		"commits":  usableSpace / 3,
+		"stash":    3,
+		"options":  1,
+	}
+
+	if height < 28 {
+		defaultHeight := 3
+		extraHeight := 2
+		if height < 21 {
+			defaultHeight = 1
+			extraHeight = 0
+		}
+		vHeights = map[string]int{
+			"status":   defaultHeight,
+			"files":    defaultHeight,
+			"branches": defaultHeight,
+			"commits":  defaultHeight,
+			"stash":    defaultHeight,
+			"options":  defaultHeight,
+		}
+		vHeights[currentCyclebleView] = height - (defaultHeight * 5) + extraHeight
 	}
 
 	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
@@ -407,7 +380,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
 
-	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, optionsTop, gocui.LEFT)
+	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, height-2, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -417,7 +390,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("status", 0, 0, leftSideWidth, statusFilesBoundary, gocui.BOTTOM|gocui.RIGHT); err != nil {
+	if v, err := g.SetView("status", 0, 0, leftSideWidth, vHeights["status"]-1, gocui.BOTTOM|gocui.RIGHT); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -425,7 +398,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	filesView, err := g.SetView("files", 0, statusFilesBoundary+panelSpacing, leftSideWidth, filesBranchesBoundary, gocui.TOP|gocui.BOTTOM)
+	filesView, err := g.SetViewBeneath("files", "status", vHeights["files"])
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -435,7 +408,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	branchesView, err := g.SetView("branches", 0, filesBranchesBoundary+panelSpacing, leftSideWidth, commitsBranchesBoundary, gocui.TOP|gocui.BOTTOM)
+	branchesView, err := g.SetViewBeneath("branches", "files", vHeights["branches"])
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -444,7 +417,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("commitFiles", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM); err != nil {
+	if v, err := g.SetViewBeneath("commitFiles", "branches", vHeights["commits"]); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -452,7 +425,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 	}
 
-	commitsView, err := g.SetView("commits", 0, commitsBranchesBoundary+panelSpacing, leftSideWidth, commitsStashBoundary, gocui.TOP|gocui.BOTTOM)
+	commitsView, err := g.SetViewBeneath("commits", "branches", vHeights["commits"])
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -461,7 +434,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		commitsView.FgColor = gocui.ColorWhite
 	}
 
-	stashView, err := g.SetView("stash", 0, commitsStashBoundary+panelSpacing, leftSideWidth, optionsTop, gocui.TOP|gocui.RIGHT)
+	stashView, err := g.SetViewBeneath("stash", "commits", vHeights["stash"])
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -470,7 +443,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		stashView.FgColor = gocui.ColorWhite
 	}
 
-	if v, err := g.SetView("options", appStatusOptionsBoundary-1, optionsTop, optionsVersionBoundary-1, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("options", appStatusOptionsBoundary-1, height-2, optionsVersionBoundary-1, height, 0); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -511,7 +484,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if appStatusView, err := g.SetView("appStatus", -1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if appStatusView, err := g.SetView("appStatus", -1, height+2, width, height, 0); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -523,7 +496,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if v, err := g.SetView("information", optionsVersionBoundary-1, optionsTop, width, optionsTop+2, 0); err != nil {
+	if v, err := g.SetView("information", optionsVersionBoundary-1, height+2, width, height, 0); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
