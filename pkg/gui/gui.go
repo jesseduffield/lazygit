@@ -315,10 +315,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	currView := gui.g.CurrentView()
-	currentCyclebleView := "files"
-	if currView == nil {
-		currentCyclebleView = gui.State.PreviousView
-	} else {
+	currentCyclebleView := gui.State.PreviousView
+	if currView != nil {
 		viewName := currView.Name()
 		usePreviouseView := true
 		for _, view := range cyclableViews {
@@ -347,10 +345,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if height < 28 {
 		defaultHeight := 3
-		extraHeight := 2
 		if height < 21 {
 			defaultHeight = 1
-			extraHeight = 0
 		}
 		vHeights = map[string]int{
 			"status":   defaultHeight,
@@ -360,7 +356,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			"stash":    defaultHeight,
 			"options":  defaultHeight,
 		}
-		vHeights[currentCyclebleView] = height - (defaultHeight * 5) + extraHeight
+		vHeights[currentCyclebleView] = height - defaultHeight*4 - 1
 	}
 
 	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
@@ -484,7 +480,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if appStatusView, err := g.SetView("appStatus", -1, height+2, width, height, 0); err != nil {
+	if appStatusView, err := g.SetView("appStatus", -1, height-2, width, height, 0); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -496,7 +492,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if v, err := g.SetView("information", optionsVersionBoundary-1, height+2, width, height, 0); err != nil {
+	if v, err := g.SetView("information", optionsVersionBoundary-1, height-2, width, height, 0); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
