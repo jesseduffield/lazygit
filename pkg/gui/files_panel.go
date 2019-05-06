@@ -86,6 +86,10 @@ func (gui *Gui) refreshFiles() error {
 	selectedFile, _ := gui.getSelectedFile(gui.g)
 
 	filesView := gui.getFilesView()
+	if filesView == nil {
+		// if the filesView hasn't been instantiated yet we just return
+		return nil
+	}
 	if err := gui.refreshStateFiles(); err != nil {
 		return err
 	}
