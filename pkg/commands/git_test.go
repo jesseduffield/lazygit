@@ -616,12 +616,12 @@ func TestGitCommandResetToCommit(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"reset", "78976bc"}, args)
+		assert.EqualValues(t, []string{"reset", "--hard", "78976bc"}, args)
 
 		return exec.Command("echo")
 	}
 
-	assert.NoError(t, gitCmd.ResetToCommit("78976bc"))
+	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard"))
 }
 
 // TestGitCommandNewBranch is a function.
