@@ -576,12 +576,14 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 					Modifier:    gocui.ModNone,
 					Handler:     gui.scrollDownMain,
 					Description: gui.Tr.SLocalize("ScrollDown"),
+					Alternative: "fn+up",
 				}, {
 					ViewName:    "main",
 					Key:         gocui.MouseWheelUp,
 					Modifier:    gocui.ModNone,
 					Handler:     gui.scrollUpMain,
 					Description: gui.Tr.SLocalize("ScrollUp"),
+					Alternative: "fn+down",
 				},
 			},
 			"staging": {

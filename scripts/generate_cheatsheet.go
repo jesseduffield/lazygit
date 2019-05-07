@@ -99,7 +99,7 @@ func getBindingSections(mApp *app.App) []*bindingSection {
 }
 
 func addBinding(title string, bindingSections []*bindingSection, binding *gui.Binding) []*bindingSection {
-	if binding.Description == "" {
+	if binding.Description == "" && binding.Alternative == "" {
 		return bindingSections
 	}
 
