@@ -98,8 +98,8 @@
 ## Hoofd (Normaal)
 
 <pre>
-  <kbd>PgDn</kbd>: scroll omlaag
-  <kbd>PgUp</kbd>: scroll omhoog
+  <kbd>PgDn</kbd>: scroll omlaag (fn+up)
+  <kbd>PgUp</kbd>: scroll omhoog (fn+down)
 </pre>
 
 ## Hoofd (Stage Lines/Hunks)

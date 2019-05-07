@@ -98,8 +98,8 @@
 ## Main (Normal)
 
 <pre>
-  <kbd>PgDn</kbd>: scroll down
-  <kbd>PgUp</kbd>: scroll up
+  <kbd>PgDn</kbd>: scroll down (fn+up)
+  <kbd>PgUp</kbd>: scroll up (fn+down)
 </pre>
 
 ## Main (Zatwierdzanie)
