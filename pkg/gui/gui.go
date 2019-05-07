@@ -302,7 +302,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	minimumHeight := 9
 	minimumWidth := 10
 	if height < minimumHeight || width < minimumWidth {
-		v, err := g.SetView("limit", 0, 0, max(width-1, 2), max(height-1, 2), 0)
+		v, err := g.SetView("limit", 0, 0, width-1, height-1, 0)
 		if err != nil {
 			if err.Error() != "unknown view" {
 				return err
