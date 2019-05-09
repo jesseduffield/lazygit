@@ -572,7 +572,7 @@ func corner(v *View, directions byte) rune {
 // drawFrameCorners draws the corners of the view.
 func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
 	if v.y0 == v.y1 {
-		if !g.SupportOverlaps {
+		if !g.SupportOverlaps && v.x0 >= 0 && v.x1 >= 0 && v.y0 >= 0 && v.x0 < g.maxX && v.x1 < g.maxX && v.y0 < g.maxY {
 			if err := g.SetRune(v.x0, v.y0, '╶', fgColor, bgColor); err != nil {
 				return err
 			}
@@ -733,7 +733,7 @@ func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err err
 		if kb.matchView(v) {
 			return g.execKeybinding(v, kb)
 		}
-		if kb.viewName == "" && (!v.Editable || kb.ch == 0) {
+		if kb.viewName == "" && ((v != nil && !v.Editable) || kb.ch == 0) {
 			globalKb = kb
 		}
 	}
