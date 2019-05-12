@@ -25,13 +25,10 @@ func verifyInGitRepo(runCmd func(string) error) error {
 
 func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {
 	for {
-		f, err := stat(".git")
+		_, err := stat(".git")
 
 		if err == nil {
-			if f.IsDir() {
-				return nil
-			}
-			return errors.New("expected .git to be a directory")
+			return nil
 		}
 
 		if !os.IsNotExist(err) {
@@ -75,6 +72,7 @@ type GitCommand struct {
 	getGlobalGitConfig func(string) (string, error)
 	getLocalGitConfig  func(string) (string, error)
 	removeFile         func(string) error
+	DotGitDir          string
 }
 
 // NewGitCommand it runs git commands
@@ -102,6 +100,11 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		}
 	}
 
+	dotGitDir, err := findDotGitDir(os.Stat, ioutil.ReadFile)
+	if err != nil {
+		return nil, err
+	}
+
 	return &GitCommand{
 		Log:                log,
 		OSCommand:          osCommand,
@@ -112,7 +115,29 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		getGlobalGitConfig: gitconfig.Global,
 		getLocalGitConfig:  gitconfig.Local,
 		removeFile:         os.RemoveAll,
+		DotGitDir:          dotGitDir,
 	}, nil
+}
+
+func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filename string) ([]byte, error)) (string, error) {
+	f, err := stat(".git")
+	if err != nil {
+		return "", err
+	}
+
+	if f.IsDir() {
+		return ".git", nil
+	}
+
+	fileBytes, err := readFile(".git")
+	if err != nil {
+		return "", err
+	}
+	fileContent := string(fileBytes)
+	if !strings.HasPrefix(fileContent, "gitdir: ") {
+		return "", errors.New(".git is a file which suggests we are in a submodule but the file's contents do not contain a gitdir pointing to the actual .git directory")
+	}
+	return strings.TrimSpace(strings.TrimPrefix(fileContent, "gitdir: ")), nil
 }
 
 // GetStashEntries stash entryies
@@ -426,14 +451,14 @@ func (c *GitCommand) IsInMergeState() (bool, error) {
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
 // and "interactive" for interactive rebase
 func (c *GitCommand) RebaseMode() (string, error) {
-	exists, err := c.OSCommand.FileExists(".git/rebase-apply")
+	exists, err := c.OSCommand.FileExists(fmt.Sprintf("%s/rebase-apply", c.DotGitDir))
 	if err != nil {
 		return "", err
 	}
 	if exists {
 		return "normal", nil
 	}
-	exists, err = c.OSCommand.FileExists(".git/rebase-merge")
+	exists, err = c.OSCommand.FileExists(fmt.Sprintf("%s/rebase-merge", c.DotGitDir))
 	if exists {
 		return "interactive", err
 	} else {
@@ -743,7 +768,7 @@ func (c *GitCommand) AmendTo(sha string) error {
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
 func (c *GitCommand) EditRebaseTodo(index int, action string) error {
-	fileName := ".git/rebase-merge/git-rebase-todo"
+	fileName := fmt.Sprintf("%s/rebase-merge/git-rebase-todo", c.DotGitDir)
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -775,7 +800,7 @@ func (c *GitCommand) getTodoCommitCount(content []string) int {
 
 // MoveTodoDown moves a rebase todo item down by one position
 func (c *GitCommand) MoveTodoDown(index int) error {
-	fileName := ".git/rebase-merge/git-rebase-todo"
+	fileName := fmt.Sprintf("%s/rebase-merge/git-rebase-todo", c.DotGitDir)
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
