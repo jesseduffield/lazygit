@@ -59,6 +59,9 @@ func formatTitle(title string) string {
 }
 
 func formatBinding(binding *gui.Binding) string {
+	if binding.Alternative != "" {
+		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", binding.GetKey(), binding.Description, binding.Alternative)
+	}
 	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", binding.GetKey(), binding.Description)
 }
 
@@ -96,7 +99,7 @@ func getBindingSections(mApp *app.App) []*bindingSection {
 }
 
 func addBinding(title string, bindingSections []*bindingSection, binding *gui.Binding) []*bindingSection {
-	if binding.Description == "" {
+	if binding.Description == "" && binding.Alternative == "" {
 		return bindingSections
 	}
 

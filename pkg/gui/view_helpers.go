@@ -173,9 +173,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 }
 
 func (gui *Gui) resetOrigin(v *gocui.View) error {
-	if err := v.SetCursor(0, 0); err != nil {
-		return err
-	}
+	_ = v.SetCursor(0, 0)
 	return v.SetOrigin(0, 0)
 }
 
@@ -186,36 +184,26 @@ func (gui *Gui) focusPoint(cx int, cy int, lineCount int, v *gocui.View) error {
 	}
 	ox, oy := v.Origin()
 	_, height := v.Size()
+
 	ly := height - 1
+	if ly == -1 {
+		ly = 0
+	}
 
 	// if line is above origin, move origin and set cursor to zero
 	// if line is below origin + height, move origin and set cursor to max
 	// otherwise set cursor to value - origin
 	if ly > lineCount {
-		if err := v.SetCursor(cx, cy); err != nil {
-			return err
-		}
-		if err := v.SetOrigin(ox, 0); err != nil {
-			return err
-		}
+		_ = v.SetCursor(cx, cy)
+		_ = v.SetOrigin(ox, 0)
 	} else if cy < oy {
-		if err := v.SetCursor(cx, 0); err != nil {
-			return err
-		}
-		if err := v.SetOrigin(ox, cy); err != nil {
-			return err
-		}
+		_ = v.SetCursor(cx, 0)
+		_ = v.SetOrigin(ox, cy)
 	} else if cy > oy+ly {
-		if err := v.SetCursor(cx, ly); err != nil {
-			return err
-		}
-		if err := v.SetOrigin(ox, cy-ly); err != nil {
-			return err
-		}
+		_ = v.SetCursor(cx, ly)
+		_ = v.SetOrigin(ox, cy-ly)
 	} else {
-		if err := v.SetCursor(cx, cy-oy); err != nil {
-			return err
-		}
+		_ = v.SetCursor(cx, cy-oy)
 	}
 	return nil
 }

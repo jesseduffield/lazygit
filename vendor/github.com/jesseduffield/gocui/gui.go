@@ -151,7 +151,7 @@ func (g *Gui) Rune(x, y int) (rune, error) {
 // ErrUnknownView is returned, which allows to assert if the View must
 // be initialized. It checks if the position is valid.
 func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, error) {
-	if x0 >= x1 || y0 >= y1 {
+	if x0 >= x1 {
 		return nil, errors.New("invalid dimensions")
 	}
 	if name == "" {
@@ -173,6 +173,17 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 	v.Overlaps = overlaps
 	g.views = append(g.views, v)
 	return v, errors.Wrap(ErrUnknownView, 0)
+}
+
+// SetViewBeneath sets a view stacked beneath another view
+func (g *Gui) SetViewBeneath(name string, aboveViewName string, height int) (*View, error) {
+	aboveView, err := g.View(aboveViewName)
+	if err != nil {
+		return nil, err
+	}
+
+	viewTop := aboveView.y1 + 1
+	return g.SetView(name, aboveView.x0, viewTop, aboveView.x1, viewTop+height-1, 0)
 }
 
 // SetViewOnTop sets the given view on top of the existing ones.
@@ -471,6 +482,9 @@ func (g *Gui) flush() error {
 		}
 	}
 	for _, v := range g.views {
+		if v.y1 < v.y0 {
+			continue
+		}
 		if v.Frame {
 			var fgColor, bgColor Attribute
 			if g.Highlight && v == g.currentView {
@@ -557,6 +571,18 @@ func corner(v *View, directions byte) rune {
 
 // drawFrameCorners draws the corners of the view.
 func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
+	if v.y0 == v.y1 {
+		if !g.SupportOverlaps && v.x0 >= 0 && v.x1 >= 0 && v.y0 >= 0 && v.x0 < g.maxX && v.x1 < g.maxX && v.y0 < g.maxY {
+			if err := g.SetRune(v.x0, v.y0, '╶', fgColor, bgColor); err != nil {
+				return err
+			}
+			if err := g.SetRune(v.x1, v.y0, '╴', fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
 	runeTL, runeTR, runeBL, runeBR := '┌', '┐', '└', '┘'
 	if g.SupportOverlaps {
 		runeTL = corner(v, BOTTOM|RIGHT)
@@ -707,7 +733,7 @@ func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err err
 		if kb.matchView(v) {
 			return g.execKeybinding(v, kb)
 		}
-		if kb.viewName == "" && (!v.Editable || kb.ch == 0) {
+		if kb.viewName == "" && ((v != nil && !v.Editable) || kb.ch == 0) {
 			globalKb = kb
 		}
 	}

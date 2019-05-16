@@ -3,7 +3,7 @@
 ## Global
 
 <pre>
-  <kbd>m</kbd>: view merge/rebase options
+  <kbd>m</kbd>: bekijk merge/rebase opties
   <kbd>P</kbd>: push
   <kbd>p</kbd>: pull
   <kbd>R</kbd>: verversen
@@ -22,10 +22,11 @@
 
 <pre>
   <kbd>c</kbd>: Commit veranderingen
+  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
   <kbd>A</kbd>: wijzig laatste commit
   <kbd>C</kbd>: commit veranderingen met de git editor
   <kbd>space</kbd>: toggle staged
-  <kbd>d</kbd>: view 'discard changes' options
+  <kbd>d</kbd>: bekijk 'veranderingen ongedaan maken' opties
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
   <kbd>i</kbd>: voeg toe aan .gitignore
@@ -33,9 +34,10 @@
   <kbd>S</kbd>: stash-bestanden
   <kbd>a</kbd>: toggle staged alle
   <kbd>t</kbd>: bewerkingen toevoegen
-  <kbd>D</kbd>: view reset options
+  <kbd>D</kbd>: bekijk reset opties
   <kbd>enter</kbd>: stage individuele hunks/lijnen
   <kbd>f</kbd>: fetch
+  <kbd>X</kbd>: voor aangepast commando uit
 </pre>
 
 ## Branches
@@ -60,18 +62,20 @@
   <kbd>R</kbd>: rename commit with editor
   <kbd>g</kbd>: reset naar deze commit
   <kbd>f</kbd>: Fixup commit
-  <kbd>d</kbd>: delete commit
-  <kbd>J</kbd>: move commit down one
-  <kbd>K</kbd>: move commit up one
-  <kbd>e</kbd>: edit commit
-  <kbd>A</kbd>: amend commit with staged changes
+  <kbd>F</kbd>: creëer fixup commit voor deze commit
+  <kbd>S</kbd>: squash bovenstaande commits
+  <kbd>d</kbd>: verwijder commit
+  <kbd>J</kbd>: verplaats commit 1 omlaag
+  <kbd>K</kbd>: verplaats commit 1 omhoog
+  <kbd>e</kbd>: verander commit
+  <kbd>A</kbd>: wijzig commit met staged veranderingen
   <kbd>p</kbd>: pick commit (when mid-rebase)
-  <kbd>t</kbd>: revert commit
-  <kbd>c</kbd>: copy commit (cherry-pick)
-  <kbd>C</kbd>: copy commit range (cherry-pick)
-  <kbd>v</kbd>: paste commits (cherry-pick)
-  <kbd>enter</kbd>: view commit's files
-  <kbd>space</kbd>: diff specific commits
+  <kbd>t</kbd>: commit omgedaan maken
+  <kbd>c</kbd>: kopiëer commit (cherry-pick)
+  <kbd>C</kbd>: kopiëer commit reeks (cherry-pick)
+  <kbd>v</kbd>: plak commits (cherry-pick)
+  <kbd>enter</kbd>: bekijk gecommite bestanden
+  <kbd>space</kbd>: select commit to diff with another commit
 </pre>
 
 ## Stash
@@ -82,43 +86,43 @@
   <kbd>d</kbd>: drop
 </pre>
 
-## Commit files
+## Commit bestanden
 
 <pre>
-  <kbd>esc</kbd>: go back
-  <kbd>c</kbd>: checkout file
-  <kbd>d</kbd>: discard this commit's changes to this file
+  <kbd>esc</kbd>: ga terug
+  <kbd>c</kbd>: bestand uitchecken
+  <kbd>d</kbd>: uitsluit deze commit zijn veranderingen aan dit bestand
   <kbd>o</kbd>: open bestand
 </pre>
 
-## Main (Normal)
+## Hoofd (Normaal)
 
 <pre>
-  <kbd>PgDn</kbd>: scroll down
-  <kbd>PgUp</kbd>: scroll up
+  <kbd>PgDn</kbd>: scroll omlaag (fn+up)
+  <kbd>PgUp</kbd>: scroll omhoog (fn+down)
 </pre>
 
-## Main (Stage Lines/Hunks)
+## Hoofd (Stage Lines/Hunks)
 
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
-  <kbd>▲</kbd>: select previous line
-  <kbd>▼</kbd>: select next line
-  <kbd>◄</kbd>: select previous hunk
-  <kbd>►</kbd>: select next hunk
+  <kbd>▲</kbd>: selecteer de vorige lijn
+  <kbd>▼</kbd>: selecteer de volgende lijn
+  <kbd>◄</kbd>: selecteer de vorige hunk
+  <kbd>►</kbd>: selecteer de volgende hunk
   <kbd>space</kbd>: stage lijn
   <kbd>a</kbd>: stage hunk
 </pre>
 
-## Main (Merging)
+## Hoofd (Merging)
 
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
   <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick both hunks
-  <kbd>◄</kbd>: select previous conflict
-  <kbd>►</kbd>: select next conflict
-  <kbd>▲</kbd>: select top hunk
-  <kbd>▼</kbd>: select bottom hunk
-  <kbd>z</kbd>: undo
+  <kbd>b</kbd>: pick beide hunks
+  <kbd>◄</kbd>: selecteer voorgaand conflict
+  <kbd>►</kbd>: selecteer volgende conflict
+  <kbd>▲</kbd>: selecteer bovenste hunk
+  <kbd>▼</kbd>: selecteer onderste hunk
+  <kbd>z</kbd>: ongedaan maken
 </pre>

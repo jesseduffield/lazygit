@@ -21,7 +21,11 @@ func (gui *Gui) contextTitleMap() map[string]map[string]string {
 }
 
 func (gui *Gui) setMainTitle() error {
-	currentViewName := gui.g.CurrentView().Name()
+	currentView := gui.g.CurrentView()
+	if currentView == nil {
+		return nil
+	}
+	currentViewName := currentView.Name()
 	var newTitle string
 	if context, ok := gui.State.Contexts[currentViewName]; ok {
 		newTitle = gui.contextTitleMap()[currentViewName][context]

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -616,12 +617,12 @@ func TestGitCommandResetToCommit(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"reset", "78976bc"}, args)
+		assert.EqualValues(t, []string{"reset", "--hard", "78976bc"}, args)
 
 		return exec.Command("echo")
 	}
 
-	assert.NoError(t, gitCmd.ResetToCommit("78976bc"))
+	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard"))
 }
 
 // TestGitCommandNewBranch is a function.
@@ -2119,6 +2120,81 @@ func TestGitCommandCreateFixupCommit(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
 			s.test(gitCmd.CreateFixupCommit(s.sha))
+		})
+	}
+}
+
+func TestFindDotGitDir(t *testing.T) {
+	type scenario struct {
+		testName string
+		stat     func(string) (os.FileInfo, error)
+		readFile func(filename string) ([]byte, error)
+		test     func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			".git is a directory",
+			func(dotGit string) (os.FileInfo, error) {
+				assert.Equal(t, ".git", dotGit)
+				return os.Stat("testdata/a_dir")
+			},
+			func(dotGit string) ([]byte, error) {
+				assert.Fail(t, "readFile should not be called if .git is a directory")
+				return nil, nil
+			},
+			func(gitDir string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, ".git", gitDir)
+			},
+		},
+		{
+			".git is a file",
+			func(dotGit string) (os.FileInfo, error) {
+				assert.Equal(t, ".git", dotGit)
+				return os.Stat("testdata/a_file")
+			},
+			func(dotGit string) ([]byte, error) {
+				assert.Equal(t, ".git", dotGit)
+				return []byte("gitdir: blah\n"), nil
+			},
+			func(gitDir string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "blah", gitDir)
+			},
+		},
+		{
+			"os.Stat returns an error",
+			func(dotGit string) (os.FileInfo, error) {
+				assert.Equal(t, ".git", dotGit)
+				return nil, errors.New("error")
+			},
+			func(dotGit string) ([]byte, error) {
+				assert.Fail(t, "readFile should not be called os.Stat returns an error")
+				return nil, nil
+			},
+			func(gitDir string, err error) {
+				assert.Error(t, err)
+			},
+		},
+		{
+			"readFile returns an error",
+			func(dotGit string) (os.FileInfo, error) {
+				assert.Equal(t, ".git", dotGit)
+				return os.Stat("testdata/a_file")
+			},
+			func(dotGit string) ([]byte, error) {
+				return nil, errors.New("error")
+			},
+			func(gitDir string, err error) {
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			s.test(findDotGitDir(s.stat, s.readFile))
 		})
 	}
 }

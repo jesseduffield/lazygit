@@ -22,6 +22,7 @@
 
 <pre>
   <kbd>c</kbd>: commit changes
+  <kbd>w</kbd>: commit changes without pre-commit hook
   <kbd>A</kbd>: amend last commit
   <kbd>C</kbd>: commit changes using git editor
   <kbd>space</kbd>: toggle staged
@@ -36,6 +37,7 @@
   <kbd>D</kbd>: view reset options
   <kbd>enter</kbd>: stage individual hunks/lines
   <kbd>f</kbd>: fetch
+  <kbd>X</kbd>: execute custom command
 </pre>
 
 ## Branches
@@ -60,6 +62,8 @@
   <kbd>R</kbd>: rename commit with editor
   <kbd>g</kbd>: reset to this commit
   <kbd>f</kbd>: fixup commit
+  <kbd>F</kbd>: create fixup commit for this commit
+  <kbd>S</kbd>: squash above commits
   <kbd>d</kbd>: delete commit
   <kbd>J</kbd>: move commit down one
   <kbd>K</kbd>: move commit up one
@@ -71,7 +75,7 @@
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>enter</kbd>: view commit's files
-  <kbd>space</kbd>: diff specific commits
+  <kbd>space</kbd>: select commit to diff with another commit
 </pre>
 
 ## Stash
@@ -94,8 +98,8 @@
 ## Main (Normal)
 
 <pre>
-  <kbd>PgDn</kbd>: scroll down
-  <kbd>PgUp</kbd>: scroll up
+  <kbd>PgDn</kbd>: scroll down (fn+up)
+  <kbd>PgUp</kbd>: scroll up (fn+down)
 </pre>
 
 ## Main (Staging)

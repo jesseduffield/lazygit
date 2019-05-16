@@ -509,7 +509,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
 		}, &i18n.Message{
 			ID:    "FoundConflicts",
-			Other: "Damn, conflicts! To abort press 'esc', otherwise press 'enter'",
+			Other: "Conflicts! To abort press 'esc', otherwise press 'enter'",
 		}, &i18n.Message{
 			ID:    "FoundConflictsTitle",
 			Other: "Auto-merge failed",
@@ -756,6 +756,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SkipHookPrefixNotConfigured",
 			Other: "You have not configured a commit message prefix for skipping hooks. Set `git.skipHookPrefix = 'WIP'` in your config",
+		}, &i18n.Message{
+			ID:    "resetTo",
+			Other: `reset to`,
 		},
 	)
 }
