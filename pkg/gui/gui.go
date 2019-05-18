@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"io"
 	"math"
+	"os"
 	"sync"
 
 	// "io"
 	// "io/ioutil"
 
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -697,7 +697,6 @@ func (gui *Gui) RunWithSubprocesses() error {
 			} else if err == gui.Errors.ErrSwitchRepo {
 				continue
 			} else if err == gui.Errors.ErrSubProcess {
-				gui.SubProcess.Stdin = os.Stdin
 				output, err := gui.runCommand(gui.SubProcess)
 				if err != nil {
 					return err
@@ -715,37 +714,13 @@ func (gui *Gui) RunWithSubprocesses() error {
 	return nil
 }
 
-// adapted from https://blog.kowalczyk.info/article/wOYk/advanced-command-execution-in-go-with-osexec.html
 func (gui *Gui) runCommand(cmd *exec.Cmd) (string, error) {
 	var stdoutBuf bytes.Buffer
-	stdoutIn, _ := cmd.StdoutPipe()
-	stderrIn, _ := cmd.StderrPipe()
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stdoutBuf)
+	cmd.Stdin = os.Stdin
 
-	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
-	stderr := io.MultiWriter(os.Stderr, &stdoutBuf)
-	err := cmd.Start()
-	if err != nil {
-		return "", err
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		if _, err := io.Copy(stdout, stdoutIn); err != nil {
-			gui.Log.Error(err)
-		}
-
-		wg.Done()
-	}()
-
-	if _, err := io.Copy(stderr, stderrIn); err != nil {
-		return "", err
-	}
-
-	wg.Wait()
-
-	if err := cmd.Wait(); err != nil {
+	if err := cmd.Run(); err != nil {
 		// not handling the error explicitly because usually we're going to see it
 		// in the output anyway
 		gui.Log.Error(err)
