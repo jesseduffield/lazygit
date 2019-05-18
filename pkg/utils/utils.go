@@ -33,10 +33,11 @@ func SplitLines(multilineString string) []string {
 
 // WithPadding pads a string as much as you want
 func WithPadding(str string, padding int) string {
-	if padding-len(str) < 0 {
+	uncoloredStr := Decolorise(str)
+	if padding < len(uncoloredStr) {
 		return str
 	}
-	return str + strings.Repeat(" ", padding-len(str))
+	return str + strings.Repeat(" ", padding-len(uncoloredStr))
 }
 
 // ColoredString takes a string and a colour attribute and returns a colored
