@@ -196,7 +196,7 @@ func (c *AppConfig) WriteToUserConfig(key, value string) error {
 	return v.WriteConfig()
 }
 
-// SaveAppState marhsalls the AppState struct and writes it to the disk
+// SaveAppState marshalls the AppState struct and writes it to the disk
 func (c *AppConfig) SaveAppState() error {
 	marshalledAppState, err := yaml.Marshal(c.AppState)
 	if err != nil {

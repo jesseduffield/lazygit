@@ -140,7 +140,7 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 	return strings.TrimSpace(strings.TrimPrefix(fileContent, "gitdir: ")), nil
 }
 
-// GetStashEntries stash entryies
+// GetStashEntries stash entries
 func (c *GitCommand) GetStashEntries() []*StashEntry {
 	rawString, _ := c.OSCommand.RunCommandWithOutput("git stash list --pretty='%gs'")
 	stashEntries := []*StashEntry{}
