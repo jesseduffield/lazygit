@@ -177,7 +177,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*commands.Commit, erro
 func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*commands.Commit, error) {
 	bytesContent, err := ioutil.ReadFile(fmt.Sprintf("%s/rebase-merge/git-rebase-todo", c.GitCommand.DotGitDir))
 	if err != nil {
-		c.Log.Info(fmt.Sprintf("error occured reading git-rebase-todo: %s", err.Error()))
+		c.Log.Info(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
 		// we assume an error means the file doesn't exist so we just return
 		return nil, nil
 	}

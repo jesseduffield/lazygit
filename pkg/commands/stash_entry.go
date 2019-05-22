@@ -7,7 +7,7 @@ type StashEntry struct {
 	DisplayString string
 }
 
-// GetDisplayStrings returns the dispaly string of branch
+// GetDisplayStrings returns the display string of branch
 func (s *StashEntry) GetDisplayStrings(isFocused bool) []string {
 	return []string{s.DisplayString}
 }
