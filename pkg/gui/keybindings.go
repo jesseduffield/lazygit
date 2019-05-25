@@ -29,6 +29,12 @@ func (b *Binding) GetKey() string {
 	case rune:
 		key = int(b.Key.(rune))
 	case gocui.Key:
+		if b.Key.(gocui.Key) == gocui.KeyCtrlJ {
+			return "ctrl+j"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyCtrlK {
+			return "ctrl+k"
+		}
 		key = int(b.Key.(gocui.Key))
 	}
 
@@ -87,6 +93,16 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.scrollDownMain,
 			Alternative: "fn+down",
+		}, {
+			ViewName: "",
+			Key:      'K',
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollUpMain,
+		}, {
+			ViewName: "",
+			Key:      'J',
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollDownMain,
 		}, {
 			ViewName: "",
 			Key:      gocui.KeyCtrlU,
@@ -358,13 +374,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("deleteCommit"),
 		}, {
 			ViewName:    "commits",
-			Key:         'J',
+			Key:         gocui.KeyCtrlJ,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitMoveDown,
 			Description: gui.Tr.SLocalize("moveDownCommit"),
 		}, {
 			ViewName:    "commits",
-			Key:         'K',
+			Key:         gocui.KeyCtrlK,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitMoveUp,
 			Description: gui.Tr.SLocalize("moveUpCommit"),

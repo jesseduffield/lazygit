@@ -65,8 +65,8 @@
   <kbd>F</kbd>: create fixup commit for this commit
   <kbd>S</kbd>: squash above commits
   <kbd>d</kbd>: delete commit
-  <kbd>J</kbd>: move commit down one
-  <kbd>K</kbd>: move commit up one
+  <kbd>ctrl+j</kbd>: move commit down one
+  <kbd>ctrl+k</kbd>: move commit up one
   <kbd>e</kbd>: edit commit
   <kbd>A</kbd>: amend commit with staged changes
   <kbd>p</kbd>: pick commit (when mid-rebase)

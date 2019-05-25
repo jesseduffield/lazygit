@@ -65,8 +65,8 @@
   <kbd>F</kbd>: creëer fixup commit voor deze commit
   <kbd>S</kbd>: squash bovenstaande commits
   <kbd>d</kbd>: verwijder commit
-  <kbd>J</kbd>: verplaats commit 1 omlaag
-  <kbd>K</kbd>: verplaats commit 1 omhoog
+  <kbd>ctrl+j</kbd>: verplaats commit 1 omlaag
+  <kbd>ctrl+k</kbd>: verplaats commit 1 omhoog
   <kbd>e</kbd>: verander commit
   <kbd>A</kbd>: wijzig commit met staged veranderingen
   <kbd>p</kbd>: pick commit (when mid-rebase)
@@ -95,13 +95,6 @@
   <kbd>o</kbd>: open bestand
 </pre>
 
-## Hoofd (Normaal)
-
-<pre>
-  <kbd>PgDn</kbd>: scroll omlaag (fn+up)
-  <kbd>PgUp</kbd>: scroll omhoog (fn+down)
-</pre>
-
 ## Hoofd (Stage Lines/Hunks)
 
 <pre>
@@ -125,4 +118,11 @@
   <kbd>▲</kbd>: selecteer bovenste hunk
   <kbd>▼</kbd>: selecteer onderste hunk
   <kbd>z</kbd>: ongedaan maken
+</pre>
+
+## Hoofd (Normaal)
+
+<pre>
+  <kbd>PgDn</kbd>: scroll omlaag (fn+up)
+  <kbd>PgUp</kbd>: scroll omhoog (fn+down)
 </pre>
