@@ -459,7 +459,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = gocui.ColorWhite
 			commitMessageView.Editable = true
-			commitMessageView.Editor = gocui.EditorFunc(gui.simpleEditor)
 		}
 	}
 
@@ -476,7 +475,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
 			credentialsView.FgColor = gocui.ColorWhite
 			credentialsView.Editable = true
-			credentialsView.Editor = gocui.EditorFunc(gui.simpleEditor)
 		}
 	}
 

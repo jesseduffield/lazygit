@@ -733,7 +733,7 @@ func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err err
 		if kb.matchView(v) {
 			return g.execKeybinding(v, kb)
 		}
-		if kb.viewName == "" && ((v != nil && !v.Editable) || kb.ch == 0) {
+		if kb.viewName == "" && ((v != nil && !v.Editable) || (kb.ch == 0 && kb.key != KeyCtrlU && kb.key != KeyCtrlA && kb.key != KeyCtrlE)) {
 			globalKb = kb
 		}
 	}

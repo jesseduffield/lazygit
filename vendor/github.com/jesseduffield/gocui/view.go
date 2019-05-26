@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -91,6 +92,8 @@ type View struct {
 
 	// If HasLoader is true, the message will be appended with a spinning loader animation
 	HasLoader bool
+
+	writeMutex sync.Mutex
 }
 
 type viewLine struct {
@@ -224,6 +227,8 @@ func (v *View) Origin() (x, y int) {
 // be called to clear the view's buffer.
 func (v *View) Write(p []byte) (n int, err error) {
 	v.tainted = true
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
 
 	for _, ch := range bytes.Runes(p) {
 		switch ch {
@@ -250,6 +255,7 @@ func (v *View) Write(p []byte) (n int, err error) {
 			}
 		}
 	}
+
 	return len(p), nil
 }
 
@@ -602,4 +608,9 @@ func Loader() cell {
 	return cell{
 		chr: chr,
 	}
+}
+
+// IsTainted tells us if the view is tainted
+func (v *View) IsTainted() bool {
+	return v.tainted
 }
