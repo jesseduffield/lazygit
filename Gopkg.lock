@@ -197,11 +197,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:99fb77d961652c3e4d313aa40faa0a982992ddf38e357400a5f2dcaa95394737"
+  digest = "1:98610085008f8593244c81f802d885acf4302093dd3e37737fc6543ae86ce471"
   name = "github.com/jesseduffield/gocui"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "66ccf02cc748e3b4726fe1370d60ac2c5619974d"
+  revision = "625842035f050c8af384f639da328c6a0a0e4ca3"
 
 [[projects]]
   branch = "master"

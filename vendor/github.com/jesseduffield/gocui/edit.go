@@ -33,18 +33,10 @@ var DefaultEditor Editor = EditorFunc(simpleEditor)
 // simpleEditor is used as the default gocui editor.
 func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 	switch {
-	case ch != 0 && mod == 0:
-		v.EditWrite(ch)
-	case key == KeySpace:
-		v.EditWrite(' ')
 	case key == KeyBackspace || key == KeyBackspace2:
 		v.EditDelete(true)
 	case key == KeyDelete:
 		v.EditDelete(false)
-	case key == KeyInsert:
-		v.Overwrite = !v.Overwrite
-	case key == KeyEnter:
-		v.EditNewLine()
 	case key == KeyArrowDown:
 		v.MoveCursor(0, 1, false)
 	case key == KeyArrowUp:
@@ -53,6 +45,20 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 		v.MoveCursor(-1, 0, false)
 	case key == KeyArrowRight:
 		v.MoveCursor(1, 0, false)
+	case key == KeyTab:
+		v.EditNewLine()
+	case key == KeySpace:
+		v.EditWrite(' ')
+	case key == KeyInsert:
+		v.Overwrite = !v.Overwrite
+	case key == KeyCtrlU:
+		v.EditDeleteToStartOfLine()
+	case key == KeyCtrlA:
+		v.EditGotoToStartOfLine()
+	case key == KeyCtrlE:
+		v.EditGotoToEndOfLine()
+	default:
+		v.EditWrite(ch)
 	}
 }
 
@@ -61,6 +67,48 @@ func (v *View) EditWrite(ch rune) {
 	w := runewidth.RuneWidth(ch)
 	v.writeRune(v.cx, v.cy, ch)
 	v.moveCursor(w, 0, true)
+}
+
+// EditDeleteToStartOfLine is the equivalent of pressing ctrl+U in your terminal, it deletes to the end of the line. Or if you are already at the start of the line, it deletes the newline character
+func (v *View) EditDeleteToStartOfLine() {
+	x, _ := v.Cursor()
+	if x == 0 {
+		v.EditDelete(true)
+	} else {
+		// delete characters until we are the start of the line
+		for x > 0 {
+			v.EditDelete(true)
+			x, _ = v.Cursor()
+		}
+	}
+}
+
+// EditGotoToStartOfLine takes you to the start of the current line
+func (v *View) EditGotoToStartOfLine() {
+	x, _ := v.Cursor()
+	for x > 0 {
+		v.MoveCursor(-1, 0, false)
+		x, _ = v.Cursor()
+	}
+}
+
+// EditGotoToEndOfLine takes you to the end of the line
+func (v *View) EditGotoToEndOfLine() {
+	_, y := v.Cursor()
+	_ = v.SetCursor(0, y+1)
+	x, newY := v.Cursor()
+	if newY == y {
+		// we must be on the last line, so lets move to the very end
+		prevX := -1
+		for prevX != x {
+			prevX = x
+			v.MoveCursor(1, 0, false)
+			x, _ = v.Cursor()
+		}
+	} else {
+		// most left so now we're at the end of the original line
+		v.MoveCursor(-1, 0, false)
+	}
 }
 
 // EditDelete deletes a rune at the cursor position. back determines the
