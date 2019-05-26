@@ -91,8 +91,8 @@ func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string)
 // The ask argument will be "username" or "password" and expects the user's password or username back
 func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
 	ttyText := ""
-	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
-		ttyText = ttyText + " " + word
+	errMessage := c.RunCommandWithOutputLive(command, func(char string) string {
+		ttyText = ttyText + char
 
 		prompts := map[string]string{
 			"password": `Password\s*for\s*'.+':`,
