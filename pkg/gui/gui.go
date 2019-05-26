@@ -1,8 +1,8 @@
 package gui
 
 import (
-	"bytes"
-	"io"
+	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
 	"sync"
@@ -10,7 +10,6 @@ import (
 	// "io"
 	// "io/ioutil"
 
-	"io/ioutil"
 	"os/exec"
 	"strings"
 	"time"
@@ -147,7 +146,6 @@ type guiState struct {
 	WorkingTreeState    string // one of "merging", "rebasing", "normal"
 	Contexts            map[string]string
 	CherryPickedCommits []*commands.Commit
-	SubProcessOutput    string
 }
 
 // NewGui builds a new gui handler
@@ -517,16 +515,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if gui.State.SubProcessOutput != "" {
-		output := gui.State.SubProcessOutput
-		gui.State.SubProcessOutput = ""
-		x, y := gui.g.Size()
-		// if we just came back from vim, we don't want vim's output to show up in our popup
-		if float64(len(output))*1.5 < float64(x*y) {
-			return gui.createMessagePanel(gui.g, nil, "Output", output)
-		}
-	}
-
 	type listViewState struct {
 		selectedLine int
 		lineCount    int
@@ -695,15 +683,9 @@ func (gui *Gui) RunWithSubprocesses() error {
 			} else if err == gui.Errors.ErrSwitchRepo {
 				continue
 			} else if err == gui.Errors.ErrSubProcess {
-				output, err := gui.runCommand(gui.SubProcess)
-				if err != nil {
+				if err := gui.runCommand(); err != nil {
 					return err
 				}
-				gui.State.SubProcessOutput = output
-				gui.SubProcess.Stdout = ioutil.Discard
-				gui.SubProcess.Stderr = ioutil.Discard
-				gui.SubProcess.Stdin = nil
-				gui.SubProcess = nil
 			} else {
 				return err
 			}
@@ -712,20 +694,28 @@ func (gui *Gui) RunWithSubprocesses() error {
 	return nil
 }
 
-func (gui *Gui) runCommand(cmd *exec.Cmd) (string, error) {
-	var stdoutBuf bytes.Buffer
-	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
-	cmd.Stderr = io.MultiWriter(os.Stderr, &stdoutBuf)
-	cmd.Stdin = os.Stdin
+func (gui *Gui) runCommand() error {
+	gui.SubProcess.Stdout = os.Stdout
+	gui.SubProcess.Stderr = os.Stdout
+	gui.SubProcess.Stdin = os.Stdin
 
-	if err := cmd.Run(); err != nil {
+	fmt.Fprintf(os.Stdout, "\n%s\n\n", utils.ColoredString("+ "+strings.Join(gui.SubProcess.Args, " "), color.FgBlue))
+
+	if err := gui.SubProcess.Run(); err != nil {
 		// not handling the error explicitly because usually we're going to see it
 		// in the output anyway
 		gui.Log.Error(err)
 	}
 
-	outStr := stdoutBuf.String()
-	return outStr, nil
+	gui.SubProcess.Stdout = ioutil.Discard
+	gui.SubProcess.Stderr = ioutil.Discard
+	gui.SubProcess.Stdin = nil
+	gui.SubProcess = nil
+
+	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.SLocalize("pressEnterToReturn"), color.FgGreen))
+	fmt.Scanln() // wait for enter press
+
+	return nil
 }
 
 func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {

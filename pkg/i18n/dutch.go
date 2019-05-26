@@ -736,6 +736,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "resetTo",
 			Other: `reset to`,
+		}, &i18n.Message{
+			ID:    "pressEnterToReturn",
+			Other: "Press enter to return to lazygit",
 		},
 	)
 }
