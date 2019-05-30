@@ -230,10 +230,16 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("refreshFiles"),
 		}, {
 			ViewName:    "files",
+			Key:         's',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleStashChanges,
+			Description: gui.Tr.SLocalize("stashAllChanges"),
+		}, {
+			ViewName:    "files",
 			Key:         'S',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleStashSave,
-			Description: gui.Tr.SLocalize("stashFiles"),
+			Handler:     gui.handleCreateStashMenu,
+			Description: gui.Tr.SLocalize("viewStashOptions"),
 		}, {
 			ViewName:    "files",
 			Key:         'a',

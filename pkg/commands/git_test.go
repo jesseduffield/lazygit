@@ -372,6 +372,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasMergeConflicts:  false,
 						DisplayString:      "MM file1.txt",
 						Type:               "other",
+						ShortStatus:        "MM",
 					},
 					{
 						Name:               "file3.txt",
@@ -382,6 +383,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasMergeConflicts:  false,
 						DisplayString:      "A  file3.txt",
 						Type:               "other",
+						ShortStatus:        "A ",
 					},
 					{
 						Name:               "file2.txt",
@@ -392,6 +394,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasMergeConflicts:  false,
 						DisplayString:      "AM file2.txt",
 						Type:               "other",
+						ShortStatus:        "AM",
 					},
 					{
 						Name:               "file4.txt",
@@ -402,6 +405,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasMergeConflicts:  false,
 						DisplayString:      "?? file4.txt",
 						Type:               "other",
+						ShortStatus:        "??",
 					},
 				}
 
