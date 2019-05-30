@@ -627,3 +627,46 @@ func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
 		return gui.Errors.ErrSubProcess
 	})
 }
+
+type stashOption struct {
+	description string
+	handler     func() error
+}
+
+// GetDisplayStrings is a function.
+func (o *stashOption) GetDisplayStrings(isFocused bool) []string {
+	return []string{o.description}
+}
+
+func (gui *Gui) handleCreateStashMenu(g *gocui.Gui, v *gocui.View) error {
+	options := []*stashOption{
+		{
+			description: gui.Tr.SLocalize("stashAllChanges"),
+			handler: func() error {
+				return gui.handleStashSave(gui.GitCommand.StashSave)
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("stashStagedChanges"),
+			handler: func() error {
+				return gui.handleStashSave(gui.GitCommand.StashSaveStagedChanges)
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("cancel"),
+			handler: func() error {
+				return nil
+			},
+		},
+	}
+
+	handleMenuPress := func(index int) error {
+		return options[index].handler()
+	}
+
+	return gui.createMenu(gui.Tr.SLocalize("stashOptions"), options, len(options), handleMenuPress)
+}
+
+func (gui *Gui) handleStashChanges(g *gocui.Gui, v *gocui.View) error {
+	return gui.handleStashSave(gui.GitCommand.StashSave)
+}
