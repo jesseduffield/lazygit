@@ -187,6 +187,7 @@ func (c *GitCommand) GetStatusFiles() []*File {
 			HasMergeConflicts:       change == "UU" || change == "AA" || change == "DU",
 			HasInlineMergeConflicts: change == "UU" || change == "AA",
 			Type:                    c.OSCommand.FileType(filename),
+			ShortStatus:             change,
 		}
 		files = append(files, file)
 	}
@@ -436,7 +437,7 @@ func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 
 // GitStatus returns the plaintext short status of the repo
 func (c *GitCommand) GitStatus() (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git status --untracked-files=all --short")
+	return c.OSCommand.RunCommandWithOutput("git status --untracked-files=all --porcelain")
 }
 
 // IsInMergeState states whether we are still mid-merge
@@ -964,4 +965,43 @@ func (c *GitCommand) SquashAllAboveFixupCommits(sha string) error {
 			sha,
 		),
 	)
+}
+
+// StashSaveStagedChanges stashes only the currently staged changes. This takes a few steps
+// shoutouts to Joe on https://stackoverflow.com/questions/14759748/stashing-only-staged-changes-in-git-is-it-possible
+func (c *GitCommand) StashSaveStagedChanges(message string) error {
+
+	if err := c.OSCommand.RunCommand("git stash --keep-index"); err != nil {
+		return err
+	}
+
+	if err := c.StashSave(message); err != nil {
+		return err
+	}
+
+	if err := c.OSCommand.RunCommand("git stash apply stash@{1}"); err != nil {
+		return err
+	}
+
+	if err := c.OSCommand.PipeCommands("git stash show -p", "git apply -R"); err != nil {
+		return err
+	}
+
+	if err := c.OSCommand.RunCommand("git stash drop stash@{1}"); err != nil {
+		return err
+	}
+
+	// if you had staged an untracked file, that will now appear as 'AD' in git status
+	// meaning it's deleted in your working tree but added in your index. Given that it's
+	// now safely stashed, we need to remove it.
+	files := c.GetStatusFiles()
+	for _, file := range files {
+		if file.ShortStatus == "AD" {
+			if err := c.UnStageFile(file.Name, false); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

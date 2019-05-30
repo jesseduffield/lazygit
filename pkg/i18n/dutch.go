@@ -86,9 +86,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "execute",
 			Other: "uitvoeren",
 		}, &i18n.Message{
-			ID:    "stashFiles",
-			Other: "stash-bestanden",
-		}, &i18n.Message{
 			ID:    "open",
 			Other: "open",
 		}, &i18n.Message{
@@ -739,6 +736,18 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "pressEnterToReturn",
 			Other: "Press enter to return to lazygit",
+		}, &i18n.Message{
+			ID:    "viewStashOptions",
+			Other: "view stash options",
+		}, &i18n.Message{
+			ID:    "stashAllChanges",
+			Other: "stash-bestanden",
+		}, &i18n.Message{
+			ID:    "stashStagedChanges",
+			Other: "stash staged changes",
+		}, &i18n.Message{
+			ID:    "stashOptions",
+			Other: "Stash options",
 		},
 	)
 }

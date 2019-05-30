@@ -14,6 +14,7 @@ type File struct {
 	HasInlineMergeConflicts bool
 	DisplayString           string
 	Type                    string // one of 'file', 'directory', and 'other'
+	ShortStatus             string // e.g. 'AD', ' A', 'M ', '??'
 }
 
 // GetDisplayStrings returns the display string of a file
