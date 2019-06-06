@@ -5,14 +5,12 @@ package commands
 import (
 	"bufio"
 	"bytes"
-	"os"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/pty"
-	"github.com/mgutz/str"
 )
 
 // RunCommandWithOutputLiveWrapper runs a command and return every word that gets written in stdout
@@ -20,10 +18,7 @@ import (
 // As return of output you need to give a string that will be written to stdin
 // NOTE: If the return data is empty it won't written anything to stdin
 func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) error {
-	splitCmd := str.ToArgv(command)
-	cmd := c.command(splitCmd[0], splitCmd[1:]...)
-
-	cmd.Env = os.Environ()
+	cmd := c.ExecutableFromString(command)
 	cmd.Env = append(cmd.Env, "LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
 
 	var stderr bytes.Buffer
