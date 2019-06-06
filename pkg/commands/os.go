@@ -78,8 +78,9 @@ func (c *OSCommand) RunExecutable(cmd *exec.Cmd) error {
 // ExecutableFromString takes a string like `git status` and returns an executable command for it
 func (c *OSCommand) ExecutableFromString(commandStr string) *exec.Cmd {
 	splitCmd := str.ToArgv(commandStr)
-	c.Log.Info(splitCmd)
-	return c.command(splitCmd[0], splitCmd[1:]...)
+	cmd := c.command(splitCmd[0], splitCmd[1:]...)
+	cmd.Env = append(os.Environ(), "GIT_OPTIONAL_LOCKS=0")
+	return cmd
 }
 
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
@@ -201,8 +202,13 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 }
 
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
+// TODO: see if this needs to exist, given that ExecutableFromString does the same things
 func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *exec.Cmd {
-	return c.command(cmdName, commandArgs...)
+	cmd := c.command(cmdName, commandArgs...)
+	if cmd != nil {
+		cmd.Env = append(os.Environ(), "GIT_OPTIONAL_LOCKS=0")
+	}
+	return cmd
 }
 
 // Quote wraps a message in platform-specific quotation marks
