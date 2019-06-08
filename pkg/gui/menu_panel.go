@@ -70,7 +70,7 @@ func (gui *Gui) createMenu(title string, items interface{}, itemCount int, handl
 	wrappedHandlePress := func(g *gocui.Gui, v *gocui.View) error {
 		selectedLine := gui.State.Panels.Menu.SelectedLine
 		if err := handlePress(selectedLine); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return err
 		}
 		if _, err := gui.g.View("menu"); err == nil {
 			if _, err := gui.g.SetViewOnBottom("menu"); err != nil {
