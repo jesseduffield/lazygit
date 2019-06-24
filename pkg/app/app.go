@@ -19,6 +19,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// we hit the limit: putting this here for now
+const HaveNotHitRollbarLimit = false
+
 // App struct
 type App struct {
 	closers []io.Closer
@@ -80,7 +83,7 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 	// https://github.com/aybabtme/humanlog
 	log.Formatter = &logrus.JSONFormatter{}
 
-	if config.GetUserConfig().GetString("reporting") == "on" {
+	if HaveNotHitRollbarLimit && config.GetUserConfig().GetString("reporting") == "on" {
 		// this isn't really a secret token: it only has permission to push new rollbar items
 		hook := rollrus.NewHook("23432119147a4367abf7c0de2aa99a2d", environment)
 		log.Hooks.Add(hook)
