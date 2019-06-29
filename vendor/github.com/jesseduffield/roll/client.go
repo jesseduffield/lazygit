@@ -203,7 +203,8 @@ func (c *rollbarClient) send(item map[string]interface{}) (uuid string, err erro
 
 	resp, err := http.Post(Endpoint, "application/json", bytes.NewReader(jsonBody))
 	if err != nil {
-		return "", err
+		// If something goes wrong it really does not matter
+		return "", nil
 	}
 	defer func() {
 		io.Copy(ioutil.Discard, resp.Body)
@@ -211,7 +212,8 @@ func (c *rollbarClient) send(item map[string]interface{}) (uuid string, err erro
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Rollbar returned %s", resp.Status)
+		// If something goes wrong it really does not matter
+		return "", nil
 	}
 
 	// Extract UUID from JSON response

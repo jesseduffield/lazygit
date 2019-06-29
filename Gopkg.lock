@@ -173,14 +173,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d457d39e88f678ed14ac29517c3d74927a48dbc6a9f073fa241cf364a68cbe5c"
-  name = "github.com/heroku/rollrus"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "fc0cef2ff331aebb24cd4e9ded7e20650f3d7006"
-
-[[projects]]
-  branch = "master"
   digest = "1:62fe3a7ea2050ecbd753a71889026f83d73329337ada66325cbafd5dea5f713d"
   name = "github.com/jbenet/go-context"
   packages = ["io"]
@@ -210,6 +202,22 @@
   packages = ["."]
   pruneopts = "NUT"
   revision = "02db52c7e406c7abec44c717a173c7715e4c1b62"
+
+[[projects]]
+  branch = "master"
+  digest = "1:7429d1589cc1454e9e97ba48cb7c5025a085b32eae4d3163c517e3e5d6c7a7a0"
+  name = "github.com/jesseduffield/roll"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "695be2e62b007ecef6644383f0ee9504c1f5cbb9"
+
+[[projects]]
+  branch = "master"
+  digest = "1:ec8982ff49a9ebdd7d7dfe320258ad19a07baafb5eeba7f41b31ee2072d1bba9"
+  name = "github.com/jesseduffield/rollrus"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "7086c0b1b1bd21ef1f502e914ff2505a68c7d638"
 
 [[projects]]
   branch = "master"
@@ -446,14 +454,6 @@
   version = "v1.2.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e42372d3f4921ec35df07f9b23239631e9d28580f7c1edcca212bc6daddc68fe"
-  name = "github.com/stvp/roll"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "3627a5cbeaeaa68023abd02bb8687925265f2f63"
-
-[[projects]]
   digest = "1:cd5ffc5bda4e0296ab3e4de90dbb415259c78e45e7fab13694b14cde8ab74541"
   name = "github.com/tcnksm/go-gitconfig"
   packages = ["."]
@@ -630,10 +630,10 @@
     "github.com/fatih/color",
     "github.com/go-errors/errors",
     "github.com/golang-collections/collections/stack",
-    "github.com/heroku/rollrus",
     "github.com/jesseduffield/go-getter",
     "github.com/jesseduffield/gocui",
     "github.com/jesseduffield/pty",
+    "github.com/jesseduffield/rollrus",
     "github.com/kardianos/osext",
     "github.com/mgutz/str",
     "github.com/nicksnyder/go-i18n/v2/i18n",
