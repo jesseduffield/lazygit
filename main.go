@@ -52,6 +52,9 @@ func main() {
 	}
 
 	if err != nil {
+		if errorMessage, known := app.KnownError(err); known {
+			log.Fatal(errorMessage)
+		}
 		newErr := errors.Wrap(err, 0)
 		stackTrace := newErr.ErrorStack()
 		app.Log.Error(stackTrace)

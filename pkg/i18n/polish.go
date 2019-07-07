@@ -731,6 +731,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "stashOptions",
 			Other: "Stash options",
+		}, &i18n.Message{
+			ID:    "notARepository",
+			Other: "Error: must be run inside a repository",
 		},
 	)
 }
