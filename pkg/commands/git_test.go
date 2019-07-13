@@ -356,56 +356,77 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 			func(cmd string, args ...string) *exec.Cmd {
 				return exec.Command(
 					"echo",
-					"MM file1.txt\nA  file3.txt\nAM file2.txt\n?? file4.txt",
+					"MM file1.txt\nA  file3.txt\nAM file2.txt\n?? file4.txt\nUU file5.txt",
 				)
 			},
 			func(files []*File) {
-				assert.Len(t, files, 4)
+				assert.Len(t, files, 5)
 
 				expected := []*File{
 					{
-						Name:               "file1.txt",
-						HasStagedChanges:   true,
-						HasUnstagedChanges: true,
-						Tracked:            true,
-						Deleted:            false,
-						HasMergeConflicts:  false,
-						DisplayString:      "MM file1.txt",
-						Type:               "other",
-						ShortStatus:        "MM",
+						Name:                    "file1.txt",
+						HasStagedChanges:        true,
+						HasUnstagedChanges:      true,
+						Tracked:                 true,
+						Deleted:                 false,
+						HasMergeConflicts:       false,
+						HasInlineMergeConflicts: false,
+						NeedReset:               true,
+						DisplayString:           "MM file1.txt",
+						Type:                    "other",
+						ShortStatus:             "MM",
 					},
 					{
-						Name:               "file3.txt",
-						HasStagedChanges:   true,
-						HasUnstagedChanges: false,
-						Tracked:            false,
-						Deleted:            false,
-						HasMergeConflicts:  false,
-						DisplayString:      "A  file3.txt",
-						Type:               "other",
-						ShortStatus:        "A ",
+						Name:                    "file3.txt",
+						HasStagedChanges:        true,
+						HasUnstagedChanges:      false,
+						Tracked:                 false,
+						Deleted:                 false,
+						HasMergeConflicts:       false,
+						HasInlineMergeConflicts: false,
+						NeedReset:               true,
+						DisplayString:           "A  file3.txt",
+						Type:                    "other",
+						ShortStatus:             "A ",
 					},
 					{
-						Name:               "file2.txt",
-						HasStagedChanges:   true,
-						HasUnstagedChanges: true,
-						Tracked:            false,
-						Deleted:            false,
-						HasMergeConflicts:  false,
-						DisplayString:      "AM file2.txt",
-						Type:               "other",
-						ShortStatus:        "AM",
+						Name:                    "file2.txt",
+						HasStagedChanges:        true,
+						HasUnstagedChanges:      true,
+						Tracked:                 false,
+						Deleted:                 false,
+						HasMergeConflicts:       false,
+						HasInlineMergeConflicts: false,
+						NeedReset:               true,
+						DisplayString:           "AM file2.txt",
+						Type:                    "other",
+						ShortStatus:             "AM",
 					},
 					{
-						Name:               "file4.txt",
-						HasStagedChanges:   false,
-						HasUnstagedChanges: true,
-						Tracked:            false,
-						Deleted:            false,
-						HasMergeConflicts:  false,
-						DisplayString:      "?? file4.txt",
-						Type:               "other",
-						ShortStatus:        "??",
+						Name:                    "file4.txt",
+						HasStagedChanges:        false,
+						HasUnstagedChanges:      true,
+						Tracked:                 false,
+						Deleted:                 false,
+						HasMergeConflicts:       false,
+						HasInlineMergeConflicts: false,
+						NeedReset:               false,
+						DisplayString:           "?? file4.txt",
+						Type:                    "other",
+						ShortStatus:             "??",
+					},
+					{
+						Name:                    "file5.txt",
+						HasStagedChanges:        false,
+						HasUnstagedChanges:      true,
+						Tracked:                 true,
+						Deleted:                 false,
+						HasMergeConflicts:       true,
+						HasInlineMergeConflicts: true,
+						NeedReset:               true,
+						DisplayString:           "UU file5.txt",
+						Type:                    "other",
+						ShortStatus:             "UU",
 					},
 				}
 
@@ -1195,8 +1216,8 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				})
 			},
 			&File{
-				Name:             "test",
-				HasStagedChanges: true,
+				Name:      "test",
+				NeedReset: true,
 			},
 			func(string) error {
 				return nil
@@ -1296,9 +1317,9 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				})
 			},
 			&File{
-				Name:             "test",
-				Tracked:          true,
-				HasStagedChanges: true,
+				Name:      "test",
+				Tracked:   true,
+				NeedReset: true,
 			},
 			func(string) error {
 				return nil
@@ -1322,9 +1343,9 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				})
 			},
 			&File{
-				Name:             "test",
-				Tracked:          false,
-				HasStagedChanges: true,
+				Name:      "test",
+				Tracked:   false,
+				NeedReset: true,
 			},
 			func(filename string) error {
 				assert.Equal(t, "test", filename)

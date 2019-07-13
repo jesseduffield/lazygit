@@ -176,6 +176,8 @@ func (c *GitCommand) GetStatusFiles() []*File {
 		filename := c.OSCommand.Unquote(statusString[3:])
 		_, untracked := map[string]bool{"??": true, "A ": true, "AM": true}[change]
 		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
+		hasMergeConflicts := change == "UU" || change == "AA" || change == "DU"
+		hasInlineMergeConflicts := change == "UU" || change == "AA"
 
 		file := &File{
 			Name:                    filename,
@@ -184,8 +186,9 @@ func (c *GitCommand) GetStatusFiles() []*File {
 			HasUnstagedChanges:      unstagedChange != " ",
 			Tracked:                 !untracked,
 			Deleted:                 unstagedChange == "D" || stagedChange == "D",
-			HasMergeConflicts:       change == "UU" || change == "AA" || change == "DU",
-			HasInlineMergeConflicts: change == "UU" || change == "AA",
+			HasMergeConflicts:       hasMergeConflicts,
+			HasInlineMergeConflicts: hasInlineMergeConflicts,
+			NeedReset:               !hasNoStagedChanges || hasMergeConflicts || hasInlineMergeConflicts,
 			Type:                    c.OSCommand.FileType(filename),
 			ShortStatus:             change,
 		}
@@ -471,7 +474,7 @@ func (c *GitCommand) RebaseMode() (string, error) {
 func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
-	if file.HasStagedChanges || file.HasMergeConflicts || file.HasInlineMergeConflicts {
+	if file.NeedReset {
 		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", quotedFileName)); err != nil {
 			return err
 		}
