@@ -476,11 +476,6 @@ func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 			return err
 		}
 	}
-	if file.HasMergeConflicts || file.HasInlineMergeConflicts {
-		if err := c.OSCommand.RunCommand(fmt.Sprintf("git checkout -- %s", quotedFileName)); err != nil {
-			return err
-		}
-	}
 
 	if !file.Tracked {
 		return c.removeFile(file.Name)
