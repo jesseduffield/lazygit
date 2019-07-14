@@ -371,7 +371,6 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						Deleted:                 false,
 						HasMergeConflicts:       false,
 						HasInlineMergeConflicts: false,
-						NeedReset:               true,
 						DisplayString:           "MM file1.txt",
 						Type:                    "other",
 						ShortStatus:             "MM",
@@ -384,7 +383,6 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						Deleted:                 false,
 						HasMergeConflicts:       false,
 						HasInlineMergeConflicts: false,
-						NeedReset:               true,
 						DisplayString:           "A  file3.txt",
 						Type:                    "other",
 						ShortStatus:             "A ",
@@ -397,7 +395,6 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						Deleted:                 false,
 						HasMergeConflicts:       false,
 						HasInlineMergeConflicts: false,
-						NeedReset:               true,
 						DisplayString:           "AM file2.txt",
 						Type:                    "other",
 						ShortStatus:             "AM",
@@ -410,7 +407,6 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						Deleted:                 false,
 						HasMergeConflicts:       false,
 						HasInlineMergeConflicts: false,
-						NeedReset:               false,
 						DisplayString:           "?? file4.txt",
 						Type:                    "other",
 						ShortStatus:             "??",
@@ -423,7 +419,6 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						Deleted:                 false,
 						HasMergeConflicts:       true,
 						HasInlineMergeConflicts: true,
-						NeedReset:               true,
 						DisplayString:           "UU file5.txt",
 						Type:                    "other",
 						ShortStatus:             "UU",
@@ -1216,8 +1211,8 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				})
 			},
 			&File{
-				Name:      "test",
-				NeedReset: true,
+				Name:             "test",
+				HasStagedChanges: true,
 			},
 			func(string) error {
 				return nil
@@ -1299,7 +1294,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 			},
 		},
 		{
-			"Reset and checkout",
+			"Reset and checkout staged changes",
 			func() (func(string, ...string) *exec.Cmd, *[][]string) {
 				cmdsCalled := [][]string{}
 				return func(cmd string, args ...string) *exec.Cmd {
@@ -1317,9 +1312,63 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				})
 			},
 			&File{
-				Name:      "test",
-				Tracked:   true,
-				NeedReset: true,
+				Name:             "test",
+				Tracked:          true,
+				HasStagedChanges: true,
+			},
+			func(string) error {
+				return nil
+			},
+		},
+		{
+			"Reset and checkout merge conflicts",
+			func() (func(string, ...string) *exec.Cmd, *[][]string) {
+				cmdsCalled := [][]string{}
+				return func(cmd string, args ...string) *exec.Cmd {
+					cmdsCalled = append(cmdsCalled, args)
+
+					return exec.Command("echo")
+				}, &cmdsCalled
+			},
+			func(cmdsCalled *[][]string, err error) {
+				assert.NoError(t, err)
+				assert.Len(t, *cmdsCalled, 2)
+				assert.EqualValues(t, *cmdsCalled, [][]string{
+					{"reset", "--", "test"},
+					{"checkout", "--", "test"},
+				})
+			},
+			&File{
+				Name:              "test",
+				Tracked:           true,
+				HasMergeConflicts: true,
+			},
+			func(string) error {
+				return nil
+			},
+		},
+		{
+			"Reset and checkout inline merge conflicts",
+			func() (func(string, ...string) *exec.Cmd, *[][]string) {
+				cmdsCalled := [][]string{}
+				return func(cmd string, args ...string) *exec.Cmd {
+					cmdsCalled = append(cmdsCalled, args)
+
+					return exec.Command("echo")
+				}, &cmdsCalled
+			},
+			func(cmdsCalled *[][]string, err error) {
+				assert.NoError(t, err)
+				assert.Len(t, *cmdsCalled, 2)
+				assert.EqualValues(t, *cmdsCalled, [][]string{
+					{"reset", "--", "test"},
+					{"checkout", "--", "test"},
+				})
+			},
+			&File{
+				Name:                    "test",
+				Tracked:                 true,
+				HasInlineMergeConflicts: true,
 			},
 			func(string) error {
 				return nil
@@ -1343,9 +1392,9 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				})
 			},
 			&File{
-				Name:      "test",
-				Tracked:   false,
-				NeedReset: true,
+				Name:             "test",
+				Tracked:          false,
+				HasStagedChanges: true,
 			},
 			func(filename string) error {
 				assert.Equal(t, "test", filename)
