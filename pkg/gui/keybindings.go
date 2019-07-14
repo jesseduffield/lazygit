@@ -523,6 +523,36 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleOpenOldCommitFile,
 			Description: gui.Tr.SLocalize("openFile"),
 		},
+		{
+			ViewName: "",
+			Key:      '1',
+			Modifier: gocui.ModNone,
+			Handler:  gui.goToStatus,
+		},
+		{
+			ViewName: "",
+			Key:      '2',
+			Modifier: gocui.ModNone,
+			Handler:  gui.goToFiles,
+		},
+		{
+			ViewName: "",
+			Key:      '3',
+			Modifier: gocui.ModNone,
+			Handler:  gui.goToBranches,
+		},
+		{
+			ViewName: "",
+			Key:      '4',
+			Modifier: gocui.ModNone,
+			Handler:  gui.goToCommits,
+		},
+		{
+			ViewName: "",
+			Key:      '5',
+			Modifier: gocui.ModNone,
+			Handler:  gui.goToStash,
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {

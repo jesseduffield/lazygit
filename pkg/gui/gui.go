@@ -609,6 +609,7 @@ func (gui *Gui) renderGlobalOptions() error {
 		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
 		"esc/q":     gui.Tr.SLocalize("close"),
 		"x":         gui.Tr.SLocalize("menu"),
+		"1-5":       gui.Tr.SLocalize("jump"),
 	})
 }
 
