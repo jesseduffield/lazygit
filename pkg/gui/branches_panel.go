@@ -161,32 +161,33 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleCheckoutBranch(branchName string) error {
 	if err := gui.GitCommand.Checkout(branchName, false); err != nil {
 		// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
-		if !strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
-			if err := gui.createErrorPanel(gui.g, err.Error()); err != nil {
-				return err
-			}
+
+		if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
+			// offer to autostash changes
+			return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + branchName); err != nil {
+					return gui.createErrorPanel(g, err.Error())
+				}
+				if err := gui.GitCommand.Checkout(branchName, false); err != nil {
+					return gui.createErrorPanel(g, err.Error())
+				}
+
+				// checkout successful so we select the new branch
+				gui.State.Panels.Branches.SelectedLine = 0
+
+				if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
+					if err := gui.refreshSidePanels(g); err != nil {
+						return err
+					}
+					return gui.createErrorPanel(g, err.Error())
+				}
+				return gui.refreshSidePanels(g)
+			}, nil)
 		}
 
-		// offer to autostash changes
-		return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-			if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + branchName); err != nil {
-				return gui.createErrorPanel(g, err.Error())
-			}
-			if err := gui.GitCommand.Checkout(branchName, false); err != nil {
-				return gui.createErrorPanel(g, err.Error())
-			}
-
-			// checkout successful so we select the new branch
-			gui.State.Panels.Branches.SelectedLine = 0
-
-			if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
-				if err := gui.refreshSidePanels(g); err != nil {
-					return err
-				}
-				return gui.createErrorPanel(g, err.Error())
-			}
-			return gui.refreshSidePanels(g)
-		}, nil)
+		if err := gui.createErrorPanel(gui.g, err.Error()); err != nil {
+			return err
+		}
 	}
 
 	gui.State.Panels.Branches.SelectedLine = 0
