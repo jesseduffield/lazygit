@@ -1348,33 +1348,6 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 			},
 		},
 		{
-			"Reset and checkout inline merge conflicts",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return exec.Command("echo")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.NoError(t, err)
-				assert.Len(t, *cmdsCalled, 2)
-				assert.EqualValues(t, *cmdsCalled, [][]string{
-					{"reset", "--", "test"},
-					{"checkout", "--", "test"},
-				})
-			},
-			&File{
-				Name:                    "test",
-				Tracked:                 true,
-				HasInlineMergeConflicts: true,
-			},
-			func(string) error {
-				return nil
-			},
-		},
-		{
 			"Reset and remove",
 			func() (func(string, ...string) *exec.Cmd, *[][]string) {
 				cmdsCalled := [][]string{}
