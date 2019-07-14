@@ -473,7 +473,7 @@ func (c *GitCommand) RebaseMode() (string, error) {
 func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
-	if file.HasStagedChanges || file.HasMergeConflicts || file.HasInlineMergeConflicts {
+	if file.HasStagedChanges || file.HasMergeConflicts {
 		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", quotedFileName)); err != nil {
 			return err
 		}
