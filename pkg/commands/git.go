@@ -188,7 +188,6 @@ func (c *GitCommand) GetStatusFiles() []*File {
 			Deleted:                 unstagedChange == "D" || stagedChange == "D",
 			HasMergeConflicts:       hasMergeConflicts,
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			NeedReset:               !hasNoStagedChanges || hasMergeConflicts || hasInlineMergeConflicts,
 			Type:                    c.OSCommand.FileType(filename),
 			ShortStatus:             change,
 		}
@@ -474,7 +473,7 @@ func (c *GitCommand) RebaseMode() (string, error) {
 func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
-	if file.NeedReset {
+	if file.HasStagedChanges || file.HasMergeConflicts || file.HasInlineMergeConflicts {
 		if err := c.OSCommand.RunCommand(fmt.Sprintf("git reset -- %s", quotedFileName)); err != nil {
 			return err
 		}

@@ -12,7 +12,6 @@ type File struct {
 	Deleted                 bool
 	HasMergeConflicts       bool
 	HasInlineMergeConflicts bool
-	NeedReset               bool
 	DisplayString           string
 	Type                    string // one of 'file', 'directory', and 'other'
 	ShortStatus             string // e.g. 'AD', ' A', 'M ', '??'
