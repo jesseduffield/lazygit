@@ -169,7 +169,7 @@ func TestResolvePlaceholderString(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		assert.EqualValues(t, string(s.expected), ResolvePlaceholderString(s.templateString, s.arguments))
+		assert.EqualValues(t, s.expected, ResolvePlaceholderString(s.templateString, s.arguments))
 	}
 }
 
