@@ -1371,10 +1371,9 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 // TestGitCommandShow is a function.
 func TestGitCommandShow(t *testing.T) {
 	type scenario struct {
-		testName string
-		arg      string
-		command  func(string, ...string) *exec.Cmd
-		test     func(string, error)
+		arg     string
+		command func(string, ...string) *exec.Cmd
+		test    func(string, error)
 	}
 
 	scenarios := []scenario{
