@@ -70,7 +70,7 @@ func (b *BranchListBuilder) obtainSafeBranches() []*commands.Branch {
 	if err != nil {
 		panic(err)
 	}
-	err = bIter.ForEach(func(b *plumbing.Reference) error {
+	bIter.ForEach(func(b *plumbing.Reference) error {
 		name := b.Name().Short()
 		branches = append(branches, &commands.Branch{Name: name})
 		return nil
