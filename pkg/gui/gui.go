@@ -619,7 +619,7 @@ func (gui *Gui) goEvery(interval time.Duration, function func() error) {
 	}()
 }
 
-func (gui *Gui) startBackgroundFetch() error {
+func (gui *Gui) startBackgroundFetch() {
 	g := gui.g
 	gui.waitForIntro.Wait()
 	isNew := gui.Config.GetIsNewRepo()
@@ -635,7 +635,6 @@ func (gui *Gui) startBackgroundFetch() error {
 			return err
 		})
 	}
-	return nil
 }
 
 // Run setup the gui with keybindings and start the mainloop
