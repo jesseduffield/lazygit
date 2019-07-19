@@ -261,10 +261,8 @@ func (c *CommitListBuilder) getMergeBase() (string, error) {
 		baseBranch = "develop"
 	}
 
-	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
-	if err != nil {
-		// swallowing error because it's not a big deal; probably because there are no commits yet
-	}
+	// swallowing error because it's not a big deal; probably because there are no commits yet
+	output, _ := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git merge-base HEAD %s", baseBranch))
 	return output, nil
 }
 

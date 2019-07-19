@@ -29,7 +29,7 @@ func main() {
 
 	splitVersion := strings.Split(stringVersion, ".")
 	patch := splitVersion[len(splitVersion)-1]
-	newPatch, err := strconv.Atoi(patch)
+	newPatch, _ := strconv.Atoi(patch)
 	splitVersion[len(splitVersion)-1] = strconv.FormatInt(int64(newPatch)+1, 10)
 	newVersion := strings.Join(splitVersion, ".")
 
