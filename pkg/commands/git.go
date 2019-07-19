@@ -906,10 +906,8 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 		if err := c.StageFile(fileName); err != nil {
 			return err
 		}
-	} else {
-		if err := c.CheckoutFile("HEAD^", fileName); err != nil {
-			return err
-		}
+	} else if err := c.CheckoutFile("HEAD^", fileName); err != nil {
+		return err
 	}
 
 	// amend the commit
