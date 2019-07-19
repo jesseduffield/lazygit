@@ -31,7 +31,7 @@ func (gui *Gui) GetAttribute(key string) gocui.Attribute {
 func (gui *Gui) GetColor(keys []string) gocui.Attribute {
 	var attribute gocui.Attribute
 	for _, key := range keys {
-		attribute = attribute | gui.GetAttribute(key)
+		attribute |= gui.GetAttribute(key)
 	}
 	return attribute
 }
