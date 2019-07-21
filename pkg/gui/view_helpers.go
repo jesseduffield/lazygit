@@ -164,6 +164,8 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	}
 
 	g.Cursor = newView.Editable
+	g.SelBgColor = gocui.ColorDefault
+	g.SelFgColor = gocui.ColorGreen
 
 	if err := gui.renderPanelOptions(); err != nil {
 		return err
