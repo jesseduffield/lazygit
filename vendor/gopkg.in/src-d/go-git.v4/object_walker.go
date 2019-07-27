@@ -94,6 +94,8 @@ func (p *objectWalker) walkObjectTree(hash plumbing.Hash) error {
 				return err
 			}
 		}
+	case *object.Tag:
+		return p.walkObjectTree(obj.Target)
 	default:
 		// Error out on unhandled object types.
 		return fmt.Errorf("Unknown object %X %s %T\n", obj.ID(), obj.Type(), obj)

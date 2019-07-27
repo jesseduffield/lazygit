@@ -236,7 +236,7 @@ func (a *PublicKeysCallback) ClientConfig() (*ssh.ClientConfig, error) {
 // NewKnownHostsCallback returns ssh.HostKeyCallback based on a file based on a
 // known_hosts file. http://man.openbsd.org/sshd#SSH_KNOWN_HOSTS_FILE_FORMAT
 //
-// If files is empty, the list of files will be read from the SSH_KNOWN_HOSTS
+// If list of files is empty, then it will be read from the SSH_KNOWN_HOSTS
 // environment variable, example:
 //   /home/foo/custom_known_hosts_file:/etc/custom_known/hosts_file
 //
@@ -244,13 +244,15 @@ func (a *PublicKeysCallback) ClientConfig() (*ssh.ClientConfig, error) {
 //   ~/.ssh/known_hosts
 //   /etc/ssh/ssh_known_hosts
 func NewKnownHostsCallback(files ...string) (ssh.HostKeyCallback, error) {
-	files, err := getDefaultKnownHostsFiles()
-	if err != nil {
-		return nil, err
+	var err error
+
+	if len(files) == 0 {
+		if files, err = getDefaultKnownHostsFiles(); err != nil {
+			return nil, err
+		}
 	}
 
-	files, err = filterKnownHostsFiles(files...)
-	if err != nil {
+	if files, err = filterKnownHostsFiles(files...); err != nil {
 		return nil, err
 	}
 

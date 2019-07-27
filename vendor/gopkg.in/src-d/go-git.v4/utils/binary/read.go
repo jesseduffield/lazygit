@@ -25,6 +25,10 @@ func Read(r io.Reader, data ...interface{}) error {
 
 // ReadUntil reads from r untin delim is found
 func ReadUntil(r io.Reader, delim byte) ([]byte, error) {
+	if bufr, ok := r.(*bufio.Reader); ok {
+		return ReadUntilFromBufioReader(bufr, delim)
+	}
+
 	var buf [1]byte
 	value := make([]byte, 0, 16)
 	for {
@@ -42,6 +46,17 @@ func ReadUntil(r io.Reader, delim byte) ([]byte, error) {
 
 		value = append(value, buf[0])
 	}
+}
+
+// ReadUntilFromBufioReader is like bufio.ReadBytes but drops the delimiter
+// from the result.
+func ReadUntilFromBufioReader(r *bufio.Reader, delim byte) ([]byte, error) {
+	value, err := r.ReadBytes(delim)
+	if err != nil || len(value) == 0 {
+		return nil, err
+	}
+
+	return value[:len(value)-1], nil
 }
 
 // ReadVariableWidthInt reads and returns an int in Git VLQ special format:

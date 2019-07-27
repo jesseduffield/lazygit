@@ -131,9 +131,27 @@ func (iter *ReferenceSliceIter) Next() (*plumbing.Reference, error) {
 // an error happens or the end of the iter is reached. If ErrStop is sent
 // the iteration is stop but no error is returned. The iterator is closed.
 func (iter *ReferenceSliceIter) ForEach(cb func(*plumbing.Reference) error) error {
+	return forEachReferenceIter(iter, cb)
+}
+
+type bareReferenceIterator interface {
+	Next() (*plumbing.Reference, error)
+	Close()
+}
+
+func forEachReferenceIter(iter bareReferenceIterator, cb func(*plumbing.Reference) error) error {
 	defer iter.Close()
-	for _, r := range iter.series {
-		if err := cb(r); err != nil {
+	for {
+		obj, err := iter.Next()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+
+			return err
+		}
+
+		if err := cb(obj); err != nil {
 			if err == ErrStop {
 				return nil
 			}
@@ -141,13 +159,57 @@ func (iter *ReferenceSliceIter) ForEach(cb func(*plumbing.Reference) error) erro
 			return err
 		}
 	}
-
-	return nil
 }
 
 // Close releases any resources used by the iterator.
 func (iter *ReferenceSliceIter) Close() {
 	iter.pos = len(iter.series)
+}
+
+// MultiReferenceIter implements ReferenceIter. It iterates over several
+// ReferenceIter,
+//
+// The MultiReferenceIter must be closed with a call to Close() when it is no
+// longer needed.
+type MultiReferenceIter struct {
+	iters []ReferenceIter
+}
+
+// NewMultiReferenceIter returns an reference iterator for the given slice of
+// EncodedObjectIters.
+func NewMultiReferenceIter(iters []ReferenceIter) ReferenceIter {
+	return &MultiReferenceIter{iters: iters}
+}
+
+// Next returns the next reference from the iterator, if one iterator reach
+// io.EOF is removed and the next one is used.
+func (iter *MultiReferenceIter) Next() (*plumbing.Reference, error) {
+	if len(iter.iters) == 0 {
+		return nil, io.EOF
+	}
+
+	obj, err := iter.iters[0].Next()
+	if err == io.EOF {
+		iter.iters[0].Close()
+		iter.iters = iter.iters[1:]
+		return iter.Next()
+	}
+
+	return obj, err
+}
+
+// ForEach call the cb function for each reference contained on this iter until
+// an error happens or the end of the iter is reached. If ErrStop is sent
+// the iteration is stop but no error is returned. The iterator is closed.
+func (iter *MultiReferenceIter) ForEach(cb func(*plumbing.Reference) error) error {
+	return forEachReferenceIter(iter, cb)
+}
+
+// Close releases any resources used by the iterator.
+func (iter *MultiReferenceIter) Close() {
+	for _, i := range iter.iters {
+		i.Close()
+	}
 }
 
 // ResolveReference resolves a SymbolicReference to a HashReference.

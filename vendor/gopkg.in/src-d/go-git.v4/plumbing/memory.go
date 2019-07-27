@@ -14,10 +14,10 @@ type MemoryObject struct {
 	sz   int64
 }
 
-// Hash return the object Hash, the hash is calculated on-the-fly the first
-// time is called, the subsequent calls the same Hash is returned even if the
-// type or the content has changed. The Hash is only generated if the size of
-// the content is exactly the Object.Size
+// Hash returns the object Hash, the hash is calculated on-the-fly the first
+// time it's called, in all subsequent calls the same Hash is returned even
+// if the type or the content have changed. The Hash is only generated if the
+// size of the content is exactly the object size.
 func (o *MemoryObject) Hash() Hash {
 	if o.h == ZeroHash && int64(len(o.cont)) == o.sz {
 		o.h = ComputeHash(o.t, o.cont)

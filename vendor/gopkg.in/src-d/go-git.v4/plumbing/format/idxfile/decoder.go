@@ -17,6 +17,11 @@ var (
 	ErrMalformedIdxFile = errors.New("Malformed IDX file")
 )
 
+const (
+	fanout         = 256
+	objectIDLength = 20
+)
+
 // Decoder reads and decodes idx files from an input stream.
 type Decoder struct {
 	*bufio.Reader
@@ -27,13 +32,13 @@ func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{bufio.NewReader(r)}
 }
 
-// Decode reads from the stream and decode the content into the Idxfile struct.
-func (d *Decoder) Decode(idx *Idxfile) error {
+// Decode reads from the stream and decode the content into the MemoryIndex struct.
+func (d *Decoder) Decode(idx *MemoryIndex) error {
 	if err := validateHeader(d); err != nil {
 		return err
 	}
 
-	flow := []func(*Idxfile, io.Reader) error{
+	flow := []func(*MemoryIndex, io.Reader) error{
 		readVersion,
 		readFanout,
 		readObjectNames,
@@ -46,10 +51,6 @@ func (d *Decoder) Decode(idx *Idxfile) error {
 		if err := f(idx, d); err != nil {
 			return err
 		}
-	}
-
-	if !idx.isValid() {
-		return ErrMalformedIdxFile
 	}
 
 	return nil
@@ -68,7 +69,7 @@ func validateHeader(r io.Reader) error {
 	return nil
 }
 
-func readVersion(idx *Idxfile, r io.Reader) error {
+func readVersion(idx *MemoryIndex, r io.Reader) error {
 	v, err := binary.ReadUint32(r)
 	if err != nil {
 		return err
@@ -82,74 +83,92 @@ func readVersion(idx *Idxfile, r io.Reader) error {
 	return nil
 }
 
-func readFanout(idx *Idxfile, r io.Reader) error {
-	var err error
-	for i := 0; i < 255; i++ {
-		idx.Fanout[i], err = binary.ReadUint32(r)
+func readFanout(idx *MemoryIndex, r io.Reader) error {
+	for k := 0; k < fanout; k++ {
+		n, err := binary.ReadUint32(r)
 		if err != nil {
 			return err
 		}
-	}
 
-	idx.ObjectCount, err = binary.ReadUint32(r)
-	return err
-}
-
-func readObjectNames(idx *Idxfile, r io.Reader) error {
-	c := int(idx.ObjectCount)
-	new := make([]Entry, c)
-	for i := 0; i < c; i++ {
-		e := &new[i]
-		if _, err := io.ReadFull(r, e.Hash[:]); err != nil {
-			return err
-		}
-
-		idx.Entries = append(idx.Entries, e)
+		idx.Fanout[k] = n
+		idx.FanoutMapping[k] = noMapping
 	}
 
 	return nil
 }
 
-func readCRC32(idx *Idxfile, r io.Reader) error {
-	c := int(idx.ObjectCount)
-	for i := 0; i < c; i++ {
-		if err := binary.Read(r, &idx.Entries[i].CRC32); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func readOffsets(idx *Idxfile, r io.Reader) error {
-	c := int(idx.ObjectCount)
-
-	for i := 0; i < c; i++ {
-		o, err := binary.ReadUint32(r)
-		if err != nil {
-			return err
+func readObjectNames(idx *MemoryIndex, r io.Reader) error {
+	for k := 0; k < fanout; k++ {
+		var buckets uint32
+		if k == 0 {
+			buckets = idx.Fanout[k]
+		} else {
+			buckets = idx.Fanout[k] - idx.Fanout[k-1]
 		}
 
-		idx.Entries[i].Offset = uint64(o)
-	}
-
-	for i := 0; i < c; i++ {
-		if idx.Entries[i].Offset <= offsetLimit {
+		if buckets == 0 {
 			continue
 		}
 
-		o, err := binary.ReadUint64(r)
-		if err != nil {
+		if buckets < 0 {
+			return ErrMalformedIdxFile
+		}
+
+		idx.FanoutMapping[k] = len(idx.Names)
+
+		nameLen := int(buckets * objectIDLength)
+		bin := make([]byte, nameLen)
+		if _, err := io.ReadFull(r, bin); err != nil {
 			return err
 		}
 
-		idx.Entries[i].Offset = o
+		idx.Names = append(idx.Names, bin)
+		idx.Offset32 = append(idx.Offset32, make([]byte, buckets*4))
+		idx.CRC32 = append(idx.CRC32, make([]byte, buckets*4))
 	}
 
 	return nil
 }
 
-func readChecksums(idx *Idxfile, r io.Reader) error {
+func readCRC32(idx *MemoryIndex, r io.Reader) error {
+	for k := 0; k < fanout; k++ {
+		if pos := idx.FanoutMapping[k]; pos != noMapping {
+			if _, err := io.ReadFull(r, idx.CRC32[pos]); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func readOffsets(idx *MemoryIndex, r io.Reader) error {
+	var o64cnt int
+	for k := 0; k < fanout; k++ {
+		if pos := idx.FanoutMapping[k]; pos != noMapping {
+			if _, err := io.ReadFull(r, idx.Offset32[pos]); err != nil {
+				return err
+			}
+
+			for p := 0; p < len(idx.Offset32[pos]); p += 4 {
+				if idx.Offset32[pos][p]&(byte(1)<<7) > 0 {
+					o64cnt++
+				}
+			}
+		}
+	}
+
+	if o64cnt > 0 {
+		idx.Offset64 = make([]byte, o64cnt*8)
+		if _, err := io.ReadFull(r, idx.Offset64); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func readChecksums(idx *MemoryIndex, r io.Reader) error {
 	if _, err := io.ReadFull(r, idx.PackfileChecksum[:]); err != nil {
 		return err
 	}

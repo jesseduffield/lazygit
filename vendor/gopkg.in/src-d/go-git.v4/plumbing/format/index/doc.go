@@ -297,5 +297,64 @@
 //        in the previous ewah bitmap.
 //
 //      - One NUL.
-// Source https://www.kernel.org/pub/software/scm/git/docs/technical/index-format.txt
+//
+//   == File System Monitor cache
+//
+//     The file system monitor cache tracks files for which the core.fsmonitor
+//     hook has told us about changes.  The signature for this extension is
+//     { 'F', 'S', 'M', 'N' }.
+//
+//     The extension starts with
+//
+//     - 32-bit version number: the current supported version is 1.
+//
+//     - 64-bit time: the extension data reflects all changes through the given
+//       time which is stored as the nanoseconds elapsed since midnight,
+//       January 1, 1970.
+//
+//    - 32-bit bitmap size: the size of the CE_FSMONITOR_VALID bitmap.
+//
+//    - An ewah bitmap, the n-th bit indicates whether the n-th index entry
+//      is not CE_FSMONITOR_VALID.
+//
+//  == End of Index Entry
+//
+//    The End of Index Entry (EOIE) is used to locate the end of the variable
+//    length index entries and the begining of the extensions. Code can take
+//    advantage of this to quickly locate the index extensions without having
+//    to parse through all of the index entries.
+//
+//    Because it must be able to be loaded before the variable length cache
+//    entries and other index extensions, this extension must be written last.
+//    The signature for this extension is { 'E', 'O', 'I', 'E' }.
+//
+//    The extension consists of:
+//
+//    - 32-bit offset to the end of the index entries
+//
+//    - 160-bit SHA-1 over the extension types and their sizes (but not
+//      their contents).  E.g. if we have "TREE" extension that is N-bytes
+//      long, "REUC" extension that is M-bytes long, followed by "EOIE",
+//      then the hash would be:
+//
+//      SHA-1("TREE" + <binary representation of N> +
+//        "REUC" + <binary representation of M>)
+//
+//  == Index Entry Offset Table
+//
+//    The Index Entry Offset Table (IEOT) is used to help address the CPU
+//    cost of loading the index by enabling multi-threading the process of
+//    converting cache entries from the on-disk format to the in-memory format.
+//    The signature for this extension is { 'I', 'E', 'O', 'T' }.
+//
+//    The extension consists of:
+//
+//    - 32-bit version (currently 1)
+//
+//    - A number of index offset entries each consisting of:
+//
+//    - 32-bit offset from the begining of the file to the first cache entry
+//      in this block of entries.
+//
+//    - 32-bit count of cache entries in this blockpackage index
 package index

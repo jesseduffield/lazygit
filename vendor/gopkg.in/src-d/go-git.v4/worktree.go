@@ -25,10 +25,11 @@ import (
 )
 
 var (
-	ErrWorktreeNotClean  = errors.New("worktree is not clean")
-	ErrSubmoduleNotFound = errors.New("submodule not found")
-	ErrUnstagedChanges   = errors.New("worktree contains unstaged changes")
-	ErrGitModulesSymlink = errors.New(gitmodulesFile + " is a symlink")
+	ErrWorktreeNotClean     = errors.New("worktree is not clean")
+	ErrSubmoduleNotFound    = errors.New("submodule not found")
+	ErrUnstagedChanges      = errors.New("worktree contains unstaged changes")
+	ErrGitModulesSymlink    = errors.New(gitmodulesFile + " is a symlink")
+	ErrNonFastForwardUpdate = errors.New("non-fast-forward update")
 )
 
 // Worktree represents a git worktree.
@@ -101,7 +102,7 @@ func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
 		}
 
 		if !ff {
-			return fmt.Errorf("non-fast-forward update")
+			return ErrNonFastForwardUpdate
 		}
 	}
 
@@ -151,17 +152,6 @@ func (w *Worktree) Checkout(opts *CheckoutOptions) error {
 		}
 	}
 
-	if !opts.Force {
-		unstaged, err := w.containsUnstagedChanges()
-		if err != nil {
-			return err
-		}
-
-		if unstaged {
-			return ErrUnstagedChanges
-		}
-	}
-
 	c, err := w.getCommitFromCheckoutOptions(opts)
 	if err != nil {
 		return err
@@ -170,6 +160,8 @@ func (w *Worktree) Checkout(opts *CheckoutOptions) error {
 	ro := &ResetOptions{Commit: c, Mode: MergeReset}
 	if opts.Force {
 		ro.Mode = HardReset
+	} else if opts.Keep {
+		ro.Mode = SoftReset
 	}
 
 	if !opts.Hash.IsZero() && !opts.Create {
@@ -713,29 +705,54 @@ func (w *Worktree) readGitmodulesFile() (*config.Modules, error) {
 }
 
 // Clean the worktree by removing untracked files.
+// An empty dir could be removed - this is what  `git clean -f -d .` does.
 func (w *Worktree) Clean(opts *CleanOptions) error {
 	s, err := w.Status()
 	if err != nil {
 		return err
 	}
 
-	// Check Worktree status to be Untracked, obtain absolute path and delete.
-	for relativePath, status := range s {
-		// Check if the path contains a directory and if Dir options is false,
-		// skip the path.
-		if relativePath != filepath.Base(relativePath) && !opts.Dir {
+	root := ""
+	files, err := w.Filesystem.ReadDir(root)
+	if err != nil {
+		return err
+	}
+	return w.doClean(s, opts, root, files)
+}
+
+func (w *Worktree) doClean(status Status, opts *CleanOptions, dir string, files []os.FileInfo) error {
+	for _, fi := range files {
+		if fi.Name() == GitDirName {
 			continue
 		}
 
-		// Remove the file only if it's an untracked file.
-		if status.Worktree == Untracked {
-			absPath := filepath.Join(w.Filesystem.Root(), relativePath)
-			if err := os.Remove(absPath); err != nil {
+		// relative path under the root
+		path := filepath.Join(dir, fi.Name())
+		if fi.IsDir() {
+			if !opts.Dir {
+				continue
+			}
+
+			subfiles, err := w.Filesystem.ReadDir(path)
+			if err != nil {
 				return err
+			}
+			err = w.doClean(status, opts, path, subfiles)
+			if err != nil {
+				return err
+			}
+		} else {
+			if status.IsUntracked(path) {
+				if err := w.Filesystem.Remove(path); err != nil {
+					return err
+				}
 			}
 		}
 	}
 
+	if opts.Dir {
+		return doCleanDirectories(w.Filesystem, dir)
+	}
 	return nil
 }
 
@@ -881,15 +898,18 @@ func rmFileAndDirIfEmpty(fs billy.Filesystem, name string) error {
 		return err
 	}
 
-	path := filepath.Dir(name)
-	files, err := fs.ReadDir(path)
+	dir := filepath.Dir(name)
+	return doCleanDirectories(fs, dir)
+}
+
+// doCleanDirectories removes empty subdirs (without files)
+func doCleanDirectories(fs billy.Filesystem, dir string) error {
+	files, err := fs.ReadDir(dir)
 	if err != nil {
 		return err
 	}
-
 	if len(files) == 0 {
-		fs.Remove(path)
+		return fs.Remove(dir)
 	}
-
 	return nil
 }

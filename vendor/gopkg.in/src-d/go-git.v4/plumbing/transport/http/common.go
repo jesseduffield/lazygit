@@ -4,6 +4,7 @@ package http
 import (
 	"bytes"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -151,6 +152,18 @@ func (s *session) ModifyEndpointIfRedirect(res *http.Response) {
 		return
 	}
 
+	h, p, err := net.SplitHostPort(r.URL.Host)
+	if err != nil {
+		h = r.URL.Host
+	}
+	if p != "" {
+		port, err := strconv.Atoi(p)
+		if err == nil {
+			s.endpoint.Port = port
+		}
+	}
+	s.endpoint.Host = h
+
 	s.endpoint.Protocol = r.URL.Scheme
 	s.endpoint.Path = r.URL.Path[:len(r.URL.Path)-len(infoRefsPath)]
 }
@@ -201,7 +214,14 @@ func (a *BasicAuth) String() string {
 	return fmt.Sprintf("%s - %s:%s", a.Name(), a.Username, masked)
 }
 
-// TokenAuth implements the go-git http.AuthMethod and transport.AuthMethod interfaces
+// TokenAuth implements an http.AuthMethod that can be used with http transport
+// to authenticate with HTTP token authentication (also known as bearer
+// authentication).
+//
+// IMPORTANT: If you are looking to use OAuth tokens with popular servers (e.g.
+// GitHub, Bitbucket, GitLab) you should use BasicAuth instead. These servers
+// use basic HTTP authentication, with the OAuth token as user or password.
+// Check the documentation of your git server for details.
 type TokenAuth struct {
 	Token string
 }

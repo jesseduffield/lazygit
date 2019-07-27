@@ -47,7 +47,9 @@ func (s commitSorterer) Len() int {
 }
 
 func (s commitSorterer) Less(i, j int) bool {
-	return s.l[i].Committer.When.Before(s.l[j].Committer.When)
+	return s.l[i].Committer.When.Before(s.l[j].Committer.When) ||
+		s.l[i].Committer.When.Equal(s.l[j].Committer.When) &&
+			s.l[i].Author.When.Before(s.l[j].Author.When)
 }
 
 func (s commitSorterer) Swap(i, j int) {

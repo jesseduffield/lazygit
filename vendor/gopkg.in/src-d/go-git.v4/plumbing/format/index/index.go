@@ -18,9 +18,10 @@ var (
 	// ErrEntryNotFound is returned by Index.Entry, if an entry is not found.
 	ErrEntryNotFound = errors.New("entry not found")
 
-	indexSignature          = []byte{'D', 'I', 'R', 'C'}
-	treeExtSignature        = []byte{'T', 'R', 'E', 'E'}
-	resolveUndoExtSignature = []byte{'R', 'E', 'U', 'C'}
+	indexSignature              = []byte{'D', 'I', 'R', 'C'}
+	treeExtSignature            = []byte{'T', 'R', 'E', 'E'}
+	resolveUndoExtSignature     = []byte{'R', 'E', 'U', 'C'}
+	endOfIndexEntryExtSignature = []byte{'E', 'O', 'I', 'E'}
 )
 
 // Stage during merge
@@ -50,6 +51,8 @@ type Index struct {
 	Cache *Tree
 	// ResolveUndo represents the 'Resolve undo' extension
 	ResolveUndo *ResolveUndo
+	// EndOfIndexEntry represents the 'End of Index Entry' extension
+	EndOfIndexEntry *EndOfIndexEntry
 }
 
 // Add creates a new Entry and returns it. The caller should first check that
@@ -192,4 +195,19 @@ type ResolveUndo struct {
 type ResolveUndoEntry struct {
 	Path   string
 	Stages map[Stage]plumbing.Hash
+}
+
+// EndOfIndexEntry is the End of Index Entry (EOIE) is used to locate the end of
+// the variable length index entries and the begining of the extensions. Code
+// can take advantage of this to quickly locate the index extensions without
+// having to parse through all of the index entries.
+//
+//  Because it must be able to be loaded before the variable length cache
+//  entries and other index extensions, this extension must be written last.
+type EndOfIndexEntry struct {
+	// Offset to the end of the index entries
+	Offset uint32
+	// Hash is a SHA-1 over the extension types and their sizes (but not
+	//	their contents).
+	Hash plumbing.Hash
 }

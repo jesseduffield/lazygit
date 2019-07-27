@@ -40,8 +40,8 @@ func getDelta(index *deltaIndex, base, target plumbing.EncodedObject) (plumbing.
 	defer tr.Close()
 
 	bb := bufPool.Get().(*bytes.Buffer)
-	bb.Reset()
 	defer bufPool.Put(bb)
+	bb.Reset()
 
 	_, err = bb.ReadFrom(br)
 	if err != nil {
@@ -49,8 +49,8 @@ func getDelta(index *deltaIndex, base, target plumbing.EncodedObject) (plumbing.
 	}
 
 	tb := bufPool.Get().(*bytes.Buffer)
-	tb.Reset()
 	defer bufPool.Put(tb)
+	tb.Reset()
 
 	_, err = tb.ReadFrom(tr)
 	if err != nil {
@@ -77,6 +77,7 @@ func DiffDelta(src, tgt []byte) []byte {
 
 func diffDelta(index *deltaIndex, src []byte, tgt []byte) []byte {
 	buf := bufPool.Get().(*bytes.Buffer)
+	defer bufPool.Put(buf)
 	buf.Reset()
 	buf.Write(deltaEncodeSize(len(src)))
 	buf.Write(deltaEncodeSize(len(tgt)))
@@ -86,6 +87,7 @@ func diffDelta(index *deltaIndex, src []byte, tgt []byte) []byte {
 	}
 
 	ibuf := bufPool.Get().(*bytes.Buffer)
+	defer bufPool.Put(ibuf)
 	ibuf.Reset()
 	for i := 0; i < len(tgt); i++ {
 		offset, l := index.findMatch(src, tgt, i)
@@ -127,12 +129,9 @@ func diffDelta(index *deltaIndex, src []byte, tgt []byte) []byte {
 	}
 
 	encodeInsertOperation(ibuf, buf)
-	bytes := buf.Bytes()
 
-	bufPool.Put(buf)
-	bufPool.Put(ibuf)
-
-	return bytes
+	// buf.Bytes() is only valid until the next modifying operation on the buffer. Copy it.
+	return append([]byte{}, buf.Bytes()...)
 }
 
 func encodeInsertOperation(ibuf, buf *bytes.Buffer) {

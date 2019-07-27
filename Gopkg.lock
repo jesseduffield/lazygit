@@ -510,9 +510,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
+  digest = "1:72c614df418a5c5c10c9f162fa703d948334f13747117baffc509fe770603063"
   name = "golang.org/x/net"
-  packages = ["context"]
+  packages = [
+    "context",
+    "internal/socks",
+    "proxy",
+  ]
   pruneopts = "NUT"
   revision = "c39426892332e1bb5ec0a434a079bf82f5d30c54"
 
@@ -559,12 +563,13 @@
   version = "v4.2.0"
 
 [[projects]]
-  digest = "1:e66078da2bd6e53c72518d7f6ae0c3c8c7f34c0df12c39435ce34a6bce165525"
+  digest = "1:e427e71890773bf8c06f2b77b9c51a26b9bd959d7bc67987bddff79900975e97"
   name = "gopkg.in/src-d/go-git.v4"
   packages = [
     ".",
     "config",
     "internal/revision",
+    "internal/url",
     "plumbing",
     "plumbing/cache",
     "plumbing/filemode",
@@ -604,7 +609,7 @@
     "utils/merkletrie/noder",
   ]
   pruneopts = "NUT"
-  revision = "43d17e14b714665ab5bc2ecc220b6740779d733f"
+  revision = "f9a30199e7083bdda8adad3a4fa2ec42d25c1fdb"
 
 [[projects]]
   digest = "1:b233ad4ec87ac916e7bf5e678e98a2cb9e8b52f6de6ad3e11834fc7a71b8e3bf"
