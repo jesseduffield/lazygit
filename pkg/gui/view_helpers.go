@@ -139,44 +139,15 @@ func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchFocus(g, v, previousView)
 }
 
-func (gui *Gui) goToStatus(g *gocui.Gui, v *gocui.View) error {
-	view, err := g.View("status")
-	if err != nil {
-		gui.Log.Error(err)
+func (gui *Gui) goToSideView(sideViewName string) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		view, err := g.View(sideViewName)
+		if err != nil {
+			gui.Log.Error(err)
+			return nil
+		}
+		return gui.switchFocus(g, nil, view)
 	}
-	return gui.switchFocus(g, nil, view)
-}
-
-func (gui *Gui) goToFiles(g *gocui.Gui, v *gocui.View) error {
-	view, err := g.View("files")
-	if err != nil {
-		gui.Log.Error(err)
-	}
-	return gui.switchFocus(g, nil, view)
-}
-
-func (gui *Gui) goToBranches(g *gocui.Gui, v *gocui.View) error {
-	view, err := g.View("branches")
-	if err != nil {
-		gui.Log.Error(err)
-	}
-	return gui.switchFocus(g, nil, view)
-}
-
-func (gui *Gui) goToCommits(g *gocui.Gui, v *gocui.View) error {
-	view, err := g.View("commits")
-	if err != nil {
-		gui.Log.Error(err)
-	}
-	return gui.switchFocus(g, nil, view)
-}
-
-func (gui *Gui) goToStash(g *gocui.Gui, v *gocui.View) error {
-	view, err := g.View("stash")
-	if err != nil {
-		gui.Log.Error(err)
-	}
-	return gui.switchFocus(g, nil, view)
 }
 
 // pass in oldView = nil if you don't want to be able to return to your old view
