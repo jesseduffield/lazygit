@@ -523,36 +523,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleOpenOldCommitFile,
 			Description: gui.Tr.SLocalize("openFile"),
 		},
-		{
-			ViewName: "",
-			Key:      '1',
-			Modifier: gocui.ModNone,
-			Handler:  gui.goToStatus,
-		},
-		{
-			ViewName: "",
-			Key:      '2',
-			Modifier: gocui.ModNone,
-			Handler:  gui.goToFiles,
-		},
-		{
-			ViewName: "",
-			Key:      '3',
-			Modifier: gocui.ModNone,
-			Handler:  gui.goToBranches,
-		},
-		{
-			ViewName: "",
-			Key:      '4',
-			Modifier: gocui.ModNone,
-			Handler:  gui.goToCommits,
-		},
-		{
-			ViewName: "",
-			Key:      '5',
-			Modifier: gocui.ModNone,
-			Handler:  gui.goToStash,
-		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
@@ -563,6 +533,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			{ViewName: viewName, Key: 'h', Modifier: gocui.ModNone, Handler: gui.previousView},
 			{ViewName: viewName, Key: 'l', Modifier: gocui.ModNone, Handler: gui.nextView},
 		}...)
+	}
+
+	// Appends keybindings to jump to a particular sideView using numbers
+	for i, viewName := range []string{"status", "files", "branches", "commits", "stash"} {
+		bindings = append(bindings, &Binding{ViewName: "", Key: rune(i+1) + '0', Modifier: gocui.ModNone, Handler: gui.goToSideView(viewName)})
 	}
 
 	listPanelMap := map[string]struct {
