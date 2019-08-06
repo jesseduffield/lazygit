@@ -660,7 +660,7 @@ func (gui *Gui) Run() error {
 		gui.waitForIntro.Add(1)
 	}
 
-	if gui.Config.GetUserConfig().GetBool("gui.git.autoFetch") {
+	if gui.Config.GetUserConfig().GetBool("git.autoFetch") {
 		go gui.startBackgroundFetch()
 	}
 	gui.goEvery(time.Second*10, gui.refreshFiles)
