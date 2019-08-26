@@ -38,6 +38,7 @@ package unix
 #include <sys/un.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
+#include <uvm/uvmexp.h>
 #include <net/bpf.h>
 #include <net/if.h>
 #include <net/if_dl.h>
@@ -66,14 +67,14 @@ struct sockaddr_any {
 */
 import "C"
 
-// Machine characteristics; for internal use.
+// Machine characteristics
 
 const (
-	sizeofPtr      = C.sizeofPtr
-	sizeofShort    = C.sizeof_short
-	sizeofInt      = C.sizeof_int
-	sizeofLong     = C.sizeof_long
-	sizeofLongLong = C.sizeof_longlong
+	SizeofPtr      = C.sizeofPtr
+	SizeofShort    = C.sizeof_short
+	SizeofInt      = C.sizeof_int
+	SizeofLong     = C.sizeof_long
+	SizeofLongLong = C.sizeof_longlong
 )
 
 // Basic types
@@ -260,6 +261,22 @@ const (
 	POLLWRNORM = C.POLLWRNORM
 )
 
+// Signal Sets
+
+type Sigset_t C.sigset_t
+
 // Uname
 
 type Utsname C.struct_utsname
+
+// Uvmexp
+
+const SizeofUvmexp = C.sizeof_struct_uvmexp
+
+type Uvmexp C.struct_uvmexp
+
+// Clockinfo
+
+const SizeofClockinfo = C.sizeof_struct_clockinfo
+
+type Clockinfo C.struct_clockinfo

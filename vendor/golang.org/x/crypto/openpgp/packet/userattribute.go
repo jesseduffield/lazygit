@@ -80,7 +80,7 @@ func (uat *UserAttribute) Serialize(w io.Writer) (err error) {
 
 // ImageData returns zero or more byte slices, each containing
 // JPEG File Interchange Format (JFIF), for each photo in the
-// the user attribute packet.
+// user attribute packet.
 func (uat *UserAttribute) ImageData() (imageData [][]byte) {
 	for _, sp := range uat.Contents {
 		if sp.SubType == UserAttrImageSubpacket && len(sp.Contents) > 16 {
