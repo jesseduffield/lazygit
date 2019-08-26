@@ -108,17 +108,8 @@ func getAttrList(path string, attrList attrList, attrBuf []byte, options uint) (
 		return nil, err
 	}
 
-	_, _, e1 := Syscall6(
-		SYS_GETATTRLIST,
-		uintptr(unsafe.Pointer(_p0)),
-		uintptr(unsafe.Pointer(&attrList)),
-		uintptr(unsafe.Pointer(&attrBuf[0])),
-		uintptr(len(attrBuf)),
-		uintptr(options),
-		0,
-	)
-	if e1 != 0 {
-		return nil, e1
+	if err := getattrlist(_p0, unsafe.Pointer(&attrList), unsafe.Pointer(&attrBuf[0]), uintptr(len(attrBuf)), int(options)); err != nil {
+		return nil, err
 	}
 	size := *(*uint32)(unsafe.Pointer(&attrBuf[0]))
 
@@ -151,6 +142,25 @@ func getAttrList(path string, attrList attrList, attrBuf []byte, options uint) (
 	return
 }
 
+//sys getattrlist(path *byte, list unsafe.Pointer, buf unsafe.Pointer, size uintptr, options int) (err error)
+
+func SysctlClockinfo(name string) (*Clockinfo, error) {
+	mib, err := sysctlmib(name)
+	if err != nil {
+		return nil, err
+	}
+
+	n := uintptr(SizeofClockinfo)
+	var ci Clockinfo
+	if err := sysctl(mib, (*byte)(unsafe.Pointer(&ci)), &n, nil, 0); err != nil {
+		return nil, err
+	}
+	if n != SizeofClockinfo {
+		return nil, EIO
+	}
+	return &ci, nil
+}
+
 //sysnb pipe() (r int, w int, err error)
 
 func Pipe(p []int) (err error) {
@@ -168,12 +178,7 @@ func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
 		_p0 = unsafe.Pointer(&buf[0])
 		bufsize = unsafe.Sizeof(Statfs_t{}) * uintptr(len(buf))
 	}
-	r0, _, e1 := Syscall(SYS_GETFSSTAT64, uintptr(_p0), bufsize, uintptr(flags))
-	n = int(r0)
-	if e1 != 0 {
-		err = e1
-	}
-	return
+	return getfsstat(_p0, bufsize, flags)
 }
 
 func xattrPointer(dest []byte) *byte {
@@ -298,20 +303,15 @@ func setattrlistTimes(path string, times []Timespec, flags int) error {
 	if flags&AT_SYMLINK_NOFOLLOW != 0 {
 		options |= FSOPT_NOFOLLOW
 	}
-	_, _, e1 := Syscall6(
-		SYS_SETATTRLIST,
-		uintptr(unsafe.Pointer(_p0)),
-		uintptr(unsafe.Pointer(&attrList)),
-		uintptr(unsafe.Pointer(&attributes)),
-		uintptr(unsafe.Sizeof(attributes)),
-		uintptr(options),
-		0,
-	)
-	if e1 != 0 {
-		return e1
-	}
-	return nil
+	return setattrlist(
+		_p0,
+		unsafe.Pointer(&attrList),
+		unsafe.Pointer(&attributes),
+		unsafe.Sizeof(attributes),
+		options)
 }
+
+//sys setattrlist(path *byte, list unsafe.Pointer, buf unsafe.Pointer, size uintptr, options int) (err error)
 
 func utimensat(dirfd int, path string, times *[2]Timespec, flags int) error {
 	// Darwin doesn't support SYS_UTIMENSAT
@@ -411,6 +411,18 @@ func Uname(uname *Utsname) error {
 	return nil
 }
 
+func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err error) {
+	if raceenabled {
+		raceReleaseMerge(unsafe.Pointer(&ioSync))
+	}
+	var length = int64(count)
+	err = sendfile(infd, outfd, *offset, &length, nil, 0)
+	written = int(length)
+	return
+}
+
+//sys	sendfile(infd int, outfd int, offset int64, len *int64, hdtr unsafe.Pointer, flags int) (err error)
+
 /*
  * Exposed directly
  */
@@ -421,6 +433,7 @@ func Uname(uname *Utsname) error {
 //sys	Chmod(path string, mode uint32) (err error)
 //sys	Chown(path string, uid int, gid int) (err error)
 //sys	Chroot(path string) (err error)
+//sys	ClockGettime(clockid int32, time *Timespec) (err error)
 //sys	Close(fd int) (err error)
 //sys	Dup(fd int) (nfd int, err error)
 //sys	Dup2(from int, to int) (err error)
@@ -435,12 +448,8 @@ func Uname(uname *Utsname) error {
 //sys	Fchownat(dirfd int, path string, uid int, gid int, flags int) (err error)
 //sys	Flock(fd int, how int) (err error)
 //sys	Fpathconf(fd int, name int) (val int, err error)
-//sys	Fstat(fd int, stat *Stat_t) (err error) = SYS_FSTAT64
-//sys	Fstatat(fd int, path string, stat *Stat_t, flags int) (err error) = SYS_FSTATAT64
-//sys	Fstatfs(fd int, stat *Statfs_t) (err error) = SYS_FSTATFS64
 //sys	Fsync(fd int) (err error)
 //sys	Ftruncate(fd int, length int64) (err error)
-//sys	Getdirentries(fd int, buf []byte, basep *uintptr) (n int, err error) = SYS_GETDIRENTRIES64
 //sys	Getdtablesize() (size int)
 //sysnb	Getegid() (egid int)
 //sysnb	Geteuid() (uid int)
@@ -460,7 +469,6 @@ func Uname(uname *Utsname) error {
 //sys	Link(path string, link string) (err error)
 //sys	Linkat(pathfd int, path string, linkfd int, link string, flags int) (err error)
 //sys	Listen(s int, backlog int) (err error)
-//sys	Lstat(path string, stat *Stat_t) (err error) = SYS_LSTAT64
 //sys	Mkdir(path string, mode uint32) (err error)
 //sys	Mkdirat(dirfd int, path string, mode uint32) (err error)
 //sys	Mkfifo(path string, mode uint32) (err error)
@@ -492,8 +500,6 @@ func Uname(uname *Utsname) error {
 //sysnb	Setsid() (pid int, err error)
 //sysnb	Settimeofday(tp *Timeval) (err error)
 //sysnb	Setuid(uid int) (err error)
-//sys	Stat(path string, stat *Stat_t) (err error) = SYS_STAT64
-//sys	Statfs(path string, stat *Statfs_t) (err error) = SYS_STATFS64
 //sys	Symlink(path string, link string) (err error)
 //sys	Symlinkat(oldpath string, newdirfd int, newpath string) (err error)
 //sys	Sync() (err error)

@@ -404,14 +404,16 @@ const (
 type PublicKeyAlgorithm uint8
 
 const (
-	PubKeyAlgoRSA            PublicKeyAlgorithm = 1
-	PubKeyAlgoRSAEncryptOnly PublicKeyAlgorithm = 2
-	PubKeyAlgoRSASignOnly    PublicKeyAlgorithm = 3
-	PubKeyAlgoElGamal        PublicKeyAlgorithm = 16
-	PubKeyAlgoDSA            PublicKeyAlgorithm = 17
+	PubKeyAlgoRSA     PublicKeyAlgorithm = 1
+	PubKeyAlgoElGamal PublicKeyAlgorithm = 16
+	PubKeyAlgoDSA     PublicKeyAlgorithm = 17
 	// RFC 6637, Section 5.
 	PubKeyAlgoECDH  PublicKeyAlgorithm = 18
 	PubKeyAlgoECDSA PublicKeyAlgorithm = 19
+
+	// Deprecated in RFC 4880, Section 13.5. Use key flags instead.
+	PubKeyAlgoRSAEncryptOnly PublicKeyAlgorithm = 2
+	PubKeyAlgoRSASignOnly    PublicKeyAlgorithm = 3
 )
 
 // CanEncrypt returns true if it's possible to encrypt a message to a public

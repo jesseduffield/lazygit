@@ -1,0 +1,20 @@
+box: tcnksm/gox
+build:
+    steps:
+      - setup-go-workspace
+      - script:
+          name: install latest git
+          code: |
+            sudo add-apt-repository -y ppa:git-core/ppa
+            sudo apt-get -y update
+            sudo apt-get -y install git
+      - script:
+          name: git version
+          code: |
+            git version        
+      - script:
+          name: go get
+          code: |            
+            go get -t ./...
+      - tcnksm/goveralls:
+          token: $COVERALLS_REPO_TOKEN          
