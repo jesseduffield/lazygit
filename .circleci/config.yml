@@ -3,6 +3,8 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.12
+    environment:
+      GO111MODULE: "on"
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
@@ -15,7 +17,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - pkg-cache-{{ checksum "Gopkg.lock" }}-v4
+            - pkg-cache-{{ checksum "go.sum" }}-v5
       - run:
           name: Run tests
           command: |
@@ -28,15 +30,15 @@ jobs:
           name: Compile project on every platform
           command: |
             go get github.com/mitchellh/gox
-            gox -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
+            gox -mod=vendor -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
       - save_cache:
-          key: pkg-cache-{{ checksum "Gopkg.lock" }}-v4
+          key: pkg-cache-{{ checksum "go.sum" }}-v5
           paths:
             - ~/.cache/go-build
 
   release:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.12
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
