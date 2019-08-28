@@ -34,7 +34,7 @@ func getServices() []*Service {
 		},
 		{
 			Name:           "bitbucket.org",
-			PullRequestURL: "https://bitbucket.org/%s/%s/pull-requests/new?source=%s&t=1",
+			PullRequestURL: "https://bitbucket.org/%s/%s/pull-requests/new?source=%s",
 		},
 		{
 			Name:           "gitlab.com",

@@ -64,7 +64,7 @@ func TestCreatePullRequest(t *testing.T) {
 				}
 
 				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1"})
+				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page"})
 				return exec.Command("echo")
 			},
 			func(err error) {
@@ -83,7 +83,7 @@ func TestCreatePullRequest(t *testing.T) {
 				}
 
 				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events&t=1"})
+				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events"})
 				return exec.Command("echo")
 			},
 			func(err error) {
