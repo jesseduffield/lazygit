@@ -87,7 +87,7 @@ func detectLanguage(langDetector func() (string, error)) string {
 // setupLocalizer creates a new localizer using given userLang
 func setupLocalizer(log *logrus.Entry, userLang string) *Localizer {
 	// create a i18n bundle that can be used to add translations and other things
-	i18nBundle := &i18n.Bundle{DefaultLanguage: language.English}
+	i18nBundle := i18n.NewBundle(language.English)
 
 	addBundles(log, i18nBundle)
 

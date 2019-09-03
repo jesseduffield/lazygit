@@ -1,0 +1,24 @@
+0.2.0 - May 22nd, 2016
+====================
+
+* Do not use title to determine fingerprint.
+
+0.1.1 - August 24th, 2016
+=========================
+
+* Fix Go 1.6 support by removing call to runtime.CallersFrames, which was added
+	in Go 1.7.
+
+0.1.0 - August 23rd, 2016
+=========================
+
+* Allow passing in arbitrary function pointer stacks. (thanks @apg!)
+* Remove unneeded exported constants.
+* Make HTTP(S) endpoint configurable.
+* Remove unneeded debug print statement.
+
+0.0.1 - January 19th, 2015
+==========================
+
+* Initial release based on https://github.com/stvp/rollbar
+
