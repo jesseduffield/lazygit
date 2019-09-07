@@ -28,10 +28,10 @@ func main() {
 	if goarch == "" {
 		goarch = os.Getenv("GOARCH")
 	}
-	// Check that we are using the new build system if we should be.
-	if goos == "linux" && goarch != "sparc64" {
+	// Check that we are using the Docker-based build system if we should be.
+	if goos == "linux" {
 		if os.Getenv("GOLANG_SYS_BUILD") != "docker" {
-			os.Stderr.WriteString("In the new build system, mkpost should not be called directly.\n")
+			os.Stderr.WriteString("In the Docker-based build system, mkpost should not be called directly.\n")
 			os.Stderr.WriteString("See README.md\n")
 			os.Exit(1)
 		}
@@ -45,6 +45,10 @@ func main() {
 	// Intentionally export __val fields in Fsid and Sigset_t
 	valRegex := regexp.MustCompile(`type (Fsid|Sigset_t) struct {(\s+)X__val(\s+\S+\s+)}`)
 	b = valRegex.ReplaceAll(b, []byte("type $1 struct {${2}Val$3}"))
+
+	// Intentionally export __fds_bits field in FdSet
+	fdSetRegex := regexp.MustCompile(`type (FdSet) struct {(\s+)X__fds_bits(\s+\S+\s+)}`)
+	b = fdSetRegex.ReplaceAll(b, []byte("type $1 struct {${2}Bits$3}"))
 
 	// If we have empty Ptrace structs, we should delete them. Only s390x emits
 	// nonempty Ptrace structs.
@@ -64,6 +68,10 @@ func main() {
 	// conversion to string; see golang.org/issue/20753
 	convertUtsnameRegex := regexp.MustCompile(`((Sys|Node|Domain)name|Release|Version|Machine)(\s+)\[(\d+)\]u?int8`)
 	b = convertUtsnameRegex.ReplaceAll(b, []byte("$1$3[$4]byte"))
+
+	// Convert [1024]int8 to [1024]byte in Ptmget members
+	convertPtmget := regexp.MustCompile(`([SC]n)(\s+)\[(\d+)\]u?int8`)
+	b = convertPtmget.ReplaceAll(b, []byte("$1[$3]byte"))
 
 	// Remove spare fields (e.g. in Statx_t)
 	spareFieldsRegex := regexp.MustCompile(`X__spare\S*`)

@@ -36,44 +36,49 @@ type PrivateKey struct {
 	iv            []byte
 }
 
-func NewRSAPrivateKey(currentTime time.Time, priv *rsa.PrivateKey) *PrivateKey {
+func NewRSAPrivateKey(creationTime time.Time, priv *rsa.PrivateKey) *PrivateKey {
 	pk := new(PrivateKey)
-	pk.PublicKey = *NewRSAPublicKey(currentTime, &priv.PublicKey)
+	pk.PublicKey = *NewRSAPublicKey(creationTime, &priv.PublicKey)
 	pk.PrivateKey = priv
 	return pk
 }
 
-func NewDSAPrivateKey(currentTime time.Time, priv *dsa.PrivateKey) *PrivateKey {
+func NewDSAPrivateKey(creationTime time.Time, priv *dsa.PrivateKey) *PrivateKey {
 	pk := new(PrivateKey)
-	pk.PublicKey = *NewDSAPublicKey(currentTime, &priv.PublicKey)
+	pk.PublicKey = *NewDSAPublicKey(creationTime, &priv.PublicKey)
 	pk.PrivateKey = priv
 	return pk
 }
 
-func NewElGamalPrivateKey(currentTime time.Time, priv *elgamal.PrivateKey) *PrivateKey {
+func NewElGamalPrivateKey(creationTime time.Time, priv *elgamal.PrivateKey) *PrivateKey {
 	pk := new(PrivateKey)
-	pk.PublicKey = *NewElGamalPublicKey(currentTime, &priv.PublicKey)
+	pk.PublicKey = *NewElGamalPublicKey(creationTime, &priv.PublicKey)
 	pk.PrivateKey = priv
 	return pk
 }
 
-func NewECDSAPrivateKey(currentTime time.Time, priv *ecdsa.PrivateKey) *PrivateKey {
+func NewECDSAPrivateKey(creationTime time.Time, priv *ecdsa.PrivateKey) *PrivateKey {
 	pk := new(PrivateKey)
-	pk.PublicKey = *NewECDSAPublicKey(currentTime, &priv.PublicKey)
+	pk.PublicKey = *NewECDSAPublicKey(creationTime, &priv.PublicKey)
 	pk.PrivateKey = priv
 	return pk
 }
 
-// NewSignerPrivateKey creates a sign-only PrivateKey from a crypto.Signer that
+// NewSignerPrivateKey creates a PrivateKey from a crypto.Signer that
 // implements RSA or ECDSA.
-func NewSignerPrivateKey(currentTime time.Time, signer crypto.Signer) *PrivateKey {
+func NewSignerPrivateKey(creationTime time.Time, signer crypto.Signer) *PrivateKey {
 	pk := new(PrivateKey)
+	// In general, the public Keys should be used as pointers. We still
+	// type-switch on the values, for backwards-compatibility.
 	switch pubkey := signer.Public().(type) {
+	case *rsa.PublicKey:
+		pk.PublicKey = *NewRSAPublicKey(creationTime, pubkey)
 	case rsa.PublicKey:
-		pk.PublicKey = *NewRSAPublicKey(currentTime, &pubkey)
-		pk.PubKeyAlgo = PubKeyAlgoRSASignOnly
+		pk.PublicKey = *NewRSAPublicKey(creationTime, &pubkey)
+	case *ecdsa.PublicKey:
+		pk.PublicKey = *NewECDSAPublicKey(creationTime, pubkey)
 	case ecdsa.PublicKey:
-		pk.PublicKey = *NewECDSAPublicKey(currentTime, &pubkey)
+		pk.PublicKey = *NewECDSAPublicKey(creationTime, &pubkey)
 	default:
 		panic("openpgp: unknown crypto.Signer type in NewSignerPrivateKey")
 	}
