@@ -24,7 +24,7 @@ require (
 	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63
-	github.com/jesseduffield/gocui v0.0.0-20190526022629-625842035f05
+	github.com/jesseduffield/gocui v0.3.1-0.20190908012510-092b2290ee54
 	github.com/jesseduffield/pty v0.0.0-20181218102224-02db52c7e406
 	github.com/jesseduffield/rollrus v0.0.0-20190701125922-dd028cb0bfd7
 	github.com/jesseduffield/termbox-go v0.0.0-20180919093808-1e272ff78dcb // indirect
