@@ -13,16 +13,16 @@ import (
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug          bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version        string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit         string `long:"commit" env:"COMMIT"`
-	BuildDate      string `long:"build-date" env:"BUILD_DATE"`
-	Name           string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource    string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig     *viper.Viper
-	UserConfigPath string
-	AppState       *AppState
-	IsNewRepo      bool
+	Debug         bool   `long:"debug" env:"DEBUG" default:"false"`
+	Version       string `long:"version" env:"VERSION" default:"unversioned"`
+	Commit        string `long:"commit" env:"COMMIT"`
+	BuildDate     string `long:"build-date" env:"BUILD_DATE"`
+	Name          string `long:"name" env:"NAME" default:"lazygit"`
+	BuildSource   string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	UserConfig    *viper.Viper
+	UserConfigDir string
+	AppState      *AppState
+	IsNewRepo     bool
 }
 
 // AppConfigurer interface allows individual app config structs to inherit Fields
@@ -35,7 +35,7 @@ type AppConfigurer interface {
 	GetName() string
 	GetBuildSource() string
 	GetUserConfig() *viper.Viper
-	GetUserConfigPath() string
+	GetUserConfigDir() string
 	GetAppState() *AppState
 	WriteToUserConfig(string, string) error
 	SaveAppState() error
@@ -56,16 +56,16 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	appConfig := &AppConfig{
-		Name:           "lazygit",
-		Version:        version,
-		Commit:         commit,
-		BuildDate:      date,
-		Debug:          debuggingFlag,
-		BuildSource:    buildSource,
-		UserConfig:     userConfig,
-		UserConfigPath: userConfigPath,
-		AppState:       &AppState{},
-		IsNewRepo:      false,
+		Name:          "lazygit",
+		Version:       version,
+		Commit:        commit,
+		BuildDate:     date,
+		Debug:         debuggingFlag,
+		BuildSource:   buildSource,
+		UserConfig:    userConfig,
+		UserConfigDir: filepath.Dir(userConfigPath),
+		AppState:      &AppState{},
+		IsNewRepo:     false,
 	}
 
 	if err := appConfig.LoadAppState(); err != nil {
@@ -126,8 +126,8 @@ func (c *AppConfig) GetAppState() *AppState {
 	return c.AppState
 }
 
-func (c *AppConfig) GetUserConfigPath() string {
-	return c.UserConfigPath
+func (c *AppConfig) GetUserConfigDir() string {
+	return c.UserConfigDir
 }
 
 func newViper(filename string) (*viper.Viper, error) {
