@@ -52,8 +52,6 @@ github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOl
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63 h1:Nrr/yUxNjXWYK0B3IqcFlYh1ICnesJDB4ogcfOVc5Ns=
 github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63/go.mod h1:fNqjRf+4XnTo2PrGN1JRb79b/BeoHwP4lU00f39SQY0=
-github.com/jesseduffield/gocui v0.0.0-20190526022629-625842035f05 h1:SMWr70VU5rthPPUtWgYdHvqLLabhvWgvJ3JpkytLV1c=
-github.com/jesseduffield/gocui v0.0.0-20190526022629-625842035f05/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/gocui v0.3.1-0.20190908012510-092b2290ee54 h1:zK8KCB55hNdBadw5iJll46xQL6WXEwEXbt9B+QyYswo=
 github.com/jesseduffield/gocui v0.3.1-0.20190908012510-092b2290ee54/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/pty v0.0.0-20181218102224-02db52c7e406 h1:iYMH6h6SuWuBkIzRtymosE8NpSgTK0oRMfyTdVWgxzc=
