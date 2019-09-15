@@ -260,7 +260,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	}
 
 	g := new(getter.HttpGetter)
-	configDir := filepath.Dir(u.Config.GetUserConfigPath())
+	configDir := u.Config.GetUserConfigDir()
 	u.Log.Info("Download directory is " + configDir)
 
 	// Get it!
