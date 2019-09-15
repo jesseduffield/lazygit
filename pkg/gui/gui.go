@@ -620,6 +620,23 @@ func (gui *Gui) goEvery(interval time.Duration, function func() error) {
 	}()
 }
 
+func (gui *Gui) startBackgroundFetch() {
+	gui.waitForIntro.Wait()
+	isNew := gui.Config.GetIsNewRepo()
+	if !isNew {
+		time.After(60 * time.Second)
+	}
+	_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
+	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
+		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
+	} else {
+		gui.goEvery(time.Second*60, func() error {
+			_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
+			return err
+		})
+	}
+}
+
 // Run setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run() error {
 	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
@@ -644,22 +661,9 @@ func (gui *Gui) Run() error {
 		gui.waitForIntro.Add(1)
 	}
 
-	go func() {
-		gui.waitForIntro.Wait()
-		isNew := gui.Config.GetIsNewRepo()
-		if !isNew {
-			time.After(60 * time.Second)
-		}
-		_, err := gui.fetch(g, g.CurrentView(), false)
-		if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-			_ = gui.createConfirmationPanel(g, g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
-		} else {
-			gui.goEvery(time.Second*60, func() error {
-				_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
-				return err
-			})
-		}
-	}()
+	if gui.Config.GetUserConfig().GetBool("git.autoFetch") {
+		go gui.startBackgroundFetch()
+	}
 	gui.goEvery(time.Second*10, gui.refreshFiles)
 	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
