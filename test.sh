@@ -3,6 +3,8 @@
 set -e
 echo "" > coverage.txt
 
+export GOFLAGS=-mod=vendor
+
 use_go_test=false
 if command -v gotest; then
     use_go_test=true
