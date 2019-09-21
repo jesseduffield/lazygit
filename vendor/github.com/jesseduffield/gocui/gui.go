@@ -6,6 +6,7 @@ package gocui
 
 import (
 	standardErrors "errors"
+	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -38,18 +39,26 @@ const (
 	Output216 = OutputMode(termbox.Output216)
 )
 
+type tabClickHandler func(int) error
+
+type tabClickBinding struct {
+	viewName string
+	handler  tabClickHandler
+}
+
 // Gui represents the whole User Interface, including the views, layouts
 // and keybindings.
 type Gui struct {
-	tbEvents    chan termbox.Event
-	userEvents  chan userEvent
-	views       []*View
-	currentView *View
-	managers    []Manager
-	keybindings []*keybinding
-	maxX, maxY  int
-	outputMode  OutputMode
-	stop        chan struct{}
+	tbEvents         chan termbox.Event
+	userEvents       chan userEvent
+	views            []*View
+	currentView      *View
+	managers         []Manager
+	keybindings      []*keybinding
+	tabClickBindings []*tabClickBinding
+	maxX, maxY       int
+	outputMode       OutputMode
+	stop             chan struct{}
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -84,11 +93,16 @@ type Gui struct {
 
 // NewGui returns a new Gui object with a given output mode.
 func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
-	if err := termbox.Init(); err != nil {
+	g := &Gui{}
+
+	var err error
+	if g.maxX, g.maxY, err = g.getTermWindowSize(); err != nil {
 		return nil, err
 	}
 
-	g := &Gui{}
+	if err := termbox.Init(); err != nil {
+		return nil, err
+	}
 
 	g.outputMode = mode
 	termbox.SetOutputMode(termbox.OutputMode(mode))
@@ -97,8 +111,6 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 
 	g.tbEvents = make(chan termbox.Event, 20)
 	g.userEvents = make(chan userEvent, 20)
-
-	g.maxX, g.maxY = termbox.Size()
 
 	g.BgColor, g.FgColor = ColorDefault, ColorDefault
 	g.SelBgColor, g.SelFgColor = ColorDefault, ColorDefault
@@ -129,7 +141,8 @@ func (g *Gui) Size() (x, y int) {
 // the given colors.
 func (g *Gui) SetRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 	if x < 0 || y < 0 || x >= g.maxX || y >= g.maxY {
-		return errors.New("invalid point")
+		// swallowing error because it's not that big of a deal
+		return nil
 	}
 	termbox.SetCell(x, y, ch, termbox.Attribute(fgColor), termbox.Attribute(bgColor))
 	return nil
@@ -232,7 +245,11 @@ func (g *Gui) ViewByPosition(x, y int) (*View, error) {
 	// traverse views in reverse order checking top views first
 	for i := len(g.views); i > 0; i-- {
 		v := g.views[i-1]
-		if x > v.x0 && x < v.x1 && y > v.y0 && y < v.y1 {
+		frameOffset := 0
+		if v.Frame {
+			frameOffset = 1
+		}
+		if x > v.x0-frameOffset && x < v.x1+frameOffset && y > v.y0-frameOffset && y < v.y1+frameOffset {
 			return v, nil
 		}
 	}
@@ -320,6 +337,16 @@ func (g *Gui) DeleteKeybindings(viewname string) {
 	g.keybindings = s
 }
 
+// SetTabClickBinding sets a binding for a tab click event
+func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) error {
+	g.tabClickBindings = append(g.tabClickBindings, &tabClickBinding{
+		viewName: viewName,
+		handler:  handler,
+	})
+
+	return nil
+}
+
 // getKey takes an empty interface with a key and returns the corresponding
 // typed Key or rune.
 func getKey(key interface{}) (Key, rune, error) {
@@ -371,6 +398,7 @@ func (g *Gui) SetManager(managers ...Manager) {
 	g.currentView = nil
 	g.views = nil
 	g.keybindings = nil
+	g.tabClickBindings = nil
 
 	go func() { g.tbEvents <- termbox.Event{Type: termbox.EventResize} }()
 }
@@ -486,14 +514,7 @@ func (g *Gui) flush() error {
 			continue
 		}
 		if v.Frame {
-			var fgColor, bgColor Attribute
-			if g.Highlight && v == g.currentView {
-				fgColor = g.SelFgColor
-				bgColor = g.SelBgColor
-			} else {
-				fgColor = g.FgColor
-				bgColor = g.BgColor
-			}
+			fgColor, bgColor := g.viewColors(v)
 
 			if err := g.drawFrameEdges(v, fgColor, bgColor); err != nil {
 				return err
@@ -501,7 +522,7 @@ func (g *Gui) flush() error {
 			if err := g.drawFrameCorners(v, fgColor, bgColor); err != nil {
 				return err
 			}
-			if v.Title != "" {
+			if v.Title != "" || len(v.Tabs) > 0 {
 				if err := g.drawTitle(v, fgColor, bgColor); err != nil {
 					return err
 				}
@@ -518,6 +539,13 @@ func (g *Gui) flush() error {
 	}
 	termbox.Flush()
 	return nil
+}
+
+func (g *Gui) viewColors(v *View) (Attribute, Attribute) {
+	if g.Highlight && v == g.currentView {
+		return g.SelFgColor, g.SelBgColor
+	}
+	return g.FgColor, g.BgColor
 }
 
 // drawFrameEdges draws the horizontal and vertical edges of a view.
@@ -615,17 +643,57 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		return nil
 	}
 
-	for i, ch := range v.Title {
+	tabs := v.Tabs
+	separator := " - "
+	charIndex := 0
+	currentTabStart := -1
+	currentTabEnd := -1
+	if len(tabs) == 0 {
+		tabs = []string{v.Title}
+	} else {
+		for i, tab := range tabs {
+			if i == v.TabIndex {
+				currentTabStart = charIndex
+				currentTabEnd = charIndex + len(tab)
+				break
+			}
+			charIndex += len(tab)
+			if i < len(tabs)-1 {
+				charIndex += len(separator)
+			}
+		}
+	}
+
+	str := strings.Join(tabs, separator)
+
+	for i, ch := range str {
 		x := v.x0 + i + 2
 		if x < 0 {
 			continue
 		} else if x > v.x1-2 || x >= g.maxX {
 			break
 		}
-		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
+
+		currentFgColor := fgColor
+		currentBgColor := bgColor
+		// if you are the current view and you have multiple tabs, de-highlight the non-selected tabs
+		if v == g.currentView && len(v.Tabs) > 0 {
+			currentFgColor = v.FgColor
+			currentBgColor = v.BgColor
+		}
+
+		if i >= currentTabStart && i <= currentTabEnd {
+			currentFgColor = v.SelFgColor
+			if v != g.currentView {
+				currentFgColor -= AttrBold
+			}
+			currentBgColor = v.SelBgColor
+		}
+		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -708,6 +776,17 @@ func (g *Gui) onKey(ev *termbox.Event) error {
 		if err != nil {
 			break
 		}
+		if v.Frame && my == v.y0 {
+			if len(v.Tabs) > 0 {
+				tabIndex := v.GetClickedTabIndex(mx - v.x0)
+
+				for _, binding := range g.tabClickBindings {
+					if binding.viewName == v.Name() {
+						return binding.handler(tabIndex)
+					}
+				}
+			}
+		}
 		if err := v.SetCursor(mx-v.x0-1, my-v.y0-1); err != nil {
 			return err
 		}
@@ -723,6 +802,8 @@ func (g *Gui) onKey(ev *termbox.Event) error {
 // and event. The value of matched is true if there is a match and no errors.
 func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err error) {
 	var globalKb *keybinding
+	var matchingParentViewKb *keybinding
+
 	for _, kb := range g.keybindings {
 		if kb.handler == nil {
 			continue
@@ -733,9 +814,15 @@ func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err err
 		if kb.matchView(v) {
 			return g.execKeybinding(v, kb)
 		}
+		if kb.matchView(v.ParentView) {
+			matchingParentViewKb = kb
+		}
 		if kb.viewName == "" && ((v != nil && !v.Editable) || (kb.ch == 0 && kb.key != KeyCtrlU && kb.key != KeyCtrlA && kb.key != KeyCtrlE)) {
 			globalKb = kb
 		}
+	}
+	if matchingParentViewKb != nil {
+		return g.execKeybinding(v.ParentView, matchingParentViewKb)
 	}
 	if globalKb != nil {
 		return g.execKeybinding(v, globalKb)
