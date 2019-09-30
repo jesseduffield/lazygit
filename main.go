@@ -29,7 +29,11 @@ func main() {
 	flaggy.DefaultParser.ShowVersionWithVersionFlag = false
 
 	repoPath := "."
-	flaggy.AddPositionalValue(&repoPath, "path", 1, false, "Path of git repo")
+	flaggy.String(&repoPath, "p", "path", "Path of git repo")
+
+	dump := ""
+	flaggy.AddPositionalValue(&dump, "gitargs", 1, false, "Todo file")
+	flaggy.DefaultParser.PositionalFlags[0].Hidden = true
 
 	versionFlag := false
 	flaggy.Bool(&versionFlag, "v", "version", "Print the current version")
