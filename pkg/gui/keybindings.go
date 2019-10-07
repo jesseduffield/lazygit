@@ -72,17 +72,22 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName: "",
 			Key:      'q',
 			Modifier: gocui.ModNone,
-			Handler:  gui.quit,
+			Handler:  gui.handleQuit,
+		}, {
+			ViewName: "",
+			Key:      'Q',
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleQuitWithoutChangingDirectory,
 		}, {
 			ViewName: "",
 			Key:      gocui.KeyCtrlC,
 			Modifier: gocui.ModNone,
-			Handler:  gui.quit,
+			Handler:  gui.handleQuit,
 		}, {
 			ViewName: "",
 			Key:      gocui.KeyEsc,
 			Modifier: gocui.ModNone,
-			Handler:  gui.quit,
+			Handler:  gui.handleQuit,
 		}, {
 			ViewName:    "",
 			Key:         gocui.KeyPgup,

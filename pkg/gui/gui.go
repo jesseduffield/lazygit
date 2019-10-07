@@ -160,6 +160,7 @@ type guiState struct {
 	Context             string // important not to set this value directly but to use gui.changeContext("new context")
 	CherryPickedCommits []*commands.Commit
 	SplitMainPanel      bool
+	RetainOriginalDir   bool
 }
 
 // for now the split view will always be on
@@ -779,6 +780,12 @@ func (gui *Gui) RunWithSubprocesses() error {
 	for {
 		if err := gui.Run(); err != nil {
 			if err == gocui.ErrQuit {
+				if !gui.State.RetainOriginalDir {
+					if err := gui.recordCurrentDirectory(); err != nil {
+						return err
+					}
+				}
+
 				break
 			} else if err == gui.Errors.ErrSwitchRepo {
 				continue
@@ -816,18 +823,6 @@ func (gui *Gui) runCommand() error {
 	fmt.Scanln() // wait for enter press
 
 	return nil
-}
-
-func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
-	if gui.State.Updating {
-		return gui.createUpdateQuitConfirmation(g, v)
-	}
-	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
-		return gui.createConfirmationPanel(g, v, true, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
-			return gocui.ErrQuit
-		}, nil)
-	}
-	return gocui.ErrQuit
 }
 
 func (gui *Gui) handleDonate(g *gocui.Gui, v *gocui.View) error {
