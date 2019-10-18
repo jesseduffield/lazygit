@@ -2,6 +2,7 @@ package commands
 
 import (
 	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -22,7 +23,7 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 	green := color.New(color.FgGreen)
 	blue := color.New(color.FgBlue)
 	cyan := color.New(color.FgCyan)
-	white := color.New(color.FgWhite)
+	defaultColor := color.New(theme.DefaultTextColor)
 	magenta := color.New(color.FgMagenta)
 
 	// for some reason, setting the background to blue pads out the other commits
@@ -43,7 +44,7 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 	case "selected":
 		shaColor = magenta
 	default:
-		shaColor = white
+		shaColor = defaultColor
 	}
 
 	if c.Copied {
@@ -55,5 +56,5 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 		actionString = cyan.Sprint(utils.WithPadding(c.Action, 7)) + " "
 	}
 
-	return []string{shaColor.Sprint(c.Sha), actionString + white.Sprint(c.Name)}
+	return []string{shaColor.Sprint(c.Sha), actionString + defaultColor.Sprint(c.Name)}
 }

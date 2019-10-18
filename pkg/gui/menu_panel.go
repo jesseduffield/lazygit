@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -62,7 +63,7 @@ func (gui *Gui) createMenu(title string, items interface{}, itemCount int, handl
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, false, list)
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
 	menuView.Title = title
-	menuView.FgColor = gocui.ColorWhite
+	menuView.FgColor = theme.GocuiDefaultTextColor
 	menuView.Clear()
 	fmt.Fprint(menuView, list)
 	gui.State.Panels.Menu.SelectedLine = 0
