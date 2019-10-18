@@ -14,6 +14,7 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -50,7 +51,7 @@ func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflic
 	conflict, remainingConflicts := gui.shiftConflict(conflicts)
 	var outputBuffer bytes.Buffer
 	for i, line := range utils.SplitLines(content) {
-		colourAttr := color.FgWhite
+		colourAttr := theme.DefaultTextColor
 		if i == conflict.Start || i == conflict.Middle || i == conflict.End {
 			colourAttr = color.FgRed
 		}

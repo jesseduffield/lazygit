@@ -12,6 +12,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.View) error) func(*gocui.Gui, *gocui.View) error {
@@ -81,7 +82,7 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 		confirmationView.HasLoader = hasLoader
 		confirmationView.Title = title
 		confirmationView.Wrap = true
-		confirmationView.FgColor = gocui.ColorWhite
+		confirmationView.FgColor = theme.GocuiDefaultTextColor
 	}
 	gui.g.Update(func(g *gocui.Gui) error {
 		return gui.switchFocus(gui.g, currentView, confirmationView)

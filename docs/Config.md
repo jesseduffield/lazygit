@@ -8,6 +8,7 @@
     scrollHeight: 2 # how many lines you scroll by
     scrollPastBottom: true # enable scrolling past the bottom
     theme:
+      lightTheme: false # For terminals with a light background
       activeBorderColor:
         - white
         - bold

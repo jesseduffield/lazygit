@@ -244,6 +244,7 @@ func GetDefaultConfig() []byte {
   scrollPastBottom: true
   mouseEvents: false # will default to true when the feature is complete
   theme:
+    lightTheme: false
     activeBorderColor:
       - white
       - bold

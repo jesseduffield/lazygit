@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/theme"
+
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -38,7 +40,7 @@ func (b *Branch) GetColor() color.Attribute {
 	case "hotfix":
 		return color.FgRed
 	default:
-		return color.FgWhite
+		return theme.DefaultTextColor
 	}
 }
 

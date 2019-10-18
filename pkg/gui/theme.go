@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 // GetAttribute gets the gocui color attribute from the string
@@ -37,18 +38,19 @@ func (gui *Gui) GetColor(keys []string) gocui.Attribute {
 }
 
 // GetOptionsPanelTextColor gets the color of the options panel text
-func (gui *Gui) GetOptionsPanelTextColor() (gocui.Attribute, error) {
+func (gui *Gui) GetOptionsPanelTextColor() gocui.Attribute {
 	userConfig := gui.Config.GetUserConfig()
 	optionsColor := userConfig.GetStringSlice("gui.theme.optionsTextColor")
-	return gui.GetColor(optionsColor), nil
+	return gui.GetColor(optionsColor)
 }
 
 // SetColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) SetColorScheme() error {
 	userConfig := gui.Config.GetUserConfig()
-	activeBorderColor := userConfig.GetStringSlice("gui.theme.activeBorderColor")
-	inactiveBorderColor := userConfig.GetStringSlice("gui.theme.inactiveBorderColor")
-	gui.g.FgColor = gui.GetColor(inactiveBorderColor)
-	gui.g.SelFgColor = gui.GetColor(activeBorderColor)
+	theme.UpdateTheme(userConfig)
+
+	gui.g.FgColor = theme.InactiveBorderColor
+	gui.g.SelFgColor = theme.ActiveBorderColor
+
 	return nil
 }
