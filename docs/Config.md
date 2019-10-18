@@ -81,6 +81,21 @@ The available attributes are:
 - reverse # useful for high-contrast
 - underline
 
+## Light terminal theme:
+
+If you have issues with a light terminal theme where you can't read / see the text add these settings
+
+```yaml
+  gui:
+    theme:
+      lightTheme: true
+      activeBorderColor:
+        - black
+        - bold
+      inactiveBorderColor:
+        - black
+```
+
 ## Example Coloring:
 
 ![border example](/docs/resources/colored-border-example.png)
