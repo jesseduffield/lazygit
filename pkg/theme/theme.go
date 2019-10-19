@@ -66,3 +66,35 @@ func getColor(keys []string) gocui.Attribute {
 	}
 	return attribute
 }
+
+// GetAttribute gets the gocui color attribute from the string
+func GetAttribute(key string) gocui.Attribute {
+	colorMap := map[string]gocui.Attribute{
+		"default":   gocui.ColorDefault,
+		"black":     gocui.ColorBlack,
+		"red":       gocui.ColorRed,
+		"green":     gocui.ColorGreen,
+		"yellow":    gocui.ColorYellow,
+		"blue":      gocui.ColorBlue,
+		"magenta":   gocui.ColorMagenta,
+		"cyan":      gocui.ColorCyan,
+		"white":     gocui.ColorWhite,
+		"bold":      gocui.AttrBold,
+		"reverse":   gocui.AttrReverse,
+		"underline": gocui.AttrUnderline,
+	}
+	value, present := colorMap[key]
+	if present {
+		return value
+	}
+	return gocui.ColorWhite
+}
+
+// GetColor bitwise OR's a list of attributes obtained via the given keys
+func GetColor(keys []string) gocui.Attribute {
+	var attribute gocui.Attribute
+	for _, key := range keys {
+		attribute |= GetAttribute(key)
+	}
+	return attribute
+}
