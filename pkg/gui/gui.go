@@ -444,7 +444,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Frame = false
-		v.FgColor = gui.GetOptionsPanelTextColor()
+		userConfig := gui.Config.GetUserConfig()
+		v.FgColor = theme.GetColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
 	}
 
 	if gui.getCommitMessageView() == nil {
@@ -650,7 +651,7 @@ func (gui *Gui) Run() error {
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
-	if err := gui.SetColorScheme(); err != nil {
+	if err := gui.setColorScheme(); err != nil {
 		return err
 	}
 
@@ -744,4 +745,15 @@ func (gui *Gui) handleDonate(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	return gui.OSCommand.OpenLink("https://donorbox.org/lazygit")
+}
+
+// setColorScheme sets the color scheme for the app based on the user config
+func (gui *Gui) setColorScheme() error {
+	userConfig := gui.Config.GetUserConfig()
+	theme.UpdateTheme(userConfig)
+
+	gui.g.FgColor = theme.InactiveBorderColor
+	gui.g.SelFgColor = theme.ActiveBorderColor
+
+	return nil
 }
