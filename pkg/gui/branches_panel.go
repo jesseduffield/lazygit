@@ -228,10 +228,15 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 	gui.createPromptPanel(g, v, message, "", func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
-			return gui.createErrorPanel(g, err.Error())
+		err := gui.WithWaitingStatus(gui.Tr.SLocalize("CreatingStatus"), func() error {
+			if err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
+				return gui.createErrorPanel(g, err.Error())
+			}
+			return gui.refreshSidePanels(g)
+		})
+		if err != nil {
+			return err
 		}
-		gui.refreshSidePanels(g)
 		return gui.handleBranchSelect(g, v)
 	})
 	return nil
