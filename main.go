@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -9,6 +8,7 @@ import (
 	"runtime"
 
 	"github.com/go-errors/errors"
+	"github.com/integrii/flaggy"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 )
@@ -18,10 +18,6 @@ var (
 	version     = "unversioned"
 	date        string
 	buildSource = "unknown"
-
-	configFlag    = flag.Bool("config", false, "Print the current default config")
-	debuggingFlag = flag.Bool("debug", false, "a boolean")
-	versionFlag   = flag.Bool("v", false, "Print the current version")
 )
 
 func projectPath(path string) string {
@@ -30,17 +26,43 @@ func projectPath(path string) string {
 }
 
 func main() {
-	flag.Parse()
-	if *versionFlag {
+	flaggy.DefaultParser.ShowVersionWithVersionFlag = false
+
+	repoPath := "."
+	flaggy.String(&repoPath, "p", "path", "Path of git repo")
+
+	dump := ""
+	flaggy.AddPositionalValue(&dump, "gitargs", 1, false, "Todo file")
+	flaggy.DefaultParser.PositionalFlags[0].Hidden = true
+
+	versionFlag := false
+	flaggy.Bool(&versionFlag, "v", "version", "Print the current version")
+
+	debuggingFlag := false
+	flaggy.Bool(&debuggingFlag, "d", "debug", "Run in debug mode with logging")
+
+	configFlag := false
+	flaggy.Bool(&configFlag, "c", "config", "Print the current default config")
+
+	flaggy.Parse()
+
+	if versionFlag {
 		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s\n", commit, date, buildSource, version, runtime.GOOS, runtime.GOARCH)
 		os.Exit(0)
 	}
 
-	if *configFlag {
+	if configFlag {
 		fmt.Printf("%s\n", config.GetDefaultConfig())
 		os.Exit(0)
 	}
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, *debuggingFlag)
+
+	if repoPath != "." {
+		if err := os.Chdir(repoPath); err != nil {
+			log.Fatal(err.Error())
+		}
+	}
+
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

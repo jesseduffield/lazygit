@@ -13,15 +13,16 @@ import (
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug       bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version     string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit      string `long:"commit" env:"COMMIT"`
-	BuildDate   string `long:"build-date" env:"BUILD_DATE"`
-	Name        string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig  *viper.Viper
-	AppState    *AppState
-	IsNewRepo   bool
+	Debug         bool   `long:"debug" env:"DEBUG" default:"false"`
+	Version       string `long:"version" env:"VERSION" default:"unversioned"`
+	Commit        string `long:"commit" env:"COMMIT"`
+	BuildDate     string `long:"build-date" env:"BUILD_DATE"`
+	Name          string `long:"name" env:"NAME" default:"lazygit"`
+	BuildSource   string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	UserConfig    *viper.Viper
+	UserConfigDir string
+	AppState      *AppState
+	IsNewRepo     bool
 }
 
 // AppConfigurer interface allows individual app config structs to inherit Fields
@@ -34,6 +35,7 @@ type AppConfigurer interface {
 	GetName() string
 	GetBuildSource() string
 	GetUserConfig() *viper.Viper
+	GetUserConfigDir() string
 	GetAppState() *AppState
 	WriteToUserConfig(string, string) error
 	SaveAppState() error
@@ -44,7 +46,7 @@ type AppConfigurer interface {
 
 // NewAppConfig makes a new app config
 func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
-	userConfig, err := LoadConfig("config", true)
+	userConfig, userConfigPath, err := LoadConfig("config", true)
 	if err != nil {
 		return nil, err
 	}
@@ -54,15 +56,16 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	appConfig := &AppConfig{
-		Name:        "lazygit",
-		Version:     version,
-		Commit:      commit,
-		BuildDate:   date,
-		Debug:       debuggingFlag,
-		BuildSource: buildSource,
-		UserConfig:  userConfig,
-		AppState:    &AppState{},
-		IsNewRepo:   false,
+		Name:          "lazygit",
+		Version:       version,
+		Commit:        commit,
+		BuildDate:     date,
+		Debug:         debuggingFlag,
+		BuildSource:   buildSource,
+		UserConfig:    userConfig,
+		UserConfigDir: filepath.Dir(userConfigPath),
+		AppState:      &AppState{},
+		IsNewRepo:     false,
 	}
 
 	if err := appConfig.LoadAppState(); err != nil {
@@ -123,6 +126,10 @@ func (c *AppConfig) GetAppState() *AppState {
 	return c.AppState
 }
 
+func (c *AppConfig) GetUserConfigDir() string {
+	return c.UserConfigDir
+}
+
 func newViper(filename string) (*viper.Viper, error) {
 	v := viper.New()
 	v.SetConfigType("yaml")
@@ -131,23 +138,24 @@ func newViper(filename string) (*viper.Viper, error) {
 }
 
 // LoadConfig gets the user's config
-func LoadConfig(filename string, withDefaults bool) (*viper.Viper, error) {
+func LoadConfig(filename string, withDefaults bool) (*viper.Viper, string, error) {
 	v, err := newViper(filename)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if withDefaults {
 		if err = LoadDefaults(v, GetDefaultConfig()); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		if err = LoadDefaults(v, GetPlatformDefaultConfig()); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 	}
-	if err = LoadAndMergeFile(v, filename+".yml"); err != nil {
-		return nil, err
+	configPath, err := LoadAndMergeFile(v, filename+".yml")
+	if err != nil {
+		return nil, "", err
 	}
-	return v, nil
+	return v, configPath, nil
 }
 
 // LoadDefaults loads in the defaults defined in this file
@@ -173,21 +181,21 @@ func prepareConfigFile(filename string) (string, error) {
 
 // LoadAndMergeFile Loads the config/state file, creating
 // the file has an empty one if it does not exist
-func LoadAndMergeFile(v *viper.Viper, filename string) error {
+func LoadAndMergeFile(v *viper.Viper, filename string) (string, error) {
 	configPath, err := prepareConfigFile(filename)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	v.AddConfigPath(filepath.Dir(configPath))
-	return v.MergeInConfig()
+	return configPath, v.MergeInConfig()
 }
 
 // WriteToUserConfig adds a key/value pair to the user's config and saves it
 func (c *AppConfig) WriteToUserConfig(key, value string) error {
 	// reloading the user config directly (without defaults) so that we're not
 	// writing any defaults back to the user's config
-	v, err := LoadConfig("config", false)
+	v, _, err := LoadConfig("config", false)
 	if err != nil {
 		return err
 	}
@@ -236,6 +244,7 @@ func GetDefaultConfig() []byte {
   scrollPastBottom: true
   mouseEvents: false # will default to true when the feature is complete
   theme:
+    lightTheme: false
     activeBorderColor:
       - white
       - bold

@@ -80,6 +80,9 @@ type View struct {
 	// If Frame is true, Title allows to configure a title for the view.
 	Title string
 
+	Tabs     []string
+	TabIndex int
+
 	// If Frame is true, Subtitle allows to configure a subtitle for the view.
 	Subtitle string
 
@@ -94,6 +97,12 @@ type View struct {
 	HasLoader bool
 
 	writeMutex sync.Mutex
+
+	// IgnoreCarriageReturns tells us whether to ignore '\r' characters
+	IgnoreCarriageReturns bool
+
+	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler
+	ParentView *View
 }
 
 type viewLine struct {
@@ -190,7 +199,7 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 func (v *View) SetCursor(x, y int) error {
 	maxX, maxY := v.Size()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
-		return errors.New("invalid point")
+		return nil
 	}
 	v.cx = x
 	v.cy = y
@@ -235,6 +244,9 @@ func (v *View) Write(p []byte) (n int, err error) {
 		case '\n':
 			v.lines = append(v.lines, nil)
 		case '\r':
+			if v.IgnoreCarriageReturns {
+				continue
+			}
 			nl := len(v.lines)
 			if nl > 0 {
 				v.lines[nl-1] = nil
@@ -421,7 +433,11 @@ func (v *View) realPosition(vx, vy int) (x, y int, err error) {
 
 // Clear empties the view's internal buffer.
 func (v *View) Clear() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.tainted = true
+	v.ei.reset()
 
 	v.lines = nil
 	v.viewLines = nil
@@ -470,8 +486,14 @@ func (v *View) ViewBufferLines() []string {
 	return lines
 }
 
+// LinesHeight is the count of view lines (i.e. lines excluding wrapping)
 func (v *View) LinesHeight() int {
 	return len(v.lines)
+}
+
+// ViewLinesHeight is the count of view lines (i.e. lines including wrapping)
+func (v *View) ViewLinesHeight() int {
+	return len(v.viewLines)
 }
 
 // ViewBuffer returns a string with the contents of the view's buffer that is
@@ -613,4 +635,21 @@ func Loader() cell {
 // IsTainted tells us if the view is tainted
 func (v *View) IsTainted() bool {
 	return v.tainted
+}
+
+// GetClickedTabIndex tells us which tab was clicked
+func (v *View) GetClickedTabIndex(x int) int {
+	if len(v.Tabs) <= 1 {
+		return 0
+	}
+
+	charIndex := 0
+	for i, tab := range v.Tabs {
+		charIndex += len(tab + " - ")
+		if x < charIndex {
+			return i
+		}
+	}
+
+	return 0
 }

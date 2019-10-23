@@ -3,7 +3,6 @@ package updates
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,7 +15,7 @@ import (
 
 	"github.com/kardianos/osext"
 
-	getter "github.com/jesseduffield/go-getter"
+	"github.com/jesseduffield/go-getter"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -261,15 +260,11 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	}
 
 	g := new(getter.HttpGetter)
-	tempDir, err := ioutil.TempDir("", "lazygit")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tempDir)
-	u.Log.Info("Temp directory is " + tempDir)
+	configDir := u.Config.GetUserConfigDir()
+	u.Log.Info("Download directory is " + configDir)
 
 	// Get it!
-	if err := g.Get(tempDir, url); err != nil {
+	if err := g.Get(configDir, url); err != nil {
 		return err
 	}
 
@@ -284,7 +279,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	u.Log.Info("Binary name is " + binaryName)
 
 	// Verify the main file exists
-	tempPath := filepath.Join(tempDir, binaryName)
+	tempPath := filepath.Join(configDir, binaryName)
 	u.Log.Info("Temp path to binary is " + tempPath)
 	if _, err := os.Stat(tempPath); err != nil {
 		return err

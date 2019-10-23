@@ -30,7 +30,7 @@ jobs:
           name: Compile project on every platform
           command: |
             go get github.com/mitchellh/gox
-            gox -mod=vendor -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
+            GOFLAGS=-mod=vendor gox -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
       - save_cache:
           key: pkg-cache-{{ checksum "go.sum" }}-v5
           paths:

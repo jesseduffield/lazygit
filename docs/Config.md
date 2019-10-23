@@ -8,6 +8,7 @@
     scrollHeight: 2 # how many lines you scroll by
     scrollPastBottom: true # enable scrolling past the bottom
     theme:
+      lightTheme: false # For terminals with a light background
       activeBorderColor:
         - white
         - bold
@@ -79,6 +80,21 @@ The available attributes are:
 - bold
 - reverse # useful for high-contrast
 - underline
+
+## Light terminal theme:
+
+If you have issues with a light terminal theme where you can't read / see the text add these settings
+
+```yaml
+  gui:
+    theme:
+      lightTheme: true
+      activeBorderColor:
+        - black
+        - bold
+      inactiveBorderColor:
+        - black
+```
 
 ## Example Coloring:
 

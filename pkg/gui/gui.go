@@ -24,6 +24,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -374,6 +375,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
 
+	textColor := theme.GocuiDefaultTextColor
 	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, height-2, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
@@ -381,7 +383,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		v.Title = gui.Tr.SLocalize("DiffTitle")
 		v.Wrap = true
-		v.FgColor = gocui.ColorWhite
+		v.FgColor = textColor
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, vHeights["status"]-1, gocui.BOTTOM|gocui.RIGHT); err != nil {
@@ -389,7 +391,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = gui.Tr.SLocalize("StatusTitle")
-		v.FgColor = gocui.ColorWhite
+		v.FgColor = textColor
 	}
 
 	filesView, err := g.SetViewBeneath("files", "status", vHeights["files"])
@@ -399,7 +401,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		filesView.Highlight = true
 		filesView.Title = gui.Tr.SLocalize("FilesTitle")
-		v.FgColor = gocui.ColorWhite
+		v.FgColor = textColor
 	}
 
 	branchesView, err := g.SetViewBeneath("branches", "files", vHeights["branches"])
@@ -408,7 +410,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
-		branchesView.FgColor = gocui.ColorWhite
+		branchesView.FgColor = textColor
 	}
 
 	if v, err := g.SetViewBeneath("commitFiles", "branches", vHeights["commits"]); err != nil {
@@ -416,7 +418,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Title = gui.Tr.SLocalize("CommitFiles")
-		v.FgColor = gocui.ColorWhite
+		v.FgColor = textColor
 	}
 
 	commitsView, err := g.SetViewBeneath("commits", "branches", vHeights["commits"])
@@ -425,7 +427,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		commitsView.Title = gui.Tr.SLocalize("CommitsTitle")
-		commitsView.FgColor = gocui.ColorWhite
+		commitsView.FgColor = textColor
 	}
 
 	stashView, err := g.SetViewBeneath("stash", "commits", vHeights["stash"])
@@ -434,7 +436,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		stashView.Title = gui.Tr.SLocalize("StashTitle")
-		stashView.FgColor = gocui.ColorWhite
+		stashView.FgColor = textColor
 	}
 
 	if v, err := g.SetView("options", appStatusOptionsBoundary-1, height-2, optionsVersionBoundary-1, height, 0); err != nil {
@@ -442,9 +444,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Frame = false
-		if v.FgColor, err = gui.GetOptionsPanelTextColor(); err != nil {
-			return err
-		}
+		userConfig := gui.Config.GetUserConfig()
+		v.FgColor = theme.GetColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
 	}
 
 	if gui.getCommitMessageView() == nil {
@@ -455,7 +456,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			}
 			g.SetViewOnBottom("commitMessage")
 			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
-			commitMessageView.FgColor = gocui.ColorWhite
+			commitMessageView.FgColor = textColor
 			commitMessageView.Editable = true
 		}
 	}
@@ -471,7 +472,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 				return err
 			}
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
-			credentialsView.FgColor = gocui.ColorWhite
+			credentialsView.FgColor = textColor
 			credentialsView.Editable = true
 		}
 	}
@@ -651,7 +652,7 @@ func (gui *Gui) Run() error {
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
-	if err := gui.SetColorScheme(); err != nil {
+	if err := gui.setColorScheme(); err != nil {
 		return err
 	}
 
@@ -745,4 +746,15 @@ func (gui *Gui) handleDonate(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	return gui.OSCommand.OpenLink("https://donorbox.org/lazygit")
+}
+
+// setColorScheme sets the color scheme for the app based on the user config
+func (gui *Gui) setColorScheme() error {
+	userConfig := gui.Config.GetUserConfig()
+	theme.UpdateTheme(userConfig)
+
+	gui.g.FgColor = theme.InactiveBorderColor
+	gui.g.SelFgColor = theme.ActiveBorderColor
+
+	return nil
 }
