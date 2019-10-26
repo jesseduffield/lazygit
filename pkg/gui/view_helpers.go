@@ -146,8 +146,23 @@ func (gui *Gui) goToSideView(sideViewName string) func(g *gocui.Gui, v *gocui.Vi
 			gui.Log.Error(err)
 			return nil
 		}
+		err = gui.closePopupPanels()
+		if err != nil {
+			gui.Log.Error(err)
+			return nil
+		}
 		return gui.switchFocus(g, nil, view)
 	}
+}
+
+func (gui *Gui) closePopupPanels() error {
+	gui.onNewPopupPanel()
+	err := gui.closeConfirmationPrompt(gui.g)
+	if err != nil {
+		gui.Log.Error(err)
+		return err
+	}
+	return nil
 }
 
 // pass in oldView = nil if you don't want to be able to return to your old view
