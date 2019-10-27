@@ -2,12 +2,12 @@
 # docker build -t lazygit .
 # docker run -it lazygit:latest /bin/sh -l
 
-FROM golang:alpine
+FROM golang:1.13-alpine3.10
 WORKDIR /go/src/github.com/jesseduffield/lazygit/
 COPY ./ .
 RUN CGO_ENABLED=0 GOOS=linux go build
 
-FROM alpine:latest
+FROM alpine:3.10
 RUN apk add -U git xdg-utils
 WORKDIR /go/src/github.com/jesseduffield/lazygit/
 COPY --from=0 /go/src/github.com/jesseduffield/lazygit /go/src/github.com/jesseduffield/lazygit
