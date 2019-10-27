@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     environment:
       GO111MODULE: "on"
     working_directory: /go/src/github.com/jesseduffield/lazygit
@@ -38,7 +38,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: /go/src/github.com/jesseduffield/lazygit
     steps:
       - checkout
