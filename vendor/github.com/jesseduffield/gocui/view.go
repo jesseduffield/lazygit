@@ -217,9 +217,6 @@ func (v *View) Cursor() (x, y int) {
 // implement Horizontal and Vertical scrolling with just incrementing
 // or decrementing ox and oy.
 func (v *View) SetOrigin(x, y int) error {
-	if x < 0 || y < 0 {
-		return errors.New("invalid point")
-	}
 	v.ox = x
 	v.oy = y
 	return nil
