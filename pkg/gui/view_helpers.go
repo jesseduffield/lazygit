@@ -300,6 +300,11 @@ func (gui *Gui) getMainView() *gocui.View {
 	return v
 }
 
+func (gui *Gui) getSecondaryView() *gocui.View {
+	v, _ := gui.g.View("secondary")
+	return v
+}
+
 func (gui *Gui) getStashView() *gocui.View {
 	v, _ := gui.g.View("stash")
 	return v

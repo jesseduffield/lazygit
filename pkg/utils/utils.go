@@ -233,18 +233,18 @@ func NextIndex(numbers []int, currentNumber int) int {
 			return index
 		}
 	}
-	return 0
+	return len(numbers) - 1
 }
 
 // PrevIndex returns the index that comes before the given number, cycling if we reach the end
 func PrevIndex(numbers []int, currentNumber int) int {
 	end := len(numbers) - 1
-	for i := end; i >= 0; i -= 1 {
+	for i := end; i >= 0; i-- {
 		if numbers[i] < currentNumber {
 			return i
 		}
 	}
-	return end
+	return 0
 }
 
 func AsJson(i interface{}) string {

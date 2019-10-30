@@ -9,6 +9,8 @@ import (
 var (
 	// DefaultTextColor is the default text color
 	DefaultTextColor = color.FgWhite
+	// DefaultHiTextColor is the default highlighted text color
+	DefaultHiTextColor = color.FgHiWhite
 
 	// GocuiDefaultTextColor does the same as DefaultTextColor but this one only colors gocui default text colors
 	GocuiDefaultTextColor gocui.Attribute
@@ -28,9 +30,11 @@ func UpdateTheme(userConfig *viper.Viper) {
 	isLightTheme := userConfig.GetBool("gui.theme.lightTheme")
 	if isLightTheme {
 		DefaultTextColor = color.FgBlack
+		DefaultHiTextColor = color.FgHiBlack
 		GocuiDefaultTextColor = gocui.ColorBlack
 	} else {
 		DefaultTextColor = color.FgWhite
+		DefaultHiTextColor = color.FgHiWhite
 		GocuiDefaultTextColor = gocui.ColorWhite
 	}
 }

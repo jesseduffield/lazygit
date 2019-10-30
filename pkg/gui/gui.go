@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/git"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -83,10 +84,13 @@ type Gui struct {
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
 type stagingPanelState struct {
-	SelectedLine   int
-	StageableLines []int
-	HunkStarts     []int
-	Diff           string
+	SelectedLineIdx int
+	FirstLineIdx    int
+	LastLineIdx     int
+	Diff            string
+	PatchParser     *git.PatchParser
+	SelectMode      int  // one of LINE, HUNK, or RANGE
+	IndexFocused    bool // this is for if we show the left or right panel
 }
 
 type mergingPanelState struct {
@@ -147,6 +151,7 @@ type guiState struct {
 	WorkingTreeState    string // one of "merging", "rebasing", "normal"
 	Contexts            map[string]string
 	CherryPickedCommits []*commands.Commit
+	SplitMainPanel      bool
 }
 
 // NewGui builds a new gui handler
@@ -258,6 +263,7 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 	if v == nil {
 		return nil
 	}
+	gui.State.SplitMainPanel = false
 	if v.Name() == "branches" {
 		// This stops the branches panel from showing the upstream/downstream changes to the selected branch, when it loses focus
 		// inside renderListPanel it checks to see if the panel has focus
@@ -359,7 +365,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
-	leftSideWidth := width / 3
 
 	appStatus := gui.statusManager.getStatusString()
 	appStatusOptionsBoundary := 0
@@ -376,7 +381,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	g.DeleteView("limit")
 
 	textColor := theme.GocuiDefaultTextColor
-	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, height-2, gocui.LEFT)
+	leftSideWidth := width / 3
+	panelSplitX := width - 1
+	if gui.State.SplitMainPanel {
+		units := 7
+		leftSideWidth = width / units
+		panelSplitX = (1 + ((units - 1) / 2)) * width / units
+	}
+
+	main := "main"
+	secondary := "secondary"
+	swappingMainPanels := gui.State.Panels.Staging != nil && gui.State.Panels.Staging.IndexFocused
+	if swappingMainPanels {
+		main = "secondary"
+		secondary = "main"
+	}
+
+	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, panelSplitX, height-2, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -384,6 +405,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("DiffTitle")
 		v.Wrap = true
 		v.FgColor = textColor
+	}
+
+	hiddenViewOffset := 0
+	if !gui.State.SplitMainPanel {
+		hiddenViewOffset = 9999
+	}
+	secondaryView, err := g.SetView(secondary, panelSplitX+1+hiddenViewOffset, hiddenViewOffset, width-1+hiddenViewOffset, height-2+hiddenViewOffset, gocui.LEFT)
+	if err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+		secondaryView.Title = gui.Tr.SLocalize("DiffTitle")
+		secondaryView.Wrap = true
+		secondaryView.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, vHeights["status"]-1, gocui.BOTTOM|gocui.RIGHT); err != nil {
