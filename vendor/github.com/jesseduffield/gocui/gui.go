@@ -164,9 +164,6 @@ func (g *Gui) Rune(x, y int) (rune, error) {
 // ErrUnknownView is returned, which allows to assert if the View must
 // be initialized. It checks if the position is valid.
 func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, error) {
-	if x0 >= x1 {
-		return nil, errors.New("invalid dimensions")
-	}
 	if name == "" {
 		return nil, errors.New("invalid name")
 	}
