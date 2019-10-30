@@ -688,7 +688,7 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 					Description: gui.Tr.SLocalize("ResetSelection"),
 				}, {
 					ViewName:    "main",
-					Key:         'c',
+					Key:         'v',
 					Modifier:    gocui.ModNone,
 					Handler:     gui.handleToggleSelectRange,
 					Description: gui.Tr.SLocalize("ToggleDragSelect"),
