@@ -582,13 +582,13 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
 }
 
 // Diff returns the diff of a file
-func (c *GitCommand) Diff(file *File, plain bool) string {
+func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := "--color"
 	split := strings.Split(file.Name, " -> ") // in case of a renamed file we get the new filename
 	fileName := c.OSCommand.Quote(split[len(split)-1])
-	if file.HasStagedChanges && !file.HasUnstagedChanges {
+	if cached {
 		cachedArg = "--cached"
 	}
 	if !file.Tracked && !file.HasStagedChanges {
@@ -605,7 +605,7 @@ func (c *GitCommand) Diff(file *File, plain bool) string {
 	return s
 }
 
-func (c *GitCommand) ApplyPatch(patch string) (string, error) {
+func (c *GitCommand) ApplyPatch(patch string, reverse bool, cached bool) (string, error) {
 	filename, err := c.OSCommand.CreateTempFile("patch", patch)
 	if err != nil {
 		c.Log.Error(err)
@@ -614,7 +614,17 @@ func (c *GitCommand) ApplyPatch(patch string) (string, error) {
 
 	defer func() { _ = c.OSCommand.Remove(filename) }()
 
-	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply --cached %s", c.OSCommand.Quote(filename)))
+	reverseFlag := ""
+	if reverse {
+		reverseFlag = "--reverse"
+	}
+
+	cachedFlag := ""
+	if cached {
+		cachedFlag = "--cached"
+	}
+
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply %s %s %s", cachedFlag, reverseFlag, c.OSCommand.Quote(filename)))
 }
 
 func (c *GitCommand) FastForward(branchName string) error {

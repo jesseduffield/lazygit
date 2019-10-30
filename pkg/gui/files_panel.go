@@ -72,14 +72,33 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 		return gui.refreshMergePanel()
 	}
 
-	content := gui.GitCommand.Diff(file, false)
+	content := gui.GitCommand.Diff(file, false, false)
+	contentCached := gui.GitCommand.Diff(file, false, true)
+	leftContent := content
+	if file.HasStagedChanges && file.HasUnstagedChanges {
+		gui.State.SplitMainPanel = true
+	} else {
+		gui.State.SplitMainPanel = false
+		if file.HasUnstagedChanges {
+			leftContent = content
+		} else {
+			leftContent = contentCached
+		}
+	}
+
 	if alreadySelected {
 		g.Update(func(*gocui.Gui) error {
-			return gui.setViewContent(gui.g, gui.getMainView(), content)
+			if err := gui.setViewContent(gui.g, gui.getSecondaryView(), contentCached); err != nil {
+				return err
+			}
+			return gui.setViewContent(gui.g, gui.getMainView(), leftContent)
 		})
 		return nil
 	}
-	return gui.renderString(g, "main", content)
+	if err := gui.renderString(g, "secondary", contentCached); err != nil {
+		return err
+	}
+	return gui.renderString(g, "main", leftContent)
 }
 
 func (gui *Gui) refreshFiles() error {
@@ -180,7 +199,7 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 	if file.HasInlineMergeConflicts {
 		return gui.handleSwitchToMerge(g, v)
 	}
-	if !file.HasUnstagedChanges || file.HasMergeConflicts {
+	if file.HasMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileStagingRequirements"))
 	}
 	if err := gui.changeContext("main", "staging"); err != nil {

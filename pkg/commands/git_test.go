@@ -1539,6 +1539,7 @@ func TestGitCommandDiff(t *testing.T) {
 		command  func(string, ...string) *exec.Cmd
 		file     *File
 		plain    bool
+		cached   bool
 	}
 
 	scenarios := []scenario{
@@ -1556,9 +1557,26 @@ func TestGitCommandDiff(t *testing.T) {
 				Tracked:          true,
 			},
 			false,
+			false,
 		},
 		{
-			"Default case",
+			"cached",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--color", "--cached", "--", "test.txt"}, args)
+
+				return exec.Command("echo")
+			},
+			&File{
+				Name:             "test.txt",
+				HasStagedChanges: false,
+				Tracked:          true,
+			},
+			false,
+			true,
+		},
+		{
+			"plain",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"diff", "--", "test.txt"}, args)
@@ -1571,21 +1589,6 @@ func TestGitCommandDiff(t *testing.T) {
 				Tracked:          true,
 			},
 			true,
-		},
-		{
-			"All changes staged",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--color", "--cached", "--", "test.txt"}, args)
-
-				return exec.Command("echo")
-			},
-			&File{
-				Name:               "test.txt",
-				HasStagedChanges:   true,
-				HasUnstagedChanges: false,
-				Tracked:            true,
-			},
 			false,
 		},
 		{
@@ -1602,6 +1605,7 @@ func TestGitCommandDiff(t *testing.T) {
 				Tracked:          false,
 			},
 			false,
+			false,
 		},
 	}
 
@@ -1609,7 +1613,7 @@ func TestGitCommandDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			gitCmd.Diff(s.file, s.plain)
+			gitCmd.Diff(s.file, s.plain, s.cached)
 		})
 	}
 }
@@ -1730,7 +1734,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.ApplyPatch("test"))
+			s.test(gitCmd.ApplyPatch("test", false, true))
 		})
 	}
 }
