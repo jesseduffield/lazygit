@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var headerRegexp = regexp.MustCompile("(?m)^@@ -(\\d+)[^\\+]+\\+(\\d+)[^@]+@@(.*)$")
+var headerRegexp = regexp.MustCompile(`(?m)^@@ -(\\d+)[^\\+]+\\+(\\d+)[^@]+@@(.*)$`)
 
 type PatchHunk struct {
 	header       string
