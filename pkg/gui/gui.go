@@ -263,20 +263,19 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 	if v == nil {
 		return nil
 	}
-	gui.State.SplitMainPanel = false
-	if v.Name() == "branches" {
+	switch v.Name() {
+	case "branches":
 		// This stops the branches panel from showing the upstream/downstream changes to the selected branch, when it loses focus
 		// inside renderListPanel it checks to see if the panel has focus
 		if err := gui.renderListPanel(gui.getBranchesView(), gui.State.Branches); err != nil {
 			return err
 		}
-	} else if v.Name() == "main" {
+	case "main":
 		// if we have lost focus to a first-class panel, we need to do some cleanup
 		if err := gui.changeContext("main", "normal"); err != nil {
 			return err
 		}
-
-	} else if v.Name() == "commitFiles" {
+	case "commitFiles":
 		if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
 			return err
 		}
