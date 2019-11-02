@@ -100,6 +100,11 @@ type filePanelState struct {
 	SelectedLine int
 }
 
+type extensiveFilePanelState struct {
+	// The path to the currently selected item
+	Selected []int
+}
+
 type branchPanelState struct {
 	SelectedLine int
 }
@@ -122,18 +127,20 @@ type commitFilesPanelState struct {
 }
 
 type panelStates struct {
-	Files       *filePanelState
-	Branches    *branchPanelState
-	Commits     *commitPanelState
-	Stash       *stashPanelState
-	Menu        *menuPanelState
-	Staging     *stagingPanelState
-	Merging     *mergingPanelState
-	CommitFiles *commitFilesPanelState
+	Files          *filePanelState
+	ExtensiveFiles *extensiveFilePanelState
+	Branches       *branchPanelState
+	Commits        *commitPanelState
+	Stash          *stashPanelState
+	Menu           *menuPanelState
+	Staging        *stagingPanelState
+	Merging        *mergingPanelState
+	CommitFiles    *commitFilesPanelState
 }
 
 type guiState struct {
 	Files               []*commands.File
+	ExtensiveFiles      *commands.Dir
 	Branches            []*commands.Branch
 	Commits             []*commands.Commit
 	StashEntries        []*commands.StashEntry
@@ -154,6 +161,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 
 	initialState := guiState{
 		Files:               make([]*commands.File, 0),
+		ExtensiveFiles:      commands.NewDir(),
 		PreviousView:        "files",
 		Commits:             make([]*commands.Commit, 0),
 		CherryPickedCommits: make([]*commands.Commit, 0),
@@ -161,12 +169,13 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		DiffEntries:         make([]*commands.Commit, 0),
 		Platform:            *oSCommand.Platform,
 		Panels: &panelStates{
-			Files:       &filePanelState{SelectedLine: -1},
-			Branches:    &branchPanelState{SelectedLine: 0},
-			Commits:     &commitPanelState{SelectedLine: -1},
-			CommitFiles: &commitFilesPanelState{SelectedLine: -1},
-			Stash:       &stashPanelState{SelectedLine: -1},
-			Menu:        &menuPanelState{SelectedLine: 0},
+			Files:          &filePanelState{SelectedLine: -1},
+			ExtensiveFiles: &extensiveFilePanelState{Selected: []int{0}},
+			Branches:       &branchPanelState{SelectedLine: 0},
+			Commits:        &commitPanelState{SelectedLine: -1},
+			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
+			Stash:          &stashPanelState{SelectedLine: -1},
+			Menu:           &menuPanelState{SelectedLine: 0},
 			Merging: &mergingPanelState{
 				ConflictIndex: 0,
 				ConflictTop:   true,
@@ -383,6 +392,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		v.Title = gui.Tr.SLocalize("DiffTitle")
 		v.Wrap = true
+		v.FgColor = textColor
+	}
+
+	if v, err := g.SetView("extensiveFiles", 0, 0, leftSideWidth, height-2, gocui.BOTTOM|gocui.RIGHT); err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+		v.Title = gui.Tr.SLocalize("FilesTitle")
 		v.FgColor = textColor
 	}
 

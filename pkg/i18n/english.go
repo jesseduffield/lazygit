@@ -79,6 +79,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitChanges",
 			Other: "commit changes",
 		}, &i18n.Message{
+			ID:    "SwitchToExtensiveFilesView",
+			Other: "Switch to a more extensive view",
+		}, &i18n.Message{
+			ID:    "SwitchToFilesView",
+			Other: "Switch to back to the basic files view",
+		}, &i18n.Message{
 			ID:    "AmendLastCommit",
 			Other: "amend last commit",
 		}, &i18n.Message{

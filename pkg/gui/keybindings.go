@@ -166,15 +166,143 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateRecentReposMenu,
 			Description: gui.Tr.SLocalize("SwitchRepo"),
-		},
-		{
+		}, {
+			ViewName: "extensiveFiles",
+			Key:      gocui.KeyArrowRight,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleFilesGoInsideFolder,
+		}, {
+			ViewName: "extensiveFiles",
+			Key:      gocui.KeyArrowLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleFilesGoToFolderParent,
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'c',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitPress,
+			Description: gui.Tr.SLocalize("CommitChanges"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'w',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleWIPCommitPress,
+			Description: gui.Tr.SLocalize("commitChangesWithoutHook"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'A',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleAmendCommitPress,
+			Description: gui.Tr.SLocalize("AmendLastCommit"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'C',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitEditorPress,
+			Description: gui.Tr.SLocalize("CommitChangesWithEditor"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         gocui.KeySpace,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleFilePress,
+			Description: gui.Tr.SLocalize("toggleStaged"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'd',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateDiscardMenu,
+			Description: gui.Tr.SLocalize("viewDiscardOptions"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'e',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleFileEdit,
+			Description: gui.Tr.SLocalize("editFile"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'o',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleFileOpen,
+			Description: gui.Tr.SLocalize("openFile"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'i',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleIgnoreFile,
+			Description: gui.Tr.SLocalize("ignoreFile"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'r',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleRefreshFiles,
+			Description: gui.Tr.SLocalize("refreshFiles"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         's',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleStashChanges,
+			Description: gui.Tr.SLocalize("stashAllChanges"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'S',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateStashMenu,
+			Description: gui.Tr.SLocalize("viewStashOptions"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'a',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleStageAll,
+			Description: gui.Tr.SLocalize("toggleStagedAll"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         't',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleAddPatch,
+			Description: gui.Tr.SLocalize("addPatch"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'D',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateResetMenu,
+			Description: gui.Tr.SLocalize("viewResetOptions"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         gocui.KeyEnter,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleEnterFile,
+			Description: gui.Tr.SLocalize("StageLines"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'f',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleGitFetch,
+			Description: gui.Tr.SLocalize("fetch"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'X',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCustomCommand,
+			Description: gui.Tr.SLocalize("executeCustomCommand"),
+		}, {
+			ViewName:    "extensiveFiles",
+			Key:         'v',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCloseExtensiveView,
+			Description: gui.Tr.SLocalize("SwitchToFilesView"),
+		}, {
+			ViewName:    "files",
+			Key:         'v',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleOpenExtensiveView,
+			Description: gui.Tr.SLocalize("SwitchToExtensiveFilesView"),
+		}, {
 			ViewName:    "files",
 			Key:         'c',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitPress,
 			Description: gui.Tr.SLocalize("CommitChanges"),
-		},
-		{
+		}, {
 			ViewName:    "files",
 			Key:         'w',
 			Modifier:    gocui.ModNone,
@@ -545,13 +673,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		nextLine func(*gocui.Gui, *gocui.View) error
 		focus    func(*gocui.Gui, *gocui.View) error
 	}{
-		"menu":        {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
-		"files":       {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
-		"branches":    {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
-		"commits":     {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
-		"stash":       {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
-		"status":      {focus: gui.handleStatusSelect},
-		"commitFiles": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine, focus: gui.handleCommitFileSelect},
+		"menu":           {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
+		"files":          {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
+		"extensiveFiles": {prevLine: gui.handleFilesPrevFileOrFolder, nextLine: gui.handleFilesNextFileOrFolder, focus: gui.handleExtensiveFilesFocus},
+		"branches":       {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
+		"commits":        {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
+		"stash":          {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
+		"status":         {focus: gui.handleStatusSelect},
+		"commitFiles":    {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine, focus: gui.handleCommitFileSelect},
 	}
 
 	for viewName, functions := range listPanelMap {

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
@@ -102,6 +103,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleStatusSelect(g, v)
 	case "files":
 		return gui.handleFileSelect(g, v, false)
+	case "extensiveFiles":
+		return gui.handleExtensiveFileSelect(g, v, false)
 	case "branches":
 		return gui.handleBranchSelect(g, v)
 	case "commits":
@@ -280,6 +283,11 @@ func (gui *Gui) getFilesView() *gocui.View {
 	return v
 }
 
+func (gui *Gui) GetExtendedFilesView() *gocui.View {
+	v, _ := gui.g.View("extensiveFiles")
+	return v
+}
+
 func (gui *Gui) getCommitsView() *gocui.View {
 	v, _ := gui.g.View("commits")
 	return v
@@ -370,6 +378,29 @@ func (gui *Gui) changeSelectedLine(line *int, total int, up bool) {
 		}
 
 		*line += 1
+	}
+}
+
+func (gui *Gui) refreshSelected(selectedPrt *[]int, tree *commands.Dir) {
+	selected := *selectedPrt
+	currentDir := tree
+	for i, key := range selected {
+		if key < len(currentDir.Files) {
+			// Selected a file
+			if i+1 == len(selected) {
+				return
+			}
+			*selectedPrt = selected[:i+1]
+			return
+		}
+		dirKey := key - len(currentDir.Files)
+		if dirKey >= len(currentDir.SubDirs) {
+			// Slected something out of range
+			selected[i] = len(currentDir.Files) + len(currentDir.SubDirs) - 1
+			*selectedPrt = selected[:i+1]
+			return
+		}
+		currentDir = currentDir.SubDirs[dirKey]
 	}
 }
 

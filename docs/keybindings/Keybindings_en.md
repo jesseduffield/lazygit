@@ -38,6 +38,7 @@
   <kbd>enter</kbd>: stage individual hunks/lines
   <kbd>f</kbd>: fetch
   <kbd>X</kbd>: execute custom command
+  <kbd>v</kbd>: change view to a more extensive view and back
 </pre>
 
 ## Branches
