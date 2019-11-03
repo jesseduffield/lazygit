@@ -112,8 +112,8 @@ func (gui *Gui) refreshFiles() error {
 		filesView.Clear()
 		fmt.Fprint(filesView, list)
 
-		newSelectedFile, _, _ := gui.getSelectedDirOrFile(gui.g)
-		extendedList := gui.State.ExtensiveFiles.Render()
+		newSelectedFile, newSelectedDir, _ := gui.getSelectedDirOrFile(gui.g)
+		extendedList := gui.State.ExtensiveFiles.Render(newSelectedFile, newSelectedDir)
 		extendedFilesView.Clear()
 		fmt.Fprint(extendedFilesView, extendedList)
 
