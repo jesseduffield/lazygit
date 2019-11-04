@@ -9,7 +9,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/git"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -53,9 +52,26 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	return gui.renderString(g, "main", commitText)
 }
 
+func (gui *Gui) refreshPatchPanel() error {
+	if gui.State.PatchManager != nil {
+		gui.State.SplitMainPanel = true
+		secondaryView := gui.getSecondaryView()
+		secondaryView.Highlight = true
+		secondaryView.Wrap = false
+
+		gui.g.Update(func(*gocui.Gui) error {
+			return gui.setViewContent(gui.g, gui.getSecondaryView(), gui.State.PatchManager.RenderAggregatedPatchColored(false))
+		})
+	} else {
+		gui.State.SplitMainPanel = false
+	}
+
+	return nil
+}
+
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
+		builder, err := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
 		if err != nil {
 			return err
 		}
@@ -64,6 +80,10 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			return err
 		}
 		gui.State.Commits = commits
+
+		if err := gui.refreshPatchPanel(); err != nil {
+			return err
+		}
 
 		gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
 

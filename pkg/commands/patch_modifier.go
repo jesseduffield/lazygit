@@ -1,4 +1,4 @@
-package git
+package commands
 
 import (
 	"fmt"
@@ -10,7 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var headerRegexp = regexp.MustCompile(`(?m)^@@ -(\d+)[^\+]+\+(\d+)[^@]+@@(.*)$`)
+var hunkHeaderRegexp = regexp.MustCompile(`(?m)^@@ -(\d+)[^\+]+\+(\d+)[^@]+@@(.*)$`)
+var patchHeaderRegexp = regexp.MustCompile(`(?ms)(^diff.*?)^@@`)
 
 type PatchHunk struct {
 	header       string
@@ -116,7 +117,7 @@ func (hunk *PatchHunk) updatedHeader(newBodyLines []string, startOffset int, rev
 	}
 
 	// get oldstart, newstart, and heading from header
-	match := headerRegexp.FindStringSubmatch(hunk.header)
+	match := hunkHeaderRegexp.FindStringSubmatch(hunk.header)
 
 	var oldStart int
 	if reverse {
@@ -152,9 +153,17 @@ func mustConvertToInt(s string) int {
 	return i
 }
 
+func GetHeaderFromDiff(diff string) string {
+	match := patchHeaderRegexp.FindStringSubmatch(diff)
+	if len(match) <= 1 {
+		return ""
+	}
+	return match[1]
+}
+
 func GetHunksFromDiff(diff string) []*PatchHunk {
-	headers := headerRegexp.FindAllString(diff, -1)
-	bodies := headerRegexp.Split(diff, -1)[1:] // discarding top bit
+	headers := hunkHeaderRegexp.FindAllString(diff, -1)
+	bodies := hunkHeaderRegexp.Split(diff, -1)[1:] // discarding top bit
 
 	headerFirstLineIndices := []int{}
 	for lineIdx, line := range strings.Split(diff, "\n") {
@@ -175,6 +184,7 @@ type PatchModifier struct {
 	Log      *logrus.Entry
 	filename string
 	hunks    []*PatchHunk
+	header   string
 }
 
 func NewPatchModifier(log *logrus.Entry, filename string, diffText string) *PatchModifier {
@@ -182,10 +192,11 @@ func NewPatchModifier(log *logrus.Entry, filename string, diffText string) *Patc
 		Log:      log,
 		filename: filename,
 		hunks:    GetHunksFromDiff(diffText),
+		header:   GetHeaderFromDiff(diffText),
 	}
 }
 
-func (d *PatchModifier) ModifiedPatchForLines(lineIndices []int, reverse bool) string {
+func (d *PatchModifier) ModifiedPatchForLines(lineIndices []int, reverse bool, keepOriginalHeader bool) string {
 	// step one is getting only those hunks which we care about
 	hunksInRange := []*PatchHunk{}
 outer:
@@ -212,21 +223,38 @@ outer:
 		return ""
 	}
 
-	fileHeader := fmt.Sprintf("--- a/%s\n+++ b/%s\n", d.filename, d.filename)
+	var fileHeader string
+	// for staging/unstaging lines we don't want the original header because
+	// it makes git confused e.g. when dealing with deleted/added files
+	// but with building and applying patches the original header gives git
+	// information it needs to cleanly apply patches
+	if keepOriginalHeader {
+		fileHeader = d.header
+	} else {
+		fileHeader = fmt.Sprintf("--- a/%s\n+++ b/%s\n", d.filename, d.filename)
+	}
 
 	return fileHeader + formattedHunks
 }
 
-func (d *PatchModifier) ModifiedPatchForRange(firstLineIdx int, lastLineIdx int, reverse bool) string {
+func (d *PatchModifier) ModifiedPatchForRange(firstLineIdx int, lastLineIdx int, reverse bool, keepOriginalHeader bool) string {
 	// generate array of consecutive line indices from our range
 	selectedLines := []int{}
 	for i := firstLineIdx; i <= lastLineIdx; i++ {
 		selectedLines = append(selectedLines, i)
 	}
-	return d.ModifiedPatchForLines(selectedLines, reverse)
+	return d.ModifiedPatchForLines(selectedLines, reverse, keepOriginalHeader)
 }
 
-func ModifiedPatchForRange(log *logrus.Entry, filename string, diffText string, firstLineIdx int, lastLineIdx int, reverse bool) string {
+func (d *PatchModifier) OriginalPatchLength() int {
+	if len(d.hunks) == 0 {
+		return 0
+	}
+
+	return d.hunks[len(d.hunks)-1].LastLineIdx
+}
+
+func ModifiedPatchForRange(log *logrus.Entry, filename string, diffText string, firstLineIdx int, lastLineIdx int, reverse bool, keepOriginalHeader bool) string {
 	p := NewPatchModifier(log, filename, diffText)
-	return p.ModifiedPatchForRange(firstLineIdx, lastLineIdx, reverse)
+	return p.ModifiedPatchForRange(firstLineIdx, lastLineIdx, reverse, keepOriginalHeader)
 }

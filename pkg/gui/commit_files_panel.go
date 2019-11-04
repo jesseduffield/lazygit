@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
@@ -23,7 +24,7 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.focusPoint(0, gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles), v); err != nil {
 		return err
 	}
-	commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name)
+	commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, false)
 	if err != nil {
 		return err
 	}
@@ -79,16 +80,19 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshCommitFilesView() error {
+	if err := gui.refreshPatchPanel(); err != nil {
+		return err
+	}
+
 	commit := gui.getSelectedCommit(gui.g)
 	if commit == nil {
 		return nil
 	}
 
-	files, err := gui.GitCommand.GetCommitFiles(commit.Sha)
+	files, err := gui.GitCommand.GetCommitFiles(commit.Sha, gui.State.PatchManager)
 	if err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
-
 	gui.State.CommitFiles = files
 
 	gui.refreshSelectedLine(&gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles))
@@ -103,4 +107,83 @@ func (gui *Gui) refreshCommitFilesView() error {
 func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
 	file := gui.getSelectedCommitFile(g)
 	return gui.openFile(file.Name)
+}
+
+func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
+	commitFile := gui.getSelectedCommitFile(g)
+	if commitFile == nil {
+		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+	}
+
+	toggleTheFile := func() error {
+		if gui.State.PatchManager == nil {
+			if err := gui.createPatchManager(); err != nil {
+				return err
+			}
+		}
+
+		gui.State.PatchManager.ToggleFileWhole(commitFile.Name)
+
+		return gui.refreshCommitFilesView()
+	}
+
+	if gui.State.PatchManager != nil && gui.State.PatchManager.CommitSha != commitFile.Sha {
+		return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
+			gui.State.PatchManager = nil
+			return toggleTheFile()
+		}, nil)
+	}
+
+	return toggleTheFile()
+}
+
+func (gui *Gui) createPatchManager() error {
+	diffMap := map[string]string{}
+	for _, commitFile := range gui.State.CommitFiles {
+		commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, true)
+		if err != nil {
+			return err
+		}
+		diffMap[commitFile.Name] = commitText
+	}
+
+	commit := gui.getSelectedCommit(gui.g)
+	if commit == nil {
+		return errors.New("No commit selected")
+	}
+
+	gui.State.PatchManager = commands.NewPatchManager(gui.Log, gui.GitCommand.ApplyPatch, commit.Sha, diffMap)
+	return nil
+}
+
+func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
+	commitFile := gui.getSelectedCommitFile(g)
+	if commitFile == nil {
+		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+	}
+
+	enterTheFile := func() error {
+		if gui.State.PatchManager == nil {
+			if err := gui.createPatchManager(); err != nil {
+				return err
+			}
+		}
+
+		if err := gui.changeContext("main", "staging"); err != nil {
+			return err
+		}
+		if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {
+			return err
+		}
+		return gui.refreshStagingPanel()
+	}
+
+	if gui.State.PatchManager != nil && gui.State.PatchManager.CommitSha != commitFile.Sha {
+		return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
+			gui.State.PatchManager = nil
+			return enterTheFile()
+		}, nil)
+	}
+
+	return enterTheFile()
 }

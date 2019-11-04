@@ -1685,7 +1685,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func(string, error)
+		test     func(error)
 	}
 
 	scenarios := []scenario{
@@ -1702,9 +1702,8 @@ func TestGitCommandApplyPatch(t *testing.T) {
 
 				return exec.Command("echo", "done")
 			},
-			func(output string, err error) {
+			func(err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "done\n", output)
 			},
 		},
 		{
@@ -1724,7 +1723,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 
 				return exec.Command("test")
 			},
-			func(output string, err error) {
+			func(err error) {
 				assert.Error(t, err)
 			},
 		},
@@ -1734,7 +1733,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.ApplyPatch("test", false, true))
+			s.test(gitCmd.ApplyPatch("test", false, true, ""))
 		})
 	}
 }
@@ -1962,7 +1961,7 @@ func TestGitCommandShowCommitFile(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.ShowCommitFile(s.commitSha, s.fileName))
+			s.test(gitCmd.ShowCommitFile(s.commitSha, s.fileName, true))
 		})
 	}
 }
@@ -2001,7 +2000,7 @@ func TestGitCommandGetCommitFiles(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.GetCommitFiles(s.commitSha))
+			s.test(gitCmd.GetCommitFiles(s.commitSha, nil))
 		})
 	}
 }

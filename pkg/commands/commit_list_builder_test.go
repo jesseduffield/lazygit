@@ -1,24 +1,23 @@
-package git
+package commands
 
 import (
 	"os/exec"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/stretchr/testify/assert"
 )
 
 // NewDummyCommitListBuilder creates a new dummy CommitListBuilder for testing
 func NewDummyCommitListBuilder() *CommitListBuilder {
-	osCommand := commands.NewDummyOSCommand()
+	osCommand := NewDummyOSCommand()
 
 	return &CommitListBuilder{
-		Log:                 commands.NewDummyLog(),
-		GitCommand:          commands.NewDummyGitCommandWithOSCommand(osCommand),
+		Log:                 NewDummyLog(),
+		GitCommand:          NewDummyGitCommandWithOSCommand(osCommand),
 		OSCommand:           osCommand,
-		Tr:                  i18n.NewLocalizer(commands.NewDummyLog()),
-		CherryPickedCommits: []*commands.Commit{},
+		Tr:                  i18n.NewLocalizer(NewDummyLog()),
+		CherryPickedCommits: []*Commit{},
 	}
 }
 
@@ -199,7 +198,7 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]*commands.Commit, error)
+		test     func([]*Commit, error)
 	}
 
 	scenarios := []scenario{
@@ -225,7 +224,7 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 
 				return nil
 			},
-			func(commits []*commands.Commit, err error) {
+			func(commits []*Commit, err error) {
 				assert.NoError(t, err)
 				assert.Len(t, commits, 0)
 			},
@@ -252,10 +251,10 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 
 				return nil
 			},
-			func(commits []*commands.Commit, err error) {
+			func(commits []*Commit, err error) {
 				assert.NoError(t, err)
 				assert.Len(t, commits, 2)
-				assert.EqualValues(t, []*commands.Commit{
+				assert.EqualValues(t, []*Commit{
 					{
 						Sha:           "8a2bb0e",
 						Name:          "commit 1",
@@ -298,7 +297,7 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 
 				return nil
 			},
-			func(commits []*commands.Commit, err error) {
+			func(commits []*Commit, err error) {
 				assert.Error(t, err)
 				assert.Len(t, commits, 0)
 			},

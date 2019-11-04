@@ -368,13 +368,13 @@ func (gui *Gui) changeSelectedLine(line *int, total int, up bool) {
 			return
 		}
 
-		*line -= 1
+		*line--
 	} else {
 		if *line == -1 || *line == total-1 {
 			return
 		}
 
-		*line += 1
+		*line++
 	}
 }
 
