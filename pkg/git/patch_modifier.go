@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,7 +30,7 @@ func newHunk(header string, body string, firstLineIdx int) *PatchHunk {
 	}
 }
 
-func (hunk *PatchHunk) updatedLinesForRange(firstLineIdx int, lastLineIdx int, reverse bool) []string {
+func (hunk *PatchHunk) updatedLines(lineIndices []int, reverse bool) []string {
 	skippedNewlineMessageIndex := -1
 	newLines := []string{}
 
@@ -39,12 +40,12 @@ func (hunk *PatchHunk) updatedLinesForRange(firstLineIdx int, lastLineIdx int, r
 		if line == "" {
 			break
 		}
-		isLineInsideRange := (firstLineIdx <= lineIdx && lineIdx <= lastLineIdx)
+		isLineSelected := utils.IncludesInt(lineIndices, lineIdx)
 
 		firstChar, content := line[:1], line[1:]
-		transformedFirstChar := transformedFirstChar(firstChar, reverse, isLineInsideRange)
+		transformedFirstChar := transformedFirstChar(firstChar, reverse, isLineSelected)
 
-		if isLineInsideRange || (transformedFirstChar == "\\" && skippedNewlineMessageIndex != lineIdx) || transformedFirstChar == " " {
+		if isLineSelected || (transformedFirstChar == "\\" && skippedNewlineMessageIndex != lineIdx) || transformedFirstChar == " " {
 			newLines = append(newLines, transformedFirstChar+content)
 			continue
 		}
@@ -58,9 +59,9 @@ func (hunk *PatchHunk) updatedLinesForRange(firstLineIdx int, lastLineIdx int, r
 	return newLines
 }
 
-func transformedFirstChar(firstChar string, reverse bool, isLineInsideRange bool) string {
+func transformedFirstChar(firstChar string, reverse bool, isLineSelected bool) string {
 	if reverse {
-		if !isLineInsideRange && firstChar == "+" {
+		if !isLineSelected && firstChar == "+" {
 			return " "
 		} else if firstChar == "-" {
 			return "+"
@@ -71,7 +72,7 @@ func transformedFirstChar(firstChar string, reverse bool, isLineInsideRange bool
 		}
 	}
 
-	if !isLineInsideRange && firstChar == "-" {
+	if !isLineSelected && firstChar == "-" {
 		return " "
 	}
 
@@ -82,8 +83,8 @@ func (hunk *PatchHunk) formatHeader(oldStart int, oldLength int, newStart int, n
 	return fmt.Sprintf("@@ -%d,%d +%d,%d @@%s\n", oldStart, oldLength, newStart, newLength, heading)
 }
 
-func (hunk *PatchHunk) formatWithChanges(firstLineIdx int, lastLineIdx int, reverse bool, startOffset int) (int, string) {
-	bodyLines := hunk.updatedLinesForRange(firstLineIdx, lastLineIdx, reverse)
+func (hunk *PatchHunk) formatWithChanges(lineIndices []int, reverse bool, startOffset int) (int, string) {
+	bodyLines := hunk.updatedLines(lineIndices, reverse)
 	startOffset, header, ok := hunk.updatedHeader(bodyLines, startOffset, reverse)
 	if !ok {
 		return startOffset, ""
@@ -184,12 +185,17 @@ func NewPatchModifier(log *logrus.Entry, filename string, diffText string) *Patc
 	}
 }
 
-func (d *PatchModifier) ModifiedPatchForRange(firstLineIdx int, lastLineIdx int, reverse bool) string {
+func (d *PatchModifier) ModifiedPatchForLines(lineIndices []int, reverse bool) string {
 	// step one is getting only those hunks which we care about
 	hunksInRange := []*PatchHunk{}
+outer:
 	for _, hunk := range d.hunks {
-		if hunk.LastLineIdx >= firstLineIdx && hunk.FirstLineIdx <= lastLineIdx {
-			hunksInRange = append(hunksInRange, hunk)
+		// if there is any line in our lineIndices array that the hunk contains, we append it
+		for _, lineIdx := range lineIndices {
+			if lineIdx >= hunk.FirstLineIdx && lineIdx <= hunk.LastLineIdx {
+				hunksInRange = append(hunksInRange, hunk)
+				continue outer
+			}
 		}
 	}
 
@@ -198,7 +204,7 @@ func (d *PatchModifier) ModifiedPatchForRange(firstLineIdx int, lastLineIdx int,
 	formattedHunks := ""
 	var formattedHunk string
 	for _, hunk := range hunksInRange {
-		startOffset, formattedHunk = hunk.formatWithChanges(firstLineIdx, lastLineIdx, reverse, startOffset)
+		startOffset, formattedHunk = hunk.formatWithChanges(lineIndices, reverse, startOffset)
 		formattedHunks += formattedHunk
 	}
 
@@ -211,7 +217,16 @@ func (d *PatchModifier) ModifiedPatchForRange(firstLineIdx int, lastLineIdx int,
 	return fileHeader + formattedHunks
 }
 
-func ModifiedPatch(log *logrus.Entry, filename string, diffText string, firstLineIdx int, lastLineIdx int, reverse bool) string {
+func (d *PatchModifier) ModifiedPatchForRange(firstLineIdx int, lastLineIdx int, reverse bool) string {
+	// generate array of consecutive line indices from our range
+	selectedLines := []int{}
+	for i := firstLineIdx; i <= lastLineIdx; i++ {
+		selectedLines = append(selectedLines, i)
+	}
+	return d.ModifiedPatchForLines(selectedLines, reverse)
+}
+
+func ModifiedPatchForRange(log *logrus.Entry, filename string, diffText string, firstLineIdx int, lastLineIdx int, reverse bool) string {
 	p := NewPatchModifier(log, filename, diffText)
 	return p.ModifiedPatchForRange(firstLineIdx, lastLineIdx, reverse)
 }
