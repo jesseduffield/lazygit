@@ -23,7 +23,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/git"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -84,13 +83,13 @@ type Gui struct {
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
 type stagingPanelState struct {
-	SelectedLineIdx int
-	FirstLineIdx    int
-	LastLineIdx     int
-	Diff            string
-	PatchParser     *git.PatchParser
-	SelectMode      int  // one of LINE, HUNK, or RANGE
-	IndexFocused    bool // this is for if we show the left or right panel
+	SelectedLineIdx  int
+	FirstLineIdx     int
+	LastLineIdx      int
+	Diff             string
+	PatchParser      *commands.PatchParser
+	SelectMode       int  // one of LINE, HUNK, or RANGE
+	SecondaryFocused bool // this is for if we show the left or right panel
 }
 
 type mergingPanelState struct {
@@ -152,7 +151,10 @@ type guiState struct {
 	Contexts            map[string]string
 	CherryPickedCommits []*commands.Commit
 	SplitMainPanel      bool
+	PatchManager        *commands.PatchManager
 }
+
+// for now the split view will always be on
 
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
@@ -390,7 +392,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	main := "main"
 	secondary := "secondary"
-	swappingMainPanels := gui.State.Panels.Staging != nil && gui.State.Panels.Staging.IndexFocused
+	swappingMainPanels := gui.State.Panels.Staging != nil && gui.State.Panels.Staging.SecondaryFocused
 	if swappingMainPanels {
 		main = "secondary"
 		secondary = "main"

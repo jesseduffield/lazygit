@@ -1,4 +1,4 @@
-package git
+package commands
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -27,15 +26,15 @@ import (
 // CommitListBuilder returns a list of Branch objects for the current repo
 type CommitListBuilder struct {
 	Log                 *logrus.Entry
-	GitCommand          *commands.GitCommand
-	OSCommand           *commands.OSCommand
+	GitCommand          *GitCommand
+	OSCommand           *OSCommand
 	Tr                  *i18n.Localizer
-	CherryPickedCommits []*commands.Commit
-	DiffEntries         []*commands.Commit
+	CherryPickedCommits []*Commit
+	DiffEntries         []*Commit
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, osCommand *commands.OSCommand, tr *i18n.Localizer, cherryPickedCommits []*commands.Commit, diffEntries []*commands.Commit) (*CommitListBuilder, error) {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *OSCommand, tr *i18n.Localizer, cherryPickedCommits []*Commit, diffEntries []*Commit) (*CommitListBuilder, error) {
 	return &CommitListBuilder{
 		Log:                 log,
 		GitCommand:          gitCommand,
@@ -47,9 +46,9 @@ func NewCommitListBuilder(log *logrus.Entry, gitCommand *commands.GitCommand, os
 }
 
 // GetCommits obtains the commits of the current branch
-func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
-	commits := []*commands.Commit{}
-	var rebasingCommits []*commands.Commit
+func (c *CommitListBuilder) GetCommits() ([]*Commit, error) {
+	commits := []*Commit{}
+	var rebasingCommits []*Commit
 	rebaseMode, err := c.GitCommand.RebaseMode()
 	if err != nil {
 		return nil, err
@@ -74,7 +73,7 @@ func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 		sha := splitLine[0]
 		_, unpushed := unpushedCommits[sha]
 		status := map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
-		commits = append(commits, &commands.Commit{
+		commits = append(commits, &Commit{
 			Sha:           sha,
 			Name:          strings.Join(splitLine[1:], " "),
 			Status:        status,
@@ -110,7 +109,7 @@ func (c *CommitListBuilder) GetCommits() ([]*commands.Commit, error) {
 }
 
 // getRebasingCommits obtains the commits that we're in the process of rebasing
-func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*commands.Commit, error) {
+func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*Commit, error) {
 	switch rebaseMode {
 	case "normal":
 		return c.getNormalRebasingCommits()
@@ -121,7 +120,7 @@ func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*commands.C
 	}
 }
 
-func (c *CommitListBuilder) getNormalRebasingCommits() ([]*commands.Commit, error) {
+func (c *CommitListBuilder) getNormalRebasingCommits() ([]*Commit, error) {
 	rewrittenCount := 0
 	bytesContent, err := ioutil.ReadFile(fmt.Sprintf("%s/rebase-apply/rewritten", c.GitCommand.DotGitDir))
 	if err == nil {
@@ -130,7 +129,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*commands.Commit, erro
 	}
 
 	// we know we're rebasing, so lets get all the files whose names have numbers
-	commits := []*commands.Commit{}
+	commits := []*Commit{}
 	err = filepath.Walk(fmt.Sprintf("%s/rebase-apply", c.GitCommand.DotGitDir), func(path string, f os.FileInfo, err error) error {
 		if rewrittenCount > 0 {
 			rewrittenCount--
@@ -152,7 +151,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*commands.Commit, erro
 		if err != nil {
 			return err
 		}
-		commits = append([]*commands.Commit{commit}, commits...)
+		commits = append([]*Commit{commit}, commits...)
 		return nil
 	})
 	if err != nil {
@@ -174,7 +173,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*commands.Commit, erro
 // getInteractiveRebasingCommits takes our git-rebase-todo and our git-rebase-todo.backup files
 // and extracts out the sha and names of commits that we still have to go
 // in the rebase:
-func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*commands.Commit, error) {
+func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*Commit, error) {
 	bytesContent, err := ioutil.ReadFile(fmt.Sprintf("%s/rebase-merge/git-rebase-todo", c.GitCommand.DotGitDir))
 	if err != nil {
 		c.Log.Info(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
@@ -182,14 +181,14 @@ func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*commands.Commit,
 		return nil, nil
 	}
 
-	commits := []*commands.Commit{}
+	commits := []*Commit{}
 	lines := strings.Split(string(bytesContent), "\n")
 	for _, line := range lines {
 		if line == "" || line == "noop" {
 			return commits, nil
 		}
 		splitLine := strings.Split(line, " ")
-		commits = append([]*commands.Commit{{
+		commits = append([]*Commit{{
 			Sha:    splitLine[1][0:7],
 			Name:   strings.Join(splitLine[2:], " "),
 			Status: "rebasing",
@@ -205,18 +204,18 @@ func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*commands.Commit,
 // From: Lazygit Tester <test@example.com>
 // Date: Wed, 5 Dec 2018 21:03:23 +1100
 // Subject: second commit on master
-func (c *CommitListBuilder) commitFromPatch(content string) (*commands.Commit, error) {
+func (c *CommitListBuilder) commitFromPatch(content string) (*Commit, error) {
 	lines := strings.Split(content, "\n")
 	sha := strings.Split(lines[0], " ")[1][0:7]
 	name := strings.TrimPrefix(lines[3], "Subject: ")
-	return &commands.Commit{
+	return &Commit{
 		Sha:    sha,
 		Name:   name,
 		Status: "rebasing",
 	}, nil
 }
 
-func (c *CommitListBuilder) setCommitMergedStatuses(commits []*commands.Commit) ([]*commands.Commit, error) {
+func (c *CommitListBuilder) setCommitMergedStatuses(commits []*Commit) ([]*Commit, error) {
 	ancestor, err := c.getMergeBase()
 	if err != nil {
 		return nil, err
@@ -239,7 +238,7 @@ func (c *CommitListBuilder) setCommitMergedStatuses(commits []*commands.Commit) 
 	return commits, nil
 }
 
-func (c *CommitListBuilder) setCommitCherryPickStatuses(commits []*commands.Commit) ([]*commands.Commit, error) {
+func (c *CommitListBuilder) setCommitCherryPickStatuses(commits []*Commit) ([]*Commit, error) {
 	for _, commit := range commits {
 		for _, cherryPickedCommit := range c.CherryPickedCommits {
 			if commit.Sha == cherryPickedCommit.Sha {

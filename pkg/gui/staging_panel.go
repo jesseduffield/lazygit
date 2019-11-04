@@ -1,12 +1,11 @@
 package gui
 
 import (
-	"strings"
-
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/git"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
+// these represent what select mode we're in
 const (
 	LINE = iota
 	RANGE
@@ -16,49 +15,65 @@ const (
 func (gui *Gui) refreshStagingPanel() error {
 	state := gui.State.Panels.Staging
 
-	file, err := gui.getSelectedFile(gui.g)
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
-		return gui.handleStagingEscape(gui.g, nil)
-	}
+	// file, err := gui.getSelectedFile(gui.g)
+	// if err != nil {
+	// 	if err != gui.Errors.ErrNoFiles {
+	// 		return err
+	// 	}
+	// 	return gui.handleStagingEscape(gui.g, nil)
+	// }
 
 	gui.State.SplitMainPanel = true
 
-	indexFocused := false
+	secondaryFocused := false
 	if state != nil {
-		indexFocused = state.IndexFocused
+		secondaryFocused = state.SecondaryFocused
 	}
 
-	if !file.HasUnstagedChanges && !file.HasStagedChanges {
-		return gui.handleStagingEscape(gui.g, nil)
+	// if !file.HasUnstagedChanges && !file.HasStagedChanges {
+	// 	return gui.handleStagingEscape(gui.g, nil)
+	// }
+
+	// if (secondaryFocused && !file.HasStagedChanges) || (!secondaryFocused && !file.HasUnstagedChanges) {
+	// 	secondaryFocused = !secondaryFocused
+	// }
+
+	// getDiffs := func() (string, string) {
+	// 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
+	// 	diff := gui.GitCommand.Diff(file, true, secondaryFocused)
+	// 	secondaryColorDiff := gui.GitCommand.Diff(file, false, !secondaryFocused)
+	// 	return diff, secondaryColorDiff
+	// }
+
+	// diff, secondaryColorDiff := getDiffs()
+
+	// // if we have e.g. a deleted file with nothing else to the diff will have only
+	// // 4-5 lines in which case we'll swap panels
+	// if len(strings.Split(diff, "\n")) < 5 {
+	// 	if len(strings.Split(secondaryColorDiff, "\n")) < 5 {
+	// 		return gui.handleStagingEscape(gui.g, nil)
+	// 	}
+	// 	secondaryFocused = !secondaryFocused
+	// 	diff, secondaryColorDiff = getDiffs()
+	// }
+
+	// get diff from commit file that's currently selected
+	commitFile := gui.getSelectedCommitFile(gui.g)
+	if commitFile == nil {
+		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 	}
 
-	if (indexFocused && !file.HasStagedChanges) || (!indexFocused && !file.HasUnstagedChanges) {
-		indexFocused = !indexFocused
+	diff, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, true)
+	if err != nil {
+		return err
 	}
 
-	getDiffs := func() (string, string) {
-		// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
-		diff := gui.GitCommand.Diff(file, true, indexFocused)
-		secondaryColorDiff := gui.GitCommand.Diff(file, false, !indexFocused)
-		return diff, secondaryColorDiff
+	secondaryColorDiff := gui.State.PatchManager.RenderPatchForFile(commitFile.Name, false, false)
+	if err != nil {
+		return err
 	}
 
-	diff, secondaryColorDiff := getDiffs()
-
-	// if we have e.g. a deleted file with nothing else to the diff will have only
-	// 4-5 lines in which case we'll swap panels
-	if len(strings.Split(diff, "\n")) < 5 {
-		if len(strings.Split(secondaryColorDiff, "\n")) < 5 {
-			return gui.handleStagingEscape(gui.g, nil)
-		}
-		indexFocused = !indexFocused
-		diff, secondaryColorDiff = getDiffs()
-	}
-
-	patchParser, err := git.NewPatchParser(gui.Log, diff)
+	patchParser, err := commands.NewPatchParser(gui.Log, diff)
 	if err != nil {
 		return nil
 	}
@@ -92,13 +107,13 @@ func (gui *Gui) refreshStagingPanel() error {
 	}
 
 	gui.State.Panels.Staging = &stagingPanelState{
-		PatchParser:     patchParser,
-		SelectedLineIdx: selectedLineIdx,
-		SelectMode:      selectMode,
-		FirstLineIdx:    firstLineIdx,
-		LastLineIdx:     lastLineIdx,
-		Diff:            diff,
-		IndexFocused:    indexFocused,
+		PatchParser:      patchParser,
+		SelectedLineIdx:  selectedLineIdx,
+		SelectMode:       selectMode,
+		FirstLineIdx:     firstLineIdx,
+		LastLineIdx:      lastLineIdx,
+		Diff:             diff,
+		SecondaryFocused: secondaryFocused,
 	}
 
 	if err := gui.refreshView(); err != nil {
@@ -123,14 +138,14 @@ func (gui *Gui) refreshStagingPanel() error {
 func (gui *Gui) handleTogglePanel(g *gocui.Gui, v *gocui.View) error {
 	state := gui.State.Panels.Staging
 
-	state.IndexFocused = !state.IndexFocused
+	state.SecondaryFocused = !state.SecondaryFocused
 	return gui.refreshStagingPanel()
 }
 
 func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Panels.Staging = nil
 
-	return gui.switchFocus(gui.g, nil, gui.getFilesView())
+	return gui.switchFocus(gui.g, nil, gui.getCommitFilesView())
 }
 
 func (gui *Gui) handleStagingPrevLine(g *gocui.Gui, v *gocui.View) error {
@@ -203,7 +218,9 @@ func (gui *Gui) handleCycleLine(change int) error {
 func (gui *Gui) refreshView() error {
 	state := gui.State.Panels.Staging
 
-	colorDiff := state.PatchParser.Render(state.FirstLineIdx, state.LastLineIdx)
+	filename := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
+
+	colorDiff := state.PatchParser.Render(state.FirstLineIdx, state.LastLineIdx, gui.State.PatchManager.GetFileIncLineIndices(filename))
 
 	mainView := gui.getMainView()
 	mainView.Highlight = true
@@ -258,17 +275,57 @@ func (gui *Gui) focusSelection(includeCurrentHunk bool) error {
 }
 
 func (gui *Gui) handleStageSelection(g *gocui.Gui, v *gocui.View) error {
-	return gui.applySelection(false)
+	state := gui.State.Panels.Staging
+
+	// add range of lines to those set for the file
+	commitFile := gui.getSelectedCommitFile(gui.g)
+	if commitFile == nil {
+		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+	}
+
+	gui.State.PatchManager.AddFileLineRange(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
+
+	if err := gui.refreshCommitFilesView(); err != nil {
+		return err
+	}
+
+	if err := gui.refreshStagingPanel(); err != nil {
+		return err
+	}
+
+	return nil
+
+	// return gui.applySelection(false)
 }
 
 func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
-	return gui.applySelection(true)
+	state := gui.State.Panels.Staging
+
+	// add range of lines to those set for the file
+	commitFile := gui.getSelectedCommitFile(gui.g)
+	if commitFile == nil {
+		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+	}
+
+	gui.State.PatchManager.RemoveFileLineRange(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
+
+	if err := gui.refreshCommitFilesView(); err != nil {
+		return err
+	}
+
+	if err := gui.refreshStagingPanel(); err != nil {
+		return err
+	}
+
+	return nil
+
+	// return gui.applySelection(true)
 }
 
 func (gui *Gui) applySelection(reverse bool) error {
 	state := gui.State.Panels.Staging
 
-	if !reverse && state.IndexFocused {
+	if !reverse && state.SecondaryFocused {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantStageStaged"))
 	}
 
@@ -277,7 +334,7 @@ func (gui *Gui) applySelection(reverse bool) error {
 		return err
 	}
 
-	patch := git.ModifiedPatch(gui.Log, file.Name, state.Diff, state.FirstLineIdx, state.LastLineIdx, reverse)
+	patch := commands.ModifiedPatchForRange(gui.Log, file.Name, state.Diff, state.FirstLineIdx, state.LastLineIdx, reverse, false)
 
 	if patch == "" {
 		return nil
@@ -285,7 +342,7 @@ func (gui *Gui) applySelection(reverse bool) error {
 
 	// apply the patch then refresh this panel
 	// create a new temp file with the patch, then call git apply with that patch
-	_, err = gui.GitCommand.ApplyPatch(patch, false, !reverse || state.IndexFocused)
+	err = gui.GitCommand.ApplyPatch(patch, false, !reverse || state.SecondaryFocused, "")
 	if err != nil {
 		return err
 	}

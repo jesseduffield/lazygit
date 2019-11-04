@@ -63,16 +63,17 @@ func setupRepositoryAndWorktree(openGitRepository func(string) (*gogit.Repositor
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Log                *logrus.Entry
-	OSCommand          *OSCommand
-	Worktree           *gogit.Worktree
-	Repo               *gogit.Repository
-	Tr                 *i18n.Localizer
-	Config             config.AppConfigurer
-	getGlobalGitConfig func(string) (string, error)
-	getLocalGitConfig  func(string) (string, error)
-	removeFile         func(string) error
-	DotGitDir          string
+	Log                  *logrus.Entry
+	OSCommand            *OSCommand
+	Worktree             *gogit.Worktree
+	Repo                 *gogit.Repository
+	Tr                   *i18n.Localizer
+	Config               config.AppConfigurer
+	getGlobalGitConfig   func(string) (string, error)
+	getLocalGitConfig    func(string) (string, error)
+	removeFile           func(string) error
+	DotGitDir            string
+	onSuccessfulContinue func() error
 }
 
 // NewGitCommand it runs git commands
@@ -376,7 +377,7 @@ func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
 
 // AmendHead amends HEAD with whatever is staged in your working tree
 func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
-	command := "git commit --amend --no-edit"
+	command := "git commit --amend --no-edit --allow-empty"
 	if c.usingGpg() {
 		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
 	}
@@ -530,7 +531,7 @@ func (c *GitCommand) Ignore(filename string) error {
 
 // Show shows the diff of a commit
 func (c *GitCommand) Show(sha string) (string, error) {
-	show, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color %s", sha))
+	show, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git show --color --no-renames %s", sha))
 	if err != nil {
 		return "", err
 	}
@@ -605,11 +606,11 @@ func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
 	return s
 }
 
-func (c *GitCommand) ApplyPatch(patch string, reverse bool, cached bool) (string, error) {
+func (c *GitCommand) ApplyPatch(patch string, reverse bool, cached bool, extraFlags string) error {
 	filename, err := c.OSCommand.CreateTempFile("patch", patch)
 	if err != nil {
 		c.Log.Error(err)
-		return "", err
+		return err
 	}
 
 	defer func() { _ = c.OSCommand.Remove(filename) }()
@@ -624,7 +625,7 @@ func (c *GitCommand) ApplyPatch(patch string, reverse bool, cached bool) (string
 		cachedFlag = "--cached"
 	}
 
-	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git apply %s %s %s", cachedFlag, reverseFlag, c.OSCommand.Quote(filename)))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git apply %s %s %s %s", cachedFlag, reverseFlag, extraFlags, c.OSCommand.Quote(filename)))
 }
 
 func (c *GitCommand) FastForward(branchName string) error {
@@ -645,13 +646,29 @@ func (c *GitCommand) RunSkipEditorCommand(command string) error {
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
 func (c *GitCommand) GenericMerge(commandType string, command string) error {
-	return c.RunSkipEditorCommand(
+	err := c.RunSkipEditorCommand(
 		fmt.Sprintf(
 			"git %s --%s",
 			commandType,
 			command,
 		),
 	)
+	if err != nil {
+		return err
+	}
+
+	// sometimes we need to do a sequence of things in a rebase but the user needs to
+	// fix merge conflicts along the way. When this happens we queue up the next step
+	// so that after the next successful rebase continue we can continue from where we left off
+	if commandType == "rebase" && command == "continue" && c.onSuccessfulContinue != nil {
+		f := c.onSuccessfulContinue
+		c.onSuccessfulContinue = nil
+		return f()
+	}
+	if command == "abort" {
+		c.onSuccessfulContinue = nil
+	}
+	return nil
 }
 
 func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, error) {
@@ -852,8 +869,8 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 }
 
 // GetCommitFiles get the specified commit files
-func (c *GitCommand) GetCommitFiles(commitSha string) ([]*CommitFile, error) {
-	cmd := fmt.Sprintf("git show --pretty= --name-only %s", commitSha)
+func (c *GitCommand) GetCommitFiles(commitSha string, patchManager *PatchManager) ([]*CommitFile, error) {
+	cmd := fmt.Sprintf("git show --pretty= --name-only --no-renames %s", commitSha)
 	files, err := c.OSCommand.RunCommandWithOutput(cmd)
 	if err != nil {
 		return nil, err
@@ -862,10 +879,16 @@ func (c *GitCommand) GetCommitFiles(commitSha string) ([]*CommitFile, error) {
 	commitFiles := make([]*CommitFile, 0)
 
 	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
+		status := UNSELECTED
+		if patchManager != nil && patchManager.CommitSha == commitSha {
+			status = patchManager.GetFileStatus(file)
+		}
+
 		commitFiles = append(commitFiles, &CommitFile{
 			Sha:           commitSha,
 			Name:          file,
 			DisplayString: file,
+			Status:        status,
 		})
 	}
 
@@ -873,8 +896,12 @@ func (c *GitCommand) GetCommitFiles(commitSha string) ([]*CommitFile, error) {
 }
 
 // ShowCommitFile get the diff of specified commit file
-func (c *GitCommand) ShowCommitFile(commitSha, fileName string) (string, error) {
-	cmd := fmt.Sprintf("git show --color %s -- %s", commitSha, fileName)
+func (c *GitCommand) ShowCommitFile(commitSha, fileName string, plain bool) (string, error) {
+	colorArg := "--color"
+	if plain {
+		colorArg = ""
+	}
+	cmd := fmt.Sprintf("git show --no-renames %s %s -- %s", colorArg, commitSha, fileName)
 	return c.OSCommand.RunCommandWithOutput(cmd)
 }
 
@@ -886,28 +913,7 @@ func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
 
 // DiscardOldFileChanges discards changes to a file from an old commit
 func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, fileName string) error {
-	if len(commits)-1 < commitIndex {
-		return errors.New("index outside of range of commits")
-	}
-
-	// we can make this GPG thing possible it just means we need to do this in two parts:
-	// one where we handle the possibility of a credential request, and the other
-	// where we continue the rebase
-	if c.usingGpg() {
-		return errors.New(c.Tr.SLocalize("DisabledForGPG"))
-	}
-
-	todo, sha, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
-	if err != nil {
-		return err
-	}
-
-	cmd, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
-	if err != nil {
-		return err
-	}
-
-	if err := c.OSCommand.RunPreparedCommand(cmd); err != nil {
+	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
 		return err
 	}
 
@@ -924,7 +930,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, f
 	}
 
 	// amend the commit
-	cmd, err = c.AmendHead()
+	cmd, err := c.AmendHead()
 	if cmd != nil {
 		return errors.New("received unexpected pointer to cmd")
 	}
@@ -1012,6 +1018,37 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+// BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
+// commit and pick all others. After this you'll want to call `c.GenericMerge("rebase", "continue")`
+func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*Commit, commitIndex int) error {
+	if len(commits)-1 < commitIndex {
+		return errors.New("index outside of range of commits")
+	}
+
+	// we can make this GPG thing possible it just means we need to do this in two parts:
+	// one where we handle the possibility of a credential request, and the other
+	// where we continue the rebase
+	if c.usingGpg() {
+		return errors.New(c.Tr.SLocalize("DisabledForGPG"))
+	}
+
+	todo, sha, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
+	if err != nil {
+		return err
+	}
+
+	cmd, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
+	if err != nil {
+		return err
+	}
+
+	if err := c.OSCommand.RunPreparedCommand(cmd); err != nil {
+		return err
 	}
 
 	return nil

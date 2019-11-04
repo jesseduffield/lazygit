@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/git"
 )
 
 // list panel functions
@@ -67,7 +66,7 @@ func (gui *Gui) RenderSelectedBranchUpstreamDifferences() error {
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 	g.Update(func(g *gocui.Gui) error {
-		builder, err := git.NewBranchListBuilder(gui.Log, gui.GitCommand)
+		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand)
 		if err != nil {
 			return err
 		}

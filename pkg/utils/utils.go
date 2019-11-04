@@ -261,3 +261,41 @@ func AsJson(i interface{}) string {
 	bytes, _ := json.MarshalIndent(i, "", "    ")
 	return string(bytes)
 }
+
+// UnionInt returns the union of two int arrays
+func UnionInt(a, b []int) []int {
+	m := make(map[int]bool)
+
+	for _, item := range a {
+		m[item] = true
+	}
+
+	for _, item := range b {
+		if _, ok := m[item]; !ok {
+			// this does not mutate the original a slice
+			// though it does mutate the backing array I believe
+			// but that doesn't matter because if you later want to append to the
+			// original a it must see that the backing array has been changed
+			// and create a new one
+			a = append(a, item)
+		}
+	}
+	return a
+}
+
+// DifferenceInt returns the difference of two int arrays
+func DifferenceInt(a, b []int) []int {
+	result := []int{}
+	m := make(map[int]bool)
+
+	for _, item := range b {
+		m[item] = true
+	}
+
+	for _, item := range a {
+		if _, ok := m[item]; !ok {
+			result = append(result, item)
+		}
+	}
+	return result
+}

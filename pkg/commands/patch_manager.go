@@ -1,0 +1,194 @@
+package commands
+
+import (
+	"sort"
+	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sirupsen/logrus"
+)
+
+type fileInfo struct {
+	mode                int // one of WHOLE/PART
+	includedLineIndices []int
+	diff                string
+}
+
+type applyPatchFunc func(patch string, reverse bool, cached bool, extraFlags string) error
+
+// PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit)
+type PatchManager struct {
+	CommitSha   string
+	fileInfoMap map[string]*fileInfo
+	Log         *logrus.Entry
+	ApplyPatch  applyPatchFunc
+}
+
+// NewPatchManager returns a new PatchModifier
+func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc, commitSha string, diffMap map[string]string) *PatchManager {
+	infoMap := map[string]*fileInfo{}
+	for filename, diff := range diffMap {
+		infoMap[filename] = &fileInfo{
+			mode: UNSELECTED,
+			diff: diff,
+		}
+	}
+
+	return &PatchManager{
+		Log:         log,
+		fileInfoMap: infoMap,
+		CommitSha:   commitSha,
+		ApplyPatch:  applyPatch,
+	}
+}
+
+func (p *PatchManager) AddFile(filename string) {
+	p.fileInfoMap[filename].mode = WHOLE
+	p.fileInfoMap[filename].includedLineIndices = nil
+}
+
+func (p *PatchManager) RemoveFile(filename string) {
+	p.fileInfoMap[filename].mode = UNSELECTED
+	p.fileInfoMap[filename].includedLineIndices = nil
+}
+
+func (p *PatchManager) ToggleFileWhole(filename string) {
+	info := p.fileInfoMap[filename]
+	switch info.mode {
+	case UNSELECTED:
+		p.AddFile(filename)
+	case WHOLE:
+		p.RemoveFile(filename)
+	case PART:
+		p.AddFile(filename)
+	}
+}
+
+func getIndicesForRange(first, last int) []int {
+	indices := []int{}
+	for i := first; i <= last; i++ {
+		indices = append(indices, i)
+	}
+	return indices
+}
+
+func (p *PatchManager) AddFileLineRange(filename string, firstLineIdx, lastLineIdx int) {
+	info := p.fileInfoMap[filename]
+	info.mode = PART
+	info.includedLineIndices = utils.UnionInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+}
+
+func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLineIdx int) {
+	info := p.fileInfoMap[filename]
+	info.mode = PART
+	info.includedLineIndices = utils.DifferenceInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+	if len(info.includedLineIndices) == 0 {
+		p.RemoveFile(filename)
+	}
+}
+
+func (p *PatchManager) RenderPlainPatchForFile(filename string, reverse bool) string {
+	info := p.fileInfoMap[filename]
+	if info == nil {
+		return ""
+	}
+
+	switch info.mode {
+	case WHOLE:
+		// use the whole diff
+		// the reverse flag is only for part patches so we're ignoring it here
+		return info.diff
+	case PART:
+		// generate a new diff with just the selected lines
+		m := NewPatchModifier(p.Log, filename, info.diff)
+		return m.ModifiedPatchForLines(info.includedLineIndices, reverse, true)
+	default:
+		return ""
+	}
+}
+
+func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool) string {
+	patch := p.RenderPlainPatchForFile(filename, reverse)
+	if plain {
+		return patch
+	}
+	parser, err := NewPatchParser(p.Log, patch)
+	if err != nil {
+		// swallowing for now
+		return ""
+	}
+	// not passing included lines because we don't want to see them in the secondary panel
+	return parser.Render(-1, -1, nil)
+}
+
+func (p *PatchManager) RenderEachFilePatch(plain bool) []string {
+	// sort files by name then iterate through and render each patch
+	filenames := make([]string, len(p.fileInfoMap))
+	index := 0
+	for filename := range p.fileInfoMap {
+		filenames[index] = filename
+		index++
+	}
+
+	sort.Strings(filenames)
+	output := []string{}
+	for _, filename := range filenames {
+		patch := p.RenderPatchForFile(filename, plain, false)
+		if patch != "" {
+			output = append(output, patch)
+		}
+	}
+
+	return output
+}
+
+func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
+	return strings.Join(p.RenderEachFilePatch(plain), "\n")
+}
+
+func (p *PatchManager) GetFileStatus(filename string) int {
+	info := p.fileInfoMap[filename]
+	if info == nil {
+		return UNSELECTED
+	}
+	return info.mode
+}
+
+func (p *PatchManager) GetFileIncLineIndices(filename string) []int {
+	info := p.fileInfoMap[filename]
+	if info == nil {
+		return []int{}
+	}
+	return info.includedLineIndices
+}
+
+func (p *PatchManager) ApplyPatches(reverse bool) error {
+	// for whole patches we'll apply the patch in reverse
+	// but for part patches we'll apply a reverse patch forwards
+	for filename, info := range p.fileInfoMap {
+		if info.mode == UNSELECTED {
+			continue
+		}
+
+		reverseOnGenerate := false
+		reverseOnApply := false
+		if reverse {
+			if info.mode == WHOLE {
+				reverseOnApply = true
+			} else {
+				reverseOnGenerate = true
+			}
+		}
+
+		patch := p.RenderPatchForFile(filename, true, reverseOnGenerate)
+		if patch == "" {
+			continue
+		}
+		p.Log.Warn(patch)
+		if err := p.ApplyPatch(patch, reverseOnApply, false, "--index --3way"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

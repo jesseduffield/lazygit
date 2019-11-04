@@ -1,4 +1,4 @@
-package git
+package commands
 
 import (
 	"regexp"
@@ -12,6 +12,8 @@ import (
 
 const (
 	PATCH_HEADER = iota
+	COMMIT_SHA
+	COMMIT_DESCRIPTION
 	HUNK_HEADER
 	ADDITION
 	DELETION
@@ -81,7 +83,10 @@ func (p *PatchParser) GetHunkContainingLine(lineIndex int, offset int) *PatchHun
 	return p.PatchHunks[0]
 }
 
-func (l *PatchLine) render(selected bool) string {
+// selected means you've got it highlighted with your cursor
+// included means the line has been included in the patch (only applicable when
+// building a patch)
+func (l *PatchLine) render(selected bool, included bool) string {
 	content := l.Content
 	if len(content) == 0 {
 		content = " " // using the space so that we can still highlight if necessary
@@ -91,7 +96,7 @@ func (l *PatchLine) render(selected bool) string {
 	if l.Kind == HUNK_HEADER {
 		re := regexp.MustCompile("(@@.*?@@)(.*)")
 		match := re.FindStringSubmatch(content)
-		return coloredString(color.FgCyan, match[1], selected) + coloredString(theme.DefaultTextColor, match[2], selected)
+		return coloredString(color.FgCyan, match[1], selected, included) + coloredString(theme.DefaultTextColor, match[2], selected, false)
 	}
 
 	var colorAttr color.Attribute
@@ -102,21 +107,34 @@ func (l *PatchLine) render(selected bool) string {
 		colorAttr = color.FgGreen
 	case DELETION:
 		colorAttr = color.FgRed
+	case COMMIT_SHA:
+		colorAttr = color.FgYellow
 	default:
 		colorAttr = theme.DefaultTextColor
 	}
 
-	return coloredString(colorAttr, content, selected)
+	return coloredString(colorAttr, content, selected, included)
 }
 
-func coloredString(colorAttr color.Attribute, str string, selected bool) string {
+func coloredString(colorAttr color.Attribute, str string, selected bool, included bool) string {
 	var cl *color.Color
+	attributes := []color.Attribute{colorAttr}
 	if selected {
-		cl = color.New(colorAttr, color.BgBlue)
-	} else {
-		cl = color.New(colorAttr)
+		attributes = append(attributes, color.BgBlue)
 	}
-	return utils.ColoredStringDirect(str, cl)
+	cl = color.New(attributes...)
+	var clIncluded *color.Color
+	if included {
+		clIncluded = color.New(append(attributes, color.BgGreen)...)
+	} else {
+		clIncluded = color.New(attributes...)
+	}
+
+	if len(str) < 2 {
+		return utils.ColoredStringDirect(str, clIncluded)
+	}
+
+	return utils.ColoredStringDirect(str[:1], clIncluded) + utils.ColoredStringDirect(str[1:], cl)
 }
 
 func parsePatch(patch string) ([]int, []int, []*PatchLine, error) {
@@ -124,16 +142,26 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine, error) {
 	hunkStarts := []int{}
 	stageableLines := []int{}
 	pastFirstHunkHeader := false
+	pastCommitDescription := true
 	patchLines := make([]*PatchLine, len(lines))
 	var lineKind int
 	var firstChar string
 	for index, line := range lines {
-		lineKind = PATCH_HEADER
 		firstChar = " "
 		if len(line) > 0 {
 			firstChar = line[:1]
 		}
-		if firstChar == "@" {
+		if index == 0 && strings.HasPrefix(line, "commit") {
+			lineKind = COMMIT_SHA
+			pastCommitDescription = false
+		} else if !pastCommitDescription {
+			if strings.HasPrefix(line, "diff") || strings.HasPrefix(line, "---") {
+				pastCommitDescription = true
+				lineKind = PATCH_HEADER
+			} else {
+				lineKind = COMMIT_DESCRIPTION
+			}
+		} else if firstChar == "@" {
 			pastFirstHunkHeader = true
 			hunkStarts = append(hunkStarts, index)
 			lineKind = HUNK_HEADER
@@ -150,6 +178,8 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine, error) {
 			case " ":
 				lineKind = CONTEXT
 			}
+		} else {
+			lineKind = PATCH_HEADER
 		}
 		patchLines[index] = &PatchLine{Kind: lineKind, Content: line}
 	}
@@ -157,11 +187,12 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine, error) {
 }
 
 // Render returns the coloured string of the diff with any selected lines highlighted
-func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int) string {
+func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndices []int) string {
 	renderedLines := make([]string, len(p.PatchLines))
 	for index, patchLine := range p.PatchLines {
 		selected := index >= firstLineIndex && index <= lastLineIndex
-		renderedLines[index] = patchLine.render(selected)
+		included := utils.IncludesInt(incLineIndices, index)
+		renderedLines[index] = patchLine.render(selected, included)
 	}
 	return strings.Join(renderedLines, "\n")
 }

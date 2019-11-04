@@ -794,6 +794,24 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "jump",
 			Other: "jump to panel",
+		}, &i18n.Message{
+			ID:    "DiscardPatch",
+			Other: "Discard Patch",
+		}, &i18n.Message{
+			ID:    "DiscardPatchConfirm",
+			Other: "You can only build a patch from one commit at a time. Discard current patch?",
+		}, &i18n.Message{
+			ID:    "toggleAddToPatch",
+			Other: "toggle file included in patch",
+		}, &i18n.Message{
+			ID:    "PatchOptionsTitle",
+			Other: "Patch Options",
+		}, &i18n.Message{
+			ID:    "NoPatchError",
+			Other: "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
+		}, &i18n.Message{
+			ID:    "enterFile",
+			Other: "enter file to add selected lines to the patch",
 		},
 	)
 }

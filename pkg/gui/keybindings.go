@@ -143,6 +143,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCreateOptionsMenu,
 		}, {
+			ViewName: "",
+			Key:      gocui.KeyCtrlP,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleCreatePatchOptionsMenu,
+		}, {
 			ViewName:    "status",
 			Key:         'e',
 			Modifier:    gocui.ModNone,
@@ -522,6 +527,20 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleOpenOldCommitFile,
 			Description: gui.Tr.SLocalize("openFile"),
+		},
+		{
+			ViewName:    "commitFiles",
+			Key:         gocui.KeySpace,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleToggleFileForPatch,
+			Description: gui.Tr.SLocalize("toggleAddToPatch"),
+		},
+		{
+			ViewName:    "commitFiles",
+			Key:         gocui.KeyEnter,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleEnterCommitFile,
+			Description: gui.Tr.SLocalize("enterFile"),
 		},
 	}
 
