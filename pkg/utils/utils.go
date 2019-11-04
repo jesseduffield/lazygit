@@ -226,6 +226,16 @@ func IncludesString(list []string, a string) bool {
 	return false
 }
 
+// IncludesInt if the list contains the Int
+func IncludesInt(list []int, a int) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 // NextIndex returns the index of the element that comes after the given number
 func NextIndex(numbers []int, currentNumber int) int {
 	for index, number := range numbers {
