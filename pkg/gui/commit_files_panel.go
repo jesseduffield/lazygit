@@ -136,8 +136,8 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	toggleTheFile := func() error {
-		if gui.GitCommand.PatchManager == nil {
-			if err := gui.createPatchManager(); err != nil {
+		if gui.GitCommand.PatchManager.IsEmpty() {
+			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
 		}
@@ -147,9 +147,9 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommitFilesView()
 	}
 
-	if gui.GitCommand.PatchManager != nil && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
+	if !gui.GitCommand.PatchManager.IsEmpty() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
 		return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
-			gui.GitCommand.PatchManager = nil
+			gui.GitCommand.PatchManager.Reset()
 			return toggleTheFile()
 		}, nil)
 	}
@@ -157,7 +157,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	return toggleTheFile()
 }
 
-func (gui *Gui) createPatchManager() error {
+func (gui *Gui) startPatchManager() error {
 	diffMap := map[string]string{}
 	for _, commitFile := range gui.State.CommitFiles {
 		commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, true)
@@ -172,7 +172,7 @@ func (gui *Gui) createPatchManager() error {
 		return errors.New("No commit selected")
 	}
 
-	gui.GitCommand.PatchManager = commands.NewPatchManager(gui.Log, gui.GitCommand.ApplyPatch, commit.Sha, diffMap)
+	gui.GitCommand.PatchManager.Start(commit.Sha, diffMap)
 	return nil
 }
 
@@ -187,8 +187,8 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	enterTheFile := func() error {
-		if gui.GitCommand.PatchManager == nil {
-			if err := gui.createPatchManager(); err != nil {
+		if gui.GitCommand.PatchManager.IsEmpty() {
+			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
 		}
@@ -202,9 +202,9 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshPatchBuildingPanel()
 	}
 
-	if gui.GitCommand.PatchManager != nil && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
+	if !gui.GitCommand.PatchManager.IsEmpty() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
 		return gui.createConfirmationPanel(g, v, false, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
-			gui.GitCommand.PatchManager = nil
+			gui.GitCommand.PatchManager.Reset()
 			return enterTheFile()
 		}, nil)
 	}

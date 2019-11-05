@@ -17,15 +17,14 @@ func (o *patchMenuOption) GetDisplayStrings(isFocused bool) []string {
 }
 
 func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
-	m := gui.GitCommand.PatchManager
-	if m == nil {
+	if gui.GitCommand.PatchManager.IsEmpty() {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoPatchError"))
 	}
 
 	options := []*patchMenuOption{
 		{displayName: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.CommitSha), function: gui.handleDeletePatchFromCommit},
 		{displayName: "pull patch out into index", function: gui.handlePullPatchIntoWorkingTree},
-		{displayName: "reset patch", function: gui.handleClearPatch},
+		{displayName: "reset patch", function: gui.handleResetPatch},
 	}
 
 	selectedCommit := gui.getSelectedCommit(gui.g)
@@ -122,7 +121,7 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 	})
 }
 
-func (gui *Gui) handleClearPatch() error {
-	gui.GitCommand.PatchManager = nil
+func (gui *Gui) handleResetPatch() error {
+	gui.GitCommand.PatchManager.Reset()
 	return gui.refreshCommitFilesView()
 }
