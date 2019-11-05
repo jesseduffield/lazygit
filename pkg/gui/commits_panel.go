@@ -53,14 +53,14 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshPatchPanel() error {
-	if gui.State.PatchManager != nil {
+	if gui.GitCommand.PatchManager != nil {
 		gui.State.SplitMainPanel = true
 		secondaryView := gui.getSecondaryView()
 		secondaryView.Highlight = true
 		secondaryView.Wrap = false
 
 		gui.g.Update(func(*gocui.Gui) error {
-			return gui.setViewContent(gui.g, gui.getSecondaryView(), gui.State.PatchManager.RenderAggregatedPatchColored(false))
+			return gui.setViewContent(gui.g, gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
 		})
 	} else {
 		gui.State.SplitMainPanel = false

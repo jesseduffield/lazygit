@@ -93,7 +93,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return nil
 	}
 
-	files, err := gui.GitCommand.GetCommitFiles(commit.Sha, gui.State.PatchManager)
+	files, err := gui.GitCommand.GetCommitFiles(commit.Sha, gui.GitCommand.PatchManager)
 	if err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
@@ -124,20 +124,20 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	toggleTheFile := func() error {
-		if gui.State.PatchManager == nil {
+		if gui.GitCommand.PatchManager == nil {
 			if err := gui.createPatchManager(); err != nil {
 				return err
 			}
 		}
 
-		gui.State.PatchManager.ToggleFileWhole(commitFile.Name)
+		gui.GitCommand.PatchManager.ToggleFileWhole(commitFile.Name)
 
 		return gui.refreshCommitFilesView()
 	}
 
-	if gui.State.PatchManager != nil && gui.State.PatchManager.CommitSha != commitFile.Sha {
+	if gui.GitCommand.PatchManager != nil && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
 		return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
-			gui.State.PatchManager = nil
+			gui.GitCommand.PatchManager = nil
 			return toggleTheFile()
 		}, nil)
 	}
@@ -160,7 +160,7 @@ func (gui *Gui) createPatchManager() error {
 		return errors.New("No commit selected")
 	}
 
-	gui.State.PatchManager = commands.NewPatchManager(gui.Log, gui.GitCommand.ApplyPatch, commit.Sha, diffMap)
+	gui.GitCommand.PatchManager = commands.NewPatchManager(gui.Log, gui.GitCommand.ApplyPatch, commit.Sha, diffMap)
 	return nil
 }
 
@@ -175,7 +175,7 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	enterTheFile := func() error {
-		if gui.State.PatchManager == nil {
+		if gui.GitCommand.PatchManager == nil {
 			if err := gui.createPatchManager(); err != nil {
 				return err
 			}
@@ -190,9 +190,9 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshStagingPanel()
 	}
 
-	if gui.State.PatchManager != nil && gui.State.PatchManager.CommitSha != commitFile.Sha {
+	if gui.GitCommand.PatchManager != nil && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
 		return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
-			gui.State.PatchManager = nil
+			gui.GitCommand.PatchManager = nil
 			return enterTheFile()
 		}, nil)
 	}

@@ -68,7 +68,7 @@ func (gui *Gui) refreshStagingPanel() error {
 		return err
 	}
 
-	secondaryColorDiff := gui.State.PatchManager.RenderPatchForFile(commitFile.Name, false, false)
+	secondaryColorDiff := gui.GitCommand.PatchManager.RenderPatchForFile(commitFile.Name, false, false)
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func (gui *Gui) refreshView() error {
 
 	filename := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
 
-	colorDiff := state.PatchParser.Render(state.FirstLineIdx, state.LastLineIdx, gui.State.PatchManager.GetFileIncLineIndices(filename))
+	colorDiff := state.PatchParser.Render(state.FirstLineIdx, state.LastLineIdx, gui.GitCommand.PatchManager.GetFileIncLineIndices(filename))
 
 	mainView := gui.getMainView()
 	mainView.Highlight = true
@@ -283,7 +283,7 @@ func (gui *Gui) handleStageSelection(g *gocui.Gui, v *gocui.View) error {
 		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 	}
 
-	gui.State.PatchManager.AddFileLineRange(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
+	gui.GitCommand.PatchManager.AddFileLineRange(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
 
 	if err := gui.refreshCommitFilesView(); err != nil {
 		return err
@@ -307,7 +307,7 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 	}
 
-	gui.State.PatchManager.RemoveFileLineRange(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
+	gui.GitCommand.PatchManager.RemoveFileLineRange(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
 
 	if err := gui.refreshCommitFilesView(); err != nil {
 		return err
