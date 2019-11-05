@@ -23,18 +23,25 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 	}
 
 	options := []*patchMenuOption{
-		{displayName: "discard patch", function: gui.handleDeletePatchFromCommit},
+		{displayName: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.CommitSha), function: gui.handleDeletePatchFromCommit},
 		{displayName: "pull patch out into index", function: gui.handlePullPatchIntoWorkingTree},
-		{displayName: "save patch to file"},
-		{displayName: "clear patch", function: gui.handleClearPatch},
+		{displayName: "reset patch", function: gui.handleClearPatch},
 	}
 
 	selectedCommit := gui.getSelectedCommit(gui.g)
 	if selectedCommit != nil && gui.GitCommand.PatchManager.CommitSha != selectedCommit.Sha {
-		options = append(options, &patchMenuOption{
-			displayName: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
-			function:    gui.handleMovePatchToSelectedCommit,
-		})
+		// adding this option to index 1
+		options = append(
+			options[:1],
+			append(
+				[]*patchMenuOption{
+					{
+						displayName: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
+						function:    gui.handleMovePatchToSelectedCommit,
+					},
+				}, options[1:]...,
+			)...,
+		)
 	}
 
 	handleMenuPress := func(index int) error {
