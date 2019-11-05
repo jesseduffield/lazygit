@@ -502,7 +502,7 @@ func TestModifyPatchForRange(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			result := ModifiedPatchForRange(nil, s.filename, s.diffText, s.firstLineIndex, s.lastLineIndex, s.reverse, true)
+			result := ModifiedPatchForRange(nil, s.filename, s.diffText, s.firstLineIndex, s.lastLineIndex, s.reverse, false)
 			if !assert.Equal(t, s.expected, result) {
 				fmt.Println(result)
 			}
