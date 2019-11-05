@@ -5,6 +5,10 @@ import (
 )
 
 func (gui *Gui) refreshPatchBuildingPanel() error {
+	if gui.GitCommand.PatchManager == nil {
+		return gui.handleEscapePatchBuildingPanel(gui.g, nil)
+	}
+
 	gui.State.SplitMainPanel = true
 
 	// get diff from commit file that's currently selected
@@ -22,8 +26,6 @@ func (gui *Gui) refreshPatchBuildingPanel() error {
 	if err != nil {
 		return err
 	}
-
-	gui.Log.Warn(secondaryDiff)
 
 	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false)
 	if err != nil {
@@ -83,6 +85,7 @@ func (gui *Gui) handleRemoveSelectionFromPatch(g *gocui.Gui, v *gocui.View) erro
 
 func (gui *Gui) handleEscapePatchBuildingPanel(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Panels.LineByLine = nil
+	gui.State.Contexts["main"] = "normal"
 
 	return gui.switchFocus(gui.g, nil, gui.getCommitFilesView())
 }

@@ -60,8 +60,26 @@ func (gui *Gui) getPatchCommitIndex() int {
 	return -1
 }
 
+func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
+	if gui.State.WorkingTreeState != "normal" {
+		return false, gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantPatchWhileRebasingError"))
+	}
+	return true, nil
+}
+
+func (gui *Gui) returnFocusFromLineByLinePanelIfNecessary() error {
+	if gui.State.Contexts["main"] == "patch-building" {
+		return gui.handleEscapePatchBuildingPanel(gui.g, nil)
+	}
+	return nil
+}
+
 func (gui *Gui) handleDeletePatchFromCommit() error {
 	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
+	if err := gui.returnFocusFromLineByLinePanelIfNecessary(); err != nil {
 		return err
 	}
 
@@ -77,6 +95,10 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 		return err
 	}
 
+	if err := gui.returnFocusFromLineByLinePanelIfNecessary(); err != nil {
+		return err
+	}
+
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		err := gui.GitCommand.MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLine, gui.GitCommand.PatchManager)
@@ -84,15 +106,12 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 	})
 }
 
-func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
-	if gui.State.WorkingTreeState != "normal" {
-		return false, gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantPatchWhileRebasingError"))
-	}
-	return true, nil
-}
-
 func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
+	if err := gui.returnFocusFromLineByLinePanelIfNecessary(); err != nil {
 		return err
 	}
 

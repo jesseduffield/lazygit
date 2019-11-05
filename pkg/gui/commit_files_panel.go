@@ -96,6 +96,10 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return err
 	}
 
+	if err := gui.refreshPatchBuildingPanel(); err != nil {
+		return err
+	}
+
 	commit := gui.getSelectedCommit(gui.g)
 	if commit == nil {
 		return nil
