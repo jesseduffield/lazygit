@@ -54,7 +54,9 @@ func (gui *Gui) getPatchCommitIndex() int {
 }
 
 func (gui *Gui) handleDeletePatchFromCommit() error {
-	// TODO: deal with when we're already rebasing
+	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 		commitIndex := gui.getPatchCommitIndex()
@@ -64,7 +66,9 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 }
 
 func (gui *Gui) handleMovePatchToSelectedCommit() error {
-	// TODO: deal with when we're already rebasing
+	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 		commitIndex := gui.getPatchCommitIndex()
@@ -73,8 +77,17 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 	})
 }
 
+func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
+	if gui.State.WorkingTreeState != "normal" {
+		return false, gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantPatchWhileRebasingError"))
+	}
+	return true, nil
+}
+
 func (gui *Gui) handlePullPatchIntoWorkingTree() error {
-	// TODO: deal with when we're already rebasing
+	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 		commitIndex := gui.getPatchCommitIndex()

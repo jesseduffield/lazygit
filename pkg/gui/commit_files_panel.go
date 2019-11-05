@@ -64,6 +64,10 @@ func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
 	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
 
 	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("DiscardFileChangesTitle"), gui.Tr.SLocalize("DiscardFileChangesPrompt"), func(g *gocui.Gui, v *gocui.View) error {
@@ -110,6 +114,10 @@ func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
 	commitFile := gui.getSelectedCommitFile(g)
 	if commitFile == nil {
 		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
@@ -157,6 +165,10 @@ func (gui *Gui) createPatchManager() error {
 }
 
 func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
 	commitFile := gui.getSelectedCommitFile(g)
 	if commitFile == nil {
 		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
