@@ -100,9 +100,13 @@ func (gui *Gui) applySelection(reverse bool) error {
 
 	// apply the patch then refresh this panel
 	// create a new temp file with the patch, then call git apply with that patch
-	err = gui.GitCommand.ApplyPatch(patch, false, !reverse || state.SecondaryFocused, "")
+	applyFlags := []string{}
+	if !reverse || state.SecondaryFocused {
+		applyFlags = append(applyFlags, "cached")
+	}
+	err = gui.GitCommand.ApplyPatch(patch, applyFlags...)
 	if err != nil {
-		return err
+		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
 	if state.SelectMode == RANGE {

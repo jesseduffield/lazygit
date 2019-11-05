@@ -13,7 +13,7 @@ type fileInfo struct {
 	diff                string
 }
 
-type applyPatchFunc func(patch string, reverse bool, cached bool, extraFlags string) error
+type applyPatchFunc func(patch string, flags ...string) error
 
 // PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit)
 type PatchManager struct {
@@ -177,11 +177,11 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 			continue
 		}
 
+		applyFlags := []string{"index", "3way"}
 		reverseOnGenerate := false
-		reverseOnApply := false
 		if reverse {
 			if info.mode == WHOLE {
-				reverseOnApply = true
+				applyFlags = append(applyFlags, "reverse")
 			} else {
 				reverseOnGenerate = true
 			}
@@ -194,7 +194,7 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 			if patch == "" {
 				continue
 			}
-			if err = p.ApplyPatch(patch, reverseOnApply, false, "--index --3way"); err != nil {
+			if err = p.ApplyPatch(patch, applyFlags...); err != nil {
 				continue
 			}
 			break

@@ -1733,7 +1733,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.ApplyPatch("test", false, true, ""))
+			s.test(gitCmd.ApplyPatch("test", "cached"))
 		})
 	}
 }
