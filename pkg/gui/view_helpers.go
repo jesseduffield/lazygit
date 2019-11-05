@@ -157,7 +157,7 @@ func (gui *Gui) goToSideView(sideViewName string) func(g *gocui.Gui, v *gocui.Vi
 
 func (gui *Gui) closePopupPanels() error {
 	gui.onNewPopupPanel()
-	err := gui.closeConfirmationPrompt(gui.g)
+	err := gui.closeConfirmationPrompt(gui.g, true)
 	if err != nil {
 		gui.Log.Error(err)
 		return err

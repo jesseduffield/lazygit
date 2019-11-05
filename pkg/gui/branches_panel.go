@@ -151,7 +151,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch()
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
-	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.Checkout(branch.Name, true); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}
@@ -165,7 +165,7 @@ func (gui *Gui) handleCheckoutBranch(branchName string) error {
 
 		if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 			// offer to autostash changes
-			return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+			return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + branchName); err != nil {
 					return gui.createErrorPanel(g, err.Error())
 				}
@@ -254,7 +254,7 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 			"selectedBranchName": selectedBranch.Name,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
 			errMessage := err.Error()
 			if !force && strings.Contains(errMessage, "is not fully merged") {
@@ -279,7 +279,7 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 			"selectedBranch":   selectedBranch,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("MergingTitle"), prompt,
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("MergingTitle"), prompt,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.Merge(selectedBranch)
@@ -300,7 +300,7 @@ func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
 			"selectedBranch":   selectedBranch,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("RebasingTitle"), prompt,
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("RebasingTitle"), prompt,
 		func(g *gocui.Gui, v *gocui.View) error {
 
 			err := gui.GitCommand.RebaseBranch(selectedBranch)
@@ -335,7 +335,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.FastForward(branch.Name); err != nil {
 			_ = gui.createErrorPanel(gui.g, err.Error())
 		} else {
-			_ = gui.closeConfirmationPrompt(gui.g)
+			_ = gui.closeConfirmationPrompt(gui.g, true)
 			_ = gui.RenderSelectedBranchUpstreamDifferences()
 		}
 	}()

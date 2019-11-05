@@ -338,7 +338,7 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 	title := strings.Title(gui.Tr.SLocalize("AmendLastCommit"))
 	question := gui.Tr.SLocalize("SureToAmend")
 
-	return gui.createConfirmationPanel(g, filesView, title, question, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, filesView, true, title, question, func(g *gocui.Gui, v *gocui.View) error {
 		ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
 		if err != nil {
 			return err
@@ -460,7 +460,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	if pullables == "?" || pullables == "0" {
 		return gui.pushWithForceFlag(g, v, false)
 	}
-	err := gui.createConfirmationPanel(g, nil, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+	err := gui.createConfirmationPanel(g, nil, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.pushWithForceFlag(g, v, true)
 	}, nil)
 	return err
