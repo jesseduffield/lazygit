@@ -31,7 +31,7 @@ func (gui *Gui) refreshPatchBuildingPanel() error {
 	}
 
 	if empty {
-		return gui.handleStagingEscape(gui.g, nil)
+		return gui.handleEscapePatchBuildingPanel(gui.g, nil)
 	}
 
 	return nil
@@ -85,4 +85,21 @@ func (gui *Gui) handleEscapePatchBuildingPanel(g *gocui.Gui, v *gocui.View) erro
 	gui.State.Panels.LineByLine = nil
 
 	return gui.switchFocus(gui.g, nil, gui.getCommitFilesView())
+}
+
+func (gui *Gui) refreshSecondaryPatchPanel() error {
+	if gui.GitCommand.PatchManager != nil {
+		gui.State.SplitMainPanel = true
+		secondaryView := gui.getSecondaryView()
+		secondaryView.Highlight = true
+		secondaryView.Wrap = false
+
+		gui.g.Update(func(*gocui.Gui) error {
+			return gui.setViewContent(gui.g, gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
+		})
+	} else {
+		gui.State.SplitMainPanel = false
+	}
+
+	return nil
 }

@@ -16,9 +16,17 @@ func (gui *Gui) getSelectedCommitFile(g *gocui.Gui) *commands.CommitFile {
 }
 
 func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	commitFile := gui.getSelectedCommitFile(g)
 	if commitFile == nil {
 		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+	}
+
+	if err := gui.refreshSecondaryPatchPanel(); err != nil {
+		return err
 	}
 
 	if err := gui.focusPoint(0, gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles), v); err != nil {
@@ -84,7 +92,7 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshCommitFilesView() error {
-	if err := gui.refreshPatchPanel(); err != nil {
+	if err := gui.refreshSecondaryPatchPanel(); err != nil {
 		return err
 	}
 

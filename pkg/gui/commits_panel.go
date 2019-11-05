@@ -28,6 +28,11 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	// this probably belongs in an 'onFocus' function than a 'commit selected' function
+	if err := gui.refreshSecondaryPatchPanel(); err != nil {
+		return err
+	}
+
 	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
 		return err
 	}
@@ -52,23 +57,6 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	return gui.renderString(g, "main", commitText)
 }
 
-func (gui *Gui) refreshPatchPanel() error {
-	if gui.GitCommand.PatchManager != nil {
-		gui.State.SplitMainPanel = true
-		secondaryView := gui.getSecondaryView()
-		secondaryView.Highlight = true
-		secondaryView.Wrap = false
-
-		gui.g.Update(func(*gocui.Gui) error {
-			return gui.setViewContent(gui.g, gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
-		})
-	} else {
-		gui.State.SplitMainPanel = false
-	}
-
-	return nil
-}
-
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
 		builder, err := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
@@ -80,10 +68,6 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			return err
 		}
 		gui.State.Commits = commits
-
-		if err := gui.refreshPatchPanel(); err != nil {
-			return err
-		}
 
 		gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
 
