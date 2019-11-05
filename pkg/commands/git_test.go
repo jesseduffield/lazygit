@@ -920,7 +920,7 @@ func TestGitCommandAmendHead(t *testing.T) {
 			"Amend commit using gpg",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "bash", cmd)
-				assert.EqualValues(t, []string{"-c", "git commit --amend --no-edit"}, args)
+				assert.EqualValues(t, []string{"-c", "git commit --amend --no-edit --allow-empty"}, args)
 
 				return exec.Command("echo")
 			},
@@ -936,7 +936,7 @@ func TestGitCommandAmendHead(t *testing.T) {
 			"Amend commit without using gpg",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"commit", "--amend", "--no-edit"}, args)
+				assert.EqualValues(t, []string{"commit", "--amend", "--no-edit", "--allow-empty"}, args)
 
 				return exec.Command("echo")
 			},
@@ -952,7 +952,7 @@ func TestGitCommandAmendHead(t *testing.T) {
 			"Amend commit without using gpg with an error",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"commit", "--amend", "--no-edit"}, args)
+				assert.EqualValues(t, []string{"commit", "--amend", "--no-edit", "--allow-empty"}, args)
 
 				return exec.Command("test")
 			},
@@ -1426,7 +1426,7 @@ func TestGitCommandShow(t *testing.T) {
 			"456abcde",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git show --color 456abcde",
+					Expect:  "git show --color --no-renames 456abcde",
 					Replace: "echo \"commit ccc771d8b13d5b0d4635db4463556366470fd4f6\nblah\"",
 				},
 				{
@@ -1444,7 +1444,7 @@ func TestGitCommandShow(t *testing.T) {
 			"456abcde",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git show --color 456abcde",
+					Expect:  "git show --color --no-renames 456abcde",
 					Replace: "echo \"commit ccc771d8b13d5b0d4635db4463556366470fd4f6\nMerge: 1a6a69a 3b51d7c\"",
 				},
 				{
@@ -1753,7 +1753,7 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 			"master",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git rebase --interactive --autostash master",
+					Expect:  "git rebase --interactive --autostash --keep-empty --rebase-merges master",
 					Replace: "echo",
 				},
 			}),
@@ -1766,7 +1766,7 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 			"master",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git rebase --interactive --autostash master",
+					Expect:  "git rebase --interactive --autostash --keep-empty --rebase-merges master",
 					Replace: "test",
 				},
 			}),
@@ -1889,7 +1889,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 			"test999.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git rebase --interactive --autostash abcdef",
+					Expect:  "git rebase --interactive --autostash --keep-empty --rebase-merges abcdef",
 					Replace: "echo",
 				},
 				{
@@ -1901,7 +1901,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 					Replace: "echo",
 				},
 				{
-					Expect:  "git commit --amend --no-edit",
+					Expect:  "git commit --amend --no-edit --allow-empty",
 					Replace: "echo",
 				},
 				{
@@ -1945,7 +1945,7 @@ func TestGitCommandShowCommitFile(t *testing.T) {
 			"hello.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git show --color 123456 -- hello.txt",
+					Expect:  "git show --no-renames 123456 -- hello.txt",
 					Replace: "echo -n hello",
 				},
 			}),
@@ -1981,7 +1981,7 @@ func TestGitCommandGetCommitFiles(t *testing.T) {
 			"123456",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git show --pretty= --name-only 123456",
+					Expect:  "git show --pretty= --name-only --no-renames 123456",
 					Replace: "echo 'hello\nworld'",
 				},
 			}),
