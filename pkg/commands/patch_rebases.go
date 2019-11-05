@@ -21,6 +21,11 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*Commit, commitIndex int,
 		return err
 	}
 
+	c.onSuccessfulContinue = func() error {
+		c.PatchManager = nil
+		return nil
+	}
+
 	// continue
 	return c.GenericMerge("rebase", "continue")
 }
@@ -42,6 +47,11 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitId
 		// amend the destination commit
 		if _, err := c.AmendHead(); err != nil {
 			return err
+		}
+
+		c.onSuccessfulContinue = func() error {
+			c.PatchManager = nil
+			return nil
 		}
 
 		// continue
@@ -110,6 +120,11 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitId
 			return err
 		}
 
+		c.onSuccessfulContinue = func() error {
+			c.PatchManager = nil
+			return nil
+		}
+
 		return c.GenericMerge("rebase", "continue")
 	}
 
@@ -146,6 +161,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *Pat
 			return err
 		}
 
+		c.PatchManager = nil
 		return nil
 	}
 
