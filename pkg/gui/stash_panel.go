@@ -24,6 +24,8 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	gui.State.SplitMainPanel = false
+
 	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
 		return err
 	}
