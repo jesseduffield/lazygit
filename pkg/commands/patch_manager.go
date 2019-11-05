@@ -87,7 +87,7 @@ func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 	}
 }
 
-func (p *PatchManager) RenderPlainPatchForFile(filename string, reverse bool) string {
+func (p *PatchManager) RenderPlainPatchForFile(filename string, reverse bool, keepOriginalHeader bool) string {
 	info := p.fileInfoMap[filename]
 	if info == nil {
 		return ""
@@ -101,14 +101,14 @@ func (p *PatchManager) RenderPlainPatchForFile(filename string, reverse bool) st
 	case PART:
 		// generate a new diff with just the selected lines
 		m := NewPatchModifier(p.Log, filename, info.diff)
-		return m.ModifiedPatchForLines(info.includedLineIndices, reverse, true)
+		return m.ModifiedPatchForLines(info.includedLineIndices, reverse, keepOriginalHeader)
 	default:
 		return ""
 	}
 }
 
-func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool) string {
-	patch := p.RenderPlainPatchForFile(filename, reverse)
+func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool, keepOriginalHeader bool) string {
+	patch := p.RenderPlainPatchForFile(filename, reverse, keepOriginalHeader)
 	if plain {
 		return patch
 	}
@@ -133,7 +133,7 @@ func (p *PatchManager) RenderEachFilePatch(plain bool) []string {
 	sort.Strings(filenames)
 	output := []string{}
 	for _, filename := range filenames {
-		patch := p.RenderPatchForFile(filename, plain, false)
+		patch := p.RenderPatchForFile(filename, plain, false, true)
 		if patch != "" {
 			output = append(output, patch)
 		}
@@ -180,11 +180,20 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 			}
 		}
 
-		patch := p.RenderPatchForFile(filename, true, reverseOnGenerate)
-		if patch == "" {
-			continue
+		var err error
+		// first run we try with the original header, then without
+		for _, keepOriginalHeader := range []bool{true, false} {
+			patch := p.RenderPatchForFile(filename, true, reverseOnGenerate, keepOriginalHeader)
+			if patch == "" {
+				continue
+			}
+			if err = p.ApplyPatch(patch, reverseOnApply, false, "--index --3way"); err != nil {
+				continue
+			}
+			break
 		}
-		if err := p.ApplyPatch(patch, reverseOnApply, false, "--index --3way"); err != nil {
+
+		if err != nil {
 			return err
 		}
 	}

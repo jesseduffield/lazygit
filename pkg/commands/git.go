@@ -610,6 +610,7 @@ func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
 }
 
 func (c *GitCommand) ApplyPatch(patch string, reverse bool, cached bool, extraFlags string) error {
+	c.Log.Warn(patch)
 	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format(time.StampNano)+".patch")
 	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
