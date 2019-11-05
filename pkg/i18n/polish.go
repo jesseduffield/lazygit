@@ -420,7 +420,7 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "StageLine",
 			Other: `zatwierdź linię`,
 		}, &i18n.Message{
-			ID:    "EscapeStaging",
+			ID:    "ReturnToFilesPanel",
 			Other: `wróć do panelu plików`,
 		}, &i18n.Message{
 			ID:    "CantFindHunks",
@@ -737,6 +737,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "jump",
 			Other: "jump to panel",
+		}, &i18n.Message{
+			ID:    "ExitLineByLineMode",
+			Other: `exit line-by-line mode`,
 		},
 	)
 }

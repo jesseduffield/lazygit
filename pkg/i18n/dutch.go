@@ -434,7 +434,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "StageLine",
 			Other: `stage lijn`,
 		}, &i18n.Message{
-			ID:    "EscapeStaging",
+			ID:    "ReturnToFilesPanel",
 			Other: `ga terug naar het bestanden paneel`,
 		}, &i18n.Message{
 			ID:    "CantFindHunks",
@@ -754,6 +754,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "jump",
 			Other: "jump to panel",
+		}, &i18n.Message{
+			ID:    "ExitLineByLineMode",
+			Other: `exit line-by-line mode`,
 		},
 	)
 }

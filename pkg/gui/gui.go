@@ -82,7 +82,7 @@ type Gui struct {
 // for now the staging panel state, unlike the other panel states, is going to be
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
-type stagingPanelState struct {
+type lineByLinePanelState struct {
 	SelectedLineIdx  int
 	FirstLineIdx     int
 	LastLineIdx      int
@@ -130,7 +130,7 @@ type panelStates struct {
 	Commits     *commitPanelState
 	Stash       *stashPanelState
 	Menu        *menuPanelState
-	Staging     *stagingPanelState
+	LineByLine  *lineByLinePanelState
 	Merging     *mergingPanelState
 	CommitFiles *commitFilesPanelState
 }
@@ -391,7 +391,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	main := "main"
 	secondary := "secondary"
-	swappingMainPanels := gui.State.Panels.Staging != nil && gui.State.Panels.Staging.SecondaryFocused
+	swappingMainPanels := gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused
 	if swappingMainPanels {
 		main = "secondary"
 		secondary = "main"
