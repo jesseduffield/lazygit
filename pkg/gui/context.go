@@ -13,9 +13,10 @@ func (gui *Gui) titleMap() map[string]string {
 func (gui *Gui) contextTitleMap() map[string]map[string]string {
 	return map[string]map[string]string{
 		"main": {
-			"staging": gui.Tr.SLocalize("StagingMainTitle"),
-			"merging": gui.Tr.SLocalize("MergingMainTitle"),
-			"normal":  "",
+			"staging":        gui.Tr.SLocalize("StagingMainTitle"),
+			"patch-building": gui.Tr.SLocalize("PatchBuildingMainTitle"),
+			"merging":        gui.Tr.SLocalize("MergingMainTitle"),
+			"normal":         "",
 		},
 	}
 }

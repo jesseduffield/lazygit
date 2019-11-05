@@ -49,6 +49,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "StagingMainTitle",
 			Other: `Stage Lines/Hunks`,
 		}, &i18n.Message{
+			ID:    "PatchBuildingMainTitle",
+			Other: `Add Lines/Hunks To Patch`,
+		}, &i18n.Message{
 			ID:    "MergingMainTitle",
 			Other: "Resolve merge conflicts",
 		}, &i18n.Message{
