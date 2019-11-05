@@ -613,24 +613,19 @@ func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
 	return s
 }
 
-func (c *GitCommand) ApplyPatch(patch string, reverse bool, cached bool, extraFlags string) error {
+func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	c.Log.Warn(patch)
 	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format(time.StampNano)+".patch")
 	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
 	}
 
-	reverseFlag := ""
-	if reverse {
-		reverseFlag = "--reverse"
+	flagStr := ""
+	for _, flag := range flags {
+		flagStr += " --" + flag
 	}
 
-	cachedFlag := ""
-	if cached {
-		cachedFlag = "--cached"
-	}
-
-	return c.OSCommand.RunCommand(fmt.Sprintf("git apply %s %s %s %s", cachedFlag, reverseFlag, extraFlags, c.OSCommand.Quote(filepath)))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git apply %s %s", flagStr, c.OSCommand.Quote(filepath)))
 }
 
 func (c *GitCommand) FastForward(branchName string) error {
