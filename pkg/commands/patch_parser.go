@@ -194,7 +194,11 @@ func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndic
 		included := utils.IncludesInt(incLineIndices, index)
 		renderedLines[index] = patchLine.render(selected, included)
 	}
-	return strings.Join(renderedLines, "\n")
+	result := strings.Join(renderedLines, "\n")
+	if strings.TrimSpace(utils.Decolorise(result)) == "" {
+		return ""
+	}
+	return result
 }
 
 // GetNextStageableLineIndex takes a line index and returns the line index of the next stageable line

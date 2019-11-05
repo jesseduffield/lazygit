@@ -2,7 +2,6 @@ package commands
 
 import (
 	"sort"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -145,7 +144,13 @@ func (p *PatchManager) RenderEachFilePatch(plain bool) []string {
 }
 
 func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
-	return strings.Join(p.RenderEachFilePatch(plain), "\n")
+	result := ""
+	for _, patch := range p.RenderEachFilePatch(plain) {
+		if patch != "" {
+			result += patch + "\n"
+		}
+	}
+	return result
 }
 
 func (p *PatchManager) GetFileStatus(filename string) int {
