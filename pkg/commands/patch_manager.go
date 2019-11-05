@@ -184,7 +184,6 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 		if patch == "" {
 			continue
 		}
-		p.Log.Warn(patch)
 		if err := p.ApplyPatch(patch, reverseOnApply, false, "--index --3way"); err != nil {
 			return err
 		}

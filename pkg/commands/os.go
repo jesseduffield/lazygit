@@ -262,6 +262,21 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 	return tmpfile.Name(), nil
 }
 
+// CreateFileWithContent creates a file with the given content
+func (c *OSCommand) CreateFileWithContent(path string, content string) error {
+	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
+		c.Log.Error(err)
+		return err
+	}
+
+	if err := ioutil.WriteFile(path, []byte(content), 0644); err != nil {
+		c.Log.Error(err)
+		return WrapError(err)
+	}
+
+	return nil
+}
+
 // Remove removes a file or directory at the specified path
 func (c *OSCommand) Remove(filename string) error {
 	err := os.RemoveAll(filename)

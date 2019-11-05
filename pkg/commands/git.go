@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mgutz/str"
 
@@ -608,13 +610,10 @@ func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
 }
 
 func (c *GitCommand) ApplyPatch(patch string, reverse bool, cached bool, extraFlags string) error {
-	filename, err := c.OSCommand.CreateTempFile("patch", patch)
-	if err != nil {
-		c.Log.Error(err)
+	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format(time.StampNano)+".patch")
+	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
 	}
-
-	defer func() { _ = c.OSCommand.Remove(filename) }()
 
 	reverseFlag := ""
 	if reverse {
@@ -626,7 +625,7 @@ func (c *GitCommand) ApplyPatch(patch string, reverse bool, cached bool, extraFl
 		cachedFlag = "--cached"
 	}
 
-	return c.OSCommand.RunCommand(fmt.Sprintf("git apply %s %s %s %s", cachedFlag, reverseFlag, extraFlags, c.OSCommand.Quote(filename)))
+	return c.OSCommand.RunCommand(fmt.Sprintf("git apply %s %s %s %s", cachedFlag, reverseFlag, extraFlags, c.OSCommand.Quote(filepath)))
 }
 
 func (c *GitCommand) FastForward(branchName string) error {
