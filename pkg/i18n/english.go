@@ -501,13 +501,13 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		},
 		&i18n.Message{
 			ID:    "TogglePanel",
-			Other: `toggle staged/unstaged panel focus`,
+			Other: `switch to other panel`,
 		},
 		&i18n.Message{
 			ID:    "CantStageStaged",
 			Other: `You can't stage an already staged change!`,
 		}, &i18n.Message{
-			ID:    "EscapeStaging",
+			ID:    "ReturnToFilesPanel",
 			Other: `return to files panel`,
 		}, &i18n.Message{
 			ID:    "CantFindHunks",
@@ -815,6 +815,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "enterFile",
 			Other: "enter file to add selected lines to the patch",
+		}, &i18n.Message{
+			ID:    "ExitLineByLineMode",
+			Other: `exit line-by-line mode`,
 		},
 	)
 }

@@ -181,13 +181,13 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		if err := gui.changeContext("main", "staging"); err != nil {
+		if err := gui.changeContext("main", "patch-building"); err != nil {
 			return err
 		}
 		if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {
 			return err
 		}
-		return gui.refreshStagingPanel()
+		return gui.refreshPatchBuildingPanel()
 	}
 
 	if gui.GitCommand.PatchManager != nil && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {

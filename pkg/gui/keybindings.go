@@ -58,6 +58,8 @@ func (b *Binding) GetKey() string {
 		return "PgUp"
 	case 65507:
 		return "PgDn"
+	case 9:
+		return "tab"
 	}
 
 	return string(key)
@@ -638,61 +640,61 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 					Key:         gocui.KeyEsc,
 					Modifier:    gocui.ModNone,
 					Handler:     gui.handleStagingEscape,
-					Description: gui.Tr.SLocalize("EscapeStaging"),
+					Description: gui.Tr.SLocalize("ReturnToFilesPanel"),
 				}, {
 					ViewName:    "main",
 					Key:         gocui.KeyArrowUp,
 					Modifier:    gocui.ModNone,
-					Handler:     gui.handleStagingPrevLine,
+					Handler:     gui.handleSelectPrevLine,
 					Description: gui.Tr.SLocalize("PrevLine"),
 				}, {
 					ViewName:    "main",
 					Key:         gocui.KeyArrowDown,
 					Modifier:    gocui.ModNone,
-					Handler:     gui.handleStagingNextLine,
+					Handler:     gui.handleSelectNextLine,
 					Description: gui.Tr.SLocalize("NextLine"),
 				}, {
 					ViewName: "main",
 					Key:      'k',
 					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingPrevLine,
+					Handler:  gui.handleSelectPrevLine,
 				}, {
 					ViewName: "main",
 					Key:      'j',
 					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingNextLine,
+					Handler:  gui.handleSelectNextLine,
 				}, {
 					ViewName: "main",
 					Key:      gocui.MouseWheelUp,
 					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingPrevLine,
+					Handler:  gui.handleSelectPrevLine,
 				}, {
 					ViewName: "main",
 					Key:      gocui.MouseWheelDown,
 					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingNextLine,
+					Handler:  gui.handleSelectNextLine,
 				}, {
 					ViewName:    "main",
 					Key:         gocui.KeyArrowLeft,
 					Modifier:    gocui.ModNone,
-					Handler:     gui.handleStagingPrevHunk,
+					Handler:     gui.handleSelectPrevHunk,
 					Description: gui.Tr.SLocalize("PrevHunk"),
 				}, {
 					ViewName:    "main",
 					Key:         gocui.KeyArrowRight,
 					Modifier:    gocui.ModNone,
-					Handler:     gui.handleStagingNextHunk,
+					Handler:     gui.handleSelectNextHunk,
 					Description: gui.Tr.SLocalize("NextHunk"),
 				}, {
 					ViewName: "main",
 					Key:      'h',
 					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingPrevHunk,
+					Handler:  gui.handleSelectPrevHunk,
 				}, {
 					ViewName: "main",
 					Key:      'l',
 					Modifier: gocui.ModNone,
-					Handler:  gui.handleStagingNextHunk,
+					Handler:  gui.handleSelectNextHunk,
 				}, {
 					ViewName:    "main",
 					Key:         gocui.KeySpace,
@@ -725,13 +727,100 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 					Description: gui.Tr.SLocalize("TogglePanel"),
 				},
 			},
+			"patch-building": {
+				{
+					ViewName:    "main",
+					Key:         gocui.KeyEsc,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleEscapePatchBuildingPanel,
+					Description: gui.Tr.SLocalize("ExitLineByLineMode"),
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeyArrowUp,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleSelectPrevLine,
+					Description: gui.Tr.SLocalize("PrevLine"),
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeyArrowDown,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleSelectNextLine,
+					Description: gui.Tr.SLocalize("NextLine"),
+				}, {
+					ViewName: "main",
+					Key:      'k',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectPrevLine,
+				}, {
+					ViewName: "main",
+					Key:      'j',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectNextLine,
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseWheelUp,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectPrevLine,
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseWheelDown,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectNextLine,
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeyArrowLeft,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleSelectPrevHunk,
+					Description: gui.Tr.SLocalize("PrevHunk"),
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeyArrowRight,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleSelectNextHunk,
+					Description: gui.Tr.SLocalize("NextHunk"),
+				}, {
+					ViewName: "main",
+					Key:      'h',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectPrevHunk,
+				}, {
+					ViewName: "main",
+					Key:      'l',
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleSelectNextHunk,
+				}, {
+					ViewName:    "main",
+					Key:         gocui.KeySpace,
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleAddSelectionToPatch,
+					Description: gui.Tr.SLocalize("StageSelection"),
+				}, {
+					ViewName:    "main",
+					Key:         'd',
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleRemoveSelectionFromPatch,
+					Description: gui.Tr.SLocalize("ResetSelection"),
+				}, {
+					ViewName:    "main",
+					Key:         'v',
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleToggleSelectRange,
+					Description: gui.Tr.SLocalize("ToggleDragSelect"),
+				}, {
+					ViewName:    "main",
+					Key:         'a',
+					Modifier:    gocui.ModNone,
+					Handler:     gui.handleToggleSelectHunk,
+					Description: gui.Tr.SLocalize("ToggleSelectHunk"),
+				},
+			},
 			"merging": {
 				{
 					ViewName:    "main",
 					Key:         gocui.KeyEsc,
 					Modifier:    gocui.ModNone,
 					Handler:     gui.handleEscapeMerge,
-					Description: gui.Tr.SLocalize("EscapeStaging"),
+					Description: gui.Tr.SLocalize("ReturnToFilesPanel"),
 				}, {
 					ViewName:    "main",
 					Key:         gocui.KeySpace,
