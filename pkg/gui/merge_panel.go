@@ -285,7 +285,7 @@ func (gui *Gui) handleCompleteMerge() error {
 
 // promptToContinue asks the user if they want to continue the rebase/merge that's in progress
 func (gui *Gui) promptToContinue() error {
-	return gui.createConfirmationPanel(gui.g, gui.getFilesView(), "continue", gui.Tr.SLocalize("ConflictsResolved"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, gui.getFilesView(), true, "continue", gui.Tr.SLocalize("ConflictsResolved"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.genericMergeCommand("continue")
 	}, nil)
 }

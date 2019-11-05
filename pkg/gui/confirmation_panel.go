@@ -15,24 +15,26 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
-func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.View) error) func(*gocui.Gui, *gocui.View) error {
+func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.View) error, returnFocusOnClose bool) func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		if function != nil {
 			if err := function(g, v); err != nil {
 				return err
 			}
 		}
-		return gui.closeConfirmationPrompt(g)
+		return gui.closeConfirmationPrompt(g, returnFocusOnClose)
 	}
 }
 
-func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui) error {
+func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui, returnFocusOnClose bool) error {
 	view, err := g.View("confirmation")
 	if err != nil {
 		return nil // if it's already been closed we can just return
 	}
-	if err := gui.returnFocus(g, view); err != nil {
-		panic(err)
+	if returnFocusOnClose {
+		if err := gui.returnFocus(g, view); err != nil {
+			panic(err)
+		}
 	}
 	g.DeleteKeybindings("confirmation")
 	return g.DeleteView("confirmation")
@@ -69,7 +71,8 @@ func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title s
 		return err
 	}
 	confirmationView.Editable = true
-	return gui.setKeyBindings(g, handleConfirm, nil)
+	// in the future we might want to give createPromptPanel the returnFocusOnClose arg too, but for now we're always setting it to true
+	return gui.setKeyBindings(g, handleConfirm, nil, true)
 }
 
 func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string, hasLoader bool) (*gocui.View, error) {
@@ -100,20 +103,20 @@ func (gui *Gui) onNewPopupPanel() {
 }
 
 func (gui *Gui) createLoaderPanel(g *gocui.Gui, currentView *gocui.View, prompt string) error {
-	return gui.createPopupPanel(g, currentView, "", prompt, true, nil, nil)
+	return gui.createPopupPanel(g, currentView, "", prompt, true, true, nil, nil)
 }
 
 // it is very important that within this function we never include the original prompt in any error messages, because it may contain e.g. a user password
-func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
-	return gui.createPopupPanel(g, currentView, title, prompt, false, handleConfirm, handleClose)
+func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, returnFocusOnClose bool, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
+	return gui.createPopupPanel(g, currentView, title, prompt, false, returnFocusOnClose, handleConfirm, handleClose)
 }
 
-func (gui *Gui) createPopupPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, hasLoader bool, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
+func (gui *Gui) createPopupPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, hasLoader bool, returnFocusOnClose bool, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	gui.onNewPopupPanel()
 	g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
-			if err := gui.closeConfirmationPrompt(g); err != nil {
+			if err := gui.closeConfirmationPrompt(g, true); err != nil {
 				errMessage := gui.Tr.TemplateLocalize(
 					"CantCloseConfirmationPrompt",
 					Teml{
@@ -131,12 +134,12 @@ func (gui *Gui) createPopupPanel(g *gocui.Gui, currentView *gocui.View, title, p
 		if err := gui.renderString(g, "confirmation", prompt); err != nil {
 			return err
 		}
-		return gui.setKeyBindings(g, handleConfirm, handleClose)
+		return gui.setKeyBindings(g, handleConfirm, handleClose, returnFocusOnClose)
 	})
 	return nil
 }
 
-func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
+func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error, returnFocusOnClose bool) error {
 	actions := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{
@@ -147,14 +150,14 @@ func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*go
 	if err := gui.renderString(g, "options", actions); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm)); err != nil {
+	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm, returnFocusOnClose)); err != nil {
 		return err
 	}
-	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, gui.wrappedConfirmationFunction(handleClose))
+	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, gui.wrappedConfirmationFunction(handleClose, returnFocusOnClose))
 }
 
 func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {
-	return gui.createPopupPanel(g, currentView, title, prompt, false, nil, nil)
+	return gui.createPopupPanel(g, currentView, title, prompt, false, true, nil, nil)
 }
 
 // createSpecificErrorPanel allows you to create an error popup, specifying the
@@ -175,7 +178,7 @@ func (gui *Gui) createSpecificErrorPanel(message string, nextView *gocui.View, w
 
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))
-	return gui.createConfirmationPanel(gui.g, nextView, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
+	return gui.createConfirmationPanel(gui.g, nextView, true, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
 }
 
 func (gui *Gui) createErrorPanel(g *gocui.Gui, message string) error {

@@ -6,7 +6,7 @@ func (gui *Gui) showUpdatePrompt(newVersion string) error {
 	title := "New version available!"
 	message := "Download latest version? (enter/esc)"
 	currentView := gui.g.CurrentView()
-	return gui.createConfirmationPanel(gui.g, currentView, title, message, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, currentView, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		gui.startUpdating(newVersion)
 		return nil
 	}, nil)
@@ -59,7 +59,7 @@ func (gui *Gui) onUpdateFinish(err error) error {
 func (gui *Gui) createUpdateQuitConfirmation(g *gocui.Gui, v *gocui.View) error {
 	title := "Currently Updating"
 	message := "An update is in progress. Are you sure you want to quit?"
-	return gui.createConfirmationPanel(gui.g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		return gocui.ErrQuit
 	}, nil)
 }

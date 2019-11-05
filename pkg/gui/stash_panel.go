@@ -109,7 +109,7 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 	title := gui.Tr.SLocalize("StashDrop")
 	message := gui.Tr.SLocalize("SureDropStashEntry")
-	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		return gui.stashDo(g, v, "drop")
 	}, nil)
 }

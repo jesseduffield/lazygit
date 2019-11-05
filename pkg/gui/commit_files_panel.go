@@ -78,7 +78,7 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 
 	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
 
-	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("DiscardFileChangesTitle"), gui.Tr.SLocalize("DiscardFileChangesPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, v, true, gui.Tr.SLocalize("DiscardFileChangesTitle"), gui.Tr.SLocalize("DiscardFileChangesPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 			if err := gui.GitCommand.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, fileName); err != nil {
 				if err := gui.handleGenericMergeCommandResult(err); err != nil {
@@ -144,7 +144,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if gui.GitCommand.PatchManager != nil && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
-		return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
 			gui.GitCommand.PatchManager = nil
 			return toggleTheFile()
 		}, nil)
@@ -199,7 +199,7 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if gui.GitCommand.PatchManager != nil && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
-		return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.createConfirmationPanel(g, v, false, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
 			gui.GitCommand.PatchManager = nil
 			return enterTheFile()
 		}, nil)

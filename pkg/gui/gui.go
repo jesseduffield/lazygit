@@ -601,7 +601,7 @@ func (gui *Gui) loadNewRepo() error {
 }
 
 func (gui *Gui) promptAnonymousReporting() error {
-	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, nil, true, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 		gui.waitForIntro.Done()
 		return gui.Config.WriteToUserConfig("reporting", "on")
 	}, func(g *gocui.Gui, v *gocui.View) error {
@@ -623,7 +623,7 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 		close := func(g *gocui.Gui, v *gocui.View) error {
 			return nil
 		}
-		_ = gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
+		_ = gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
 	}
 
 	gui.refreshStatus(g)
@@ -664,7 +664,7 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
+		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 	} else {
 		gui.goEvery(time.Second*60, func() error {
 			_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
@@ -764,7 +764,7 @@ func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
 		return gui.createUpdateQuitConfirmation(g, v)
 	}
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
-		return gui.createConfirmationPanel(g, v, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.createConfirmationPanel(g, v, true, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
 			return gocui.ErrQuit
 		}, nil)
 	}

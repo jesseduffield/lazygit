@@ -98,7 +98,7 @@ func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr er
 		// we are not logging this error because it may contain a password
 		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(), false)
 	} else {
-		_ = gui.closeConfirmationPrompt(g)
+		_ = gui.closeConfirmationPrompt(g, true)
 		_ = gui.refreshSidePanels(g)
 	}
 }
