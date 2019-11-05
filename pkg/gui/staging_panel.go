@@ -68,7 +68,7 @@ func (gui *Gui) refreshStagingPanel() error {
 		return err
 	}
 
-	secondaryColorDiff := gui.GitCommand.PatchManager.RenderPatchForFile(commitFile.Name, false, false)
+	secondaryColorDiff := gui.GitCommand.PatchManager.RenderPatchForFile(commitFile.Name, false, false, true)
 	if err != nil {
 		return err
 	}
