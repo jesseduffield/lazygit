@@ -210,5 +210,5 @@ func (p *PatchManager) Reset() {
 }
 
 func (p *PatchManager) IsEmpty() bool {
-	return p != nil && p.CommitSha == "" || len(p.fileInfoMap) == 0
+	return p != nil && (p.CommitSha == "" || len(p.fileInfoMap) == 0)
 }
