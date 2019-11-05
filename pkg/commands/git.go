@@ -74,6 +74,7 @@ type GitCommand struct {
 	removeFile           func(string) error
 	DotGitDir            string
 	onSuccessfulContinue func() error
+	PatchManager         *PatchManager
 }
 
 // NewGitCommand it runs git commands

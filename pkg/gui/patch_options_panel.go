@@ -17,7 +17,7 @@ func (o *patchMenuOption) GetDisplayStrings(isFocused bool) []string {
 }
 
 func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
-	m := gui.State.PatchManager
+	m := gui.GitCommand.PatchManager
 	if m == nil {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoPatchError"))
 	}
@@ -30,7 +30,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 	}
 
 	selectedCommit := gui.getSelectedCommit(gui.g)
-	if selectedCommit != nil && gui.State.PatchManager.CommitSha != selectedCommit.Sha {
+	if selectedCommit != nil && gui.GitCommand.PatchManager.CommitSha != selectedCommit.Sha {
 		options = append(options, &patchMenuOption{
 			displayName: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
 			function:    gui.handleMovePatchToSelectedCommit,
@@ -46,7 +46,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 
 func (gui *Gui) getPatchCommitIndex() int {
 	for index, commit := range gui.State.Commits {
-		if commit.Sha == gui.State.PatchManager.CommitSha {
+		if commit.Sha == gui.GitCommand.PatchManager.CommitSha {
 			return index
 		}
 	}
@@ -60,7 +60,7 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.GitCommand.DeletePatchesFromCommit(gui.State.Commits, commitIndex, gui.State.PatchManager)
+		err := gui.GitCommand.DeletePatchesFromCommit(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -72,7 +72,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.GitCommand.MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLine, gui.State.PatchManager)
+		err := gui.GitCommand.MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLine, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -91,12 +91,12 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.GitCommand.PullPatchIntoIndex(gui.State.Commits, commitIndex, gui.State.PatchManager)
+		err := gui.GitCommand.PullPatchIntoIndex(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
 
 func (gui *Gui) handleClearPatch() error {
-	gui.State.PatchManager = nil
+	gui.GitCommand.PatchManager = nil
 	return gui.refreshCommitFilesView()
 }

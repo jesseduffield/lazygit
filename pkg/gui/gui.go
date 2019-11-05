@@ -151,7 +151,6 @@ type guiState struct {
 	Contexts            map[string]string
 	CherryPickedCommits []*commands.Commit
 	SplitMainPanel      bool
-	PatchManager        *commands.PatchManager
 }
 
 // for now the split view will always be on
