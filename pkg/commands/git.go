@@ -726,7 +726,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 		debug = "TRUE"
 	}
 
-	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive --autostash %s", baseSha))
+	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive --autostash --keep-empty --rebase-merges %s", baseSha))
 
 	cmd := c.OSCommand.command(splitCmd[0], splitCmd[1:]...)
 
