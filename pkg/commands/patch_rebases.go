@@ -22,7 +22,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*Commit, commitIndex int,
 	}
 
 	c.onSuccessfulContinue = func() error {
-		c.PatchManager = nil
+		c.PatchManager.Reset()
 		return nil
 	}
 
@@ -50,7 +50,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitId
 		}
 
 		c.onSuccessfulContinue = func() error {
-			c.PatchManager = nil
+			c.PatchManager.Reset()
 			return nil
 		}
 
@@ -121,7 +121,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitId
 		}
 
 		c.onSuccessfulContinue = func() error {
-			c.PatchManager = nil
+			c.PatchManager.Reset()
 			return nil
 		}
 
@@ -161,7 +161,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *Pat
 			return err
 		}
 
-		c.PatchManager = nil
+		c.PatchManager.Reset()
 		return nil
 	}
 

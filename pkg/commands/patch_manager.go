@@ -25,20 +25,22 @@ type PatchManager struct {
 }
 
 // NewPatchManager returns a new PatchModifier
-func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc, commitSha string, diffMap map[string]string) *PatchManager {
-	infoMap := map[string]*fileInfo{}
+func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc) *PatchManager {
+	return &PatchManager{
+		Log:        log,
+		ApplyPatch: applyPatch,
+	}
+}
+
+// NewPatchManager returns a new PatchModifier
+func (p *PatchManager) Start(commitSha string, diffMap map[string]string) {
+	p.CommitSha = commitSha
+	p.fileInfoMap = map[string]*fileInfo{}
 	for filename, diff := range diffMap {
-		infoMap[filename] = &fileInfo{
+		p.fileInfoMap[filename] = &fileInfo{
 			mode: UNSELECTED,
 			diff: diff,
 		}
-	}
-
-	return &PatchManager{
-		Log:         log,
-		fileInfoMap: infoMap,
-		CommitSha:   commitSha,
-		ApplyPatch:  applyPatch,
 	}
 }
 
@@ -199,4 +201,14 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 	}
 
 	return nil
+}
+
+// clears the patch
+func (p *PatchManager) Reset() {
+	p.CommitSha = ""
+	p.fileInfoMap = map[string]*fileInfo{}
+}
+
+func (p *PatchManager) IsEmpty() bool {
+	return p != nil && p.CommitSha == "" || len(p.fileInfoMap) == 0
 }

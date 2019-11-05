@@ -5,7 +5,7 @@ import (
 )
 
 func (gui *Gui) refreshPatchBuildingPanel() error {
-	if gui.GitCommand.PatchManager == nil {
+	if gui.GitCommand.PatchManager.IsEmpty() {
 		return gui.handleEscapePatchBuildingPanel(gui.g, nil)
 	}
 
@@ -91,7 +91,7 @@ func (gui *Gui) handleEscapePatchBuildingPanel(g *gocui.Gui, v *gocui.View) erro
 }
 
 func (gui *Gui) refreshSecondaryPatchPanel() error {
-	if gui.GitCommand.PatchManager != nil {
+	if !gui.GitCommand.PatchManager.IsEmpty() {
 		gui.State.SplitMainPanel = true
 		secondaryView := gui.getSecondaryView()
 		secondaryView.Highlight = true

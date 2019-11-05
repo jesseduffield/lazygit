@@ -109,7 +109,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		return nil, err
 	}
 
-	return &GitCommand{
+	gitCommand := &GitCommand{
 		Log:                log,
 		OSCommand:          osCommand,
 		Tr:                 tr,
@@ -120,7 +120,11 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		getLocalGitConfig:  gitconfig.Local,
 		removeFile:         os.RemoveAll,
 		DotGitDir:          dotGitDir,
-	}, nil
+	}
+
+	gitCommand.PatchManager = NewPatchManager(log, gitCommand.ApplyPatch)
+
+	return gitCommand, nil
 }
 
 func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filename string) ([]byte, error)) (string, error) {
