@@ -14,6 +14,7 @@ Jira? This is the app for you!
 - [Cool Features](https://github.com/jesseduffield/lazygit#cool-features)
 - [Contributing](https://github.com/jesseduffield/lazygit#contributing)
 - [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
+- [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
 - [Twitch Stream](https://www.twitch.tv/jesseduffield)
 
 ## Installation
@@ -102,6 +103,7 @@ also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or
 whichever rc file you're using).
 
 - Basic video tutorial [here](https://youtu.be/VDXvbHZYeKY).
+- Rebase Magic tutorial [here](https://youtu.be/4XaToVut_hs)
 - List of keybindings
   [here](/docs/keybindings).
 
