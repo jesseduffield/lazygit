@@ -24,7 +24,7 @@ func (gui *Gui) findConflicts(content string) ([]commands.Conflict, error) {
 	for i, line := range utils.SplitLines(content) {
 		trimmedLine := strings.TrimPrefix(line, "++")
 		gui.Log.Info(trimmedLine)
-		if trimmedLine == "<<<<<<< HEAD" || trimmedLine == "<<<<<<< MERGE_HEAD" || trimmedLine == "<<<<<<< Updated upstream" {
+		if trimmedLine == "<<<<<<< HEAD" || trimmedLine == "<<<<<<< MERGE_HEAD" || trimmedLine == "<<<<<<< Updated upstream" || trimmedLine == "<<<<<<< ours" {
 			newConflict = commands.Conflict{Start: i}
 		} else if trimmedLine == "=======" {
 			newConflict.Middle = i
