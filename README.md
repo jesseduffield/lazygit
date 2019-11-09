@@ -2,9 +2,9 @@
 
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui 'gocui') library.
 
-Are YOU tired of typing every git command directly into the terminal, but you're
-too stubborn to use Sourcetree because you'll never forgive Atlassian for making
-Jira? This is the app for you!
+Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? *Are you kidding me?* To stage part of a file you need to use a command line program stepping through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, bad luck? *Are you KIDDING me?!* Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? *ARE YOU KIDDING ME?!* When you make a new branch you need to run a command to set its upstream to origin/your-branch-name even though that's what you do every time? *YOU HAVE GOT TO BE KIDDING ME!* 
+
+If you're a mere mortal like me and you're tired of hearing how powerful git is when in your daily life it's a powerful pain in your ass, lazygit might be for you.
 
 ![Gif](/docs/resources/lazygit-example.gif)
 
