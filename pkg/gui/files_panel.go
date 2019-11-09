@@ -1,12 +1,6 @@
 package gui
 
 import (
-
-	// "io"
-	// "io/ioutil"
-
-	// "strings"
-
 	"fmt"
 	"strings"
 
@@ -405,7 +399,7 @@ func (gui *Gui) refreshStateFiles() error {
 	gui.State.ExtensiveFiles = dir
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
 
-	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir)
+	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 0)
 	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
 	return gui.updateWorkTreeState()
 }
@@ -750,66 +744,85 @@ func (gui *Gui) handleOpenExtensiveView(g *gocui.Gui, filesView *gocui.View) err
 	return gui.switchFocus(g, g.CurrentView(), v)
 }
 
-func (gui *Gui) handleFilesGoInsideFolder(g *gocui.Gui, filesView *gocui.View) error {
-	return nil
+// handleFilesGoInsideFolder handles the arrow right
+func (gui *Gui) handleFilesGoInsideFolder(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	dir := gui.State.ExtensiveFiles
+	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 'r')
+
+	return gui.handleExtensiveFileSelect(gui.g, v, false)
 }
 
-func (gui *Gui) handleFilesGoToFolderParent(g *gocui.Gui, filesView *gocui.View) error {
-	return nil
+// handleFilesGoToFolderParent handles the arrow left
+func (gui *Gui) handleFilesGoToFolderParent(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	dir := gui.State.ExtensiveFiles
+	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 'l')
+
+	return gui.handleExtensiveFileSelect(gui.g, v, false)
 }
 
+// handleFilesNextFileOrFolder handles the arrow down
 func (gui *Gui) handleFilesNextFileOrFolder(g *gocui.Gui, v *gocui.View) error {
-	// if gui.popupPanelFocused() {
-	// 	return nil
-	// }
+	if gui.popupPanelFocused() {
+		return nil
+	}
 
-	// panelState := gui.State.Panels.Files
-	// gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), false)
+	dir := gui.State.ExtensiveFiles
+	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 'd')
 
-	// return gui.handleFileSelect(gui.g, v, false)
-	return nil
+	return gui.handleExtensiveFileSelect(gui.g, v, false)
 }
 
+// handleFilesPrevFileOrFolder handles the arrow up
 func (gui *Gui) handleFilesPrevFileOrFolder(g *gocui.Gui, v *gocui.View) error {
-	// if gui.popupPanelFocused() {
-	// 	return nil
-	// }
+	if gui.popupPanelFocused() {
+		return nil
+	}
 
-	// panelState := gui.State.Panels.Files
-	// gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), true)
+	dir := gui.State.ExtensiveFiles
+	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 'u')
 
-	// return gui.handleFileSelect(gui.g, v, false)
-	return nil
+	return gui.handleExtensiveFileSelect(gui.g, v, false)
 }
 
 func (gui *Gui) handleExtensiveFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bool) error {
-	// if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
-	// 	return err
-	// }
+	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+		return err
+	}
 
-	// file, err := gui.getSelectedFile(g)
-	// if err != nil {
-	// 	if err != gui.Errors.ErrNoFiles {
-	// 		return err
-	// 	}
-	// 	return gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
-	// }
+	file, dir := gui.State.ExtensiveFiles.MatchPath(gui.State.Panels.ExtensiveFiles.Selected)
 
-	// if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, len(gui.State.Files), v); err != nil {
-	// 	return err
-	// }
+	y := 0
+	if file != nil {
+		y = file.GetY()
+	} else if dir != nil {
+		y = dir.GetY()
+	}
 
-	// if file.HasInlineMergeConflicts {
-	// 	return gui.refreshMergePanel()
-	// }
+	if err := gui.focusPoint(0, y, gui.State.ExtensiveFiles.Height(), v); err != nil {
+		return err
+	}
 
-	// content := gui.GitCommand.Diff(file, false)
-	// if alreadySelected {
-	// 	g.Update(func(*gocui.Gui) error {
-	// 		return gui.setViewContent(gui.g, gui.getMainView(), content)
-	// 	})
-	// 	return nil
-	// }
-	// return gui.renderString(g, "main", content)
+	if file != nil {
+		if file.HasInlineMergeConflicts {
+			return gui.refreshMergePanel()
+		}
+
+		content := gui.GitCommand.Diff(file, false)
+		if alreadySelected {
+			g.Update(func(*gocui.Gui) error {
+				return gui.setViewContent(gui.g, gui.getMainView(), content)
+			})
+			return nil
+		}
+	}
+
 	return nil
 }

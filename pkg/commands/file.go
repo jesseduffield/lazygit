@@ -33,6 +33,7 @@ type Dir struct {
 	ShortStatus string // e.g. 'AD', ' A', 'M ', '??'
 }
 
+// MergeGITStatus merges 2 git status together
 func MergeGITStatus(a, b string) string {
 	toFormat := []*string{&a, &b}
 	for _, item := range toFormat {
@@ -147,18 +148,25 @@ func (d *Dir) NewDir(name string) *Dir {
 func (d *Dir) MatchPath(path []int) (*File, *Dir) {
 	currentDir := d
 	for _, key := range path {
-		dirKey := key - len(currentDir.Files)
-		if dirKey >= len(currentDir.SubDirs) {
-			// Key is out of range, erset to the last entry
-			key = len(currentDir.Files) + len(currentDir.SubDirs) - 1
-		}
-
 		if key < len(currentDir.Files) {
-			// Selected a file
 			return currentDir.Files[key], nil
 		}
 
-		currentDir = currentDir.SubDirs[dirKey]
+		key -= len(currentDir.Files)
+		if len(currentDir.SubDirs) == 0 {
+			if len(currentDir.Files) > 0 {
+				return currentDir.Files[len(currentDir.Files)-1], nil
+			}
+			return nil, currentDir
+		}
+		if key >= len(currentDir.SubDirs) {
+			key = len(currentDir.SubDirs) - 1
+		}
+		currentDir = currentDir.SubDirs[key]
+	}
+	if currentDir.Parrent == nil {
+		// We are at the root here, this issn't a line on the screen
+		return nil, nil
 	}
 	return nil, currentDir
 }
@@ -302,4 +310,42 @@ func (f *File) GetDisplayStrings(isFocused bool) []string {
 		output += green.Sprint(f.Name)
 	}
 	return []string{output}
+}
+
+// GetY returns the dir it's y position
+func (d *Dir) GetY() int {
+	count := -1
+	current := d
+	parrent := d.Parrent
+	for {
+		if parrent == nil {
+			break
+		}
+		for i, dir := range parrent.SubDirs {
+			if dir == current {
+				count += i
+				break
+			}
+			count += len(dir.SubDirs) + len(dir.Files)
+		}
+		count += len(parrent.Files)
+		count += 1
+
+		current = parrent
+		parrent = current.Parrent
+	}
+	return count
+}
+
+// GetY returns the file it's y position
+func (f *File) GetY() int {
+	dir := f.InDir
+	count := dir.GetY()
+	for i, file := range dir.Files {
+		if file == f {
+			count += i + 1
+			break
+		}
+	}
+	return count
 }
