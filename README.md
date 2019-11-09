@@ -17,6 +17,8 @@ Jira? This is the app for you!
 - [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
 - [Twitch Stream](https://www.twitch.tv/jesseduffield)
 
+[<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
+
 ## Installation
 
 ### Homebrew
