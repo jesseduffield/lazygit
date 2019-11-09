@@ -400,6 +400,10 @@ func (gui *Gui) refreshSelected(selectedPrt *[]int, tree *commands.Dir, action r
 	}
 
 	for i, key := range selected {
+		if len(currentDir.Files)+len(currentDir.SubDirs) == 0 {
+			break
+		}
+
 		if key < len(currentDir.Files) {
 			// Selected a file
 			if i+1 == len(selected) {
@@ -414,6 +418,7 @@ func (gui *Gui) refreshSelected(selectedPrt *[]int, tree *commands.Dir, action r
 		if key >= len(currentDir.SubDirs) {
 			// Slected something out of range
 			selected[i] = len(currentDir.Files) + len(currentDir.SubDirs) - 1
+
 			currentDir = currentDir.SubDirs[selected[i]]
 			selected = selected[:i+1]
 			break
