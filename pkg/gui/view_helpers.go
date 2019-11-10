@@ -425,3 +425,27 @@ func (gui *Gui) isPopupPanel(viewName string) bool {
 func (gui *Gui) popupPanelFocused() bool {
 	return gui.isPopupPanel(gui.currentViewName())
 }
+
+func (gui *Gui) handleClick(v *gocui.View, itemCount int, selectedLine *int, handleSelect func(*gocui.Gui, *gocui.View) error) error {
+	if gui.popupPanelFocused() && v != nil && !gui.isPopupPanel(v.Name()) {
+		return nil
+	}
+
+	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+		return err
+	}
+
+	newSelectedLine := v.SelectedLineIdx()
+
+	if newSelectedLine < 0 {
+		newSelectedLine = 0
+	}
+
+	if newSelectedLine > itemCount-1 {
+		newSelectedLine = itemCount - 1
+	}
+
+	*selectedLine = newSelectedLine
+
+	return handleSelect(gui.g, v)
+}

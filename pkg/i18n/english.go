@@ -46,8 +46,11 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "StashTitle",
 			Other: "Stash",
 		}, &i18n.Message{
-			ID:    "StagingMainTitle",
-			Other: `Stage Lines/Hunks`,
+			ID:    "UnstagedChanges",
+			Other: `Unstaged Changes`,
+		}, &i18n.Message{
+			ID:    "StagedChanges",
+			Other: `Staged Changes`,
 		}, &i18n.Message{
 			ID:    "PatchBuildingMainTitle",
 			Other: `Add Lines/Hunks To Patch`,

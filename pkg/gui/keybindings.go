@@ -146,6 +146,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.handleCreateOptionsMenu,
 		}, {
 			ViewName: "",
+			Key:      gocui.MouseMiddle,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleCreateOptionsMenu,
+		}, {
+			ViewName: "",
 			Key:      gocui.KeyCtrlP,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCreatePatchOptionsMenu,
@@ -558,15 +563,15 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	listPanelMap := map[string]struct {
 		prevLine func(*gocui.Gui, *gocui.View) error
 		nextLine func(*gocui.Gui, *gocui.View) error
-		focus    func(*gocui.Gui, *gocui.View) error
+		onClick  func(*gocui.Gui, *gocui.View) error
 	}{
-		"menu":        {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, focus: gui.handleMenuSelect},
-		"files":       {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, focus: gui.handleFilesFocus},
-		"branches":    {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, focus: gui.handleBranchSelect},
-		"commits":     {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, focus: gui.handleCommitSelect},
-		"stash":       {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, focus: gui.handleStashEntrySelect},
-		"status":      {focus: gui.handleStatusSelect},
-		"commitFiles": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine, focus: gui.handleCommitFileSelect},
+		"menu":        {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, onClick: gui.handleMenuClick},
+		"files":       {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, onClick: gui.handleFilesClick},
+		"branches":    {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, onClick: gui.handleBranchesClick},
+		"commits":     {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, onClick: gui.handleCommitsClick},
+		"stash":       {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, onClick: gui.handleStashEntrySelect},
+		"status":      {onClick: gui.handleStatusClick},
+		"commitFiles": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine, onClick: gui.handleCommitFilesClick},
 	}
 
 	for viewName, functions := range listPanelMap {
@@ -577,7 +582,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: functions.nextLine},
 			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: functions.nextLine},
 			{ViewName: viewName, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: functions.nextLine},
-			{ViewName: viewName, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: functions.focus},
+			{ViewName: viewName, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: functions.onClick},
 		}...)
 	}
 
@@ -610,6 +615,24 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 
 func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 	return map[string]map[string][]*Binding{
+		"secondary": {
+			"normal": {
+				{
+					ViewName: "secondary",
+					Key:      gocui.MouseLeft,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleMouseDownSecondary,
+				},
+			},
+			"staging": {
+				{
+					ViewName: "secondary",
+					Key:      gocui.MouseLeft,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleTogglePanelClick,
+				},
+			},
+		},
 		"main": {
 			"normal": {
 				{
@@ -626,6 +649,11 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 					Handler:     gui.scrollUpMain,
 					Description: gui.Tr.SLocalize("ScrollUp"),
 					Alternative: "fn+down",
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseLeft,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleMouseDownMain,
 				},
 			},
 			"staging": {
@@ -655,16 +683,6 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 				}, {
 					ViewName: "main",
 					Key:      'j',
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleSelectNextLine,
-				}, {
-					ViewName: "main",
-					Key:      gocui.MouseWheelUp,
-					Modifier: gocui.ModNone,
-					Handler:  gui.handleSelectPrevLine,
-				}, {
-					ViewName: "main",
-					Key:      gocui.MouseWheelDown,
 					Modifier: gocui.ModNone,
 					Handler:  gui.handleSelectNextLine,
 				}, {
@@ -719,6 +737,26 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 					Modifier:    gocui.ModNone,
 					Handler:     gui.handleTogglePanel,
 					Description: gui.Tr.SLocalize("TogglePanel"),
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseLeft,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleMouseDown,
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseLeft,
+					Modifier: gocui.ModMotion,
+					Handler:  gui.handleMouseDrag,
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseWheelUp,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleMouseScrollUp,
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseWheelDown,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleMouseScrollDown,
 				},
 			},
 			"patch-building": {
@@ -806,6 +844,26 @@ func (gui *Gui) GetContextMap() map[string]map[string][]*Binding {
 					Modifier:    gocui.ModNone,
 					Handler:     gui.handleToggleSelectHunk,
 					Description: gui.Tr.SLocalize("ToggleSelectHunk"),
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseLeft,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleMouseDown,
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseLeft,
+					Modifier: gocui.ModMotion,
+					Handler:  gui.handleMouseDrag,
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseWheelUp,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleMouseScrollUp,
+				}, {
+					ViewName: "main",
+					Key:      gocui.MouseWheelDown,
+					Modifier: gocui.ModNone,
+					Handler:  gui.handleMouseScrollDown,
 				},
 			},
 			"merging": {

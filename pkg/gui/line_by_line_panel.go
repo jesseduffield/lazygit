@@ -21,7 +21,7 @@ const (
 
 // returns whether the patch is empty so caller can escape if necessary
 // both diffs should be non-coloured because we'll parse them and colour them here
-func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, secondaryFocused bool) (bool, error) {
+func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, secondaryFocused bool, selectedLineIdx int) (bool, error) {
 	state := gui.State.Panels.LineByLine
 
 	patchParser, err := commands.NewPatchParser(gui.Log, diff)
@@ -33,11 +33,14 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 		return true, nil
 	}
 
-	var selectedLineIdx int
 	var firstLineIdx int
 	var lastLineIdx int
 	selectMode := LINE
-	if state != nil {
+	// if we have clicked from the outside to focus the main view we'll pass in a non-negative line index so that we can instantly select that line
+	if selectedLineIdx >= 0 {
+		selectMode = RANGE
+		firstLineIdx, lastLineIdx = selectedLineIdx, selectedLineIdx
+	} else if state != nil {
 		if state.SelectMode == HUNK {
 			// this is tricky: we need to find out which hunk we just staged based on our old `state.PatchParser` (as opposed to the new `patchParser`)
 			// we do this by getting the first line index of the original hunk, then
@@ -96,20 +99,25 @@ func (gui *Gui) handleSelectPrevLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSelectNextLine(g *gocui.Gui, v *gocui.View) error {
-	return gui.handleCycleLine(1)
+	return gui.handleCycleLine(+1)
 }
 
 func (gui *Gui) handleSelectPrevHunk(g *gocui.Gui, v *gocui.View) error {
-	return gui.handleCycleHunk(-1)
+	state := gui.State.Panels.LineByLine
+	newHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, -1)
+
+	return gui.selectNewHunk(newHunk)
 }
 
 func (gui *Gui) handleSelectNextHunk(g *gocui.Gui, v *gocui.View) error {
-	return gui.handleCycleHunk(1)
+	state := gui.State.Panels.LineByLine
+	newHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 1)
+
+	return gui.selectNewHunk(newHunk)
 }
 
-func (gui *Gui) handleCycleHunk(change int) error {
+func (gui *Gui) selectNewHunk(newHunk *commands.PatchHunk) error {
 	state := gui.State.Panels.LineByLine
-	newHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, change)
 	state.SelectedLineIdx = state.PatchParser.GetNextStageableLineIndex(newHunk.FirstLineIdx)
 	if state.SelectMode == HUNK {
 		state.FirstLineIdx, state.LastLineIdx = newHunk.FirstLineIdx, newHunk.LastLineIdx
@@ -128,10 +136,16 @@ func (gui *Gui) handleCycleLine(change int) error {
 	state := gui.State.Panels.LineByLine
 
 	if state.SelectMode == HUNK {
-		return gui.handleCycleHunk(change)
+		newHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, change)
+		return gui.selectNewHunk(newHunk)
 	}
 
-	newSelectedLineIdx := state.SelectedLineIdx + change
+	return gui.handleSelectNewLine(state.SelectedLineIdx + change)
+}
+
+func (gui *Gui) handleSelectNewLine(newSelectedLineIdx int) error {
+	state := gui.State.Panels.LineByLine
+
 	if newSelectedLineIdx < 0 {
 		newSelectedLineIdx = 0
 	} else if newSelectedLineIdx > len(state.PatchParser.PatchLines)-1 {
@@ -156,6 +170,54 @@ func (gui *Gui) handleCycleLine(change int) error {
 	}
 
 	return gui.focusSelection(false)
+}
+
+func (gui *Gui) handleMouseDown(g *gocui.Gui, v *gocui.View) error {
+	state := gui.State.Panels.LineByLine
+
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	newSelectedLineIdx := v.SelectedLineIdx()
+	state.FirstLineIdx = newSelectedLineIdx
+	state.LastLineIdx = newSelectedLineIdx
+
+	state.SelectMode = RANGE
+
+	return gui.handleSelectNewLine(newSelectedLineIdx)
+}
+
+func (gui *Gui) handleMouseDrag(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	return gui.handleSelectNewLine(v.SelectedLineIdx())
+}
+
+func (gui *Gui) handleMouseScrollUp(g *gocui.Gui, v *gocui.View) error {
+	state := gui.State.Panels.LineByLine
+
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	state.SelectMode = LINE
+
+	return gui.handleCycleLine(-1)
+}
+
+func (gui *Gui) handleMouseScrollDown(g *gocui.Gui, v *gocui.View) error {
+	state := gui.State.Panels.LineByLine
+
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	state.SelectMode = LINE
+
+	return gui.handleCycleLine(1)
 }
 
 func (gui *Gui) refreshMainView() error {

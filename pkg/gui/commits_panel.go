@@ -23,6 +23,14 @@ func (gui *Gui) getSelectedCommit(g *gocui.Gui) *commands.Commit {
 	return gui.State.Commits[selectedLine]
 }
 
+func (gui *Gui) handleCommitsClick(g *gocui.Gui, v *gocui.View) error {
+	itemCount := len(gui.State.Commits)
+	handleSelect := gui.handleCommitSelect
+	selectedLine := &gui.State.Panels.Commits.SelectedLine
+
+	return gui.handleClick(v, itemCount, selectedLine, handleSelect)
+}
+
 func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil
@@ -36,6 +44,10 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
 		return err
 	}
+
+	gui.getMainView().Title = "Patch"
+	gui.getSecondaryView().Title = "Custom Patch"
+
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
@@ -458,7 +470,7 @@ func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) erro
 		return err
 	}
 
-	return gui.switchFocus(g, v, gui.getCommitFilesView())
+	return gui.switchFocus(g, gui.getCommitsView(), gui.getCommitFilesView())
 }
 
 func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {

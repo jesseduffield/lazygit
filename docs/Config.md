@@ -18,6 +18,7 @@
         - blue
     commitLength:
       show: true
+    mouseEvents: true
   git:
     merging:
       # only applicable to unix users

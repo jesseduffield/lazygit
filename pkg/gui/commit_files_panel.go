@@ -15,10 +15,20 @@ func (gui *Gui) getSelectedCommitFile(g *gocui.Gui) *commands.CommitFile {
 	return gui.State.CommitFiles[selectedLine]
 }
 
+func (gui *Gui) handleCommitFilesClick(g *gocui.Gui, v *gocui.View) error {
+	itemCount := len(gui.State.CommitFiles)
+	handleSelect := gui.handleCommitFileSelect
+	selectedLine := &gui.State.Panels.CommitFiles.SelectedLine
+
+	return gui.handleClick(v, itemCount, selectedLine, handleSelect)
+}
+
 func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
+
+	gui.getMainView().Title = "Patch"
 
 	commitFile := gui.getSelectedCommitFile(g)
 	if commitFile == nil {
@@ -96,7 +106,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return err
 	}
 
-	if err := gui.refreshPatchBuildingPanel(); err != nil {
+	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
 		return err
 	}
 
@@ -177,16 +187,20 @@ func (gui *Gui) startPatchManager() error {
 }
 
 func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
+	return gui.enterCommitFile(-1)
+}
+
+func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
 		return err
 	}
 
-	commitFile := gui.getSelectedCommitFile(g)
+	commitFile := gui.getSelectedCommitFile(gui.g)
 	if commitFile == nil {
-		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 	}
 
-	enterTheFile := func() error {
+	enterTheFile := func(selectedLineIdx int) error {
 		if !gui.GitCommand.PatchManager.CommitSelected() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
@@ -196,18 +210,21 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.changeContext("main", "patch-building"); err != nil {
 			return err
 		}
-		if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {
+		if err := gui.changeContext("secondary", "patch-building"); err != nil {
 			return err
 		}
-		return gui.refreshPatchBuildingPanel()
+		if err := gui.switchFocus(gui.g, gui.getCommitFilesView(), gui.getMainView()); err != nil {
+			return err
+		}
+		return gui.refreshPatchBuildingPanel(selectedLineIdx)
 	}
 
 	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
-		return gui.createConfirmationPanel(g, v, false, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.createConfirmationPanel(gui.g, gui.getCommitFilesView(), false, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
 			gui.GitCommand.PatchManager.Reset()
-			return enterTheFile()
+			return enterTheFile(selectedLineIdx)
 		}, nil)
 	}
 
-	return enterTheFile()
+	return enterTheFile(selectedLineIdx)
 }

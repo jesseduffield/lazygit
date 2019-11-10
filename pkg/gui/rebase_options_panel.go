@@ -26,8 +26,13 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 		options = append(options, &option{value: "skip"})
 	}
 
+	options = append(options, &option{value: "cancel"})
+
 	handleMenuPress := func(index int) error {
 		command := options[index].value
+		if command == "cancel" {
+			return nil
+		}
 		return gui.genericMergeCommand(command)
 	}
 
