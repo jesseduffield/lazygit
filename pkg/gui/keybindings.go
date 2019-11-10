@@ -543,6 +543,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleEnterCommitFile,
 			Description: gui.Tr.SLocalize("enterFile"),
 		},
+		{
+			ViewName: "secondary",
+			Key:      gocui.MouseWheelUp,
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollUpSecondary,
+		},
+		{
+			ViewName: "secondary",
+			Key:      gocui.MouseWheelDown,
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollDownSecondary,
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
