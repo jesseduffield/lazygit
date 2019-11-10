@@ -4,6 +4,7 @@
 package isatty
 
 import (
+	"errors"
 	"strings"
 	"syscall"
 	"unicode/utf16"
@@ -11,15 +12,18 @@ import (
 )
 
 const (
-	fileNameInfo uintptr = 2
-	fileTypePipe         = 3
+	objectNameInfo uintptr = 1
+	fileNameInfo           = 2
+	fileTypePipe           = 3
 )
 
 var (
 	kernel32                         = syscall.NewLazyDLL("kernel32.dll")
+	ntdll                            = syscall.NewLazyDLL("ntdll.dll")
 	procGetConsoleMode               = kernel32.NewProc("GetConsoleMode")
 	procGetFileInformationByHandleEx = kernel32.NewProc("GetFileInformationByHandleEx")
 	procGetFileType                  = kernel32.NewProc("GetFileType")
+	procNtQueryObject                = ntdll.NewProc("NtQueryObject")
 )
 
 func init() {
@@ -45,7 +49,10 @@ func isCygwinPipeName(name string) bool {
 		return false
 	}
 
-	if token[0] != `\msys` && token[0] != `\cygwin` {
+	if token[0] != `\msys` &&
+		token[0] != `\cygwin` &&
+		token[0] != `\Device\NamedPipe\msys` &&
+		token[0] != `\Device\NamedPipe\cygwin` {
 		return false
 	}
 
@@ -68,11 +75,35 @@ func isCygwinPipeName(name string) bool {
 	return true
 }
 
+// getFileNameByHandle use the undocomented ntdll NtQueryObject to get file full name from file handler
+// since GetFileInformationByHandleEx is not avilable under windows Vista and still some old fashion
+// guys are using Windows XP, this is a workaround for those guys, it will also work on system from
+// Windows vista to 10
+// see https://stackoverflow.com/a/18792477 for details
+func getFileNameByHandle(fd uintptr) (string, error) {
+	if procNtQueryObject == nil {
+		return "", errors.New("ntdll.dll: NtQueryObject not supported")
+	}
+
+	var buf [4 + syscall.MAX_PATH]uint16
+	var result int
+	r, _, e := syscall.Syscall6(procNtQueryObject.Addr(), 5,
+		fd, objectNameInfo, uintptr(unsafe.Pointer(&buf)), uintptr(2*len(buf)), uintptr(unsafe.Pointer(&result)), 0)
+	if r != 0 {
+		return "", e
+	}
+	return string(utf16.Decode(buf[4 : 4+buf[0]/2])), nil
+}
+
 // IsCygwinTerminal() return true if the file descriptor is a cygwin or msys2
 // terminal.
 func IsCygwinTerminal(fd uintptr) bool {
 	if procGetFileInformationByHandleEx == nil {
-		return false
+		name, err := getFileNameByHandle(fd)
+		if err != nil {
+			return false
+		}
+		return isCygwinPipeName(name)
 	}
 
 	// Cygwin/msys's pty is a pipe.

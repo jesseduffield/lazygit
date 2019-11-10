@@ -34,6 +34,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	osuser "os/user"
 	"path/filepath"
@@ -43,7 +44,9 @@ import (
 	"sync"
 )
 
-const version = "0.4"
+const version = "1.0"
+
+var _ = version
 
 type configFinder func() string
 
@@ -156,6 +159,7 @@ func (u *UserSettings) GetStrict(alias, key string) (string, error) {
 		}
 		var err error
 		u.userConfig, err = parseFile(filename)
+		//lint:ignore S1002 I prefer it this way
 		if err != nil && os.IsNotExist(err) == false {
 			u.onceErr = err
 			return
@@ -166,11 +170,13 @@ func (u *UserSettings) GetStrict(alias, key string) (string, error) {
 			filename = u.systemConfigFinder()
 		}
 		u.systemConfig, err = parseFile(filename)
+		//lint:ignore S1002 I prefer it this way
 		if err != nil && os.IsNotExist(err) == false {
 			u.onceErr = err
 			return
 		}
 	})
+	//lint:ignore S1002 I prefer it this way
 	if u.onceErr != nil && u.IgnoreErrors == false {
 		return "", u.onceErr
 	}
@@ -190,26 +196,29 @@ func parseFile(filename string) (*Config, error) {
 }
 
 func parseWithDepth(filename string, depth uint8) (*Config, error) {
-	f, err := os.Open(filename)
+	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-	return decode(f, isSystem(filename), depth)
+	return decodeBytes(b, isSystem(filename), depth)
 }
 
 func isSystem(filename string) bool {
-	// TODO i'm not sure this is the best way to detect a system repo
+	// TODO: not sure this is the best way to detect a system repo
 	return strings.HasPrefix(filepath.Clean(filename), "/etc/ssh")
 }
 
 // Decode reads r into a Config, or returns an error if r could not be parsed as
 // an SSH config file.
 func Decode(r io.Reader) (*Config, error) {
-	return decode(r, false, 0)
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return decodeBytes(b, false, 0)
 }
 
-func decode(r io.Reader, system bool, depth uint8) (c *Config, err error) {
+func decodeBytes(b []byte, system bool, depth uint8) (c *Config, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if _, ok := r.(runtime.Error); ok {
@@ -223,7 +232,7 @@ func decode(r io.Reader, system bool, depth uint8) (c *Config, err error) {
 		}
 	}()
 
-	c = parseSSH(lexSSH(r), system, depth)
+	c = parseSSH(lexSSH(b), system, depth)
 	return c, err
 }
 
@@ -367,7 +376,7 @@ type Host struct {
 	// EOLComment is the comment (if any) terminating the Host line.
 	EOLComment   string
 	hasEquals    bool
-	leadingSpace uint16 // TODO: handle spaces vs tabs here.
+	leadingSpace int // TODO: handle spaces vs tabs here.
 	// The file starts with an implicit "Host *" declaration.
 	implicit bool
 }
@@ -379,7 +388,7 @@ func (h *Host) Matches(alias string) bool {
 	found := false
 	for i := range h.Patterns {
 		if h.Patterns[i].regex.MatchString(alias) {
-			if h.Patterns[i].not == true {
+			if h.Patterns[i].not {
 				// Negated match. "A pattern entry may be negated by prefixing
 				// it with an exclamation mark (`!'). If a negated entry is
 				// matched, then the Host entry is ignored, regardless of
@@ -398,6 +407,7 @@ func (h *Host) Matches(alias string) bool {
 // present in the whitespace in the printed file.
 func (h *Host) String() string {
 	var buf bytes.Buffer
+	//lint:ignore S1002 I prefer to write it this way
 	if h.implicit == false {
 		buf.WriteString(strings.Repeat(" ", int(h.leadingSpace)))
 		buf.WriteString("Host")
@@ -438,7 +448,7 @@ type KV struct {
 	Value        string
 	Comment      string
 	hasEquals    bool
-	leadingSpace uint16 // Space before the key. TODO handle spaces vs tabs.
+	leadingSpace int // Space before the key. TODO handle spaces vs tabs.
 	position     Position
 }
 
@@ -467,7 +477,7 @@ func (k *KV) String() string {
 // Empty is a line in the config file that contains only whitespace or comments.
 type Empty struct {
 	Comment      string
-	leadingSpace uint16 // TODO handle spaces vs tabs.
+	leadingSpace int // TODO handle spaces vs tabs.
 	position     Position
 }
 
@@ -494,7 +504,6 @@ type Include struct {
 	// Comment is the contents of any comment at the end of the Include
 	// statement.
 	Comment string
-	parsed  bool
 	// an include directive can include several different files, and wildcards
 	directives []string
 
@@ -504,7 +513,7 @@ type Include struct {
 	matches []string
 	// actual filenames are listed here
 	files        map[string]*Config
-	leadingSpace uint16
+	leadingSpace int
 	position     Position
 	depth        uint8
 	hasEquals    bool
@@ -523,6 +532,7 @@ func removeDups(arr []string) []string {
 	result := make([]string, 0)
 
 	for v := range arr {
+		//lint:ignore S1002 I prefer it this way
 		if encountered[arr[v]] == false {
 			encountered[arr[v]] = true
 			result = append(result, arr[v])
@@ -544,7 +554,7 @@ func NewInclude(directives []string, hasEquals bool, pos Position, comment strin
 		directives:   directives,
 		files:        make(map[string]*Config),
 		position:     pos,
-		leadingSpace: uint16(pos.Col) - 1,
+		leadingSpace: pos.Col - 1,
 		depth:        depth,
 		hasEquals:    hasEquals,
 	}

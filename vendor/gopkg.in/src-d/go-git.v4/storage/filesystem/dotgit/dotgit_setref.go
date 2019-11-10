@@ -1,15 +1,24 @@
-// +build !norwfs
-
 package dotgit
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
+
+	"gopkg.in/src-d/go-billy.v4"
 )
 
 func (d *DotGit) setRef(fileName, content string, old *plumbing.Reference) (err error) {
+	if billy.CapabilityCheck(d.fs, billy.ReadAndWriteCapability) {
+		return d.setRefRwfs(fileName, content, old)
+	}
+
+	return d.setRefNorwfs(fileName, content, old)
+}
+
+func (d *DotGit) setRefRwfs(fileName, content string, old *plumbing.Reference) (err error) {
 	// If we are not checking an old ref, just truncate the file.
 	mode := os.O_RDWR | os.O_CREATE
 	if old == nil {
@@ -37,6 +46,44 @@ func (d *DotGit) setRef(fileName, content string, old *plumbing.Reference) (err 
 	if err != nil {
 		return err
 	}
+
+	_, err = f.Write([]byte(content))
+	return err
+}
+
+// There are some filesystems that don't support opening files in RDWD mode.
+// In these filesystems the standard SetRef function can not be used as it
+// reads the reference file to check that it's not modified before updating it.
+//
+// This version of the function writes the reference without extra checks
+// making it compatible with these simple filesystems. This is usually not
+// a problem as they should be accessed by only one process at a time.
+func (d *DotGit) setRefNorwfs(fileName, content string, old *plumbing.Reference) error {
+	_, err := d.fs.Stat(fileName)
+	if err == nil && old != nil {
+		fRead, err := d.fs.Open(fileName)
+		if err != nil {
+			return err
+		}
+
+		ref, err := d.readReferenceFrom(fRead, old.Name().String())
+		fRead.Close()
+
+		if err != nil {
+			return err
+		}
+
+		if ref.Hash() != old.Hash() {
+			return fmt.Errorf("reference has changed concurrently")
+		}
+	}
+
+	f, err := d.fs.Create(fileName)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
 
 	_, err = f.Write([]byte(content))
 	return err

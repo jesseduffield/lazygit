@@ -1,10 +1,12 @@
 package object
 
 import (
+	"container/list"
 	"io"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
+	"gopkg.in/src-d/go-git.v4/storage"
 )
 
 type commitPreIterator struct {
@@ -181,3 +183,145 @@ func (w *commitPostIterator) ForEach(cb func(*Commit) error) error {
 }
 
 func (w *commitPostIterator) Close() {}
+
+// commitAllIterator stands for commit iterator for all refs.
+type commitAllIterator struct {
+	// currCommit points to the current commit.
+	currCommit *list.Element
+}
+
+// NewCommitAllIter returns a new commit iterator for all refs.
+// repoStorer is a repo Storer used to get commits and references.
+// commitIterFunc is a commit iterator function, used to iterate through ref commits in chosen order
+func NewCommitAllIter(repoStorer storage.Storer, commitIterFunc func(*Commit) CommitIter) (CommitIter, error) {
+	commitsPath := list.New()
+	commitsLookup := make(map[plumbing.Hash]*list.Element)
+	head, err := storer.ResolveReference(repoStorer, plumbing.HEAD)
+	if err == nil {
+		err = addReference(repoStorer, commitIterFunc, head, commitsPath, commitsLookup)
+	}
+
+	if err != nil && err != plumbing.ErrReferenceNotFound {
+		return nil, err
+	}
+
+	// add all references along with the HEAD
+	refIter, err := repoStorer.IterReferences()
+	if err != nil {
+		return nil, err
+	}
+	defer refIter.Close()
+
+	for {
+		ref, err := refIter.Next()
+		if err == io.EOF {
+			break
+		}
+
+		if err == plumbing.ErrReferenceNotFound {
+			continue
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		if err = addReference(repoStorer, commitIterFunc, ref, commitsPath, commitsLookup); err != nil {
+			return nil, err
+		}
+	}
+
+	return &commitAllIterator{commitsPath.Front()}, nil
+}
+
+func addReference(
+	repoStorer storage.Storer,
+	commitIterFunc func(*Commit) CommitIter,
+	ref *plumbing.Reference,
+	commitsPath *list.List,
+	commitsLookup map[plumbing.Hash]*list.Element) error {
+
+	_, exists := commitsLookup[ref.Hash()]
+	if exists {
+		// we already have it - skip the reference.
+		return nil
+	}
+
+	refCommit, _ := GetCommit(repoStorer, ref.Hash())
+	if refCommit == nil {
+		// if it's not a commit - skip it.
+		return nil
+	}
+
+	var (
+		refCommits []*Commit
+		parent     *list.Element
+	)
+	// collect all ref commits to add
+	commitIter := commitIterFunc(refCommit)
+	for c, e := commitIter.Next(); e == nil; {
+		parent, exists = commitsLookup[c.Hash]
+		if exists {
+			break
+		}
+		refCommits = append(refCommits, c)
+		c, e = commitIter.Next()
+	}
+	commitIter.Close()
+
+	if parent == nil {
+		// common parent - not found
+		// add all commits to the path from this ref (maybe it's a HEAD and we don't have anything, yet)
+		for _, c := range refCommits {
+			parent = commitsPath.PushBack(c)
+			commitsLookup[c.Hash] = parent
+		}
+	} else {
+		// add ref's commits to the path in reverse order (from the latest)
+		for i := len(refCommits) - 1; i >= 0; i-- {
+			c := refCommits[i]
+			// insert before found common parent
+			parent = commitsPath.InsertBefore(c, parent)
+			commitsLookup[c.Hash] = parent
+		}
+	}
+
+	return nil
+}
+
+func (it *commitAllIterator) Next() (*Commit, error) {
+	if it.currCommit == nil {
+		return nil, io.EOF
+	}
+
+	c := it.currCommit.Value.(*Commit)
+	it.currCommit = it.currCommit.Next()
+
+	return c, nil
+}
+
+func (it *commitAllIterator) ForEach(cb func(*Commit) error) error {
+	for {
+		c, err := it.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		err = cb(c)
+		if err == storer.ErrStop {
+			break
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (it *commitAllIterator) Close() {
+	it.currCommit = nil
+}

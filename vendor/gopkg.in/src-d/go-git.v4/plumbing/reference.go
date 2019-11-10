@@ -55,6 +55,36 @@ func (r ReferenceType) String() string {
 // ReferenceName reference name's
 type ReferenceName string
 
+// NewBranchReferenceName returns a reference name describing a branch based on
+// his short name.
+func NewBranchReferenceName(name string) ReferenceName {
+	return ReferenceName(refHeadPrefix + name)
+}
+
+// NewNoteReferenceName returns a reference name describing a note based on his
+// short name.
+func NewNoteReferenceName(name string) ReferenceName {
+	return ReferenceName(refNotePrefix + name)
+}
+
+// NewRemoteReferenceName returns a reference name describing a remote branch
+// based on his short name and the remote name.
+func NewRemoteReferenceName(remote, name string) ReferenceName {
+	return ReferenceName(refRemotePrefix + fmt.Sprintf("%s/%s", remote, name))
+}
+
+// NewRemoteHEADReferenceName returns a reference name describing a the HEAD
+// branch of a remote.
+func NewRemoteHEADReferenceName(remote string) ReferenceName {
+	return ReferenceName(refRemotePrefix + fmt.Sprintf("%s/%s", remote, HEAD))
+}
+
+// NewTagReferenceName returns a reference name describing a tag based on short
+// his name.
+func NewTagReferenceName(name string) ReferenceName {
+	return ReferenceName(refTagPrefix + name)
+}
+
 // IsBranch check if a reference is a branch
 func (r ReferenceName) IsBranch() bool {
 	return strings.HasPrefix(string(r), refHeadPrefix)

@@ -3,7 +3,9 @@ package git
 import (
 	"errors"
 	"regexp"
+	"strings"
 
+	"golang.org/x/crypto/openpgp"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -184,6 +186,9 @@ type PushOptions struct {
 	// Progress is where the human readable information sent by the server is
 	// stored, if nil nothing is stored.
 	Progress sideband.Progress
+	// Prune specify that remote refs that match given RefSpecs and that do
+	// not exist locally will be removed.
+	Prune bool
 }
 
 // Validate validates the fields and sets the default values.
@@ -227,10 +232,11 @@ var (
 	ErrCreateRequiresBranch = errors.New("Branch is mandatory when Create is used")
 )
 
-// CheckoutOptions describes how a checkout 31operation should be performed.
+// CheckoutOptions describes how a checkout operation should be performed.
 type CheckoutOptions struct {
-	// Hash to be checked out, if used HEAD will in detached mode. Branch and
-	// Hash are mutually exclusive, if Create is not used.
+	// Hash is the hash of the commit to be checked out. If used, HEAD will be
+	// in detached mode. If Create is not used, Branch and Hash are mutually
+	// exclusive.
 	Hash plumbing.Hash
 	// Branch to be checked out, if Branch and Hash are empty is set to `master`.
 	Branch plumbing.ReferenceName
@@ -239,6 +245,11 @@ type CheckoutOptions struct {
 	// Force, if true when switching branches, proceed even if the index or the
 	// working tree differs from HEAD. This is used to throw away local changes
 	Force bool
+	// Keep, if true when switching branches, local changes (the index or the
+	// working tree changes) will be kept so that they can be committed to the
+	// target branch. Force and Keep are mutually exclusive, should not be both
+	// set to true.
+	Keep bool
 }
 
 // Validate validates the fields and sets the default values.
@@ -285,7 +296,7 @@ const (
 
 // ResetOptions describes how a reset operation should be performed.
 type ResetOptions struct {
-	// Commit, if commit is pressent set the current branch head (HEAD) to it.
+	// Commit, if commit is present set the current branch head (HEAD) to it.
 	Commit plumbing.Hash
 	// Mode, form resets the current branch head to Commit and possibly updates
 	// the index (resetting it to the tree of Commit) and the working tree
@@ -328,6 +339,15 @@ type LogOptions struct {
 	// set Order=LogOrderCommitterTime for ordering by committer time (more compatible with `git log`)
 	// set Order=LogOrderBSF for Breadth-first search
 	Order LogOrder
+
+	// Show only those commits in which the specified file was inserted/updated.
+	// It is equivalent to running `git log -- <file-name>`.
+	FileName *string
+
+	// Pretend as if all the refs in refs/, along with HEAD, are listed on the command line as <commit>.
+	// It is equivalent to running `git log --all`.
+	// If set on true, the From option will be ignored.
+	All bool
 }
 
 var (
@@ -347,6 +367,10 @@ type CommitOptions struct {
 	// Parents are the parents commits for the new commit, by default when
 	// len(Parents) is zero, the hash of HEAD reference is used.
 	Parents []plumbing.Hash
+	// SignKey denotes a key to sign the commit with. A nil value here means the
+	// commit will not be signed. The private key must be present and already
+	// decrypted.
+	SignKey *openpgp.Entity
 }
 
 // Validate validates the fields and sets the default values.
@@ -369,6 +393,41 @@ func (o *CommitOptions) Validate(r *Repository) error {
 			o.Parents = []plumbing.Hash{head.Hash()}
 		}
 	}
+
+	return nil
+}
+
+var (
+	ErrMissingName    = errors.New("name field is required")
+	ErrMissingTagger  = errors.New("tagger field is required")
+	ErrMissingMessage = errors.New("message field is required")
+)
+
+// CreateTagOptions describes how a tag object should be created.
+type CreateTagOptions struct {
+	// Tagger defines the signature of the tag creator.
+	Tagger *object.Signature
+	// Message defines the annotation of the tag. It is canonicalized during
+	// validation into the format expected by git - no leading whitespace and
+	// ending in a newline.
+	Message string
+	// SignKey denotes a key to sign the tag with. A nil value here means the tag
+	// will not be signed. The private key must be present and already decrypted.
+	SignKey *openpgp.Entity
+}
+
+// Validate validates the fields and sets the default values.
+func (o *CreateTagOptions) Validate(r *Repository, hash plumbing.Hash) error {
+	if o.Tagger == nil {
+		return ErrMissingTagger
+	}
+
+	if o.Message == "" {
+		return ErrMissingMessage
+	}
+
+	// Canonicalize the message into the expected message format.
+	o.Message = strings.TrimSpace(o.Message) + "\n"
 
 	return nil
 }

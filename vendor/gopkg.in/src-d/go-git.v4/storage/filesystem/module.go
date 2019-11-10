@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"gopkg.in/src-d/go-git.v4/plumbing/cache"
 	"gopkg.in/src-d/go-git.v4/storage"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem/dotgit"
 )
@@ -15,5 +16,5 @@ func (s *ModuleStorage) Module(name string) (storage.Storer, error) {
 		return nil, err
 	}
 
-	return NewStorage(fs)
+	return NewStorage(fs, cache.NewObjectLRUDefault()), nil
 }

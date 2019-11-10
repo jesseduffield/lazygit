@@ -22,6 +22,8 @@ import "time"
 //      }
 //      defer termbox.Close()
 func Init() error {
+	quitPolling = make(chan int)
+
 	var err error
 
 	out, err = os.OpenFile("/dev/tty", syscall.O_WRONLY, 0)
@@ -120,6 +122,7 @@ func Interrupt() {
 // when termbox's functionality isn't required anymore.
 func Close() {
 	quit <- 1
+	close(quitPolling)
 	out.WriteString(funcs[t_show_cursor])
 	out.WriteString(funcs[t_sgr0])
 	out.WriteString(funcs[t_clear_screen])
@@ -382,6 +385,8 @@ func PollEvent() Event {
 			event.Type = EventResize
 			event.Width, event.Height = get_term_size(out.Fd())
 			return event
+		case <-quitPolling:
+			return Event{Type: EventStop}
 		}
 	}
 }

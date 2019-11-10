@@ -63,6 +63,20 @@
 // See the s3manager package's Downloader type documentation for more information.
 // https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#Downloader
 //
+// Automatic URI cleaning
+//
+// Interacting with objects whose keys contain adjacent slashes (e.g. bucketname/foo//bar/objectname)
+// requires setting DisableRestProtocolURICleaning to true in the aws.Config struct
+// used by the service client.
+//
+//   svc := s3.New(sess, &aws.Config{
+//      	DisableRestProtocolURICleaning: aws.Bool(true),
+//   })
+//   out, err := svc.GetObject(&s3.GetObjectInput {
+//      	Bucket: aws.String("bucketname"),
+//       	Key: aws.String("//foo//bar//moo"),
+//   })
+//
 // Get Bucket Region
 //
 // GetBucketRegion will attempt to get the region for a bucket using a region

@@ -33,13 +33,9 @@ func StartWithSize(c *exec.Cmd, sz *Winsize) (pty *os.File, err error) {
 			return nil, err
 		}
 	}
-	if c.Stdout == nil {
-		c.Stdout = tty
-	}
-	if c.Stderr == nil {
-		c.Stderr = tty
-	}
+	c.Stdout = tty
 	c.Stdin = tty
+	c.Stderr = tty
 	if c.SysProcAttr == nil {
 		c.SysProcAttr = &syscall.SysProcAttr{}
 	}

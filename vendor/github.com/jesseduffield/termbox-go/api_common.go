@@ -184,4 +184,5 @@ const (
 	EventInterrupt
 	EventRaw
 	EventNone
+	EventStop
 )

@@ -286,11 +286,6 @@ func (s *rpSession) updateReferences(req *packp.ReferenceUpdateRequest) {
 				continue
 			}
 
-			if err != nil {
-				s.setStatus(cmd.Name, err)
-				continue
-			}
-
 			ref := plumbing.NewHashReference(cmd.Name, cmd.New)
 			err := s.storer.SetReference(ref)
 			s.setStatus(cmd.Name, err)

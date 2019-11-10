@@ -10,14 +10,25 @@ import (
 )
 
 // The compiled regular expression used to test the validity of a version.
-var versionRegexp *regexp.Regexp
+var (
+	versionRegexp *regexp.Regexp
+	semverRegexp  *regexp.Regexp
+)
 
 // The raw regular expression string used for testing the validity
 // of a version.
-const VersionRegexpRaw string = `v?([0-9]+(\.[0-9]+)*?)` +
-	`(-([0-9]+[0-9A-Za-z\-~]*(\.[0-9A-Za-z\-~]+)*)|(-?([A-Za-z\-~]+[0-9A-Za-z\-~]*(\.[0-9A-Za-z\-~]+)*)))?` +
-	`(\+([0-9A-Za-z\-~]+(\.[0-9A-Za-z\-~]+)*))?` +
-	`?`
+const (
+	VersionRegexpRaw string = `v?([0-9]+(\.[0-9]+)*?)` +
+		`(-([0-9]+[0-9A-Za-z\-~]*(\.[0-9A-Za-z\-~]+)*)|(-?([A-Za-z\-~]+[0-9A-Za-z\-~]*(\.[0-9A-Za-z\-~]+)*)))?` +
+		`(\+([0-9A-Za-z\-~]+(\.[0-9A-Za-z\-~]+)*))?` +
+		`?`
+
+	// SemverRegexpRaw requires a separator between version and prerelease
+	SemverRegexpRaw string = `v?([0-9]+(\.[0-9]+)*?)` +
+		`(-([0-9]+[0-9A-Za-z\-~]*(\.[0-9A-Za-z\-~]+)*)|(-([A-Za-z\-~]+[0-9A-Za-z\-~]*(\.[0-9A-Za-z\-~]+)*)))?` +
+		`(\+([0-9A-Za-z\-~]+(\.[0-9A-Za-z\-~]+)*))?` +
+		`?`
+)
 
 // Version represents a single version.
 type Version struct {
@@ -30,12 +41,24 @@ type Version struct {
 
 func init() {
 	versionRegexp = regexp.MustCompile("^" + VersionRegexpRaw + "$")
+	semverRegexp = regexp.MustCompile("^" + SemverRegexpRaw + "$")
 }
 
 // NewVersion parses the given version and returns a new
 // Version.
 func NewVersion(v string) (*Version, error) {
-	matches := versionRegexp.FindStringSubmatch(v)
+	return newVersion(v, versionRegexp)
+}
+
+// NewSemver parses the given version and returns a new
+// Version that adheres strictly to SemVer specs
+// https://semver.org/
+func NewSemver(v string) (*Version, error) {
+	return newVersion(v, semverRegexp)
+}
+
+func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
+	matches := pattern.FindStringSubmatch(v)
 	if matches == nil {
 		return nil, fmt.Errorf("Malformed version: %s", v)
 	}
@@ -89,7 +112,7 @@ func Must(v *Version, err error) *Version {
 // or larger than the other version, respectively.
 //
 // If you want boolean results, use the LessThan, Equal,
-// or GreaterThan methods.
+// GreaterThan, GreaterThanOrEqual or LessThanOrEqual methods.
 func (v *Version) Compare(other *Version) int {
 	// A quick, efficient equality check
 	if v.String() == other.String() {
@@ -265,9 +288,19 @@ func (v *Version) GreaterThan(o *Version) bool {
 	return v.Compare(o) > 0
 }
 
+// GreaterThanOrEqualTo tests if this version is greater than or equal to another version.
+func (v *Version) GreaterThanOrEqual(o *Version) bool {
+	return v.Compare(o) >= 0
+}
+
 // LessThan tests if this version is less than another version.
 func (v *Version) LessThan(o *Version) bool {
 	return v.Compare(o) < 0
+}
+
+// LessThanOrEqualTo tests if this version is less than or equal to another version.
+func (v *Version) LessThanOrEqual(o *Version) bool {
+	return v.Compare(o) <= 0
 }
 
 // Metadata returns any metadata that was part of the version

@@ -115,6 +115,7 @@ func (l *Loader) LoadURL(url string) (*Properties, error) {
 	if err != nil {
 		return nil, fmt.Errorf("properties: error fetching %q. %s", url, err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == 404 && l.IgnoreMissing {
 		LogPrintf("properties: %s returned %d. skipping", url, resp.StatusCode)
@@ -129,7 +130,6 @@ func (l *Loader) LoadURL(url string) (*Properties, error) {
 	if err != nil {
 		return nil, fmt.Errorf("properties: %s error reading response. %s", url, err)
 	}
-	defer resp.Body.Close()
 
 	ct := resp.Header.Get("Content-Type")
 	var enc Encoding

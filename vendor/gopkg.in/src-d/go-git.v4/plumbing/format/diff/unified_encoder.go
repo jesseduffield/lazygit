@@ -94,7 +94,7 @@ func (e *UnifiedEncoder) printMessage(message string) {
 	isEmpty := message == ""
 	hasSuffix := strings.HasSuffix(message, "\n")
 	if !isEmpty && !hasSuffix {
-		message = message + "\n"
+		message += "\n"
 	}
 
 	e.buf.WriteString(message)
@@ -237,9 +237,13 @@ func (c *hunksGenerator) addLineNumbers(la, lb int, linesBefore int, i int, op O
 	// we need to search for a reference for the next diff
 	switch {
 	case linesBefore != 0 && c.ctxLines != 0:
-		clb = lb - c.ctxLines + 1
+		if lb > c.ctxLines {
+			clb = lb - c.ctxLines + 1
+		} else {
+			clb = 1
+		}
 	case c.ctxLines == 0:
-		clb = lb - c.ctxLines
+		clb = lb
 	case i != len(c.chunks)-1:
 		next := c.chunks[i+1]
 		if next.Type() == op || next.Type() == Equal {

@@ -87,7 +87,7 @@ func (b *xmlBuilder) buildValue(value reflect.Value, current *XMLNode, tag refle
 	}
 }
 
-// buildStruct adds a struct and its fields to the current XMLNode. All fields any any nested
+// buildStruct adds a struct and its fields to the current XMLNode. All fields and any nested
 // types are converted to XMLNodes also.
 func (b *xmlBuilder) buildStruct(value reflect.Value, current *XMLNode, tag reflect.StructTag) error {
 	if !value.IsValid() {
