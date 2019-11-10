@@ -439,6 +439,19 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "AnonymousReportingPrompt",
 			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
 		}, &i18n.Message{
+			ID:    "ShamelessSelfPromotionTitle",
+			Other: "Shameless Self Promotion",
+		}, &i18n.Message{
+			ID: "ShamelessSelfPromotionMessage",
+			Other: `Thanks for using lazygit! Three things to share with you:
+
+1) lazygit now has basic mouse support!
+
+2) If you want to learn about lazygit's features, watch this vid:
+   https://youtu.be/CPLdltN7wgE
+
+3) Github are now matching any donations dollar-for-dollar for the next 12 months, so if you've been tossing up over whether to click the donate link in the bottom right corner, now is the time!`,
+		}, &i18n.Message{
 			ID:    "GitconfigParseErr",
 			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		}, &i18n.Message{
