@@ -117,7 +117,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "credentials":
 		return gui.handleCredentialsViewFocused(g, v)
 	case "main":
-		if gui.State.Contexts["main"] == "merging" {
+		if gui.State.Context == "merging" {
 			return gui.refreshMergePanel()
 		}
 		v.Highlight = false
@@ -406,7 +406,7 @@ func (gui *Gui) renderPanelOptions() error {
 	case "menu":
 		return gui.renderMenuOptions()
 	case "main":
-		if gui.State.Contexts["main"] == "merging" {
+		if gui.State.Context == "merging" {
 			return gui.renderMergeOptions()
 		}
 	}

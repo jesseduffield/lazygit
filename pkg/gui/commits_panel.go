@@ -47,6 +47,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 	gui.getMainView().Title = "Patch"
 	gui.getSecondaryView().Title = "Custom Patch"
+	gui.State.Panels.LineByLine = nil
 
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
@@ -97,7 +98,7 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		if g.CurrentView() == v {
 			gui.handleCommitSelect(g, v)
 		}
-		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.Contexts["main"] == "patch-building") {
+		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.Context == "patch-building") {
 			return gui.refreshCommitFilesView()
 		}
 		return nil

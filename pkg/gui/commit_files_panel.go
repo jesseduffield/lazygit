@@ -29,6 +29,7 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	gui.getMainView().Title = "Patch"
+	gui.State.Panels.LineByLine = nil
 
 	commitFile := gui.getSelectedCommitFile(g)
 	if commitFile == nil {
@@ -207,10 +208,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 			}
 		}
 
-		if err := gui.changeContext("main", "patch-building"); err != nil {
-			return err
-		}
-		if err := gui.changeContext("secondary", "patch-building"); err != nil {
+		if err := gui.changeContext("patch-building"); err != nil {
 			return err
 		}
 		if err := gui.switchFocus(gui.g, gui.getCommitFilesView(), gui.getMainView()); err != nil {

@@ -207,10 +207,7 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("FileStagingRequirements"))
 	}
-	if err := gui.changeContext("main", "staging"); err != nil {
-		return err
-	}
-	if err := gui.changeContext("secondary", "staging"); err != nil {
+	if err := gui.changeContext("staging"); err != nil {
 		return err
 	}
 	if err := gui.switchFocus(gui.g, gui.getFilesView(), gui.getMainView()); err != nil {
@@ -466,7 +463,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 	if !file.HasInlineMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons"))
 	}
-	if err := gui.changeContext("main", "merging"); err != nil {
+	if err := gui.changeContext("merging"); err != nil {
 		return err
 	}
 	if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {

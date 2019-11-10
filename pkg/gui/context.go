@@ -1,42 +1,45 @@
 package gui
 
-func (gui *Gui) changeContext(viewName, context string) error {
-	if gui.State.Contexts[viewName] == context {
+func (gui *Gui) changeContext(context string) error {
+	oldContext := gui.State.Context
+
+	if gui.State.Context == context {
 		return nil
 	}
 
 	contextMap := gui.GetContextMap()
 
-	gui.g.DeleteKeybindings(viewName)
+	oldBindings := contextMap[oldContext]
+	for _, binding := range oldBindings {
+		if err := gui.g.DeleteKeybinding(binding.ViewName, binding.Key, binding.Modifier); err != nil {
+			return err
+		}
+	}
 
-	bindings := contextMap[viewName][context]
+	bindings := contextMap[context]
 	for _, binding := range bindings {
 		if err := gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
 			return err
 		}
 	}
-	gui.State.Contexts[viewName] = context
+
+	gui.State.Context = context
 	return nil
 }
 
-func (gui *Gui) setInitialContexts() error {
+func (gui *Gui) setInitialContext() error {
 	contextMap := gui.GetContextMap()
 
-	initialContexts := map[string]string{
-		"main":      "normal",
-		"secondary": "normal",
-	}
+	initialContext := "normal"
 
-	for viewName, context := range initialContexts {
-		bindings := contextMap[viewName][context]
-		for _, binding := range bindings {
-			if err := gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
-				return err
-			}
+	bindings := contextMap[initialContext]
+	for _, binding := range bindings {
+		if err := gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
+			return err
 		}
 	}
 
-	gui.State.Contexts = initialContexts
+	gui.State.Context = initialContext
 
 	return nil
 }
