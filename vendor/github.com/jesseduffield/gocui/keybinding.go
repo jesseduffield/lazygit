@@ -136,6 +136,7 @@ type Modifier termbox.Modifier
 
 // Modifiers.
 const (
-	ModNone Modifier = Modifier(0)
-	ModAlt           = Modifier(termbox.ModAlt)
+	ModNone   Modifier = Modifier(0)
+	ModAlt             = Modifier(termbox.ModAlt)
+	ModMotion          = Modifier(termbox.ModMotion)
 )

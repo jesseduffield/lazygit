@@ -650,3 +650,14 @@ func (v *View) GetClickedTabIndex(x int) int {
 
 	return 0
 }
+
+func (v *View) SelectedLineIdx() int {
+	_, seletedLineIdx := v.SelectedPoint()
+	return seletedLineIdx
+}
+
+func (v *View) SelectedPoint() (int, int) {
+	cx, cy := v.Cursor()
+	ox, oy := v.Origin()
+	return cx + ox, cy + oy
+}
