@@ -206,15 +206,15 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	return gui, nil
 }
 
-func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
-	mainView, _ := g.View("main")
+func (gui *Gui) scrollUpView(viewName string) error {
+	mainView, _ := gui.g.View(viewName)
 	ox, oy := mainView.Origin()
 	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))))
 	return mainView.SetOrigin(ox, newOy)
 }
 
-func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
-	mainView, _ := g.View("main")
+func (gui *Gui) scrollDownView(viewName string) error {
+	mainView, _ := gui.g.View(viewName)
 	ox, oy := mainView.Origin()
 	y := oy
 	if !gui.Config.GetUserConfig().GetBool("gui.scrollPastBottom") {
@@ -225,6 +225,22 @@ func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 		return mainView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
 	}
 	return nil
+}
+
+func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
+	return gui.scrollUpView("main")
+}
+
+func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
+	return gui.scrollDownView("main")
+}
+
+func (gui *Gui) scrollUpSecondary(g *gocui.Gui, v *gocui.View) error {
+	return gui.scrollUpView("secondary")
+}
+
+func (gui *Gui) scrollDownSecondary(g *gocui.Gui, v *gocui.View) error {
+	return gui.scrollDownView("secondary")
 }
 
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
