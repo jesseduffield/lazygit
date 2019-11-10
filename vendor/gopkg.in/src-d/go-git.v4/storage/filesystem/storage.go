@@ -2,6 +2,7 @@
 package filesystem
 
 import (
+	"gopkg.in/src-d/go-git.v4/plumbing/cache"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem/dotgit"
 
 	"gopkg.in/src-d/go-billy.v4"
@@ -22,25 +23,43 @@ type Storage struct {
 	ModuleStorage
 }
 
-// NewStorage returns a new Storage backed by a given `fs.Filesystem`
-func NewStorage(fs billy.Filesystem) (*Storage, error) {
-	dir := dotgit.New(fs)
-	o, err := NewObjectStorage(dir)
-	if err != nil {
-		return nil, err
+// Options holds configuration for the storage.
+type Options struct {
+	// ExclusiveAccess means that the filesystem is not modified externally
+	// while the repo is open.
+	ExclusiveAccess bool
+	// KeepDescriptors makes the file descriptors to be reused but they will
+	// need to be manually closed calling Close().
+	KeepDescriptors bool
+	// MaxOpenDescriptors is the max number of file descriptors to keep
+	// open. If KeepDescriptors is true, all file descriptors will remain open.
+	MaxOpenDescriptors int
+}
+
+// NewStorage returns a new Storage backed by a given `fs.Filesystem` and cache.
+func NewStorage(fs billy.Filesystem, cache cache.Object) *Storage {
+	return NewStorageWithOptions(fs, cache, Options{})
+}
+
+// NewStorageWithOptions returns a new Storage with extra options,
+// backed by a given `fs.Filesystem` and cache.
+func NewStorageWithOptions(fs billy.Filesystem, cache cache.Object, ops Options) *Storage {
+	dirOps := dotgit.Options{
+		ExclusiveAccess: ops.ExclusiveAccess,
 	}
+	dir := dotgit.NewWithOptions(fs, dirOps)
 
 	return &Storage{
 		fs:  fs,
 		dir: dir,
 
-		ObjectStorage:    o,
+		ObjectStorage:    *NewObjectStorageWithOptions(dir, cache, ops),
 		ReferenceStorage: ReferenceStorage{dir: dir},
 		IndexStorage:     IndexStorage{dir: dir},
 		ShallowStorage:   ShallowStorage{dir: dir},
 		ConfigStorage:    ConfigStorage{dir: dir},
 		ModuleStorage:    ModuleStorage{dir: dir},
-	}, nil
+	}
 }
 
 // Filesystem returns the underlying filesystem
@@ -48,6 +67,7 @@ func (s *Storage) Filesystem() billy.Filesystem {
 	return s.fs
 }
 
+// Init initializes .git directory
 func (s *Storage) Init() error {
 	return s.dir.Initialize()
 }

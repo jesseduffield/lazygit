@@ -12,7 +12,7 @@ import (
 	"gopkg.in/warnings.v0"
 )
 
-var unescape = map[rune]rune{'\\': '\\', '"': '"', 'n': '\n', 't': '\t'}
+var unescape = map[rune]rune{'\\': '\\', '"': '"', 'n': '\n', 't': '\t', 'b': '\b'}
 
 // no error: invalid literals should be caught by scanner
 func unquote(s string) string {
@@ -48,7 +48,7 @@ func unquote(s string) string {
 	return string(u)
 }
 
-func read(c *warnings.Collector, callback func(string,string,string,string,bool)error,
+func read(c *warnings.Collector, callback func(string, string, string, string, bool) error,
 	fset *token.FileSet, file *token.File, src []byte) error {
 	//
 	var s scanner.Scanner
@@ -223,7 +223,7 @@ func readInto(config interface{}, fset *token.FileSet, file *token.File,
 // (as opposed to set to empty string).
 //
 // If callback returns an error, ReadWithCallback terminates with an error too.
-func ReadWithCallback(reader io.Reader, callback func(string,string,string,string,bool)error) error {
+func ReadWithCallback(reader io.Reader, callback func(string, string, string, string, bool) error) error {
 	src, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err

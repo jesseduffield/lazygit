@@ -40,8 +40,6 @@ TEXT ·libc_sendmsg_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_sendmsg(SB)
 TEXT ·libc_kevent_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_kevent(SB)
-TEXT ·libc___sysctl_trampoline(SB),NOSPLIT,$0-0
-	JMP	libc___sysctl(SB)
 TEXT ·libc_utimes_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_utimes(SB)
 TEXT ·libc_futimes_trampoline(SB),NOSPLIT,$0-0
@@ -64,8 +62,6 @@ TEXT ·libc_munlock_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_munlock(SB)
 TEXT ·libc_munlockall_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_munlockall(SB)
-TEXT ·libc_ptrace_trampoline(SB),NOSPLIT,$0-0
-	JMP	libc_ptrace(SB)
 TEXT ·libc_getattrlist_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_getattrlist(SB)
 TEXT ·libc_pipe_trampoline(SB),NOSPLIT,$0-0
@@ -266,6 +262,10 @@ TEXT ·libc_mmap_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_mmap(SB)
 TEXT ·libc_munmap_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_munmap(SB)
+TEXT ·libc___sysctl_trampoline(SB),NOSPLIT,$0-0
+	JMP	libc___sysctl(SB)
+TEXT ·libc_ptrace_trampoline(SB),NOSPLIT,$0-0
+	JMP	libc_ptrace(SB)
 TEXT ·libc_gettimeofday_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_gettimeofday(SB)
 TEXT ·libc_fstat64_trampoline(SB),NOSPLIT,$0-0
@@ -274,8 +274,6 @@ TEXT ·libc_fstatat64_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_fstatat64(SB)
 TEXT ·libc_fstatfs64_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_fstatfs64(SB)
-TEXT ·libc___getdirentries64_trampoline(SB),NOSPLIT,$0-0
-	JMP	libc___getdirentries64(SB)
 TEXT ·libc_getfsstat64_trampoline(SB),NOSPLIT,$0-0
 	JMP	libc_getfsstat64(SB)
 TEXT ·libc_lstat64_trampoline(SB),NOSPLIT,$0-0

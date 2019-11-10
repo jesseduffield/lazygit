@@ -2,6 +2,7 @@ package logrus
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"reflect"
@@ -69,6 +70,9 @@ type Entry struct {
 	// When formatter is called in entry.log(), a Buffer may be set to entry
 	Buffer *bytes.Buffer
 
+	// Contains the context set by the user. Useful for hook processing etc.
+	Context context.Context
+
 	// err may contain a field formatting error
 	err string
 }
@@ -95,6 +99,11 @@ func (entry *Entry) String() (string, error) {
 // Add an error as single field (using the key defined in ErrorKey) to the Entry.
 func (entry *Entry) WithError(err error) *Entry {
 	return entry.WithField(ErrorKey, err)
+}
+
+// Add a context to the Entry.
+func (entry *Entry) WithContext(ctx context.Context) *Entry {
+	return &Entry{Logger: entry.Logger, Data: entry.Data, Time: entry.Time, err: entry.err, Context: ctx}
 }
 
 // Add a single field to the Entry.
@@ -130,12 +139,12 @@ func (entry *Entry) WithFields(fields Fields) *Entry {
 			data[k] = v
 		}
 	}
-	return &Entry{Logger: entry.Logger, Data: data, Time: entry.Time, err: fieldErr}
+	return &Entry{Logger: entry.Logger, Data: data, Time: entry.Time, err: fieldErr, Context: entry.Context}
 }
 
 // Overrides the time of the Entry.
 func (entry *Entry) WithTime(t time.Time) *Entry {
-	return &Entry{Logger: entry.Logger, Data: entry.Data, Time: t, err: entry.err}
+	return &Entry{Logger: entry.Logger, Data: entry.Data, Time: t, err: entry.err, Context: entry.Context}
 }
 
 // getPackageName reduces a fully qualified function name to the package name
@@ -156,19 +165,22 @@ func getPackageName(f string) string {
 
 // getCaller retrieves the name of the first non-logrus calling function
 func getCaller() *runtime.Frame {
+
+	// cache this package's fully-qualified name
+	callerInitOnce.Do(func() {
+		pcs := make([]uintptr, 2)
+		_ = runtime.Callers(0, pcs)
+		logrusPackage = getPackageName(runtime.FuncForPC(pcs[1]).Name())
+
+		// now that we have the cache, we can skip a minimum count of known-logrus functions
+		// XXX this is dubious, the number of frames may vary
+		minimumCallerDepth = knownLogrusFrames
+	})
+
 	// Restrict the lookback frames to avoid runaway lookups
 	pcs := make([]uintptr, maximumCallerDepth)
 	depth := runtime.Callers(minimumCallerDepth, pcs)
 	frames := runtime.CallersFrames(pcs[:depth])
-
-	// cache this package's fully-qualified name
-	callerInitOnce.Do(func() {
-		logrusPackage = getPackageName(runtime.FuncForPC(pcs[0]).Name())
-
-		// now that we have the cache, we can skip a minimum count of known-logrus functions
-		// XXX this is dubious, the number of frames may vary store an entry in a logger interface
-		minimumCallerDepth = knownLogrusFrames
-	})
 
 	for f, again := frames.Next(); again; f, again = frames.Next() {
 		pkg := getPackageName(f.Function)
@@ -298,7 +310,9 @@ func (entry *Entry) Panic(args ...interface{}) {
 // Entry Printf family functions
 
 func (entry *Entry) Logf(level Level, format string, args ...interface{}) {
-	entry.Log(level, fmt.Sprintf(format, args...))
+	if entry.Logger.IsLevelEnabled(level) {
+		entry.Log(level, fmt.Sprintf(format, args...))
+	}
 }
 
 func (entry *Entry) Tracef(format string, args ...interface{}) {

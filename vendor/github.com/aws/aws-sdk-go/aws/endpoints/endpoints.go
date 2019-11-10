@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 )
@@ -35,7 +36,7 @@ type Options struct {
 	//
 	// If resolving an endpoint on the partition list the provided region will
 	// be used to determine which partition's domain name pattern to the service
-	// endpoint ID with. If both the service and region are unkonwn and resolving
+	// endpoint ID with. If both the service and region are unknown and resolving
 	// the endpoint on partition list an UnknownEndpointError error will be returned.
 	//
 	// If resolving and endpoint on a partition specific resolver that partition's
@@ -46,6 +47,43 @@ type Options struct {
 	//
 	// This option is ignored if StrictMatching is enabled.
 	ResolveUnknownService bool
+
+	// STS Regional Endpoint flag helps with resolving the STS endpoint
+	STSRegionalEndpoint STSRegionalEndpoint
+}
+
+// STSRegionalEndpoint is an enum type alias for int
+// It is used internally by the core sdk as STS Regional Endpoint flag value
+type STSRegionalEndpoint int
+
+const (
+
+	// UnsetSTSEndpoint represents that STS Regional Endpoint flag is not specified.
+	UnsetSTSEndpoint STSRegionalEndpoint = iota
+
+	// LegacySTSEndpoint represents when STS Regional Endpoint flag is specified
+	// to use legacy endpoints.
+	LegacySTSEndpoint
+
+	// RegionalSTSEndpoint represents when STS Regional Endpoint flag is specified
+	// to use regional endpoints.
+	RegionalSTSEndpoint
+)
+
+// GetSTSRegionalEndpoint function returns the STSRegionalEndpointFlag based
+// on the input string provided in env config or shared config by the user.
+//
+// `legacy`, `regional` are the only case-insensitive valid strings for
+// resolving the STS regional Endpoint flag.
+func GetSTSRegionalEndpoint(s string) (STSRegionalEndpoint, error) {
+	switch {
+	case strings.EqualFold(s, "legacy"):
+		return LegacySTSEndpoint, nil
+	case strings.EqualFold(s, "regional"):
+		return RegionalSTSEndpoint, nil
+	default:
+		return UnsetSTSEndpoint, fmt.Errorf("unable to resolve the value of STSRegionalEndpoint for %v", s)
+	}
 }
 
 // Set combines all of the option functions together.
@@ -77,6 +115,12 @@ func StrictMatchingOption(o *Options) {
 // as a functional option when resolving endpoints.
 func ResolveUnknownServiceOption(o *Options) {
 	o.ResolveUnknownService = true
+}
+
+// STSRegionalEndpointOption enables the STS endpoint resolver behavior to resolve
+// STS endpoint to their regional endpoint, instead of the global endpoint.
+func STSRegionalEndpointOption(o *Options) {
+	o.STSRegionalEndpoint = RegionalSTSEndpoint
 }
 
 // A Resolver provides the interface for functionality to resolve endpoints.
@@ -170,9 +214,12 @@ func PartitionForRegion(ps []Partition, regionID string) (Partition, bool) {
 // A Partition provides the ability to enumerate the partition's regions
 // and services.
 type Partition struct {
-	id string
-	p  *partition
+	id, dnsSuffix string
+	p             *partition
 }
+
+// DNSSuffix returns the base domain name of the partition.
+func (p Partition) DNSSuffix() string { return p.dnsSuffix }
 
 // ID returns the identifier of the partition.
 func (p Partition) ID() string { return p.id }
@@ -191,7 +238,7 @@ func (p Partition) ID() string { return p.id }
 // require the provided service and region to be known by the partition.
 // If the endpoint cannot be strictly resolved an error will be returned. This
 // mode is useful to ensure the endpoint resolved is valid. Without
-// StrictMatching enabled the endpoint returned my look valid but may not work.
+// StrictMatching enabled the endpoint returned may look valid but may not work.
 // StrictMatching requires the SDK to be updated if you want to take advantage
 // of new regions and services expansions.
 //
@@ -346,6 +393,9 @@ func (e Endpoint) ResolveEndpoint(opts ...func(*Options)) (ResolvedEndpoint, err
 type ResolvedEndpoint struct {
 	// The endpoint URL
 	URL string
+
+	// The endpoint partition
+	PartitionID string
 
 	// The region that should be used for signing requests.
 	SigningRegion string

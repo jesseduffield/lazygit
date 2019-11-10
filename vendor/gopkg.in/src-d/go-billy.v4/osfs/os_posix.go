@@ -3,19 +3,19 @@
 package osfs
 
 import (
-	"syscall"
+	"golang.org/x/sys/unix"
 )
 
 func (f *file) Lock() error {
 	f.m.Lock()
 	defer f.m.Unlock()
 
-	return syscall.Flock(int(f.File.Fd()), syscall.LOCK_EX)
+	return unix.Flock(int(f.File.Fd()), unix.LOCK_EX)
 }
 
 func (f *file) Unlock() error {
 	f.m.Lock()
 	defer f.m.Unlock()
 
-	return syscall.Flock(int(f.File.Fd()), syscall.LOCK_UN)
+	return unix.Flock(int(f.File.Fd()), unix.LOCK_UN)
 }

@@ -23,6 +23,7 @@ type List interface {
 	Sort(comparator utils.Comparator)
 	Swap(index1, index2 int)
 	Insert(index int, values ...interface{})
+	Set(index int, value interface{})
 
 	containers.Container
 	// Empty() bool

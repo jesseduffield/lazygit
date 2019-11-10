@@ -19,10 +19,11 @@ type Handlers struct {
 	UnmarshalError   HandlerList
 	Retry            HandlerList
 	AfterRetry       HandlerList
+	CompleteAttempt  HandlerList
 	Complete         HandlerList
 }
 
-// Copy returns of this handler's lists.
+// Copy returns a copy of this handler's lists.
 func (h *Handlers) Copy() Handlers {
 	return Handlers{
 		Validate:         h.Validate.copy(),
@@ -36,11 +37,12 @@ func (h *Handlers) Copy() Handlers {
 		UnmarshalMeta:    h.UnmarshalMeta.copy(),
 		Retry:            h.Retry.copy(),
 		AfterRetry:       h.AfterRetry.copy(),
+		CompleteAttempt:  h.CompleteAttempt.copy(),
 		Complete:         h.Complete.copy(),
 	}
 }
 
-// Clear removes callback functions for all handlers
+// Clear removes callback functions for all handlers.
 func (h *Handlers) Clear() {
 	h.Validate.Clear()
 	h.Build.Clear()
@@ -53,7 +55,53 @@ func (h *Handlers) Clear() {
 	h.ValidateResponse.Clear()
 	h.Retry.Clear()
 	h.AfterRetry.Clear()
+	h.CompleteAttempt.Clear()
 	h.Complete.Clear()
+}
+
+// IsEmpty returns if there are no handlers in any of the handlerlists.
+func (h *Handlers) IsEmpty() bool {
+	if h.Validate.Len() != 0 {
+		return false
+	}
+	if h.Build.Len() != 0 {
+		return false
+	}
+	if h.Send.Len() != 0 {
+		return false
+	}
+	if h.Sign.Len() != 0 {
+		return false
+	}
+	if h.Unmarshal.Len() != 0 {
+		return false
+	}
+	if h.UnmarshalStream.Len() != 0 {
+		return false
+	}
+	if h.UnmarshalMeta.Len() != 0 {
+		return false
+	}
+	if h.UnmarshalError.Len() != 0 {
+		return false
+	}
+	if h.ValidateResponse.Len() != 0 {
+		return false
+	}
+	if h.Retry.Len() != 0 {
+		return false
+	}
+	if h.AfterRetry.Len() != 0 {
+		return false
+	}
+	if h.CompleteAttempt.Len() != 0 {
+		return false
+	}
+	if h.Complete.Len() != 0 {
+		return false
+	}
+
+	return true
 }
 
 // A HandlerListRunItem represents an entry in the HandlerList which

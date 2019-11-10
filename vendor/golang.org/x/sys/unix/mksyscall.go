@@ -121,7 +121,7 @@ func main() {
 	}
 
 	libc := false
-	if goos == "darwin" && strings.Contains(buildTags(), ",go1.12") {
+	if goos == "darwin" && (strings.Contains(buildTags(), ",go1.12") || strings.Contains(buildTags(), ",go1.13")) {
 		libc = true
 	}
 	trampolines := map[string]bool{}
@@ -292,11 +292,6 @@ func main() {
 				asm = "syscall_" + strings.ToLower(asm[:1]) + asm[1:] // internal syscall call
 				sysname = strings.TrimPrefix(sysname, "SYS_")         // remove SYS_
 				sysname = strings.ToLower(sysname)                    // lowercase
-				if sysname == "getdirentries64" {
-					// Special case - libSystem name and
-					// raw syscall name don't match.
-					sysname = "__getdirentries64"
-				}
 				libcFn = sysname
 				sysname = "funcPC(libc_" + sysname + "_trampoline)"
 			}

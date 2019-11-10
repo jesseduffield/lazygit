@@ -77,6 +77,7 @@ var (
 	sigwinch       = make(chan os.Signal, 1)
 	sigio          = make(chan os.Signal, 1)
 	quit           = make(chan int)
+	quitPolling    chan int // get set on each initialize
 	input_comm     = make(chan input_event)
 	interrupt_comm = make(chan struct{})
 	intbuf         = make([]byte, 0, 16)

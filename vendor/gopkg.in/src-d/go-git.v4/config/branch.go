@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	errBranchEmptyName    = errors.New("branch config: empty name")
-	errBranchInvalidMerge = errors.New("branch config: invalid merge")
+	errBranchEmptyName     = errors.New("branch config: empty name")
+	errBranchInvalidMerge  = errors.New("branch config: invalid merge")
+	errBranchInvalidRebase = errors.New("branch config: rebase must be one of 'true' or 'interactive'")
 )
 
 // Branch contains information on the
@@ -21,6 +22,10 @@ type Branch struct {
 	Remote string
 	// Merge is the local refspec for the branch
 	Merge plumbing.ReferenceName
+	// Rebase instead of merge when pulling. Valid values are
+	// "true" and "interactive".  "false" is undocumented and
+	// typically represented by the non-existence of this field
+	Rebase string
 
 	raw *format.Subsection
 }
@@ -33,6 +38,13 @@ func (b *Branch) Validate() error {
 
 	if b.Merge != "" && !b.Merge.IsBranch() {
 		return errBranchInvalidMerge
+	}
+
+	if b.Rebase != "" &&
+		b.Rebase != "true" &&
+		b.Rebase != "interactive" &&
+		b.Rebase != "false" {
+		return errBranchInvalidRebase
 	}
 
 	return nil
@@ -57,6 +69,12 @@ func (b *Branch) marshal() *format.Subsection {
 		b.raw.SetOption(mergeKey, string(b.Merge))
 	}
 
+	if b.Rebase == "" {
+		b.raw.RemoveOption(rebaseKey)
+	} else {
+		b.raw.SetOption(rebaseKey, b.Rebase)
+	}
+
 	return b.raw
 }
 
@@ -66,6 +84,7 @@ func (b *Branch) unmarshal(s *format.Subsection) error {
 	b.Name = b.raw.Name
 	b.Remote = b.raw.Options.Get(remoteSection)
 	b.Merge = plumbing.ReferenceName(b.raw.Options.Get(mergeKey))
+	b.Rebase = b.raw.Options.Get(rebaseKey)
 
 	return b.Validate()
 }

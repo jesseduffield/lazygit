@@ -208,6 +208,10 @@ func (msghdr *Msghdr) SetControllen(length int) {
 	msghdr.Controllen = uint64(length)
 }
 
+func (msghdr *Msghdr) SetIovlen(length int) {
+	msghdr.Iovlen = uint64(length)
+}
+
 func (cmsg *Cmsghdr) SetLen(length int) {
 	cmsg.Len = uint64(length)
 }

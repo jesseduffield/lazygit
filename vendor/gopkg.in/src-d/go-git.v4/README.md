@@ -3,16 +3,16 @@
 
 *go-git* is a highly extensible git implementation library written in **pure Go**.
 
-It can be used to manipulate git repositories at low level *(plumbing)* or high level *(porcelain)*, through an idiomatic Go API. It also supports several type of storage, such as in-memory filesystems, or custom implementations thanks to the [`Storer`](https://godoc.org/gopkg.in/src-d/go-git.v4/plumbing/storer) interface.
+It can be used to manipulate git repositories at low level *(plumbing)* or high level *(porcelain)*, through an idiomatic Go API. It also supports several types of storage, such as in-memory filesystems, or custom implementations thanks to the [`Storer`](https://godoc.org/gopkg.in/src-d/go-git.v4/plumbing/storer) interface.
 
-It's being actively develop since 2015 and is being use extensively by [source{d}](https://sourced.tech/) and [Keybase](https://keybase.io/blog/encrypted-git-for-everyone), and by many other libraries and tools.
+It's being actively developed since 2015 and is being used extensively by [source{d}](https://sourced.tech/) and [Keybase](https://keybase.io/blog/encrypted-git-for-everyone), and by many other libraries and tools.
 
 Comparison with git
 -------------------
 
 *go-git* aims to be fully compatible with [git](https://github.com/git/git), all the *porcelain* operations are implemented to work exactly as *git* does.
 
-*git* is a humongous project with years of development by thousands of contributors, making it challenging for *go-git* implement all the features. You can find a comparison of *go-git* vs *git* in the [compatibility documentation](COMPATIBILITY.md).
+*git* is a humongous project with years of development by thousands of contributors, making it challenging for *go-git* to implement all the features. You can find a comparison of *go-git* vs *git* in the [compatibility documentation](COMPATIBILITY.md).
 
 
 Installation
@@ -24,12 +24,12 @@ The recommended way to install *go-git* is:
 go get -u gopkg.in/src-d/go-git.v4/...
 ```
 
-> We use [gopkg.in](http://labix.org/gopkg.in) for having a versioned API, this means that when `go get` clones the package, is the latest tag matching `v4.*` cloned and not the master branch.
+> We use [gopkg.in](http://labix.org/gopkg.in) to version the API, this means that when `go get` clones the package, it's the latest tag matching `v4.*` that is cloned and not the master branch.
 
 Examples
 --------
 
-> Please note that the functions `CheckIfError` and `Info` used in the examples are from the [examples package](https://github.com/src-d/go-git/blob/master/_examples/common.go#L17) just to be used in the examples.
+> Please note that the `CheckIfError` and `Info` functions  used in the examples are from the [examples package](https://github.com/src-d/go-git/blob/master/_examples/common.go#L17) just to be used in the examples.
 
 
 ### Basic example
@@ -71,7 +71,7 @@ r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 
 CheckIfError(err)
 
-// Gets the HEAD history from HEAD, just like does:
+// Gets the HEAD history from HEAD, just like this command:
 Info("git log")
 
 // ... retrieves the branch pointed by HEAD
@@ -110,7 +110,7 @@ Date:   Fri Nov 11 13:23:22 2016 +0100
 ...
 ```
 
-You can find this [example](_examples/log/main.go) and many others at the [examples](_examples) folder
+You can find this [example](_examples/log/main.go) and many others in the [examples](_examples) folder.
 
 Contribute
 ----------

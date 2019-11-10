@@ -133,6 +133,9 @@ func (p *pattern) globMatch(path []string, isDir bool) bool {
 				} else if match {
 					matched = true
 					break
+				} else if len(path) == 0 {
+					// if nothing left then fail
+					matched = false
 				}
 			}
 		} else {

@@ -27,17 +27,22 @@ func PrintablePathCheckHandler(next http.Handler, input *HandlerInput) http.Hand
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Check URL path for non-printable characters
-		idx := strings.IndexFunc(r.URL.Path, func(c rune) bool {
-			return !unicode.IsPrint(c)
-		})
+		if r != nil {
+			// Check URL path for non-printable characters
+			idx := strings.IndexFunc(r.URL.Path, func(c rune) bool {
+				return !unicode.IsPrint(c)
+			})
 
-		if idx != -1 {
-			w.WriteHeader(input.ErrStatus)
-			return
+			if idx != -1 {
+				w.WriteHeader(input.ErrStatus)
+				return
+			}
+
+			if next != nil {
+				next.ServeHTTP(w, r)
+			}
 		}
 
-		next.ServeHTTP(w, r)
 		return
 	})
 }

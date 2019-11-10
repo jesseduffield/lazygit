@@ -8,8 +8,8 @@ import "fmt"
 // column number, respectively.  Values of zero or less will cause Invalid(),
 // to return true.
 type Position struct {
-	Line uint32 // line within the document
-	Col  uint16 // column within the line
+	Line int // line within the document
+	Col  int // column within the line
 }
 
 // String representation of the position.

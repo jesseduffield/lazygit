@@ -76,6 +76,16 @@ func Expand(path string) (string, error) {
 	return filepath.Join(dir, path[1:]), nil
 }
 
+// Reset clears the cache, forcing the next call to Dir to re-detect
+// the home directory. This generally never has to be called, but can be
+// useful in tests if you're modifying the home directory via the HOME
+// env var or something.
+func Reset() {
+	cacheLock.Lock()
+	defer cacheLock.Unlock()
+	homedirCache = ""
+}
+
 func dirUnix() (string, error) {
 	homeEnv := "HOME"
 	if runtime.GOOS == "plan9" {

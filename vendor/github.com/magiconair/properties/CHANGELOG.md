@@ -1,5 +1,13 @@
 ## Changelog
 
+### [1.8.1](https://github.com/magiconair/properties/tree/v1.8.1) - 10 May 2019
+
+ * [PR #26](https://github.com/magiconair/properties/pull/35): Close body always after request
+
+   This patch ensures that in `LoadURL` the response body is always closed.
+
+   Thanks to [@liubog2008](https://github.com/liubog2008) for the patch.
+
 ### [1.8](https://github.com/magiconair/properties/tree/v1.8) - 15 May 2018
 
  * [PR #26](https://github.com/magiconair/properties/pull/26): Disable expansion during loading
