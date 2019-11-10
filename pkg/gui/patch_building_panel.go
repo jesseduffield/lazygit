@@ -5,7 +5,7 @@ import (
 )
 
 func (gui *Gui) refreshPatchBuildingPanel() error {
-	if gui.GitCommand.PatchManager.IsEmpty() {
+	if !gui.GitCommand.PatchManager.CommitSelected() {
 		return gui.handleEscapePatchBuildingPanel(gui.g, nil)
 	}
 
@@ -87,11 +87,16 @@ func (gui *Gui) handleEscapePatchBuildingPanel(g *gocui.Gui, v *gocui.View) erro
 	gui.State.Panels.LineByLine = nil
 	gui.State.Contexts["main"] = "normal"
 
+	if gui.GitCommand.PatchManager.IsEmpty() {
+		gui.GitCommand.PatchManager.Reset()
+		gui.State.SplitMainPanel = false
+	}
+
 	return gui.switchFocus(gui.g, nil, gui.getCommitFilesView())
 }
 
 func (gui *Gui) refreshSecondaryPatchPanel() error {
-	if !gui.GitCommand.PatchManager.IsEmpty() {
+	if gui.GitCommand.PatchManager.CommitSelected() {
 		gui.State.SplitMainPanel = true
 		secondaryView := gui.getSecondaryView()
 		secondaryView.Highlight = true

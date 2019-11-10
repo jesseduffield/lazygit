@@ -136,7 +136,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	toggleTheFile := func() error {
-		if gui.GitCommand.PatchManager.IsEmpty() {
+		if !gui.GitCommand.PatchManager.CommitSelected() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
@@ -147,7 +147,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommitFilesView()
 	}
 
-	if !gui.GitCommand.PatchManager.IsEmpty() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
+	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
 		return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
 			gui.GitCommand.PatchManager.Reset()
 			return toggleTheFile()
@@ -187,7 +187,7 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	enterTheFile := func() error {
-		if gui.GitCommand.PatchManager.IsEmpty() {
+		if !gui.GitCommand.PatchManager.CommitSelected() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
@@ -202,7 +202,7 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshPatchBuildingPanel()
 	}
 
-	if !gui.GitCommand.PatchManager.IsEmpty() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
+	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
 		return gui.createConfirmationPanel(g, v, false, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
 			gui.GitCommand.PatchManager.Reset()
 			return enterTheFile()

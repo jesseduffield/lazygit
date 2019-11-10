@@ -17,7 +17,7 @@ func (o *patchMenuOption) GetDisplayStrings(isFocused bool) []string {
 }
 
 func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
-	if gui.GitCommand.PatchManager.IsEmpty() {
+	if !gui.GitCommand.PatchManager.CommitSelected() {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoPatchError"))
 	}
 

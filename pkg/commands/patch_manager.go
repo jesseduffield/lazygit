@@ -214,6 +214,16 @@ func (p *PatchManager) Reset() {
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
+func (p *PatchManager) CommitSelected() bool {
+	return p.CommitSha != ""
+}
+
 func (p *PatchManager) IsEmpty() bool {
-	return p != nil && (p.CommitSha == "" || len(p.fileInfoMap) == 0)
+	for _, fileInfo := range p.fileInfoMap {
+		if fileInfo.mode == WHOLE || (fileInfo.mode == PART && len(fileInfo.includedLineIndices) > 0) {
+			return false
+		}
+	}
+
+	return true
 }
