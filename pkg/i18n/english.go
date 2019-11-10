@@ -133,9 +133,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "pull",
 			Other: "pull",
 		}, &i18n.Message{
-			ID:    "addPatch",
-			Other: "add patch",
-		}, &i18n.Message{
 			ID:    "edit",
 			Other: "edit",
 		}, &i18n.Message{

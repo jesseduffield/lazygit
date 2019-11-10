@@ -508,12 +508,6 @@ func (c *GitCommand) Checkout(branch string, force bool) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git checkout %s %s", forceArg, branch))
 }
 
-// AddPatch prepares a subprocess for adding a patch by patch
-// this will eventually be swapped out for a better solution inside the Gui
-func (c *GitCommand) AddPatch(filename string) *exec.Cmd {
-	return c.OSCommand.PrepareSubProcess("git", "add", "--patch", c.OSCommand.Quote(filename))
-}
-
 // PrepareCommitSubProcess prepares a subprocess for `git commit`
 func (c *GitCommand) PrepareCommitSubProcess() *exec.Cmd {
 	return c.OSCommand.PrepareSubProcess("git", "commit")

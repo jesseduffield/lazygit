@@ -264,25 +264,6 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 	return gui.handleFileSelect(g, v, false)
 }
 
-func (gui *Gui) handleAddPatch(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
-	if err != nil {
-		if err == gui.Errors.ErrNoFiles {
-			return nil
-		}
-		return err
-	}
-	if !file.HasUnstagedChanges {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileHasNoUnstagedChanges"))
-	}
-	if !file.Tracked {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CannotGitAdd"))
-	}
-
-	gui.SubProcess = gui.GitCommand.AddPatch(file.Name)
-	return gui.Errors.ErrSubProcess
-}
-
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	file, err := gui.getSelectedFile(g)
 	if err != nil {

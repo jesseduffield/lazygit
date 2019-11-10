@@ -102,9 +102,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "refresh",
 			Other: "odśwież",
 		}, &i18n.Message{
-			ID:    "addPatch",
-			Other: "dodaj łatkę",
-		}, &i18n.Message{
 			ID:    "edit",
 			Other: "edytuj",
 		}, &i18n.Message{

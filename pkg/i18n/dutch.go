@@ -110,9 +110,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "pull",
 			Other: "pull",
 		}, &i18n.Message{
-			ID:    "addPatch",
-			Other: "bewerkingen toevoegen",
-		}, &i18n.Message{
 			ID:    "edit",
 			Other: "bewerken",
 		}, &i18n.Message{

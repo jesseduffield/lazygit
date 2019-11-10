@@ -255,12 +255,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("toggleStagedAll"),
 		}, {
 			ViewName:    "files",
-			Key:         't',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleAddPatch,
-			Description: gui.Tr.SLocalize("addPatch"),
-		}, {
-			ViewName:    "files",
 			Key:         'D',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateResetMenu,
