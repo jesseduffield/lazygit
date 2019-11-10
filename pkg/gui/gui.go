@@ -118,10 +118,16 @@ type stashPanelState struct {
 
 type menuPanelState struct {
 	SelectedLine int
+	OnPress      func(g *gocui.Gui, v *gocui.View) error
 }
 
 type commitFilesPanelState struct {
 	SelectedLine int
+}
+
+type statusPanelState struct {
+	pushables string
+	pullables string
 }
 
 type panelStates struct {
@@ -133,6 +139,7 @@ type panelStates struct {
 	LineByLine  *lineByLinePanelState
 	Merging     *mergingPanelState
 	CommitFiles *commitFilesPanelState
+	Status      *statusPanelState
 }
 
 type guiState struct {
@@ -179,6 +186,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 				Conflicts:     []commands.Conflict{},
 				EditHistory:   stack.New(),
 			},
+			Status: &statusPanelState{},
 		},
 	}
 
@@ -257,7 +265,7 @@ func (gui *Gui) onFocusChange() error {
 	for _, view := range gui.g.Views() {
 		view.Highlight = view == currentView
 	}
-	return gui.setMainTitle()
+	return nil
 }
 
 func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
@@ -683,6 +691,8 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
+	g.Log = gui.Log
+
 	if gui.Config.GetUserConfig().GetBool("gui.mouseEvents") {
 		g.Mouse = true
 	}
@@ -792,6 +802,34 @@ func (gui *Gui) setColorScheme() error {
 
 	gui.g.FgColor = theme.InactiveBorderColor
 	gui.g.SelFgColor = theme.ActiveBorderColor
+
+	return nil
+}
+
+func (gui *Gui) handleMouseDownMain(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	switch g.CurrentView().Name() {
+	case "files":
+		return gui.enterFile(false, v.SelectedLineIdx())
+	case "commitFiles":
+		return gui.enterCommitFile(v.SelectedLineIdx())
+	}
+
+	return nil
+}
+
+func (gui *Gui) handleMouseDownSecondary(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	switch g.CurrentView().Name() {
+	case "files":
+		return gui.enterFile(true, v.SelectedLineIdx())
+	}
 
 	return nil
 }

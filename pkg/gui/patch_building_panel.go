@@ -4,12 +4,15 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-func (gui *Gui) refreshPatchBuildingPanel() error {
+func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	if !gui.GitCommand.PatchManager.CommitSelected() {
 		return gui.handleEscapePatchBuildingPanel(gui.g, nil)
 	}
 
 	gui.State.SplitMainPanel = true
+
+	gui.getMainView().Title = "Patch"
+	gui.getSecondaryView().Title = "Custom Patch"
 
 	// get diff from commit file that's currently selected
 	commitFile := gui.getSelectedCommitFile(gui.g)
@@ -27,7 +30,7 @@ func (gui *Gui) refreshPatchBuildingPanel() error {
 		return err
 	}
 
-	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false)
+	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx)
 	if err != nil {
 		return err
 	}
@@ -54,7 +57,7 @@ func (gui *Gui) handleAddSelectionToPatch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	if err := gui.refreshPatchBuildingPanel(); err != nil {
+	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
 		return err
 	}
 
@@ -76,7 +79,7 @@ func (gui *Gui) handleRemoveSelectionFromPatch(g *gocui.Gui, v *gocui.View) erro
 		return err
 	}
 
-	if err := gui.refreshPatchBuildingPanel(); err != nil {
+	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
 		return err
 	}
 

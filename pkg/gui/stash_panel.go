@@ -29,6 +29,9 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
 		return err
 	}
+
+	gui.getMainView().Title = "Stash"
+
 	stashEntry := gui.getSelectedStashEntry(v)
 	if stashEntry == nil {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoStashEntries"))

@@ -27,24 +27,21 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 	return gui.State.Files[selectedLine], nil
 }
 
-func (gui *Gui) handleFilesFocus(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleFilesClick(g *gocui.Gui, v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
-	cx, cy := v.Cursor()
-	_, oy := v.Origin()
+	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLine
+	newSelectedLineIdx := v.SelectedLineIdx()
 
-	prevSelectedLine := gui.State.Panels.Files.SelectedLine
-	newSelectedLine := cy - oy
-
-	if newSelectedLine > len(gui.State.Files)-1 || len(utils.Decolorise(gui.State.Files[newSelectedLine].DisplayString)) < cx {
+	if newSelectedLineIdx > len(gui.State.Files)-1 {
 		return gui.handleFileSelect(gui.g, v, false)
 	}
 
-	gui.State.Panels.Files.SelectedLine = newSelectedLine
+	gui.State.Panels.Files.SelectedLine = newSelectedLineIdx
 
-	if prevSelectedLine == newSelectedLine && gui.currentViewName() == v.Name() {
+	if prevSelectedLineIdx == newSelectedLineIdx && gui.currentViewName() == v.Name() {
 		return gui.handleFilePress(gui.g, v)
 	} else {
 		return gui.handleFileSelect(gui.g, v, true)
@@ -77,12 +74,16 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 	leftContent := content
 	if file.HasStagedChanges && file.HasUnstagedChanges {
 		gui.State.SplitMainPanel = true
+		gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
+		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
 	} else {
 		gui.State.SplitMainPanel = false
 		if file.HasUnstagedChanges {
 			leftContent = content
+			gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
 		} else {
 			leftContent = contentCached
+			gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
 		}
 	}
 
@@ -189,7 +190,11 @@ func (gui *Gui) stageSelectedFile(g *gocui.Gui) error {
 }
 
 func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
+	return gui.enterFile(false, -1)
+}
+
+func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error {
+	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
 			return err
@@ -197,18 +202,21 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if file.HasInlineMergeConflicts {
-		return gui.handleSwitchToMerge(g, v)
+		return gui.handleSwitchToMerge(gui.g, gui.getFilesView())
 	}
 	if file.HasMergeConflicts {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileStagingRequirements"))
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("FileStagingRequirements"))
 	}
 	if err := gui.changeContext("main", "staging"); err != nil {
 		return err
 	}
-	if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {
+	if err := gui.changeContext("secondary", "staging"); err != nil {
 		return err
 	}
-	return gui.refreshStagingPanel()
+	if err := gui.switchFocus(gui.g, gui.getFilesView(), gui.getMainView()); err != nil {
+		return err
+	}
+	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
 }
 
 func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {

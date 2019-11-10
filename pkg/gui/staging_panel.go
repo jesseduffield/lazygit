@@ -7,7 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
-func (gui *Gui) refreshStagingPanel() error {
+func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx int) error {
 	gui.State.SplitMainPanel = true
 
 	state := gui.State.Panels.LineByLine
@@ -25,12 +25,24 @@ func (gui *Gui) refreshStagingPanel() error {
 	}
 
 	secondaryFocused := false
-	if state != nil {
-		secondaryFocused = state.SecondaryFocused
+	if forceSecondaryFocused {
+		secondaryFocused = true
+	} else {
+		if state != nil {
+			secondaryFocused = state.SecondaryFocused
+		}
 	}
 
 	if (secondaryFocused && !file.HasStagedChanges) || (!secondaryFocused && !file.HasUnstagedChanges) {
 		secondaryFocused = !secondaryFocused
+	}
+
+	if secondaryFocused {
+		gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
+		gui.getSecondaryView().Title = gui.Tr.SLocalize("UnstagedChanges")
+	} else {
+		gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
+		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
 	}
 
 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
@@ -47,7 +59,7 @@ func (gui *Gui) refreshStagingPanel() error {
 		diff, secondaryDiff = secondaryDiff, diff
 	}
 
-	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, secondaryFocused)
+	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, secondaryFocused, selectedLineIdx)
 	if err != nil {
 		return err
 	}
@@ -59,11 +71,19 @@ func (gui *Gui) refreshStagingPanel() error {
 	return nil
 }
 
+func (gui *Gui) handleTogglePanelClick(g *gocui.Gui, v *gocui.View) error {
+	state := gui.State.Panels.LineByLine
+
+	state.SecondaryFocused = !state.SecondaryFocused
+
+	return gui.refreshStagingPanel(false, v.SelectedLineIdx())
+}
+
 func (gui *Gui) handleTogglePanel(g *gocui.Gui, v *gocui.View) error {
 	state := gui.State.Panels.LineByLine
 
 	state.SecondaryFocused = !state.SecondaryFocused
-	return gui.refreshStagingPanel()
+	return gui.refreshStagingPanel(false, -1)
 }
 
 func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
@@ -116,8 +136,16 @@ func (gui *Gui) applySelection(reverse bool) error {
 	if err := gui.refreshFiles(); err != nil {
 		return err
 	}
-	if err := gui.refreshStagingPanel(); err != nil {
+	if err := gui.refreshStagingPanel(false, -1); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (gui *Gui) handleMouseDownSecondaryWhileStaging(g *gocui.Gui, v *gocui.View) error {
+	state := gui.State.Panels.LineByLine
+
+	state.SecondaryFocused = !state.SecondaryFocused
+
+	return gui.refreshStagingPanel(false, -1)
 }
