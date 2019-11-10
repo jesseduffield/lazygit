@@ -24,8 +24,16 @@ Github Sponsors is matching all donations dollar-for-dollar for 12 months so if 
 ## Installation
 
 ### Homebrew
+Normally the lazygit formula can be found in the Homebrew core but we suggest you tap our formula to get the frequently updated one. It works with Linux, too.
 
-```sh
+Tap:
+```
+brew install jesseduffield/lazygit/lazygit
+```
+
+Core:
+
+```
 brew install lazygit
 ```
 
