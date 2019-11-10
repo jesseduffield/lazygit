@@ -691,8 +691,6 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
-	g.Log = gui.Log
-
 	if gui.Config.GetUserConfig().GetBool("gui.mouseEvents") {
 		g.Mouse = true
 	}
