@@ -30,6 +30,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const StartupPopupVersion = 1
+
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
 
@@ -618,20 +620,42 @@ func (gui *Gui) loadNewRepo() error {
 		return err
 	}
 
-	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-		if err := gui.promptAnonymousReporting(); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
-func (gui *Gui) promptAnonymousReporting() error {
+func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
+	gui.waitForIntro.Add(len(tasks))
+	done := make(chan struct{})
+
+	go func() {
+		for _, task := range tasks {
+			go func() {
+				if err := task(done); err != nil {
+					_ = gui.createErrorPanel(gui.g, err.Error())
+				}
+			}()
+
+			<-done
+			gui.waitForIntro.Done()
+		}
+	}()
+}
+
+func (gui *Gui) showShamelessSelfPromotionMessage(done chan struct{}) error {
+	onConfirm := func(g *gocui.Gui, v *gocui.View) error {
+		done <- struct{}{}
+		return gui.Config.WriteToUserConfig("startupPopupVersion", StartupPopupVersion)
+	}
+
+	return gui.createConfirmationPanel(gui.g, nil, true, gui.Tr.SLocalize("ShamelessSelfPromotionTitle"), gui.Tr.SLocalize("ShamelessSelfPromotionMessage"), onConfirm, onConfirm)
+}
+
+func (gui *Gui) promptAnonymousReporting(done chan struct{}) error {
 	return gui.createConfirmationPanel(gui.g, nil, true, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		gui.waitForIntro.Done()
+		done <- struct{}{}
 		return gui.Config.WriteToUserConfig("reporting", "on")
 	}, func(g *gocui.Gui, v *gocui.View) error {
-		gui.waitForIntro.Done()
+		done <- struct{}{}
 		return gui.Config.WriteToUserConfig("reporting", "off")
 	})
 }
@@ -717,15 +741,22 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
+	popupTasks := []func(chan struct{}) error{}
 	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-		gui.waitForIntro.Add(2)
-	} else {
-		gui.waitForIntro.Add(1)
+		popupTasks = append(popupTasks, gui.promptAnonymousReporting)
 	}
+	configPopupVersion := gui.Config.GetUserConfig().GetInt("StartupPopupVersion")
+	// -1 means we've disabled these popups
+	if configPopupVersion != -1 && configPopupVersion < StartupPopupVersion {
+		popupTasks = append(popupTasks, gui.showShamelessSelfPromotionMessage)
+	}
+	gui.showInitialPopups(popupTasks)
 
+	gui.waitForIntro.Add(1)
 	if gui.Config.GetUserConfig().GetBool("git.autoFetch") {
 		go gui.startBackgroundFetch()
 	}
+
 	gui.goEvery(time.Second*10, gui.refreshFiles)
 	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
@@ -734,6 +765,8 @@ func (gui *Gui) Run() error {
 	if err = gui.keybindings(g); err != nil {
 		return err
 	}
+
+	gui.Log.Warn("starting main loop")
 
 	err = g.MainLoop()
 	return err
@@ -806,7 +839,7 @@ func (gui *Gui) handleDonate(g *gocui.Gui, v *gocui.View) error {
 	if cx > len(gui.Tr.SLocalize("Donate")) {
 		return nil
 	}
-	return gui.OSCommand.OpenLink("https://donorbox.org/lazygit")
+	return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
 }
 
 // setColorScheme sets the color scheme for the app based on the user config
