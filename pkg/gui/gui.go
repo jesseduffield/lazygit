@@ -155,7 +155,7 @@ type guiState struct {
 	Updating            bool
 	Panels              *panelStates
 	WorkingTreeState    string // one of "merging", "rebasing", "normal"
-	Contexts            map[string]string
+	Context             string // important not to set this value directly but to use gui.changeContext("new context")
 	CherryPickedCommits []*commands.Commit
 	SplitMainPanel      bool
 }
@@ -281,11 +281,11 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 		}
 	case "main":
 		// if we have lost focus to a first-class panel, we need to do some cleanup
-		if err := gui.changeContext("main", "normal"); err != nil {
+		if err := gui.changeContext("normal"); err != nil {
 			return err
 		}
 	case "commitFiles":
-		if gui.State.Contexts["main"] != "patch-building" {
+		if gui.State.Context != "patch-building" {
 			if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
 				return err
 			}

@@ -226,7 +226,7 @@ func (gui *Gui) refreshMainView() error {
 	var includedLineIndices []int
 	// I'd prefer not to have knowledge of contexts using this file but I'm not sure
 	// how to get around this
-	if gui.State.Contexts["main"] == "patch-building" {
+	if gui.State.Context == "patch-building" {
 		filename := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
 		includedLineIndices = gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
 	}
