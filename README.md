@@ -121,7 +121,7 @@ whichever rc file you're using).
   
 ## Changing Directory On Exit
 
-If you change repos in lazygit and want your shell to change directory into that repo on exiting lazygit, add this to your `~./zhsrc` (or other rc file):
+If you change repos in lazygit and want your shell to change directory into that repo on exiting lazygit, add this to your `~./zshrc` (or other rc file):
 ```
 lg()
 {
