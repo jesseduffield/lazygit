@@ -207,7 +207,7 @@ func (gui *Gui) handleCheckoutBranch(branchName string) error {
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", func(g *gocui.Gui, v *gocui.View) error {
+	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleCheckoutBranch(gui.trimmedContent(v))
 	})
 	return nil
@@ -221,7 +221,7 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 			"branchName": branch.Name,
 		},
 	)
-	gui.createPromptPanel(g, v, message, func(g *gocui.Gui, v *gocui.View) error {
+	gui.createPromptPanel(g, v, message, "", func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}

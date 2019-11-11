@@ -424,14 +424,14 @@ func (gui *Gui) pullFiles(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error {
+func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstream string) error {
 	if err := gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {
 		unamePassOpend := false
 		branchName := gui.State.Branches[0].Name
-		err := gui.GitCommand.Push(branchName, force, func(passOrUname string) string {
+		err := gui.GitCommand.Push(branchName, force, upstream, func(passOrUname string) string {
 			unamePassOpend = true
 			return gui.waitForPassUname(g, v, passOrUname)
 		})
@@ -443,13 +443,21 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool) error
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	// if we have pullables we'll ask if the user wants to force push
 	_, pullables := gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
-	if pullables == "?" || pullables == "0" {
-		return gui.pushWithForceFlag(g, v, false)
+	currentBranchName, err := gui.GitCommand.CurrentBranchName()
+	if err != nil {
+		return err
 	}
-	err := gui.createConfirmationPanel(g, nil, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.pushWithForceFlag(g, v, true)
+
+	if pullables == "?" {
+		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranchName, func(g *gocui.Gui, v *gocui.View) error {
+			return gui.pushWithForceFlag(g, v, false, gui.trimmedContent(v))
+		})
+	} else if pullables == "0" {
+		return gui.pushWithForceFlag(g, v, false, "")
+	}
+	return gui.createConfirmationPanel(g, nil, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.pushWithForceFlag(g, v, true, "")
 	}, nil)
-	return err
 }
 
 func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
@@ -626,7 +634,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
-	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("CustomCommand"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("CustomCommand"), "", func(g *gocui.Gui, v *gocui.View) error {
 		command := gui.trimmedContent(v)
 		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
 		return gui.Errors.ErrSubProcess
