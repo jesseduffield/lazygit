@@ -118,6 +118,24 @@ whichever rc file you're using).
 - Rebase Magic tutorial [here](https://youtu.be/4XaToVut_hs)
 - List of keybindings
   [here](/docs/keybindings).
+  
+## Changing Directory On Exit
+
+If you change repos in lazygit and want your shell to change directory into that repo on exiting lazygit, add this to your `~./zhsrc` (or other rc file):
+```
+lg()
+{
+    export LAZYGIT_NEW_DIR_FILE=~/.lazygit/newdir
+
+    lazygit "$@"
+
+    if [ -f $LAZYGIT_NEW_DIR_FILE ]; then
+            cd "$(cat $LAZYGIT_NEW_DIR_FILE)"
+            rm -f $LAZYGIT_NEW_DIR_FILE > /dev/null
+    fi
+}
+```
+Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazyigt. To override this behaviour you can exit using `shift+Q` rather than just `q`.
 
 ## Cool features
 
