@@ -398,13 +398,18 @@ func (c *GitCommand) Pull(ask func(string) string) error {
 }
 
 // Push pushes to a branch
-func (c *GitCommand) Push(branchName string, force bool, ask func(string) string) error {
+func (c *GitCommand) Push(branchName string, force bool, upstream string, ask func(string) string) error {
 	forceFlag := ""
 	if force {
-		forceFlag = "--force-with-lease "
+		forceFlag = "--force-with-lease"
 	}
 
-	cmd := fmt.Sprintf("git push %s-u origin %s", forceFlag, branchName)
+	setUpstreamArg := ""
+	if upstream != "" {
+		setUpstreamArg = "--set-upstream " + upstream
+	}
+
+	cmd := fmt.Sprintf("git push %s %s", forceFlag, setUpstreamArg)
 	return c.OSCommand.DetectUnamePass(cmd, ask)
 }
 

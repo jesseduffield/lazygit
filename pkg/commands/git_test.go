@@ -990,7 +990,7 @@ func TestGitCommandPush(t *testing.T) {
 			"Push with force disabled",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "-u", "origin", "test"}, args)
+				assert.EqualValues(t, []string{"push"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1003,7 +1003,7 @@ func TestGitCommandPush(t *testing.T) {
 			"Push with force enabled",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "--force-with-lease", "-u", "origin", "test"}, args)
+				assert.EqualValues(t, []string{"push", "--force-with-lease"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1016,7 +1016,7 @@ func TestGitCommandPush(t *testing.T) {
 			"Push with an error occurring",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "-u", "origin", "test"}, args)
+				assert.EqualValues(t, []string{"push"}, args)
 				return exec.Command("test")
 			},
 			false,
@@ -1030,7 +1030,7 @@ func TestGitCommandPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			err := gitCmd.Push("test", s.forcePush, func(passOrUname string) string {
+			err := gitCmd.Push("test", s.forcePush, "", func(passOrUname string) string {
 				return "\n"
 			})
 			s.test(err)

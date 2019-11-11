@@ -740,6 +740,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ExitLineByLineMode",
 			Other: `exit line-by-line mode`,
+		}, &i18n.Message{
+			ID:    "EnterUpstream",
+			Other: `Enter upstream as '<remote> <branchname>'`,
 		},
 	)
 }

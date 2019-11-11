@@ -64,13 +64,16 @@ func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, wrap bool, prompt s
 		height/2 + panelHeight/2
 }
 
-func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
+func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, initialContent string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
 	gui.onNewPopupPanel()
-	confirmationView, err := gui.prepareConfirmationPanel(currentView, title, "", false)
+	confirmationView, err := gui.prepareConfirmationPanel(currentView, title, initialContent, false)
 	if err != nil {
 		return err
 	}
 	confirmationView.Editable = true
+	if err := gui.renderString(g, "confirmation", initialContent); err != nil {
+		return err
+	}
 	// in the future we might want to give createPromptPanel the returnFocusOnClose arg too, but for now we're always setting it to true
 	return gui.setKeyBindings(g, handleConfirm, nil, true)
 }
