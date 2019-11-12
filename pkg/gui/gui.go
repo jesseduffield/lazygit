@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-errors/errors"
 
 	// "strings"
@@ -79,6 +80,7 @@ type Gui struct {
 	statusManager *statusManager
 	credentials   credentials
 	waitForIntro  sync.WaitGroup
+	fileWatcher   *fsnotify.Watcher
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -145,22 +147,24 @@ type panelStates struct {
 }
 
 type guiState struct {
-	Files               []*commands.File
-	Branches            []*commands.Branch
-	Commits             []*commands.Commit
-	StashEntries        []*commands.StashEntry
-	CommitFiles         []*commands.CommitFile
-	DiffEntries         []*commands.Commit
-	MenuItemCount       int // can't store the actual list because it's of interface{} type
-	PreviousView        string
-	Platform            commands.Platform
-	Updating            bool
-	Panels              *panelStates
-	WorkingTreeState    string // one of "merging", "rebasing", "normal"
-	Context             string // important not to set this value directly but to use gui.changeContext("new context")
-	CherryPickedCommits []*commands.Commit
-	SplitMainPanel      bool
-	RetainOriginalDir   bool
+	Files                []*commands.File
+	Branches             []*commands.Branch
+	Commits              []*commands.Commit
+	StashEntries         []*commands.StashEntry
+	CommitFiles          []*commands.CommitFile
+	DiffEntries          []*commands.Commit
+	MenuItemCount        int // can't store the actual list because it's of interface{} type
+	PreviousView         string
+	Platform             commands.Platform
+	Updating             bool
+	Panels               *panelStates
+	WorkingTreeState     string // one of "merging", "rebasing", "normal"
+	Context              string // important not to set this value directly but to use gui.changeContext("new context")
+	CherryPickedCommits  []*commands.Commit
+	SplitMainPanel       bool
+	RetainOriginalDir    bool
+	IsRefreshingFiles    bool
+	RefreshingFilesMutex sync.Mutex
 }
 
 // for now the split view will always be on
@@ -203,6 +207,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		Updater:       updater,
 		statusManager: &statusManager{},
 	}
+
+	gui.watchFilesForChanges()
 
 	gui.GenerateSentinelErrors()
 
@@ -785,6 +791,8 @@ func (gui *Gui) RunWithSubprocesses() error {
 						return err
 					}
 				}
+
+				gui.fileWatcher.Close()
 
 				break
 			} else if err == gui.Errors.ErrSwitchRepo {
