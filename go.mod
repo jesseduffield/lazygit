@@ -11,7 +11,7 @@ require (
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/integrii/flaggy v1.3.0
 	github.com/jesseduffield/gocui v0.3.1-0.20191110053728-01cdcccd0508
-	github.com/jesseduffield/pty v1.1.3
+	github.com/jesseduffield/pty v1.2.1
 	github.com/jesseduffield/rollrus v0.0.0-20190701125922-dd028cb0bfd7
 	github.com/jesseduffield/termbox-go v0.0.0-20190630083001-9dd53af7214e // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
