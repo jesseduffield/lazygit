@@ -105,6 +105,13 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 }
 
 func (gui *Gui) refreshFiles() error {
+	gui.State.RefreshingFilesMutex.Lock()
+	gui.State.IsRefreshingFiles = true
+	defer func() {
+		gui.State.IsRefreshingFiles = false
+		gui.State.RefreshingFilesMutex.Unlock()
+	}()
+
 	selectedFile, _ := gui.getSelectedFile(gui.g)
 
 	filesView := gui.getFilesView()
@@ -126,7 +133,7 @@ func (gui *Gui) refreshFiles() error {
 		}
 		fmt.Fprint(filesView, list)
 
-		if filesView == g.CurrentView() {
+		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && gui.State.Context == "merging") {
 			newSelectedFile, _ := gui.getSelectedFile(gui.g)
 			alreadySelected := newSelectedFile.Name == selectedFile.Name
 			return gui.handleFileSelect(g, filesView, alreadySelected)
@@ -387,6 +394,11 @@ func (gui *Gui) refreshStateFiles() error {
 	// get files to stage
 	files := gui.GitCommand.GetStatusFiles()
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
+
+	if err := gui.addFilesToFileWatcher(files); err != nil {
+		return err
+	}
+
 	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
 	return gui.updateWorkTreeState()
 }
