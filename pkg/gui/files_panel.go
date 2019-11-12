@@ -66,6 +66,8 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 	}
 
 	if file.HasInlineMergeConflicts {
+		gui.getMainView().Title = gui.Tr.SLocalize("MergeConflictsTitle")
+		gui.State.SplitMainPanel = false
 		return gui.refreshMergePanel()
 	}
 

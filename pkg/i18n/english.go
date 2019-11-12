@@ -148,6 +148,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "resolveMergeConflicts",
 			Other: "resolve merge conflicts",
 		}, &i18n.Message{
+			ID:    "MergeConflictsTitle",
+			Other: "Merge Conflicts",
+		}, &i18n.Message{
 			ID:    "checkout",
 			Other: "checkout",
 		}, &i18n.Message{
