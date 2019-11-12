@@ -1,43 +1,3 @@
-# github.com/aws/aws-sdk-go v1.25.31
-github.com/aws/aws-sdk-go/aws
-github.com/aws/aws-sdk-go/aws/credentials
-github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
-github.com/aws/aws-sdk-go/aws/ec2metadata
-github.com/aws/aws-sdk-go/aws/session
-github.com/aws/aws-sdk-go/service/s3
-github.com/aws/aws-sdk-go/aws/awserr
-github.com/aws/aws-sdk-go/aws/endpoints
-github.com/aws/aws-sdk-go/internal/sdkio
-github.com/aws/aws-sdk-go/internal/ini
-github.com/aws/aws-sdk-go/internal/shareddefaults
-github.com/aws/aws-sdk-go/aws/client
-github.com/aws/aws-sdk-go/aws/request
-github.com/aws/aws-sdk-go/internal/sdkuri
-github.com/aws/aws-sdk-go/aws/client/metadata
-github.com/aws/aws-sdk-go/aws/corehandlers
-github.com/aws/aws-sdk-go/aws/credentials/processcreds
-github.com/aws/aws-sdk-go/aws/credentials/stscreds
-github.com/aws/aws-sdk-go/aws/csm
-github.com/aws/aws-sdk-go/aws/defaults
-github.com/aws/aws-sdk-go/aws/awsutil
-github.com/aws/aws-sdk-go/aws/signer/v4
-github.com/aws/aws-sdk-go/internal/s3err
-github.com/aws/aws-sdk-go/private/protocol
-github.com/aws/aws-sdk-go/private/protocol/eventstream
-github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi
-github.com/aws/aws-sdk-go/private/protocol/rest
-github.com/aws/aws-sdk-go/private/protocol/restxml
-github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
-github.com/aws/aws-sdk-go/internal/sdkrand
-github.com/aws/aws-sdk-go/service/sts
-github.com/aws/aws-sdk-go/service/sts/stsiface
-github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
-github.com/aws/aws-sdk-go/internal/sdkmath
-github.com/aws/aws-sdk-go/private/protocol/query
-github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
-github.com/aws/aws-sdk-go/private/protocol/query/queryutil
-# github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
-github.com/bgentry/go-netrc/netrc
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 github.com/cloudfoundry/jibber_jabber
 # github.com/davecgh/go-spew v1.1.1
@@ -57,14 +17,6 @@ github.com/fsnotify/fsnotify
 github.com/go-errors/errors
 # github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 github.com/golang-collections/collections/stack
-# github.com/hashicorp/go-cleanhttp v0.5.1
-github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-getter v1.4.0
-github.com/hashicorp/go-getter/helper/url
-# github.com/hashicorp/go-safetemp v1.0.0
-github.com/hashicorp/go-safetemp
-# github.com/hashicorp/go-version v1.2.0
-github.com/hashicorp/go-version
 # github.com/hashicorp/hcl v1.0.0
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/printer
@@ -80,8 +32,6 @@ github.com/hashicorp/hcl/json/token
 github.com/integrii/flaggy
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 github.com/jbenet/go-context/io
-# github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63
-github.com/jesseduffield/go-getter
 # github.com/jesseduffield/gocui v0.3.1-0.20191110053728-01cdcccd0508
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/pty v1.1.3
@@ -92,8 +42,6 @@ github.com/jesseduffield/roll
 github.com/jesseduffield/rollrus
 # github.com/jesseduffield/termbox-go v0.0.0-20190630083001-9dd53af7214e
 github.com/jesseduffield/termbox-go
-# github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
-github.com/jmespath/go-jmespath
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 github.com/kardianos/osext
 # github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd
@@ -112,8 +60,6 @@ github.com/mattn/go-runewidth
 github.com/mgutz/str
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
-# github.com/mitchellh/go-testing-interface v1.0.0
-github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
 # github.com/nicksnyder/go-i18n/v2 v2.0.2
@@ -156,11 +102,6 @@ github.com/stretchr/testify/assert
 github.com/subosito/gotenv
 # github.com/tcnksm/go-gitconfig v0.1.2
 github.com/tcnksm/go-gitconfig
-# github.com/ulikunitz/xz v0.5.6
-github.com/ulikunitz/xz
-github.com/ulikunitz/xz/internal/xlog
-github.com/ulikunitz/xz/lzma
-github.com/ulikunitz/xz/internal/hash
 # github.com/xanzy/ssh-agent v0.2.1
 github.com/xanzy/ssh-agent
 # golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
