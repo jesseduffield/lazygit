@@ -3,17 +3,13 @@ module github.com/jesseduffield/lazygit
 go 1.13
 
 require (
-	github.com/aws/aws-sdk-go v1.25.31 // indirect
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/fatih/color v1.7.0
 	github.com/go-errors/errors v1.0.1
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
+	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
-	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
-	github.com/hashicorp/go-getter v1.4.0 // indirect
-	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/integrii/flaggy v1.3.0
-	github.com/jesseduffield/go-getter v0.0.0-20180822080847-906e15686e63
 	github.com/jesseduffield/gocui v0.3.1-0.20191110053728-01cdcccd0508
 	github.com/jesseduffield/pty v1.1.3
 	github.com/jesseduffield/rollrus v0.0.0-20190701125922-dd028cb0bfd7
@@ -32,7 +28,6 @@ require (
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.4.0
 	github.com/tcnksm/go-gitconfig v0.1.2
-	github.com/ulikunitz/xz v0.5.6 // indirect
 	golang.org/x/text v0.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.2.5
