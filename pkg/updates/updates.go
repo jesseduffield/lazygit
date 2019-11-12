@@ -3,8 +3,8 @@ package updates
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,7 +15,6 @@ import (
 
 	"github.com/kardianos/osext"
 
-	"github.com/jesseduffield/go-getter"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -254,17 +253,34 @@ func (u *Updater) update(newVersion string) error {
 }
 
 func (u *Updater) downloadAndInstall(rawUrl string) error {
-	url, err := url.Parse(rawUrl)
-	if err != nil {
-		return err
-	}
-
-	g := new(getter.HttpGetter)
 	configDir := u.Config.GetUserConfigDir()
 	u.Log.Info("Download directory is " + configDir)
 
-	// Get it!
-	if err := g.Get(configDir, url); err != nil {
+	tempPath := filepath.Join(configDir, "temp_lazygit")
+	u.Log.Info("Temp path to binary is " + tempPath)
+
+	// Create the file
+	out, err := os.Create(tempPath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Get the data
+	resp, err := http.Get(rawUrl)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check server response
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error while trying to download latest lazygit: %s", resp.Status)
+	}
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
 		return err
 	}
 
@@ -275,12 +291,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	}
 	u.Log.Info("Binary path is " + binaryPath)
 
-	binaryName := filepath.Base(binaryPath)
-	u.Log.Info("Binary name is " + binaryName)
-
 	// Verify the main file exists
-	tempPath := filepath.Join(configDir, binaryName)
-	u.Log.Info("Temp path to binary is " + tempPath)
 	if _, err := os.Stat(tempPath); err != nil {
 		return err
 	}
