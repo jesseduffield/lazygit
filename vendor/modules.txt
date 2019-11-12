@@ -34,7 +34,7 @@ github.com/integrii/flaggy
 github.com/jbenet/go-context/io
 # github.com/jesseduffield/gocui v0.3.1-0.20191110053728-01cdcccd0508
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/pty v1.1.3
+# github.com/jesseduffield/pty v1.2.1
 github.com/jesseduffield/pty
 # github.com/jesseduffield/roll v0.0.0-20190629104057-695be2e62b00
 github.com/jesseduffield/roll
