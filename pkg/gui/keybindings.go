@@ -906,16 +906,14 @@ func (gui *Gui) GetContextMap() map[string][]*Binding {
 				Handler:     gui.handleSelectPrevConflict,
 				Description: gui.Tr.SLocalize("PrevConflict"),
 			}, {
-				ViewName: "main",
-				Key:      gocui.KeyArrowRight,
-				Modifier: gocui.ModNone,
-				Handler:  gui.handleSelectNextConflict,
-
+				ViewName:    "main",
+				Key:         gocui.KeyArrowRight,
+				Modifier:    gocui.ModNone,
+				Handler:     gui.handleSelectNextConflict,
 				Description: gui.Tr.SLocalize("NextConflict"),
 			}, {
-				ViewName: "main",
-				Key:      gocui.KeyArrowUp,
-
+				ViewName:    "main",
+				Key:         gocui.KeyArrowUp,
 				Modifier:    gocui.ModNone,
 				Handler:     gui.handleSelectTop,
 				Description: gui.Tr.SLocalize("SelectTop"),
@@ -961,6 +959,18 @@ func (gui *Gui) GetContextMap() map[string][]*Binding {
 				Modifier:    gocui.ModNone,
 				Handler:     gui.handlePopFileSnapshot,
 				Description: gui.Tr.SLocalize("Undo"),
+			}, {
+				ViewName:    "main",
+				Key:         'e',
+				Modifier:    gocui.ModNone,
+				Handler:     gui.handleFileEdit,
+				Description: gui.Tr.SLocalize("editFile"),
+			}, {
+				ViewName:    "main",
+				Key:         'o',
+				Modifier:    gocui.ModNone,
+				Handler:     gui.handleFileOpen,
+				Description: gui.Tr.SLocalize("openFile"),
 			},
 		},
 	}
