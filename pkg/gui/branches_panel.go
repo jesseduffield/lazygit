@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -53,11 +55,15 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		_ = gui.RenderSelectedBranchUpstreamDifferences()
 	}()
 	go func() {
+		upstream, _ := gui.GitCommand.GetUpstreamForBranch(branch.Name)
+		if strings.Contains(upstream, "no upstream configured for branch") {
+			upstream = gui.Tr.SLocalize("notTrackingRemote")
+		}
 		graph, err := gui.GitCommand.GetBranchGraph(branch.Name)
 		if err != nil && strings.HasPrefix(graph, "fatal: ambiguous argument") {
 			graph = gui.Tr.SLocalize("NoTrackingThisBranch")
 		}
-		_ = gui.renderString(g, "main", graph)
+		_ = gui.renderString(g, "main", fmt.Sprintf("%s → %s\n\n%s", utils.ColoredString(branch.Name, color.FgGreen), utils.ColoredString(upstream, color.FgRed), graph))
 	}()
 	return nil
 }

@@ -530,6 +530,11 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName))
 }
 
+func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
+	output, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName))
+	return strings.TrimSpace(output), err
+}
+
 // Ignore adds a file to the gitignore for the repo
 func (c *GitCommand) Ignore(filename string) error {
 	return c.OSCommand.AppendLineToFile(".gitignore", filename)
