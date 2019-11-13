@@ -76,7 +76,9 @@ func Encrypt(random io.Reader, pub *PublicKey, msg []byte) (c1, c2 *big.Int, err
 // Bleichenbacher, Advances in Cryptology (Crypto '98),
 func Decrypt(priv *PrivateKey, c1, c2 *big.Int) (msg []byte, err error) {
 	s := new(big.Int).Exp(c1, priv.X, priv.P)
-	s.ModInverse(s, priv.P)
+	if s.ModInverse(s, priv.P) == nil {
+		return nil, errors.New("elgamal: invalid private key")
+	}
 	s.Mul(s, c2)
 	s.Mod(s, priv.P)
 	em := s.Bytes()

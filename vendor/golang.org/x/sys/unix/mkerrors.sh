@@ -190,6 +190,7 @@ struct ltchars {
 #include <linux/can.h>
 #include <linux/capability.h>
 #include <linux/cryptouser.h>
+#include <linux/devlink.h>
 #include <linux/errqueue.h>
 #include <linux/falloc.h>
 #include <linux/fanotify.h>
@@ -524,6 +525,7 @@ ccflags="$@"
 		$2 ~ /^(HDIO|WIN|SMART)_/ ||
 		$2 ~ /^CRYPTO_/ ||
 		$2 ~ /^TIPC_/ ||
+		$2 ~ /^DEVLINK_/ ||
 		$2 !~ "WMESGLEN" &&
 		$2 ~ /^W[A-Z0-9]+$/ ||
 		$2 ~/^PPPIOC/ ||

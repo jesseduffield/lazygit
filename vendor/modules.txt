@@ -104,7 +104,7 @@ github.com/subosito/gotenv
 github.com/tcnksm/go-gitconfig
 # github.com/xanzy/ssh-agent v0.2.1
 github.com/xanzy/ssh-agent
-# golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+# golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
 golang.org/x/crypto/openpgp/errors
@@ -115,17 +115,17 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/knownhosts
 golang.org/x/crypto/ssh/agent
+golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/ed25519
-golang.org/x/crypto/internal/chacha20
 golang.org/x/crypto/poly1305
-golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/internal/subtle
-# golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
+golang.org/x/crypto/ed25519/internal/edwards25519
+# golang.org/x/net v0.0.0-20191112182307-2180aed22343
 golang.org/x/net/proxy
 golang.org/x/net/context
 golang.org/x/net/internal/socks
-# golang.org/x/sys v0.0.0-20191008105621-543471e840be
+# golang.org/x/sys v0.0.0-20191112214154-59a1497f0cea
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/cpu

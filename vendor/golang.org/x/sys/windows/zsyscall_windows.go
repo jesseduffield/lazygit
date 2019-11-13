@@ -44,6 +44,7 @@ var (
 	moduser32   = NewLazySystemDLL("user32.dll")
 	modole32    = NewLazySystemDLL("ole32.dll")
 	modntdll    = NewLazySystemDLL("ntdll.dll")
+	modpsapi    = NewLazySystemDLL("psapi.dll")
 	modws2_32   = NewLazySystemDLL("ws2_32.dll")
 	moddnsapi   = NewLazySystemDLL("dnsapi.dll")
 	modiphlpapi = NewLazySystemDLL("iphlpapi.dll")
@@ -224,6 +225,7 @@ var (
 	procFindNextVolumeMountPointW                            = modkernel32.NewProc("FindNextVolumeMountPointW")
 	procFindVolumeClose                                      = modkernel32.NewProc("FindVolumeClose")
 	procFindVolumeMountPointClose                            = modkernel32.NewProc("FindVolumeMountPointClose")
+	procGetDiskFreeSpaceExW                                  = modkernel32.NewProc("GetDiskFreeSpaceExW")
 	procGetDriveTypeW                                        = modkernel32.NewProc("GetDriveTypeW")
 	procGetLogicalDrives                                     = modkernel32.NewProc("GetLogicalDrives")
 	procGetLogicalDriveStringsW                              = modkernel32.NewProc("GetLogicalDriveStringsW")
@@ -246,6 +248,7 @@ var (
 	procCoTaskMemFree                                        = modole32.NewProc("CoTaskMemFree")
 	procRtlGetVersion                                        = modntdll.NewProc("RtlGetVersion")
 	procRtlGetNtVersionNumbers                               = modntdll.NewProc("RtlGetNtVersionNumbers")
+	procEnumProcesses                                        = modpsapi.NewProc("EnumProcesses")
 	procWSAStartup                                           = modws2_32.NewProc("WSAStartup")
 	procWSACleanup                                           = modws2_32.NewProc("WSACleanup")
 	procWSAIoctl                                             = modws2_32.NewProc("WSAIoctl")
@@ -2503,6 +2506,18 @@ func FindVolumeMountPointClose(findVolumeMountPoint Handle) (err error) {
 	return
 }
 
+func GetDiskFreeSpaceEx(directoryName *uint16, freeBytesAvailableToCaller *uint64, totalNumberOfBytes *uint64, totalNumberOfFreeBytes *uint64) (err error) {
+	r1, _, e1 := syscall.Syscall6(procGetDiskFreeSpaceExW.Addr(), 4, uintptr(unsafe.Pointer(directoryName)), uintptr(unsafe.Pointer(freeBytesAvailableToCaller)), uintptr(unsafe.Pointer(totalNumberOfBytes)), uintptr(unsafe.Pointer(totalNumberOfFreeBytes)), 0, 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
 func GetDriveType(rootPathName *uint16) (driveType uint32) {
 	r0, _, _ := syscall.Syscall(procGetDriveTypeW.Addr(), 1, uintptr(unsafe.Pointer(rootPathName)), 0, 0)
 	driveType = uint32(r0)
@@ -2742,6 +2757,22 @@ func rtlGetVersion(info *OsVersionInfoEx) (ret error) {
 
 func rtlGetNtVersionNumbers(majorVersion *uint32, minorVersion *uint32, buildNumber *uint32) {
 	syscall.Syscall(procRtlGetNtVersionNumbers.Addr(), 3, uintptr(unsafe.Pointer(majorVersion)), uintptr(unsafe.Pointer(minorVersion)), uintptr(unsafe.Pointer(buildNumber)))
+	return
+}
+
+func EnumProcesses(processIds []uint32, bytesReturned *uint32) (err error) {
+	var _p0 *uint32
+	if len(processIds) > 0 {
+		_p0 = &processIds[0]
+	}
+	r1, _, e1 := syscall.Syscall(procEnumProcesses.Addr(), 3, uintptr(unsafe.Pointer(_p0)), uintptr(len(processIds)), uintptr(unsafe.Pointer(bytesReturned)))
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
 	return
 }
 
