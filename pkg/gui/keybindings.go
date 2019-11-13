@@ -631,6 +631,11 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 	if err := gui.setInitialContext(); err != nil {
 		return err
 	}
+
+	if err := g.SetTabClickBinding("branches", gui.onBranchesTabClick); err != nil {
+		return err
+	}
+
 	return nil
 }
 

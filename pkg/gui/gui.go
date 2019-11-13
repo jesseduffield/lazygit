@@ -107,7 +107,13 @@ type filePanelState struct {
 	SelectedLine int
 }
 
+// TODO: consider splitting this out into the window and the branches view
 type branchPanelState struct {
+	SelectedLine int
+	ContextIndex int
+}
+
+type remotePanelState struct {
 	SelectedLine int
 }
 
@@ -137,6 +143,7 @@ type statusPanelState struct {
 type panelStates struct {
 	Files       *filePanelState
 	Branches    *branchPanelState
+	Remotes     *remotePanelState
 	Commits     *commitPanelState
 	Stash       *stashPanelState
 	Menu        *menuPanelState
@@ -153,6 +160,7 @@ type guiState struct {
 	StashEntries         []*commands.StashEntry
 	CommitFiles          []*commands.CommitFile
 	DiffEntries          []*commands.Commit
+	Remotes              []*commands.Remote
 	MenuItemCount        int // can't store the actual list because it's of interface{} type
 	PreviousView         string
 	Platform             commands.Platform
@@ -183,6 +191,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		Panels: &panelStates{
 			Files:       &filePanelState{SelectedLine: -1},
 			Branches:    &branchPanelState{SelectedLine: 0},
+			Remotes:     &remotePanelState{SelectedLine: -1},
 			Commits:     &commitPanelState{SelectedLine: -1},
 			CommitFiles: &commitFilesPanelState{SelectedLine: -1},
 			Stash:       &stashPanelState{SelectedLine: -1},
@@ -480,6 +489,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
+		branchesView.Tabs = []string{"Local Branches", "Remotes"}
+		branchesView.TabIndex = gui.State.Panels.Branches.ContextIndex
 		branchesView.FgColor = textColor
 	}
 
