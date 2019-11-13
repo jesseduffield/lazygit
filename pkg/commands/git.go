@@ -1061,3 +1061,20 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*Commit, commitIn
 func (c *GitCommand) SetUpstreamBranch(upstream string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git branch -u %s", upstream))
 }
+
+func (c *GitCommand) GetRemotes() ([]*Remote, error) {
+	goGitRemotes, err := c.Repo.Remotes()
+	if err != nil {
+		return nil, err
+	}
+
+	remotes := make([]*Remote, len(goGitRemotes))
+	// TODO: consider including the goGitRemote itself
+	for i, goGitRemote := range goGitRemotes {
+		remotes[i] = &Remote{
+			Name: goGitRemote.Config().Name,
+			Urls: goGitRemote.Config().URLs,
+		}
+	}
+	return remotes, nil
+}
