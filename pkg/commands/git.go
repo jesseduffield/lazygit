@@ -1052,3 +1052,7 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*Commit, commitIn
 
 	return nil
 }
+
+func (c *GitCommand) SetUpstreamBranch(upstream string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git branch -u %s", upstream))
+}

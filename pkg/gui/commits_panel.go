@@ -405,7 +405,7 @@ func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
 
 	// at this point we aren't actually rebasing so we will interpret this as an
 	// attempt to pull. We might revoke this later after enabling configurable keybindings
-	return gui.pullFiles(g, v)
+	return gui.handlePullFiles(g, v)
 }
 
 func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
