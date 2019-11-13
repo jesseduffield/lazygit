@@ -290,6 +290,7 @@ func NewCallbackCDecl(fn interface{}) uintptr {
 //sys	FindNextVolumeMountPoint(findVolumeMountPoint Handle, volumeMountPoint *uint16, bufferLength uint32) (err error) = FindNextVolumeMountPointW
 //sys	FindVolumeClose(findVolume Handle) (err error)
 //sys	FindVolumeMountPointClose(findVolumeMountPoint Handle) (err error)
+//sys	GetDiskFreeSpaceEx(directoryName *uint16, freeBytesAvailableToCaller *uint64, totalNumberOfBytes *uint64, totalNumberOfFreeBytes *uint64) (err error) = GetDiskFreeSpaceExW
 //sys	GetDriveType(rootPathName *uint16) (driveType uint32) = GetDriveTypeW
 //sys	GetLogicalDrives() (drivesBitMask uint32, err error) [failretval==0]
 //sys	GetLogicalDriveStrings(bufferLength uint32, buffer *uint16) (n uint32, err error) [failretval==0] = GetLogicalDriveStringsW
@@ -312,6 +313,9 @@ func NewCallbackCDecl(fn interface{}) uintptr {
 //sys	CoTaskMemFree(address unsafe.Pointer) = ole32.CoTaskMemFree
 //sys	rtlGetVersion(info *OsVersionInfoEx) (ret error) = ntdll.RtlGetVersion
 //sys	rtlGetNtVersionNumbers(majorVersion *uint32, minorVersion *uint32, buildNumber *uint32) = ntdll.RtlGetNtVersionNumbers
+
+// Process Status API (PSAPI)
+//sys	EnumProcesses(processIds []uint32, bytesReturned *uint32) (err error) = psapi.EnumProcesses
 
 // syscall interface implementation for other packages
 
@@ -409,7 +413,11 @@ func Open(path string, mode int, perm uint32) (fd Handle, err error) {
 	default:
 		createmode = OPEN_EXISTING
 	}
-	h, e := CreateFile(pathp, access, sharemode, sa, createmode, FILE_ATTRIBUTE_NORMAL, 0)
+	var attrs uint32 = FILE_ATTRIBUTE_NORMAL
+	if perm&S_IWRITE == 0 {
+		attrs = FILE_ATTRIBUTE_READONLY
+	}
+	h, e := CreateFile(pathp, access, sharemode, sa, createmode, attrs, 0)
 	return h, e
 }
 
@@ -856,7 +864,7 @@ func (rsa *RawSockaddrAny) Sockaddr() (Sockaddr, error) {
 		for n < len(pp.Path) && pp.Path[n] != 0 {
 			n++
 		}
-		bytes := (*[10000]byte)(unsafe.Pointer(&pp.Path[0]))[0:n]
+		bytes := (*[len(pp.Path)]byte)(unsafe.Pointer(&pp.Path[0]))[0:n]
 		sa.Name = string(bytes)
 		return sa, nil
 

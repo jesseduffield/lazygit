@@ -461,6 +461,12 @@ const (
 	CSUSP                                = 0x1a
 	DAXFS_MAGIC                          = 0x64646178
 	DEBUGFS_MAGIC                        = 0x64626720
+	DEVLINK_CMD_ESWITCH_MODE_GET         = 0x1d
+	DEVLINK_CMD_ESWITCH_MODE_SET         = 0x1e
+	DEVLINK_GENL_MCGRP_CONFIG_NAME       = "config"
+	DEVLINK_GENL_NAME                    = "devlink"
+	DEVLINK_GENL_VERSION                 = 0x1
+	DEVLINK_SB_THRESHOLD_TO_ALPHA_MAX    = 0x14
 	DEVPTS_SUPER_MAGIC                   = 0x1cd1
 	DMA_BUF_MAGIC                        = 0x444d4142
 	DT_BLK                               = 0x6

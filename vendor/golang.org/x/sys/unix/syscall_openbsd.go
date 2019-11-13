@@ -18,8 +18,6 @@ import (
 	"unsafe"
 )
 
-//sys	sysctl(mib []_C_int, old *byte, oldlen *uintptr, new *byte, newlen uintptr) (err error) = SYS___SYSCTL
-
 // SockaddrDatalink implements the Sockaddr interface for AF_LINK type sockets.
 type SockaddrDatalink struct {
 	Len    uint8
@@ -179,6 +177,8 @@ func setattrlistTimes(path string, times []Timespec, flags int) error {
 }
 
 //sys	ioctl(fd int, req uint, arg uintptr) (err error)
+
+//sys   sysctl(mib []_C_int, old *byte, oldlen *uintptr, new *byte, newlen uintptr) (err error) = SYS___SYSCTL
 
 //sys	ppoll(fds *PollFd, nfds int, timeout *Timespec, sigmask *Sigset_t) (n int, err error)
 
