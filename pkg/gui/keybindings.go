@@ -136,7 +136,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "",
 			Key:         'p',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.pullFiles,
+			Handler:     gui.handlePullFiles,
 			Description: gui.Tr.SLocalize("pull"),
 		}, {
 			ViewName:    "",

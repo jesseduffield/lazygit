@@ -837,6 +837,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "EnterUpstream",
 			Other: `Enter upstream as '<remote> <branchname>'`,
+		}, &i18n.Message{
+			ID:    "EnterUpstreamWithSlash",
+			Other: `Enter upstream as '<remote>/<branchname>'`,
 		},
 	)
 }
