@@ -84,6 +84,10 @@ func (gui *Gui) RenderSelectedBranchUpstreamDifferences() error {
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches(g *gocui.Gui) error {
+	if err := gui.refreshRemotes(); err != nil {
+		return err
+	}
+
 	g.Update(func(g *gocui.Gui) error {
 		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand)
 		if err != nil {
@@ -356,5 +360,42 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 			_ = gui.RenderSelectedBranchUpstreamDifferences()
 		}
 	}()
+	return nil
+}
+
+func (gui *Gui) onBranchesTabClick(tabIndex int) error {
+	gui.State.Panels.Branches.ContextIndex = tabIndex
+	branchesView := gui.getBranchesView()
+	branchesView.TabIndex = tabIndex
+
+	switch tabIndex {
+	case 0:
+		if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
+			return err
+		}
+	case 1:
+		if err := gui.renderListPanel(branchesView, gui.State.Remotes); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// gui.refreshStatus is called at the end of this because that's when we can
+// be sure there is a state.Branches array to pick the current branch from
+func (gui *Gui) refreshRemotes() error {
+	remotes, err := gui.GitCommand.GetRemotes()
+	if err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+
+	gui.State.Remotes = remotes
+
+	gui.g.Update(func(g *gocui.Gui) error {
+		gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
+		return nil
+	})
+
 	return nil
 }
