@@ -4,8 +4,8 @@ go 1.13
 
 require (
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
-	github.com/creack/pty v1.1.9 // indirect
 	github.com/fatih/color v1.7.0
+	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-errors/errors v1.0.1
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 	github.com/golang/protobuf v1.3.2 // indirect
@@ -31,11 +31,8 @@ require (
 	github.com/tcnksm/go-gitconfig v0.1.2
 	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708 // indirect
 	golang.org/x/net v0.0.0-20191112182307-2180aed22343 // indirect
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/sys v0.0.0-20191112214154-59a1497f0cea // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20191113055240-e33b02e76616 // indirect
-	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.2.5
