@@ -13,7 +13,7 @@ func (c *GitCommand) GetBranchesFromDir(dirPath string) ([]*Branch, error) {
 		if err != nil {
 			// it's possible that go-git is referencing a remote we don't have locally
 			// in which case we'll just swallow this error
-			c.Log.Error(err)
+			c.Log.Warn(err)
 			return nil
 		}
 
@@ -50,7 +50,6 @@ func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 	remotes := make([]*Remote, len(goGitRemotes))
 	for i, goGitRemote := range goGitRemotes {
 		name := goGitRemote.Config().Name
-		c.Log.Warn(name)
 
 		// can't seem to easily get the branches of the remotes from go-git so we'll
 		// traverse the directory recursively
