@@ -5,6 +5,7 @@ type Remote struct {
 	Name     string
 	Urls     []string
 	Selected bool
+	Branches []*Branch
 }
 
 // GetDisplayStrings returns the display string of a remote
