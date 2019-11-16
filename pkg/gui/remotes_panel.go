@@ -43,7 +43,6 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 	gui.getMainView().Title = "Remote"
 
 	remote := gui.getSelectedRemote()
-	gui.focusPoint(0, gui.State.Panels.Menu.SelectedLine, gui.State.MenuItemCount, v)
 	if err := gui.focusPoint(0, gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes), v); err != nil {
 		return err
 	}

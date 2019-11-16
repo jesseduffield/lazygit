@@ -12,7 +12,7 @@ import (
 
 // list panel functions
 
-func (gui *Gui) getSelectedRemoteBranch() *commands.Branch {
+func (gui *Gui) getSelectedRemoteBranch() *commands.RemoteBranch {
 	selectedLine := gui.State.Panels.RemoteBranches.SelectedLine
 	if selectedLine == -1 || len(gui.State.RemoteBranches) == 0 {
 		return nil

@@ -165,8 +165,8 @@ type guiState struct {
 	CommitFiles          []*commands.CommitFile
 	DiffEntries          []*commands.Commit
 	Remotes              []*commands.Remote
-	RemoteBranches       []*commands.Branch // using Branch for now because they're basically the same
-	MenuItemCount        int                // can't store the actual list because it's of interface{} type
+	RemoteBranches       []*commands.RemoteBranch
+	MenuItemCount        int // can't store the actual list because it's of interface{} type
 	PreviousView         string
 	Platform             commands.Platform
 	Updating             bool

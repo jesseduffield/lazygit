@@ -6,6 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -34,7 +35,7 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 
 		if len(branches) > 0 {
 			branch := branches[0]
-			name := utils.ColoredString(branch.Name, branch.GetColor())
+			name := utils.ColoredString(branch.Name, commands.GetBranchColor(branch.Name))
 			repoName := utils.GetCurrentRepoName()
 			status += fmt.Sprintf(" %s → %s", repoName, name)
 		}

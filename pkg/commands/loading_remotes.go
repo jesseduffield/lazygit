@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"regexp"
+	"sort"
+	"strings"
 )
 
 func (c *GitCommand) GetRemotes() ([]*Remote, error) {
@@ -24,9 +26,9 @@ func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 
 		re := regexp.MustCompile(fmt.Sprintf("%s\\/(.*)", name))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
-		branches := make([]*Branch, len(matches))
+		branches := make([]*RemoteBranch, len(matches))
 		for j, match := range matches {
-			branches[j] = &Branch{
+			branches[j] = &RemoteBranch{
 				Name: match[1],
 			}
 		}
@@ -37,6 +39,18 @@ func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 			Branches: branches,
 		}
 	}
+
+	// now lets sort our remotes by name alphabetically
+	sort.Slice(remotes, func(i, j int) bool {
+		// we want origin at the top because we'll be most likely to want it
+		if remotes[i].Name == "origin" {
+			return true
+		}
+		if remotes[j].Name == "origin" {
+			return false
+		}
+		return strings.ToLower(remotes[i].Name) < strings.ToLower(remotes[j].Name)
+	})
 
 	return remotes, nil
 }
