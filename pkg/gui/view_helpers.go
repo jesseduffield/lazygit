@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
@@ -103,7 +104,15 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "files":
 		return gui.handleFileSelect(g, v)
 	case "branches":
-		return gui.handleBranchSelect(g, v)
+		branchesView := gui.getBranchesView()
+		switch branchesView.Context {
+		case "local-branches":
+			return gui.handleBranchSelect(g, v)
+		case "remotes":
+			return gui.handleRemoteSelect(g, v)
+		default:
+			return errors.New("unknown branches panel context: " + branchesView.Context)
+		}
 	case "commits":
 		return gui.handleCommitSelect(g, v)
 	case "commitFiles":
