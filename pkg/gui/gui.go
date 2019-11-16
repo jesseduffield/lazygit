@@ -314,10 +314,12 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 	}
 	switch v.Name() {
 	case "branches":
-		// This stops the branches panel from showing the upstream/downstream changes to the selected branch, when it loses focus
-		// inside renderListPanel it checks to see if the panel has focus
-		if err := gui.renderListPanel(gui.getBranchesView(), gui.State.Branches); err != nil {
-			return err
+		if v.Context == "local-branches" {
+			// This stops the branches panel from showing the upstream/downstream changes to the selected branch, when it loses focus
+			// inside renderListPanel it checks to see if the panel has focus
+			if err := gui.renderListPanel(gui.getBranchesView(), gui.State.Branches); err != nil {
+				return err
+			}
 		}
 	case "main":
 		// if we have lost focus to a first-class panel, we need to do some cleanup
