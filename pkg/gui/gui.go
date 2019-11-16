@@ -190,7 +190,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		Panels: &panelStates{
 			Files:       &filePanelState{SelectedLine: -1},
 			Branches:    &branchPanelState{SelectedLine: 0},
-			Remotes:     &remotePanelState{SelectedLine: -1},
+			Remotes:     &remotePanelState{SelectedLine: 0},
 			Commits:     &commitPanelState{SelectedLine: -1},
 			CommitFiles: &commitFilesPanelState{SelectedLine: -1},
 			Stash:       &stashPanelState{SelectedLine: -1},
@@ -598,22 +598,29 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	type listViewState struct {
 		selectedLine int
 		lineCount    int
+		view         *gocui.View
+		context      string
 	}
 
-	listViews := map[*gocui.View]listViewState{
-		filesView:    {selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files)},
-		branchesView: {selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
-		commitsView:  {selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
-		stashView:    {selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
+	listViews := []listViewState{
+		{view: filesView, context: "", selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files)},
+		{view: branchesView, context: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
+		{view: branchesView, context: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes)},
+		{view: commitsView, context: "", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
+		{view: stashView, context: "", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
 	}
 
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
-		listViews[menuView] = listViewState{selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount}
+		listViews = append(listViews, listViewState{view: menuView, context: "", selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount})
 	}
-	for view, state := range listViews {
+	for _, listView := range listViews {
+		// ignore views where the context doesn't match up with the selected line we're trying to focus
+		if listView.context != "" && (listView.view.Context != listView.context) {
+			continue
+		}
 		// check if the selected line is now out of view and if so refocus it
-		if err := gui.focusPoint(0, state.selectedLine, state.lineCount, view); err != nil {
+		if err := gui.focusPoint(0, listView.selectedLine, listView.lineCount, listView.view); err != nil {
 			return err
 		}
 	}

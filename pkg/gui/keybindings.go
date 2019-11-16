@@ -1020,6 +1020,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.handleBranchesClick,
 		},
 		{
+			ViewName: "branches",
+			Contexts: []string{"remotes"},
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleRemotesClick,
+		},
+		{
 			ViewName: "commits",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,

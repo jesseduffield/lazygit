@@ -67,6 +67,15 @@ func (gui *Gui) getListViews() []*listView {
 			rendersToMainView: true,
 		},
 		{
+			viewName:          "branches",
+			context:           "remotes",
+			getItemsLength:    func() int { return len(gui.State.Remotes) },
+			getSelectedLine:   func() *int { return &gui.State.Panels.Remotes.SelectedLine },
+			handleItemSelect:  gui.handleRemoteSelect,
+			gui:               gui,
+			rendersToMainView: true,
+		},
+		{
 			viewName:          "commits",
 			getItemsLength:    func() int { return len(gui.State.Commits) },
 			getSelectedLine:   func() *int { return &gui.State.Panels.Commits.SelectedLine },

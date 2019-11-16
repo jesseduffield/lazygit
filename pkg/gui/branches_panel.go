@@ -355,24 +355,6 @@ func (gui *Gui) onBranchesTabClick(tabIndex int) error {
 	return nil
 }
 
-// gui.refreshStatus is called at the end of this because that's when we can
-// be sure there is a state.Branches array to pick the current branch from
-func (gui *Gui) refreshRemotes() error {
-	remotes, err := gui.GitCommand.GetRemotes()
-	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
-	}
-
-	gui.State.Remotes = remotes
-
-	gui.g.Update(func(g *gocui.Gui) error {
-		gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
-		return nil
-	})
-
-	return nil
-}
-
 func (gui *Gui) handleNextBranchesTab(g *gocui.Gui, v *gocui.View) error {
 	return gui.onBranchesTabClick(
 		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
