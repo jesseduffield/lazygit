@@ -180,9 +180,7 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 	gui.Log.Info("setting highlight to true for view" + newView.Name())
 	message := gui.Tr.TemplateLocalize(
 		"newFocusedViewIs",
-		Teml{
-			"newFocusedView": newView.Name(),
-		},
+		Teml{"newFocusedView": newView.Name()},
 	)
 	gui.Log.Info(message)
 	if _, err := g.SetCurrentView(newView.Name()); err != nil {
@@ -381,6 +379,8 @@ func (gui *Gui) changeSelectedLine(line *int, total int, up bool) {
 	}
 }
 
+// refreshSelected refreshes the cursor position
+//
 // action tells if the cursor is moved
 //  0  = nothing
 // 'u' = up
@@ -511,6 +511,18 @@ func (gui *Gui) isPopupPanel(viewName string) bool {
 	return viewName == "commitMessage" || viewName == "credentials" || viewName == "confirmation" || viewName == "menu"
 }
 
+func (gui *Gui) isAdvancedView(viewName string) bool {
+	return viewName == "extensiveFiles"
+}
+
 func (gui *Gui) popupPanelFocused() bool {
 	return gui.isPopupPanel(gui.currentViewName())
+}
+
+func (gui *Gui) advancedPanelFocused() bool {
+	return gui.isAdvancedView(gui.currentViewName())
+}
+
+func (gui *Gui) popupOrAdvancedPanelFocused() bool {
+	return gui.isAdvancedView(gui.currentViewName()) || gui.isPopupPanel(gui.currentViewName())
 }

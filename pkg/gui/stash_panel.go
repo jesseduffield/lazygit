@@ -20,7 +20,7 @@ func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
 }
 
 func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -67,7 +67,7 @@ func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
 }
 
 func (gui *Gui) handleStashNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -81,7 +81,7 @@ func (gui *Gui) handleStashNextLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStashPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 

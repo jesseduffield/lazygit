@@ -29,7 +29,7 @@ func (gui *Gui) getSelectedDirOrFile(g *gocui.Gui) (*commands.File, *commands.Di
 }
 
 func (gui *Gui) handleFilesFocus(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -103,11 +103,13 @@ func (gui *Gui) refreshFiles() error {
 		if err != nil {
 			return err
 		}
+
 		filesView.Clear()
 		fmt.Fprint(filesView, list)
 
 		newSelectedFile, newSelectedDir, _ := gui.getSelectedDirOrFile(gui.g)
 		extendedList := gui.State.ExtensiveFiles.Render(newSelectedFile, newSelectedDir)
+
 		extendedFilesView.Clear()
 		fmt.Fprint(extendedFilesView, extendedList)
 
@@ -131,7 +133,7 @@ func (gui *Gui) refreshFiles() error {
 }
 
 func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -142,7 +144,7 @@ func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleFilesPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -208,12 +210,24 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
-	if err != nil {
-		if err == gui.Errors.ErrNoFiles {
-			return nil
+	isextensiveView := v.Name() == "extensiveFiles"
+
+	var file *commands.File
+	var err error
+	if isextensiveView {
+		file, _, err = gui.getSelectedDirOrFile(g)
+		if file == nil || err != nil {
+			// Returns nil if file is not selected
+			return err
 		}
-		return err
+	} else {
+		file, err = gui.getSelectedFile(g)
+		if err != nil {
+			if err == gui.Errors.ErrNoFiles {
+				return nil
+			}
+			return err
+		}
 	}
 
 	if file.HasInlineMergeConflicts {
@@ -801,9 +815,9 @@ func (gui *Gui) handleExtensiveFileSelect(g *gocui.Gui, v *gocui.View, alreadySe
 
 	y := 0
 	if file != nil {
-		y = file.GetY()
+		y = file.GetY(gui.Log)
 	} else if dir != nil {
-		y = dir.GetY()
+		y = dir.GetY(gui.Log)
 	}
 
 	if err := gui.focusPoint(0, y, gui.State.ExtensiveFiles.Height(), v); err != nil {

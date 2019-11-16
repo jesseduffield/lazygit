@@ -22,7 +22,7 @@ func (gui *Gui) getSelectedBranch() *commands.Branch {
 
 // may want to standardise how these select methods work
 func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -84,7 +84,7 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 }
 
 func (gui *Gui) handleBranchesNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -98,7 +98,7 @@ func (gui *Gui) handleBranchesNextLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleBranchesPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 

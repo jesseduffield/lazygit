@@ -179,17 +179,32 @@ func (d *Dir) MatchPath(path []int) (*File, *Dir) {
 // It will look like:
 //   dir1/dir2/
 //     file
-func (d *Dir) Combine() {
-	if len(d.Files) == 0 && len(d.SubDirs) == 1 {
-		originalName := d.Name
-		*d = *d.SubDirs[0]
-		d.Name = path.Join(d.Name, originalName)
-		d.Combine()
-		return
+func (d *Dir) Combine(log *logrus.Entry) *Dir {
+	if len(d.SubDirs) == 0 {
+		return d
 	}
+
+	for {
+		if len(d.Files) != 0 || len(d.SubDirs) != 1 || d.Name == "" {
+			break
+		}
+		toMerge := d.SubDirs[0]
+		d.Name = path.Join(d.Name, toMerge.Name)
+		d.SubDirs = toMerge.SubDirs
+		d.Files = toMerge.Files
+		for _, dir := range d.SubDirs {
+			dir.Parrent = d
+		}
+		for _, file := range d.Files {
+			file.InDir = d
+		}
+	}
+
 	for _, subDir := range d.SubDirs {
-		subDir.Combine()
+		subDir.Combine(log)
 	}
+
+	return d
 }
 
 // Render returns a string to render on the screen
@@ -246,7 +261,7 @@ func FilesToTree(log *logrus.Entry, files []*File) *Dir {
 		}
 		currentDir.AddFile(file)
 	}
-	return root
+	return root.Combine(log)
 }
 
 // GetTreeDisplayString returns the display string of a dir for the tree view
@@ -313,7 +328,7 @@ func (f *File) GetDisplayStrings(isFocused bool) []string {
 }
 
 // GetY returns the dir it's y position
-func (d *Dir) GetY() int {
+func (d *Dir) GetY(log *logrus.Entry) int {
 	count := -1
 	current := d
 	parrent := d.Parrent
@@ -321,15 +336,14 @@ func (d *Dir) GetY() int {
 		if parrent == nil {
 			break
 		}
-		for i, dir := range parrent.SubDirs {
+
+		for _, dir := range parrent.SubDirs {
 			if dir == current {
-				count += i
+				count += 1
 				break
 			}
-			count += len(dir.SubDirs) + len(dir.Files)
+			count += dir.Height()
 		}
-		count += len(parrent.Files)
-		count += 1
 
 		current = parrent
 		parrent = current.Parrent
@@ -338,9 +352,9 @@ func (d *Dir) GetY() int {
 }
 
 // GetY returns the file it's y position
-func (f *File) GetY() int {
+func (f *File) GetY(log *logrus.Entry) int {
 	dir := f.InDir
-	count := dir.GetY()
+	count := dir.GetY(log)
 	for i, file := range dir.Files {
 		if file == f {
 			count += i + 1

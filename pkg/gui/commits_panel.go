@@ -25,7 +25,7 @@ func (gui *Gui) getSelectedCommit(g *gocui.Gui) *commands.Commit {
 }
 
 func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -90,7 +90,7 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 }
 
 func (gui *Gui) handleCommitsNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
@@ -104,7 +104,7 @@ func (gui *Gui) handleCommitsNextLine(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitsPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 
