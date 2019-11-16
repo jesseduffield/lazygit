@@ -1068,12 +1068,32 @@ func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 		return nil, err
 	}
 
+	return nil, nil
+
 	remotes := make([]*Remote, len(goGitRemotes))
+
 	// TODO: consider including the goGitRemote itself
 	for i, goGitRemote := range goGitRemotes {
+		goGitBranches, err := goGitRemote.List(&gogit.ListOptions{})
+		if err != nil {
+			c.Log.Warn(err)
+			continue
+		}
+
+		branches := []*Branch{}
+		for _, goGitBranch := range goGitBranches {
+			// for now we're only getting branch references, not tags/notes/etc
+			if goGitBranch.Name().IsBranch() {
+				branches = append(branches, &Branch{
+					Name: goGitBranch.Name().String(),
+				})
+			}
+		}
+
 		remotes[i] = &Remote{
-			Name: goGitRemote.Config().Name,
-			Urls: goGitRemote.Config().URLs,
+			Name:     goGitRemote.Config().Name,
+			Urls:     goGitRemote.Config().URLs,
+			Branches: branches,
 		}
 	}
 	return remotes, nil
