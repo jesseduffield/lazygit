@@ -332,6 +332,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleBranchPress,
@@ -339,6 +340,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         'o',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreatePullRequestPress,
@@ -346,6 +348,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         'c',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCheckoutByName,
@@ -353,6 +356,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         'F',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleForceCheckout,
@@ -360,6 +364,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         'n',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleNewBranch,
@@ -367,6 +372,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         'd',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleDeleteBranch,
@@ -374,6 +380,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         'r',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleRebase,
@@ -381,6 +388,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         'M',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleMerge,
@@ -388,6 +396,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
 			Key:         'f',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleFastForward,
@@ -978,6 +987,50 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handlePopFileSnapshot,
 			Description: gui.Tr.SLocalize("Undo"),
 		},
+		// click handlers
+		{
+			ViewName: "menu",
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleMenuClick,
+		},
+		{
+			ViewName: "files",
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleFilesClick,
+		},
+		{
+			ViewName: "branches",
+			Contexts: []string{"local-branches"},
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleBranchesClick,
+		},
+		{
+			ViewName: "commits",
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleCommitsClick,
+		},
+		{
+			ViewName: "stash",
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStashEntrySelect,
+		},
+		{
+			ViewName: "status",
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleStatusClick,
+		},
+		{
+			ViewName: "commitFiles",
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleCommitFilesClick,
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
@@ -995,29 +1048,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		bindings = append(bindings, &Binding{ViewName: "", Key: rune(i+1) + '0', Modifier: gocui.ModNone, Handler: gui.goToSideView(viewName)})
 	}
 
-	listPanelMap := map[string]struct {
-		prevLine func(*gocui.Gui, *gocui.View) error
-		nextLine func(*gocui.Gui, *gocui.View) error
-		onClick  func(*gocui.Gui, *gocui.View) error
-	}{
-		"menu":        {prevLine: gui.handleMenuPrevLine, nextLine: gui.handleMenuNextLine, onClick: gui.handleMenuClick},
-		"files":       {prevLine: gui.handleFilesPrevLine, nextLine: gui.handleFilesNextLine, onClick: gui.handleFilesClick},
-		"branches":    {prevLine: gui.handleBranchesPrevLine, nextLine: gui.handleBranchesNextLine, onClick: gui.handleBranchesClick},
-		"commits":     {prevLine: gui.handleCommitsPrevLine, nextLine: gui.handleCommitsNextLine, onClick: gui.handleCommitsClick},
-		"stash":       {prevLine: gui.handleStashPrevLine, nextLine: gui.handleStashNextLine, onClick: gui.handleStashEntrySelect},
-		"status":      {onClick: gui.handleStatusClick},
-		"commitFiles": {prevLine: gui.handleCommitFilesPrevLine, nextLine: gui.handleCommitFilesNextLine, onClick: gui.handleCommitFilesClick},
-	}
-
-	for viewName, functions := range listPanelMap {
+	for _, listView := range gui.getListViews() {
 		bindings = append(bindings, []*Binding{
-			{ViewName: viewName, Key: 'k', Modifier: gocui.ModNone, Handler: functions.prevLine},
-			{ViewName: viewName, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: functions.prevLine},
-			{ViewName: viewName, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: functions.prevLine},
-			{ViewName: viewName, Key: 'j', Modifier: gocui.ModNone, Handler: functions.nextLine},
-			{ViewName: viewName, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: functions.nextLine},
-			{ViewName: viewName, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: functions.nextLine},
-			{ViewName: viewName, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: functions.onClick},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: 'k', Modifier: gocui.ModNone, Handler: listView.handlePrevLine},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.KeyArrowUp, Modifier: gocui.ModNone, Handler: listView.handlePrevLine},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listView.handlePrevLine},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: 'j', Modifier: gocui.ModNone, Handler: listView.handleNextLine},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: listView.handleNextLine},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listView.handleNextLine},
 		}...)
 	}
 
