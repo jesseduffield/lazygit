@@ -299,3 +299,14 @@ func DifferenceInt(a, b []int) []int {
 	}
 	return result
 }
+
+// used to keep a number n between 0 and max, allowing for wraparounds
+func ModuloWithWrap(n, max int) int {
+	if n >= max {
+		return n % max
+	} else if n < 0 {
+		return max + n
+	} else {
+		return n
+	}
+}
