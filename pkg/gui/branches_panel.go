@@ -372,3 +372,15 @@ func (gui *Gui) refreshRemotes() error {
 
 	return nil
 }
+
+func (gui *Gui) handleNextBranchesTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onBranchesTabClick(
+		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
+	)
+}
+
+func (gui *Gui) handlePrevBranchesTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onBranchesTabClick(
+		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
+	)
+}

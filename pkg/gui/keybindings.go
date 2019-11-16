@@ -403,6 +403,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("FastForward"),
 		},
 		{
+			ViewName: "branches",
+			Key:      ']',
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleNextBranchesTab,
+		},
+		{
+			ViewName: "branches",
+			Key:      '[',
+			Modifier: gocui.ModNone,
+			Handler:  gui.handlePrevBranchesTab,
+		},
+		{
 			ViewName:    "commits",
 			Key:         's',
 			Modifier:    gocui.ModNone,
