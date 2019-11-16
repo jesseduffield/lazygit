@@ -1,45 +1,20 @@
 package gui
 
-func (gui *Gui) changeContext(context string) error {
-	oldContext := gui.State.Context
-
-	if gui.State.Context == context {
+// changeContext is a helper function for when we want to change a 'main' context
+// which currently just means a context that affects both the main and secondary views
+// other views can have their context changed directly but this function helps
+// keep the main and secondary views in sync
+func (gui *Gui) changeMainViewsContext(context string) error {
+	if gui.State.MainContext == context {
 		return nil
 	}
 
-	contextMap := gui.GetContextMap()
-
-	oldBindings := contextMap[oldContext]
-	for _, binding := range oldBindings {
-		if err := gui.g.DeleteKeybinding(binding.ViewName, binding.Key, binding.Modifier); err != nil {
-			return err
-		}
+	switch context {
+	case "normal", "patch-building", "staging", "merging":
+		gui.getMainView().Context = context
+		gui.getSecondaryView().Context = context
 	}
 
-	bindings := contextMap[context]
-	for _, binding := range bindings {
-		if err := gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
-			return err
-		}
-	}
-
-	gui.State.Context = context
-	return nil
-}
-
-func (gui *Gui) setInitialContext() error {
-	contextMap := gui.GetContextMap()
-
-	initialContext := "normal"
-
-	bindings := contextMap[initialContext]
-	for _, binding := range bindings {
-		if err := gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, binding.Handler); err != nil {
-			return err
-		}
-	}
-
-	gui.State.Context = initialContext
-
+	gui.State.MainContext = context
 	return nil
 }
