@@ -105,34 +105,6 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) handleBranchesNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Branches
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), false)
-
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.handleBranchSelect(gui.g, v)
-}
-
-func (gui *Gui) handleBranchesPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Branches
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), true)
-
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.handleBranchSelect(gui.g, v)
-}
-
 // specific functions
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
@@ -364,16 +336,17 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) onBranchesTabClick(tabIndex int) error {
-	gui.State.Panels.Branches.ContextIndex = tabIndex
+	contexts := []string{"local-branches", "remotes", "tabs"}
 	branchesView := gui.getBranchesView()
+	branchesView.Context = contexts[tabIndex]
 	branchesView.TabIndex = tabIndex
 
-	switch tabIndex {
-	case 0:
+	switch contexts[tabIndex] {
+	case "local-branches":
 		if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
 			return err
 		}
-	case 1:
+	case "remotes":
 		if err := gui.renderListPanel(branchesView, gui.State.Remotes); err != nil {
 			return err
 		}

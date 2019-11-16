@@ -14,20 +14,6 @@ func (gui *Gui) handleMenuSelect(g *gocui.Gui, v *gocui.View) error {
 	return gui.focusPoint(0, gui.State.Panels.Menu.SelectedLine, gui.State.MenuItemCount, v)
 }
 
-func (gui *Gui) handleMenuNextLine(g *gocui.Gui, v *gocui.View) error {
-	panelState := gui.State.Panels.Menu
-	gui.changeSelectedLine(&panelState.SelectedLine, v.LinesHeight(), false)
-
-	return gui.handleMenuSelect(g, v)
-}
-
-func (gui *Gui) handleMenuPrevLine(g *gocui.Gui, v *gocui.View) error {
-	panelState := gui.State.Panels.Menu
-	gui.changeSelectedLine(&panelState.SelectedLine, v.LinesHeight(), true)
-
-	return gui.handleMenuSelect(g, v)
-}
-
 // specific functions
 
 func (gui *Gui) renderMenuOptions() error {

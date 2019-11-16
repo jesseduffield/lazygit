@@ -36,7 +36,7 @@ func (gui *Gui) handleFilesClick(g *gocui.Gui, v *gocui.View) error {
 	newSelectedLineIdx := v.SelectedLineIdx()
 
 	if newSelectedLineIdx > len(gui.State.Files)-1 {
-		return gui.handleFileSelect(gui.g, v, false)
+		return gui.selectFile(false)
 	}
 
 	gui.State.Panels.Files.SelectedLine = newSelectedLineIdx
@@ -44,24 +44,28 @@ func (gui *Gui) handleFilesClick(g *gocui.Gui, v *gocui.View) error {
 	if prevSelectedLineIdx == newSelectedLineIdx && gui.currentViewName() == v.Name() {
 		return gui.handleFilePress(gui.g, v)
 	} else {
-		return gui.handleFileSelect(gui.g, v, true)
+		return gui.selectFile(true)
 	}
 }
 
-func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bool) error {
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
+	return gui.selectFile(false)
+}
+
+func (gui *Gui) selectFile(alreadySelected bool) error {
+	if _, err := gui.g.SetCurrentView("files"); err != nil {
 		return err
 	}
 
-	file, err := gui.getSelectedFile(g)
+	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
-		return gui.renderString(g, "main", gui.Tr.SLocalize("NoChangedFiles"))
+		return gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
-	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, len(gui.State.Files), v); err != nil {
+	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, len(gui.State.Files), gui.getFilesView()); err != nil {
 		return err
 	}
 
@@ -90,7 +94,7 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 	}
 
 	if alreadySelected {
-		g.Update(func(*gocui.Gui) error {
+		gui.g.Update(func(*gocui.Gui) error {
 			if err := gui.setViewContent(gui.g, gui.getSecondaryView(), contentCached); err != nil {
 				return err
 			}
@@ -98,10 +102,10 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 		})
 		return nil
 	}
-	if err := gui.renderString(g, "secondary", contentCached); err != nil {
+	if err := gui.renderString(gui.g, "secondary", contentCached); err != nil {
 		return err
 	}
-	return gui.renderString(g, "main", leftContent)
+	return gui.renderString(gui.g, "main", leftContent)
 }
 
 func (gui *Gui) refreshFiles() error {
@@ -136,34 +140,12 @@ func (gui *Gui) refreshFiles() error {
 		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && gui.State.Context == "merging") {
 			newSelectedFile, _ := gui.getSelectedFile(gui.g)
 			alreadySelected := newSelectedFile.Name == selectedFile.Name
-			return gui.handleFileSelect(g, filesView, alreadySelected)
+			return gui.selectFile(alreadySelected)
 		}
 		return nil
 	})
 
 	return nil
-}
-
-func (gui *Gui) handleFilesNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Files
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), false)
-
-	return gui.handleFileSelect(gui.g, v, false)
-}
-
-func (gui *Gui) handleFilesPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Files
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Files), true)
-
-	return gui.handleFileSelect(gui.g, v, false)
 }
 
 // specific functions
@@ -248,7 +230,7 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	return gui.handleFileSelect(g, v, true)
+	return gui.selectFile(true)
 }
 
 func (gui *Gui) allFilesStaged() bool {
@@ -275,7 +257,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	return gui.handleFileSelect(g, v, false)
+	return gui.handleFileSelect(gui.g, v)
 }
 
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {

@@ -101,7 +101,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
-		return gui.handleFileSelect(g, v, false)
+		return gui.handleFileSelect(g, v)
 	case "branches":
 		return gui.handleBranchSelect(g, v)
 	case "commits":
@@ -315,6 +315,11 @@ func (gui *Gui) getCommitFilesView() *gocui.View {
 	return v
 }
 
+func (gui *Gui) getMenuView() *gocui.View {
+	v, _ := gui.g.View("menu")
+	return v
+}
+
 func (gui *Gui) trimmedContent(v *gocui.View) string {
 	return strings.TrimSpace(v.Buffer())
 }
@@ -362,19 +367,17 @@ func (gui *Gui) generalFocusLine(lineNumber int, bottomLine int, v *gocui.View) 
 	return nil
 }
 
-func (gui *Gui) changeSelectedLine(line *int, total int, up bool) {
-	if up {
-		if *line == -1 || *line == 0 {
-			return
-		}
-
-		*line--
+func (gui *Gui) changeSelectedLine(line *int, total int, change int) {
+	// TODO: find out why we're doing this
+	if *line == -1 {
+		return
+	}
+	if *line+change < 0 {
+		*line = 0
+	} else if *line+change >= total {
+		*line = total - 1
 	} else {
-		if *line == -1 || *line == total-1 {
-			return
-		}
-
-		*line++
+		*line += change
 	}
 }
 

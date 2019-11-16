@@ -119,34 +119,6 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) handleCommitsNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Commits
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Commits), false)
-
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.handleCommitSelect(gui.g, v)
-}
-
-func (gui *Gui) handleCommitsPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Commits
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Commits), true)
-
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.handleCommitSelect(gui.g, v)
-}
-
 // specific functions
 
 func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {

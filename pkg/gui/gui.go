@@ -110,7 +110,6 @@ type filePanelState struct {
 // TODO: consider splitting this out into the window and the branches view
 type branchPanelState struct {
 	SelectedLine int
-	ContextIndex int
 }
 
 type remotePanelState struct {
@@ -490,7 +489,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
 		branchesView.Tabs = []string{"Local Branches", "Remotes"}
-		branchesView.TabIndex = gui.State.Panels.Branches.ContextIndex
 		branchesView.FgColor = textColor
 	}
 
@@ -631,6 +629,8 @@ func (gui *Gui) onInitialViewsCreation() error {
 	if err := gui.changeMainViewsContext("normal"); err != nil {
 		return err
 	}
+
+	gui.getBranchesView().Context = "local-branches"
 
 	return gui.loadNewRepo()
 }
