@@ -17,7 +17,6 @@ type Branch struct {
 	Recency   string
 	Pushables string
 	Pullables string
-	Hash      string
 	Selected  bool
 }
 
