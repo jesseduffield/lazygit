@@ -153,10 +153,10 @@ func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*go
 	if err := gui.renderString(g, "options", actions); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm, returnFocusOnClose)); err != nil {
+	if err := g.SetKeybinding("confirmation", nil, gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm, returnFocusOnClose)); err != nil {
 		return err
 	}
-	return g.SetKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone, gui.wrappedConfirmationFunction(handleClose, returnFocusOnClose))
+	return g.SetKeybinding("confirmation", nil, gocui.KeyEsc, gocui.ModNone, gui.wrappedConfirmationFunction(handleClose, returnFocusOnClose))
 }
 
 func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {

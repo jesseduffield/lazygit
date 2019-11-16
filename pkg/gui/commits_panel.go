@@ -111,7 +111,7 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		if g.CurrentView() == v {
 			gui.handleCommitSelect(g, v)
 		}
-		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.Context == "patch-building") {
+		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
 			return gui.refreshCommitFilesView()
 		}
 		return nil

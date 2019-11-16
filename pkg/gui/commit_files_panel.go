@@ -208,7 +208,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 			}
 		}
 
-		if err := gui.changeContext("patch-building"); err != nil {
+		if err := gui.changeMainViewsContext("patch-building"); err != nil {
 			return err
 		}
 		if err := gui.switchFocus(gui.g, gui.getCommitFilesView(), gui.getMainView()); err != nil {

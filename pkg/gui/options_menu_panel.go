@@ -6,6 +6,7 @@ import (
 	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) getBindings(v *gocui.View) []*Binding {
@@ -13,7 +14,7 @@ func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 		bindingsGlobal, bindingsPanel []*Binding
 	)
 
-	bindings := gui.GetCurrentKeybindings()
+	bindings := gui.GetInitialKeybindings()
 
 	for _, binding := range bindings {
 		if binding.GetKey() != "" && binding.Description != "" {
@@ -21,7 +22,9 @@ func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 			case "":
 				bindingsGlobal = append(bindingsGlobal, binding)
 			case v.Name():
-				bindingsPanel = append(bindingsPanel, binding)
+				if len(binding.Contexts) == 0 || utils.IncludesString(binding.Contexts, v.Context) {
+					bindingsPanel = append(bindingsPanel, binding)
+				}
 			}
 		}
 	}

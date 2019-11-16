@@ -167,7 +167,7 @@ type guiState struct {
 	Updating             bool
 	Panels               *panelStates
 	WorkingTreeState     string // one of "merging", "rebasing", "normal"
-	Context              string // important not to set this value directly but to use gui.changeContext("new context")
+	MainContext          string // used to keep the main and secondary views' contexts in sync
 	CherryPickedCommits  []*commands.Commit
 	SplitMainPanel       bool
 	RetainOriginalDir    bool
@@ -315,11 +315,11 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 		}
 	case "main":
 		// if we have lost focus to a first-class panel, we need to do some cleanup
-		if err := gui.changeContext("normal"); err != nil {
+		if err := gui.changeMainViewsContext("normal"); err != nil {
 			return err
 		}
 	case "commitFiles":
-		if gui.State.Context != "patch-building" {
+		if gui.State.MainContext != "patch-building" {
 			if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
 				return err
 			}
@@ -582,7 +582,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		// doing this here because it'll only happen once
-		if err := gui.loadNewRepo(); err != nil {
+		if err := gui.onInitialViewsCreation(); err != nil {
 			return err
 		}
 	}
@@ -625,6 +625,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// this will let you see these branches as prettified json
 	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
 	return gui.resizeCurrentPopupPanel(g)
+}
+
+func (gui *Gui) onInitialViewsCreation() error {
+	if err := gui.changeMainViewsContext("normal"); err != nil {
+		return err
+	}
+
+	return gui.loadNewRepo()
 }
 
 func (gui *Gui) loadNewRepo() error {
