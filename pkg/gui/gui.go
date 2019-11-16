@@ -116,6 +116,10 @@ type remotePanelState struct {
 	SelectedLine int
 }
 
+type remoteBranchesState struct {
+	SelectedLine int
+}
+
 type commitPanelState struct {
 	SelectedLine     int
 	SpecificDiffMode bool
@@ -140,16 +144,17 @@ type statusPanelState struct {
 }
 
 type panelStates struct {
-	Files       *filePanelState
-	Branches    *branchPanelState
-	Remotes     *remotePanelState
-	Commits     *commitPanelState
-	Stash       *stashPanelState
-	Menu        *menuPanelState
-	LineByLine  *lineByLinePanelState
-	Merging     *mergingPanelState
-	CommitFiles *commitFilesPanelState
-	Status      *statusPanelState
+	Files          *filePanelState
+	Branches       *branchPanelState
+	Remotes        *remotePanelState
+	RemoteBranches *remoteBranchesState
+	Commits        *commitPanelState
+	Stash          *stashPanelState
+	Menu           *menuPanelState
+	LineByLine     *lineByLinePanelState
+	Merging        *mergingPanelState
+	CommitFiles    *commitFilesPanelState
+	Status         *statusPanelState
 }
 
 type guiState struct {
@@ -160,7 +165,8 @@ type guiState struct {
 	CommitFiles          []*commands.CommitFile
 	DiffEntries          []*commands.Commit
 	Remotes              []*commands.Remote
-	MenuItemCount        int // can't store the actual list because it's of interface{} type
+	RemoteBranches       []*commands.Branch // using Branch for now because they're basically the same
+	MenuItemCount        int                // can't store the actual list because it's of interface{} type
 	PreviousView         string
 	Platform             commands.Platform
 	Updating             bool
@@ -188,13 +194,14 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		DiffEntries:         make([]*commands.Commit, 0),
 		Platform:            *oSCommand.Platform,
 		Panels: &panelStates{
-			Files:       &filePanelState{SelectedLine: -1},
-			Branches:    &branchPanelState{SelectedLine: 0},
-			Remotes:     &remotePanelState{SelectedLine: 0},
-			Commits:     &commitPanelState{SelectedLine: -1},
-			CommitFiles: &commitFilesPanelState{SelectedLine: -1},
-			Stash:       &stashPanelState{SelectedLine: -1},
-			Menu:        &menuPanelState{SelectedLine: 0},
+			Files:          &filePanelState{SelectedLine: -1},
+			Branches:       &branchPanelState{SelectedLine: 0},
+			Remotes:        &remotePanelState{SelectedLine: 0},
+			RemoteBranches: &remoteBranchesState{SelectedLine: -1},
+			Commits:        &commitPanelState{SelectedLine: -1},
+			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
+			Stash:          &stashPanelState{SelectedLine: -1},
+			Menu:           &menuPanelState{SelectedLine: 0},
 			Merging: &mergingPanelState{
 				ConflictIndex: 0,
 				ConflictTop:   true,
@@ -606,6 +613,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		{view: filesView, context: "", selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files)},
 		{view: branchesView, context: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
 		{view: branchesView, context: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes)},
+		{view: branchesView, context: "remote-branches", selectedLine: gui.State.Panels.RemoteBranches.SelectedLine, lineCount: len(gui.State.Remotes)},
 		{view: commitsView, context: "", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
 		{view: stashView, context: "", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
 	}

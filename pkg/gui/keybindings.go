@@ -415,6 +415,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.handlePrevBranchesTab,
 		},
 		{
+			ViewName:    "branches",
+			Contexts:    []string{"remote-branches"},
+			Key:         gocui.KeyEsc,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleRemoteBranchesEscape,
+			Description: gui.Tr.SLocalize("ReturnToRemotesList"),
+		},
+		{
 			ViewName:    "commits",
 			Key:         's',
 			Modifier:    gocui.ModNone,
@@ -1025,6 +1033,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleRemotesClick,
+		},
+		{
+			ViewName: "branches",
+			Contexts: []string{"remotes"},
+			Key:      gocui.KeyEnter,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleRemoteEnter,
 		},
 		{
 			ViewName: "commits",

@@ -338,16 +338,36 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) onBranchesTabClick(tabIndex int) error {
 	contexts := []string{"local-branches", "remotes", "tabs"}
 	branchesView := gui.getBranchesView()
-	branchesView.Context = contexts[tabIndex]
 	branchesView.TabIndex = tabIndex
 
-	switch contexts[tabIndex] {
+	return gui.switchBranchesPanelContext(contexts[tabIndex])
+}
+
+// TODO: make this switch tabs as well if necessary
+func (gui *Gui) switchBranchesPanelContext(context string) error {
+	branchesView := gui.getBranchesView()
+	branchesView.Context = context
+
+	switch context {
 	case "local-branches":
 		if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
 			return err
 		}
+		if err := gui.handleBranchSelect(gui.g, gui.getBranchesView()); err != nil {
+			return err
+		}
 	case "remotes":
 		if err := gui.renderListPanel(branchesView, gui.State.Remotes); err != nil {
+			return err
+		}
+		if err := gui.handleRemoteSelect(gui.g, gui.getBranchesView()); err != nil {
+			return err
+		}
+	case "remote-branches":
+		if err := gui.renderListPanel(branchesView, gui.State.RemoteBranches); err != nil {
+			return err
+		}
+		if err := gui.handleRemoteBranchSelect(gui.g, gui.getBranchesView()); err != nil {
 			return err
 		}
 	}

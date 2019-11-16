@@ -846,6 +846,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "notTrackingRemote",
 			Other: "(not tracking any remote)",
+		}, &i18n.Message{
+			ID:    "ReturnToRemotesList",
+			Other: `return to remotes list`,
 		},
 	)
 }
