@@ -295,14 +295,14 @@ func (g *Gui) CurrentView() *View {
 // SetKeybinding creates a new keybinding. If viewname equals to ""
 // (empty string) then the keybinding will apply to all views. key must
 // be a rune or a Key.
-func (g *Gui) SetKeybinding(viewname string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
+func (g *Gui) SetKeybinding(viewname string, contexts []string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
 	var kb *keybinding
 
 	k, ch, err := getKey(key)
 	if err != nil {
 		return err
 	}
-	kb = newKeybinding(viewname, k, ch, mod, handler)
+	kb = newKeybinding(viewname, contexts, k, ch, mod, handler)
 	g.keybindings = append(g.keybindings, kb)
 	return nil
 }

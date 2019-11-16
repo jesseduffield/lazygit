@@ -75,8 +75,8 @@ github.com/integrii/flaggy v1.3.0 h1:8I5Qqz22C6+EwUqJuaN5ITh77obI8VSg6RwYLe2VB7o
 github.com/integrii/flaggy v1.3.0/go.mod h1:tnTxHeTJbah0gQ6/K0RW0J7fMUBk9MCF5blhm43LNpI=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
-github.com/jesseduffield/gocui v0.3.1-0.20191110053728-01cdcccd0508 h1:8CPQLUe+0QXxnbnUfaMxh1UGxg3rYCqCvbxecC9rrIY=
-github.com/jesseduffield/gocui v0.3.1-0.20191110053728-01cdcccd0508/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
+github.com/jesseduffield/gocui v0.3.1-0.20191116013947-b13bda319532 h1:V1Lk2rm5/p27NjnlF2ezzkxDaisHNcveMNueSD7RYgs=
+github.com/jesseduffield/gocui v0.3.1-0.20191116013947-b13bda319532/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/pty v1.2.1 h1:7xYBiwNH0PpWqC8JmvrPq1a/ksNqyCavzWu9pbBGYWI=
 github.com/jesseduffield/pty v1.2.1/go.mod h1:7jlS40+UhOqkZJDIG1B/H21xnuET/+fvbbnHCa8wSIo=
 github.com/jesseduffield/roll v0.0.0-20190629104057-695be2e62b00 h1:+JaOkfBNYQYlGD7dgru8mCwYNEc5tRRI8mThlVANhSM=
