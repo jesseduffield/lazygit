@@ -743,6 +743,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "EnterUpstream",
 			Other: `Enter upstream as '<remote> <branchname>'`,
+		}, &i18n.Message{
+			ID:    "ReturnToRemotesList",
+			Other: `return to remotes list`,
 		},
 	)
 }

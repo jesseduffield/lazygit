@@ -68,3 +68,18 @@ func (gui *Gui) refreshRemotes() error {
 
 	return nil
 }
+
+func (gui *Gui) handleRemoteEnter(g *gocui.Gui, v *gocui.View) error {
+	// naive implementation: get the branches and render them to the list, change the context
+	remote := gui.getSelectedRemote()
+
+	gui.State.RemoteBranches = remote.Branches
+
+	newSelectedLine := 0
+	if len(remote.Branches) == 0 {
+		newSelectedLine = -1
+	}
+	gui.State.Panels.RemoteBranches.SelectedLine = newSelectedLine
+
+	return gui.switchBranchesPanelContext("remote-branches")
+}

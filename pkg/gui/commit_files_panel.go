@@ -51,11 +51,7 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSwitchToCommitsPanel(g *gocui.Gui, v *gocui.View) error {
-	commitsView, err := g.View("commits")
-	if err != nil {
-		return err
-	}
-	return gui.switchFocus(g, v, commitsView)
+	return gui.switchFocus(g, v, gui.getCommitsView())
 }
 
 func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
