@@ -22,14 +22,15 @@ func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 	// first step is to get our remotes from go-git
 	remotes := make([]*Remote, len(goGitRemotes))
 	for i, goGitRemote := range goGitRemotes {
-		name := goGitRemote.Config().Name
+		remoteName := goGitRemote.Config().Name
 
-		re := regexp.MustCompile(fmt.Sprintf("%s\\/(.*)", name))
+		re := regexp.MustCompile(fmt.Sprintf("%s\\/(.*)", remoteName))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
 		branches := make([]*RemoteBranch, len(matches))
 		for j, match := range matches {
 			branches[j] = &RemoteBranch{
-				Name: match[1],
+				Name:       match[1],
+				RemoteName: remoteName,
 			}
 		}
 

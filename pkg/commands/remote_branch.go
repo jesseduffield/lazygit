@@ -6,8 +6,9 @@ import (
 
 // Remote Branch : A git remote branch
 type RemoteBranch struct {
-	Name     string
-	Selected bool
+	Name       string
+	Selected   bool
+	RemoteName string
 }
 
 // GetDisplayStrings returns the display string of branch
