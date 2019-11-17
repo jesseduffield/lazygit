@@ -1080,3 +1080,8 @@ func (c *GitCommand) AddRemote(name string, url string) error {
 func (c *GitCommand) RemoveRemote(name string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git remote remove %s", name))
 }
+
+func (c *GitCommand) IsHeadDetached() bool {
+	err := c.OSCommand.RunCommand("git symbolic-ref -q HEAD")
+	return err != nil
+}

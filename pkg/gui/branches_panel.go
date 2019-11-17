@@ -276,25 +276,32 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 	}, nil)
 }
 
-func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
-	checkedOutBranch := gui.State.Branches[0].Name
-	selectedBranch := gui.getSelectedBranch().Name
-	if checkedOutBranch == selectedBranch {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
+func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
+	if gui.GitCommand.IsHeadDetached() {
+		return gui.createErrorPanel(gui.g, "Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
+	}
+	checkedOutBranchName := gui.State.Branches[0].Name
+	if checkedOutBranchName == branchName {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
 	}
 	prompt := gui.Tr.TemplateLocalize(
 		"ConfirmMerge",
 		Teml{
-			"checkedOutBranch": checkedOutBranch,
-			"selectedBranch":   selectedBranch,
+			"checkedOutBranch": checkedOutBranchName,
+			"selectedBranch":   branchName,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("MergingTitle"), prompt,
+	return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("MergingTitle"), prompt,
 		func(g *gocui.Gui, v *gocui.View) error {
 
-			err := gui.GitCommand.Merge(selectedBranch)
+			err := gui.GitCommand.Merge(branchName)
 			return gui.handleGenericMergeCommandResult(err)
 		}, nil)
+}
+
+func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
+	selectedBranchName := gui.getSelectedBranch().Name
+	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
 }
 
 func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
