@@ -1090,6 +1090,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("rebaseBranch"),
 		},
 		{
+			ViewName:    "branches",
+			Contexts:    []string{"remote-branches"},
+			Key:         'u',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleSetBranchUpstream,
+			Description: gui.Tr.SLocalize("setUpstream"),
+		},
+		{
 			ViewName: "commits",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
