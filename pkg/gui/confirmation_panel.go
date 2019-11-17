@@ -17,12 +17,18 @@ import (
 
 func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.View) error, returnFocusOnClose bool) func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
+
+		if err := gui.closeConfirmationPrompt(g, returnFocusOnClose); err != nil {
+			return err
+		}
+
 		if function != nil {
 			if err := function(g, v); err != nil {
 				return err
 			}
 		}
-		return gui.closeConfirmationPrompt(g, returnFocusOnClose)
+
+		return nil
 	}
 }
 

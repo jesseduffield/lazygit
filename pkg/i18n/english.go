@@ -849,6 +849,21 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ReturnToRemotesList",
 			Other: `return to remotes list`,
+		}, &i18n.Message{
+			ID:    "addNewRemote",
+			Other: `add new remote`,
+		}, &i18n.Message{
+			ID:    "newRemoteName",
+			Other: `New remote name:`,
+		}, &i18n.Message{
+			ID:    "newRemoteUrl",
+			Other: `New remote url:`,
+		}, &i18n.Message{
+			ID:    "removeRemote",
+			Other: `remove remote`,
+		}, &i18n.Message{
+			ID:    "removeRemotePrompt",
+			Other: "Are you sure you want to remove remote",
 		},
 	)
 }
