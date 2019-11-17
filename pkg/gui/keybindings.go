@@ -1074,6 +1074,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("mergeIntoCurrentBranch"),
 		},
 		{
+			ViewName:    "branches",
+			Contexts:    []string{"remote-branches"},
+			Key:         'd',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleDeleteRemoteBranch,
+			Description: gui.Tr.SLocalize("deleteBranch"),
+		},
+		{
 			ViewName: "commits",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,

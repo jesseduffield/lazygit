@@ -14,7 +14,7 @@ import (
 
 func (gui *Gui) getSelectedRemote() *commands.Remote {
 	selectedLine := gui.State.Panels.Remotes.SelectedLine
-	if selectedLine == -1 {
+	if selectedLine == -1 || len(gui.State.Remotes) == 0 {
 		return nil
 	}
 
@@ -53,6 +53,8 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Remotes array to pick the current remote from
 func (gui *Gui) refreshRemotes() error {
+	prevSelectedRemote := gui.getSelectedRemote()
+
 	remotes, err := gui.GitCommand.GetRemotes()
 	if err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
@@ -60,8 +62,22 @@ func (gui *Gui) refreshRemotes() error {
 
 	gui.State.Remotes = remotes
 
-	if gui.getBranchesView().Context == "remotes" {
+	// we need to ensure our selected remote branches aren't now outdated
+	if prevSelectedRemote != nil && gui.State.RemoteBranches != nil {
+		// find remote now
+		for _, remote := range remotes {
+			if remote.Name == prevSelectedRemote.Name {
+				gui.State.RemoteBranches = remote.Branches
+			}
+		}
+	}
+
+	// TODO: see if this works for deleting remote branches
+	switch gui.getBranchesView().Context {
+	case "remotes":
 		return gui.renderRemotesWithSelection()
+	case "remote-branches":
+		return gui.renderRemoteBranchesWithSelection()
 	}
 
 	return nil

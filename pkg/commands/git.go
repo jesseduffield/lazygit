@@ -1085,3 +1085,7 @@ func (c *GitCommand) IsHeadDetached() bool {
 	err := c.OSCommand.RunCommand("git symbolic-ref -q HEAD")
 	return err != nil
 }
+
+func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git push %s --delete %s", remoteName, branchName))
+}
