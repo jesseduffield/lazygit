@@ -400,9 +400,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "newFocusedViewIs",
 			Other: "new focused view is {{.newFocusedView}}",
 		}, &i18n.Message{
-			ID:    "CantCloseConfirmationPrompt",
-			Other: "Could not close confirmation prompt: {{.error}}",
-		}, &i18n.Message{
 			ID:    "NoChangedFiles",
 			Other: "No changed files",
 		}, &i18n.Message{

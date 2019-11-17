@@ -330,9 +330,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "newFocusedViewIs",
 			Other: "nowy skupiony widok to {{.newFocusedView}}",
 		}, &i18n.Message{
-			ID:    "CantCloseConfirmationPrompt",
-			Other: "Nie można zamknąć monitu potwierdzenia: {{.error}}",
-		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Scalanie anulowane",
 		}, &i18n.Message{

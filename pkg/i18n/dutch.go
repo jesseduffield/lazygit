@@ -338,9 +338,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "newFocusedViewIs",
 			Other: "nieuw gefocussed weergave is {{.newFocusedView}}",
 		}, &i18n.Message{
-			ID:    "CantCloseConfirmationPrompt",
-			Other: "Kon de bevestiging prompt niet sluiten: {{.error}}",
-		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
 		}, &i18n.Message{
