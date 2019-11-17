@@ -56,7 +56,7 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	}()
 	go func() {
 		upstream, _ := gui.GitCommand.GetUpstreamForBranch(branch.Name)
-		if strings.Contains(upstream, "no upstream configured for branch") {
+		if strings.Contains(upstream, "no upstream configured for branch") || strings.Contains(upstream, "unknown revision or path not in the working tree") {
 			upstream = gui.Tr.SLocalize("notTrackingRemote")
 		}
 		graph, err := gui.GitCommand.GetBranchGraph(branch.Name)
