@@ -1058,6 +1058,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("removeRemote"),
 		},
 		{
+			ViewName:    "branches",
+			Contexts:    []string{"remote-branches"},
+			Key:         gocui.KeySpace,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCheckoutRemoteBranch,
+			Description: gui.Tr.SLocalize("checkout"),
+		},
+		{
 			ViewName: "commits",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,

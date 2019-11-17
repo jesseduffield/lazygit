@@ -81,3 +81,14 @@ func (gui *Gui) renderRemoteBranchesWithSelection() error {
 
 	return nil
 }
+
+func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+	remoteBranch := gui.getSelectedRemoteBranch()
+	if remoteBranch == nil {
+		return nil
+	}
+	if err := gui.handleCheckoutBranch(remoteBranch.RemoteName + "/" + remoteBranch.Name); err != nil {
+		return err
+	}
+	return gui.switchBranchesPanelContext("local-branches")
+}

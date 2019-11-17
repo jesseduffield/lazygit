@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -20,6 +21,13 @@ import (
 	gitconfig "github.com/tcnksm/go-gitconfig"
 	gogit "gopkg.in/src-d/go-git.v4"
 )
+
+// this takes something like:
+// * (HEAD detached at 264fc6f5)
+//	remotes
+// and returns '264fc6f5' as the second match
+
+const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
 func verifyInGitRepo(runCmd func(string) error) error {
 	return runCmd("git status")
@@ -325,8 +333,11 @@ func (c *GitCommand) NewBranch(name string) error {
 // CurrentBranchName is a function.
 func (c *GitCommand) CurrentBranchName() (string, error) {
 	branchName, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
-	if err != nil {
-		branchName, err = c.OSCommand.RunCommandWithOutput("git rev-parse --short HEAD")
+	if err != nil || branchName == "HEAD\n" {
+		output, err := c.OSCommand.RunCommandWithOutput("git branch --contains")
+		re := regexp.MustCompile(CurrentBranchNameRegex)
+		match := re.FindStringSubmatch(output)
+		branchName = match[1]
 		if err != nil {
 			return "", err
 		}
