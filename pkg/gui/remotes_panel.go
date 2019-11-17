@@ -132,3 +132,43 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 
 	}, nil)
 }
+
+func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
+	branchesView := gui.getBranchesView()
+	remote := gui.getSelectedRemote()
+	if remote == nil {
+		return nil
+	}
+
+	editNameMessage := gui.Tr.TemplateLocalize(
+		"editRemoteName",
+		Teml{
+			"remoteName": remote.Name,
+		},
+	)
+
+	return gui.createPromptPanel(g, branchesView, editNameMessage, "", func(g *gocui.Gui, v *gocui.View) error {
+		updatedRemoteName := gui.trimmedContent(v)
+
+		if updatedRemoteName != remote.Name {
+			if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
+				return gui.createErrorPanel(gui.g, err.Error())
+			}
+		}
+
+		editUrlMessage := gui.Tr.TemplateLocalize(
+			"editRemoteUrl",
+			Teml{
+				"remoteName": updatedRemoteName,
+			},
+		)
+
+		return gui.createPromptPanel(g, branchesView, editUrlMessage, "", func(g *gocui.Gui, v *gocui.View) error {
+			updatedRemoteUrl := gui.trimmedContent(v)
+			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
+				return gui.createErrorPanel(gui.g, err.Error())
+			}
+			return gui.refreshRemotes()
+		})
+	})
+}

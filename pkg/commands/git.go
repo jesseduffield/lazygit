@@ -1091,3 +1091,11 @@ func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string) er
 func (c *GitCommand) SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git branch --set-upstream-to=%s/%s %s", remoteName, remoteBranchName, branchName))
 }
+
+func (c *GitCommand) RenameRemote(oldRemoteName string, newRemoteName string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git remote rename %s %s", oldRemoteName, newRemoteName))
+}
+
+func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git remote set-url %s %s", remoteName, updatedUrl))
+}
