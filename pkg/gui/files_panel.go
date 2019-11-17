@@ -815,9 +815,9 @@ func (gui *Gui) handleExtensiveFileSelect(g *gocui.Gui, v *gocui.View, alreadySe
 
 	y := 0
 	if file != nil {
-		y = file.GetY(gui.Log)
+		y = file.GetY()
 	} else if dir != nil {
-		y = dir.GetY(gui.Log)
+		y = dir.GetY()
 	}
 
 	if err := gui.focusPoint(0, y, gui.State.ExtensiveFiles.Height(), v); err != nil {
@@ -839,4 +839,5 @@ func (gui *Gui) handleExtensiveFileSelect(g *gocui.Gui, v *gocui.View, alreadySe
 	}
 
 	return nil
+
 }

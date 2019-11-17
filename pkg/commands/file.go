@@ -63,36 +63,37 @@ func MergeGITStatus(a, b string) string {
 		{rune(b[1]), &Cy},
 	}
 	for _, check := range toCheck {
+		bindTo := *check.bindTo
 		switch check.check {
 		case ' ':
 			// Ignored for now
 		case '?':
-			switch *check.bindTo {
+			switch bindTo {
 			case " ":
 				*check.bindTo = "?"
 			}
 		case 'M':
-			switch *check.bindTo {
+			switch bindTo {
 			case " ", "A", "D", "R":
 				*check.bindTo = "M"
 			}
 		case 'A':
-			switch *check.bindTo {
+			switch bindTo {
 			case " ":
 				*check.bindTo = "A"
 			}
 		case 'D':
-			switch *check.bindTo {
+			switch bindTo {
 			case " ":
 				*check.bindTo = "D"
 			}
 		case 'R':
-			switch *check.bindTo {
+			switch bindTo {
 			case " ":
 				*check.bindTo = "R"
 			}
 		case 'C':
-			switch *check.bindTo {
+			switch bindTo {
 			case " ":
 				*check.bindTo = "C"
 			}
@@ -290,15 +291,17 @@ func (d *Dir) GetTreeDisplayString(focused bool) string {
 
 // GetTreeDisplayString returns the display string of a file for the tree view
 func (f *File) GetTreeDisplayString(focused bool) string {
+	parts := strings.Split(f.Name, "/")
+	name := parts[len(parts)-1]
+
 	red := color.New(color.FgRed)
 	green := color.New(color.FgGreen)
 	if !f.Tracked && !f.HasStagedChanges {
-		return red.Sprint(f.DisplayString)
+		return red.Sprint(f.DisplayString[0:3] + name)
 	}
 
 	output := green.Sprint(f.DisplayString[0:1])
 	output += red.Sprint(f.DisplayString[1:3])
-	name := path.Base(f.Name)
 	if f.HasUnstagedChanges {
 		output += red.Sprint(name)
 	} else {
@@ -328,10 +331,11 @@ func (f *File) GetDisplayStrings(isFocused bool) []string {
 }
 
 // GetY returns the dir it's y position
-func (d *Dir) GetY(log *logrus.Entry) int {
+func (d *Dir) GetY() int {
 	count := -1
 	current := d
 	parrent := d.Parrent
+
 	for {
 		if parrent == nil {
 			break
@@ -352,9 +356,9 @@ func (d *Dir) GetY(log *logrus.Entry) int {
 }
 
 // GetY returns the file it's y position
-func (f *File) GetY(log *logrus.Entry) int {
+func (f *File) GetY() int {
 	dir := f.InDir
-	count := dir.GetY(log)
+	count := dir.GetY()
 	for i, file := range dir.Files {
 		if file == f {
 			count += i + 1

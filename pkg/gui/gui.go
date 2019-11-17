@@ -548,6 +548,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
 		listViews[menuView] = listViewState{selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount}
+
 	}
 	for view, state := range listViews {
 		// check if the selected line is now out of view and if so refocus it

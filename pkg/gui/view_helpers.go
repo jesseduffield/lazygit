@@ -500,6 +500,7 @@ func (gui *Gui) renderPanelOptions() error {
 		}
 	}
 	return gui.renderGlobalOptions()
+
 }
 
 func (gui *Gui) handleFocusView(g *gocui.Gui, v *gocui.View) error {
