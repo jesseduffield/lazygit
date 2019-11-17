@@ -21,14 +21,6 @@ func (gui *Gui) getSelectedBranch() *commands.Branch {
 	return gui.State.Branches[selectedLine]
 }
 
-func (gui *Gui) handleBranchesClick(g *gocui.Gui, v *gocui.View) error {
-	itemCount := len(gui.State.Branches)
-	handleSelect := gui.handleBranchSelect
-	selectedLine := &gui.State.Panels.Branches.SelectedLine
-
-	return gui.handleClick(v, itemCount, selectedLine, handleSelect)
-}
-
 // may want to standardise how these select methods work
 func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	if gui.popupPanelFocused() {

@@ -21,14 +21,6 @@ func (gui *Gui) getSelectedRemoteBranch() *commands.RemoteBranch {
 	return gui.State.RemoteBranches[selectedLine]
 }
 
-func (gui *Gui) handleRemoteBranchesClick(g *gocui.Gui, v *gocui.View) error {
-	itemCount := len(gui.State.RemoteBranches)
-	handleSelect := gui.handleRemoteBranchSelect
-	selectedLine := &gui.State.Panels.RemoteBranches.SelectedLine
-
-	return gui.handleClick(v, itemCount, selectedLine, handleSelect)
-}
-
 func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil

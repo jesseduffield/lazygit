@@ -463,3 +463,12 @@ func (gui *Gui) handleClick(v *gocui.View, itemCount int, selectedLine *int, han
 
 	return handleSelect(gui.g, v)
 }
+
+// often gocui wants functions in the form `func(g *gocui.Gui, v *gocui.View) error`
+// but sometimes we just have a function that returns an error, so this is a
+// convenience wrapper to give gocui what it wants.
+func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return f()
+	}
+}

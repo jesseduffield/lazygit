@@ -89,15 +89,3 @@ func (gui *Gui) createMenu(title string, items interface{}, itemCount int, handl
 	})
 	return nil
 }
-
-func (gui *Gui) handleMenuClick(g *gocui.Gui, v *gocui.View) error {
-	itemCount := gui.State.MenuItemCount
-	handleSelect := gui.handleMenuSelect
-	selectedLine := &gui.State.Panels.Menu.SelectedLine
-
-	if err := gui.handleClick(v, itemCount, selectedLine, handleSelect); err != nil {
-		return err
-	}
-
-	return gui.State.Panels.Menu.OnPress(g, v)
-}
