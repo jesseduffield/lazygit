@@ -78,6 +78,7 @@ func (c *CommitListBuilder) GetCommits() ([]*Commit, error) {
 			Name:          strings.Join(splitLine[1:], " "),
 			Status:        status,
 			DisplayString: strings.Join(splitLine, " "),
+			// TODO: add tags here
 		})
 	}
 	if rebaseMode != "" {

@@ -80,6 +80,10 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 		return err
 	}
 
+	if err := gui.refreshTags(); err != nil {
+		return err
+	}
+
 	g.Update(func(g *gocui.Gui) error {
 		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand)
 		if err != nil {
@@ -373,7 +377,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) onBranchesTabClick(tabIndex int) error {
-	contexts := []string{"local-branches", "remotes", "tabs"}
+	contexts := []string{"local-branches", "remotes", "tags"}
 	branchesView := gui.getBranchesView()
 	branchesView.TabIndex = tabIndex
 
@@ -388,6 +392,7 @@ func (gui *Gui) switchBranchesPanelContext(context string) error {
 		"local-branches":  0,
 		"remotes":         1,
 		"remote-branches": 1,
+		"tags":            2,
 	}
 
 	branchesView.TabIndex = contextTabIndexMap[context]
@@ -399,6 +404,8 @@ func (gui *Gui) switchBranchesPanelContext(context string) error {
 		return gui.renderRemotesWithSelection()
 	case "remote-branches":
 		return gui.renderRemoteBranchesWithSelection()
+	case "tags":
+		return gui.renderTagsWithSelection()
 	}
 
 	return nil

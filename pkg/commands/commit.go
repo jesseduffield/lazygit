@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -14,6 +16,7 @@ type Commit struct {
 	DisplayString string
 	Action        string // one of "", "pick", "edit", "squash", "reword", "drop", "fixup"
 	Copied        bool   // to know if this commit is ready to be cherry-picked somewhere
+	Tags          []string
 }
 
 // GetDisplayStrings is a function.
@@ -52,9 +55,12 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 	}
 
 	actionString := ""
+	tagString := ""
 	if c.Action != "" {
 		actionString = cyan.Sprint(utils.WithPadding(c.Action, 7)) + " "
+	} else if len(c.Tags) > 0 {
+		tagString = utils.ColoredString(strings.Join(c.Tags, " "), color.FgMagenta) + " "
 	}
 
-	return []string{shaColor.Sprint(c.Sha), actionString + defaultColor.Sprint(c.Name)}
+	return []string{shaColor.Sprint(c.Sha), actionString + tagString + defaultColor.Sprint(c.Name)}
 }

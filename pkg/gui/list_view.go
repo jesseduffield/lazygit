@@ -117,6 +117,16 @@ func (gui *Gui) getListViews() []*listView {
 			rendersToMainView:     true,
 		},
 		{
+			viewName:              "branches",
+			context:               "tags",
+			getItemsLength:        func() int { return len(gui.State.Tags) },
+			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Tags.SelectedLine },
+			handleFocus:           gui.handleTagSelect,
+			handleItemSelect:      gui.handleTagSelect,
+			gui:                   gui,
+			rendersToMainView:     true,
+		},
+		{
 			viewName:                "commits",
 			getItemsLength:          func() int { return len(gui.State.Commits) },
 			getSelectedLineIdxPtr:   func() *int { return &gui.State.Panels.Commits.SelectedLine },

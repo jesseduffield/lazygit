@@ -35,6 +35,9 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 	gui.getMainView().Title = "Remote"
 
 	remote := gui.getSelectedRemote()
+	if remote == nil {
+		return gui.renderString(g, "main", "No remotes")
+	}
 	if err := gui.focusPoint(0, gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes), v); err != nil {
 		return err
 	}
@@ -42,8 +45,6 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 	return gui.renderString(g, "main", fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
 }
 
-// gui.refreshStatus is called at the end of this because that's when we can
-// be sure there is a state.Remotes array to pick the current remote from
 func (gui *Gui) refreshRemotes() error {
 	prevSelectedRemote := gui.getSelectedRemote()
 
@@ -92,6 +93,9 @@ func (gui *Gui) renderRemotesWithSelection() error {
 func (gui *Gui) handleRemoteEnter(g *gocui.Gui, v *gocui.View) error {
 	// naive implementation: get the branches and render them to the list, change the context
 	remote := gui.getSelectedRemote()
+	if remote == nil {
+		return nil
+	}
 
 	gui.State.RemoteBranches = remote.Branches
 
