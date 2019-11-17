@@ -856,6 +856,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "newRemoteUrl",
 			Other: `New remote url:`,
 		}, &i18n.Message{
+			ID:    "editRemoteName",
+			Other: `Enter updated remote name for {{ .remoteName }}:`,
+		}, &i18n.Message{
+			ID:    "editRemoteUrl",
+			Other: `Enter updated remote url for {{ .remoteName }}:`,
+		}, &i18n.Message{
 			ID:    "removeRemote",
 			Other: `remove remote`,
 		}, &i18n.Message{
@@ -876,6 +882,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SetUpstreamMessage",
 			Other: "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
+		}, &i18n.Message{
+			ID:    "editRemote",
+			Other: "edit remote",
 		},
 	)
 }

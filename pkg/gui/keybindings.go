@@ -1032,6 +1032,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"remotes"},
+			Key:         'e',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleEditRemote,
+			Description: gui.Tr.SLocalize("editRemote"),
+		},
+		{
+			ViewName:    "branches",
 			Contexts:    []string{"remote-branches"},
 			Key:         gocui.KeySpace,
 			Modifier:    gocui.ModNone,
