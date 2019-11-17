@@ -92,3 +92,8 @@ func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	}
 	return gui.switchBranchesPanelContext("local-branches")
 }
+
+func (gui *Gui) handleMergeRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+	selectedBranchName := gui.getSelectedRemoteBranch().Name
+	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
+}
