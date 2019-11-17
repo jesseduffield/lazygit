@@ -23,27 +23,6 @@ func (gui *Gui) getSelectedCommit(g *gocui.Gui) *commands.Commit {
 	return gui.State.Commits[selectedLine]
 }
 
-func (gui *Gui) handleCommitsClick(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	prevSelectedLineIdx := gui.State.Panels.Commits.SelectedLine
-	newSelectedLineIdx := v.SelectedLineIdx()
-
-	if newSelectedLineIdx > len(gui.State.Commits)-1 {
-		return gui.handleCommitSelect(gui.g, v)
-	}
-
-	gui.State.Panels.Commits.SelectedLine = newSelectedLineIdx
-
-	if prevSelectedLineIdx == newSelectedLineIdx && gui.currentViewName() == v.Name() {
-		return gui.handleSwitchToCommitFilesPanel(gui.g, v)
-	} else {
-		return gui.handleCommitSelect(gui.g, v)
-	}
-}
-
 func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil

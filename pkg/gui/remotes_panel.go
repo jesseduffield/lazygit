@@ -21,14 +21,6 @@ func (gui *Gui) getSelectedRemote() *commands.Remote {
 	return gui.State.Remotes[selectedLine]
 }
 
-func (gui *Gui) handleRemotesClick(g *gocui.Gui, v *gocui.View) error {
-	itemCount := len(gui.State.Remotes)
-	handleSelect := gui.handleRemoteSelect
-	selectedLine := &gui.State.Panels.Remotes.SelectedLine
-
-	return gui.handleClick(v, itemCount, selectedLine, handleSelect)
-}
-
 func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil

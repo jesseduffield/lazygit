@@ -27,27 +27,6 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 	return gui.State.Files[selectedLine], nil
 }
 
-func (gui *Gui) handleFilesClick(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLine
-	newSelectedLineIdx := v.SelectedLineIdx()
-
-	if newSelectedLineIdx > len(gui.State.Files)-1 {
-		return gui.selectFile(false)
-	}
-
-	gui.State.Panels.Files.SelectedLine = newSelectedLineIdx
-
-	if prevSelectedLineIdx == newSelectedLineIdx && gui.currentViewName() == v.Name() {
-		return gui.handleFilePress(gui.g, v)
-	} else {
-		return gui.selectFile(true)
-	}
-}
-
 func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 	return gui.selectFile(false)
 }

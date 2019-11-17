@@ -1007,33 +1007,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handlePopFileSnapshot,
 			Description: gui.Tr.SLocalize("Undo"),
 		},
-		// click handlers
-		{
-			ViewName: "menu",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleMenuClick,
-		},
-		{
-			ViewName: "files",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleFilesClick,
-		},
-		{
-			ViewName: "branches",
-			Contexts: []string{"local-branches"},
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleBranchesClick,
-		},
-		{
-			ViewName: "branches",
-			Contexts: []string{"remotes"},
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleRemotesClick,
-		},
 		{
 			ViewName: "branches",
 			Contexts: []string{"remotes"},
@@ -1098,12 +1071,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("setUpstream"),
 		},
 		{
-			ViewName: "commits",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleCommitsClick,
-		},
-		{
 			ViewName: "stash",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
@@ -1146,6 +1113,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: 'j', Modifier: gocui.ModNone, Handler: listView.handleNextLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.KeyArrowDown, Modifier: gocui.ModNone, Handler: listView.handleNextLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listView.handleNextLine},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listView.handleClick},
 		}...)
 	}
 
