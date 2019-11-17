@@ -114,3 +114,8 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 		})
 	}, nil)
 }
+
+func (gui *Gui) handleRebaseOntoRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+	selectedBranchName := gui.getSelectedRemoteBranch().Name
+	return gui.handleRebaseOntoBranch(selectedBranchName)
+}

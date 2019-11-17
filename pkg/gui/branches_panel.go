@@ -304,23 +304,26 @@ func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
 	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
 }
 
-func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRebaseOntoLocalBranch(g *gocui.Gui, v *gocui.View) error {
+	selectedBranchName := gui.getSelectedBranch().Name
+	return gui.handleRebaseOntoBranch(selectedBranchName)
+}
+
+func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 	checkedOutBranch := gui.State.Branches[0].Name
-	selectedBranch := gui.getSelectedBranch().Name
-	if selectedBranch == checkedOutBranch {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
+	if selectedBranchName == checkedOutBranch {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
 	}
 	prompt := gui.Tr.TemplateLocalize(
 		"ConfirmRebase",
 		Teml{
 			"checkedOutBranch": checkedOutBranch,
-			"selectedBranch":   selectedBranch,
+			"selectedBranch":   selectedBranchName,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("RebasingTitle"), prompt,
+	return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("RebasingTitle"), prompt,
 		func(g *gocui.Gui, v *gocui.View) error {
-
-			err := gui.GitCommand.RebaseBranch(selectedBranch)
+			err := gui.GitCommand.RebaseBranch(selectedBranchName)
 			return gui.handleGenericMergeCommandResult(err)
 		}, nil)
 }

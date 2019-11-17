@@ -383,7 +383,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts:    []string{"local-branches"},
 			Key:         'r',
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleRebase,
+			Handler:     gui.handleRebaseOntoLocalBranch,
 			Description: gui.Tr.SLocalize("rebaseBranch"),
 		},
 		{
@@ -1080,6 +1080,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleDeleteRemoteBranch,
 			Description: gui.Tr.SLocalize("deleteBranch"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{"remote-branches"},
+			Key:         'r',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleRebaseOntoRemoteBranch,
+			Description: gui.Tr.SLocalize("rebaseBranch"),
 		},
 		{
 			ViewName: "commits",

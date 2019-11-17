@@ -221,7 +221,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
 		}, &i18n.Message{
 			ID:    "rebaseBranch",
-			Other: "rebase branch",
+			Other: "rebase checked-out branch onto this branch",
 		}, &i18n.Message{
 			ID:    "CantRebaseOntoSelf",
 			Other: "You cannot rebase a branch onto itself",
