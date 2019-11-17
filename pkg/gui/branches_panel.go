@@ -367,10 +367,17 @@ func (gui *Gui) onBranchesTabClick(tabIndex int) error {
 	return gui.switchBranchesPanelContext(contexts[tabIndex])
 }
 
-// TODO: make this switch tabs as well if necessary
 func (gui *Gui) switchBranchesPanelContext(context string) error {
 	branchesView := gui.getBranchesView()
 	branchesView.Context = context
+
+	contextTabIndexMap := map[string]int{
+		"local-branches":  0,
+		"remotes":         1,
+		"remote-branches": 1,
+	}
+
+	branchesView.TabIndex = contextTabIndexMap[context]
 
 	switch context {
 	case "local-branches":
