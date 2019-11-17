@@ -342,17 +342,27 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	if branch.Pushables != "0" {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("FwdCommitsToPush"))
 	}
-	upstream := "origin" // hardcoding for now
+
+	upstream, err := gui.GitCommand.GetUpstreamForBranch(branch.Name)
+	if err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+
+	split := strings.Split(upstream, "/")
+	remoteName := split[0]
+	remoteBranchName := strings.Join(split[1:], "/")
+
 	message := gui.Tr.TemplateLocalize(
 		"Fetching",
 		Teml{
-			"from": fmt.Sprintf("%s/%s", upstream, branch.Name),
+			"from": fmt.Sprintf("%s/%s", remoteName, remoteBranchName),
 			"to":   branch.Name,
 		},
 	)
 	go func() {
 		_ = gui.createLoaderPanel(gui.g, v, message)
-		if err := gui.GitCommand.FastForward(branch.Name); err != nil {
+
+		if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
 			_ = gui.createErrorPanel(gui.g, err.Error())
 		} else {
 			_ = gui.closeConfirmationPrompt(gui.g, true)

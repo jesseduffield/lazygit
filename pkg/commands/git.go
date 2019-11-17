@@ -272,12 +272,11 @@ func (c *GitCommand) ResetAndClean() error {
 }
 
 func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
-	return c.GetCommitDifferences("HEAD", "@{u}")
+	return c.GetCommitDifferences("HEAD", "HEAD@{u}")
 }
 
 func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string, string) {
-	upstream := "origin" // hardcoded for now
-	return c.GetCommitDifferences(branchName, fmt.Sprintf("%s/%s", upstream, branchName))
+	return c.GetCommitDifferences(branchName, branchName+"@{u}")
 }
 
 // GetCommitDifferences checks how many pushables/pullables there are for the
@@ -643,9 +642,8 @@ func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git apply %s %s", flagStr, c.OSCommand.Quote(filepath)))
 }
 
-func (c *GitCommand) FastForward(branchName string) error {
-	upstream := "origin" // hardcoding for now
-	return c.OSCommand.RunCommand(fmt.Sprintf("git fetch %s %s:%s", upstream, branchName, branchName))
+func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git fetch %s %s:%s", remoteName, remoteBranchName, branchName))
 }
 
 func (c *GitCommand) RunSkipEditorCommand(command string) error {
