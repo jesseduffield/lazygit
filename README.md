@@ -37,6 +37,13 @@ Core:
 brew install lazygit
 ```
 
+### MacPorts
+Latest version built from github releases.
+Tap:
+```
+sudo port install lazygit
+```
+
 ### Ubuntu
 
 Packages for Ubuntu 16.04, 18.04 and 18.10 are available via [Launchpad PPA](https://launchpad.net/~lazygit-team).
