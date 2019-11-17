@@ -18,17 +18,13 @@ import (
 func (gui *Gui) wrappedConfirmationFunction(function func(*gocui.Gui, *gocui.View) error, returnFocusOnClose bool) func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 
-		if err := gui.closeConfirmationPrompt(g, returnFocusOnClose); err != nil {
-			return err
-		}
-
 		if function != nil {
 			if err := function(g, v); err != nil {
 				return err
 			}
 		}
 
-		return nil
+		return gui.closeConfirmationPrompt(g, returnFocusOnClose)
 	}
 }
 
@@ -37,6 +33,7 @@ func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui, returnFocusOnClose bool) e
 	if err != nil {
 		return nil // if it's already been closed we can just return
 	}
+	view.Editable = false
 	if returnFocusOnClose {
 		if err := gui.returnFocus(g, view); err != nil {
 			panic(err)
@@ -70,20 +67,6 @@ func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, wrap bool, prompt s
 		height/2 + panelHeight/2
 }
 
-func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, initialContent string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
-	gui.onNewPopupPanel()
-	confirmationView, err := gui.prepareConfirmationPanel(currentView, title, initialContent, false)
-	if err != nil {
-		return err
-	}
-	confirmationView.Editable = true
-	if err := gui.renderString(g, "confirmation", initialContent); err != nil {
-		return err
-	}
-	// in the future we might want to give createPromptPanel the returnFocusOnClose arg too, but for now we're always setting it to true
-	return gui.setKeyBindings(g, handleConfirm, nil, true)
-}
-
 func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string, hasLoader bool) (*gocui.View, error) {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, true, prompt)
 	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
@@ -111,41 +94,50 @@ func (gui *Gui) onNewPopupPanel() {
 	}
 }
 
-func (gui *Gui) createLoaderPanel(g *gocui.Gui, currentView *gocui.View, prompt string) error {
-	return gui.createPopupPanel(g, currentView, "", prompt, true, true, nil, nil)
-}
-
-// it is very important that within this function we never include the original prompt in any error messages, because it may contain e.g. a user password
-func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, returnFocusOnClose bool, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
-	return gui.createPopupPanel(g, currentView, title, prompt, false, returnFocusOnClose, handleConfirm, handleClose)
-}
-
-func (gui *Gui) createPopupPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, hasLoader bool, returnFocusOnClose bool, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
+func (gui *Gui) createPopupPanel(g *gocui.Gui, currentView *gocui.View, title, prompt string, hasLoader bool, returnFocusOnClose bool, editable bool, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
 	gui.onNewPopupPanel()
 	g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
 			if err := gui.closeConfirmationPrompt(g, true); err != nil {
-				errMessage := gui.Tr.TemplateLocalize(
-					"CantCloseConfirmationPrompt",
-					Teml{
-						"error": err.Error(),
-					},
-				)
-				gui.Log.Error(errMessage)
+				gui.Log.Error(err)
 			}
 		}
 		confirmationView, err := gui.prepareConfirmationPanel(currentView, title, prompt, hasLoader)
 		if err != nil {
 			return err
 		}
-		confirmationView.Editable = false
+		confirmationView.Editable = editable
+		if editable {
+			go func() {
+				// TODO: remove this wait (right now if you remove it the EditGotoToEndOfLine method doesn't seem to work)
+				time.Sleep(time.Millisecond)
+				gui.g.Update(func(g *gocui.Gui) error {
+					confirmationView.EditGotoToEndOfLine()
+					return nil
+				})
+			}()
+		}
+
 		if err := gui.renderString(g, "confirmation", prompt); err != nil {
 			return err
 		}
 		return gui.setKeyBindings(g, handleConfirm, handleClose, returnFocusOnClose)
 	})
 	return nil
+}
+
+func (gui *Gui) createLoaderPanel(g *gocui.Gui, currentView *gocui.View, prompt string) error {
+	return gui.createPopupPanel(g, currentView, "", prompt, true, true, false, nil, nil)
+}
+
+// it is very important that within this function we never include the original prompt in any error messages, because it may contain e.g. a user password
+func (gui *Gui) createConfirmationPanel(g *gocui.Gui, currentView *gocui.View, returnFocusOnClose bool, title, prompt string, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error) error {
+	return gui.createPopupPanel(g, currentView, title, prompt, false, returnFocusOnClose, false, handleConfirm, handleClose)
+}
+
+func (gui *Gui) createPromptPanel(g *gocui.Gui, currentView *gocui.View, title string, initialContent string, handleConfirm func(*gocui.Gui, *gocui.View) error) error {
+	return gui.createPopupPanel(gui.g, currentView, title, initialContent, false, true, true, handleConfirm, nil)
 }
 
 func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*gocui.Gui, *gocui.View) error, returnFocusOnClose bool) error {
@@ -166,7 +158,7 @@ func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*go
 }
 
 func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {
-	return gui.createPopupPanel(g, currentView, title, prompt, false, true, nil, nil)
+	return gui.createPopupPanel(g, currentView, title, prompt, false, true, false, nil, nil)
 }
 
 // createSpecificErrorPanel allows you to create an error popup, specifying the
