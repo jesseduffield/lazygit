@@ -870,6 +870,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "DeleteRemoteBranchMessage",
 			Other: "Are you sure you want to delete remote branch",
+		}, &i18n.Message{
+			ID:    "setUpstream",
+			Other: "set as upstream of checked-out branch",
+		}, &i18n.Message{
+			ID:    "SetUpstreamTitle",
+			Other: "Set upstream branch",
+		}, &i18n.Message{
+			ID:    "SetUpstreamMessage",
+			Other: "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
 		},
 	)
 }

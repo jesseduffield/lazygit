@@ -1087,3 +1087,7 @@ func (c *GitCommand) IsHeadDetached() bool {
 func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git push %s --delete %s", remoteName, branchName))
 }
+
+func (c *GitCommand) SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git branch --set-upstream-to=%s/%s %s", remoteName, remoteBranchName, branchName))
+}

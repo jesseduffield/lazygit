@@ -212,8 +212,16 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+func (gui *Gui) getCheckedOutBranch() *commands.Branch {
+	if len(gui.State.Branches) == 0 {
+		return nil
+	}
+
+	return gui.State.Branches[0]
+}
+
 func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
-	branch := gui.State.Branches[0]
+	branch := gui.getCheckedOutBranch()
 	message := gui.Tr.TemplateLocalize(
 		"NewBranchNameBranchOff",
 		Teml{
@@ -243,7 +251,7 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 	if selectedBranch == nil {
 		return nil
 	}
-	checkedOutBranch := gui.State.Branches[0]
+	checkedOutBranch := gui.getCheckedOutBranch()
 	if checkedOutBranch.Name == selectedBranch.Name {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
 	}
@@ -280,7 +288,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 	if gui.GitCommand.IsHeadDetached() {
 		return gui.createErrorPanel(gui.g, "Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
-	checkedOutBranchName := gui.State.Branches[0].Name
+	checkedOutBranchName := gui.getCheckedOutBranch().Name
 	if checkedOutBranchName == branchName {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
 	}
@@ -310,7 +318,7 @@ func (gui *Gui) handleRebaseOntoLocalBranch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
-	checkedOutBranch := gui.State.Branches[0].Name
+	checkedOutBranch := gui.getCheckedOutBranch().Name
 	if selectedBranchName == checkedOutBranch {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
 	}

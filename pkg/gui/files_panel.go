@@ -451,7 +451,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 	}
 	go func() {
 		unamePassOpend := false
-		branchName := gui.State.Branches[0].Name
+		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, func(passOrUname string) string {
 			unamePassOpend = true
 			return gui.waitForPassUname(g, v, passOrUname)

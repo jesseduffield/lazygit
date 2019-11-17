@@ -119,3 +119,24 @@ func (gui *Gui) handleRebaseOntoRemoteBranch(g *gocui.Gui, v *gocui.View) error 
 	selectedBranchName := gui.getSelectedRemoteBranch().Name
 	return gui.handleRebaseOntoBranch(selectedBranchName)
 }
+
+func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
+	selectedBranch := gui.getSelectedRemoteBranch()
+	checkedOutBranch := gui.getCheckedOutBranch()
+
+	message := gui.Tr.TemplateLocalize(
+		"SetUpstreamMessage",
+		Teml{
+			"checkedOut": checkedOutBranch.Name,
+			"selected":   selectedBranch.RemoteName + "/" + selectedBranch.Name,
+		},
+	)
+
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("SetUpstreamTitle"), message, func(*gocui.Gui, *gocui.View) error {
+		if err := gui.GitCommand.SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+			return err
+		}
+
+		return gui.refreshSidePanels(gui.g)
+	}, nil)
+}
