@@ -69,10 +69,11 @@ func (gui *Gui) getListViews() []*listView {
 			getItemsLength:        func() int { return gui.getMenuView().LinesHeight() },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Menu.SelectedLine },
 			handleFocus:           gui.handleMenuSelect,
+			handleItemSelect:      gui.handleMenuSelect,
 			// need to add a layer of indirection here because the callback changes during runtime
-			handleItemSelect:  gui.wrappedHandler(func() error { return gui.State.Panels.Menu.OnPress(gui.g, nil) }),
-			gui:               gui,
-			rendersToMainView: false,
+			handleClickSelectedItem: gui.wrappedHandler(func() error { return gui.State.Panels.Menu.OnPress(gui.g, nil) }),
+			gui:                     gui,
+			rendersToMainView:       false,
 		},
 		{
 			viewName:                "files",
