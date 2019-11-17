@@ -112,6 +112,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 			return gui.handleRemoteSelect(g, v)
 		case "remote-branches":
 			return gui.handleRemoteBranchSelect(g, v)
+		case "tags":
+			return gui.handleTagSelect(g, v)
 		default:
 			return errors.New("unknown branches panel context: " + branchesView.Context)
 		}

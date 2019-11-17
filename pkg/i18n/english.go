@@ -885,6 +885,33 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "editRemote",
 			Other: "edit remote",
+		}, &i18n.Message{
+			ID:    "tagCommit",
+			Other: "tag commit",
+		}, &i18n.Message{
+			ID:    "TagNameTitle",
+			Other: "Tag name:",
+		}, &i18n.Message{
+			ID:    "deleteTag",
+			Other: "delete tag",
+		}, &i18n.Message{
+			ID:    "DeleteTagTitle",
+			Other: "Delete tag",
+		}, &i18n.Message{
+			ID:    "DeleteTagPrompt",
+			Other: "Are you sure you want to delete tag '{{.tagName}}'?",
+		}, &i18n.Message{
+			ID:    "PushTagTitle",
+			Other: "remote to push tag '{{.tagName}}' to:",
+		}, &i18n.Message{
+			ID:    "pushTags",
+			Other: "push tags",
+		}, &i18n.Message{
+			ID:    "createTag",
+			Other: "create tag",
+		}, &i18n.Message{
+			ID:    "CreateTagTitle",
+			Other: "Tag name:",
 		},
 	)
 }

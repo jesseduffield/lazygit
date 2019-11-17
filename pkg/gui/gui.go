@@ -120,6 +120,10 @@ type remoteBranchesState struct {
 	SelectedLine int
 }
 
+type tagsPanelState struct {
+	SelectedLine int
+}
+
 type commitPanelState struct {
 	SelectedLine     int
 	SpecificDiffMode bool
@@ -148,6 +152,7 @@ type panelStates struct {
 	Branches       *branchPanelState
 	Remotes        *remotePanelState
 	RemoteBranches *remoteBranchesState
+	Tags           *tagsPanelState
 	Commits        *commitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
@@ -166,6 +171,7 @@ type guiState struct {
 	DiffEntries          []*commands.Commit
 	Remotes              []*commands.Remote
 	RemoteBranches       []*commands.RemoteBranch
+	Tags                 []*commands.Tag
 	MenuItemCount        int // can't store the actual list because it's of interface{} type
 	PreviousView         string
 	Platform             commands.Platform
@@ -198,6 +204,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 			Branches:       &branchPanelState{SelectedLine: 0},
 			Remotes:        &remotePanelState{SelectedLine: 0},
 			RemoteBranches: &remoteBranchesState{SelectedLine: -1},
+			Tags:           &tagsPanelState{SelectedLine: -1},
 			Commits:        &commitPanelState{SelectedLine: -1},
 			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
 			Stash:          &stashPanelState{SelectedLine: -1},
@@ -497,7 +504,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
-		branchesView.Tabs = []string{"Local Branches", "Remotes"}
+		branchesView.Tabs = []string{"Local Branches", "Remotes", "Tags"}
 		branchesView.FgColor = textColor
 	}
 

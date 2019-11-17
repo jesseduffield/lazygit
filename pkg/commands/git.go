@@ -419,7 +419,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, ask fu
 		setUpstreamArg = "--set-upstream " + upstream
 	}
 
-	cmd := fmt.Sprintf("git push %s %s", forceFlag, setUpstreamArg)
+	cmd := fmt.Sprintf("git push --follow-tags %s %s", forceFlag, setUpstreamArg)
 	return c.OSCommand.DetectUnamePass(cmd, ask)
 }
 
@@ -1098,4 +1098,20 @@ func (c *GitCommand) RenameRemote(oldRemoteName string, newRemoteName string) er
 
 func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git remote set-url %s %s", remoteName, updatedUrl))
+}
+
+func (c *GitCommand) CreateLightweightTag(tagName string, commitSha string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git tag %s %s", tagName, commitSha))
+}
+
+func (c *GitCommand) ShowTag(tagName string) (string, error) {
+	return c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git tag -n99 %s", tagName))
+}
+
+func (c *GitCommand) DeleteTag(tagName string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git tag -d %s", tagName))
+}
+
+func (c *GitCommand) PushTag(remoteName string, tagName string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git push %s %s", remoteName, tagName))
 }

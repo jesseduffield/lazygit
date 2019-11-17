@@ -584,3 +584,30 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.createMenu(fmt.Sprintf("%s %s", gui.Tr.SLocalize("resetTo"), commit.Sha), options, len(options), handleMenuPress)
 }
+
+func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
+	// TODO: bring up menu asking if you want to make a lightweight or annotated tag
+	// if annotated, switch to a subprocess to create the message
+
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return nil
+	}
+
+	return gui.handleCreateLightweightTag(commit.Sha)
+}
+
+func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
+	return gui.createPromptPanel(gui.g, gui.getCommitsView(), gui.Tr.SLocalize("TagNameTitle"), "", func(g *gocui.Gui, v *gocui.View) error {
+		if err := gui.GitCommand.CreateLightweightTag(v.Buffer(), commitSha); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+		if err := gui.refreshCommits(g); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+		if err := gui.refreshTags(); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+		return gui.handleCommitSelect(g, v)
+	})
+}
