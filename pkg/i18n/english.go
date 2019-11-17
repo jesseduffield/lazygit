@@ -864,6 +864,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "removeRemotePrompt",
 			Other: "Are you sure you want to remove remote",
+		}, &i18n.Message{
+			ID:    "DeleteRemoteBranch",
+			Other: "Delete Remote Branch",
+		}, &i18n.Message{
+			ID:    "DeleteRemoteBranchMessage",
+			Other: "Are you sure you want to delete remote branch",
 		},
 	)
 }

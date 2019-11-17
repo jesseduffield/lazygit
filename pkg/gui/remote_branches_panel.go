@@ -97,3 +97,20 @@ func (gui *Gui) handleMergeRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	selectedBranchName := gui.getSelectedRemoteBranch().Name
 	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
 }
+
+func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+	remoteBranch := gui.getSelectedRemoteBranch()
+	if remoteBranch == nil {
+		return nil
+	}
+	message := fmt.Sprintf("%s '%s/%s'?", gui.Tr.SLocalize("DeleteRemoteBranchMessage"), remoteBranch.RemoteName, remoteBranch.Name)
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("DeleteRemoteBranch"), message, func(*gocui.Gui, *gocui.View) error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("DeletingStatus"), func() error {
+			if err := gui.GitCommand.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name); err != nil {
+				return err
+			}
+
+			return gui.refreshRemotes()
+		})
+	}, nil)
+}
