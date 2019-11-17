@@ -67,3 +67,17 @@ func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleRemoteBranchesEscape(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchBranchesPanelContext("remotes")
 }
+
+func (gui *Gui) renderRemoteBranchesWithSelection() error {
+	branchesView := gui.getBranchesView()
+
+	gui.refreshSelectedLine(&gui.State.Panels.RemoteBranches.SelectedLine, len(gui.State.RemoteBranches))
+	if err := gui.renderListPanel(branchesView, gui.State.RemoteBranches); err != nil {
+		return err
+	}
+	if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
+		return err
+	}
+
+	return nil
+}

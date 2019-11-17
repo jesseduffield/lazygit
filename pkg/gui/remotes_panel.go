@@ -60,10 +60,23 @@ func (gui *Gui) refreshRemotes() error {
 
 	gui.State.Remotes = remotes
 
-	gui.g.Update(func(g *gocui.Gui) error {
-		gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
-		return nil
-	})
+	if gui.getBranchesView().Context == "remotes" {
+		return gui.renderRemotesWithSelection()
+	}
+
+	return nil
+}
+
+func (gui *Gui) renderRemotesWithSelection() error {
+	branchesView := gui.getBranchesView()
+
+	gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
+	if err := gui.renderListPanel(branchesView, gui.State.Remotes); err != nil {
+		return err
+	}
+	if err := gui.handleRemoteSelect(gui.g, branchesView); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -81,4 +94,33 @@ func (gui *Gui) handleRemoteEnter(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Panels.RemoteBranches.SelectedLine = newSelectedLine
 
 	return gui.switchBranchesPanelContext("remote-branches")
+}
+
+func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
+	branchesView := gui.getBranchesView()
+	return gui.createPromptPanel(g, branchesView, gui.Tr.SLocalize("newRemoteName"), "", func(g *gocui.Gui, v *gocui.View) error {
+		remoteName := gui.trimmedContent(v)
+		return gui.createPromptPanel(g, branchesView, gui.Tr.SLocalize("newRemoteUrl"), "", func(g *gocui.Gui, v *gocui.View) error {
+			remoteUrl := gui.trimmedContent(v)
+			if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
+				return err
+			}
+			return gui.refreshRemotes()
+		})
+	})
+}
+
+func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
+	remote := gui.getSelectedRemote()
+	if remote == nil {
+		return nil
+	}
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("removeRemote"), gui.Tr.SLocalize("removeRemotePrompt")+" '"+remote.Name+"'?", func(*gocui.Gui, *gocui.View) error {
+		if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
+			return err
+		}
+
+		return gui.refreshRemotes()
+
+	}, nil)
 }

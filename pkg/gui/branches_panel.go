@@ -95,13 +95,30 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 		}
 		gui.State.Branches = builder.Build()
 
-		gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-		if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
-			return err
+		// TODO: if we're in the remotes view and we've just deleted a remote we need to refresh accordingly
+		if gui.getBranchesView().Context == "local-branches" {
+			gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
+			if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
+				return err
+			}
 		}
 
 		return gui.refreshStatus(g)
 	})
+	return nil
+}
+
+func (gui *Gui) renderLocalBranchesWithSelection() error {
+	branchesView := gui.getBranchesView()
+
+	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
+	if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
+		return err
+	}
+	if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -350,26 +367,11 @@ func (gui *Gui) switchBranchesPanelContext(context string) error {
 
 	switch context {
 	case "local-branches":
-		if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
-			return err
-		}
-		if err := gui.handleBranchSelect(gui.g, gui.getBranchesView()); err != nil {
-			return err
-		}
+		return gui.renderLocalBranchesWithSelection()
 	case "remotes":
-		if err := gui.renderListPanel(branchesView, gui.State.Remotes); err != nil {
-			return err
-		}
-		if err := gui.handleRemoteSelect(gui.g, gui.getBranchesView()); err != nil {
-			return err
-		}
+		return gui.renderRemotesWithSelection()
 	case "remote-branches":
-		if err := gui.renderListPanel(branchesView, gui.State.RemoteBranches); err != nil {
-			return err
-		}
-		if err := gui.handleRemoteBranchSelect(gui.g, gui.getBranchesView()); err != nil {
-			return err
-		}
+		return gui.renderRemoteBranchesWithSelection()
 	}
 
 	return nil

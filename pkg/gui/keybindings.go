@@ -1042,6 +1042,22 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.handleRemoteEnter,
 		},
 		{
+			ViewName:    "branches",
+			Contexts:    []string{"remotes"},
+			Key:         'n',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleAddRemote,
+			Description: gui.Tr.SLocalize("addNewRemote"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{"remotes"},
+			Key:         'd',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleRemoveRemote,
+			Description: gui.Tr.SLocalize("removeRemote"),
+		},
+		{
 			ViewName: "commits",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,

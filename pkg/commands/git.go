@@ -1061,3 +1061,11 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*Commit, commitIn
 func (c *GitCommand) SetUpstreamBranch(upstream string) error {
 	return c.OSCommand.RunCommand(fmt.Sprintf("git branch -u %s", upstream))
 }
+
+func (c *GitCommand) AddRemote(name string, url string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git remote add %s %s", name, url))
+}
+
+func (c *GitCommand) RemoveRemote(name string) error {
+	return c.OSCommand.RunCommand(fmt.Sprintf("git remote remove %s", name))
+}
