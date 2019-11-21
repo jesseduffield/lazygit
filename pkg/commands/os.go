@@ -59,8 +59,11 @@ func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
 }
 
 // RunCommandWithOutput wrapper around commands returning their output and error
-// NOTE: because this takes a format string followed by format args, you'll need
-// to escape any percentage signs via '%%'.
+// NOTE: If you don't pass any formatArgs we'll just use the command directly,
+// however there's a bizarre compiler error/warning when you pass in a formatString
+// with a percent sign because it thinks it's supposed to be a formatString when
+// in that case it's not. To get around that error you'll need to define the string
+// in a variable and pass the variable into RunCommandWithOutput.
 func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error) {
 	command := formatString
 	if formatArgs != nil {

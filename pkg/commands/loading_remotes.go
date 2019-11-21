@@ -9,7 +9,8 @@ import (
 
 func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 	// get remote branches
-	remoteBranchesStr, err := c.OSCommand.RunCommandWithOutput("git for-each-ref --format='%%(refname:strip=2)' refs/remotes")
+	unescaped := "git for-each-ref --format='%(refname:strip=2)' refs/remotes"
+	remoteBranchesStr, err := c.OSCommand.RunCommandWithOutput(unescaped)
 	if err != nil {
 		return nil, err
 	}
