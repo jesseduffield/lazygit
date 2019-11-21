@@ -904,8 +904,8 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "PushTagTitle",
 			Other: "remote to push tag '{{.tagName}}' to:",
 		}, &i18n.Message{
-			ID:    "pushTags",
-			Other: "push tags",
+			ID:    "pushTag",
+			Other: "push tag",
 		}, &i18n.Message{
 			ID:    "createTag",
 			Other: "create tag",

@@ -424,7 +424,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         'P',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handlePushTag,
-			Description: gui.Tr.SLocalize("pushTags"),
+			Description: gui.Tr.SLocalize("pushTag"),
 		},
 		{
 			ViewName:    "branches",
