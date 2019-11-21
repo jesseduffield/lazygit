@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -58,7 +60,11 @@ func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
 }
 
 // RunCommandWithOutput wrapper around commands returning their output and error
-func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
+func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error) {
+	command := formatString
+	if len(formatArgs) > 0 {
+		command = fmt.Sprintf(formatString, formatArgs...)
+	}
 	c.Log.WithField("command", command).Info("RunCommand")
 	cmd := c.ExecutableFromString(command)
 	return sanitisedCommandOutput(cmd.CombinedOutput())
@@ -114,8 +120,8 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 }
 
 // RunCommand runs a command and just returns the error
-func (c *OSCommand) RunCommand(command string) error {
-	_, err := c.RunCommandWithOutput(command)
+func (c *OSCommand) RunCommand(formatString string, formatArgs ...interface{}) error {
+	_, err := c.RunCommandWithOutput(formatString, formatArgs...)
 	return err
 }
 
