@@ -12,7 +12,7 @@ const semverRegex = `v?((\d+\.?)+)([^\d]?.*)`
 
 func (c *GitCommand) GetTags() ([]*Tag, error) {
 	// get remote branches
-	remoteBranchesStr, err := c.OSCommand.RunCommandWithOutput("git tag --list")
+	remoteBranchesStr, err := c.OSCommand.RunCommandWithOutput(`git tag --list`)
 	if err != nil {
 		return nil, err
 	}
