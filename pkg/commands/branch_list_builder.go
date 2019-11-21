@@ -47,7 +47,9 @@ func (b *BranchListBuilder) obtainCurrentBranch() *Branch {
 
 func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
 	branches := make([]*Branch, 0)
-	rawString, err := b.GitCommand.OSCommand.RunCommandWithOutput("git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD")
+	// if we directly put this string in RunCommandWithOutput the compiler complains because it thinks it's a format string
+	unescaped := "git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD"
+	rawString, err := b.GitCommand.OSCommand.RunCommandWithOutput(unescaped)
 	if err != nil {
 		return branches
 	}

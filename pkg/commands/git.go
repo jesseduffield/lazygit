@@ -157,7 +157,9 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 
 // GetStashEntries stash entries
 func (c *GitCommand) GetStashEntries() []*StashEntry {
-	rawString, _ := c.OSCommand.RunCommandWithOutput("git stash list --pretty='%gs'")
+	// if we directly put this string in RunCommandWithOutput the compiler complains because it thinks it's a format string
+	unescaped := "git stash list --pretty='%gs'"
+	rawString, _ := c.OSCommand.RunCommandWithOutput(unescaped)
 	stashEntries := []*StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
