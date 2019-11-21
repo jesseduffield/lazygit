@@ -58,14 +58,14 @@ func (f fileInfoMock) Sys() interface{} {
 func TestVerifyInGitRepo(t *testing.T) {
 	type scenario struct {
 		testName string
-		runCmd   func(string) error
+		runCmd   func(string, ...interface{}) error
 		test     func(error)
 	}
 
 	scenarios := []scenario{
 		{
 			"Valid git repository",
-			func(string) error {
+			func(string, ...interface{}) error {
 				return nil
 			},
 			func(err error) {
@@ -74,7 +74,7 @@ func TestVerifyInGitRepo(t *testing.T) {
 		},
 		{
 			"Not a valid git repository",
-			func(string) error {
+			func(string, ...interface{}) error {
 				return fmt.Errorf("fatal: Not a git repository (or any of the parent directories): .git")
 			},
 			func(err error) {
@@ -990,7 +990,7 @@ func TestGitCommandPush(t *testing.T) {
 			"Push with force disabled",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push"}, args)
+				assert.EqualValues(t, []string{"push", "--follow-tags"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1003,7 +1003,7 @@ func TestGitCommandPush(t *testing.T) {
 			"Push with force enabled",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "--force-with-lease"}, args)
+				assert.EqualValues(t, []string{"push", "--follow-tags", "--force-with-lease"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1016,7 +1016,7 @@ func TestGitCommandPush(t *testing.T) {
 			"Push with an error occurring",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push"}, args)
+				assert.EqualValues(t, []string{"push", "--follow-tags"}, args)
 				return exec.Command("test")
 			},
 			false,
@@ -1639,7 +1639,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 			},
 		},
 		{
-			"falls back to git rev-parse if symbolic-ref fails",
+			"falls back to git `git branch --contains` if symbolic-ref fails",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 
@@ -1647,9 +1647,9 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 					return exec.Command("test")
-				case "rev-parse":
-					assert.EqualValues(t, []string{"rev-parse", "--short", "HEAD"}, args)
-					return exec.Command("echo", "master")
+				case "branch":
+					assert.EqualValues(t, []string{"branch", "--contains"}, args)
+					return exec.Command("echo", "* master")
 				}
 
 				return nil

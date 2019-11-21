@@ -59,9 +59,11 @@ func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
 }
 
 // RunCommandWithOutput wrapper around commands returning their output and error
+// NOTE: because this takes a format string followed by format args, you'll need
+// to escape any percentage signs via '%%'.
 func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error) {
 	command := formatString
-	if len(formatArgs) > 0 {
+	if formatArgs != nil {
 		command = fmt.Sprintf(formatString, formatArgs...)
 	}
 	c.Log.WithField("command", command).Info("RunCommand")
