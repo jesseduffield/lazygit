@@ -289,6 +289,10 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 					// here's where we are returning the error
 					return exec.Command("test")
+				case "branch":
+					assert.EqualValues(t, []string{"branch", "--contains"}, args)
+					// here too
+					return exec.Command("test")
 				case "rev-parse":
 					assert.EqualValues(t, []string{"rev-parse", "--short", "HEAD"}, args)
 					// here too

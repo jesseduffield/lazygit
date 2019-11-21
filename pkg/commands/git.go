@@ -157,7 +157,7 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 
 // GetStashEntries stash entries
 func (c *GitCommand) GetStashEntries() []*StashEntry {
-	rawString, _ := c.OSCommand.RunCommandWithOutput(`git stash list --pretty='%gs'`)
+	rawString, _ := c.OSCommand.RunCommandWithOutput("git stash list --pretty='%gs'")
 	stashEntries := []*StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
@@ -333,12 +333,12 @@ func (c *GitCommand) CurrentBranchName() (string, error) {
 	branchName, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
 	if err != nil || branchName == "HEAD\n" {
 		output, err := c.OSCommand.RunCommandWithOutput("git branch --contains")
-		re := regexp.MustCompile(CurrentBranchNameRegex)
-		match := re.FindStringSubmatch(output)
-		branchName = match[1]
 		if err != nil {
 			return "", err
 		}
+		re := regexp.MustCompile(CurrentBranchNameRegex)
+		match := re.FindStringSubmatch(output)
+		branchName = match[1]
 	}
 	return utils.TrimTrailingNewline(branchName), nil
 }
