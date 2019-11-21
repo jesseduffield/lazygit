@@ -116,7 +116,7 @@ func (gui *Gui) refreshFiles() error {
 		}
 		fmt.Fprint(filesView, list)
 
-		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && gui.State.Context == "merging") {
+		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == "merging") {
 			newSelectedFile, _ := gui.getSelectedFile(gui.g)
 			alreadySelected := newSelectedFile.Name == selectedFile.Name
 			return gui.selectFile(alreadySelected)
