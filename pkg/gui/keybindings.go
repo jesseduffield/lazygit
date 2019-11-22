@@ -221,6 +221,16 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleFilesGoToFolderParent,
 		}, {
+			ViewName: "extensiveFiles",
+			Key:      gocui.KeyArrowDown,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleFilesNextFileOrFolder,
+		}, {
+			ViewName: "extensiveFiles",
+			Key:      gocui.KeyArrowUp,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleFilesPrevFileOrFolder,
+		}, {
 			ViewName:    "extensiveFiles",
 			Key:         'c',
 			Modifier:    gocui.ModNone,

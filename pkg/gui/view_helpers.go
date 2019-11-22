@@ -393,11 +393,13 @@ func (gui *Gui) changeSelectedLine(line *int, total int, change int) {
 	}
 	if *line+change < 0 {
 		*line = 0
-	} else if *line+change >= total {
-		*line = total - 1
-	} else {
-		*line += change
+		return
 	}
+	if *line+change >= total {
+		*line = total - 1
+		return
+	}
+	*line += change
 }
 
 // refreshSelected refreshes the cursor position
@@ -468,10 +470,12 @@ func (gui *Gui) refreshSelected(selectedPrt *[]int, tree *commands.Dir, action r
 				selected[len(selected)-1] = newPos
 				break
 			}
+
 			parrent = parrent.Parrent
 			if len(selected) <= 1 || selected[len(selected)-2]+1 >= len(parrent.Files)+len(parrent.SubDirs) {
 				break
 			}
+
 			selected = selected[:len(selected)-1]
 			firstRound = false
 		}
