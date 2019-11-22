@@ -47,12 +47,15 @@ func (gui *Gui) handleFilesFocus(g *gocui.Gui, v *gocui.View) error {
 
 	if prevSelectedLine == newSelectedLine && gui.currentViewName() == v.Name() {
 		return gui.handleFilePress(gui.g, v)
-	} else {
-		return gui.handleFileSelect(gui.g, v, true)
 	}
+	return gui.handleFileSelect(gui.g, v, true)
 }
 
 func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bool) error {
+	if gui.isExtensiveView(v) {
+		return gui.handleExtensiveFileSelect(g, v, alreadySelected)
+	}
+
 	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
 		return err
 	}
@@ -84,49 +87,54 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View, alreadySelected bo
 }
 
 func (gui *Gui) refreshFiles() error {
-	selectedFile, _ := gui.getSelectedFile(gui.g)
+	isExtensiveFiles := gui.isExtensiveView(gui.g.CurrentView())
 
-	extendedFilesView := gui.GetExtendedFilesView()
-	filesView := gui.getFilesView()
-	if filesView == nil {
+	selectedFile, _ := gui.getSelectedFile(gui.g)
+	var selectedDir *commands.Dir
+	if isExtensiveFiles {
+		selectedFile, selectedDir, _ = gui.getSelectedDirOrFile(gui.g)
+	}
+
+	view := gui.getFilesView()
+	if isExtensiveFiles {
+		view = gui.GetExtendedFilesView()
+	}
+	if view == nil {
 		// if the filesView hasn't been instantiated yet we just return
 		return nil
 	}
+
 	if err := gui.refreshStateFiles(); err != nil {
 		return err
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
 
-		isFocused := gui.g.CurrentView().Name() == "files"
-		list, err := utils.RenderList(gui.State.Files, isFocused)
-		if err != nil {
-			return err
-		}
+		isFocused := gui.g.CurrentView() == view
 
-		filesView.Clear()
-		fmt.Fprint(filesView, list)
-
-		newSelectedFile, newSelectedDir, _ := gui.getSelectedDirOrFile(gui.g)
-		extendedList := gui.State.ExtensiveFiles.Render(newSelectedFile, newSelectedDir)
-
-		extendedFilesView.Clear()
-		fmt.Fprint(extendedFilesView, extendedList)
-
-		switch g.CurrentView() {
-		case filesView:
-			newSelectedFile, _ := gui.getSelectedFile(gui.g)
-			alreadySelected := newSelectedFile.Name == selectedFile.Name
-			return gui.handleFileSelect(g, filesView, alreadySelected)
-		case extendedFilesView:
-			if newSelectedFile == nil {
-				return nil
+		list := ""
+		var newSelectedFile *commands.File
+		var newSelectedDir *commands.Dir
+		if isExtensiveFiles {
+			newSelectedFile, newSelectedDir, _ = gui.getSelectedDirOrFile(gui.g)
+			list = gui.State.ExtensiveFiles.Render(newSelectedFile, newSelectedDir)
+		} else {
+			var err error
+			newSelectedFile, _ = gui.getSelectedFile(gui.g)
+			list, err = utils.RenderList(gui.State.Files, isFocused)
+			if err != nil {
+				return err
 			}
-			alreadySelected := newSelectedFile.Name == selectedFile.Name
-			return gui.handleFileSelect(g, filesView, alreadySelected)
 		}
 
-		return nil
+		view.Clear()
+		fmt.Fprint(view, list)
+
+		if newSelectedDir == nil && newSelectedFile == nil {
+			return nil
+		}
+
+		return gui.handleFileSelect(g, view, (newSelectedFile != nil && selectedFile == newSelectedFile) || (newSelectedDir != nil && selectedDir == newSelectedDir))
 	})
 
 	return nil
@@ -209,35 +217,68 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshStagingPanel()
 }
 
-func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
-	isextensiveView := v.Name() == "extensiveFiles"
+func (gui *Gui) isExtensiveView(v *gocui.View) bool {
+	return v != nil && v.Name() == "extensiveFiles"
+}
 
-	var file *commands.File
-	var err error
-	if isextensiveView {
-		file, _, err = gui.getSelectedDirOrFile(g)
-		if file == nil || err != nil {
-			// Returns nil if file is not selected
-			return err
-		}
-	} else {
-		file, err = gui.getSelectedFile(g)
+func (gui *Gui) selectedFiles(g *gocui.Gui, v *gocui.View) (files []*commands.File, err error, hasErr bool) {
+	isextensiveView := gui.isExtensiveView(v)
+
+	if !isextensiveView {
+		file, err := gui.getSelectedFile(g)
 		if err != nil {
-			if err == gui.Errors.ErrNoFiles {
-				return nil
+			return nil, err, true
+		}
+		return []*commands.File{file}, nil, false
+	}
+
+	file, dir, err := gui.getSelectedDirOrFile(g)
+	if err != nil {
+		return nil, err, true
+	}
+	if file == nil && dir == nil {
+		return nil, nil, true
+	}
+
+	if file != nil {
+		return []*commands.File{file}, nil, false
+	}
+	return dir.AllFiles(), nil, false
+}
+
+func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
+	files, err, hasErr := gui.selectedFiles(g, v)
+	if hasErr || len(files) == 0 {
+		return err
+	}
+
+	if len(files) > 1 {
+		allFilesStaged := gui.allFilesStaged(files)
+		for _, file := range files {
+			if allFilesStaged {
+				err = gui.GitCommand.UnStageFile(file.Name, file.Tracked)
+			} else {
+				err = gui.GitCommand.StageFile(file.Name)
 			}
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		file := files[0]
+
+		if file.HasInlineMergeConflicts {
+			return gui.handleSwitchToMerge(g, v)
+		}
+
+		if file.HasUnstagedChanges {
+			err = gui.GitCommand.StageFile(file.Name)
+		} else {
+			err = gui.GitCommand.UnStageFile(file.Name, file.Tracked)
+		}
+		if err != nil {
 			return err
 		}
-	}
-
-	if file.HasInlineMergeConflicts {
-		return gui.handleSwitchToMerge(g, v)
-	}
-
-	if file.HasUnstagedChanges {
-		gui.GitCommand.StageFile(file.Name)
-	} else {
-		gui.GitCommand.UnStageFile(file.Name, file.Tracked)
 	}
 
 	if err := gui.refreshFiles(); err != nil {
@@ -247,8 +288,8 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	return gui.handleFileSelect(g, v, true)
 }
 
-func (gui *Gui) allFilesStaged() bool {
-	for _, file := range gui.State.Files {
+func (gui *Gui) allFilesStaged(files []*commands.File) bool {
+	for _, file := range files {
 		if file.HasUnstagedChanges {
 			return false
 		}
@@ -258,7 +299,7 @@ func (gui *Gui) allFilesStaged() bool {
 
 func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 	var err error
-	if gui.allFilesStaged() {
+	if gui.allFilesStaged(gui.State.Files) {
 		err = gui.GitCommand.UnstageAll()
 	} else {
 		err = gui.GitCommand.StageAll()
@@ -747,7 +788,11 @@ func (gui *Gui) handleCloseExtensiveView(g *gocui.Gui, filesView *gocui.View) er
 		}
 	}
 
-	return gui.switchFocus(g, g.CurrentView(), v)
+	err = gui.switchFocus(g, g.CurrentView(), v)
+	if err != nil {
+		return err
+	}
+	return gui.refreshFiles()
 }
 
 func (gui *Gui) handleOpenExtensiveView(g *gocui.Gui, filesView *gocui.View) error {
@@ -755,7 +800,11 @@ func (gui *Gui) handleOpenExtensiveView(g *gocui.Gui, filesView *gocui.View) err
 	if err != nil {
 		return err
 	}
-	return gui.switchFocus(g, g.CurrentView(), v)
+	err = gui.switchFocus(g, g.CurrentView(), v)
+	if err != nil {
+		return err
+	}
+	return gui.refreshFiles()
 }
 
 // handleFilesGoInsideFolder handles the arrow right

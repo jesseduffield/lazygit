@@ -213,6 +213,17 @@ func (d *Dir) Render(focusedFile *File, focusedDir *Dir) string {
 	return strings.Join(d.RenderAsList(focusedFile, focusedDir), "\n")
 }
 
+// AllFiles returns all files in d
+func (d *Dir) AllFiles() []*File {
+	response := d.Files
+
+	for _, subDir := range d.SubDirs {
+		response = append(response, subDir.AllFiles()...)
+	}
+
+	return response
+}
+
 // RenderAsList renders dir as a list
 func (d *Dir) RenderAsList(focusedFile *File, focusedDir *Dir) []string {
 	toReturn := []string{}
