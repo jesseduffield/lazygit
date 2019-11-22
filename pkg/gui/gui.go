@@ -161,33 +161,32 @@ type panelStates struct {
 	Commits        *commitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
-	Staging        *stagingPanelState
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
 	Tags           *tagsPanelState
 	Status         *statusPanelState
+	LineByLine     *lineByLinePanelState
 }
 
 type guiState struct {
-	Files               []*commands.File
-	ExtensiveFiles      *commands.Dir
-	Branches            []*commands.Branch
-	Commits             []*commands.Commit
-	StashEntries        []*commands.StashEntry
-	CommitFiles         []*commands.CommitFile
-	DiffEntries         []*commands.Commit
+	Files                []*commands.File
+	ExtensiveFiles       *commands.Dir
+	Branches             []*commands.Branch
+	Commits              []*commands.Commit
+	StashEntries         []*commands.StashEntry
+	CommitFiles          []*commands.CommitFile
+	DiffEntries          []*commands.Commit
 	Remotes              []*commands.Remote
-	CherryPickedCommits []*commands.Commit
+	CherryPickedCommits  []*commands.Commit
 	RemoteBranches       []*commands.RemoteBranch
 	Tags                 []*commands.Tag
-	CherryPickedCommits  []*commands.Commit
-	MenuItemCount       int // can't store the actual list because it's of interface{} type
-	PreviousView        string
-	Platform            commands.Platform
-	Updating            bool
-	Panels              *panelStates
-	WorkingTreeState    string // one of "merging", "rebasing", "normal"
-	Contexts            map[string]string
+	MenuItemCount        int // can't store the actual list because it's of interface{} type
+	PreviousView         string
+	Platform             commands.Platform
+	Updating             bool
+	Panels               *panelStates
+	WorkingTreeState     string // one of "merging", "rebasing", "normal"
+	Contexts             map[string]string
 	MainContext          string // used to keep the main and secondary views' contexts in sync
 	SplitMainPanel       bool
 	RetainOriginalDir    bool
@@ -484,7 +483,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("FilesTitle")
 		v.FgColor = textColor
 	}
-	
+
 	hiddenViewOffset := 0
 	if !gui.State.SplitMainPanel {
 		hiddenViewOffset = 9999
@@ -649,10 +648,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
 		listViews = append(listViews, listViewState{
-			view: menuView, 
-			context: "", 
-			selectedLine: gui.State.Panels.Menu.SelectedLine, 
-			lineCount: gui.State.MenuItemCount,
+			view:         menuView,
+			context:      "",
+			selectedLine: gui.State.Panels.Menu.SelectedLine,
+			lineCount:    gui.State.MenuItemCount,
 		})
 	}
 	for _, listView := range listViews {

@@ -300,12 +300,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("toggleStagedAll"),
 		}, {
 			ViewName:    "extensiveFiles",
-			Key:         't',
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleAddPatch,
-			Description: gui.Tr.SLocalize("addPatch"),
-		}, {
-			ViewName:    "extensiveFiles",
 			Key:         'D',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateResetMenu,

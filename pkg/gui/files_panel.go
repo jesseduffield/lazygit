@@ -33,6 +33,8 @@ func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) selectFile(alreadySelected bool) error {
+	g := gui.g
+	v := g.CurrentView()
 	if gui.isExtensiveView(v) {
 		return gui.handleExtensiveFileSelect(g, v, alreadySelected)
 	}
@@ -139,21 +141,22 @@ func (gui *Gui) refreshFiles() error {
 				return err
 			}
 		}
-		
+
 		view.Clear()
 		fmt.Fprint(view, list)
-		
+
 		if newSelectedDir == nil && newSelectedFile == nil {
 			return nil
 		}
 
-		if newSelectedFile != nil && (g.CurrentView() == view || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == "merging")) {
+		currentView := g.CurrentView()
+		if newSelectedFile != nil && (currentView == view || (currentView == gui.getMainView() && currentView.Context == "merging")) {
 			newSelectedFile, _ := gui.getSelectedFile(gui.g)
 			alreadySelected := newSelectedFile.Name == selectedFile.Name
 			return gui.selectFile(alreadySelected)
 		}
 
-		return gui.handleFileSelect(g, view, (newSelectedFile != nil && selectedFile == newSelectedFile) || (newSelectedDir != nil && selectedDir == newSelectedDir))
+		return gui.selectFile((newSelectedFile != nil && selectedFile == newSelectedFile) || (newSelectedDir != nil && selectedDir == newSelectedDir))
 	})
 
 	return nil
@@ -436,11 +439,10 @@ func (gui *Gui) refreshStateFiles() error {
 	gui.State.ExtensiveFiles = dir
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
 
-	
 	if err := gui.addFilesToFileWatcher(files); err != nil {
 		return err
 	}
-	
+
 	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 0)
 	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
 	return gui.updateWorkTreeState()
@@ -778,7 +780,7 @@ func (gui *Gui) handleExtensiveFilesFocus(g *gocui.Gui, v *gocui.View) error {
 	newSelectedLine := cy - oy
 
 	if newSelectedLine > len(gui.State.Files)-1 || len(utils.Decolorise(gui.State.Files[newSelectedLine].DisplayString)) < cx {
-		return gui.handleFileSelect(gui.g, v, false)
+		return gui.selectFile(false)
 	}
 
 	gui.State.Panels.Files.SelectedLine = newSelectedLine
@@ -898,10 +900,27 @@ func (gui *Gui) handleExtensiveFileSelect(g *gocui.Gui, v *gocui.View, alreadySe
 			return gui.refreshMergePanel()
 		}
 
-		content := gui.GitCommand.Diff(file, false)
+		content := gui.GitCommand.Diff(file, false, false)
+		contentCached := gui.GitCommand.Diff(file, false, true)
+		leftContent := content
+		if file.HasStagedChanges && file.HasUnstagedChanges {
+			gui.State.SplitMainPanel = true
+			gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
+			gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
+		} else {
+			gui.State.SplitMainPanel = false
+			if file.HasUnstagedChanges {
+				leftContent = content
+				gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
+			} else {
+				leftContent = contentCached
+				gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
+			}
+		}
+
 		if alreadySelected {
 			g.Update(func(*gocui.Gui) error {
-				return gui.setViewContent(gui.g, gui.getMainView(), content)
+				return gui.setViewContent(gui.g, gui.getMainView(), leftContent)
 			})
 			return nil
 		}
