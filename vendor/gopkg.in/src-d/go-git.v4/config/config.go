@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 
+	"gopkg.in/src-d/go-git.v4/internal/url"
 	format "gopkg.in/src-d/go-git.v4/plumbing/format/config"
 )
 
@@ -40,6 +41,9 @@ type Config struct {
 		IsBare bool
 		// Worktree is the path to the root of the working tree.
 		Worktree string
+		// CommentChar is the character indicating the start of a
+		// comment for commands like commit and tag
+		CommentChar string
 	}
 
 	Pack struct {
@@ -113,8 +117,10 @@ const (
 	urlKey           = "url"
 	bareKey          = "bare"
 	worktreeKey      = "worktree"
+	commentCharKey   = "commentChar"
 	windowKey        = "window"
 	mergeKey         = "merge"
+	rebaseKey        = "rebase"
 
 	// DefaultPackWindow holds the number of previous objects used to
 	// generate deltas. The value 10 is the same used by git command.
@@ -151,6 +157,7 @@ func (c *Config) unmarshalCore() {
 	}
 
 	c.Core.Worktree = s.Options.Get(worktreeKey)
+	c.Core.CommentChar = s.Options.Get(commentCharKey)
 }
 
 func (c *Config) unmarshalPack() error {
@@ -393,4 +400,8 @@ func (c *RemoteConfig) marshal() *format.Subsection {
 	}
 
 	return c.raw
+}
+
+func (c *RemoteConfig) IsFirstURLLocal() bool {
+	return url.IsLocalEndpoint(c.URLs[0])
 }

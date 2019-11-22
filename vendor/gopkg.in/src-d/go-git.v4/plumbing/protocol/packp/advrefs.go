@@ -107,7 +107,7 @@ func (a *AdvRefs) resolveHead(s storer.ReferenceStorer) error {
 		return nil
 	}
 
-	ref, err := s.Reference(plumbing.ReferenceName(plumbing.Master))
+	ref, err := s.Reference(plumbing.Master)
 
 	// check first if HEAD is pointing to master
 	if err == nil {

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/git"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -26,9 +27,14 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	gui.State.SplitMainPanel = false
+
 	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
 		return err
 	}
+
+	gui.getMainView().Title = "Log"
+
 	// This really shouldn't happen: there should always be a master branch
 	if len(gui.State.Branches) == 0 {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
@@ -41,11 +47,15 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		_ = gui.RenderSelectedBranchUpstreamDifferences()
 	}()
 	go func() {
+		upstream, _ := gui.GitCommand.GetUpstreamForBranch(branch.Name)
+		if strings.Contains(upstream, "no upstream configured for branch") || strings.Contains(upstream, "unknown revision or path not in the working tree") {
+			upstream = gui.Tr.SLocalize("notTrackingRemote")
+		}
 		graph, err := gui.GitCommand.GetBranchGraph(branch.Name)
 		if err != nil && strings.HasPrefix(graph, "fatal: ambiguous argument") {
 			graph = gui.Tr.SLocalize("NoTrackingThisBranch")
 		}
-		_ = gui.renderString(g, "main", graph)
+		_ = gui.renderString(g, "main", fmt.Sprintf("%s → %s\n\n%s", utils.ColoredString(branch.Name, color.FgGreen), utils.ColoredString(upstream, color.FgRed), graph))
 	}()
 	return nil
 }
@@ -66,16 +76,27 @@ func (gui *Gui) RenderSelectedBranchUpstreamDifferences() error {
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches(g *gocui.Gui) error {
+	if err := gui.refreshRemotes(); err != nil {
+		return err
+	}
+
+	if err := gui.refreshTags(); err != nil {
+		return err
+	}
+
 	g.Update(func(g *gocui.Gui) error {
-		builder, err := git.NewBranchListBuilder(gui.Log, gui.GitCommand)
+		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand)
 		if err != nil {
 			return err
 		}
 		gui.State.Branches = builder.Build()
 
-		gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-		if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
-			return err
+		// TODO: if we're in the remotes view and we've just deleted a remote we need to refresh accordingly
+		if gui.getBranchesView().Context == "local-branches" {
+			gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
+			if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
+				return err
+			}
 		}
 
 		return gui.refreshStatus(g)
@@ -83,32 +104,18 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) handleBranchesNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupOrAdvancedPanelFocused() {
-		return nil
-	}
+func (gui *Gui) renderLocalBranchesWithSelection() error {
+	branchesView := gui.getBranchesView()
 
-	panelState := gui.State.Panels.Branches
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), false)
-
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
+	if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
 		return err
 	}
-	return gui.handleBranchSelect(gui.g, v)
-}
-
-func (gui *Gui) handleBranchesPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupOrAdvancedPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Branches
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Branches), true)
-
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+	if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
 		return err
 	}
-	return gui.handleBranchSelect(gui.g, v)
+
+	return nil
 }
 
 // specific functions
@@ -150,7 +157,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch()
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
-	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.Checkout(branch.Name, true); err != nil {
 			gui.createErrorPanel(g, err.Error())
 		}
@@ -164,7 +171,7 @@ func (gui *Gui) handleCheckoutBranch(branchName string) error {
 
 		if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 			// offer to autostash changes
-			return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+			return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + branchName); err != nil {
 					return gui.createErrorPanel(g, err.Error())
 				}
@@ -195,21 +202,29 @@ func (gui *Gui) handleCheckoutBranch(branchName string) error {
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", func(g *gocui.Gui, v *gocui.View) error {
+	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleCheckoutBranch(gui.trimmedContent(v))
 	})
 	return nil
 }
 
+func (gui *Gui) getCheckedOutBranch() *commands.Branch {
+	if len(gui.State.Branches) == 0 {
+		return nil
+	}
+
+	return gui.State.Branches[0]
+}
+
 func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
-	branch := gui.State.Branches[0]
+	branch := gui.getCheckedOutBranch()
 	message := gui.Tr.TemplateLocalize(
 		"NewBranchNameBranchOff",
 		Teml{
 			"branchName": branch.Name,
 		},
 	)
-	gui.createPromptPanel(g, v, message, func(g *gocui.Gui, v *gocui.View) error {
+	gui.createPromptPanel(g, v, message, "", func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
@@ -232,7 +247,7 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 	if selectedBranch == nil {
 		return nil
 	}
-	checkedOutBranch := gui.State.Branches[0]
+	checkedOutBranch := gui.getCheckedOutBranch()
 	if checkedOutBranch.Name == selectedBranch.Name {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
 	}
@@ -253,7 +268,7 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 			"selectedBranchName": selectedBranch.Name,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, title, message, func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
 			errMessage := err.Error()
 			if !force && strings.Contains(errMessage, "is not fully merged") {
@@ -265,44 +280,54 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 	}, nil)
 }
 
-func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
-	checkedOutBranch := gui.State.Branches[0].Name
-	selectedBranch := gui.getSelectedBranch().Name
-	if checkedOutBranch == selectedBranch {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
+func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
+	if gui.GitCommand.IsHeadDetached() {
+		return gui.createErrorPanel(gui.g, "Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
+	}
+	checkedOutBranchName := gui.getCheckedOutBranch().Name
+	if checkedOutBranchName == branchName {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantMergeBranchIntoItself"))
 	}
 	prompt := gui.Tr.TemplateLocalize(
 		"ConfirmMerge",
 		Teml{
-			"checkedOutBranch": checkedOutBranch,
-			"selectedBranch":   selectedBranch,
+			"checkedOutBranch": checkedOutBranchName,
+			"selectedBranch":   branchName,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("MergingTitle"), prompt,
+	return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("MergingTitle"), prompt,
 		func(g *gocui.Gui, v *gocui.View) error {
 
-			err := gui.GitCommand.Merge(selectedBranch)
+			err := gui.GitCommand.Merge(branchName)
 			return gui.handleGenericMergeCommandResult(err)
 		}, nil)
 }
 
-func (gui *Gui) handleRebase(g *gocui.Gui, v *gocui.View) error {
-	checkedOutBranch := gui.State.Branches[0].Name
-	selectedBranch := gui.getSelectedBranch().Name
-	if selectedBranch == checkedOutBranch {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
+func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
+	selectedBranchName := gui.getSelectedBranch().Name
+	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
+}
+
+func (gui *Gui) handleRebaseOntoLocalBranch(g *gocui.Gui, v *gocui.View) error {
+	selectedBranchName := gui.getSelectedBranch().Name
+	return gui.handleRebaseOntoBranch(selectedBranchName)
+}
+
+func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
+	checkedOutBranch := gui.getCheckedOutBranch().Name
+	if selectedBranchName == checkedOutBranch {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantRebaseOntoSelf"))
 	}
 	prompt := gui.Tr.TemplateLocalize(
 		"ConfirmRebase",
 		Teml{
 			"checkedOutBranch": checkedOutBranch,
-			"selectedBranch":   selectedBranch,
+			"selectedBranch":   selectedBranchName,
 		},
 	)
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("RebasingTitle"), prompt,
+	return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("RebasingTitle"), prompt,
 		func(g *gocui.Gui, v *gocui.View) error {
-
-			err := gui.GitCommand.RebaseBranch(selectedBranch)
+			err := gui.GitCommand.RebaseBranch(selectedBranchName)
 			return gui.handleGenericMergeCommandResult(err)
 		}, nil)
 }
@@ -321,22 +346,79 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	if branch.Pushables != "0" {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("FwdCommitsToPush"))
 	}
-	upstream := "origin" // hardcoding for now
+
+	upstream, err := gui.GitCommand.GetUpstreamForBranch(branch.Name)
+	if err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+
+	split := strings.Split(upstream, "/")
+	remoteName := split[0]
+	remoteBranchName := strings.Join(split[1:], "/")
+
 	message := gui.Tr.TemplateLocalize(
 		"Fetching",
 		Teml{
-			"from": fmt.Sprintf("%s/%s", upstream, branch.Name),
+			"from": fmt.Sprintf("%s/%s", remoteName, remoteBranchName),
 			"to":   branch.Name,
 		},
 	)
 	go func() {
 		_ = gui.createLoaderPanel(gui.g, v, message)
-		if err := gui.GitCommand.FastForward(branch.Name); err != nil {
+
+		if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
 			_ = gui.createErrorPanel(gui.g, err.Error())
 		} else {
-			_ = gui.closeConfirmationPrompt(gui.g)
+			_ = gui.closeConfirmationPrompt(gui.g, true)
 			_ = gui.RenderSelectedBranchUpstreamDifferences()
 		}
 	}()
 	return nil
+}
+
+func (gui *Gui) onBranchesTabClick(tabIndex int) error {
+	contexts := []string{"local-branches", "remotes", "tags"}
+	branchesView := gui.getBranchesView()
+	branchesView.TabIndex = tabIndex
+
+	return gui.switchBranchesPanelContext(contexts[tabIndex])
+}
+
+func (gui *Gui) switchBranchesPanelContext(context string) error {
+	branchesView := gui.getBranchesView()
+	branchesView.Context = context
+
+	contextTabIndexMap := map[string]int{
+		"local-branches":  0,
+		"remotes":         1,
+		"remote-branches": 1,
+		"tags":            2,
+	}
+
+	branchesView.TabIndex = contextTabIndexMap[context]
+
+	switch context {
+	case "local-branches":
+		return gui.renderLocalBranchesWithSelection()
+	case "remotes":
+		return gui.renderRemotesWithSelection()
+	case "remote-branches":
+		return gui.renderRemoteBranchesWithSelection()
+	case "tags":
+		return gui.renderTagsWithSelection()
+	}
+
+	return nil
+}
+
+func (gui *Gui) handleNextBranchesTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onBranchesTabClick(
+		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
+	)
+}
+
+func (gui *Gui) handlePrevBranchesTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onBranchesTabClick(
+		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
+	)
 }

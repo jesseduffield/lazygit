@@ -49,7 +49,7 @@ func (r *Repository) Prune(opt PruneOptions) error {
 		}
 		// Otherwise it is a candidate for pruning.
 		// Check out for too new objects next.
-		if opt.OnlyObjectsOlderThan != (time.Time{}) {
+		if !opt.OnlyObjectsOlderThan.IsZero() {
 			// Errors here are non-fatal. The object may be e.g. packed.
 			// Or concurrently deleted. Skip such objects.
 			t, err := los.LooseObjectTime(hash)

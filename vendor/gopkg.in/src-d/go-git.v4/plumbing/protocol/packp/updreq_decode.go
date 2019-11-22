@@ -225,7 +225,7 @@ func parseCommand(b []byte) (*Command, error) {
 		return nil, errInvalidNewObjId(err)
 	}
 
-	return &Command{Old: oh, New: nh, Name: plumbing.ReferenceName(n)}, nil
+	return &Command{Old: oh, New: nh, Name: n}, nil
 }
 
 func parseHash(s string) (plumbing.Hash, error) {

@@ -103,6 +103,8 @@ type View struct {
 
 	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler
 	ParentView *View
+
+	Context string // this is for assigning keybindings to a view only in certain contexts
 }
 
 type viewLine struct {
@@ -217,9 +219,6 @@ func (v *View) Cursor() (x, y int) {
 // implement Horizontal and Vertical scrolling with just incrementing
 // or decrementing ox and oy.
 func (v *View) SetOrigin(x, y int) error {
-	if x < 0 || y < 0 {
-		return errors.New("invalid point")
-	}
 	v.ox = x
 	v.oy = y
 	return nil
@@ -652,4 +651,15 @@ func (v *View) GetClickedTabIndex(x int) int {
 	}
 
 	return 0
+}
+
+func (v *View) SelectedLineIdx() int {
+	_, seletedLineIdx := v.SelectedPoint()
+	return seletedLineIdx
+}
+
+func (v *View) SelectedPoint() (int, int) {
+	cx, cy := v.Cursor()
+	ox, oy := v.Origin()
+	return cx + ox, cy + oy
 }

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -58,7 +59,16 @@ func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
 }
 
 // RunCommandWithOutput wrapper around commands returning their output and error
-func (c *OSCommand) RunCommandWithOutput(command string) (string, error) {
+// NOTE: If you don't pass any formatArgs we'll just use the command directly,
+// however there's a bizarre compiler error/warning when you pass in a formatString
+// with a percent sign because it thinks it's supposed to be a formatString when
+// in that case it's not. To get around that error you'll need to define the string
+// in a variable and pass the variable into RunCommandWithOutput.
+func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error) {
+	command := formatString
+	if formatArgs != nil {
+		command = fmt.Sprintf(formatString, formatArgs...)
+	}
 	c.Log.WithField("command", command).Info("RunCommand")
 	cmd := c.ExecutableFromString(command)
 	return sanitisedCommandOutput(cmd.CombinedOutput())
@@ -114,8 +124,8 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 }
 
 // RunCommand runs a command and just returns the error
-func (c *OSCommand) RunCommand(command string) error {
-	_, err := c.RunCommandWithOutput(command)
+func (c *OSCommand) RunCommand(formatString string, formatArgs ...interface{}) error {
+	_, err := c.RunCommandWithOutput(formatString, formatArgs...)
 	return err
 }
 
@@ -260,6 +270,21 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 	}
 
 	return tmpfile.Name(), nil
+}
+
+// CreateFileWithContent creates a file with the given content
+func (c *OSCommand) CreateFileWithContent(path string, content string) error {
+	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
+		c.Log.Error(err)
+		return err
+	}
+
+	if err := ioutil.WriteFile(path, []byte(content), 0644); err != nil {
+		c.Log.Error(err)
+		return WrapError(err)
+	}
+
+	return nil
 }
 
 // Remove removes a file or directory at the specified path

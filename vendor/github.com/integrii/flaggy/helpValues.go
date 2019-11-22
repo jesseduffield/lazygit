@@ -1,5 +1,12 @@
 package flaggy
 
+import (
+	"log"
+	"reflect"
+	"strings"
+	"unicode/utf8"
+)
+
 // Help represents the values needed to render a Help page
 type Help struct {
 	Subcommands    []HelpSubcommand
@@ -19,6 +26,7 @@ type HelpSubcommand struct {
 	LongName    string
 	Description string
 	Position    int
+	Spacer      string
 }
 
 // HelpPositional is used to template positional Help output
@@ -28,6 +36,7 @@ type HelpPositional struct {
 	Required     bool
 	Position     int
 	DefaultValue string
+	Spacer       string
 }
 
 // HelpFlag is used to template string flag Help output
@@ -36,11 +45,12 @@ type HelpFlag struct {
 	LongName     string
 	Description  string
 	DefaultValue string
+	Spacer       string
 }
 
 // ExtractValues extracts Help template values from a subcommand and its parent
-// parser.  The parser is required in order to detect default flag settings
-// for help and version outut.
+// parser. The parser is required in order to detect default flag settings
+// for help and version output.
 func (h *Help) ExtractValues(p *Parser, message string) {
 
 	// accept message string for output
@@ -56,6 +66,8 @@ func (h *Help) ExtractValues(p *Parser, message string) {
 	// description
 	h.Description = p.subcommandContext.Description
 
+	maxLength := getLongestNameLength(p.subcommandContext.Subcommands, 0)
+
 	// subcommands    []HelpSubcommand
 	for _, cmd := range p.subcommandContext.Subcommands {
 		if cmd.Hidden {
@@ -66,9 +78,12 @@ func (h *Help) ExtractValues(p *Parser, message string) {
 			LongName:    cmd.Name,
 			Description: cmd.Description,
 			Position:    cmd.Position,
+			Spacer:      makeSpacer(cmd.Name, maxLength),
 		}
 		h.Subcommands = append(h.Subcommands, newHelpSubcommand)
 	}
+
+	maxLength = getLongestNameLength(p.subcommandContext.PositionalFlags, 0)
 
 	// parse positional flags into help output structs
 	for _, pos := range p.subcommandContext.PositionalFlags {
@@ -81,9 +96,17 @@ func (h *Help) ExtractValues(p *Parser, message string) {
 			Description:  pos.Description,
 			Required:     pos.Required,
 			DefaultValue: pos.defaultValue,
+			Spacer:       makeSpacer(pos.Name, maxLength),
 		}
 		h.Positionals = append(h.Positionals, newHelpPositional)
 	}
+
+	maxLength = len(versionFlagLongName)
+	if len(helpFlagLongName) > maxLength {
+		maxLength = len(helpFlagLongName)
+	}
+	maxLength = getLongestNameLength(p.subcommandContext.Flags, maxLength)
+	maxLength = getLongestNameLength(p.Flags, maxLength)
 
 	// if the built-in version flag is enabled, then add it as a help flag
 	if p.ShowVersionWithVersionFlag {
@@ -92,6 +115,7 @@ func (h *Help) ExtractValues(p *Parser, message string) {
 			LongName:     versionFlagLongName,
 			Description:  "Displays the program version string.",
 			DefaultValue: "",
+			Spacer:       makeSpacer(versionFlagLongName, maxLength),
 		}
 		h.Flags = append(h.Flags, defaultVersionFlag)
 	}
@@ -103,15 +127,16 @@ func (h *Help) ExtractValues(p *Parser, message string) {
 			LongName:     helpFlagLongName,
 			Description:  "Displays help with available flag, subcommand, and positional value parameters.",
 			DefaultValue: "",
+			Spacer:       makeSpacer(helpFlagLongName, maxLength),
 		}
 		h.Flags = append(h.Flags, defaultHelpFlag)
 	}
 
 	// go through every flag in the subcommand and add it to help output
-	h.parseFlagsToHelpFlags(p.subcommandContext.Flags)
+	h.parseFlagsToHelpFlags(p.subcommandContext.Flags, maxLength)
 
 	// go through every flag in the parent parser and add it to help output
-	h.parseFlagsToHelpFlags(p.Flags)
+	h.parseFlagsToHelpFlags(p.Flags, maxLength)
 
 	// formulate the usage string
 	// first, we capture all the command and positional names by position
@@ -167,7 +192,8 @@ func (h *Help) ExtractValues(p *Parser, message string) {
 
 // parseFlagsToHelpFlags parses the specified slice of flags into
 // help flags on the the calling help command
-func (h *Help) parseFlagsToHelpFlags(flags []*Flag) {
+func (h *Help) parseFlagsToHelpFlags(flags []*Flag, maxLength int) {
+
 	for _, f := range flags {
 		if f.Hidden {
 			continue
@@ -202,6 +228,7 @@ func (h *Help) parseFlagsToHelpFlags(flags []*Flag) {
 			LongName:     f.LongName,
 			Description:  f.Description,
 			DefaultValue: defaultValue,
+			Spacer:       makeSpacer(f.LongName, maxLength),
 		}
 		h.AddFlagToHelp(newHelpFlag)
 	}
@@ -218,4 +245,45 @@ func (h *Help) AddFlagToHelp(f HelpFlag) {
 		}
 	}
 	h.Flags = append(h.Flags, f)
+}
+
+// getLongestNameLength takes a slice of any supported flag and returns the length of the longest of their names
+func getLongestNameLength(slice interface{}, min int) int {
+	var maxLength = min
+
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		log.Panicf("Paremeter given to getLongestNameLength() is of type %s. Expected slice", s.Kind())
+	}
+
+	for i := 0; i < s.Len(); i++ {
+		option := s.Index(i).Interface()
+		var name string
+		switch t := option.(type) {
+		case *Subcommand:
+			name = t.Name
+		case *Flag:
+			name = t.LongName
+		case *PositionalValue:
+			name = t.Name
+		default:
+			log.Panicf("Unexpected type %T found in slice passed to getLongestNameLength(). Possible types: *Subcommand, *Flag, *PositionalValue", t)
+		}
+		length := len(name)
+		if length > maxLength {
+			maxLength = length
+		}
+	}
+
+	return maxLength
+}
+
+// makeSpacer creates a string of whitespaces, with a length of the given
+// maxLength minus the length of the given name
+func makeSpacer(name string, maxLength int) string {
+	length := maxLength - utf8.RuneCountInString(name)
+	if length < 0 {
+		length = 0
+	}
+	return strings.Repeat(" ", length)
 }

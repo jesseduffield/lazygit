@@ -24,3 +24,16 @@ type Object interface {
 	// Clear clears every object from the cache.
 	Clear()
 }
+
+// Buffer is an interface to a buffer cache.
+type Buffer interface {
+	// Put puts a buffer into the cache. If the buffer is already in the cache,
+	// it will be marked as used. Otherwise, it will be inserted. Buffer might
+	// be evicted to make room for the new one.
+	Put(key int64, slice []byte)
+	// Get returns a buffer by its key. It marks the buffer as used. If the
+	// buffer is not in the cache, (nil, false) will be returned.
+	Get(key int64) ([]byte, bool)
+	// Clear clears every object from the cache.
+	Clear()
+}

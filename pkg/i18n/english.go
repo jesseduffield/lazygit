@@ -46,8 +46,14 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "StashTitle",
 			Other: "Stash",
 		}, &i18n.Message{
-			ID:    "StagingMainTitle",
-			Other: `Stage Lines/Hunks`,
+			ID:    "UnstagedChanges",
+			Other: `Unstaged Changes`,
+		}, &i18n.Message{
+			ID:    "StagedChanges",
+			Other: `Staged Changes`,
+		}, &i18n.Message{
+			ID:    "PatchBuildingMainTitle",
+			Other: `Add Lines/Hunks To Patch`,
 		}, &i18n.Message{
 			ID:    "MergingMainTitle",
 			Other: "Resolve merge conflicts",
@@ -136,9 +142,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "pull",
 			Other: "pull",
 		}, &i18n.Message{
-			ID:    "addPatch",
-			Other: "add patch",
-		}, &i18n.Message{
 			ID:    "edit",
 			Other: "edit",
 		}, &i18n.Message{
@@ -150,6 +153,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "resolveMergeConflicts",
 			Other: "resolve merge conflicts",
+		}, &i18n.Message{
+			ID:    "MergeConflictsTitle",
+			Other: "Merge Conflicts",
 		}, &i18n.Message{
 			ID:    "checkout",
 			Other: "checkout",
@@ -221,7 +227,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
 		}, &i18n.Message{
 			ID:    "rebaseBranch",
-			Other: "rebase branch",
+			Other: "rebase checked-out branch onto this branch",
 		}, &i18n.Message{
 			ID:    "CantRebaseOntoSelf",
 			Other: "You cannot rebase a branch onto itself",
@@ -400,9 +406,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "newFocusedViewIs",
 			Other: "new focused view is {{.newFocusedView}}",
 		}, &i18n.Message{
-			ID:    "CantCloseConfirmationPrompt",
-			Other: "Could not close confirmation prompt: {{.error}}",
-		}, &i18n.Message{
 			ID:    "NoChangedFiles",
 			Other: "No changed files",
 		}, &i18n.Message{
@@ -441,6 +444,19 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "AnonymousReportingPrompt",
 			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
+		}, &i18n.Message{
+			ID:    "ShamelessSelfPromotionTitle",
+			Other: "Shameless Self Promotion",
+		}, &i18n.Message{
+			ID: "ShamelessSelfPromotionMessage",
+			Other: `Thanks for using lazygit! Three things to share with you:
+
+1) lazygit now has basic mouse support!
+
+2) If you want to learn about lazygit's features, watch this vid:
+   https://youtu.be/CPLdltN7wgE
+
+3) Github are now matching any donations dollar-for-dollar for the next 12 months, so if you've been tossing up over whether to click the donate link in the bottom right corner, now is the time!`,
 		}, &i18n.Message{
 			ID:    "GitconfigParseErr",
 			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
@@ -488,15 +504,32 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: `stage individual hunks/lines`,
 		}, &i18n.Message{
 			ID:    "FileStagingRequirements",
-			Other: `Can only stage individual lines for tracked files with unstaged changes`,
+			Other: `Can only stage individual lines for tracked files`,
 		}, &i18n.Message{
-			ID:    "StageHunk",
-			Other: `stage hunk`,
+			ID:    "SelectHunk",
+			Other: `select hunk`,
 		}, &i18n.Message{
-			ID:    "StageLine",
-			Other: `stage line`,
+			ID:    "StageSelection",
+			Other: `stage selection`,
 		}, &i18n.Message{
-			ID:    "EscapeStaging",
+			ID:    "ResetSelection",
+			Other: `reset selection`,
+		}, &i18n.Message{
+			ID:    "ToggleDragSelect",
+			Other: `toggle drag select`,
+		}, &i18n.Message{
+			ID:    "ToggleSelectHunk",
+			Other: `toggle select hunk`,
+		},
+		&i18n.Message{
+			ID:    "TogglePanel",
+			Other: `switch to other panel`,
+		},
+		&i18n.Message{
+			ID:    "CantStageStaged",
+			Other: `You can't stage an already staged change!`,
+		}, &i18n.Message{
+			ID:    "ReturnToFilesPanel",
 			Other: `return to files panel`,
 		}, &i18n.Message{
 			ID:    "CantFindHunks",
@@ -783,6 +816,108 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "jump",
 			Other: "jump to panel",
+		}, &i18n.Message{
+			ID:    "DiscardPatch",
+			Other: "Discard Patch",
+		}, &i18n.Message{
+			ID:    "DiscardPatchConfirm",
+			Other: "You can only build a patch from one commit at a time. Discard current patch?",
+		}, &i18n.Message{
+			ID:    "CantPatchWhileRebasingError",
+			Other: "You cannot build a patch or run patch commands while in a merging or rebasing state",
+		}, &i18n.Message{
+			ID:    "toggleAddToPatch",
+			Other: "toggle file included in patch",
+		}, &i18n.Message{
+			ID:    "PatchOptionsTitle",
+			Other: "Patch Options",
+		}, &i18n.Message{
+			ID:    "NoPatchError",
+			Other: "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
+		}, &i18n.Message{
+			ID:    "enterFile",
+			Other: "enter file to add selected lines to the patch",
+		}, &i18n.Message{
+			ID:    "ExitLineByLineMode",
+			Other: `exit line-by-line mode`,
+		}, &i18n.Message{
+			ID:    "EnterUpstream",
+			Other: `Enter upstream as '<remote> <branchname>'`,
+		}, &i18n.Message{
+			ID:    "EnterUpstreamWithSlash",
+			Other: `Enter upstream as '<remote>/<branchname>'`,
+		}, &i18n.Message{
+			ID:    "notTrackingRemote",
+			Other: "(not tracking any remote)",
+		}, &i18n.Message{
+			ID:    "ReturnToRemotesList",
+			Other: `return to remotes list`,
+		}, &i18n.Message{
+			ID:    "addNewRemote",
+			Other: `add new remote`,
+		}, &i18n.Message{
+			ID:    "newRemoteName",
+			Other: `New remote name:`,
+		}, &i18n.Message{
+			ID:    "newRemoteUrl",
+			Other: `New remote url:`,
+		}, &i18n.Message{
+			ID:    "editRemoteName",
+			Other: `Enter updated remote name for {{ .remoteName }}:`,
+		}, &i18n.Message{
+			ID:    "editRemoteUrl",
+			Other: `Enter updated remote url for {{ .remoteName }}:`,
+		}, &i18n.Message{
+			ID:    "removeRemote",
+			Other: `remove remote`,
+		}, &i18n.Message{
+			ID:    "removeRemotePrompt",
+			Other: "Are you sure you want to remove remote",
+		}, &i18n.Message{
+			ID:    "DeleteRemoteBranch",
+			Other: "Delete Remote Branch",
+		}, &i18n.Message{
+			ID:    "DeleteRemoteBranchMessage",
+			Other: "Are you sure you want to delete remote branch",
+		}, &i18n.Message{
+			ID:    "setUpstream",
+			Other: "set as upstream of checked-out branch",
+		}, &i18n.Message{
+			ID:    "SetUpstreamTitle",
+			Other: "Set upstream branch",
+		}, &i18n.Message{
+			ID:    "SetUpstreamMessage",
+			Other: "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
+		}, &i18n.Message{
+			ID:    "editRemote",
+			Other: "edit remote",
+		}, &i18n.Message{
+			ID:    "tagCommit",
+			Other: "tag commit",
+		}, &i18n.Message{
+			ID:    "TagNameTitle",
+			Other: "Tag name:",
+		}, &i18n.Message{
+			ID:    "deleteTag",
+			Other: "delete tag",
+		}, &i18n.Message{
+			ID:    "DeleteTagTitle",
+			Other: "Delete tag",
+		}, &i18n.Message{
+			ID:    "DeleteTagPrompt",
+			Other: "Are you sure you want to delete tag '{{.tagName}}'?",
+		}, &i18n.Message{
+			ID:    "PushTagTitle",
+			Other: "remote to push tag '{{.tagName}}' to:",
+		}, &i18n.Message{
+			ID:    "pushTag",
+			Other: "push tag",
+		}, &i18n.Message{
+			ID:    "createTag",
+			Other: "create tag",
+		}, &i18n.Message{
+			ID:    "CreateTagTitle",
+			Other: "Tag name:",
 		},
 	)
 }

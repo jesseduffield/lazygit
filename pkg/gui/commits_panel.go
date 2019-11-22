@@ -9,7 +9,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/git"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -29,9 +28,19 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	// this probably belongs in an 'onFocus' function than a 'commit selected' function
+	if err := gui.refreshSecondaryPatchPanel(); err != nil {
+		return err
+	}
+
 	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
 		return err
 	}
+
+	gui.getMainView().Title = "Patch"
+	gui.getSecondaryView().Title = "Custom Patch"
+	gui.State.Panels.LineByLine = nil
+
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
 		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
@@ -55,7 +64,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		builder, err := git.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
+		builder, err := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
 		if err != nil {
 			return err
 		}
@@ -81,7 +90,7 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		if g.CurrentView() == v {
 			gui.handleCommitSelect(g, v)
 		}
-		if g.CurrentView() == gui.getCommitFilesView() {
+		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
 			return gui.refreshCommitFilesView()
 		}
 		return nil
@@ -89,38 +98,10 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) handleCommitsNextLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupOrAdvancedPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Commits
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Commits), false)
-
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.handleCommitSelect(gui.g, v)
-}
-
-func (gui *Gui) handleCommitsPrevLine(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupOrAdvancedPanelFocused() {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Commits
-	gui.changeSelectedLine(&panelState.SelectedLine, len(gui.State.Commits), true)
-
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.handleCommitSelect(gui.g, v)
-}
-
 // specific functions
 
 func (gui *Gui) handleResetToCommit(g *gocui.Gui, commitView *gocui.View) error {
-	return gui.createConfirmationPanel(g, commitView, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, commitView, true, gui.Tr.SLocalize("ResetToCommit"), gui.Tr.SLocalize("SureResetThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
 		commit := gui.getSelectedCommit(g)
 		if commit == nil {
 			panic(errors.New(gui.Tr.SLocalize("NoCommitsThisBranch")))
@@ -154,7 +135,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Squash"), gui.Tr.SLocalize("SureSquashThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
+	gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("Squash"), gui.Tr.SLocalize("SureSquashThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("SquashingStatus"), func() error {
 			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "squash")
 			return gui.handleGenericMergeCommandResult(err)
@@ -186,7 +167,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Fixup"), gui.Tr.SLocalize("SureFixupThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
+	gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("Fixup"), gui.Tr.SLocalize("SureFixupThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("FixingStatus"), func() error {
 			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "fixup")
 			return gui.handleGenericMergeCommandResult(err)
@@ -207,7 +188,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 	if gui.State.Panels.Commits.SelectedLine != 0 {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
-	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("renameCommit"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("renameCommit"), "", func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
@@ -286,7 +267,7 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("DeleteCommitTitle"), gui.Tr.SLocalize("DeleteCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, v, true, gui.Tr.SLocalize("DeleteCommitTitle"), gui.Tr.SLocalize("DeleteCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("DeletingStatus"), func() error {
 			err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "drop")
 			return gui.handleGenericMergeCommandResult(err)
@@ -356,7 +337,7 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(gui.g, v, gui.Tr.SLocalize("AmendCommitTitle"), gui.Tr.SLocalize("AmendCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
+	return gui.createConfirmationPanel(gui.g, v, true, gui.Tr.SLocalize("AmendCommitTitle"), gui.Tr.SLocalize("AmendCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("AmendingStatus"), func() error {
 			err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
 			return gui.handleGenericMergeCommandResult(err)
@@ -375,7 +356,7 @@ func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
 
 	// at this point we aren't actually rebasing so we will interpret this as an
 	// attempt to pull. We might revoke this later after enabling configurable keybindings
-	return gui.pullFiles(g, v)
+	return gui.handlePullFiles(g, v)
 }
 
 func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
@@ -441,7 +422,7 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
 func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("CherryPick"), gui.Tr.SLocalize("SureCherryPick"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("CherryPick"), gui.Tr.SLocalize("SureCherryPick"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("CherryPickingStatus"), func() error {
 			err := gui.GitCommand.CherryPickCommits(gui.State.CherryPickedCommits)
 			return gui.handleGenericMergeCommandResult(err)
@@ -454,7 +435,7 @@ func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) erro
 		return err
 	}
 
-	return gui.switchFocus(g, v, gui.getCommitFilesView())
+	return gui.switchFocus(g, gui.getCommitsView(), gui.getCommitFilesView())
 }
 
 func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
@@ -524,7 +505,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("CreateFixupCommit"), gui.Tr.TemplateLocalize(
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("CreateFixupCommit"), gui.Tr.TemplateLocalize(
 		"SureCreateFixupCommit",
 		Teml{
 			"commit": commit.Sha,
@@ -544,7 +525,7 @@ func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) er
 		return nil
 	}
 
-	return gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("SquashAboveCommits"), gui.Tr.TemplateLocalize(
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("SquashAboveCommits"), gui.Tr.TemplateLocalize(
 		"SureSquashAboveCommits",
 		Teml{
 			"commit": commit.Sha,
@@ -602,4 +583,31 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.createMenu(fmt.Sprintf("%s %s", gui.Tr.SLocalize("resetTo"), commit.Sha), options, len(options), handleMenuPress)
+}
+
+func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
+	// TODO: bring up menu asking if you want to make a lightweight or annotated tag
+	// if annotated, switch to a subprocess to create the message
+
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return nil
+	}
+
+	return gui.handleCreateLightweightTag(commit.Sha)
+}
+
+func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
+	return gui.createPromptPanel(gui.g, gui.getCommitsView(), gui.Tr.SLocalize("TagNameTitle"), "", func(g *gocui.Gui, v *gocui.View) error {
+		if err := gui.GitCommand.CreateLightweightTag(v.Buffer(), commitSha); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+		if err := gui.refreshCommits(g); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+		if err := gui.refreshTags(); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
+		return gui.handleCommitSelect(g, v)
+	})
 }

@@ -21,7 +21,8 @@ This can be done easily using the [`-s`](https://github.com/git/git/blob/b2c150d
 
 The official support channels, for both users and contributors, are:
 
-- GitHub [issues](https://github.com/src-d/go-git/issues)*
+- [StackOverflow go-git tag](https://stackoverflow.com/questions/tagged/go-git) for user questions.
+- GitHub [Issues](https://github.com/src-d/go-git/issues)* for bug reports and feature requests.
 - Slack: #go-git room in the [source{d} Slack](https://join.slack.com/t/sourced-community/shared_invite/enQtMjc4Njk5MzEyNzM2LTFjNzY4NjEwZGEwMzRiNTM4MzRlMzQ4MmIzZjkwZmZlM2NjODUxZmJjNDI1OTcxNDAyMmZlNmFjODZlNTg0YWM)
 
 *Before opening a new issue or submitting a new pull request, it's helpful to

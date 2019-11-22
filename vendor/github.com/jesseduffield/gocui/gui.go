@@ -164,9 +164,6 @@ func (g *Gui) Rune(x, y int) (rune, error) {
 // ErrUnknownView is returned, which allows to assert if the View must
 // be initialized. It checks if the position is valid.
 func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, error) {
-	if x0 >= x1 {
-		return nil, errors.New("invalid dimensions")
-	}
 	if name == "" {
 		return nil, errors.New("invalid name")
 	}
@@ -298,14 +295,14 @@ func (g *Gui) CurrentView() *View {
 // SetKeybinding creates a new keybinding. If viewname equals to ""
 // (empty string) then the keybinding will apply to all views. key must
 // be a rune or a Key.
-func (g *Gui) SetKeybinding(viewname string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
+func (g *Gui) SetKeybinding(viewname string, contexts []string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
 	var kb *keybinding
 
 	k, ch, err := getKey(key)
 	if err != nil {
 		return err
 	}
-	kb = newKeybinding(viewname, k, ch, mod, handler)
+	kb = newKeybinding(viewname, contexts, k, ch, mod, handler)
 	g.keybindings = append(g.keybindings, kb)
 	return nil
 }

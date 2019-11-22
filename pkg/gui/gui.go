@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-errors/errors"
 
 	// "strings"
@@ -29,6 +30,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
+
+const StartupPopupVersion = 1
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
@@ -77,16 +80,20 @@ type Gui struct {
 	statusManager *statusManager
 	credentials   credentials
 	waitForIntro  sync.WaitGroup
+	fileWatcher   *fsnotify.Watcher
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
-type stagingPanelState struct {
-	SelectedLine   int
-	StageableLines []int
-	HunkStarts     []int
-	Diff           string
+type lineByLinePanelState struct {
+	SelectedLineIdx  int
+	FirstLineIdx     int
+	LastLineIdx      int
+	Diff             string
+	PatchParser      *commands.PatchParser
+	SelectMode       int  // one of LINE, HUNK, or RANGE
+	SecondaryFocused bool // this is for if we show the left or right panel
 }
 
 type mergingPanelState struct {
@@ -105,7 +112,20 @@ type extensiveFilePanelState struct {
 	Selected []int
 }
 
+// TODO: consider splitting this out into the window and the branches view
 type branchPanelState struct {
+	SelectedLine int
+}
+
+type remotePanelState struct {
+	SelectedLine int
+}
+
+type remoteBranchesState struct {
+	SelectedLine int
+}
+
+type tagsPanelState struct {
 	SelectedLine int
 }
 
@@ -120,15 +140,23 @@ type stashPanelState struct {
 
 type menuPanelState struct {
 	SelectedLine int
+	OnPress      func(g *gocui.Gui, v *gocui.View) error
 }
 
 type commitFilesPanelState struct {
 	SelectedLine int
 }
 
+type statusPanelState struct {
+	pushables string
+	pullables string
+}
+
 type panelStates struct {
 	Files          *filePanelState
 	ExtensiveFiles *extensiveFilePanelState
+	Remotes        *remotePanelState
+	RemoteBranches *remoteBranchesState
 	Branches       *branchPanelState
 	Commits        *commitPanelState
 	Stash          *stashPanelState
@@ -136,6 +164,8 @@ type panelStates struct {
 	Staging        *stagingPanelState
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
+	Tags           *tagsPanelState
+	Status         *statusPanelState
 }
 
 type guiState struct {
@@ -146,6 +176,11 @@ type guiState struct {
 	StashEntries        []*commands.StashEntry
 	CommitFiles         []*commands.CommitFile
 	DiffEntries         []*commands.Commit
+	Remotes              []*commands.Remote
+	CherryPickedCommits []*commands.Commit
+	RemoteBranches       []*commands.RemoteBranch
+	Tags                 []*commands.Tag
+	CherryPickedCommits  []*commands.Commit
 	MenuItemCount       int // can't store the actual list because it's of interface{} type
 	PreviousView        string
 	Platform            commands.Platform
@@ -153,8 +188,14 @@ type guiState struct {
 	Panels              *panelStates
 	WorkingTreeState    string // one of "merging", "rebasing", "normal"
 	Contexts            map[string]string
-	CherryPickedCommits []*commands.Commit
+	MainContext          string // used to keep the main and secondary views' contexts in sync
+	SplitMainPanel       bool
+	RetainOriginalDir    bool
+	IsRefreshingFiles    bool
+	RefreshingFilesMutex sync.Mutex
 }
+
+// for now the split view will always be on
 
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
@@ -172,6 +213,9 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 			Files:          &filePanelState{SelectedLine: -1},
 			ExtensiveFiles: &extensiveFilePanelState{Selected: []int{0}},
 			Branches:       &branchPanelState{SelectedLine: 0},
+			Remotes:        &remotePanelState{SelectedLine: 0},
+			RemoteBranches: &remoteBranchesState{SelectedLine: -1},
+			Tags:           &tagsPanelState{SelectedLine: -1},
 			Commits:        &commitPanelState{SelectedLine: -1},
 			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
 			Stash:          &stashPanelState{SelectedLine: -1},
@@ -182,6 +226,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 				Conflicts:     []commands.Conflict{},
 				EditHistory:   stack.New(),
 			},
+			Status: &statusPanelState{},
 		},
 	}
 
@@ -196,20 +241,22 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		statusManager: &statusManager{},
 	}
 
+	gui.watchFilesForChanges()
+
 	gui.GenerateSentinelErrors()
 
 	return gui, nil
 }
 
-func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
-	mainView, _ := g.View("main")
+func (gui *Gui) scrollUpView(viewName string) error {
+	mainView, _ := gui.g.View(viewName)
 	ox, oy := mainView.Origin()
 	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))))
 	return mainView.SetOrigin(ox, newOy)
 }
 
-func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
-	mainView, _ := g.View("main")
+func (gui *Gui) scrollDownView(viewName string) error {
+	mainView, _ := gui.g.View(viewName)
 	ox, oy := mainView.Origin()
 	y := oy
 	if !gui.Config.GetUserConfig().GetBool("gui.scrollPastBottom") {
@@ -220,6 +267,22 @@ func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
 		return mainView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
 	}
 	return nil
+}
+
+func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
+	return gui.scrollUpView("main")
+}
+
+func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
+	return gui.scrollDownView("main")
+}
+
+func (gui *Gui) scrollUpSecondary(g *gocui.Gui, v *gocui.View) error {
+	return gui.scrollUpView("secondary")
+}
+
+func (gui *Gui) scrollDownSecondary(g *gocui.Gui, v *gocui.View) error {
+	return gui.scrollDownView("secondary")
 }
 
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
@@ -260,28 +323,32 @@ func (gui *Gui) onFocusChange() error {
 	for _, view := range gui.g.Views() {
 		view.Highlight = view == currentView
 	}
-	return gui.setMainTitle()
+	return nil
 }
 
 func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 	if v == nil {
 		return nil
 	}
-	if v.Name() == "branches" {
-		// This stops the branches panel from showing the upstream/downstream changes to the selected branch, when it loses focus
-		// inside renderListPanel it checks to see if the panel has focus
-		if err := gui.renderListPanel(gui.getBranchesView(), gui.State.Branches); err != nil {
-			return err
+	switch v.Name() {
+	case "branches":
+		if v.Context == "local-branches" {
+			// This stops the branches panel from showing the upstream/downstream changes to the selected branch, when it loses focus
+			// inside renderListPanel it checks to see if the panel has focus
+			if err := gui.renderListPanel(gui.getBranchesView(), gui.State.Branches); err != nil {
+				return err
+			}
 		}
-	} else if v.Name() == "main" {
+	case "main":
 		// if we have lost focus to a first-class panel, we need to do some cleanup
-		if err := gui.changeContext("main", "normal"); err != nil {
+		if err := gui.changeMainViewsContext("normal"); err != nil {
 			return err
 		}
-
-	} else if v.Name() == "commitFiles" {
-		if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
-			return err
+	case "commitFiles":
+		if gui.State.MainContext != "patch-building" {
+			if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
+				return err
+			}
 		}
 	}
 	gui.Log.Info(v.Name() + " focus lost")
@@ -368,7 +435,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
-	leftSideWidth := width / 3
 
 	appStatus := gui.statusManager.getStatusString()
 	appStatusOptionsBoundary := 0
@@ -385,7 +451,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	g.DeleteView("limit")
 
 	textColor := theme.GocuiDefaultTextColor
-	v, err := g.SetView("main", leftSideWidth+panelSpacing, 0, width-1, height-2, gocui.LEFT)
+	leftSideWidth := width / 3
+	panelSplitX := width - 1
+	if gui.State.SplitMainPanel {
+		units := 7
+		leftSideWidth = width / units
+		panelSplitX = (1 + ((units - 1) / 2)) * width / units
+	}
+
+	main := "main"
+	secondary := "secondary"
+	swappingMainPanels := gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused
+	if swappingMainPanels {
+		main = "secondary"
+		secondary = "main"
+	}
+
+	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, panelSplitX, height-2, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -401,6 +483,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		v.Title = gui.Tr.SLocalize("FilesTitle")
 		v.FgColor = textColor
+	}
+	
+	hiddenViewOffset := 0
+	if !gui.State.SplitMainPanel {
+		hiddenViewOffset = 9999
+	}
+	secondaryView, err := g.SetView(secondary, panelSplitX+1+hiddenViewOffset, hiddenViewOffset, width-1+hiddenViewOffset, height-2+hiddenViewOffset, gocui.LEFT)
+	if err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+		secondaryView.Title = gui.Tr.SLocalize("DiffTitle")
+		secondaryView.Wrap = true
+		secondaryView.FgColor = gocui.ColorWhite
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, vHeights["status"]-1, gocui.BOTTOM|gocui.RIGHT); err != nil {
@@ -427,6 +523,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
+		branchesView.Tabs = []string{"Local Branches", "Remotes", "Tags"}
 		branchesView.FgColor = textColor
 	}
 
@@ -518,7 +615,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		// doing this here because it'll only happen once
-		if err := gui.loadNewRepo(); err != nil {
+		if err := gui.onInitialViewsCreation(); err != nil {
 			return err
 		}
 	}
@@ -536,23 +633,35 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	type listViewState struct {
 		selectedLine int
 		lineCount    int
+		view         *gocui.View
+		context      string
 	}
 
-	listViews := map[*gocui.View]listViewState{
-		filesView:    {selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files)},
-		branchesView: {selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
-		commitsView:  {selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
-		stashView:    {selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
+	listViews := []listViewState{
+		{view: filesView, context: "", selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files)},
+		{view: branchesView, context: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
+		{view: branchesView, context: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes)},
+		{view: branchesView, context: "remote-branches", selectedLine: gui.State.Panels.RemoteBranches.SelectedLine, lineCount: len(gui.State.Remotes)},
+		{view: commitsView, context: "", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
+		{view: stashView, context: "", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
 	}
 
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
-		listViews[menuView] = listViewState{selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount}
-
+		listViews = append(listViews, listViewState{
+			view: menuView, 
+			context: "", 
+			selectedLine: gui.State.Panels.Menu.SelectedLine, 
+			lineCount: gui.State.MenuItemCount,
+		})
 	}
-	for view, state := range listViews {
+	for _, listView := range listViews {
+		// ignore views where the context doesn't match up with the selected line we're trying to focus
+		if listView.context != "" && (listView.view.Context != listView.context) {
+			continue
+		}
 		// check if the selected line is now out of view and if so refocus it
-		if err := gui.focusPoint(0, state.selectedLine, state.lineCount, view); err != nil {
+		if err := gui.focusPoint(0, listView.selectedLine, listView.lineCount, listView.view); err != nil {
 			return err
 		}
 	}
@@ -562,6 +671,16 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// this will let you see these branches as prettified json
 	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
 	return gui.resizeCurrentPopupPanel(g)
+}
+
+func (gui *Gui) onInitialViewsCreation() error {
+	if err := gui.changeMainViewsContext("normal"); err != nil {
+		return err
+	}
+
+	gui.getBranchesView().Context = "local-branches"
+
+	return gui.loadNewRepo()
 }
 
 func (gui *Gui) loadNewRepo() error {
@@ -575,20 +694,42 @@ func (gui *Gui) loadNewRepo() error {
 		return err
 	}
 
-	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-		if err := gui.promptAnonymousReporting(); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
-func (gui *Gui) promptAnonymousReporting() error {
-	return gui.createConfirmationPanel(gui.g, nil, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		gui.waitForIntro.Done()
+func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
+	gui.waitForIntro.Add(len(tasks))
+	done := make(chan struct{})
+
+	go func() {
+		for _, task := range tasks {
+			go func() {
+				if err := task(done); err != nil {
+					_ = gui.createErrorPanel(gui.g, err.Error())
+				}
+			}()
+
+			<-done
+			gui.waitForIntro.Done()
+		}
+	}()
+}
+
+func (gui *Gui) showShamelessSelfPromotionMessage(done chan struct{}) error {
+	onConfirm := func(g *gocui.Gui, v *gocui.View) error {
+		done <- struct{}{}
+		return gui.Config.WriteToUserConfig("startupPopupVersion", StartupPopupVersion)
+	}
+
+	return gui.createConfirmationPanel(gui.g, nil, true, gui.Tr.SLocalize("ShamelessSelfPromotionTitle"), gui.Tr.SLocalize("ShamelessSelfPromotionMessage"), onConfirm, onConfirm)
+}
+
+func (gui *Gui) promptAnonymousReporting(done chan struct{}) error {
+	return gui.createConfirmationPanel(gui.g, nil, true, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+		done <- struct{}{}
 		return gui.Config.WriteToUserConfig("reporting", "on")
 	}, func(g *gocui.Gui, v *gocui.View) error {
-		gui.waitForIntro.Done()
+		done <- struct{}{}
 		return gui.Config.WriteToUserConfig("reporting", "off")
 	})
 }
@@ -606,7 +747,7 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 		close := func(g *gocui.Gui, v *gocui.View) error {
 			return nil
 		}
-		_ = gui.createConfirmationPanel(g, v, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
+		_ = gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
 	}
 
 	gui.refreshStatus(g)
@@ -647,7 +788,7 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
+		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 	} else {
 		gui.goEvery(time.Second*60, func() error {
 			_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
@@ -674,15 +815,22 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
+	popupTasks := []func(chan struct{}) error{}
 	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-		gui.waitForIntro.Add(2)
-	} else {
-		gui.waitForIntro.Add(1)
+		popupTasks = append(popupTasks, gui.promptAnonymousReporting)
 	}
+	configPopupVersion := gui.Config.GetUserConfig().GetInt("StartupPopupVersion")
+	// -1 means we've disabled these popups
+	if configPopupVersion != -1 && configPopupVersion < StartupPopupVersion {
+		popupTasks = append(popupTasks, gui.showShamelessSelfPromotionMessage)
+	}
+	gui.showInitialPopups(popupTasks)
 
+	gui.waitForIntro.Add(1)
 	if gui.Config.GetUserConfig().GetBool("git.autoFetch") {
 		go gui.startBackgroundFetch()
 	}
+
 	gui.goEvery(time.Second*10, gui.refreshFiles)
 	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
 
@@ -691,6 +839,8 @@ func (gui *Gui) Run() error {
 	if err = gui.keybindings(g); err != nil {
 		return err
 	}
+
+	gui.Log.Warn("starting main loop")
 
 	err = g.MainLoop()
 	return err
@@ -703,6 +853,14 @@ func (gui *Gui) RunWithSubprocesses() error {
 	for {
 		if err := gui.Run(); err != nil {
 			if err == gocui.ErrQuit {
+				if !gui.State.RetainOriginalDir {
+					if err := gui.recordCurrentDirectory(); err != nil {
+						return err
+					}
+				}
+
+				gui.fileWatcher.Close()
+
 				break
 			} else if err == gui.Errors.ErrSwitchRepo {
 				continue
@@ -742,18 +900,6 @@ func (gui *Gui) runCommand() error {
 	return nil
 }
 
-func (gui *Gui) quit(g *gocui.Gui, v *gocui.View) error {
-	if gui.State.Updating {
-		return gui.createUpdateQuitConfirmation(g, v)
-	}
-	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
-		return gui.createConfirmationPanel(g, v, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
-			return gocui.ErrQuit
-		}, nil)
-	}
-	return gocui.ErrQuit
-}
-
 func (gui *Gui) handleDonate(g *gocui.Gui, v *gocui.View) error {
 	if !gui.g.Mouse {
 		return nil
@@ -763,7 +909,7 @@ func (gui *Gui) handleDonate(g *gocui.Gui, v *gocui.View) error {
 	if cx > len(gui.Tr.SLocalize("Donate")) {
 		return nil
 	}
-	return gui.OSCommand.OpenLink("https://donorbox.org/lazygit")
+	return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
 }
 
 // setColorScheme sets the color scheme for the app based on the user config
@@ -773,6 +919,34 @@ func (gui *Gui) setColorScheme() error {
 
 	gui.g.FgColor = theme.InactiveBorderColor
 	gui.g.SelFgColor = theme.ActiveBorderColor
+
+	return nil
+}
+
+func (gui *Gui) handleMouseDownMain(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	switch g.CurrentView().Name() {
+	case "files":
+		return gui.enterFile(false, v.SelectedLineIdx())
+	case "commitFiles":
+		return gui.enterCommitFile(v.SelectedLineIdx())
+	}
+
+	return nil
+}
+
+func (gui *Gui) handleMouseDownSecondary(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	switch g.CurrentView().Name() {
+	case "files":
+		return gui.enterFile(true, v.SelectedLineIdx())
+	}
 
 	return nil
 }

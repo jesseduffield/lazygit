@@ -226,6 +226,16 @@ func IncludesString(list []string, a string) bool {
 	return false
 }
 
+// IncludesInt if the list contains the Int
+func IncludesInt(list []int, a int) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 // NextIndex returns the index of the element that comes after the given number
 func NextIndex(numbers []int, currentNumber int) int {
 	for index, number := range numbers {
@@ -233,21 +243,70 @@ func NextIndex(numbers []int, currentNumber int) int {
 			return index
 		}
 	}
-	return 0
+	return len(numbers) - 1
 }
 
 // PrevIndex returns the index that comes before the given number, cycling if we reach the end
 func PrevIndex(numbers []int, currentNumber int) int {
 	end := len(numbers) - 1
-	for i := end; i >= 0; i -= 1 {
+	for i := end; i >= 0; i-- {
 		if numbers[i] < currentNumber {
 			return i
 		}
 	}
-	return end
+	return 0
 }
 
 func AsJson(i interface{}) string {
 	bytes, _ := json.MarshalIndent(i, "", "    ")
 	return string(bytes)
+}
+
+// UnionInt returns the union of two int arrays
+func UnionInt(a, b []int) []int {
+	m := make(map[int]bool)
+
+	for _, item := range a {
+		m[item] = true
+	}
+
+	for _, item := range b {
+		if _, ok := m[item]; !ok {
+			// this does not mutate the original a slice
+			// though it does mutate the backing array I believe
+			// but that doesn't matter because if you later want to append to the
+			// original a it must see that the backing array has been changed
+			// and create a new one
+			a = append(a, item)
+		}
+	}
+	return a
+}
+
+// DifferenceInt returns the difference of two int arrays
+func DifferenceInt(a, b []int) []int {
+	result := []int{}
+	m := make(map[int]bool)
+
+	for _, item := range b {
+		m[item] = true
+	}
+
+	for _, item := range a {
+		if _, ok := m[item]; !ok {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+// used to keep a number n between 0 and max, allowing for wraparounds
+func ModuloWithWrap(n, max int) int {
+	if n >= max {
+		return n % max
+	} else if n < 0 {
+		return max + n
+	} else {
+		return n
+	}
 }

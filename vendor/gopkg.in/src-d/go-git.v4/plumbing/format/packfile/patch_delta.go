@@ -63,8 +63,8 @@ func PatchDelta(src, delta []byte) ([]byte, error) {
 	targetSz, delta := decodeLEB128(delta)
 	remainingTargetSz := targetSz
 
-	var dest []byte
 	var cmd byte
+	dest := make([]byte, 0, targetSz)
 	for {
 		if len(delta) == 0 {
 			return nil, ErrInvalidDelta

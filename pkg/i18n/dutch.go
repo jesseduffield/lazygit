@@ -38,8 +38,11 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "StashTitle",
 			Other: "Stash",
 		}, &i18n.Message{
-			ID:    "StagingMainTitle",
-			Other: `Stage Lines/Hunks`,
+			ID:    "UnstagedChanges",
+			Other: `Unstaged Changes`,
+		}, &i18n.Message{
+			ID:    "StagedChanges",
+			Other: `Staged Changes`,
 		}, &i18n.Message{
 			ID:    "MergingMainTitle",
 			Other: "Resolve merge conflicts",
@@ -109,9 +112,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "pull",
 			Other: "pull",
-		}, &i18n.Message{
-			ID:    "addPatch",
-			Other: "bewerkingen toevoegen",
 		}, &i18n.Message{
 			ID:    "edit",
 			Other: "bewerken",
@@ -338,9 +338,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "newFocusedViewIs",
 			Other: "nieuw gefocussed weergave is {{.newFocusedView}}",
 		}, &i18n.Message{
-			ID:    "CantCloseConfirmationPrompt",
-			Other: "Kon de bevestiging prompt niet sluiten: {{.error}}",
-		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Merge afgebroken",
 		}, &i18n.Message{
@@ -434,7 +431,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "StageLine",
 			Other: `stage lijn`,
 		}, &i18n.Message{
-			ID:    "EscapeStaging",
+			ID:    "ReturnToFilesPanel",
 			Other: `ga terug naar het bestanden paneel`,
 		}, &i18n.Message{
 			ID:    "CantFindHunks",
@@ -754,6 +751,15 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "jump",
 			Other: "jump to panel",
+		}, &i18n.Message{
+			ID:    "ExitLineByLineMode",
+			Other: `exit line-by-line mode`,
+		}, &i18n.Message{
+			ID:    "EnterUpstream",
+			Other: `Enter upstream as '<remote> <branchname>'`,
+		}, &i18n.Message{
+			ID:    "ReturnToRemotesList",
+			Other: `return to remotes list`,
 		},
 	)
 }

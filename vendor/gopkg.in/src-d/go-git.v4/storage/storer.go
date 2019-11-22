@@ -1,9 +1,13 @@
 package storage
 
 import (
+	"errors"
+
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 )
+
+var ErrReferenceHasChanged = errors.New("reference has changed concurrently")
 
 // Storer is a generic storage of objects, references and any information
 // related to a particular repository. The package gopkg.in/src-d/go-git.v4/storage

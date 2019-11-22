@@ -2,9 +2,9 @@
 
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui 'gocui') library.
 
-Are YOU tired of typing every git command directly into the terminal, but you're
-too stubborn to use Sourcetree because you'll never forgive Atlassian for making
-Jira? This is the app for you!
+Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? *Are you kidding me?* To stage part of a file you need to use a command line program stepping through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, bad luck? *Are you KIDDING me?!* Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? *YOU HAVE GOT TO BE KIDDING ME!* 
+
+If you're a mere mortal like me and you're tired of hearing how powerful git is when in your daily life it's a powerful pain in your ass, lazygit might be for you.
 
 ![Gif](/docs/resources/lazygit-example.gif)
 
@@ -14,14 +14,34 @@ Jira? This is the app for you!
 - [Cool Features](https://github.com/jesseduffield/lazygit#cool-features)
 - [Contributing](https://github.com/jesseduffield/lazygit#contributing)
 - [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
+- [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
 - [Twitch Stream](https://www.twitch.tv/jesseduffield)
+
+[<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
+
+Github Sponsors is matching all donations dollar-for-dollar for 12 months so if you're feeling generous consider [sponsoring me](https://github.com/sponsors/jesseduffield)
 
 ## Installation
 
 ### Homebrew
+Normally the lazygit formula can be found in the Homebrew core but we suggest you tap our formula to get the frequently updated one. It works with Linux, too.
 
-```sh
+Tap:
+```
+brew install jesseduffield/lazygit/lazygit
+```
+
+Core:
+
+```
 brew install lazygit
+```
+
+### MacPorts
+Latest version built from github releases.
+Tap:
+```
+sudo port install lazygit
 ```
 
 ### Ubuntu
@@ -102,8 +122,27 @@ also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or
 whichever rc file you're using).
 
 - Basic video tutorial [here](https://youtu.be/VDXvbHZYeKY).
+- Rebase Magic tutorial [here](https://youtu.be/4XaToVut_hs)
 - List of keybindings
   [here](/docs/keybindings).
+  
+## Changing Directory On Exit
+
+If you change repos in lazygit and want your shell to change directory into that repo on exiting lazygit, add this to your `~/.zshrc` (or other rc file):
+```
+lg()
+{
+    export LAZYGIT_NEW_DIR_FILE=~/.lazygit/newdir
+
+    lazygit "$@"
+
+    if [ -f $LAZYGIT_NEW_DIR_FILE ]; then
+            cd "$(cat $LAZYGIT_NEW_DIR_FILE)"
+            rm -f $LAZYGIT_NEW_DIR_FILE > /dev/null
+    fi
+}
+```
+Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazyigt. To override this behaviour you can exit using `shift+Q` rather than just `q`.
 
 ## Cool features
 
@@ -131,9 +170,7 @@ For contributor discussion about things not better discussed here in the repo, j
 
 ## Donate
 
-If you would like to support the development of lazygit, please donate
-
-[![Donate](https://d1iczxrky3cnb2.cloudfront.net/button-medium-blue.png)](https://donorbox.org/lazygit)
+If you would like to support the development of lazygit, consider [sponsoring me](https://github.com/sponsors/jesseduffield) (github is matching all donations dollar-for-dollar for 12 months)
 
 ## Work in progress
 

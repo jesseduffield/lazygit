@@ -87,6 +87,17 @@ func (t *Tree) File(path string) (*File, error) {
 	return NewFile(path, e.Mode, blob), nil
 }
 
+// Size returns the plaintext size of an object, without reading it
+// into memory.
+func (t *Tree) Size(path string) (int64, error) {
+	e, err := t.FindEntry(path)
+	if err != nil {
+		return 0, ErrEntryNotFound
+	}
+
+	return t.s.EncodedObjectSize(e.Hash)
+}
+
 // Tree returns the tree identified by the `path` argument.
 // The path is interpreted as relative to the tree receiver.
 func (t *Tree) Tree(path string) (*Tree, error) {
@@ -124,7 +135,7 @@ func (t *Tree) FindEntry(path string) (*TreeEntry, error) {
 	pathCurrent := ""
 
 	// search for the longest path in the tree path cache
-	for i := len(pathParts); i > 1; i-- {
+	for i := len(pathParts) - 1; i > 1; i-- {
 		path := filepath.Join(pathParts[:i]...)
 
 		tree, ok := t.t[path]
@@ -219,7 +230,9 @@ func (t *Tree) Decode(o plumbing.EncodedObject) (err error) {
 	}
 	defer ioutil.CheckClose(reader, &err)
 
-	r := bufio.NewReader(reader)
+	r := bufPool.Get().(*bufio.Reader)
+	defer bufPool.Put(r)
+	r.Reset(reader)
 	for {
 		str, err := r.ReadString(' ')
 		if err != nil {
@@ -275,7 +288,7 @@ func (t *Tree) Encode(o plumbing.EncodedObject) (err error) {
 			return err
 		}
 
-		if _, err = w.Write([]byte(entry.Hash[:])); err != nil {
+		if _, err = w.Write(entry.Hash[:]); err != nil {
 			return err
 		}
 	}
@@ -372,7 +385,7 @@ func NewTreeWalker(t *Tree, recursive bool, seen map[plumbing.Hash]bool) *TreeWa
 // underlying repository will be skipped automatically. It is possible that this
 // may change in future versions.
 func (w *TreeWalker) Next() (name string, entry TreeEntry, err error) {
-	var obj Object
+	var obj *Tree
 	for {
 		current := len(w.stack) - 1
 		if current < 0 {
@@ -392,7 +405,7 @@ func (w *TreeWalker) Next() (name string, entry TreeEntry, err error) {
 			// Finished with the current tree, move back up to the parent
 			w.stack = w.stack[:current]
 			w.base, _ = path.Split(w.base)
-			w.base = path.Clean(w.base) // Remove trailing slash
+			w.base = strings.TrimSuffix(w.base, "/")
 			continue
 		}
 
@@ -408,7 +421,7 @@ func (w *TreeWalker) Next() (name string, entry TreeEntry, err error) {
 			obj, err = GetTree(w.s, entry.Hash)
 		}
 
-		name = path.Join(w.base, entry.Name)
+		name = simpleJoin(w.base, entry.Name)
 
 		if err != nil {
 			err = io.EOF
@@ -422,9 +435,9 @@ func (w *TreeWalker) Next() (name string, entry TreeEntry, err error) {
 		return
 	}
 
-	if t, ok := obj.(*Tree); ok {
-		w.stack = append(w.stack, &treeEntryIter{t, 0})
-		w.base = path.Join(w.base, entry.Name)
+	if obj != nil {
+		w.stack = append(w.stack, &treeEntryIter{obj, 0})
+		w.base = simpleJoin(w.base, entry.Name)
 	}
 
 	return
@@ -497,4 +510,11 @@ func (iter *TreeIter) ForEach(cb func(*Tree) error) error {
 
 		return cb(t)
 	})
+}
+
+func simpleJoin(parent, child string) string {
+	if len(parent) > 0 {
+		return parent + "/" + child
+	}
+	return child
 }

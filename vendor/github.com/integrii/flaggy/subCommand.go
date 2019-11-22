@@ -610,6 +610,7 @@ func (sc *Subcommand) AddPositionalValue(assignmentVar *string, name string, rel
 		AssignmentVar: assignmentVar,
 		Required:      required,
 		Description:   description,
+		defaultValue:  *assignmentVar,
 	}
 	sc.PositionalFlags = append(sc.PositionalFlags, &newPositionalValue)
 }

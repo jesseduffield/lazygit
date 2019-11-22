@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -102,11 +103,23 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
-		return gui.handleFileSelect(g, v, false)
+		return gui.handleFileSelect(g, v)
 	case "extensiveFiles":
 		return gui.handleExtensiveFileSelect(g, v, false)
 	case "branches":
-		return gui.handleBranchSelect(g, v)
+		branchesView := gui.getBranchesView()
+		switch branchesView.Context {
+		case "local-branches":
+			return gui.handleBranchSelect(g, v)
+		case "remotes":
+			return gui.handleRemoteSelect(g, v)
+		case "remote-branches":
+			return gui.handleRemoteBranchSelect(g, v)
+		case "tags":
+			return gui.handleTagSelect(g, v)
+		default:
+			return errors.New("unknown branches panel context: " + branchesView.Context)
+		}
 	case "commits":
 		return gui.handleCommitSelect(g, v)
 	case "commitFiles":
@@ -120,7 +133,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "credentials":
 		return gui.handleCredentialsViewFocused(g, v)
 	case "main":
-		if gui.State.Contexts["main"] == "merging" {
+		if gui.State.MainContext == "merging" {
 			return gui.refreshMergePanel()
 		}
 		v.Highlight = false
@@ -160,7 +173,7 @@ func (gui *Gui) goToSideView(sideViewName string) func(g *gocui.Gui, v *gocui.Vi
 
 func (gui *Gui) closePopupPanels() error {
 	gui.onNewPopupPanel()
-	err := gui.closeConfirmationPrompt(gui.g)
+	err := gui.closeConfirmationPrompt(gui.g, true)
 	if err != nil {
 		gui.Log.Error(err)
 		return err
@@ -306,6 +319,11 @@ func (gui *Gui) getMainView() *gocui.View {
 	return v
 }
 
+func (gui *Gui) getSecondaryView() *gocui.View {
+	v, _ := gui.g.View("secondary")
+	return v
+}
+
 func (gui *Gui) getStashView() *gocui.View {
 	v, _ := gui.g.View("stash")
 	return v
@@ -313,6 +331,11 @@ func (gui *Gui) getStashView() *gocui.View {
 
 func (gui *Gui) getCommitFilesView() *gocui.View {
 	v, _ := gui.g.View("commitFiles")
+	return v
+}
+
+func (gui *Gui) getMenuView() *gocui.View {
+	v, _ := gui.g.View("menu")
 	return v
 }
 
@@ -363,19 +386,17 @@ func (gui *Gui) generalFocusLine(lineNumber int, bottomLine int, v *gocui.View) 
 	return nil
 }
 
-func (gui *Gui) changeSelectedLine(line *int, total int, up bool) {
-	if up {
-		if *line == -1 || *line == 0 {
-			return
-		}
-
-		*line -= 1
+func (gui *Gui) changeSelectedLine(line *int, total int, change int) {
+	// TODO: find out why we're doing this
+	if *line == -1 {
+		return
+	}
+	if *line+change < 0 {
+		*line = 0
+	} else if *line+change >= total {
+		*line = total - 1
 	} else {
-		if *line == -1 || *line == total-1 {
-			return
-		}
-
-		*line += 1
+		*line += change
 	}
 }
 
@@ -495,7 +516,7 @@ func (gui *Gui) renderPanelOptions() error {
 	case "menu":
 		return gui.renderMenuOptions()
 	case "main":
-		if gui.State.Contexts["main"] == "merging" {
+		if gui.State.MainContext == "merging" {
 			return gui.renderMergeOptions()
 		}
 	}
@@ -526,4 +547,37 @@ func (gui *Gui) advancedPanelFocused() bool {
 
 func (gui *Gui) popupOrAdvancedPanelFocused() bool {
 	return gui.isAdvancedView(gui.currentViewName()) || gui.isPopupPanel(gui.currentViewName())
+}
+
+func (gui *Gui) handleClick(v *gocui.View, itemCount int, selectedLine *int, handleSelect func(*gocui.Gui, *gocui.View) error) error {
+	if gui.popupPanelFocused() && v != nil && !gui.isPopupPanel(v.Name()) {
+		return nil
+	}
+
+	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+		return err
+	}
+
+	newSelectedLine := v.SelectedLineIdx()
+
+	if newSelectedLine < 0 {
+		newSelectedLine = 0
+	}
+
+	if newSelectedLine > itemCount-1 {
+		newSelectedLine = itemCount - 1
+	}
+
+	*selectedLine = newSelectedLine
+
+	return handleSelect(gui.g, v)
+}
+
+// often gocui wants functions in the form `func(g *gocui.Gui, v *gocui.View) error`
+// but sometimes we just have a function that returns an error, so this is a
+// convenience wrapper to give gocui what it wants.
+func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return f()
+	}
 }

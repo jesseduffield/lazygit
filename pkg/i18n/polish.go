@@ -36,8 +36,11 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "StashTitle",
 			Other: "Schowek",
 		}, &i18n.Message{
-			ID:    "StagingMainTitle",
-			Other: `Stage Lines/Hunks`,
+			ID:    "UnstagedChanges",
+			Other: `Unstaged Changes`,
+		}, &i18n.Message{
+			ID:    "StagedChanges",
+			Other: `Staged Changes`,
 		}, &i18n.Message{
 			ID:    "MergingMainTitle",
 			Other: "Resolve merge conflicts",
@@ -101,9 +104,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "refresh",
 			Other: "odśwież",
-		}, &i18n.Message{
-			ID:    "addPatch",
-			Other: "dodaj łatkę",
 		}, &i18n.Message{
 			ID:    "edit",
 			Other: "edytuj",
@@ -330,9 +330,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "newFocusedViewIs",
 			Other: "nowy skupiony widok to {{.newFocusedView}}",
 		}, &i18n.Message{
-			ID:    "CantCloseConfirmationPrompt",
-			Other: "Nie można zamknąć monitu potwierdzenia: {{.error}}",
-		}, &i18n.Message{
 			ID:    "MergeAborted",
 			Other: "Scalanie anulowane",
 		}, &i18n.Message{
@@ -420,7 +417,7 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "StageLine",
 			Other: `zatwierdź linię`,
 		}, &i18n.Message{
-			ID:    "EscapeStaging",
+			ID:    "ReturnToFilesPanel",
 			Other: `wróć do panelu plików`,
 		}, &i18n.Message{
 			ID:    "CantFindHunks",
@@ -737,6 +734,15 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "jump",
 			Other: "jump to panel",
+		}, &i18n.Message{
+			ID:    "ExitLineByLineMode",
+			Other: `exit line-by-line mode`,
+		}, &i18n.Message{
+			ID:    "EnterUpstream",
+			Other: `Enter upstream as '<remote> <branchname>'`,
+		}, &i18n.Message{
+			ID:    "ReturnToRemotesList",
+			Other: `return to remotes list`,
 		},
 	)
 }

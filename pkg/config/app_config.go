@@ -37,7 +37,7 @@ type AppConfigurer interface {
 	GetUserConfig() *viper.Viper
 	GetUserConfigDir() string
 	GetAppState() *AppState
-	WriteToUserConfig(string, string) error
+	WriteToUserConfig(string, interface{}) error
 	SaveAppState() error
 	LoadAppState() error
 	SetIsNewRepo(bool)
@@ -192,7 +192,7 @@ func LoadAndMergeFile(v *viper.Viper, filename string) (string, error) {
 }
 
 // WriteToUserConfig adds a key/value pair to the user's config and saves it
-func (c *AppConfig) WriteToUserConfig(key, value string) error {
+func (c *AppConfig) WriteToUserConfig(key string, value interface{}) error {
 	// reloading the user config directly (without defaults) so that we're not
 	// writing any defaults back to the user's config
 	v, _, err := LoadConfig("config", false)
@@ -242,7 +242,7 @@ func GetDefaultConfig() []byte {
   ## stuff relating to the UI
   scrollHeight: 2
   scrollPastBottom: true
-  mouseEvents: false # will default to true when the feature is complete
+  mouseEvents: true
   theme:
     lightTheme: false
     activeBorderColor:
@@ -263,6 +263,7 @@ update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often a update is checked for
 reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
+splashUpdatesIndex: 0
 confirmOnQuit: false
 `)
 }
