@@ -9,7 +9,7 @@ import (
 
 func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 	// get remote branches
-	unescaped := "git for-each-ref --format='%(refname:strip=2)' refs/remotes"
+	unescaped := "git branch -r"
 	remoteBranchesStr, err := c.OSCommand.RunCommandWithOutput(unescaped)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 	for i, goGitRemote := range goGitRemotes {
 		remoteName := goGitRemote.Config().Name
 
-		re := regexp.MustCompile(fmt.Sprintf("%s\\/(.*)", remoteName))
+		re := regexp.MustCompile(fmt.Sprintf(`%s\/([\S]+)`, remoteName))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
 		branches := make([]*RemoteBranch, len(matches))
 		for j, match := range matches {
