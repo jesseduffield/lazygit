@@ -3,12 +3,21 @@ package commands
 import (
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 const semverRegex = `v?((\d+\.?)+)([^\d]?.*)`
+
+func convertToInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return i
+}
 
 func (c *GitCommand) GetTags() ([]*Tag, error) {
 	// get remote branches
@@ -59,10 +68,10 @@ func (c *GitCommand) GetTags() ([]*Tag, error) {
 				if len(numbersB) == k {
 					return false
 				}
-				if mustConvertToInt(numbersA[k]) < mustConvertToInt(numbersB[k]) {
+				if convertToInt(numbersA[k]) < convertToInt(numbersB[k]) {
 					return true
 				}
-				if mustConvertToInt(numbersA[k]) > mustConvertToInt(numbersB[k]) {
+				if convertToInt(numbersA[k]) > convertToInt(numbersB[k]) {
 					return false
 				}
 				k++
