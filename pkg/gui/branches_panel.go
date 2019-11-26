@@ -89,7 +89,7 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 	}
 
 	g.Update(func(g *gocui.Gui) error {
-		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand)
+		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, gui.encodedStrings)
 		if err != nil {
 			return err
 		}

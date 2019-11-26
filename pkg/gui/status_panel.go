@@ -26,7 +26,7 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 		if err := gui.updateWorkTreeState(); err != nil {
 			return err
 		}
-		status := fmt.Sprintf("↑%s↓%s", state.pushables, state.pullables)
+		status := fmt.Sprintf("%s%s%s%s", gui.encodedStrings.UpArrow, state.pushables, gui.encodedStrings.DownArrow, state.pullables)
 		branches := gui.State.Branches
 
 		if gui.State.WorkingTreeState != "normal" {
@@ -37,7 +37,7 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 			branch := branches[0]
 			name := utils.ColoredString(branch.Name, commands.GetBranchColor(branch.Name))
 			repoName := utils.GetCurrentRepoName()
-			status += fmt.Sprintf(" %s → %s", repoName, name)
+			status += fmt.Sprintf(" %s %s %s", repoName, gui.encodedStrings.RightArrow, name)
 		}
 
 		fmt.Fprint(v, status)
@@ -64,7 +64,7 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 	state := gui.State.Panels.Status
 
 	cx, _ := v.Cursor()
-	upstreamStatus := fmt.Sprintf("↑%s↓%s", state.pushables, state.pullables)
+	upstreamStatus := fmt.Sprintf("%s%s%s%s", gui.encodedStrings.UpArrow, state.pushables, gui.encodedStrings.DownArrow, state.pullables)
 	repoName := utils.GetCurrentRepoName()
 	gui.Log.Warn(gui.State.WorkingTreeState)
 	switch gui.State.WorkingTreeState {

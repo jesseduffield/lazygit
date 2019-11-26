@@ -5,83 +5,81 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
 // is only handled if the given view has focus, or handled globally if the view
 // is ""
 type Binding struct {
-	ViewName    string
-	Contexts    []string
-	Handler     func(*gocui.Gui, *gocui.View) error
-	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
-	Modifier    gocui.Modifier
-	Description string
-	Alternative string
+	ViewName       string
+	Contexts       []string
+	Handler        func(*gocui.Gui, *gocui.View) error
+	Key            interface{} // FIXME: find out how to get `gocui.Key | rune`
+	Modifier       gocui.Modifier
+	EncodedStrings *utils.EncodedStrings
+	Description    string
+	Alternative    string
 }
 
 // GetDisplayStrings returns the display string of a file
 func (b *Binding) GetDisplayStrings(isFocused bool) []string {
-	return []string{GetKeyDisplay(b.Key), b.Description}
+	return []string{GetKeyDisplay(b.Key, b.EncodedStrings), b.Description}
 }
 
 var keyMapReversed = map[gocui.Key]string{
-	gocui.KeyF1:         "f1",
-	gocui.KeyF2:         "f2",
-	gocui.KeyF3:         "f3",
-	gocui.KeyF4:         "f4",
-	gocui.KeyF5:         "f5",
-	gocui.KeyF6:         "f6",
-	gocui.KeyF7:         "f7",
-	gocui.KeyF8:         "f8",
-	gocui.KeyF9:         "f9",
-	gocui.KeyF10:        "f10",
-	gocui.KeyF11:        "f11",
-	gocui.KeyF12:        "f12",
-	gocui.KeyInsert:     "insert",
-	gocui.KeyDelete:     "delete",
-	gocui.KeyHome:       "home",
-	gocui.KeyEnd:        "end",
-	gocui.KeyPgup:       "pgup",
-	gocui.KeyPgdn:       "pgdown",
-	gocui.KeyArrowUp:    "▲",
-	gocui.KeyArrowDown:  "▼",
-	gocui.KeyArrowLeft:  "◄",
-	gocui.KeyArrowRight: "►",
-	gocui.KeyTab:        "tab",        // ctrl+i
-	gocui.KeyEnter:      "enter",      // ctrl+m
-	gocui.KeyEsc:        "esc",        // ctrl+[, ctrl+3
-	gocui.KeyBackspace:  "backspace",  // ctrl+h
-	gocui.KeyCtrlSpace:  "ctrl+space", // ctrl+~, ctrl+2
-	gocui.KeyCtrlSlash:  "ctrl+/",     // ctrl+_
-	gocui.KeySpace:      "space",
-	gocui.KeyCtrlA:      "ctrl+a",
-	gocui.KeyCtrlB:      "ctrl+b",
-	gocui.KeyCtrlC:      "ctrl+c",
-	gocui.KeyCtrlD:      "ctrl+d",
-	gocui.KeyCtrlE:      "ctrl+e",
-	gocui.KeyCtrlF:      "ctrl+f",
-	gocui.KeyCtrlG:      "ctrl+g",
-	gocui.KeyCtrlJ:      "ctrl+j",
-	gocui.KeyCtrlK:      "ctrl+k",
-	gocui.KeyCtrlL:      "ctrl+l",
-	gocui.KeyCtrlN:      "ctrl+n",
-	gocui.KeyCtrlO:      "ctrl+o",
-	gocui.KeyCtrlP:      "ctrl+p",
-	gocui.KeyCtrlQ:      "ctrl+q",
-	gocui.KeyCtrlR:      "ctrl+r",
-	gocui.KeyCtrlS:      "ctrl+s",
-	gocui.KeyCtrlT:      "ctrl+t",
-	gocui.KeyCtrlU:      "ctrl+u",
-	gocui.KeyCtrlV:      "ctrl+v",
-	gocui.KeyCtrlW:      "ctrl+w",
-	gocui.KeyCtrlX:      "ctrl+x",
-	gocui.KeyCtrlY:      "ctrl+y",
-	gocui.KeyCtrlZ:      "ctrl+z",
-	gocui.KeyCtrl4:      "ctrl+4", // ctrl+\
-	gocui.KeyCtrl5:      "ctrl+5", // ctrl+]
-	gocui.KeyCtrl6:      "ctrl+6",
-	gocui.KeyCtrl8:      "ctrl+8",
+	gocui.KeyF1:        "f1",
+	gocui.KeyF2:        "f2",
+	gocui.KeyF3:        "f3",
+	gocui.KeyF4:        "f4",
+	gocui.KeyF5:        "f5",
+	gocui.KeyF6:        "f6",
+	gocui.KeyF7:        "f7",
+	gocui.KeyF8:        "f8",
+	gocui.KeyF9:        "f9",
+	gocui.KeyF10:       "f10",
+	gocui.KeyF11:       "f11",
+	gocui.KeyF12:       "f12",
+	gocui.KeyInsert:    "insert",
+	gocui.KeyDelete:    "delete",
+	gocui.KeyHome:      "home",
+	gocui.KeyEnd:       "end",
+	gocui.KeyPgup:      "pgup",
+	gocui.KeyPgdn:      "pgdown",
+	gocui.KeyTab:       "tab",        // ctrl+i
+	gocui.KeyEnter:     "enter",      // ctrl+m
+	gocui.KeyEsc:       "esc",        // ctrl+[, ctrl+3
+	gocui.KeyBackspace: "backspace",  // ctrl+h
+	gocui.KeyCtrlSpace: "ctrl+space", // ctrl+~, ctrl+2
+	gocui.KeyCtrlSlash: "ctrl+/",     // ctrl+_
+	gocui.KeySpace:     "space",
+	gocui.KeyCtrlA:     "ctrl+a",
+	gocui.KeyCtrlB:     "ctrl+b",
+	gocui.KeyCtrlC:     "ctrl+c",
+	gocui.KeyCtrlD:     "ctrl+d",
+	gocui.KeyCtrlE:     "ctrl+e",
+	gocui.KeyCtrlF:     "ctrl+f",
+	gocui.KeyCtrlG:     "ctrl+g",
+	gocui.KeyCtrlJ:     "ctrl+j",
+	gocui.KeyCtrlK:     "ctrl+k",
+	gocui.KeyCtrlL:     "ctrl+l",
+	gocui.KeyCtrlN:     "ctrl+n",
+	gocui.KeyCtrlO:     "ctrl+o",
+	gocui.KeyCtrlP:     "ctrl+p",
+	gocui.KeyCtrlQ:     "ctrl+q",
+	gocui.KeyCtrlR:     "ctrl+r",
+	gocui.KeyCtrlS:     "ctrl+s",
+	gocui.KeyCtrlT:     "ctrl+t",
+	gocui.KeyCtrlU:     "ctrl+u",
+	gocui.KeyCtrlV:     "ctrl+v",
+	gocui.KeyCtrlW:     "ctrl+w",
+	gocui.KeyCtrlX:     "ctrl+x",
+	gocui.KeyCtrlY:     "ctrl+y",
+	gocui.KeyCtrlZ:     "ctrl+z",
+	gocui.KeyCtrl4:     "ctrl+4", // ctrl+\
+	gocui.KeyCtrl5:     "ctrl+5", // ctrl+]
+	gocui.KeyCtrl6:     "ctrl+6",
+	gocui.KeyCtrl8:     "ctrl+8",
 }
 
 var keymap = map[string]interface{}{
@@ -156,17 +154,29 @@ var keymap = map[string]interface{}{
 
 func (gui *Gui) getKeyDisplay(name string) string {
 	key := gui.getKey(name)
-	return GetKeyDisplay(key)
+	return GetKeyDisplay(key, gui.encodedStrings)
 }
 
-func GetKeyDisplay(key interface{}) string {
+func GetKeyDisplay(key interface{}, encodedStrings *utils.EncodedStrings) string {
 	keyInt := 0
 
 	switch key.(type) {
 	case rune:
 		keyInt = int(key.(rune))
 	case gocui.Key:
-		value, ok := keyMapReversed[key.(gocui.Key)]
+		keyMapReversedEncoded := map[gocui.Key]string{
+			gocui.KeyArrowUp:    encodedStrings.UpArrow,
+			gocui.KeyArrowDown:  encodedStrings.DownArrow,
+			gocui.KeyArrowLeft:  encodedStrings.LeftArrow,
+			gocui.KeyArrowRight: encodedStrings.RightArrow,
+		}
+
+		value, ok := keyMapReversedEncoded[key.(gocui.Key)]
+		if ok {
+			return value
+		}
+
+		value, ok = keyMapReversed[key.(gocui.Key)]
 		if ok {
 			return value
 		}

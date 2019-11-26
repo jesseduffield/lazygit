@@ -13,18 +13,19 @@ import (
 // Branch : A git branch
 // duplicating this for now
 type Branch struct {
-	Name      string
-	Recency   string
-	Pushables string
-	Pullables string
-	Selected  bool
+	Name           string
+	Recency        string
+	Pushables      string
+	Pullables      string
+	Selected       bool
+	encodedStrings *utils.EncodedStrings
 }
 
 // GetDisplayStrings returns the display string of branch
 func (b *Branch) GetDisplayStrings(isFocused bool) []string {
 	displayName := utils.ColoredString(b.Name, GetBranchColor(b.Name))
 	if isFocused && b.Selected && b.Pushables != "" && b.Pullables != "" {
-		displayName = fmt.Sprintf("%s ↑%s↓%s", displayName, b.Pushables, b.Pullables)
+		displayName = fmt.Sprintf("%s %s%s%s%s", displayName, b.encodedStrings.UpArrow, b.Pushables, b.encodedStrings.DownArrow, b.Pullables)
 	}
 
 	return []string{b.Recency, displayName}

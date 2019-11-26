@@ -310,3 +310,10 @@ func ModuloWithWrap(n, max int) int {
 		return n
 	}
 }
+
+type EncodedStrings struct {
+	UpArrow    string
+	DownArrow  string
+	LeftArrow  string
+	RightArrow string
+}

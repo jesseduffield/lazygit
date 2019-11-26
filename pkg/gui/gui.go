@@ -84,6 +84,7 @@ type Gui struct {
 	waitForIntro         sync.WaitGroup
 	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
+	encodedStrings       *utils.EncodedStrings
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -837,6 +838,8 @@ func (gui *Gui) Run() error {
 	}
 
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
+
+	gui.prepareEncodings()
 
 	if err := gui.setColorScheme(); err != nil {
 		return err

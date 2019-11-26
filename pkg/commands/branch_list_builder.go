@@ -24,15 +24,17 @@ import (
 
 // BranchListBuilder returns a list of Branch objects for the current repo
 type BranchListBuilder struct {
-	Log        *logrus.Entry
-	GitCommand *GitCommand
+	Log            *logrus.Entry
+	GitCommand     *GitCommand
+	encodedStrings *utils.EncodedStrings
 }
 
 // NewBranchListBuilder builds a new branch list builder
-func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand) (*BranchListBuilder, error) {
+func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, encodedStrings *utils.EncodedStrings) (*BranchListBuilder, error) {
 	return &BranchListBuilder{
-		Log:        log,
-		GitCommand: gitCommand,
+		Log:            log,
+		GitCommand:     gitCommand,
+		encodedStrings: encodedStrings,
 	}, nil
 }
 
@@ -42,7 +44,7 @@ func (b *BranchListBuilder) obtainCurrentBranch() *Branch {
 		panic(err.Error())
 	}
 
-	return &Branch{Name: strings.TrimSpace(branchName)}
+	return &Branch{Name: strings.TrimSpace(branchName), encodedStrings: b.encodedStrings}
 }
 
 func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
@@ -60,7 +62,7 @@ func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
 		if branchName == "" {
 			continue
 		}
-		branch := &Branch{Name: branchName, Recency: recency}
+		branch := &Branch{Name: branchName, Recency: recency, encodedStrings: b.encodedStrings}
 		branches = append(branches, branch)
 	}
 	return uniqueByName(branches)
@@ -73,9 +75,9 @@ func (b *BranchListBuilder) obtainSafeBranches() []*Branch {
 	if err != nil {
 		panic(err)
 	}
-	bIter.ForEach(func(b *plumbing.Reference) error {
-		name := b.Name().Short()
-		branches = append(branches, &Branch{Name: name})
+	bIter.ForEach(func(r *plumbing.Reference) error {
+		name := r.Name().Short()
+		branches = append(branches, &Branch{Name: name, encodedStrings: b.encodedStrings})
 		return nil
 	})
 
