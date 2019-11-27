@@ -904,6 +904,15 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.handleToggleSelectRange,
 			Description: gui.Tr.SLocalize("ToggleDragSelect"),
 		},
+		// Alias 'V' -> 'v'
+		{
+			ViewName:    "main",
+			Contexts:    []string{"patch-building", "staging"},
+			Key:         'V',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleToggleSelectRange,
+			Description: gui.Tr.SLocalize("ToggleDragSelect"),
+		},
 		{
 			ViewName:    "main",
 			Contexts:    []string{"patch-building", "staging"},
