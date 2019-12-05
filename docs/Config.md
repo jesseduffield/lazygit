@@ -1,5 +1,7 @@
 # User Config:
 
+Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
+
 ## Default:
 
 ```yaml
