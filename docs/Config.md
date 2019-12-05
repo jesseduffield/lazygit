@@ -191,7 +191,11 @@ If you have issues with a light terminal theme where you can't read / see the te
 
 ![border example](/docs/resources/colored-border-example.png)
 
-## Example Keybindings For Colemak Users:
+## Keybindings:
+For all possible keybinding options, check [Custom_Keybinding.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybinding.md) <++>
+
+
+#### Example Keybindings For Colemak Users:
 ```yaml
   keybinding:
     universal:
@@ -213,3 +217,4 @@ If you have issues with a light terminal theme where you can't read / see the te
       moveDownCommit: '<c-e>' # move commit down one
       moveUpCommit: '<c-u>' # move commit up one
 ```
+
