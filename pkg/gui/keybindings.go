@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
+	"log"
 	"strings"
 )
 
@@ -140,10 +141,16 @@ var keymap = map[string]interface{}{
 func (gui *Gui) getKey(name string) interface{} {
 	key := gui.Config.GetUserConfig().GetString("keybinding." + name)
 	if len(key) > 1 {
-		return keymap[strings.ToLower(key)]
+		binding := keymap[strings.ToLower(key)]
+		if binding == nil {
+			log.Fatal("Unrecognized binding: " + strings.ToLower(key))
+		} else {
+			return binding
+		}
 	} else if len(key) == 1 {
 		return []rune(key)[0]
 	}
+	log.Fatal("Key empty for function: " + strings.ToLower(name))
 	return nil
 }
 
