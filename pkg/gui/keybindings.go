@@ -392,7 +392,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
-			Key:         gui.getKey("universal.select"),
+			Key:         gocui.KeyEnter,
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleEnterFile,
 			Description: gui.Tr.SLocalize("StageLines"),
