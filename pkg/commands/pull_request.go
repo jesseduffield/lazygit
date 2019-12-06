@@ -27,29 +27,43 @@ type RepoInformation struct {
 	Repository string
 }
 
+// NewService builds a Service based on the host type
+func NewService(typeName string, repositoryDomain string, siteDomain string) *Service {
+	switch typeName {
+	case "github":
+		return &Service{
+			Name:           repositoryDomain,
+			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%%s?expand=1"),
+		}
+	case "bitbucket":
+		return &Service{
+			Name:           repositoryDomain,
+			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&t=1"),
+		}
+	case "gitlab":
+		return &Service{
+			Name:           repositoryDomain,
+			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s"),
+		}
+	}
+
+	return nil
+}
+
 func getServices(config config.AppConfigurer) []*Service {
 	services := []*Service{
-		{
-			Name:           "github.com",
-			PullRequestURL: "https://github.com/%s/%s/compare/%s?expand=1",
-		},
-		{
-			Name:           "bitbucket.org",
-			PullRequestURL: "https://bitbucket.org/%s/%s/pull-requests/new?source=%s&t=1",
-		},
-		{
-			Name:           "gitlab.com",
-			PullRequestURL: "https://gitlab.com/%s/%s/merge_requests/new?merge_request[source_branch]=%s",
-		},
+		NewService("github", "github.com", "github.com"),
+		NewService("bitbucket", "bitbucket.org", "bitbucket.org"),
+		NewService("gitlab", "gitlab.com", "gitlab.com"),
 	}
 
 	configServices := config.GetUserConfig().GetStringMapString("services")
 
-	for name, prURL := range configServices {
-		services = append(services, &Service{
-			Name:           name,
-			PullRequestURL: prURL,
-		})
+	for repoDomain, typeAndDomain := range configServices {
+		splitData := strings.Split(typeAndDomain, ":")
+		if len(splitData) == 2 {
+			services = append(services, NewService(splitData[0], repoDomain, splitData[1]))
+		}
 	}
 
 	return services
