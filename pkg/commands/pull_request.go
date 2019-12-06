@@ -111,7 +111,7 @@ func getRepoInfoFromURL(url string) *RepoInformation {
 
 	if isHTTP {
 		splits := strings.Split(url, "/")
-		owner := splits[len(splits)-2]
+		owner := strings.Join(splits[3:len(splits)-1], "/")
 		repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
 
 		return &RepoInformation{
@@ -122,8 +122,8 @@ func getRepoInfoFromURL(url string) *RepoInformation {
 
 	tmpSplit := strings.Split(url, ":")
 	splits := strings.Split(tmpSplit[1], "/")
-	owner := splits[0]
-	repo := strings.TrimSuffix(splits[1], ".git")
+	owner := strings.Join(splits[0:len(splits)-1], "/")
+	repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
 
 	return &RepoInformation{
 		Owner:      owner,
