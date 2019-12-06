@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 // Service is a service that repository is on (Github, Bitbucket, ...)
@@ -26,8 +27,8 @@ type RepoInformation struct {
 	Repository string
 }
 
-func getServices() []*Service {
-	return []*Service{
+func getServices(config config.AppConfigurer) []*Service {
+	services := []*Service{
 		{
 			Name:           "github.com",
 			PullRequestURL: "https://github.com/%s/%s/compare/%s?expand=1",
@@ -41,12 +42,23 @@ func getServices() []*Service {
 			PullRequestURL: "https://gitlab.com/%s/%s/merge_requests/new?merge_request[source_branch]=%s",
 		},
 	}
+
+	configServices := config.GetUserConfig().GetStringMapString("services")
+
+	for name, prURL := range configServices {
+		services = append(services, &Service{
+			Name:           name,
+			PullRequestURL: prURL,
+		})
+	}
+
+	return services
 }
 
 // NewPullRequest creates new instance of PullRequest
 func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 	return &PullRequest{
-		GitServices: getServices(),
+		GitServices: getServices(gitCommand.Config),
 		GitCommand:  gitCommand,
 	}
 }
