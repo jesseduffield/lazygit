@@ -1109,3 +1109,7 @@ func (c *GitCommand) DeleteTag(tagName string) error {
 func (c *GitCommand) PushTag(remoteName string, tagName string) error {
 	return c.OSCommand.RunCommand("git push %s %s", remoteName, tagName)
 }
+
+func (c *GitCommand) FetchRemote(remoteName string) error {
+	return c.OSCommand.RunCommand("git fetch %s", remoteName)
+}

@@ -176,3 +176,18 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 		})
 	})
 }
+
+func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
+	remote := gui.getSelectedRemote()
+	if remote == nil {
+		return nil
+	}
+
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("FetchingRemoteStatus"), func() error {
+		if err := gui.GitCommand.FetchRemote(remote.Name); err != nil {
+			return err
+		}
+
+		return gui.refreshRemotes()
+	})
+}
