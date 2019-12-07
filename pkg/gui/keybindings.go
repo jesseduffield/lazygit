@@ -455,6 +455,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("ReturnToRemotesList"),
 		},
 		{
+			ViewName:    "branches",
+			Contexts:    []string{"remotes"},
+			Key:         'f',
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleFetchRemote,
+			Description: gui.Tr.SLocalize("fetchRemote"),
+		},
+		{
 			ViewName:    "commits",
 			Key:         's',
 			Modifier:    gocui.ModNone,
