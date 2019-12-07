@@ -912,6 +912,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CreateTagTitle",
 			Other: "Tag name:",
+		}, &i18n.Message{
+			ID:    "fetchRemote",
+			Other: "fetch remote",
+		}, &i18n.Message{
+			ID:    "FetchingRemoteStatus",
+			Other: "fetching remote",
 		},
 	)
 }
