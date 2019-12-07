@@ -594,7 +594,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
-			Key:         gocui.KeyEnter,
+			Key:         gui.getKey("universal.goInto"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleEnterFile,
 			Description: gui.Tr.SLocalize("StageLines"),
@@ -608,7 +608,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
-			Key:         gui.getKey("files.executeCustomCommand"),
+			Key:         gui.getKey("universal.executeCustomCommand"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCustomCommand,
 			Description: gui.Tr.SLocalize("executeCustomCommand"),
@@ -632,7 +632,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "branches",
 			Contexts:    []string{"local-branches"},
-			Key:         gui.getKey("branches.checkoutBranchesByName"),
+			Key:         gui.getKey("branches.checkoutBranchByName"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCheckoutByName,
 			Description: gui.Tr.SLocalize("checkoutByName"),
@@ -719,13 +719,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "branches",
-			Key:      gui.getKey("branches.nextBranchTab"),
+			Key:      gui.getKey("universal.nextBranchTab"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleNextBranchesTab,
 		},
 		{
 			ViewName: "branches",
-			Key:      gui.getKey("branches.prevBranchTab"),
+			Key:      gui.getKey("universal.prevBranchTab"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handlePrevBranchesTab,
 		},
@@ -760,14 +760,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
-			Key:         gui.getKey("commits.resetToThisCommit"),
+			Key:         gui.getKey("commits.viewResetOptions"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateCommitResetMenu,
 			Description: gui.Tr.SLocalize("resetToThisCommit"),
 		},
 		{
 			ViewName:    "commits",
-			Key:         gui.getKey("commits.fixupCommit"),
+			Key:         gui.getKey("commits.markCommitAsFixup"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitFixup,
 			Description: gui.Tr.SLocalize("fixupCommit"),
@@ -858,7 +858,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
-			Key:         gui.getKey("commits.viewCommitFiles"),
+			Key:         gui.getKey("universal.goInto"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleSwitchToCommitFilesPanel,
 			Description: gui.Tr.SLocalize("viewCommitFiles"),
@@ -977,7 +977,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commitFiles",
-			Key:         gocui.KeyEnter,
+			Key:         gui.getKey("universal.goInto"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleEnterCommitFile,
 			Description: gui.Tr.SLocalize("enterFile"),
@@ -1341,7 +1341,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "branches",
 			Contexts: []string{"remotes"},
-			Key:      gocui.KeyEnter,
+			Key:      gui.getKey("universal.goInto"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleRemoteEnter,
 		},
