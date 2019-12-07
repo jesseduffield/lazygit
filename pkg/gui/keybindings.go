@@ -338,14 +338,14 @@ func (gui *Gui) getKey(name string) interface{} {
 	if len(key) > 1 {
 		binding := keymap[strings.ToLower(key)]
 		if binding == nil {
-			log.Fatal("Unrecognized binding: " + strings.ToLower(key))
+			log.Fatalf("Unrecognized key %s for keybinding %s", strings.ToLower(key), name)
 		} else {
 			return binding
 		}
 	} else if len(key) == 1 {
 		return []rune(key)[0]
 	}
-	log.Fatal("Key empty for function: " + strings.ToLower(name))
+	log.Fatal("Key empty for keybinding: " + strings.ToLower(name))
 	return nil
 }
 
