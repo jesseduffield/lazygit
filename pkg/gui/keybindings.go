@@ -740,7 +740,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "branches",
 			Contexts:    []string{"remotes"},
-			Key:         'f',
+			Key:         gui.getKey("branches.fetchRemote"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleFetchRemote,
 			Description: gui.Tr.SLocalize("fetchRemote"),

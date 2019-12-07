@@ -93,6 +93,7 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       fastForward: 'f' # fast-forward this branch from its upstream
       pushTag: 'P'
       setUpstream: 'u' # set as upstream of checked-out branch
+      fetchRemote: 'f'
     commits:
       squashDown: 's'
       renameCommit: 'r'

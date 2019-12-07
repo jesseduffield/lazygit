@@ -326,6 +326,7 @@ keybinding:
     fastForward: 'f'
     pushTag: 'P'
     setUpstream: 'u'
+    fetchRemote: 'f'
   commits:
     squashDown: 's'
     renameCommit: 'r'
