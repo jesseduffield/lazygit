@@ -50,6 +50,7 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       optionMenu: 'x' # show help menu
       optionMenu-alt1: '?' # show help menu
       select: '<space>'
+      goInto: '<enter>'
       remove: 'd'
       new: 'n'
       edit: 'e'
@@ -60,14 +61,17 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       scrollDownMain-alt1: 'J' # main panel scrool down
       scrollUpMain-alt2: '<c-u>' # main panel scrool up
       scrollDownMain-alt2: '<c-d>' # main panel scrool down
+      executeCustomCommand: 'X'
       createRebaseOptionsMenu: 'm'
       pushFiles: 'P'
       pullFiles: 'p'
       refresh: 'R'
       createPatchOptionsMenu: '<c-p>'
+      nextBranchTab: ']'
+      prevBranchTab: '['
     status:
       checkForUpdate: 'u'
-      recentRepos: 's'
+      recentRepos: '<enter>'
     files:
       commitChanges: 'c'
       commitChangesWithoutHook: 'w' # commit changes without pre-commit hook
@@ -80,24 +84,21 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       toggleStagedAll: 'a' # stage/unstage all
       viewResetOptions: 'D'
       fetch: 'f'
-      executeCustomCommand: 'X'
     branches:
       createPullRequest: 'o'
-      checkoutBranchesByName: 'c'
+      checkoutBranchByName: 'c'
       forceCheckoutBranch: 'F'
       rebaseBranch: 'r'
       mergeIntoCurrentBranch: 'M'
-      FastForward: 'f' # fast-forward this branch from its upstream
+      fastForward: 'f' # fast-forward this branch from its upstream
       pushTag: 'P'
-      nextBranchTab: ']'
-      prevBranchTab: '['
       setUpstream: 'u' # set as upstream of checked-out branch
     commits:
       squashDown: 's'
       renameCommit: 'r'
       renameCommitWithEditor: 'R'
-      resetToThisCommit: 'g'
-      fixupCommit: 'f'
+      viewResetOptions: 'g'
+      markCommitAsFixup: 'f'
       createFixupCommit: 'F' # create fixup commit for this commit
       squashAboveCommits: 'S'
       moveDownCommit: '<c-j>' # move commit down one
@@ -108,7 +109,6 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       cherryPickCopy: 'c'
       cherryPickCopyRange: 'C'
       pasteCommits: 'v'
-      viewCommitFiles: '<enter>'
       tagCommit: 'T'
     stash:
       popStash: 'g'
@@ -199,22 +199,21 @@ For all possible keybinding options, check [Custom_Keybinding.md](https://github
 ```yaml
   keybinding:
     universal:
-      prevItem-alt: 'u' # go one line up
-      nextItem-alt: 'e' # go one line down
-      prevBlock-alt: 'n' # goto the previous block / panel
-      nextBlock-alt: 'i' # goto the next block / panel
+      prevItem-alt: 'u'
+      nextItem-alt: 'e'
+      prevBlock-alt: 'n'
+      nextBlock-alt: 'i'
       new: 'k'
       edit: 'o'
       openFile: 'O'
-      scrollUpMain-alt1: 'U' # main panel scrool up
-      scrollDownMain-alt1: 'E' # main panel scrool down
-      scrollDownMain-alt2: '<c-e>' # main panel scrool down
-    status:
-      checkForUpdate: '<c-u>'
+      scrollUpMain-alt1: 'U'
+      scrollDownMain-alt1: 'E'
+      scrollUpMain-alt2: '<c-u>'
+      scrollDownMain-alt2: '<c-e>'
     files:
       ignoreFile: 'I'
     commits:
-      moveDownCommit: '<c-e>' # move commit down one
-      moveUpCommit: '<c-u>' # move commit up one
+      moveDownCommit: '<c-e>'
+      moveUpCommit: '<c-u>'
 ```
 
