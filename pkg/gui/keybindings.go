@@ -32,6 +32,39 @@ func (b *Binding) GetKey() string {
 	case rune:
 		key = int(b.Key.(rune))
 	case gocui.Key:
+		if b.Key.(gocui.Key) == gocui.KeyCtrlSpace {
+			return "ctrl+space"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyCtrlBackslash {
+			return "ctrl+\\"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyCtrlLsqBracket {
+			return "ctrl+["
+		}
+		if b.Key.(gocui.Key) == gocui.KeyCtrlRsqBracket {
+			return "ctrl+]"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyCtrlSlash {
+			return "ctrl+/"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyCtrlUnderscore {
+			return "ctrl+_"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyBackspace {
+			return "backspace"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyTab {
+			return "tab"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyEnter {
+			return "enter"
+		}
+		if b.Key.(gocui.Key) == gocui.KeyEsc {
+			return "esc"
+		}
+		if b.Key.(gocui.Key) == gocui.KeySpace {
+			return "space"
+		}
 		if b.Key.(gocui.Key) == gocui.KeyCtrlA {
 			return "ctrl+a"
 		}
@@ -133,39 +166,6 @@ func (b *Binding) GetKey() string {
 		}
 		if b.Key.(gocui.Key) == gocui.KeyCtrl8 {
 			return "ctrl+8"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlSpace {
-			return "ctrl+space"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlBackslash {
-			return "ctrl+\\"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlLsqBracket {
-			return "ctrl+["
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlRsqBracket {
-			return "ctrl+]"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlSlash {
-			return "ctrl+/"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlUnderscore {
-			return "ctrl+_"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyBackspace {
-			return "backspace"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyTab {
-			return "tab"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyEnter {
-			return "enter"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyEsc {
-			return "esc"
-		}
-		if b.Key.(gocui.Key) == gocui.KeySpace {
-			return "space"
 		}
 		if b.Key.(gocui.Key) == gocui.KeyF1 {
 			return "f1"
