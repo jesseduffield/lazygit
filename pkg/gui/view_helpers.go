@@ -102,7 +102,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
-		return gui.handleFileSelect(g, v)
+		return gui.focusAndSelectFile(g, v)
 	case "branches":
 		branchesView := gui.getBranchesView()
 		switch branchesView.Context {
