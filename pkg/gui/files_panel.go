@@ -27,15 +27,7 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 	return gui.State.Files[selectedLine], nil
 }
 
-func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
-	return gui.selectFile(false)
-}
-
 func (gui *Gui) selectFile(alreadySelected bool) error {
-	if _, err := gui.g.SetCurrentView("files"); err != nil {
-		return err
-	}
-
 	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
@@ -221,6 +213,14 @@ func (gui *Gui) allFilesStaged() bool {
 	return true
 }
 
+func (gui *Gui) focusAndSelectFile(g *gocui.Gui, v *gocui.View) error {
+	if _, err := gui.g.SetCurrentView("files"); err != nil {
+		return err
+	}
+
+	return gui.selectFile(false)
+}
+
 func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 	var err error
 	if gui.allFilesStaged() {
@@ -236,7 +236,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	return gui.handleFileSelect(gui.g, v)
+	return gui.selectFile(false)
 }
 
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
