@@ -286,7 +286,12 @@ func (c *CommitListBuilder) getUnpushedCommits() map[string]bool {
 func (c *CommitListBuilder) getLog() string {
 	// currently limiting to 30 for performance reasons
 	// TODO: add lazyloading when you scroll down
-	result, err := c.OSCommand.RunCommandWithOutput("git log --oneline -30")
+	filterPath := c.GitCommand.Config.GetFilterLogPath()
+	command := "git log --oneline -30"
+	if filterPath != "" {
+		command = command + " " + filterPath
+	}
+	result, err := c.OSCommand.RunCommandWithOutput(command)
 	if err != nil {
 		// assume if there is an error there are no commits yet for this branch
 		return ""

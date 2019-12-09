@@ -14,6 +14,7 @@ import (
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
 	Debug         bool   `long:"debug" env:"DEBUG" default:"false"`
+	FilterLogPath string `long:"filterLogPath"`
 	Version       string `long:"version" env:"VERSION" default:"unversioned"`
 	Commit        string `long:"commit" env:"COMMIT"`
 	BuildDate     string `long:"build-date" env:"BUILD_DATE"`
@@ -29,6 +30,7 @@ type AppConfig struct {
 // from AppConfig and still be used by lazygit.
 type AppConfigurer interface {
 	GetDebug() bool
+	GetFilterLogPath() string
 	GetVersion() string
 	GetCommit() string
 	GetBuildDate() string
@@ -45,7 +47,7 @@ type AppConfigurer interface {
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
+func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool, filterLogPath string) (*AppConfig, error) {
 	userConfig, userConfigPath, err := LoadConfig("config", true)
 	if err != nil {
 		return nil, err
@@ -61,6 +63,7 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		Commit:        commit,
 		BuildDate:     date,
 		Debug:         debuggingFlag,
+		FilterLogPath: filterLogPath,
 		BuildSource:   buildSource,
 		UserConfig:    userConfig,
 		UserConfigDir: filepath.Dir(userConfigPath),
@@ -88,6 +91,11 @@ func (c *AppConfig) SetIsNewRepo(toSet bool) {
 // GetDebug returns debug flag
 func (c *AppConfig) GetDebug() bool {
 	return c.Debug
+}
+
+// getFilterLogPath returns filter path
+func (c *AppConfig) GetFilterLogPath() string {
+	return c.FilterLogPath
 }
 
 // GetVersion returns debug flag

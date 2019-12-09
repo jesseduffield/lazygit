@@ -31,6 +31,9 @@ func main() {
 	repoPath := "."
 	flaggy.String(&repoPath, "p", "path", "Path of git repo")
 
+	filterLogFlag := false
+	flaggy.Bool(&filterLogFlag, "f", "filter", "Filter current path logs of git repo")
+
 	dump := ""
 	flaggy.AddPositionalValue(&dump, "gitargs", 1, false, "Todo file")
 	flaggy.DefaultParser.PositionalFlags[0].Hidden = true
@@ -62,7 +65,16 @@ func main() {
 		}
 	}
 
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
+	filterLogPath := ""
+	if filterLogFlag {
+		dir, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		filterLogPath = dir
+	}
+
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag, filterLogPath)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
