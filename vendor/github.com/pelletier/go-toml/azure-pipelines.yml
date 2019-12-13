@@ -1,0 +1,167 @@
+trigger:
+- master
+
+stages:
+- stage: fuzzit
+  displayName: "Run Fuzzit"
+  dependsOn: []
+  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+  jobs:
+  - job: submit
+    displayName: "Submit"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: GoTool@0
+      displayName: "Install Go 1.13"
+      inputs:
+        version: "1.13"
+    - script: echo "##vso[task.setvariable variable=PATH]${PATH}:/home/vsts/go/bin/"
+    - script: mkdir -p ${HOME}/go/src/github.com/pelletier/go-toml
+    - script: cp -R . ${HOME}/go/src/github.com/pelletier/go-toml
+    - task: Bash@3
+      inputs:
+        filePath: './fuzzit.sh'
+      env:
+        TYPE: fuzzing
+        FUZZIT_API_KEY: $(FUZZIT_API_KEY)
+
+- stage: run_checks
+  displayName: "Check"
+  dependsOn: []
+  jobs:
+  - job: fmt
+    displayName: "fmt"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: GoTool@0
+      displayName: "Install Go 1.13"
+      inputs:
+        version: "1.13"
+    - task: Go@0
+      displayName: "go fmt ./..."
+      inputs:
+        command: 'custom'
+        customCommand: 'fmt'
+        arguments: './...'
+  - job: coverage
+    displayName: "coverage"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: GoTool@0
+      displayName: "Install Go 1.13"
+      inputs:
+        version: "1.13"
+    - task: Go@0
+      displayName: "Generate coverage"
+      inputs:
+        command: 'test'
+        arguments: "-race -coverprofile=coverage.txt -covermode=atomic"
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'bash <(curl -s https://codecov.io/bash) -t $(CODECOV_TOKEN)'
+  - job: benchmark
+    displayName: "benchmark"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: GoTool@0
+      displayName: "Install Go 1.13"
+      inputs:
+        version: "1.13"
+    - script: echo "##vso[task.setvariable variable=PATH]${PATH}:/home/vsts/go/bin/"
+    - task: Bash@3
+      inputs:
+        filePath: './benchmark.sh'
+        arguments: "master $(Build.Repository.Uri)"
+
+  - job: fuzzing
+    displayName: "fuzzing"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: GoTool@0
+      displayName: "Install Go 1.13"
+      inputs:
+        version: "1.13"
+    - script: echo "##vso[task.setvariable variable=PATH]${PATH}:/home/vsts/go/bin/"
+    - script: mkdir -p ${HOME}/go/src/github.com/pelletier/go-toml
+    - script: cp -R . ${HOME}/go/src/github.com/pelletier/go-toml
+    - task: Bash@3
+      inputs:
+        filePath: './fuzzit.sh'
+      env:
+        TYPE: local-regression
+
+  - job: go_unit_tests
+    displayName: "unit tests"
+    strategy:
+      matrix:
+        linux 1.13:
+          goVersion: '1.13'
+          imageName: 'ubuntu-latest'
+        mac 1.13:
+          goVersion: '1.13'
+          imageName: 'macos-10.13'
+        windows 1.13:
+          goVersion: '1.13'
+          imageName: 'vs2017-win2016'
+        linux 1.12:
+          goVersion: '1.12'
+          imageName: 'ubuntu-latest'
+        mac 1.12:
+          goVersion: '1.12'
+          imageName: 'macos-10.13'
+        windows 1.12:
+          goVersion: '1.12'
+          imageName: 'vs2017-win2016'
+    pool:
+      vmImage: $(imageName)
+    steps:
+    - task: GoTool@0
+      displayName: "Install Go $(goVersion)"
+      inputs:
+        version: $(goVersion)
+    - task: Go@0
+      displayName: "go test ./..."
+      inputs:
+        command: 'test'
+        arguments: './...'
+
+- stage: build_docker_image
+  displayName: "Build Docker image"
+  dependsOn: run_checks
+  jobs:
+  - job: build
+    displayName: "Build"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      inputs:
+        command: 'build'
+        Dockerfile: 'Dockerfile'
+        buildContext: '.'
+        addPipelineData: false
+
+- stage: publish_docker_image
+  displayName: "Publish Docker image"
+  dependsOn: build_docker_image
+  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+  jobs:
+  - job: publish
+    displayName: "Publish"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'DockerHub'
+        repository: 'pelletier/go-toml'
+        command: 'buildAndPush'
+        Dockerfile: 'Dockerfile'
+        buildContext: '.'
+        tags: 'latest'

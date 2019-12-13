@@ -172,41 +172,57 @@ Other more specific types can also be used as flag types.  They will be automati
 - time.Duration
 - []time.Duration
 
-# Recommended Program Structure
+# An Example Program
 
-Best practice when using flaggy includes setting your program's name, description, and version (at build time).
+Best practice when using flaggy includes setting your program's name, description, and version (at build time) as shown in this example program.
 
 ```go
 package main
 
 import "github.com/integrii/flaggy"
 
-// make a variable for the version which will be set at build time
+// Make a variable for the version which will be set at build time.
 var version = "unknown"
 
-// keep subcommands as globals so you can easily check if they were used later on
+// Keep subcommands as globals so you can easily check if they were used later on.
 var mySubcommand *flaggy.Subcommand
+
+// Setup the variables you want your incoming flags to set.
+var testVar string
+
+// If you would like an environment variable as the default for a value, just populate the flag
+// with the value of the environment by default.  If the flag corresponding to this value is not
+// used, then it will not be changed.
+var myVar = os.Getenv("MY_VAR")
+
 
 func init() {
   // Set your program's name and description.  These appear in help output.
   flaggy.SetName("Test Program")
   flaggy.SetDescription("A little example program")
 
-  // you can disable various things by changing bools on the default parser
-  // (or your own parser if you have created one)
+  // You can disable various things by changing bools on the default parser
+  // (or your own parser if you have created one).
   flaggy.DefaultParser.ShowHelpOnUnexpected = false
 
-  // you can set a help prepend or append on the default parser
+  // You can set a help prepend or append on the default parser.
   flaggy.DefaultParser.AdditionalHelpPrepend = "http://github.com/integrii/flaggy"
+  
+  // Add a flag to the main program (this will be available in all subcommands as well).
+  flaggy.String(&testVar, "tv", "testVariable", "A variable just for testing things!")
 
-  // create any subcommands and set their parameters
+  // Create any subcommands and set their parameters.
   mySubcommand = flaggy.NewSubcommand("mySubcommand")
   mySubcommand.Description = "My great subcommand!"
+  
+  // Add a flag to the subcommand.
+  mySubcommand.String(&myVar, "mv", "myVariable", "A variable just for me!")
 
-  // set the version and parse all inputs into variables
+  // Set the version and parse all inputs into variables.
   flaggy.SetVersion(version)
   flaggy.Parse()
 }
+
 func main(){
     if mySubcommand.Used {
       ...

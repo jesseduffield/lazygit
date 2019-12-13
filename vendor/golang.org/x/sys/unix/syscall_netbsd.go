@@ -249,6 +249,14 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 	return sendfile(outfd, infd, offset, count)
 }
 
+func Fstatvfs(fd int, buf *Statvfs_t) (err error) {
+	return Fstatvfs1(fd, buf, ST_WAIT)
+}
+
+func Statvfs(path string, buf *Statvfs_t) (err error) {
+	return Statvfs1(path, buf, ST_WAIT)
+}
+
 /*
  * Exposed directly
  */
@@ -287,6 +295,7 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 //sys	Fpathconf(fd int, name int) (val int, err error)
 //sys	Fstat(fd int, stat *Stat_t) (err error)
 //sys	Fstatat(fd int, path string, stat *Stat_t, flags int) (err error)
+//sys	Fstatvfs1(fd int, buf *Statvfs_t) (err error) = SYS_FSTATVFS1
 //sys	Fsync(fd int) (err error)
 //sys	Ftruncate(fd int, length int64) (err error)
 //sysnb	Getegid() (egid int)
@@ -343,6 +352,7 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 //sysnb	Settimeofday(tp *Timeval) (err error)
 //sysnb	Setuid(uid int) (err error)
 //sys	Stat(path string, stat *Stat_t) (err error)
+//sys	Statvfs1(path string, buf *Statvfs_t) (err error) = SYS_STATVFS1
 //sys	Symlink(path string, link string) (err error)
 //sys	Symlinkat(oldpath string, newdirfd int, newpath string) (err error)
 //sys	Sync() (err error)
