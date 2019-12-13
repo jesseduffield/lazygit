@@ -44,6 +44,7 @@ includes_AIX='
 #include <sys/stropts.h>
 #include <sys/mman.h>
 #include <sys/poll.h>
+#include <sys/select.h>
 #include <sys/termio.h>
 #include <termios.h>
 #include <fcntl.h>
@@ -196,6 +197,7 @@ struct ltchars {
 #include <linux/fanotify.h>
 #include <linux/filter.h>
 #include <linux/fs.h>
+#include <linux/fscrypt.h>
 #include <linux/genetlink.h>
 #include <linux/hdreg.h>
 #include <linux/icmpv6.h>
@@ -495,7 +497,9 @@ ccflags="$@"
 		$2 ~ /^CAN_/ ||
 		$2 ~ /^CAP_/ ||
 		$2 ~ /^ALG_/ ||
-		$2 ~ /^FS_(POLICY_FLAGS|KEY_DESC|ENCRYPTION_MODE|[A-Z0-9_]+_KEY_SIZE|IOC_(GET|SET)_ENCRYPTION)/ ||
+		$2 ~ /^FS_(POLICY_FLAGS|KEY_DESC|ENCRYPTION_MODE|[A-Z0-9_]+_KEY_SIZE)/ ||
+		$2 ~ /^FS_IOC_.*ENCRYPTION/ ||
+		$2 ~ /^FSCRYPT_/ ||
 		$2 ~ /^GRND_/ ||
 		$2 ~ /^RND/ ||
 		$2 ~ /^KEY_(SPEC|REQKEY_DEFL)_/ ||

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 reference_ref=${1:-master}
 reference_git=${2:-.}
@@ -8,7 +8,6 @@ reference_git=${2:-.}
 if ! `hash benchstat 2>/dev/null`; then
     echo "Installing benchstat"
     go get golang.org/x/perf/cmd/benchstat
-    go install golang.org/x/perf/cmd/benchstat
 fi
 
 tempdir=`mktemp -d /tmp/go-toml-benchmark-XXXXXX`

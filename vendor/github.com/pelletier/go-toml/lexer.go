@@ -223,9 +223,12 @@ func (l *tomlLexer) lexRvalue() tomlLexStateFn {
 		}
 
 		possibleDate := l.peekString(35)
-		dateMatch := dateRegexp.FindString(possibleDate)
-		if dateMatch != "" {
-			l.fastForward(len(dateMatch))
+		dateSubmatches := dateRegexp.FindStringSubmatch(possibleDate)
+		if dateSubmatches != nil && dateSubmatches[0] != "" {
+			l.fastForward(len(dateSubmatches[0]))
+			if dateSubmatches[2] == "" { // no timezone information => local date
+				return l.lexLocalDate
+			}
 			return l.lexDate
 		}
 
@@ -247,17 +250,22 @@ func (l *tomlLexer) lexRvalue() tomlLexStateFn {
 func (l *tomlLexer) lexLeftCurlyBrace() tomlLexStateFn {
 	l.next()
 	l.emit(tokenLeftCurlyBrace)
-	return l.lexRvalue
+	return l.lexVoid
 }
 
 func (l *tomlLexer) lexRightCurlyBrace() tomlLexStateFn {
 	l.next()
 	l.emit(tokenRightCurlyBrace)
-	return l.lexRvalue
+	return l.lexVoid
 }
 
 func (l *tomlLexer) lexDate() tomlLexStateFn {
 	l.emit(tokenDate)
+	return l.lexRvalue
+}
+
+func (l *tomlLexer) lexLocalDate() tomlLexStateFn {
+	l.emit(tokenLocalDate)
 	return l.lexRvalue
 }
 
@@ -309,7 +317,7 @@ func (l *tomlLexer) lexKey() tomlLexStateFn {
 			if err != nil {
 				return l.errorf(err.Error())
 			}
-			growingString += str
+			growingString += "\"" + str + "\""
 			l.next()
 			continue
 		} else if r == '\'' {
@@ -318,13 +326,15 @@ func (l *tomlLexer) lexKey() tomlLexStateFn {
 			if err != nil {
 				return l.errorf(err.Error())
 			}
-			growingString += str
+			growingString += "'" + str + "'"
 			l.next()
 			continue
 		} else if r == '\n' {
 			return l.errorf("keys cannot contain new lines")
 		} else if isSpace(r) {
 			break
+		} else if r == '.' {
+			// skip
 		} else if !isValidBareChar(r) {
 			return l.errorf("keys cannot contain %c character", r)
 		}
@@ -731,7 +741,27 @@ func (l *tomlLexer) run() {
 }
 
 func init() {
-	dateRegexp = regexp.MustCompile(`^\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})`)
+	// Regexp for all date/time formats supported by TOML.
+	// Group 1: nano precision
+	// Group 2: timezone
+	//
+	// /!\ also matches the empty string
+	//
+	// Example matches:
+	//1979-05-27T07:32:00Z
+	//1979-05-27T00:32:00-07:00
+	//1979-05-27T00:32:00.999999-07:00
+	//1979-05-27 07:32:00Z
+	//1979-05-27 00:32:00-07:00
+	//1979-05-27 00:32:00.999999-07:00
+	//1979-05-27T07:32:00
+	//1979-05-27T00:32:00.999999
+	//1979-05-27 07:32:00
+	//1979-05-27 00:32:00.999999
+	//1979-05-27
+	//07:32:00
+	//00:32:00.999999
+	dateRegexp = regexp.MustCompile(`^(?:\d{1,4}-\d{2}-\d{2})?(?:[T ]?\d{2}:\d{2}:\d{2}(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})?)?`)
 }
 
 // Entry point

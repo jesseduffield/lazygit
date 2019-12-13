@@ -1,29 +1,20 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
-*.o
-*.a
-*.so
+/bin/
+/build/
+/var/
+/vendor/
 
-# Folders
-_obj
-_test
-
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
-
-*.cgo1.go
-*.cgo2.c
-_cgo_defun.c
-_cgo_gotypes.go
-_cgo_export.*
-
-_testmain.go
-
-*.exe
-*.test
-*.bench
-
-.vscode
-
-# exclude dependencies in the `/vendor` folder
-vendor
+# IDE integration
+/.vscode/*
+!/.vscode/launch.json
+!/.vscode/tasks.json
+/.idea/*
+!/.idea/codeStyles/
+!/.idea/copyright/
+!/.idea/dataSources.xml
+!/.idea/*.iml
+!/.idea/externalDependencies.xml
+!/.idea/go.imports.xml
+!/.idea/modules.xml
+!/.idea/runConfigurations/
+!/.idea/scopes/
+!/.idea/sqldialects.xml
