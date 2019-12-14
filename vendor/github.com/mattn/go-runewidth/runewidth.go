@@ -102,11 +102,9 @@ func NewCondition() *Condition {
 // See http://www.unicode.org/reports/tr11/
 func (c *Condition) RuneWidth(r rune) int {
 	switch {
-	case r < 0 || r > 0x10FFFF ||
-		inTables(r, nonprint, combining, notassigned):
+	case r < 0 || r > 0x10FFFF || inTables(r, nonprint, combining, notassigned):
 		return 0
-	case (c.EastAsianWidth && IsAmbiguousWidth(r)) ||
-		inTables(r, doublewidth, emoji):
+	case (c.EastAsianWidth && IsAmbiguousWidth(r)) || inTables(r, doublewidth):
 		return 2
 	default:
 		return 1
@@ -128,9 +126,12 @@ func (c *Condition) stringWidthZeroJoiner(s string) (width int) {
 		}
 		w := c.RuneWidth(r)
 		if r2 == 0x200D && inTables(r, emoji) && inTables(r1, emoji) {
-			w = 0
+			if width < w {
+				width = w
+			}
+		} else {
+			width += w
 		}
-		width += w
 		r1, r2 = r2, r
 	}
 	return width

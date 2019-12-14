@@ -77,8 +77,10 @@ func (p *tomlParser) parseStart() tomlParserStateFn {
 		return p.parseAssign
 	case tokenEOF:
 		return nil
+	case tokenError:
+		p.raiseError(tok, "parsing error: %s", tok.String())
 	default:
-		p.raiseError(tok, "unexpected token")
+		p.raiseError(tok, "unexpected token %s", tok.typ)
 	}
 	return nil
 }
@@ -165,6 +167,11 @@ func (p *tomlParser) parseAssign() tomlParserStateFn {
 	key := p.getToken()
 	p.assume(tokenEqual)
 
+	parsedKey, err := parseKey(key.val)
+	if err != nil {
+		p.raiseError(key, "invalid key: %s", err.Error())
+	}
+
 	value := p.parseRvalue()
 	var tableKey []string
 	if len(p.currentTable) > 0 {
@@ -173,6 +180,9 @@ func (p *tomlParser) parseAssign() tomlParserStateFn {
 		tableKey = []string{}
 	}
 
+	prefixKey := parsedKey[0 : len(parsedKey)-1]
+	tableKey = append(tableKey, prefixKey...)
+
 	// find the table to assign, looking out for arrays of tables
 	var targetNode *Tree
 	switch node := p.tree.GetPath(tableKey).(type) {
@@ -180,17 +190,19 @@ func (p *tomlParser) parseAssign() tomlParserStateFn {
 		targetNode = node[len(node)-1]
 	case *Tree:
 		targetNode = node
+	case nil:
+		// create intermediate
+		if err := p.tree.createSubTree(tableKey, key.Position); err != nil {
+			p.raiseError(key, "could not create intermediate group: %s", err)
+		}
+		targetNode = p.tree.GetPath(tableKey).(*Tree)
 	default:
 		p.raiseError(key, "Unknown table type for path: %s",
 			strings.Join(tableKey, "."))
 	}
 
 	// assign value to the found table
-	keyVals := []string{key.val}
-	if len(keyVals) != 1 {
-		p.raiseError(key, "Invalid key")
-	}
-	keyVal := keyVals[0]
+	keyVal := parsedKey[len(parsedKey)-1]
 	localKey := []string{keyVal}
 	finalKey := append(tableKey, keyVal)
 	if targetNode.GetPath(localKey) != nil {
@@ -301,7 +313,41 @@ func (p *tomlParser) parseRvalue() interface{} {
 		}
 		return val
 	case tokenDate:
-		val, err := time.ParseInLocation(time.RFC3339Nano, tok.val, time.UTC)
+		layout := time.RFC3339Nano
+		if !strings.Contains(tok.val, "T") {
+			layout = strings.Replace(layout, "T", " ", 1)
+		}
+		val, err := time.ParseInLocation(layout, tok.val, time.UTC)
+		if err != nil {
+			p.raiseError(tok, "%s", err)
+		}
+		return val
+	case tokenLocalDate:
+		v := strings.Replace(tok.val, " ", "T", -1)
+		isDateTime := false
+		isTime := false
+		for _, c := range v {
+			if c == 'T' || c == 't' {
+				isDateTime = true
+				break
+			}
+			if c == ':' {
+				isTime = true
+				break
+			}
+		}
+
+		var val interface{}
+		var err error
+
+		if isDateTime {
+			val, err = ParseLocalDateTime(v)
+		} else if isTime {
+			val, err = ParseLocalTime(v)
+		} else {
+			val, err = ParseLocalDate(v)
+		}
+
 		if err != nil {
 			p.raiseError(tok, "%s", err)
 		}
@@ -338,18 +384,21 @@ Loop:
 		case tokenRightCurlyBrace:
 			p.getToken()
 			break Loop
-		case tokenKey:
+		case tokenKey, tokenInteger, tokenString:
 			if !tokenIsComma(previous) && previous != nil {
 				p.raiseError(follow, "comma expected between fields in inline table")
 			}
 			key := p.getToken()
 			p.assume(tokenEqual)
-			value := p.parseRvalue()
-			tree.Set(key.val, value)
-		case tokenComma:
-			if previous == nil {
-				p.raiseError(follow, "inline table cannot start with a comma")
+
+			parsedKey, err := parseKey(key.val)
+			if err != nil {
+				p.raiseError(key, "invalid key: %s", err)
 			}
+
+			value := p.parseRvalue()
+			tree.SetPath(parsedKey, value)
+		case tokenComma:
 			if tokenIsComma(previous) {
 				p.raiseError(follow, "need field between two commas in inline table")
 			}

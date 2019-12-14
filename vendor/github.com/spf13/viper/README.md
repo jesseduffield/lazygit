@@ -2,6 +2,10 @@
 
 Go configuration with fangs!
 
+[![Actions](https://github.com/spf13/viper/workflows/CI/badge.svg)](https://github.com/spf13/viper)
+[![Join the chat at https://gitter.im/spf13/viper](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/spf13/viper?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GoDoc](https://godoc.org/github.com/spf13/viper?status.svg)](https://godoc.org/github.com/spf13/viper)
+
 Many Go projects are built using Viper including:
 
 * [Hugo](http://gohugo.io)
@@ -12,13 +16,15 @@ Many Go projects are built using Viper including:
 * [BloomApi](https://www.bloomapi.com/)
 * [doctl](https://github.com/digitalocean/doctl)
 * [Clairctl](https://github.com/jgsqware/clairctl)
+* [Mercure](https://mercure.rocks)
 
-[![Build Status](https://travis-ci.org/spf13/viper.svg)](https://travis-ci.org/spf13/viper) [![Join the chat at https://gitter.im/spf13/viper](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/spf13/viper?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![GoDoc](https://godoc.org/github.com/spf13/viper?status.svg)](https://godoc.org/github.com/spf13/viper)
 
 ## Install
+
 ```console
-go get -u github.com/spf13/viper
+go get github.com/spf13/viper
 ```
+
 
 ## What is Viper?
 
@@ -35,8 +41,8 @@ and formats. It supports:
 * reading from buffer
 * setting explicit values
 
-Viper can be thought of as a registry for all of your applications
-configuration needs.
+Viper can be thought of as a registry for all of your applications configuration needs.
+
 
 ## Why Viper?
 
@@ -46,34 +52,31 @@ Viper is here to help with that.
 
 Viper does the following for you:
 
-1. Find, load, and unmarshal a configuration file in JSON, TOML, YAML, HCL, envfile or Java properties formats.
-2. Provide a mechanism to set default values for your different
-   configuration options.
-3. Provide a mechanism to set override values for options specified through
-   command line flags.
-4. Provide an alias system to easily rename parameters without breaking existing
-   code.
-5. Make it easy to tell the difference between when a user has provided a
-   command line or config file which is the same as the default.
+1. Find, load, and unmarshal a configuration file in JSON, TOML, YAML, HCL, INI, envfile or Java properties formats.
+2. Provide a mechanism to set default values for your different configuration options.
+3. Provide a mechanism to set override values for options specified through command line flags.
+4. Provide an alias system to easily rename parameters without breaking existing code.
+5. Make it easy to tell the difference between when a user has provided a command line or config file which is the same as the default.
 
-Viper uses the following precedence order. Each item takes precedence over the
-item below it:
+Viper uses the following precedence order. Each item takes precedence over the item below it:
 
- * explicit call to Set
+ * explicit call to `Set`
  * flag
  * env
  * config
  * key/value store
  * default
 
-Viper configuration keys are case insensitive.
+**Important:** Viper configuration keys are case insensitive.
+There are ongoing discussions about making that optional.
+
 
 ## Putting Values into Viper
 
 ### Establishing Defaults
 
 A good configuration system will support default values. A default value is not
-required for a key, but it’s useful in the event that a key hasn’t been set via
+required for a key, but it’s useful in the event that a key hasn't been set via
 config file, environment variable, remote configuration or flag.
 
 Examples:
@@ -87,7 +90,7 @@ viper.SetDefault("Taxonomies", map[string]string{"tag": "tags", "category": "cat
 ### Reading Config Files
 
 Viper requires minimal configuration so it knows where to look for config files.
-Viper supports JSON, TOML, YAML, HCL, envfile and Java Properties files. Viper can search multiple paths, but
+Viper supports JSON, TOML, YAML, HCL, INI, envfile and Java Properties files. Viper can search multiple paths, but
 currently a single Viper instance only supports a single configuration file.
 Viper does not default to any configuration search paths leaving defaults decision
 to an application.
@@ -120,6 +123,8 @@ if err := viper.ReadInConfig(); err != nil {
 
 // Config file found and successfully parsed
 ```
+
+*NOTE:* You can also have a file without an extension and specify the format programmaticaly. For those configuration files that lie in the home of the user without any extension like `.bashrc`
 
 ### Writing Config Files
 
@@ -257,6 +262,9 @@ prefixed with the `EnvPrefix` if set.
 keys to an extent. This is useful if you want to use `-` or something in your
 `Get()` calls, but want your environmental variables to use `_` delimiters. An
 example of using it can be found in `viper_test.go`.
+
+Alternatively, you can use `EnvKeyReplacer` with `NewWithOptions` factory function.
+Unlike `SetEnvKeyReplacer`, it accepts a `StringReplacer` interface allowing you to write custom string replacing logic.
 
 By default empty environment variables are considered unset and will fall back to
 the next configuration source. To treat empty environment variables as set, use
@@ -658,6 +666,32 @@ if err != nil {
 }
 ```
 
+If you want to unmarshal configuration where the keys themselves contain dot (the default key delimiter),
+you have to change the delimiter:
+
+```go
+v := viper.NewWithOptions(viper.KeyDelimiter("::"))
+
+v.SetDefault("chart::values", map[string]interface{}{
+    "ingress": map[string]interface{}{
+        "annotations": map[string]interface{}{
+            "traefik.frontend.rule.type":                 "PathPrefix",
+            "traefik.ingress.kubernetes.io/ssl-redirect": "true",
+        },
+    },
+})
+
+type config struct {
+	Chart struct{
+        Values map[string]interface{}
+    }
+}
+
+var C config
+
+v.Unmarshal(&C)
+```
+
 Viper uses [github.com/mitchellh/mapstructure](https://github.com/mitchellh/mapstructure) under the hood for unmarshaling values which uses `mapstructure` tags by default.
 
 ### Marshalling to string
@@ -714,13 +748,6 @@ When working with multiple vipers, it is up to the user to keep track of the
 different vipers.
 
 ## Q & A
-
-Q: Why not INI files?
-
-A: Ini files are pretty awful. There’s no standard format, and they are hard to
-validate. Viper is designed to work with JSON, TOML or YAML files. If someone
-really wants to add this feature, I’d be happy to merge it. It’s easy to specify
-which formats your application will permit.
 
 Q: Why is it called “Viper”?
 

@@ -91,6 +91,15 @@ and the git version which builds from the most recent commit.
 Instruction of how to install AUR content can be found here:
 https://wiki.archlinux.org/index.php/Arch_User_Repository
 
+### Fedora and CentOS 7
+
+Packages for Fedora and CentOS 7 are available via [Copr](https://copr.fedorainfracloud.org/coprs/atim/lazygit/) (Cool Other Package Repo).
+
+```sh
+sudo dnf copr enable atim/lazygit -y
+sudo dnf install lazygit
+```
+
 ### Conda
 
 Released versions are available for different platforms, see https://anaconda.org/conda-forge/lazygit
