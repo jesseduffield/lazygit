@@ -36,6 +36,9 @@ func (b *Binding) GetKey() string {
 		if b.Key.(gocui.Key) == gocui.KeyCtrlK {
 			return "ctrl+k"
 		}
+		if b.Key.(gocui.Key) == gocui.KeyCtrlP {
+			return "ctrl+p"
+		}
 		key = int(b.Key.(gocui.Key))
 	}
 
@@ -140,6 +143,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "",
+			Key:         gocui.KeyCtrlP,
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreatePatchOptionsMenu,
+			Description: gui.Tr.SLocalize("ViewPatchOptions"),
+		},
+		{
+			ViewName:    "",
 			Key:         'P',
 			Modifier:    gocui.ModNone,
 			Handler:     gui.pushFiles,
@@ -176,12 +186,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:      gocui.MouseMiddle,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCreateOptionsMenu,
-		},
-		{
-			ViewName: "",
-			Key:      gocui.KeyCtrlP,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleCreatePatchOptionsMenu,
 		},
 		{
 			ViewName:    "status",

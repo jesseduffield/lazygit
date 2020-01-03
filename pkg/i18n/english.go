@@ -823,6 +823,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "toggleAddToPatch",
 			Other: "toggle file included in patch",
 		}, &i18n.Message{
+			ID:    "ViewPatchOptions",
+			Other: "view custom patch options",
+		}, &i18n.Message{
 			ID:    "PatchOptionsTitle",
 			Other: "Patch Options",
 		}, &i18n.Message{
