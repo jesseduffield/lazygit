@@ -423,6 +423,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "",
+			Key:         gui.getKey("universal.createPatchOptionsMenu"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreatePatchOptionsMenu,
+			Description: gui.Tr.SLocalize("ViewPatchOptions"),
+		},
+		{
+			ViewName:    "",
 			Key:         gui.getKey("universal.pushFiles"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.pushFiles,
@@ -459,12 +466,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:      gocui.MouseMiddle,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCreateOptionsMenu,
-		},
-		{
-			ViewName: "",
-			Key:      gui.getKey("universal.createPatchOptionsMenu"),
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleCreatePatchOptionsMenu,
 		},
 		{
 			ViewName:    "status",
