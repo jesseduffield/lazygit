@@ -628,7 +628,7 @@ func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	c.Log.Warn(patch)
-	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format(time.StampNano)+".patch")
+	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
 	}
