@@ -24,6 +24,65 @@ func (b *Binding) GetDisplayStrings(isFocused bool) []string {
 	return []string{b.GetKey(), b.Description}
 }
 
+var keyMapReversed = map[gocui.Key]string{
+	gocui.KeyF1:         "f1",
+	gocui.KeyF2:         "f2",
+	gocui.KeyF3:         "f3",
+	gocui.KeyF4:         "f4",
+	gocui.KeyF5:         "f5",
+	gocui.KeyF6:         "f6",
+	gocui.KeyF7:         "f7",
+	gocui.KeyF8:         "f8",
+	gocui.KeyF9:         "f9",
+	gocui.KeyF10:        "f10",
+	gocui.KeyF11:        "f11",
+	gocui.KeyF12:        "f12",
+	gocui.KeyInsert:     "insert",
+	gocui.KeyDelete:     "delete",
+	gocui.KeyHome:       "home",
+	gocui.KeyEnd:        "end",
+	gocui.KeyPgup:       "pgup",
+	gocui.KeyPgdn:       "pgdown",
+	gocui.KeyArrowUp:    "up",
+	gocui.KeyArrowDown:  "down",
+	gocui.KeyArrowLeft:  "left",
+	gocui.KeyArrowRight: "right",
+	gocui.KeyTab:        "tab",        // ctrl+i
+	gocui.KeyEnter:      "enter",      // ctrl+m
+	gocui.KeyEsc:        "esc",        // ctrl+[, ctrl+3
+	gocui.KeyBackspace:  "backspace",  // ctrl+h
+	gocui.KeyCtrlSpace:  "ctrl+space", // ctrl+~, ctrl+2
+	gocui.KeyCtrlSlash:  "ctrl+/",
+	gocui.KeySpace:      "space",
+	gocui.KeyCtrlA:      "ctrl+a",
+	gocui.KeyCtrlB:      "ctrl+b",
+	gocui.KeyCtrlC:      "ctrl+c",
+	gocui.KeyCtrlD:      "ctrl+d",
+	gocui.KeyCtrlE:      "ctrl+e",
+	gocui.KeyCtrlF:      "ctrl+f",
+	gocui.KeyCtrlG:      "ctrl+g",
+	gocui.KeyCtrlJ:      "ctrl+j",
+	gocui.KeyCtrlK:      "ctrl+k",
+	gocui.KeyCtrlL:      "ctrl+l",
+	gocui.KeyCtrlN:      "ctrl+n",
+	gocui.KeyCtrlO:      "ctrl+o",
+	gocui.KeyCtrlP:      "ctrl+p",
+	gocui.KeyCtrlQ:      "ctrl+q",
+	gocui.KeyCtrlR:      "ctrl+r",
+	gocui.KeyCtrlS:      "ctrl+s",
+	gocui.KeyCtrlT:      "ctrl+t",
+	gocui.KeyCtrlU:      "ctrl+u",
+	gocui.KeyCtrlV:      "ctrl+v",
+	gocui.KeyCtrlW:      "ctrl+w",
+	gocui.KeyCtrlX:      "ctrl+x",
+	gocui.KeyCtrlY:      "ctrl+y",
+	gocui.KeyCtrlZ:      "ctrl+z",
+	gocui.KeyCtrl4:      "ctrl+4",
+	gocui.KeyCtrl5:      "ctrl+5",
+	gocui.KeyCtrl6:      "ctrl+6",
+	gocui.KeyCtrl8:      "ctrl+8",
+}
+
 // GetKey is a function.
 func (b *Binding) GetKey() string {
 	key := 0
@@ -32,206 +91,9 @@ func (b *Binding) GetKey() string {
 	case rune:
 		key = int(b.Key.(rune))
 	case gocui.Key:
-		if b.Key.(gocui.Key) == gocui.KeyCtrlSpace {
-			return "ctrl+space"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlBackslash {
-			return "ctrl+\\"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlLsqBracket {
-			return "ctrl+["
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlRsqBracket {
-			return "ctrl+]"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlSlash {
-			return "ctrl+/"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlUnderscore {
-			return "ctrl+_"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyBackspace {
-			return "backspace"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyTab {
-			return "tab"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyEnter {
-			return "enter"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyEsc {
-			return "esc"
-		}
-		if b.Key.(gocui.Key) == gocui.KeySpace {
-			return "space"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlA {
-			return "ctrl+a"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlB {
-			return "ctrl+b"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlC {
-			return "ctrl+c"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlD {
-			return "ctrl+d"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlE {
-			return "ctrl+e"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlF {
-			return "ctrl+f"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlG {
-			return "ctrl+g"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlH {
-			return "ctrl+h"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlI {
-			return "ctrl+i"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlJ {
-			return "ctrl+j"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlK {
-			return "ctrl+k"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlL {
-			return "ctrl+l"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlM {
-			return "ctrl+m"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlN {
-			return "ctrl+n"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlO {
-			return "ctrl+o"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlP {
-			return "ctrl+p"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlQ {
-			return "ctrl+q"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlR {
-			return "ctrl+r"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlS {
-			return "ctrl+s"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlT {
-			return "ctrl+t"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlU {
-			return "ctrl+u"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlV {
-			return "ctrl+v"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlW {
-			return "ctrl+w"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlX {
-			return "ctrl+x"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlY {
-			return "ctrl+y"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlZ {
-			return "ctrl+z"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrlTilde {
-			return "ctrl+~"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrl2 {
-			return "ctrl+2"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrl3 {
-			return "ctrl+3"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrl4 {
-			return "ctrl+4"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrl5 {
-			return "ctrl+5"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrl6 {
-			return "ctrl+6"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrl7 {
-			return "ctrl+7"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyCtrl8 {
-			return "ctrl+8"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF1 {
-			return "f1"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF2 {
-			return "f2"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF3 {
-			return "f3"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF4 {
-			return "f4"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF5 {
-			return "f5"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF6 {
-			return "f6"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF7 {
-			return "f7"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF8 {
-			return "f8"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF9 {
-			return "f9"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF10 {
-			return "f10"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF11 {
-			return "f11"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyF12 {
-			return "f12"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyInsert {
-			return "insert"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyDelete {
-			return "delete"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyHome {
-			return "home"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyEnd {
-			return "end"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyPgup {
-			return "pgup"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyPgdn {
-			return "pgdown"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyArrowUp {
-			return "up"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyArrowDown {
-			return "down"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyArrowLeft {
-			return "left"
-		}
-		if b.Key.(gocui.Key) == gocui.KeyArrowRight {
-			return "right"
+		value, ok := keyMapReversed[b.Key.(gocui.Key)]
+		if ok {
+			return value
 		}
 		key = int(b.Key.(gocui.Key))
 	}
