@@ -48,18 +48,8 @@ sudo port install lazygit
 
 Packages for Ubuntu are available via [Launchpad PPA](https://launchpad.net/~lazygit-team).
 
-**Release builds**
-
 ```sh
 sudo add-apt-repository ppa:lazygit-team/release
-sudo apt-get update
-sudo apt-get install lazygit
-```
-
-**Development builds**
-
-```sh
-sudo add-apt-repository ppa:lazygit-team/daily
 sudo apt-get update
 sudo apt-get install lazygit
 ```
