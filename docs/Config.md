@@ -119,7 +119,7 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       toggleDragSelect: 'v'
       toggleDragSelect-alt: 'V'
       toggleSelectHunk: 'a'
-      PickBothHunks: 'b'
+      pickBothHunks: 'b'
       undo: 'z'
 ```
 

@@ -352,7 +352,7 @@ keybinding:
     toggleDragSelect: 'v'
     toggleDragSelect-alt: 'V'
     toggleSelectHunk: 'a'
-    PickBothHunks: 'b'
+    pickBothHunks: 'b'
     undo: 'z'
 `)
 }

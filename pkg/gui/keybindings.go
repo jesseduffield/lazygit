@@ -1260,7 +1260,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "main",
 			Contexts:    []string{"merging"},
-			Key:         gui.getKey("main.PickBothHunks"),
+			Key:         gui.getKey("main.pickBothHunks"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handlePickBothHunks,
 			Description: gui.Tr.SLocalize("PickBothHunks"),
