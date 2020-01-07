@@ -52,7 +52,7 @@ var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyEsc:        "esc",        // ctrl+[, ctrl+3
 	gocui.KeyBackspace:  "backspace",  // ctrl+h
 	gocui.KeyCtrlSpace:  "ctrl+space", // ctrl+~, ctrl+2
-	gocui.KeyCtrlSlash:  "ctrl+/",
+	gocui.KeyCtrlSlash:  "ctrl+/",     // ctrl+_
 	gocui.KeySpace:      "space",
 	gocui.KeyCtrlA:      "ctrl+a",
 	gocui.KeyCtrlB:      "ctrl+b",
@@ -77,8 +77,8 @@ var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyCtrlX:      "ctrl+x",
 	gocui.KeyCtrlY:      "ctrl+y",
 	gocui.KeyCtrlZ:      "ctrl+z",
-	gocui.KeyCtrl4:      "ctrl+4",
-	gocui.KeyCtrl5:      "ctrl+5",
+	gocui.KeyCtrl4:      "ctrl+4", // ctrl+\
+	gocui.KeyCtrl5:      "ctrl+5", // ctrl+]
 	gocui.KeyCtrl6:      "ctrl+6",
 	gocui.KeyCtrl8:      "ctrl+8",
 }
