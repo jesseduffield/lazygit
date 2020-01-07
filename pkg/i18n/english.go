@@ -924,6 +924,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "FetchingRemoteStatus",
 			Other: "fetching remote",
+		}, &i18n.Message{
+			ID:    "checkoutCommit",
+			Other: "checkout commit",
+		}, &i18n.Message{
+			ID:    "SureCheckoutThisCommit",
+			Other: "Are you sure you want to checkout this commit?",
 		},
 	)
 }

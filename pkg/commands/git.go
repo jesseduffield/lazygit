@@ -515,7 +515,7 @@ func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
 	return c.OSCommand.RunCommand("git checkout -- %s", quotedFileName)
 }
 
-// Checkout checks out a branch, with --force if you set the force arg to true
+// Checkout checks out a branch (or commit), with --force if you set the force arg to true
 func (c *GitCommand) Checkout(branch string, force bool) error {
 	forceArg := ""
 	if force {

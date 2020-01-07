@@ -128,7 +128,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
 	branch := gui.getSelectedBranch()
-	return gui.handleCheckoutBranch(branch.Name)
+	return gui.handleCheckoutRef(branch.Name)
 }
 
 func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error {
@@ -165,17 +165,17 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	}, nil)
 }
 
-func (gui *Gui) handleCheckoutBranch(branchName string) error {
-	if err := gui.GitCommand.Checkout(branchName, false); err != nil {
+func (gui *Gui) handleCheckoutRef(ref string) error {
+	if err := gui.GitCommand.Checkout(ref, false); err != nil {
 		// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
 		if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 			// offer to autostash changes
 			return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + branchName); err != nil {
+				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + ref); err != nil {
 					return gui.createErrorPanel(g, err.Error())
 				}
-				if err := gui.GitCommand.Checkout(branchName, false); err != nil {
+				if err := gui.GitCommand.Checkout(ref, false); err != nil {
 					return gui.createErrorPanel(g, err.Error())
 				}
 
@@ -198,12 +198,13 @@ func (gui *Gui) handleCheckoutBranch(branchName string) error {
 	}
 
 	gui.State.Panels.Branches.SelectedLine = 0
+	gui.State.Panels.Commits.SelectedLine = 0
 	return gui.refreshSidePanels(gui.g)
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutBranch(gui.trimmedContent(v))
+		return gui.handleCheckoutRef(gui.trimmedContent(v))
 	})
 	return nil
 }
