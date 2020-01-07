@@ -604,14 +604,21 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 			description: gui.Tr.SLocalize("softReset"),
 			command:     "git reset --soft HEAD",
 			handler: func() error {
-				return gui.GitCommand.ResetSoftHead()
+				return gui.GitCommand.ResetSoft("HEAD")
 			},
 		},
 		{
 			description: gui.Tr.SLocalize("hardReset"),
 			command:     "git reset --hard HEAD",
 			handler: func() error {
-				return gui.GitCommand.ResetHardHead()
+				return gui.GitCommand.ResetHard("HEAD")
+			},
+		},
+		{
+			description: gui.Tr.SLocalize("hardResetUpstream"),
+			command:     "git reset --hard @{upstream}",
+			handler: func() error {
+				return gui.GitCommand.ResetHard("@{upstream}")
 			},
 		},
 		{
@@ -624,7 +631,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 
 	handleMenuPress := func(index int) error {
 		if err := options[index].handler(); err != nil {
-			return err
+			return gui.createErrorPanel(gui.g, err.Error())
 		}
 
 		return gui.refreshFiles()

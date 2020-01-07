@@ -754,6 +754,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "hardReset",
 			Other: "hard reset",
 		}, &i18n.Message{
+			ID:    "hardResetUpstream",
+			Other: "hard reset to upstream branch",
+		}, &i18n.Message{
 			ID:    "viewResetOptions",
 			Other: `view reset options`,
 		}, &i18n.Message{
