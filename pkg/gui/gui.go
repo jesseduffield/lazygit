@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"runtime"
 	"sync"
 
 	// "io"
@@ -28,6 +29,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mattn/go-runewidth"
 	"github.com/sirupsen/logrus"
 )
 
@@ -781,6 +783,8 @@ func (gui *Gui) Run() error {
 		return err
 	}
 	defer g.Close()
+
+	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
 	if gui.Config.GetUserConfig().GetBool("gui.mouseEvents") {
 		g.Mouse = true
