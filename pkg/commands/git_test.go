@@ -2106,10 +2106,11 @@ func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
 	}
 }
 
-// TestGitCommandResetHardHead is a function.
-func TestGitCommandResetHardHead(t *testing.T) {
+// TestGitCommandResetHard is a function.
+func TestGitCommandResetHard(t *testing.T) {
 	type scenario struct {
 		testName string
+		ref      string
 		command  func(string, ...string) *exec.Cmd
 		test     func(error)
 	}
@@ -2117,6 +2118,7 @@ func TestGitCommandResetHardHead(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"valid case",
+			"HEAD",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
 					Expect:  `git reset --hard HEAD`,
@@ -2134,7 +2136,7 @@ func TestGitCommandResetHardHead(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.ResetHardHead())
+			s.test(gitCmd.ResetHard(s.ref))
 		})
 	}
 }

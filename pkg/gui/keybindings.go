@@ -718,6 +718,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Key:         gui.getKey("universal.select"),
 			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCheckoutCommit,
+			Description: gui.Tr.SLocalize("checkoutCommit"),
+		},
+		{
+			ViewName:    "commits",
+			Key:         'h',
+			Modifier:    gocui.ModNone,
 			Handler:     gui.handleToggleDiffCommit,
 			Description: gui.Tr.SLocalize("CommitsDiff"),
 		},

@@ -265,7 +265,7 @@ func includesInt(list []int, a int) bool {
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
 func (c *GitCommand) ResetAndClean() error {
-	if err := c.ResetHardHead(); err != nil {
+	if err := c.ResetHard("HEAD"); err != nil {
 		return err
 	}
 
@@ -515,7 +515,7 @@ func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
 	return c.OSCommand.RunCommand("git checkout -- %s", quotedFileName)
 }
 
-// Checkout checks out a branch, with --force if you set the force arg to true
+// Checkout checks out a branch (or commit), with --force if you set the force arg to true
 func (c *GitCommand) Checkout(branch string, force bool) error {
 	forceArg := ""
 	if force {
@@ -961,14 +961,14 @@ func (c *GitCommand) RemoveUntrackedFiles() error {
 	return c.OSCommand.RunCommand("git clean -fd")
 }
 
-// ResetHardHead runs `git reset --hard HEAD`
-func (c *GitCommand) ResetHardHead() error {
-	return c.OSCommand.RunCommand("git reset --hard HEAD")
+// ResetHardHead runs `git reset --hard`
+func (c *GitCommand) ResetHard(ref string) error {
+	return c.OSCommand.RunCommand("git reset --hard " + ref)
 }
 
-// ResetSoftHead runs `git reset --soft HEAD`
-func (c *GitCommand) ResetSoftHead() error {
-	return c.OSCommand.RunCommand("git reset --soft HEAD")
+// ResetSoft runs `git reset --soft HEAD`
+func (c *GitCommand) ResetSoft(ref string) error {
+	return c.OSCommand.RunCommand("git reset --soft " + ref)
 }
 
 // DiffCommits show diff between commits

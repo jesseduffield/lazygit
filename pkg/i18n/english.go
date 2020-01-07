@@ -754,6 +754,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "hardReset",
 			Other: "hard reset",
 		}, &i18n.Message{
+			ID:    "hardResetUpstream",
+			Other: "hard reset to upstream branch",
+		}, &i18n.Message{
 			ID:    "viewResetOptions",
 			Other: `view reset options`,
 		}, &i18n.Message{
@@ -921,6 +924,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "FetchingRemoteStatus",
 			Other: "fetching remote",
+		}, &i18n.Message{
+			ID:    "checkoutCommit",
+			Other: "checkout commit",
+		}, &i18n.Message{
+			ID:    "SureCheckoutThisCommit",
+			Other: "Are you sure you want to checkout this commit?",
 		},
 	)
 }
