@@ -250,13 +250,6 @@ func (gui *Gui) renderMergeOptions() error {
 		gui.getKeyDisplay("main.pickBothHunks"): gui.Tr.SLocalize("pickBothHunks"),
 		gui.getKeyDisplay("main.undo"):          gui.Tr.SLocalize("undo"),
 	})
-	return gui.renderOptionsMap(map[string]string{
-		"↑ ↓":   gui.Tr.SLocalize("selectHunk"),
-		"← →":   gui.Tr.SLocalize("navigateConflicts"),
-		"space": gui.Tr.SLocalize("pickHunk"),
-		"b":     gui.Tr.SLocalize("pickBothHunks"),
-		"z":     gui.Tr.SLocalize("undo"),
-	})
 }
 
 func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
