@@ -79,7 +79,7 @@ func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	if remoteBranch == nil {
 		return nil
 	}
-	if err := gui.handleCheckoutBranch(remoteBranch.RemoteName + "/" + remoteBranch.Name); err != nil {
+	if err := gui.handleCheckoutRef(remoteBranch.RemoteName + "/" + remoteBranch.Name); err != nil {
 		return err
 	}
 	return gui.switchBranchesPanelContext("local-branches")
