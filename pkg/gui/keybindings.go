@@ -1,9 +1,10 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"log"
 	"strings"
+
+	"github.com/jesseduffield/gocui"
 )
 
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
@@ -519,6 +520,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleMerge,
 			Description: gui.Tr.SLocalize("mergeIntoCurrentBranch"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
+			Key:         gui.getKey("branches.viewGitFlowOptions"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateGitFlowMenu,
+			Description: gui.Tr.SLocalize("gitFlowOptions"),
 		},
 		{
 			ViewName:    "branches",
