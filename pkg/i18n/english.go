@@ -930,6 +930,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SureCheckoutThisCommit",
 			Other: "Are you sure you want to checkout this commit?",
+		}, &i18n.Message{
+			ID:    "gitFlowOptions",
+			Other: "show git-flow options",
+		}, &i18n.Message{
+			ID:    "NotAGitFlowBranch",
+			Other: "This does not seem to be a git flow branch",
+		}, &i18n.Message{
+			ID:    "NewBranchNamePrompt",
+			Other: "new {{.branchType}} name:",
 		},
 	)
 }

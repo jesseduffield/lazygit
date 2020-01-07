@@ -323,6 +323,7 @@ keybinding:
     forceCheckoutBranch: 'F'
     rebaseBranch: 'r'
     mergeIntoCurrentBranch: 'M'
+    viewGitFlowOptions: 'i'
     fastForward: 'f'
     pushTag: 'P'
     setUpstream: 'u'

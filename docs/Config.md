@@ -90,6 +90,7 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       forceCheckoutBranch: 'F'
       rebaseBranch: 'r'
       mergeIntoCurrentBranch: 'M'
+      viewGitFlowOptions: 'i'
       fastForward: 'f' # fast-forward this branch from its upstream
       pushTag: 'P'
       setUpstream: 'u' # set as upstream of checked-out branch
