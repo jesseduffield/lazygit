@@ -21,7 +21,7 @@ type Binding struct {
 
 // GetDisplayStrings returns the display string of a file
 func (b *Binding) GetDisplayStrings(isFocused bool) []string {
-	return []string{b.GetKey(), b.Description}
+	return []string{GetKeyDisplay(b.Key), b.Description}
 }
 
 var keyMapReversed = map[gocui.Key]string{
@@ -43,10 +43,10 @@ var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyEnd:        "end",
 	gocui.KeyPgup:       "pgup",
 	gocui.KeyPgdn:       "pgdown",
-	gocui.KeyArrowUp:    "up",
-	gocui.KeyArrowDown:  "down",
-	gocui.KeyArrowLeft:  "left",
-	gocui.KeyArrowRight: "right",
+	gocui.KeyArrowUp:    "▲",
+	gocui.KeyArrowDown:  "▼",
+	gocui.KeyArrowLeft:  "◄",
+	gocui.KeyArrowRight: "►",
 	gocui.KeyTab:        "tab",        // ctrl+i
 	gocui.KeyEnter:      "enter",      // ctrl+m
 	gocui.KeyEsc:        "esc",        // ctrl+[, ctrl+3
@@ -81,48 +81,6 @@ var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyCtrl5:      "ctrl+5", // ctrl+]
 	gocui.KeyCtrl6:      "ctrl+6",
 	gocui.KeyCtrl8:      "ctrl+8",
-}
-
-// GetKey is a function.
-func (b *Binding) GetKey() string {
-	key := 0
-
-	switch b.Key.(type) {
-	case rune:
-		key = int(b.Key.(rune))
-	case gocui.Key:
-		value, ok := keyMapReversed[b.Key.(gocui.Key)]
-		if ok {
-			return value
-		}
-		key = int(b.Key.(gocui.Key))
-	}
-
-	// special keys
-	switch key {
-	case 27:
-		return "esc"
-	case 13:
-		return "enter"
-	case 32:
-		return "space"
-	case 65514:
-		return "►"
-	case 65515:
-		return "◄"
-	case 65517:
-		return "▲"
-	case 65516:
-		return "▼"
-	case 65508:
-		return "PgUp"
-	case 65507:
-		return "PgDn"
-	case 9:
-		return "tab"
-	}
-
-	return string(key)
 }
 
 var keymap = map[string]interface{}{
@@ -193,6 +151,28 @@ var keymap = map[string]interface{}{
 	"<down>":      gocui.KeyArrowDown,
 	"<left>":      gocui.KeyArrowLeft,
 	"<right>":     gocui.KeyArrowRight,
+}
+
+func (gui *Gui) getKeyDisplay(name string) string {
+	key := gui.getKey(name)
+	return GetKeyDisplay(key)
+}
+
+func GetKeyDisplay(key interface{}) string {
+	keyInt := 0
+
+	switch key.(type) {
+	case rune:
+		keyInt = int(key.(rune))
+	case gocui.Key:
+		value, ok := keyMapReversed[key.(gocui.Key)]
+		if ok {
+			return value
+		}
+		keyInt = int(key.(gocui.Key))
+	}
+
+	return string(keyInt)
 }
 
 func (gui *Gui) getKey(name string) interface{} {
