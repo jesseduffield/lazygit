@@ -326,7 +326,7 @@ func (c *OSCommand) GetLazygitPath() string {
 	if err != nil {
 		ex = os.Args[0] // fallback to the first call argument if needed
 	}
-	return filepath.ToSlash(ex)
+	return `"` + filepath.ToSlash(ex) + `"`
 }
 
 // RunCustomCommand returns the pointer to a custom command
