@@ -19,7 +19,7 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.11 // indirect
-	github.com/mattn/go-runewidth v0.0.7 // indirect
+	github.com/mattn/go-runewidth v0.0.7
 	github.com/mgutz/str v1.2.0
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/onsi/ginkgo v1.10.3 // indirect
