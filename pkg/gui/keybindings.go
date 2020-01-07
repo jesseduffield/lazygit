@@ -723,7 +723,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
-			Key:         'h',
+			Key:         gui.getKey("commits.toggleDiffCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleToggleDiffCommit,
 			Description: gui.Tr.SLocalize("CommitsDiff"),
