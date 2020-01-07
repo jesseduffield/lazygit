@@ -743,11 +743,11 @@ func (gui *Gui) renderAppStatus() error {
 
 func (gui *Gui) renderGlobalOptions() error {
 	return gui.renderOptionsMap(map[string]string{
-		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
-		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
-		"esc/q":     gui.Tr.SLocalize("close"),
-		"x":         gui.Tr.SLocalize("menu"),
-		"1-5":       gui.Tr.SLocalize("jump"),
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.scrollUpMain"), gui.getKeyDisplay("universal.scrollDownMain")):                                                                                 gui.Tr.SLocalize("scroll"),
+		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock"), gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")): gui.Tr.SLocalize("navigate"),
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.return"), gui.getKeyDisplay("universal.quit")):                                                                                                 gui.Tr.SLocalize("close"),
+		fmt.Sprintf("%s", gui.getKeyDisplay("universal.optionMenu")):                                                                                                                                     gui.Tr.SLocalize("menu"),
+		"1-5": gui.Tr.SLocalize("jump"),
 	})
 }
 
