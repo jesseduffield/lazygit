@@ -77,6 +77,9 @@ func (w *fileWatcher) addFilesToFileWatcher(files []*commands.File) error {
 	}
 
 	for _, file := range files[0:min(MAX_WATCHED_FILES, len(files))] {
+		if file.Deleted {
+			continue
+		}
 		filename := filepath.Join(dirName, file.Name)
 		if w.watchingFilename(filename) {
 			continue
