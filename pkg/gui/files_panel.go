@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -510,20 +509,9 @@ type discardOption struct {
 	description string
 }
 
-type discardAllOption struct {
-	handler     func() error
-	description string
-	command     string
-}
-
 // GetDisplayStrings is a function.
 func (r *discardOption) GetDisplayStrings(isFocused bool) []string {
 	return []string{r.description}
-}
-
-// GetDisplayStrings is a function.
-func (r *discardAllOption) GetDisplayStrings(isFocused bool) []string {
-	return []string{r.description, color.New(color.FgRed).Sprint(r.command)}
 }
 
 func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
@@ -575,69 +563,6 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.createMenu(file.Name, options, len(options), handleMenuPress)
-}
-
-func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
-	options := []*discardAllOption{
-		{
-			description: gui.Tr.SLocalize("discardAllChangesToAllFiles"),
-			command:     "reset --hard HEAD && git clean -fd",
-			handler: func() error {
-				return gui.GitCommand.ResetAndClean()
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("discardAnyUnstagedChanges"),
-			command:     "git checkout -- .",
-			handler: func() error {
-				return gui.GitCommand.DiscardAnyUnstagedFileChanges()
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("discardUntrackedFiles"),
-			command:     "git clean -fd",
-			handler: func() error {
-				return gui.GitCommand.RemoveUntrackedFiles()
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("softReset"),
-			command:     "git reset --soft HEAD",
-			handler: func() error {
-				return gui.GitCommand.ResetSoft("HEAD")
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("hardReset"),
-			command:     "git reset --hard HEAD",
-			handler: func() error {
-				return gui.GitCommand.ResetHard("HEAD")
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("hardResetUpstream"),
-			command:     "git reset --hard @{upstream}",
-			handler: func() error {
-				return gui.GitCommand.ResetHard("@{upstream}")
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("cancel"),
-			handler: func() error {
-				return nil
-			},
-		},
-	}
-
-	handleMenuPress := func(index int) error {
-		if err := options[index].handler(); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
-		}
-
-		return gui.refreshFiles()
-	}
-
-	return gui.createMenu("", options, len(options), handleMenuPress)
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
