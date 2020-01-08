@@ -112,6 +112,7 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       pasteCommits: 'v'
       tagCommit: 'T'
       toggleDiffCommit: 'h'
+      checkoutCommit: '<space>'
     stash:
       popStash: 'g'
     commitFiles:

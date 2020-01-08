@@ -345,6 +345,7 @@ keybinding:
     pasteCommits: 'v'
     tagCommit: 'T'
     toggleDiffCommit: 'h'
+    checkoutCommit: '<space>'
   stash:
     popStash: 'g'
   commitFiles:
