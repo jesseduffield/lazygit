@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/go-errors/errors"
 
 	// "strings"
@@ -82,7 +81,7 @@ type Gui struct {
 	statusManager *statusManager
 	credentials   credentials
 	waitForIntro  sync.WaitGroup
-	fileWatcher   *fsnotify.Watcher
+	fileWatcher   *fileWatcher
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -840,7 +839,7 @@ func (gui *Gui) RunWithSubprocesses() error {
 					}
 				}
 
-				gui.fileWatcher.Close()
+				gui.fileWatcher.Watcher.Close()
 
 				break
 			} else if err == gui.Errors.ErrSwitchRepo {
