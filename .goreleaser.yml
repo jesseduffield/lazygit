@@ -17,16 +17,16 @@ builds:
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.buildSource=binaryRelease
 
-archive:
-  replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-    386: 32-bit
-    amd64: x86_64
-  format_overrides:
-    - goos: windows
-      format: zip
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: 32-bit
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
 checksum:
   name_template: 'checksums.txt'
 snapshot:
