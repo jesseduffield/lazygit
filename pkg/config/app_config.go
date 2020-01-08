@@ -345,7 +345,7 @@ keybinding:
     cherryPickCopyRange: 'C'
     pasteCommits: 'v'
     tagCommit: 'T'
-    toggleDiffCommit: 'h'
+    toggleDiffCommit: 'i'
     checkoutCommit: '<space>'
   stash:
     popStash: 'g'

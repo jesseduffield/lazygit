@@ -112,7 +112,7 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       cherryPickCopyRange: 'C'
       pasteCommits: 'v'
       tagCommit: 'T'
-      toggleDiffCommit: 'h'
+      toggleDiffCommit: 'i'
       checkoutCommit: '<space>'
     stash:
       popStash: 'g'
