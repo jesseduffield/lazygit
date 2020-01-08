@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/fsnotify/fsnotify"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/sirupsen/logrus"
@@ -67,13 +66,17 @@ func (w *fileWatcher) watchFilename(filename string) {
 }
 
 func (w *fileWatcher) addFilesToFileWatcher(files []*commands.File) error {
+	if len(files) == 0 {
+		return nil
+	}
+
 	// watch the files for changes
 	dirName, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	for _, file := range files {
+	for _, file := range files[0:min(MAX_WATCHED_FILES, len(files))] {
 		filename := filepath.Join(dirName, file.Name)
 		if w.watchingFilename(filename) {
 			continue
@@ -83,10 +86,16 @@ func (w *fileWatcher) addFilesToFileWatcher(files []*commands.File) error {
 		}
 
 		w.watchFilename(filename)
-		w.Log.Warn(spew.Sdump(w.WatchedFilenames))
 	}
 
 	return nil
+}
+
+func min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // NOTE: given that we often edit files ourselves, this may make us end up refreshing files too often
