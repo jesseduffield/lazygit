@@ -83,8 +83,10 @@ func (gui *Gui) renderRemotesWithSelection() error {
 	if err := gui.renderListPanel(branchesView, gui.State.Remotes); err != nil {
 		return err
 	}
-	if err := gui.handleRemoteSelect(gui.g, branchesView); err != nil {
-		return err
+	if gui.g.CurrentView() == branchesView && branchesView.Context == "remotes" {
+		if err := gui.handleRemoteSelect(gui.g, branchesView); err != nil {
+			return err
+		}
 	}
 
 	return nil

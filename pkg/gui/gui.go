@@ -130,6 +130,10 @@ type commitPanelState struct {
 	SpecificDiffMode bool
 }
 
+type reflogCommitPanelState struct {
+	SelectedLine int
+}
+
 type stashPanelState struct {
 	SelectedLine int
 }
@@ -155,6 +159,7 @@ type panelStates struct {
 	RemoteBranches *remoteBranchesState
 	Tags           *tagsPanelState
 	Commits        *commitPanelState
+	ReflogCommits  *reflogCommitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
 	LineByLine     *lineByLinePanelState
@@ -169,6 +174,7 @@ type guiState struct {
 	Commits              []*commands.Commit
 	StashEntries         []*commands.StashEntry
 	CommitFiles          []*commands.CommitFile
+	ReflogCommits        []*commands.Commit
 	DiffEntries          []*commands.Commit
 	Remotes              []*commands.Remote
 	RemoteBranches       []*commands.RemoteBranch
@@ -207,6 +213,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 			RemoteBranches: &remoteBranchesState{SelectedLine: -1},
 			Tags:           &tagsPanelState{SelectedLine: -1},
 			Commits:        &commitPanelState{SelectedLine: -1},
+			ReflogCommits:  &reflogCommitPanelState{SelectedLine: 0}, // TODO: might need to make -1
 			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
 			Stash:          &stashPanelState{SelectedLine: -1},
 			Menu:           &menuPanelState{SelectedLine: 0},
@@ -523,6 +530,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		commitsView.Title = gui.Tr.SLocalize("CommitsTitle")
+		commitsView.Tabs = []string{"Commits", "Reflog"}
 		commitsView.FgColor = textColor
 	}
 
@@ -625,7 +633,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		{view: branchesView, context: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
 		{view: branchesView, context: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes)},
 		{view: branchesView, context: "remote-branches", selectedLine: gui.State.Panels.RemoteBranches.SelectedLine, lineCount: len(gui.State.Remotes)},
-		{view: commitsView, context: "", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
+		{view: commitsView, context: "branch-commits", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
+		{view: commitsView, context: "reflog-commits", selectedLine: gui.State.Panels.ReflogCommits.SelectedLine, lineCount: len(gui.State.ReflogCommits)},
 		{view: stashView, context: "", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
 	}
 
@@ -657,6 +666,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 	}
 
 	gui.getBranchesView().Context = "local-branches"
+	gui.getCommitsView().Context = "branch-commits"
 
 	return gui.loadNewRepo()
 }

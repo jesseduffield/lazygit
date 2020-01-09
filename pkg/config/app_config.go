@@ -300,8 +300,8 @@ keybinding:
     pullFiles: 'p'
     refresh: 'R'
     createPatchOptionsMenu: '<c-p>'
-    nextBranchTab: ']'
-    prevBranchTab: '['
+    nextTab: ']'
+    prevTab: '['
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'

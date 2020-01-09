@@ -1113,3 +1113,28 @@ func (c *GitCommand) PushTag(remoteName string, tagName string) error {
 func (c *GitCommand) FetchRemote(remoteName string) error {
 	return c.OSCommand.RunCommand("git fetch %s", remoteName)
 }
+
+func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
+	output, err := c.OSCommand.RunCommandWithOutput("git reflog")
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	commits := make([]*Commit, len(lines))
+	re := regexp.MustCompile(`(\w+).*HEAD@\{\d+\}: (.*)`)
+	for i, line := range lines {
+		match := re.FindStringSubmatch(line)
+		if len(match) == 1 {
+			continue
+		}
+
+		commits[i] = &Commit{
+			Sha:    match[1],
+			Name:   match[2],
+			Status: "reflog",
+		}
+	}
+
+	return commits, nil
+}

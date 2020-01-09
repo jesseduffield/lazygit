@@ -111,8 +111,10 @@ func (gui *Gui) renderLocalBranchesWithSelection() error {
 	if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
 		return err
 	}
-	if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
-		return err
+	if gui.g.CurrentView() == branchesView && branchesView.Context == "local-branches" {
+		if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
+			return err
+		}
 	}
 
 	return nil

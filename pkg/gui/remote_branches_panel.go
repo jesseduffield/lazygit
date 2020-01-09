@@ -67,8 +67,10 @@ func (gui *Gui) renderRemoteBranchesWithSelection() error {
 	if err := gui.renderListPanel(branchesView, gui.State.RemoteBranches); err != nil {
 		return err
 	}
-	if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
-		return err
+	if gui.g.CurrentView() == branchesView && branchesView.Context == "remote-branches" {
+		if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
+			return err
+		}
 	}
 
 	return nil
