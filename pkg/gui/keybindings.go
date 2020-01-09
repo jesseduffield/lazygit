@@ -778,6 +778,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("tagCommit"),
 		},
 		{
+			ViewName:    "commits",
+			Contexts:    []string{"reflog-commits"},
+			Key:         gui.getKey("universal.select"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCheckoutReflogCommit,
+			Description: gui.Tr.SLocalize("checkoutCommit"),
+		},
+		{
 			ViewName:    "stash",
 			Key:         gui.getKey("universal.select"),
 			Modifier:    gocui.ModNone,
