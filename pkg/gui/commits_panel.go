@@ -612,7 +612,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
-		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+		return nil
 	}
 
 	return gui.createConfirmationPanel(g, gui.getCommitsView(), true, gui.Tr.SLocalize("checkoutCommit"), gui.Tr.SLocalize("SureCheckoutThisCommit"), func(g *gocui.Gui, v *gocui.View) error {

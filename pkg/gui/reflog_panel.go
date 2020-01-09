@@ -74,3 +74,21 @@ func (gui *Gui) renderReflogCommitsWithSelection() error {
 
 	return nil
 }
+
+func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
+	commit := gui.getSelectedReflogCommit()
+	if commit == nil {
+		return nil
+	}
+
+	err := gui.createConfirmationPanel(g, gui.getCommitsView(), true, gui.Tr.SLocalize("checkoutCommit"), gui.Tr.SLocalize("SureCheckoutThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
+		return gui.handleCheckoutRef(commit.Sha)
+	}, nil)
+	if err != nil {
+		return err
+	}
+
+	gui.State.Panels.ReflogCommits.SelectedLine = 0
+
+	return nil
+}
