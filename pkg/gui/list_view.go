@@ -126,8 +126,10 @@ func (gui *Gui) getListViews() []*listView {
 			gui:                   gui,
 			rendersToMainView:     true,
 		},
+
 		{
 			viewName:                "commits",
+			context:                 "branch-commits",
 			getItemsLength:          func() int { return len(gui.State.Commits) },
 			getSelectedLineIdxPtr:   func() *int { return &gui.State.Panels.Commits.SelectedLine },
 			handleFocus:             gui.handleCommitSelect,
@@ -135,6 +137,16 @@ func (gui *Gui) getListViews() []*listView {
 			handleClickSelectedItem: gui.handleSwitchToCommitFilesPanel,
 			gui:                     gui,
 			rendersToMainView:       true,
+		},
+		{
+			viewName:              "commits",
+			context:               "reflog-commits",
+			getItemsLength:        func() int { return len(gui.State.ReflogCommits) },
+			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.ReflogCommits.SelectedLine },
+			handleFocus:           gui.handleReflogCommitSelect,
+			handleItemSelect:      gui.handleReflogCommitSelect,
+			gui:                   gui,
+			rendersToMainView:     true,
 		},
 		{
 			viewName:              "stash",

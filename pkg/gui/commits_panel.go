@@ -74,21 +74,18 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		}
 		gui.State.Commits = commits
 
-		gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
-
-		isFocused := gui.g.CurrentView().Name() == "commits"
-		list, err := utils.RenderList(gui.State.Commits, isFocused)
-		if err != nil {
-			return err
-		}
-
-		v := gui.getCommitsView()
-		v.Clear()
-		fmt.Fprint(v, list)
+		// doing this async because it shouldn't hold anything up
+		go func() {
+			if err := gui.refreshReflogCommits(); err != nil {
+				_ = gui.createErrorPanel(gui.g, err.Error())
+			}
+		}()
 
 		gui.refreshStatus(g)
-		if g.CurrentView() == v {
-			gui.handleCommitSelect(g, v)
+		if gui.getCommitsView().Context == "branch-commits" {
+			if err := gui.renderBranchCommitsWithSelection(); err != nil {
+				return err
+			}
 		}
 		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
 			return gui.refreshCommitFilesView()
@@ -621,4 +618,61 @@ func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 	return gui.createConfirmationPanel(g, gui.getCommitsView(), true, gui.Tr.SLocalize("checkoutCommit"), gui.Tr.SLocalize("SureCheckoutThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleCheckoutRef(commit.Sha)
 	}, nil)
+}
+
+func (gui *Gui) renderBranchCommitsWithSelection() error {
+	commitsView := gui.getCommitsView()
+
+	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
+	if err := gui.renderListPanel(commitsView, gui.State.Commits); err != nil {
+		return err
+	}
+	if gui.g.CurrentView() == commitsView && commitsView.Context == "branch-commits" {
+		if err := gui.handleCommitSelect(gui.g, commitsView); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (gui *Gui) onCommitsTabClick(tabIndex int) error {
+	contexts := []string{"branch-commits", "reflog-commits"}
+	commitsView := gui.getCommitsView()
+	commitsView.TabIndex = tabIndex
+
+	return gui.switchCommitsPanelContext(contexts[tabIndex])
+}
+
+func (gui *Gui) switchCommitsPanelContext(context string) error {
+	commitsView := gui.getCommitsView()
+	commitsView.Context = context
+
+	contextTabIndexMap := map[string]int{
+		"branch-commits": 0,
+		"reflog-commits": 1,
+	}
+
+	commitsView.TabIndex = contextTabIndexMap[context]
+
+	switch context {
+	case "branch-commits":
+		return gui.renderBranchCommitsWithSelection()
+	case "reflog-commits":
+		return gui.renderReflogCommitsWithSelection()
+	}
+
+	return nil
+}
+
+func (gui *Gui) handleNextCommitsTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onCommitsTabClick(
+		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
+	)
+}
+
+func (gui *Gui) handlePrevCommitsTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onCommitsTabClick(
+		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
+	)
 }

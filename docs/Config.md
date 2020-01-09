@@ -67,8 +67,8 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
       pullFiles: 'p'
       refresh: 'R'
       createPatchOptionsMenu: '<c-p>'
-      nextBranchTab: ']'
-      prevBranchTab: '['
+      nextTab: ']'
+      prevTab: '['
     status:
       checkForUpdate: 'u'
       recentRepos: '<enter>'

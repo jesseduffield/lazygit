@@ -571,13 +571,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "branches",
-			Key:      gui.getKey("universal.nextBranchTab"),
+			Key:      gui.getKey("universal.nextTab"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleNextBranchesTab,
 		},
 		{
 			ViewName: "branches",
-			Key:      gui.getKey("universal.prevBranchTab"),
+			Key:      gui.getKey("universal.prevTab"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handlePrevBranchesTab,
 		},
@@ -598,7 +598,20 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("fetchRemote"),
 		},
 		{
+			ViewName: "commits",
+			Key:      gui.getKey("universal.nextTab"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleNextCommitsTab,
+		},
+		{
+			ViewName: "commits",
+			Key:      gui.getKey("universal.prevTab"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.handlePrevCommitsTab,
+		},
+		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.squashDown"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitSquashDown,
@@ -606,6 +619,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.renameCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleRenameCommit,
@@ -613,6 +627,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.renameCommitWithEditor"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleRenameCommitEditor,
@@ -620,6 +635,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateCommitResetMenu,
@@ -627,6 +643,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.markCommitAsFixup"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitFixup,
@@ -634,6 +651,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.createFixupCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateFixupCommit,
@@ -641,6 +659,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.squashAboveCommits"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleSquashAllAboveFixupCommits,
@@ -648,6 +667,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("universal.remove"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitDelete,
@@ -655,6 +675,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.moveDownCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitMoveDown,
@@ -662,6 +683,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.moveUpCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitMoveUp,
@@ -669,6 +691,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("universal.edit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitEdit,
@@ -676,6 +699,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.amendToCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitAmendTo,
@@ -683,6 +707,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.pickCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitPick,
@@ -690,6 +715,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.revertCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitRevert,
@@ -697,6 +723,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.cherryPickCopy"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCopyCommit,
@@ -704,6 +731,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.cherryPickCopyRange"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCopyCommitRange,
@@ -711,6 +739,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.pasteCommits"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.HandlePasteCommits,
@@ -718,6 +747,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("universal.goInto"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleSwitchToCommitFilesPanel,
@@ -725,6 +755,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.checkoutCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCheckoutCommit,
@@ -732,6 +763,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.toggleDiffCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleToggleDiffCommit,
@@ -739,6 +771,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.tagCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleTagCommit,
@@ -1335,8 +1368,15 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 		}
 	}
 
-	if err := g.SetTabClickBinding("branches", gui.onBranchesTabClick); err != nil {
-		return err
+	tabClickBindings := map[string]func(int) error{
+		"branches": gui.onBranchesTabClick,
+		"commits":  gui.onCommitsTabClick,
+	}
+
+	for viewName, binding := range tabClickBindings {
+		if err := g.SetTabClickBinding(viewName, binding); err != nil {
+			return err
+		}
 	}
 
 	return nil

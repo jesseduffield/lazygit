@@ -78,8 +78,10 @@ func (gui *Gui) renderTagsWithSelection() error {
 	if err := gui.renderListPanel(branchesView, gui.State.Tags); err != nil {
 		return err
 	}
-	if err := gui.handleTagSelect(gui.g, branchesView); err != nil {
-		return err
+	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
+		if err := gui.handleTagSelect(gui.g, branchesView); err != nil {
+			return err
+		}
 	}
 
 	return nil

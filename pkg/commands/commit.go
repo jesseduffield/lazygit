@@ -44,6 +44,8 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 		shaColor = green
 	case "rebasing":
 		shaColor = blue
+	case "reflog":
+		shaColor = blue
 	case "selected":
 		shaColor = magenta
 	default:
