@@ -32,7 +32,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
-		return gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoChangedFiles"))
+		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
 	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, len(gui.State.Files), gui.getFilesView()); err != nil {
@@ -45,37 +45,40 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.refreshMergePanel()
 	}
 
-	content := gui.GitCommand.Diff(file, false, false)
-	contentCached := gui.GitCommand.Diff(file, false, true)
-	leftContent := content
+	if !alreadySelected {
+		if err := gui.resetOrigin(gui.getMainView()); err != nil {
+			return err
+		}
+		if err := gui.resetOrigin(gui.getSecondaryView()); err != nil {
+			return err
+		}
+	}
+
 	if file.HasStagedChanges && file.HasUnstagedChanges {
 		gui.State.SplitMainPanel = true
 		gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
 		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
+		cmdStr := gui.GitCommand.DiffCmdStr(file, false, true)
+		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+		if err := gui.newCmdTask("secondary", cmd); err != nil {
+			return err
+		}
 	} else {
 		gui.State.SplitMainPanel = false
 		if file.HasUnstagedChanges {
-			leftContent = content
 			gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
 		} else {
-			leftContent = contentCached
 			gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
 		}
 	}
 
-	if alreadySelected {
-		gui.g.Update(func(*gocui.Gui) error {
-			if err := gui.setViewContent(gui.g, gui.getSecondaryView(), contentCached); err != nil {
-				return err
-			}
-			return gui.setViewContent(gui.g, gui.getMainView(), leftContent)
-		})
-		return nil
-	}
-	if err := gui.renderString(gui.g, "secondary", contentCached); err != nil {
+	cmdStr := gui.GitCommand.DiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+	if err := gui.newCmdTask("main", cmd); err != nil {
 		return err
 	}
-	return gui.renderString(gui.g, "main", leftContent)
+
+	return nil
 }
 
 func (gui *Gui) refreshFiles() error {
@@ -369,15 +372,15 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 		if err != gui.Errors.ErrNoFiles {
 			return "", err
 		}
-		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NoFilesDisplay"))
+		return "", gui.newStringTask("main", gui.Tr.SLocalize("NoFilesDisplay"))
 	}
 	if item.Type != "file" {
-		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NotAFile"))
+		return "", gui.newStringTask("main", gui.Tr.SLocalize("NotAFile"))
 	}
 	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
 		gui.Log.Error(err)
-		return "", gui.renderString(g, "main", err.Error())
+		return "", gui.newStringTask("main", err.Error())
 	}
 	return cat, nil
 }

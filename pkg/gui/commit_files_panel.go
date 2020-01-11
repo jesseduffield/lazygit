@@ -43,11 +43,15 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.focusPoint(0, gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles), v); err != nil {
 		return err
 	}
-	commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, false)
-	if err != nil {
-		return err
+
+	cmd := gui.OSCommand.ExecutableFromString(
+		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Sha, commitFile.Name, false),
+	)
+	if err := gui.newCmdTask("main", cmd); err != nil {
+		gui.Log.Error(err)
 	}
-	return gui.renderString(g, "main", commitText)
+
+	return nil
 }
 
 func (gui *Gui) handleSwitchToCommitsPanel(g *gocui.Gui, v *gocui.View) error {
