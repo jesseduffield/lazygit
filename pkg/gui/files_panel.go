@@ -457,7 +457,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	} else if pullables == "0" {
 		return gui.pushWithForceFlag(g, v, false, "")
 	}
-	return gui.createConfirmationPanel(g, nil, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.pushWithForceFlag(g, v, true, "")
 	}, nil)
 }
