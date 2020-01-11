@@ -188,7 +188,7 @@ func TestCommitListBuilderGetLog(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			c := NewDummyCommitListBuilder()
 			c.OSCommand.SetCommand(s.command)
-			s.test(c.getLog())
+			s.test(c.getLog(true))
 		})
 	}
 }
@@ -312,7 +312,7 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			c := NewDummyCommitListBuilder()
 			c.OSCommand.SetCommand(s.command)
-			s.test(c.GetCommits())
+			s.test(c.GetCommits(true))
 		})
 	}
 }

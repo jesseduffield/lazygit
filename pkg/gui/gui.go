@@ -128,6 +128,7 @@ type tagsPanelState struct {
 type commitPanelState struct {
 	SelectedLine     int
 	SpecificDiffMode bool
+	LimitCommits     bool
 }
 
 type reflogCommitPanelState struct {
@@ -212,7 +213,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 			Remotes:        &remotePanelState{SelectedLine: 0},
 			RemoteBranches: &remoteBranchesState{SelectedLine: -1},
 			Tags:           &tagsPanelState{SelectedLine: -1},
-			Commits:        &commitPanelState{SelectedLine: -1},
+			Commits:        &commitPanelState{SelectedLine: -1, LimitCommits: true},
 			ReflogCommits:  &reflogCommitPanelState{SelectedLine: 0}, // TODO: might need to make -1
 			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
 			Stash:          &stashPanelState{SelectedLine: -1},
