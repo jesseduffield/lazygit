@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
@@ -33,25 +31,18 @@ func (gui *Gui) handleTagSelect(g *gocui.Gui, v *gocui.View) error {
 
 	tag := gui.getSelectedTag()
 	if tag == nil {
-		return gui.renderString(g, "main", "No tags")
+		return gui.newStringTask("main", "No tags")
 	}
 	if err := gui.focusPoint(0, gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags), v); err != nil {
 		return err
 	}
 
-	go func() {
-		show, err := gui.GitCommand.ShowTag(tag.Name)
-		if err != nil {
-			show = ""
-		}
-
-		graph, err := gui.GitCommand.GetBranchGraph(tag.Name)
-		if err != nil {
-			graph = "No graph for tag " + tag.Name
-		}
-
-		_ = gui.renderString(g, "main", fmt.Sprintf("%s\n%s", show, graph))
-	}()
+	cmd := gui.OSCommand.ExecutableFromString(
+		gui.GitCommand.GetBranchGraphCmdStr(tag.Name),
+	)
+	if err := gui.newCmdTask("main", cmd); err != nil {
+		gui.Log.Error(err)
+	}
 
 	return nil
 }

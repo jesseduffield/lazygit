@@ -36,13 +36,13 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 
 	remote := gui.getSelectedRemote()
 	if remote == nil {
-		return gui.renderString(g, "main", "No remotes")
+		return gui.newStringTask("main", "No remotes")
 	}
 	if err := gui.focusPoint(0, gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes), v); err != nil {
 		return err
 	}
 
-	return gui.renderString(g, "main", fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
+	return gui.newStringTask("main", fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
 }
 
 func (gui *Gui) refreshRemotes() error {

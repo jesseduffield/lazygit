@@ -53,7 +53,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
-		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+		return gui.newStringTask("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 
 	if err := gui.focusPoint(0, gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits), v); err != nil {
@@ -65,11 +65,14 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	commitText, err := gui.GitCommand.Show(commit.Sha)
-	if err != nil {
-		return err
+	cmd := gui.OSCommand.ExecutableFromString(
+		gui.GitCommand.ShowCmdStr(commit.Sha),
+	)
+	if err := gui.newCmdTask("main", cmd); err != nil {
+		gui.Log.Error(err)
 	}
-	return gui.renderString(g, "main", commitText)
+
+	return nil
 }
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
@@ -463,7 +466,7 @@ func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
 	// get selected commit
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
-		return gui.renderString(g, "main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+		return gui.newStringTask("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 
 	// if already selected commit delete
@@ -486,7 +489,7 @@ func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 
-		return gui.renderString(g, "main", commitText)
+		return gui.newStringTask("main", commitText)
 	}
 
 	return nil

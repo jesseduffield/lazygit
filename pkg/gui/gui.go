@@ -25,6 +25,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -68,20 +69,21 @@ type Teml i18n.Teml
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g             *gocui.Gui
-	Log           *logrus.Entry
-	GitCommand    *commands.GitCommand
-	OSCommand     *commands.OSCommand
-	SubProcess    *exec.Cmd
-	State         guiState
-	Config        config.AppConfigurer
-	Tr            *i18n.Localizer
-	Errors        SentinelErrors
-	Updater       *updates.Updater
-	statusManager *statusManager
-	credentials   credentials
-	waitForIntro  sync.WaitGroup
-	fileWatcher   *fileWatcher
+	g                    *gocui.Gui
+	Log                  *logrus.Entry
+	GitCommand           *commands.GitCommand
+	OSCommand            *commands.OSCommand
+	SubProcess           *exec.Cmd
+	State                guiState
+	Config               config.AppConfigurer
+	Tr                   *i18n.Localizer
+	Errors               SentinelErrors
+	Updater              *updates.Updater
+	statusManager        *statusManager
+	credentials          credentials
+	waitForIntro         sync.WaitGroup
+	fileWatcher          *fileWatcher
+	viewBufferManagerMap map[string]*tasks.ViewBufferManager
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -229,14 +231,15 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	}
 
 	gui := &Gui{
-		Log:           log,
-		GitCommand:    gitCommand,
-		OSCommand:     oSCommand,
-		State:         initialState,
-		Config:        config,
-		Tr:            tr,
-		Updater:       updater,
-		statusManager: &statusManager{},
+		Log:                  log,
+		GitCommand:           gitCommand,
+		OSCommand:            oSCommand,
+		State:                initialState,
+		Config:               config,
+		Tr:                   tr,
+		Updater:              updater,
+		statusManager:        &statusManager{},
+		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 	}
 
 	gui.watchFilesForChanges()
@@ -261,8 +264,14 @@ func (gui *Gui) scrollDownView(viewName string) error {
 		_, sy := mainView.Size()
 		y += sy
 	}
+	scrollHeight := gui.Config.GetUserConfig().GetInt("gui.scrollHeight")
 	if y < len(mainView.BufferLines()) {
-		return mainView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
+		if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
+			return err
+		}
+	}
+	if manager, ok := gui.viewBufferManagerMap[viewName]; ok {
+		manager.ReadLines(scrollHeight)
 	}
 	return nil
 }
@@ -465,7 +474,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		secondary = "main"
 	}
 
-	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, panelSplitX, height-2, gocui.LEFT)
+	// reading more lines into main view buffers upon resize
+	mainHeight := height - 2
+	prevMainView, err := gui.g.View("main")
+	if err == nil {
+		_, prevMainHeight := prevMainView.Size()
+		heightDiff := mainHeight - 1 - prevMainHeight
+		if heightDiff > 0 {
+			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
+				manager.ReadLines(heightDiff)
+			}
+			if manager, ok := gui.viewBufferManagerMap["secondary"]; ok {
+				manager.ReadLines(heightDiff)
+			}
+		}
+	}
+
+	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, panelSplitX, mainHeight, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -479,7 +504,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if !gui.State.SplitMainPanel {
 		hiddenViewOffset = 9999
 	}
-	secondaryView, err := g.SetView(secondary, panelSplitX+1+hiddenViewOffset, hiddenViewOffset, width-1+hiddenViewOffset, height-2+hiddenViewOffset, gocui.LEFT)
+	secondaryView, err := g.SetView(secondary, panelSplitX+1+hiddenViewOffset, hiddenViewOffset, width-1+hiddenViewOffset, mainHeight+hiddenViewOffset, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -843,6 +868,11 @@ func (gui *Gui) Run() error {
 func (gui *Gui) RunWithSubprocesses() error {
 	for {
 		if err := gui.Run(); err != nil {
+			for _, manager := range gui.viewBufferManagerMap {
+				manager.Close()
+			}
+			gui.viewBufferManagerMap = map[string]*tasks.ViewBufferManager{}
+
 			if err == gocui.ErrQuit {
 				if !gui.State.RetainOriginalDir {
 					if err := gui.recordCurrentDirectory(); err != nil {

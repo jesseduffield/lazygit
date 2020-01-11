@@ -31,17 +31,20 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 	commit := gui.getSelectedReflogCommit()
 	if commit == nil {
-		return gui.renderString(g, "main", "No reflog history")
+		return gui.newStringTask("main", "No reflog history")
 	}
 	if err := gui.focusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.ReflogCommits), v); err != nil {
 		return err
 	}
 
-	commitText, err := gui.GitCommand.Show(commit.Sha)
-	if err != nil {
-		return err
+	cmd := gui.OSCommand.ExecutableFromString(
+		gui.GitCommand.ShowCmdStr(commit.Sha),
+	)
+	if err := gui.newCmdTask("main", cmd); err != nil {
+		gui.Log.Error(err)
 	}
-	return gui.renderString(g, "main", commitText)
+
+	return nil
 }
 
 func (gui *Gui) refreshReflogCommits() error {

@@ -212,7 +212,7 @@ func (gui *Gui) refreshMergePanel() error {
 	if err != nil {
 		return err
 	}
-	if err := gui.renderString(gui.g, "main", content); err != nil {
+	if err := gui.newStringTask("main", content); err != nil {
 		return err
 	}
 	if err := gui.scrollToConflict(gui.g); err != nil {
