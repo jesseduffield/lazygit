@@ -46,7 +46,7 @@ func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *
 }
 
 // GetCommits obtains the commits of the current branch
-func (c *CommitListBuilder) GetCommits() ([]*Commit, error) {
+func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 	commits := []*Commit{}
 	var rebasingCommits []*Commit
 	rebaseMode, err := c.GitCommand.RebaseMode()
@@ -65,7 +65,7 @@ func (c *CommitListBuilder) GetCommits() ([]*Commit, error) {
 	}
 
 	unpushedCommits := c.getUnpushedCommits()
-	log := c.getLog()
+	log := c.getLog(limit)
 
 	// now we can split it up and turn it into commits
 	for _, line := range utils.SplitLines(log) {
@@ -281,12 +281,15 @@ func (c *CommitListBuilder) getUnpushedCommits() map[string]bool {
 	return pushables
 }
 
-// getLog gets the git log (currently limited to 30 commits for performance
-// until we work out lazy loading
-func (c *CommitListBuilder) getLog() string {
-	// currently limiting to 30 for performance reasons
-	// TODO: add lazyloading when you scroll down
-	result, err := c.OSCommand.RunCommandWithOutput("git log --oneline -30")
+// getLog gets the git log.
+func (c *CommitListBuilder) getLog(limit bool) string {
+	limitFlag := ""
+	if limit {
+		limitFlag = "-30"
+	}
+
+	c.Log.Warn(fmt.Sprintf("git log --oneline %s", limitFlag))
+	result, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --oneline %s", limitFlag))
 	if err != nil {
 		// assume if there is an error there are no commits yet for this branch
 		return ""

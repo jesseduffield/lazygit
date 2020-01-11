@@ -37,6 +37,16 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
+	state := gui.State.Panels.Commits
+	if state.SelectedLine > 20 && state.LimitCommits {
+		state.LimitCommits = false
+		go func() {
+			if err := gui.refreshCommitsWithLimit(); err != nil {
+				_ = gui.createErrorPanel(gui.g, err.Error())
+			}
+		}()
+	}
+
 	gui.getMainView().Title = "Patch"
 	gui.getSecondaryView().Title = "Custom Patch"
 	gui.State.Panels.LineByLine = nil
@@ -64,15 +74,12 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 	g.Update(func(*gocui.Gui) error {
-		builder, err := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
-		if err != nil {
+		// I think this is here for the sake of some kind of rebasing thing
+		gui.refreshStatus(g)
+
+		if err := gui.refreshCommitsWithLimit(); err != nil {
 			return err
 		}
-		commits, err := builder.GetCommits()
-		if err != nil {
-			return err
-		}
-		gui.State.Commits = commits
 
 		// doing this async because it shouldn't hold anything up
 		go func() {
@@ -81,17 +88,32 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			}
 		}()
 
-		gui.refreshStatus(g)
-		if gui.getCommitsView().Context == "branch-commits" {
-			if err := gui.renderBranchCommitsWithSelection(); err != nil {
-				return err
-			}
-		}
 		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
 			return gui.refreshCommitFilesView()
 		}
 		return nil
 	})
+	return nil
+}
+
+func (gui *Gui) refreshCommitsWithLimit() error {
+	builder, err := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
+	if err != nil {
+		return err
+	}
+
+	commits, err := builder.GetCommits(gui.State.Panels.Commits.LimitCommits)
+	if err != nil {
+		return err
+	}
+	gui.State.Commits = commits
+
+	if gui.getCommitsView().Context == "branch-commits" {
+		if err := gui.renderBranchCommitsWithSelection(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
