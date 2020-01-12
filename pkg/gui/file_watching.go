@@ -19,13 +19,20 @@ type fileWatcher struct {
 	Watcher          *fsnotify.Watcher
 	WatchedFilenames []string
 	Log              *logrus.Entry
+	Disabled         bool
 }
 
 func NewFileWatcher(log *logrus.Entry) *fileWatcher {
 	watcher, err := fsnotify.NewWatcher()
+	log.Error(err)
+	return &fileWatcher{
+		Disabled: true,
+	}
 	if err != nil {
 		log.Error(err)
-		return nil
+		return &fileWatcher{
+			Disabled: true,
+		}
 	}
 
 	return &fileWatcher{
@@ -66,6 +73,10 @@ func (w *fileWatcher) watchFilename(filename string) {
 }
 
 func (w *fileWatcher) addFilesToFileWatcher(files []*commands.File) error {
+	if w.Disabled {
+		return nil
+	}
+
 	if len(files) == 0 {
 		return nil
 	}
@@ -105,7 +116,7 @@ func min(a int, b int) int {
 // TODO: consider watching the whole directory recursively (could be more expensive)
 func (gui *Gui) watchFilesForChanges() {
 	gui.fileWatcher = NewFileWatcher(gui.Log)
-	if gui.fileWatcher == nil {
+	if gui.fileWatcher.Disabled {
 		return
 	}
 	go func() {
