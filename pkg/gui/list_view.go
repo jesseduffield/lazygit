@@ -34,6 +34,7 @@ func (lv *listView) handleLineChange(change int) error {
 			return err
 		}
 	}
+
 	view, err := lv.gui.g.View(lv.viewName)
 	if err != nil {
 		return err
@@ -56,7 +57,14 @@ func (lv *listView) handleClick(g *gocui.Gui, v *gocui.View) error {
 
 	*selectedLineIdxPtr = newSelectedLineIdx
 
-	if prevSelectedLineIdx == newSelectedLineIdx && lv.gui.currentViewName() == lv.viewName && lv.handleClickSelectedItem != nil {
+	if lv.rendersToMainView {
+		if err := lv.gui.resetOrigin(lv.gui.getMainView()); err != nil {
+			return err
+		}
+	}
+
+	prevViewName := lv.gui.currentViewName()
+	if prevSelectedLineIdx == newSelectedLineIdx && prevViewName == lv.viewName && lv.handleClickSelectedItem != nil {
 		return lv.handleClickSelectedItem(lv.gui.g, v)
 	}
 	return lv.handleItemSelect(lv.gui.g, v)
