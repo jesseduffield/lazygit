@@ -265,7 +265,7 @@ func (gui *Gui) scrollDownView(viewName string) error {
 		y += sy
 	}
 	scrollHeight := gui.Config.GetUserConfig().GetInt("gui.scrollHeight")
-	if y < len(mainView.BufferLines()) {
+	if y < mainView.LinesHeight() {
 		if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
 			return err
 		}
