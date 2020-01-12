@@ -21,6 +21,7 @@ Default path for the config file: `~/.config/jesseduffield/lazygit/config.yml`
     commitLength:
       show: true
     mouseEvents: true
+    skipUnstageLineWarning: false
   git:
     merging:
       # only applicable to unix users

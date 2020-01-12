@@ -12,6 +12,13 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 
 	state := gui.State.Panels.LineByLine
 
+	// We need to force focus here because the confirmation panel for safely staging lines does not return focus automatically.
+	// This is because if we tell it to return focus it will unconditionally return it to the main panel which may not be what we want
+	// e.g. in the event that there's nothing left to stage.
+	if err := gui.switchFocus(gui.g, nil, gui.getMainView()); err != nil {
+		return err
+	}
+
 	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
@@ -93,19 +100,29 @@ func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStageSelection(g *gocui.Gui, v *gocui.View) error {
-	return gui.applySelection(false)
+	return gui.applySelectionWithPrompt(false)
 }
 
 func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
-	return gui.applySelection(true)
+	return gui.applySelectionWithPrompt(true)
 }
 
-func (gui *Gui) applySelection(reverse bool) error {
+func (gui *Gui) applySelectionWithPrompt(reverse bool) error {
 	state := gui.State.Panels.LineByLine
 
 	if !reverse && state.SecondaryFocused {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantStageStaged"))
+	} else if reverse && !state.SecondaryFocused && !gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
+		return gui.createConfirmationPanel(gui.g, gui.getMainView(), false, "unstage lines", "Are you sure you want to unstage these lines? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true", func(*gocui.Gui, *gocui.View) error {
+			return gui.applySelection(reverse)
+		}, nil)
 	}
+
+	return gui.applySelection(reverse)
+}
+
+func (gui *Gui) applySelection(reverse bool) error {
+	state := gui.State.Panels.LineByLine
 
 	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {

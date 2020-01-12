@@ -243,6 +243,7 @@ func GetDefaultConfig() []byte {
   scrollHeight: 2
   scrollPastBottom: true
   mouseEvents: true
+  skipUnstageLineWarning: false
   theme:
     lightTheme: false
     activeBorderColor:
