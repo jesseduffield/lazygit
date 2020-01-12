@@ -212,15 +212,16 @@ func (gui *Gui) refreshMergePanel() error {
 	if err != nil {
 		return err
 	}
-	if err := gui.newStringTask("main", content); err != nil {
-		return err
-	}
-	if err := gui.scrollToConflict(gui.g); err != nil {
-		return err
-	}
 
 	mainView := gui.getMainView()
 	mainView.Wrap = false
+	if err := gui.setViewContent(gui.g, mainView, content); err != nil {
+		return err
+	}
+	gui.Log.Warn("scrolling to conflict")
+	if err := gui.scrollToConflict(gui.g); err != nil {
+		return err
+	}
 
 	return nil
 }
