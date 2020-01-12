@@ -32,6 +32,8 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
+		gui.State.SplitMainPanel = false
+		gui.getMainView().Title = ""
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
