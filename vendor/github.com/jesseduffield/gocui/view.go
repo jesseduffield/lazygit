@@ -458,6 +458,8 @@ func (v *View) clearRunes() {
 // BufferLines returns the lines in the view's internal
 // buffer.
 func (v *View) BufferLines() []string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
 	lines := make([]string, len(v.lines))
 	for i, l := range v.lines {
 		str := lineType(l).String()
@@ -476,6 +478,8 @@ func (v *View) Buffer() string {
 // ViewBufferLines returns the lines in the view's internal
 // buffer that is shown to the user.
 func (v *View) ViewBufferLines() []string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
 	lines := make([]string, len(v.viewLines))
 	for i, l := range v.viewLines {
 		str := lineType(l.line).String()
