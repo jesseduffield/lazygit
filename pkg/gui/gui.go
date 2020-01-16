@@ -880,7 +880,9 @@ func (gui *Gui) RunWithSubprocesses() error {
 					}
 				}
 
-				gui.fileWatcher.Watcher.Close()
+				if !gui.fileWatcher.Disabled {
+					gui.fileWatcher.Watcher.Close()
+				}
 
 				break
 			} else if err == gui.Errors.ErrSwitchRepo {
