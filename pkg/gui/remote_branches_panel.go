@@ -2,12 +2,9 @@ package gui
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -37,7 +34,7 @@ func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	remote := gui.getSelectedRemote()
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {
-		return gui.renderString(g, "main", "No branches for this remote")
+		return gui.newStringTask("main", "No branches for this remote")
 	}
 
 	gui.focusPoint(0, gui.State.Panels.Menu.SelectedLine, gui.State.MenuItemCount, v)
@@ -45,13 +42,14 @@ func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	go func() {
-		graph, err := gui.GitCommand.GetBranchGraph(fmt.Sprintf("%s/%s", remote.Name, remoteBranch.Name))
-		if err != nil && strings.HasPrefix(graph, "fatal: ambiguous argument") {
-			graph = gui.Tr.SLocalize("NoTrackingThisBranch")
-		}
-		_ = gui.renderString(g, "main", fmt.Sprintf("%s/%s\n\n%s", utils.ColoredString(remote.Name, color.FgRed), utils.ColoredString(remoteBranch.Name, color.FgGreen), graph))
-	}()
+	branchName := fmt.Sprintf("%s/%s", remote.Name, remoteBranch.Name)
+
+	cmd := gui.OSCommand.ExecutableFromString(
+		gui.GitCommand.GetBranchGraphCmdStr(branchName),
+	)
+	if err := gui.newCmdTask("main", cmd); err != nil {
+		gui.Log.Error(err)
+	}
 
 	return nil
 }
@@ -67,8 +65,10 @@ func (gui *Gui) renderRemoteBranchesWithSelection() error {
 	if err := gui.renderListPanel(branchesView, gui.State.RemoteBranches); err != nil {
 		return err
 	}
-	if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
-		return err
+	if gui.g.CurrentView() == branchesView && branchesView.Context == "remote-branches" {
+		if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -79,7 +79,7 @@ func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	if remoteBranch == nil {
 		return nil
 	}
-	if err := gui.handleCheckoutBranch(remoteBranch.RemoteName + "/" + remoteBranch.Name); err != nil {
+	if err := gui.handleCheckoutRef(remoteBranch.RemoteName + "/" + remoteBranch.Name); err != nil {
 		return err
 	}
 	return gui.switchBranchesPanelContext("local-branches")

@@ -36,13 +36,13 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 
 	remote := gui.getSelectedRemote()
 	if remote == nil {
-		return gui.renderString(g, "main", "No remotes")
+		return gui.newStringTask("main", "No remotes")
 	}
 	if err := gui.focusPoint(0, gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes), v); err != nil {
 		return err
 	}
 
-	return gui.renderString(g, "main", fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
+	return gui.newStringTask("main", fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
 }
 
 func (gui *Gui) refreshRemotes() error {
@@ -83,8 +83,10 @@ func (gui *Gui) renderRemotesWithSelection() error {
 	if err := gui.renderListPanel(branchesView, gui.State.Remotes); err != nil {
 		return err
 	}
-	if err := gui.handleRemoteSelect(gui.g, branchesView); err != nil {
-		return err
+	if gui.g.CurrentView() == branchesView && branchesView.Context == "remotes" {
+		if err := gui.handleRemoteSelect(gui.g, branchesView); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -174,5 +176,20 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 			}
 			return gui.refreshRemotes()
 		})
+	})
+}
+
+func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
+	remote := gui.getSelectedRemote()
+	if remote == nil {
+		return nil
+	}
+
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("FetchingRemoteStatus"), func() error {
+		if err := gui.GitCommand.FetchRemote(remote.Name); err != nil {
+			return err
+		}
+
+		return gui.refreshRemotes()
 	})
 }

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -27,21 +26,13 @@ func (gui *Gui) getSelectedFile(g *gocui.Gui) (*commands.File, error) {
 	return gui.State.Files[selectedLine], nil
 }
 
-func (gui *Gui) handleFileSelect(g *gocui.Gui, v *gocui.View) error {
-	return gui.selectFile(false)
-}
-
 func (gui *Gui) selectFile(alreadySelected bool) error {
-	if _, err := gui.g.SetCurrentView("files"); err != nil {
-		return err
-	}
-
 	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
-		return gui.renderString(gui.g, "main", gui.Tr.SLocalize("NoChangedFiles"))
+		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
 	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, len(gui.State.Files), gui.getFilesView()); err != nil {
@@ -54,37 +45,40 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.refreshMergePanel()
 	}
 
-	content := gui.GitCommand.Diff(file, false, false)
-	contentCached := gui.GitCommand.Diff(file, false, true)
-	leftContent := content
+	if !alreadySelected {
+		if err := gui.resetOrigin(gui.getMainView()); err != nil {
+			return err
+		}
+		if err := gui.resetOrigin(gui.getSecondaryView()); err != nil {
+			return err
+		}
+	}
+
 	if file.HasStagedChanges && file.HasUnstagedChanges {
 		gui.State.SplitMainPanel = true
 		gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
 		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
+		cmdStr := gui.GitCommand.DiffCmdStr(file, false, true)
+		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+		if err := gui.newCmdTask("secondary", cmd); err != nil {
+			return err
+		}
 	} else {
 		gui.State.SplitMainPanel = false
 		if file.HasUnstagedChanges {
-			leftContent = content
 			gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
 		} else {
-			leftContent = contentCached
 			gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
 		}
 	}
 
-	if alreadySelected {
-		gui.g.Update(func(*gocui.Gui) error {
-			if err := gui.setViewContent(gui.g, gui.getSecondaryView(), contentCached); err != nil {
-				return err
-			}
-			return gui.setViewContent(gui.g, gui.getMainView(), leftContent)
-		})
-		return nil
-	}
-	if err := gui.renderString(gui.g, "secondary", contentCached); err != nil {
+	cmdStr := gui.GitCommand.DiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+	if err := gui.newCmdTask("main", cmd); err != nil {
 		return err
 	}
-	return gui.renderString(gui.g, "main", leftContent)
+
+	return nil
 }
 
 func (gui *Gui) refreshFiles() error {
@@ -221,6 +215,14 @@ func (gui *Gui) allFilesStaged() bool {
 	return true
 }
 
+func (gui *Gui) focusAndSelectFile(g *gocui.Gui, v *gocui.View) error {
+	if _, err := gui.g.SetCurrentView("files"); err != nil {
+		return err
+	}
+
+	return gui.selectFile(false)
+}
+
 func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 	var err error
 	if gui.allFilesStaged() {
@@ -236,7 +238,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	return gui.handleFileSelect(gui.g, v)
+	return gui.selectFile(false)
 }
 
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
@@ -356,7 +358,7 @@ func (gui *Gui) refreshStateFiles() error {
 	files := gui.GitCommand.GetStatusFiles()
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
 
-	if err := gui.addFilesToFileWatcher(files); err != nil {
+	if err := gui.fileWatcher.addFilesToFileWatcher(files); err != nil {
 		return err
 	}
 
@@ -370,15 +372,15 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 		if err != gui.Errors.ErrNoFiles {
 			return "", err
 		}
-		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NoFilesDisplay"))
+		return "", gui.newStringTask("main", gui.Tr.SLocalize("NoFilesDisplay"))
 	}
 	if item.Type != "file" {
-		return "", gui.renderString(g, "main", gui.Tr.SLocalize("NotAFile"))
+		return "", gui.newStringTask("main", gui.Tr.SLocalize("NotAFile"))
 	}
 	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
 		gui.Log.Error(err)
-		return "", gui.renderString(g, "main", err.Error())
+		return "", gui.newStringTask("main", err.Error())
 	}
 	return cat, nil
 }
@@ -455,7 +457,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	} else if pullables == "0" {
 		return gui.pushWithForceFlag(g, v, false, "")
 	}
-	return gui.createConfirmationPanel(g, nil, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.pushWithForceFlag(g, v, true, "")
 	}, nil)
 }
@@ -510,20 +512,9 @@ type discardOption struct {
 	description string
 }
 
-type discardAllOption struct {
-	handler     func() error
-	description string
-	command     string
-}
-
 // GetDisplayStrings is a function.
 func (r *discardOption) GetDisplayStrings(isFocused bool) []string {
 	return []string{r.description}
-}
-
-// GetDisplayStrings is a function.
-func (r *discardAllOption) GetDisplayStrings(isFocused bool) []string {
-	return []string{r.description, color.New(color.FgRed).Sprint(r.command)}
 }
 
 func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
@@ -575,62 +566,6 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.createMenu(file.Name, options, len(options), handleMenuPress)
-}
-
-func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
-	options := []*discardAllOption{
-		{
-			description: gui.Tr.SLocalize("discardAllChangesToAllFiles"),
-			command:     "reset --hard HEAD && git clean -fd",
-			handler: func() error {
-				return gui.GitCommand.ResetAndClean()
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("discardAnyUnstagedChanges"),
-			command:     "git checkout -- .",
-			handler: func() error {
-				return gui.GitCommand.DiscardAnyUnstagedFileChanges()
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("discardUntrackedFiles"),
-			command:     "git clean -fd",
-			handler: func() error {
-				return gui.GitCommand.RemoveUntrackedFiles()
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("softReset"),
-			command:     "git reset --soft HEAD",
-			handler: func() error {
-				return gui.GitCommand.ResetSoftHead()
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("hardReset"),
-			command:     "git reset --hard HEAD",
-			handler: func() error {
-				return gui.GitCommand.ResetHardHead()
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("cancel"),
-			handler: func() error {
-				return nil
-			},
-		},
-	}
-
-	handleMenuPress := func(index int) error {
-		if err := options[index].handler(); err != nil {
-			return err
-		}
-
-		return gui.refreshFiles()
-	}
-
-	return gui.createMenu("", options, len(options), handleMenuPress)
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {

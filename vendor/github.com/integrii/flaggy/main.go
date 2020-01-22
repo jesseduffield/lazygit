@@ -327,6 +327,18 @@ func exitOrPanic(code int) {
 	os.Exit(code)
 }
 
+// ShowHelpOnUnexpectedEnable enables the ShowHelpOnUnexpected behavior on the
+// default parser.  This causes unknown inputs to error out.
+func ShowHelpOnUnexpectedEnable() {
+	DefaultParser.ShowHelpOnUnexpected = true
+}
+
+// ShowHelpOnUnexpectedDisable disables the ShowHelpOnUnexpected behavior on the
+// default parser.  This causes unknown inputs to error out.
+func ShowHelpOnUnexpectedDisable() {
+	DefaultParser.ShowHelpOnUnexpected = false
+}
+
 // AddPositionalValue adds a positional value to the main parser at the global
 // context
 func AddPositionalValue(assignmentVar *string, name string, relativePosition int, required bool, description string) {

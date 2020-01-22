@@ -176,8 +176,8 @@ func stashEntryFromLine(line string, index int) *StashEntry {
 }
 
 // GetStashEntryDiff stash diff
-func (c *GitCommand) GetStashEntryDiff(index int) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git stash show -p --color stash@{%d}", index)
+func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
+	return fmt.Sprintf("git stash show -p --color stash@{%d}", index)
 }
 
 // GetStatusFiles git status files
@@ -265,7 +265,7 @@ func includesInt(list []int, a int) bool {
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
 func (c *GitCommand) ResetAndClean() error {
-	if err := c.ResetHardHead(); err != nil {
+	if err := c.ResetHard("HEAD"); err != nil {
 		return err
 	}
 
@@ -515,7 +515,7 @@ func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
 	return c.OSCommand.RunCommand("git checkout -- %s", quotedFileName)
 }
 
-// Checkout checks out a branch, with --force if you set the force arg to true
+// Checkout checks out a branch (or commit), with --force if you set the force arg to true
 func (c *GitCommand) Checkout(branch string, force bool) error {
 	forceArg := ""
 	if force {
@@ -538,7 +538,8 @@ func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium -100 %s", branchName)
+	cmdStr := c.GetBranchGraphCmdStr(branchName)
+	return c.OSCommand.RunCommandWithOutput(cmdStr)
 }
 
 func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
@@ -551,41 +552,12 @@ func (c *GitCommand) Ignore(filename string) error {
 	return c.OSCommand.AppendLineToFile(".gitignore", filename)
 }
 
-// Show shows the diff of a commit
-func (c *GitCommand) Show(sha string) (string, error) {
-	show, err := c.OSCommand.RunCommandWithOutput("git show --color --no-renames %s", sha)
-	if err != nil {
-		return "", err
-	}
+func (c *GitCommand) ShowCmdStr(sha string) string {
+	return fmt.Sprintf("git show --color --no-renames %s", sha)
+}
 
-	// if this is a merge commit, we need to go a step further and get the diff between the two branches we merged
-	revList, err := c.OSCommand.RunCommandWithOutput("git rev-list -1 --merges %s^...%s", sha, sha)
-	if err != nil {
-		// turns out we get an error here when it's the first commit. We'll just return the original show
-		return show, nil
-	}
-	if len(revList) == 0 {
-		return show, nil
-	}
-
-	// we want to pull out 1a6a69a and 3b51d7c from this:
-	// commit ccc771d8b13d5b0d4635db4463556366470fd4f6
-	// Merge: 1a6a69a 3b51d7c
-	lines := utils.SplitLines(show)
-	if len(lines) < 2 {
-		return show, nil
-	}
-
-	secondLineWords := strings.Split(lines[1], " ")
-	if len(secondLineWords) < 3 {
-		return show, nil
-	}
-
-	mergeDiff, err := c.OSCommand.RunCommandWithOutput("git diff --color %s...%s", secondLineWords[1], secondLineWords[2])
-	if err != nil {
-		return "", err
-	}
-	return show + mergeDiff, nil
+func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
+	return fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium %s", branchName)
 }
 
 // GetRemoteURL returns current repo remote url
@@ -606,6 +578,12 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
 
 // Diff returns the diff of a file
 func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
+	// for now we assume an error means the file was deleted
+	s, _ := c.OSCommand.RunCommandWithOutput(c.DiffCmdStr(file, plain, cached))
+	return s
+}
+
+func (c *GitCommand) DiffCmdStr(file *File, plain bool, cached bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := "--color"
@@ -621,14 +599,12 @@ func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
 		colorArg = ""
 	}
 
-	// for now we assume an error means the file was deleted
-	s, _ := c.OSCommand.RunCommandWithOutput("git diff %s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
-	return s
+	return fmt.Sprintf("git diff %s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	c.Log.Warn(patch)
-	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format(time.StampNano)+".patch")
+	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
 	}
@@ -908,11 +884,17 @@ func (c *GitCommand) GetCommitFiles(commitSha string, patchManager *PatchManager
 
 // ShowCommitFile get the diff of specified commit file
 func (c *GitCommand) ShowCommitFile(commitSha, fileName string, plain bool) (string, error) {
+	cmdStr := c.ShowCommitFileCmdStr(commitSha, fileName, plain)
+	return c.OSCommand.RunCommandWithOutput(cmdStr)
+}
+
+func (c *GitCommand) ShowCommitFileCmdStr(commitSha, fileName string, plain bool) string {
 	colorArg := "--color"
 	if plain {
 		colorArg = ""
 	}
-	return c.OSCommand.RunCommandWithOutput("git show --no-renames %s %s -- %s", colorArg, commitSha, fileName)
+
+	return fmt.Sprintf("git show --no-renames %s %s -- %s", colorArg, commitSha, fileName)
 }
 
 // CheckoutFile checks out the file for the given commit
@@ -961,14 +943,14 @@ func (c *GitCommand) RemoveUntrackedFiles() error {
 	return c.OSCommand.RunCommand("git clean -fd")
 }
 
-// ResetHardHead runs `git reset --hard HEAD`
-func (c *GitCommand) ResetHardHead() error {
-	return c.OSCommand.RunCommand("git reset --hard HEAD")
+// ResetHardHead runs `git reset --hard`
+func (c *GitCommand) ResetHard(ref string) error {
+	return c.OSCommand.RunCommand("git reset --hard " + ref)
 }
 
-// ResetSoftHead runs `git reset --soft HEAD`
-func (c *GitCommand) ResetSoftHead() error {
-	return c.OSCommand.RunCommand("git reset --soft HEAD")
+// ResetSoft runs `git reset --soft HEAD`
+func (c *GitCommand) ResetSoft(ref string) error {
+	return c.OSCommand.RunCommand("git reset --soft " + ref)
 }
 
 // DiffCommits show diff between commits
@@ -1098,14 +1080,39 @@ func (c *GitCommand) CreateLightweightTag(tagName string, commitSha string) erro
 	return c.OSCommand.RunCommand("git tag %s %s", tagName, commitSha)
 }
 
-func (c *GitCommand) ShowTag(tagName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git tag -n99 %s", tagName)
-}
-
 func (c *GitCommand) DeleteTag(tagName string) error {
 	return c.OSCommand.RunCommand("git tag -d %s", tagName)
 }
 
 func (c *GitCommand) PushTag(remoteName string, tagName string) error {
 	return c.OSCommand.RunCommand("git push %s %s", remoteName, tagName)
+}
+
+func (c *GitCommand) FetchRemote(remoteName string) error {
+	return c.OSCommand.RunCommand("git fetch %s", remoteName)
+}
+
+func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
+	output, err := c.OSCommand.RunCommandWithOutput("git reflog")
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	commits := make([]*Commit, len(lines))
+	re := regexp.MustCompile(`(\w+).*HEAD@\{\d+\}: (.*)`)
+	for i, line := range lines {
+		match := re.FindStringSubmatch(line)
+		if len(match) == 1 {
+			continue
+		}
+
+		commits[i] = &Commit{
+			Sha:    match[1],
+			Name:   match[2],
+			Status: "reflog",
+		}
+	}
+
+	return commits, nil
 }

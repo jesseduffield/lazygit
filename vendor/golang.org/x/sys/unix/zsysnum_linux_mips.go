@@ -415,4 +415,5 @@ const (
 	SYS_FSMOUNT                      = 4432
 	SYS_FSPICK                       = 4433
 	SYS_PIDFD_OPEN                   = 4434
+	SYS_CLONE3                       = 4435
 )

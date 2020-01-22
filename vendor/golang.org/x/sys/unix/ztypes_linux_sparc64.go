@@ -183,6 +183,55 @@ type FscryptKey struct {
 	Size uint32
 }
 
+type FscryptPolicyV1 struct {
+	Version                   uint8
+	Contents_encryption_mode  uint8
+	Filenames_encryption_mode uint8
+	Flags                     uint8
+	Master_key_descriptor     [8]uint8
+}
+
+type FscryptPolicyV2 struct {
+	Version                   uint8
+	Contents_encryption_mode  uint8
+	Filenames_encryption_mode uint8
+	Flags                     uint8
+	_                         [4]uint8
+	Master_key_identifier     [16]uint8
+}
+
+type FscryptGetPolicyExArg struct {
+	Size   uint64
+	Policy [24]byte
+}
+
+type FscryptKeySpecifier struct {
+	Type uint32
+	_    uint32
+	U    [32]byte
+}
+
+type FscryptAddKeyArg struct {
+	Key_spec FscryptKeySpecifier
+	Raw_size uint32
+	_        [9]uint32
+}
+
+type FscryptRemoveKeyArg struct {
+	Key_spec             FscryptKeySpecifier
+	Removal_status_flags uint32
+	_                    [5]uint32
+}
+
+type FscryptGetKeyStatusArg struct {
+	Key_spec     FscryptKeySpecifier
+	_            [6]uint32
+	Status       uint32
+	Status_flags uint32
+	User_count   uint32
+	_            [13]uint32
+}
+
 type KeyctlDHParams struct {
 	Private int32
 	Prime   int32
@@ -260,7 +309,7 @@ type RawSockaddrRFCOMM struct {
 type RawSockaddrCAN struct {
 	Family  uint16
 	Ifindex int32
-	Addr    [8]byte
+	Addr    [16]byte
 }
 
 type RawSockaddrALG struct {
@@ -432,7 +481,7 @@ const (
 	SizeofSockaddrHCI       = 0x6
 	SizeofSockaddrL2        = 0xe
 	SizeofSockaddrRFCOMM    = 0xa
-	SizeofSockaddrCAN       = 0x10
+	SizeofSockaddrCAN       = 0x18
 	SizeofSockaddrALG       = 0x58
 	SizeofSockaddrVM        = 0x10
 	SizeofSockaddrXDP       = 0x10
@@ -2038,6 +2087,7 @@ type XDPRingOffset struct {
 	Producer uint64
 	Consumer uint64
 	Desc     uint64
+	Flags    uint64
 }
 
 type XDPMmapOffsets struct {
@@ -2052,6 +2102,8 @@ type XDPUmemReg struct {
 	Len      uint64
 	Size     uint32
 	Headroom uint32
+	Flags    uint32
+	_        [4]byte
 }
 
 type XDPStatistics struct {
@@ -2661,7 +2713,7 @@ const (
 	DEVLINK_CMD_DPIPE_ENTRIES_GET             = 0x20
 	DEVLINK_CMD_DPIPE_HEADERS_GET             = 0x21
 	DEVLINK_CMD_DPIPE_TABLE_COUNTERS_SET      = 0x22
-	DEVLINK_CMD_MAX                           = 0x3c
+	DEVLINK_CMD_MAX                           = 0x44
 	DEVLINK_PORT_TYPE_NOTSET                  = 0x0
 	DEVLINK_PORT_TYPE_AUTO                    = 0x1
 	DEVLINK_PORT_TYPE_ETH                     = 0x2
@@ -2741,7 +2793,7 @@ const (
 	DEVLINK_ATTR_DPIPE_FIELD_MAPPING_TYPE     = 0x3c
 	DEVLINK_ATTR_PAD                          = 0x3d
 	DEVLINK_ATTR_ESWITCH_ENCAP_MODE           = 0x3e
-	DEVLINK_ATTR_MAX                          = 0x80
+	DEVLINK_ATTR_MAX                          = 0x89
 	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_NONE     = 0x0
 	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_IFINDEX  = 0x1
 	DEVLINK_DPIPE_MATCH_TYPE_FIELD_EXACT      = 0x0

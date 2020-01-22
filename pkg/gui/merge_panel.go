@@ -5,6 +5,7 @@ package gui
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"os"
@@ -211,15 +212,16 @@ func (gui *Gui) refreshMergePanel() error {
 	if err != nil {
 		return err
 	}
-	if err := gui.renderString(gui.g, "main", content); err != nil {
-		return err
-	}
-	if err := gui.scrollToConflict(gui.g); err != nil {
-		return err
-	}
 
 	mainView := gui.getMainView()
 	mainView.Wrap = false
+	if err := gui.setViewContent(gui.g, mainView, content); err != nil {
+		return err
+	}
+	gui.Log.Warn("scrolling to conflict")
+	if err := gui.scrollToConflict(gui.g); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -243,11 +245,11 @@ func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
 
 func (gui *Gui) renderMergeOptions() error {
 	return gui.renderOptionsMap(map[string]string{
-		"↑ ↓":   gui.Tr.SLocalize("selectHunk"),
-		"← →":   gui.Tr.SLocalize("navigateConflicts"),
-		"space": gui.Tr.SLocalize("pickHunk"),
-		"b":     gui.Tr.SLocalize("pickBothHunks"),
-		"z":     gui.Tr.SLocalize("undo"),
+		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")):   gui.Tr.SLocalize("selectHunk"),
+		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock")): gui.Tr.SLocalize("navigateConflicts"),
+		gui.getKeyDisplay("universal.select"):   gui.Tr.SLocalize("pickHunk"),
+		gui.getKeyDisplay("main.pickBothHunks"): gui.Tr.SLocalize("pickBothHunks"),
+		gui.getKeyDisplay("main.undo"):          gui.Tr.SLocalize("undo"),
 	})
 }
 

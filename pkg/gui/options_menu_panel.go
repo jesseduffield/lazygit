@@ -17,7 +17,7 @@ func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 	bindings := gui.GetInitialKeybindings()
 
 	for _, binding := range bindings {
-		if binding.GetKey() != "" && binding.Description != "" {
+		if GetKeyDisplay(binding.Key) != "" && binding.Description != "" {
 			switch binding.ViewName {
 			case "":
 				bindingsGlobal = append(bindingsGlobal, binding)

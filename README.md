@@ -46,24 +46,10 @@ sudo port install lazygit
 
 ### Ubuntu
 
-Packages for Ubuntu 16.04, 18.04 and 18.10 are available via [Launchpad PPA](https://launchpad.net/~lazygit-team).
-
-**Release builds**
-
-Built from git tags. Supposed to be more stable.
+Packages for Ubuntu are available via [Launchpad PPA](https://launchpad.net/~lazygit-team).
 
 ```sh
 sudo add-apt-repository ppa:lazygit-team/release
-sudo apt-get update
-sudo apt-get install lazygit
-```
-
-**Daily builds**
-
-Built from master branch once in 24 hours (or more sometimes).
-
-```sh
-sudo add-apt-repository ppa:lazygit-team/daily
 sudo apt-get update
 sudo apt-get install lazygit
 ```
@@ -90,6 +76,15 @@ and the git version which builds from the most recent commit.
 
 Instruction of how to install AUR content can be found here:
 https://wiki.archlinux.org/index.php/Arch_User_Repository
+
+### Fedora and CentOS 7
+
+Packages for Fedora and CentOS 7 are available via [Copr](https://copr.fedorainfracloud.org/coprs/atim/lazygit/) (Cool Other Package Repo).
+
+```sh
+sudo dnf copr enable atim/lazygit -y
+sudo dnf install lazygit
+```
 
 ### Conda
 

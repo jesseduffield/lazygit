@@ -5,10 +5,8 @@ package flaggy
 // The return values represent the key being set, and any errors
 // returned when setting the key, such as failures to convert the string
 // into the appropriate flag value.  We stop assigning values as soon
-// as we find a parser that accepts it.
+// as we find a any parser that accepts it.
 func setValueForParsers(key string, value string, parsers ...ArgumentParser) (bool, error) {
-
-	var valueWasSet bool
 
 	for _, p := range parsers {
 		valueWasSet, err := p.SetValueForKey(key, value)
@@ -16,11 +14,11 @@ func setValueForParsers(key string, value string, parsers ...ArgumentParser) (bo
 			return valueWasSet, err
 		}
 		if valueWasSet {
-			break
+			return true, nil
 		}
 	}
 
-	return valueWasSet, nil
+	return false, nil
 }
 
 // ArgumentParser represents a parser or subcommand

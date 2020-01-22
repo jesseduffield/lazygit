@@ -267,7 +267,7 @@ func (u *CopyOnWriteFs) Mkdir(name string, perm os.FileMode) error {
 		return u.layer.MkdirAll(name, perm)
 	}
 	if dir {
-		return syscall.EEXIST
+		return ErrFileExists
 	}
 	return u.layer.MkdirAll(name, perm)
 }
@@ -282,7 +282,8 @@ func (u *CopyOnWriteFs) MkdirAll(name string, perm os.FileMode) error {
 		return u.layer.MkdirAll(name, perm)
 	}
 	if dir {
-		return syscall.EEXIST
+		// This is in line with how os.MkdirAll behaves.
+		return nil
 	}
 	return u.layer.MkdirAll(name, perm)
 }

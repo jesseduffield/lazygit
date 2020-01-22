@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -37,40 +36,45 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 
 	// This really shouldn't happen: there should always be a master branch
 	if len(gui.State.Branches) == 0 {
-		return gui.renderString(g, "main", gui.Tr.SLocalize("NoBranchesThisRepo"))
+		return gui.newStringTask("main", gui.Tr.SLocalize("NoBranchesThisRepo"))
 	}
 	branch := gui.getSelectedBranch()
 	if err := gui.focusPoint(0, gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches), v); err != nil {
 		return err
 	}
-	go func() {
-		_ = gui.RenderSelectedBranchUpstreamDifferences()
-	}()
-	go func() {
-		upstream, _ := gui.GitCommand.GetUpstreamForBranch(branch.Name)
-		if strings.Contains(upstream, "no upstream configured for branch") || strings.Contains(upstream, "unknown revision or path not in the working tree") {
-			upstream = gui.Tr.SLocalize("notTrackingRemote")
-		}
-		graph, err := gui.GitCommand.GetBranchGraph(branch.Name)
-		if err != nil && strings.HasPrefix(graph, "fatal: ambiguous argument") {
-			graph = gui.Tr.SLocalize("NoTrackingThisBranch")
-		}
-		_ = gui.renderString(g, "main", fmt.Sprintf("%s → %s\n\n%s", utils.ColoredString(branch.Name, color.FgGreen), utils.ColoredString(upstream, color.FgRed), graph))
-	}()
+	if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
+		return err
+	}
+
+	cmd := gui.OSCommand.ExecutableFromString(
+		gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
+	)
+	if err := gui.newCmdTask("main", cmd); err != nil {
+		gui.Log.Error(err)
+	}
 	return nil
 }
 
 func (gui *Gui) RenderSelectedBranchUpstreamDifferences() error {
-	// here we tell the selected branch that it is selected.
-	// this is necessary for showing stats on a branch that is selected, because
-	// the displaystring function doesn't have access to gui state to tell if it's selected
-	for i, branch := range gui.State.Branches {
-		branch.Selected = i == gui.State.Panels.Branches.SelectedLine
-	}
+	return gui.newTask("branches", func(stop chan struct{}) error {
+		// here we tell the selected branch that it is selected.
+		// this is necessary for showing stats on a branch that is selected, because
+		// the displaystring function doesn't have access to gui state to tell if it's selected
+		for i, branch := range gui.State.Branches {
+			branch.Selected = i == gui.State.Panels.Branches.SelectedLine
+		}
 
-	branch := gui.getSelectedBranch()
-	branch.Pushables, branch.Pullables = gui.GitCommand.GetBranchUpstreamDifferenceCount(branch.Name)
-	return gui.renderListPanel(gui.getBranchesView(), gui.State.Branches)
+		branch := gui.getSelectedBranch()
+		branch.Pushables, branch.Pullables = gui.GitCommand.GetBranchUpstreamDifferenceCount(branch.Name)
+
+		select {
+		case <-stop:
+			return nil
+		default:
+		}
+
+		return gui.renderListPanel(gui.getBranchesView(), gui.State.Branches)
+	})
 }
 
 // gui.refreshStatus is called at the end of this because that's when we can
@@ -111,8 +115,10 @@ func (gui *Gui) renderLocalBranchesWithSelection() error {
 	if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
 		return err
 	}
-	if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
-		return err
+	if gui.g.CurrentView() == branchesView && branchesView.Context == "local-branches" {
+		if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -128,7 +134,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
 	branch := gui.getSelectedBranch()
-	return gui.handleCheckoutBranch(branch.Name)
+	return gui.handleCheckoutRef(branch.Name)
 }
 
 func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error {
@@ -165,17 +171,17 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	}, nil)
 }
 
-func (gui *Gui) handleCheckoutBranch(branchName string) error {
-	if err := gui.GitCommand.Checkout(branchName, false); err != nil {
+func (gui *Gui) handleCheckoutRef(ref string) error {
+	if err := gui.GitCommand.Checkout(ref, false); err != nil {
 		// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
 		if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 			// offer to autostash changes
 			return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + branchName); err != nil {
+				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + ref); err != nil {
 					return gui.createErrorPanel(g, err.Error())
 				}
-				if err := gui.GitCommand.Checkout(branchName, false); err != nil {
+				if err := gui.GitCommand.Checkout(ref, false); err != nil {
 					return gui.createErrorPanel(g, err.Error())
 				}
 
@@ -198,12 +204,13 @@ func (gui *Gui) handleCheckoutBranch(branchName string) error {
 	}
 
 	gui.State.Panels.Branches.SelectedLine = 0
+	gui.State.Panels.Commits.SelectedLine = 0
 	return gui.refreshSidePanels(gui.g)
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutBranch(gui.trimmedContent(v))
+		return gui.handleCheckoutRef(gui.trimmedContent(v))
 	})
 	return nil
 }

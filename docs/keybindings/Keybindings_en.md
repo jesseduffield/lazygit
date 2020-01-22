@@ -4,6 +4,7 @@
 
 <pre>
   <kbd>m</kbd>: view merge/rebase options
+  <kbd>ctrl+p</kbd>: view custom patch options
   <kbd>P</kbd>: push
   <kbd>p</kbd>: pull
   <kbd>R</kbd>: refresh

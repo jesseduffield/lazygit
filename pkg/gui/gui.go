@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"runtime"
 	"sync"
 
 	// "io"
@@ -14,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/go-errors/errors"
 
 	// "strings"
@@ -25,9 +25,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mattn/go-runewidth"
 	"github.com/sirupsen/logrus"
 )
 
@@ -67,20 +69,21 @@ type Teml i18n.Teml
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g             *gocui.Gui
-	Log           *logrus.Entry
-	GitCommand    *commands.GitCommand
-	OSCommand     *commands.OSCommand
-	SubProcess    *exec.Cmd
-	State         guiState
-	Config        config.AppConfigurer
-	Tr            *i18n.Localizer
-	Errors        SentinelErrors
-	Updater       *updates.Updater
-	statusManager *statusManager
-	credentials   credentials
-	waitForIntro  sync.WaitGroup
-	fileWatcher   *fsnotify.Watcher
+	g                    *gocui.Gui
+	Log                  *logrus.Entry
+	GitCommand           *commands.GitCommand
+	OSCommand            *commands.OSCommand
+	SubProcess           *exec.Cmd
+	State                guiState
+	Config               config.AppConfigurer
+	Tr                   *i18n.Localizer
+	Errors               SentinelErrors
+	Updater              *updates.Updater
+	statusManager        *statusManager
+	credentials          credentials
+	waitForIntro         sync.WaitGroup
+	fileWatcher          *fileWatcher
+	viewBufferManagerMap map[string]*tasks.ViewBufferManager
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -127,6 +130,11 @@ type tagsPanelState struct {
 type commitPanelState struct {
 	SelectedLine     int
 	SpecificDiffMode bool
+	LimitCommits     bool
+}
+
+type reflogCommitPanelState struct {
+	SelectedLine int
 }
 
 type stashPanelState struct {
@@ -154,6 +162,7 @@ type panelStates struct {
 	RemoteBranches *remoteBranchesState
 	Tags           *tagsPanelState
 	Commits        *commitPanelState
+	ReflogCommits  *reflogCommitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
 	LineByLine     *lineByLinePanelState
@@ -168,6 +177,7 @@ type guiState struct {
 	Commits              []*commands.Commit
 	StashEntries         []*commands.StashEntry
 	CommitFiles          []*commands.CommitFile
+	ReflogCommits        []*commands.Commit
 	DiffEntries          []*commands.Commit
 	Remotes              []*commands.Remote
 	RemoteBranches       []*commands.RemoteBranch
@@ -205,7 +215,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 			Remotes:        &remotePanelState{SelectedLine: 0},
 			RemoteBranches: &remoteBranchesState{SelectedLine: -1},
 			Tags:           &tagsPanelState{SelectedLine: -1},
-			Commits:        &commitPanelState{SelectedLine: -1},
+			Commits:        &commitPanelState{SelectedLine: -1, LimitCommits: true},
+			ReflogCommits:  &reflogCommitPanelState{SelectedLine: 0}, // TODO: might need to make -1
 			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
 			Stash:          &stashPanelState{SelectedLine: -1},
 			Menu:           &menuPanelState{SelectedLine: 0},
@@ -220,14 +231,15 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	}
 
 	gui := &Gui{
-		Log:           log,
-		GitCommand:    gitCommand,
-		OSCommand:     oSCommand,
-		State:         initialState,
-		Config:        config,
-		Tr:            tr,
-		Updater:       updater,
-		statusManager: &statusManager{},
+		Log:                  log,
+		GitCommand:           gitCommand,
+		OSCommand:            oSCommand,
+		State:                initialState,
+		Config:               config,
+		Tr:                   tr,
+		Updater:              updater,
+		statusManager:        &statusManager{},
+		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 	}
 
 	gui.watchFilesForChanges()
@@ -252,8 +264,14 @@ func (gui *Gui) scrollDownView(viewName string) error {
 		_, sy := mainView.Size()
 		y += sy
 	}
-	if y < len(mainView.BufferLines()) {
-		return mainView.SetOrigin(ox, oy+gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))
+	scrollHeight := gui.Config.GetUserConfig().GetInt("gui.scrollHeight")
+	if y < mainView.LinesHeight() {
+		if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
+			return err
+		}
+	}
+	if manager, ok := gui.viewBufferManagerMap[viewName]; ok {
+		manager.ReadLines(scrollHeight)
 	}
 	return nil
 }
@@ -456,7 +474,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		secondary = "main"
 	}
 
-	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, panelSplitX, height-2, gocui.LEFT)
+	// reading more lines into main view buffers upon resize
+	mainHeight := height - 2
+	prevMainView, err := gui.g.View("main")
+	if err == nil {
+		_, prevMainHeight := prevMainView.Size()
+		heightDiff := mainHeight - 1 - prevMainHeight
+		if heightDiff > 0 {
+			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
+				manager.ReadLines(heightDiff)
+			}
+			if manager, ok := gui.viewBufferManagerMap["secondary"]; ok {
+				manager.ReadLines(heightDiff)
+			}
+		}
+	}
+
+	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, panelSplitX, mainHeight, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -470,7 +504,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if !gui.State.SplitMainPanel {
 		hiddenViewOffset = 9999
 	}
-	secondaryView, err := g.SetView(secondary, panelSplitX+1+hiddenViewOffset, hiddenViewOffset, width-1+hiddenViewOffset, height-2+hiddenViewOffset, gocui.LEFT)
+	secondaryView, err := g.SetView(secondary, panelSplitX+1+hiddenViewOffset, hiddenViewOffset, width-1+hiddenViewOffset, mainHeight+hiddenViewOffset, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -522,6 +556,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		commitsView.Title = gui.Tr.SLocalize("CommitsTitle")
+		commitsView.Tabs = []string{"Commits", "Reflog"}
 		commitsView.FgColor = textColor
 	}
 
@@ -553,6 +588,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = textColor
 			commitMessageView.Editable = true
+			commitMessageView.Editor = gocui.EditorFunc(gui.commitMessageEditor)
 		}
 	}
 
@@ -623,7 +659,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		{view: branchesView, context: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
 		{view: branchesView, context: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes)},
 		{view: branchesView, context: "remote-branches", selectedLine: gui.State.Panels.RemoteBranches.SelectedLine, lineCount: len(gui.State.Remotes)},
-		{view: commitsView, context: "", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
+		{view: commitsView, context: "branch-commits", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
+		{view: commitsView, context: "reflog-commits", selectedLine: gui.State.Panels.ReflogCommits.SelectedLine, lineCount: len(gui.State.ReflogCommits)},
 		{view: stashView, context: "", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
 	}
 
@@ -655,6 +692,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 	}
 
 	gui.getBranchesView().Context = "local-branches"
+	gui.getCommitsView().Context = "branch-commits"
 
 	return gui.loadNewRepo()
 }
@@ -740,11 +778,11 @@ func (gui *Gui) renderAppStatus() error {
 
 func (gui *Gui) renderGlobalOptions() error {
 	return gui.renderOptionsMap(map[string]string{
-		"PgUp/PgDn": gui.Tr.SLocalize("scroll"),
-		"← → ↑ ↓":   gui.Tr.SLocalize("navigate"),
-		"esc/q":     gui.Tr.SLocalize("close"),
-		"x":         gui.Tr.SLocalize("menu"),
-		"1-5":       gui.Tr.SLocalize("jump"),
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.scrollUpMain"), gui.getKeyDisplay("universal.scrollDownMain")):                                                                                 gui.Tr.SLocalize("scroll"),
+		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock"), gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")): gui.Tr.SLocalize("navigate"),
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.return"), gui.getKeyDisplay("universal.quit")):                                                                                                 gui.Tr.SLocalize("close"),
+		fmt.Sprintf("%s", gui.getKeyDisplay("universal.optionMenu")):                                                                                                                                     gui.Tr.SLocalize("menu"),
+		"1-5": gui.Tr.SLocalize("jump"),
 	})
 }
 
@@ -780,6 +818,8 @@ func (gui *Gui) Run() error {
 		return err
 	}
 	defer g.Close()
+
+	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
 	if gui.Config.GetUserConfig().GetBool("gui.mouseEvents") {
 		g.Mouse = true
@@ -828,6 +868,11 @@ func (gui *Gui) Run() error {
 func (gui *Gui) RunWithSubprocesses() error {
 	for {
 		if err := gui.Run(); err != nil {
+			for _, manager := range gui.viewBufferManagerMap {
+				manager.Close()
+			}
+			gui.viewBufferManagerMap = map[string]*tasks.ViewBufferManager{}
+
 			if err == gocui.ErrQuit {
 				if !gui.State.RetainOriginalDir {
 					if err := gui.recordCurrentDirectory(); err != nil {
@@ -835,7 +880,9 @@ func (gui *Gui) RunWithSubprocesses() error {
 					}
 				}
 
-				gui.fileWatcher.Close()
+				if !gui.fileWatcher.Disabled {
+					gui.fileWatcher.Watcher.Close()
+				}
 
 				break
 			} else if err == gui.Errors.ErrSwitchRepo {

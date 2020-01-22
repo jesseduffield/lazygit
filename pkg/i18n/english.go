@@ -754,6 +754,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "hardReset",
 			Other: "hard reset",
 		}, &i18n.Message{
+			ID:    "hardResetUpstream",
+			Other: "hard reset to upstream branch",
+		}, &i18n.Message{
 			ID:    "viewResetOptions",
 			Other: `view reset options`,
 		}, &i18n.Message{
@@ -822,6 +825,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "toggleAddToPatch",
 			Other: "toggle file included in patch",
+		}, &i18n.Message{
+			ID:    "ViewPatchOptions",
+			Other: "view custom patch options",
 		}, &i18n.Message{
 			ID:    "PatchOptionsTitle",
 			Other: "Patch Options",
@@ -912,6 +918,27 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "CreateTagTitle",
 			Other: "Tag name:",
+		}, &i18n.Message{
+			ID:    "fetchRemote",
+			Other: "fetch remote",
+		}, &i18n.Message{
+			ID:    "FetchingRemoteStatus",
+			Other: "fetching remote",
+		}, &i18n.Message{
+			ID:    "checkoutCommit",
+			Other: "checkout commit",
+		}, &i18n.Message{
+			ID:    "SureCheckoutThisCommit",
+			Other: "Are you sure you want to checkout this commit?",
+		}, &i18n.Message{
+			ID:    "gitFlowOptions",
+			Other: "show git-flow options",
+		}, &i18n.Message{
+			ID:    "NotAGitFlowBranch",
+			Other: "This does not seem to be a git flow branch",
+		}, &i18n.Message{
+			ID:    "NewBranchNamePrompt",
+			Other: "new {{.branchType}} name:",
 		},
 	)
 }
