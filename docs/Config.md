@@ -219,5 +219,8 @@ For all possible keybinding options, check [Custom_Keybinding.md](https://github
     commits:
       moveDownCommit: '<c-e>'
       moveUpCommit: '<c-u>'
+      toggleDiffCommit: 'l'
+    branches:
+      viewGitFlowOptions: 'I'
 ```
 
