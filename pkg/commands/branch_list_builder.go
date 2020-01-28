@@ -48,7 +48,7 @@ func (b *BranchListBuilder) obtainCurrentBranch() *Branch {
 func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
 	branches := make([]*Branch, 0)
 	// if we directly put this string in RunCommandWithOutput the compiler complains because it thinks it's a format string
-	unescaped := "git reflog -n100 --pretty='%cr|%gs' --grep-reflog='checkout: moving' HEAD"
+	unescaped := "git reflog --date=relative --pretty='%gd|%gs' --grep-reflog='checkout: moving' HEAD"
 	rawString, err := b.GitCommand.OSCommand.RunCommandWithOutput(unescaped)
 	if err != nil {
 		return branches
@@ -56,9 +56,11 @@ func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
 
 	branchLines := utils.SplitLines(rawString)
 	for _, line := range branchLines {
-		timeNumber, timeUnit, branchName := branchInfoFromLine(line)
-		timeUnit = abbreviatedTimeUnit(timeUnit)
-		branch := &Branch{Name: branchName, Recency: timeNumber + timeUnit}
+		recency, branchName := branchInfoFromLine(line)
+		if branchName == "" {
+			continue
+		}
+		branch := &Branch{Name: branchName, Recency: recency}
 		branches = append(branches, branch)
 	}
 	return uniqueByName(branches)
@@ -143,11 +145,17 @@ func uniqueByName(branches []*Branch) []*Branch {
 
 // A line will have the form '10 days ago master' so we need to strip out the
 // useful information from that into timeNumber, timeUnit, and branchName
-func branchInfoFromLine(line string) (string, string, string) {
-	r := regexp.MustCompile("\\|.*\\s")
-	line = r.ReplaceAllString(line, " ")
-	words := strings.Split(line, " ")
-	return words[0], words[1], words[len(words)-1]
+func branchInfoFromLine(line string) (string, string) {
+	// example line: HEAD@{2020-01-28 20:55:06 +1100}|checkout: moving from pulling-from-forks to tim77-patch-1
+	r := regexp.MustCompile(`HEAD\@\{([^\s]+) ([^\s]+) ago\}\|.*?([^\s]*)$`)
+	matches := r.FindStringSubmatch(strings.TrimSpace(line))
+	if len(matches) == 0 {
+		return "", ""
+	}
+	since := matches[1]
+	unit := matches[2]
+	branchName := matches[3]
+	return since + abbreviatedTimeUnit(unit), branchName
 }
 
 func abbreviatedTimeUnit(timeUnit string) string {
