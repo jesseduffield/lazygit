@@ -393,6 +393,17 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	if pullables == "?" {
+		// see if we have this branch in our config with an upstream
+		conf, err := gui.GitCommand.Repo.Config()
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		for branchName, branch := range conf.Branches {
+			if branchName == currentBranchName {
+				return gui.pullFiles(v, fmt.Sprintf("%s %s", branch.Remote, branchName))
+			}
+		}
+
 		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranchName, func(g *gocui.Gui, v *gocui.View) error {
 			upstream := gui.trimmedContent(v)
 			if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
@@ -402,21 +413,21 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 				}
 				return gui.createErrorPanel(gui.g, errorMessage)
 			}
-			return gui.pullFiles(v)
+			return gui.pullFiles(v, "")
 		})
 	}
 
-	return gui.pullFiles(v)
+	return gui.pullFiles(v, "")
 }
 
-func (gui *Gui) pullFiles(v *gocui.View) error {
+func (gui *Gui) pullFiles(v *gocui.View, args string) error {
 	if err := gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("PullWait")); err != nil {
 		return err
 	}
 
 	go func() {
 		unamePassOpend := false
-		err := gui.GitCommand.Pull(func(passOrUname string) string {
+		err := gui.GitCommand.Pull(args, func(passOrUname string) string {
 			unamePassOpend = true
 			return gui.waitForPassUname(gui.g, v, passOrUname)
 		})
@@ -426,14 +437,14 @@ func (gui *Gui) pullFiles(v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstream string) error {
+func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstream string, args string) error {
 	if err := gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {
 		unamePassOpend := false
 		branchName := gui.getCheckedOutBranch().Name
-		err := gui.GitCommand.Push(branchName, force, upstream, func(passOrUname string) string {
+		err := gui.GitCommand.Push(branchName, force, upstream, args, func(passOrUname string) string {
 			unamePassOpend = true
 			return gui.waitForPassUname(g, v, passOrUname)
 		})
@@ -451,14 +462,25 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if pullables == "?" {
+		// see if we have this branch in our config with an upstream
+		conf, err := gui.GitCommand.Repo.Config()
+		if err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		for branchName, branch := range conf.Branches {
+			if branchName == currentBranchName {
+				return gui.pushWithForceFlag(g, v, false, "", fmt.Sprintf("%s %s", branch.Remote, branchName))
+			}
+		}
+
 		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranchName, func(g *gocui.Gui, v *gocui.View) error {
-			return gui.pushWithForceFlag(g, v, false, gui.trimmedContent(v))
+			return gui.pushWithForceFlag(g, v, false, gui.trimmedContent(v), "")
 		})
 	} else if pullables == "0" {
-		return gui.pushWithForceFlag(g, v, false, "")
+		return gui.pushWithForceFlag(g, v, false, "", "")
 	}
 	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.pushWithForceFlag(g, v, true, "")
+		return gui.pushWithForceFlag(g, v, true, "", "")
 	}, nil)
 }
 
