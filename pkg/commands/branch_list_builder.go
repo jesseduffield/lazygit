@@ -146,7 +146,7 @@ func uniqueByName(branches []*Branch) []*Branch {
 // A line will have the form '10 days ago master' so we need to strip out the
 // useful information from that into timeNumber, timeUnit, and branchName
 func branchInfoFromLine(line string) (string, string) {
-	// example line: HEAD@{2020-01-28 20:55:06 +1100}|checkout: moving from pulling-from-forks to tim77-patch-1
+	// example line: HEAD@{12 minutes ago}|checkout: moving from pulling-from-forks to tim77-patch-1
 	r := regexp.MustCompile(`HEAD\@\{([^\s]+) ([^\s]+) ago\}\|.*?([^\s]*)$`)
 	matches := r.FindStringSubmatch(strings.TrimSpace(line))
 	if len(matches) == 0 {
