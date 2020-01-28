@@ -404,12 +404,12 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 }
 
 // Pull pulls from repo
-func (c *GitCommand) Pull(ask func(string) string) error {
-	return c.OSCommand.DetectUnamePass("git pull --no-edit", ask)
+func (c *GitCommand) Pull(args string, ask func(string) string) error {
+	return c.OSCommand.DetectUnamePass("git pull --no-edit "+args, ask)
 }
 
 // Push pushes to a branch
-func (c *GitCommand) Push(branchName string, force bool, upstream string, ask func(string) string) error {
+func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, ask func(string) string) error {
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease"
@@ -420,7 +420,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, ask fu
 		setUpstreamArg = "--set-upstream " + upstream
 	}
 
-	cmd := fmt.Sprintf("git push --follow-tags %s %s", forceFlag, setUpstreamArg)
+	cmd := fmt.Sprintf("git push --follow-tags %s %s %s", forceFlag, setUpstreamArg, args)
 	return c.OSCommand.DetectUnamePass(cmd, ask)
 }
 
