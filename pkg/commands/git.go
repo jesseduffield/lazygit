@@ -191,10 +191,10 @@ func (c *GitCommand) GetStatusFiles() []*File {
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
 		filename := c.OSCommand.Unquote(statusString[3:])
-		_, untracked := map[string]bool{"??": true, "A ": true, "AM": true}[change]
-		_, hasNoStagedChanges := map[string]bool{" ": true, "U": true, "?": true}[stagedChange]
-		hasMergeConflicts := change == "UU" || change == "AA" || change == "DU"
-		hasInlineMergeConflicts := change == "UU" || change == "AA"
+		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
+		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
+		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
+		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
 
 		file := &File{
 			Name:                    filename,
