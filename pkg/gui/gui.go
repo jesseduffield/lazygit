@@ -460,10 +460,22 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	textColor := theme.GocuiDefaultTextColor
 	leftSideWidth := width / 3
 	panelSplitX := width - 1
+	mainPanelRight := width - 1
+	secondaryPanelLeft := width - 1
+	secondaryPanelTop := 0
+	mainPanelBottom := height - 2
 	if gui.State.SplitMainPanel {
-		units := 7
-		leftSideWidth = width / units
-		panelSplitX = (1 + ((units - 1) / 2)) * width / units
+		if width < 220 {
+			mainPanelBottom = height/2 - 1
+			secondaryPanelTop = mainPanelBottom + 1
+			secondaryPanelLeft = leftSideWidth + 1
+		} else {
+			units := 5
+			leftSideWidth = width / units
+			panelSplitX = (1 + ((units - 1) / 2)) * width / units
+			mainPanelRight = panelSplitX
+			secondaryPanelLeft = panelSplitX + 1
+		}
 	}
 
 	main := "main"
@@ -475,11 +487,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	// reading more lines into main view buffers upon resize
-	mainHeight := height - 2
 	prevMainView, err := gui.g.View("main")
 	if err == nil {
 		_, prevMainHeight := prevMainView.Size()
-		heightDiff := mainHeight - 1 - prevMainHeight
+		heightDiff := mainPanelBottom - prevMainHeight
 		if heightDiff > 0 {
 			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
 				manager.ReadLines(heightDiff)
@@ -490,7 +501,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, panelSplitX, mainHeight, gocui.LEFT)
+	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, mainPanelRight, mainPanelBottom, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -504,7 +515,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if !gui.State.SplitMainPanel {
 		hiddenViewOffset = 9999
 	}
-	secondaryView, err := g.SetView(secondary, panelSplitX+1+hiddenViewOffset, hiddenViewOffset, width-1+hiddenViewOffset, mainHeight+hiddenViewOffset, gocui.LEFT)
+	secondaryView, err := g.SetView(secondary, secondaryPanelLeft+hiddenViewOffset, hiddenViewOffset+secondaryPanelTop, width-1+hiddenViewOffset, height-2+hiddenViewOffset, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -580,7 +591,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if gui.getCommitMessageView() == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if commitMessageView, err := g.SetView("commitMessage", width, height, width*2, height*2, 0); err != nil {
+		if commitMessageView, err := g.SetView("commitMessage", hiddenViewOffset, hiddenViewOffset, hiddenViewOffset+10, hiddenViewOffset+10, 0); err != nil {
 			if err.Error() != "unknown view" {
 				return err
 			}
@@ -594,7 +605,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if check, _ := g.View("credentials"); check == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if credentialsView, err := g.SetView("credentials", width, height, width*2, height*2, 0); err != nil {
+		if credentialsView, err := g.SetView("credentials", hiddenViewOffset, hiddenViewOffset, hiddenViewOffset+10, hiddenViewOffset+10, 0); err != nil {
 			if err.Error() != "unknown view" {
 				return err
 			}
@@ -608,7 +619,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if appStatusView, err := g.SetView("appStatus", -1, height-2, width, height, 0); err != nil {
+	if appStatusView, err := g.SetView("appStatus", hiddenViewOffset, hiddenViewOffset, hiddenViewOffset+10, hiddenViewOffset+10, 0); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
