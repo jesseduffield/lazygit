@@ -36,10 +36,6 @@ github.com/jbenet/go-context/io
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/pty v1.2.1
 github.com/jesseduffield/pty
-# github.com/jesseduffield/roll v0.0.0-20190629104057-695be2e62b00
-github.com/jesseduffield/roll
-# github.com/jesseduffield/rollrus v0.0.0-20190701125922-dd028cb0bfd7
-github.com/jesseduffield/rollrus
 # github.com/jesseduffield/termbox-go v0.0.0-20190630083001-9dd53af7214e
 github.com/jesseduffield/termbox-go
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
@@ -68,8 +64,6 @@ github.com/nicksnyder/go-i18n/v2/internal
 github.com/nicksnyder/go-i18n/v2/internal/plural
 # github.com/pelletier/go-toml v1.6.0
 github.com/pelletier/go-toml
-# github.com/pkg/errors v0.8.1
-github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/sergi/go-diff v1.0.0
