@@ -36,7 +36,7 @@ github.com/jbenet/go-context/io
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/pty v1.2.1
 github.com/jesseduffield/pty
-# github.com/jesseduffield/termbox-go v0.0.0-20190630083001-9dd53af7214e
+# github.com/jesseduffield/termbox-go v0.0.0-20200130214842-1d31d1faa3c9
 github.com/jesseduffield/termbox-go
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 github.com/kardianos/osext
