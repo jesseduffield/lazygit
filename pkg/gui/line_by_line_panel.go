@@ -314,3 +314,8 @@ func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.focusSelection(state.SelectMode == HUNK)
 }
+
+func (gui *Gui) handleEscapeLineByLinePanel() {
+	gui.changeMainViewsContext("normal")
+	gui.State.Panels.LineByLine = nil
+}

@@ -173,9 +173,7 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("FileStagingRequirements"))
 	}
-	if err := gui.changeMainViewsContext("staging"); err != nil {
-		return err
-	}
+	gui.changeMainViewsContext("staging")
 	if err := gui.switchFocus(gui.g, gui.getFilesView(), gui.getMainView()); err != nil {
 		return err
 	}
@@ -497,9 +495,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 	if !file.HasInlineMergeConflicts {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("FileNoMergeCons"))
 	}
-	if err := gui.changeMainViewsContext("merging"); err != nil {
-		return err
-	}
+	gui.changeMainViewsContext("merging")
 	if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {
 		return err
 	}

@@ -94,7 +94,7 @@ func (gui *Gui) handleTogglePanel(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
-	gui.State.Panels.LineByLine = nil
+	gui.handleEscapeLineByLinePanel()
 
 	return gui.switchFocus(gui.g, nil, gui.getFilesView())
 }
