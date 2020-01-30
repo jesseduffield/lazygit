@@ -348,9 +348,7 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 		}
 	case "main":
 		// if we have lost focus to a first-class panel, we need to do some cleanup
-		if err := gui.changeMainViewsContext("normal"); err != nil {
-			return err
-		}
+		gui.changeMainViewsContext("normal")
 	case "commitFiles":
 		if gui.State.MainContext != "patch-building" {
 			if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
@@ -698,9 +696,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 }
 
 func (gui *Gui) onInitialViewsCreation() error {
-	if err := gui.changeMainViewsContext("normal"); err != nil {
-		return err
-	}
+	gui.changeMainViewsContext("normal")
 
 	gui.getBranchesView().Context = "local-branches"
 	gui.getCommitsView().Context = "branch-commits"

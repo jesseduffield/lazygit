@@ -4,9 +4,9 @@ package gui
 // which currently just means a context that affects both the main and secondary views
 // other views can have their context changed directly but this function helps
 // keep the main and secondary views in sync
-func (gui *Gui) changeMainViewsContext(context string) error {
+func (gui *Gui) changeMainViewsContext(context string) {
 	if gui.State.MainContext == context {
-		return nil
+		return
 	}
 
 	switch context {
@@ -16,5 +16,5 @@ func (gui *Gui) changeMainViewsContext(context string) error {
 	}
 
 	gui.State.MainContext = context
-	return nil
+	return
 }

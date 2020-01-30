@@ -49,7 +49,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 	gui.getMainView().Title = "Patch"
 	gui.getSecondaryView().Title = "Custom Patch"
-	gui.State.Panels.LineByLine = nil
+	gui.handleEscapeLineByLinePanel()
 
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {

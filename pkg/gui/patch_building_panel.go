@@ -87,8 +87,7 @@ func (gui *Gui) handleRemoveSelectionFromPatch(g *gocui.Gui, v *gocui.View) erro
 }
 
 func (gui *Gui) handleEscapePatchBuildingPanel(g *gocui.Gui, v *gocui.View) error {
-	gui.State.Panels.LineByLine = nil
-	gui.changeMainViewsContext("normal")
+	gui.handleEscapeLineByLinePanel()
 
 	if gui.GitCommand.PatchManager.IsEmpty() {
 		gui.GitCommand.PatchManager.Reset()
