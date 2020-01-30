@@ -89,6 +89,8 @@ github.com/jesseduffield/rollrus v0.0.0-20190701125922-dd028cb0bfd7 h1:CRD7bVjlG
 github.com/jesseduffield/rollrus v0.0.0-20190701125922-dd028cb0bfd7/go.mod h1:VspA3aTkEo0Q7TPCLmX1uHNP+Wb4iSDX09hmTRo1QYc=
 github.com/jesseduffield/termbox-go v0.0.0-20190630083001-9dd53af7214e h1:tth7wr6+sfSbdpRWWrwvLYyS56HyIRVfq0Qcl2h28wM=
 github.com/jesseduffield/termbox-go v0.0.0-20190630083001-9dd53af7214e/go.mod h1:anMibpZtqNxjDbxrcDEAwSdaJ37vyUeM1f/M4uekib4=
+github.com/jesseduffield/termbox-go v0.0.0-20200130214842-1d31d1faa3c9 h1:iBBk1lhFwjwJw//J2m1yyz9S368GeXQTpMVACTyQMh0=
+github.com/jesseduffield/termbox-go v0.0.0-20200130214842-1d31d1faa3c9/go.mod h1:anMibpZtqNxjDbxrcDEAwSdaJ37vyUeM1f/M4uekib4=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jonboulle/clockwork v0.1.0/go.mod h1:Ii8DK3G1RaLaWxj9trq07+26W01tbo22gdxWY5EU2bo=
 github.com/jtolds/gls v4.20.0+incompatible h1:xdiiI2gbIgH/gLH7ADydsJ1uDOEzR8yvV7C0MuV77Wo=
