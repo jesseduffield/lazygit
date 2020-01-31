@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"time"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -49,15 +51,24 @@ func (m *statusManager) getStatusString() string {
 // WithWaitingStatus wraps a function and shows a waiting status while the function is still executing
 func (gui *Gui) WithWaitingStatus(name string, f func() error) error {
 	go func() {
-		gui.g.Update(func(g *gocui.Gui) error {
-			gui.statusManager.addWaitingStatus(name)
-			return nil
-		})
+		gui.statusManager.addWaitingStatus(name)
 
-		defer gui.g.Update(func(g *gocui.Gui) error {
+		defer func() {
 			gui.statusManager.removeStatus(name)
-			return nil
-		})
+		}()
+
+		go func() {
+			for range time.Tick(time.Millisecond * 50) {
+				appStatus := gui.statusManager.getStatusString()
+				gui.Log.Warn(appStatus)
+				if appStatus == "" {
+					return
+				}
+				if err := gui.renderString(gui.g, "appStatus", appStatus); err != nil {
+					gui.Log.Warn(err)
+				}
+			}
+		}()
 
 		if err := f(); err != nil {
 			gui.g.Update(func(g *gocui.Gui) error {
