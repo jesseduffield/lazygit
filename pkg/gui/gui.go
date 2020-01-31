@@ -84,6 +84,7 @@ type Gui struct {
 	waitForIntro         sync.WaitGroup
 	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
+	stopChan             chan struct{}
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -793,10 +794,15 @@ func (gui *Gui) renderGlobalOptions() error {
 	})
 }
 
-func (gui *Gui) goEvery(interval time.Duration, function func() error) {
+func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
 	go func() {
-		for range time.Tick(interval) {
-			_ = function()
+		for {
+			select {
+			case <-time.Tick(interval):
+				_ = function()
+			case <-stop:
+				return
+			}
 		}
 	}()
 }
@@ -811,7 +817,7 @@ func (gui *Gui) startBackgroundFetch() {
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 	} else {
-		gui.goEvery(time.Second*60, func() error {
+		gui.goEvery(time.Second*60, gui.stopChan, func() error {
 			_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
 			return err
 		})
@@ -825,6 +831,7 @@ func (gui *Gui) Run() error {
 		return err
 	}
 	defer g.Close()
+	gui.stopChan = make(chan struct{})
 
 	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
@@ -854,8 +861,8 @@ func (gui *Gui) Run() error {
 		go gui.startBackgroundFetch()
 	}
 
-	gui.goEvery(time.Second*10, gui.refreshFiles)
-	gui.goEvery(time.Millisecond*50, gui.renderAppStatus)
+	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFiles)
+	gui.goEvery(time.Millisecond*50, gui.stopChan, gui.renderAppStatus)
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
@@ -880,15 +887,17 @@ func (gui *Gui) RunWithSubprocesses() error {
 			}
 			gui.viewBufferManagerMap = map[string]*tasks.ViewBufferManager{}
 
+			if !gui.fileWatcher.Disabled {
+				gui.fileWatcher.Watcher.Close()
+			}
+
+			close(gui.stopChan)
+
 			if err == gocui.ErrQuit {
 				if !gui.State.RetainOriginalDir {
 					if err := gui.recordCurrentDirectory(); err != nil {
 						return err
 					}
-				}
-
-				if !gui.fileWatcher.Disabled {
-					gui.fileWatcher.Watcher.Close()
 				}
 
 				break
