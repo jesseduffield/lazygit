@@ -50,7 +50,6 @@ func inTables(r rune, ts ...table) bool {
 }
 
 func inTable(r rune, t table) bool {
-	// func (t table) IncludesRune(r rune) bool {
 	if r < t[0].first {
 		return false
 	}
