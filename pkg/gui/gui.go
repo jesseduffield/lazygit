@@ -618,7 +618,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if appStatusView, err := g.SetView("appStatus", hiddenViewOffset, hiddenViewOffset, hiddenViewOffset+10, hiddenViewOffset+10, 0); err != nil {
+	if appStatusView, err := g.SetView("appStatus", -1, height-2, width, height, 0); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -776,14 +776,6 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 	return unamePassOpend, err
 }
 
-func (gui *Gui) renderAppStatus() error {
-	appStatus := gui.statusManager.getStatusString()
-	if appStatus != "" {
-		return gui.renderString(gui.g, "appStatus", appStatus)
-	}
-	return nil
-}
-
 func (gui *Gui) renderGlobalOptions() error {
 	return gui.renderOptionsMap(map[string]string{
 		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.scrollUpMain"), gui.getKeyDisplay("universal.scrollDownMain")):                                                                                 gui.Tr.SLocalize("scroll"),
@@ -862,7 +854,6 @@ func (gui *Gui) Run() error {
 	}
 
 	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFiles)
-	gui.goEvery(time.Millisecond*50, gui.stopChan, gui.renderAppStatus)
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
