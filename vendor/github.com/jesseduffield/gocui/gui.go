@@ -7,6 +7,7 @@ package gocui
 import (
 	standardErrors "errors"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -89,6 +90,10 @@ type Gui struct {
 	// SupportOverlaps is true when we allow for view edges to overlap with other
 	// view edges
 	SupportOverlaps bool
+
+	// tickingMutex ensures we don't have two loops ticking. The point of 'ticking'
+	// is to refresh the gui rapidly so that loader characters can be animated.
+	tickingMutex sync.Mutex
 }
 
 // NewGui returns a new Gui object with a given output mode.
@@ -125,9 +130,7 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 // Close finalizes the library. It should be called after a successful
 // initialization and when gocui is not needed anymore.
 func (g *Gui) Close() {
-	go func() {
-		g.stop <- struct{}{}
-	}()
+	close(g.stop)
 	termbox.Close()
 }
 
@@ -409,7 +412,6 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
-	g.loaderTick()
 	if err := g.flush(); err != nil {
 		return err
 	}
@@ -835,14 +837,24 @@ func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
 	return true, nil
 }
 
-func (g *Gui) loaderTick() {
+func (g *Gui) StartTicking() {
 	go func() {
-		for range time.Tick(time.Millisecond * 50) {
-			for _, view := range g.Views() {
-				if view.HasLoader {
-					g.userEvents <- userEvent{func(g *Gui) error { return nil }}
-					break
+		g.tickingMutex.Lock()
+		defer g.tickingMutex.Unlock()
+		ticker := time.NewTicker(time.Millisecond * 50)
+	outer:
+		for {
+			select {
+			case <-ticker.C:
+				for _, view := range g.Views() {
+					if view.HasLoader {
+						g.userEvents <- userEvent{func(g *Gui) error { return nil }}
+						continue outer
+					}
 				}
+				return
+			case <-g.stop:
+				return
 			}
 		}
 	}()

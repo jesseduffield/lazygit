@@ -81,6 +81,10 @@ github.com/jesseduffield/gocui v0.3.1-0.20191116013947-b13bda319532 h1:V1Lk2rm5/
 github.com/jesseduffield/gocui v0.3.1-0.20191116013947-b13bda319532/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/gocui v0.3.1-0.20200112025325-6c933915c351 h1:+sSqd2YotacWt+1MNRN8ZmXnYoiJeblZeptzKiHIyv0=
 github.com/jesseduffield/gocui v0.3.1-0.20200112025325-6c933915c351/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
+github.com/jesseduffield/gocui v0.3.1-0.20200131125953-f679540a7039 h1:CVhilJ8ZdN7GmAI+fbH9829Cp/8hbK7Lijbd4VaNgo0=
+github.com/jesseduffield/gocui v0.3.1-0.20200131125953-f679540a7039/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
+github.com/jesseduffield/gocui v0.3.1-0.20200131131454-a319843434ac h1:vp7I0RpFq4L46nFA9QQokzhFgr68LRGtwDO9xfq4F+A=
+github.com/jesseduffield/gocui v0.3.1-0.20200131131454-a319843434ac/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/pty v1.2.1 h1:7xYBiwNH0PpWqC8JmvrPq1a/ksNqyCavzWu9pbBGYWI=
 github.com/jesseduffield/pty v1.2.1/go.mod h1:7jlS40+UhOqkZJDIG1B/H21xnuET/+fvbbnHCa8wSIo=
 github.com/jesseduffield/roll v0.0.0-20190629104057-695be2e62b00 h1:+JaOkfBNYQYlGD7dgru8mCwYNEc5tRRI8mThlVANhSM=
@@ -122,6 +126,8 @@ github.com/mattn/go-isatty v0.0.11 h1:FxPOTFNqGkuDUGi3H/qkUbQO4ZiBa2brKq5r0l8TGe
 github.com/mattn/go-isatty v0.0.11/go.mod h1:PhnuNfih5lzO57/f3n+odYbM4JtupLOxQOAqxQCu2WE=
 github.com/mattn/go-runewidth v0.0.7 h1:Ei8KR0497xHyKJPAv59M1dkC+rOZCMBJ+t3fZ+twI54=
 github.com/mattn/go-runewidth v0.0.7/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
+github.com/mattn/go-runewidth v0.0.8 h1:3tS41NlGYSmhhe/8fhGRzc+z3AYCw1Fe1WAyLuujKs0=
+github.com/mattn/go-runewidth v0.0.8/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mgutz/str v1.2.0 h1:4IzWSdIz9qPQWLfKZ0rJcV0jcUDpxvP4JVZ4GXQyvSw=
 github.com/mgutz/str v1.2.0/go.mod h1:w1v0ofgLaJdoD0HpQ3fycxKD1WtxpjSo151pK/31q6w=
