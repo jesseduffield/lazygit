@@ -788,9 +788,11 @@ func (gui *Gui) renderGlobalOptions() error {
 
 func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
 	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
 		for {
 			select {
-			case <-time.Tick(interval):
+			case <-ticker.C:
 				_ = function()
 			case <-stop:
 				return
