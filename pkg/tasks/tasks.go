@@ -78,8 +78,10 @@ func (m *ViewBufferManager) NewCmdTask(cmd *exec.Cmd, linesToRead int) func(chan
 			loaded := false
 
 			go func() {
+				ticker := time.NewTicker(time.Millisecond * 100)
+				defer ticker.Stop()
 				select {
-				case <-time.Tick(time.Millisecond * 100):
+				case <-ticker.C:
 					if !loaded {
 						m.beforeStart()
 						m.writer.Write([]byte("loading..."))

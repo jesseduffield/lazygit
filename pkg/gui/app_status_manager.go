@@ -58,7 +58,9 @@ func (gui *Gui) WithWaitingStatus(name string, f func() error) error {
 		}()
 
 		go func() {
-			for range time.Tick(time.Millisecond * 50) {
+			ticker := time.NewTicker(time.Millisecond * 50)
+			defer ticker.Stop()
+			for range ticker.C {
 				appStatus := gui.statusManager.getStatusString()
 				gui.Log.Warn(appStatus)
 				if appStatus == "" {
