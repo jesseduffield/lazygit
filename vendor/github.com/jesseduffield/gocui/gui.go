@@ -842,6 +842,7 @@ func (g *Gui) StartTicking() {
 		g.tickingMutex.Lock()
 		defer g.tickingMutex.Unlock()
 		ticker := time.NewTicker(time.Millisecond * 50)
+		defer ticker.Stop()
 	outer:
 		for {
 			select {
