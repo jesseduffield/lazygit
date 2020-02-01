@@ -36,6 +36,7 @@ type OSCommand struct {
 	Platform           *Platform
 	Config             config.AppConfigurer
 	command            func(string, ...string) *exec.Cmd
+	beforeExecuteCmd   func(*exec.Cmd)
 	getGlobalGitConfig func(string) (string, error)
 	getenv             func(string) string
 }
@@ -47,6 +48,7 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 		Platform:           getPlatform(),
 		Config:             config,
 		command:            exec.Command,
+		beforeExecuteCmd:   func(*exec.Cmd) {},
 		getGlobalGitConfig: gitconfig.Global,
 		getenv:             os.Getenv,
 	}
@@ -56,6 +58,10 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 // To be used for testing only
 func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
 	c.command = cmd
+}
+
+func (c *OSCommand) SetBeforeExecuteCmd(cmd func(*exec.Cmd)) {
+	c.beforeExecuteCmd = cmd
 }
 
 // RunCommandWithOutput wrapper around commands returning their output and error
@@ -76,6 +82,7 @@ func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...inte
 
 // RunExecutableWithOutput runs an executable file and returns its output
 func (c *OSCommand) RunExecutableWithOutput(cmd *exec.Cmd) (string, error) {
+	c.beforeExecuteCmd(cmd)
 	return sanitisedCommandOutput(cmd.CombinedOutput())
 }
 
@@ -308,6 +315,7 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 // this is useful if you need to give your command some environment variables
 // before running it
 func (c *OSCommand) RunPreparedCommand(cmd *exec.Cmd) error {
+	c.beforeExecuteCmd(cmd)
 	out, err := cmd.CombinedOutput()
 	outString := string(out)
 	c.Log.Info(outString)
