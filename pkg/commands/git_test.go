@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"testing"
 	"time"
 
@@ -2099,6 +2100,37 @@ func TestGitCommandCreateFixupCommit(t *testing.T) {
 			s.test(gitCmd.CreateFixupCommit(s.sha))
 		})
 	}
+}
+
+// TestGitCommandSkipEditorCommand confirms that SkipEditorCommand injects
+// environment variables that suppress an interactive editor
+func TestGitCommandSkipEditorCommand(t *testing.T) {
+	cmd := NewDummyGitCommand()
+
+	cmd.OSCommand.SetBeforeExecuteCmd(func(cmd *exec.Cmd) {
+		test.AssertContainsMatch(
+			t,
+			cmd.Env,
+			regexp.MustCompile("^VISUAL="),
+			"expected VISUAL to be set for a non-interactive external command",
+		)
+
+		test.AssertContainsMatch(
+			t,
+			cmd.Env,
+			regexp.MustCompile("^EDITOR="),
+			"expected EDITOR to be set for a non-interactive external command",
+		)
+
+		test.AssertContainsMatch(
+			t,
+			cmd.Env,
+			regexp.MustCompile("^LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY$"),
+			"expected LAZYGIT_CLIENT_COMMAND to be set for a non-interactive external command",
+		)
+	})
+
+	cmd.RunSkipEditorCommand("true")
 }
 
 func TestFindDotGitDir(t *testing.T) {
