@@ -623,10 +623,12 @@ func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBra
 
 func (c *GitCommand) RunSkipEditorCommand(command string) error {
 	cmd := c.OSCommand.ExecutableFromString(command)
+	lazyGitPath := c.OSCommand.GetLazygitPath()
 	cmd.Env = append(
 		cmd.Env,
 		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
-		"EDITOR="+c.OSCommand.GetLazygitPath(),
+		"EDITOR="+lazyGitPath,
+		"VISUAL="+lazyGitPath,
 	)
 	return c.OSCommand.RunExecutable(cmd)
 }
