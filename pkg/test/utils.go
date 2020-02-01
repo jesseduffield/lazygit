@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -42,4 +43,16 @@ func CreateMockCommand(t *testing.T, swappers []*CommandSwapper) func(cmd string
 		commandIndex++
 		return command
 	}
+}
+
+func AssertContainsMatch(t *testing.T, strs []string, pattern *regexp.Regexp, message string) {
+	t.Helper()
+
+	for _, str := range strs {
+		if pattern.Match([]byte(str)) {
+			return
+		}
+	}
+
+	assert.Fail(t, message)
 }
