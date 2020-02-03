@@ -163,9 +163,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CannotGitAdd",
 			Other: "Cannot git add --patch untracked files",
 		}, &i18n.Message{
-			ID:    "CantIgnoreTrackFiles",
-			Other: "Cannot ignore tracked files",
-		}, &i18n.Message{
 			ID:    "NoStagedFilesToCommit",
 			Other: "There are no staged files to commit",
 		}, &i18n.Message{
@@ -939,6 +936,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NewBranchNamePrompt",
 			Other: "new {{.branchType}} name:",
+		}, &i18n.Message{
+			ID:    "IgnoreTracked",
+			Other: "Ignore tracked file",
+		}, &i18n.Message{
+			ID:    "IgnoreTrackedPrompt",
+			Other: "Are you sure you want to ignore a tracked file?",
 		},
 	)
 }
