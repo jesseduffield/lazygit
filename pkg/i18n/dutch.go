@@ -137,9 +137,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CannotGitAdd",
 			Other: "Kan commando niet uitvoeren git add --path untracked files",
 		}, &i18n.Message{
-			ID:    "CantIgnoreTrackFiles",
-			Other: "Kan gevolgde bestanden niet negeren",
-		}, &i18n.Message{
 			ID:    "NoStagedFilesToCommit",
 			Other: "Er zijn geen staged bestanden om te commiten",
 		}, &i18n.Message{
@@ -760,6 +757,12 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ReturnToRemotesList",
 			Other: `return to remotes list`,
+		}, &i18n.Message{
+			ID:    "IgnoreTracked",
+			Other: "Ignore tracked file",
+		}, &i18n.Message{
+			ID:    "IgnoreTrackedPrompt",
+			Other: "Are you sure you want to ignore a tracked file?",
 		},
 	)
 }

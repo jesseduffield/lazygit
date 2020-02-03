@@ -242,16 +242,29 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
+	file, err := gui.getSelectedFile(gui.g)
 	if err != nil {
-		return gui.createErrorPanel(g, err.Error())
+		return gui.createErrorPanel(gui.g, err.Error())
 	}
+
 	if file.Tracked {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("CantIgnoreTrackFiles"))
+		return gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("IgnoreTracked"), gui.Tr.SLocalize("IgnoreTrackedPrompt"),
+			// On confirmation
+			func(_ *gocui.Gui, _ *gocui.View) error {
+				if err := gui.GitCommand.Ignore(file.Name); err != nil {
+					return err
+				}
+				if err := gui.GitCommand.OSCommand.RunCommand("git rm -r --cached %s", file.Name); err != nil {
+					return err
+				}
+				return gui.refreshFiles()
+			}, nil)
 	}
+
 	if err := gui.GitCommand.Ignore(file.Name); err != nil {
-		return gui.createErrorPanel(g, err.Error())
+		return gui.createErrorPanel(gui.g, err.Error())
 	}
+
 	return gui.refreshFiles()
 }
 

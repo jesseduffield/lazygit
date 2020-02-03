@@ -129,9 +129,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CannotGitAdd",
 			Other: "Nie można git add --patch nieśledzonych plików",
 		}, &i18n.Message{
-			ID:    "CantIgnoreTrackFiles",
-			Other: "Nie można zignorować nieśledzonych plików",
-		}, &i18n.Message{
 			ID:    "NoStagedFilesToCommit",
 			Other: "Brak zatwierdzonych plików do commita",
 		}, &i18n.Message{
@@ -743,6 +740,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ReturnToRemotesList",
 			Other: `return to remotes list`,
+		}, &i18n.Message{
+			ID:    "IgnoreTracked",
+			Other: "Ignore tracked file",
+		}, &i18n.Message{
+			ID:    "IgnoreTrackedPrompt",
+			Other: "Are you sure you want to ignore a tracked file?",
 		},
 	)
 }
