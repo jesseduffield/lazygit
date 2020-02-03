@@ -1150,6 +1150,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "main",
+			Contexts:    []string{"patch-building", "staging"},
+			Key:         gui.getKey("files.commitChanges"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitPress,
+			Description: gui.Tr.SLocalize("CommitChanges"),
+		},
+		{
+			ViewName:    "main",
 			Contexts:    []string{"merging"},
 			Key:         gui.getKey("universal.return"),
 			Modifier:    gocui.ModNone,
