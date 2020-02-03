@@ -592,7 +592,7 @@ func (c *GitCommand) DiffCmdStr(file *File, plain bool, cached bool) string {
 	if cached {
 		cachedArg = "--cached"
 	}
-	if !file.Tracked && !file.HasStagedChanges {
+	if !file.Tracked && !file.HasStagedChanges && !cached {
 		trackedArg = "--no-index /dev/null"
 	}
 	if plain {
