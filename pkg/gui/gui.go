@@ -489,7 +489,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	prevMainView, err := gui.g.View("main")
 	if err == nil {
 		_, prevMainHeight := prevMainView.Size()
-		heightDiff := mainPanelBottom - prevMainHeight
+		heightDiff := mainPanelBottom - prevMainHeight - 1
 		if heightDiff > 0 {
 			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
 				manager.ReadLines(heightDiff)
