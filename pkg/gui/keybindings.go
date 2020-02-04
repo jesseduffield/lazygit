@@ -1150,11 +1150,27 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "main",
-			Contexts:    []string{"patch-building", "staging"},
+			Contexts:    []string{"staging"},
 			Key:         gui.getKey("files.commitChanges"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCommitPress,
 			Description: gui.Tr.SLocalize("CommitChanges"),
+		},
+		{
+			ViewName:    "main",
+			Contexts:    []string{"staging"},
+			Key:         gui.getKey("files.commitChangesWithoutHook"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleWIPCommitPress,
+			Description: gui.Tr.SLocalize("commitChangesWithoutHook"),
+		},
+		{
+			ViewName:    "main",
+			Contexts:    []string{"staging"},
+			Key:         gui.getKey("files.commitChangesWithEditor"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCommitEditorPress,
+			Description: gui.Tr.SLocalize("CommitChangesWithEditor"),
 		},
 		{
 			ViewName:    "main",
