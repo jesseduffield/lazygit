@@ -254,7 +254,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 				if err := gui.GitCommand.Ignore(file.Name); err != nil {
 					return err
 				}
-				if err := gui.GitCommand.OSCommand.RunCommand("git rm -r --cached %s", file.Name); err != nil {
+				if err := gui.GitCommand.RemoveTrackedFiles(file.Name); err != nil {
 					return err
 				}
 				return gui.refreshFiles()
