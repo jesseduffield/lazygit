@@ -64,5 +64,5 @@ func (c *Commit) GetDisplayStrings(isFocused bool) []string {
 		tagString = utils.ColoredString(strings.Join(c.Tags, " "), color.FgMagenta) + " "
 	}
 
-	return []string{shaColor.Sprint(c.Sha[:7]), actionString + tagString + defaultColor.Sprint(c.Name)}
+	return []string{shaColor.Sprint(c.Sha[:8]), actionString + tagString + defaultColor.Sprint(c.Name)}
 }
