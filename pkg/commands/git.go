@@ -940,6 +940,11 @@ func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
 	return c.OSCommand.RunCommand("git checkout -- .")
 }
 
+// RemoveTrackedFiles will delete the given file(s) even if they are currently tracked
+func (c *GitCommand) RemoveTrackedFiles(name string) error {
+	return c.OSCommand.RunCommand("git rm -r --cached %s", name)
+}
+
 // RemoveUntrackedFiles runs `git clean -fd`
 func (c *GitCommand) RemoveUntrackedFiles() error {
 	return c.OSCommand.RunCommand("git clean -fd")
