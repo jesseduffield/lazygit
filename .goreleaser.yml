@@ -38,27 +38,28 @@ changelog:
       - '^docs:'
       - '^test:'
       - '^bump'
-brew:
-  # Reporitory to push the tap to.
-  github:
-    owner: jesseduffield
-    name: homebrew-lazygit
+brews:
+  -
+    # Reporitory to push the tap to.
+    github:
+      owner: jesseduffield
+      name: homebrew-lazygit
 
-  # Your app's homepage.
-  # Default is empty.
-  homepage: 'https://github.com/jesseduffield/lazygit/'
+    # Your app's homepage.
+    # Default is empty.
+    homepage: 'https://github.com/jesseduffield/lazygit/'
 
-  # Your app's description.
-  # Default is empty.
-  description: 'A simple terminal UI for git commands, written in Go'
+    # Your app's description.
+    # Default is empty.
+    description: 'A simple terminal UI for git commands, written in Go'
 
-  # # Packages your package depends on.
-  # dependencies:
-  #   - git
-  #   - zsh
-  # # Packages that conflict with your package.
-  # conflicts:
-  #   - svn
-  #   - bash
+    # # Packages your package depends on.
+    # dependencies:
+    #   - git
+    #   - zsh
+    # # Packages that conflict with your package.
+    # conflicts:
+    #   - svn
+    #   - bash
 
-# test comment to see if goreleaser only releases on new commits
+  # test comment to see if goreleaser only releases on new commits
