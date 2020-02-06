@@ -288,7 +288,6 @@ func (c *CommitListBuilder) getLog(limit bool) string {
 		limitFlag = "-30"
 	}
 
-	c.Log.Warn(fmt.Sprintf("git log --oneline %s --abbrev=%d", limitFlag, 20))
 	result, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --oneline %s --abbrev=%d", limitFlag, 20))
 	if err != nil {
 		// assume if there is an error there are no commits yet for this branch
