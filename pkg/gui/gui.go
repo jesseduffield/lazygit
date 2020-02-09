@@ -508,6 +508,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("DiffTitle")
 		v.Wrap = true
 		v.FgColor = textColor
+		v.IgnoreCarriageReturns = true
 	}
 
 	hiddenViewOffset := 0
@@ -522,6 +523,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		secondaryView.Title = gui.Tr.SLocalize("DiffTitle")
 		secondaryView.Wrap = true
 		secondaryView.FgColor = gocui.ColorWhite
+		secondaryView.IgnoreCarriageReturns = true
 	}
 
 	if v, err := g.SetView("status", 0, 0, leftSideWidth, vHeights["status"]-1, gocui.BOTTOM|gocui.RIGHT); err != nil {
