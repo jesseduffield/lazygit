@@ -97,8 +97,7 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 
 		// TODO: if we're in the remotes view and we've just deleted a remote we need to refresh accordingly
 		if gui.getBranchesView().Context == "local-branches" {
-			gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-			if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
+			if err := gui.renderLocalBranchesWithSelection(); err != nil {
 				return err
 			}
 		}
@@ -112,10 +111,10 @@ func (gui *Gui) renderLocalBranchesWithSelection() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-	if err := gui.renderListPanel(branchesView, gui.State.Branches); err != nil {
+	if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
 		return err
 	}
-	if gui.g.CurrentView() == branchesView && branchesView.Context == "local-branches" {
+	if gui.g.CurrentView() == branchesView {
 		if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
 			return err
 		}
