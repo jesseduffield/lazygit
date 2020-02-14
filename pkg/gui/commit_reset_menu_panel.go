@@ -45,5 +45,5 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	return gui.createMenuNew(fmt.Sprintf("%s %s", gui.Tr.SLocalize("resetTo"), commit.Sha), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(fmt.Sprintf("%s %s", gui.Tr.SLocalize("resetTo"), commit.Sha), menuItems, createMenuOptions{showCancel: true})
 }

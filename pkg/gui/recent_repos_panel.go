@@ -37,7 +37,7 @@ func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	return gui.createMenuNew(gui.Tr.SLocalize("RecentRepos"), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.SLocalize("RecentRepos"), menuItems, createMenuOptions{showCancel: true})
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,

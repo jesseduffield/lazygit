@@ -38,5 +38,5 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 		})
 	}
 
-	return gui.createMenuNew(file.Name, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(file.Name, menuItems, createMenuOptions{showCancel: true})
 }

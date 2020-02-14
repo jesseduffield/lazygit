@@ -52,7 +52,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		)
 	}
 
-	return gui.createMenuNew(gui.Tr.SLocalize("PatchOptionsTitle"), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.SLocalize("PatchOptionsTitle"), menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) getPatchCommitIndex() int {
