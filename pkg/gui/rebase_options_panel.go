@@ -7,33 +7,21 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-type option struct {
-	value string
-}
-
-// GetDisplayStrings is a function.
-func (r *option) GetDisplayStrings(isFocused bool) []string {
-	return []string{r.value}
-}
-
 func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error {
-	options := []*option{
-		{value: "continue"},
-		{value: "abort"},
-	}
+	options := []string{"continue", "abort"}
 
 	if gui.State.WorkingTreeState == "rebasing" {
-		options = append(options, &option{value: "skip"})
+		options = append(options, "skip")
 	}
 
-	options = append(options, &option{value: "cancel"})
-
-	handleMenuPress := func(index int) error {
-		command := options[index].value
-		if command == "cancel" {
-			return nil
+	menuItems := make([]*menuItem, len(options))
+	for i, option := range options {
+		menuItems[i] = &menuItem{
+			displayString: option,
+			onPress: func() error {
+				return gui.genericMergeCommand(option)
+			},
 		}
-		return gui.genericMergeCommand(command)
 	}
 
 	var title string
@@ -43,7 +31,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 		title = gui.Tr.SLocalize("RebaseOptionsTitle")
 	}
 
-	return gui.createMenu(title, options, len(options), handleMenuPress)
+	return gui.createMenuNew(title, menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
