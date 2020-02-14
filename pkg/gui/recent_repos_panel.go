@@ -10,41 +10,34 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type recentRepo struct {
-	path string
-}
-
-// GetDisplayStrings returns the path from a recent repo.
-func (r *recentRepo) GetDisplayStrings(isFocused bool) []string {
-	yellow := color.New(color.FgMagenta)
-	base := filepath.Base(r.path)
-	path := yellow.Sprint(r.path)
-	return []string{base, path}
-}
-
 func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
 	recentRepoPaths := gui.Config.GetAppState().RecentRepos
 	reposCount := utils.Min(len(recentRepoPaths), 20)
+	yellow := color.New(color.FgMagenta)
 	// we won't show the current repo hence the -1
-	recentRepos := make([]*recentRepo, reposCount-1)
+	menuItems := make([]*menuItem, reposCount-1)
 	for i, path := range recentRepoPaths[1:reposCount] {
-		recentRepos[i] = &recentRepo{path: path}
+		innerPath := path
+		menuItems[i] = &menuItem{
+			displayStrings: []string{
+				filepath.Base(innerPath),
+				yellow.Sprint(innerPath),
+			},
+			onPress: func() error {
+				if err := os.Chdir(innerPath); err != nil {
+					return err
+				}
+				newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
+				if err != nil {
+					return err
+				}
+				gui.GitCommand = newGitCommand
+				return gui.Errors.ErrSwitchRepo
+			},
+		}
 	}
 
-	handleMenuPress := func(index int) error {
-		repo := recentRepos[index]
-		if err := os.Chdir(repo.path); err != nil {
-			return err
-		}
-		newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
-		if err != nil {
-			return err
-		}
-		gui.GitCommand = newGitCommand
-		return gui.Errors.ErrSwitchRepo
-	}
-
-	return gui.createMenu(gui.Tr.SLocalize("RecentRepos"), recentRepos, len(recentRepos), handleMenuPress)
+	return gui.createMenuNew(gui.Tr.SLocalize("RecentRepos"), menuItems, createMenuOptions{showCancel: true})
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
