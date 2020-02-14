@@ -51,5 +51,5 @@ func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 		},
 	}
 
-	return gui.createMenuNew("", menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu("", menuItems, createMenuOptions{showCancel: true})
 }

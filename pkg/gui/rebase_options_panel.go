@@ -31,7 +31,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 		title = gui.Tr.SLocalize("RebaseOptionsTitle")
 	}
 
-	return gui.createMenuNew(title, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {

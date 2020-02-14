@@ -82,5 +82,5 @@ func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
 		},
 	}
 
-	return gui.createMenuNew("git flow", menuItems, createMenuOptions{})
+	return gui.createMenu("git flow", menuItems, createMenuOptions{})
 }

@@ -564,7 +564,7 @@ func (gui *Gui) handleCreateStashMenu(g *gocui.Gui, v *gocui.View) error {
 		},
 	}
 
-	return gui.createMenuNew(gui.Tr.SLocalize("stashOptions"), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.SLocalize("stashOptions"), menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) handleStashChanges(g *gocui.Gui, v *gocui.View) error {
