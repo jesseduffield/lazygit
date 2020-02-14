@@ -333,6 +333,9 @@ func (v *View) Rewind() {
 
 // draw re-draws the view's contents.
 func (v *View) draw() error {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	maxX, maxY := v.Size()
 
 	if v.Wrap {

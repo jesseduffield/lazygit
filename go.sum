@@ -87,6 +87,8 @@ github.com/jesseduffield/gocui v0.3.1-0.20200131131454-a319843434ac h1:vp7I0RpFq
 github.com/jesseduffield/gocui v0.3.1-0.20200131131454-a319843434ac/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/gocui v0.3.1-0.20200201013258-57fdcf23edc5 h1:tE0w3tuL/bj1o5VMhjjE0ep6i7Fva+RYjKcMFcniJEY=
 github.com/jesseduffield/gocui v0.3.1-0.20200201013258-57fdcf23edc5/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
+github.com/jesseduffield/gocui v0.3.1-0.20200214090701-54fcea773152 h1:19hgesY7T7NpTTj9H/jtoqgyPbYfrke2N4bY0j23aCI=
+github.com/jesseduffield/gocui v0.3.1-0.20200214090701-54fcea773152/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/pty v1.2.1 h1:7xYBiwNH0PpWqC8JmvrPq1a/ksNqyCavzWu9pbBGYWI=
 github.com/jesseduffield/pty v1.2.1/go.mod h1:7jlS40+UhOqkZJDIG1B/H21xnuET/+fvbbnHCa8wSIo=
 github.com/jesseduffield/roll v0.0.0-20190629104057-695be2e62b00 h1:+JaOkfBNYQYlGD7dgru8mCwYNEc5tRRI8mThlVANhSM=
