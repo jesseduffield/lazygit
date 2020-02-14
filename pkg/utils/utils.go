@@ -174,6 +174,9 @@ func getPadWidths(stringArrays [][]string) []int {
 			maxWidth = len(stringArray)
 		}
 	}
+	if maxWidth-1 < 0 {
+		return []int{}
+	}
 	padWidths := make([]int, maxWidth-1)
 	for i := range padWidths {
 		for _, strings := range stringArrays {

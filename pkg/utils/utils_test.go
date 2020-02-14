@@ -276,8 +276,8 @@ func TestRenderDisplayableList(t *testing.T) {
 				Displayable(&myDisplayable{[]string{"b", "c"}}),
 			},
 			false,
+			"a \nb c",
 			"",
-			"Each item must return the same number of strings to display",
 		},
 		{
 			[]Displayable{
