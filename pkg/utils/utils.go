@@ -151,14 +151,14 @@ func renderDisplayableList(items []Displayable, isFocused bool) (string, error) 
 
 	stringArrays := getDisplayStringArrays(items, isFocused)
 
-	if !displayArraysAligned(stringArrays) {
-		return "", errors.New("Each item must return the same number of strings to display")
-	}
+	return RenderDisplayStrings(stringArrays), nil
+}
 
-	padWidths := getPadWidths(stringArrays)
-	paddedDisplayStrings := getPaddedDisplayStrings(stringArrays, padWidths)
+func RenderDisplayStrings(displayStringsArr [][]string) string {
+	padWidths := getPadWidths(displayStringsArr)
+	paddedDisplayStrings := getPaddedDisplayStrings(displayStringsArr, padWidths)
 
-	return strings.Join(paddedDisplayStrings, "\n"), nil
+	return strings.Join(paddedDisplayStrings, "\n")
 }
 
 // Decolorise strips a string of color
@@ -168,10 +168,13 @@ func Decolorise(str string) string {
 }
 
 func getPadWidths(stringArrays [][]string) []int {
-	if len(stringArrays[0]) <= 1 {
-		return []int{}
+	maxWidth := 0
+	for _, stringArray := range stringArrays {
+		if len(stringArray) > maxWidth {
+			maxWidth = len(stringArray)
+		}
 	}
-	padWidths := make([]int, len(stringArrays[0])-1)
+	padWidths := make([]int, maxWidth-1)
 	for i := range padWidths {
 		for _, strings := range stringArrays {
 			uncoloredString := Decolorise(strings[i])
@@ -190,7 +193,13 @@ func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) []string 
 			continue
 		}
 		for j, padWidth := range padWidths {
+			if len(stringArray)-1 < j {
+				continue
+			}
 			paddedDisplayStrings[i] += WithPadding(stringArray[j], padWidth) + " "
+		}
+		if len(stringArray)-1 < len(padWidths) {
+			continue
 		}
 		paddedDisplayStrings[i] += stringArray[len(padWidths)]
 	}
