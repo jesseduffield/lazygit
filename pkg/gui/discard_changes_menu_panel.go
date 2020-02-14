@@ -15,7 +15,7 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 
 	menuItems := []*menuItem{
 		{
-			displayStrings: []string{gui.Tr.SLocalize("discardAllChanges")},
+			displayString: gui.Tr.SLocalize("discardAllChanges"),
 			onPress: func() error {
 				if err := gui.GitCommand.DiscardAllFileChanges(file); err != nil {
 					return err
@@ -27,7 +27,7 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 
 	if file.HasStagedChanges && file.HasUnstagedChanges {
 		menuItems = append(menuItems, &menuItem{
-			displayStrings: []string{gui.Tr.SLocalize("discardUnstagedChanges")},
+			displayString: gui.Tr.SLocalize("discardUnstagedChanges"),
 			onPress: func() error {
 				if err := gui.GitCommand.DiscardUnstagedFileChanges(file); err != nil {
 					return err
