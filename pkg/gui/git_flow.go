@@ -8,11 +8,6 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-type gitFlowOption struct {
-	handler     func() error
-	description string
-}
-
 func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) error {
 	// need to find out what kind of branch this is
 	prefix := strings.SplitAfterN(branchName, "/", 2)[0]
@@ -41,11 +36,6 @@ func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) err
 	return gui.Errors.ErrSubProcess
 }
 
-// GetDisplayStrings is a function.
-func (r *gitFlowOption) GetDisplayStrings(isFocused bool) []string {
-	return []string{r.description}
-}
-
 func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch()
 	if branch == nil {
@@ -70,37 +60,27 @@ func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	options := []*gitFlowOption{
+	menuItems := []*menuItem{
 		{
 			// not localising here because it's one to one with the actual git flow commands
-			description: fmt.Sprintf("finish branch '%s'", branch.Name),
-			handler: func() error {
+			displayString: fmt.Sprintf("finish branch '%s'", branch.Name),
+			onPress: func() error {
 				return gui.gitFlowFinishBranch(gitFlowConfig, branch.Name)
 			},
 		},
 		{
-			description: "start feature",
-			handler:     startHandler("feature"),
+			displayString: "start feature",
+			onPress:       startHandler("feature"),
 		},
 		{
-			description: "start hotfix",
-			handler:     startHandler("hotfix"),
+			displayString: "start hotfix",
+			onPress:       startHandler("hotfix"),
 		},
 		{
-			description: "start release",
-			handler:     startHandler("release"),
-		},
-		{
-			description: gui.Tr.SLocalize("cancel"),
-			handler: func() error {
-				return nil
-			},
+			displayString: "start release",
+			onPress:       startHandler("release"),
 		},
 	}
 
-	handleMenuPress := func(index int) error {
-		return options[index].handler()
-	}
-
-	return gui.createMenu("git flow", options, len(options), handleMenuPress)
+	return gui.createMenuNew("git flow", menuItems, createMenuOptions{})
 }
