@@ -20,6 +20,7 @@ func (r *reflogResetOption) GetDisplayStrings(isFocused bool) []string {
 
 func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 	commit := gui.getSelectedReflogCommit()
+	red := color.New(color.FgRed)
 
 	resetFunction := func(reset func(string) error) func() error {
 		return func() error {
@@ -33,28 +34,22 @@ func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	options := []*reflogResetOption{
+	menuItems := []*menuItem{
 		{
-			description: gui.Tr.SLocalize("hardReset"),
-			command:     fmt.Sprintf("reset --hard %s", commit.Sha),
-			handler:     resetFunction(gui.GitCommand.ResetHard),
-		},
-		{
-			description: gui.Tr.SLocalize("softReset"),
-			command:     fmt.Sprintf("reset --soft %s", commit.Sha),
-			handler:     resetFunction(gui.GitCommand.ResetSoft),
-		},
-		{
-			description: gui.Tr.SLocalize("cancel"),
-			handler: func() error {
-				return nil
+			displayStrings: []string{
+				gui.Tr.SLocalize("hardReset"),
+				red.Sprint(fmt.Sprintf("reset --hard %s", commit.Sha)),
 			},
+			onPress: resetFunction(gui.GitCommand.ResetHard),
+		},
+		{
+			displayStrings: []string{
+				gui.Tr.SLocalize("softReset"),
+				red.Sprint(fmt.Sprintf("reset --soft %s", commit.Sha)),
+			},
+			onPress: resetFunction(gui.GitCommand.ResetSoft),
 		},
 	}
 
-	handleMenuPress := func(index int) error {
-		return options[index].handler()
-	}
-
-	return gui.createMenu("", options, len(options), handleMenuPress)
+	return gui.createMenuNew("", menuItems, createMenuOptions{showCancel: true})
 }
