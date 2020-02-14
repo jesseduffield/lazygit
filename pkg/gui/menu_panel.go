@@ -9,6 +9,7 @@ import (
 )
 
 type menuItem struct {
+	displayString  string
 	displayStrings []string
 	onPress        func() error
 }
@@ -62,7 +63,11 @@ func (gui *Gui) createMenuNew(title string, items []*menuItem, createMenuOptions
 
 	stringArrays := make([][]string, len(items))
 	for i, item := range items {
-		stringArrays[i] = item.displayStrings
+		if item.displayStrings == nil {
+			stringArrays[i] = []string{item.displayString}
+		} else {
+			stringArrays[i] = item.displayStrings
+		}
 	}
 
 	list := utils.RenderDisplayStrings(stringArrays)
