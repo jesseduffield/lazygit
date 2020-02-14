@@ -540,67 +540,6 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 	return false
 }
 
-type discardOption struct {
-	handler     func(fileName *commands.File) error
-	description string
-}
-
-// GetDisplayStrings is a function.
-func (r *discardOption) GetDisplayStrings(isFocused bool) []string {
-	return []string{r.description}
-}
-
-func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile(g)
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
-		return nil
-	}
-
-	options := []*discardOption{
-		{
-			description: gui.Tr.SLocalize("discardAllChanges"),
-			handler: func(file *commands.File) error {
-				return gui.GitCommand.DiscardAllFileChanges(file)
-			},
-		},
-		{
-			description: gui.Tr.SLocalize("cancel"),
-			handler: func(file *commands.File) error {
-				return nil
-			},
-		},
-	}
-
-	if file.HasStagedChanges && file.HasUnstagedChanges {
-		discardUnstagedChanges := &discardOption{
-			description: gui.Tr.SLocalize("discardUnstagedChanges"),
-			handler: func(file *commands.File) error {
-				return gui.GitCommand.DiscardUnstagedFileChanges(file)
-			},
-		}
-
-		options = append(options[:1], append([]*discardOption{discardUnstagedChanges}, options[1:]...)...)
-	}
-
-	handleMenuPress := func(index int) error {
-		file, err := gui.getSelectedFile(g)
-		if err != nil {
-			return err
-		}
-
-		if err := options[index].handler(file); err != nil {
-			return err
-		}
-
-		return gui.refreshFiles()
-	}
-
-	return gui.createMenu(file.Name, options, len(options), handleMenuPress)
-}
-
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
 	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("CustomCommand"), "", func(g *gocui.Gui, v *gocui.View) error {
 		command := gui.trimmedContent(v)
