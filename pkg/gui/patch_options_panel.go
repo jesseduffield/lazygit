@@ -21,33 +21,38 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoPatchError"))
 	}
 
-	options := []*patchMenuOption{
-		{displayName: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.CommitSha), function: gui.handleDeletePatchFromCommit},
-		{displayName: "pull patch out into index", function: gui.handlePullPatchIntoWorkingTree},
-		{displayName: "reset patch", function: gui.handleResetPatch},
+	menuItems := []*menuItem{
+		{
+			displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.CommitSha),
+			onPress:       gui.handleDeletePatchFromCommit,
+		},
+		{
+			displayString: "pull patch out into index",
+			onPress:       gui.handlePullPatchIntoWorkingTree,
+		},
+		{
+			displayString: "reset patch",
+			onPress:       gui.handleResetPatch,
+		},
 	}
 
 	selectedCommit := gui.getSelectedCommit(gui.g)
 	if selectedCommit != nil && gui.GitCommand.PatchManager.CommitSha != selectedCommit.Sha {
 		// adding this option to index 1
-		options = append(
-			options[:1],
+		menuItems = append(
+			menuItems[:1],
 			append(
-				[]*patchMenuOption{
+				[]*menuItem{
 					{
-						displayName: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
-						function:    gui.handleMovePatchToSelectedCommit,
+						displayString: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
+						onPress:       gui.handleMovePatchToSelectedCommit,
 					},
-				}, options[1:]...,
+				}, menuItems[1:]...,
 			)...,
 		)
 	}
 
-	handleMenuPress := func(index int) error {
-		return options[index].function()
-	}
-
-	return gui.createMenu(gui.Tr.SLocalize("PatchOptionsTitle"), options, len(options), handleMenuPress)
+	return gui.createMenuNew(gui.Tr.SLocalize("PatchOptionsTitle"), menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) getPatchCommitIndex() int {
