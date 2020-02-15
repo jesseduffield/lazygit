@@ -652,3 +652,12 @@ func (gui *Gui) handlePrevCommitsTab(g *gocui.Gui, v *gocui.View) error {
 		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
 	)
 }
+
+func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
+	commit := gui.getSelectedCommit(g)
+	if commit == nil {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoCommitsThisBranch"))
+	}
+
+	return gui.createResetMenu(commit.Sha)
+}
