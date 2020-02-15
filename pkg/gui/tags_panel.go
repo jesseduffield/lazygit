@@ -140,3 +140,12 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshTags()
 	})
 }
+
+func (gui *Gui) handleCreateResetToTagMenu(g *gocui.Gui, v *gocui.View) error {
+	tag := gui.getSelectedTag()
+	if tag == nil {
+		return nil
+	}
+
+	return gui.createResetMenu(tag.Name)
+}
