@@ -4,15 +4,9 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
 )
 
-func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
-	commit := gui.getSelectedCommit(g)
-	if commit == nil {
-		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoCommitsThisBranch"))
-	}
-
+func (gui *Gui) createResetMenu(ref string) error {
 	strengths := []string{"soft", "mixed", "hard"}
 	menuItems := make([]*menuItem, len(strengths))
 	for i, strength := range strengths {
@@ -21,15 +15,15 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 			displayStrings: []string{
 				fmt.Sprintf("%s reset", strength),
 				color.New(color.FgRed).Sprint(
-					fmt.Sprintf("reset --%s %s", strength, commit.Sha),
+					fmt.Sprintf("reset --%s %s", strength, ref),
 				),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetToCommit(commit.Sha, innerStrength); err != nil {
+				if err := gui.GitCommand.ResetToCommit(ref, innerStrength); err != nil {
 					return err
 				}
 
-				if err := gui.refreshCommits(g); err != nil {
+				if err := gui.refreshCommits(gui.g); err != nil {
 					return err
 				}
 				if err := gui.refreshFiles(); err != nil {
@@ -40,10 +34,10 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 				}
 
 				gui.State.Panels.Commits.SelectedLine = 0
-				return gui.handleCommitSelect(g, gui.getCommitsView())
+				return gui.handleCommitSelect(gui.g, gui.getCommitsView())
 			},
 		}
 	}
 
-	return gui.createMenu(fmt.Sprintf("%s %s", gui.Tr.SLocalize("resetTo"), commit.Sha), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(fmt.Sprintf("%s %s", gui.Tr.SLocalize("resetTo"), ref), menuItems, createMenuOptions{showCancel: true})
 }
