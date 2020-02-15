@@ -6,16 +6,6 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-type patchMenuOption struct {
-	displayName string
-	function    func() error
-}
-
-// GetDisplayStrings is a function.
-func (o *patchMenuOption) GetDisplayStrings(isFocused bool) []string {
-	return []string{o.displayName}
-}
-
 func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 	if !gui.GitCommand.PatchManager.CommitSelected() {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoPatchError"))
