@@ -462,7 +462,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateResetToUpstreamMenu,
-			Description: gui.Tr.SLocalize("resetToUpstream"),
+			Description: gui.Tr.SLocalize("viewResetToUpstreamOptions"),
 		},
 		{
 			ViewName:    "branches",
@@ -550,7 +550,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateResetToBranchMenu,
-			Description: gui.Tr.SLocalize("resetToThisBranch"),
+			Description: gui.Tr.SLocalize("viewResetOptions"),
 		},
 		{
 			ViewName:    "branches",
@@ -590,7 +590,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateResetToTagMenu,
-			Description: gui.Tr.SLocalize("resetToThisTag"),
+			Description: gui.Tr.SLocalize("viewResetOptions"),
 		},
 		{
 			ViewName: "branches",
@@ -618,7 +618,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateResetToRemoteBranchMenu,
-			Description: gui.Tr.SLocalize("resetToThisBranch"),
+			Description: gui.Tr.SLocalize("viewResetOptions"),
 		},
 		{
 			ViewName:    "branches",

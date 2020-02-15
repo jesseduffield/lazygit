@@ -943,14 +943,8 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "IgnoreTrackedPrompt",
 			Other: "Are you sure you want to ignore a tracked file?",
 		}, &i18n.Message{
-			ID:    "resetToThisBranch",
-			Other: "reset to the HEAD of this branch",
-		}, &i18n.Message{
-			ID:    "resetToThisTag",
-			Other: "reset to this tag",
-		}, &i18n.Message{
-			ID:    "resetToUpstream",
-			Other: "reset to the HEAD of the upstream branch",
+			ID:    "viewResetToUpstreamOptions",
+			Other: "view upstream reset options",
 		},
 	)
 }
