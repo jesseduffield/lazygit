@@ -570,3 +570,7 @@ func (gui *Gui) handleCreateStashMenu(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleStashChanges(g *gocui.Gui, v *gocui.View) error {
 	return gui.handleStashSave(gui.GitCommand.StashSave)
 }
+
+func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) error {
+	return gui.createResetMenu("@{upstream}")
+}

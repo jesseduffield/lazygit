@@ -458,6 +458,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("executeCustomCommand"),
 		},
 		{
+			ViewName:    "files",
+			Key:         gui.getKey("commits.viewResetOptions"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateResetToUpstreamMenu,
+			Description: gui.Tr.SLocalize("resetToUpstream"),
+		},
+		{
 			ViewName:    "branches",
 			Contexts:    []string{"local-branches"},
 			Key:         gui.getKey("universal.select"),
