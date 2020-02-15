@@ -578,6 +578,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("createTag"),
 		},
 		{
+			ViewName:    "branches",
+			Contexts:    []string{"tags"},
+			Key:         gui.getKey("commits.viewResetOptions"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateResetToTagMenu,
+			Description: gui.Tr.SLocalize("resetToThisTag"),
+		},
+		{
 			ViewName: "branches",
 			Key:      gui.getKey("universal.nextTab"),
 			Modifier: gocui.ModNone,
