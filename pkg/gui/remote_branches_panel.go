@@ -132,3 +132,12 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshSidePanels(gui.g)
 	}, nil)
 }
+
+func (gui *Gui) handleCreateResetToRemoteBranchMenu(g *gocui.Gui, v *gocui.View) error {
+	selectedBranch := gui.getSelectedRemoteBranch()
+	if selectedBranch == nil {
+		return nil
+	}
+
+	return gui.createResetMenu(fmt.Sprintf("%s/%s", selectedBranch.RemoteName, selectedBranch.Name))
+}
