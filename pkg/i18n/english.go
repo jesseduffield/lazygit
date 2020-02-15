@@ -948,6 +948,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "resetToThisTag",
 			Other: "reset to this tag",
+		}, &i18n.Message{
+			ID:    "resetToUpstream",
+			Other: "reset to the HEAD of the upstream branch",
 		},
 	)
 }

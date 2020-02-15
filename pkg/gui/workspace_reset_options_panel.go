@@ -63,6 +63,19 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 		},
 		{
 			displayStrings: []string{
+				"mixed reset",
+				red.Sprint("git reset --mixed HEAD"),
+			},
+			onPress: func() error {
+				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
+					return gui.createErrorPanel(gui.g, err.Error())
+				}
+
+				return gui.refreshFiles()
+			},
+		},
+		{
+			displayStrings: []string{
 				gui.Tr.SLocalize("hardReset"),
 				red.Sprint("git reset --hard HEAD"),
 			},
@@ -72,19 +85,6 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				}
 
 				return gui.refreshFiles()
-			},
-		},
-		{
-			displayStrings: []string{
-				gui.Tr.SLocalize("hardResetUpstream"),
-				red.Sprint("git reset --hard @{upstream}"),
-			},
-			onPress: func() error {
-				if err := gui.GitCommand.ResetHard("@{upstream}"); err != nil {
-					return gui.createErrorPanel(gui.g, err.Error())
-				}
-
-				return gui.refreshSidePanels(gui.g)
 			},
 		},
 	}
