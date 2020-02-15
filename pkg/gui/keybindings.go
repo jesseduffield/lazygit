@@ -599,6 +599,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"remote-branches"},
+			Key:         gui.getKey("commits.viewResetOptions"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateResetToRemoteBranchMenu,
+			Description: gui.Tr.SLocalize("resetToThisBranch"),
+		},
+		{
+			ViewName:    "branches",
 			Contexts:    []string{"remotes"},
 			Key:         gui.getKey("branches.fetchRemote"),
 			Modifier:    gocui.ModNone,
