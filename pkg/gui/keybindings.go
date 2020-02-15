@@ -539,6 +539,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
+			Key:         gui.getKey("commits.viewResetOptions"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateResetToBranchMenu,
+			Description: gui.Tr.SLocalize("resetToThisBranch"),
+		},
+		{
+			ViewName:    "branches",
 			Contexts:    []string{"tags"},
 			Key:         gui.getKey("universal.select"),
 			Modifier:    gocui.ModNone,

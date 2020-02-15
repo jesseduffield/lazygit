@@ -428,3 +428,12 @@ func (gui *Gui) handlePrevBranchesTab(g *gocui.Gui, v *gocui.View) error {
 		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
 	)
 }
+
+func (gui *Gui) handleCreateResetToBranchMenu(g *gocui.Gui, v *gocui.View) error {
+	branch := gui.getSelectedBranch()
+	if branch == nil {
+		return nil
+	}
+
+	return gui.createResetMenu(branch.Name)
+}
