@@ -95,3 +95,9 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 
 	return nil
 }
+
+func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
+	commit := gui.getSelectedReflogCommit()
+
+	return gui.createResetMenu(commit.Sha)
+}

@@ -20,8 +20,12 @@ func (gui *Gui) createResetMenu(ref string) error {
 			},
 			onPress: func() error {
 				if err := gui.GitCommand.ResetToCommit(ref, innerStrength); err != nil {
-					return err
+					return gui.createErrorPanel(gui.g, err.Error())
 				}
+
+				gui.switchCommitsPanelContext("branch-commits")
+				gui.State.Panels.Commits.SelectedLine = 0
+				gui.State.Panels.ReflogCommits.SelectedLine = 0
 
 				if err := gui.refreshCommits(gui.g); err != nil {
 					return err
@@ -33,7 +37,6 @@ func (gui *Gui) createResetMenu(ref string) error {
 					return err
 				}
 
-				gui.State.Panels.Commits.SelectedLine = 0
 				return gui.handleCommitSelect(gui.g, gui.getCommitsView())
 			},
 		}
