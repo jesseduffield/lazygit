@@ -372,12 +372,19 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	go func() {
 		_ = gui.createLoaderPanel(gui.g, v, message)
 
-		if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
-			_ = gui.createErrorPanel(gui.g, err.Error())
+		if gui.State.Panels.Branches.SelectedLine == 0 {
+			if err := gui.GitCommand.PullWithoutPasswordCheck("--ff-only"); err != nil {
+				_ = gui.createErrorPanel(gui.g, err.Error())
+			}
+			_ = gui.refreshSidePanels(gui.g)
 		} else {
-			_ = gui.closeConfirmationPrompt(gui.g, true)
+			if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
+				_ = gui.createErrorPanel(gui.g, err.Error())
+			}
 			_ = gui.RenderSelectedBranchUpstreamDifferences()
 		}
+
+		_ = gui.closeConfirmationPrompt(gui.g, true)
 	}()
 	return nil
 }
