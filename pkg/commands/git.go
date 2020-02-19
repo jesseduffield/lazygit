@@ -1105,7 +1105,7 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 }
 
 func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git reflog")
+	output, err := c.OSCommand.RunCommandWithOutput("git reflog --abbrev=20")
 	if err != nil {
 		return nil, err
 	}
