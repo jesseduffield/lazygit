@@ -500,6 +500,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
+	userConfig := gui.Config.GetUserConfig()
 	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, mainPanelRight, mainPanelBottom, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
@@ -541,7 +542,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		filesView.Highlight = true
 		filesView.Title = gui.Tr.SLocalize("FilesTitle")
-		v.FgColor = textColor
 	}
 
 	branchesView, err := g.SetViewBeneath("branches", "files", vHeights["branches"])
@@ -586,8 +586,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Frame = false
-		userConfig := gui.Config.GetUserConfig()
-		v.FgColor = theme.GetColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
+		v.FgColor = theme.GetGocuiColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
 	}
 
 	if gui.getCommitMessageView() == nil {

@@ -21,6 +21,8 @@ Default path for the config file:
         - white
       optionsTextColor:
         - blue
+      selectedLineBgColor:
+        - blue
     commitLength:
       show: true
     mouseEvents: true
@@ -193,6 +195,8 @@ If you have issues with a light terminal theme where you can't read / see the te
         - bold
       inactiveBorderColor:
         - black
+      selectedLineBgColor:
+        - blue
 ```
 
 ## Example Coloring:
