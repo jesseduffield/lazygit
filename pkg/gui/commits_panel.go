@@ -675,3 +675,15 @@ func (gui *Gui) onCommitsPanelSearchSelect(selectedLine int) error {
 	}
 	return nil
 }
+
+func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
+	// we usually lazyload these commits but now that we're searching we need to load them now
+	if gui.State.Panels.Commits.LimitCommits {
+		gui.State.Panels.Commits.LimitCommits = false
+		if err := gui.refreshCommits(gui.g); err != nil {
+			return err
+		}
+	}
+
+	return gui.handleOpenSearch(gui.g, v)
+}
