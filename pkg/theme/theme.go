@@ -20,12 +20,16 @@ var (
 
 	// InactiveBorderColor is the border color of the inactive active frames
 	InactiveBorderColor gocui.Attribute
+
+	// SelectedLineBgColor is the background color for the selected line
+	SelectedLineBgColor color.Attribute
 )
 
 // UpdateTheme updates all theme variables
 func UpdateTheme(userConfig *viper.Viper) {
-	ActiveBorderColor = getColor(userConfig.GetStringSlice("gui.theme.activeBorderColor"))
-	InactiveBorderColor = getColor(userConfig.GetStringSlice("gui.theme.inactiveBorderColor"))
+	ActiveBorderColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.activeBorderColor"))
+	InactiveBorderColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.inactiveBorderColor"))
+	SelectedLineBgColor = GetBgColor(userConfig.GetStringSlice("gui.theme.selectedLineBgColor"))
 
 	isLightTheme := userConfig.GetBool("gui.theme.lightTheme")
 	if isLightTheme {
@@ -39,8 +43,8 @@ func UpdateTheme(userConfig *viper.Viper) {
 	}
 }
 
-// getAttribute gets the gocui color attribute from the string
-func getAttribute(key string) gocui.Attribute {
+// GetAttribute gets the gocui color attribute from the string
+func GetGocuiAttribute(key string) gocui.Attribute {
 	colorMap := map[string]gocui.Attribute{
 		"default":   gocui.ColorDefault,
 		"black":     gocui.ColorBlack,
@@ -62,43 +66,75 @@ func getAttribute(key string) gocui.Attribute {
 	return gocui.ColorWhite
 }
 
-// getColor bitwise OR's a list of attributes obtained via the given keys
-func getColor(keys []string) gocui.Attribute {
+// GetFgAttribute gets the color foreground attribute from the string
+func GetFgAttribute(key string) color.Attribute {
+	colorMap := map[string]color.Attribute{
+		"default":   color.FgWhite,
+		"black":     color.FgBlack,
+		"red":       color.FgRed,
+		"green":     color.FgGreen,
+		"yellow":    color.FgYellow,
+		"blue":      color.FgBlue,
+		"magenta":   color.FgMagenta,
+		"cyan":      color.FgCyan,
+		"white":     color.FgWhite,
+		"bold":      color.Bold,
+		"reverse":   color.ReverseVideo,
+		"underline": color.Underline,
+	}
+	value, present := colorMap[key]
+	if present {
+		return value
+	}
+	return color.FgWhite
+}
+
+// GetBgAttribute gets the color background attribute from the string
+func GetBgAttribute(key string) color.Attribute {
+	colorMap := map[string]color.Attribute{
+		"default":   color.BgWhite,
+		"black":     color.BgBlack,
+		"red":       color.BgRed,
+		"green":     color.BgGreen,
+		"yellow":    color.BgYellow,
+		"blue":      color.BgBlue,
+		"magenta":   color.BgMagenta,
+		"cyan":      color.BgCyan,
+		"white":     color.BgWhite,
+		"bold":      color.Bold,
+		"reverse":   color.ReverseVideo,
+		"underline": color.Underline,
+	}
+	value, present := colorMap[key]
+	if present {
+		return value
+	}
+	return color.FgWhite
+}
+
+// GetGocuiColor bitwise OR's a list of attributes obtained via the given keys
+func GetGocuiColor(keys []string) gocui.Attribute {
 	var attribute gocui.Attribute
 	for _, key := range keys {
-		attribute |= getAttribute(key)
+		attribute |= GetGocuiAttribute(key)
 	}
 	return attribute
 }
 
-// GetAttribute gets the gocui color attribute from the string
-func GetAttribute(key string) gocui.Attribute {
-	colorMap := map[string]gocui.Attribute{
-		"default":   gocui.ColorDefault,
-		"black":     gocui.ColorBlack,
-		"red":       gocui.ColorRed,
-		"green":     gocui.ColorGreen,
-		"yellow":    gocui.ColorYellow,
-		"blue":      gocui.ColorBlue,
-		"magenta":   gocui.ColorMagenta,
-		"cyan":      gocui.ColorCyan,
-		"white":     gocui.ColorWhite,
-		"bold":      gocui.AttrBold,
-		"reverse":   gocui.AttrReverse,
-		"underline": gocui.AttrUnderline,
+// GetColor bitwise OR's a list of attributes obtained via the given keys
+func GetBgColor(keys []string) color.Attribute {
+	var attribute color.Attribute
+	for _, key := range keys {
+		attribute |= GetBgAttribute(key)
 	}
-	value, present := colorMap[key]
-	if present {
-		return value
-	}
-	return gocui.ColorWhite
+	return attribute
 }
 
 // GetColor bitwise OR's a list of attributes obtained via the given keys
-func GetColor(keys []string) gocui.Attribute {
-	var attribute gocui.Attribute
+func GetFgColor(keys []string) color.Attribute {
+	var attribute color.Attribute
 	for _, key := range keys {
-		attribute |= GetAttribute(key)
+		attribute |= GetFgAttribute(key)
 	}
 	return attribute
 }
