@@ -1473,7 +1473,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"Default case",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--color", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--stat", "-p", "--color", "--", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1489,7 +1489,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"cached",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--color", "--cached", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--stat", "-p", "--color", "--cached", "--", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1505,7 +1505,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"plain",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--stat", "-p", "--", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1521,7 +1521,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"File not tracked and file has no staged changes",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--color", "--no-index", "/dev/null", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--stat", "-p", "--color", "--no-index", "/dev/null", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
