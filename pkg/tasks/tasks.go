@@ -59,7 +59,7 @@ func (m *ViewBufferManager) NewCmdTask(cmd *exec.Cmd, linesToRead int) func(chan
 
 		go func() {
 			<-stop
-			if cmd.ProcessState.ExitCode() == -1 {
+			if cmd.ProcessState == nil {
 				if err := kill(cmd); err != nil {
 					m.Log.Warn(err)
 				}
