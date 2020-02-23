@@ -122,3 +122,8 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 		return gui.refreshFiles()
 	})
 }
+
+func (gui *Gui) onStashPanelSearchSelect(selectedLine int) error {
+	gui.State.Panels.Stash.SelectedLine = selectedLine
+	return gui.handleStashEntrySelect(gui.g, gui.getStashView())
+}

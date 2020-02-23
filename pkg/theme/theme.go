@@ -23,6 +23,10 @@ var (
 
 	// SelectedLineBgColor is the background color for the selected line
 	SelectedLineBgColor color.Attribute
+
+	OptionsFgColor color.Attribute
+
+	OptionsColor gocui.Attribute
 )
 
 // UpdateTheme updates all theme variables
@@ -30,6 +34,8 @@ func UpdateTheme(userConfig *viper.Viper) {
 	ActiveBorderColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.activeBorderColor"))
 	InactiveBorderColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.inactiveBorderColor"))
 	SelectedLineBgColor = GetBgColor(userConfig.GetStringSlice("gui.theme.selectedLineBgColor"))
+	OptionsColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
+	OptionsFgColor = GetFgColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
 
 	isLightTheme := userConfig.GetBool("gui.theme.lightTheme")
 	if isLightTheme {

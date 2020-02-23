@@ -94,6 +94,12 @@ type Gui struct {
 	// tickingMutex ensures we don't have two loops ticking. The point of 'ticking'
 	// is to refresh the gui rapidly so that loader characters can be animated.
 	tickingMutex sync.Mutex
+
+	OnSearchEscape func() error
+	// these keys must either be of type Key of rune
+	SearchEscapeKey    interface{}
+	NextSearchMatchKey interface{}
+	PrevSearchMatchKey interface{}
 }
 
 // NewGui returns a new Gui object with a given output mode.
@@ -123,6 +129,11 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 	// SupportOverlaps is true when we allow for view edges to overlap with other
 	// view edges
 	g.SupportOverlaps = supportOverlaps
+
+	// default keys for when searching strings in a view
+	g.SearchEscapeKey = KeyEsc
+	g.NextSearchMatchKey = 'n'
+	g.PrevSearchMatchKey = 'N'
 
 	return g, nil
 }
@@ -802,6 +813,23 @@ func (g *Gui) onKey(ev *termbox.Event) error {
 func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err error) {
 	var globalKb *keybinding
 	var matchingParentViewKb *keybinding
+
+	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
+	if v.IsSearching() && Modifier(ev.Mod) == ModNone {
+		if eventMatchesKey(ev, g.NextSearchMatchKey) {
+			return true, v.gotoNextMatch()
+		} else if eventMatchesKey(ev, g.PrevSearchMatchKey) {
+			return true, v.gotoPreviousMatch()
+		} else if eventMatchesKey(ev, g.SearchEscapeKey) {
+			v.searcher.clearSearch()
+			if g.OnSearchEscape != nil {
+				if err := g.OnSearchEscape(); err != nil {
+					return true, err
+				}
+			}
+			return true, nil
+		}
+	}
 
 	for _, kb := range g.keybindings {
 		if kb.handler == nil {

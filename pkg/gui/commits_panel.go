@@ -623,6 +623,7 @@ func (gui *Gui) onCommitsTabClick(tabIndex int) error {
 func (gui *Gui) switchCommitsPanelContext(context string) error {
 	commitsView := gui.getCommitsView()
 	commitsView.Context = context
+	commitsView.ClearSearch()
 
 	contextTabIndexMap := map[string]int{
 		"branch-commits": 0,
@@ -660,4 +661,17 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.createResetMenu(commit.Sha)
+}
+
+func (gui *Gui) onCommitsPanelSearchSelect(selectedLine int) error {
+	commitsView := gui.getCommitsView()
+	switch commitsView.Context {
+	case "branch-commits":
+		gui.State.Panels.Commits.SelectedLine = selectedLine
+		return gui.handleCommitSelect(gui.g, commitsView)
+	case "reflog-commits":
+		gui.State.Panels.ReflogCommits.SelectedLine = selectedLine
+		return gui.handleReflogCommitSelect(gui.g, commitsView)
+	}
+	return nil
 }
