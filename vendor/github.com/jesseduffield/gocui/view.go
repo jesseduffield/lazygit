@@ -105,6 +105,137 @@ type View struct {
 	ParentView *View
 
 	Context string // this is for assigning keybindings to a view only in certain contexts
+
+	searcher *searcher
+}
+
+type searcher struct {
+	searchString       string
+	searchPositions    []cellPos
+	currentSearchIndex int
+	onSelectItem       func(int, int, int) error
+}
+
+func (v *View) SetOnSelectItem(onSelectItem func(int, int, int) error) {
+	v.searcher.onSelectItem = onSelectItem
+}
+
+func (v *View) gotoNextMatch() error {
+	if len(v.searcher.searchPositions) == 0 {
+		return nil
+	}
+	if v.searcher.currentSearchIndex == len(v.searcher.searchPositions)-1 {
+		v.searcher.currentSearchIndex = 0
+	} else {
+		v.searcher.currentSearchIndex++
+	}
+	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+}
+
+func (v *View) gotoPreviousMatch() error {
+	if len(v.searcher.searchPositions) == 0 {
+		return nil
+	}
+	if v.searcher.currentSearchIndex == 0 {
+		if len(v.searcher.searchPositions) > 0 {
+			v.searcher.currentSearchIndex = len(v.searcher.searchPositions) - 1
+		}
+	} else {
+		v.searcher.currentSearchIndex--
+	}
+	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+}
+
+func (v *View) SelectSearchResult(index int) error {
+	y := v.searcher.searchPositions[index].y
+	v.FocusPoint(0, y)
+	if v.searcher.onSelectItem != nil {
+		return v.searcher.onSelectItem(y, index, len(v.searcher.searchPositions))
+	}
+	return nil
+}
+
+func (v *View) Search(str string) error {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.searcher.search(str)
+	v.updateSearchPositions()
+	if len(v.searcher.searchPositions) > 0 {
+		// get the first result past the current cursor
+		currentIndex := 0
+		adjustedY := v.oy + v.cy
+		adjustedX := v.ox + v.cx
+		for i, pos := range v.searcher.searchPositions {
+			if pos.y > adjustedY || (pos.y == adjustedY && pos.x > adjustedX) {
+				currentIndex = i
+				break
+			}
+		}
+		v.searcher.currentSearchIndex = currentIndex
+		return v.SelectSearchResult(currentIndex)
+	} else {
+		return v.searcher.onSelectItem(-1, -1, 0)
+	}
+	return nil
+}
+
+func (v *View) ClearSearch() {
+	v.searcher.clearSearch()
+}
+
+func (v *View) IsSearching() bool {
+	return v.searcher.searchString != ""
+}
+
+func (v *View) FocusPoint(cx int, cy int) {
+	lineCount := len(v.lines)
+	if cy < 0 || cy > lineCount {
+		return
+	}
+	_, height := v.Size()
+
+	ly := height - 1
+	if ly == -1 {
+		ly = 0
+	}
+
+	// if line is above origin, move origin and set cursor to zero
+	// if line is below origin + height, move origin and set cursor to max
+	// otherwise set cursor to value - origin
+	if ly > lineCount {
+		v.cx = cx
+		v.cy = cy
+		v.oy = 0
+	} else if cy < v.oy {
+		v.cx = cx
+		v.cy = 0
+		v.oy = cy
+	} else if cy > v.oy+ly {
+		v.cx = cx
+		v.cy = ly
+		v.oy = cy - ly
+	} else {
+		v.cx = cx
+		v.cy = cy - v.oy
+	}
+}
+
+func (s *searcher) search(str string) {
+	s.searchString = str
+	s.searchPositions = []cellPos{}
+	s.currentSearchIndex = 0
+}
+
+func (s *searcher) clearSearch() {
+	s.searchString = ""
+	s.searchPositions = []cellPos{}
+	s.currentSearchIndex = 0
+}
+
+type cellPos struct {
+	x int
+	y int
 }
 
 type viewLine struct {
@@ -131,15 +262,16 @@ func (l lineType) String() string {
 // newView returns a new View object.
 func newView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 	v := &View{
-		name:    name,
-		x0:      x0,
-		y0:      y0,
-		x1:      x1,
-		y1:      y1,
-		Frame:   true,
-		Editor:  DefaultEditor,
-		tainted: true,
-		ei:      newEscapeInterpreter(mode),
+		name:     name,
+		x0:       x0,
+		y0:       y0,
+		x1:       x1,
+		y1:       y1,
+		Frame:    true,
+		Editor:   DefaultEditor,
+		tainted:  true,
+		ei:       newEscapeInterpreter(mode),
+		searcher: &searcher{},
 	}
 	return v
 }
@@ -331,8 +463,35 @@ func (v *View) Rewind() {
 	v.readOffset = 0
 }
 
+func (v *View) updateSearchPositions() {
+	if v.searcher.searchString != "" {
+		v.searcher.searchPositions = []cellPos{}
+		for y, line := range v.lines {
+		lineLoop:
+			for x, _ := range line {
+				if line[x].chr == rune(v.searcher.searchString[0]) {
+					for offset := 1; offset < len(v.searcher.searchString); offset++ {
+						if len(line)-1 < x+offset {
+							continue lineLoop
+						}
+						if line[x+offset].chr != rune(v.searcher.searchString[offset]) {
+							continue lineLoop
+						}
+					}
+					v.searcher.searchPositions = append(v.searcher.searchPositions, cellPos{x: x, y: y})
+				}
+			}
+		}
+	}
+
+}
+
 // draw re-draws the view's contents.
 func (v *View) draw() error {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.updateSearchPositions()
 	maxX, maxY := v.Size()
 
 	if v.Wrap {
@@ -392,6 +551,13 @@ func (v *View) draw() error {
 			if bgColor == ColorDefault {
 				bgColor = v.BgColor
 			}
+			if matched, selected := v.isPatternMatchedRune(x, y); matched {
+				if selected {
+					bgColor = ColorCyan
+				} else {
+					bgColor = ColorYellow
+				}
+			}
 
 			if err := v.setRune(x, y, c.chr, fgColor, bgColor); err != nil {
 				return err
@@ -401,6 +567,18 @@ func (v *View) draw() error {
 		y++
 	}
 	return nil
+}
+
+func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
+	searchStringLength := len(v.searcher.searchString)
+	for i, pos := range v.searcher.searchPositions {
+		adjustedY := y + v.oy
+		adjustedX := x + v.ox
+		if adjustedY == pos.y && adjustedX >= pos.x && adjustedX < pos.x+searchStringLength {
+			return true, i == v.searcher.currentSearchIndex
+		}
+	}
+	return false, false
 }
 
 // realPosition returns the position in the internal buffer corresponding to the

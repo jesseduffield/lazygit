@@ -135,6 +135,8 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		}
 		v.Highlight = false
 		return nil
+	case "search":
+		return nil
 	default:
 		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement"))
 	}
@@ -218,32 +220,7 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 
 // if the cursor down past the last item, move it to the last line
 func (gui *Gui) focusPoint(cx int, cy int, lineCount int, v *gocui.View) error {
-	if cy < 0 || cy > lineCount {
-		return nil
-	}
-	ox, oy := v.Origin()
-	_, height := v.Size()
-
-	ly := height - 1
-	if ly == -1 {
-		ly = 0
-	}
-
-	// if line is above origin, move origin and set cursor to zero
-	// if line is below origin + height, move origin and set cursor to max
-	// otherwise set cursor to value - origin
-	if ly > lineCount {
-		_ = v.SetCursor(cx, cy)
-		_ = v.SetOrigin(ox, 0)
-	} else if cy < oy {
-		_ = v.SetCursor(cx, 0)
-		_ = v.SetOrigin(ox, cy)
-	} else if cy > oy+ly {
-		_ = v.SetCursor(cx, ly)
-		_ = v.SetOrigin(ox, cy-ly)
-	} else {
-		_ = v.SetCursor(cx, cy-oy)
-	}
+	v.FocusPoint(cx, cy)
 	return nil
 }
 
@@ -266,6 +243,9 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 			return nil // return gracefully if view has been deleted
 		}
 		if err := v.SetOrigin(0, 0); err != nil {
+			return err
+		}
+		if err := v.SetCursor(0, 0); err != nil {
 			return err
 		}
 		return gui.setViewContent(gui.g, v, s)
@@ -330,6 +310,11 @@ func (gui *Gui) getCommitFilesView() *gocui.View {
 
 func (gui *Gui) getMenuView() *gocui.View {
 	v, _ := gui.g.View("menu")
+	return v
+}
+
+func (gui *Gui) getSearchView() *gocui.View {
+	v, _ := gui.g.View("search")
 	return v
 }
 

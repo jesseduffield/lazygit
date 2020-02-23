@@ -6,7 +6,6 @@ package gocui
 
 import (
 	"strconv"
-	"sync"
 
 	"github.com/go-errors/errors"
 )
@@ -17,7 +16,6 @@ type escapeInterpreter struct {
 	csiParam               []string
 	curFgColor, curBgColor Attribute
 	mode                   OutputMode
-	mutex                  sync.Mutex
 }
 
 type escapeState int
@@ -37,9 +35,6 @@ var (
 
 // runes in case of error will output the non-parsed runes as a string.
 func (ei *escapeInterpreter) runes() []rune {
-	ei.mutex.Lock()
-	defer ei.mutex.Unlock()
-
 	switch ei.state {
 	case stateNone:
 		return []rune{0x1b}
@@ -72,9 +67,6 @@ func newEscapeInterpreter(mode OutputMode) *escapeInterpreter {
 
 // reset sets the escapeInterpreter in initial state.
 func (ei *escapeInterpreter) reset() {
-	ei.mutex.Lock()
-	defer ei.mutex.Unlock()
-
 	ei.state = stateNone
 	ei.curFgColor = ColorDefault
 	ei.curBgColor = ColorDefault
@@ -85,9 +77,6 @@ func (ei *escapeInterpreter) reset() {
 // of an escape sequence, and as such should not be printed verbatim. Otherwise,
 // it's not an escape sequence.
 func (ei *escapeInterpreter) parseOne(ch rune) (isEscape bool, err error) {
-	ei.mutex.Lock()
-	defer ei.mutex.Unlock()
-
 	// Sanity checks
 	if len(ei.csiParam) > 20 {
 		return false, errCSITooLong
@@ -191,9 +180,6 @@ func (ei *escapeInterpreter) outputNormal() error {
 //   0x11 - 0xe8: 216 different colors
 //   0xe9 - 0x1ff: 24 different shades of grey
 func (ei *escapeInterpreter) output256() error {
-	ei.mutex.Lock()
-	defer ei.mutex.Unlock()
-
 	if len(ei.csiParam) < 3 {
 		return ei.outputNormal()
 	}

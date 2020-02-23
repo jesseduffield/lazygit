@@ -29,6 +29,20 @@ func newKeybinding(viewname string, contexts []string, key Key, ch rune, mod Mod
 	return kb
 }
 
+func eventMatchesKey(ev *termbox.Event, key interface{}) bool {
+	// assuming ModNone for now
+	if Modifier(ev.Mod) != ModNone {
+		return false
+	}
+
+	k, ch, err := getKey(key)
+	if err != nil {
+		return false
+	}
+
+	return k == Key(ev.Key) && ch == ev.Ch
+}
+
 // matchKeypress returns if the keybinding matches the keypress.
 func (kb *keybinding) matchKeypress(key Key, ch rune, mod Modifier) bool {
 	return kb.key == key && kb.ch == ch && kb.mod == mod

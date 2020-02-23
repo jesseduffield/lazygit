@@ -400,6 +400,7 @@ func (gui *Gui) onBranchesTabClick(tabIndex int) error {
 func (gui *Gui) switchBranchesPanelContext(context string) error {
 	branchesView := gui.getBranchesView()
 	branchesView.Context = context
+	branchesView.ClearSearch()
 
 	contextTabIndexMap := map[string]int{
 		"local-branches":  0,
@@ -443,4 +444,20 @@ func (gui *Gui) handleCreateResetToBranchMenu(g *gocui.Gui, v *gocui.View) error
 	}
 
 	return gui.createResetMenu(branch.Name)
+}
+
+func (gui *Gui) onBranchesPanelSearchSelect(selectedLine int) error {
+	branchesView := gui.getBranchesView()
+	switch branchesView.Context {
+	case "local-branches":
+		gui.State.Panels.Branches.SelectedLine = selectedLine
+		return gui.handleBranchSelect(gui.g, branchesView)
+	case "remotes":
+		gui.State.Panels.Remotes.SelectedLine = selectedLine
+		return gui.handleRemoteSelect(gui.g, branchesView)
+	case "remote-branches":
+		gui.State.Panels.RemoteBranches.SelectedLine = selectedLine
+		return gui.handleRemoteBranchSelect(gui.g, branchesView)
+	}
+	return nil
 }

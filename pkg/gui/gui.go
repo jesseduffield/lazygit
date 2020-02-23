@@ -172,6 +172,12 @@ type panelStates struct {
 	Status         *statusPanelState
 }
 
+type searchingState struct {
+	view         *gocui.View
+	isSearching  bool
+	searchString string
+}
+
 type guiState struct {
 	Files                []*commands.File
 	Branches             []*commands.Branch
@@ -195,6 +201,7 @@ type guiState struct {
 	RetainOriginalDir    bool
 	IsRefreshingFiles    bool
 	RefreshingFilesMutex sync.Mutex
+	Searching            searchingState
 }
 
 // for now the split view will always be on
@@ -337,6 +344,10 @@ func (gui *Gui) onFocusChange() error {
 func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 	if v == nil {
 		return nil
+	}
+	if v.IsSearching() && newView.Name() != "search" {
+		gui.State.Searching.isSearching = false
+		v.ClearSearch()
 	}
 	switch v.Name() {
 	case "branches":
@@ -500,7 +511,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	userConfig := gui.Config.GetUserConfig()
 	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, mainPanelRight, mainPanelBottom, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
@@ -510,6 +520,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Wrap = true
 		v.FgColor = textColor
 		v.IgnoreCarriageReturns = true
+		v.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
+			return nil
+		}))
 	}
 
 	hiddenViewOffset := 0
@@ -542,6 +555,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		filesView.Highlight = true
 		filesView.Title = gui.Tr.SLocalize("FilesTitle")
+		filesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onFilesPanelSearchSelect))
 	}
 
 	branchesView, err := g.SetViewBeneath("branches", "files", vHeights["branches"])
@@ -552,6 +566,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
 		branchesView.Tabs = []string{"Local Branches", "Remotes", "Tags"}
 		branchesView.FgColor = textColor
+		branchesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onBranchesPanelSearchSelect))
 	}
 
 	if v, err := g.SetViewBeneath("commitFiles", "branches", vHeights["commits"]); err != nil {
@@ -560,6 +575,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		v.Title = gui.Tr.SLocalize("CommitFiles")
 		v.FgColor = textColor
+		v.SetOnSelectItem(gui.onSelectItemWrapper(gui.onCommitFilesPanelSearchSelect))
 	}
 
 	commitsView, err := g.SetViewBeneath("commits", "branches", vHeights["commits"])
@@ -570,6 +586,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		commitsView.Title = gui.Tr.SLocalize("CommitsTitle")
 		commitsView.Tabs = []string{"Commits", "Reflog"}
 		commitsView.FgColor = textColor
+		commitsView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onCommitsPanelSearchSelect))
 	}
 
 	stashView, err := g.SetViewBeneath("stash", "commits", vHeights["stash"])
@@ -579,6 +596,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		stashView.Title = gui.Tr.SLocalize("StashTitle")
 		stashView.FgColor = textColor
+		stashView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onStashPanelSearchSelect))
 	}
 
 	if v, err := g.SetView("options", appStatusOptionsBoundary-1, height-2, optionsVersionBoundary-1, height, 0); err != nil {
@@ -586,7 +604,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		v.Frame = false
-		v.FgColor = theme.GetGocuiColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
+		v.FgColor = theme.OptionsColor
 	}
 
 	if gui.getCommitMessageView() == nil {
@@ -617,6 +635,35 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			credentialsView.FgColor = textColor
 			credentialsView.Editable = true
 		}
+	}
+
+	searchViewOffset := hiddenViewOffset
+	if gui.State.Searching.isSearching {
+		searchViewOffset = 0
+	}
+
+	// this view takes up one character. Its only purpose is to show the slash when searching
+	searchPrefix := "search: "
+	if searchPrefixView, err := g.SetView("searchPrefix", appStatusOptionsBoundary-1+searchViewOffset, height-2+searchViewOffset, len(searchPrefix)+searchViewOffset, height+searchViewOffset, 0); err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+
+		searchPrefixView.BgColor = gocui.ColorDefault
+		searchPrefixView.FgColor = gocui.ColorGreen
+		searchPrefixView.Frame = false
+		gui.setViewContent(gui.g, searchPrefixView, searchPrefix)
+	}
+
+	if searchView, err := g.SetView("search", appStatusOptionsBoundary-1+searchViewOffset+len(searchPrefix), height-2+searchViewOffset, optionsVersionBoundary+searchViewOffset, height+searchViewOffset, 0); err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+
+		searchView.BgColor = gocui.ColorDefault
+		searchView.FgColor = gocui.ColorGreen
+		searchView.Frame = false
+		searchView.Editable = true
 	}
 
 	if appStatusView, err := g.SetView("appStatus", -1, height-2, width, height, 0); err != nil {
@@ -826,6 +873,12 @@ func (gui *Gui) Run() error {
 		return err
 	}
 	defer g.Close()
+
+	g.OnSearchEscape = gui.onSearchEscape
+	g.SearchEscapeKey = gui.getKey("universal.return")
+	g.NextSearchMatchKey = gui.getKey("universal.nextMatch")
+	g.PrevSearchMatchKey = gui.getKey("universal.prevMatch")
+
 	gui.stopChan = make(chan struct{})
 
 	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
