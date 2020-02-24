@@ -67,7 +67,7 @@ Default path for the config file:
       scrollDownMain-alt1: 'J' # main panel scrool down
       scrollUpMain-alt2: '<c-u>' # main panel scrool up
       scrollDownMain-alt2: '<c-d>' # main panel scrool down
-      executeCustomCommand: 'X'
+      executeCustomCommand: ':'
       createRebaseOptionsMenu: 'm'
       pushFiles: 'P'
       pullFiles: 'p'

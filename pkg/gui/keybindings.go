@@ -451,7 +451,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("fetch"),
 		},
 		{
-			ViewName:    "files",
+			ViewName:    "",
 			Key:         gui.getKey("universal.executeCustomCommand"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCustomCommand,
