@@ -45,6 +45,44 @@ func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *
 	}, nil
 }
 
+// nameAndTag takes a line from a git log and extracts the sha, message and tag (if present)
+// example inputs:
+// 66e6369c284e96ed5af5 (tag: v0.14.4) allow fastforwarding the current branch
+// 32e650e0bb3f4327749f (HEAD -> show-tags) this is my commit
+// 32e650e0bb3f4327749e this is my other commit
+func (c *CommitListBuilder) commitLineParts(line string) (string, string, []string) {
+	re := regexp.MustCompile(`(\w+) (.*)`)
+	shaMatch := re.FindStringSubmatch(line)
+
+	if len(shaMatch) <= 1 {
+		return line, "", nil
+	}
+	sha := shaMatch[1]
+	rest := shaMatch[2]
+
+	if !strings.HasPrefix(rest, "(") {
+		return sha, rest, nil
+	}
+
+	re = regexp.MustCompile(`\((.*)\) (.*)`)
+
+	parensMatch := re.FindStringSubmatch(rest)
+	if len(parensMatch) <= 1 {
+		return sha, rest, nil
+	}
+
+	notes := parensMatch[1]
+	message := parensMatch[2]
+	re = regexp.MustCompile(`tag: ([^,]+)`)
+	tagMatch := re.FindStringSubmatch(notes)
+	if len(tagMatch) <= 1 {
+		return sha, message, nil
+	}
+
+	tag := tagMatch[1]
+	return sha, message, []string{tag}
+}
+
 // GetCommits obtains the commits of the current branch
 func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 	commits := []*Commit{}
@@ -69,16 +107,15 @@ func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 
 	// now we can split it up and turn it into commits
 	for _, line := range utils.SplitLines(log) {
-		splitLine := strings.Split(line, " ")
-		sha := splitLine[0]
+		sha, name, tags := c.commitLineParts(line)
 		_, unpushed := unpushedCommits[sha]
 		status := map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
 		commits = append(commits, &Commit{
 			Sha:           sha,
-			Name:          strings.Join(splitLine[1:], " "),
+			Name:          name,
 			Status:        status,
-			DisplayString: strings.Join(splitLine, " "),
-			// TODO: add tags here
+			DisplayString: line,
+			Tags:          tags,
 		})
 	}
 	if rebaseMode != "" {
@@ -288,7 +325,7 @@ func (c *CommitListBuilder) getLog(limit bool) string {
 		limitFlag = "-30"
 	}
 
-	result, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --oneline %s --abbrev=%d", limitFlag, 20))
+	result, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --decorate --oneline %s --abbrev=%d", limitFlag, 20))
 	if err != nil {
 		// assume if there is an error there are no commits yet for this branch
 		return ""
