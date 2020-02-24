@@ -53,6 +53,8 @@ Default path for the config file:
       nextBlock: '<right>' # goto the next block / panel
       prevBlock-alt: 'h' # goto the previous block / panel
       nextBlock-alt: 'l' # goto the next block / panel
+      nextMatch: 'n'
+      prevMatch: 'N'
       optionMenu: 'x' # show help menu
       optionMenu-alt1: '?' # show help menu
       select: '<space>'
@@ -217,6 +219,8 @@ For all possible keybinding options, check [Custom_Keybinding.md](https://github
       nextItem-alt: 'e'
       prevBlock-alt: 'n'
       nextBlock-alt: 'i'
+      nextMatch: '='
+      prevMatch: '-'
       new: 'k'
       edit: 'o'
       openFile: 'O'
