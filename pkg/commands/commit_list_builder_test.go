@@ -163,7 +163,7 @@ func TestCommitListBuilderGetLog(t *testing.T) {
 			"Retrieves logs",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"log", "--oneline", "-30", "--abbrev=20"}, args)
+				assert.EqualValues(t, []string{"log", "--decorate", "--oneline", "-30", "--abbrev=20"}, args)
 
 				return exec.Command("echo", "6f0b32f commands/git : add GetCommits tests refactor\n9d9d775 circle : remove new line")
 			},
@@ -175,7 +175,7 @@ func TestCommitListBuilderGetLog(t *testing.T) {
 			"An error occurred when retrieving logs",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"log", "--oneline", "-30", "--abbrev=20"}, args)
+				assert.EqualValues(t, []string{"log", "--decorate", "--oneline", "-30", "--abbrev=20"}, args)
 				return exec.Command("test")
 			},
 			func(output string) {
@@ -212,7 +212,7 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 					assert.EqualValues(t, []string{"rev-list", "@{u}..HEAD", "--abbrev-commit"}, args)
 					return exec.Command("echo")
 				case "log":
-					assert.EqualValues(t, []string{"log", "--oneline", "-30", "--abbrev=20"}, args)
+					assert.EqualValues(t, []string{"log", "--decorate", "--oneline", "-30", "--abbrev=20"}, args)
 					return exec.Command("echo")
 				case "merge-base":
 					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
@@ -239,7 +239,7 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 					assert.EqualValues(t, []string{"rev-list", "@{u}..HEAD", "--abbrev-commit"}, args)
 					return exec.Command("echo", "8a2bb0e")
 				case "log":
-					assert.EqualValues(t, []string{"log", "--oneline", "-30", "--abbrev=20"}, args)
+					assert.EqualValues(t, []string{"log", "--decorate", "--oneline", "-30", "--abbrev=20"}, args)
 					return exec.Command("echo", "8a2bb0e commit 1\n78976bc commit 2")
 				case "merge-base":
 					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
@@ -280,7 +280,7 @@ func TestCommitListBuilderGetCommits(t *testing.T) {
 					assert.EqualValues(t, []string{"rev-list", "@{u}..HEAD", "--abbrev-commit"}, args)
 					return exec.Command("echo", "8a2bb0e")
 				case "log":
-					assert.EqualValues(t, []string{"log", "--oneline", "-30", "--abbrev=20"}, args)
+					assert.EqualValues(t, []string{"log", "--decorate", "--oneline", "-30", "--abbrev=20"}, args)
 					return exec.Command("echo", "8a2bb0e commit 1\n78976bc commit 2")
 				case "merge-base":
 					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
