@@ -346,8 +346,7 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 		return nil
 	}
 	if v.IsSearching() && newView.Name() != "search" {
-		gui.State.Searching.isSearching = false
-		v.ClearSearch()
+		gui.onSearchEscape()
 	}
 	switch v.Name() {
 	case "branches":

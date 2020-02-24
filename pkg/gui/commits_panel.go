@@ -623,7 +623,7 @@ func (gui *Gui) onCommitsTabClick(tabIndex int) error {
 func (gui *Gui) switchCommitsPanelContext(context string) error {
 	commitsView := gui.getCommitsView()
 	commitsView.Context = context
-	commitsView.ClearSearch()
+	gui.onSearchEscape()
 
 	contextTabIndexMap := map[string]int{
 		"branch-commits": 0,

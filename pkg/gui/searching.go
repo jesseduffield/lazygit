@@ -72,7 +72,11 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 
 func (gui *Gui) onSearchEscape() error {
 	gui.State.Searching.isSearching = false
-	gui.State.Searching.view = nil
+	if gui.State.Searching.view != nil {
+		gui.State.Searching.view.ClearSearch()
+		gui.State.Searching.view = nil
+	}
+
 	return nil
 }
 
@@ -81,9 +85,7 @@ func (gui *Gui) handleSearchEscape(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	if err := gui.onSearchEscape(); err != nil {
-		return err
-	}
+	gui.onSearchEscape()
 
 	return nil
 }

@@ -400,7 +400,7 @@ func (gui *Gui) onBranchesTabClick(tabIndex int) error {
 func (gui *Gui) switchBranchesPanelContext(context string) error {
 	branchesView := gui.getBranchesView()
 	branchesView.Context = context
-	branchesView.ClearSearch()
+	gui.onSearchEscape()
 
 	contextTabIndexMap := map[string]int{
 		"local-branches":  0,
