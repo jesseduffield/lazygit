@@ -945,6 +945,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "viewResetToUpstreamOptions",
 			Other: "view upstream reset options",
+		}, &i18n.Message{
+			ID:    "nextScreenMode",
+			Other: "next screen mode (normal/half/fullscreen)",
+		}, &i18n.Message{
+			ID:    "prevScreenMode",
+			Other: "prev screen mode",
 		},
 	)
 }

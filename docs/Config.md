@@ -75,6 +75,8 @@ Default path for the config file:
       createPatchOptionsMenu: '<c-p>'
       nextTab: ']'
       prevTab: '['
+      nextScreenMode: '+'
+      prevScreenMode: '_'
     status:
       checkForUpdate: 'u'
       recentRepos: '<enter>'

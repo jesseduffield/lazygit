@@ -318,6 +318,20 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("EditConfig"),
 		},
 		{
+			ViewName:    "",
+			Key:         gui.getKey("universal.nextScreenMode"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.nextScreenMode,
+			Description: gui.Tr.SLocalize("nextScreenMode"),
+		},
+		{
+			ViewName:    "",
+			Key:         gui.getKey("universal.prevScreenMode"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.prevScreenMode,
+			Description: gui.Tr.SLocalize("prevScreenMode"),
+		},
+		{
 			ViewName:    "status",
 			Key:         gui.getKey("universal.openFile"),
 			Modifier:    gocui.ModNone,
