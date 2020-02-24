@@ -322,3 +322,29 @@ func ModuloWithWrap(n, max int) int {
 		return n
 	}
 }
+
+// NextIntInCycle returns the next int in a slice, returning to the first index if we've reached the end
+func NextIntInCycle(sl []int, current int) int {
+	for i, val := range sl {
+		if val == current {
+			if i == len(sl)-1 {
+				return sl[0]
+			}
+			return sl[i+1]
+		}
+	}
+	return sl[0]
+}
+
+// PrevIntInCycle returns the prev int in a slice, returning to the first index if we've reached the end
+func PrevIntInCycle(sl []int, current int) int {
+	for i, val := range sl {
+		if val == current {
+			if i > 0 {
+				return sl[i-1]
+			}
+			return sl[len(sl)-1]
+		}
+	}
+	return sl[len(sl)-1]
+}

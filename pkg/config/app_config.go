@@ -308,6 +308,8 @@ keybinding:
     createPatchOptionsMenu: '<c-p>'
     nextTab: ']'
     prevTab: '['
+    nextScreenMode: '+'
+    prevScreenMode: '_'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'

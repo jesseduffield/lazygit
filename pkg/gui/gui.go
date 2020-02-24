@@ -33,6 +33,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	SCREEN_NORMAL int = iota
+	SCREEN_HALF
+	SCREEN_FULL
+)
+
 const StartupPopupVersion = 1
 
 // OverlappingEdges determines if panel edges overlap
@@ -202,6 +208,8 @@ type guiState struct {
 	IsRefreshingFiles    bool
 	RefreshingFilesMutex sync.Mutex
 	Searching            searchingState
+	ScreenMode           int
+	SideView             *gocui.View
 }
 
 // for now the split view will always be on
@@ -236,6 +244,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 			},
 			Status: &statusPanelState{},
 		},
+		ScreenMode: SCREEN_NORMAL,
+		SideView:   nil,
 	}
 
 	gui := &Gui{
@@ -255,6 +265,18 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	gui.GenerateSentinelErrors()
 
 	return gui, nil
+}
+
+func (gui *Gui) nextScreenMode(g *gocui.Gui, v *gocui.View) error {
+	gui.State.ScreenMode = utils.NextIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+
+	return nil
+}
+
+func (gui *Gui) prevScreenMode(g *gocui.Gui, v *gocui.View) error {
+	gui.State.ScreenMode = utils.PrevIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+
+	return nil
 }
 
 func (gui *Gui) scrollUpView(viewName string) error {
@@ -379,6 +401,75 @@ func (gui *Gui) onFocus(v *gocui.View) error {
 	return nil
 }
 
+func (gui *Gui) getViewHeights() map[string]int {
+	currView := gui.g.CurrentView()
+	currentCyclebleView := gui.State.PreviousView
+	if currView != nil {
+		viewName := currView.Name()
+		usePreviousView := true
+		for _, view := range cyclableViews {
+			if view == viewName {
+				currentCyclebleView = viewName
+				usePreviousView = false
+				break
+			}
+		}
+		if usePreviousView {
+			currentCyclebleView = gui.State.PreviousView
+		}
+	}
+
+	// unfortunate result of the fact that these are separate views, have to map explicitly
+	if currentCyclebleView == "commitFiles" {
+		currentCyclebleView = "commits"
+	}
+
+	_, height := gui.g.Size()
+
+	if gui.State.ScreenMode == SCREEN_FULL || gui.State.ScreenMode == SCREEN_HALF {
+		vHeights := map[string]int{
+			"status":   0,
+			"files":    0,
+			"branches": 0,
+			"commits":  0,
+			"stash":    0,
+			"options":  0,
+		}
+		vHeights[currentCyclebleView] = height - 1
+		return vHeights
+	}
+
+	usableSpace := height - 7
+	extraSpace := usableSpace - (usableSpace/3)*3
+
+	if height >= 28 {
+		return map[string]int{
+			"status":   3,
+			"files":    (usableSpace / 3) + extraSpace,
+			"branches": usableSpace / 3,
+			"commits":  usableSpace / 3,
+			"stash":    3,
+			"options":  1,
+		}
+	}
+
+	defaultHeight := 3
+	if height < 21 {
+		defaultHeight = 1
+	}
+	vHeights := map[string]int{
+		"status":   defaultHeight,
+		"files":    defaultHeight,
+		"branches": defaultHeight,
+		"commits":  defaultHeight,
+		"stash":    defaultHeight,
+		"options":  defaultHeight,
+	}
+	vHeights[currentCyclebleView] = height - defaultHeight*4 - 1
+
+	return vHeights
+}
+
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
@@ -405,50 +496,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return nil
 	}
 
-	currView := gui.g.CurrentView()
-	currentCyclebleView := gui.State.PreviousView
-	if currView != nil {
-		viewName := currView.Name()
-		usePreviouseView := true
-		for _, view := range cyclableViews {
-			if view == viewName {
-				currentCyclebleView = viewName
-				usePreviouseView = false
-				break
-			}
-		}
-		if usePreviouseView {
-			currentCyclebleView = gui.State.PreviousView
-		}
-	}
-
-	usableSpace := height - 7
-	extraSpace := usableSpace - (usableSpace/3)*3
-
-	vHeights := map[string]int{
-		"status":   3,
-		"files":    (usableSpace / 3) + extraSpace,
-		"branches": usableSpace / 3,
-		"commits":  usableSpace / 3,
-		"stash":    3,
-		"options":  1,
-	}
-
-	if height < 28 {
-		defaultHeight := 3
-		if height < 21 {
-			defaultHeight = 1
-		}
-		vHeights = map[string]int{
-			"status":   defaultHeight,
-			"files":    defaultHeight,
-			"branches": defaultHeight,
-			"commits":  defaultHeight,
-			"stash":    defaultHeight,
-			"options":  defaultHeight,
-		}
-		vHeights[currentCyclebleView] = height - defaultHeight*4 - 1
-	}
+	vHeights := gui.getViewHeights()
 
 	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
 
@@ -458,29 +506,45 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		appStatusOptionsBoundary = len(appStatus) + 2
 	}
 
-	panelSpacing := 1
-	if OverlappingEdges {
-		panelSpacing = 0
-	}
-
 	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
 
 	textColor := theme.GocuiDefaultTextColor
-	leftSideWidth := width / 3
+	var leftSideWidth int
+	switch gui.State.ScreenMode {
+	case SCREEN_NORMAL:
+		leftSideWidth = width / 3
+	case SCREEN_HALF:
+		leftSideWidth = width / 2
+	case SCREEN_FULL:
+		currentView := gui.g.CurrentView()
+		if currentView != nil && currentView.Name() == "main" {
+			leftSideWidth = 0
+		} else {
+			leftSideWidth = width - 1
+		}
+	}
+
 	panelSplitX := width - 1
+	mainPanelLeft := leftSideWidth + 1
 	mainPanelRight := width - 1
 	secondaryPanelLeft := width - 1
 	secondaryPanelTop := 0
 	mainPanelBottom := height - 2
 	if gui.State.SplitMainPanel {
-		if width < 220 {
+		if gui.State.ScreenMode == SCREEN_FULL {
+			mainPanelLeft = 0
+			panelSplitX = width/2 - 4
+			mainPanelRight = panelSplitX
+			secondaryPanelLeft = panelSplitX + 1
+		} else if width < 220 {
 			mainPanelBottom = height/2 - 1
 			secondaryPanelTop = mainPanelBottom + 1
 			secondaryPanelLeft = leftSideWidth + 1
 		} else {
 			units := 5
 			leftSideWidth = width / units
+			mainPanelLeft = leftSideWidth + 1
 			panelSplitX = (1 + ((units - 1) / 2)) * width / units
 			mainPanelRight = panelSplitX
 			secondaryPanelLeft = panelSplitX + 1
@@ -510,7 +574,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	v, err := g.SetView(main, leftSideWidth+panelSpacing, 0, mainPanelRight, mainPanelBottom, gocui.LEFT)
+	v, err := g.SetView(main, mainPanelLeft, 0, mainPanelRight, mainPanelBottom, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -519,16 +583,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Wrap = true
 		v.FgColor = textColor
 		v.IgnoreCarriageReturns = true
-		v.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
-			return nil
-		}))
 	}
 
-	hiddenViewOffset := 0
+	hiddenViewOffset := 9999
+
+	hiddenSecondaryPanelOffset := 0
 	if !gui.State.SplitMainPanel {
-		hiddenViewOffset = 9999
+		hiddenSecondaryPanelOffset = hiddenViewOffset
 	}
-	secondaryView, err := g.SetView(secondary, secondaryPanelLeft+hiddenViewOffset, hiddenViewOffset+secondaryPanelTop, width-1+hiddenViewOffset, height-2+hiddenViewOffset, gocui.LEFT)
+	secondaryView, err := g.SetView(secondary, secondaryPanelLeft+hiddenSecondaryPanelOffset, hiddenSecondaryPanelOffset+secondaryPanelTop, width-1+hiddenSecondaryPanelOffset, height-2+hiddenSecondaryPanelOffset, gocui.LEFT)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -577,6 +640,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.Title = gui.Tr.SLocalize("CommitFiles")
 		v.FgColor = textColor
 		v.SetOnSelectItem(gui.onSelectItemWrapper(gui.onCommitFilesPanelSearchSelect))
+		v.ContainsList = true
 	}
 
 	commitsView, err := g.SetViewBeneath("commits", "branches", vHeights["commits"])
