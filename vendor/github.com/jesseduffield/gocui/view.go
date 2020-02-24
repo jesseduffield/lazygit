@@ -107,6 +107,9 @@ type View struct {
 	Context string // this is for assigning keybindings to a view only in certain contexts
 
 	searcher *searcher
+
+	// when ContainsList is true, we show the current index and total count in the view
+	ContainsList bool
 }
 
 type searcher struct {

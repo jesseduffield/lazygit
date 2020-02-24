@@ -76,6 +76,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
 	menuView.Title = title
 	menuView.FgColor = theme.GocuiDefaultTextColor
+	menuView.ContainsList = true
 	menuView.Clear()
 	fmt.Fprint(menuView, list)
 	gui.State.Panels.Menu.SelectedLine = 0

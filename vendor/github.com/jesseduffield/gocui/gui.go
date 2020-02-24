@@ -6,6 +6,7 @@ package gocui
 
 import (
 	standardErrors "errors"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -542,6 +543,11 @@ func (g *Gui) flush() error {
 					return err
 				}
 			}
+			if v.ContainsList {
+				if err := g.drawListFooter(v, fgColor, bgColor); err != nil {
+					return err
+				}
+			}
 		}
 		if err := g.draw(v); err != nil {
 			return err
@@ -723,6 +729,34 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 			break
 		}
 		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// drawListFooter draws the footer of a list view, showing something like '1 of 10'
+func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
+	if len(v.lines) == 0 {
+		return nil
+	}
+
+	message := fmt.Sprintf("%d of %d", v.cy+v.oy+1, len(v.lines))
+
+	if v.y1 < 0 || v.y1 >= g.maxY {
+		return nil
+	}
+
+	start := v.x1 - 1 - len(message)
+	if start < v.x0 {
+		return nil
+	}
+	for i, ch := range message {
+		x := start + i
+		if x >= v.x1 {
+			break
+		}
+		if err := g.SetRune(x, v.y1, ch, fgColor, bgColor); err != nil {
 			return err
 		}
 	}

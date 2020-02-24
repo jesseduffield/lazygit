@@ -555,6 +555,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		filesView.Highlight = true
 		filesView.Title = gui.Tr.SLocalize("FilesTitle")
 		filesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onFilesPanelSearchSelect))
+		filesView.ContainsList = true
 	}
 
 	branchesView, err := g.SetViewBeneath("branches", "files", vHeights["branches"])
@@ -566,6 +567,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.Tabs = []string{"Local Branches", "Remotes", "Tags"}
 		branchesView.FgColor = textColor
 		branchesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onBranchesPanelSearchSelect))
+		branchesView.ContainsList = true
 	}
 
 	if v, err := g.SetViewBeneath("commitFiles", "branches", vHeights["commits"]); err != nil {
@@ -586,6 +588,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		commitsView.Tabs = []string{"Commits", "Reflog"}
 		commitsView.FgColor = textColor
 		commitsView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onCommitsPanelSearchSelect))
+		commitsView.ContainsList = true
 	}
 
 	stashView, err := g.SetViewBeneath("stash", "commits", vHeights["stash"])
@@ -596,6 +599,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		stashView.Title = gui.Tr.SLocalize("StashTitle")
 		stashView.FgColor = textColor
 		stashView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onStashPanelSearchSelect))
+		stashView.ContainsList = true
 	}
 
 	if v, err := g.SetView("options", appStatusOptionsBoundary-1, height-2, optionsVersionBoundary-1, height, 0); err != nil {
