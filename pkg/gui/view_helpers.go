@@ -387,6 +387,15 @@ func (gui *Gui) refreshSelectedLine(line *int, total int) {
 	}
 }
 
+func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
+	gui.g.Update(func(g *gocui.Gui) error {
+		list := utils.RenderDisplayStrings(displayStrings)
+		v.Clear()
+		fmt.Fprint(v, list)
+		return nil
+	})
+}
+
 func (gui *Gui) renderListPanel(v *gocui.View, items interface{}) error {
 	gui.g.Update(func(g *gocui.Gui) error {
 		isFocused := gui.g.CurrentView().Name() == v.Name()

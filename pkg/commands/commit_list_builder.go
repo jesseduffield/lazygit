@@ -23,6 +23,8 @@ import (
 // if we find out we need to use one of these functions in the git.go file, we
 // can just pull them out of here and put them there and then call them from in here
 
+const SEPARATION_CHAR = "|"
+
 // CommitListBuilder returns a list of Branch objects for the current repo
 type CommitListBuilder struct {
 	Log                 *logrus.Entry
@@ -45,42 +47,37 @@ func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *
 	}, nil
 }
 
-// nameAndTag takes a line from a git log and extracts the sha, message and tag (if present)
-// example inputs:
-// 66e6369c284e96ed5af5 (tag: v0.14.4) allow fastforwarding the current branch
-// 32e650e0bb3f4327749f (HEAD -> show-tags) this is my commit
-// 32e650e0bb3f4327749e this is my other commit
-func (c *CommitListBuilder) commitLineParts(line string) (string, string, []string) {
-	re := regexp.MustCompile(`(\w+) (.*)`)
-	shaMatch := re.FindStringSubmatch(line)
+// extractCommitFromLine takes a line from a git log and extracts the sha, message, date, and tag if present
+// then puts them into a commit object
+// example input:
+// 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
+func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
+	split := strings.Split(line, SEPARATION_CHAR)
 
-	if len(shaMatch) <= 1 {
-		return line, "", nil
-	}
-	sha := shaMatch[1]
-	rest := shaMatch[2]
+	sha := split[0]
+	date := split[1]
+	author := split[2]
+	extraInfo := strings.TrimSpace(split[3])
+	message := strings.Join(split[4:len(split)], SEPARATION_CHAR)
+	tags := []string{}
 
-	if !strings.HasPrefix(rest, "(") {
-		return sha, rest, nil
-	}
-
-	re = regexp.MustCompile(`\((.*)\) (.*)`)
-
-	parensMatch := re.FindStringSubmatch(rest)
-	if len(parensMatch) <= 1 {
-		return sha, rest, nil
+	if extraInfo != "" {
+		re := regexp.MustCompile(`tag: ([^,\)]+)`)
+		tagMatch := re.FindStringSubmatch(extraInfo)
+		if len(tagMatch) > 1 {
+			tags = append(tags, tagMatch[1])
+		}
 	}
 
-	notes := parensMatch[1]
-	message := parensMatch[2]
-	re = regexp.MustCompile(`tag: ([^,]+)`)
-	tagMatch := re.FindStringSubmatch(notes)
-	if len(tagMatch) <= 1 {
-		return sha, message, nil
+	return &Commit{
+		Sha:           sha,
+		Name:          message,
+		DisplayString: line,
+		Tags:          tags,
+		ExtraInfo:     extraInfo,
+		Date:          date,
+		Author:        author,
 	}
-
-	tag := tagMatch[1]
-	return sha, message, []string{tag}
 }
 
 // GetCommits obtains the commits of the current branch
@@ -107,16 +104,10 @@ func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 
 	// now we can split it up and turn it into commits
 	for _, line := range utils.SplitLines(log) {
-		sha, name, tags := c.commitLineParts(line)
-		_, unpushed := unpushedCommits[sha]
-		status := map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
-		commits = append(commits, &Commit{
-			Sha:           sha,
-			Name:          name,
-			Status:        status,
-			DisplayString: line,
-			Tags:          tags,
-		})
+		commit := c.extractCommitFromLine(line)
+		_, unpushed := unpushedCommits[commit.Sha]
+		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
+		commits = append(commits, commit)
 	}
 	if rebaseMode != "" {
 		currentCommit := commits[len(rebasingCommits)]
@@ -325,7 +316,8 @@ func (c *CommitListBuilder) getLog(limit bool) string {
 		limitFlag = "-30"
 	}
 
-	result, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --decorate --oneline %s --abbrev=%d", limitFlag, 20))
+	result, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --oneline --pretty=format:\"%%H%s%%ar%s%%aN%s%%d%s%%s\" %s --abbrev=%d", SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20))
+
 	if err != nil {
 		// assume if there is an error there are no commits yet for this branch
 		return ""

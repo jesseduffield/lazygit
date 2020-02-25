@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -600,9 +601,8 @@ func (gui *Gui) renderBranchCommitsWithSelection() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
-	if err := gui.renderListPanel(commitsView, gui.State.Commits); err != nil {
-		return err
-	}
+	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL)
+	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "branch-commits" {
 		if err := gui.handleCommitSelect(gui.g, commitsView); err != nil {
 			return err
