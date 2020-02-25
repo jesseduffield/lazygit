@@ -33,7 +33,7 @@ func NewService(typeName string, repositoryDomain string, siteDomain string) *Se
 	case "github":
 		return &Service{
 			Name:           repositoryDomain,
-			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%%s?expand=1"),
+			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s?expand=1"),
 		}
 	case "bitbucket":
 		return &Service{
