@@ -7,6 +7,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -80,9 +81,10 @@ func (gui *Gui) renderRemotesWithSelection() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
-	if err := gui.renderListPanel(branchesView, gui.State.Remotes); err != nil {
-		return err
-	}
+
+	displayStrings := presentation.GetRemoteListDisplayStrings(gui.State.Remotes)
+	gui.renderDisplayStrings(branchesView, displayStrings)
+
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "remotes" {
 		if err := gui.handleRemoteSelect(gui.g, branchesView); err != nil {
 			return err

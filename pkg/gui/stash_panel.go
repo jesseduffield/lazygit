@@ -1,11 +1,9 @@
 package gui
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -56,17 +54,12 @@ func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
 
 		gui.refreshSelectedLine(&gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries))
 
-		isFocused := gui.g.CurrentView().Name() == "stash"
-		list, err := utils.RenderList(gui.State.StashEntries, isFocused)
-		if err != nil {
-			return err
-		}
+		stashView := gui.getStashView()
 
-		v := gui.getStashView()
-		v.Clear()
-		fmt.Fprint(v, list)
+		displayStrings := presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries)
+		gui.renderDisplayStrings(stashView, displayStrings)
 
-		if err := gui.resetOrigin(v); err != nil {
+		if err := gui.resetOrigin(stashView); err != nil {
 			return err
 		}
 		return nil

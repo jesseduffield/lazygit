@@ -632,7 +632,13 @@ func (gui *Gui) switchCommitsPanelContext(context string) error {
 
 	commitsView.TabIndex = contextTabIndexMap[context]
 
-	switch context {
+	return gui.refreshCommitsViewWithSelection()
+}
+
+func (gui *Gui) refreshCommitsViewWithSelection() error {
+	commitsView := gui.getCommitsView()
+
+	switch commitsView.Context {
 	case "branch-commits":
 		return gui.renderBranchCommitsWithSelection()
 	case "reflog-commits":

@@ -12,7 +12,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -103,14 +103,8 @@ func (gui *Gui) refreshFiles() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-
-		filesView.Clear()
-		isFocused := gui.g.CurrentView().Name() == "files"
-		list, err := utils.RenderList(gui.State.Files, isFocused)
-		if err != nil {
-			return err
-		}
-		fmt.Fprint(filesView, list)
+		displayStrings := presentation.GetFileListDisplayStrings(gui.State.Files)
+		gui.renderDisplayStrings(filesView, displayStrings)
 
 		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == "merging") {
 			newSelectedFile, _ := gui.getSelectedFile(gui.g)
