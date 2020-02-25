@@ -136,20 +136,20 @@ func lazygitTitle() string {
 }
 
 func (gui *Gui) updateWorkTreeState() error {
-	merging, err := gui.GitCommand.IsInMergeState()
-	if err != nil {
-		return err
-	}
-	if merging {
-		gui.State.WorkingTreeState = "merging"
-		return nil
-	}
 	rebaseMode, err := gui.GitCommand.RebaseMode()
 	if err != nil {
 		return err
 	}
 	if rebaseMode != "" {
 		gui.State.WorkingTreeState = "rebasing"
+		return nil
+	}
+	merging, err := gui.GitCommand.IsInMergeState()
+	if err != nil {
+		return err
+	}
+	if merging {
+		gui.State.WorkingTreeState = "merging"
 		return nil
 	}
 	gui.State.WorkingTreeState = "normal"
