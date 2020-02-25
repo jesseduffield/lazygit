@@ -967,7 +967,7 @@ func (c *GitCommand) ResetSoft(ref string) error {
 
 // DiffCommits show diff between commits
 func (c *GitCommand) DiffCommits(sha1, sha2 string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git diff --color %s %s", sha1, sha2)
+	return c.OSCommand.RunCommandWithOutput("git diff --color --stat -p %s %s", sha1, sha2)
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
