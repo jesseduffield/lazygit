@@ -2,7 +2,7 @@
 
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui 'gocui') library.
 
-Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? *Are you kidding me?* To stage part of a file you need to use a command line program stepping through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, bad luck? *Are you KIDDING me?!* Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? *YOU HAVE GOT TO BE KIDDING ME!* 
+Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? *Are you kidding me?* To stage part of a file you need to use a command line program stepping through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, bad luck? *Are you KIDDING me?!* Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? *YOU HAVE GOT TO BE KIDDING ME!*
 
 If you're a mere mortal like me and you're tired of hearing how powerful git is when in your daily life it's a powerful pain in your ass, lazygit might be for you.
 
@@ -24,9 +24,11 @@ Github Sponsors is matching all donations dollar-for-dollar for 12 months so if 
 ## Installation
 
 ### Homebrew
+
 Normally the lazygit formula can be found in the Homebrew core but we suggest you tap our formula to get the frequently updated one. It works with Linux, too.
 
 Tap:
+
 ```
 brew install jesseduffield/lazygit/lazygit
 ```
@@ -38,8 +40,10 @@ brew install lazygit
 ```
 
 ### MacPorts
+
 Latest version built from github releases.
 Tap:
+
 ```
 sudo port install lazygit
 ```
@@ -82,11 +86,11 @@ Packages for Arch Linux are available via AUR (Arch User Repository).
 There are two packages. The stable one which is built with the latest release
 and the git version which builds from the most recent commit.
 
-- Stable: https://aur.archlinux.org/packages/lazygit/
-- Development: https://aur.archlinux.org/packages/lazygit-git/
+- Stable: <https://aur.archlinux.org/packages/lazygit/>
+- Development: <https://aur.archlinux.org/packages/lazygit-git/>
 
 Instruction of how to install AUR content can be found here:
-https://wiki.archlinux.org/index.php/Arch_User_Repository
+<https://wiki.archlinux.org/index.php/Arch_User_Repository>
 
 ### Fedora and CentOS 7
 
@@ -99,7 +103,7 @@ sudo dnf install lazygit
 
 ### Conda
 
-Released versions are available for different platforms, see https://anaconda.org/conda-forge/lazygit
+Released versions are available for different platforms, see <https://anaconda.org/conda-forge/lazygit>
 
 ```sh
 conda install -c conda-forge lazygit
@@ -131,10 +135,11 @@ whichever rc file you're using).
 - Rebase Magic tutorial [here](https://youtu.be/4XaToVut_hs)
 - List of keybindings
   [here](/docs/keybindings).
-  
+
 ## Changing Directory On Exit
 
 If you change repos in lazygit and want your shell to change directory into that repo on exiting lazygit, add this to your `~/.zshrc` (or other rc file):
+
 ```
 lg()
 {
@@ -148,7 +153,66 @@ lg()
     fi
 }
 ```
+
 Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazyigt. To override this behaviour you can exit using `shift+Q` rather than just `q`.
+
+## Configuration
+
+All Lazygit configurations are stored on `<userConfigDir>/jesseduffield/lazygit/config.yml`, where
+`userConfigDir` is your OS-dependent user configurations folder, namely:
+
+- Windows: `%APPDATA%` (`C:\Users\<User>\AppData\Roaming`)
+- Linux/BSDs: `${XDG_CONFIG_HOME}` (`${HOME}/.config`)
+- MacOSX: `${HOME}/Library/Application Support`
+
+This file is auto-generated on first run.
+
+You can also get the default values with `lazygit -c`, which returns something like:
+
+```
+gui:
+  ## stuff relating to the UI
+  scrollHeight: 2
+  scrollPastBottom: true
+  mouseEvents: false # will default to true when the feature is complete
+  theme:
+    activeBorderColor:
+      - white
+      - bold
+    inactiveBorderColor:
+      - white
+    optionsTextColor:
+      - blue
+  commitLength:
+    show: true
+git:
+  merging:
+    manualCommit: false
+  skipHookPrefix: 'WIP'
+  autoFetch: true
+update:
+  method: prompt # can be: prompt | background | never
+  days: 14 # how often a update is checked for
+reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
+confirmOnQuit: false
+```
+
+### Custom pull request URLs
+
+Some git provider setups (e.g. on-premises GitLab) can have distinct URLs for git-related calls and
+the web interface/API itself. To work with those, Lazygit needs to know where it needs to create
+the pull request. You can do so on your `config.yml` file using the following syntax:
+
+```yaml
+services:
+  "<gitDomain>": "<provider>:<webDomain>"
+```
+
+Where:
+
+- `gitDomain` stands for the domain used by git itself (i.e. the one present on clone URLs), e.g. `git.work.com`
+- `provider` is one of `github`, `bitbucket` or `gitlab`
+- `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
 
 ## Cool features
 
