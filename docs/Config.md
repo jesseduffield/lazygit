@@ -18,7 +18,7 @@ Default path for the config file:
         - white
         - bold
       inactiveBorderColor:
-        - white
+        - green
       optionsTextColor:
         - blue
       selectedLineBgColor:
