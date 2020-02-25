@@ -67,7 +67,7 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit) []string {
 	secondColumnString := blue.Sprint(truncatedDate)
 	if c.Action != "" {
 		secondColumnString = cyan.Sprint(c.Action)
-	} else if len(c.Tags) > 0 {
+	} else if c.ExtraInfo != "" {
 		tagColor := color.New(color.FgMagenta, color.Bold)
 		tagString = utils.ColoredStringDirect(c.ExtraInfo, tagColor) + " "
 	}

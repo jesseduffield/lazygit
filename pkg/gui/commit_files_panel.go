@@ -4,6 +4,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 func (gui *Gui) getSelectedCommitFile(g *gocui.Gui) *commands.CommitFile {
@@ -112,11 +113,11 @@ func (gui *Gui) refreshCommitFilesView() error {
 
 	gui.refreshSelectedLine(&gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles))
 
-	if err := gui.renderListPanel(gui.getCommitFilesView(), gui.State.CommitFiles); err != nil {
-		return err
-	}
+	commitsFileView := gui.getCommitFilesView()
+	displayStrings := presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles)
+	gui.renderDisplayStrings(commitsFileView, displayStrings)
 
-	return gui.handleCommitFileSelect(gui.g, gui.getCommitFilesView())
+	return gui.handleCommitFileSelect(gui.g, commitsFileView)
 }
 
 func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {

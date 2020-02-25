@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -62,9 +63,8 @@ func (gui *Gui) renderRemoteBranchesWithSelection() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.RemoteBranches.SelectedLine, len(gui.State.RemoteBranches))
-	if err := gui.renderListPanel(branchesView, gui.State.RemoteBranches); err != nil {
-		return err
-	}
+	displayStrings := presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches)
+	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "remote-branches" {
 		if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
 			return err

@@ -396,20 +396,6 @@ func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
 	})
 }
 
-func (gui *Gui) renderListPanel(v *gocui.View, items interface{}) error {
-	gui.g.Update(func(g *gocui.Gui) error {
-		isFocused := gui.g.CurrentView().Name() == v.Name()
-		list, err := utils.RenderList(items, isFocused)
-		if err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
-		}
-		v.Clear()
-		fmt.Fprint(v, list)
-		return nil
-	})
-	return nil
-}
-
 func (gui *Gui) renderPanelOptions() error {
 	currentView := gui.g.CurrentView()
 	switch currentView.Name() {

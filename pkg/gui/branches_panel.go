@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -57,13 +58,6 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) RenderSelectedBranchUpstreamDifferences() error {
 	return gui.newTask("branches", func(stop chan struct{}) error {
-		// here we tell the selected branch that it is selected.
-		// this is necessary for showing stats on a branch that is selected, because
-		// the displaystring function doesn't have access to gui state to tell if it's selected
-		for i, branch := range gui.State.Branches {
-			branch.Selected = i == gui.State.Panels.Branches.SelectedLine
-		}
-
 		branch := gui.getSelectedBranch()
 		branch.Pushables, branch.Pullables = gui.GitCommand.GetBranchUpstreamDifferenceCount(branch.Name)
 
@@ -73,7 +67,10 @@ func (gui *Gui) RenderSelectedBranchUpstreamDifferences() error {
 		default:
 		}
 
-		return gui.renderListPanel(gui.getBranchesView(), gui.State.Branches)
+		branchesView := gui.getBranchesView()
+		displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.currentViewName() == "branches", gui.State.Panels.Branches.SelectedLine)
+		gui.renderDisplayStrings(branchesView, displayStrings)
+		return nil
 	})
 }
 

@@ -58,7 +58,7 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 	date := split[1]
 	author := split[2]
 	extraInfo := strings.TrimSpace(split[3])
-	message := strings.Join(split[4:len(split)], SEPARATION_CHAR)
+	message := strings.Join(split[4:], SEPARATION_CHAR)
 	tags := []string{}
 
 	if extraInfo != "" {

@@ -3,6 +3,7 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -66,9 +67,8 @@ func (gui *Gui) renderTagsWithSelection() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags))
-	if err := gui.renderListPanel(branchesView, gui.State.Tags); err != nil {
-		return err
-	}
+	displayStrings := presentation.GetTagListDisplayStrings(gui.State.Tags)
+	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
 		if err := gui.handleTagSelect(gui.g, branchesView); err != nil {
 			return err
