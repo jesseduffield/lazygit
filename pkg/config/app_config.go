@@ -247,7 +247,7 @@ func GetDefaultConfig() []byte {
   theme:
     lightTheme: false
     activeBorderColor:
-      - white
+      - green
       - bold
     inactiveBorderColor:
       - white
