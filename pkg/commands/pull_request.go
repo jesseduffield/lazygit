@@ -29,25 +29,27 @@ type RepoInformation struct {
 
 // NewService builds a Service based on the host type
 func NewService(typeName string, repositoryDomain string, siteDomain string) *Service {
+	var service *Service
+
 	switch typeName {
 	case "github":
-		return &Service{
+		service = &Service{
 			Name:           repositoryDomain,
 			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s?expand=1"),
 		}
 	case "bitbucket":
-		return &Service{
+		service = &Service{
 			Name:           repositoryDomain,
 			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&t=1"),
 		}
 	case "gitlab":
-		return &Service{
+		service = &Service{
 			Name:           repositoryDomain,
 			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s"),
 		}
 	}
 
-	return nil
+	return service
 }
 
 func getServices(config config.AppConfigurer) []*Service {
@@ -61,9 +63,18 @@ func getServices(config config.AppConfigurer) []*Service {
 
 	for repoDomain, typeAndDomain := range configServices {
 		splitData := strings.Split(typeAndDomain, ":")
-		if len(splitData) == 2 {
-			services = append(services, NewService(splitData[0], repoDomain, splitData[1]))
+		if len(splitData) != 2 {
+			// TODO log this misconfiguration
+			continue
 		}
+
+		service := NewService(splitData[0], repoDomain, splitData[1])
+		if service == nil {
+			// TODO log this unsupported service
+			continue
+		}
+
+		services = append(services, service)
 	}
 
 	return services
