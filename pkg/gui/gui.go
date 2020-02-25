@@ -269,12 +269,20 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 
 func (gui *Gui) nextScreenMode(g *gocui.Gui, v *gocui.View) error {
 	gui.State.ScreenMode = utils.NextIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+	// commits render differently depending on whether we're in fullscreen more or not
+	if err := gui.renderBranchCommitsWithSelection(); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func (gui *Gui) prevScreenMode(g *gocui.Gui, v *gocui.View) error {
 	gui.State.ScreenMode = utils.PrevIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+	// commits render differently depending on whether we're in fullscreen more or not
+	if err := gui.renderBranchCommitsWithSelection(); err != nil {
+		return err
+	}
 
 	return nil
 }

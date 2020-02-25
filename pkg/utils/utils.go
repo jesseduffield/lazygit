@@ -348,3 +348,22 @@ func PrevIntInCycle(sl []int, current int) int {
 	}
 	return sl[len(sl)-1]
 }
+
+// TruncateWithEllipsis returns a string, truncated to a certain length, with an ellipsis
+func TruncateWithEllipsis(str string, limit int) string {
+	if limit == 1 && len(str) > 1 {
+		return "."
+	}
+
+	if limit == 2 && len(str) > 2 {
+		return ".."
+	}
+
+	ellipsis := "..."
+	if len(str) <= limit {
+		return str
+	}
+
+	remainingLength := limit - len(ellipsis)
+	return str[0:remainingLength] + "..."
+}
