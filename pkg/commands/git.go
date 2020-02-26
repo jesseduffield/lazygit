@@ -1115,7 +1115,7 @@ func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
 	re := regexp.MustCompile(`(\w+).*HEAD@\{\d+\}: (.*)`)
 	for i, line := range lines {
 		match := re.FindStringSubmatch(line)
-		if len(match) == 1 {
+		if len(match) <= 1 {
 			continue
 		}
 
