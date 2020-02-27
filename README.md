@@ -158,61 +158,7 @@ Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch
 
 ## Configuration
 
-All Lazygit configurations are stored on `<userConfigDir>/jesseduffield/lazygit/config.yml`, where
-`userConfigDir` is your OS-dependent user configurations folder, namely:
-
-- Windows: `%APPDATA%` (`C:\Users\<User>\AppData\Roaming`)
-- Linux/BSDs: `${XDG_CONFIG_HOME}` (`${HOME}/.config`)
-- MacOSX: `${HOME}/Library/Application Support`
-
-This file is auto-generated on first run.
-
-You can also get the default values with `lazygit -c`, which returns something like:
-
-```
-gui:
-  ## stuff relating to the UI
-  scrollHeight: 2
-  scrollPastBottom: true
-  mouseEvents: false # will default to true when the feature is complete
-  theme:
-    activeBorderColor:
-      - white
-      - bold
-    inactiveBorderColor:
-      - white
-    optionsTextColor:
-      - blue
-  commitLength:
-    show: true
-git:
-  merging:
-    manualCommit: false
-  skipHookPrefix: 'WIP'
-  autoFetch: true
-update:
-  method: prompt # can be: prompt | background | never
-  days: 14 # how often a update is checked for
-reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
-confirmOnQuit: false
-```
-
-### Custom pull request URLs
-
-Some git provider setups (e.g. on-premises GitLab) can have distinct URLs for git-related calls and
-the web interface/API itself. To work with those, Lazygit needs to know where it needs to create
-the pull request. You can do so on your `config.yml` file using the following syntax:
-
-```yaml
-services:
-  "<gitDomain>": "<provider>:<webDomain>"
-```
-
-Where:
-
-- `gitDomain` stands for the domain used by git itself (i.e. the one present on clone URLs), e.g. `git.work.com`
-- `provider` is one of `github`, `bitbucket` or `gitlab`
-- `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
+Check the [configuration docs](docs/Config.md).
 
 ## Cool features
 
