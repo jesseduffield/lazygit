@@ -63,6 +63,17 @@ They follow upstream latest releases
 ```sh
 sudo xbps-install -S lazygit
 ```
+### Scoop (Windows)
+
+You can install `lazygit` using [scoop](https://scoop.sh/). It's in the `extras` bucket:
+
+```sh
+# Add the extras bucket
+scoop bucket add extras
+
+# Install lazygit
+scoop install lazygit
+```
 
 ### Arch Linux
 

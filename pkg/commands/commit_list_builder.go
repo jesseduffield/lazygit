@@ -105,7 +105,7 @@ func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 	// now we can split it up and turn it into commits
 	for _, line := range utils.SplitLines(log) {
 		commit := c.extractCommitFromLine(line)
-		_, unpushed := unpushedCommits[commit.Sha]
+		_, unpushed := unpushedCommits[commit.Sha[:8]]
 		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
 		commits = append(commits, commit)
 	}
@@ -298,7 +298,7 @@ func (c *CommitListBuilder) getMergeBase() (string, error) {
 // to the remote branch of the current branch, a map is returned to ease look up
 func (c *CommitListBuilder) getUnpushedCommits() map[string]bool {
 	pushables := map[string]bool{}
-	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --abbrev-commit")
+	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --abbrev-commit --abbrev=8")
 	if err != nil {
 		return pushables
 	}
