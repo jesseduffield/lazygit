@@ -225,6 +225,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.scrollUpMain,
 			Alternative: "fn+up",
+			Description: gui.Tr.SLocalize("scrollUpMainPanel"),
 		},
 		{
 			ViewName:    "",
@@ -232,6 +233,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.scrollDownMain,
 			Alternative: "fn+down",
+			Description: gui.Tr.SLocalize("scrollDownMainPanel"),
 		},
 		{
 			ViewName: "",
