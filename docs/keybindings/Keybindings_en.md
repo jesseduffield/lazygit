@@ -7,7 +7,10 @@
   <kbd>ctrl+p</kbd>: view custom patch options
   <kbd>P</kbd>: push
   <kbd>p</kbd>: pull
-  <kbd>R</kbd>: refresh
+  <kbd>R</kbd>: refres
+  <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
+  <kbd>_</kbd>: prev screen mode 
+  <kbd>:</kbd>: execute custom command
 </pre>
 
 ## Status
@@ -16,7 +19,7 @@
   <kbd>e</kbd>: edit config file
   <kbd>o</kbd>: open config file
   <kbd>u</kbd>: check for update
-  <kbd>s</kbd>: switch to a recent repo
+  <kbd>enter</kbd>: switch to a recent repo
 </pre>
 
 ## Files
@@ -32,9 +35,9 @@
   <kbd>o</kbd>: open file
   <kbd>i</kbd>: add to .gitignore
   <kbd>r</kbd>: refresh files
-  <kbd>S</kbd>: stash files
+  <kbd>s</kbd>: stash canges
+  <kbd>S</kbd>: view stash options
   <kbd>a</kbd>: stage/unstage all
-  <kbd>t</kbd>: add patch
   <kbd>D</kbd>: view reset options
   <kbd>enter</kbd>: stage individual hunks/lines
   <kbd>f</kbd>: fetch
@@ -52,7 +55,9 @@
   <kbd>d</kbd>: delete branch
   <kbd>r</kbd>: rebase branch
   <kbd>M</kbd>: merge into currently checked out branch
+  <kbd>i</kbd>: show git-flow options
   <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>g</kbd>: view reset options
 </pre>
 
 ## Commits
@@ -77,6 +82,8 @@
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>enter</kbd>: view commit's files
   <kbd>space</kbd>: select commit to diff with another commit
+  <kbd>i</kbd>: select commit to diff with another commit
+  <kbd>T</kbd>: tag commit
 </pre>
 
 ## Stash
@@ -94,6 +101,8 @@
   <kbd>c</kbd>: checkout file
   <kbd>d</kbd>: discard this commit's changes to this file
   <kbd>o</kbd>: open file
+  <kbd>space</kbd>: toggle file included in patch
+  <kbd>enter</kbd>: enter file to add selected lines to the patch
 </pre>
 
 ## Main (Normal)
@@ -107,12 +116,22 @@
 
 <pre>
   <kbd>esc</kbd>: return to files panel
+  <kbd>space</kbd>: stage selection
+  <kbd>d</kbd>: reset selection
+  <kbd>tab</kbd>: switch to other panel
   <kbd>▲</kbd>: select previous line
   <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
   <kbd>►</kbd>: select next hunk
   <kbd>space</kbd>: stage line
-  <kbd>a</kbd>: stage hunk
+  <kbd>e</kbd>: edit file
+  <kbd>o</kbd>: open file
+  <kbd>v</kbd>: toggle drag select
+  <kbd>V</kbd>: toggle drag select
+  <kbd>a</kbd>: toggle select hunk
+  <kbd>c</kbd>: commit chages
+  <kbd>W</kbd>: commit changes without pre-commit hook
+  <kbd>C</kbd>: commit changes using git editor
 </pre>
 
 ## Main (Merging)
