@@ -1,50 +1,21 @@
-# Lazygit menu
+# Lazygit Keybindings
 
-## Global
+## Global Keybindings
 
 <pre>
+  <kbd>pgup</kbd>: scroll up main panel (fn+up)
+  <kbd>pgdown</kbd>: scroll down main panel (fn+down)
   <kbd>m</kbd>: view merge/rebase options
   <kbd>ctrl+p</kbd>: view custom patch options
   <kbd>P</kbd>: push
   <kbd>p</kbd>: pull
-  <kbd>R</kbd>: refres
+  <kbd>R</kbd>: refresh
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
-  <kbd>_</kbd>: prev screen mode 
+  <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
 </pre>
 
-## Status
-
-<pre>
-  <kbd>e</kbd>: edit config file
-  <kbd>o</kbd>: open config file
-  <kbd>u</kbd>: check for update
-  <kbd>enter</kbd>: switch to a recent repo
-</pre>
-
-## Files
-
-<pre>
-  <kbd>c</kbd>: commit changes
-  <kbd>w</kbd>: commit changes without pre-commit hook
-  <kbd>A</kbd>: amend last commit
-  <kbd>C</kbd>: commit changes using git editor
-  <kbd>space</kbd>: toggle staged
-  <kbd>d</kbd>: view 'discard changes' options
-  <kbd>e</kbd>: edit file
-  <kbd>o</kbd>: open file
-  <kbd>i</kbd>: add to .gitignore
-  <kbd>r</kbd>: refresh files
-  <kbd>s</kbd>: stash canges
-  <kbd>S</kbd>: view stash options
-  <kbd>a</kbd>: stage/unstage all
-  <kbd>D</kbd>: view reset options
-  <kbd>enter</kbd>: stage individual hunks/lines
-  <kbd>f</kbd>: fetch
-  <kbd>X</kbd>: execute custom command
-</pre>
-
-## Branches
+## Branches Panel (Branches Tab)
 
 <pre>
   <kbd>space</kbd>: checkout
@@ -53,14 +24,56 @@
   <kbd>F</kbd>: force checkout
   <kbd>n</kbd>: new branch
   <kbd>d</kbd>: delete branch
-  <kbd>r</kbd>: rebase branch
+  <kbd>r</kbd>: rebase checked-out branch onto this branch
   <kbd>M</kbd>: merge into currently checked out branch
   <kbd>i</kbd>: show git-flow options
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: view reset options
 </pre>
 
-## Commits
+## Branches Panel (Remote Branches (in Remotes tab))
+
+<pre>
+  <kbd>esc</kbd>: return to remotes list
+  <kbd>g</kbd>: view reset options
+  <kbd>space</kbd>: checkout
+  <kbd>M</kbd>: merge into currently checked out branch
+  <kbd>d</kbd>: delete branch
+  <kbd>r</kbd>: rebase checked-out branch onto this branch
+  <kbd>u</kbd>: set as upstream of checked-out branch
+</pre>
+
+## Branches Panel (Remotes Tab)
+
+<pre>
+  <kbd>f</kbd>: fetch remote
+  <kbd>n</kbd>: add new remote
+  <kbd>d</kbd>: remove remote
+  <kbd>e</kbd>: edit remote
+</pre>
+
+## Branches Panel (Tags Tab)
+
+<pre>
+  <kbd>space</kbd>: checkout
+  <kbd>d</kbd>: delete tag
+  <kbd>P</kbd>: push tag
+  <kbd>n</kbd>: create tag
+  <kbd>g</kbd>: view reset options
+</pre>
+
+## Commit Files Panel
+
+<pre>
+  <kbd>esc</kbd>: go back
+  <kbd>c</kbd>: checkout file
+  <kbd>d</kbd>: discard this commit's changes to this file
+  <kbd>o</kbd>: open file
+  <kbd>space</kbd>: toggle file included in patch
+  <kbd>enter</kbd>: enter file to add selected lines to the patch
+</pre>
+
+## Commits Panel (Commits Tab)
 
 <pre>
   <kbd>s</kbd>: squash down
@@ -81,60 +94,41 @@
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>enter</kbd>: view commit's files
-  <kbd>space</kbd>: select commit to diff with another commit
+  <kbd>space</kbd>: checkout commit
   <kbd>i</kbd>: select commit to diff with another commit
   <kbd>T</kbd>: tag commit
 </pre>
 
-## Stash
+## Commits Panel (Reflog Tab)
 
 <pre>
-  <kbd>space</kbd>: apply
-  <kbd>g</kbd>: pop
-  <kbd>d</kbd>: drop
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: view reset options
 </pre>
 
-## Commit files
+## Files Panel
 
 <pre>
-  <kbd>esc</kbd>: go back
-  <kbd>c</kbd>: checkout file
-  <kbd>d</kbd>: discard this commit's changes to this file
-  <kbd>o</kbd>: open file
-  <kbd>space</kbd>: toggle file included in patch
-  <kbd>enter</kbd>: enter file to add selected lines to the patch
-</pre>
-
-## Main (Normal)
-
-<pre>
-  <kbd>PgDn</kbd>: scroll down (fn+up)
-  <kbd>PgUp</kbd>: scroll up (fn+down)
-</pre>
-
-## Main (Staging)
-
-<pre>
-  <kbd>esc</kbd>: return to files panel
-  <kbd>space</kbd>: stage selection
-  <kbd>d</kbd>: reset selection
-  <kbd>tab</kbd>: switch to other panel
-  <kbd>▲</kbd>: select previous line
-  <kbd>▼</kbd>: select next line
-  <kbd>◄</kbd>: select previous hunk
-  <kbd>►</kbd>: select next hunk
-  <kbd>space</kbd>: stage line
+  <kbd>c</kbd>: commit changes
+  <kbd>w</kbd>: commit changes without pre-commit hook
+  <kbd>A</kbd>: amend last commit
+  <kbd>C</kbd>: commit changes using git editor
+  <kbd>space</kbd>: toggle staged
+  <kbd>d</kbd>: view 'discard changes' options
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
-  <kbd>v</kbd>: toggle drag select
-  <kbd>V</kbd>: toggle drag select
-  <kbd>a</kbd>: toggle select hunk
-  <kbd>c</kbd>: commit chages
-  <kbd>W</kbd>: commit changes without pre-commit hook
-  <kbd>C</kbd>: commit changes using git editor
+  <kbd>i</kbd>: add to .gitignore
+  <kbd>r</kbd>: refresh files
+  <kbd>s</kbd>: stash changes
+  <kbd>S</kbd>: view stash options
+  <kbd>a</kbd>: stage/unstage all
+  <kbd>D</kbd>: view reset options
+  <kbd>enter</kbd>: stage individual hunks/lines
+  <kbd>f</kbd>: fetch
+  <kbd>g</kbd>: view upstream reset options
 </pre>
 
-## Main (Merging)
+## Main Panel (Merging)
 
 <pre>
   <kbd>esc</kbd>: return to files panel
@@ -145,4 +139,64 @@
   <kbd>▲</kbd>: select top hunk
   <kbd>▼</kbd>: select bottom hunk
   <kbd>z</kbd>: undo
+</pre>
+
+## Main Panel (Normal)
+
+<pre>
+  <kbd>￣</kbd>: scroll down (fn+up)
+  <kbd>￤</kbd>: scroll up (fn+down)
+</pre>
+
+## Main Panel (Patch Building)
+
+<pre>
+  <kbd>esc</kbd>: exit line-by-line mode
+  <kbd>▲</kbd>: select previous line
+  <kbd>▼</kbd>: select next line
+  <kbd>◄</kbd>: select previous hunk
+  <kbd>►</kbd>: select next hunk
+  <kbd>space</kbd>: stage selection
+  <kbd>d</kbd>: reset selection
+  <kbd>v</kbd>: toggle drag select
+  <kbd>V</kbd>: toggle drag select
+  <kbd>a</kbd>: toggle select hunk
+</pre>
+
+## Main Panel (Staging)
+
+<pre>
+  <kbd>esc</kbd>: return to files panel
+  <kbd>space</kbd>: stage selection
+  <kbd>d</kbd>: reset selection
+  <kbd>tab</kbd>: switch to other panel
+  <kbd>▲</kbd>: select previous line
+  <kbd>▼</kbd>: select next line
+  <kbd>◄</kbd>: select previous hunk
+  <kbd>►</kbd>: select next hunk
+  <kbd>e</kbd>: edit file
+  <kbd>o</kbd>: open file
+  <kbd>v</kbd>: toggle drag select
+  <kbd>V</kbd>: toggle drag select
+  <kbd>a</kbd>: toggle select hunk
+  <kbd>c</kbd>: commit changes
+  <kbd>w</kbd>: commit changes without pre-commit hook
+  <kbd>C</kbd>: commit changes using git editor
+</pre>
+
+## Stash Panel
+
+<pre>
+  <kbd>space</kbd>: apply
+  <kbd>g</kbd>: pop
+  <kbd>d</kbd>: drop
+</pre>
+
+## Status Panel
+
+<pre>
+  <kbd>e</kbd>: edit config file
+  <kbd>o</kbd>: open config file
+  <kbd>u</kbd>: check for update
+  <kbd>enter</kbd>: switch to a recent repo
 </pre>

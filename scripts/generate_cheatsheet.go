@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/app"
@@ -60,33 +61,87 @@ func formatTitle(title string) string {
 
 func formatBinding(binding *gui.Binding) string {
 	if binding.Alternative != "" {
-		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", binding.GetKey(), binding.Description, binding.Alternative)
+		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", gui.GetKeyDisplay(binding.Key), binding.Description, binding.Alternative)
 	}
-	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", binding.GetKey(), binding.Description)
+	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", gui.GetKeyDisplay(binding.Key), binding.Description)
 }
 
 func getBindingSections(mApp *app.App) []*bindingSection {
 	bindingSections := []*bindingSection{}
 
-	// TODO: add context-based keybindings
-	for _, binding := range mApp.Gui.GetInitialKeybindings() {
-		if binding.Description == "" {
-			continue
+	bindings := mApp.Gui.GetInitialKeybindings()
+
+	type contextAndViewType struct {
+		context  string
+		viewName string
+	}
+
+	contextAndViewBindingMap := map[contextAndViewType][]*gui.Binding{}
+
+	for _, binding := range bindings {
+		contexts := []string{}
+		if len(binding.Contexts) == 0 {
+			contexts = append(contexts, "")
+		} else {
+			for _, context := range binding.Contexts {
+				contexts = append(contexts, context)
+			}
 		}
 
-		viewName := binding.ViewName
+		for _, context := range contexts {
+			key := contextAndViewType{context: context, viewName: binding.ViewName}
+			existing := contextAndViewBindingMap[key]
+			if existing == nil {
+				contextAndViewBindingMap[key] = []*gui.Binding{binding}
+			} else {
+				contextAndViewBindingMap[key] = append(contextAndViewBindingMap[key], binding)
+			}
+		}
+	}
+
+	type groupedBindingsType struct {
+		contextAndView contextAndViewType
+		bindings       []*gui.Binding
+	}
+
+	groupedBindings := make([]groupedBindingsType, len(contextAndViewBindingMap))
+
+	for contextAndView, contextBindings := range contextAndViewBindingMap {
+		groupedBindings = append(groupedBindings, groupedBindingsType{contextAndView: contextAndView, bindings: contextBindings})
+	}
+
+	sort.Slice(groupedBindings, func(i, j int) bool {
+		first := groupedBindings[i].contextAndView
+		second := groupedBindings[j].contextAndView
+		if first.viewName == "" {
+			return true
+		}
+		if second.viewName == "" {
+			return false
+		}
+		return first.viewName < second.viewName || (first.viewName == second.viewName && first.context < second.context)
+	})
+
+	for _, group := range groupedBindings {
+		contextAndView := group.contextAndView
+		contextBindings := group.bindings
+		mApp.Log.Warn("viewname: " + contextAndView.viewName + ", context: " + contextAndView.context)
+		viewName := contextAndView.viewName
 		if viewName == "" {
 			viewName = "global"
 		}
-		title := localisedTitle(mApp, viewName)
-
-		bindingSections = addBinding(title, bindingSections, binding)
-	}
-
-	for contextName, contextBindings := range mApp.Gui.GetContextMap() {
-		translatedView := localisedTitle(mApp, contextBindings[0].ViewName)
-		translatedContextName := localisedTitle(mApp, contextName)
-		title := fmt.Sprintf("%s (%s)", translatedView, translatedContextName)
+		translatedView := localisedTitle(mApp, viewName)
+		var title string
+		if contextAndView.context == "" {
+			addendum := " " + mApp.Tr.SLocalize("Panel")
+			if viewName == "global" {
+				addendum = ""
+			}
+			title = fmt.Sprintf("%s%s", translatedView, addendum)
+		} else {
+			translatedContextName := localisedTitle(mApp, contextAndView.context)
+			title = fmt.Sprintf("%s %s (%s)", translatedView, mApp.Tr.SLocalize("Panel"), translatedContextName)
+		}
 
 		for _, binding := range contextBindings {
 			bindingSections = addBinding(title, bindingSections, binding)
@@ -117,7 +172,7 @@ func addBinding(title string, bindingSections []*bindingSection, binding *gui.Bi
 }
 
 func formatSections(mApp *app.App, bindingSections []*bindingSection) string {
-	content := fmt.Sprintf("# Lazygit %s\n", mApp.Tr.SLocalize("menu"))
+	content := fmt.Sprintf("# Lazygit %s\n", mApp.Tr.SLocalize("Keybindings"))
 
 	for _, section := range bindingSections {
 		content += formatTitle(section.title)
