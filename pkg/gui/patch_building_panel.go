@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
@@ -42,8 +43,16 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	return nil
 }
 
-func (gui *Gui) handleAddSelectionToPatch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error {
 	state := gui.State.Panels.LineByLine
+
+	toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
+	filename := gui.getSelectedCommitFileName()
+	includedLineIndices := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+	currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
+	if currentLineIsStaged {
+		toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
+	}
 
 	// add range of lines to those set for the file
 	commitFile := gui.getSelectedCommitFile(gui.g)
@@ -51,29 +60,7 @@ func (gui *Gui) handleAddSelectionToPatch(g *gocui.Gui, v *gocui.View) error {
 		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 	}
 
-	gui.GitCommand.PatchManager.AddFileLineRange(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
-
-	if err := gui.refreshCommitFilesView(); err != nil {
-		return err
-	}
-
-	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (gui *Gui) handleRemoveSelectionFromPatch(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
-
-	// add range of lines to those set for the file
-	commitFile := gui.getSelectedCommitFile(gui.g)
-	if commitFile == nil {
-		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
-	}
-
-	gui.GitCommand.PatchManager.RemoveFileLineRange(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
+	toggleFunc(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
 
 	if err := gui.refreshCommitFilesView(); err != nil {
 		return err

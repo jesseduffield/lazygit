@@ -511,6 +511,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ToggleSelectHunk",
 			Other: `toggle select hunk`,
+		}, &i18n.Message{
+			ID:    "ToggleSelectionForPatch",
+			Other: `add/remove line(s) to patch`,
 		},
 		&i18n.Message{
 			ID:    "TogglePanel",
