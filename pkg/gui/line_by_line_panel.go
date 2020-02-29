@@ -220,6 +220,10 @@ func (gui *Gui) handleMouseScrollDown(g *gocui.Gui, v *gocui.View) error {
 	return gui.handleCycleLine(1)
 }
 
+func (gui *Gui) getSelectedCommitFileName() string {
+	return gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
+}
+
 func (gui *Gui) refreshMainView() error {
 	state := gui.State.Panels.LineByLine
 
@@ -227,7 +231,7 @@ func (gui *Gui) refreshMainView() error {
 	// I'd prefer not to have knowledge of contexts using this file but I'm not sure
 	// how to get around this
 	if gui.State.MainContext == "patch-building" {
-		filename := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
+		filename := gui.getSelectedCommitFileName()
 		includedLineIndices = gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
 	}
 	colorDiff := state.PatchParser.Render(state.FirstLineIdx, state.LastLineIdx, includedLineIndices)
