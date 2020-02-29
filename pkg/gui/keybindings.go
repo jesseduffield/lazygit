@@ -1015,7 +1015,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts:    []string{"staging"},
 			Key:         gui.getKey("universal.select"),
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleStageSelection,
+			Handler:     gui.handleToggleStagedSelection,
 			Description: gui.Tr.SLocalize("StageSelection"),
 		},
 		{
