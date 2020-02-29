@@ -99,26 +99,27 @@ func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchFocus(gui.g, nil, gui.getFilesView())
 }
 
-func (gui *Gui) handleStageSelection(g *gocui.Gui, v *gocui.View) error {
-	return gui.applySelectionWithPrompt(false)
+func (gui *Gui) handleToggleStagedSelection(g *gocui.Gui, v *gocui.View) error {
+	state := gui.State.Panels.LineByLine
+
+	return gui.applySelection(state.SecondaryFocused)
 }
 
 func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
-	return gui.applySelectionWithPrompt(true)
-}
-
-func (gui *Gui) applySelectionWithPrompt(reverse bool) error {
 	state := gui.State.Panels.LineByLine
 
-	if !reverse && state.SecondaryFocused {
-		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantStageStaged"))
-	} else if reverse && !state.SecondaryFocused && !gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
-		return gui.createConfirmationPanel(gui.g, gui.getMainView(), false, "unstage lines", "Are you sure you want to unstage these lines? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true", func(*gocui.Gui, *gocui.View) error {
-			return gui.applySelection(reverse)
-		}, nil)
+	if state.SecondaryFocused {
+		// for backwards compatibility
+		return gui.applySelection(true)
 	}
 
-	return gui.applySelection(reverse)
+	if gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
+		return gui.createConfirmationPanel(gui.g, gui.getMainView(), false, "unstage lines", "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true", func(*gocui.Gui, *gocui.View) error {
+			return gui.applySelection(true)
+		}, nil)
+	} else {
+		return gui.applySelection(true)
+	}
 }
 
 func (gui *Gui) applySelection(reverse bool) error {

@@ -501,10 +501,10 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: `select hunk`,
 		}, &i18n.Message{
 			ID:    "StageSelection",
-			Other: `stage selection`,
+			Other: `toggle line staged / unstaged`,
 		}, &i18n.Message{
 			ID:    "ResetSelection",
-			Other: `reset selection`,
+			Other: `delete change (git reset)`,
 		}, &i18n.Message{
 			ID:    "ToggleDragSelect",
 			Other: `toggle drag select`,
