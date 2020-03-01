@@ -177,7 +177,7 @@ func stashEntryFromLine(line string, index int) *StashEntry {
 
 // GetStashEntryDiff stash diff
 func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
-	return fmt.Sprintf("git stash show -p --color stash@{%d}", index)
+	return fmt.Sprintf("git stash show -p --color=%s stash@{%d}", c.colorArg(), index)
 }
 
 // GetStatusFiles git status files
@@ -558,11 +558,11 @@ func (c *GitCommand) Ignore(filename string) error {
 }
 
 func (c *GitCommand) ShowCmdStr(sha string) string {
-	return fmt.Sprintf("git show --color --no-renames --stat -p %s", sha)
+	return fmt.Sprintf("git show --color=%s --no-renames --stat -p %s", c.colorArg(), sha)
 }
 
 func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
-	return fmt.Sprintf("git log --graph --color --abbrev-commit --decorate --date=relative --pretty=medium %s", branchName)
+	return fmt.Sprintf("git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium %s", branchName)
 }
 
 // GetRemoteURL returns current repo remote url
@@ -591,7 +591,7 @@ func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
 func (c *GitCommand) DiffCmdStr(file *File, plain bool, cached bool) string {
 	cachedArg := ""
 	trackedArg := "--"
-	colorArg := "--color"
+	colorArg := c.colorArg()
 	split := strings.Split(file.Name, " -> ") // in case of a renamed file we get the new filename
 	fileName := c.OSCommand.Quote(split[len(split)-1])
 	if cached {
@@ -601,10 +601,10 @@ func (c *GitCommand) DiffCmdStr(file *File, plain bool, cached bool) string {
 		trackedArg = "--no-index /dev/null"
 	}
 	if plain {
-		colorArg = ""
+		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git diff --stat -p %s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
+	return fmt.Sprintf("git diff --stat -p --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
@@ -896,12 +896,12 @@ func (c *GitCommand) ShowCommitFile(commitSha, fileName string, plain bool) (str
 }
 
 func (c *GitCommand) ShowCommitFileCmdStr(commitSha, fileName string, plain bool) string {
-	colorArg := "--color"
+	colorArg := c.colorArg()
 	if plain {
-		colorArg = ""
+		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git show --no-renames %s %s -- %s", colorArg, commitSha, fileName)
+	return fmt.Sprintf("git show --no-renames --color=%s %s -- %s", colorArg, commitSha, fileName)
 }
 
 // CheckoutFile checks out the file for the given commit
@@ -967,7 +967,7 @@ func (c *GitCommand) ResetSoft(ref string) error {
 
 // DiffCommits show diff between commits
 func (c *GitCommand) DiffCommits(sha1, sha2 string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git diff --color --stat -p %s %s", sha1, sha2)
+	return c.OSCommand.RunCommandWithOutput("git diff --color=%s --stat -p %s %s", c.colorArg(), sha1, sha2)
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
@@ -1127,4 +1127,28 @@ func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
 	}
 
 	return commits, nil
+}
+
+func (c *GitCommand) GetPager(width int) (string, error) {
+	pager := c.Config.GetUserConfig().GetString("git.pager")
+	switch pager {
+	case "":
+		return "", nil
+	case "diff-so-fancy":
+		return "diff-so-fancy", nil
+	case "ydiff":
+		return fmt.Sprintf("ydiff -s --wrap --width=%d", width/2-6), nil
+	case "delta":
+		return "delta --dark", nil
+	default:
+		return "", errors.New("pager not supported. Pick one of diff-so-fancy, ydiff, delta, or nothing")
+	}
+}
+
+func (c *GitCommand) colorArg() string {
+	pager := c.Config.GetUserConfig().GetString("git.pager")
+	if pager == "diff-so-fancy" || pager == "" {
+		return "always"
+	}
+	return "never"
 }

@@ -211,6 +211,9 @@ type guiState struct {
 	Searching            searchingState
 	ScreenMode           int
 	SideView             *gocui.View
+	Ptmx                 *os.File
+	PrevMainWidth        int
+	PrevMainHeight       int
 }
 
 // for now the split view will always be on
@@ -247,6 +250,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		},
 		ScreenMode: SCREEN_NORMAL,
 		SideView:   nil,
+		Ptmx:       nil,
 	}
 
 	gui := &Gui{
@@ -811,6 +815,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
+	mainViewWidth, mainViewHeight := gui.getMainView().Size()
+	if mainViewWidth != gui.State.PrevMainWidth || mainViewHeight != gui.State.PrevMainHeight {
+		gui.State.PrevMainWidth = mainViewWidth
+		gui.State.PrevMainHeight = mainViewHeight
+		if err := gui.onResize(); err != nil {
+			return err
+		}
+	}
+
 	// here is a good place log some stuff
 	// if you download humanlog and do tail -f development.log | humanlog
 	// this will let you see these branches as prettified json
@@ -942,7 +955,7 @@ func (gui *Gui) startBackgroundFetch() {
 
 // Run setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run() error {
-	g, err := gocui.NewGui(gocui.OutputNormal, OverlappingEdges)
+	g, err := gocui.NewGui(gocui.Output256, OverlappingEdges)
 	if err != nil {
 		return err
 	}

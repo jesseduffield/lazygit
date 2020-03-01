@@ -401,3 +401,11 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 	}
 	return nil
 }
+
+func Kill(cmd *exec.Cmd) error {
+	if cmd.Process == nil {
+		// somebody got to it before we were able to, poor bastard
+		return nil
+	}
+	return cmd.Process.Kill()
+}

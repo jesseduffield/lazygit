@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,7 +62,7 @@ func (m *ViewBufferManager) NewCmdTask(cmd *exec.Cmd, linesToRead int) func(chan
 		go func() {
 			<-stop
 			if cmd.ProcessState == nil {
-				if err := kill(cmd); err != nil {
+				if err := commands.Kill(cmd); err != nil {
 					m.Log.Warn(err)
 				}
 			}
@@ -105,6 +107,95 @@ func (m *ViewBufferManager) NewCmdTask(cmd *exec.Cmd, linesToRead int) func(chan
 
 						select {
 						case <-stop:
+							m.refreshView()
+							break outer
+						default:
+						}
+						if !ok {
+							m.refreshView()
+							break outer
+						}
+						m.writer.Write(append(scanner.Bytes(), []byte("\n")...))
+					}
+					m.refreshView()
+				case <-stop:
+					m.refreshView()
+					break outer
+				}
+			}
+			m.refreshView()
+
+			if err := cmd.Wait(); err != nil {
+				m.Log.Warn(err)
+			}
+
+			close(done)
+		}()
+
+		m.readLines <- linesToRead
+
+		<-done
+
+		return nil
+	}
+}
+
+func (m *ViewBufferManager) NewPtyTask(ptmx *os.File, cmd *exec.Cmd, linesToRead int, onClose func()) func(chan struct{}) error {
+	return func(stop chan struct{}) error {
+		r := ptmx
+
+		defer ptmx.Close()
+
+		done := make(chan struct{})
+		go func() {
+			<-stop
+			commands.Kill(cmd)
+			ptmx.Close()
+		}()
+
+		loadingMutex := sync.Mutex{}
+
+		// not sure if it's the right move to redefine this or not
+		m.readLines = make(chan int, 1024)
+
+		go func() {
+			scanner := bufio.NewScanner(r)
+			scanner.Split(bufio.ScanLines)
+
+			loaded := false
+
+			go func() {
+				ticker := time.NewTicker(time.Millisecond * 100)
+				defer ticker.Stop()
+				select {
+				case <-ticker.C:
+					loadingMutex.Lock()
+					if !loaded {
+						m.beforeStart()
+						m.writer.Write([]byte("loading..."))
+						m.refreshView()
+					}
+					loadingMutex.Unlock()
+				case <-stop:
+					return
+				}
+			}()
+
+		outer:
+			for {
+				select {
+				case linesToRead := <-m.readLines:
+					for i := 0; i < linesToRead; i++ {
+						ok := scanner.Scan()
+						loadingMutex.Lock()
+						if !loaded {
+							m.beforeStart()
+							loaded = true
+						}
+						loadingMutex.Unlock()
+
+						select {
+						case <-stop:
 							break outer
 						default:
 						}
@@ -124,12 +215,18 @@ func (m *ViewBufferManager) NewCmdTask(cmd *exec.Cmd, linesToRead int) func(chan
 				m.Log.Warn(err)
 			}
 
+			m.refreshView()
+
+			onClose()
+
 			close(done)
 		}()
 
 		m.readLines <- linesToRead
 
+		m.Log.Warn("waiting for done channel")
 		<-done
+		m.Log.Warn("done channel returned")
 
 		return nil
 	}
@@ -141,7 +238,7 @@ func (t *ViewBufferManager) Close() {
 		return
 	}
 
-	c := make(chan struct{}, 1)
+	c := make(chan struct{})
 
 	go func() {
 		t.currentTask.Stop()
@@ -170,7 +267,10 @@ func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error) error {
 
 		m.waitingMutex.Lock()
 		defer m.waitingMutex.Unlock()
+
+		m.Log.Infof("done waiting")
 		if taskID < m.newTaskId {
+			m.Log.Infof("returning cos the task is obsolete")
 			return
 		}
 
@@ -215,14 +315,4 @@ func (t *Task) Stop() {
 	t.Log.Info("received notifystopped message")
 	t.stopped = true
 	return
-}
-
-// kill kills a process
-func kill(cmd *exec.Cmd) error {
-	if cmd.Process == nil {
-		// somebody got to it before we were able to, poor bastard
-		return nil
-	}
-
-	return cmd.Process.Kill()
 }

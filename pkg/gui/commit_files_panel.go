@@ -50,7 +50,7 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Sha, commitFile.Name, false),
 	)
-	if err := gui.newCmdTask("main", cmd); err != nil {
+	if err := gui.newPtyTask("main", cmd); err != nil {
 		gui.Log.Error(err)
 	}
 

@@ -62,7 +62,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
 		cmdStr := gui.GitCommand.DiffCmdStr(file, false, true)
 		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-		if err := gui.newCmdTask("secondary", cmd); err != nil {
+		if err := gui.newPtyTask("secondary", cmd); err != nil {
 			return err
 		}
 	} else {
@@ -76,7 +76,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 
 	cmdStr := gui.GitCommand.DiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
 	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-	if err := gui.newCmdTask("main", cmd); err != nil {
+	if err := gui.newPtyTask("main", cmd); err != nil {
 		return err
 	}
 

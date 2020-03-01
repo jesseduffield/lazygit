@@ -13,7 +13,6 @@ require (
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/gocui v0.3.1-0.20200301081700-d6e485450113
 	github.com/jesseduffield/pty v1.2.1
-	github.com/jesseduffield/rollrus v0.0.0-20190701125922-dd028cb0bfd7 // indirect
 	github.com/jesseduffield/termbox-go v0.0.0-20200130214842-1d31d1faa3c9 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
