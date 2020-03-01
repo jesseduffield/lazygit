@@ -32,7 +32,7 @@ github.com/hashicorp/hcl/json/token
 github.com/integrii/flaggy
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 github.com/jbenet/go-context/io
-# github.com/jesseduffield/gocui v0.3.1-0.20200224201655-5024a02682ed
+# github.com/jesseduffield/gocui v0.3.1-0.20200301081700-d6e485450113
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/pty v1.2.1
 github.com/jesseduffield/pty
