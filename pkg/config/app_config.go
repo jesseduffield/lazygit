@@ -258,6 +258,9 @@ func GetDefaultConfig() []byte {
   commitLength:
     show: true
 git:
+  paging:
+    colorArg: always
+    useConfig: false
   merging:
     manualCommit: false
   skipHookPrefix: 'WIP'

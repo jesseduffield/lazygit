@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1129,26 +1130,36 @@ func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
 	return commits, nil
 }
 
-func (c *GitCommand) GetPager(width int) (string, error) {
-	pager := c.Config.GetUserConfig().GetString("git.pager")
-	switch pager {
-	case "":
-		return "", nil
-	case "diff-so-fancy":
-		return "diff-so-fancy", nil
-	case "ydiff":
-		return fmt.Sprintf("ydiff -s --wrap --width=%d", width/2-6), nil
-	case "delta":
-		return "delta --dark", nil
-	default:
-		return "", errors.New("pager not supported. Pick one of diff-so-fancy, ydiff, delta, or nothing")
+func (c *GitCommand) ConfiguredPager() string {
+	if os.Getenv("GIT_PAGER") != "" {
+		return os.Getenv("GIT_PAGER")
 	}
+	if os.Getenv("PAGER") != "" {
+		return os.Getenv("PAGER")
+	}
+	output, err := c.OSCommand.RunCommandWithOutput("git config --get-all core.pager")
+	if err != nil {
+		return ""
+	}
+	trimmedOutput := strings.TrimSpace(output)
+	return strings.Split(trimmedOutput, "\n")[0]
+}
+
+func (c *GitCommand) GetPager(width int) string {
+	useConfig := c.Config.GetUserConfig().GetBool("git.paging.useConfig")
+	if useConfig {
+		pager := c.ConfiguredPager()
+		return strings.Split(pager, "| less")[0]
+	}
+
+	templateValues := map[string]string{
+		"columnWidth": strconv.Itoa(width/2 - 6),
+	}
+
+	pagerTemplate := c.Config.GetUserConfig().GetString("git.paging.pager")
+	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
 }
 
 func (c *GitCommand) colorArg() string {
-	pager := c.Config.GetUserConfig().GetString("git.pager")
-	if pager == "diff-so-fancy" || pager == "" {
-		return "always"
-	}
-	return "never"
+	return c.Config.GetUserConfig().GetString("git.paging.colorArg")
 }
