@@ -28,10 +28,7 @@ func (gui *Gui) newCmdTask(viewName string, cmd *exec.Cmd) error {
 
 func (gui *Gui) newPtyTask(viewName string, cmd *exec.Cmd) error {
 	width, _ := gui.getMainView().Size()
-	pager, err := gui.GitCommand.GetPager(width)
-	if err != nil {
-		return err
-	}
+	pager := gui.GitCommand.GetPager(width)
 
 	if pager == "" {
 		// if we're not using a custom pager we don't need to use a pty
