@@ -152,13 +152,13 @@ func (ei *escapeInterpreter) outputNormal() error {
 
 		switch {
 		case p >= 30 && p <= 37:
-			ei.curFgColor = Attribute(p - 30 + 1)
+			ei.curFgColor |= Attribute(p - 30 + 1)
 		case p == 39:
-			ei.curFgColor = ColorDefault
+			ei.curFgColor |= ColorDefault
 		case p >= 40 && p <= 47:
-			ei.curBgColor = Attribute(p - 40 + 1)
+			ei.curBgColor |= Attribute(p - 40 + 1)
 		case p == 49:
-			ei.curBgColor = ColorDefault
+			ei.curBgColor |= ColorDefault
 		case p == 1:
 			ei.curFgColor |= AttrBold
 		case p == 4:
