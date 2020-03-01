@@ -41,7 +41,7 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
 	)
-	if err := gui.newCmdTask("main", cmd); err != nil {
+	if err := gui.newPtyTask("main", cmd); err != nil {
 		gui.Log.Error(err)
 	}
 
