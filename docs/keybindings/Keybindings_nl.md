@@ -12,6 +12,8 @@
   <kbd>R</kbd>: verversen
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
+  <kbd>]</kbd>: next tab
+  <kbd>[</kbd>: prev tab
   <kbd>:</kbd>: voor aangepast commando uit
 </pre>
 
