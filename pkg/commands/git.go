@@ -605,7 +605,7 @@ func (c *GitCommand) DiffCmdStr(file *File, plain bool, cached bool) string {
 		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git diff --stat -p --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
+	return fmt.Sprintf("git diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {

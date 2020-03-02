@@ -1449,7 +1449,7 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"log", "--graph", "--color", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test"}, args)
+		assert.EqualValues(t, []string{"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test"}, args)
 
 		return exec.Command("echo")
 	}
@@ -1473,7 +1473,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"Default case",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--stat", "-p", "--color", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--color=", "--", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1489,7 +1489,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"cached",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--stat", "-p", "--color", "--cached", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--color=", "--cached", "--", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1505,7 +1505,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"plain",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--stat", "-p", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--color=never", "--", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1521,7 +1521,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"File not tracked and file has no staged changes",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--stat", "-p", "--color", "--no-index", "/dev/null", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--color=", "--no-index", "/dev/null", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
@@ -1871,7 +1871,7 @@ func TestGitCommandShowCommitFile(t *testing.T) {
 			"hello.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git show --no-renames 123456 -- hello.txt",
+					Expect:  "git show --no-renames --color=never 123456 -- hello.txt",
 					Replace: "echo -n hello",
 				},
 			}),
