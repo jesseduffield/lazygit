@@ -28,6 +28,9 @@ Default path for the config file:
     mouseEvents: true
     skipUnstageLineWarning: false
   git:
+    paging:
+      colorArg: always
+      useConfig: false
     merging:
       # only applicable to unix users
       manualCommit: false
