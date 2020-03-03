@@ -520,11 +520,13 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	_, _ = g.SetViewOnBottom("limit")
 	g.DeleteView("limit")
 
+	sidePanelWidthRatio := gui.Config.GetUserConfig().GetFloat64("gui.sidePanelWidth")
+
 	textColor := theme.GocuiDefaultTextColor
 	var leftSideWidth int
 	switch gui.State.ScreenMode {
 	case SCREEN_NORMAL:
-		leftSideWidth = width / 3
+		leftSideWidth = int(float64(width) * sidePanelWidthRatio)
 	case SCREEN_HALF:
 		leftSideWidth = width / 2
 	case SCREEN_FULL:
