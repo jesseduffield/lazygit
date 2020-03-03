@@ -5,7 +5,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
-	"github.com/jesseduffield/pty"
 )
 
 func (gui *Gui) newCmdTask(viewName string, cmd *exec.Cmd) error {
@@ -19,47 +18,17 @@ func (gui *Gui) newCmdTask(viewName string, cmd *exec.Cmd) error {
 
 	manager := gui.getManager(view)
 
-	if err := manager.NewTask(manager.NewCmdTask(cmd, height+oy+10)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (gui *Gui) newPtyTask(viewName string, cmd *exec.Cmd) error {
-	width, _ := gui.getMainView().Size()
-	pager := gui.GitCommand.GetPager(width)
-
-	if pager == "" {
-		// if we're not using a custom pager we don't need to use a pty
-		return gui.newCmdTask(viewName, cmd)
-	}
-
-	cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
-
-	view, err := gui.g.View(viewName)
-	if err != nil {
-		return nil // swallowing for now
-	}
-
-	_, height := view.Size()
-	_, oy := view.Origin()
-
-	manager := gui.getManager(view)
-
-	ptmx, err := pty.Start(cmd)
+	r, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
+	cmd.Stderr = cmd.Stdout
 
-	gui.State.Ptmx = ptmx
-	onClose := func() { gui.State.Ptmx = nil }
-
-	if err := gui.onResize(); err != nil {
+	if err := cmd.Start(); err != nil {
 		return err
 	}
 
-	if err := manager.NewTask(manager.NewPtyTask(ptmx, cmd, height+oy+10, onClose)); err != nil {
+	if err := manager.NewTask(manager.NewCmdTask(r, cmd, height+oy+10, nil)); err != nil {
 		return err
 	}
 

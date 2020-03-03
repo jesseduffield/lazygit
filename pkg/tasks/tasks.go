@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -47,116 +46,24 @@ func (m *ViewBufferManager) ReadLines(n int) {
 	}()
 }
 
-func (m *ViewBufferManager) NewCmdTask(cmd *exec.Cmd, linesToRead int) func(chan struct{}) error {
+func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, linesToRead int, onDone func()) func(chan struct{}) error {
 	return func(stop chan struct{}) error {
-		r, err := cmd.StdoutPipe()
-		if err != nil {
-			return err
-		}
-		cmd.Stderr = cmd.Stdout
-
-		if err := cmd.Start(); err != nil {
-			return err
-		}
-
 		go func() {
 			<-stop
-			if cmd.ProcessState == nil {
-				if err := commands.Kill(cmd); err != nil {
-					m.Log.Warn(err)
-				}
-			}
-		}()
-
-		// not sure if it's the right move to redefine this or not
-		m.readLines = make(chan int, 1024)
-
-		done := make(chan struct{})
-
-		go func() {
-			scanner := bufio.NewScanner(r)
-			scanner.Split(bufio.ScanLines)
-
-			loaded := false
-
-			go func() {
-				ticker := time.NewTicker(time.Millisecond * 100)
-				defer ticker.Stop()
-				select {
-				case <-ticker.C:
-					if !loaded {
-						m.beforeStart()
-						m.writer.Write([]byte("loading..."))
-						m.refreshView()
-					}
-				case <-stop:
-					return
-				}
-			}()
-
-		outer:
-			for {
-				select {
-				case linesToRead := <-m.readLines:
-					for i := 0; i < linesToRead; i++ {
-						ok := scanner.Scan()
-						if !loaded {
-							m.beforeStart()
-							loaded = true
-						}
-
-						select {
-						case <-stop:
-							m.refreshView()
-							break outer
-						default:
-						}
-						if !ok {
-							m.refreshView()
-							break outer
-						}
-						m.writer.Write(append(scanner.Bytes(), []byte("\n")...))
-					}
-					m.refreshView()
-				case <-stop:
-					m.refreshView()
-					break outer
-				}
-			}
-			m.refreshView()
-
-			if err := cmd.Wait(); err != nil {
+			if err := commands.Kill(cmd); err != nil {
 				m.Log.Warn(err)
 			}
-
-			close(done)
-		}()
-
-		m.readLines <- linesToRead
-
-		<-done
-
-		return nil
-	}
-}
-
-func (m *ViewBufferManager) NewPtyTask(ptmx *os.File, cmd *exec.Cmd, linesToRead int, onClose func()) func(chan struct{}) error {
-	return func(stop chan struct{}) error {
-		r := ptmx
-
-		defer ptmx.Close()
-
-		done := make(chan struct{})
-		go func() {
-			<-stop
-			commands.Kill(cmd)
-			ptmx.Close()
+			if onDone != nil {
+				onDone()
+			}
 		}()
 
 		loadingMutex := sync.Mutex{}
 
 		// not sure if it's the right move to redefine this or not
 		m.readLines = make(chan int, 1024)
+
+		done := make(chan struct{})
 
 		go func() {
 			scanner := bufio.NewScanner(r)
@@ -196,6 +103,7 @@ func (m *ViewBufferManager) NewPtyTask(ptmx *os.File, cmd *exec.Cmd, linesToRead
 
 						select {
 						case <-stop:
+							m.refreshView()
 							break outer
 						default:
 						}
@@ -207,6 +115,7 @@ func (m *ViewBufferManager) NewPtyTask(ptmx *os.File, cmd *exec.Cmd, linesToRead
 					}
 					m.refreshView()
 				case <-stop:
+					m.refreshView()
 					break outer
 				}
 			}
@@ -217,16 +126,16 @@ func (m *ViewBufferManager) NewPtyTask(ptmx *os.File, cmd *exec.Cmd, linesToRead
 
 			m.refreshView()
 
-			onClose()
+			if onDone != nil {
+				onDone()
+			}
 
 			close(done)
 		}()
 
 		m.readLines <- linesToRead
 
-		m.Log.Warn("waiting for done channel")
 		<-done
-		m.Log.Warn("done channel returned")
 
 		return nil
 	}
