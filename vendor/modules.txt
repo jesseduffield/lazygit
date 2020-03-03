@@ -1,4 +1,5 @@
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
+## explicit
 github.com/cloudfoundry/jibber_jabber
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
@@ -10,13 +11,21 @@ github.com/emirpasic/gods/trees
 github.com/emirpasic/gods/trees/binaryheap
 github.com/emirpasic/gods/utils
 # github.com/fatih/color v1.7.0
+## explicit
 github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.7
+## explicit
 github.com/fsnotify/fsnotify
 # github.com/go-errors/errors v1.0.1
+## explicit
 github.com/go-errors/errors
 # github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
+## explicit
 github.com/golang-collections/collections/stack
+# github.com/golang/protobuf v1.3.2
+## explicit
+# github.com/google/go-cmp v0.3.1
+## explicit
 # github.com/hashicorp/hcl v1.0.0
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/ast
@@ -29,61 +38,84 @@ github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/integrii/flaggy v1.4.0
+## explicit
 github.com/integrii/flaggy
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 github.com/jbenet/go-context/io
 # github.com/jesseduffield/gocui v0.3.1-0.20200301081700-d6e485450113
+## explicit
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/pty v1.2.1
+## explicit
 github.com/jesseduffield/pty
 # github.com/jesseduffield/termbox-go v0.0.0-20200130214842-1d31d1faa3c9
+## explicit
 github.com/jesseduffield/termbox-go
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
+## explicit
 github.com/kardianos/osext
 # github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd
 github.com/kevinburke/ssh_config
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
+## explicit
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
 # github.com/mattn/go-colorable v0.1.4
+## explicit
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.11
+## explicit
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.8
+## explicit
 github.com/mattn/go-runewidth
 # github.com/mgutz/str v1.2.0
+## explicit
 github.com/mgutz/str
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
 # github.com/nicksnyder/go-i18n/v2 v2.0.3
+## explicit
 github.com/nicksnyder/go-i18n/v2/i18n
 github.com/nicksnyder/go-i18n/v2/internal
 github.com/nicksnyder/go-i18n/v2/internal/plural
+# github.com/onsi/ginkgo v1.10.3
+## explicit
+# github.com/onsi/gomega v1.7.1
+## explicit
 # github.com/pelletier/go-toml v1.6.0
+## explicit
 github.com/pelletier/go-toml
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/sergi/go-diff v1.0.0
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/shibukawa/configdir v0.0.0-20170330084843-e180dbdc8da0
+## explicit
 github.com/shibukawa/configdir
 # github.com/sirupsen/logrus v1.4.2
+## explicit
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.2.2
+## explicit
 github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.0
 github.com/spf13/cast
 # github.com/spf13/jwalterweatherman v1.1.0
+## explicit
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
+## explicit
 github.com/spf13/pflag
 # github.com/spf13/viper v1.6.1
+## explicit
 github.com/spf13/viper
 # github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
+## explicit
 github.com/spkg/bom
 # github.com/src-d/gcfg v1.4.0
 github.com/src-d/gcfg
@@ -91,14 +123,17 @@ github.com/src-d/gcfg/scanner
 github.com/src-d/gcfg/token
 github.com/src-d/gcfg/types
 # github.com/stretchr/testify v1.4.0
+## explicit
 github.com/stretchr/testify/assert
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
 # github.com/tcnksm/go-gitconfig v0.1.2
+## explicit
 github.com/tcnksm/go-gitconfig
 # github.com/xanzy/ssh-agent v0.2.1
 github.com/xanzy/ssh-agent
 # golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
+## explicit
 golang.org/x/crypto/cast5
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
@@ -116,20 +151,25 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/knownhosts
 # golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+## explicit
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
 # golang.org/x/sys v0.0.0-20191210023423-ac6580df4449
+## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.2
+## explicit
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
 golang.org/x/text/language
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
+# gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15
+## explicit
 # gopkg.in/ini.v1 v1.51.0
 gopkg.in/ini.v1
 # gopkg.in/src-d/go-billy.v4 v4.3.2
@@ -139,6 +179,7 @@ gopkg.in/src-d/go-billy.v4/helper/polyfill
 gopkg.in/src-d/go-billy.v4/osfs
 gopkg.in/src-d/go-billy.v4/util
 # gopkg.in/src-d/go-git.v4 v4.13.1
+## explicit
 gopkg.in/src-d/go-git.v4
 gopkg.in/src-d/go-git.v4/config
 gopkg.in/src-d/go-git.v4/internal/revision
@@ -183,4 +224,5 @@ gopkg.in/src-d/go-git.v4/utils/merkletrie/noder
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.2.7
+## explicit
 gopkg.in/yaml.v2
