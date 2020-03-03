@@ -160,6 +160,10 @@ Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch
 
 Check the [configuration docs](docs/Config.md).
 
+## Custom Pagers
+
+See the [docs](docs/Custom_Pagers.md)
+
 ## Cool features
 
 - Adding files easily
