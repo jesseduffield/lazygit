@@ -24,7 +24,7 @@ git:
     pager: delta --dark --paging=never --24-bit-color=never
 ```
 
-![](https://i.imgur.com/A4C3xiZ.png)
+![](https://i.imgur.com/QJpQkF3.png)
 
 ## Diff-so-fancy
 
@@ -36,6 +36,21 @@ git:
 ```
 
 ![](https://i.imgur.com/rjH1TpT.png)
+
+## ydiff
+
+```yaml
+gui:
+  sidePanelWidth: 0.2 # gives you more space to show things side-by-side
+git:
+  paging:
+    colorArg: never
+    pager: ydiff -p cat -s --wrap --width={{columnWidth}}
+```
+
+![](https://i.imgur.com/vaa8z0H.png)
+
+Be careful with this one, I think the homebrew and pip versions are behind master. I needed to directly download the ydiff script to get the no-pager functionality working.
 
 ## Using git config
 
