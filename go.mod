@@ -1,6 +1,6 @@
 module github.com/jesseduffield/lazygit
 
-go 1.13
+go 1.14
 
 require (
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
@@ -20,6 +20,7 @@ require (
 	github.com/mattn/go-isatty v0.0.11 // indirect
 	github.com/mattn/go-runewidth v0.0.8
 	github.com/mgutz/str v1.2.0
+	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
