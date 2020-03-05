@@ -563,7 +563,7 @@ func (c *GitCommand) ShowCmdStr(sha string) string {
 }
 
 func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
-	return fmt.Sprintf("git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium %s", branchName)
+	return fmt.Sprintf("git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium %s --", branchName)
 }
 
 // GetRemoteURL returns current repo remote url
