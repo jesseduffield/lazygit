@@ -1449,7 +1449,7 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test"}, args)
+		assert.EqualValues(t, []string{"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--"}, args)
 
 		return exec.Command("echo")
 	}
