@@ -12,6 +12,7 @@
   <kbd>R</kbd>: refresh
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
+  <kbd>/</kbd>: start search
   <kbd>:</kbd>: execute custom command
 </pre>
 

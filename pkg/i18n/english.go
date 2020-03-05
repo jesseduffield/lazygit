@@ -1009,6 +1009,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "prevScreenMode",
 			Other: "prev screen mode",
 		}, &i18n.Message{
+			ID:    "startSearch",
+			Other: "start search",
+		}, &i18n.Message{
 			ID:    "Panel",
 			Other: "Panel",
 		}, &i18n.Message{
