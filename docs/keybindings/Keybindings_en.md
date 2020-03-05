@@ -156,8 +156,7 @@
   <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
   <kbd>►</kbd>: select next hunk
-  <kbd>space</kbd>: stage selection
-  <kbd>d</kbd>: reset selection
+  <kbd>space</kbd>: add/remove line(s) to patch
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
@@ -167,8 +166,8 @@
 
 <pre>
   <kbd>esc</kbd>: return to files panel
-  <kbd>space</kbd>: stage selection
-  <kbd>d</kbd>: reset selection
+  <kbd>space</kbd>: toggle line staged / unstaged
+  <kbd>d</kbd>: delete change (git reset)
   <kbd>tab</kbd>: switch to other panel
   <kbd>▲</kbd>: select previous line
   <kbd>▼</kbd>: select next line
