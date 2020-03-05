@@ -334,6 +334,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("prevScreenMode"),
 		},
 		{
+			ViewName:    "",
+			Key:         gui.getKey("universal.startSearch"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleOpenSearch,
+			Description: gui.Tr.SLocalize("startSearch"),
+		},
+		{
 			ViewName:    "status",
 			Key:         gui.getKey("universal.openFile"),
 			Modifier:    gocui.ModNone,
