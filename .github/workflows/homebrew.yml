@@ -1,0 +1,20 @@
+name: Bump Homebrew formula
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get tag
+        id: tag
+        run: echo "::set-output name=tag::${GITHUB_REF##*/}"
+      - name: Bump Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v1.1.0
+        with:
+          token: ${{secrets.GITHUB_API_TOKEN}}
+          formula: lazygit
+          url: "https://github.com/${{github.repository}}/archive/${{steps.tag.outputs.tag}}.tar.gz"
