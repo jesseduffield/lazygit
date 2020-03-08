@@ -220,7 +220,10 @@ func (gui *Gui) getCheckedOutBranch() *commands.Branch {
 }
 
 func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
-	branch := gui.getCheckedOutBranch()
+	branch := gui.getSelectedBranch()
+	if branch == nil {
+		return nil
+	}
 	message := gui.Tr.TemplateLocalize(
 		"NewBranchNameBranchOff",
 		Teml{
@@ -228,7 +231,7 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 	gui.createPromptPanel(g, v, message, "", func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v)); err != nil {
+		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v), branch.Name); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
 		gui.refreshSidePanels(g)
