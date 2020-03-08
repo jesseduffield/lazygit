@@ -327,8 +327,8 @@ func (c *GitCommand) ResetToCommit(sha string, strength string) error {
 }
 
 // NewBranch create new branch
-func (c *GitCommand) NewBranch(name string) error {
-	return c.OSCommand.RunCommand("git checkout -b %s", name)
+func (c *GitCommand) NewBranch(name string, baseBranch string) error {
+	return c.OSCommand.RunCommand("git checkout -b %s %s", name, baseBranch)
 }
 
 // CurrentBranchName is a function.
