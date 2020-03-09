@@ -11,7 +11,7 @@ require (
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/integrii/flaggy v1.4.0
-	github.com/jesseduffield/gocui v0.3.1-0.20200301081700-d6e485450113
+	github.com/jesseduffield/gocui v0.3.1-0.20200309001002-7765949e1c8a
 	github.com/jesseduffield/pty v1.2.1
 	github.com/jesseduffield/termbox-go v0.0.0-20200130214842-1d31d1faa3c9 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
