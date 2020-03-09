@@ -162,15 +162,15 @@ func (gui *Gui) getKeyDisplay(name string) string {
 func GetKeyDisplay(key interface{}) string {
 	keyInt := 0
 
-	switch key.(type) {
+	switch key := key.(type) {
 	case rune:
-		keyInt = int(key.(rune))
+		keyInt = int(key)
 	case gocui.Key:
-		value, ok := keyMapReversed[key.(gocui.Key)]
+		value, ok := keyMapReversed[key]
 		if ok {
 			return value
 		}
-		keyInt = int(key.(gocui.Key))
+		keyInt = int(key)
 	}
 
 	return string(keyInt)

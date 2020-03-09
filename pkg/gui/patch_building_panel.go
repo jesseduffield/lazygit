@@ -18,7 +18,8 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	// get diff from commit file that's currently selected
 	commitFile := gui.getSelectedCommitFile(gui.g)
 	if commitFile == nil {
-		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		return nil
 	}
 
 	diff, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, true)
@@ -57,7 +58,8 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 	// add range of lines to those set for the file
 	commitFile := gui.getSelectedCommitFile(gui.g)
 	if commitFile == nil {
-		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		return nil
 	}
 
 	toggleFunc(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
@@ -92,7 +94,8 @@ func (gui *Gui) refreshSecondaryPatchPanel() error {
 		secondaryView.Wrap = false
 
 		gui.g.Update(func(*gocui.Gui) error {
-			return gui.setViewContent(gui.g, gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
+			gui.setViewContent(gui.g, gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
+			return nil
 		})
 	} else {
 		gui.State.SplitMainPanel = false

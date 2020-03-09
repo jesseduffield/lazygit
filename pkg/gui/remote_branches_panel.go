@@ -38,10 +38,7 @@ func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.newStringTask("main", "No branches for this remote")
 	}
 
-	gui.focusPoint(0, gui.State.Panels.Menu.SelectedLine, gui.State.MenuItemCount, v)
-	if err := gui.focusPoint(0, gui.State.Panels.RemoteBranches.SelectedLine, len(gui.State.RemoteBranches), v); err != nil {
-		return err
-	}
+	v.FocusPoint(0, gui.State.Panels.RemoteBranches.SelectedLine)
 
 	branchName := fmt.Sprintf("%s/%s", remote.Name, remoteBranch.Name)
 

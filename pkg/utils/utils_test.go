@@ -196,8 +196,6 @@ func TestDisplayArraysAligned(t *testing.T) {
 	}
 }
 
-type myStruct struct{}
-
 // TestGetPaddedDisplayStrings is a function.
 func TestGetPaddedDisplayStrings(t *testing.T) {
 	type scenario struct {

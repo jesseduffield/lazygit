@@ -2130,7 +2130,7 @@ func TestGitCommandSkipEditorCommand(t *testing.T) {
 		)
 	})
 
-	cmd.RunSkipEditorCommand("true")
+	_ = cmd.RunSkipEditorCommand("true")
 }
 
 func TestFindDotGitDir(t *testing.T) {

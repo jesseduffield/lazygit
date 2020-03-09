@@ -52,7 +52,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
-	g.SetViewOnBottom("commitMessage")
+	_, _ = g.SetViewOnBottom("commitMessage")
 	return gui.switchFocus(g, v, gui.getFilesView())
 }
 
@@ -68,7 +68,8 @@ func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
 			"keyBindConfirm": "enter",
 		},
 	)
-	return gui.renderString(g, "options", message)
+	gui.renderString(g, "options", message)
+	return nil
 }
 
 func (gui *Gui) getBufferLength(view *gocui.View) string {

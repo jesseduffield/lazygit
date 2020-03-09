@@ -218,25 +218,18 @@ func (gui *Gui) resetOrigin(v *gocui.View) error {
 	return v.SetOrigin(0, 0)
 }
 
-// if the cursor down past the last item, move it to the last line
-func (gui *Gui) focusPoint(cx int, cy int, lineCount int, v *gocui.View) error {
-	v.FocusPoint(cx, cy)
-	return nil
-}
-
 func (gui *Gui) cleanString(s string) string {
 	output := string(bom.Clean([]byte(s)))
 	return utils.NormalizeLinefeeds(output)
 }
 
-func (gui *Gui) setViewContent(g *gocui.Gui, v *gocui.View, s string) error {
+func (gui *Gui) setViewContent(g *gocui.Gui, v *gocui.View, s string) {
 	v.Clear()
 	fmt.Fprint(v, gui.cleanString(s))
-	return nil
 }
 
 // renderString resets the origin of a view and sets its content
-func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
+func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) {
 	g.Update(func(*gocui.Gui) error {
 		v, err := g.View(viewName)
 		if err != nil {
@@ -248,9 +241,9 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) error {
 		if err := v.SetCursor(0, 0); err != nil {
 			return err
 		}
-		return gui.setViewContent(gui.g, v, s)
+		gui.setViewContent(gui.g, v, s)
+		return nil
 	})
-	return nil
 }
 
 func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
@@ -263,7 +256,8 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 }
 
 func (gui *Gui) renderOptionsMap(optionsMap map[string]string) error {
-	return gui.renderString(gui.g, "options", gui.optionsMapToString(optionsMap))
+	gui.renderString(gui.g, "options", gui.optionsMapToString(optionsMap))
+	return nil
 }
 
 // TODO: refactor properly
@@ -349,22 +343,6 @@ func (gui *Gui) resizePopupPanel(g *gocui.Gui, v *gocui.View) error {
 	return err
 }
 
-// generalFocusLine takes a lineNumber to focus, and a bottomLine to ensure we can see
-func (gui *Gui) generalFocusLine(lineNumber int, bottomLine int, v *gocui.View) error {
-	_, height := v.Size()
-	overScroll := bottomLine - height + 1
-	if overScroll < 0 {
-		overScroll = 0
-	}
-	if err := v.SetOrigin(0, overScroll); err != nil {
-		return err
-	}
-	if err := v.SetCursor(0, lineNumber-overScroll); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (gui *Gui) changeSelectedLine(line *int, total int, change int) {
 	// TODO: find out why we're doing this
 	if *line == -1 {
@@ -407,11 +385,6 @@ func (gui *Gui) renderPanelOptions() error {
 		}
 	}
 	return gui.renderGlobalOptions()
-}
-
-func (gui *Gui) handleFocusView(g *gocui.Gui, v *gocui.View) error {
-	_, err := gui.g.SetCurrentView(v.Name())
-	return err
 }
 
 func (gui *Gui) isPopupPanel(viewName string) bool {

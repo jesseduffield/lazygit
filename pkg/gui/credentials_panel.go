@@ -82,7 +82,8 @@ func (gui *Gui) handleCredentialsViewFocused(g *gocui.Gui, v *gocui.View) error 
 			"keyBindConfirm": "enter",
 		},
 	)
-	return gui.renderString(g, "options", message)
+	gui.renderString(g, "options", message)
+	return nil
 }
 
 // HandleCredentialsPopup handles the views after executing a command that might ask for credentials

@@ -23,7 +23,10 @@ func (gui *Gui) createResetMenu(ref string) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				gui.switchCommitsPanelContext("branch-commits")
+				if err := gui.switchCommitsPanelContext("branch-commits"); err != nil {
+					return err
+				}
+
 				gui.State.Panels.Commits.SelectedLine = 0
 				gui.State.Panels.ReflogCommits.SelectedLine = 0
 

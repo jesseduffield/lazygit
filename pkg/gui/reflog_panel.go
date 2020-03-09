@@ -34,9 +34,7 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	if commit == nil {
 		return gui.newStringTask("main", "No reflog history")
 	}
-	if err := gui.focusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.ReflogCommits), v); err != nil {
-		return err
-	}
+	v.FocusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine)
 
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowCmdStr(commit.Sha),

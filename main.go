@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"runtime"
 
 	"github.com/go-errors/errors"
@@ -19,11 +18,6 @@ var (
 	date        string
 	buildSource = "unknown"
 )
-
-func projectPath(path string) string {
-	gopath := os.Getenv("GOPATH")
-	return filepath.FromSlash(gopath + "/src/github.com/jesseduffield/lazygit/" + path)
-}
 
 func main() {
 	flaggy.DefaultParser.ShowVersionWithVersionFlag = false

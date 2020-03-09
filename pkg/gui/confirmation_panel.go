@@ -122,9 +122,7 @@ func (gui *Gui) createPopupPanel(g *gocui.Gui, currentView *gocui.View, title, p
 			}()
 		}
 
-		if err := gui.renderString(g, "confirmation", prompt); err != nil {
-			return err
-		}
+		gui.renderString(g, "confirmation", prompt)
 		return gui.setKeyBindings(g, handleConfirm, handleClose, returnFocusOnClose)
 	})
 	return nil
@@ -151,17 +149,11 @@ func (gui *Gui) setKeyBindings(g *gocui.Gui, handleConfirm, handleClose func(*go
 			"keyBindConfirm": "enter",
 		},
 	)
-	if err := gui.renderString(g, "options", actions); err != nil {
-		return err
-	}
+	gui.renderString(g, "options", actions)
 	if err := g.SetKeybinding("confirmation", nil, gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(handleConfirm, returnFocusOnClose)); err != nil {
 		return err
 	}
 	return g.SetKeybinding("confirmation", nil, gocui.KeyEsc, gocui.ModNone, gui.wrappedConfirmationFunction(handleClose, returnFocusOnClose))
-}
-
-func (gui *Gui) createMessagePanel(g *gocui.Gui, currentView *gocui.View, title, prompt string) error {
-	return gui.createPopupPanel(g, currentView, title, prompt, false, true, false, nil, nil)
 }
 
 // createSpecificErrorPanel allows you to create an error popup, specifying the

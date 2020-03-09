@@ -34,9 +34,7 @@ func (gui *Gui) handleTagSelect(g *gocui.Gui, v *gocui.View) error {
 	if tag == nil {
 		return gui.newStringTask("main", "No tags")
 	}
-	if err := gui.focusPoint(0, gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags), v); err != nil {
-		return err
-	}
+	v.FocusPoint(0, gui.State.Panels.Tags.SelectedLine)
 
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.GetBranchGraphCmdStr(tag.Name),
@@ -57,7 +55,7 @@ func (gui *Gui) refreshTags() error {
 	gui.State.Tags = tags
 
 	if gui.getBranchesView().Context == "tags" {
-		gui.renderTagsWithSelection()
+		return gui.renderTagsWithSelection()
 	}
 
 	return nil

@@ -12,14 +12,19 @@ func (gui *Gui) handleOpenSearch(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Searching.isSearching = true
 	gui.State.Searching.view = v
 	gui.renderString(gui.g, "search", "")
-	gui.switchFocus(gui.g, v, gui.getSearchView())
+	if err := gui.switchFocus(gui.g, v, gui.getSearchView()); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func (gui *Gui) handleSearch(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Searching.searchString = gui.getSearchView().Buffer()
-	gui.switchFocus(gui.g, nil, gui.State.Searching.view)
+	if err := gui.switchFocus(gui.g, nil, gui.State.Searching.view); err != nil {
+		return err
+	}
+
 	if err := gui.State.Searching.view.Search(gui.State.Searching.searchString); err != nil {
 		return err
 	}
@@ -85,7 +90,5 @@ func (gui *Gui) handleSearchEscape(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	gui.onSearchEscape()
-
-	return nil
+	return gui.onSearchEscape()
 }

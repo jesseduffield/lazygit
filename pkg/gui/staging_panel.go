@@ -159,11 +159,3 @@ func (gui *Gui) applySelection(reverse bool) error {
 	}
 	return nil
 }
-
-func (gui *Gui) handleMouseDownSecondaryWhileStaging(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
-
-	state.SecondaryFocused = !state.SecondaryFocused
-
-	return gui.refreshStagingPanel(false, -1)
-}

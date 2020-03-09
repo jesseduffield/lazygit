@@ -88,7 +88,8 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 	}
 
 	gui.g.Update(func(*gocui.Gui) error {
-		return gui.setViewContent(gui.g, gui.getSecondaryView(), secondaryPatchParser.Render(-1, -1, nil))
+		gui.setViewContent(gui.g, gui.getSecondaryView(), secondaryPatchParser.Render(-1, -1, nil))
+		return nil
 	})
 
 	return false, nil
@@ -241,7 +242,8 @@ func (gui *Gui) refreshMainView() error {
 	mainView.Wrap = false
 
 	gui.g.Update(func(*gocui.Gui) error {
-		return gui.setViewContent(gui.g, gui.getMainView(), colorDiff)
+		gui.setViewContent(gui.g, gui.getMainView(), colorDiff)
+		return nil
 	})
 
 	return nil
