@@ -906,9 +906,7 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 		_ = gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
 	}
 
-	if err := gui.refreshStatus(g); err != nil {
-		return unamePassOpend, err
-	}
+	_ = gui.refreshStatus(g)
 
 	return unamePassOpend, err
 }
