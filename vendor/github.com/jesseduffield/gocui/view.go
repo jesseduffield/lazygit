@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"github.com/go-errors/errors"
 
@@ -466,18 +467,38 @@ func (v *View) Rewind() {
 	v.readOffset = 0
 }
 
+func containsUpcaseChar(str string) bool {
+	for _, ch := range str {
+		if unicode.IsUpper(ch) {
+			return true
+		}
+	}
+	return false
+}
+
 func (v *View) updateSearchPositions() {
 	if v.searcher.searchString != "" {
+		var normalizeRune func(r rune) rune
+		var normalizedSearchStr string
+		// if we have any uppercase characters we'll do a case-sensitive search
+		if containsUpcaseChar(v.searcher.searchString) {
+			normalizedSearchStr = v.searcher.searchString
+			normalizeRune = func(r rune) rune { return r }
+		} else {
+			normalizedSearchStr = strings.ToLower(v.searcher.searchString)
+			normalizeRune = unicode.ToLower
+		}
+
 		v.searcher.searchPositions = []cellPos{}
 		for y, line := range v.lines {
 		lineLoop:
 			for x, _ := range line {
-				if line[x].chr == rune(v.searcher.searchString[0]) {
-					for offset := 1; offset < len(v.searcher.searchString); offset++ {
+				if normalizeRune(line[x].chr) == rune(normalizedSearchStr[0]) {
+					for offset := 1; offset < len(normalizedSearchStr); offset++ {
 						if len(line)-1 < x+offset {
 							continue lineLoop
 						}
-						if line[x+offset].chr != rune(v.searcher.searchString[offset]) {
+						if normalizeRune(line[x+offset].chr) != rune(normalizedSearchStr[offset]) {
 							continue lineLoop
 						}
 					}
