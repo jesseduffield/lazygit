@@ -37,9 +37,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
-	if err := gui.focusPoint(0, gui.State.Panels.Files.SelectedLine, len(gui.State.Files), gui.getFilesView()); err != nil {
-		return err
-	}
+	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLine)
 
 	if file.HasInlineMergeConflicts {
 		gui.getMainView().Title = gui.Tr.SLocalize("MergeConflictsTitle")
@@ -188,9 +186,12 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if file.HasUnstagedChanges {
-		gui.GitCommand.StageFile(file.Name)
+		err = gui.GitCommand.StageFile(file.Name)
 	} else {
-		gui.GitCommand.UnStageFile(file.Name, file.Tracked)
+		err = gui.GitCommand.UnStageFile(file.Name, file.Tracked)
+	}
+	if err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
 	if err := gui.refreshFiles(); err != nil {
@@ -268,9 +269,7 @@ func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error 
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("SkipHookPrefixNotConfigured"))
 	}
 
-	if err := gui.renderString(g, "commitMessage", skipHookPreifx); err != nil {
-		return err
-	}
+	gui.renderString(g, "commitMessage", skipHookPreifx)
 	if err := gui.getCommitMessageView().SetCursor(len(skipHookPreifx), 0); err != nil {
 		return err
 	}
@@ -284,8 +283,14 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	}
 	commitMessageView := gui.getCommitMessageView()
 	g.Update(func(g *gocui.Gui) error {
-		g.SetViewOnTop("commitMessage")
-		gui.switchFocus(g, filesView, commitMessageView)
+		if _, err := g.SetViewOnTop("commitMessage"); err != nil {
+			return err
+		}
+
+		if err := gui.switchFocus(g, filesView, commitMessageView); err != nil {
+			return err
+		}
+
 		gui.RenderCommitLength()
 		return nil
 	})
@@ -507,15 +512,6 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	return gui.refreshMergePanel()
-}
-
-func (gui *Gui) handleAbortMerge(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.GitCommand.AbortMerge(); err != nil {
-		return gui.createErrorPanel(g, err.Error())
-	}
-	gui.createMessagePanel(g, v, "", gui.Tr.SLocalize("MergeAborted"))
-	gui.refreshStatus(g)
-	return gui.refreshFiles()
 }
 
 func (gui *Gui) openFile(filename string) error {

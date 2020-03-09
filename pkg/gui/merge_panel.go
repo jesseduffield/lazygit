@@ -151,13 +151,19 @@ func (gui *Gui) handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	ioutil.WriteFile(gitFile.Name, []byte(prevContent), 0644)
+	if err := ioutil.WriteFile(gitFile.Name, []byte(prevContent), 0644); err != nil {
+		return err
+	}
+
 	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 	conflict := gui.State.Panels.Merging.Conflicts[gui.State.Panels.Merging.ConflictIndex]
-	gui.pushFileSnapshot(g)
+	if err := gui.pushFileSnapshot(g); err != nil {
+		return err
+	}
+
 	pick := "bottom"
 	if gui.State.Panels.Merging.ConflictTop {
 		pick = "top"
@@ -178,7 +184,9 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
 	conflict := gui.State.Panels.Merging.Conflicts[gui.State.Panels.Merging.ConflictIndex]
-	gui.pushFileSnapshot(g)
+	if err := gui.pushFileSnapshot(g); err != nil {
+		return err
+	}
 	err := gui.resolveConflict(g, conflict, "both")
 	if err != nil {
 		panic(err)
@@ -215,9 +223,7 @@ func (gui *Gui) refreshMergePanel() error {
 
 	mainView := gui.getMainView()
 	mainView.Wrap = false
-	if err := gui.setViewContent(gui.g, mainView, content); err != nil {
-		return err
-	}
+	gui.setViewContent(gui.g, mainView, content)
 	gui.Log.Warn("scrolling to conflict")
 	if err := gui.scrollToConflict(gui.g); err != nil {
 		return err

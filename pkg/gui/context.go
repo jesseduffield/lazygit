@@ -16,5 +16,4 @@ func (gui *Gui) changeMainViewsContext(context string) {
 	}
 
 	gui.State.MainContext = context
-	return
 }

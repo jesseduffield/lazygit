@@ -40,9 +40,7 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoBranchesThisRepo"))
 	}
 	branch := gui.getSelectedBranch()
-	if err := gui.focusPoint(0, gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches), v); err != nil {
-		return err
-	}
+	v.FocusPoint(0, gui.State.Panels.Branches.SelectedLine)
 	if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
 		return err
 	}
@@ -161,7 +159,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
 	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.Checkout(branch.Name, true); err != nil {
-			gui.createErrorPanel(g, err.Error())
+			_ = gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshSidePanels(g)
 	}, nil)
@@ -205,10 +203,9 @@ func (gui *Gui) handleCheckoutRef(ref string) error {
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
 		return gui.handleCheckoutRef(gui.trimmedContent(v))
 	})
-	return nil
 }
 
 func (gui *Gui) getCheckedOutBranch() *commands.Branch {
@@ -230,22 +227,19 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 			"branchName": branch.Name,
 		},
 	)
-	gui.createPromptPanel(g, v, message, "", func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createPromptPanel(g, v, message, "", func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v), branch.Name); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		gui.refreshSidePanels(g)
+		if err := gui.refreshSidePanels(g); err != nil {
+			return gui.createErrorPanel(g, err.Error())
+		}
 		return gui.handleBranchSelect(g, v)
 	})
-	return nil
 }
 
 func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
 	return gui.deleteBranch(g, v, false)
-}
-
-func (gui *Gui) handleForceDeleteBranch(g *gocui.Gui, v *gocui.View) error {
-	return gui.deleteBranch(g, v, true)
 }
 
 func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
@@ -400,7 +394,9 @@ func (gui *Gui) onBranchesTabClick(tabIndex int) error {
 func (gui *Gui) switchBranchesPanelContext(context string) error {
 	branchesView := gui.getBranchesView()
 	branchesView.Context = context
-	gui.onSearchEscape()
+	if err := gui.onSearchEscape(); err != nil {
+		return err
+	}
 
 	contextTabIndexMap := map[string]int{
 		"local-branches":  0,

@@ -83,9 +83,7 @@ func getBindingSections(mApp *app.App) []*bindingSection {
 		if len(binding.Contexts) == 0 {
 			contexts = append(contexts, "")
 		} else {
-			for _, context := range binding.Contexts {
-				contexts = append(contexts, context)
-			}
+			contexts = append(contexts, binding.Contexts...)
 		}
 
 		for _, context := range contexts {

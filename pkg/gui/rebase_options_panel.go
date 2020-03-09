@@ -17,11 +17,11 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 	menuItems := make([]*menuItem, len(options))
 	for i, option := range options {
 		// note to self. Never, EVER, close over loop variables in a function
-		innerOption := option
+		option := option
 		menuItems[i] = &menuItem{
-			displayString: innerOption,
+			displayString: option,
 			onPress: func() error {
-				return gui.genericMergeCommand(innerOption)
+				return gui.genericMergeCommand(option)
 			},
 		}
 	}

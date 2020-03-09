@@ -73,7 +73,7 @@ func (b *BranchListBuilder) obtainSafeBranches() []*Branch {
 	if err != nil {
 		panic(err)
 	}
-	bIter.ForEach(func(b *plumbing.Reference) error {
+	_ = bIter.ForEach(func(b *plumbing.Reference) error {
 		name := b.Name().Short()
 		branches = append(branches, &Branch{Name: name})
 		return nil
@@ -93,7 +93,7 @@ func (b *BranchListBuilder) appendNewBranches(finalBranches, newBranches, existi
 
 func sanitisedReflogName(reflogBranch *Branch, safeBranches []*Branch) string {
 	for _, safeBranch := range safeBranches {
-		if strings.ToLower(safeBranch.Name) == strings.ToLower(reflogBranch.Name) {
+		if strings.EqualFold(safeBranch.Name, reflogBranch.Name) {
 			return safeBranch.Name
 		}
 	}
@@ -125,7 +125,7 @@ func (b *BranchListBuilder) Build() []*Branch {
 
 func branchIncluded(branchName string, branches []*Branch) bool {
 	for _, existingBranch := range branches {
-		if strings.ToLower(existingBranch.Name) == strings.ToLower(branchName) {
+		if strings.EqualFold(existingBranch.Name, branchName) {
 			return true
 		}
 	}

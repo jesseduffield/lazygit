@@ -81,7 +81,7 @@ type Gui struct {
 	GitCommand           *commands.GitCommand
 	OSCommand            *commands.OSCommand
 	SubProcess           *exec.Cmd
-	State                guiState
+	State                *guiState
 	Config               config.AppConfigurer
 	Tr                   *i18n.Localizer
 	Errors               SentinelErrors
@@ -221,7 +221,7 @@ type guiState struct {
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
 
-	initialState := guiState{
+	initialState := &guiState{
 		Files:               make([]*commands.File, 0),
 		PreviousView:        "files",
 		Commits:             make([]*commands.Commit, 0),
@@ -381,7 +381,9 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 		return nil
 	}
 	if v.IsSearching() && newView.Name() != "search" {
-		gui.onSearchEscape()
+		if err := gui.onSearchEscape(); err != nil {
+			return err
+		}
 	}
 	switch v.Name() {
 	case "branches":
@@ -518,7 +520,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	_, _ = g.SetViewOnBottom("limit")
-	g.DeleteView("limit")
+	_ = g.DeleteView("limit")
 
 	sidePanelWidthRatio := gui.Config.GetUserConfig().GetFloat64("gui.sidePanelWidth")
 
@@ -538,7 +540,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	panelSplitX := width - 1
 	mainPanelLeft := leftSideWidth + 1
 	mainPanelRight := width - 1
 	secondaryPanelLeft := width - 1
@@ -547,7 +548,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if gui.State.SplitMainPanel {
 		if gui.State.ScreenMode == SCREEN_FULL {
 			mainPanelLeft = 0
-			panelSplitX = width/2 - 4
+			panelSplitX := width/2 - 4
 			mainPanelRight = panelSplitX
 			secondaryPanelLeft = panelSplitX + 1
 		} else if width < 220 {
@@ -558,7 +559,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			units := 5
 			leftSideWidth = width / units
 			mainPanelLeft = leftSideWidth + 1
-			panelSplitX = (1 + ((units - 1) / 2)) * width / units
+			panelSplitX := (1 + ((units - 1) / 2)) * width / units
 			mainPanelRight = panelSplitX
 			secondaryPanelLeft = panelSplitX + 1
 		}
@@ -693,7 +694,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err.Error() != "unknown view" {
 				return err
 			}
-			g.SetViewOnBottom("commitMessage")
+			_, _ = g.SetViewOnBottom("commitMessage")
 			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
 			commitMessageView.FgColor = textColor
 			commitMessageView.Editable = true
@@ -765,9 +766,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.BgColor = gocui.ColorDefault
 		v.FgColor = gocui.ColorGreen
 		v.Frame = false
-		if err := gui.renderString(g, "information", information); err != nil {
-			return err
-		}
+		gui.renderString(g, "information", information)
 
 		// doing this here because it'll only happen once
 		if err := gui.onInitialViewsCreation(); err != nil {
@@ -812,9 +811,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			continue
 		}
 		// check if the selected line is now out of view and if so refocus it
-		if err := gui.focusPoint(0, listView.selectedLine, listView.lineCount, listView.view); err != nil {
-			return err
-		}
+		listView.view.FocusPoint(0, listView.selectedLine)
 	}
 
 	mainViewWidth, mainViewHeight := gui.getMainView().Size()
@@ -909,7 +906,10 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 		_ = gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
 	}
 
-	gui.refreshStatus(g)
+	if err := gui.refreshStatus(g); err != nil {
+		return unamePassOpend, err
+	}
+
 	return unamePassOpend, err
 }
 
@@ -918,7 +918,7 @@ func (gui *Gui) renderGlobalOptions() error {
 		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.scrollUpMain"), gui.getKeyDisplay("universal.scrollDownMain")):                                                                                 gui.Tr.SLocalize("scroll"),
 		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock"), gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")): gui.Tr.SLocalize("navigate"),
 		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.return"), gui.getKeyDisplay("universal.quit")):                                                                                                 gui.Tr.SLocalize("close"),
-		fmt.Sprintf("%s", gui.getKeyDisplay("universal.optionMenu")):                                                                                                                                     gui.Tr.SLocalize("menu"),
+		gui.getKeyDisplay("universal.optionMenu"): gui.Tr.SLocalize("menu"),
 		"1-5": gui.Tr.SLocalize("jump"),
 	})
 }

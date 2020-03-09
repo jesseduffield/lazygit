@@ -34,9 +34,7 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 	if stashEntry == nil {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoStashEntries"))
 	}
-	if err := gui.focusPoint(0, gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries), v); err != nil {
-		return err
-	}
+	v.FocusPoint(0, gui.State.Panels.Stash.SelectedLine)
 
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
@@ -97,9 +95,11 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 		return gui.createErrorPanel(g, errorMessage)
 	}
 	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
-		gui.createErrorPanel(g, err.Error())
+		return gui.createErrorPanel(g, err.Error())
 	}
-	gui.refreshStashEntries(g)
+	if err := gui.refreshStashEntries(g); err != nil {
+		return err
+	}
 	return gui.refreshFiles()
 }
 
@@ -109,9 +109,11 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	}
 	return gui.createPromptPanel(gui.g, gui.getFilesView(), gui.Tr.SLocalize("StashChanges"), "", func(g *gocui.Gui, v *gocui.View) error {
 		if err := stashFunc(gui.trimmedContent(v)); err != nil {
-			gui.createErrorPanel(g, err.Error())
+			return gui.createErrorPanel(g, err.Error())
 		}
-		gui.refreshStashEntries(g)
+		if err := gui.refreshStashEntries(g); err != nil {
+			return err
+		}
 		return gui.refreshFiles()
 	})
 }

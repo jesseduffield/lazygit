@@ -23,11 +23,13 @@ type fileWatcher struct {
 }
 
 func NewFileWatcher(log *logrus.Entry) *fileWatcher {
-	watcher, err := fsnotify.NewWatcher()
-	log.Error(err)
+	// TODO: get this going again, and ensure we don't see any crashes from it
 	return &fileWatcher{
 		Disabled: true,
 	}
+
+	watcher, err := fsnotify.NewWatcher()
+
 	if err != nil {
 		log.Error(err)
 		return &fileWatcher{

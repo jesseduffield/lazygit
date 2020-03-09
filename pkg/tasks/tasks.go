@@ -23,7 +23,6 @@ type Task struct {
 
 type ViewBufferManager struct {
 	writer       io.Writer
-	waitingTask  *Task
 	currentTask  *Task
 	waitingMutex sync.Mutex
 	taskIDMutex  sync.Mutex
@@ -79,7 +78,7 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, linesToRead i
 					loadingMutex.Lock()
 					if !loaded {
 						m.beforeStart()
-						m.writer.Write([]byte("loading..."))
+						_, _ = m.writer.Write([]byte("loading..."))
 						m.refreshView()
 					}
 					loadingMutex.Unlock()
@@ -111,7 +110,7 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, linesToRead i
 							m.refreshView()
 							break outer
 						}
-						m.writer.Write(append(scanner.Bytes(), []byte("\n")...))
+						_, _ = m.writer.Write(append(scanner.Bytes(), []byte("\n")...))
 					}
 					m.refreshView()
 				case <-stop:
@@ -223,5 +222,4 @@ func (t *Task) Stop() {
 	<-t.notifyStopped
 	t.Log.Info("received notifystopped message")
 	t.stopped = true
-	return
 }

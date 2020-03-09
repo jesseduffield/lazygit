@@ -36,16 +36,15 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 
 	commitFile := gui.getSelectedCommitFile(g)
 	if commitFile == nil {
-		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		return nil
 	}
 
 	if err := gui.refreshSecondaryPatchPanel(); err != nil {
 		return err
 	}
 
-	if err := gui.focusPoint(0, gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles), v); err != nil {
-		return err
-	}
+	v.FocusPoint(0, gui.State.Panels.CommitFiles.SelectedLine)
 
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Sha, commitFile.Name, false),
@@ -132,7 +131,8 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 
 	commitFile := gui.getSelectedCommitFile(g)
 	if commitFile == nil {
-		return gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		return nil
 	}
 
 	toggleTheFile := func() error {
@@ -187,7 +187,8 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 
 	commitFile := gui.getSelectedCommitFile(gui.g)
 	if commitFile == nil {
-		return gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
+		return nil
 	}
 
 	enterTheFile := func(selectedLineIdx int) error {

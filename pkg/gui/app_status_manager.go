@@ -66,9 +66,7 @@ func (gui *Gui) WithWaitingStatus(name string, f func() error) error {
 				if appStatus == "" {
 					return
 				}
-				if err := gui.renderString(gui.g, "appStatus", appStatus); err != nil {
-					gui.Log.Warn(err)
-				}
+				gui.renderString(gui.g, "appStatus", appStatus)
 			}
 		}()
 
