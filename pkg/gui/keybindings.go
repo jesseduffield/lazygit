@@ -334,13 +334,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("prevScreenMode"),
 		},
 		{
-			ViewName:    "",
-			Key:         gui.getKey("universal.startSearch"),
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleOpenSearch,
-			Description: gui.Tr.SLocalize("startSearch"),
-		},
-		{
 			ViewName:    "status",
 			Key:         gui.getKey("universal.openFile"),
 			Modifier:    gocui.ModNone,
@@ -672,10 +665,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.handlePrevCommitsTab,
 		},
 		{
-			ViewName: "commits",
-			Key:      gui.getKey("universal.startSearch"),
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleOpenSearchForCommitsPanel,
+			ViewName:    "commits",
+			Key:         gui.getKey("universal.startSearch"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleOpenSearchForCommitsPanel,
+			Description: gui.Tr.SLocalize("startSearch"),
 		},
 		{
 			ViewName:    "commits",
@@ -1469,7 +1463,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 
 		// we need a specific keybinding for the commits panel beacuse it usually lazyloads commits
 		if listView.viewName != "commits" {
-			bindings = append(bindings, &Binding{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.startSearch"), Modifier: gocui.ModNone, Handler: gui.handleOpenSearch})
+			bindings = append(bindings, &Binding{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.startSearch"), Modifier: gocui.ModNone, Handler: gui.handleOpenSearch, Description: gui.Tr.SLocalize("startSearch")})
 		}
 	}
 

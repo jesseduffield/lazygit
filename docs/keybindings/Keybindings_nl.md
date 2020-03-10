@@ -12,7 +12,6 @@
   <kbd>R</kbd>: verversen
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
-  <kbd>/</kbd>: start search
   <kbd>:</kbd>: voor aangepast commando uit
 </pre>
 
@@ -30,6 +29,7 @@
   <kbd>i</kbd>: show git-flow options
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: bekijk reset opties
+  <kbd>/</kbd>: start search
 </pre>
 
 ## Branches Panel (Remote Branches (in Remotes tab))
@@ -42,6 +42,7 @@
   <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
   <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>/</kbd>: start search
 </pre>
 
 ## Branches Panel (Remotes Tab)
@@ -51,6 +52,7 @@
   <kbd>n</kbd>: add new remote
   <kbd>d</kbd>: remove remote
   <kbd>e</kbd>: edit remote
+  <kbd>/</kbd>: start search
 </pre>
 
 ## Branches Panel (Tags Tab)
@@ -61,6 +63,7 @@
   <kbd>P</kbd>: push tag
   <kbd>n</kbd>: create tag
   <kbd>g</kbd>: bekijk reset opties
+  <kbd>/</kbd>: start search
 </pre>
 
 ## Commit bestanden Panel
@@ -72,6 +75,13 @@
   <kbd>o</kbd>: open bestand
   <kbd>space</kbd>: toggle file included in patch
   <kbd>enter</kbd>: enter file to add selected lines to the patch
+  <kbd>/</kbd>: start search
+</pre>
+
+## Commits Panel
+
+<pre>
+  <kbd>/</kbd>: start search
 </pre>
 
 ## Commits Panel (Commits Tab)
@@ -127,6 +137,7 @@
   <kbd>enter</kbd>: stage individuele hunks/lijnen
   <kbd>f</kbd>: fetch
   <kbd>g</kbd>: view upstream reset options
+  <kbd>/</kbd>: start search
 </pre>
 
 ## Hoofd Panel (Merging)
@@ -184,12 +195,19 @@
   <kbd>C</kbd>: commit veranderingen met de git editor
 </pre>
 
+## Menu Panel
+
+<pre>
+  <kbd>/</kbd>: start search
+</pre>
+
 ## Stash Panel
 
 <pre>
   <kbd>space</kbd>: toepassen
   <kbd>g</kbd>: pop
   <kbd>d</kbd>: drop
+  <kbd>/</kbd>: start search
 </pre>
 
 ## Status Panel
