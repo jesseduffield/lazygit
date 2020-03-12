@@ -198,6 +198,8 @@
 ## Menu Panel
 
 <pre>
+  <kbd>esc</kbd>: close menu
+  <kbd>q</kbd>: close menu
   <kbd>/</kbd>: start search
 </pre>
 
