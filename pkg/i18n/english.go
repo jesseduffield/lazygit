@@ -1027,6 +1027,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "RenameBranchWarning",
 			Other: "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
 		}, &i18n.Message{
+			ID:    "openMenu",
+			Other: "open menu",
+		}, &i18n.Message{
 			ID:    "closeMenu",
 			Other: "close menu",
 		},

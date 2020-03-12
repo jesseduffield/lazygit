@@ -10,6 +10,7 @@
   <kbd>P</kbd>: push
   <kbd>p</kbd>: pull
   <kbd>R</kbd>: verversen
+  <kbd>x</kbd>: open menu
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: voor aangepast commando uit

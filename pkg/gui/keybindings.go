@@ -295,10 +295,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("refresh"),
 		},
 		{
-			ViewName: "",
-			Key:      gui.getKey("universal.optionMenu"),
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleCreateOptionsMenu,
+			ViewName:    "",
+			Key:         gui.getKey("universal.optionMenu"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateOptionsMenu,
+			Description: gui.Tr.SLocalize("openMenu"),
 		},
 		{
 			ViewName: "",
