@@ -24,7 +24,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -278,6 +277,10 @@ func (gui *Gui) nextScreenMode(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.refreshCommitsViewWithSelection(); err != nil {
 		return err
 	}
+	// same with branches
+	if err := gui.refreshBranchesViewWithSelection(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -286,6 +289,10 @@ func (gui *Gui) prevScreenMode(g *gocui.Gui, v *gocui.View) error {
 	gui.State.ScreenMode = utils.PrevIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
 	// commits render differently depending on whether we're in fullscreen more or not
 	if err := gui.refreshCommitsViewWithSelection(); err != nil {
+		return err
+	}
+	// same with branches
+	if err := gui.refreshBranchesViewWithSelection(); err != nil {
 		return err
 	}
 
@@ -386,12 +393,6 @@ func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
 		}
 	}
 	switch v.Name() {
-	case "branches":
-		if v.Context == "local-branches" {
-			// This stops the branches panel from showing the upstream/downstream changes to the selected branch, when it loses focus
-			displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, false, -1)
-			gui.renderDisplayStrings(gui.getBranchesView(), displayStrings)
-		}
 	case "main":
 		// if we have lost focus to a first-class panel, we need to do some cleanup
 		gui.changeMainViewsContext("normal")

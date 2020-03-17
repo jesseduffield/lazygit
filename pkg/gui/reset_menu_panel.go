@@ -36,6 +36,9 @@ func (gui *Gui) createResetMenu(ref string) error {
 				if err := gui.refreshFiles(); err != nil {
 					return err
 				}
+				if err := gui.refreshBranches(gui.g); err != nil {
+					return err
+				}
 				if err := gui.resetOrigin(gui.getCommitsView()); err != nil {
 					return err
 				}

@@ -41,9 +41,6 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	branch := gui.getSelectedBranch()
 	v.FocusPoint(0, gui.State.Panels.Branches.SelectedLine)
-	if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
-		return err
-	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
@@ -52,24 +49,6 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		gui.Log.Error(err)
 	}
 	return nil
-}
-
-func (gui *Gui) RenderSelectedBranchUpstreamDifferences() error {
-	return gui.newTask("branches", func(stop chan struct{}) error {
-		branch := gui.getSelectedBranch()
-		branch.Pushables, branch.Pullables = gui.GitCommand.GetBranchUpstreamDifferenceCount(branch.Name)
-
-		select {
-		case <-stop:
-			return nil
-		default:
-		}
-
-		branchesView := gui.getBranchesView()
-		displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.currentViewName() == "branches", gui.State.Panels.Branches.SelectedLine)
-		gui.renderDisplayStrings(branchesView, displayStrings)
-		return nil
-	})
 }
 
 // gui.refreshStatus is called at the end of this because that's when we can
@@ -106,9 +85,8 @@ func (gui *Gui) renderLocalBranchesWithSelection() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-	if err := gui.RenderSelectedBranchUpstreamDifferences(); err != nil {
-		return err
-	}
+	displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL)
+	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView {
 		if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
 			return err
@@ -375,7 +353,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
 				_ = gui.createErrorPanel(gui.g, err.Error())
 			}
-			_ = gui.RenderSelectedBranchUpstreamDifferences()
+			_ = gui.refreshBranches(gui.g)
 		}
 
 		_ = gui.closeConfirmationPrompt(gui.g, true)
@@ -407,7 +385,13 @@ func (gui *Gui) switchBranchesPanelContext(context string) error {
 
 	branchesView.TabIndex = contextTabIndexMap[context]
 
-	switch context {
+	return gui.refreshBranchesViewWithSelection()
+}
+
+func (gui *Gui) refreshBranchesViewWithSelection() error {
+	branchesView := gui.getBranchesView()
+
+	switch branchesView.Context {
 	case "local-branches":
 		return gui.renderLocalBranchesWithSelection()
 	case "remotes":
@@ -456,4 +440,42 @@ func (gui *Gui) onBranchesPanelSearchSelect(selectedLine int) error {
 		return gui.handleRemoteBranchSelect(gui.g, branchesView)
 	}
 	return nil
+}
+
+func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
+	branch := gui.getSelectedBranch()
+	if branch == nil {
+		return nil
+	}
+
+	promptForNewName := func() error {
+		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("NewBranchNamePrompt")+" "+branch.Name+":", "", func(g *gocui.Gui, v *gocui.View) error {
+			newName := gui.trimmedContent(v)
+			if err := gui.GitCommand.RenameBranch(branch.Name, newName); err != nil {
+				return gui.createErrorPanel(gui.g, err.Error())
+			}
+			// need to checkout so that the branch shows up in our reflog and therefore
+			// doesn't get lost among all the other branches when we switch to something else
+			if err := gui.GitCommand.Checkout(newName, false); err != nil {
+				return gui.createErrorPanel(gui.g, err.Error())
+			}
+
+			return gui.refreshBranches(gui.g)
+		})
+	}
+
+	// I could do an explicit check here for whether the branch is tracking a remote branch
+	// but if we've selected it we'll already know that via Pullables and Pullables.
+	// Bit of a hack but I'm lazy.
+	notTrackingRemote := branch.Pullables == "?"
+	if notTrackingRemote {
+		return promptForNewName()
+	}
+	return gui.createConfirmationPanel(gui.g, v, true, gui.Tr.SLocalize("renameBranch"), gui.Tr.SLocalize("RenameBranchWarning"), func(_g *gocui.Gui, _v *gocui.View) error {
+		return promptForNewName()
+	}, nil)
+}
+
+func (gui *Gui) currentBranch() *commands.Branch {
+	return gui.State.Branches[0]
 }
