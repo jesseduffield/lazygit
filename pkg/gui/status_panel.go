@@ -22,11 +22,20 @@ func (gui *Gui) refreshStatus(g *gocui.Gui) error {
 	// contents end up cleared
 	g.Update(func(*gocui.Gui) error {
 		v.Clear()
+		// TODO: base this off of the current branch
 		state.pushables, state.pullables = gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
 		if err := gui.updateWorkTreeState(); err != nil {
 			return err
 		}
-		status := fmt.Sprintf("↑%s↓%s", state.pushables, state.pullables)
+
+		trackColor := color.FgYellow
+		if state.pushables == "0" && state.pullables == "0" {
+			trackColor = color.FgGreen
+		} else if state.pushables == "?" && state.pullables == "?" {
+			trackColor = color.FgRed
+		}
+
+		status := utils.ColoredString(fmt.Sprintf("↑%s↓%s", state.pushables, state.pullables), trackColor)
 		branches := gui.State.Branches
 
 		if gui.State.WorkingTreeState != "normal" {

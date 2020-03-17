@@ -10,25 +10,38 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetBranchListDisplayStrings(branches []*commands.Branch, isFocused bool, selectedLine int) [][]string {
+func GetBranchListDisplayStrings(branches []*commands.Branch, fullDescription bool) [][]string {
 	lines := make([][]string, len(branches))
 
 	for i := range branches {
-		showUpstreamDifferences := isFocused && i == selectedLine
-		lines[i] = getBranchDisplayStrings(branches[i], showUpstreamDifferences)
+		lines[i] = getBranchDisplayStrings(branches[i], fullDescription)
 	}
 
 	return lines
 }
 
 // getBranchDisplayStrings returns the display string of branch
-func getBranchDisplayStrings(b *commands.Branch, showUpstreamDifferences bool) []string {
+func getBranchDisplayStrings(b *commands.Branch, fullDescription bool) []string {
 	displayName := utils.ColoredString(b.Name, GetBranchColor(b.Name))
-	if showUpstreamDifferences && b.Pushables != "" && b.Pullables != "" {
-		displayName = fmt.Sprintf("%s ↑%s↓%s", displayName, b.Pushables, b.Pullables)
+	if b.Pushables != "" && b.Pullables != "" && b.Pushables != "?" && b.Pullables != "?" {
+		trackColor := color.FgYellow
+		if b.Pushables == "0" && b.Pullables == "0" {
+			trackColor = color.FgGreen
+		}
+		track := utils.ColoredString(fmt.Sprintf("↑%s↓%s", b.Pushables, b.Pullables), trackColor)
+		displayName = fmt.Sprintf("%s %s", displayName, track)
 	}
 
-	return []string{b.Recency, displayName}
+	recencyColor := color.FgCyan
+	if b.Recency == "  *" {
+		recencyColor = color.FgGreen
+	}
+
+	if fullDescription {
+		return []string{utils.ColoredString(b.Recency, recencyColor), displayName, utils.ColoredString(b.UpstreamName, color.FgYellow)}
+	}
+
+	return []string{utils.ColoredString(b.Recency, recencyColor), displayName}
 }
 
 // GetBranchColor branch color

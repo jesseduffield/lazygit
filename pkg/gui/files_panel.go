@@ -399,24 +399,20 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 
 func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 	// if we have no upstream branch we need to set that first
-	_, pullables := gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
-	currentBranchName, err := gui.GitCommand.CurrentBranchName()
-	if err != nil {
-		return err
-	}
-	if pullables == "?" {
+	currentBranch := gui.currentBranch()
+	if currentBranch.Pullables == "?" {
 		// see if we have this branch in our config with an upstream
 		conf, err := gui.GitCommand.Repo.Config()
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 		for branchName, branch := range conf.Branches {
-			if branchName == currentBranchName {
+			if branchName == currentBranch.Name {
 				return gui.pullFiles(v, fmt.Sprintf("%s %s", branch.Remote, branchName))
 			}
 		}
 
-		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranchName, func(g *gocui.Gui, v *gocui.View) error {
+		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(g *gocui.Gui, v *gocui.View) error {
 			upstream := gui.trimmedContent(v)
 			if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
 				errorMessage := err.Error()
@@ -467,28 +463,24 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	// if we have pullables we'll ask if the user wants to force push
-	_, pullables := gui.GitCommand.GetCurrentBranchUpstreamDifferenceCount()
-	currentBranchName, err := gui.GitCommand.CurrentBranchName()
-	if err != nil {
-		return err
-	}
+	currentBranch := gui.currentBranch()
 
-	if pullables == "?" {
+	if currentBranch.Pullables == "?" {
 		// see if we have this branch in our config with an upstream
 		conf, err := gui.GitCommand.Repo.Config()
 		if err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 		for branchName, branch := range conf.Branches {
-			if branchName == currentBranchName {
+			if branchName == currentBranch.Name {
 				return gui.pushWithForceFlag(g, v, false, "", fmt.Sprintf("%s %s", branch.Remote, branchName))
 			}
 		}
 
-		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranchName, func(g *gocui.Gui, v *gocui.View) error {
+		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(g *gocui.Gui, v *gocui.View) error {
 			return gui.pushWithForceFlag(g, v, false, gui.trimmedContent(v), "")
 		})
-	} else if pullables == "0" {
+	} else if currentBranch.Pullables == "0" {
 		return gui.pushWithForceFlag(g, v, false, "", "")
 	}
 	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {

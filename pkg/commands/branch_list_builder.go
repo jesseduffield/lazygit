@@ -7,8 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 
 	"github.com/sirupsen/logrus"
-
-	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 // context:
@@ -36,111 +34,99 @@ func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand) (*BranchLis
 	}, nil
 }
 
-func (b *BranchListBuilder) obtainCurrentBranch() *Branch {
+func (b *BranchListBuilder) obtainCurrentBranchName() string {
 	branchName, err := b.GitCommand.CurrentBranchName()
 	if err != nil {
 		panic(err.Error())
 	}
-
-	return &Branch{Name: strings.TrimSpace(branchName)}
+	return branchName
 }
 
-func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
-	branches := make([]*Branch, 0)
-	// if we directly put this string in RunCommandWithOutput the compiler complains because it thinks it's a format string
-	unescaped := "git reflog --date=relative --pretty='%gd|%gs' --grep-reflog='checkout: moving' HEAD"
-	rawString, err := b.GitCommand.OSCommand.RunCommandWithOutput(unescaped)
-	if err != nil {
-		return branches
-	}
-
-	branchLines := utils.SplitLines(rawString)
-	for _, line := range branchLines {
-		recency, branchName := branchInfoFromLine(line)
-		if branchName == "" {
-			continue
-		}
-		branch := &Branch{Name: branchName, Recency: recency}
-		branches = append(branches, branch)
-	}
-	return uniqueByName(branches)
-}
-
-func (b *BranchListBuilder) obtainSafeBranches() []*Branch {
-	branches := make([]*Branch, 0)
-
-	bIter, err := b.GitCommand.Repo.Branches()
+func (b *BranchListBuilder) obtainBranches() []*Branch {
+	cmdStr := `git branch --format="%(refname:short)|%(upstream:short)|%(upstream:track)"`
+	output, err := b.GitCommand.OSCommand.RunCommandWithOutput(cmdStr)
 	if err != nil {
 		panic(err)
 	}
-	_ = bIter.ForEach(func(b *plumbing.Reference) error {
-		name := b.Name().Short()
-		branches = append(branches, &Branch{Name: name})
-		return nil
-	})
+
+	trimmedOutput := strings.TrimSpace(output)
+	outputLines := strings.Split(trimmedOutput, "\n")
+	branches := make([]*Branch, len(outputLines))
+	for i, line := range outputLines {
+		split := strings.Split(line, SEPARATION_CHAR)
+
+		name := split[0]
+		branches[i] = &Branch{
+			Name:      name,
+			Pullables: "?",
+			Pushables: "?",
+		}
+		upstreamName := split[1]
+		if upstreamName == "" {
+			continue
+		}
+
+		branches[i].UpstreamName = upstreamName
+
+		track := split[2]
+		re := regexp.MustCompile(`ahead (\d+)`)
+		match := re.FindStringSubmatch(track)
+		if len(match) > 1 {
+			branches[i].Pushables = match[1]
+		} else {
+			branches[i].Pushables = "0"
+		}
+
+		re = regexp.MustCompile(`behind (\d+)`)
+		match = re.FindStringSubmatch(track)
+		if len(match) > 1 {
+			branches[i].Pullables = match[1]
+		} else {
+			branches[i].Pullables = "0"
+		}
+	}
 
 	return branches
 }
 
-func (b *BranchListBuilder) appendNewBranches(finalBranches, newBranches, existingBranches []*Branch, included bool) []*Branch {
-	for _, newBranch := range newBranches {
-		if included == branchIncluded(newBranch.Name, existingBranches) {
-			finalBranches = append(finalBranches, newBranch)
-		}
-	}
-	return finalBranches
-}
-
-func sanitisedReflogName(reflogBranch *Branch, safeBranches []*Branch) string {
-	for _, safeBranch := range safeBranches {
-		if strings.EqualFold(safeBranch.Name, reflogBranch.Name) {
-			return safeBranch.Name
-		}
-	}
-	return reflogBranch.Name
-}
-
 // Build the list of branches for the current repo
 func (b *BranchListBuilder) Build() []*Branch {
-	branches := make([]*Branch, 0)
-	head := b.obtainCurrentBranch()
-	safeBranches := b.obtainSafeBranches()
-
+	currentBranchName := b.obtainCurrentBranchName()
+	branches := b.obtainBranches()
 	reflogBranches := b.obtainReflogBranches()
-	for i, reflogBranch := range reflogBranches {
-		reflogBranches[i].Name = sanitisedReflogName(reflogBranch, safeBranches)
+
+	// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
+	branchesWithRecency := make([]*Branch, 0)
+outer:
+	for _, reflogBranch := range reflogBranches {
+		for j, branch := range branches {
+			if strings.EqualFold(reflogBranch.Name, branch.Name) {
+				branch.Recency = reflogBranch.Recency
+				branchesWithRecency = append(branchesWithRecency, branch)
+				branches = append(branches[0:j], branches[j+1:]...)
+				continue outer
+			}
+		}
 	}
 
-	branches = b.appendNewBranches(branches, reflogBranches, safeBranches, true)
-	branches = b.appendNewBranches(branches, safeBranches, branches, false)
+	branches = append(branchesWithRecency, branches...)
 
-	if len(branches) == 0 || branches[0].Name != head.Name {
-		branches = append([]*Branch{head}, branches...)
+	// if it's the current branch we need to pull it up to the top
+	for i, branch := range branches {
+		if branch.Name == currentBranchName {
+			branches = append(branches[0:i], branches[i+1:]...)
+			branches = append([]*Branch{branch}, branches...)
+			break
+		}
+	}
+
+	if len(branches) == 0 || branches[0].Name != currentBranchName {
+		branches = append([]*Branch{{Name: currentBranchName}}, branches...)
 	}
 
 	branches[0].Recency = "  *"
 
 	return branches
-}
-
-func branchIncluded(branchName string, branches []*Branch) bool {
-	for _, existingBranch := range branches {
-		if strings.EqualFold(existingBranch.Name, branchName) {
-			return true
-		}
-	}
-	return false
-}
-
-func uniqueByName(branches []*Branch) []*Branch {
-	finalBranches := make([]*Branch, 0)
-	for _, branch := range branches {
-		if branchIncluded(branch.Name, finalBranches) {
-			continue
-		}
-		finalBranches = append(finalBranches, branch)
-	}
-	return finalBranches
 }
 
 // A line will have the form '10 days ago master' so we need to strip out the
@@ -171,4 +157,31 @@ func abbreviatedTimeUnit(timeUnit string) string {
 		"month":  "m",
 	}
 	return timeUnitMap[timeUnit]
+}
+
+func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
+	branches := make([]*Branch, 0)
+	// if we directly put this string in RunCommandWithOutput the compiler complains because it thinks it's a format string
+	unescaped := "git reflog --date=relative --pretty='%gd|%gs' --grep-reflog='checkout: moving' HEAD"
+	rawString, err := b.GitCommand.OSCommand.RunCommandWithOutput(unescaped)
+	if err != nil {
+		return branches
+	}
+
+	branchNameMap := map[string]bool{}
+
+	branchLines := utils.SplitLines(rawString)
+	for _, line := range branchLines {
+		recency, branchName := branchInfoFromLine(line)
+		if branchName == "" {
+			continue
+		}
+		if _, ok := branchNameMap[branchName]; ok {
+			continue
+		}
+		branchNameMap[branchName] = true
+		branch := &Branch{Name: branchName, Recency: recency}
+		branches = append(branches, branch)
+	}
+	return branches
 }

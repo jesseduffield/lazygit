@@ -343,7 +343,7 @@ func (c *GitCommand) CurrentBranchName() (string, error) {
 		match := re.FindStringSubmatch(output)
 		branchName = match[1]
 	}
-	return utils.TrimTrailingNewline(branchName), nil
+	return strings.TrimSpace(branchName), nil
 }
 
 // DeleteBranch delete branch
@@ -1162,4 +1162,8 @@ func (c *GitCommand) GetPager(width int) string {
 
 func (c *GitCommand) colorArg() string {
 	return c.Config.GetUserConfig().GetString("git.paging.colorArg")
+}
+
+func (c *GitCommand) RenameBranch(oldName string, newName string) error {
+	return c.OSCommand.RunCommand("git branch --move %s %s", oldName, newName)
 }

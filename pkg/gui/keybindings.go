@@ -577,6 +577,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{"local-branches"},
+			Key:         gui.getKey("branches.renameBranch"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleRenameBranch,
+			Description: gui.Tr.SLocalize("viewResetOptions"),
+		},
+		{
+			ViewName:    "branches",
 			Contexts:    []string{"tags"},
 			Key:         gui.getKey("universal.select"),
 			Modifier:    gocui.ModNone,
