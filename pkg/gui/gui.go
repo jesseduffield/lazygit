@@ -213,6 +213,7 @@ type guiState struct {
 	Ptmx                 *os.File
 	PrevMainWidth        int
 	PrevMainHeight       int
+	OldInformation       string
 }
 
 // for now the split view will always be on
@@ -494,6 +495,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
 		information = donate + " " + information
 	}
+	if len(gui.State.CherryPickedCommits) > 0 {
+		information = utils.ColoredString(fmt.Sprintf("%d commits copied", len(gui.State.CherryPickedCommits)), color.FgCyan)
+	}
 
 	minimumHeight := 9
 	minimumWidth := 10
@@ -760,19 +764,24 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	if v, err := g.SetView("information", optionsVersionBoundary-1, height-2, width, height, 0); err != nil {
+	informationView, err := g.SetView("information", optionsVersionBoundary-1, height-2, width, height, 0)
+	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		v.BgColor = gocui.ColorDefault
-		v.FgColor = gocui.ColorGreen
-		v.Frame = false
+		informationView.BgColor = gocui.ColorDefault
+		informationView.FgColor = gocui.ColorGreen
+		informationView.Frame = false
 		gui.renderString(g, "information", information)
 
 		// doing this here because it'll only happen once
 		if err := gui.onInitialViewsCreation(); err != nil {
 			return err
 		}
+	}
+	if gui.State.OldInformation != information {
+		gui.setViewContent(g, informationView, information)
+		gui.State.OldInformation = information
 	}
 
 	if gui.g.CurrentView() == nil {
