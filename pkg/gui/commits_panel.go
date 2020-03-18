@@ -642,3 +642,8 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 
 	return gui.handleOpenSearch(gui.g, v)
 }
+
+func (gui *Gui) handleResetCherryPick(g *gocui.Gui, v *gocui.View) error {
+	gui.State.CherryPickedCommits = []*commands.Commit{}
+	return gui.refreshCommits(gui.g)
+}

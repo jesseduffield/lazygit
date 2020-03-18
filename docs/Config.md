@@ -128,6 +128,7 @@ Default path for the config file:
       tagCommit: 'T'
       toggleDiffCommit: 'i'
       checkoutCommit: '<space>'
+      resetCherryPick: '<c-R>'
     stash:
       popStash: 'g'
     commitFiles:
