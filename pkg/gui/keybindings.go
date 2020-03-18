@@ -575,7 +575,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("branches.renameBranch"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleRenameBranch,
-			Description: gui.Tr.SLocalize("viewResetOptions"),
+			Description: gui.Tr.SLocalize("renameBranch"),
 		},
 		{
 			ViewName:    "branches",
