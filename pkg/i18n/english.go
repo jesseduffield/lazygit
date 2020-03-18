@@ -1032,6 +1032,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "closeMenu",
 			Other: "close menu",
+		}, &i18n.Message{
+			ID:    "resetCherryPick",
+			Other: "reset cherry-picked (copied) commits selection",
 		},
 	)
 }

@@ -360,6 +360,7 @@ keybinding:
     tagCommit: 'T'
     toggleDiffCommit: 'i'
     checkoutCommit: '<space>'
+    resetCherryPick: '<c-R>'
   stash:
     popStash: 'g'
   commitFiles:

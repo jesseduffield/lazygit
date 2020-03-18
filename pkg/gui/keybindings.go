@@ -842,6 +842,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
+			Key:         gui.getKey("commits.resetCherryPick"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleResetCherryPick,
+			Description: gui.Tr.SLocalize("resetCherryPick"),
+		},
+		{
+			ViewName:    "commits",
 			Contexts:    []string{"reflog-commits"},
 			Key:         gui.getKey("universal.select"),
 			Modifier:    gocui.ModNone,
