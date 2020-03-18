@@ -51,8 +51,11 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
-	branches := make([]*Branch, len(outputLines))
-	for i, line := range outputLines {
+	if len(outputLines) <= 1 {
+		return []*Branch{}
+	}
+	branches := make([]*Branch, len(outputLines)-1)
+	for i, line := range outputLines[1:] {
 		split := strings.Split(line, SEPARATION_CHAR)
 
 		name := split[0]
