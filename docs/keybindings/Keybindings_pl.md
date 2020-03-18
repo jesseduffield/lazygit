@@ -30,6 +30,7 @@
   <kbd>i</kbd>: show git-flow options
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: view reset options
+  <kbd>R</kbd>: rename branch
   <kbd>/</kbd>: start search
 </pre>
 
