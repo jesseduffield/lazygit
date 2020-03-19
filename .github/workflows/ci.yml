@@ -20,7 +20,7 @@ jobs:
           fi
       - name: Run tests
         run: |
-          ./tests.sh
+          ./test.sh
       - name: Push on codecov result
         uses: codecov/codecov-action@v1
       - name: Compile project on every platform
