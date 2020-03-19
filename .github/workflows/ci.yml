@@ -1,0 +1,29 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.14
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run gofmt -s
+        run: |
+          if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
+           find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
+           exit 1;
+          fi
+      - name: Run tests
+        run: |
+          ./tests.sh
+      - name: Push on codecov result
+        uses: codecov/codecov-action@v1
+      - name: Compile project on every platform
+        run: |
+          go get github.com/mitchellh/gox
+          gox -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
