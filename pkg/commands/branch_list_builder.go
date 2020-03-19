@@ -43,7 +43,7 @@ func (b *BranchListBuilder) obtainCurrentBranchName() string {
 }
 
 func (b *BranchListBuilder) obtainBranches() []*Branch {
-	cmdStr := `git branch --format="%(refname:short)|%(upstream:short)|%(upstream:track)"`
+	cmdStr := `git branch --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)"`
 	output, err := b.GitCommand.OSCommand.RunCommandWithOutput(cmdStr)
 	if err != nil {
 		panic(err)
@@ -51,27 +51,25 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
-	if len(outputLines) <= 1 {
-		return []*Branch{}
-	}
-	branches := make([]*Branch, len(outputLines)-1)
-	for i, line := range outputLines[1:] {
+	branches := make([]*Branch, len(outputLines))
+	for i, line := range outputLines {
 		split := strings.Split(line, SEPARATION_CHAR)
 
-		name := split[0]
+		name := split[1]
 		branches[i] = &Branch{
 			Name:      name,
 			Pullables: "?",
 			Pushables: "?",
+			Head:      split[0] == "*",
 		}
-		upstreamName := split[1]
+		upstreamName := split[2]
 		if upstreamName == "" {
 			continue
 		}
 
 		branches[i].UpstreamName = upstreamName
 
-		track := split[2]
+		track := split[3]
 		re := regexp.MustCompile(`ahead (\d+)`)
 		match := re.FindStringSubmatch(track)
 		if len(match) > 1 {
@@ -96,6 +94,7 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 func (b *BranchListBuilder) Build() []*Branch {
 	currentBranchName := b.obtainCurrentBranchName()
 	branches := b.obtainBranches()
+
 	reflogBranches := b.obtainReflogBranches()
 
 	// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
@@ -103,6 +102,9 @@ func (b *BranchListBuilder) Build() []*Branch {
 outer:
 	for _, reflogBranch := range reflogBranches {
 		for j, branch := range branches {
+			if branch.Head {
+				continue
+			}
 			if strings.EqualFold(reflogBranch.Name, branch.Name) {
 				branch.Recency = reflogBranch.Recency
 				branchesWithRecency = append(branchesWithRecency, branch)
@@ -114,20 +116,19 @@ outer:
 
 	branches = append(branchesWithRecency, branches...)
 
-	// if it's the current branch we need to pull it up to the top
+	if len(branches) == 0 {
+		branches = append([]*Branch{{Name: currentBranchName}}, branches...)
+	}
+
 	for i, branch := range branches {
-		if branch.Name == currentBranchName {
+		if branch.Head {
+			branch.Name = currentBranchName
+			branch.Recency = "  *"
 			branches = append(branches[0:i], branches[i+1:]...)
 			branches = append([]*Branch{branch}, branches...)
 			break
 		}
 	}
-
-	if len(branches) == 0 || branches[0].Name != currentBranchName {
-		branches = append([]*Branch{{Name: currentBranchName}}, branches...)
-	}
-
-	branches[0].Recency = "  *"
 
 	return branches
 }

@@ -8,4 +8,5 @@ type Branch struct {
 	Pushables    string
 	Pullables    string
 	UpstreamName string
+	Head         bool
 }
