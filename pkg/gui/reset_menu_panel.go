@@ -6,11 +6,39 @@ import (
 	"github.com/fatih/color"
 )
 
+func (gui *Gui) resetToRef(ref string, strength string) error {
+	if err := gui.GitCommand.ResetToCommit(ref, strength); err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
+
+	if err := gui.switchCommitsPanelContext("branch-commits"); err != nil {
+		return err
+	}
+
+	gui.State.Panels.Commits.SelectedLine = 0
+	gui.State.Panels.ReflogCommits.SelectedLine = 0
+
+	if err := gui.refreshCommits(gui.g); err != nil {
+		return err
+	}
+	if err := gui.refreshFiles(); err != nil {
+		return err
+	}
+	if err := gui.refreshBranches(gui.g); err != nil {
+		return err
+	}
+	if err := gui.resetOrigin(gui.getCommitsView()); err != nil {
+		return err
+	}
+
+	return gui.handleCommitSelect(gui.g, gui.getCommitsView())
+}
+
 func (gui *Gui) createResetMenu(ref string) error {
 	strengths := []string{"soft", "mixed", "hard"}
 	menuItems := make([]*menuItem, len(strengths))
 	for i, strength := range strengths {
-		innerStrength := strength
+		strength := strength
 		menuItems[i] = &menuItem{
 			displayStrings: []string{
 				fmt.Sprintf("%s reset", strength),
@@ -19,31 +47,7 @@ func (gui *Gui) createResetMenu(ref string) error {
 				),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetToCommit(ref, innerStrength); err != nil {
-					return gui.createErrorPanel(gui.g, err.Error())
-				}
-
-				if err := gui.switchCommitsPanelContext("branch-commits"); err != nil {
-					return err
-				}
-
-				gui.State.Panels.Commits.SelectedLine = 0
-				gui.State.Panels.ReflogCommits.SelectedLine = 0
-
-				if err := gui.refreshCommits(gui.g); err != nil {
-					return err
-				}
-				if err := gui.refreshFiles(); err != nil {
-					return err
-				}
-				if err := gui.refreshBranches(gui.g); err != nil {
-					return err
-				}
-				if err := gui.resetOrigin(gui.getCommitsView()); err != nil {
-					return err
-				}
-
-				return gui.handleCommitSelect(gui.g, gui.getCommitsView())
+				return gui.resetToRef(ref, strength)
 			},
 		}
 	}

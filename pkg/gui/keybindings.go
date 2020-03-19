@@ -314,6 +314,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.handleCreateOptionsMenu,
 		},
 		{
+			ViewName:    "",
+			Key:         gui.getKey("main.undo"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.reflogUndo,
+			Description: gui.Tr.SLocalize("undoReflog"),
+		},
+		{
 			ViewName:    "status",
 			Key:         gui.getKey("universal.edit"),
 			Modifier:    gocui.ModNone,
