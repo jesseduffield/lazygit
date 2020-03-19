@@ -24,6 +24,7 @@ jobs:
       - name: Push on codecov result
         uses: codecov/codecov-action@v1
       - name: Run golangci-lint
+        continue-on-error: true
         uses: actions-contrib/golangci-lint@v1
       - name: Compile project on every platform
         run: |
