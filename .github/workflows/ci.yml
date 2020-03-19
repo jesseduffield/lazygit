@@ -28,4 +28,4 @@ jobs:
       - name: Compile project on every platform
         run: |
           go get github.com/mitchellh/gox
-          gox -parallel 10 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
+          gox -parallel 4 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
