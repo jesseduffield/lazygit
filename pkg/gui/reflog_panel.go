@@ -1,6 +1,9 @@
 package gui
 
 import (
+	"regexp"
+
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -98,4 +101,56 @@ func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 	commit := gui.getSelectedReflogCommit()
 
 	return gui.createResetMenu(commit.Sha)
+}
+
+type reflogAction struct {
+	regexStr string
+	action   func(match []string, commitSha string, prevCommitSha string) (bool, error)
+}
+
+func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
+	reflogActions := []reflogAction{
+		{
+			regexStr: `^checkout: moving from ([\S]+)`,
+			action: func(match []string, commitSha string, prevCommitSha string) (bool, error) {
+				if len(match) <= 1 {
+					return false, nil
+				}
+				return true, gui.handleCheckoutRef(match[1])
+			},
+		},
+		{
+			regexStr: `^commit|^rebase -i \(start\)`,
+			action: func(match []string, commitSha string, prevCommitSha string) (bool, error) {
+				return true, gui.resetToRef(prevCommitSha, "hard")
+			},
+		},
+	}
+
+	for i, reflogCommit := range gui.State.ReflogCommits {
+		for _, action := range reflogActions {
+			re := regexp.MustCompile(action.regexStr)
+			match := re.FindStringSubmatch(reflogCommit.Name)
+			gui.Log.Warn(action.regexStr)
+			gui.Log.Warn(spew.Sdump(match))
+			if len(match) == 0 {
+				continue
+			}
+			prevCommitSha := ""
+			if len(gui.State.ReflogCommits)-1 >= i+1 {
+				prevCommitSha = gui.State.ReflogCommits[i+1].Sha
+			}
+			gui.Log.Warn(prevCommitSha)
+
+			done, err := action.action(match, reflogCommit.Sha, prevCommitSha)
+			if err != nil {
+				return err
+			}
+			if done {
+				return nil
+			}
+		}
+	}
+
+	return nil
 }
