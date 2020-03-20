@@ -5,13 +5,15 @@ on: push
 jobs:
   ci:
     runs-on: ubuntu-latest
-    container:
-      image: golang:1.14
     env:
       GOFLAGS: -mod=vendor
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14.x
       - name: Format
         run: |
           if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
@@ -24,4 +26,4 @@ jobs:
       - name: Build
         run: |
           go get github.com/mitchellh/gox
-          gox -parallel 4 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
+          $GOBIN/gox -parallel 4 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
