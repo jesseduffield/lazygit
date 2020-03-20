@@ -12,21 +12,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Run gofmt -s
+      - name: Format
         run: |
           if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
            find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
            exit 1;
           fi
-      - name: Run tests
+      - name: Test
         run: |
           ./test.sh
-      - name: Push on codecov result
-        uses: codecov/codecov-action@v1
-      - name: Run golangci-lint
-        continue-on-error: true
-        uses: actions-contrib/golangci-lint@v1
-      - name: Compile project on every platform
+      - name: Build
         run: |
           go get github.com/mitchellh/gox
           gox -parallel 4 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
