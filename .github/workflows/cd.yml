@@ -9,15 +9,15 @@ jobs:
   cd:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Set up Go
+      - name: Setup Go
         uses: actions/setup-go@v1
         with:
           go-version: 1.14.x
-      - name: Run GoReleaser
+      - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v1
         with:
           args: release --rm-dist
@@ -26,7 +26,7 @@ jobs:
       - name: Get tag
         id: tag
         run: echo "::set-output name=tag::${GITHUB_REF##*/}"
-      - name: Bump Homebrew formula
+      - name: Bump Homebrew
         uses: dawidd6/action-homebrew-bump-formula@v1
         with:
           token: ${{secrets.GITHUB_API_TOKEN}}
