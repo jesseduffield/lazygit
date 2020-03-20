@@ -8,22 +8,29 @@ jobs:
     env:
       GOFLAGS: -mod=vendor
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v2
-      - name: Set up Go
+      - name: Setup Go
         uses: actions/setup-go@v1
         with:
           go-version: 1.14.x
-      - name: Format
+      - name: Cache build
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/go-build
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}
+          restore-keys: |
+            ${{runner.os}}-go-
+      - name: Format code
         run: |
           if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
            find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
            exit 1;
           fi
-      - name: Test
+      - name: Test code
         run: |
           ./test.sh
-      - name: Build
+      - name: Build binaries
         run: |
           go get github.com/mitchellh/gox
           $GOBIN/gox -parallel 4 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
