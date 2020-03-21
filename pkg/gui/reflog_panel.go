@@ -85,7 +85,7 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	err := gui.createConfirmationPanel(g, gui.getCommitsView(), true, gui.Tr.SLocalize("checkoutCommit"), gui.Tr.SLocalize("SureCheckoutThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutRef(commit.Sha)
+		return gui.handleCheckoutRef(commit.Sha, nil)
 	}, nil)
 	if err != nil {
 		return err
@@ -104,29 +104,58 @@ func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 
 type reflogAction struct {
 	regexStr string
-	action   func(match []string, commitSha string, prevCommitSha string) (bool, error)
+	action   func(match []string, commitSha string, prevCommitSha string, onDone func()) (bool, error)
+}
+
+func (gui *Gui) reflogKey(reflogCommit *commands.Commit) string {
+	return reflogCommit.Date + reflogCommit.Name
+}
+
+func (gui *Gui) idxOfUndoReflogKey(key string) int {
+	for i, reflogCommit := range gui.State.ReflogCommits {
+		if gui.reflogKey(reflogCommit) == key {
+			return i
+		}
+	}
+	return -1
+}
+
+func (gui *Gui) setUndoReflogKey(key string) {
+	gui.State.Undo.ReflogKey = key
+	// adding one because this is called before we actually refresh the reflog on our end
+	// so the index will soon change.
+	gui.State.Undo.ReflogIdx = gui.idxOfUndoReflogKey(key) + 1
 }
 
 func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
+	reflogCommits := gui.State.ReflogCommits
+
 	reflogActions := []reflogAction{
 		{
 			regexStr: `^checkout: moving from ([\S]+)`,
-			action: func(match []string, commitSha string, prevCommitSha string) (bool, error) {
+			action: func(match []string, commitSha string, prevCommitSha string, onDone func()) (bool, error) {
 				if len(match) <= 1 {
 					return false, nil
 				}
-				return true, gui.handleCheckoutRef(match[1])
+				return true, gui.handleCheckoutRef(match[1], onDone)
 			},
 		},
 		{
 			regexStr: `^commit|^rebase -i \(start\)`,
-			action: func(match []string, commitSha string, prevCommitSha string) (bool, error) {
-				return true, gui.handleHardResetWithAutoStash(prevCommitSha)
+			action: func(match []string, commitSha string, prevCommitSha string, onDone func()) (bool, error) {
+				return true, gui.handleHardResetWithAutoStash(prevCommitSha, onDone)
 			},
 		},
 	}
 
-	for i, reflogCommit := range gui.State.ReflogCommits {
+	// if the index of the previous reflog entry has changed, we need to start from the beginning, because it means there's been user input.
+	startIndex := gui.State.Undo.ReflogIdx
+	if gui.idxOfUndoReflogKey(gui.State.Undo.ReflogKey) != gui.State.Undo.ReflogIdx {
+		startIndex = 0
+	}
+
+	for offsetIdx, reflogCommit := range reflogCommits[startIndex:] {
+		i := offsetIdx + startIndex
 		for _, action := range reflogActions {
 			re := regexp.MustCompile(action.regexStr)
 			match := re.FindStringSubmatch(reflogCommit.Name)
@@ -134,24 +163,29 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 				continue
 			}
 			prevCommitSha := ""
-			if len(gui.State.ReflogCommits)-1 >= i+1 {
-				prevCommitSha = gui.State.ReflogCommits[i+1].Sha
+			if len(reflogCommits)-1 >= i+1 {
+				prevCommitSha = reflogCommits[i+1].Sha
 			}
 
-			done, err := action.action(match, reflogCommit.Sha, prevCommitSha)
-			if err != nil {
-				return err
+			nextKey := gui.reflogKey(gui.State.ReflogCommits[i+1])
+			onDone := func() {
+				gui.setUndoReflogKey(nextKey)
 			}
-			if done {
-				return nil
+
+			isMatchingAction, err := action.action(match, reflogCommit.Sha, prevCommitSha, onDone)
+			if !isMatchingAction {
+				continue
 			}
+
+			return err
 		}
 	}
 
 	return nil
 }
 
-func (gui *Gui) handleHardResetWithAutoStash(commitSha string) error {
+// only to be used in the undo flow for now
+func (gui *Gui) handleHardResetWithAutoStash(commitSha string, onDone func()) error {
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them
 	dirtyWorkingTree := false
 	for _, file := range gui.State.Files {
@@ -170,6 +204,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string) error {
 			if err := gui.resetToRef(commitSha, "hard"); err != nil {
 				return gui.createErrorPanel(g, err.Error())
 			}
+			onDone()
 
 			if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
 				if err := gui.refreshSidePanels(g); err != nil {
@@ -184,6 +219,6 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string) error {
 	if err := gui.resetToRef(commitSha, "hard"); err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
-
+	onDone()
 	return gui.refreshSidePanels(gui.g)
 }

@@ -106,7 +106,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
 	branch := gui.getSelectedBranch()
-	return gui.handleCheckoutRef(branch.Name)
+	return gui.handleCheckoutRef(branch.Name, nil)
 }
 
 func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error {
@@ -143,7 +143,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	}, nil)
 }
 
-func (gui *Gui) handleCheckoutRef(ref string) error {
+func (gui *Gui) handleCheckoutRef(ref string, onDone func()) error {
 	if err := gui.GitCommand.Checkout(ref, false); err != nil {
 		// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
@@ -155,6 +155,9 @@ func (gui *Gui) handleCheckoutRef(ref string) error {
 				}
 				if err := gui.GitCommand.Checkout(ref, false); err != nil {
 					return gui.createErrorPanel(g, err.Error())
+				}
+				if onDone != nil {
+					onDone()
 				}
 
 				// checkout successful so we select the new branch
@@ -175,6 +178,10 @@ func (gui *Gui) handleCheckoutRef(ref string) error {
 		}
 	}
 
+	if onDone != nil {
+		onDone()
+	}
+
 	gui.State.Panels.Branches.SelectedLine = 0
 	gui.State.Panels.Commits.SelectedLine = 0
 	return gui.refreshSidePanels(gui.g)
@@ -182,7 +189,7 @@ func (gui *Gui) handleCheckoutRef(ref string) error {
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutRef(gui.trimmedContent(v))
+		return gui.handleCheckoutRef(gui.trimmedContent(v), nil)
 	})
 }
 
