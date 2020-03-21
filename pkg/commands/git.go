@@ -1106,15 +1106,15 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 }
 
 func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git reflog --abbrev=20")
+	output, err := c.OSCommand.RunCommandWithOutput("git reflog --abbrev=20 --date=iso")
 	if err != nil {
 		// assume error means we have no reflog
 		return []*Commit{}, nil
 	}
 
 	lines := strings.Split(strings.TrimSpace(output), "\n")
-	commits := make([]*Commit, 0)
-	re := regexp.MustCompile(`(\w+).*HEAD@\{\d+\}: (.*)`)
+	commits := make([]*Commit, 0, len(lines))
+	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 	for _, line := range lines {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {
@@ -1123,7 +1123,8 @@ func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
 
 		commit := &Commit{
 			Sha:    match[1],
-			Name:   match[2],
+			Name:   match[3],
+			Date:   match[2],
 			Status: "reflog",
 		}
 

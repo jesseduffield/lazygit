@@ -81,7 +81,6 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			},
 			func() {
 				gui.g.Update(func(*gocui.Gui) error {
-					gui.Log.Warn("updating view")
 					return nil
 				})
 			})
