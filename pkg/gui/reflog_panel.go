@@ -137,6 +137,8 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 		startIndex = 0
 	}
 
+	envVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
+
 	reflogActions := []reflogAction{
 		{
 			regexStr: `^checkout: moving from ([\S]+)`,
@@ -147,7 +149,7 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 				return true, gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{
 					OnDone:        onDone,
 					WaitingStatus: gui.Tr.SLocalize("UndoingStatus"),
-					EnvVars:       []string{"GIT_REFLOG_ACTION=[lazygit]"},
+					EnvVars:       envVars,
 				},
 				)
 			},
@@ -155,7 +157,7 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 		{
 			regexStr: `^commit|^rebase -i \(start\)|^reset: moving to|^pull`,
 			action: func(match []string, commitSha string, onDone func()) (bool, error) {
-				return true, gui.handleHardResetWithAutoStash(commitSha, onDone)
+				return true, gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{OnDone: onDone, EnvVars: envVars})
 			},
 		},
 	}
@@ -200,6 +202,8 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	envVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
+
 	reflogActions := []reflogAction{
 		{
 			regexStr: `^checkout: moving from [\S]+ to ([\S]+)`,
@@ -210,7 +214,7 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 				return true, gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{
 					OnDone:        onDone,
 					WaitingStatus: gui.Tr.SLocalize("RedoingStatus"),
-					EnvVars:       []string{"GIT_REFLOG_ACTION=[lazygit]"},
+					EnvVars:       envVars,
 				},
 				)
 			},
@@ -218,7 +222,7 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 		{
 			regexStr: `^commit|^rebase -i \(start\)|^reset: moving to|^pull`,
 			action: func(match []string, commitSha string, onDone func()) (bool, error) {
-				return true, gui.handleHardResetWithAutoStash(commitSha, onDone)
+				return true, gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{OnDone: onDone, EnvVars: envVars})
 			},
 		},
 	}
@@ -251,8 +255,13 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+type handleHardResetWithAutoStashOptions struct {
+	OnDone  func()
+	EnvVars []string
+}
+
 // only to be used in the undo flow for now
-func (gui *Gui) handleHardResetWithAutoStash(commitSha string, onDone func()) error {
+func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHardResetWithAutoStashOptions) error {
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them
 	dirtyWorkingTree := false
 	for _, file := range gui.State.Files {
@@ -263,10 +272,10 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, onDone func()) er
 	}
 
 	reset := func() error {
-		if err := gui.resetToRef(commitSha, "hard", commands.RunCommandOptions{EnvVars: []string{"GIT_REFLOG_ACTION=[lazygit]"}}); err != nil {
+		if err := gui.resetToRef(commitSha, "hard", commands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		onDone()
+		options.OnDone()
 		return nil
 	}
 
