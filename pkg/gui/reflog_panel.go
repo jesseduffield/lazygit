@@ -85,7 +85,7 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	err := gui.createConfirmationPanel(g, gui.getCommitsView(), true, gui.Tr.SLocalize("checkoutCommit"), gui.Tr.SLocalize("SureCheckoutThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutRef(commit.Sha, nil)
+		return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 	}, nil)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 				if len(match) <= 1 {
 					return false, nil
 				}
-				return true, gui.handleCheckoutRef(match[1], onDone)
+				return true, gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{onDone: onDone, waitingStatus: gui.Tr.SLocalize("UndoingStatus")})
 			},
 		},
 		{
@@ -198,27 +198,31 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, onDone func()) er
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-			if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + commitSha); err != nil {
-				return gui.createErrorPanel(g, err.Error())
-			}
-			if err := gui.resetToRef(commitSha, "hard"); err != nil {
-				return gui.createErrorPanel(g, err.Error())
-			}
-			onDone()
-
-			if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
-				if err := gui.refreshSidePanels(g); err != nil {
-					return err
+			return gui.WithWaitingStatus(gui.Tr.SLocalize("UndoingStatus"), func() error {
+				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + commitSha); err != nil {
+					return gui.createErrorPanel(g, err.Error())
 				}
-				return gui.createErrorPanel(g, err.Error())
-			}
-			return gui.refreshSidePanels(g)
+				if err := gui.resetToRef(commitSha, "hard"); err != nil {
+					return gui.createErrorPanel(g, err.Error())
+				}
+				onDone()
+
+				if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
+					if err := gui.refreshSidePanels(g); err != nil {
+						return err
+					}
+					return gui.createErrorPanel(g, err.Error())
+				}
+				return gui.refreshSidePanels(g)
+			})
 		}, nil)
 	}
 
-	if err := gui.resetToRef(commitSha, "hard"); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
-	}
-	onDone()
-	return gui.refreshSidePanels(gui.g)
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("UndoingStatus"), func() error {
+		if err := gui.resetToRef(commitSha, "hard"); err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+		onDone()
+		return gui.refreshSidePanels(gui.g)
+	})
 }

@@ -745,6 +745,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CherryPickingStatus",
 			Other: "cherry-picking",
 		}, &i18n.Message{
+			ID:    "UndoingStatus",
+			Other: "undoing",
+		}, &i18n.Message{
+			ID:    "CheckingOutStatus",
+			Other: "checking out",
+		}, &i18n.Message{
 			ID:    "CommitFiles",
 			Other: "Commit files",
 		}, &i18n.Message{
