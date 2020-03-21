@@ -628,7 +628,7 @@ func TestGitCommandResetToCommit(t *testing.T) {
 		return exec.Command("echo")
 	}
 
-	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard"))
+	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", RunCommandOptions{}))
 }
 
 // TestGitCommandNewBranch is a function.
@@ -1439,7 +1439,7 @@ func TestGitCommandCheckout(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.Checkout("test", s.force))
+			s.test(gitCmd.Checkout("test", CheckoutOptions{Force: s.force}))
 		})
 	}
 }
