@@ -104,7 +104,7 @@ func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 
 type reflogAction struct {
 	regexStr string
-	action   func(match []string, commitSha string, prevCommitSha string, onDone func()) (bool, error)
+	action   func(match []string, commitSha string, onDone func()) (bool, error)
 }
 
 func (gui *Gui) reflogKey(reflogCommit *commands.Commit) string {
@@ -130,10 +130,17 @@ func (gui *Gui) setUndoReflogKey(key string) {
 func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 	reflogCommits := gui.State.ReflogCommits
 
+	// if the index of the previous reflog entry has changed, we need to start from the beginning, because it means there's been user input.
+	startIndex := gui.State.Undo.ReflogIdx
+	if gui.idxOfUndoReflogKey(gui.State.Undo.ReflogKey) != gui.State.Undo.ReflogIdx {
+		gui.State.Undo.UndoCount = 0
+		startIndex = 0
+	}
+
 	reflogActions := []reflogAction{
 		{
 			regexStr: `^checkout: moving from ([\S]+)`,
-			action: func(match []string, commitSha string, prevCommitSha string, onDone func()) (bool, error) {
+			action: func(match []string, commitSha string, onDone func()) (bool, error) {
 				if len(match) <= 1 {
 					return false, nil
 				}
@@ -141,17 +148,11 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 			},
 		},
 		{
-			regexStr: `^commit|^rebase -i \(start\)`,
-			action: func(match []string, commitSha string, prevCommitSha string, onDone func()) (bool, error) {
-				return true, gui.handleHardResetWithAutoStash(prevCommitSha, onDone)
+			regexStr: `^commit|^rebase -i \(start\)|^reset: moving to|^pull`,
+			action: func(match []string, commitSha string, onDone func()) (bool, error) {
+				return true, gui.handleHardResetWithAutoStash(commitSha, onDone)
 			},
 		},
-	}
-
-	// if the index of the previous reflog entry has changed, we need to start from the beginning, because it means there's been user input.
-	startIndex := gui.State.Undo.ReflogIdx
-	if gui.idxOfUndoReflogKey(gui.State.Undo.ReflogKey) != gui.State.Undo.ReflogIdx {
-		startIndex = 0
 	}
 
 	for offsetIdx, reflogCommit := range reflogCommits[startIndex:] {
@@ -167,12 +168,68 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 				prevCommitSha = reflogCommits[i+1].Sha
 			}
 
-			nextKey := gui.reflogKey(gui.State.ReflogCommits[i+1])
+			nextKey := gui.reflogKey(reflogCommits[i+1])
 			onDone := func() {
 				gui.setUndoReflogKey(nextKey)
+				gui.State.Undo.UndoCount++
 			}
 
-			isMatchingAction, err := action.action(match, reflogCommit.Sha, prevCommitSha, onDone)
+			isMatchingAction, err := action.action(match, prevCommitSha, onDone)
+			if !isMatchingAction {
+				continue
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
+	reflogCommits := gui.State.ReflogCommits
+
+	// if the index of the previous reflog entry has changed there is nothing to redo because there's been a user action
+	startIndex := gui.State.Undo.ReflogIdx
+	if gui.idxOfUndoReflogKey(gui.State.Undo.ReflogKey) != gui.State.Undo.ReflogIdx || startIndex == 0 || gui.State.Undo.UndoCount == 0 {
+		return nil
+	}
+
+	reflogActions := []reflogAction{
+		{
+			regexStr: `^checkout: moving from [\S]+ to ([\S]+)`,
+			action: func(match []string, commitSha string, onDone func()) (bool, error) {
+				if len(match) <= 1 {
+					return false, nil
+				}
+				return true, gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{onDone: onDone, waitingStatus: gui.Tr.SLocalize("RedoingStatus")})
+			},
+		},
+		{
+			regexStr: `^commit|^rebase -i \(start\)|^reset: moving to|^pull`,
+			action: func(match []string, commitSha string, onDone func()) (bool, error) {
+				return true, gui.handleHardResetWithAutoStash(commitSha, onDone)
+			},
+		},
+	}
+
+	for i := startIndex - 1; i > 0; i++ {
+		reflogCommit := reflogCommits[i]
+
+		for _, action := range reflogActions {
+			re := regexp.MustCompile(action.regexStr)
+			match := re.FindStringSubmatch(reflogCommit.Name)
+			if len(match) == 0 {
+				continue
+			}
+
+			prevKey := gui.reflogKey(reflogCommits[i-1])
+			onDone := func() {
+				gui.setUndoReflogKey(prevKey)
+				gui.State.Undo.UndoCount--
+			}
+
+			isMatchingAction, err := action.action(match, reflogCommit.Sha, onDone)
 			if !isMatchingAction {
 				continue
 			}
