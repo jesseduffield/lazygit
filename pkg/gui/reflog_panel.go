@@ -67,7 +67,7 @@ func (gui *Gui) renderReflogCommitsWithSelection() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.ReflogCommits))
-	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.ReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL)
+	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.ReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL)
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "reflog-commits" {
 		if err := gui.handleReflogCommitSelect(gui.g, commitsView); err != nil {
