@@ -110,24 +110,22 @@ const (
 
 type reflogAction struct {
 	regexStr string
-	action   func(match []string, commitSha string) error
+	action   func(match []string, commitSha string, waitingStatus string, envVars []string, isUndo bool) error
 	kind     int
 }
 
-func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
-	reflogCommits := gui.State.ReflogCommits
-
-	envVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
-
-	// first step, work out what it is, second step, do an action if necessary
-
-	reflogActions := []reflogAction{
+func (gui *Gui) reflogActions() []reflogAction {
+	return []reflogAction{
 		{
-			regexStr: `^checkout: moving from ([\S]+)`,
+			regexStr: `^checkout: moving from ([\S]+) to ([\S]+)`,
 			kind:     USER_ACTION,
-			action: func(match []string, commitSha string) error {
-				return gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{
-					WaitingStatus: gui.Tr.SLocalize("UndoingStatus"),
+			action: func(match []string, commitSha string, waitingStatus string, envVars []string, isUndo bool) error {
+				branchName := match[2]
+				if isUndo {
+					branchName = match[1]
+				}
+				return gui.handleCheckoutRef(branchName, handleCheckoutRefOptions{
+					WaitingStatus: waitingStatus,
 					EnvVars:       envVars,
 				},
 				)
@@ -136,8 +134,8 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 		{
 			regexStr: `^commit|^rebase -i \(start\)|^reset: moving to|^pull`,
 			kind:     USER_ACTION,
-			action: func(match []string, commitSha string) error {
-				return gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{EnvVars: envVars})
+			action: func(match []string, commitSha string, waitingStatus string, envVars []string, isUndo bool) error {
+				return gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{EnvVars: envVars, WaitingStatus: waitingStatus})
 			},
 		},
 		{
@@ -149,72 +147,40 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 			kind:     REDO,
 		},
 	}
+}
 
-	counter := 0
-	for i, reflogCommit := range reflogCommits {
-		for _, action := range reflogActions {
-			re := regexp.MustCompile(action.regexStr)
-			match := re.FindStringSubmatch(reflogCommit.Name)
-			if len(match) == 0 {
-				continue
+func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
+	return gui.iterateUserActions(func(match []string, reflogCommits []*commands.Commit, reflogIdx int, action reflogAction, counter int) (bool, error) {
+		if counter == -1 {
+			prevCommitSha := ""
+			if len(reflogCommits)-1 >= reflogIdx+1 {
+				prevCommitSha = reflogCommits[reflogIdx+1].Sha
 			}
-
-			switch action.kind {
-			case UNDO:
-				counter++
-			case REDO:
-				counter--
-			case USER_ACTION:
-				counter--
-				if counter == -1 {
-					prevCommitSha := ""
-					if len(reflogCommits)-1 >= i+1 {
-						prevCommitSha = reflogCommits[i+1].Sha
-					}
-					return action.action(match, prevCommitSha)
-				}
-			}
+			return true, action.action(match, prevCommitSha, gui.Tr.SLocalize("UndoingStatus"), []string{"GIT_REFLOG_ACTION=[lazygit undo]"}, true)
+		} else {
+			return false, nil
 		}
-	}
-
-	return nil
+	})
 }
 
 func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
+	return gui.iterateUserActions(func(match []string, reflogCommits []*commands.Commit, reflogIdx int, action reflogAction, counter int) (bool, error) {
+		if counter == 0 {
+			return true, action.action(match, reflogCommits[reflogIdx].Sha, gui.Tr.SLocalize("RedoingStatus"), []string{"GIT_REFLOG_ACTION=[lazygit redo]"}, false)
+		} else if counter < 0 {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	})
+}
+
+func (gui *Gui) iterateUserActions(onUserAction func(match []string, reflogCommits []*commands.Commit, reflogIdx int, action reflogAction, counter int) (bool, error)) error {
 	reflogCommits := gui.State.ReflogCommits
 
-	envVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
-
-	reflogActions := []reflogAction{
-		{
-			regexStr: `^checkout: moving from [\S]+ to ([\S]+)`,
-			action: func(match []string, commitSha string) error {
-				return gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{
-					WaitingStatus: gui.Tr.SLocalize("RedoingStatus"),
-					EnvVars:       envVars,
-				},
-				)
-			},
-		},
-		{
-			regexStr: `^commit|^rebase -i \(start\)|^reset: moving to|^pull`,
-			action: func(match []string, commitSha string) error {
-				return gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{EnvVars: envVars})
-			},
-		},
-		{
-			regexStr: `^\[lazygit undo\]`,
-			kind:     UNDO,
-		},
-		{
-			regexStr: `^\[lazygit redo\]`,
-			kind:     REDO,
-		},
-	}
-
 	counter := 0
-	for _, reflogCommit := range reflogCommits {
-		for _, action := range reflogActions {
+	for i, reflogCommit := range reflogCommits {
+		for _, action := range gui.reflogActions() {
 			re := regexp.MustCompile(action.regexStr)
 			match := re.FindStringSubmatch(reflogCommit.Name)
 			if len(match) == 0 {
@@ -228,20 +194,22 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 				counter--
 			case USER_ACTION:
 				counter--
-				if counter == 0 {
-					return action.action(match, reflogCommit.Sha)
-				} else if counter < 0 {
+				shouldReturn, err := onUserAction(match, reflogCommits, i, action, counter)
+				if err != nil {
+					return err
+				}
+				if shouldReturn {
 					return nil
 				}
 			}
 		}
 	}
-
 	return nil
 }
 
 type handleHardResetWithAutoStashOptions struct {
-	EnvVars []string
+	WaitingStatus string
+	EnvVars       []string
 }
 
 // only to be used in the undo flow for now
@@ -265,7 +233,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-			return gui.WithWaitingStatus(gui.Tr.SLocalize("UndoingStatus"), func() error {
+			return gui.WithWaitingStatus(options.WaitingStatus, func() error {
 				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + commitSha); err != nil {
 					return gui.createErrorPanel(g, err.Error())
 				}
@@ -284,7 +252,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 		}, nil)
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("UndoingStatus"), func() error {
+	return gui.WithWaitingStatus(options.WaitingStatus, func() error {
 		if err := reset(); err != nil {
 			return err
 		}
