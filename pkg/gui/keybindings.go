@@ -1352,7 +1352,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("main.undo"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handlePopFileSnapshot,
-			Description: gui.Tr.SLocalize("Undo"),
+			Description: gui.Tr.SLocalize("undo"),
 		},
 		{
 			ViewName: "branches",
