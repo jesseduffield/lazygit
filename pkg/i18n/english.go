@@ -364,6 +364,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "undoReflog",
 			Other: "undo (via reflog) (experimental)",
 		}, &i18n.Message{
+			ID:    "redoReflog",
+			Other: "redo (via reflog) (experimental)",
+		}, &i18n.Message{
 			ID:    "pop",
 			Other: "pop",
 		}, &i18n.Message{
@@ -747,6 +750,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "UndoingStatus",
 			Other: "undoing",
+		}, &i18n.Message{
+			ID:    "RedoingStatus",
+			Other: "redoing",
 		}, &i18n.Message{
 			ID:    "CheckingOutStatus",
 			Other: "checking out",

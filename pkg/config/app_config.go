@@ -314,6 +314,8 @@ keybinding:
     prevTab: '['
     nextScreenMode: '+'
     prevScreenMode: '_'
+    undo: 'z'
+    redo: '<c-z>'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'
@@ -370,7 +372,6 @@ keybinding:
     toggleDragSelect-alt: 'V'
     toggleSelectHunk: 'a'
     pickBothHunks: 'b'
-    undo: 'z'
 `)
 }
 

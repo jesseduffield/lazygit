@@ -315,10 +315,17 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "",
-			Key:         gui.getKey("main.undo"),
+			Key:         gui.getKey("universal.undo"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.reflogUndo,
 			Description: gui.Tr.SLocalize("undoReflog"),
+		},
+		{
+			ViewName:    "",
+			Key:         gui.getKey("universal.redo"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.reflogRedo,
+			Description: gui.Tr.SLocalize("redoReflog"),
 		},
 		{
 			ViewName:    "status",
@@ -1349,7 +1356,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "main",
 			Contexts:    []string{"merging"},
-			Key:         gui.getKey("main.undo"),
+			Key:         gui.getKey("universal.undo"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handlePopFileSnapshot,
 			Description: gui.Tr.SLocalize("undo"),

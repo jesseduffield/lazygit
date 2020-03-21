@@ -255,7 +255,7 @@ func (gui *Gui) renderMergeOptions() error {
 		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock")): gui.Tr.SLocalize("navigateConflicts"),
 		gui.getKeyDisplay("universal.select"):   gui.Tr.SLocalize("pickHunk"),
 		gui.getKeyDisplay("main.pickBothHunks"): gui.Tr.SLocalize("pickBothHunks"),
-		gui.getKeyDisplay("main.undo"):          gui.Tr.SLocalize("undo"),
+		gui.getKeyDisplay("universal.undo"):     gui.Tr.SLocalize("undo"),
 	})
 }
 

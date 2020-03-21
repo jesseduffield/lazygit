@@ -229,6 +229,9 @@ type guiState struct {
 type UndoState struct {
 	ReflogKey string
 	ReflogIdx int
+	// this is the index of the most recent reflog entry that the user initiated themselves
+	// (as opposed to being created by an undo or redo action)
+	UndoCount int
 }
 
 // for now the split view will always be on
