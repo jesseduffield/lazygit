@@ -64,6 +64,22 @@ func (c *OSCommand) SetBeforeExecuteCmd(cmd func(*exec.Cmd)) {
 	c.beforeExecuteCmd = cmd
 }
 
+type RunCommandOptions struct {
+	EnvVars []string
+}
+
+func (c *OSCommand) RunCommandWithOutputWithOptions(command string, options RunCommandOptions) (string, error) {
+	c.Log.WithField("command", command).Info("RunCommand")
+	cmd := c.ExecutableFromString(command)
+	cmd.Env = append(cmd.Env, options.EnvVars...)
+	return sanitisedCommandOutput(cmd.CombinedOutput())
+}
+
+func (c *OSCommand) RunCommandWithOptions(command string, options RunCommandOptions) error {
+	_, err := c.RunCommandWithOutputWithOptions(command, options)
+	return err
+}
+
 // RunCommandWithOutput wrapper around commands returning their output and error
 // NOTE: If you don't pass any formatArgs we'll just use the command directly,
 // however there's a bizarre compiler error/warning when you pass in a formatString
