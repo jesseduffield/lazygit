@@ -540,7 +540,7 @@ func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.createConfirmationPanel(g, gui.getCommitsView(), true, gui.Tr.SLocalize("checkoutCommit"), gui.Tr.SLocalize("SureCheckoutThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutRef(commit.Sha, nil)
+		return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 	}, nil)
 }
 

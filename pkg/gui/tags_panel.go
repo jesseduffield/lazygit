@@ -81,7 +81,7 @@ func (gui *Gui) handleCheckoutTag(g *gocui.Gui, v *gocui.View) error {
 	if tag == nil {
 		return nil
 	}
-	if err := gui.handleCheckoutRef(tag.Name, nil); err != nil {
+	if err := gui.handleCheckoutRef(tag.Name, handleCheckoutRefOptions{}); err != nil {
 		return err
 	}
 	return gui.switchBranchesPanelContext("local-branches")

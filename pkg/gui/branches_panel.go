@@ -106,7 +106,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
 	branch := gui.getSelectedBranch()
-	return gui.handleCheckoutRef(branch.Name, nil)
+	return gui.handleCheckoutRef(branch.Name, handleCheckoutRefOptions{})
 }
 
 func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error {
@@ -143,13 +143,25 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	}, nil)
 }
 
-func (gui *Gui) handleCheckoutRef(ref string, onDone func()) error {
+type handleCheckoutRefOptions struct {
+	onDone        func()
+	waitingStatus string
+}
+
+func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) error {
+	onDone := options.onDone
+	waitingStatus := options.waitingStatus
+	if waitingStatus == "" {
+		waitingStatus = gui.Tr.SLocalize("CheckingOutStatus")
+	}
+
 	if err := gui.GitCommand.Checkout(ref, false); err != nil {
 		// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
 		if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 			// offer to autostash changes
 			return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+
 				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + ref); err != nil {
 					return gui.createErrorPanel(g, err.Error())
 				}
@@ -189,7 +201,7 @@ func (gui *Gui) handleCheckoutRef(ref string, onDone func()) error {
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutRef(gui.trimmedContent(v), nil)
+		return gui.handleCheckoutRef(gui.trimmedContent(v), handleCheckoutRefOptions{})
 	})
 }
 
