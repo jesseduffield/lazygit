@@ -214,24 +214,6 @@ type guiState struct {
 	PrevMainWidth        int
 	PrevMainHeight       int
 	OldInformation       string
-
-	Undo UndoState
-}
-
-// we facilitate 'undo' actions via parsing the reflog and doing the reverse
-// of the most recent entry. In order to to multiple undo's in a row we need to
-// keep track of where we are in the reflog. We do that via a key which is the
-// concatenation of the reflog's timestamp and message.
-// We also store the index of that reflog entry so that if we end up with a
-// different entry at that index we know the user must have done something
-// themselves (e.g. checked out a branch) to cause new reflog entries to be created
-// meaning we can reset the undo state.
-type UndoState struct {
-	ReflogKey string
-	ReflogIdx int
-	// this is the index of the most recent reflog entry that the user initiated themselves
-	// (as opposed to being created by an undo or redo action)
-	UndoCount int
 }
 
 // for now the split view will always be on

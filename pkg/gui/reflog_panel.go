@@ -102,52 +102,31 @@ func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 	return gui.createResetMenu(commit.Sha)
 }
 
+const (
+	USER_ACTION = iota
+	UNDO
+	REDO
+)
+
 type reflogAction struct {
 	regexStr string
-	action   func(match []string, commitSha string, onDone func()) (bool, error)
-}
-
-func (gui *Gui) reflogKey(reflogCommit *commands.Commit) string {
-	return reflogCommit.Date + reflogCommit.Name
-}
-
-func (gui *Gui) idxOfUndoReflogKey(key string) int {
-	for i, reflogCommit := range gui.State.ReflogCommits {
-		if gui.reflogKey(reflogCommit) == key {
-			return i
-		}
-	}
-	return -1
-}
-
-func (gui *Gui) setUndoReflogKey(key string) {
-	gui.State.Undo.ReflogKey = key
-	// adding one because this is called before we actually refresh the reflog on our end
-	// so the index will soon change.
-	gui.State.Undo.ReflogIdx = gui.idxOfUndoReflogKey(key) + 1
+	action   func(match []string, commitSha string) error
+	kind     int
 }
 
 func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 	reflogCommits := gui.State.ReflogCommits
 
-	// if the index of the previous reflog entry has changed, we need to start from the beginning, because it means there's been user input.
-	startIndex := gui.State.Undo.ReflogIdx
-	if gui.idxOfUndoReflogKey(gui.State.Undo.ReflogKey) != gui.State.Undo.ReflogIdx {
-		gui.State.Undo.UndoCount = 0
-		startIndex = 0
-	}
-
 	envVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
+
+	// first step, work out what it is, second step, do an action if necessary
 
 	reflogActions := []reflogAction{
 		{
 			regexStr: `^checkout: moving from ([\S]+)`,
-			action: func(match []string, commitSha string, onDone func()) (bool, error) {
-				if len(match) <= 1 {
-					return false, nil
-				}
-				return true, gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{
-					OnDone:        onDone,
+			kind:     USER_ACTION,
+			action: func(match []string, commitSha string) error {
+				return gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{
 					WaitingStatus: gui.Tr.SLocalize("UndoingStatus"),
 					EnvVars:       envVars,
 				},
@@ -156,37 +135,45 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 		},
 		{
 			regexStr: `^commit|^rebase -i \(start\)|^reset: moving to|^pull`,
-			action: func(match []string, commitSha string, onDone func()) (bool, error) {
-				return true, gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{OnDone: onDone, EnvVars: envVars})
+			kind:     USER_ACTION,
+			action: func(match []string, commitSha string) error {
+				return gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{EnvVars: envVars})
 			},
+		},
+		{
+			regexStr: `^\[lazygit undo\]`,
+			kind:     UNDO,
+		},
+		{
+			regexStr: `^\[lazygit redo\]`,
+			kind:     REDO,
 		},
 	}
 
-	for offsetIdx, reflogCommit := range reflogCommits[startIndex:] {
-		i := offsetIdx + startIndex
+	counter := 0
+	for i, reflogCommit := range reflogCommits {
 		for _, action := range reflogActions {
 			re := regexp.MustCompile(action.regexStr)
 			match := re.FindStringSubmatch(reflogCommit.Name)
 			if len(match) == 0 {
 				continue
 			}
-			prevCommitSha := ""
-			if len(reflogCommits)-1 >= i+1 {
-				prevCommitSha = reflogCommits[i+1].Sha
-			}
 
-			nextKey := gui.reflogKey(reflogCommits[i+1])
-			onDone := func() {
-				gui.setUndoReflogKey(nextKey)
-				gui.State.Undo.UndoCount++
+			switch action.kind {
+			case UNDO:
+				counter++
+			case REDO:
+				counter--
+			case USER_ACTION:
+				counter--
+				if counter == -1 {
+					prevCommitSha := ""
+					if len(reflogCommits)-1 >= i+1 {
+						prevCommitSha = reflogCommits[i+1].Sha
+					}
+					return action.action(match, prevCommitSha)
+				}
 			}
-
-			isMatchingAction, err := action.action(match, prevCommitSha, onDone)
-			if !isMatchingAction {
-				continue
-			}
-
-			return err
 		}
 	}
 
@@ -196,23 +183,13 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 	reflogCommits := gui.State.ReflogCommits
 
-	// if the index of the previous reflog entry has changed there is nothing to redo because there's been a user action
-	startIndex := gui.State.Undo.ReflogIdx
-	if gui.idxOfUndoReflogKey(gui.State.Undo.ReflogKey) != gui.State.Undo.ReflogIdx || startIndex == 0 || gui.State.Undo.UndoCount == 0 {
-		return nil
-	}
-
 	envVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 
 	reflogActions := []reflogAction{
 		{
 			regexStr: `^checkout: moving from [\S]+ to ([\S]+)`,
-			action: func(match []string, commitSha string, onDone func()) (bool, error) {
-				if len(match) <= 1 {
-					return false, nil
-				}
-				return true, gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{
-					OnDone:        onDone,
+			action: func(match []string, commitSha string) error {
+				return gui.handleCheckoutRef(match[1], handleCheckoutRefOptions{
 					WaitingStatus: gui.Tr.SLocalize("RedoingStatus"),
 					EnvVars:       envVars,
 				},
@@ -221,15 +198,22 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 		},
 		{
 			regexStr: `^commit|^rebase -i \(start\)|^reset: moving to|^pull`,
-			action: func(match []string, commitSha string, onDone func()) (bool, error) {
-				return true, gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{OnDone: onDone, EnvVars: envVars})
+			action: func(match []string, commitSha string) error {
+				return gui.handleHardResetWithAutoStash(commitSha, handleHardResetWithAutoStashOptions{EnvVars: envVars})
 			},
+		},
+		{
+			regexStr: `^\[lazygit undo\]`,
+			kind:     UNDO,
+		},
+		{
+			regexStr: `^\[lazygit redo\]`,
+			kind:     REDO,
 		},
 	}
 
-	for i := startIndex - 1; i > 0; i++ {
-		reflogCommit := reflogCommits[i]
-
+	counter := 0
+	for _, reflogCommit := range reflogCommits {
 		for _, action := range reflogActions {
 			re := regexp.MustCompile(action.regexStr)
 			match := re.FindStringSubmatch(reflogCommit.Name)
@@ -237,18 +221,19 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 				continue
 			}
 
-			prevKey := gui.reflogKey(reflogCommits[i-1])
-			onDone := func() {
-				gui.setUndoReflogKey(prevKey)
-				gui.State.Undo.UndoCount--
+			switch action.kind {
+			case UNDO:
+				counter++
+			case REDO:
+				counter--
+			case USER_ACTION:
+				counter--
+				if counter == 0 {
+					return action.action(match, reflogCommit.Sha)
+				} else if counter < 0 {
+					return nil
+				}
 			}
-
-			isMatchingAction, err := action.action(match, reflogCommit.Sha, onDone)
-			if !isMatchingAction {
-				continue
-			}
-
-			return err
 		}
 	}
 
@@ -256,7 +241,6 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 }
 
 type handleHardResetWithAutoStashOptions struct {
-	OnDone  func()
 	EnvVars []string
 }
 
@@ -275,7 +259,6 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 		if err := gui.resetToRef(commitSha, "hard", commands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		options.OnDone()
 		return nil
 	}
 

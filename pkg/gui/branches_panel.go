@@ -144,13 +144,11 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 }
 
 type handleCheckoutRefOptions struct {
-	OnDone        func()
 	WaitingStatus string
 	EnvVars       []string
 }
 
 func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) error {
-	onDone := options.OnDone
 	waitingStatus := options.WaitingStatus
 	if waitingStatus == "" {
 		waitingStatus = gui.Tr.SLocalize("CheckingOutStatus")
@@ -172,9 +170,6 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 					if err := gui.GitCommand.Checkout(ref, cmdOptions); err != nil {
 						return gui.createErrorPanel(g, err.Error())
 					}
-					if onDone != nil {
-						onDone()
-					}
 
 					// checkout successful so we select the new branch
 					gui.State.Panels.Branches.SelectedLine = 0
@@ -192,10 +187,6 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 			if err := gui.createErrorPanel(gui.g, err.Error()); err != nil {
 				return err
 			}
-		}
-
-		if onDone != nil {
-			onDone()
 		}
 
 		gui.State.Panels.Branches.SelectedLine = 0
