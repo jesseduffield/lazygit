@@ -322,8 +322,8 @@ func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCrede
 }
 
 // ResetToCommit reset to commit
-func (c *GitCommand) ResetToCommit(sha string, strength string) error {
-	return c.OSCommand.RunCommand("git reset --%s %s", strength, sha)
+func (c *GitCommand) ResetToCommit(sha string, strength string, options RunCommandOptions) error {
+	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git reset --%s %s", strength, sha), options)
 }
 
 // NewBranch create new branch
@@ -522,12 +522,17 @@ func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
 }
 
 // Checkout checks out a branch (or commit), with --force if you set the force arg to true
-func (c *GitCommand) Checkout(branch string, force bool) error {
+type CheckoutOptions struct {
+	Force   bool
+	EnvVars []string
+}
+
+func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 	forceArg := ""
-	if force {
+	if options.Force {
 		forceArg = "--force "
 	}
-	return c.OSCommand.RunCommand("git checkout %s %s", forceArg, branch)
+	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git checkout %s %s", forceArg, branch), RunCommandOptions{EnvVars: options.EnvVars})
 }
 
 // PrepareCommitSubProcess prepares a subprocess for `git commit`

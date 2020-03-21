@@ -136,7 +136,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
 	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.Checkout(branch.Name, true); err != nil {
+		if err := gui.GitCommand.Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
 			_ = gui.createErrorPanel(g, err.Error())
 		}
 		return gui.refreshSidePanels(g)
@@ -144,19 +144,22 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 }
 
 type handleCheckoutRefOptions struct {
-	onDone        func()
-	waitingStatus string
+	OnDone        func()
+	WaitingStatus string
+	EnvVars       []string
 }
 
 func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) error {
-	onDone := options.onDone
-	waitingStatus := options.waitingStatus
+	onDone := options.OnDone
+	waitingStatus := options.WaitingStatus
 	if waitingStatus == "" {
 		waitingStatus = gui.Tr.SLocalize("CheckingOutStatus")
 	}
 
+	cmdOptions := commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
+
 	return gui.WithWaitingStatus(waitingStatus, func() error {
-		if err := gui.GitCommand.Checkout(ref, false); err != nil {
+		if err := gui.GitCommand.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
 			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
@@ -166,7 +169,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 					if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + ref); err != nil {
 						return gui.createErrorPanel(g, err.Error())
 					}
-					if err := gui.GitCommand.Checkout(ref, false); err != nil {
+					if err := gui.GitCommand.Checkout(ref, cmdOptions); err != nil {
 						return gui.createErrorPanel(g, err.Error())
 					}
 					if onDone != nil {
@@ -477,7 +480,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 			}
 			// need to checkout so that the branch shows up in our reflog and therefore
 			// doesn't get lost among all the other branches when we switch to something else
-			if err := gui.GitCommand.Checkout(newName, false); err != nil {
+			if err := gui.GitCommand.Checkout(newName, commands.CheckoutOptions{Force: false}); err != nil {
 				return gui.createErrorPanel(gui.g, err.Error())
 			}
 
