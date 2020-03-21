@@ -362,7 +362,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "undo",
 		}, &i18n.Message{
 			ID:    "undoReflog",
-			Other: "undo (via reflog)",
+			Other: "undo (via reflog) (experimental)",
 		}, &i18n.Message{
 			ID:    "pop",
 			Other: "pop",
