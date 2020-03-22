@@ -25,7 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
       - name: Get tag
         id: tag
-        run: echo "::set-output name=tag::${GITHUB_REF##*/}"
+        uses: dawidd6/action-get-tag@v1
       - name: Bump Homebrew
         uses: dawidd6/action-homebrew-bump-formula@v1
         with:
