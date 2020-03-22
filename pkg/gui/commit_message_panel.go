@@ -48,7 +48,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	_ = v.SetOrigin(0, 0)
 	_, _ = g.SetViewOnBottom("commitMessage")
 	_ = gui.switchFocus(g, v, gui.getFilesView())
-	return gui.refreshSidePanels(g)
+	return gui.refreshSidePanels()
 }
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {

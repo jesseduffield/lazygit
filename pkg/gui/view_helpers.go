@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
@@ -13,18 +14,28 @@ import (
 
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
 
-func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
-	if err := gui.refreshBranches(g); err != nil {
-		return err
-	}
-	if err := gui.refreshFiles(); err != nil {
-		return err
-	}
-	if err := gui.refreshCommits(g); err != nil {
-		return err
+func (gui *Gui) refreshSidePanels() error {
+	go gui.refreshBranches()
+	go gui.refreshFiles()
+	go gui.refreshCommits()
+	go gui.refreshStashEntries()
+
+	return nil
+}
+
+// synchronous version of refreshSidePanels
+func (gui *Gui) syncRefreshSidePanels() {
+	wg := sync.WaitGroup{}
+	wg.Add(4)
+	for _, f := range []func(){gui.refreshBranches, gui.refreshFiles, gui.refreshCommits, gui.refreshStashEntries} {
+		f := f
+		go func() {
+			f()
+			wg.Done()
+		}()
 	}
 
-	return gui.refreshStashEntries(g)
+	wg.Wait()
 }
 
 func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
@@ -309,6 +320,11 @@ func (gui *Gui) getMenuView() *gocui.View {
 
 func (gui *Gui) getSearchView() *gocui.View {
 	v, _ := gui.g.View("search")
+	return v
+}
+
+func (gui *Gui) getStatusView() *gocui.View {
+	v, _ := gui.g.View("status")
 	return v
 }
 

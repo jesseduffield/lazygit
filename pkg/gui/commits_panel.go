@@ -70,28 +70,26 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) refreshCommits(g *gocui.Gui) error {
-	g.Update(func(*gocui.Gui) error {
-		// I think this is here for the sake of some kind of rebasing thing
-		_ = gui.refreshStatus(g)
+func (gui *Gui) refreshCommits() {
+	if err := gui.updateWorkTreeState(); err != nil {
+		_ = gui.createErrorPanel(gui.g, err.Error())
+	}
 
-		if err := gui.refreshCommitsWithLimit(); err != nil {
-			return err
+	if err := gui.refreshCommitsWithLimit(); err != nil {
+		_ = gui.createErrorPanel(gui.g, err.Error())
+	}
+
+	if err := gui.refreshReflogCommits(); err != nil {
+		_ = gui.createErrorPanel(gui.g, err.Error())
+	}
+
+	if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
+		if err := gui.refreshCommitFilesView(); err != nil {
+			_ = gui.createErrorPanel(gui.g, err.Error())
 		}
+	}
 
-		// doing this async because it shouldn't hold anything up
-		go func() {
-			if err := gui.refreshReflogCommits(); err != nil {
-				_ = gui.createErrorPanel(gui.g, err.Error())
-			}
-		}()
-
-		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
-			return gui.refreshCommitFilesView()
-		}
-		return nil
-	})
-	return nil
+	go gui.refreshStatus()
 }
 
 func (gui *Gui) refreshCommitsWithLimit() error {
@@ -175,9 +173,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		if err := gui.refreshCommits(g); err != nil {
-			panic(err)
-		}
+		gui.refreshCommits()
 		return gui.handleCommitSelect(g, v)
 	})
 }
@@ -223,7 +219,8 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	if err := gui.GitCommand.EditRebaseTodo(gui.State.Panels.Commits.SelectedLine, action); err != nil {
 		return false, gui.createErrorPanel(gui.g, err.Error())
 	}
-	return true, gui.refreshCommits(gui.g)
+	gui.refreshCommits()
+	return true, nil
 }
 
 func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
@@ -254,7 +251,8 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 		gui.State.Panels.Commits.SelectedLine++
-		return gui.refreshCommits(gui.g)
+		gui.refreshCommits()
+		return nil
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
@@ -277,7 +275,8 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 		gui.State.Panels.Commits.SelectedLine--
-		return gui.refreshCommits(gui.g)
+		gui.refreshCommits()
+		return nil
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
@@ -332,7 +331,8 @@ func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 	gui.State.Panels.Commits.SelectedLine++
-	return gui.refreshCommits(gui.g)
+	gui.refreshCommits()
+	return nil
 }
 
 func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
@@ -343,12 +343,12 @@ func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
 	for index, cherryPickedCommit := range gui.State.CherryPickedCommits {
 		if commit.Sha == cherryPickedCommit.Sha {
 			gui.State.CherryPickedCommits = append(gui.State.CherryPickedCommits[0:index], gui.State.CherryPickedCommits[index+1:]...)
-			return gui.refreshCommits(gui.g)
+			return gui.renderBranchCommitsWithSelection()
 		}
 	}
 
 	gui.addCommitToCherryPickedCommits(gui.State.Panels.Commits.SelectedLine)
-	return gui.refreshCommits(gui.g)
+	return gui.renderBranchCommitsWithSelection()
 }
 
 func (gui *Gui) cherryPickedCommitShaMap() map[string]bool {
@@ -458,7 +458,7 @@ func (gui *Gui) setDiffMode() {
 		v.Title = gui.Tr.SLocalize("CommitsTitle")
 	}
 
-	_ = gui.refreshCommits(gui.g)
+	gui.refreshCommits()
 }
 
 func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool) {
@@ -490,7 +490,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(g, err.Error())
 		}
 
-		return gui.refreshSidePanels(gui.g)
+		return gui.refreshSidePanels()
 	}, nil)
 }
 
@@ -530,12 +530,8 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 		if err := gui.GitCommand.CreateLightweightTag(v.Buffer(), commitSha); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		if err := gui.refreshCommits(g); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshTags(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
+		gui.refreshCommits()
+		gui.refreshTags()
 		return gui.handleCommitSelect(g, v)
 	})
 }
@@ -642,9 +638,7 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
-		if err := gui.refreshCommits(gui.g); err != nil {
-			return err
-		}
+		gui.refreshCommits()
 	}
 
 	return gui.handleOpenSearch(gui.g, v)
@@ -652,5 +646,6 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 
 func (gui *Gui) handleResetCherryPick(g *gocui.Gui, v *gocui.View) error {
 	gui.State.CherryPickedCommits = []*commands.Commit{}
-	return gui.refreshCommits(gui.g)
+	gui.refreshCommits()
+	return nil
 }

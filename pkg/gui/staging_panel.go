@@ -151,9 +151,7 @@ func (gui *Gui) applySelection(reverse bool) error {
 		state.SelectMode = LINE
 	}
 
-	if err := gui.refreshFiles(); err != nil {
-		return err
-	}
+	gui.refreshFiles()
 	if err := gui.refreshStagingPanel(false, -1); err != nil {
 		return err
 	}

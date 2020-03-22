@@ -56,7 +56,7 @@ func (gui *Gui) handleRemoteBranchesEscape(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchBranchesPanelContext("remotes")
 }
 
-func (gui *Gui) renderRemoteBranchesWithSelection() error {
+func (gui *Gui) renderRemoteBranchesWithSelection() {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.RemoteBranches.SelectedLine, len(gui.State.RemoteBranches))
@@ -64,11 +64,9 @@ func (gui *Gui) renderRemoteBranchesWithSelection() error {
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "remote-branches" {
 		if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
-			return err
+			_ = gui.createErrorPanel(gui.g, err.Error())
 		}
 	}
-
-	return nil
 }
 
 func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
@@ -99,7 +97,8 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 				return err
 			}
 
-			return gui.refreshRemotes()
+			gui.refreshRemotes()
+			return nil
 		})
 	}, nil)
 }
@@ -126,7 +125,7 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 
-		return gui.refreshSidePanels(gui.g)
+		return gui.refreshSidePanels()
 	}, nil)
 }
 

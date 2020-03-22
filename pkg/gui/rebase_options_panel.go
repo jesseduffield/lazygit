@@ -63,7 +63,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 }
 
 func (gui *Gui) handleGenericMergeCommandResult(result error) error {
-	if err := gui.refreshSidePanels(gui.g); err != nil {
+	if err := gui.refreshSidePanels(); err != nil {
 		return err
 	}
 	if result == nil {

@@ -131,13 +131,9 @@ func (gui *Gui) watchFilesForChanges() {
 					continue
 				}
 				// only refresh if we're not already
+				// TODO: plug this all back in (I removed the mutex from refreshFiles because I think it was causing a deadlock)
 				if !gui.State.IsRefreshingFiles {
-					if err := gui.refreshFiles(); err != nil {
-						err = gui.createErrorPanel(gui.g, err.Error())
-						if err != nil {
-							gui.Log.Error(err)
-						}
-					}
+					gui.refreshFiles()
 				}
 
 			// watch for errors

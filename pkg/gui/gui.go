@@ -157,11 +157,6 @@ type commitFilesPanelState struct {
 	SelectedLine int
 }
 
-type statusPanelState struct {
-	pushables string
-	pullables string
-}
-
 type panelStates struct {
 	Files          *filePanelState
 	Branches       *branchPanelState
@@ -175,7 +170,6 @@ type panelStates struct {
 	LineByLine     *lineByLinePanelState
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
-	Status         *statusPanelState
 }
 
 type searchingState struct {
@@ -185,35 +179,36 @@ type searchingState struct {
 }
 
 type guiState struct {
-	Files                []*commands.File
-	Branches             []*commands.Branch
-	Commits              []*commands.Commit
-	StashEntries         []*commands.StashEntry
-	CommitFiles          []*commands.CommitFile
-	ReflogCommits        []*commands.Commit
-	DiffEntries          []*commands.Commit
-	Remotes              []*commands.Remote
-	RemoteBranches       []*commands.RemoteBranch
-	Tags                 []*commands.Tag
-	MenuItemCount        int // can't store the actual list because it's of interface{} type
-	PreviousView         string
-	Platform             commands.Platform
-	Updating             bool
-	Panels               *panelStates
-	WorkingTreeState     string // one of "merging", "rebasing", "normal"
-	MainContext          string // used to keep the main and secondary views' contexts in sync
-	CherryPickedCommits  []*commands.Commit
-	SplitMainPanel       bool
-	RetainOriginalDir    bool
-	IsRefreshingFiles    bool
-	RefreshingFilesMutex sync.Mutex
-	Searching            searchingState
-	ScreenMode           int
-	SideView             *gocui.View
-	Ptmx                 *os.File
-	PrevMainWidth        int
-	PrevMainHeight       int
-	OldInformation       string
+	Files                 []*commands.File
+	Branches              []*commands.Branch
+	Commits               []*commands.Commit
+	StashEntries          []*commands.StashEntry
+	CommitFiles           []*commands.CommitFile
+	ReflogCommits         []*commands.Commit
+	DiffEntries           []*commands.Commit
+	Remotes               []*commands.Remote
+	RemoteBranches        []*commands.RemoteBranch
+	Tags                  []*commands.Tag
+	MenuItemCount         int // can't store the actual list because it's of interface{} type
+	PreviousView          string
+	Platform              commands.Platform
+	Updating              bool
+	Panels                *panelStates
+	WorkingTreeState      string // one of "merging", "rebasing", "normal"
+	MainContext           string // used to keep the main and secondary views' contexts in sync
+	CherryPickedCommits   []*commands.Commit
+	SplitMainPanel        bool
+	RetainOriginalDir     bool
+	IsRefreshingFiles     bool
+	RefreshingFilesMutex  sync.Mutex
+	RefreshingStatusMutex sync.Mutex
+	Searching             searchingState
+	ScreenMode            int
+	SideView              *gocui.View
+	Ptmx                  *os.File
+	PrevMainWidth         int
+	PrevMainHeight        int
+	OldInformation        string
 }
 
 // for now the split view will always be on
@@ -246,7 +241,6 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 				Conflicts:     []commands.Conflict{},
 				EditHistory:   stack.New(),
 			},
-			Status: &statusPanelState{},
 		},
 		ScreenMode: SCREEN_NORMAL,
 		SideView:   nil,
@@ -358,7 +352,7 @@ func (gui *Gui) scrollDownConfirmationPanel(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
-	return gui.refreshSidePanels(g)
+	return gui.refreshSidePanels()
 }
 
 func max(a, b int) int {
@@ -870,7 +864,7 @@ func (gui *Gui) loadNewRepo() error {
 	}
 	gui.waitForIntro.Done()
 
-	if err := gui.refreshSidePanels(gui.g); err != nil {
+	if err := gui.refreshSidePanels(); err != nil {
 		return err
 	}
 
@@ -930,7 +924,7 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 		_ = gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
 	}
 
-	_ = gui.refreshStatus(g)
+	gui.refreshSidePanels()
 
 	return unamePassOpend, err
 }
@@ -1020,7 +1014,7 @@ func (gui *Gui) Run() error {
 		go gui.startBackgroundFetch()
 	}
 
-	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFiles)
+	gui.goEvery(time.Second*10, gui.stopChan, func() error { gui.refreshFiles(); return nil })
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 

@@ -46,22 +46,20 @@ func (gui *Gui) handleTagSelect(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) refreshTags() error {
+func (gui *Gui) refreshTags() {
 	tags, err := gui.GitCommand.GetTags()
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		_ = gui.createErrorPanel(gui.g, err.Error())
 	}
 
 	gui.State.Tags = tags
 
 	if gui.getBranchesView().Context == "tags" {
-		return gui.renderTagsWithSelection()
+		gui.renderTagsWithSelection()
 	}
-
-	return nil
 }
 
-func (gui *Gui) renderTagsWithSelection() error {
+func (gui *Gui) renderTagsWithSelection() {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags))
@@ -69,11 +67,9 @@ func (gui *Gui) renderTagsWithSelection() error {
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
 		if err := gui.handleTagSelect(gui.g, branchesView); err != nil {
-			return err
+			_ = gui.createErrorPanel(gui.g, err.Error())
 		}
 	}
-
-	return nil
 }
 
 func (gui *Gui) handleCheckoutTag(g *gocui.Gui, v *gocui.View) error {
@@ -104,12 +100,8 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		if err := gui.refreshCommits(g); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshTags(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
+		gui.refreshCommits()
+		gui.refreshTags()
 		return nil
 	}, nil)
 }
@@ -131,7 +123,8 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.PushTag(v.Buffer(), tag.Name); err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		return gui.refreshTags()
+		gui.refreshTags()
+		return nil
 	})
 }
 
@@ -141,12 +134,8 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.CreateLightweightTag(v.Buffer(), ""); err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		if err := gui.refreshCommits(g); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshTags(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
+		gui.refreshCommits()
+		gui.refreshTags()
 		return nil
 	})
 }

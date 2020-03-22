@@ -20,7 +20,8 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 				if err := gui.GitCommand.DiscardAllFileChanges(file); err != nil {
 					return err
 				}
-				return gui.refreshFiles()
+				gui.refreshFiles()
+				return nil
 			},
 		},
 	}
@@ -33,7 +34,8 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 					return err
 				}
 
-				return gui.refreshFiles()
+				gui.refreshFiles()
+				return nil
 			},
 		})
 	}

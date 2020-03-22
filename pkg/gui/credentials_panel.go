@@ -36,16 +36,10 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
 	gui.credentials <- message
-	err := gui.refreshFiles()
-	if err != nil {
-		return err
-	}
+	gui.refreshFiles()
 	v.Clear()
-	err = v.SetCursor(0, 0)
-	if err != nil {
-		return err
-	}
-	_, err = g.SetViewOnBottom("credentials")
+	_ = v.SetCursor(0, 0)
+	_, err := g.SetViewOnBottom("credentials")
 	if err != nil {
 		return err
 	}
@@ -57,7 +51,8 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	return gui.refreshCommits(g)
+	gui.refreshCommits()
+	return nil
 }
 
 func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
@@ -100,6 +95,6 @@ func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr er
 		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(), false)
 	} else {
 		_ = gui.closeConfirmationPrompt(g, true)
-		_ = gui.refreshSidePanels(g)
+		_ = gui.refreshSidePanels()
 	}
 }

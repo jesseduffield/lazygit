@@ -19,7 +19,8 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				gui.refreshFiles()
+				return nil
 			},
 		},
 		{
@@ -32,7 +33,8 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				gui.refreshFiles()
+				return nil
 			},
 		},
 		{
@@ -45,7 +47,8 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				gui.refreshFiles()
+				return nil
 			},
 		},
 		{
@@ -58,7 +61,8 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				gui.refreshFiles()
+				return nil
 			},
 		},
 		{
@@ -71,7 +75,8 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				gui.refreshFiles()
+				return nil
 			},
 		},
 		{
@@ -84,7 +89,8 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				gui.refreshFiles()
+				return nil
 			},
 		},
 	}

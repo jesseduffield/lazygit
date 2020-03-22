@@ -128,7 +128,7 @@ func (gui *Gui) handleApplyPatch() error {
 	if err := gui.GitCommand.PatchManager.ApplyPatches(false); err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
-	return gui.refreshSidePanels(gui.g)
+	return gui.refreshSidePanels()
 }
 
 func (gui *Gui) handleResetPatch() error {

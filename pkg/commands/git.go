@@ -273,10 +273,6 @@ func (c *GitCommand) ResetAndClean() error {
 	return c.RemoveUntrackedFiles()
 }
 
-func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
-	return c.GetCommitDifferences("HEAD", "HEAD@{u}")
-}
-
 func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string, string) {
 	return c.GetCommitDifferences(branchName, branchName+"@{u}")
 }

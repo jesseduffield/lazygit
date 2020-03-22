@@ -44,12 +44,12 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 	return gui.newStringTask("main", fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
 }
 
-func (gui *Gui) refreshRemotes() error {
+func (gui *Gui) refreshRemotes() {
 	prevSelectedRemote := gui.getSelectedRemote()
 
 	remotes, err := gui.GitCommand.GetRemotes()
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		_ = gui.createErrorPanel(gui.g, err.Error())
 	}
 
 	gui.State.Remotes = remotes
@@ -67,15 +67,13 @@ func (gui *Gui) refreshRemotes() error {
 	// TODO: see if this works for deleting remote branches
 	switch gui.getBranchesView().Context {
 	case "remotes":
-		return gui.renderRemotesWithSelection()
+		gui.renderRemotesWithSelection()
 	case "remote-branches":
-		return gui.renderRemoteBranchesWithSelection()
+		gui.renderRemoteBranchesWithSelection()
 	}
-
-	return nil
 }
 
-func (gui *Gui) renderRemotesWithSelection() error {
+func (gui *Gui) renderRemotesWithSelection() {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
@@ -85,11 +83,9 @@ func (gui *Gui) renderRemotesWithSelection() error {
 
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "remotes" {
 		if err := gui.handleRemoteSelect(gui.g, branchesView); err != nil {
-			return err
+			_ = gui.createErrorPanel(gui.g, err.Error())
 		}
 	}
-
-	return nil
 }
 
 func (gui *Gui) handleRemoteEnter(g *gocui.Gui, v *gocui.View) error {
@@ -119,7 +115,8 @@ func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
 				return err
 			}
-			return gui.refreshRemotes()
+			gui.refreshRemotes()
+			return nil
 		})
 	})
 }
@@ -134,7 +131,8 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 
-		return gui.refreshRemotes()
+		gui.refreshRemotes()
+		return nil
 
 	}, nil)
 }
@@ -174,7 +172,8 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 				return gui.createErrorPanel(gui.g, err.Error())
 			}
-			return gui.refreshRemotes()
+			gui.refreshRemotes()
+			return nil
 		})
 	})
 }
@@ -190,6 +189,7 @@ func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 
-		return gui.refreshRemotes()
+		gui.refreshRemotes()
+		return nil
 	})
 }

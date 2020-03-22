@@ -108,7 +108,7 @@ func (gui *Gui) getListViews() []*listView {
 			context:                 "remotes",
 			getItemsLength:          func() int { return len(gui.State.Remotes) },
 			getSelectedLineIdxPtr:   func() *int { return &gui.State.Panels.Remotes.SelectedLine },
-			handleFocus:             gui.wrappedHandler(gui.renderRemotesWithSelection),
+			handleFocus:             gui.wrappedHandler(func() error { gui.renderRemotesWithSelection(); return nil }),
 			handleItemSelect:        gui.handleRemoteSelect,
 			handleClickSelectedItem: gui.handleRemoteEnter,
 			gui:                     gui,

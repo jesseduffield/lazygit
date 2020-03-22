@@ -261,9 +261,7 @@ func (gui *Gui) renderMergeOptions() error {
 
 func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Panels.Merging.EditHistory = stack.New()
-	if err := gui.refreshFiles(); err != nil {
-		return err
-	}
+	gui.refreshFiles()
 	// it's possible this method won't be called from the merging view so we need to
 	// ensure we only 'return' focus if we already have it
 	if gui.g.CurrentView() == gui.getMainView() {
@@ -276,9 +274,7 @@ func (gui *Gui) handleCompleteMerge() error {
 	if err := gui.stageSelectedFile(gui.g); err != nil {
 		return err
 	}
-	if err := gui.refreshFiles(); err != nil {
-		return err
-	}
+	gui.refreshFiles()
 	// if we got conflicts after unstashing, we don't want to call any git
 	// commands to continue rebasing/merging here
 	if gui.State.WorkingTreeState == "normal" {
