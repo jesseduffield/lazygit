@@ -32,6 +32,8 @@
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: rename branch
   <kbd>/</kbd>: start search
+  <kbd>[</kbd>: switch to Tags Tab
+  <kbd>]</kbd>: switch to Remotes Tab
 </pre>
 
 ## Branches Panel (Remote Branches (in Remotes tab))
@@ -55,6 +57,8 @@
   <kbd>d</kbd>: remove remote
   <kbd>e</kbd>: edit remote
   <kbd>/</kbd>: start search
+  <kbd>[</kbd>: switch to Local Branches Tab
+  <kbd>]</kbd>: switch to Tags Tab
 </pre>
 
 ## Branches Panel (Tags Tab)
@@ -66,6 +70,8 @@
   <kbd>n</kbd>: create tag
   <kbd>g</kbd>: view reset options
   <kbd>/</kbd>: start search
+  <kbd>[</kbd>: switch to Remotes Tab
+  <kbd>]</kbd>: switch to Local Branches Tab
 </pre>
 
 ## Commit Files Panel
