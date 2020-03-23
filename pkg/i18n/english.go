@@ -1035,6 +1035,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "resetCherryPick",
 			Other: "reset cherry-picked (copied) commits selection",
+		}, &i18n.Message{
+			ID:    "nextTab",
+			Other: "next tab",
+		}, &i18n.Message{
+			ID:    "prevTab",
+			Other: "previous tab",
 		},
 	)
 }

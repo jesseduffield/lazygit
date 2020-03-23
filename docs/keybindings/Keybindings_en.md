@@ -16,6 +16,13 @@
   <kbd>:</kbd>: execute custom command
 </pre>
 
+## Branches Panel
+
+<pre>
+  <kbd>]</kbd>: next tab
+  <kbd>[</kbd>: previous tab
+</pre>
+
 ## Branches Panel (Branches Tab)
 
 <pre>
@@ -83,6 +90,8 @@
 ## Commits Panel
 
 <pre>
+  <kbd>]</kbd>: next tab
+  <kbd>[</kbd>: previous tab
   <kbd>/</kbd>: start search
 </pre>
 
@@ -110,6 +119,7 @@
   <kbd>space</kbd>: checkout commit
   <kbd>i</kbd>: select commit to diff with another commit
   <kbd>T</kbd>: tag commit
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
 </pre>
 
 ## Commits Panel (Reflog Tab)
