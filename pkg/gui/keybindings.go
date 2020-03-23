@@ -618,16 +618,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("viewResetOptions"),
 		},
 		{
-			ViewName: "branches",
-			Key:      gui.getKey("universal.nextTab"),
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleNextBranchesTab,
+			ViewName:    "branches",
+			Key:         gui.getKey("universal.nextTab"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleNextBranchesTab,
+			Description: gui.Tr.SLocalize("nextTab"),
 		},
 		{
-			ViewName: "branches",
-			Key:      gui.getKey("universal.prevTab"),
-			Modifier: gocui.ModNone,
-			Handler:  gui.handlePrevBranchesTab,
+			ViewName:    "branches",
+			Key:         gui.getKey("universal.prevTab"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handlePrevBranchesTab,
+			Description: gui.Tr.SLocalize("prevTab"),
 		},
 		{
 			ViewName:    "branches",
@@ -654,16 +656,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("fetchRemote"),
 		},
 		{
-			ViewName: "commits",
-			Key:      gui.getKey("universal.nextTab"),
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleNextCommitsTab,
+			ViewName:    "commits",
+			Key:         gui.getKey("universal.nextTab"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleNextCommitsTab,
+			Description: gui.Tr.SLocalize("nextTab"),
 		},
 		{
-			ViewName: "commits",
-			Key:      gui.getKey("universal.prevTab"),
-			Modifier: gocui.ModNone,
-			Handler:  gui.handlePrevCommitsTab,
+			ViewName:    "commits",
+			Key:         gui.getKey("universal.prevTab"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handlePrevCommitsTab,
+			Description: gui.Tr.SLocalize("prevTab"),
 		},
 		{
 			ViewName:    "commits",
@@ -1474,7 +1478,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 
 		// we need a specific keybinding for the commits panel beacuse it usually lazyloads commits
 		if listView.viewName != "commits" {
-			bindings = append(bindings, &Binding{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.startSearch"), Modifier: gocui.ModNone, Handler: gui.handleOpenSearch, Description: gui.Tr.SLocalize("startSearch")})
+			bindings = append(bindings, &Binding{
+				ViewName:    listView.viewName,
+				Contexts:    []string{listView.context},
+				Key:         gui.getKey("universal.startSearch"),
+				Modifier:    gocui.ModNone,
+				Handler:     gui.handleOpenSearch,
+				Description: gui.Tr.SLocalize("startSearch"),
+			})
 		}
 	}
 
