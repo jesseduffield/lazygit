@@ -866,7 +866,7 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 
 // GetCommitFiles get the specified commit files
 func (c *GitCommand) GetCommitFiles(commitSha string, patchManager *PatchManager) ([]*CommitFile, error) {
-	files, err := c.OSCommand.RunCommandWithOutput("git show --pretty= --name-only --no-renames %s", commitSha)
+	files, err := c.OSCommand.RunCommandWithOutput("git diff-tree --no-commit-id --name-only -r --no-renames %s", commitSha)
 	if err != nil {
 		return nil, err
 	}
@@ -1108,23 +1108,26 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
 	output, err := c.OSCommand.RunCommandWithOutput("git reflog --abbrev=20")
 	if err != nil {
-		return nil, err
+		// assume error means we have no reflog
+		return []*Commit{}, nil
 	}
 
 	lines := strings.Split(strings.TrimSpace(output), "\n")
-	commits := make([]*Commit, len(lines))
+	commits := make([]*Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{\d+\}: (.*)`)
-	for i, line := range lines {
+	for _, line := range lines {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {
 			continue
 		}
 
-		commits[i] = &Commit{
+		commit := &Commit{
 			Sha:    match[1],
 			Name:   match[2],
 			Status: "reflog",
 		}
+
+		commits = append(commits, commit)
 	}
 
 	return commits, nil

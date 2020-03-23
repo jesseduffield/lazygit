@@ -43,7 +43,7 @@ func (b *BranchListBuilder) obtainCurrentBranchName() string {
 }
 
 func (b *BranchListBuilder) obtainBranches() []*Branch {
-	cmdStr := `git branch --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)"`
+	cmdStr := `git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`
 	output, err := b.GitCommand.OSCommand.RunCommandWithOutput(cmdStr)
 	if err != nil {
 		panic(err)
@@ -51,40 +51,48 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
-	branches := make([]*Branch, len(outputLines))
-	for i, line := range outputLines {
+	branches := make([]*Branch, 0, len(outputLines))
+	for _, line := range outputLines {
+		if line == "" {
+			continue
+		}
+
 		split := strings.Split(line, SEPARATION_CHAR)
 
 		name := split[1]
-		branches[i] = &Branch{
+		branch := &Branch{
 			Name:      name,
 			Pullables: "?",
 			Pushables: "?",
 			Head:      split[0] == "*",
 		}
+
 		upstreamName := split[2]
 		if upstreamName == "" {
+			branches = append(branches, branch)
 			continue
 		}
 
-		branches[i].UpstreamName = upstreamName
+		branch.UpstreamName = upstreamName
 
 		track := split[3]
 		re := regexp.MustCompile(`ahead (\d+)`)
 		match := re.FindStringSubmatch(track)
 		if len(match) > 1 {
-			branches[i].Pushables = match[1]
+			branch.Pushables = match[1]
 		} else {
-			branches[i].Pushables = "0"
+			branch.Pushables = "0"
 		}
 
 		re = regexp.MustCompile(`behind (\d+)`)
 		match = re.FindStringSubmatch(track)
 		if len(match) > 1 {
-			branches[i].Pullables = match[1]
+			branch.Pullables = match[1]
 		} else {
-			branches[i].Pullables = "0"
+			branch.Pullables = "0"
 		}
+
+		branches = append(branches, branch)
 	}
 
 	return branches
@@ -116,18 +124,19 @@ outer:
 
 	branches = append(branchesWithRecency, branches...)
 
-	if len(branches) == 0 {
-		branches = append([]*Branch{{Name: currentBranchName}}, branches...)
-	}
-
+	foundHead := false
 	for i, branch := range branches {
 		if branch.Head {
+			foundHead = true
 			branch.Name = currentBranchName
 			branch.Recency = "  *"
 			branches = append(branches[0:i], branches[i+1:]...)
 			branches = append([]*Branch{branch}, branches...)
 			break
 		}
+	}
+	if !foundHead {
+		branches = append([]*Branch{{Name: currentBranchName, Head: true, Recency: "  *"}}, branches...)
 	}
 
 	return branches

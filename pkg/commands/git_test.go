@@ -1907,7 +1907,7 @@ func TestGitCommandGetCommitFiles(t *testing.T) {
 			"123456",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git show --pretty= --name-only --no-renames 123456",
+					Expect:  "git diff-tree --no-commit-id --name-only -r --no-renames 123456",
 					Replace: "echo 'hello\nworld'",
 				},
 			}),
