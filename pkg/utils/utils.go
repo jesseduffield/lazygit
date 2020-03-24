@@ -316,3 +316,9 @@ func TruncateWithEllipsis(str string, limit int) string {
 	remainingLength := limit - len(ellipsis)
 	return str[0:remainingLength] + "..."
 }
+
+func FindStringSubmatch(str string, regexpStr string) (bool, []string) {
+	re := regexp.MustCompile(regexpStr)
+	match := re.FindStringSubmatch(str)
+	return len(match) > 0, match
+}
