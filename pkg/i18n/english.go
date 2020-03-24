@@ -1057,11 +1057,11 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "prevTab",
 			Other: "previous tab",
 		}, &i18n.Message{
-			ID:    "AbortRebase",
-			Other: "Abort rebase",
+			ID:    "cantUndoWhileRebasing",
+			Other: "Can't undo while rebasing",
 		}, &i18n.Message{
-			ID:    "UndoOutOfRebaseWarning",
-			Other: "If you undo at this point, you won't be able to re-enter this rebase by pressing redo. Abort rebase?",
+			ID:    "cantRedoWhileRebasing",
+			Other: "Can't redo while rebasing",
 		},
 	)
 }

@@ -32,11 +32,9 @@ type reflogAction struct {
 // Here we're going through the reflog and maintaining a counter that represents how many
 // undos/redos/user actions we've seen. when we hit a user action we call the callback specifying
 // what the counter is up to and the nature of the action.
-// We can't take you from a non-interactive rebase state into an interactive rebase state, so if we hit
-// a 'finish' or an 'abort' entry, we ignore everything else until we find the corresponding 'start' entry.
-// If we find ourselves already in an interactive rebase and we've hit the start entry,
-// we can't really do an undo because there's no way to redo back into the rebase.
-// instead we just ask the user if they want to abort the rebase instead.
+// If we find ourselves mid-rebase, we just return because undo/redo mid rebase
+// requires knowledge of previous TODO file states, which you can't just get from the reflog.
+// Though we might support this later, hence the use of the CURRENT_REBASE action kind.
 func (gui *Gui) parseReflogForActions(onUserAction func(counter int, action reflogAction) (bool, error)) error {
 	counter := 0
 	reflogCommits := gui.State.ReflogCommits
@@ -89,6 +87,10 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := gui.Tr.SLocalize("UndoingStatus")
 
+	if gui.State.WorkingTreeState == "rebasing" {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("cantUndoWhileRebasing"))
+	}
+
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
 		if counter != 0 {
 			return false, nil
@@ -100,10 +102,6 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 				EnvVars:       undoEnvVars,
 				WaitingStatus: undoingStatus,
 			})
-		case CURRENT_REBASE:
-			return true, gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("AbortRebase"), gui.Tr.SLocalize("UndoOutOfRebaseWarning"), func(g *gocui.Gui, v *gocui.View) error {
-				return gui.genericMergeCommand("abort")
-			}, nil)
 		case CHECKOUT:
 			return true, gui.handleCheckoutRef(action.from, handleCheckoutRefOptions{
 				EnvVars:       undoEnvVars,
@@ -120,6 +118,10 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := gui.Tr.SLocalize("RedoingStatus")
 
+	if gui.State.WorkingTreeState == "rebasing" {
+		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("cantRedoWhileRebasing"))
+	}
+
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
 		// if we're redoing and the counter is zero, we just return
 		if counter == 0 {
@@ -134,9 +136,6 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 				EnvVars:       redoEnvVars,
 				WaitingStatus: redoingStatus,
 			})
-		case CURRENT_REBASE:
-			// no idea if this is even possible but you certainly can't redo into the end of a rebase if you're still in the rebase
-			return true, nil
 		case CHECKOUT:
 			return true, gui.handleCheckoutRef(action.to, handleCheckoutRefOptions{
 				EnvVars:       redoEnvVars,
