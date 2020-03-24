@@ -63,21 +63,23 @@ func (gui *Gui) parseReflogForActions(onUserAction func(counter int, action refl
 				action = &reflogAction{kind: COMMIT, from: prevCommitSha, to: reflogCommit.Sha}
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^rebase -i \(start\)`); ok {
 				// if we're here then we must be currently inside an interactive rebase
-				action = &reflogAction{kind: CURRENT_REBASE}
+				action = &reflogAction{kind: CURRENT_REBASE, from: prevCommitSha}
 			}
 		} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^rebase -i \(start\)`); ok {
 			action = &reflogAction{kind: REBASE, from: prevCommitSha, to: rebaseFinishCommitSha}
+			rebaseFinishCommitSha = ""
 		}
 
 		if action != nil {
+			if action.kind != CURRENT_REBASE && action.from == action.to {
+				// if we're going from one place to the same place we'll ignore the action.
+				continue
+			}
 			ok, err := onUserAction(counter, *action)
 			if ok {
 				return err
 			}
 			counter--
-			if action.kind == REBASE {
-				rebaseFinishCommitSha = ""
-			}
 		}
 	}
 	return nil
