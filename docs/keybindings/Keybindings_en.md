@@ -11,6 +11,8 @@
   <kbd>p</kbd>: pull
   <kbd>R</kbd>: refresh
   <kbd>x</kbd>: open menu
+  <kbd>z</kbd>: undo (via reflog) (experimental)
+  <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command

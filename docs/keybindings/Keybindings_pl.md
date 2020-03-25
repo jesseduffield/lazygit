@@ -11,6 +11,8 @@
   <kbd>p</kbd>: pull
   <kbd>R</kbd>: odśwież
   <kbd>x</kbd>: open menu
+  <kbd>z</kbd>: undo (via reflog) (experimental)
+  <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
@@ -162,7 +164,7 @@
   <kbd>►</kbd>: select next conflict
   <kbd>▲</kbd>: select top hunk
   <kbd>▼</kbd>: select bottom hunk
-  <kbd>z</kbd>: undo
+  <kbd>z</kbd>: cofnij
 </pre>
 
 ## Main Panel (Normal)

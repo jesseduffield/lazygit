@@ -11,6 +11,8 @@
   <kbd>p</kbd>: pull
   <kbd>R</kbd>: verversen
   <kbd>x</kbd>: open menu
+  <kbd>z</kbd>: undo (via reflog) (experimental)
+  <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: voor aangepast commando uit
