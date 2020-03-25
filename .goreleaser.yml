@@ -13,9 +13,6 @@ builds:
       - arm
       - arm64
       - 386
-    ignore:
-      - goos: freebsd
-        goarch: arm64
     # Default is `-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}`.
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.buildSource=binaryRelease
