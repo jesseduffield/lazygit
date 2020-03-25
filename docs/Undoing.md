@@ -1,10 +1,17 @@
 # Undo/Redo in lazygit
 
+![Gif](/docs/resources/undo2.gif)
+
+## Keybindings:
+'z' to undo, 'ctrl+z' to redo
+
+## How it works
+
 If you're as clumsy as me you'll probably have felt the pain of botching an interactive rebase or doing a hard reset onto the wrong commit. Luckily, the reflog allows you to trace your steps and make things right again, but I personally can't stand trying to make sense of the reflog.
 
-Lazygit can read through your reflog for you and walk back action by action so that you don't even need to read the reflog. Just press 'z' to undo, and press 'ctrl+z' to redo. If lazygit finds a reflog entry where you checked out a branch, we'll checkout the original branch. If the entry is from a commit being applied, we'll go back to the commit before that. If we hit an interactive rebase, we'll go back to the commit you were on just before you started it.
+Lazygit can read through your reflog for you and walk back action by action so that you don't even need to read the reflog. If lazygit finds a reflog entry where you checked out a branch, we'll checkout the original branch. If the entry is from a commit being applied, we'll go back to the commit before that. If we hit an interactive rebase, we'll go back to the commit you were on just before you started it.
 
-## Stateless
+## You can even undo things you did outside of lazygit!
 
 Because lazygit just uses the reflog to keep track of things, it doesn't matter whether you're trying to undo something you did in lazygit or directly on the command line. You can open lazygit for the first time and start undoing thing in your repo! Likewise, lazygit marks its undos/redos in the reflog so if you quit the application and come back, lazygit still knows where you're up to.
 
