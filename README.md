@@ -156,6 +156,10 @@ lg()
 
 Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazyigt. To override this behaviour you can exit using `shift+Q` rather than just `q`.
 
+## Undo/Redo
+
+See the [docs](/docs/Undoing.md)
+
 ## Configuration
 
 Check the [configuration docs](docs/Config.md).
