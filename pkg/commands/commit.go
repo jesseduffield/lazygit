@@ -13,3 +13,10 @@ type Commit struct {
 	Author        string
 	Date          string
 }
+
+func (c *Commit) ShortSha() string {
+	if len(c.Sha) < 8 {
+		return c.Sha
+	}
+	return c.Sha[:8]
+}

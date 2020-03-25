@@ -105,7 +105,7 @@ func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 	// now we can split it up and turn it into commits
 	for _, line := range utils.SplitLines(log) {
 		commit := c.extractCommitFromLine(line)
-		_, unpushed := unpushedCommits[commit.Sha[:8]]
+		_, unpushed := unpushedCommits[commit.ShortSha()]
 		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
 		commits = append(commits, commit)
 	}
