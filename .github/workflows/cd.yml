@@ -19,8 +19,6 @@ jobs:
           go-version: 1.14.x
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v1
-        with:
-          args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
       - name: Get tag

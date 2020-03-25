@@ -30,11 +30,7 @@ jobs:
       - name: Test code
         run: |
           ./test.sh
-      - name: Install gox
-        working-directory: /tmp
-        run: |
-          go get github.com/mitchellh/gox
-          echo "::add-path::$(go env GOPATH)/bin"
       - name: Build binaries
-        run: |
-          gox -parallel 4 -os "linux freebsd netbsd windows" -osarch "darwin/i386 darwin/amd64"
+        uses: goreleaser/goreleaser-action@v1
+        with:
+          args: --skip-publish --snapshot
