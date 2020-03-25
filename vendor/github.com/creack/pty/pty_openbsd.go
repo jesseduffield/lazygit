@@ -11,7 +11,7 @@ func open() (pty, tty *os.File, err error) {
 	 * from ptm(4):
 	 * The PTMGET command allocates a free pseudo terminal, changes its
 	 * ownership to the caller, revokes the access privileges for all previous
-	 * users, opens the file descriptors for the master and slave devices and
+	 * users, opens the file descriptors for the pty and tty devices and
 	 * returns them to the caller in struct ptmget.
 	 */
 

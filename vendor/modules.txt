@@ -1,6 +1,9 @@
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 ## explicit
 github.com/cloudfoundry/jibber_jabber
+# github.com/creack/pty v1.1.10-0.20191209115840-8ab47f72e854
+## explicit
+github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/emirpasic/gods v1.12.0
@@ -45,9 +48,6 @@ github.com/jbenet/go-context/io
 # github.com/jesseduffield/gocui v0.3.1-0.20200309001002-7765949e1c8a
 ## explicit
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/pty v1.2.1
-## explicit
-github.com/jesseduffield/pty
 # github.com/jesseduffield/termbox-go v0.0.0-20200130214842-1d31d1faa3c9
 ## explicit
 github.com/jesseduffield/termbox-go
@@ -75,8 +75,6 @@ github.com/mattn/go-runewidth
 github.com/mgutz/str
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
-# github.com/mitchellh/gox v1.0.1
-## explicit
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
 # github.com/nicksnyder/go-i18n/v2 v2.0.3

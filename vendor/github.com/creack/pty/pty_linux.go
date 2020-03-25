@@ -46,6 +46,6 @@ func ptsname(f *os.File) (string, error) {
 
 func unlockpt(f *os.File) error {
 	var u _C_int
-	// use TIOCSPTLCK with a zero valued arg to clear the slave pty lock
+	// use TIOCSPTLCK with a pointer to zero to clear the lock
 	return ioctl(f.Fd(), syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&u)))
 }
