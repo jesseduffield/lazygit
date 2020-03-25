@@ -1,4 +1,4 @@
-// +build !windows
+// +build !windows,!solaris
 
 package pty
 
@@ -8,15 +8,15 @@ import (
 	"unsafe"
 )
 
-// InheritSize applies the terminal size of master to slave. This should be run
-// in a signal handler for syscall.SIGWINCH to automatically resize the slave when
-// the master receives a window size change notification.
-func InheritSize(master, slave *os.File) error {
-	size, err := GetsizeFull(master)
+// InheritSize applies the terminal size of pty to tty. This should be run
+// in a signal handler for syscall.SIGWINCH to automatically resize the tty when
+// the pty receives a window size change notification.
+func InheritSize(pty, tty *os.File) error {
+	size, err := GetsizeFull(pty)
 	if err != nil {
 		return err
 	}
-	err = Setsize(slave, size)
+	err = Setsize(tty, size)
 	if err != nil {
 		return err
 	}
