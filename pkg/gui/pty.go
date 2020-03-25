@@ -5,7 +5,7 @@ package gui
 import (
 	"os/exec"
 
-	"github.com/jesseduffield/pty"
+	"github.com/creack/pty"
 )
 
 func (gui *Gui) onResize() error {

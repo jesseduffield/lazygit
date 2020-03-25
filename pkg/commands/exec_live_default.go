@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-errors/errors"
 
-	"github.com/jesseduffield/pty"
+	"github.com/creack/pty"
 )
 
 // RunCommandWithOutputLiveWrapper runs a command and return every word that gets written in stdout
