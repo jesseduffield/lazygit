@@ -74,7 +74,7 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit) []string {
 
 	truncatedAuthor := utils.TruncateWithEllipsis(c.Author, 17)
 
-	return []string{shaColor.Sprint(c.Sha[:8]), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(c.Name)}
+	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(c.Name)}
 }
 
 func getDisplayStringsForCommit(c *commands.Commit) []string {
@@ -122,5 +122,5 @@ func getDisplayStringsForCommit(c *commands.Commit) []string {
 		tagString = utils.ColoredStringDirect(strings.Join(c.Tags, " "), tagColor) + " "
 	}
 
-	return []string{shaColor.Sprint(c.Sha[:8]), actionString + tagString + defaultColor.Sprint(c.Name)}
+	return []string{shaColor.Sprint(c.ShortSha()), actionString + tagString + defaultColor.Sprint(c.Name)}
 }
