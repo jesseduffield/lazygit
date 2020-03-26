@@ -1120,7 +1120,9 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 	return c.OSCommand.RunCommand("git fetch %s", remoteName)
 }
 
-func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
+// GetNewReflogCommits only returns the new reflog commits since the given lastReflogCommit
+// if none is passed (i.e. it's value is nil) then we get all the reflog commits
+func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, error) {
 	output, err := c.OSCommand.RunCommandWithOutput("git reflog --abbrev=20 --date=iso")
 	if err != nil {
 		// assume error means we have no reflog
@@ -1130,10 +1132,11 @@ func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
 	lines := strings.Split(strings.TrimSpace(output), "\n")
 	commits := make([]*Commit, 0, len(lines))
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
-	for _, line := range lines {
+	cmd := c.OSCommand.ExecutableFromString("git reflog --abbrev=20 --date=iso")
+	err = RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {
-			continue
+			return false, nil
 		}
 
 		commit := &Commit{
@@ -1143,7 +1146,16 @@ func (c *GitCommand) GetReflogCommits() ([]*Commit, error) {
 			Status: "reflog",
 		}
 
+		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.Date == lastReflogCommit.Date {
+			// after this point we already have these reflogs loaded so we'll simply return the new ones
+			return true, nil
+		}
+
 		commits = append(commits, commit)
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return commits, nil

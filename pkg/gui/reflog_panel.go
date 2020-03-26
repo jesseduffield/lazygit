@@ -47,12 +47,17 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshReflogCommits() error {
-	commits, err := gui.GitCommand.GetReflogCommits()
+	var lastReflogCommit *commands.Commit
+	if len(gui.State.ReflogCommits) > 0 {
+		lastReflogCommit = gui.State.ReflogCommits[0]
+	}
+
+	commits, err := gui.GitCommand.GetNewReflogCommits(lastReflogCommit)
 	if err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
-	gui.State.ReflogCommits = commits
+	gui.State.ReflogCommits = append(commits, gui.State.ReflogCommits...)
 
 	if gui.getCommitsView().Context == "reflog-commits" {
 		return gui.renderReflogCommitsWithSelection()
