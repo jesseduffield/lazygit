@@ -1123,17 +1123,10 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 // GetNewReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
 func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git reflog --abbrev=20 --date=iso")
-	if err != nil {
-		// assume error means we have no reflog
-		return []*Commit{}, nil
-	}
-
-	lines := strings.Split(strings.TrimSpace(output), "\n")
-	commits := make([]*Commit, 0, len(lines))
+	commits := make([]*Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 	cmd := c.OSCommand.ExecutableFromString("git reflog --abbrev=20 --date=iso")
-	err = RunLineOutputCmd(cmd, func(line string) (bool, error) {
+	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {
 			return false, nil
