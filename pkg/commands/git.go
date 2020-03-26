@@ -1125,7 +1125,7 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, error) {
 	commits := make([]*Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
-	cmd := c.OSCommand.ExecutableFromString("git reflog --abbrev=20 --date=iso")
+	cmd := c.OSCommand.ExecutableFromString("git reflog --abbrev=20 --date=unix")
 	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {

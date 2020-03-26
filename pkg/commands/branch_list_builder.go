@@ -2,10 +2,10 @@ package commands
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
-
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,15 +22,17 @@ import (
 
 // BranchListBuilder returns a list of Branch objects for the current repo
 type BranchListBuilder struct {
-	Log        *logrus.Entry
-	GitCommand *GitCommand
+	Log           *logrus.Entry
+	GitCommand    *GitCommand
+	ReflogCommits []*Commit
 }
 
 // NewBranchListBuilder builds a new branch list builder
-func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand) (*BranchListBuilder, error) {
+func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, reflogCommits []*Commit) (*BranchListBuilder, error) {
 	return &BranchListBuilder{
-		Log:        log,
-		GitCommand: gitCommand,
+		Log:           log,
+		GitCommand:    gitCommand,
+		ReflogCommits: reflogCommits,
 	}, nil
 }
 
@@ -132,63 +134,34 @@ outer:
 		}
 		branches = append([]*Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
 	}
-
 	return branches
 }
 
-// A line will have the form '10 days ago master' so we need to strip out the
-// useful information from that into timeNumber, timeUnit, and branchName
-func branchInfoFromLine(line string) (string, string) {
-	// example line: HEAD@{12 minutes ago}|checkout: moving from pulling-from-forks to tim77-patch-1
-	r := regexp.MustCompile(`HEAD\@\{([^\s]+) ([^\s]+) ago\}\|.*?([^\s]*)$`)
-	matches := r.FindStringSubmatch(strings.TrimSpace(line))
-	if len(matches) == 0 {
-		return "", ""
-	}
-	since := matches[1]
-	unit := matches[2]
-	branchName := matches[3]
-	return since + abbreviatedTimeUnit(unit), branchName
-}
-
-func abbreviatedTimeUnit(timeUnit string) string {
-	r := regexp.MustCompile("s$")
-	timeUnit = r.ReplaceAllString(timeUnit, "")
-	timeUnitMap := map[string]string{
-		"hour":   "h",
-		"minute": "m",
-		"second": "s",
-		"week":   "w",
-		"year":   "y",
-		"day":    "d",
-		"month":  "m",
-	}
-	return timeUnitMap[timeUnit]
-}
-
+// TODO: only look at the new reflog commits, and otherwise store the recencies in
+// int form against the branch to recalculate the time ago
 func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
-	branches := make([]*Branch, 0)
-	// if we directly put this string in RunCommandWithOutput the compiler complains because it thinks it's a format string
-	unescaped := "git reflog --date=relative --pretty='%gd|%gs' --grep-reflog='checkout: moving' HEAD"
-	rawString, err := b.GitCommand.OSCommand.RunCommandWithOutput(unescaped)
-	if err != nil {
-		return branches
-	}
+	foundBranchesMap := map[string]bool{}
+	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
+	reflogBranches := make([]*Branch, 0, len(b.ReflogCommits))
+	for _, commit := range b.ReflogCommits {
+		if match := re.FindStringSubmatch(commit.Name); len(match) == 3 {
+			timestamp, err := strconv.Atoi(commit.Date)
+			if err != nil {
+				b.Log.Errorf("couldn't parse reflog date: %s", commit.Date)
+				continue
+			}
 
-	branchNameMap := map[string]bool{}
-
-	branchLines := utils.SplitLines(rawString)
-	for _, line := range branchLines {
-		recency, branchName := branchInfoFromLine(line)
-		if branchName == "" {
-			continue
+			recency := utils.UnixToTimeAgo(timestamp)
+			for _, branchName := range match[1:] {
+				if !foundBranchesMap[branchName] {
+					foundBranchesMap[branchName] = true
+					reflogBranches = append(reflogBranches, &Branch{
+						Recency: recency,
+						Name:    branchName,
+					})
+				}
+			}
 		}
-		if _, ok := branchNameMap[branchName]; ok {
-			continue
-		}
-		branchNameMap[branchName] = true
-		branch := &Branch{Name: branchName, Recency: recency}
-		branches = append(branches, branch)
 	}
-	return branches
+	return reflogBranches
 }

@@ -79,12 +79,13 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 			return err
 		}
 
-		// doing this async because it shouldn't hold anything up
-		go func() {
-			if err := gui.refreshReflogCommits(); err != nil {
-				_ = gui.createErrorPanel(gui.g, err.Error())
-			}
-		}()
+		if err := gui.refreshReflogCommits(); err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
+
+		if err := gui.refreshBranches(gui.g); err != nil {
+			return gui.createErrorPanel(gui.g, err.Error())
+		}
 
 		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
 			return gui.refreshCommitFilesView()
