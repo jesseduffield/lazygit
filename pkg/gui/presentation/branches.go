@@ -22,14 +22,18 @@ func GetBranchListDisplayStrings(branches []*commands.Branch, fullDescription bo
 
 // getBranchDisplayStrings returns the display string of branch
 func getBranchDisplayStrings(b *commands.Branch, fullDescription bool) []string {
-	displayName := utils.ColoredString(b.Name, GetBranchColor(b.Name))
+	displayName := b.Name
+	if b.DisplayName != "" {
+		displayName = b.DisplayName
+	}
+	coloredName := utils.ColoredString(displayName, GetBranchColor(b.Name))
 	if b.Pushables != "" && b.Pullables != "" && b.Pushables != "?" && b.Pullables != "?" {
 		trackColor := color.FgYellow
 		if b.Pushables == "0" && b.Pullables == "0" {
 			trackColor = color.FgGreen
 		}
 		track := utils.ColoredString(fmt.Sprintf("↑%s↓%s", b.Pushables, b.Pullables), trackColor)
-		displayName = fmt.Sprintf("%s %s", displayName, track)
+		coloredName = fmt.Sprintf("%s %s", coloredName, track)
 	}
 
 	recencyColor := color.FgCyan
@@ -38,10 +42,10 @@ func getBranchDisplayStrings(b *commands.Branch, fullDescription bool) []string 
 	}
 
 	if fullDescription {
-		return []string{utils.ColoredString(b.Recency, recencyColor), displayName, utils.ColoredString(b.UpstreamName, color.FgYellow)}
+		return []string{utils.ColoredString(b.Recency, recencyColor), coloredName, utils.ColoredString(b.UpstreamName, color.FgYellow)}
 	}
 
-	return []string{utils.ColoredString(b.Recency, recencyColor), displayName}
+	return []string{utils.ColoredString(b.Recency, recencyColor), coloredName}
 }
 
 // GetBranchColor branch color

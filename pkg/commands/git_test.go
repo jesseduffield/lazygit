@@ -1549,7 +1549,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func(string, error)
+		test     func(string, string, error)
 	}
 
 	scenarios := []scenario{
@@ -1559,9 +1559,10 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 				assert.Equal(t, "git", cmd)
 				return exec.Command("echo", "master")
 			},
-			func(output string, err error) {
+			func(name string, displayname string, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "master", output)
+				assert.EqualValues(t, "master", name)
+				assert.EqualValues(t, "master", displayname)
 			},
 		},
 		{
@@ -1580,9 +1581,32 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 
 				return nil
 			},
-			func(output string, err error) {
+			func(name string, displayname string, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "master", output)
+				assert.EqualValues(t, "master", name)
+				assert.EqualValues(t, "master", displayname)
+			},
+		},
+		{
+			"handles a detached head",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+
+				switch args[0] {
+				case "symbolic-ref":
+					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
+					return exec.Command("test")
+				case "branch":
+					assert.EqualValues(t, []string{"branch", "--contains"}, args)
+					return exec.Command("echo", "* (HEAD detached at 123abcd)")
+				}
+
+				return nil
+			},
+			func(name string, displayname string, err error) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, "123abcd", name)
+				assert.EqualValues(t, "(HEAD detached at 123abcd)", displayname)
 			},
 		},
 		{
@@ -1591,9 +1615,10 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 				assert.Equal(t, "git", cmd)
 				return exec.Command("test")
 			},
-			func(output string, err error) {
+			func(name string, displayname string, err error) {
 				assert.Error(t, err)
-				assert.EqualValues(t, "", output)
+				assert.EqualValues(t, "", name)
+				assert.EqualValues(t, "", displayname)
 			},
 		},
 	}
