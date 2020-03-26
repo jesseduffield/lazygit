@@ -343,6 +343,20 @@ func (gui *Gui) scrollDownSecondary(g *gocui.Gui, v *gocui.View) error {
 	return gui.scrollDownView("secondary")
 }
 
+func (gui *Gui) scrollUpConfirmationPanel(g *gocui.Gui, v *gocui.View) error {
+	if v.Editable {
+		return nil
+	}
+	return gui.scrollUpView("confirmation")
+}
+
+func (gui *Gui) scrollDownConfirmationPanel(g *gocui.Gui, v *gocui.View) error {
+	if v.Editable {
+		return nil
+	}
+	return gui.scrollDownView("confirmation")
+}
+
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshSidePanels(g)
 }
