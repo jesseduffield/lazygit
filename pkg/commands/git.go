@@ -648,6 +648,7 @@ func (c *GitCommand) RunSkipEditorCommand(command string) error {
 	cmd.Env = append(
 		cmd.Env,
 		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+		"GIT_EDITOR="+lazyGitPath,
 		"EDITOR="+lazyGitPath,
 		"VISUAL="+lazyGitPath,
 	)
@@ -758,7 +759,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	)
 
 	if overrideEditor {
-		cmd.Env = append(cmd.Env, "EDITOR="+ex)
+		cmd.Env = append(cmd.Env, "GIT_EDITOR="+ex)
 	}
 
 	return cmd, nil
