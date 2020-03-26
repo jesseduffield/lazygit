@@ -2,6 +2,7 @@ package gui
 
 import (
 	"strconv"
+	"sync"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -75,15 +76,21 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
-	if err := gui.refreshCommitsWithLimit(); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
-	}
+	wg := sync.WaitGroup{}
+	wg.Add(2)
 
-	if err := gui.refreshReflogCommits(); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
-	}
+	go func() {
+		gui.refreshReflogCommits()
+		gui.refreshBranches()
+		wg.Done()
+	}()
 
-	gui.refreshBranches()
+	go func() {
+		gui.refreshCommitsWithLimit()
+		wg.Done()
+	}()
+
+	wg.Wait()
 
 	gui.refreshStatus()
 
