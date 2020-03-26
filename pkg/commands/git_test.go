@@ -2150,6 +2150,13 @@ func TestGitCommandSkipEditorCommand(t *testing.T) {
 		test.AssertContainsMatch(
 			t,
 			cmd.Env,
+			regexp.MustCompile("^GIT_EDITOR="),
+			"expected GIT_EDITOR to be set for a non-interactive external command",
+		)
+
+		test.AssertContainsMatch(
+			t,
+			cmd.Env,
 			regexp.MustCompile("^LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY$"),
 			"expected LAZYGIT_CLIENT_COMMAND to be set for a non-interactive external command",
 		)
