@@ -53,32 +53,20 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
-func (gui *Gui) refreshBranches(g *gocui.Gui) error {
-	if err := gui.refreshRemotes(); err != nil {
-		return err
+func (gui *Gui) refreshBranches() {
+	_ = gui.refreshRemotes()
+	_ = gui.refreshTags()
+
+	builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, gui.State.ReflogCommits)
+	if err != nil {
+		_ = gui.createErrorPanel(gui.g, err.Error())
 	}
+	gui.State.Branches = builder.Build()
 
-	if err := gui.refreshTags(); err != nil {
-		return err
+	// TODO: if we're in the remotes view and we've just deleted a remote we need to refresh accordingly
+	if gui.getBranchesView().Context == "local-branches" {
+		gui.renderLocalBranchesWithSelection()
 	}
-
-	g.Update(func(g *gocui.Gui) error {
-		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, gui.State.ReflogCommits)
-		if err != nil {
-			return err
-		}
-		gui.State.Branches = builder.Build()
-
-		// TODO: if we're in the remotes view and we've just deleted a remote we need to refresh accordingly
-		if gui.getBranchesView().Context == "local-branches" {
-			if err := gui.renderLocalBranchesWithSelection(); err != nil {
-				return err
-			}
-		}
-
-		return gui.refreshStatus(g)
-	})
-	return nil
 }
 
 func (gui *Gui) renderLocalBranchesWithSelection() error {

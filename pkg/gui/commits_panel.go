@@ -71,27 +71,26 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
-	g.Update(func(*gocui.Gui) error {
-		// I think this is here for the sake of some kind of rebasing thing
-		_ = gui.refreshStatus(g)
+	if err := gui.updateWorkTreeState(); err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
 
-		if err := gui.refreshCommitsWithLimit(); err != nil {
-			return err
-		}
+	if err := gui.refreshCommitsWithLimit(); err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
 
-		if err := gui.refreshReflogCommits(); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
-		}
+	if err := gui.refreshReflogCommits(); err != nil {
+		return gui.createErrorPanel(gui.g, err.Error())
+	}
 
-		if err := gui.refreshBranches(gui.g); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
-		}
+	gui.refreshBranches()
 
-		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
-			return gui.refreshCommitFilesView()
-		}
-		return nil
-	})
+	gui.refreshStatus()
+
+	if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
+		return gui.refreshCommitFilesView()
+	}
+
 	return nil
 }
 
