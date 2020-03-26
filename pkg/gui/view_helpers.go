@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
@@ -14,14 +15,28 @@ import (
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
 
 func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
-	if err := gui.refreshCommits(g); err != nil {
-		return err
-	}
-	if err := gui.refreshFiles(); err != nil {
-		return err
-	}
+	wg := sync.WaitGroup{}
 
-	return gui.refreshStashEntries(g)
+	wg.Add(3)
+
+	func() {
+		gui.refreshCommits(g)
+		wg.Done()
+	}()
+
+	func() {
+		gui.refreshFiles()
+		wg.Done()
+	}()
+
+	func() {
+		gui.refreshStashEntries(g)
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	return nil
 }
 
 func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
