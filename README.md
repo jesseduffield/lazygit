@@ -215,7 +215,7 @@ See the [docs](docs/Custom_Pagers.md)
 
 ### Interactive Rebasing
 
-![Interactive Rebasing](/docs/resources/interactive-rebase.png)
+![Interactive Rebasing](/docs/resources/rebase.gif)
 
 ## Contributing
 
