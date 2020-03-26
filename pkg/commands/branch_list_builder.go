@@ -34,14 +34,6 @@ func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand) (*BranchLis
 	}, nil
 }
 
-func (b *BranchListBuilder) obtainCurrentBranchName() string {
-	branchName, err := b.GitCommand.CurrentBranchName()
-	if err != nil {
-		panic(err.Error())
-	}
-	return branchName
-}
-
 func (b *BranchListBuilder) obtainBranches() []*Branch {
 	cmdStr := `git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`
 	output, err := b.GitCommand.OSCommand.RunCommandWithOutput(cmdStr)
@@ -100,7 +92,6 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 
 // Build the list of branches for the current repo
 func (b *BranchListBuilder) Build() []*Branch {
-	currentBranchName := b.obtainCurrentBranchName()
 	branches := b.obtainBranches()
 
 	reflogBranches := b.obtainReflogBranches()
@@ -128,7 +119,6 @@ outer:
 	for i, branch := range branches {
 		if branch.Head {
 			foundHead = true
-			branch.Name = currentBranchName
 			branch.Recency = "  *"
 			branches = append(branches[0:i], branches[i+1:]...)
 			branches = append([]*Branch{branch}, branches...)
@@ -136,7 +126,11 @@ outer:
 		}
 	}
 	if !foundHead {
-		branches = append([]*Branch{{Name: currentBranchName, Head: true, Recency: "  *"}}, branches...)
+		currentBranchName, currentBranchDisplayName, err := b.GitCommand.CurrentBranchName()
+		if err != nil {
+			panic(err)
+		}
+		branches = append([]*Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
 	}
 
 	return branches

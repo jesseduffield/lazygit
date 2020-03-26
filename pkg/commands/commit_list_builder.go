@@ -279,7 +279,7 @@ func (c *CommitListBuilder) setCommitCherryPickStatuses(commits []*Commit) ([]*C
 }
 
 func (c *CommitListBuilder) getMergeBase() (string, error) {
-	currentBranch, err := c.GitCommand.CurrentBranchName()
+	currentBranch, _, err := c.GitCommand.CurrentBranchName()
 	if err != nil {
 		return "", err
 	}
