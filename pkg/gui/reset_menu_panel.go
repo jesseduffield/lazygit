@@ -27,9 +27,6 @@ func (gui *Gui) resetToRef(ref string, strength string, options commands.RunComm
 	if err := gui.refreshFiles(); err != nil {
 		return err
 	}
-	if err := gui.refreshBranches(gui.g); err != nil {
-		return err
-	}
 	if err := gui.resetOrigin(gui.getCommitsView()); err != nil {
 		return err
 	}

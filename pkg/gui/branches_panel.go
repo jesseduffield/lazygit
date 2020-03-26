@@ -63,7 +63,7 @@ func (gui *Gui) refreshBranches(g *gocui.Gui) error {
 	}
 
 	g.Update(func(g *gocui.Gui) error {
-		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand)
+		builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, gui.State.ReflogCommits)
 		if err != nil {
 			return err
 		}
@@ -374,7 +374,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
 				_ = gui.createErrorPanel(gui.g, err.Error())
 			}
-			_ = gui.refreshBranches(gui.g)
+			_ = gui.refreshCommits(gui.g)
 		}
 
 		_ = gui.closeConfirmationPrompt(gui.g, true)
@@ -481,7 +481,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 				return gui.createErrorPanel(gui.g, err.Error())
 			}
 
-			return gui.refreshBranches(gui.g)
+			return gui.refreshCommits(gui.g)
 		})
 	}
 
