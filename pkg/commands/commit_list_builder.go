@@ -299,18 +299,11 @@ func (c *CommitListBuilder) getUnpushedCommits() map[string]bool {
 }
 
 // getLog gets the git log.
-func (c *CommitListBuilder) getLog(limit bool) string {
+func (c *CommitListBuilder) getLogCmd(limit bool) *exec.Cmd {
 	limitFlag := ""
 	if limit {
-		limitFlag = "-30"
+		limitFlag = "-300"
 	}
 
-	result, err := c.OSCommand.RunCommandWithOutput(fmt.Sprintf("git log --oneline --pretty=format:\"%%H%s%%ar%s%%aN%s%%d%s%%s\" %s --abbrev=%d", SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20))
-
-	if err != nil {
-		// assume if there is an error there are no commits yet for this branch
-		return ""
-	}
-
-	return result
+	return c.OSCommand.ExecutableFromString(fmt.Sprintf("git log --oneline --pretty=format:\"%%H%s%%ar%s%%aN%s%%d%s%%s\" %s --abbrev=%d", SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20))
 }

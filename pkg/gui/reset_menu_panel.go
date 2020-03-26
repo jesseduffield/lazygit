@@ -18,6 +18,8 @@ func (gui *Gui) resetToRef(ref string, strength string, options commands.RunComm
 
 	gui.State.Panels.Commits.SelectedLine = 0
 	gui.State.Panels.ReflogCommits.SelectedLine = 0
+	// loading a heap of commits is slow so we limit them whenever doing a reset
+	gui.State.Panels.Commits.LimitCommits = true
 
 	if err := gui.refreshCommits(gui.g); err != nil {
 		return err

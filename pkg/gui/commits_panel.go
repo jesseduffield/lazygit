@@ -35,7 +35,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	state := gui.State.Panels.Commits
-	if state.SelectedLine > 20 && state.LimitCommits {
+	if state.SelectedLine > 290 && state.LimitCommits {
 		state.LimitCommits = false
 		go func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {

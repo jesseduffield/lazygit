@@ -156,6 +156,13 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 
 	cmdOptions := commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
+	onSuccess := func() {
+		gui.State.Panels.Branches.SelectedLine = 0
+		gui.State.Panels.Commits.SelectedLine = 0
+		// loading a heap of commits is slow so we limit them whenever doing a reset
+		gui.State.Panels.Commits.LimitCommits = true
+	}
+
 	return gui.WithWaitingStatus(waitingStatus, func() error {
 		if err := gui.GitCommand.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
@@ -171,8 +178,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 						return gui.createErrorPanel(g, err.Error())
 					}
 
-					// checkout successful so we select the new branch
-					gui.State.Panels.Branches.SelectedLine = 0
+					onSuccess()
 
 					if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
 						if err := gui.refreshSidePanels(g); err != nil {
@@ -189,8 +195,8 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 			}
 		}
 
-		gui.State.Panels.Branches.SelectedLine = 0
-		gui.State.Panels.Commits.SelectedLine = 0
+		onSuccess()
+
 		return gui.refreshSidePanels(gui.g)
 	})
 }
@@ -492,5 +498,8 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) currentBranch() *commands.Branch {
+	if len(gui.State.Branches) == 0 {
+		return nil
+	}
 	return gui.State.Branches[0]
 }
