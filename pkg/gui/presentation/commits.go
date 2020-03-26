@@ -9,10 +9,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription bool) [][]string {
+func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool) [][]string {
 	lines := make([][]string, len(commits))
 
-	var displayFunc func(*commands.Commit) []string
+	var displayFunc func(*commands.Commit, map[string]bool) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForCommit
 	} else {
@@ -20,13 +20,13 @@ func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription boo
 	}
 
 	for i := range commits {
-		lines[i] = displayFunc(commits[i])
+		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap)
 	}
 
 	return lines
 }
 
-func getFullDescriptionDisplayStringsForCommit(c *commands.Commit) []string {
+func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -58,7 +58,7 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit) []string {
 		shaColor = defaultColor
 	}
 
-	if c.Copied {
+	if cherryPickedCommitShaMap[c.Sha] {
 		shaColor = copied
 	}
 
@@ -77,7 +77,7 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit) []string {
 	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(c.Name)}
 }
 
-func getDisplayStringsForCommit(c *commands.Commit) []string {
+func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -109,7 +109,7 @@ func getDisplayStringsForCommit(c *commands.Commit) []string {
 		shaColor = defaultColor
 	}
 
-	if c.Copied {
+	if cherryPickedCommitShaMap[c.Sha] {
 		shaColor = copied
 	}
 
