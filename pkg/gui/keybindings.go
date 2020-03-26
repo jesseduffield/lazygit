@@ -1462,6 +1462,30 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleSearchEscape,
 		},
+		{
+			ViewName: "confirmation",
+			Key:      gui.getKey("universal.prevItem"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollUpConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      gui.getKey("universal.nextItem"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollDownConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      gui.getKey("universal.prevItem-alt"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollUpConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      gui.getKey("universal.nextItem-alt"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollDownConfirmationPanel,
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
