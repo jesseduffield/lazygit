@@ -157,11 +157,6 @@ type commitFilesPanelState struct {
 	SelectedLine int
 }
 
-type statusPanelState struct {
-	pushables string
-	pullables string
-}
-
 type panelStates struct {
 	Files          *filePanelState
 	Branches       *branchPanelState
@@ -175,7 +170,6 @@ type panelStates struct {
 	LineByLine     *lineByLinePanelState
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
-	Status         *statusPanelState
 }
 
 type searchingState struct {
@@ -246,7 +240,6 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 				Conflicts:     []commands.Conflict{},
 				EditHistory:   stack.New(),
 			},
-			Status: &statusPanelState{},
 		},
 		ScreenMode: SCREEN_NORMAL,
 		SideView:   nil,
@@ -930,7 +923,9 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 		_ = gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
 	}
 
-	_ = gui.refreshStatus(g)
+	if err := gui.refreshCommits(g); err != nil {
+		return unamePassOpend, err
+	}
 
 	return unamePassOpend, err
 }

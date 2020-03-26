@@ -309,6 +309,11 @@ func (gui *Gui) getSearchView() *gocui.View {
 	return v
 }
 
+func (gui *Gui) getStatusView() *gocui.View {
+	v, _ := gui.g.View("status")
+	return v
+}
+
 func (gui *Gui) trimmedContent(v *gocui.View) string {
 	return strings.TrimSpace(v.Buffer())
 }
