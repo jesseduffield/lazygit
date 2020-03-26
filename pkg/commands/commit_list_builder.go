@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -70,13 +71,12 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 	}
 
 	return &Commit{
-		Sha:           sha,
-		Name:          message,
-		DisplayString: line,
-		Tags:          tags,
-		ExtraInfo:     extraInfo,
-		Date:          date,
-		Author:        author,
+		Sha:       sha,
+		Name:      message,
+		Tags:      tags,
+		ExtraInfo: extraInfo,
+		Date:      date,
+		Author:    author,
 	}
 }
 
@@ -100,15 +100,20 @@ func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 	}
 
 	unpushedCommits := c.getUnpushedCommits()
-	log := c.getLog(limit)
+	cmd := c.getLogCmd(limit)
 
-	// now we can split it up and turn it into commits
-	for _, line := range utils.SplitLines(log) {
+	err = RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		commit := c.extractCommitFromLine(line)
 		_, unpushed := unpushedCommits[commit.ShortSha()]
 		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
 		commits = append(commits, commit)
+
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
 	}
+
 	if rebaseMode != "" {
 		currentCommit := commits[len(rebasingCommits)]
 		blue := color.New(color.FgYellow)
@@ -117,11 +122,6 @@ func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 	}
 
 	commits, err = c.setCommitMergedStatuses(commits)
-	if err != nil {
-		return nil, err
-	}
-
-	commits, err = c.setCommitCherryPickStatuses(commits)
 	if err != nil {
 		return nil, err
 	}
@@ -262,17 +262,6 @@ func (c *CommitListBuilder) setCommitMergedStatuses(commits []*Commit) ([]*Commi
 		}
 		if passedAncestor {
 			commits[i].Status = "merged"
-		}
-	}
-	return commits, nil
-}
-
-func (c *CommitListBuilder) setCommitCherryPickStatuses(commits []*Commit) ([]*Commit, error) {
-	for _, commit := range commits {
-		for _, cherryPickedCommit := range c.CherryPickedCommits {
-			if commit.Sha == cherryPickedCommit.Sha {
-				commit.Copied = true
-			}
 		}
 	}
 	return commits, nil

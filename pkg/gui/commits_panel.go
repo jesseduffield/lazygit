@@ -351,14 +351,21 @@ func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshCommits(gui.g)
 }
 
+func (gui *Gui) cherryPickedCommitShaMap() map[string]bool {
+	commitShaMap := map[string]bool{}
+	for _, commit := range gui.State.CherryPickedCommits {
+		commitShaMap[commit.Sha] = true
+	}
+	return commitShaMap
+}
+
 func (gui *Gui) addCommitToCherryPickedCommits(index int) {
-	// not super happy with modifying the state of the Commits array here
-	// but the alternative would be very tricky
-	gui.State.Commits[index].Copied = true
+	commitShaMap := gui.cherryPickedCommitShaMap()
+	commitShaMap[gui.State.Commits[index].Sha] = true
 
 	newCommits := []*commands.Commit{}
 	for _, commit := range gui.State.Commits {
-		if commit.Copied {
+		if commitShaMap[commit.Sha] {
 			// duplicating just the things we need to put in the rebase TODO list
 			newCommits = append(newCommits, &commands.Commit{Name: commit.Name, Sha: commit.Sha})
 		}
@@ -368,13 +375,13 @@ func (gui *Gui) addCommitToCherryPickedCommits(index int) {
 }
 
 func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
-	// whenever I add a commit, I need to make sure I retain its order
+	commitShaMap := gui.cherryPickedCommitShaMap()
 
 	// find the last commit that is copied that's above our position
 	// if there are none, startIndex = 0
 	startIndex := 0
 	for index, commit := range gui.State.Commits[0:gui.State.Panels.Commits.SelectedLine] {
-		if commit.Copied {
+		if commitShaMap[commit.Sha] {
 			startIndex = index
 		}
 	}
@@ -385,7 +392,7 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 		gui.addCommitToCherryPickedCommits(index)
 	}
 
-	return gui.refreshCommits(gui.g)
+	return gui.renderBranchCommitsWithSelection()
 }
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
@@ -548,7 +555,7 @@ func (gui *Gui) renderBranchCommitsWithSelection() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
-	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL)
+	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap())
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "branch-commits" {
 		if err := gui.handleCommitSelect(gui.g, commitsView); err != nil {

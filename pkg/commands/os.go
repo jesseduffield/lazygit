@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -424,4 +425,32 @@ func Kill(cmd *exec.Cmd) error {
 		return nil
 	}
 	return cmd.Process.Kill()
+}
+
+func RunLineOutputCmd(cmd *exec.Cmd, onLine func(line string) (bool, error)) error {
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(stdoutPipe)
+	scanner.Split(bufio.ScanLines)
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		stop, err := onLine(line)
+		if err != nil {
+			return err
+		}
+		if stop {
+			cmd.Process.Kill()
+			break
+		}
+	}
+
+	cmd.Wait()
+	return nil
 }
