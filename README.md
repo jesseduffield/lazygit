@@ -1,23 +1,38 @@
-# lazygit ![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](http://godoc.org/github.com/jesseduffield/lazygit) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)]() [![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/jesseduffield/lazygit)](https://www.tickgit.com/browse?repo=github.com/jesseduffield/lazygit)
+# lazygit
 
-A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui 'gocui') library.
+![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](http://godoc.org/github.com/jesseduffield/lazygit) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)]() [![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/jesseduffield/lazygit)](https://www.tickgit.com/browse?repo=github.com/jesseduffield/lazygit)
 
-Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? *Are you kidding me?* To stage part of a file you need to use a command line program to step through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, you have to edit an arcane patch file _by hand_? *Are you KIDDING me?!* Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? *YOU HAVE GOT TO BE KIDDING ME!*
+A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
+
+Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? _Are you kidding me?_ To stage part of a file you need to use a command line program stepping through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, bad luck? _Are you KIDDING me?!_ Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? _YOU HAVE GOT TO BE KIDDING ME!_
 
 If you're a mere mortal like me and you're tired of hearing how powerful git is when in your daily life it's a powerful pain in your ass, lazygit might be for you.
 
 ![Gif](/docs/resources/lazygit-example.gif)
 
-- [Installation](https://github.com/jesseduffield/lazygit#installation)
-- [Usage](https://github.com/jesseduffield/lazygit#usage),
-  [Keybindings](/docs/keybindings)
-- [Cool Features](https://github.com/jesseduffield/lazygit#cool-features)
-- [Contributing](https://github.com/jesseduffield/lazygit#contributing)
-- [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
-- [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
-- [Twitch Stream](https://www.twitch.tv/jesseduffield)
+## Table of contents
 
-[<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
+- [Installation](#installation)
+  - [Homebrew](#homebrew)
+  - [MacPorts](#macports)
+  - [Ubuntu](#ubuntu)
+  - [Void Linux](#void-linux)
+  - [Scoop (Windows)](<#scoop-(windows)>)
+  - [Arch Linux](#arch-linux)
+  - [Fedora and CentOS 7](#fedora-and-centos-7)
+  - [Conda](#conda)
+  - [Go](#go)
+  - [Binary releases](#binary-releases)
+- [Usage](#usage)
+  - [Keybindings](#keybindings)
+  - [Changing directory on exit](#changing-directory-on-exit)
+- [Configuration](#configuration)
+  - [Custom pagers](#configuration)
+- [Tutorials](#tutorials)
+- [Cool Features](#cool-features)
+- [Contributing](#contributing)
+- [Donate](#donate)
+- [Alternatives](#alternatives)
 
 Github Sponsors is matching all donations dollar-for-dollar for 12 months so if you're feeling generous consider [sponsoring me](https://github.com/sponsors/jesseduffield)
 
@@ -67,6 +82,7 @@ They follow upstream latest releases
 ```sh
 sudo xbps-install -S lazygit
 ```
+
 ### Scoop (Windows)
 
 You can install `lazygit` using [scoop](https://scoop.sh/). It's in the `extras` bucket:
@@ -109,10 +125,6 @@ Released versions are available for different platforms, see <https://anaconda.o
 conda install -c conda-forge lazygit
 ```
 
-### Binary Release (Windows/Linux/OSX)
-
-You can download a binary release [here](https://github.com/jesseduffield/lazygit/releases).
-
 ### Go
 
 ```sh
@@ -125,18 +137,27 @@ may need to add `~/go/bin` to your \$PATH (MacOS/Linux), or `%HOME%\go\bin`
 (Windows). Not to be mistaked for `C:\Go\bin` (which is for Go's own binaries,
 not apps like Lazygit).
 
+### Binary Releases
+
+For Windows, Mac OS or Linux, you can download a binary release [here](/releases).
+
 ## Usage
 
-Call `lazygit` in your terminal inside a git repository. If you want, you can
+Call `lazygit` in your terminal inside a git repository.
+
+```sh
+$ lazygit
+```
+
+If you want, you can
 also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or
 whichever rc file you're using).
 
-- Basic video tutorial [here](https://youtu.be/VDXvbHZYeKY).
-- Rebase Magic tutorial [here](https://youtu.be/4XaToVut_hs)
-- List of keybindings
-  [here](/docs/keybindings).
+### Keybindings
 
-## Changing Directory On Exit
+You can check out the list of keybindings [here](/docs/keybindings).
+
+### Changing Directory On Exit
 
 If you change repos in lazygit and want your shell to change directory into that repo on exiting lazygit, add this to your `~/.zshrc` (or other rc file):
 
@@ -162,11 +183,19 @@ See the [docs](/docs/Undoing.md)
 
 ## Configuration
 
-Check the [configuration docs](docs/Config.md).
+Check out the [configuration docs](docs/Config.md).
 
-## Custom Pagers
+### Custom Pagers
 
 See the [docs](docs/Custom_Pagers.md)
+
+## Tutorials
+
+- [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
+- [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
+- [Twitch Stream](https://www.twitch.tv/jesseduffield)
+
+[<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
 
 ## Cool features
 
