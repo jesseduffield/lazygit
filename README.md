@@ -4,7 +4,7 @@
 
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
 
-Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? _Are you kidding me?_ To stage part of a file you need to use a command line program stepping through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, bad luck? _Are you KIDDING me?!_ Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? _YOU HAVE GOT TO BE KIDDING ME!_
+Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? *Are you kidding me?* To stage part of a file you need to use a command line program to step through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, you have to edit an arcane patch file _by hand_? *Are you KIDDING me?!* Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? *YOU HAVE GOT TO BE KIDDING ME!*
 
 If you're a mere mortal like me and you're tired of hearing how powerful git is when in your daily life it's a powerful pain in your ass, lazygit might be for you.
 
@@ -13,6 +13,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 ## Table of contents
 
 - [Installation](#installation)
+  - [Binary releases](#binary-releases)
   - [Homebrew](#homebrew)
   - [MacPorts](#macports)
   - [Ubuntu](#ubuntu)
@@ -22,10 +23,10 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Fedora and CentOS 7](#fedora-and-centos-7)
   - [Conda](#conda)
   - [Go](#go)
-  - [Binary releases](#binary-releases)
 - [Usage](#usage)
   - [Keybindings](#keybindings)
   - [Changing directory on exit](#changing-directory-on-exit)
+  - [Undo/Redo](#undo/redo)
 - [Configuration](#configuration)
   - [Custom pagers](#configuration)
 - [Tutorials](#tutorials)
@@ -36,7 +37,13 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 
 Github Sponsors is matching all donations dollar-for-dollar for 12 months so if you're feeling generous consider [sponsoring me](https://github.com/sponsors/jesseduffield)
 
+[<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
+
 ## Installation
+
+### Binary Releases
+
+For Windows, Mac OS or Linux, you can download a binary release [here](/releases).
 
 ### Homebrew
 
@@ -137,9 +144,6 @@ may need to add `~/go/bin` to your \$PATH (MacOS/Linux), or `%HOME%\go\bin`
 (Windows). Not to be mistaked for `C:\Go\bin` (which is for Go's own binaries,
 not apps like Lazygit).
 
-### Binary Releases
-
-For Windows, Mac OS or Linux, you can download a binary release [here](/releases).
 
 ## Usage
 
@@ -177,7 +181,7 @@ lg()
 
 Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazyigt. To override this behaviour you can exit using `shift+Q` rather than just `q`.
 
-## Undo/Redo
+### Undo/Redo
 
 See the [docs](/docs/Undoing.md)
 
@@ -195,7 +199,6 @@ See the [docs](docs/Custom_Pagers.md)
 - [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
 - [Twitch Stream](https://www.twitch.tv/jesseduffield)
 
-[<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
 
 ## Cool features
 
