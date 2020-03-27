@@ -8,6 +8,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-errors/errors v1.0.1
+	github.com/go-git/go-git/v5 v5.0.0
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
@@ -33,11 +34,6 @@ require (
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.4.0
 	github.com/tcnksm/go-gitconfig v0.1.2
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
-	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
 	golang.org/x/text v0.3.2
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.2.7
 )

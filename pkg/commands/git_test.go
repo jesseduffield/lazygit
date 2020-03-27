@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
+	gogit "github.com/go-git/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/stretchr/testify/assert"
-	gogit "gopkg.in/src-d/go-git.v4"
 )
 
 type fileInfoMock struct {
