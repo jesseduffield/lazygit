@@ -63,8 +63,7 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedC
 	}
 
 	tagString := ""
-	truncatedDate := utils.TruncateWithEllipsis(c.Date, 15)
-	secondColumnString := blue.Sprint(truncatedDate)
+	secondColumnString := blue.Sprint(utils.UnixToDate(c.UnixTimestamp))
 	if c.Action != "" {
 		secondColumnString = cyan.Sprint(c.Action)
 	} else if c.ExtraInfo != "" {

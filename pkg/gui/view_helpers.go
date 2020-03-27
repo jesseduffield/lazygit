@@ -14,27 +14,104 @@ import (
 
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
 
-func (gui *Gui) refreshSidePanels(g *gocui.Gui) error {
+const (
+	COMMITS = iota
+	BRANCHES
+	FILES
+	STASH
+	REFLOG
+	TAGS
+	REMOTES
+)
+
+const (
+	SYNC     = iota // wait until everything is done before returning
+	ASYNC           // return immediately, allowing each independent thing to update itself
+	BLOCK_UI        // wrap code in an update call to ensure UI updates all at once and keybindings aren't executed till complete
+)
+
+type refreshOptions struct {
+	then  func()
+	scope []int
+	mode  int
+}
+
+type innerRefreshOptions struct {
+	scopeMap map[int]bool
+	mode     int
+}
+
+func intArrToMap(arr []int) map[int]bool {
+	output := map[int]bool{}
+	for _, el := range arr {
+		output[el] = true
+	}
+	return output
+}
+
+func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	wg := sync.WaitGroup{}
 
-	wg.Add(3)
+	f := func() {
+		var scopeMap map[int]bool
+		if len(options.scope) == 0 {
+			scopeMap = intArrToMap([]int{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES})
+		} else {
+			scopeMap = intArrToMap(options.scope)
+		}
 
-	func() {
-		gui.refreshCommits(g)
-		wg.Done()
-	}()
+		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] || scopeMap[TAGS] || scopeMap[REMOTES] {
+			wg.Add(1)
+			func() {
+				if options.mode == ASYNC {
+					go gui.refreshCommits(gui.g)
+				} else {
+					gui.refreshCommits(gui.g)
+				}
+				wg.Done()
+			}()
+		}
 
-	func() {
-		gui.refreshFiles()
-		wg.Done()
-	}()
+		if scopeMap[FILES] {
+			wg.Add(1)
+			func() {
+				if options.mode == ASYNC {
+					go gui.refreshFiles()
+				} else {
+					gui.refreshFiles()
+				}
+				wg.Done()
+			}()
 
-	func() {
-		gui.refreshStashEntries(g)
-		wg.Done()
-	}()
+		}
 
-	wg.Wait()
+		if scopeMap[STASH] {
+			wg.Add(1)
+			func() {
+				if options.mode == ASYNC {
+					go gui.refreshStashEntries(gui.g)
+				} else {
+					gui.refreshStashEntries(gui.g)
+				}
+				wg.Done()
+			}()
+		}
+
+		wg.Wait()
+
+		if options.then != nil {
+			options.then()
+		}
+	}
+
+	if options.mode == BLOCK_UI {
+		gui.g.Update(func(g *gocui.Gui) error {
+			f()
+			return nil
+		})
+	} else {
+		f()
+	}
 
 	return nil
 }

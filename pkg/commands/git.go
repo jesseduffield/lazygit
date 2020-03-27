@@ -484,11 +484,7 @@ func (c *GitCommand) GitStatus() (string, error) {
 
 // IsInMergeState states whether we are still mid-merge
 func (c *GitCommand) IsInMergeState() (bool, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git status --untracked-files=all")
-	if err != nil {
-		return false, err
-	}
-	return strings.Contains(output, "conclude merge") || strings.Contains(output, "unmerged paths"), nil
+	return c.OSCommand.FileExists(fmt.Sprintf("%s/MERGE_HEAD", c.DotGitDir))
 }
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
@@ -1132,14 +1128,16 @@ func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, e
 			return false, nil
 		}
 
+		unixTimestamp, _ := strconv.Atoi(match[2])
+
 		commit := &Commit{
-			Sha:    match[1],
-			Name:   match[3],
-			Date:   match[2],
-			Status: "reflog",
+			Sha:           match[1],
+			Name:          match[3],
+			UnixTimestamp: int64(unixTimestamp),
+			Status:        "reflog",
 		}
 
-		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.Date == lastReflogCommit.Date {
+		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp {
 			// after this point we already have these reflogs loaded so we'll simply return the new ones
 			return true, nil
 		}

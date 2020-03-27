@@ -27,7 +27,11 @@ func GetReflogCommitListDisplayStrings(commits []*commands.Commit, fullDescripti
 func getFullDescriptionDisplayStringsForReflogCommit(c *commands.Commit) []string {
 	defaultColor := color.New(theme.DefaultTextColor)
 
-	return []string{utils.ColoredString(c.ShortSha(), color.FgBlue), utils.ColoredString(c.Date, color.FgMagenta), defaultColor.Sprint(c.Name)}
+	return []string{
+		utils.ColoredString(c.ShortSha(), color.FgBlue),
+		utils.ColoredString(utils.UnixToDate(c.UnixTimestamp), color.FgMagenta),
+		defaultColor.Sprint(c.Name),
+	}
 }
 
 func getDisplayStringsForReflogCommit(c *commands.Commit) []string {

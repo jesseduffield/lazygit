@@ -194,7 +194,6 @@ type guiState struct {
 	Platform             commands.Platform
 	Updating             bool
 	Panels               *panelStates
-	WorkingTreeState     string // one of "merging", "rebasing", "normal"
 	MainContext          string // used to keep the main and secondary views' contexts in sync
 	CherryPickedCommits  []*commands.Commit
 	SplitMainPanel       bool
@@ -351,7 +350,7 @@ func (gui *Gui) scrollDownConfirmationPanel(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
-	return gui.refreshSidePanels(g)
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
 func max(a, b int) int {
@@ -863,7 +862,7 @@ func (gui *Gui) loadNewRepo() error {
 	}
 	gui.waitForIntro.Done()
 
-	if err := gui.refreshSidePanels(gui.g); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
 		return err
 	}
 

@@ -10,7 +10,7 @@ import (
 func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 	options := []string{"continue", "abort"}
 
-	if gui.State.WorkingTreeState == "rebasing" {
+	if gui.workingTreeState() == "rebasing" {
 		options = append(options, "skip")
 	}
 
@@ -27,7 +27,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 	}
 
 	var title string
-	if gui.State.WorkingTreeState == "merging" {
+	if gui.workingTreeState() == "merging" {
 		title = gui.Tr.SLocalize("MergeOptionsTitle")
 	} else {
 		title = gui.Tr.SLocalize("RebaseOptionsTitle")
@@ -37,7 +37,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
-	status := gui.State.WorkingTreeState
+	status := gui.workingTreeState()
 
 	if status != "merging" && status != "rebasing" {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NotMergingOrRebasing"))
@@ -63,7 +63,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 }
 
 func (gui *Gui) handleGenericMergeCommandResult(result error) error {
-	if err := gui.refreshSidePanels(gui.g); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
 		return err
 	}
 	if result == nil {

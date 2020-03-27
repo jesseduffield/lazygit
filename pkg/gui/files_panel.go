@@ -278,7 +278,7 @@ func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error 
 }
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-	if len(gui.stagedFiles()) == 0 && gui.State.WorkingTreeState == "normal" {
+	if len(gui.stagedFiles()) == 0 && gui.workingTreeState() == "normal" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
 	commitMessageView := gui.getCommitMessageView()
@@ -298,7 +298,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 }
 
 func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-	if len(gui.stagedFiles()) == 0 && gui.State.WorkingTreeState == "normal" {
+	if len(gui.stagedFiles()) == 0 && gui.workingTreeState() == "normal" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
 	if len(gui.State.Commits) == 0 {
@@ -317,14 +317,14 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 			return nil
 		}
 
-		return gui.refreshSidePanels(g)
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}, nil)
 }
 
 // handleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
-	if len(gui.stagedFiles()) == 0 && gui.State.WorkingTreeState == "normal" {
+	if len(gui.stagedFiles()) == 0 && gui.workingTreeState() == "normal" {
 		return gui.createErrorPanel(g, gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
 	gui.PrepareSubProcess(g, "git", "commit")
@@ -375,7 +375,7 @@ func (gui *Gui) refreshStateFiles() error {
 	}
 
 	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
-	return gui.updateWorkTreeState()
+	return nil
 }
 
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
