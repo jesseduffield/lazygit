@@ -529,12 +529,6 @@ func PtraceGetRegs(pid int, regsout *Reg) (err error) {
 	return ptrace(PTRACE_GETREGS, pid, uintptr(unsafe.Pointer(regsout)), 0)
 }
 
-func PtraceIO(req int, pid int, addr uintptr, out []byte, countin int) (count int, err error) {
-	ioDesc := PtraceIoDesc{Op: int32(req), Offs: (*byte)(unsafe.Pointer(addr)), Addr: (*byte)(unsafe.Pointer(&out[0])), Len: uint(countin)}
-	err = ptrace(PTRACE_IO, pid, uintptr(unsafe.Pointer(&ioDesc)), 0)
-	return int(ioDesc.Len), err
-}
-
 func PtraceLwpEvents(pid int, enable int) (err error) {
 	return ptrace(PTRACE_LWPEVENTS, pid, 0, enable)
 }

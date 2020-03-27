@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build darwin,386,!go1.12
+// +build darwin,arm,!go1.12
 
 package unix
 

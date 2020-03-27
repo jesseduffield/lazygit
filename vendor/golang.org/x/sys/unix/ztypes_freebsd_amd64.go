@@ -428,7 +428,7 @@ type PtraceIoDesc struct {
 	Op   int32
 	Offs *byte
 	Addr *byte
-	Len  uint
+	Len  uint64
 }
 
 type Kevent_t struct {
@@ -703,4 +703,14 @@ type Utsname struct {
 	Release  [256]byte
 	Version  [256]byte
 	Machine  [256]byte
+}
+
+const SizeofClockinfo = 0x14
+
+type Clockinfo struct {
+	Hz     int32
+	Tick   int32
+	Spare  int32
+	Stathz int32
+	Profhz int32
 }

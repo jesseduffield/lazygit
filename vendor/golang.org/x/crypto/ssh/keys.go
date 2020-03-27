@@ -7,6 +7,8 @@ package ssh
 import (
 	"bytes"
 	"crypto"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -25,6 +27,7 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/ed25519"
+	"golang.org/x/crypto/ssh/internal/bcrypt_pbkdf"
 )
 
 // These constants represent the algorithm names for key types supported by this
@@ -559,9 +562,11 @@ func parseED25519(in []byte) (out PublicKey, rest []byte, err error) {
 		return nil, nil, err
 	}
 
-	key := ed25519.PublicKey(w.KeyBytes)
+	if l := len(w.KeyBytes); l != ed25519.PublicKeySize {
+		return nil, nil, fmt.Errorf("invalid size %d for Ed25519 public key", l)
+	}
 
-	return (ed25519PublicKey)(key), w.Rest, nil
+	return ed25519PublicKey(w.KeyBytes), w.Rest, nil
 }
 
 func (k ed25519PublicKey) Marshal() []byte {
@@ -579,9 +584,11 @@ func (k ed25519PublicKey) Verify(b []byte, sig *Signature) error {
 	if sig.Format != k.Type() {
 		return fmt.Errorf("ssh: signature type %s for key type %s", sig.Format, k.Type())
 	}
+	if l := len(k); l != ed25519.PublicKeySize {
+		return fmt.Errorf("ssh: invalid size %d for Ed25519 public key", l)
+	}
 
-	edKey := (ed25519.PublicKey)(k)
-	if ok := ed25519.Verify(edKey, b, sig.Blob); !ok {
+	if ok := ed25519.Verify(ed25519.PublicKey(k), b, sig.Blob); !ok {
 		return errors.New("ssh: signature did not verify")
 	}
 
@@ -835,6 +842,10 @@ func parseSKEd25519(in []byte) (out PublicKey, rest []byte, err error) {
 		return nil, nil, err
 	}
 
+	if l := len(w.KeyBytes); l != ed25519.PublicKeySize {
+		return nil, nil, fmt.Errorf("invalid size %d for Ed25519 public key", l)
+	}
+
 	key := new(skEd25519PublicKey)
 	key.application = w.Application
 	key.PublicKey = ed25519.PublicKey(w.KeyBytes)
@@ -858,6 +869,9 @@ func (k *skEd25519PublicKey) Marshal() []byte {
 func (k *skEd25519PublicKey) Verify(data []byte, sig *Signature) error {
 	if sig.Format != k.Type() {
 		return fmt.Errorf("ssh: signature type %s for key type %s", sig.Format, k.Type())
+	}
+	if l := len(k.PublicKey); l != ed25519.PublicKeySize {
+		return fmt.Errorf("invalid size %d for Ed25519 public key", l)
 	}
 
 	h := sha256.New()
@@ -895,8 +909,7 @@ func (k *skEd25519PublicKey) Verify(data []byte, sig *Signature) error {
 
 	original := Marshal(blob)
 
-	edKey := (ed25519.PublicKey)(k.PublicKey)
-	if ok := ed25519.Verify(edKey, original, edSig.Signature); !ok {
+	if ok := ed25519.Verify(k.PublicKey, original, edSig.Signature); !ok {
 		return errors.New("ssh: signature did not verify")
 	}
 
@@ -1048,7 +1061,10 @@ func NewPublicKey(key interface{}) (PublicKey, error) {
 	case *dsa.PublicKey:
 		return (*dsaPublicKey)(key), nil
 	case ed25519.PublicKey:
-		return (ed25519PublicKey)(key), nil
+		if l := len(key); l != ed25519.PublicKeySize {
+			return nil, fmt.Errorf("ssh: invalid size %d for Ed25519 public key", l)
+		}
+		return ed25519PublicKey(key), nil
 	default:
 		return nil, fmt.Errorf("ssh: unsupported key type %T", key)
 	}
@@ -1122,19 +1138,23 @@ func ParseRawPrivateKey(pemBytes []byte) (interface{}, error) {
 	case "DSA PRIVATE KEY":
 		return ParseDSAPrivateKey(block.Bytes)
 	case "OPENSSH PRIVATE KEY":
-		return parseOpenSSHPrivateKey(block.Bytes)
+		return parseOpenSSHPrivateKey(block.Bytes, unencryptedOpenSSHKey)
 	default:
 		return nil, fmt.Errorf("ssh: unsupported key type %q", block.Type)
 	}
 }
 
 // ParseRawPrivateKeyWithPassphrase returns a private key decrypted with
-// passphrase from a PEM encoded private key. If wrong passphrase, return
-// x509.IncorrectPasswordError.
+// passphrase from a PEM encoded private key. If the passphrase is wrong, it
+// will return x509.IncorrectPasswordError.
 func ParseRawPrivateKeyWithPassphrase(pemBytes, passphrase []byte) (interface{}, error) {
 	block, _ := pem.Decode(pemBytes)
 	if block == nil {
 		return nil, errors.New("ssh: no key found")
+	}
+
+	if block.Type == "OPENSSH PRIVATE KEY" {
+		return parseOpenSSHPrivateKey(block.Bytes, passphraseProtectedOpenSSHKey(passphrase))
 	}
 
 	if !encryptedBlock(block) || !x509.IsEncryptedPEMBlock(block) {
@@ -1193,9 +1213,60 @@ func ParseDSAPrivateKey(der []byte) (*dsa.PrivateKey, error) {
 	}, nil
 }
 
-// Implemented based on the documentation at
-// https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key
-func parseOpenSSHPrivateKey(key []byte) (crypto.PrivateKey, error) {
+func unencryptedOpenSSHKey(cipherName, kdfName, kdfOpts string, privKeyBlock []byte) ([]byte, error) {
+	if kdfName != "none" || cipherName != "none" {
+		return nil, &PassphraseMissingError{}
+	}
+	if kdfOpts != "" {
+		return nil, errors.New("ssh: invalid openssh private key")
+	}
+	return privKeyBlock, nil
+}
+
+func passphraseProtectedOpenSSHKey(passphrase []byte) openSSHDecryptFunc {
+	return func(cipherName, kdfName, kdfOpts string, privKeyBlock []byte) ([]byte, error) {
+		if kdfName == "none" || cipherName == "none" {
+			return nil, errors.New("ssh: key is not password protected")
+		}
+		if kdfName != "bcrypt" {
+			return nil, fmt.Errorf("ssh: unknown KDF %q, only supports %q", kdfName, "bcrypt")
+		}
+
+		var opts struct {
+			Salt   string
+			Rounds uint32
+		}
+		if err := Unmarshal([]byte(kdfOpts), &opts); err != nil {
+			return nil, err
+		}
+
+		k, err := bcrypt_pbkdf.Key(passphrase, []byte(opts.Salt), int(opts.Rounds), 32+16)
+		if err != nil {
+			return nil, err
+		}
+		key, iv := k[:32], k[32:]
+
+		if cipherName != "aes256-ctr" {
+			return nil, fmt.Errorf("ssh: unknown cipher %q, only supports %q", cipherName, "aes256-ctr")
+		}
+		c, err := aes.NewCipher(key)
+		if err != nil {
+			return nil, err
+		}
+		ctr := cipher.NewCTR(c, iv)
+		ctr.XORKeyStream(privKeyBlock, privKeyBlock)
+
+		return privKeyBlock, nil
+	}
+}
+
+type openSSHDecryptFunc func(CipherName, KdfName, KdfOpts string, PrivKeyBlock []byte) ([]byte, error)
+
+// parseOpenSSHPrivateKey parses an OpenSSH private key, using the decrypt
+// function to unwrap the encrypted portion. unencryptedOpenSSHKey can be used
+// as the decrypt function to parse an unencrypted private key. See
+// https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key.
+func parseOpenSSHPrivateKey(key []byte, decrypt openSSHDecryptFunc) (crypto.PrivateKey, error) {
 	const magic = "openssh-key-v1\x00"
 	if len(key) < len(magic) || string(key[:len(magic)]) != magic {
 		return nil, errors.New("ssh: invalid openssh private key format")
@@ -1214,9 +1285,22 @@ func parseOpenSSHPrivateKey(key []byte) (crypto.PrivateKey, error) {
 	if err := Unmarshal(remaining, &w); err != nil {
 		return nil, err
 	}
+	if w.NumKeys != 1 {
+		// We only support single key files, and so does OpenSSH.
+		// https://github.com/openssh/openssh-portable/blob/4103a3ec7/sshkey.c#L4171
+		return nil, errors.New("ssh: multi-key files are not supported")
+	}
 
-	if w.KdfName != "none" || w.CipherName != "none" {
-		return nil, errors.New("ssh: cannot decode encrypted private keys")
+	privKeyBlock, err := decrypt(w.CipherName, w.KdfName, w.KdfOpts, w.PrivKeyBlock)
+	if err != nil {
+		if err, ok := err.(*PassphraseMissingError); ok {
+			pub, errPub := ParsePublicKey(w.PubKey)
+			if errPub != nil {
+				return nil, fmt.Errorf("ssh: failed to parse embedded public key: %v", errPub)
+			}
+			err.PublicKey = pub
+		}
+		return nil, err
 	}
 
 	pk1 := struct {
@@ -1226,15 +1310,13 @@ func parseOpenSSHPrivateKey(key []byte) (crypto.PrivateKey, error) {
 		Rest    []byte `ssh:"rest"`
 	}{}
 
-	if err := Unmarshal(w.PrivKeyBlock, &pk1); err != nil {
-		return nil, err
+	if err := Unmarshal(privKeyBlock, &pk1); err != nil || pk1.Check1 != pk1.Check2 {
+		if w.CipherName != "none" {
+			return nil, x509.IncorrectPasswordError
+		}
+		return nil, errors.New("ssh: malformed OpenSSH key")
 	}
 
-	if pk1.Check1 != pk1.Check2 {
-		return nil, errors.New("ssh: checkint mismatch")
-	}
-
-	// we only handle ed25519 and rsa keys currently
 	switch pk1.Keytype {
 	case KeyAlgoRSA:
 		// https://github.com/openssh/openssh-portable/blob/master/sshkey.c#L2760-L2773
@@ -1253,10 +1335,8 @@ func parseOpenSSHPrivateKey(key []byte) (crypto.PrivateKey, error) {
 			return nil, err
 		}
 
-		for i, b := range key.Pad {
-			if int(b) != i+1 {
-				return nil, errors.New("ssh: padding not as expected")
-			}
+		if err := checkOpenSSHKeyPadding(key.Pad); err != nil {
+			return nil, err
 		}
 
 		pk := &rsa.PrivateKey{
@@ -1291,18 +1371,76 @@ func parseOpenSSHPrivateKey(key []byte) (crypto.PrivateKey, error) {
 			return nil, errors.New("ssh: private key unexpected length")
 		}
 
-		for i, b := range key.Pad {
-			if int(b) != i+1 {
-				return nil, errors.New("ssh: padding not as expected")
-			}
+		if err := checkOpenSSHKeyPadding(key.Pad); err != nil {
+			return nil, err
 		}
 
 		pk := ed25519.PrivateKey(make([]byte, ed25519.PrivateKeySize))
 		copy(pk, key.Priv)
 		return &pk, nil
+	case KeyAlgoECDSA256, KeyAlgoECDSA384, KeyAlgoECDSA521:
+		key := struct {
+			Curve   string
+			Pub     []byte
+			D       *big.Int
+			Comment string
+			Pad     []byte `ssh:"rest"`
+		}{}
+
+		if err := Unmarshal(pk1.Rest, &key); err != nil {
+			return nil, err
+		}
+
+		if err := checkOpenSSHKeyPadding(key.Pad); err != nil {
+			return nil, err
+		}
+
+		var curve elliptic.Curve
+		switch key.Curve {
+		case "nistp256":
+			curve = elliptic.P256()
+		case "nistp384":
+			curve = elliptic.P384()
+		case "nistp521":
+			curve = elliptic.P521()
+		default:
+			return nil, errors.New("ssh: unhandled elliptic curve: " + key.Curve)
+		}
+
+		X, Y := elliptic.Unmarshal(curve, key.Pub)
+		if X == nil || Y == nil {
+			return nil, errors.New("ssh: failed to unmarshal public key")
+		}
+
+		if key.D.Cmp(curve.Params().N) >= 0 {
+			return nil, errors.New("ssh: scalar is out of range")
+		}
+
+		x, y := curve.ScalarBaseMult(key.D.Bytes())
+		if x.Cmp(X) != 0 || y.Cmp(Y) != 0 {
+			return nil, errors.New("ssh: public key does not match private key")
+		}
+
+		return &ecdsa.PrivateKey{
+			PublicKey: ecdsa.PublicKey{
+				Curve: curve,
+				X:     X,
+				Y:     Y,
+			},
+			D: key.D,
+		}, nil
 	default:
 		return nil, errors.New("ssh: unhandled key type")
 	}
+}
+
+func checkOpenSSHKeyPadding(pad []byte) error {
+	for i, b := range pad {
+		if int(b) != i+1 {
+			return errors.New("ssh: padding not as expected")
+		}
+	}
+	return nil
 }
 
 // FingerprintLegacyMD5 returns the user presentation of the key's
