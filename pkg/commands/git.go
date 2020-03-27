@@ -1117,10 +1117,11 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 
 // GetNewReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
-func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, error) {
+func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, bool, error) {
 	commits := make([]*Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 	cmd := c.OSCommand.ExecutableFromString("git reflog --abbrev=20 --date=unix")
+	foundLastReflogCommit := false
 	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {
@@ -1137,6 +1138,7 @@ func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, e
 		}
 
 		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp {
+			foundLastReflogCommit = true
 			// after this point we already have these reflogs loaded so we'll simply return the new ones
 			return true, nil
 		}
@@ -1145,10 +1147,10 @@ func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, e
 		return false, nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return commits, nil
+	return commits, foundLastReflogCommit, nil
 }
 
 func (c *GitCommand) ConfiguredPager() string {
