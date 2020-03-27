@@ -62,10 +62,11 @@ var armorEndOfLine = []byte("-----")
 // lineReader wraps a line based reader. It watches for the end of an armor
 // block and records the expected CRC value.
 type lineReader struct {
-	in  *bufio.Reader
-	buf []byte
-	eof bool
-	crc uint32
+	in     *bufio.Reader
+	buf    []byte
+	eof    bool
+	crc    uint32
+	crcSet bool
 }
 
 func (l *lineReader) Read(p []byte) (n int, err error) {
@@ -85,6 +86,11 @@ func (l *lineReader) Read(p []byte) (n int, err error) {
 	}
 	if isPrefix {
 		return 0, ArmorCorrupt
+	}
+
+	if bytes.HasPrefix(line, armorEnd) {
+		l.eof = true
+		return 0, io.EOF
 	}
 
 	if len(line) == 5 && line[0] == '=' {
@@ -108,6 +114,7 @@ func (l *lineReader) Read(p []byte) (n int, err error) {
 		}
 
 		l.eof = true
+		l.crcSet = true
 		return 0, io.EOF
 	}
 
@@ -141,10 +148,8 @@ func (r *openpgpReader) Read(p []byte) (n int, err error) {
 	n, err = r.b64Reader.Read(p)
 	r.currentCRC = crc24(r.currentCRC, p[:n])
 
-	if err == io.EOF {
-		if r.lReader.crc != uint32(r.currentCRC&crc24Mask) {
-			return 0, ArmorCorrupt
-		}
+	if err == io.EOF && r.lReader.crcSet && r.lReader.crc != uint32(r.currentCRC&crc24Mask) {
+		return 0, ArmorCorrupt
 	}
 
 	return

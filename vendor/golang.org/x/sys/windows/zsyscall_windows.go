@@ -2875,7 +2875,7 @@ func socket(af int32, typ int32, protocol int32) (handle Handle, err error) {
 	return
 }
 
-func sendto(s Handle, buf []byte, flags int, to unsafe.Pointer, tolen int32) (err error) {
+func sendto(s Handle, buf []byte, flags int32, to unsafe.Pointer, tolen int32) (err error) {
 	var _p0 *byte
 	if len(buf) > 0 {
 		_p0 = &buf[0]
@@ -2891,13 +2891,13 @@ func sendto(s Handle, buf []byte, flags int, to unsafe.Pointer, tolen int32) (er
 	return
 }
 
-func recvfrom(s Handle, buf []byte, flags int, from *RawSockaddrAny, fromlen *int) (n int, err error) {
+func recvfrom(s Handle, buf []byte, flags int32, from *RawSockaddrAny, fromlen *int32) (n int32, err error) {
 	var _p0 *byte
 	if len(buf) > 0 {
 		_p0 = &buf[0]
 	}
 	r0, _, e1 := syscall.Syscall6(procrecvfrom.Addr(), 6, uintptr(s), uintptr(unsafe.Pointer(_p0)), uintptr(len(buf)), uintptr(flags), uintptr(unsafe.Pointer(from)), uintptr(unsafe.Pointer(fromlen)))
-	n = int(r0)
+	n = int32(r0)
 	if n == -1 {
 		if e1 != 0 {
 			err = errnoErr(e1)

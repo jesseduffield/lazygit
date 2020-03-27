@@ -1,0 +1,61 @@
+package filesystem
+
+import (
+	stdioutil "io/ioutil"
+	"os"
+
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/storage/filesystem/dotgit"
+	"github.com/go-git/go-git/v5/utils/ioutil"
+)
+
+type ConfigStorage struct {
+	dir *dotgit.DotGit
+}
+
+func (c *ConfigStorage) Config() (conf *config.Config, err error) {
+	cfg := config.NewConfig()
+
+	f, err := c.dir.Config()
+	if err != nil {
+		if os.IsNotExist(err) {
+			return cfg, nil
+		}
+
+		return nil, err
+	}
+
+	defer ioutil.CheckClose(f, &err)
+
+	b, err := stdioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cfg.Unmarshal(b); err != nil {
+		return nil, err
+	}
+
+	return cfg, err
+}
+
+func (c *ConfigStorage) SetConfig(cfg *config.Config) (err error) {
+	if err = cfg.Validate(); err != nil {
+		return err
+	}
+
+	f, err := c.dir.ConfigWriter()
+	if err != nil {
+		return err
+	}
+
+	defer ioutil.CheckClose(f, &err)
+
+	b, err := cfg.Marshal()
+	if err != nil {
+		return err
+	}
+
+	_, err = f.Write(b)
+	return err
+}
