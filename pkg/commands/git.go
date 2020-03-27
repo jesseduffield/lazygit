@@ -15,12 +15,12 @@ import (
 
 	"github.com/go-errors/errors"
 
+	gogit "github.com/go-git/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
-	gogit "gopkg.in/src-d/go-git.v4"
 )
 
 // this takes something like:
