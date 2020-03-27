@@ -47,22 +47,16 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
-	g.Update(func(g *gocui.Gui) error {
-		gui.State.StashEntries = gui.GitCommand.GetStashEntries()
+	gui.State.StashEntries = gui.GitCommand.GetStashEntries()
 
-		gui.refreshSelectedLine(&gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries))
+	gui.refreshSelectedLine(&gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries))
 
-		stashView := gui.getStashView()
+	stashView := gui.getStashView()
 
-		displayStrings := presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries)
-		gui.renderDisplayStrings(stashView, displayStrings)
+	displayStrings := presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries)
+	gui.renderDisplayStrings(stashView, displayStrings)
 
-		if err := gui.resetOrigin(stashView); err != nil {
-			return err
-		}
-		return nil
-	})
-	return nil
+	return gui.resetOrigin(stashView)
 }
 
 // specific functions
@@ -97,10 +91,7 @@ func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
 	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
 		return gui.createErrorPanel(g, err.Error())
 	}
-	if err := gui.refreshStashEntries(g); err != nil {
-		return gui.createErrorPanel(g, err.Error())
-	}
-	return gui.refreshFiles()
+	return gui.refreshSidePanels(refreshOptions{scope: []int{STASH, FILES}})
 }
 
 func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
@@ -111,10 +102,7 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 		if err := stashFunc(gui.trimmedContent(v)); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		if err := gui.refreshStashEntries(g); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		return gui.refreshFiles()
+		return gui.refreshSidePanels(refreshOptions{scope: []int{STASH, FILES}})
 	})
 }
 
