@@ -194,7 +194,7 @@ func (gui *Gui) handleFilePress(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
-	if err := gui.refreshFiles(); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
 		return err
 	}
 
@@ -229,7 +229,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 		_ = gui.createErrorPanel(g, err.Error())
 	}
 
-	if err := gui.refreshFiles(); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
 		return err
 	}
 
@@ -252,7 +252,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 				if err := gui.GitCommand.RemoveTrackedFiles(file.Name); err != nil {
 					return err
 				}
-				return gui.refreshFiles()
+				return gui.refreshSidePanels(refreshOptions{scope: []int{FILES}})
 			}, nil)
 	}
 
@@ -260,7 +260,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
-	return gui.refreshFiles()
+	return gui.refreshSidePanels(refreshOptions{scope: []int{FILES}})
 }
 
 func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error {
@@ -362,7 +362,7 @@ func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
-	return gui.refreshFiles()
+	return gui.refreshSidePanels(refreshOptions{scope: []int{FILES}})
 }
 
 func (gui *Gui) refreshStateFiles() error {

@@ -22,6 +22,7 @@ const (
 	REFLOG
 	TAGS
 	REMOTES
+	STATUS
 )
 
 const (
@@ -55,7 +56,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	f := func() {
 		var scopeMap map[int]bool
 		if len(options.scope) == 0 {
-			scopeMap = intArrToMap([]int{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES})
+			scopeMap = intArrToMap([]int{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS})
 		} else {
 			scopeMap = intArrToMap(options.scope)
 		}
@@ -82,7 +83,6 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 				}
 				wg.Done()
 			}()
-
 		}
 
 		if scopeMap[STASH] {

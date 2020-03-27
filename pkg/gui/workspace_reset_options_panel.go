@@ -19,7 +19,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
 			},
 		},
 		{
@@ -32,7 +32,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
 			},
 		},
 		{
@@ -58,7 +58,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
 			},
 		},
 		{
@@ -71,7 +71,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
 			},
 		},
 		{
@@ -84,7 +84,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 					return gui.createErrorPanel(gui.g, err.Error())
 				}
 
-				return gui.refreshFiles()
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
 			},
 		},
 	}
