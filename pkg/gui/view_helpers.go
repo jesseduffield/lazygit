@@ -64,9 +64,9 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go gui.refreshCommits(gui.g)
+					go gui.refreshCommits()
 				} else {
-					gui.refreshCommits(gui.g)
+					gui.refreshCommits()
 				}
 				wg.Done()
 			}()

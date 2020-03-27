@@ -358,7 +358,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
 				_ = gui.createErrorPanel(gui.g, err.Error())
 			}
-			_ = gui.refreshCommits(gui.g)
+			_ = gui.refreshCommits()
 		}
 
 		_ = gui.closeConfirmationPrompt(gui.g, true)
@@ -465,7 +465,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 				return gui.createErrorPanel(gui.g, err.Error())
 			}
 
-			return gui.refreshCommits(gui.g)
+			return gui.refreshCommits()
 		})
 	}
 
