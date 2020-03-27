@@ -2,7 +2,6 @@ package commands
 
 import (
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -145,13 +144,7 @@ func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
 	reflogBranches := make([]*Branch, 0, len(b.ReflogCommits))
 	for _, commit := range b.ReflogCommits {
 		if match := re.FindStringSubmatch(commit.Name); len(match) == 3 {
-			timestamp, err := strconv.Atoi(commit.Date)
-			if err != nil {
-				b.Log.Errorf("couldn't parse reflog date: %s", commit.Date)
-				continue
-			}
-
-			recency := utils.UnixToTimeAgo(timestamp)
+			recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
 			for _, branchName := range match[1:] {
 				if !foundBranchesMap[branchName] {
 					foundBranchesMap[branchName] = true

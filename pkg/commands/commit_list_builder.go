@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -56,7 +57,7 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 	split := strings.Split(line, SEPARATION_CHAR)
 
 	sha := split[0]
-	date := split[1]
+	unixTimestamp := split[1]
 	author := split[2]
 	extraInfo := strings.TrimSpace(split[3])
 	message := strings.Join(split[4:], SEPARATION_CHAR)
@@ -70,13 +71,15 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 		}
 	}
 
+	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
+
 	return &Commit{
-		Sha:       sha,
-		Name:      message,
-		Tags:      tags,
-		ExtraInfo: extraInfo,
-		Date:      date,
-		Author:    author,
+		Sha:           sha,
+		Name:          message,
+		Tags:          tags,
+		ExtraInfo:     extraInfo,
+		UnixTimestamp: int64(unitTimestampInt),
+		Author:        author,
 	}
 }
 
@@ -305,5 +308,5 @@ func (c *CommitListBuilder) getLogCmd(limit bool) *exec.Cmd {
 		limitFlag = "-300"
 	}
 
-	return c.OSCommand.ExecutableFromString(fmt.Sprintf("git log --oneline --pretty=format:\"%%H%s%%ar%s%%aN%s%%d%s%%s\" %s --abbrev=%d", SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20))
+	return c.OSCommand.ExecutableFromString(fmt.Sprintf("git log --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%s\" %s --abbrev=%d --date=unix ", SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20))
 }

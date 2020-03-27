@@ -85,7 +85,7 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 				}
 			}
 
-			return gui.refreshSidePanels(gui.g)
+			return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI})
 		})
 	}, nil)
 }

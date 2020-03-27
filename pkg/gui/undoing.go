@@ -87,7 +87,7 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := gui.Tr.SLocalize("UndoingStatus")
 
-	if gui.State.WorkingTreeState == "rebasing" {
+	if gui.workingTreeState() == "rebasing" {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("cantUndoWhileRebasing"))
 	}
 
@@ -118,7 +118,7 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := gui.Tr.SLocalize("RedoingStatus")
 
-	if gui.State.WorkingTreeState == "rebasing" {
+	if gui.workingTreeState() == "rebasing" {
 		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("cantRedoWhileRebasing"))
 	}
 
@@ -183,20 +183,17 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 				}
 
 				if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
-					if err := gui.refreshSidePanels(g); err != nil {
+					if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
 						return err
 					}
 					return gui.createErrorPanel(g, err.Error())
 				}
-				return gui.refreshSidePanels(g)
+				return nil
 			})
 		}, nil)
 	}
 
 	return gui.WithWaitingStatus(options.WaitingStatus, func() error {
-		if err := reset(); err != nil {
-			return err
-		}
-		return gui.refreshSidePanels(gui.g)
+		return reset()
 	})
 }

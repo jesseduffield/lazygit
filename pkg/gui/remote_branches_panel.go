@@ -126,7 +126,7 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 
-		return gui.refreshSidePanels(gui.g)
+		return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
 	}, nil)
 }
 

@@ -12,6 +12,7 @@ import (
 
 // never call this on its own, it should only be called from within refreshCommits()
 func (gui *Gui) refreshStatus() {
+
 	currentBranch := gui.currentBranch()
 	status := ""
 
@@ -26,8 +27,8 @@ func (gui *Gui) refreshStatus() {
 		status = utils.ColoredString(fmt.Sprintf("↑%s↓%s ", currentBranch.Pushables, currentBranch.Pullables), trackColor)
 	}
 
-	if gui.State.WorkingTreeState != "normal" {
-		status += utils.ColoredString(fmt.Sprintf("(%s) ", gui.State.WorkingTreeState), color.FgYellow)
+	if gui.workingTreeState() != "normal" {
+		status += utils.ColoredString(fmt.Sprintf("(%s) ", gui.workingTreeState()), color.FgYellow)
 	}
 
 	name := utils.ColoredString(currentBranch.Name, presentation.GetBranchColor(currentBranch.Name))
@@ -59,10 +60,9 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 	cx, _ := v.Cursor()
 	upstreamStatus := fmt.Sprintf("↑%s↓%s", currentBranch.Pushables, currentBranch.Pullables)
 	repoName := utils.GetCurrentRepoName()
-	gui.Log.Warn(gui.State.WorkingTreeState)
-	switch gui.State.WorkingTreeState {
+	switch gui.workingTreeState() {
 	case "rebasing", "merging":
-		workingTreeStatus := fmt.Sprintf("(%s)", gui.State.WorkingTreeState)
+		workingTreeStatus := fmt.Sprintf("(%s)", gui.workingTreeState())
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return gui.handleCreateRebaseOptionsMenu(gui.g, v)
 		}
@@ -128,23 +128,14 @@ func lazygitTitle() string {
                |___/ |___/       `
 }
 
-func (gui *Gui) updateWorkTreeState() error {
-	rebaseMode, err := gui.GitCommand.RebaseMode()
-	if err != nil {
-		return err
-	}
+func (gui *Gui) workingTreeState() string {
+	rebaseMode, _ := gui.GitCommand.RebaseMode()
 	if rebaseMode != "" {
-		gui.State.WorkingTreeState = "rebasing"
-		return nil
+		return "rebasing"
 	}
-	merging, err := gui.GitCommand.IsInMergeState()
-	if err != nil {
-		return err
-	}
+	merging, _ := gui.GitCommand.IsInMergeState()
 	if merging {
-		gui.State.WorkingTreeState = "merging"
-		return nil
+		return "merging"
 	}
-	gui.State.WorkingTreeState = "normal"
-	return nil
+	return "normal"
 }

@@ -72,10 +72,6 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshCommits(g *gocui.Gui) error {
-	if err := gui.updateWorkTreeState(); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
-	}
-
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
@@ -87,16 +83,15 @@ func (gui *Gui) refreshCommits(g *gocui.Gui) error {
 
 	go func() {
 		gui.refreshCommitsWithLimit()
+		if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
+			gui.refreshCommitFilesView()
+		}
 		wg.Done()
 	}()
 
 	wg.Wait()
 
 	gui.refreshStatus()
-
-	if g.CurrentView() == gui.getCommitFilesView() || (g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
-		return gui.refreshCommitFilesView()
-	}
 
 	return nil
 }
@@ -497,7 +492,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(g, err.Error())
 		}
 
-		return gui.refreshSidePanels(gui.g)
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}, nil)
 }
 

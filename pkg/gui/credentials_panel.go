@@ -100,6 +100,6 @@ func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr er
 		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(), false)
 	} else {
 		_ = gui.closeConfirmationPrompt(g, true)
-		_ = gui.refreshSidePanels(g)
+		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}
 }

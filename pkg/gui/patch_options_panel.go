@@ -59,7 +59,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 }
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
-	if gui.State.WorkingTreeState != "normal" {
+	if gui.workingTreeState() != "normal" {
 		return false, gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantPatchWhileRebasingError"))
 	}
 	return true, nil
@@ -128,7 +128,7 @@ func (gui *Gui) handleApplyPatch() error {
 	if err := gui.GitCommand.PatchManager.ApplyPatches(false); err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
-	return gui.refreshSidePanels(gui.g)
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
 func (gui *Gui) handleResetPatch() error {

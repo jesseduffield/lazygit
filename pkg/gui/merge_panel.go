@@ -281,7 +281,7 @@ func (gui *Gui) handleCompleteMerge() error {
 	}
 	// if we got conflicts after unstashing, we don't want to call any git
 	// commands to continue rebasing/merging here
-	if gui.State.WorkingTreeState == "normal" {
+	if gui.workingTreeState() == "normal" {
 		return gui.handleEscapeMerge(gui.g, gui.getMainView())
 	}
 	// if there are no more files with merge conflicts, we should ask whether the user wants to continue

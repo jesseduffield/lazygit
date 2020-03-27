@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-func UnixToTimeAgo(timestamp int) string {
+func UnixToTimeAgo(timestamp int64) string {
 	now := time.Now().Unix()
-	delta := float64(now - int64(timestamp))
+	delta := float64(now - timestamp)
 	// we go seconds, minutes, hours, days, weeks, months, years
 	conversions := []float64{60, 60, 24, 7, 4.34524, 12}
 	labels := []string{"s", "m", "h", "d", "w", "m", "y"}
@@ -18,4 +18,8 @@ func UnixToTimeAgo(timestamp int) string {
 		delta /= conversion
 	}
 	return fmt.Sprintf("%dy", int(delta))
+}
+
+func UnixToDate(timestamp int64) string {
+	return time.Unix(timestamp, 0).Format(time.RFC822)
 }
