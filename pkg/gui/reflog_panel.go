@@ -52,12 +52,18 @@ func (gui *Gui) refreshReflogCommits() error {
 		lastReflogCommit = gui.State.ReflogCommits[0]
 	}
 
-	commits, err := gui.GitCommand.GetNewReflogCommits(lastReflogCommit)
+	commits, foundLastReflogCommit, err := gui.GitCommand.GetNewReflogCommits(lastReflogCommit)
 	if err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
-	gui.State.ReflogCommits = append(commits, gui.State.ReflogCommits...)
+	if foundLastReflogCommit {
+		gui.State.ReflogCommits = append(commits, gui.State.ReflogCommits...)
+	} else {
+		// if we haven't found it we're probably in a new repo so we don't want to
+		// retain the old reflog commits
+		gui.State.ReflogCommits = commits
+	}
 
 	if gui.getCommitsView().Context == "reflog-commits" {
 		return gui.renderReflogCommitsWithSelection()
