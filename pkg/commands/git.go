@@ -170,9 +170,8 @@ func (c *GitCommand) GetStashEntries() []*StashEntry {
 
 func stashEntryFromLine(line string, index int) *StashEntry {
 	return &StashEntry{
-		Name:          line,
-		Index:         index,
-		DisplayString: line,
+		Name:  line,
+		Index: index,
 	}
 }
 

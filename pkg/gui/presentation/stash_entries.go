@@ -16,5 +16,5 @@ func GetStashEntryListDisplayStrings(stashEntries []*commands.StashEntry) [][]st
 
 // getStashEntryDisplayStrings returns the display string of branch
 func getStashEntryDisplayStrings(s *commands.StashEntry) []string {
-	return []string{s.DisplayString}
+	return []string{s.Name}
 }
