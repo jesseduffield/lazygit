@@ -1,7 +1,11 @@
 package presentation
 
 import (
+	"fmt"
+
+	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetRemoteListDisplayStrings(remotes []*commands.Remote) [][]string {
@@ -16,5 +20,7 @@ func GetRemoteListDisplayStrings(remotes []*commands.Remote) [][]string {
 
 // getRemoteDisplayStrings returns the display string of branch
 func getRemoteDisplayStrings(r *commands.Remote) []string {
-	return []string{r.Name}
+	branchCount := len(r.Branches)
+
+	return []string{r.Name, utils.ColoredString(fmt.Sprintf("%d branches", branchCount), color.FgBlue)}
 }
