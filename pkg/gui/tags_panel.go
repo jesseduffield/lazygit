@@ -69,7 +69,7 @@ func (gui *Gui) renderTagsWithSelection() error {
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
 		if err := gui.handleTagSelect(gui.g, branchesView); err != nil {
-			return err
+			return gui.createErrorPanel(gui.g, err.Error())
 		}
 	}
 
@@ -104,13 +104,7 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		if err := gui.refreshCommits(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshTags(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		return nil
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
 	}, nil)
 }
 
@@ -131,23 +125,28 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.PushTag(v.Buffer(), tag.Name); err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		return gui.refreshTags()
+		return nil
 	})
 }
 
 func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 	return gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("CreateTagTitle"), "", func(g *gocui.Gui, v *gocui.View) error {
 		// leaving commit SHA blank so that we're just creating the tag for the current commit
-		if err := gui.GitCommand.CreateLightweightTag(v.Buffer(), ""); err != nil {
+		tagName := v.Buffer()
+		if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
-		if err := gui.refreshCommits(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshTags(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		return nil
+		return gui.refreshSidePanels(refreshOptions{scope: []int{COMMITS, TAGS}, then: func() {
+			// find the index of the tag and set that as the currently selected line
+			for i, tag := range gui.State.Tags {
+				if tag.Name == tagName {
+					gui.State.Panels.Tags.SelectedLine = i
+					gui.renderTagsWithSelection()
+					return
+				}
+			}
+		},
+		})
 	})
 }
 
