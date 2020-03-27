@@ -57,7 +57,7 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	return gui.refreshCommits(g)
+	return gui.refreshCommits()
 }
 
 func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
