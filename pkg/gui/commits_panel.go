@@ -71,6 +71,13 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// whenever we change commits, we should update branches because the upstream/downstream
+// counts can change. Whenever we change branches we should probably also change commits
+// e.g. in the case of switching branches. We also need the status to be refreshed whenever
+// the working tree status changes or the branch upstream/downstream value changes.
+// Given how fast the refreshStatus method is, we should really just call it every time
+// we refresh, but I'm not sure how to do that asynchronously that prevents a race condition
+// other than a mutex.
 func (gui *Gui) refreshCommits() error {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
@@ -78,6 +85,7 @@ func (gui *Gui) refreshCommits() error {
 	go func() {
 		gui.refreshReflogCommits()
 		gui.refreshBranches()
+		gui.refreshStatus()
 		wg.Done()
 	}()
 
@@ -90,8 +98,6 @@ func (gui *Gui) refreshCommits() error {
 	}()
 
 	wg.Wait()
-
-	gui.refreshStatus()
 
 	return nil
 }
