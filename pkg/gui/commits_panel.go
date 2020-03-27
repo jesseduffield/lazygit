@@ -83,7 +83,7 @@ func (gui *Gui) refreshCommits() error {
 
 	go func() {
 		gui.refreshCommitsWithLimit()
-		if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.g.CurrentView() == gui.getMainView() || gui.State.MainContext == "patch-building") {
+		if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.g.CurrentView() == gui.getMainView() && gui.State.MainContext == "patch-building") {
 			gui.refreshCommitFilesView()
 		}
 		wg.Done()
