@@ -9,10 +9,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool) [][]string {
+func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffEntries []*commands.Commit) [][]string {
 	lines := make([][]string, len(commits))
 
-	var displayFunc func(*commands.Commit, map[string]bool) []string
+	var displayFunc func(*commands.Commit, map[string]bool, []*commands.Commit) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForCommit
 	} else {
@@ -20,13 +20,13 @@ func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription boo
 	}
 
 	for i := range commits {
-		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap)
+		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap, diffEntries)
 	}
 
 	return lines
 }
 
-func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool) []string {
+func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool, diffEntries []*commands.Commit) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -52,14 +52,18 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedC
 		shaColor = blue
 	case "reflog":
 		shaColor = blue
-	case "selected":
-		shaColor = magenta
 	default:
 		shaColor = defaultColor
 	}
 
 	if cherryPickedCommitShaMap[c.Sha] {
 		shaColor = copied
+	}
+
+	for _, entry := range diffEntries {
+		if c.Sha == entry.Sha {
+			shaColor = magenta
+		}
 	}
 
 	tagString := ""
@@ -76,7 +80,7 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedC
 	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(c.Name)}
 }
 
-func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool) []string {
+func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool, diffEntries []*commands.Commit) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -102,14 +106,18 @@ func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map
 		shaColor = blue
 	case "reflog":
 		shaColor = blue
-	case "selected":
-		shaColor = magenta
 	default:
 		shaColor = defaultColor
 	}
 
 	if cherryPickedCommitShaMap[c.Sha] {
 		shaColor = copied
+	}
+
+	for _, entry := range diffEntries {
+		if c.Sha == entry.Sha {
+			shaColor = magenta
+		}
 	}
 
 	actionString := ""

@@ -177,10 +177,8 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		if err := gui.refreshCommits(); err != nil {
-			panic(err)
-		}
-		return gui.handleCommitSelect(g, v)
+
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	})
 }
 
@@ -225,7 +223,9 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	if err := gui.GitCommand.EditRebaseTodo(gui.State.Panels.Commits.SelectedLine, action); err != nil {
 		return false, gui.createErrorPanel(gui.g, err.Error())
 	}
-	return true, gui.refreshCommits()
+	// TODO: consider doing this in a way that is less expensive. We don't actually
+	// need to reload all the commits, just the TODO commits.
+	return true, gui.refreshSidePanels(refreshOptions{scope: []int{COMMITS}})
 }
 
 func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
@@ -256,7 +256,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 		gui.State.Panels.Commits.SelectedLine++
-		return gui.refreshCommits()
+		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
@@ -279,7 +279,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 		gui.State.Panels.Commits.SelectedLine--
-		return gui.refreshCommits()
+		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
@@ -334,7 +334,7 @@ func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 	gui.State.Panels.Commits.SelectedLine++
-	return gui.refreshCommits()
+	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
 }
 
 func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
@@ -345,12 +345,12 @@ func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
 	for index, cherryPickedCommit := range gui.State.CherryPickedCommits {
 		if commit.Sha == cherryPickedCommit.Sha {
 			gui.State.CherryPickedCommits = append(gui.State.CherryPickedCommits[0:index], gui.State.CherryPickedCommits[index+1:]...)
-			return gui.refreshCommits()
+			return gui.renderBranchCommitsWithSelection()
 		}
 	}
 
 	gui.addCommitToCherryPickedCommits(gui.State.Panels.Commits.SelectedLine)
-	return gui.refreshCommits()
+	return gui.renderBranchCommitsWithSelection()
 }
 
 func (gui *Gui) cherryPickedCommitShaMap() map[string]bool {
@@ -428,10 +428,11 @@ func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
 	if idx, has := gui.hasCommit(gui.State.DiffEntries, commit.Sha); has {
 		gui.State.DiffEntries = gui.unchooseCommit(gui.State.DiffEntries, idx)
 	} else {
-		if len(gui.State.DiffEntries) == selectLimit {
-			gui.State.DiffEntries = gui.unchooseCommit(gui.State.DiffEntries, 0)
+		if len(gui.State.DiffEntries) == 0 {
+			gui.State.DiffEntries = []*commands.Commit{commit}
+		} else {
+			gui.State.DiffEntries = append(gui.State.DiffEntries[:1], commit)
 		}
-		gui.State.DiffEntries = append(gui.State.DiffEntries, commit)
 	}
 
 	gui.setDiffMode()
@@ -444,10 +445,9 @@ func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
 			return gui.createErrorPanel(gui.g, err.Error())
 		}
 
-		return gui.newStringTask("main", commitText)
+		gui.newStringTask("main", commitText)
 	}
-
-	return nil
+	return gui.renderBranchCommitsWithSelection()
 }
 
 func (gui *Gui) setDiffMode() {
@@ -459,8 +459,6 @@ func (gui *Gui) setDiffMode() {
 		gui.State.Panels.Commits.SpecificDiffMode = false
 		v.Title = gui.Tr.SLocalize("CommitsTitle")
 	}
-
-	_ = gui.refreshCommits()
 }
 
 func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool) {
@@ -532,13 +530,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 		if err := gui.GitCommand.CreateLightweightTag(v.Buffer(), commitSha); err != nil {
 			return gui.createErrorPanel(g, err.Error())
 		}
-		if err := gui.refreshCommits(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		if err := gui.refreshTags(); err != nil {
-			return gui.createErrorPanel(g, err.Error())
-		}
-		return gui.handleCommitSelect(g, v)
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
 	})
 }
 
@@ -557,7 +549,7 @@ func (gui *Gui) renderBranchCommitsWithSelection() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
-	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap())
+	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.DiffEntries)
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "branch-commits" {
 		if err := gui.handleCommitSelect(gui.g, commitsView); err != nil {
@@ -644,7 +636,7 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
-		if err := gui.refreshCommits(); err != nil {
+		if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS}}); err != nil {
 			return err
 		}
 	}
@@ -654,5 +646,5 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 
 func (gui *Gui) handleResetCherryPick(g *gocui.Gui, v *gocui.View) error {
 	gui.State.CherryPickedCommits = []*commands.Commit{}
-	return gui.refreshCommits()
+	return gui.renderBranchCommitsWithSelection()
 }

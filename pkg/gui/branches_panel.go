@@ -358,7 +358,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
 				_ = gui.createErrorPanel(gui.g, err.Error())
 			}
-			_ = gui.refreshCommits()
+			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{BRANCHES}})
 		}
 
 		_ = gui.closeConfirmationPrompt(gui.g, true)
@@ -453,6 +453,9 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	// TODO: find a way to not checkout the branch here if it's not the current branch (i.e. find some
+	// way to get it to show up in the reflog)
+
 	promptForNewName := func() error {
 		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("NewBranchNamePrompt")+" "+branch.Name+":", "", func(g *gocui.Gui, v *gocui.View) error {
 			newName := gui.trimmedContent(v)
@@ -465,7 +468,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 				return gui.createErrorPanel(gui.g, err.Error())
 			}
 
-			return gui.refreshCommits()
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 		})
 	}
 

@@ -129,14 +129,6 @@ func (c *CommitListBuilder) GetCommits(limit bool) ([]*Commit, error) {
 		return nil, err
 	}
 
-	for _, commit := range commits {
-		for _, entry := range c.DiffEntries {
-			if entry.Sha == commit.Sha {
-				commit.Status = "selected"
-			}
-		}
-	}
-
 	return commits, nil
 }
 
