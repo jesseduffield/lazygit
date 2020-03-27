@@ -119,7 +119,7 @@ func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
 				return err
 			}
-			return gui.refreshRemotes()
+			return gui.refreshSidePanels(refreshOptions{scope: []int{REMOTES}})
 		})
 	})
 }
@@ -134,7 +134,7 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 
-		return gui.refreshRemotes()
+		return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
 
 	}, nil)
 }
@@ -174,7 +174,7 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 				return gui.createErrorPanel(gui.g, err.Error())
 			}
-			return gui.refreshRemotes()
+			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
 		})
 	})
 }
@@ -190,6 +190,6 @@ func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
 			return err
 		}
 
-		return gui.refreshRemotes()
+		return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
 	})
 }

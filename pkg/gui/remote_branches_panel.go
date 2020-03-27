@@ -99,7 +99,7 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 				return err
 			}
 
-			return gui.refreshRemotes()
+			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
 		})
 	}, nil)
 }

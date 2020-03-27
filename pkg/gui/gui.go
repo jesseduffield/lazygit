@@ -179,34 +179,35 @@ type searchingState struct {
 }
 
 type guiState struct {
-	Files                []*commands.File
-	Branches             []*commands.Branch
-	Commits              []*commands.Commit
-	StashEntries         []*commands.StashEntry
-	CommitFiles          []*commands.CommitFile
-	ReflogCommits        []*commands.Commit
-	DiffEntries          []*commands.Commit
-	Remotes              []*commands.Remote
-	RemoteBranches       []*commands.RemoteBranch
-	Tags                 []*commands.Tag
-	MenuItemCount        int // can't store the actual list because it's of interface{} type
-	PreviousView         string
-	Platform             commands.Platform
-	Updating             bool
-	Panels               *panelStates
-	MainContext          string // used to keep the main and secondary views' contexts in sync
-	CherryPickedCommits  []*commands.Commit
-	SplitMainPanel       bool
-	RetainOriginalDir    bool
-	IsRefreshingFiles    bool
-	RefreshingFilesMutex sync.Mutex
-	Searching            searchingState
-	ScreenMode           int
-	SideView             *gocui.View
-	Ptmx                 *os.File
-	PrevMainWidth        int
-	PrevMainHeight       int
-	OldInformation       string
+	Files                 []*commands.File
+	Branches              []*commands.Branch
+	Commits               []*commands.Commit
+	StashEntries          []*commands.StashEntry
+	CommitFiles           []*commands.CommitFile
+	ReflogCommits         []*commands.Commit
+	DiffEntries           []*commands.Commit
+	Remotes               []*commands.Remote
+	RemoteBranches        []*commands.RemoteBranch
+	Tags                  []*commands.Tag
+	MenuItemCount         int // can't store the actual list because it's of interface{} type
+	PreviousView          string
+	Platform              commands.Platform
+	Updating              bool
+	Panels                *panelStates
+	MainContext           string // used to keep the main and secondary views' contexts in sync
+	CherryPickedCommits   []*commands.Commit
+	SplitMainPanel        bool
+	RetainOriginalDir     bool
+	IsRefreshingFiles     bool
+	RefreshingFilesMutex  sync.Mutex
+	RefreshingStatusMutex sync.Mutex
+	Searching             searchingState
+	ScreenMode            int
+	SideView              *gocui.View
+	Ptmx                  *os.File
+	PrevMainWidth         int
+	PrevMainHeight        int
+	OldInformation        string
 }
 
 // for now the split view will always be on

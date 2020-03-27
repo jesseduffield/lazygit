@@ -54,9 +54,6 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches() {
-	_ = gui.refreshRemotes()
-	_ = gui.refreshTags()
-
 	builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, gui.State.ReflogCommits)
 	if err != nil {
 		_ = gui.createErrorPanel(gui.g, err.Error())

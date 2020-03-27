@@ -61,7 +61,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			scopeMap = intArrToMap(options.scope)
 		}
 
-		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] || scopeMap[TAGS] || scopeMap[REMOTES] {
+		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
@@ -97,7 +97,33 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			}()
 		}
 
+		if scopeMap[TAGS] {
+			wg.Add(1)
+			func() {
+				if options.mode == ASYNC {
+					go gui.refreshTags()
+				} else {
+					gui.refreshTags()
+				}
+				wg.Done()
+			}()
+		}
+
+		if scopeMap[REMOTES] {
+			wg.Add(1)
+			func() {
+				if options.mode == ASYNC {
+					go gui.refreshRemotes()
+				} else {
+					gui.refreshRemotes()
+				}
+				wg.Done()
+			}()
+		}
+
 		wg.Wait()
+
+		gui.refreshStatus()
 
 		if options.then != nil {
 			options.then()
