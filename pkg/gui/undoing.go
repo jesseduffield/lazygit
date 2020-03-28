@@ -155,15 +155,6 @@ type handleHardResetWithAutoStashOptions struct {
 
 // only to be used in the undo flow for now
 func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHardResetWithAutoStashOptions) error {
-	// if we have any modified tracked files we need to ask the user if they want us to stash for them
-	dirtyWorkingTree := false
-	for _, file := range gui.State.Files {
-		if file.Tracked {
-			dirtyWorkingTree = true
-			break
-		}
-	}
-
 	reset := func() error {
 		if err := gui.resetToRef(commitSha, "hard", commands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
 			return gui.surfaceError(err)
@@ -171,6 +162,8 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 		return nil
 	}
 
+	// if we have any modified tracked files we need to ask the user if they want us to stash for them
+	dirtyWorkingTree := len(gui.trackedFiles()) > 0
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
