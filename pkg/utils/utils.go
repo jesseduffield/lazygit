@@ -39,8 +39,8 @@ func WithPadding(str string, padding int) string {
 
 // ColoredString takes a string and a colour attribute and returns a colored
 // string with that attribute
-func ColoredString(str string, colorAttribute color.Attribute) string {
-	colour := color.New(colorAttribute)
+func ColoredString(str string, colorAttributes ...color.Attribute) string {
+	colour := color.New(colorAttributes...)
 	return ColoredStringDirect(str, colour)
 }
 

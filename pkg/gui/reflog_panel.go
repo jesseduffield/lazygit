@@ -37,7 +37,7 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	v.FocusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine)
 
 	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowCmdStr(commit.Sha),
+		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.LogScope),
 	)
 	if err := gui.newPtyTask("main", cmd); err != nil {
 		gui.Log.Error(err)
@@ -52,7 +52,7 @@ func (gui *Gui) refreshReflogCommits() error {
 		lastReflogCommit = gui.State.ReflogCommits[0]
 	}
 
-	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit)
+	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, gui.State.LogScope)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

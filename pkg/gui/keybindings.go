@@ -938,7 +938,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName: "information",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleDonate,
+			Handler:  gui.handleInfoClick,
 		},
 		{
 			ViewName:    "commitFiles",
@@ -981,6 +981,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleEnterCommitFile,
 			Description: gui.Tr.SLocalize("enterFile"),
+		},
+		{
+			ViewName:    "",
+			Key:         gui.getKey("universal.scopingMenu"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateScopingMenuPanel,
+			Description: gui.Tr.SLocalize("openScopingMenu"),
 		},
 		{
 			ViewName: "secondary",

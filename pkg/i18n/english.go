@@ -1083,6 +1083,30 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "gotoBottom",
 			Other: "scroll to bottom",
+		}, &i18n.Message{
+			ID:    "scopingTo",
+			Other: "scoping to",
+		}, &i18n.Message{
+			ID:    "(reset)",
+			Other: "(reset)",
+		}, &i18n.Message{
+			ID:    "openScopingMenu",
+			Other: "view scoping options",
+		}, &i18n.Message{
+			ID:    "scopeTo",
+			Other: "scope to",
+		}, &i18n.Message{
+			ID:    "exitOutOfScopedMode",
+			Other: "stop scoping",
+		}, &i18n.Message{
+			ID:    "fileToScopeToOption",
+			Other: "enter path to scope to",
+		}, &i18n.Message{
+			ID:    "enterFileName",
+			Other: "enter path:",
+		}, &i18n.Message{
+			ID:    "scopingMenuTitle",
+			Other: "scoping",
 		},
 	)
 }

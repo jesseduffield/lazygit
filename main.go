@@ -25,6 +25,9 @@ func main() {
 	repoPath := "."
 	flaggy.String(&repoPath, "p", "path", "Path of git repo")
 
+	logScope := ""
+	flaggy.String(&logScope, "s", "scope", "scope for `git log`, typically the path of a file")
+
 	dump := ""
 	flaggy.AddPositionalValue(&dump, "gitargs", 1, false, "Todo file")
 	flaggy.DefaultParser.PositionalFlags[0].Hidden = true
@@ -61,7 +64,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	app, err := app.NewApp(appConfig)
+	app, err := app.NewApp(appConfig, logScope)
 
 	if err == nil {
 		err = app.Run()

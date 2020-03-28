@@ -312,7 +312,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
 
-			s.test(gitCmd.GetStashEntries())
+			s.test(gitCmd.GetStashEntries(""))
 		})
 	}
 }

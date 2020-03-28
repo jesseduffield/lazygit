@@ -156,14 +156,51 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 	return strings.TrimSpace(strings.TrimPrefix(fileContent, "gitdir: ")), nil
 }
 
-// GetStashEntries stash entries
-func (c *GitCommand) GetStashEntries() []*StashEntry {
-	// if we directly put this string in RunCommandWithOutput the compiler complains because it thinks it's a format string
+func (c *GitCommand) getStashEntriesWithoutScope() []*StashEntry {
 	unescaped := "git stash list --pretty='%gs'"
 	rawString, _ := c.OSCommand.RunCommandWithOutput(unescaped)
 	stashEntries := []*StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
+	}
+	return stashEntries
+}
+
+// GetStashEntries stash entries
+func (c *GitCommand) GetStashEntries(scope string) []*StashEntry {
+	if scope == "" {
+		return c.getStashEntriesWithoutScope()
+	}
+
+	unescaped := fmt.Sprintf("git stash list --name-only")
+	rawString, err := c.OSCommand.RunCommandWithOutput(unescaped)
+	if err != nil {
+		return c.getStashEntriesWithoutScope()
+	}
+	stashEntries := []*StashEntry{}
+	var currentStashEntry *StashEntry
+	lines := utils.SplitLines(rawString)
+	isAStash := func(line string) bool { return strings.HasPrefix(line, "stash@{") }
+	re := regexp.MustCompile(`stash@\{(\d+)\}`)
+
+outer:
+	for i := 0; i < len(lines); i++ {
+		if !isAStash(lines[i]) {
+			continue
+		}
+		match := re.FindStringSubmatch(lines[i])
+		idx, err := strconv.Atoi(match[1])
+		if err != nil {
+			return c.getStashEntriesWithoutScope()
+		}
+		currentStashEntry = stashEntryFromLine(lines[i], idx)
+		for i+1 < len(lines) && !isAStash(lines[i+1]) {
+			i++
+			if lines[i] == scope {
+				stashEntries = append(stashEntries, currentStashEntry)
+				continue outer
+			}
+		}
 	}
 	return stashEntries
 }
@@ -568,8 +605,12 @@ func (c *GitCommand) Ignore(filename string) error {
 	return c.OSCommand.AppendLineToFile(".gitignore", filename)
 }
 
-func (c *GitCommand) ShowCmdStr(sha string) string {
-	return fmt.Sprintf("git show --color=%s --no-renames --stat -p %s", c.colorArg(), sha)
+func (c *GitCommand) ShowCmdStr(sha string, scope string) string {
+	scopeArg := ""
+	if scope != "" {
+		scopeArg = fmt.Sprintf(" -- %s", c.OSCommand.Quote(scope))
+	}
+	return fmt.Sprintf("git show --color=%s --no-renames --stat -p %s %s", c.colorArg(), sha, scopeArg)
 }
 
 func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
@@ -1121,11 +1162,17 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
-func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit) ([]*Commit, bool, error) {
+
+func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit, scope string) ([]*Commit, bool, error) {
 	commits := make([]*Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 
-	cmd := c.OSCommand.ExecutableFromString("git reflog --abbrev=20 --date=unix")
+	scopeArg := ""
+	if scope != "" {
+		scopeArg = fmt.Sprintf(" -- %s", c.OSCommand.Quote(scope))
+	}
+
+	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf("git reflog --abbrev=20 --date=unix %s", scopeArg))
 	onlyObtainedNewReflogCommits := false
 	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)
