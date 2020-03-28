@@ -84,8 +84,8 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 }
 
 type GetCommitsOptions struct {
-	Limit    bool
-	LogScope string
+	Limit      bool
+	FilterPath string
 }
 
 // GetCommits obtains the commits of the current branch
@@ -96,7 +96,7 @@ func (c *CommitListBuilder) GetCommits(options GetCommitsOptions) ([]*Commit, er
 	if err != nil {
 		return nil, err
 	}
-	if rebaseMode != "" && options.LogScope == "" {
+	if rebaseMode != "" && options.FilterPath == "" {
 		// here we want to also prepend the commits that we're in the process of rebasing
 		rebasingCommits, err = c.getRebasingCommits(rebaseMode)
 		if err != nil {
@@ -305,10 +305,10 @@ func (c *CommitListBuilder) getLogCmd(options GetCommitsOptions) *exec.Cmd {
 		limitFlag = "-300"
 	}
 
-	scopeFlag := ""
-	if options.LogScope != "" {
-		scopeFlag = fmt.Sprintf(" -- %s", c.OSCommand.Quote(options.LogScope))
+	filterFlag := ""
+	if options.FilterPath != "" {
+		filterFlag = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(options.FilterPath))
 	}
 
-	return c.OSCommand.ExecutableFromString(fmt.Sprintf("git log --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%s\" %s --abbrev=%d --date=unix %s", SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20, scopeFlag))
+	return c.OSCommand.ExecutableFromString(fmt.Sprintf("git log --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%s\" %s --abbrev=%d --date=unix %s", SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20, filterFlag))
 }

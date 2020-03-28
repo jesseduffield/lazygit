@@ -263,7 +263,7 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 }
 
 func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -290,7 +290,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 }
 
 func (gui *Gui) handleMerge(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -304,7 +304,7 @@ func (gui *Gui) handleRebaseOntoLocalBranch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 

@@ -217,12 +217,12 @@ type guiState struct {
 	PrevMainHeight        int
 	OldInformation        string
 	StartupStage          int    // one of INITIAL and COMPLETE. Allows us to not load everything at once
-	LogScope              string // the filename that gets passed to git log
+	FilterPath            string // the filename that gets passed to git log
 }
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, logScope string) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string) (*Gui, error) {
 
 	initialState := &guiState{
 		Files:               make([]*commands.File, 0),
@@ -250,9 +250,9 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 				EditHistory:   stack.New(),
 			},
 		},
-		SideView: nil,
-		Ptmx:     nil,
-		LogScope: logScope,
+		SideView:   nil,
+		Ptmx:       nil,
+		FilterPath: filterPath,
 	}
 
 	gui := &Gui{
@@ -511,8 +511,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
 		information = donate + " " + information
 	}
-	if gui.inScopedMode() {
-		information = utils.ColoredString(fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("scopingTo"), gui.State.LogScope, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgRed, color.Bold)
+	if gui.inFilterMode() {
+		information = utils.ColoredString(fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("filteringBy"), gui.State.FilterPath, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgRed, color.Bold)
 	} else if len(gui.State.CherryPickedCommits) > 0 {
 		information = utils.ColoredString(fmt.Sprintf("%d commits copied", len(gui.State.CherryPickedCommits)), color.FgCyan)
 	}
@@ -804,7 +804,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if gui.g.CurrentView() == nil {
 		initialView := gui.getFilesView()
-		if gui.inScopedMode() {
+		if gui.inFilterMode() {
 			initialView = gui.getCommitsView()
 		}
 		if _, err := gui.g.SetCurrentView(initialView.Name()); err != nil {
@@ -993,7 +993,7 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
-	if gui.inScopedMode() {
+	if gui.inFilterMode() {
 		gui.State.ScreenMode = SCREEN_HALF
 	} else {
 		gui.State.ScreenMode = SCREEN_NORMAL
@@ -1123,10 +1123,9 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 
 	// if we're in the normal context there will be a donate button here
 	// if we have ('reset') at the end then
-	if gui.inScopedMode() {
+	if gui.inFilterMode() {
 		if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
-			gui.State.LogScope = ""
-			return gui.Errors.ErrRestart
+			return gui.exitFilterMode()
 		} else {
 			return nil
 		}
@@ -1177,13 +1176,20 @@ func (gui *Gui) handleMouseDownSecondary(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) inScopedMode() bool {
-	return gui.State.LogScope != ""
+func (gui *Gui) inFilterMode() bool {
+	return gui.State.FilterPath != ""
 }
 
-func (gui *Gui) validateNotInScopedMode() (bool, error) {
-	if gui.inScopedMode() {
-		return false, gui.createErrorPanel("command not available in scoped mode. Either exit scoped mode or restart lazygit")
+func (gui *Gui) validateNotInFilterMode() (bool, error) {
+	if gui.inFilterMode() {
+		return false, gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("MustExitFilterModeTitle"), gui.Tr.SLocalize("MustExitFilterModePrompt"), func(*gocui.Gui, *gocui.View) error {
+			return gui.exitFilterMode()
+		}, nil)
 	}
 	return true, nil
+}
+
+func (gui *Gui) exitFilterMode() error {
+	gui.State.FilterPath = ""
+	return gui.Errors.ErrRestart
 }

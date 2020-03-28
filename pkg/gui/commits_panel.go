@@ -62,7 +62,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.LogScope),
+		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
 	)
 	if err := gui.newPtyTask("main", cmd); err != nil {
 		gui.Log.Error(err)
@@ -122,7 +122,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 		return err
 	}
 
-	commits, err := builder.GetCommits(commands.GetCommitsOptions{Limit: gui.State.Panels.Commits.LimitCommits, LogScope: gui.State.LogScope})
+	commits, err := builder.GetCommits(commands.GetCommitsOptions{Limit: gui.State.Panels.Commits.LimitCommits, FilterPath: gui.State.FilterPath})
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 // specific functions
 
 func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -165,7 +165,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -190,7 +190,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -215,7 +215,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -265,7 +265,7 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 }
 
 func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -286,7 +286,7 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -313,7 +313,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -340,7 +340,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -359,7 +359,7 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -372,7 +372,7 @@ func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -390,7 +390,7 @@ func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -402,7 +402,7 @@ func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -445,7 +445,7 @@ func (gui *Gui) addCommitToCherryPickedCommits(index int) {
 }
 
 func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -471,7 +471,7 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
 func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -551,7 +551,7 @@ func (gui *Gui) unchooseCommit(commits []*commands.Commit, i int) []*commands.Co
 }
 
 func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
@@ -575,7 +575,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 

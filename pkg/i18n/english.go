@@ -1084,8 +1084,8 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "gotoBottom",
 			Other: "scroll to bottom",
 		}, &i18n.Message{
-			ID:    "scopingTo",
-			Other: "scoping to",
+			ID:    "filteringBy",
+			Other: "filtering by",
 		}, &i18n.Message{
 			ID:    "(reset)",
 			Other: "(reset)",
@@ -1093,20 +1093,26 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "openScopingMenu",
 			Other: "view scoping options",
 		}, &i18n.Message{
-			ID:    "scopeTo",
-			Other: "scope to",
+			ID:    "filterBy",
+			Other: "filter by",
 		}, &i18n.Message{
-			ID:    "exitOutOfScopedMode",
-			Other: "stop scoping",
+			ID:    "exitFilterMode",
+			Other: "stop filtering by path",
 		}, &i18n.Message{
-			ID:    "fileToScopeToOption",
-			Other: "enter path to scope to",
+			ID:    "filterPathOption",
+			Other: "enter path to filter by",
 		}, &i18n.Message{
 			ID:    "enterFileName",
 			Other: "enter path:",
 		}, &i18n.Message{
-			ID:    "scopingMenuTitle",
-			Other: "scoping",
+			ID:    "FilteringMenuTitle",
+			Other: "Filtering",
+		}, &i18n.Message{
+			ID:    "MustExitFilterModeTitle",
+			Other: "Command not available",
+		}, &i18n.Message{
+			ID:    "MustExitFilterModePrompt",
+			Other: "Command not available in filtered mode. Exit filtered mode?",
 		},
 	)
 }
