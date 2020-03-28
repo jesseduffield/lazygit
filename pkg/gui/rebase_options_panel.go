@@ -10,7 +10,7 @@ import (
 func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 	options := []string{"continue", "abort"}
 
-	if gui.workingTreeState() == "rebasing" {
+	if gui.GitCommand.WorkingTreeState() == "rebasing" {
 		options = append(options, "skip")
 	}
 
@@ -27,7 +27,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 	}
 
 	var title string
-	if gui.workingTreeState() == "merging" {
+	if gui.GitCommand.WorkingTreeState() == "merging" {
 		title = gui.Tr.SLocalize("MergeOptionsTitle")
 	} else {
 		title = gui.Tr.SLocalize("RebaseOptionsTitle")
@@ -37,7 +37,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
-	status := gui.workingTreeState()
+	status := gui.GitCommand.WorkingTreeState()
 
 	if status != "merging" && status != "rebasing" {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NotMergingOrRebasing"))
