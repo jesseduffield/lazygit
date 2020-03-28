@@ -38,11 +38,6 @@ type refreshOptions struct {
 	mode  int   // one of SYNC (default), ASYNC, and BLOCK_UI
 }
 
-type innerRefreshOptions struct {
-	scopeMap map[int]bool
-	mode     int // one of SYNC (default), ASYNC, and BLOCK_UI
-}
-
 func intArrToMap(arr []int) map[int]bool {
 	output := map[int]bool{}
 	for _, el := range arr {
