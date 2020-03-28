@@ -1068,6 +1068,21 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MustStashTitle",
 			Other: "Must stash",
+		}, &i18n.Message{
+			ID:    "ConfirmationTitle",
+			Other: "Confirmation Panel",
+		}, &i18n.Message{
+			ID:    "prevPage",
+			Other: "previous page",
+		}, &i18n.Message{
+			ID:    "nextPage",
+			Other: "next page",
+		}, &i18n.Message{
+			ID:    "gotoTop",
+			Other: "scroll to top",
+		}, &i18n.Message{
+			ID:    "gotoBottom",
+			Other: "scroll to bottom",
 		},
 	)
 }
