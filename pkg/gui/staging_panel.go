@@ -144,7 +144,7 @@ func (gui *Gui) applySelection(reverse bool) error {
 	}
 	err = gui.GitCommand.ApplyPatch(patch, applyFlags...)
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 
 	if state.SelectMode == RANGE {

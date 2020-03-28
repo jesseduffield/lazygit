@@ -40,7 +40,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	status := gui.workingTreeState()
 
 	if status != "merging" && status != "rebasing" {
-		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NotMergingOrRebasing"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("NotMergingOrRebasing"))
 	}
 
 	commandType := strings.Replace(status, "ing", "e", 1)
@@ -83,6 +83,6 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 			},
 		)
 	} else {
-		return gui.createErrorPanel(gui.g, result.Error())
+		return gui.createErrorPanel(result.Error())
 	}
 }

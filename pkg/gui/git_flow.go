@@ -28,7 +28,7 @@ func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) err
 	}
 
 	if branchType == "" {
-		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NotAGitFlowBranch"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("NotAGitFlowBranch"))
 	}
 
 	subProcess := gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "finish", suffix)
@@ -45,7 +45,7 @@ func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
 	// get config
 	gitFlowConfig, err := gui.OSCommand.RunCommandWithOutput("git config --local --get-regexp gitflow")
 	if err != nil {
-		return gui.createErrorPanel(gui.g, "You need to install git-flow and enable it in this repo to use git-flow features")
+		return gui.createErrorPanel("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
 
 	startHandler := func(branchType string) func() error {

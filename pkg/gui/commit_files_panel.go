@@ -64,7 +64,7 @@ func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
 	file := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine]
 
 	if err := gui.GitCommand.CheckoutFile(file.Sha, file.Name); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -106,7 +106,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 
 	files, err := gui.GitCommand.GetCommitFiles(commit.Sha, gui.GitCommand.PatchManager)
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 	gui.State.CommitFiles = files
 

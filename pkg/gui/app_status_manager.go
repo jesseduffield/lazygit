@@ -72,7 +72,7 @@ func (gui *Gui) WithWaitingStatus(name string, f func() error) error {
 
 		if err := f(); err != nil {
 			gui.g.Update(func(g *gocui.Gui) error {
-				return gui.createErrorPanel(gui.g, err.Error())
+				return gui.surfaceError(err)
 			})
 		}
 	}()

@@ -54,7 +54,7 @@ func (gui *Gui) refreshReflogCommits() error {
 
 	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit)
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 
 	if onlyObtainedNewReflogCommits {

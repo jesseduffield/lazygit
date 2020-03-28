@@ -14,10 +14,10 @@ func (gui *Gui) showUpdatePrompt(newVersion string) error {
 
 func (gui *Gui) onUserUpdateCheckFinish(newVersion string, err error) error {
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 	if newVersion == "" {
-		return gui.createErrorPanel(gui.g, "New version not found")
+		return gui.createErrorPanel("New version not found")
 	}
 	return gui.showUpdatePrompt(newVersion)
 }
@@ -49,7 +49,7 @@ func (gui *Gui) onUpdateFinish(err error) error {
 	gui.statusManager.removeStatus("updating")
 	gui.renderString(gui.g, "appStatus", "")
 	if err != nil {
-		return gui.createErrorPanel(gui.g, "Update failed: "+err.Error())
+		return gui.createErrorPanel("Update failed: " + err.Error())
 	}
 	return nil
 }
