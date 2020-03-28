@@ -294,11 +294,9 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 					{
 						0,
 						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
-						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
 					},
 					{
 						1,
-						"WIP on master: bb86a3f update github template",
 						"WIP on master: bb86a3f update github template",
 					},
 				}
