@@ -178,6 +178,12 @@ type searchingState struct {
 	searchString string
 }
 
+// startup stages so we don't need to load everything at once
+const (
+	INITIAL = iota
+	COMPLETE
+)
+
 type guiState struct {
 	Files                 []*commands.File
 	Branches              []*commands.Branch
@@ -208,6 +214,7 @@ type guiState struct {
 	PrevMainWidth         int
 	PrevMainHeight        int
 	OldInformation        string
+	StartupStage          int // one of INITIAL and COMPLETE. Allows us to not load everything at once
 }
 
 // for now the split view will always be on

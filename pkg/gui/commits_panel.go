@@ -71,21 +71,40 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// during startup, the bottleneck is fetching the reflog entries. We need these
+// on startup to sort the branches by recency. So we have two phases: INITIAL, and COMPLETE.
+// In the initial phase we get a small set of reflog entries so that we can ensure
+// the first couple of branches are correctly positioned. Then we asynchronously
+// refresh the reflog again, without a limit, and refresh the branches again when that's done.
+// When we're complete, we can begin recycling reflog entries because we know we've got
+// everything down to the oldest entry.
+func (gui *Gui) refreshReflogCommitsConsideringStartup() {
+	switch gui.State.StartupStage {
+	case INITIAL:
+		gui.refreshReflogCommits(refreshReflogOptions{Limit: 100, Recycle: false})
+
+		go func() {
+			gui.refreshReflogCommits(refreshReflogOptions{Recycle: false})
+			gui.refreshBranches()
+			gui.State.StartupStage = COMPLETE
+		}()
+
+	case COMPLETE:
+		gui.refreshReflogCommits(refreshReflogOptions{Recycle: true})
+	}
+}
+
 // whenever we change commits, we should update branches because the upstream/downstream
 // counts can change. Whenever we change branches we should probably also change commits
-// e.g. in the case of switching branches. We also need the status to be refreshed whenever
-// the working tree status changes or the branch upstream/downstream value changes.
-// Given how fast the refreshStatus method is, we should really just call it every time
-// we refresh, but I'm not sure how to do that asynchronously that prevents a race condition
-// other than a mutex.
+// e.g. in the case of switching branches.
 func (gui *Gui) refreshCommits() error {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
 	go func() {
-		gui.refreshReflogCommits()
+		gui.refreshReflogCommitsConsideringStartup()
+
 		gui.refreshBranches()
-		gui.refreshStatus()
 		wg.Done()
 	}()
 
