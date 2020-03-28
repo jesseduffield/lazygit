@@ -549,7 +549,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	case SCREEN_NORMAL:
 		leftSideWidth = int(float64(width) * sidePanelWidthRatio)
 	case SCREEN_HALF:
-		leftSideWidth = width / 2
+		leftSideWidth = width/2 - 2
 	case SCREEN_FULL:
 		currentView := gui.g.CurrentView()
 		if currentView != nil && currentView.Name() == "main" {
