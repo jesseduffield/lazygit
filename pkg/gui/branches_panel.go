@@ -64,6 +64,8 @@ func (gui *Gui) refreshBranches() {
 	if gui.getBranchesView().Context == "local-branches" {
 		gui.renderLocalBranchesWithSelection()
 	}
+
+	gui.refreshStatus()
 }
 
 func (gui *Gui) renderLocalBranchesWithSelection() error {

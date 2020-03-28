@@ -1115,13 +1115,24 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 	return c.OSCommand.RunCommand("git fetch %s", remoteName)
 }
 
-// GetNewReflogCommits only returns the new reflog commits since the given lastReflogCommit
+type GetReflogCommitsOptions struct {
+	Limit   int
+	Recycle bool
+}
+
+// GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
-func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, bool, error) {
+func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit, options GetReflogCommitsOptions) ([]*Commit, bool, error) {
 	commits := make([]*Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
-	cmd := c.OSCommand.ExecutableFromString("git reflog --abbrev=20 --date=unix")
-	foundLastReflogCommit := false
+
+	limitArg := ""
+	if options.Limit > 0 {
+		limitArg = fmt.Sprintf("-%d", options.Limit)
+	}
+
+	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf("git reflog --abbrev=20 --date=unix %s", limitArg))
+	onlyObtainedNewReflogCommits := false
 	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {
@@ -1137,8 +1148,8 @@ func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, b
 			Status:        "reflog",
 		}
 
-		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp {
-			foundLastReflogCommit = true
+		if options.Recycle && lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp {
+			onlyObtainedNewReflogCommits = true
 			// after this point we already have these reflogs loaded so we'll simply return the new ones
 			return true, nil
 		}
@@ -1150,7 +1161,7 @@ func (c *GitCommand) GetNewReflogCommits(lastReflogCommit *Commit) ([]*Commit, b
 		return nil, false, err
 	}
 
-	return commits, foundLastReflogCommit, nil
+	return commits, onlyObtainedNewReflogCommits, nil
 }
 
 func (c *GitCommand) ConfiguredPager() string {

@@ -46,18 +46,23 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) refreshReflogCommits() error {
+type refreshReflogOptions struct {
+	Limit   int
+	Recycle bool
+}
+
+func (gui *Gui) refreshReflogCommits(options refreshReflogOptions) error {
 	var lastReflogCommit *commands.Commit
 	if len(gui.State.ReflogCommits) > 0 {
 		lastReflogCommit = gui.State.ReflogCommits[0]
 	}
 
-	commits, foundLastReflogCommit, err := gui.GitCommand.GetNewReflogCommits(lastReflogCommit)
+	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, commands.GetReflogCommitsOptions(options))
 	if err != nil {
 		return gui.createErrorPanel(gui.g, err.Error())
 	}
 
-	if foundLastReflogCommit {
+	if onlyObtainedNewReflogCommits {
 		gui.State.ReflogCommits = append(commits, gui.State.ReflogCommits...)
 	} else {
 		// if we haven't found it we're probably in a new repo so we don't want to
