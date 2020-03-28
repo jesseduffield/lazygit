@@ -47,23 +47,30 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+// the reflogs panel is the only panel where we cache data, in that we only
+// load entries that have been created since we last ran the call. This means
+// we need to be more careful with how we use this, and to ensure we're emptying
+// the reflogs array when changing contexts.
 func (gui *Gui) refreshReflogCommits() error {
+	// pulling state into its own variable incase it gets swapped out for another state
+	// and we get an out of bounds exception
+	state := gui.State
 	var lastReflogCommit *commands.Commit
-	if len(gui.State.ReflogCommits) > 0 {
-		lastReflogCommit = gui.State.ReflogCommits[0]
+	if len(state.ReflogCommits) > 0 {
+		lastReflogCommit = state.ReflogCommits[0]
 	}
 
-	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, gui.State.FilterPath)
+	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, state.FilterPath)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
 
 	if onlyObtainedNewReflogCommits {
-		gui.State.ReflogCommits = append(commits, gui.State.ReflogCommits...)
+		state.ReflogCommits = append(commits, state.ReflogCommits...)
 	} else {
 		// if we haven't found it we're probably in a new repo so we don't want to
 		// retain the old reflog commits
-		gui.State.ReflogCommits = commits
+		state.ReflogCommits = commits
 	}
 
 	if gui.getCommitsView().Context == "reflog-commits" {

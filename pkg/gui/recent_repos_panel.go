@@ -32,6 +32,7 @@ func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
 					return err
 				}
 				gui.GitCommand = newGitCommand
+				gui.State.FilterPath = ""
 				return gui.Errors.ErrSwitchRepo
 			},
 		}

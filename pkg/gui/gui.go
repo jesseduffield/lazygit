@@ -283,6 +283,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 
 // Run setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run() error {
+	gui.resetState()
+
 	g, err := gocui.NewGui(gocui.Output256, OverlappingEdges)
 	if err != nil {
 		return err
