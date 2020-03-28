@@ -685,13 +685,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
-			Key:         gui.getKey("universal.startSearch"),
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleOpenSearchForCommitsPanel,
-			Description: gui.Tr.SLocalize("startSearch"),
-		},
-		{
-			ViewName:    "commits",
 			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.squashDown"),
 			Modifier:    gocui.ModNone,
@@ -1513,22 +1506,34 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.prevPage"), Modifier: gocui.ModNone, Handler: listView.handlePrevPage},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.nextPage"), Modifier: gocui.ModNone, Handler: listView.handleNextPage},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.gotoTop"), Modifier: gocui.ModNone, Handler: listView.handleGotoTop},
-			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.gotoBottom"), Modifier: gocui.ModNone, Handler: listView.handleGotoBottom},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listView.handleNextLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listView.handleClick},
 		}...)
 
-		// we need a specific keybinding for the commits panel beacuse it usually lazyloads commits
-		if listView.viewName != "commits" {
-			bindings = append(bindings, &Binding{
+		// the commits panel needs to lazyload things so it has a couple of its own handlers
+		openSearchHandler := gui.handleOpenSearch
+		gotoBottomHandler := listView.handleGotoBottom
+		if listView.viewName == "commits" {
+			openSearchHandler = gui.handleOpenSearchForCommitsPanel
+			gotoBottomHandler = gui.handleGotoBottomForCommitsPanel
+		}
+
+		bindings = append(bindings, []*Binding{
+			{
 				ViewName:    listView.viewName,
-				Contexts:    []string{listView.context},
 				Key:         gui.getKey("universal.startSearch"),
 				Modifier:    gocui.ModNone,
-				Handler:     gui.handleOpenSearch,
+				Handler:     openSearchHandler,
 				Description: gui.Tr.SLocalize("startSearch"),
-			})
-		}
+			},
+			{
+				ViewName: listView.viewName,
+				Contexts: []string{listView.context},
+				Key:      gui.getKey("universal.gotoBottom"),
+				Modifier: gocui.ModNone,
+				Handler:  gotoBottomHandler,
+			},
+		}...)
 	}
 
 	return bindings
