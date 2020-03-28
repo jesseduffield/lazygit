@@ -127,11 +127,7 @@ func (gui *Gui) createPopupPanel(g *gocui.Gui, currentView *gocui.View, title, p
 		}
 
 		gui.renderString(g, "confirmation", prompt)
-		if err := gui.setKeyBindings(g, handleConfirm, handleClose, returnFocusOnClose); err != nil {
-			return err
-		}
-
-		return gui.refreshSidePanels(refreshOptions{})
+		return gui.setKeyBindings(g, handleConfirm, handleClose, returnFocusOnClose)
 	})
 	return nil
 }
@@ -183,6 +179,10 @@ func (gui *Gui) createSpecificErrorPanel(message string, nextView *gocui.View, w
 
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))
+	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+		return err
+	}
+
 	return gui.createConfirmationPanel(gui.g, nextView, true, gui.Tr.SLocalize("Error"), coloredMessage, nil, nil)
 }
 

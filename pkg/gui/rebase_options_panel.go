@@ -74,6 +74,9 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		return gui.genericMergeCommand("skip")
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
 		return gui.genericMergeCommand("continue")
+	} else if strings.Contains(result.Error(), "No rebase in progress?") {
+		// assume in this case that we're already done
+		return nil
 	} else if strings.Contains(result.Error(), "When you have resolved this problem") || strings.Contains(result.Error(), "fix conflicts") || strings.Contains(result.Error(), "Resolve all conflicts manually") {
 		return gui.createConfirmationPanel(gui.g, gui.getFilesView(), true, gui.Tr.SLocalize("FoundConflictsTitle"), gui.Tr.SLocalize("FoundConflicts"),
 			func(g *gocui.Gui, v *gocui.View) error {

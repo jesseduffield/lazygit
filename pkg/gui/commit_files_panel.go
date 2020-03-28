@@ -209,7 +209,9 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		return gui.createConfirmationPanel(gui.g, gui.getCommitFilesView(), false, gui.Tr.SLocalize("DiscardPatch"), gui.Tr.SLocalize("DiscardPatchConfirm"), func(g *gocui.Gui, v *gocui.View) error {
 			gui.GitCommand.PatchManager.Reset()
 			return enterTheFile(selectedLineIdx)
-		}, nil)
+		}, func(g *gocui.Gui, v *gocui.View) error {
+			return gui.switchFocus(gui.g, nil, gui.getCommitFilesView())
+		})
 	}
 
 	return enterTheFile(selectedLineIdx)

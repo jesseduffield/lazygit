@@ -661,7 +661,10 @@ func (c *GitCommand) GenericMerge(commandType string, command string) error {
 		),
 	)
 	if err != nil {
-		return err
+		if !strings.Contains(err.Error(), "no rebase in progress") {
+			return err
+		}
+		c.Log.Warn(err)
 	}
 
 	// sometimes we need to do a sequence of things in a rebase but the user needs to
