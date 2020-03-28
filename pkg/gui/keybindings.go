@@ -1510,6 +1510,10 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listView.handlePrevLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.nextItem-alt"), Modifier: gocui.ModNone, Handler: listView.handleNextLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.nextItem"), Modifier: gocui.ModNone, Handler: listView.handleNextLine},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.prevPage"), Modifier: gocui.ModNone, Handler: listView.handlePrevPage},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.nextPage"), Modifier: gocui.ModNone, Handler: listView.handleNextPage},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.gotoTop"), Modifier: gocui.ModNone, Handler: listView.handleGotoTop},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.gotoBottom"), Modifier: gocui.ModNone, Handler: listView.handleGotoBottom},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listView.handleNextLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listView.handleClick},
 		}...)
