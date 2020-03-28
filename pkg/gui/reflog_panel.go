@@ -47,7 +47,6 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 type refreshReflogOptions struct {
-	Limit   int
 	Recycle bool
 }
 

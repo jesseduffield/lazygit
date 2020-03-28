@@ -1116,7 +1116,6 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 }
 
 type GetReflogCommitsOptions struct {
-	Limit   int
 	Recycle bool
 }
 
@@ -1126,12 +1125,7 @@ func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit, options GetReflo
 	commits := make([]*Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 
-	limitArg := ""
-	if options.Limit > 0 {
-		limitArg = fmt.Sprintf("-%d", options.Limit)
-	}
-
-	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf("git reflog --abbrev=20 --date=unix %s", limitArg))
+	cmd := c.OSCommand.ExecutableFromString("git reflog --abbrev=20 --date=unix")
 	onlyObtainedNewReflogCommits := false
 	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)

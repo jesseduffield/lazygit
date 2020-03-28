@@ -81,8 +81,6 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) refreshReflogCommitsConsideringStartup() {
 	switch gui.State.StartupStage {
 	case INITIAL:
-		gui.refreshReflogCommits(refreshReflogOptions{Limit: 100, Recycle: false})
-
 		go func() {
 			gui.refreshReflogCommits(refreshReflogOptions{Recycle: false})
 			gui.refreshBranches()
