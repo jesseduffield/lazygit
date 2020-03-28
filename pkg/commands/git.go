@@ -1116,13 +1116,9 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 	return c.OSCommand.RunCommand("git fetch %s", remoteName)
 }
 
-type GetReflogCommitsOptions struct {
-	Recycle bool
-}
-
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
-func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit, options GetReflogCommitsOptions) ([]*Commit, bool, error) {
+func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit) ([]*Commit, bool, error) {
 	commits := make([]*Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 
@@ -1143,7 +1139,7 @@ func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit, options GetReflo
 			Status:        "reflog",
 		}
 
-		if options.Recycle && lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp {
+		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp {
 			onlyObtainedNewReflogCommits = true
 			// after this point we already have these reflogs loaded so we'll simply return the new ones
 			return true, nil
