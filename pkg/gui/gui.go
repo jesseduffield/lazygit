@@ -199,7 +199,6 @@ type guiState struct {
 	Tags                  []*commands.Tag
 	MenuItemCount         int // can't store the actual list because it's of interface{} type
 	PreviousView          string
-	Platform              commands.Platform
 	Updating              bool
 	Panels                *panelStates
 	MainContext           string // used to keep the main and secondary views' contexts in sync
@@ -220,18 +219,20 @@ type guiState struct {
 	FilterPath            string // the filename that gets passed to git log
 }
 
-// for now the split view will always be on
-// NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string) (*Gui, error) {
+func (gui *Gui) resetState() {
+	// we carry over the filter path
+	prevFilterPath := ""
+	if gui.State != nil {
+		prevFilterPath = gui.State.FilterPath
+	}
 
-	initialState := &guiState{
+	gui.State = &guiState{
 		Files:               make([]*commands.File, 0),
 		PreviousView:        "files",
 		Commits:             make([]*commands.Commit, 0),
 		CherryPickedCommits: make([]*commands.Commit, 0),
 		StashEntries:        make([]*commands.StashEntry, 0),
 		DiffEntries:         make([]*commands.Commit, 0),
-		Platform:            *oSCommand.Platform,
 		Panels: &panelStates{
 			Files:          &filePanelState{SelectedLine: -1},
 			Branches:       &branchPanelState{SelectedLine: 0},
@@ -252,20 +253,26 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		},
 		SideView:   nil,
 		Ptmx:       nil,
-		FilterPath: filterPath,
+		FilterPath: prevFilterPath,
 	}
+}
 
+// for now the split view will always be on
+// NewGui builds a new gui handler
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string) (*Gui, error) {
 	gui := &Gui{
 		Log:                  log,
 		GitCommand:           gitCommand,
 		OSCommand:            oSCommand,
-		State:                initialState,
 		Config:               config,
 		Tr:                   tr,
 		Updater:              updater,
 		statusManager:        &statusManager{},
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 	}
+
+	gui.resetState()
+	gui.State.FilterPath = filterPath
 
 	gui.watchFilesForChanges()
 
