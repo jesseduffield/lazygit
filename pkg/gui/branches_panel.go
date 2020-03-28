@@ -351,11 +351,13 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 		if gui.State.Panels.Branches.SelectedLine == 0 {
 			if err := gui.GitCommand.PullWithoutPasswordCheck("--ff-only"); err != nil {
 				_ = gui.surfaceError(err)
+				return
 			}
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 		} else {
 			if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
 				_ = gui.surfaceError(err)
+				return
 			}
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{BRANCHES}})
 		}
