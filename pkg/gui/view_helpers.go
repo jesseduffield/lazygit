@@ -14,6 +14,7 @@ import (
 
 var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
 
+// models/views that we can refresh
 const (
 	COMMITS = iota
 	BRANCHES
@@ -33,13 +34,13 @@ const (
 
 type refreshOptions struct {
 	then  func()
-	scope []int
-	mode  int
+	scope []int // e.g. []int{COMMITS, BRANCHES}. Leave empty to refresh everything
+	mode  int   // one of SYNC (default), ASYNC, and BLOCK_UI
 }
 
 type innerRefreshOptions struct {
 	scopeMap map[int]bool
-	mode     int
+	mode     int // one of SYNC (default), ASYNC, and BLOCK_UI
 }
 
 func intArrToMap(arr []int) map[int]bool {
