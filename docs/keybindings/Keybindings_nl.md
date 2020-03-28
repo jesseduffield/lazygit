@@ -40,7 +40,11 @@
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: bekijk reset opties
   <kbd>R</kbd>: rename branch
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Branches Panel (Remote Branches (in Remotes tab))
@@ -53,7 +57,11 @@
   <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
   <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Branches Panel (Remotes Tab)
@@ -63,7 +71,11 @@
   <kbd>n</kbd>: add new remote
   <kbd>d</kbd>: remove remote
   <kbd>e</kbd>: edit remote
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Branches Panel (Tags Tab)
@@ -74,7 +86,11 @@
   <kbd>P</kbd>: push tag
   <kbd>n</kbd>: create tag
   <kbd>g</kbd>: bekijk reset opties
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Commit bestanden Panel
@@ -86,7 +102,11 @@
   <kbd>o</kbd>: open bestand
   <kbd>space</kbd>: toggle file included in patch
   <kbd>enter</kbd>: enter file to add selected lines to the patch
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Commits Panel
@@ -94,7 +114,6 @@
 <pre>
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
-  <kbd>/</kbd>: start search
 </pre>
 
 ## Commits Panel (Commits Tab)
@@ -122,6 +141,11 @@
   <kbd>i</kbd>: select commit to diff with another commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
+  <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Commits Panel (Reflog Tab)
@@ -129,6 +153,11 @@
 <pre>
   <kbd>space</kbd>: checkout commit
   <kbd>g</kbd>: bekijk reset opties
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
+  <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Bestanden Panel
@@ -151,7 +180,11 @@
   <kbd>enter</kbd>: stage individuele hunks/lijnen
   <kbd>f</kbd>: fetch
   <kbd>g</kbd>: view upstream reset options
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Hoofd Panel (Merging)
@@ -214,7 +247,11 @@
 <pre>
   <kbd>esc</kbd>: close menu
   <kbd>q</kbd>: close menu
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Stash Panel
@@ -223,7 +260,11 @@
   <kbd>space</kbd>: toepassen
   <kbd>g</kbd>: pop
   <kbd>d</kbd>: drop
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Status Panel

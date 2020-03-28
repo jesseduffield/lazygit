@@ -1503,9 +1503,9 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listView.handlePrevLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.nextItem-alt"), Modifier: gocui.ModNone, Handler: listView.handleNextLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.nextItem"), Modifier: gocui.ModNone, Handler: listView.handleNextLine},
-			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.prevPage"), Modifier: gocui.ModNone, Handler: listView.handlePrevPage},
-			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.nextPage"), Modifier: gocui.ModNone, Handler: listView.handleNextPage},
-			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.gotoTop"), Modifier: gocui.ModNone, Handler: listView.handleGotoTop},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.prevPage"), Modifier: gocui.ModNone, Handler: listView.handlePrevPage, Description: gui.Tr.SLocalize("prevPage")},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.nextPage"), Modifier: gocui.ModNone, Handler: listView.handleNextPage, Description: gui.Tr.SLocalize("nextPage")},
+			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gui.getKey("universal.gotoTop"), Modifier: gocui.ModNone, Handler: listView.handleGotoTop, Description: gui.Tr.SLocalize("gotoTop")},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listView.handleNextLine},
 			{ViewName: listView.viewName, Contexts: []string{listView.context}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listView.handleClick},
 		}...)
@@ -1521,17 +1521,19 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		bindings = append(bindings, []*Binding{
 			{
 				ViewName:    listView.viewName,
+				Contexts:    []string{listView.context},
 				Key:         gui.getKey("universal.startSearch"),
 				Modifier:    gocui.ModNone,
 				Handler:     openSearchHandler,
 				Description: gui.Tr.SLocalize("startSearch"),
 			},
 			{
-				ViewName: listView.viewName,
-				Contexts: []string{listView.context},
-				Key:      gui.getKey("universal.gotoBottom"),
-				Modifier: gocui.ModNone,
-				Handler:  gotoBottomHandler,
+				ViewName:    listView.viewName,
+				Contexts:    []string{listView.context},
+				Key:         gui.getKey("universal.gotoBottom"),
+				Modifier:    gocui.ModNone,
+				Handler:     gotoBottomHandler,
+				Description: gui.Tr.SLocalize("gotoBottom"),
 			},
 		}...)
 	}
