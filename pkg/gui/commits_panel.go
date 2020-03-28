@@ -73,22 +73,19 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 
 // during startup, the bottleneck is fetching the reflog entries. We need these
 // on startup to sort the branches by recency. So we have two phases: INITIAL, and COMPLETE.
-// In the initial phase we get a small set of reflog entries so that we can ensure
-// the first couple of branches are correctly positioned. Then we asynchronously
-// refresh the reflog again, without a limit, and refresh the branches again when that's done.
-// When we're complete, we can begin recycling reflog entries because we know we've got
-// everything down to the oldest entry.
+// In the initial phase we don't get any reflog commits, but we asynchronously get them
+// and refresh the branches after that
 func (gui *Gui) refreshReflogCommitsConsideringStartup() {
 	switch gui.State.StartupStage {
 	case INITIAL:
 		go func() {
-			gui.refreshReflogCommits(refreshReflogOptions{Recycle: false})
+			gui.refreshReflogCommits()
 			gui.refreshBranches()
 			gui.State.StartupStage = COMPLETE
 		}()
 
 	case COMPLETE:
-		gui.refreshReflogCommits(refreshReflogOptions{Recycle: true})
+		gui.refreshReflogCommits()
 	}
 }
 
