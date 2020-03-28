@@ -62,7 +62,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowCmdStr(commit.Sha),
+		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.LogScope),
 	)
 	if err := gui.newPtyTask("main", cmd); err != nil {
 		gui.Log.Error(err)
@@ -122,7 +122,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 		return err
 	}
 
-	commits, err := builder.GetCommits(gui.State.Panels.Commits.LimitCommits)
+	commits, err := builder.GetCommits(commands.GetCommitsOptions{Limit: gui.State.Panels.Commits.LimitCommits, LogScope: gui.State.LogScope})
 	if err != nil {
 		return err
 	}
@@ -140,6 +140,10 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 // specific functions
 
 func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	if len(gui.State.Commits) <= 1 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
 	}
@@ -161,6 +165,10 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	if len(gui.State.Commits) <= 1 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
 	}
@@ -182,6 +190,10 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	applied, err := gui.handleMidRebaseCommand("reword")
 	if err != nil {
 		return err
@@ -203,6 +215,10 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	applied, err := gui.handleMidRebaseCommand("reword")
 	if err != nil {
 		return err
@@ -249,6 +265,10 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 }
 
 func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	applied, err := gui.handleMidRebaseCommand("drop")
 	if err != nil {
 		return err
@@ -266,6 +286,10 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	index := gui.State.Panels.Commits.SelectedLine
 	selectedCommit := gui.State.Commits[index]
 	if selectedCommit.Status == "rebasing" {
@@ -289,6 +313,10 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	index := gui.State.Panels.Commits.SelectedLine
 	if index == 0 {
 		return nil
@@ -312,6 +340,10 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	applied, err := gui.handleMidRebaseCommand("edit")
 	if err != nil {
 		return err
@@ -327,6 +359,10 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	return gui.createConfirmationPanel(gui.g, v, true, gui.Tr.SLocalize("AmendCommitTitle"), gui.Tr.SLocalize("AmendCommitPrompt"), func(*gocui.Gui, *gocui.View) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("AmendingStatus"), func() error {
 			err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
@@ -336,6 +372,10 @@ func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	applied, err := gui.handleMidRebaseCommand("pick")
 	if err != nil {
 		return err
@@ -350,6 +390,10 @@ func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	if err := gui.GitCommand.Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha); err != nil {
 		return gui.surfaceError(err)
 	}
@@ -358,6 +402,10 @@ func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	// get currently selected commit, add the sha to state.
 	commit := gui.State.Commits[gui.State.Panels.Commits.SelectedLine]
 
@@ -397,6 +445,10 @@ func (gui *Gui) addCommitToCherryPickedCommits(index int) {
 }
 
 func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	commitShaMap := gui.cherryPickedCommitShaMap()
 
 	// find the last commit that is copied that's above our position
@@ -419,6 +471,10 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
 func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("CherryPick"), gui.Tr.SLocalize("SureCherryPick"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("CherryPickingStatus"), func() error {
 			err := gui.GitCommand.CherryPickCommits(gui.State.CherryPickedCommits)
@@ -495,6 +551,10 @@ func (gui *Gui) unchooseCommit(commits []*commands.Commit, i int) []*commands.Co
 }
 
 func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
 		return nil
@@ -515,6 +575,10 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) error {
+	if ok, err := gui.validateNotInScopedMode(); err != nil || !ok {
+		return err
+	}
+
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
 		return nil

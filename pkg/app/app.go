@@ -91,7 +91,7 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 }
 
 // NewApp bootstrap a new application
-func NewApp(config config.AppConfigurer) (*App, error) {
+func NewApp(config config.AppConfigurer, logScope string) (*App, error) {
 	app := &App{
 		closers: []io.Closer{},
 		Config:  config,
@@ -121,7 +121,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 	if err != nil {
 		return app, err
 	}
-	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater)
+	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater, logScope)
 	if err != nil {
 		return app, err
 	}

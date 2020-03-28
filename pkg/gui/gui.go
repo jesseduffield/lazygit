@@ -50,6 +50,7 @@ type SentinelErrors struct {
 	ErrSubProcess error
 	ErrNoFiles    error
 	ErrSwitchRepo error
+	ErrRestart    error
 }
 
 // GenerateSentinelErrors makes the sentinel errors for the gui. We're defining it here
@@ -67,6 +68,7 @@ func (gui *Gui) GenerateSentinelErrors() {
 		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess")),
 		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles")),
 		ErrSwitchRepo: errors.New("switching repo"),
+		ErrRestart:    errors.New("restarting"),
 	}
 }
 
@@ -214,13 +216,13 @@ type guiState struct {
 	PrevMainWidth         int
 	PrevMainHeight        int
 	OldInformation        string
-	StartupStage          int // one of INITIAL and COMPLETE. Allows us to not load everything at once
+	StartupStage          int    // one of INITIAL and COMPLETE. Allows us to not load everything at once
+	LogScope              string // the filename that gets passed to git log
 }
 
 // for now the split view will always be on
-
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, logScope string) (*Gui, error) {
 
 	initialState := &guiState{
 		Files:               make([]*commands.File, 0),
@@ -248,9 +250,9 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 				EditHistory:   stack.New(),
 			},
 		},
-		ScreenMode: SCREEN_NORMAL,
-		SideView:   nil,
-		Ptmx:       nil,
+		SideView: nil,
+		Ptmx:     nil,
+		LogScope: logScope,
 	}
 
 	gui := &Gui{
@@ -509,7 +511,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
 		information = donate + " " + information
 	}
-	if len(gui.State.CherryPickedCommits) > 0 {
+	if gui.inScopedMode() {
+		information = utils.ColoredString(fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("scopingTo"), gui.State.LogScope, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgRed, color.Bold)
+	} else if len(gui.State.CherryPickedCommits) > 0 {
 		information = utils.ColoredString(fmt.Sprintf("%d commits copied", len(gui.State.CherryPickedCommits)), color.FgCyan)
 	}
 
@@ -799,11 +803,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if gui.g.CurrentView() == nil {
-		if _, err := gui.g.SetCurrentView(gui.getFilesView().Name()); err != nil {
+		initialView := gui.getFilesView()
+		if gui.inScopedMode() {
+			initialView = gui.getCommitsView()
+		}
+		if _, err := gui.g.SetCurrentView(initialView.Name()); err != nil {
 			return err
 		}
 
-		if err := gui.switchFocus(gui.g, nil, gui.getFilesView()); err != nil {
+		if err := gui.switchFocus(gui.g, nil, initialView); err != nil {
 			return err
 		}
 	}
@@ -985,6 +993,12 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
+	if gui.inScopedMode() {
+		gui.State.ScreenMode = SCREEN_HALF
+	} else {
+		gui.State.ScreenMode = SCREEN_NORMAL
+	}
+
 	g.OnSearchEscape = gui.onSearchEscape
 	g.SearchEscapeKey = gui.getKey("universal.return")
 	g.NextSearchMatchKey = gui.getKey("universal.nextMatch")
@@ -1061,6 +1075,8 @@ func (gui *Gui) RunWithSubprocesses() error {
 				break
 			} else if err == gui.Errors.ErrSwitchRepo {
 				continue
+			} else if err == gui.Errors.ErrRestart {
+				continue
 			} else if err == gui.Errors.ErrSubProcess {
 				if err := gui.runCommand(); err != nil {
 					return err
@@ -1097,16 +1113,29 @@ func (gui *Gui) runCommand() error {
 	return nil
 }
 
-func (gui *Gui) handleDonate(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 	if !gui.g.Mouse {
 		return nil
 	}
 
 	cx, _ := v.Cursor()
-	if cx > len(gui.Tr.SLocalize("Donate")) {
-		return nil
+	width, _ := v.Size()
+
+	// if we're in the normal context there will be a donate button here
+	// if we have ('reset') at the end then
+	if gui.inScopedMode() {
+		if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
+			gui.State.LogScope = ""
+			return gui.Errors.ErrRestart
+		} else {
+			return nil
+		}
 	}
-	return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
+
+	if cx <= len(gui.Tr.SLocalize("Donate")) {
+		return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
+	}
+	return nil
 }
 
 // setColorScheme sets the color scheme for the app based on the user config
@@ -1146,4 +1175,15 @@ func (gui *Gui) handleMouseDownSecondary(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return nil
+}
+
+func (gui *Gui) inScopedMode() bool {
+	return gui.State.LogScope != ""
+}
+
+func (gui *Gui) validateNotInScopedMode() (bool, error) {
+	if gui.inScopedMode() {
+		return false, gui.createErrorPanel("command not available in scoped mode. Either exit scoped mode or restart lazygit")
+	}
+	return true, nil
 }

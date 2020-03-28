@@ -89,6 +89,7 @@ Default path for the config file:
       prevScreenMode: '_'
       undo: 'z'
       redo: '<c-z>'
+      scopingMenu: <c-s>
     status:
       checkForUpdate: 'u'
       recentRepos: '<enter>'

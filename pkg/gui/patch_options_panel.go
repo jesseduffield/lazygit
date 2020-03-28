@@ -62,6 +62,9 @@ func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
 	if gui.GitCommand.WorkingTreeState() != "normal" {
 		return false, gui.createErrorPanel(gui.Tr.SLocalize("CantPatchWhileRebasingError"))
 	}
+	if gui.GitCommand.WorkingTreeState() != "normal" {
+		return false, gui.createErrorPanel(gui.Tr.SLocalize("CantPatchWhileRebasingError"))
+	}
 	return true, nil
 }
 
