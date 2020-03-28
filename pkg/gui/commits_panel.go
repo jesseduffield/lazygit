@@ -40,7 +40,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		state.LimitCommits = false
 		go func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {
-				_ = gui.createErrorPanel(gui.g, err.Error())
+				_ = gui.surfaceError(err)
 			}
 		}()
 	}
@@ -79,13 +79,13 @@ func (gui *Gui) refreshReflogCommitsConsideringStartup() {
 	switch gui.State.StartupStage {
 	case INITIAL:
 		go func() {
-			gui.refreshReflogCommits()
+			_ = gui.refreshReflogCommits()
 			gui.refreshBranches()
 			gui.State.StartupStage = COMPLETE
 		}()
 
 	case COMPLETE:
-		gui.refreshReflogCommits()
+		_ = gui.refreshReflogCommits()
 	}
 }
 
@@ -104,9 +104,9 @@ func (gui *Gui) refreshCommits() error {
 	}()
 
 	go func() {
-		gui.refreshCommitsWithLimit()
+		_ = gui.refreshCommitsWithLimit()
 		if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.g.CurrentView() == gui.getMainView() && gui.State.MainContext == "patch-building") {
-			gui.refreshCommitFilesView()
+			_ = gui.refreshCommitFilesView()
 		}
 		wg.Done()
 	}()
@@ -141,7 +141,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 
 func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	if len(gui.State.Commits) <= 1 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
 	}
 
 	applied, err := gui.handleMidRebaseCommand("squash")
@@ -162,7 +162,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 	if len(gui.State.Commits) <= 1 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("YouNoCommitsToSquash"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("YouNoCommitsToSquash"))
 	}
 
 	applied, err := gui.handleMidRebaseCommand("fixup")
@@ -191,11 +191,11 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if gui.State.Panels.Commits.SelectedLine != 0 {
-		return gui.createErrorPanel(g, gui.Tr.SLocalize("OnlyRenameTopCommit"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
 	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("renameCommit"), "", func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.RenameCommit(v.Buffer()); err != nil {
-			return gui.createErrorPanel(g, err.Error())
+			return gui.surfaceError(err)
 		}
 
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -213,7 +213,7 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 
 	subProcess, err := gui.GitCommand.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLine)
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 	if subProcess != nil {
 		gui.SubProcess = subProcess
@@ -237,11 +237,11 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	// our input or we set a lazygit client as the EDITOR env variable and have it
 	// request us to edit the commit message when prompted.
 	if action == "reword" {
-		return true, gui.createErrorPanel(gui.g, gui.Tr.SLocalize("rewordNotSupported"))
+		return true, gui.createErrorPanel(gui.Tr.SLocalize("rewordNotSupported"))
 	}
 
 	if err := gui.GitCommand.EditRebaseTodo(gui.State.Panels.Commits.SelectedLine, action); err != nil {
-		return false, gui.createErrorPanel(gui.g, err.Error())
+		return false, gui.surfaceError(err)
 	}
 	// TODO: consider doing this in a way that is less expensive. We don't actually
 	// need to reload all the commits, just the TODO commits.
@@ -273,7 +273,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 			return nil
 		}
 		if err := gui.GitCommand.MoveTodoDown(index); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return gui.surfaceError(err)
 		}
 		gui.State.Panels.Commits.SelectedLine++
 		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
@@ -296,7 +296,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 	selectedCommit := gui.State.Commits[index]
 	if selectedCommit.Status == "rebasing" {
 		if err := gui.GitCommand.MoveTodoDown(index - 1); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return gui.surfaceError(err)
 		}
 		gui.State.Panels.Commits.SelectedLine--
 		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
@@ -351,7 +351,7 @@ func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.GitCommand.Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 	gui.State.Panels.Commits.SelectedLine++
 	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
@@ -462,7 +462,7 @@ func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
 		commitText, err := gui.GitCommand.DiffCommits(gui.State.DiffEntries[0].Sha, gui.State.DiffEntries[1].Sha)
 
 		if err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return gui.surfaceError(err)
 		}
 
 		gui.newStringTask("main", commitText)
@@ -507,7 +507,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 		},
 	), func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.CreateFixupCommit(commit.Sha); err != nil {
-			return gui.createErrorPanel(g, err.Error())
+			return gui.surfaceError(err)
 		}
 
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -548,7 +548,7 @@ func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 	return gui.createPromptPanel(gui.g, gui.getCommitsView(), gui.Tr.SLocalize("TagNameTitle"), "", func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.CreateLightweightTag(v.Buffer(), commitSha); err != nil {
-			return gui.createErrorPanel(g, err.Error())
+			return gui.surfaceError(err)
 		}
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
 	})
@@ -633,7 +633,7 @@ func (gui *Gui) handlePrevCommitsTab(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 	commit := gui.getSelectedCommit(g)
 	if commit == nil {
-		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoCommitsThisBranch"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 
 	return gui.createResetMenu(commit.Sha)

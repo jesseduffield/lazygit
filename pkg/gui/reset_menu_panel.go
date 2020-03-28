@@ -9,7 +9,7 @@ import (
 
 func (gui *Gui) resetToRef(ref string, strength string, options commands.RunCommandOptions) error {
 	if err := gui.GitCommand.ResetToCommit(ref, strength, options); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 
 	if err := gui.switchCommitsPanelContext("branch-commits"); err != nil {

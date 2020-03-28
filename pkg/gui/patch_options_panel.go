@@ -8,7 +8,7 @@ import (
 
 func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 	if !gui.GitCommand.PatchManager.CommitSelected() {
-		return gui.createErrorPanel(gui.g, gui.Tr.SLocalize("NoPatchError"))
+		return gui.createErrorPanel(gui.Tr.SLocalize("NoPatchError"))
 	}
 
 	menuItems := []*menuItem{
@@ -60,7 +60,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
 	if gui.workingTreeState() != "normal" {
-		return false, gui.createErrorPanel(gui.g, gui.Tr.SLocalize("CantPatchWhileRebasingError"))
+		return false, gui.createErrorPanel(gui.Tr.SLocalize("CantPatchWhileRebasingError"))
 	}
 	return true, nil
 }
@@ -126,7 +126,7 @@ func (gui *Gui) handleApplyPatch() error {
 	}
 
 	if err := gui.GitCommand.PatchManager.ApplyPatches(false); err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }

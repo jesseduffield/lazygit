@@ -49,7 +49,7 @@ func (gui *Gui) handleTagSelect(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) refreshTags() error {
 	tags, err := gui.GitCommand.GetTags()
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 
 	gui.State.Tags = tags
@@ -69,7 +69,7 @@ func (gui *Gui) renderTagsWithSelection() error {
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
 		if err := gui.handleTagSelect(gui.g, branchesView); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return gui.surfaceError(err)
 		}
 	}
 
@@ -102,7 +102,7 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.createConfirmationPanel(gui.g, v, true, gui.Tr.SLocalize("DeleteTagTitle"), prompt, func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return gui.surfaceError(err)
 		}
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
 	}, nil)
@@ -123,7 +123,7 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.createPromptPanel(gui.g, v, title, "origin", func(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.PushTag(v.Buffer(), tag.Name); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return gui.surfaceError(err)
 		}
 		return nil
 	})
@@ -134,7 +134,7 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 		// leaving commit SHA blank so that we're just creating the tag for the current commit
 		tagName := v.Buffer()
 		if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
-			return gui.createErrorPanel(gui.g, err.Error())
+			return gui.surfaceError(err)
 		}
 		return gui.refreshSidePanels(refreshOptions{scope: []int{COMMITS, TAGS}, then: func() {
 			// find the index of the tag and set that as the currently selected line

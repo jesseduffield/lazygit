@@ -49,7 +49,7 @@ func (gui *Gui) refreshRemotes() error {
 
 	remotes, err := gui.GitCommand.GetRemotes()
 	if err != nil {
-		return gui.createErrorPanel(gui.g, err.Error())
+		return gui.surfaceError(err)
 	}
 
 	gui.State.Remotes = remotes
@@ -158,7 +158,7 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 
 		if updatedRemoteName != remote.Name {
 			if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
-				return gui.createErrorPanel(gui.g, err.Error())
+				return gui.surfaceError(err)
 			}
 		}
 
@@ -172,7 +172,7 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 		return gui.createPromptPanel(g, branchesView, editUrlMessage, "", func(g *gocui.Gui, v *gocui.View) error {
 			updatedRemoteUrl := gui.trimmedContent(v)
 			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
-				return gui.createErrorPanel(gui.g, err.Error())
+				return gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
 		})

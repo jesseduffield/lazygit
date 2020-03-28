@@ -885,7 +885,7 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 		for _, task := range tasks {
 			go func() {
 				if err := task(done); err != nil {
-					_ = gui.createErrorPanel(gui.g, err.Error())
+					_ = gui.surfaceError(err)
 				}
 			}()
 
