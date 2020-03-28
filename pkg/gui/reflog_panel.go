@@ -10,11 +10,12 @@ import (
 
 func (gui *Gui) getSelectedReflogCommit() *commands.Commit {
 	selectedLine := gui.State.Panels.ReflogCommits.SelectedLine
-	if selectedLine == -1 || len(gui.State.ReflogCommits) == 0 {
+	reflogComits := gui.State.ReflogCommits
+	if selectedLine == -1 || len(reflogComits) == 0 {
 		return nil
 	}
 
-	return gui.State.ReflogCommits[selectedLine]
+	return reflogComits[selectedLine]
 }
 
 func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
@@ -37,7 +38,7 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	v.FocusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine)
 
 	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.LogScope),
+		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
 	)
 	if err := gui.newPtyTask("main", cmd); err != nil {
 		gui.Log.Error(err)
@@ -52,7 +53,7 @@ func (gui *Gui) refreshReflogCommits() error {
 		lastReflogCommit = gui.State.ReflogCommits[0]
 	}
 
-	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, gui.State.LogScope)
+	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, gui.State.FilterPath)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

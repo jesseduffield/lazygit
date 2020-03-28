@@ -47,7 +47,7 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
-	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.LogScope)
+	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.FilterPath)
 
 	gui.refreshSelectedLine(&gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries))
 

@@ -984,7 +984,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "",
-			Key:         gui.getKey("universal.scopingMenu"),
+			Key:         gui.getKey("universal.filteringMenu"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleCreateScopingMenuPanel,
 			Description: gui.Tr.SLocalize("openScopingMenu"),
