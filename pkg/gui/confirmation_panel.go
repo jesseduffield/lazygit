@@ -127,7 +127,11 @@ func (gui *Gui) createPopupPanel(g *gocui.Gui, currentView *gocui.View, title, p
 		}
 
 		gui.renderString(g, "confirmation", prompt)
-		return gui.setKeyBindings(g, handleConfirm, handleClose, returnFocusOnClose)
+		if err := gui.setKeyBindings(g, handleConfirm, handleClose, returnFocusOnClose); err != nil {
+			return err
+		}
+
+		return gui.refreshSidePanels(refreshOptions{})
 	})
 	return nil
 }

@@ -130,7 +130,7 @@ func (gui *Gui) stagedFiles() []*commands.File {
 
 func (gui *Gui) trackedFiles() []*commands.File {
 	files := gui.State.Files
-	result := make([]*commands.File, 0)
+	result := make([]*commands.File, 0, len(files))
 	for _, file := range files {
 		if file.Tracked {
 			result = append(result, file)

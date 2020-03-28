@@ -113,11 +113,21 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 		return err
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
-		commitIndex := gui.getPatchCommitIndex()
-		err := gui.GitCommand.PullPatchIntoIndex(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
-		return gui.handleGenericMergeCommandResult(err)
-	})
+	pull := func(stash bool) error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
+			commitIndex := gui.getPatchCommitIndex()
+			err := gui.GitCommand.PullPatchIntoIndex(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager, stash)
+			return gui.handleGenericMergeCommandResult(err)
+		})
+	}
+
+	if len(gui.trackedFiles()) > 0 {
+		return gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("MustStashTitle"), gui.Tr.SLocalize("MustStashWarning"), func(*gocui.Gui, *gocui.View) error {
+			return pull(true)
+		}, nil)
+	} else {
+		return pull(false)
+	}
 }
 
 func (gui *Gui) handleApplyPatch() error {

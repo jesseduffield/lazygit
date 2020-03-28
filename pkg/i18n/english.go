@@ -1062,6 +1062,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "cantRedoWhileRebasing",
 			Other: "Can't redo while rebasing",
+		}, &i18n.Message{
+			ID:    "MustStashWarning",
+			Other: "Pulling a patch out into the index requires stashing and unstashing your changes. If something goes wrong, you'll be able to access your files from the stash. Continue?",
+		}, &i18n.Message{
+			ID:    "MustStashTitle",
+			Other: "Must stash",
 		},
 	)
 }

@@ -131,14 +131,22 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitId
 	return c.GenericMerge("rebase", "continue")
 }
 
-func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *PatchManager) error {
+func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *PatchManager, stash bool) error {
+	if stash {
+		if err := c.StashSave(c.Tr.SLocalize("StashPrefix") + commits[commitIdx].Sha); err != nil {
+			return err
+		}
+	}
+
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
 		return err
 	}
 
 	if err := p.ApplyPatches(true); err != nil {
-		if err := c.GenericMerge("rebase", "abort"); err != nil {
-			return err
+		if c.WorkingTreeState() == "rebasing" {
+			if err := c.GenericMerge("rebase", "abort"); err != nil {
+				return err
+			}
 		}
 		return err
 	}
@@ -155,10 +163,18 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *Pat
 	c.onSuccessfulContinue = func() error {
 		// add patches to index
 		if err := p.ApplyPatches(false); err != nil {
-			if err := c.GenericMerge("rebase", "abort"); err != nil {
-				return err
+			if c.WorkingTreeState() == "rebasing" {
+				if err := c.GenericMerge("rebase", "abort"); err != nil {
+					return err
+				}
 			}
 			return err
+		}
+
+		if stash {
+			if err := c.StashDo(0, "apply"); err != nil {
+				return err
+			}
 		}
 
 		c.PatchManager.Reset()
