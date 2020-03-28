@@ -668,3 +668,21 @@ func (gui *Gui) handleResetCherryPick(g *gocui.Gui, v *gocui.View) error {
 	gui.State.CherryPickedCommits = []*commands.Commit{}
 	return gui.renderBranchCommitsWithSelection()
 }
+
+func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
+	// we usually lazyload these commits but now that we're searching we need to load them now
+	if gui.State.Panels.Commits.LimitCommits {
+		gui.State.Panels.Commits.LimitCommits = false
+		if err := gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []int{COMMITS}}); err != nil {
+			return err
+		}
+	}
+
+	for _, view := range gui.getListViews() {
+		if view.viewName == "commits" {
+			return view.handleGotoBottom(g, v)
+		}
+	}
+
+	return nil
+}
