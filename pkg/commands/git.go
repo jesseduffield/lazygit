@@ -1192,3 +1192,15 @@ func (c *GitCommand) colorArg() string {
 func (c *GitCommand) RenameBranch(oldName string, newName string) error {
 	return c.OSCommand.RunCommand("git branch --move %s %s", oldName, newName)
 }
+
+func (c *GitCommand) WorkingTreeState() string {
+	rebaseMode, _ := c.RebaseMode()
+	if rebaseMode != "" {
+		return "rebasing"
+	}
+	merging, _ := c.IsInMergeState()
+	if merging {
+		return "merging"
+	}
+	return "normal"
+}

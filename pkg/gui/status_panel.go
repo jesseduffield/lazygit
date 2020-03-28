@@ -33,8 +33,8 @@ func (gui *Gui) refreshStatus() {
 		status = utils.ColoredString(fmt.Sprintf("↑%s↓%s ", currentBranch.Pushables, currentBranch.Pullables), trackColor)
 	}
 
-	if gui.workingTreeState() != "normal" {
-		status += utils.ColoredString(fmt.Sprintf("(%s) ", gui.workingTreeState()), color.FgYellow)
+	if gui.GitCommand.WorkingTreeState() != "normal" {
+		status += utils.ColoredString(fmt.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState()), color.FgYellow)
 	}
 
 	name := utils.ColoredString(currentBranch.Name, presentation.GetBranchColor(currentBranch.Name))
@@ -66,9 +66,9 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 	cx, _ := v.Cursor()
 	upstreamStatus := fmt.Sprintf("↑%s↓%s", currentBranch.Pushables, currentBranch.Pullables)
 	repoName := utils.GetCurrentRepoName()
-	switch gui.workingTreeState() {
+	switch gui.GitCommand.WorkingTreeState() {
 	case "rebasing", "merging":
-		workingTreeStatus := fmt.Sprintf("(%s)", gui.workingTreeState())
+		workingTreeStatus := fmt.Sprintf("(%s)", gui.GitCommand.WorkingTreeState())
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return gui.handleCreateRebaseOptionsMenu(gui.g, v)
 		}

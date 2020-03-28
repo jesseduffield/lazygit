@@ -87,7 +87,7 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := gui.Tr.SLocalize("UndoingStatus")
 
-	if gui.workingTreeState() == "rebasing" {
+	if gui.GitCommand.WorkingTreeState() == "rebasing" {
 		return gui.createErrorPanel(gui.Tr.SLocalize("cantUndoWhileRebasing"))
 	}
 
@@ -118,7 +118,7 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := gui.Tr.SLocalize("RedoingStatus")
 
-	if gui.workingTreeState() == "rebasing" {
+	if gui.GitCommand.WorkingTreeState() == "rebasing" {
 		return gui.createErrorPanel(gui.Tr.SLocalize("cantRedoWhileRebasing"))
 	}
 
