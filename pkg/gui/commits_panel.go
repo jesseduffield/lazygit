@@ -117,7 +117,7 @@ func (gui *Gui) refreshCommits() error {
 }
 
 func (gui *Gui) refreshCommitsWithLimit() error {
-	builder, err := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits, gui.State.DiffEntries)
+	builder, err := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits)
 	if err != nil {
 		return err
 	}
@@ -491,52 +491,6 @@ func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) erro
 	return gui.switchFocus(g, gui.getCommitsView(), gui.getCommitFilesView())
 }
 
-func (gui *Gui) handleToggleDiffCommit(g *gocui.Gui, v *gocui.View) error {
-	selectLimit := 2
-
-	// get selected commit
-	commit := gui.getSelectedCommit(g)
-	if commit == nil {
-		return gui.newStringTask("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
-	}
-
-	// if already selected commit delete
-	if idx, has := gui.hasCommit(gui.State.DiffEntries, commit.Sha); has {
-		gui.State.DiffEntries = gui.unchooseCommit(gui.State.DiffEntries, idx)
-	} else {
-		if len(gui.State.DiffEntries) == 0 {
-			gui.State.DiffEntries = []*commands.Commit{commit}
-		} else {
-			gui.State.DiffEntries = append(gui.State.DiffEntries[:1], commit)
-		}
-	}
-
-	gui.setDiffMode()
-
-	// if selected two commits, display diff between
-	if len(gui.State.DiffEntries) == selectLimit {
-		commitText, err := gui.GitCommand.DiffCommits(gui.State.DiffEntries[0].Sha, gui.State.DiffEntries[1].Sha)
-
-		if err != nil {
-			return gui.surfaceError(err)
-		}
-
-		gui.newStringTask("main", commitText)
-	}
-	return gui.renderBranchCommitsWithSelection()
-}
-
-func (gui *Gui) setDiffMode() {
-	v := gui.getCommitsView()
-	if len(gui.State.DiffEntries) != 0 {
-		gui.State.Panels.Commits.SpecificDiffMode = true
-		v.Title = gui.Tr.SLocalize("CommitsDiffTitle")
-	} else {
-		gui.State.Panels.Commits.SpecificDiffMode = false
-		v.Title = gui.Tr.SLocalize("CommitsTitle")
-	}
-}
-
 func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool) {
 	for idx, commit := range commits {
 		if commit.Sha == target {
@@ -633,7 +587,7 @@ func (gui *Gui) renderBranchCommitsWithSelection() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
-	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.DiffEntries)
+	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap())
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "branch-commits" {
 		if err := gui.handleCommitSelect(gui.g, commitsView); err != nil {

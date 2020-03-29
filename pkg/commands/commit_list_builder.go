@@ -34,18 +34,16 @@ type CommitListBuilder struct {
 	OSCommand           *OSCommand
 	Tr                  *i18n.Localizer
 	CherryPickedCommits []*Commit
-	DiffEntries         []*Commit
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *OSCommand, tr *i18n.Localizer, cherryPickedCommits []*Commit, diffEntries []*Commit) (*CommitListBuilder, error) {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *OSCommand, tr *i18n.Localizer, cherryPickedCommits []*Commit) (*CommitListBuilder, error) {
 	return &CommitListBuilder{
 		Log:                 log,
 		GitCommand:          gitCommand,
 		OSCommand:           osCommand,
 		Tr:                  tr,
 		CherryPickedCommits: cherryPickedCommits,
-		DiffEntries:         diffEntries,
 	}, nil
 }
 
