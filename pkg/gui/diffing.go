@@ -40,15 +40,17 @@ func (gui *Gui) currentDiffTerminals() []string {
 	names := []string{}
 	switch gui.g.CurrentView().Name() {
 	case "files":
-		file, err := gui.getSelectedFile()
-		if err == nil {
-			names = append(names, file.Name)
-		}
+	// not supporting files for now
+	// file, err := gui.getSelectedFile()
+	// if err == nil {
+	// 	names = append(names, file.Name)
+	// }
 	case "commitFiles":
-		file := gui.getSelectedCommitFile()
-		if file != nil {
-			names = append(names, file.Name)
-		}
+		// not supporting commit files for now
+		// file := gui.getSelectedCommitFile()
+		// if file != nil {
+		// 	names = append(names, file.Name)
+		// }
 	case "commits":
 		var commit *commands.Commit
 		switch gui.getCommitsView().Context {
