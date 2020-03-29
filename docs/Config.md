@@ -90,7 +90,7 @@ Default path for the config file:
       undo: 'z'
       redo: '<c-z>'
       filteringMenu: <c-s>
-      diffingMenu: '\'
+      diffingMenu: '<c-e>'
     status:
       checkForUpdate: 'u'
       recentRepos: '<enter>'
@@ -134,7 +134,6 @@ Default path for the config file:
       cherryPickCopyRange: 'C'
       pasteCommits: 'v'
       tagCommit: 'T'
-      toggleDiffCommit: 'i'
       checkoutCommit: '<space>'
       resetCherryPick: '<c-R>'
     stash:
