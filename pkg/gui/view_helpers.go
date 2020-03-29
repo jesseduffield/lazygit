@@ -169,6 +169,9 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		panic(err)
 	}
+	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		return err
+	}
 	return gui.switchFocus(g, v, focusedView)
 }
 
@@ -202,6 +205,9 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 	focusedView, err := g.View(focusedViewName)
 	if err != nil {
 		panic(err)
+	}
+	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		return err
 	}
 	return gui.switchFocus(g, v, focusedView)
 }
