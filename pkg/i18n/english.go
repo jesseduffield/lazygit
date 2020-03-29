@@ -1108,17 +1108,11 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "MustExitFilterModePrompt",
 			Other: "Command not available in filtered mode. Exit filtered mode?",
 		}, &i18n.Message{
-			ID:    "diffFrom",
-			Other: "diff from",
+			ID:    "diff",
+			Other: "diff",
 		}, &i18n.Message{
-			ID:    "diffTo",
-			Other: "diff to",
-		}, &i18n.Message{
-			ID:    "enterRefToDiffFrom",
-			Other: "enter ref to diff from",
-		}, &i18n.Message{
-			ID:    "enterRefToDiffTo",
-			Other: "enter ref to diff to",
+			ID:    "enterRefToDiff",
+			Other: "enter ref to diff",
 		}, &i18n.Message{
 			ID:    "enteRefName",
 			Other: "enter ref:",
@@ -1136,7 +1130,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "open diff menu",
 		}, &i18n.Message{
 			ID:    "showingGitDiff",
-			Other: "showing git diff:",
+			Other: "showing output for:",
 		},
 	)
 }

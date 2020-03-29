@@ -37,8 +37,12 @@ func (gui *Gui) renderDiff() error {
 // which becomes an option when you bring up the diff menu, but when you're just
 // flicking through branches it will be using the local branch name.
 func (gui *Gui) currentDiffTerminals() []string {
+	currentView := gui.g.CurrentView()
+	if currentView == nil {
+		return nil
+	}
 	names := []string{}
-	switch gui.g.CurrentView().Name() {
+	switch currentView.Name() {
 	case "files":
 	// not supporting files for now
 	// file, err := gui.getSelectedFile()
@@ -100,18 +104,22 @@ func (gui *Gui) currentDiffTerminals() []string {
 func (gui *Gui) currentDiffTerminal() string {
 	names := gui.currentDiffTerminals()
 	if len(names) == 0 {
-		return "HEAD"
+		return ""
 	}
 	return names[0]
 }
 
 func (gui *Gui) diffStr() string {
-	left := gui.State.Diff.Ref
+	output := gui.State.Diff.Ref
+
 	right := gui.currentDiffTerminal()
-	if gui.State.Diff.Reverse {
-		left, right = right, left
+	if right != "" {
+		output += " " + right
 	}
-	return fmt.Sprintf("%s %s", left, right)
+	if gui.State.Diff.Reverse {
+		output += " -R"
+	}
+	return output
 }
 
 func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error {
@@ -126,19 +134,9 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 		name := name
 		menuItems = append(menuItems, []*menuItem{
 			{
-				displayString: fmt.Sprintf("%s %s", gui.Tr.SLocalize("diffFrom"), name),
+				displayString: fmt.Sprintf("%s %s", gui.Tr.SLocalize("diff"), name),
 				onPress: func() error {
 					gui.State.Diff.Ref = name
-					gui.State.Diff.Reverse = false
-					// can scope this down based on current view but too lazy right now
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-				},
-			},
-			{
-				displayString: fmt.Sprintf("%s %s", gui.Tr.SLocalize("diffTo"), name),
-				onPress: func() error {
-					gui.State.Diff.Ref = name
-					gui.State.Diff.Reverse = true
 					// can scope this down based on current view but too lazy right now
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				},
@@ -148,43 +146,33 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 
 	menuItems = append(menuItems, []*menuItem{
 		{
-			displayString: gui.Tr.SLocalize("enterRefToDiffFrom"),
+			displayString: gui.Tr.SLocalize("enterRefToDiff"),
 			onPress: func() error {
 				return gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("enteRefName"), "", func(g *gocui.Gui, promptView *gocui.View) error {
 					gui.State.Diff.Ref = strings.TrimSpace(promptView.Buffer())
-					gui.State.Diff.Reverse = false
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-				})
-			},
-		},
-		{
-			displayString: gui.Tr.SLocalize("enterRefToDiffTo"),
-			onPress: func() error {
-				return gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("enteRefName"), "", func(g *gocui.Gui, promptView *gocui.View) error {
-					gui.State.Diff.Ref = strings.TrimSpace(promptView.Buffer())
-					gui.State.Diff.Reverse = true
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				})
 			},
 		},
 	}...)
 
-	menuItems = append(menuItems, &menuItem{
-		displayString: gui.Tr.SLocalize("swapDiff"),
-		onPress: func() error {
-			gui.State.Diff.Reverse = !gui.State.Diff.Reverse
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-		},
-	})
-
 	if gui.inDiffMode() {
-		menuItems = append(menuItems, &menuItem{
-			displayString: gui.Tr.SLocalize("exitDiffMode"),
-			onPress: func() error {
-				gui.State.Diff = DiffState{}
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		menuItems = append(menuItems, []*menuItem{
+			{
+				displayString: gui.Tr.SLocalize("swapDiff"),
+				onPress: func() error {
+					gui.State.Diff.Reverse = !gui.State.Diff.Reverse
+					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+				},
 			},
-		})
+			{
+				displayString: gui.Tr.SLocalize("exitDiffMode"),
+				onPress: func() error {
+					gui.State.Diff = DiffState{}
+					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+				},
+			},
+		}...)
 	}
 
 	return gui.createMenu(gui.Tr.SLocalize("DiffingMenuTitle"), menuItems, createMenuOptions{showCancel: true})
