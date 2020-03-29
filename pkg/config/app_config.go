@@ -321,7 +321,7 @@ keybinding:
     undo: 'z'
     redo: '<c-z>'
     filteringMenu: <c-s>
-    diffingMenu: '\'
+    diffingMenu: '<c-e>'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'
@@ -366,7 +366,6 @@ keybinding:
     cherryPickCopyRange: 'C'
     pasteCommits: 'v'
     tagCommit: 'T'
-    toggleDiffCommit: 'i'
     checkoutCommit: '<space>'
     resetCherryPick: '<c-R>'
   stash:
