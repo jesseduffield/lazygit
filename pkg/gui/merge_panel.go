@@ -223,8 +223,10 @@ func (gui *Gui) refreshMergePanel() error {
 
 	mainView := gui.getMainView()
 	mainView.Wrap = false
-	gui.setViewContent(gui.g, mainView, content)
-	gui.Log.Warn("scrolling to conflict")
+	if err := gui.newStringTask("main", content); err != nil {
+		return err
+	}
+
 	if err := gui.scrollToConflict(gui.g); err != nil {
 		return err
 	}
