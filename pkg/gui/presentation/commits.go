@@ -9,10 +9,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffEntries []*commands.Commit) [][]string {
+func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool) [][]string {
 	lines := make([][]string, len(commits))
 
-	var displayFunc func(*commands.Commit, map[string]bool, []*commands.Commit) []string
+	var displayFunc func(*commands.Commit, map[string]bool) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForCommit
 	} else {
@@ -20,20 +20,20 @@ func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription boo
 	}
 
 	for i := range commits {
-		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap, diffEntries)
+		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap)
 	}
 
 	return lines
 }
 
-func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool, diffEntries []*commands.Commit) []string {
+func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
 	blue := color.New(color.FgBlue)
 	cyan := color.New(color.FgCyan)
 	defaultColor := color.New(theme.DefaultTextColor)
-	magenta := color.New(color.FgMagenta)
+	// magenta := color.New(color.FgMagenta)
 
 	// for some reason, setting the background to blue pads out the other commits
 	// horizontally. For the sake of accessibility I'm considering this a feature,
@@ -60,11 +60,11 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedC
 		shaColor = copied
 	}
 
-	for _, entry := range diffEntries {
-		if c.Sha == entry.Sha {
-			shaColor = magenta
-		}
-	}
+	// for _, entry := range diffEntries {
+	// 	if c.Sha == entry.Sha {
+	// 		shaColor = magenta
+	// 	}
+	// }
 
 	tagString := ""
 	secondColumnString := blue.Sprint(utils.UnixToDate(c.UnixTimestamp))
@@ -80,14 +80,14 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedC
 	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(c.Name)}
 }
 
-func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool, diffEntries []*commands.Commit) []string {
+func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
 	blue := color.New(color.FgBlue)
 	cyan := color.New(color.FgCyan)
 	defaultColor := color.New(theme.DefaultTextColor)
-	magenta := color.New(color.FgMagenta)
+	// magenta := color.New(color.FgMagenta)
 
 	// for some reason, setting the background to blue pads out the other commits
 	// horizontally. For the sake of accessibility I'm considering this a feature,
@@ -114,11 +114,11 @@ func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map
 		shaColor = copied
 	}
 
-	for _, entry := range diffEntries {
-		if c.Sha == entry.Sha {
-			shaColor = magenta
-		}
-	}
+	// for _, entry := range diffEntries {
+	// 	if c.Sha == entry.Sha {
+	// 		shaColor = magenta
+	// 	}
+	// }
 
 	actionString := ""
 	tagString := ""

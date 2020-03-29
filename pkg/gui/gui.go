@@ -185,6 +185,12 @@ const (
 	COMPLETE
 )
 
+// if ref is blank we're not diffing anything
+type DiffState struct {
+	Ref  string
+	Left bool
+}
+
 type guiState struct {
 	Files        []*commands.File
 	Branches     []*commands.Branch
@@ -198,7 +204,6 @@ type guiState struct {
 	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
 	ReflogCommits         []*commands.Commit
-	DiffEntries           []*commands.Commit
 	Remotes               []*commands.Remote
 	RemoteBranches        []*commands.RemoteBranch
 	Tags                  []*commands.Tag
@@ -222,6 +227,7 @@ type guiState struct {
 	OldInformation        string
 	StartupStage          int    // one of INITIAL and COMPLETE. Allows us to not load everything at once
 	FilterPath            string // the filename that gets passed to git log
+	Diff                  DiffState
 }
 
 func (gui *Gui) resetState() {
@@ -239,7 +245,6 @@ func (gui *Gui) resetState() {
 		ReflogCommits:         make([]*commands.Commit, 0),
 		CherryPickedCommits:   make([]*commands.Commit, 0),
 		StashEntries:          make([]*commands.StashEntry, 0),
-		DiffEntries:           make([]*commands.Commit, 0),
 		Panels: &panelStates{
 			Files:          &filePanelState{SelectedLine: -1},
 			Branches:       &branchPanelState{SelectedLine: 0},

@@ -838,14 +838,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "commits",
 			Contexts:    []string{"branch-commits"},
-			Key:         gui.getKey("commits.toggleDiffCommit"),
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleToggleDiffCommit,
-			Description: gui.Tr.SLocalize("CommitsDiff"),
-		},
-		{
-			ViewName:    "commits",
-			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.tagCommit"),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.handleTagCommit,
