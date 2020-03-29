@@ -10,7 +10,7 @@ import (
 
 func (gui *Gui) getSelectedReflogCommit() *commands.Commit {
 	selectedLine := gui.State.Panels.ReflogCommits.SelectedLine
-	reflogComits := gui.State.ReflogCommits
+	reflogComits := gui.State.FilteredReflogCommits
 	if selectedLine == -1 || len(reflogComits) == 0 {
 		return nil
 	}
@@ -51,6 +51,9 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 // load entries that have been created since we last ran the call. This means
 // we need to be more careful with how we use this, and to ensure we're emptying
 // the reflogs array when changing contexts.
+// This method also manages two things: ReflogCommits and FilteredReflogCommits.
+// FilteredReflogCommits are rendered in the reflogs panel, and ReflogCommits
+// are used by the branches panel to obtain recency values for sorting.
 func (gui *Gui) refreshReflogCommits() error {
 	// pulling state into its own variable incase it gets swapped out for another state
 	// and we get an out of bounds exception
@@ -60,17 +63,30 @@ func (gui *Gui) refreshReflogCommits() error {
 		lastReflogCommit = state.ReflogCommits[0]
 	}
 
-	commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, state.FilterPath)
-	if err != nil {
-		return gui.surfaceError(err)
+	refresh := func(stateCommits *[]*commands.Commit, filterPath string) error {
+		commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, filterPath)
+		if err != nil {
+			return gui.surfaceError(err)
+		}
+
+		if onlyObtainedNewReflogCommits {
+			*stateCommits = append(commits, *stateCommits...)
+		} else {
+			*stateCommits = commits
+		}
+		return nil
 	}
 
-	if onlyObtainedNewReflogCommits {
-		state.ReflogCommits = append(commits, state.ReflogCommits...)
+	if err := refresh(&state.ReflogCommits, ""); err != nil {
+		return err
+	}
+
+	if gui.inFilterMode() {
+		if err := refresh(&state.FilteredReflogCommits, state.FilterPath); err != nil {
+			return err
+		}
 	} else {
-		// if we haven't found it we're probably in a new repo so we don't want to
-		// retain the old reflog commits
-		state.ReflogCommits = commits
+		state.FilteredReflogCommits = state.ReflogCommits
 	}
 
 	if gui.getCommitsView().Context == "reflog-commits" {
@@ -83,8 +99,8 @@ func (gui *Gui) refreshReflogCommits() error {
 func (gui *Gui) renderReflogCommitsWithSelection() error {
 	commitsView := gui.getCommitsView()
 
-	gui.refreshSelectedLine(&gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.ReflogCommits))
-	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.ReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL)
+	gui.refreshSelectedLine(&gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.FilteredReflogCommits))
+	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL)
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "reflog-commits" {
 		if err := gui.handleReflogCommitSelect(gui.g, commitsView); err != nil {

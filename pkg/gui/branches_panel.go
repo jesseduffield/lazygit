@@ -54,7 +54,7 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches() {
-	reflogCommits := gui.State.ReflogCommits
+	reflogCommits := gui.State.FilteredReflogCommits
 	if gui.inFilterMode() {
 		// in filter mode we filter our reflog commits to just those containing the path
 		// however we need all the reflog entries to populate the recencies of our branches

@@ -186,11 +186,17 @@ const (
 )
 
 type guiState struct {
-	Files                 []*commands.File
-	Branches              []*commands.Branch
-	Commits               []*commands.Commit
-	StashEntries          []*commands.StashEntry
-	CommitFiles           []*commands.CommitFile
+	Files        []*commands.File
+	Branches     []*commands.Branch
+	Commits      []*commands.Commit
+	StashEntries []*commands.StashEntry
+	CommitFiles  []*commands.CommitFile
+	// FilteredReflogCommits are the ones that appear in the reflog panel.
+	// when in filtering mode we only include the ones that match the given path
+	FilteredReflogCommits []*commands.Commit
+	// ReflogCommits are the ones used by the branches panel to obtain recency values
+	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
+	// one and the same
 	ReflogCommits         []*commands.Commit
 	DiffEntries           []*commands.Commit
 	Remotes               []*commands.Remote
@@ -226,13 +232,14 @@ func (gui *Gui) resetState() {
 	}
 
 	gui.State = &guiState{
-		Files:               make([]*commands.File, 0),
-		PreviousView:        "files",
-		Commits:             make([]*commands.Commit, 0),
-		ReflogCommits:       make([]*commands.Commit, 0),
-		CherryPickedCommits: make([]*commands.Commit, 0),
-		StashEntries:        make([]*commands.StashEntry, 0),
-		DiffEntries:         make([]*commands.Commit, 0),
+		Files:                 make([]*commands.File, 0),
+		PreviousView:          "files",
+		Commits:               make([]*commands.Commit, 0),
+		FilteredReflogCommits: make([]*commands.Commit, 0),
+		ReflogCommits:         make([]*commands.Commit, 0),
+		CherryPickedCommits:   make([]*commands.Commit, 0),
+		StashEntries:          make([]*commands.StashEntry, 0),
+		DiffEntries:           make([]*commands.Commit, 0),
 		Panels: &panelStates{
 			Files:          &filePanelState{SelectedLine: -1},
 			Branches:       &branchPanelState{SelectedLine: 0},

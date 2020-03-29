@@ -183,7 +183,7 @@ func (gui *Gui) getListViews() []*listView {
 		{
 			viewName:              "commits",
 			context:               "reflog-commits",
-			getItemsLength:        func() int { return len(gui.State.ReflogCommits) },
+			getItemsLength:        func() int { return len(gui.State.FilteredReflogCommits) },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.ReflogCommits.SelectedLine },
 			handleFocus:           gui.handleReflogCommitSelect,
 			handleItemSelect:      gui.handleReflogCommitSelect,

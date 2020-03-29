@@ -37,7 +37,7 @@ type reflogAction struct {
 // Though we might support this later, hence the use of the CURRENT_REBASE action kind.
 func (gui *Gui) parseReflogForActions(onUserAction func(counter int, action reflogAction) (bool, error)) error {
 	counter := 0
-	reflogCommits := gui.State.ReflogCommits
+	reflogCommits := gui.State.FilteredReflogCommits
 	rebaseFinishCommitSha := ""
 	var action *reflogAction
 	for reflogCommitIdx, reflogCommit := range reflogCommits {
