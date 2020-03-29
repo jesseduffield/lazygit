@@ -41,6 +41,10 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	v.FocusPoint(0, gui.State.Panels.Remotes.SelectedLine)
 
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
+
 	return gui.newStringTask("main", fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
 }
 
@@ -80,7 +84,7 @@ func (gui *Gui) renderRemotesWithSelection() error {
 
 	gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
 
-	displayStrings := presentation.GetRemoteListDisplayStrings(gui.State.Remotes)
+	displayStrings := presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
 
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "remotes" {

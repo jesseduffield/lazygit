@@ -36,6 +36,10 @@ func (gui *Gui) handleTagSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	v.FocusPoint(0, gui.State.Panels.Tags.SelectedLine)
 
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
+
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.GetBranchGraphCmdStr(tag.Name),
 	)
@@ -65,7 +69,7 @@ func (gui *Gui) renderTagsWithSelection() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags))
-	displayStrings := presentation.GetTagListDisplayStrings(gui.State.Tags)
+	displayStrings := presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
 		if err := gui.handleTagSelect(gui.g, branchesView); err != nil {

@@ -37,6 +37,10 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	}
 	v.FocusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine)
 
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
+
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
 	)
@@ -100,7 +104,7 @@ func (gui *Gui) renderReflogCommitsWithSelection() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.FilteredReflogCommits))
-	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL)
+	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "reflog-commits" {
 		if err := gui.handleReflogCommitSelect(gui.g, commitsView); err != nil {

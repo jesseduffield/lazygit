@@ -97,6 +97,10 @@ func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
 
 	gui.getMainView().Title = ""
 
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
+
 	magenta := color.New(color.FgMagenta)
 
 	dashboardString := strings.Join(

@@ -144,6 +144,14 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
+	if gui.inDiffMode() {
+		if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
+			return gui.exitDiffMode()
+		} else {
+			return nil
+		}
+	}
+
 	if cx <= len(gui.Tr.SLocalize("Donate")) {
 		return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
 	}

@@ -38,6 +38,12 @@ func (gui *Gui) quit(v *gocui.View) error {
 	if gui.State.Updating {
 		return gui.createUpdateQuitConfirmation(gui.g, v)
 	}
+	if gui.inDiffMode() {
+		return gui.exitDiffMode()
+	}
+	if gui.inFilterMode() {
+		return gui.exitFilterMode()
+	}
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
 		return gui.createConfirmationPanel(gui.g, v, true, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
 			return gocui.ErrQuit

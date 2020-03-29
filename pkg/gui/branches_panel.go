@@ -42,6 +42,10 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch()
 	v.FocusPoint(0, gui.State.Panels.Branches.SelectedLine)
 
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
+
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
 	)
@@ -85,7 +89,7 @@ func (gui *Gui) renderLocalBranchesWithSelection() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-	displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL)
+	displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView {
 		if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {

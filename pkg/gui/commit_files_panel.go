@@ -7,7 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
-func (gui *Gui) getSelectedCommitFile(g *gocui.Gui) *commands.CommitFile {
+func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
 	selectedLine := gui.State.Panels.CommitFiles.SelectedLine
 	if selectedLine == -1 {
 		return nil
@@ -34,7 +34,7 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 		gui.handleEscapeLineByLinePanel()
 	}
 
-	commitFile := gui.getSelectedCommitFile(g)
+	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
 		gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
@@ -99,7 +99,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return err
 	}
 
-	commit := gui.getSelectedCommit(gui.g)
+	commit := gui.getSelectedCommit()
 	if commit == nil {
 		return nil
 	}
@@ -113,14 +113,14 @@ func (gui *Gui) refreshCommitFilesView() error {
 	gui.refreshSelectedLine(&gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles))
 
 	commitsFileView := gui.getCommitFilesView()
-	displayStrings := presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles)
+	displayStrings := presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsFileView, displayStrings)
 
 	return gui.handleCommitFileSelect(gui.g, commitsFileView)
 }
 
 func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
-	file := gui.getSelectedCommitFile(g)
+	file := gui.getSelectedCommitFile()
 	return gui.openFile(file.Name)
 }
 
@@ -129,7 +129,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	commitFile := gui.getSelectedCommitFile(g)
+	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
 		gui.renderString(g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
@@ -167,7 +167,7 @@ func (gui *Gui) startPatchManager() error {
 		diffMap[commitFile.Name] = commitText
 	}
 
-	commit := gui.getSelectedCommit(gui.g)
+	commit := gui.getSelectedCommit()
 	if commit == nil {
 		return errors.New("No commit selected")
 	}
@@ -185,7 +185,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		return err
 	}
 
-	commitFile := gui.getSelectedCommitFile(gui.g)
+	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
 		gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
