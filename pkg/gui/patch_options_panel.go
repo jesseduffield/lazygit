@@ -22,7 +22,11 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		},
 		{
 			displayString: "apply patch",
-			onPress:       gui.handleApplyPatch,
+			onPress:       func() error { return gui.handleApplyPatch(false) },
+		},
+		{
+			displayString: "apply patch in reverse",
+			onPress:       func() error { return gui.handleApplyPatch(true) },
 		},
 		{
 			displayString: "reset patch",
@@ -133,12 +137,12 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 	}
 }
 
-func (gui *Gui) handleApplyPatch() error {
+func (gui *Gui) handleApplyPatch(reverse bool) error {
 	if err := gui.returnFocusFromLineByLinePanelIfNecessary(); err != nil {
 		return err
 	}
 
-	if err := gui.GitCommand.PatchManager.ApplyPatches(false); err != nil {
+	if err := gui.GitCommand.PatchManager.ApplyPatches(reverse); err != nil {
 		return gui.surfaceError(err)
 	}
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
