@@ -7,16 +7,20 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-func (gui *Gui) handleCreateScopingMenuPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	fileName := ""
 	switch v.Name() {
 	case "files":
-		file, err := gui.getSelectedFile(gui.g)
+		file, err := gui.getSelectedFile()
 		if err == nil {
 			fileName = file.Name
 		}
 	case "commitFiles":
-		file := gui.getSelectedCommitFile(gui.g)
+		file := gui.getSelectedCommitFile()
 		if file != nil {
 			fileName = file.Name
 		}

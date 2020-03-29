@@ -978,8 +978,15 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "",
 			Key:         gui.getKey("universal.filteringMenu"),
 			Modifier:    gocui.ModNone,
-			Handler:     gui.handleCreateScopingMenuPanel,
+			Handler:     gui.handleCreateFilteringMenuPanel,
 			Description: gui.Tr.SLocalize("openScopingMenu"),
+		},
+		{
+			ViewName:    "",
+			Key:         gui.getKey("universal.diffingMenu"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.handleCreateDiffingMenuPanel,
+			Description: gui.Tr.SLocalize("openDiffingMenu"),
 		},
 		{
 			ViewName: "secondary",

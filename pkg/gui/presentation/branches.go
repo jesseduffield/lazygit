@@ -10,23 +10,29 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetBranchListDisplayStrings(branches []*commands.Branch, fullDescription bool) [][]string {
+func GetBranchListDisplayStrings(branches []*commands.Branch, fullDescription bool, diffName string) [][]string {
 	lines := make([][]string, len(branches))
 
 	for i := range branches {
-		lines[i] = getBranchDisplayStrings(branches[i], fullDescription)
+		diffed := branches[i].Name == diffName
+		lines[i] = getBranchDisplayStrings(branches[i], fullDescription, diffed)
 	}
 
 	return lines
 }
 
 // getBranchDisplayStrings returns the display string of branch
-func getBranchDisplayStrings(b *commands.Branch, fullDescription bool) []string {
+func getBranchDisplayStrings(b *commands.Branch, fullDescription bool, diffed bool) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName
 	}
-	coloredName := utils.ColoredString(displayName, GetBranchColor(b.Name))
+
+	nameColorAttr := GetBranchColor(b.Name)
+	if diffed {
+		nameColorAttr = theme.DiffTerminalColor
+	}
+	coloredName := utils.ColoredString(displayName, nameColorAttr)
 	if b.Pushables != "" && b.Pullables != "" && b.Pushables != "?" && b.Pullables != "?" {
 		trackColor := color.FgYellow
 		if b.Pushables == "0" && b.Pullables == "0" {

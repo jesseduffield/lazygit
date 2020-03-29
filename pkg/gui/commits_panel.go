@@ -12,7 +12,7 @@ import (
 
 // list panel functions
 
-func (gui *Gui) getSelectedCommit(g *gocui.Gui) *commands.Commit {
+func (gui *Gui) getSelectedCommit() *commands.Commit {
 	selectedLine := gui.State.Panels.Commits.SelectedLine
 	if selectedLine == -1 {
 		return nil
@@ -49,16 +49,15 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	gui.getSecondaryView().Title = "Custom Patch"
 	gui.handleEscapeLineByLinePanel()
 
-	commit := gui.getSelectedCommit(g)
+	commit := gui.getSelectedCommit()
 	if commit == nil {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 
 	v.FocusPoint(0, gui.State.Panels.Commits.SelectedLine)
 
-	// if specific diff mode is on, don't show diff
-	if gui.State.Panels.Commits.SpecificDiffMode {
-		return nil
+	if gui.inDiffMode() {
+		return gui.renderDiff()
 	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
@@ -509,7 +508,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	commit := gui.getSelectedCommit(g)
+	commit := gui.getSelectedCommit()
 	if commit == nil {
 		return nil
 	}
@@ -533,7 +532,7 @@ func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) er
 		return err
 	}
 
-	commit := gui.getSelectedCommit(g)
+	commit := gui.getSelectedCommit()
 	if commit == nil {
 		return nil
 	}
@@ -555,7 +554,7 @@ func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
 	// TODO: bring up menu asking if you want to make a lightweight or annotated tag
 	// if annotated, switch to a subprocess to create the message
 
-	commit := gui.getSelectedCommit(g)
+	commit := gui.getSelectedCommit()
 	if commit == nil {
 		return nil
 	}
@@ -573,7 +572,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 }
 
 func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
-	commit := gui.getSelectedCommit(g)
+	commit := gui.getSelectedCommit()
 	if commit == nil {
 		return nil
 	}
@@ -587,7 +586,7 @@ func (gui *Gui) renderBranchCommitsWithSelection() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
-	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap())
+	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "branch-commits" {
 		if err := gui.handleCommitSelect(gui.g, commitsView); err != nil {
@@ -649,7 +648,7 @@ func (gui *Gui) handlePrevCommitsTab(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
-	commit := gui.getSelectedCommit(g)
+	commit := gui.getSelectedCommit()
 	if commit == nil {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}

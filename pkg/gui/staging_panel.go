@@ -19,7 +19,7 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 		return err
 	}
 
-	file, err := gui.getSelectedFile(gui.g)
+	file, err := gui.getSelectedFile()
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
 			return err
@@ -125,7 +125,7 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) applySelection(reverse bool) error {
 	state := gui.State.Panels.LineByLine
 
-	file, err := gui.getSelectedFile(gui.g)
+	file, err := gui.getSelectedFile()
 	if err != nil {
 		return err
 	}

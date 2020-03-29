@@ -27,6 +27,8 @@ var (
 	OptionsFgColor color.Attribute
 
 	OptionsColor gocui.Attribute
+
+	DiffTerminalColor = color.FgMagenta
 )
 
 // UpdateTheme updates all theme variables

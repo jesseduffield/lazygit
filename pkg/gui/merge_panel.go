@@ -104,7 +104,7 @@ func (gui *Gui) isIndexToDelete(i int, conflict commands.Conflict, pick string) 
 }
 
 func (gui *Gui) resolveConflict(g *gocui.Gui, conflict commands.Conflict, pick string) error {
-	gitFile, err := gui.getSelectedFile(g)
+	gitFile, err := gui.getSelectedFile()
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (gui *Gui) resolveConflict(g *gocui.Gui, conflict commands.Conflict, pick s
 }
 
 func (gui *Gui) pushFileSnapshot(g *gocui.Gui) error {
-	gitFile, err := gui.getSelectedFile(g)
+	gitFile, err := gui.getSelectedFile()
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (gui *Gui) handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	prevContent := gui.State.Panels.Merging.EditHistory.Pop().(string)
-	gitFile, err := gui.getSelectedFile(g)
+	gitFile, err := gui.getSelectedFile()
 	if err != nil {
 		return err
 	}

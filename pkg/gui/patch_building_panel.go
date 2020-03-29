@@ -16,7 +16,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	gui.getSecondaryView().Title = "Custom Patch"
 
 	// get diff from commit file that's currently selected
-	commitFile := gui.getSelectedCommitFile(gui.g)
+	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
 		gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
@@ -56,7 +56,7 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 	}
 
 	// add range of lines to those set for the file
-	commitFile := gui.getSelectedCommitFile(gui.g)
+	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
 		gui.renderString(gui.g, "commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil

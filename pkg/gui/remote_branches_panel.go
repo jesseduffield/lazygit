@@ -32,7 +32,6 @@ func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
 
 	gui.getMainView().Title = "Remote Branch"
 
-	remote := gui.getSelectedRemote()
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {
 		return gui.newStringTask("main", "No branches for this remote")
@@ -40,10 +39,12 @@ func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
 
 	v.FocusPoint(0, gui.State.Panels.RemoteBranches.SelectedLine)
 
-	branchName := fmt.Sprintf("%s/%s", remote.Name, remoteBranch.Name)
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.GetBranchGraphCmdStr(branchName),
+		gui.GitCommand.GetBranchGraphCmdStr(remoteBranch.FullName()),
 	)
 	if err := gui.newCmdTask("main", cmd); err != nil {
 		gui.Log.Error(err)
@@ -60,7 +61,7 @@ func (gui *Gui) renderRemoteBranchesWithSelection() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.RemoteBranches.SelectedLine, len(gui.State.RemoteBranches))
-	displayStrings := presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches)
+	displayStrings := presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "remote-branches" {
 		if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
@@ -76,7 +77,7 @@ func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	if remoteBranch == nil {
 		return nil
 	}
-	if err := gui.handleCheckoutRef(remoteBranch.RemoteName+"/"+remoteBranch.Name, handleCheckoutRefOptions{}); err != nil {
+	if err := gui.handleCheckoutRef(remoteBranch.FullName(), handleCheckoutRefOptions{}); err != nil {
 		return err
 	}
 	return gui.switchBranchesPanelContext("local-branches")
@@ -117,7 +118,7 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 		"SetUpstreamMessage",
 		Teml{
 			"checkedOut": checkedOutBranch.Name,
-			"selected":   selectedBranch.RemoteName + "/" + selectedBranch.Name,
+			"selected":   selectedBranch.FullName(),
 		},
 	)
 

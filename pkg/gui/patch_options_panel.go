@@ -30,7 +30,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		},
 	}
 
-	selectedCommit := gui.getSelectedCommit(gui.g)
+	selectedCommit := gui.getSelectedCommit()
 	if selectedCommit != nil && gui.GitCommand.PatchManager.CommitSha != selectedCommit.Sha {
 		// adding this option to index 1
 		menuItems = append(

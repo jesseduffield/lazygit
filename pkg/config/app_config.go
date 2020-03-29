@@ -321,6 +321,7 @@ keybinding:
     undo: 'z'
     redo: '<c-z>'
     filteringMenu: <c-s>
+    diffingMenu: '\'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'

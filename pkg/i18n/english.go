@@ -1107,6 +1107,36 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "MustExitFilterModePrompt",
 			Other: "Command not available in filtered mode. Exit filtered mode?",
+		}, &i18n.Message{
+			ID:    "diffFrom",
+			Other: "diff from",
+		}, &i18n.Message{
+			ID:    "diffTo",
+			Other: "diff to",
+		}, &i18n.Message{
+			ID:    "enterRefToDiffFrom",
+			Other: "enter ref to diff from",
+		}, &i18n.Message{
+			ID:    "enterRefToDiffTo",
+			Other: "enter ref to diff to",
+		}, &i18n.Message{
+			ID:    "enteRefName",
+			Other: "enter ref:",
+		}, &i18n.Message{
+			ID:    "exitDiffMode",
+			Other: "exit diff mode",
+		}, &i18n.Message{
+			ID:    "DiffingMenuTitle",
+			Other: "Diffing",
+		}, &i18n.Message{
+			ID:    "swapDiff",
+			Other: "reverse diff direction",
+		}, &i18n.Message{
+			ID:    "openDiffingMenu",
+			Other: "open diff menu",
+		}, &i18n.Message{
+			ID:    "showingGitDiff",
+			Other: "showing git diff:",
 		},
 	)
 }

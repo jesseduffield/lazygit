@@ -8,7 +8,7 @@ import (
 
 // list panel functions
 
-func (gui *Gui) getSelectedStashEntry(v *gocui.View) *commands.StashEntry {
+func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
 	selectedLine := gui.State.Panels.Stash.SelectedLine
 	if selectedLine == -1 {
 		return nil
@@ -30,11 +30,15 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 
 	gui.getMainView().Title = "Stash"
 
-	stashEntry := gui.getSelectedStashEntry(v)
+	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoStashEntries"))
 	}
 	v.FocusPoint(0, gui.State.Panels.Stash.SelectedLine)
+
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
@@ -53,7 +57,7 @@ func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
 
 	stashView := gui.getStashView()
 
-	displayStrings := presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries)
+	displayStrings := presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(stashView, displayStrings)
 
 	return gui.resetOrigin(stashView)
@@ -78,7 +82,7 @@ func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
-	stashEntry := gui.getSelectedStashEntry(v)
+	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
 		errorMessage := gui.Tr.TemplateLocalize(
 			"NoStashTo",

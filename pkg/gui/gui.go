@@ -136,9 +136,8 @@ type tagsPanelState struct {
 }
 
 type commitPanelState struct {
-	SelectedLine     int
-	SpecificDiffMode bool
-	LimitCommits     bool
+	SelectedLine int
+	LimitCommits bool
 }
 
 type reflogCommitPanelState struct {
@@ -187,8 +186,8 @@ const (
 
 // if ref is blank we're not diffing anything
 type DiffState struct {
-	Ref  string
-	Left bool
+	Ref     string
+	Reverse bool
 }
 
 type guiState struct {
@@ -231,10 +230,12 @@ type guiState struct {
 }
 
 func (gui *Gui) resetState() {
-	// we carry over the filter path
+	// we carry over the filter path and diff state
 	prevFilterPath := ""
+	prevDiff := DiffState{}
 	if gui.State != nil {
 		prevFilterPath = gui.State.FilterPath
+		prevDiff = gui.State.Diff
 	}
 
 	gui.State = &guiState{
@@ -266,6 +267,7 @@ func (gui *Gui) resetState() {
 		SideView:   nil,
 		Ptmx:       nil,
 		FilterPath: prevFilterPath,
+		Diff:       prevDiff,
 	}
 }
 
