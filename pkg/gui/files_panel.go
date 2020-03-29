@@ -27,6 +27,12 @@ func (gui *Gui) getSelectedFile() (*commands.File, error) {
 }
 
 func (gui *Gui) selectFile(alreadySelected bool) error {
+	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLine)
+
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
+
 	file, err := gui.getSelectedFile()
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
@@ -37,8 +43,6 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
 
-	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLine)
-
 	if !alreadySelected {
 		if err := gui.resetOrigin(gui.getMainView()); err != nil {
 			return err
@@ -46,10 +50,6 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		if err := gui.resetOrigin(gui.getSecondaryView()); err != nil {
 			return err
 		}
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
 	}
 
 	if file.HasInlineMergeConflicts {
