@@ -21,12 +21,8 @@ jobs:
         uses: goreleaser/goreleaser-action@v1
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
-      - name: Get tag
-        id: tag
-        uses: dawidd6/action-get-tag@v1
       - name: Bump Homebrew
-        uses: dawidd6/action-homebrew-bump-formula@v1
+        uses: dawidd6/action-homebrew-bump-formula@v2
         with:
           token: ${{secrets.GITHUB_API_TOKEN}}
           formula: lazygit
-          url: "https://github.com/${{github.repository}}/archive/${{steps.tag.outputs.tag}}.tar.gz"
