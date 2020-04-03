@@ -220,7 +220,7 @@ If you have issues with a light terminal theme where you can't read / see the te
 
 ## Keybindings
 
-For all possible keybinding options, check [Custom_Keybinding.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybinding.md)
+For all possible keybinding options, check [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md)
 
 ### Example Keybindings For Colemak Users
 
