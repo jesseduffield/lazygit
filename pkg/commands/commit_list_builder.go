@@ -109,11 +109,12 @@ func (c *CommitListBuilder) GetCommits(options GetCommitsOptions) ([]*Commit, er
 	cmd := c.getLogCmd(options)
 
 	err = RunLineOutputCmd(cmd, func(line string) (bool, error) {
-		commit := c.extractCommitFromLine(line)
-		_, unpushed := unpushedCommits[commit.ShortSha()]
-		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
-		commits = append(commits, commit)
-
+		if strings.Split(line, " ")[0] != "gpg:" {
+			commit := c.extractCommitFromLine(line)
+			_, unpushed := unpushedCommits[commit.ShortSha()]
+			commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
+			commits = append(commits, commit)
+		}
 		return false, nil
 	})
 	if err != nil {
