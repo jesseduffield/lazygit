@@ -269,3 +269,19 @@ Where:
 - `gitDomain` stands for the domain used by git itself (i.e. the one present on clone URLs), e.g. `git.work.com`
 - `provider` is one of `github`, `bitbucket` or `gitlab`
 - `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
+
+## Predefined commit message prefix
+In situations where certain naming pattern is used for branches and commits, pattern can be used to populate
+commit message with prefix that is parsed from the branch name.
+
+Example:
+* Branch name: feature/AB-123
+* Commit message: [AB-123] Adding feature
+
+```yaml
+  git:
+    commitPrefixes:
+      my_project: # This is repository folder name
+        pattern: "^\\w+\\/(\\w+-\\w+)"
+        replace: "[$1] "
+```

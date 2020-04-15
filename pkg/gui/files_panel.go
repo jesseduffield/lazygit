@@ -8,11 +8,13 @@ import (
 	// "strings"
 
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -286,6 +288,17 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoStagedFilesToCommit"))
 	}
 	commitMessageView := gui.getCommitMessageView()
+	prefixPattern := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".pattern")
+	prefixReplace := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".replace")
+	if len(prefixPattern) > 0 && len(prefixReplace) > 0 {
+		rgx := regexp.MustCompile(prefixPattern)
+		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
+		gui.renderString(g, "commitMessage", prefix)
+		if err := commitMessageView.SetCursor(len(prefix), 0); err != nil {
+			return err
+		}
+	}
+
 	g.Update(func(g *gocui.Gui) error {
 		if _, err := g.SetViewOnTop("commitMessage"); err != nil {
 			return err
