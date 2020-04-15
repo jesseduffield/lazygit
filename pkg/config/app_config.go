@@ -322,6 +322,7 @@ keybinding:
     redo: '<c-z>'
     filteringMenu: <c-s>
     diffingMenu: '<c-e>'
+    copyToClipboard: '<c-o>'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'

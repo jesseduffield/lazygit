@@ -454,3 +454,14 @@ func RunLineOutputCmd(cmd *exec.Cmd, onLine func(line string) (bool, error)) err
 	cmd.Wait()
 	return nil
 }
+
+func (c *OSCommand) CopyToClipboard(str string) error {
+	commandTemplate := c.Config.GetUserConfig().GetString("os.copyToClipboardCommand")
+	templateValues := map[string]string{
+		"str": c.Quote(str),
+	}
+
+	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
+
+	return c.RunCommand(command)
+}
