@@ -1131,6 +1131,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "showingGitDiff",
 			Other: "showing output for:",
+		}, &i18n.Message{
+			ID:    "copyCommitShaToClipboard",
+			Other: "copy commit SHA to clipboard",
+		}, &i18n.Message{
+			ID:    "copyBranchNameToClipboard",
+			Other: "copy branch name to clipboard",
 		},
 	)
 }

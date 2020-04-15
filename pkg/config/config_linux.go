@@ -5,5 +5,6 @@ func GetPlatformDefaultConfig() []byte {
 	return []byte(
 		`os:
   openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'
-  openLinkCommand: 'sh -c "xdg-open {{link}} >/dev/null"'`)
+  openLinkCommand: 'sh -c "xdg-open {{link}} >/dev/null"'
+  copyToClipboardCommand: 'bash -c "echo -n {{str}} | xclip -selection clipboard"'`)
 }

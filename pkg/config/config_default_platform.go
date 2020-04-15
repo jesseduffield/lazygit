@@ -7,5 +7,6 @@ func GetPlatformDefaultConfig() []byte {
 	return []byte(
 		`os:
   openCommand: 'open {{filename}}'
-  openLinkCommand: 'open {{link}}'`)
+  openLinkCommand: 'open {{link}}'
+  copyToClipboardCommand: 'bash -c "echo -n {{str}} | pbcopy"'`)
 }
