@@ -113,7 +113,7 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 		return gui.applySelection(true)
 	}
 
-	if gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
+	if !gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
 		return gui.createConfirmationPanel(gui.g, gui.getMainView(), false, "unstage lines", "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true", func(*gocui.Gui, *gocui.View) error {
 			return gui.applySelection(true)
 		}, nil)
