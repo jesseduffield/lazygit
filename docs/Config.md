@@ -28,6 +28,7 @@ Default path for the config file:
       show: true
     mouseEvents: true
     skipUnstageLineWarning: false
+    skipStashWarning: true
   git:
     paging:
       colorArg: always

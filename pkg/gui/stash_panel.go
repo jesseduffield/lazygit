@@ -66,11 +66,39 @@ func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
 // specific functions
 
 func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
-	return gui.stashDo(g, v, "apply")
+	skipStashWarning := gui.Config.GetUserConfig().GetBool("gui.skipStashWarning")
+
+	apply := func() error {
+		return gui.stashDo(g, v, "apply")
+	}
+
+	if skipStashWarning {
+		return apply()
+	}
+
+	title := gui.Tr.SLocalize("StashApply")
+	message := gui.Tr.SLocalize("SureApplyStashEntry")
+	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
+		return apply()
+	}, nil)
 }
 
 func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
-	return gui.stashDo(g, v, "pop")
+	skipStashWarning := gui.Config.GetUserConfig().GetBool("gui.skipStashWarning")
+
+	pop := func() error {
+		return gui.stashDo(g, v, "pop")
+	}
+
+	if skipStashWarning {
+		return pop()
+	}
+
+	title := gui.Tr.SLocalize("StashPop")
+	message := gui.Tr.SLocalize("SurePopStashEntry")
+	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
+		return pop()
+	}, nil)
 }
 
 func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
