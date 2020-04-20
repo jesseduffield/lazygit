@@ -244,6 +244,7 @@ func GetDefaultConfig() []byte {
   scrollPastBottom: true
   mouseEvents: true
   skipUnstageLineWarning: false
+  skipStashWarning: true
   sidePanelWidth: 0.3333
   theme:
     lightTheme: false
