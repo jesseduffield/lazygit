@@ -746,6 +746,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "IgnoreTrackedPrompt",
 			Other: "Are you sure you want to ignore a tracked file?",
+		}, &i18n.Message{
+			ID:    "commitPrefixPatternError",
+			Other: "Error in commitPrefix pattern",
 		},
 	)
 }
