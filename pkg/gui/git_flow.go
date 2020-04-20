@@ -77,6 +77,10 @@ func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
 			onPress:       startHandler("hotfix"),
 		},
 		{
+			displayString: "start bugfix",
+			onPress:       startHandler("bugfix"),
+		},
+		{
 			displayString: "start release",
 			onPress:       startHandler("release"),
 		},
