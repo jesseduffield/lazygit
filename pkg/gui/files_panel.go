@@ -291,7 +291,10 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	prefixPattern := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".pattern")
 	prefixReplace := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".replace")
 	if len(prefixPattern) > 0 && len(prefixReplace) > 0 {
-		rgx := regexp.MustCompile(prefixPattern)
+		rgx, err := regexp.Compile(prefixPattern)
+		if err != nil {
+			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.SLocalize("commitPrefixPatternError"), err.Error()))
+		}
 		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
 		gui.renderString(g, "commitMessage", prefix)
 		if err := commitMessageView.SetCursor(len(prefix), 0); err != nil {
