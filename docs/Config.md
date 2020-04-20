@@ -35,6 +35,8 @@ Default path for the config file:
     merging:
       # only applicable to unix users
       manualCommit: false
+      # extra args passed to `git merge`, e.g. --no-ff
+      args: ""
     skipHookPrefix: WIP
     autoFetch: true
   update:

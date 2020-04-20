@@ -264,6 +264,7 @@ git:
     useConfig: false
   merging:
     manualCommit: false
+    args: ""
   skipHookPrefix: 'WIP'
   autoFetch: true
 update:

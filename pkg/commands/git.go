@@ -410,7 +410,8 @@ func (c *GitCommand) ListStash() (string, error) {
 
 // Merge merge
 func (c *GitCommand) Merge(branchName string) error {
-	return c.OSCommand.RunCommand("git merge --no-edit %s", branchName)
+	mergeArgs := c.Config.GetUserConfig().GetString("git.merging.args")
+	return c.OSCommand.RunCommand("git merge --no-edit %s %s", mergeArgs, branchName)
 }
 
 // AbortMerge abort merge
