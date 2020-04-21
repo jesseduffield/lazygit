@@ -79,6 +79,11 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 	menuView.FgColor = theme.GocuiDefaultTextColor
 	menuView.ContainsList = true
 	menuView.Clear()
+	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
+		gui.State.Panels.Menu.SelectedLine = selectedLine
+		menuView.FocusPoint(0, selectedLine)
+		return nil
+	}))
 	fmt.Fprint(menuView, list)
 	gui.State.Panels.Menu.SelectedLine = 0
 
