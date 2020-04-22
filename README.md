@@ -21,6 +21,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Scoop (Windows)](#scoop-windows)
   - [Arch Linux](#arch-linux)
   - [Fedora and CentOS 7](#fedora-and-centos-7)
+  - [FreeBSD] (#freebsd)
   - [Conda](#conda)
   - [Go](#go)
 - [Usage](#usage)
@@ -123,6 +124,13 @@ Packages for Fedora and CentOS 7 are available via [Copr](https://copr.fedorainf
 sudo dnf copr enable atim/lazygit -y
 sudo dnf install lazygit
 ```
+
+### FreeBSD
+
+```sh
+pkg install lazygit
+```
+
 
 ### Conda
 
