@@ -215,7 +215,7 @@ func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*Commit, error) {
 		if line == "" || line == "noop" {
 			return commits, nil
 		}
-		if strings.HasPrefix("#", line) {
+		if strings.HasPrefix(line, "#") {
 			continue
 		}
 		splitLine := strings.Split(line, " ")
@@ -227,7 +227,7 @@ func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*Commit, error) {
 		}}, commits...)
 	}
 
-	return nil, nil
+	return commits, nil
 }
 
 // assuming the file starts like this:
