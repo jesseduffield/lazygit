@@ -73,6 +73,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CredentialsPassword",
 			Other: "Password",
 		}, &i18n.Message{
+			ID:    "CredentialsPassphrase",
+			Other: "Enter passphrase for SSH key",
+		}, &i18n.Message{
 			ID:    "PassUnameWrong",
 			Other: "Password and/or username wrong",
 		}, &i18n.Message{

@@ -133,6 +133,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		prompts := map[string]string{
 			"password": `Password\s*for\s*'.+':`,
 			"username": `Username\s*for\s*'.+':`,
+			"passphrase": `Enter passphrase for key`,
 		}
 
 		for askFor, pattern := range prompts {

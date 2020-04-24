@@ -54,6 +54,9 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CredentialsPassword",
 			Other: "Password",
 		}, &i18n.Message{
+			ID:    "CredentialsPassphrase",
+			Other: "Wprowadź hasło dla klucza SSH",
+		}, &i18n.Message{
 			ID:    "PassUnameWrong",
 			Other: "Password and/or username wrong",
 		}, &i18n.Message{

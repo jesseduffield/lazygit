@@ -8,7 +8,7 @@ import (
 
 type credentials chan string
 
-// waitForPassUname wait for a username or password input from the credentials popup
+// waitForPassUname wait for a username, password or ssh passphrase input from the credentials popup
 func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUname string) string {
 	gui.credentials = make(chan string)
 	g.Update(func(g *gocui.Gui) error {
@@ -16,6 +16,9 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 		if passOrUname == "username" {
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
 			credentialsView.Mask = 0
+		} else if passOrUname == "passphrase" {
+			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassphrase")
+			credentialsView.Mask = '*'
 		} else {
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
 			credentialsView.Mask = '*'
