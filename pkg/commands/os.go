@@ -23,6 +23,7 @@ import (
 // Platform stores the os state
 type Platform struct {
 	os                   string
+	catCmd               string
 	shell                string
 	shellArg             string
 	escapedQuote         string

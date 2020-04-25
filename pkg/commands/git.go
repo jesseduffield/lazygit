@@ -479,7 +479,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("cat %s", c.OSCommand.Quote(fileName))
+	return c.OSCommand.RunCommandWithOutput("%s %s", c.OSCommand.Platform.catCmd, c.OSCommand.Quote(fileName))
 }
 
 // StageFile stages a file
