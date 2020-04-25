@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"testing"
 	"time"
 
@@ -1022,11 +1023,18 @@ func TestGitCommandPush(t *testing.T) {
 	}
 }
 
-// TestGitCommandCatFile is a function.
+// TestGitCommandCatFile tests emitting a file using commands, where commands vary by OS.
 func TestGitCommandCatFile(t *testing.T) {
+	var osCmd string
+	switch os := runtime.GOOS; os {
+	case "windows":
+		osCmd = "type"
+	default:
+		osCmd = "cat"
+	}
 	gitCmd := NewDummyGitCommand()
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "cat", cmd)
+		assert.EqualValues(t, osCmd, cmd)
 		assert.EqualValues(t, []string{"test.txt"}, args)
 
 		return exec.Command("echo", "-n", "test")
