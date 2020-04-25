@@ -57,7 +57,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "Wachtwoord",
 		}, &i18n.Message{
 			ID:    "CredentialsPassphrase",
-			Other: "Voer wachtwoordzin in voor SSH-sleutel",
+			Other: "Voer wachtwoord in voor SSH-sleutel",
 		}, &i18n.Message{
 			ID:    "PassUnameWrong",
 			Other: "Wachtwoord en/of gebruikersnaam verkeert",
