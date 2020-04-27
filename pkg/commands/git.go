@@ -441,6 +441,12 @@ func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
 	return nil, c.OSCommand.RunCommand(command)
 }
 
+// Get the subject of the HEAD commit
+func (c *GitCommand) GetHeadCommitMessage() (string, error) {
+	message, err := c.OSCommand.RunCommandWithOutput("git log -1 --pretty=%s")
+	return strings.TrimSpace(message), err
+}
+
 // AmendHead amends HEAD with whatever is staged in your working tree
 func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 	command := "git commit --amend --no-edit --allow-empty"
