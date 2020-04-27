@@ -1,6 +1,9 @@
 package commands
 
-import "github.com/go-errors/errors"
+import (
+	"fmt"
+	"github.com/go-errors/errors"
+)
 
 // DeletePatchesFromCommit applies a patch in reverse for a commit
 func (c *GitCommand) DeletePatchesFromCommit(commits []*Commit, commitIndex int, p *PatchManager) error {
@@ -181,5 +184,45 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *Pat
 		return nil
 	}
 
+	return c.GenericMerge("rebase", "continue")
+}
+
+func (c *GitCommand) PullPatchIntoNewCommit(commits []*Commit, commitIdx int, p *PatchManager) error {
+	if err := c.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
+		return err
+	}
+
+	if err := p.ApplyPatches(true); err != nil {
+		if err := c.GenericMerge("rebase", "abort"); err != nil {
+			return err
+		}
+		return err
+	}
+
+	// amend the commit
+	if _, err := c.AmendHead(); err != nil {
+		return err
+	}
+
+	// add patches to index
+	if err := p.ApplyPatches(false); err != nil {
+		if err := c.GenericMerge("rebase", "abort"); err != nil {
+			return err
+		}
+		return err
+	}
+
+	head_message, _ := c.GetHeadCommitMessage()
+	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
+	_, err := c.Commit(new_message, "")
+	if err != nil {
+		return err
+	}
+
+	if c.onSuccessfulContinue != nil {
+		return errors.New("You are midway through another rebase operation. Please abort to start again")
+	}
+
+	c.PatchManager.Reset()
 	return c.GenericMerge("rebase", "continue")
 }

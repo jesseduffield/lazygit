@@ -21,6 +21,10 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 			onPress:       gui.handlePullPatchIntoWorkingTree,
 		},
 		{
+			displayString: "pull patch into new commit",
+			onPress:       gui.handlePullPatchIntoNewCommit,
+		},
+		{
 			displayString: "apply patch",
 			onPress:       func() error { return gui.handleApplyPatch(false) },
 		},
@@ -135,6 +139,22 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 	} else {
 		return pull(false)
 	}
+}
+
+func (gui *Gui) handlePullPatchIntoNewCommit() error {
+	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
+	if err := gui.returnFocusFromLineByLinePanelIfNecessary(); err != nil {
+		return err
+	}
+
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
+		commitIndex := gui.getPatchCommitIndex()
+		err := gui.GitCommand.PullPatchIntoNewCommit(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
+		return gui.handleGenericMergeCommandResult(err)
+	})
 }
 
 func (gui *Gui) handleApplyPatch(reverse bool) error {
