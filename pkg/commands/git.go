@@ -443,7 +443,7 @@ func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
 
 // Get the subject of the HEAD commit
 func (c *GitCommand) GetHeadCommitMessage() (string, error) {
-	message, err := c.OSCommand.RunCommandWithOutput("git log -1 --pretty=%s")
+	message, err := c.OSCommand.RunCommandWithOutput("git log -1 --pretty=%s", "%s")
 	return strings.TrimSpace(message), err
 }
 
