@@ -703,7 +703,9 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 			if v != g.currentView {
 				currentFgColor -= AttrBold
 			}
-			currentBgColor = v.SelBgColor
+			if v.HighlightSelectedTabWithoutFocus || v == g.CurrentView() {
+				currentBgColor = v.SelBgColor
+			}
 		}
 		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
 			return err

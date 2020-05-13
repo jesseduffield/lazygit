@@ -2,14 +2,16 @@
 
 package termbox
 
-import "unicode/utf8"
-import "bytes"
-import "syscall"
-import "unsafe"
-import "strings"
-import "strconv"
-import "os"
-import "io"
+import (
+	"bytes"
+	"io"
+	"os"
+	"strconv"
+	"strings"
+	"syscall"
+	"unicode/utf8"
+	"unsafe"
+)
 
 // private API
 

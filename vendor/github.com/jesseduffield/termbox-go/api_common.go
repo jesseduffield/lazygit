@@ -26,6 +26,7 @@ type Event struct {
 	MouseX int       // x coord of mouse
 	MouseY int       // y coord of mouse
 	N      int       // number of bytes written when getting a raw event
+	Bytes  []byte    // byte array that triggered the event
 }
 
 // A cell, single conceptual entity on the screen. The screen is basically a 2d

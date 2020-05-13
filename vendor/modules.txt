@@ -19,7 +19,7 @@ github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.7
 ## explicit
 github.com/fsnotify/fsnotify
-# github.com/go-errors/errors v1.0.1
+# github.com/go-errors/errors v1.0.2
 ## explicit
 github.com/go-errors/errors
 # github.com/go-git/gcfg v1.5.0
@@ -99,10 +99,10 @@ github.com/hashicorp/hcl/json/token
 github.com/integrii/flaggy
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 github.com/jbenet/go-context/io
-# github.com/jesseduffield/gocui v0.3.1-0.20200309001002-7765949e1c8a
+# github.com/jesseduffield/gocui v0.3.1-0.20200513110002-8cde0b9be542
 ## explicit
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/termbox-go v0.0.0-20200130214842-1d31d1faa3c9
+# github.com/jesseduffield/termbox-go v0.0.0-20200405031649-4dc645f7e8ba
 ## explicit
 github.com/jesseduffield/termbox-go
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
@@ -121,7 +121,7 @@ github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.11
 ## explicit
 github.com/mattn/go-isatty
-# github.com/mattn/go-runewidth v0.0.8
+# github.com/mattn/go-runewidth v0.0.9
 ## explicit
 github.com/mattn/go-runewidth
 # github.com/mgutz/str v1.2.0
