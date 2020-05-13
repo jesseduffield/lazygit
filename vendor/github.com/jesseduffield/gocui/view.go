@@ -83,6 +83,8 @@ type View struct {
 
 	Tabs     []string
 	TabIndex int
+	// HighlightTabWithoutFocus allows you to show which tab is selected without the view being focused
+	HighlightSelectedTabWithoutFocus bool
 
 	// If Frame is true, Subtitle allows to configure a subtitle for the view.
 	Subtitle string
@@ -324,6 +326,7 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 		ch = v.Mask
 	} else if v.Highlight && ry == rcy {
 		fgColor = fgColor | AttrBold
+		bgColor = bgColor | v.SelBgColor
 	}
 
 	termbox.SetCell(v.x0+x+1, v.y0+y+1, ch,

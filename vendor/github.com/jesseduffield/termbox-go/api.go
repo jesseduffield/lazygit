@@ -335,6 +335,7 @@ func PollEvent() Event {
 			event.N = len(inbuf)
 		}
 		copy(inbuf, inbuf[event.N:])
+		event.Bytes = append(event.Bytes, inbuf[:event.N]...)
 		inbuf = inbuf[:len(inbuf)-event.N]
 	}
 	if status == event_extracted {
@@ -366,6 +367,7 @@ func PollEvent() Event {
 					event.N = len(inbuf)
 				}
 				copy(inbuf, inbuf[event.N:])
+				event.Bytes = append(event.Bytes, inbuf[:event.N]...)
 				inbuf = inbuf[:len(inbuf)-event.N]
 			}
 			if status == event_extracted {
@@ -383,6 +385,7 @@ func PollEvent() Event {
 					event.N = len(inbuf)
 				}
 				copy(inbuf, inbuf[event.N:])
+				event.Bytes = append(event.Bytes, inbuf[:event.N]...)
 				inbuf = inbuf[:len(inbuf)-event.N]
 			}
 			if status == event_extracted {
