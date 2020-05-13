@@ -311,14 +311,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.ContainsList = true
 	}
 
-	if v, err := g.SetViewBeneath("commitFiles", "branches", vHeights["commits"]); err != nil {
+	commitFilesView, err := g.SetViewBeneath("commitFiles", "branches", vHeights["commits"])
+	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("CommitFiles")
-		v.FgColor = textColor
-		v.SetOnSelectItem(gui.onSelectItemWrapper(gui.onCommitFilesPanelSearchSelect))
-		v.ContainsList = true
+		commitFilesView.Title = gui.Tr.SLocalize("CommitFiles")
+		commitFilesView.FgColor = textColor
+		commitFilesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onCommitFilesPanelSearchSelect))
+		commitFilesView.ContainsList = true
 	}
 
 	commitsView, err := g.SetViewBeneath("commits", "branches", vHeights["commits"])
@@ -472,6 +473,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		{view: commitsView, context: "branch-commits", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
 		{view: commitsView, context: "reflog-commits", selectedLine: gui.State.Panels.ReflogCommits.SelectedLine, lineCount: len(gui.State.FilteredReflogCommits)},
 		{view: stashView, context: "", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
+		{view: commitFilesView, context: "", selectedLine: gui.State.Panels.CommitFiles.SelectedLine, lineCount: len(gui.State.CommitFiles)},
 	}
 
 	// menu view might not exist so we check to be safe
@@ -485,6 +487,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		// check if the selected line is now out of view and if so refocus it
 		listView.view.FocusPoint(0, listView.selectedLine)
+
+		listView.view.SelBgColor = theme.GocuiSelectedLineBgColor
 	}
 
 	mainViewWidth, mainViewHeight := gui.getMainView().Size()

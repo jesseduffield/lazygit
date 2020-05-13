@@ -59,6 +59,7 @@ func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflic
 		colour := color.New(colourAttr)
 		if hasFocus && conflictIndex < len(conflicts) && conflicts[conflictIndex] == conflict && gui.shouldHighlightLine(i, conflict, conflictTop) {
 			colour.Add(color.Bold)
+			colour.Add(theme.SelectedLineBgColor)
 		}
 		if i == conflict.End && len(remainingConflicts) > 0 {
 			conflict, remainingConflicts = gui.shiftConflict(remainingConflicts)

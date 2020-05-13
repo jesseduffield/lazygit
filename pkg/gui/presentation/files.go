@@ -28,9 +28,6 @@ func getFileDisplayStrings(f *commands.File, diffed bool) []string {
 		return []string{red.Sprint(f.DisplayString)}
 	}
 
-	output := green.Sprint(f.DisplayString[0:1])
-	output += red.Sprint(f.DisplayString[1:3])
-
 	var restColor *color.Color
 	if diffed {
 		restColor = diffColor
@@ -39,6 +36,22 @@ func getFileDisplayStrings(f *commands.File, diffed bool) []string {
 	} else {
 		restColor = green
 	}
-	output += restColor.Sprint(f.Name)
+
+	// this is just making things look nice when the background attribute is 'reverse'
+	firstChar := f.DisplayString[0:1]
+	firstCharCl := green
+	if firstChar == " " {
+		firstCharCl = restColor
+	}
+
+	secondChar := f.DisplayString[1:2]
+	secondCharCl := red
+	if secondChar == " " {
+		secondCharCl = restColor
+	}
+
+	output := firstCharCl.Sprint(firstChar)
+	output += secondCharCl.Sprint(secondChar)
+	output += restColor.Sprintf(" %s", f.Name)
 	return []string{output}
 }
