@@ -22,7 +22,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
       - name: Bump Homebrew
-        uses: dawidd6/action-homebrew-bump-formula@v2
+        uses: dawidd6/action-homebrew-bump-formula@v3
         with:
           token: ${{secrets.GITHUB_API_TOKEN}}
           formula: lazygit
