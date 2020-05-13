@@ -485,6 +485,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		// check if the selected line is now out of view and if so refocus it
 		listView.view.FocusPoint(0, listView.selectedLine)
+
+		listView.view.SelBgColor = gocui.Attribute(theme.SelectedLineBgColor)
 	}
 
 	mainViewWidth, mainViewHeight := gui.getMainView().Size()
