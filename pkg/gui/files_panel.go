@@ -497,9 +497,13 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(g *gocui.Gui, v *gocui.View) error {
-			return gui.pushWithForceFlag(g, v, false, gui.trimmedContent(v), "")
-		})
+		if gui.GitCommand.PushToCurrent {
+			return gui.pushWithForceFlag(g, v, false, "", "--set-upstream")
+		} else {
+			return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(g *gocui.Gui, v *gocui.View) error {
+				return gui.pushWithForceFlag(g, v, false, gui.trimmedContent(v), "")
+			})
+		}
 	} else if currentBranch.Pullables == "0" {
 		return gui.pushWithForceFlag(g, v, false, "", "")
 	}
