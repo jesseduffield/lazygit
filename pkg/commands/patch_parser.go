@@ -120,7 +120,7 @@ func coloredString(colorAttr color.Attribute, str string, selected bool, include
 	var cl *color.Color
 	attributes := []color.Attribute{colorAttr}
 	if selected {
-		attributes = append(attributes, theme.SelectedLineBgColor)
+		attributes = append(attributes, theme.SelectedRangeBgColor)
 	}
 	cl = color.New(attributes...)
 	var clIncluded *color.Color
