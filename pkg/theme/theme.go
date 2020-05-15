@@ -24,6 +24,9 @@ var (
 	// SelectedLineBgColor is the background color for the selected line
 	SelectedLineBgColor color.Attribute
 
+	// SelectedRangeBgColor is the background color of the selected range of lines
+	SelectedRangeBgColor color.Attribute
+
 	// GocuiSelectedLineBgColor is the background color for the selected line in gocui
 	GocuiSelectedLineBgColor gocui.Attribute
 
@@ -39,6 +42,7 @@ func UpdateTheme(userConfig *viper.Viper) {
 	ActiveBorderColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.activeBorderColor"))
 	InactiveBorderColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.inactiveBorderColor"))
 	SelectedLineBgColor = GetBgColor(userConfig.GetStringSlice("gui.theme.selectedLineBgColor"))
+	SelectedRangeBgColor = GetBgColor(userConfig.GetStringSlice("gui.theme.selectedRangeBgColor"))
 	GocuiSelectedLineBgColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.selectedLineBgColor"))
 	OptionsColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
 	OptionsFgColor = GetFgColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))

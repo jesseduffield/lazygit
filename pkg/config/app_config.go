@@ -256,7 +256,9 @@ func GetDefaultConfig() []byte {
     optionsTextColor:
       - blue
     selectedLineBgColor:
-      - bold
+      - default
+    selectedRangeBgColor:
+      - blue
   commitLength:
     show: true
 git:

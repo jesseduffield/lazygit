@@ -24,7 +24,9 @@ Default path for the config file:
       optionsTextColor:
         - blue
       selectedLineBgColor:
-        - bold
+        - default
+      selectedRangeBgColor:
+        - blue
     commitLength:
       show: true
     mouseEvents: true
@@ -216,7 +218,7 @@ If you have issues with a light terminal theme where you can't read / see the te
       inactiveBorderColor:
         - black
       selectedLineBgColor:
-        - bold
+        - default
 ```
 
 ## Struggling to see selected line
@@ -227,6 +229,8 @@ If you struggle to see the selected line I recomment using the reverse attribute
   gui:
     theme:
       selectedLineBgColor:
+        - reverse
+      selectedRangeBgColor:
         - reverse
 ```
 
