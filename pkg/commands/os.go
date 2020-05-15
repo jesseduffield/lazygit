@@ -132,11 +132,12 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]string{
-			"password": `Password\s*for\s*'.+':`,
-			"username": `Username\s*for\s*'.+':`,
+			`.+'s password:`:         "password",
+			`Password\s*for\s*'.+':`: "password",
+			`Username\s*for\s*'.+':`: "username",
 		}
 
-		for askFor, pattern := range prompts {
+		for pattern, askFor := range prompts {
 			if match, _ := regexp.MatchString(pattern, ttyText); match {
 				ttyText = ""
 				return ask(askFor)
