@@ -440,6 +440,9 @@ func (gui *Gui) trimmedContent(v *gocui.View) string {
 
 func (gui *Gui) currentViewName() string {
 	currentView := gui.g.CurrentView()
+	if currentView == nil {
+		return ""
+	}
 	return currentView.Name()
 }
 
