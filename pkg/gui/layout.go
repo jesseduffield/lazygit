@@ -71,7 +71,204 @@ func (gui *Gui) onFocus(v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) getViewHeights() map[string]int {
+type dimensions struct {
+	x0 int
+	x1 int
+	y0 int
+	y1 int
+}
+
+func (gui *Gui) getViewDimensions() map[string]dimensions {
+	// things to consider:
+	// current cyclable view
+	// three modes: normal, squashed, portrait
+	// three fullscreen modes: regular, half, full
+	// half/full ignored squashed but not portrait where the orientation is just swapped
+	// height (for squashing)
+	// width (for portrait mode)
+	// let's start by saying squashing and portrait mode are mutuall exclusive. If you're in portrait mode and you end up in a squashed state you're pretty much fucked either way.
+	// having said that, half and fullscreen mode can be combined with the other two. Fullscreen is gonna be the same across all of the options. Half mode will just be split vertically rather than horizontally for
+
+	// need
+
+	// we'll start assuming normal mode
+	// in normal mode pick the split between the main panel and the side panels, then give every cyclablable view roughly equal height.
+
+	// the options panel has 1 height always
+
+	// so our views are:
+	// "status"
+	// "files"
+	// "branches"
+	// "commits"
+	// "stash"
+	// "main"
+	// "commitFiles"
+	// "secondary"
+
+	// would be good to have a way of describing this programmatically, like with html:
+
+	// <box>
+
+	width, height := gui.g.Size()
+
+	main := "main"
+	secondary := "secondary"
+	if gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused {
+		main, secondary = secondary, main
+	}
+
+	mainSectionChildren := []*box{
+		{
+			viewName: main,
+			weight:   1,
+		},
+	}
+
+	if gui.State.SplitMainPanel {
+		mainSectionChildren = append(mainSectionChildren, &box{
+			viewName: secondary,
+			weight:   1,
+		})
+	}
+
+	currentCyclableViewName := gui.currentCyclableViewName()
+
+	var sideSectionChildren []*box
+	if gui.State.ScreenMode == SCREEN_FULL || gui.State.ScreenMode == SCREEN_HALF {
+		fullHeightBox := func(viewName string) *box {
+			if viewName == currentCyclableViewName {
+				return &box{
+					viewName: viewName,
+					weight:   1,
+				}
+			} else {
+				return &box{
+					viewName: viewName,
+					size:     0,
+				}
+			}
+		}
+
+		sideSectionChildren = []*box{
+			fullHeightBox("status"),
+			fullHeightBox("files"),
+			fullHeightBox("branches"),
+			fullHeightBox("commits"),
+			fullHeightBox("stash"),
+		}
+	} else if height >= 28 {
+		sideSectionChildren = []*box{
+			{
+				viewName: "status",
+				size:     3,
+			},
+			{
+				viewName: "files",
+				weight:   1,
+			},
+			{
+				viewName: "branches",
+				weight:   1,
+			},
+			{
+				viewName: "commits",
+				weight:   1,
+			},
+			{
+				viewName: "stash",
+				size:     3,
+			},
+		}
+	} else {
+		squashedHeight := 1
+		if height >= 21 {
+			squashedHeight = 3
+		}
+
+		squashedSidePanelBox := func(viewName string) *box {
+			if viewName == currentCyclableViewName {
+				return &box{
+					viewName: viewName,
+					weight:   1,
+				}
+			} else {
+				return &box{
+					viewName: viewName,
+					size:     squashedHeight,
+				}
+			}
+		}
+
+		sideSectionChildren = []*box{
+			squashedSidePanelBox("status"),
+			squashedSidePanelBox("files"),
+			squashedSidePanelBox("branches"),
+			squashedSidePanelBox("commits"),
+			squashedSidePanelBox("stash"),
+		}
+	}
+
+	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
+	sidePanelWidthRatio := gui.Config.GetUserConfig().GetFloat64("gui.sidePanelWidth")
+	// we could make this better by creating ratios like 2:3 rather than always 1:something
+	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
+	sideSectionWeight := 1
+
+	if gui.State.SplitMainPanel {
+		mainSectionWeight = 5 // need to shrink side panel to make way for main panels if side-by-side
+	}
+	currentViewName := gui.currentViewName()
+	if currentViewName == "main" {
+		if gui.State.ScreenMode == SCREEN_HALF || gui.State.ScreenMode == SCREEN_FULL {
+			sideSectionWeight = 0
+		}
+	} else {
+		if gui.State.ScreenMode == SCREEN_HALF {
+			mainSectionWeight = 1
+		} else if gui.State.ScreenMode == SCREEN_FULL {
+			mainSectionWeight = 0
+		}
+	}
+
+	root := &box{
+		direction: ROW,
+		children: []*box{
+			{
+				direction: COLUMN,
+				weight:    1,
+				children: []*box{
+					{
+						direction: ROW,
+						weight:    sideSectionWeight,
+						children:  sideSectionChildren,
+					},
+					{
+						conditionalDirection: func(width int, _height int) int {
+							if width < 160 && height > 30 { // 2 80 character width panels
+								return ROW
+							} else {
+								return COLUMN
+							}
+						},
+						direction: COLUMN,
+						weight:    mainSectionWeight,
+						children:  mainSectionChildren,
+					},
+				},
+			},
+			// TODO: actually handle options here. Currently we're just hard-coding it to be set on the bottom row in our layout function given that we need some custom logic to have it share space with other views on that row.
+			{
+				viewName: "options",
+				size:     1,
+			},
+		},
+	}
+
+	return gui.layoutViews(root, 0, 0, width, height)
+}
+
+func (gui *Gui) currentCyclableViewName() string {
 	currView := gui.g.CurrentView()
 	currentCyclebleView := gui.State.PreviousView
 	if currView != nil {
@@ -91,53 +288,10 @@ func (gui *Gui) getViewHeights() map[string]int {
 
 	// unfortunate result of the fact that these are separate views, have to map explicitly
 	if currentCyclebleView == "commitFiles" {
-		currentCyclebleView = "commits"
+		return "commits"
 	}
 
-	_, height := gui.g.Size()
-
-	if gui.State.ScreenMode == SCREEN_FULL || gui.State.ScreenMode == SCREEN_HALF {
-		vHeights := map[string]int{
-			"status":   0,
-			"files":    0,
-			"branches": 0,
-			"commits":  0,
-			"stash":    0,
-			"options":  0,
-		}
-		vHeights[currentCyclebleView] = height - 1
-		return vHeights
-	}
-
-	usableSpace := height - 7
-	extraSpace := usableSpace - (usableSpace/3)*3
-
-	if height >= 28 {
-		return map[string]int{
-			"status":   3,
-			"files":    (usableSpace / 3) + extraSpace,
-			"branches": usableSpace / 3,
-			"commits":  usableSpace / 3,
-			"stash":    3,
-			"options":  1,
-		}
-	}
-
-	defaultHeight := 3
-	if height < 21 {
-		defaultHeight = 1
-	}
-	vHeights := map[string]int{
-		"status":   defaultHeight,
-		"files":    defaultHeight,
-		"branches": defaultHeight,
-		"commits":  defaultHeight,
-		"stash":    defaultHeight,
-		"options":  defaultHeight,
-	}
-	vHeights[currentCyclebleView] = height - defaultHeight*4 - 1
-
-	return vHeights
+	return currentCyclebleView
 }
 
 // layout is called for every screen re-render e.g. when the screen is resized
@@ -173,7 +327,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return nil
 	}
 
-	vHeights := gui.getViewHeights()
+	viewDimensions := gui.getViewDimensions()
 
 	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
 
@@ -186,62 +340,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	_, _ = g.SetViewOnBottom("limit")
 	_ = g.DeleteView("limit")
 
-	sidePanelWidthRatio := gui.Config.GetUserConfig().GetFloat64("gui.sidePanelWidth")
-
 	textColor := theme.GocuiDefaultTextColor
-	var leftSideWidth int
-	switch gui.State.ScreenMode {
-	case SCREEN_NORMAL:
-		leftSideWidth = int(float64(width) * sidePanelWidthRatio)
-	case SCREEN_HALF:
-		leftSideWidth = width/2 - 2
-	case SCREEN_FULL:
-		currentView := gui.g.CurrentView()
-		if currentView != nil && currentView.Name() == "main" {
-			leftSideWidth = 0
-		} else {
-			leftSideWidth = width - 1
-		}
-	}
-
-	mainPanelLeft := leftSideWidth + 1
-	mainPanelRight := width - 1
-	secondaryPanelLeft := width - 1
-	secondaryPanelTop := 0
-	mainPanelBottom := height - 2
-	if gui.State.SplitMainPanel {
-		if gui.State.ScreenMode == SCREEN_FULL {
-			mainPanelLeft = 0
-			panelSplitX := width/2 - 4
-			mainPanelRight = panelSplitX
-			secondaryPanelLeft = panelSplitX + 1
-		} else if width < 220 {
-			mainPanelBottom = height/2 - 1
-			secondaryPanelTop = mainPanelBottom + 1
-			secondaryPanelLeft = leftSideWidth + 1
-		} else {
-			units := 5
-			leftSideWidth = width / units
-			mainPanelLeft = leftSideWidth + 1
-			panelSplitX := (1 + ((units - 1) / 2)) * width / units
-			mainPanelRight = panelSplitX
-			secondaryPanelLeft = panelSplitX + 1
-		}
-	}
-
-	main := "main"
-	secondary := "secondary"
-	swappingMainPanels := gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused
-	if swappingMainPanels {
-		main = "secondary"
-		secondary = "main"
-	}
 
 	// reading more lines into main view buffers upon resize
 	prevMainView, err := gui.g.View("main")
 	if err == nil {
 		_, prevMainHeight := prevMainView.Size()
-		heightDiff := mainPanelBottom - prevMainHeight - 1
+		newMainHeight := viewDimensions["main"].y1 - viewDimensions["main"].y0 - 1
+		heightDiff := newMainHeight - prevMainHeight
 		if heightDiff > 0 {
 			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
 				manager.ReadLines(heightDiff)
@@ -252,7 +358,19 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	v, err := g.SetView(main, mainPanelLeft, 0, mainPanelRight, mainPanelBottom, gocui.LEFT)
+	setViewFromDimensions := func(viewName string, boxName string) (*gocui.View, error) {
+		dimensionsObj := viewDimensions[boxName]
+		return g.SetView(
+			viewName,
+			dimensionsObj.x0,
+			dimensionsObj.y0,
+			dimensionsObj.x1,
+			dimensionsObj.y1,
+			0,
+		)
+	}
+
+	v, err := setViewFromDimensions("main", "main")
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -263,24 +381,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.IgnoreCarriageReturns = true
 	}
 
-	hiddenViewOffset := 9999
-
-	hiddenSecondaryPanelOffset := 0
-	if !gui.State.SplitMainPanel {
-		hiddenSecondaryPanelOffset = hiddenViewOffset
-	}
-	secondaryView, err := g.SetView(secondary, secondaryPanelLeft+hiddenSecondaryPanelOffset, hiddenSecondaryPanelOffset+secondaryPanelTop, width-1+hiddenSecondaryPanelOffset, height-2+hiddenSecondaryPanelOffset, gocui.LEFT)
+	secondaryView, err := setViewFromDimensions("secondary", "secondary")
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
 		secondaryView.Title = gui.Tr.SLocalize("DiffTitle")
 		secondaryView.Wrap = true
-		secondaryView.FgColor = gocui.ColorWhite
+		secondaryView.FgColor = textColor
 		secondaryView.IgnoreCarriageReturns = true
 	}
 
-	if v, err := g.SetView("status", 0, 0, leftSideWidth, vHeights["status"]-1, gocui.BOTTOM|gocui.RIGHT); err != nil {
+	hiddenViewOffset := 9999
+
+	if v, err := setViewFromDimensions("status", "status"); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -288,7 +402,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = textColor
 	}
 
-	filesView, err := g.SetViewBeneath("files", "status", vHeights["files"])
+	filesView, err := setViewFromDimensions("files", "files")
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -299,7 +413,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		filesView.ContainsList = true
 	}
 
-	branchesView, err := g.SetViewBeneath("branches", "files", vHeights["branches"])
+	branchesView, err := setViewFromDimensions("branches", "branches")
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -311,7 +425,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.ContainsList = true
 	}
 
-	commitFilesView, err := g.SetViewBeneath("commitFiles", "branches", vHeights["commits"])
+	commitFilesView, err := setViewFromDimensions("commitFiles", "commits")
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -322,7 +436,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		commitFilesView.ContainsList = true
 	}
 
-	commitsView, err := g.SetViewBeneath("commits", "branches", vHeights["commits"])
+	commitsView, err := setViewFromDimensions("commits", "commits")
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -334,7 +448,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		commitsView.ContainsList = true
 	}
 
-	stashView, err := g.SetViewBeneath("stash", "commits", vHeights["stash"])
+	stashView, err := setViewFromDimensions("stash", "stash")
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
