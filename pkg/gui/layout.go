@@ -71,32 +71,6 @@ func (gui *Gui) onFocus(v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) currentCyclableViewName() string {
-	currView := gui.g.CurrentView()
-	currentCyclebleView := gui.State.PreviousView
-	if currView != nil {
-		viewName := currView.Name()
-		usePreviousView := true
-		for _, view := range cyclableViews {
-			if view == viewName {
-				currentCyclebleView = viewName
-				usePreviousView = false
-				break
-			}
-		}
-		if usePreviousView {
-			currentCyclebleView = gui.State.PreviousView
-		}
-	}
-
-	// unfortunate result of the fact that these are separate views, have to map explicitly
-	if currentCyclebleView == "commitFiles" {
-		return "commits"
-	}
-
-	return currentCyclebleView
-}
-
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
