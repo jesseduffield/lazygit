@@ -55,10 +55,9 @@ func (b *box) getChildren(width int, height int) []*box {
 	return b.children
 }
 
-func (gui *Gui) layoutViews(root *box, x0, y0, width, height int) map[string]dimensions {
-	gui.Log.Warn(x0, y0, width, height)
-
-	if len(root.children) == 0 {
+func (gui *Gui) arrangeViews(root *box, x0, y0, width, height int) map[string]dimensions {
+	children := root.getChildren(width, height)
+	if len(children) == 0 {
 		// leaf node
 		if root.viewName != "" {
 			dimensionsForView := dimensions{x0: x0, y0: y0, x1: x0 + width - 1, y1: y0 + height - 1}
@@ -79,7 +78,7 @@ func (gui *Gui) layoutViews(root *box, x0, y0, width, height int) map[string]dim
 	// work out size taken up by children
 	reservedSize := 0
 	totalWeight := 0
-	for _, child := range root.children {
+	for _, child := range children {
 		// assuming either size or weight are non-zero
 		reservedSize += child.size
 		totalWeight += child.weight
@@ -99,7 +98,7 @@ func (gui *Gui) layoutViews(root *box, x0, y0, width, height int) map[string]dim
 
 	result := map[string]dimensions{}
 	offset := 0
-	for _, child := range root.children {
+	for _, child := range children {
 		var boxSize int
 		if child.isStatic() {
 			boxSize = child.size
@@ -113,9 +112,9 @@ func (gui *Gui) layoutViews(root *box, x0, y0, width, height int) map[string]dim
 
 		var resultForChild map[string]dimensions
 		if direction == COLUMN {
-			resultForChild = gui.layoutViews(child, x0+offset, y0, boxSize, height)
+			resultForChild = gui.arrangeViews(child, x0+offset, y0, boxSize, height)
 		} else {
-			resultForChild = gui.layoutViews(child, x0, y0+offset, width, boxSize)
+			resultForChild = gui.arrangeViews(child, x0, y0+offset, width, boxSize)
 		}
 
 		result = gui.mergeDimensionMaps(result, resultForChild)
