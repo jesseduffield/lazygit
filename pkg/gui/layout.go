@@ -112,6 +112,8 @@ func (gui *Gui) getViewDimensions() map[string]dimensions {
 
 	width, height := gui.g.Size()
 
+	portraitMode := width <= 84 && height > 50
+
 	main := "main"
 	secondary := "secondary"
 	if gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused {
@@ -157,7 +159,7 @@ func (gui *Gui) getViewDimensions() map[string]dimensions {
 			fullHeightBox("commits"),
 			fullHeightBox("stash"),
 		}
-	} else if height >= 28 {
+	} else if height >= 28 && !portraitMode {
 		sideSectionChildren = []*box{
 			{
 				viewName: "status",
@@ -231,11 +233,16 @@ func (gui *Gui) getViewDimensions() map[string]dimensions {
 		}
 	}
 
+	sidePanelsDirection := COLUMN
+	if portraitMode {
+		sidePanelsDirection = ROW
+	}
+
 	root := &box{
 		direction: ROW,
 		children: []*box{
 			{
-				direction: COLUMN,
+				direction: sidePanelsDirection,
 				weight:    1,
 				children: []*box{
 					{
