@@ -12,7 +12,9 @@ import (
 	"github.com/spkg/bom"
 )
 
-var cyclableViews = []string{"status", "files", "branches", "commits", "stash"}
+func (gui *Gui) getCyclableViews() []string {
+	return []string{"status", "files", "branches", "commits", "stash"}
+}
 
 // models/views that we can refresh
 const (
@@ -140,6 +142,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 
 func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 	var focusedViewName string
+	cyclableViews := gui.getCyclableViews()
 	if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
 		focusedViewName = cyclableViews[0]
 	} else {
@@ -176,6 +179,7 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
+	cyclableViews := gui.getCyclableViews()
 	var focusedViewName string
 	if v == nil || v.Name() == cyclableViews[0] {
 		focusedViewName = cyclableViews[len(cyclableViews)-1]
