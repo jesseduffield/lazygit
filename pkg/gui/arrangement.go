@@ -172,7 +172,7 @@ func (gui *Gui) currentCyclableViewName() string {
 	if currView != nil {
 		viewName := currView.Name()
 		usePreviousView := true
-		for _, view := range cyclableViews {
+		for _, view := range gui.getCyclableViews() {
 			if view == viewName {
 				currentCyclebleView = viewName
 				usePreviousView = false
