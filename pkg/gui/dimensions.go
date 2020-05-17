@@ -2,6 +2,13 @@ package gui
 
 import "math"
 
+type dimensions struct {
+	x0 int
+	x1 int
+	y0 int
+	y1 int
+}
+
 const (
 	ROW = iota
 	COLUMN
@@ -15,6 +22,9 @@ type box struct {
 	conditionalDirection func(width int, height int) int
 
 	children []*box
+
+	// function which takes the width and height assigned to the box and decides the layout of the children.
+	conditionalChildren func(width int, height int) []*box
 
 	// viewName refers to the name of the view this box represents, if there is one
 	viewName string
@@ -36,6 +46,13 @@ func (b *box) getDirection(width int, height int) int {
 		return b.conditionalDirection(width, height)
 	}
 	return b.direction
+}
+
+func (b *box) getChildren(width int, height int) []*box {
+	if b.conditionalChildren != nil {
+		return b.conditionalChildren(width, height)
+	}
+	return b.children
 }
 
 func (gui *Gui) layoutViews(root *box, x0, y0, width, height int) map[string]dimensions {
