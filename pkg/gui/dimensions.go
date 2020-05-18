@@ -14,6 +14,16 @@ const (
 	COLUMN
 )
 
+// to give a high-level explanation of what's going on here. We layout our views by arranging a bunch of boxes in the window.
+// If a box has children, it needs to specify how it wants to arrange those children: ROW or COLUMN.
+// If a box represents a view, you can put the view name in the viewName field.
+// When determining how to divvy-up the available height (for row children) or width (for column children), we first
+// give the boxes with a static `size` the space that they want. Then we apportion
+// the remaining space based on the weights of the dynamic boxes (you can't define
+// both size and weight at the same time: you gotta pick one). If there are two
+// boxes, one with weight 1 and the other with weight 2, the first one gets 33%
+// of the available space and the second one gets the remaining 66%
+
 type box struct {
 	// direction decides how the children boxes are laid out. ROW means the children will each form a row i.e. that they will be stacked on top of eachother.
 	direction int // ROW or COLUMN
