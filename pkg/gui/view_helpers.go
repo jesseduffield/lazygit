@@ -567,3 +567,8 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 		return f()
 	}
 }
+
+// secondaryViewFocused tells us whether it appears that the secondary view is focused. The view is actually never focused for real: we just swap the main and secondary views and then you're still focused on the main view so that we can give you access to all its keybindings for free. I will probably regret this design decision soon enough.
+func (gui *Gui) secondaryViewFocused() bool {
+	return gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused
+}

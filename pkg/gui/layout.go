@@ -71,23 +71,27 @@ func (gui *Gui) onFocus(v *gocui.View) error {
 	return nil
 }
 
+func (gui *Gui) informationStr() string {
+	if gui.inDiffMode() {
+		return utils.ColoredString(fmt.Sprintf("%s %s %s", gui.Tr.SLocalize("showingGitDiff"), "git diff "+gui.diffStr(), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgMagenta)
+	} else if gui.inFilterMode() {
+		return utils.ColoredString(fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("filteringBy"), gui.State.FilterPath, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgRed, color.Bold)
+	} else if len(gui.State.CherryPickedCommits) > 0 {
+		return utils.ColoredString(fmt.Sprintf("%d commits copied", len(gui.State.CherryPickedCommits)), color.FgCyan)
+	} else if gui.g.Mouse {
+		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
+		return donate + " " + gui.Config.GetVersion()
+	} else {
+		return gui.Config.GetVersion()
+	}
+}
+
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
 
-	information := gui.Config.GetVersion()
-	if gui.g.Mouse {
-		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
-		information = donate + " " + information
-	}
-	if gui.inDiffMode() {
-		information = utils.ColoredString(fmt.Sprintf("%s %s %s", gui.Tr.SLocalize("showingGitDiff"), "git diff "+gui.diffStr(), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgMagenta)
-	} else if gui.inFilterMode() {
-		information = utils.ColoredString(fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("filteringBy"), gui.State.FilterPath, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgRed, color.Bold)
-	} else if len(gui.State.CherryPickedCommits) > 0 {
-		information = utils.ColoredString(fmt.Sprintf("%d commits copied", len(gui.State.CherryPickedCommits)), color.FgCyan)
-	}
+	information := gui.informationStr()
 
 	minimumHeight := 9
 	minimumWidth := 10

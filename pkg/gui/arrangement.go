@@ -1,27 +1,40 @@
 package gui
 
-func (gui *Gui) getViewDimensions() map[string]dimensions {
-	width, height := gui.g.Size()
+func (gui *Gui) mainSectionChildren() []*box {
+	currentViewName := gui.currentViewName()
+
+	// if we're not in split mode we can just show the one main panel. Likewise if
+	// the main panel is focused and we're in full-screen mode
+	if !gui.State.SplitMainPanel || (gui.State.ScreenMode == SCREEN_FULL && currentViewName == "main") {
+		return []*box{
+			{
+				viewName: "main",
+				weight:   1,
+			},
+		}
+	}
 
 	main := "main"
 	secondary := "secondary"
-	if gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused {
+	if gui.secondaryViewFocused() {
+		// when you think you've focused the secondary view, we've actually just swapped them around in the layout
 		main, secondary = secondary, main
 	}
 
-	mainSectionChildren := []*box{
+	return []*box{
 		{
 			viewName: main,
 			weight:   1,
 		},
-	}
-
-	if gui.State.SplitMainPanel {
-		mainSectionChildren = append(mainSectionChildren, &box{
+		{
 			viewName: secondary,
 			weight:   1,
-		})
+		},
 	}
+}
+
+func (gui *Gui) getMidSectionWeights() (int, int) {
+	currentViewName := gui.currentViewName()
 
 	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
 	sidePanelWidthRatio := gui.Config.GetUserConfig().GetFloat64("gui.sidePanelWidth")
@@ -32,7 +45,7 @@ func (gui *Gui) getViewDimensions() map[string]dimensions {
 	if gui.State.SplitMainPanel {
 		mainSectionWeight = 5 // need to shrink side panel to make way for main panels if side-by-side
 	}
-	currentViewName := gui.currentViewName()
+
 	if currentViewName == "main" {
 		if gui.State.ScreenMode == SCREEN_HALF || gui.State.ScreenMode == SCREEN_FULL {
 			sideSectionWeight = 0
@@ -44,6 +57,14 @@ func (gui *Gui) getViewDimensions() map[string]dimensions {
 			mainSectionWeight = 0
 		}
 	}
+
+	return sideSectionWeight, mainSectionWeight
+}
+
+func (gui *Gui) getViewDimensions() map[string]dimensions {
+	width, height := gui.g.Size()
+
+	sideSectionWeight, mainSectionWeight := gui.getMidSectionWeights()
 
 	sidePanelsDirection := COLUMN
 	portraitMode := width <= 84 && height > 50
@@ -73,7 +94,7 @@ func (gui *Gui) getViewDimensions() map[string]dimensions {
 						},
 						direction: COLUMN,
 						weight:    mainSectionWeight,
-						children:  mainSectionChildren,
+						children:  gui.mainSectionChildren(),
 					},
 				},
 			},
