@@ -1290,6 +1290,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "branches",
 			Contexts:    []string{"remote-branches"},
+			Key:         gui.getKey("universal.new"),
+			Handler:     gui.handleNewBranchOffRemote,
+			Description: gui.Tr.SLocalize("newBranch"),
+		},
+
+		{
+			ViewName:    "branches",
+			Contexts:    []string{"remote-branches"},
 			Key:         gui.getKey("branches.mergeIntoCurrentBranch"),
 			Handler:     gui.handleMergeRemoteBranch,
 			Description: gui.Tr.SLocalize("mergeIntoCurrentBranch"),
