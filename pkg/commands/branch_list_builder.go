@@ -52,7 +52,7 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 
 		split := strings.Split(line, SEPARATION_CHAR)
 
-		name := split[1]
+		name := strings.TrimPrefix(split[1], "heads/")
 		branch := &Branch{
 			Name:      name,
 			Pullables: "?",
