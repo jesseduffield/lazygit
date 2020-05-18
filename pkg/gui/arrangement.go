@@ -1,5 +1,9 @@
 package gui
 
+import (
+	"github.com/jesseduffield/lazygit/pkg/utils"
+)
+
 func (gui *Gui) mainSectionChildren() []*box {
 	currentViewName := gui.currentViewName()
 
@@ -61,7 +65,49 @@ func (gui *Gui) getMidSectionWeights() (int, int) {
 	return sideSectionWeight, mainSectionWeight
 }
 
-func (gui *Gui) getViewDimensions() map[string]dimensions {
+func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*box {
+	if gui.State.Searching.isSearching {
+		return []*box{
+			{
+				viewName: "searchPrefix",
+				size:     len(SEARCH_PREFIX),
+			},
+			{
+				viewName: "search",
+				weight:   1,
+			},
+		}
+	}
+
+	result := []*box{}
+
+	if len(appStatus) > 0 {
+		result = append(result,
+			&box{
+				viewName: "appStatus",
+				size:     len(appStatus) + len(INFO_SECTION_PADDING),
+			},
+		)
+	}
+
+	result = append(result,
+		[]*box{
+			{
+				viewName: "options",
+				weight:   1,
+			},
+			{
+				viewName: "information",
+				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
+				size: len(INFO_SECTION_PADDING) + len(utils.Decolorise(informationStr)),
+			},
+		}...,
+	)
+
+	return result
+}
+
+func (gui *Gui) getViewDimensions(informationStr string, appStatus string) map[string]dimensions {
 	width, height := gui.g.Size()
 
 	sideSectionWeight, mainSectionWeight := gui.getMidSectionWeights()
@@ -98,10 +144,10 @@ func (gui *Gui) getViewDimensions() map[string]dimensions {
 					},
 				},
 			},
-			// TODO: actually handle options here. Currently we're just hard-coding it to be set on the bottom row in our layout function given that we need some custom logic to have it share space with other views on that row.
 			{
-				viewName: "options",
-				size:     1,
+				direction: COLUMN,
+				size:      1,
+				children:  gui.infoSectionChildren(informationStr, appStatus),
 			},
 		},
 	}

@@ -9,6 +9,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+const SEARCH_PREFIX = "search: "
+const INFO_SECTION_PADDING = " "
+
 // getFocusLayout returns a manager function for when view gain and lose focus
 func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 	var previousView *gocui.View
@@ -91,8 +94,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
 
-	information := gui.informationStr()
-
 	minimumHeight := 9
 	minimumWidth := 10
 	if height < minimumHeight || width < minimumWidth {
@@ -108,15 +109,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return nil
 	}
 
-	viewDimensions := gui.getViewDimensions()
-
-	optionsVersionBoundary := width - max(len(utils.Decolorise(information)), 1)
-
+	informationStr := gui.informationStr()
 	appStatus := gui.statusManager.getStatusString()
-	appStatusOptionsBoundary := 0
-	if appStatus != "" {
-		appStatusOptionsBoundary = len(appStatus) + 2
-	}
+
+	viewDimensions := gui.getViewDimensions(informationStr, appStatus)
 
 	_, _ = g.SetViewOnBottom("limit")
 	_ = g.DeleteView("limit")
@@ -139,19 +135,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	setViewFromDimensions := func(viewName string, boxName string) (*gocui.View, error) {
+	setViewFromDimensions := func(viewName string, boxName string, frame bool) (*gocui.View, error) {
 		dimensionsObj := viewDimensions[boxName]
+		frameOffset := 1
+		if frame {
+			frameOffset = 0
+		}
 		return g.SetView(
 			viewName,
-			dimensionsObj.x0,
-			dimensionsObj.y0,
-			dimensionsObj.x1,
-			dimensionsObj.y1,
+			dimensionsObj.x0-frameOffset,
+			dimensionsObj.y0-frameOffset,
+			dimensionsObj.x1+frameOffset,
+			dimensionsObj.y1+frameOffset,
 			0,
 		)
 	}
 
-	v, err := setViewFromDimensions("main", "main")
+	v, err := setViewFromDimensions("main", "main", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -162,7 +162,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.IgnoreCarriageReturns = true
 	}
 
-	secondaryView, err := setViewFromDimensions("secondary", "secondary")
+	secondaryView, err := setViewFromDimensions("secondary", "secondary", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -175,7 +175,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	hiddenViewOffset := 9999
 
-	if v, err := setViewFromDimensions("status", "status"); err != nil {
+	if v, err := setViewFromDimensions("status", "status", true); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -183,7 +183,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		v.FgColor = textColor
 	}
 
-	filesView, err := setViewFromDimensions("files", "files")
+	filesView, err := setViewFromDimensions("files", "files", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -194,7 +194,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		filesView.ContainsList = true
 	}
 
-	branchesView, err := setViewFromDimensions("branches", "branches")
+	branchesView, err := setViewFromDimensions("branches", "branches", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -206,7 +206,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.ContainsList = true
 	}
 
-	commitFilesView, err := setViewFromDimensions("commitFiles", "commits")
+	commitFilesView, err := setViewFromDimensions("commitFiles", "commits", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -217,7 +217,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		commitFilesView.ContainsList = true
 	}
 
-	commitsView, err := setViewFromDimensions("commits", "commits")
+	commitsView, err := setViewFromDimensions("commits", "commits", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -229,7 +229,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		commitsView.ContainsList = true
 	}
 
-	stashView, err := setViewFromDimensions("stash", "stash")
+	stashView, err := setViewFromDimensions("stash", "stash", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -238,14 +238,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		stashView.FgColor = textColor
 		stashView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onStashPanelSearchSelect))
 		stashView.ContainsList = true
-	}
-
-	if v, err := g.SetView("options", appStatusOptionsBoundary-1, height-2, optionsVersionBoundary-1, height, 0); err != nil {
-		if err.Error() != "unknown view" {
-			return err
-		}
-		v.Frame = false
-		v.FgColor = theme.OptionsColor
 	}
 
 	if gui.getCommitMessageView() == nil {
@@ -278,14 +270,21 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	searchViewOffset := hiddenViewOffset
-	if gui.State.Searching.isSearching {
-		searchViewOffset = 0
+	if v, err := setViewFromDimensions("options", "options", false); err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+		v.Frame = false
+		v.FgColor = theme.OptionsColor
+
+		// doing this here because it'll only happen once
+		if err := gui.onInitialViewsCreation(); err != nil {
+			return err
+		}
 	}
 
 	// this view takes up one character. Its only purpose is to show the slash when searching
-	searchPrefix := "search: "
-	if searchPrefixView, err := g.SetView("searchPrefix", appStatusOptionsBoundary-1+searchViewOffset, height-2+searchViewOffset, len(searchPrefix)+searchViewOffset, height+searchViewOffset, 0); err != nil {
+	if searchPrefixView, err := setViewFromDimensions("searchPrefix", "searchPrefix", false); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -293,10 +292,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		searchPrefixView.BgColor = gocui.ColorDefault
 		searchPrefixView.FgColor = gocui.ColorGreen
 		searchPrefixView.Frame = false
-		gui.setViewContent(searchPrefixView, searchPrefix)
+		gui.setViewContent(searchPrefixView, SEARCH_PREFIX)
 	}
 
-	if searchView, err := g.SetView("search", appStatusOptionsBoundary-1+searchViewOffset+len(searchPrefix), height-2+searchViewOffset, optionsVersionBoundary+searchViewOffset, height+searchViewOffset, 0); err != nil {
+	if searchView, err := setViewFromDimensions("search", "search", false); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -307,7 +306,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		searchView.Editable = true
 	}
 
-	if appStatusView, err := g.SetView("appStatus", -1, height-2, width, height, 0); err != nil {
+	if appStatusView, err := setViewFromDimensions("appStatus", "appStatus", false); err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
@@ -319,7 +318,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	informationView, err := g.SetView("information", optionsVersionBoundary-1, height-2, width, height, 0)
+	informationView, err := setViewFromDimensions("information", "information", false)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
@@ -327,16 +326,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		informationView.BgColor = gocui.ColorDefault
 		informationView.FgColor = gocui.ColorGreen
 		informationView.Frame = false
-		gui.renderString(g, "information", information)
-
-		// doing this here because it'll only happen once
-		if err := gui.onInitialViewsCreation(); err != nil {
-			return err
-		}
+		gui.renderString(g, "information", INFO_SECTION_PADDING+informationStr)
 	}
-	if gui.State.OldInformation != information {
-		gui.setViewContent(informationView, information)
-		gui.State.OldInformation = information
+	if gui.State.OldInformation != informationStr {
+		gui.setViewContent(informationView, informationStr)
+		gui.State.OldInformation = informationStr
 	}
 
 	if gui.g.CurrentView() == nil {
