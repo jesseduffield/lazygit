@@ -113,7 +113,7 @@ func (gui *Gui) getViewDimensions(informationStr string, appStatus string) map[s
 	sideSectionWeight, mainSectionWeight := gui.getMidSectionWeights()
 
 	sidePanelsDirection := COLUMN
-	portraitMode := width <= 84 && height > 50
+	portraitMode := width <= 84 && height > 45
 	if portraitMode {
 		sidePanelsDirection = ROW
 	}
