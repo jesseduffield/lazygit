@@ -222,17 +222,37 @@ func (gui *Gui) refreshMergePanel() error {
 		return err
 	}
 
-	mainView := gui.getMainView()
-	mainView.Wrap = false
-	if err := gui.newStringTask("main", content); err != nil {
-		return err
-	}
-
 	if err := gui.scrollToConflict(gui.g); err != nil {
 		return err
 	}
 
+	mainView := gui.getMainView()
+	mainView.Wrap = false
+
+	if err := gui.newStringTaskWithoutScroll("main", content); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
+	item, err := gui.getSelectedFile()
+	if err != nil {
+		if err != gui.Errors.ErrNoFiles {
+			return "", err
+		}
+		return "", gui.newStringTask("main", gui.Tr.SLocalize("NoFilesDisplay"))
+	}
+	if item.Type != "file" {
+		return "", gui.newStringTask("main", gui.Tr.SLocalize("NotAFile"))
+	}
+	cat, err := gui.GitCommand.CatFile(item.Name)
+	if err != nil {
+		gui.Log.Error(err)
+		return "", gui.newStringTask("main", err.Error())
+	}
+	return cat, nil
 }
 
 func (gui *Gui) scrollToConflict(g *gocui.Gui) error {

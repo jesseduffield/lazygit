@@ -340,7 +340,7 @@ func (gui *Gui) cleanString(s string) string {
 	return utils.NormalizeLinefeeds(output)
 }
 
-func (gui *Gui) setViewContent(g *gocui.Gui, v *gocui.View, s string) {
+func (gui *Gui) setViewContent(v *gocui.View, s string) {
 	v.Clear()
 	fmt.Fprint(v, gui.cleanString(s))
 }
@@ -358,7 +358,7 @@ func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) {
 		if err := v.SetCursor(0, 0); err != nil {
 			return err
 		}
-		gui.setViewContent(gui.g, v, s)
+		gui.setViewContent(v, s)
 		return nil
 	})
 }

@@ -94,7 +94,7 @@ func (gui *Gui) refreshSecondaryPatchPanel() error {
 		secondaryView.Wrap = false
 
 		gui.g.Update(func(*gocui.Gui) error {
-			gui.setViewContent(gui.g, gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
+			gui.setViewContent(gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
 			return nil
 		})
 	} else {

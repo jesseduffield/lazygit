@@ -398,7 +398,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		searchPrefixView.BgColor = gocui.ColorDefault
 		searchPrefixView.FgColor = gocui.ColorGreen
 		searchPrefixView.Frame = false
-		gui.setViewContent(gui.g, searchPrefixView, searchPrefix)
+		gui.setViewContent(searchPrefixView, searchPrefix)
 	}
 
 	if searchView, err := g.SetView("search", appStatusOptionsBoundary-1+searchViewOffset+len(searchPrefix), height-2+searchViewOffset, optionsVersionBoundary+searchViewOffset, height+searchViewOffset, 0); err != nil {
@@ -440,7 +440,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 	if gui.State.OldInformation != information {
-		gui.setViewContent(g, informationView, information)
+		gui.setViewContent(informationView, information)
 		gui.State.OldInformation = information
 	}
 
