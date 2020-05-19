@@ -112,6 +112,10 @@ type mergingPanelState struct {
 	ConflictTop   bool
 	Conflicts     []commands.Conflict
 	EditHistory   *stack.Stack
+
+	// UserScrolling tells us if the user has started scrolling through the file themselves
+	// in which case we won't auto-scroll to a conflict.
+	UserScrolling bool
 }
 
 type filePanelState struct {

@@ -65,10 +65,18 @@ func (gui *Gui) scrollDownView(viewName string) error {
 }
 
 func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
+	if gui.canScrollMergePanel() {
+		gui.State.Panels.Merging.UserScrolling = true
+	}
+
 	return gui.scrollUpView("main")
 }
 
 func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
+	if gui.canScrollMergePanel() {
+		gui.State.Panels.Merging.UserScrolling = true
+	}
+
 	return gui.scrollDownView("main")
 }
 
