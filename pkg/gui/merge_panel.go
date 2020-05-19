@@ -69,17 +69,24 @@ func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflic
 	return outputBuffer.String(), nil
 }
 
+func (gui *Gui) takeOverScrolling() {
+	gui.State.Panels.Merging.UserScrolling = false
+}
+
 func (gui *Gui) handleSelectTop(g *gocui.Gui, v *gocui.View) error {
+	gui.takeOverScrolling()
 	gui.State.Panels.Merging.ConflictTop = true
 	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handleSelectBottom(g *gocui.Gui, v *gocui.View) error {
+	gui.takeOverScrolling()
 	gui.State.Panels.Merging.ConflictTop = false
 	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handleSelectNextConflict(g *gocui.Gui, v *gocui.View) error {
+	gui.takeOverScrolling()
 	if gui.State.Panels.Merging.ConflictIndex >= len(gui.State.Panels.Merging.Conflicts)-1 {
 		return nil
 	}
@@ -88,6 +95,7 @@ func (gui *Gui) handleSelectNextConflict(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSelectPrevConflict(g *gocui.Gui, v *gocui.View) error {
+	gui.takeOverScrolling()
 	if gui.State.Panels.Merging.ConflictIndex <= 0 {
 		return nil
 	}
@@ -160,6 +168,8 @@ func (gui *Gui) handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
+	gui.takeOverScrolling()
+
 	conflict := gui.State.Panels.Merging.Conflicts[gui.State.Panels.Merging.ConflictIndex]
 	if err := gui.pushFileSnapshot(g); err != nil {
 		return err
@@ -184,6 +194,8 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
+	gui.takeOverScrolling()
+
 	conflict := gui.State.Panels.Merging.Conflicts[gui.State.Panels.Merging.ConflictIndex]
 	if err := gui.pushFileSnapshot(g); err != nil {
 		return err
@@ -256,6 +268,10 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 }
 
 func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
+	if gui.State.Panels.Merging.UserScrolling {
+		return nil
+	}
+
 	panelState := gui.State.Panels.Merging
 	if len(panelState.Conflicts) == 0 {
 		return nil
@@ -283,6 +299,8 @@ func (gui *Gui) renderMergeOptions() error {
 }
 
 func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
+	gui.takeOverScrolling()
+
 	gui.State.Panels.Merging.EditHistory = stack.New()
 	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
 		return err
@@ -316,7 +334,23 @@ func (gui *Gui) handleCompleteMerge() error {
 
 // promptToContinue asks the user if they want to continue the rebase/merge that's in progress
 func (gui *Gui) promptToContinue() error {
+	gui.takeOverScrolling()
+
 	return gui.createConfirmationPanel(gui.g, gui.getFilesView(), true, "continue", gui.Tr.SLocalize("ConflictsResolved"), func(g *gocui.Gui, v *gocui.View) error {
 		return gui.genericMergeCommand("continue")
 	}, nil)
+}
+
+func (gui *Gui) canScrollMergePanel() bool {
+	currentViewName := gui.currentViewName()
+	if currentViewName != "main" {
+		return false
+	}
+
+	file, err := gui.getSelectedFile()
+	if err != nil {
+		return false
+	}
+
+	return file.HasInlineMergeConflicts
 }
