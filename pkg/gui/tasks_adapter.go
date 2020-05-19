@@ -70,6 +70,26 @@ func (gui *Gui) newStringTask(viewName string, str string) error {
 	return nil
 }
 
+func (gui *Gui) newStringTaskWithoutScroll(viewName string, str string) error {
+	view, err := gui.g.View(viewName)
+	if err != nil {
+		return nil // swallowing for now
+	}
+
+	manager := gui.getManager(view)
+
+	f := func(stop chan struct{}) error {
+		gui.setViewContent(view, str)
+		return nil
+	}
+
+	if err := manager.NewTask(f); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 	manager, ok := gui.viewBufferManagerMap[view.Name()]
 	if !ok {

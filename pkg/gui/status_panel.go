@@ -42,7 +42,7 @@ func (gui *Gui) refreshStatus() {
 	status += fmt.Sprintf("%s → %s ", repoName, name)
 
 	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContent(gui.g, gui.getStatusView(), status)
+		gui.setViewContent(gui.getStatusView(), status)
 		return nil
 	})
 }

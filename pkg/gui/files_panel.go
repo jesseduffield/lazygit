@@ -398,25 +398,6 @@ func (gui *Gui) refreshStateFiles() error {
 	return nil
 }
 
-func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
-	item, err := gui.getSelectedFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return "", err
-		}
-		return "", gui.newStringTask("main", gui.Tr.SLocalize("NoFilesDisplay"))
-	}
-	if item.Type != "file" {
-		return "", gui.newStringTask("main", gui.Tr.SLocalize("NotAFile"))
-	}
-	cat, err := gui.GitCommand.CatFile(item.Name)
-	if err != nil {
-		gui.Log.Error(err)
-		return "", gui.newStringTask("main", err.Error())
-	}
-	return cat, nil
-}
-
 func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 	// if we have no upstream branch we need to set that first
 	currentBranch := gui.currentBranch()
