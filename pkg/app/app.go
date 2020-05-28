@@ -131,9 +131,16 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 func (app *App) setupRepo() error {
 	// if we are not in a git repo, we ask if we want to `git init`
 	if err := app.OSCommand.RunCommand("git status"); err != nil {
-		if !strings.Contains(err.Error(), "Not a git repository") {
+		cwd, err := os.Getwd()
+		if err != nil {
 			return err
 		}
+		info, _ := os.Stat(filepath.Join(cwd, ".git"))
+		if info != nil && info.IsDir() {
+			return err // Current directory appears to be a git repository.
+		}
+
+		// Offer to initialize a new repository in current directory.
 		fmt.Print(app.Tr.SLocalize("CreateRepo"))
 		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 		if strings.Trim(response, " \n") != "y" {
