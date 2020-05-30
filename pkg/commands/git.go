@@ -435,6 +435,11 @@ func (c *GitCommand) AbortMerge() error {
 // usingGpg tells us whether the user has gpg enabled so that we can know
 // whether we need to run a subprocess to allow them to enter their password
 func (c *GitCommand) usingGpg() bool {
+	overrideGpg := c.Config.GetUserConfig().GetBool("git.overrideGpg")
+	if overrideGpg {
+		return false
+	}
+
 	gpgsign, _ := c.getLocalGitConfig("commit.gpgsign")
 	if gpgsign == "" {
 		gpgsign, _ = c.getGlobalGitConfig("commit.gpgsign")
