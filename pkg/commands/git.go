@@ -448,7 +448,7 @@ func (c *GitCommand) usingGpg() bool {
 func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
 	command := fmt.Sprintf("git commit %s -m %s", flags, c.OSCommand.Quote(message))
 	if c.usingGpg() {
-		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
+		return c.OSCommand.ExecutableFromString(fmt.Sprintf("%s %s %s", c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)), nil
 	}
 
 	return nil, c.OSCommand.RunCommand(command)
@@ -465,7 +465,7 @@ func (c *GitCommand) GetHeadCommitMessage() (string, error) {
 func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 	command := "git commit --amend --no-edit --allow-empty"
 	if c.usingGpg() {
-		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
+		return c.OSCommand.ExecutableFromString(fmt.Sprintf("%s %s %s", c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)), nil
 	}
 
 	return nil, c.OSCommand.RunCommand(command)
