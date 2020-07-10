@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	appconfig "github.com/jesseduffield/lazygit/pkg/config"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -22,7 +21,7 @@ func NewDummyOSCommand() *OSCommand {
 func NewDummyAppConfig() *config.AppConfig {
 	userConfig := viper.New()
 	userConfig.SetConfigType("yaml")
-	if err := appconfig.LoadDefaults(userConfig, appconfig.GetDefaultConfig()); err != nil {
+	if err := config.LoadDefaults(userConfig, config.GetDefaultConfig()); err != nil {
 		panic(err)
 	}
 	appConfig := &config.AppConfig{
