@@ -635,7 +635,11 @@ func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {
 }
 
 func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
-	return fmt.Sprintf("git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium %s --", branchName)
+	branchLogCmdTemplate := c.Config.GetUserConfig().GetString("git.branchLogCmd")
+	templateValues := map[string]string{
+		"branchName": branchName,
+	}
+	return utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)
 }
 
 // GetRemoteURL returns current repo remote url
