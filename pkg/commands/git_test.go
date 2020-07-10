@@ -1384,9 +1384,6 @@ func TestGitCommandCheckout(t *testing.T) {
 // TestGitCommandGetBranchGraph is a function.
 func TestGitCommandGetBranchGraph(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.getLocalGitConfig = func(string) (string, error) {
-		return "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --", nil
-	}
 	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--"}, args)
