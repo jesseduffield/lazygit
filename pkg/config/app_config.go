@@ -270,6 +270,7 @@ git:
     args: ""
   skipHookPrefix: 'WIP'
   autoFetch: true
+  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often a update is checked for
