@@ -43,6 +43,7 @@ Default path for the config file:
       args: ""
     skipHookPrefix: WIP
     autoFetch: true
+    branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
   update:
     method: prompt # can be: prompt | background | never
     days: 14 # how often an update is checked for
@@ -95,7 +96,7 @@ Default path for the config file:
       prevScreenMode: '_'
       undo: 'z'
       redo: '<c-z>'
-      filteringMenu: <c-s>
+      filteringMenu: '<c-s>'
       diffingMenu: '<c-e>'
       copyToClipboard: '<c-o>'
     status:
@@ -260,14 +261,18 @@ For all possible keybinding options, check [Custom_Keybindings.md](https://githu
       scrollDownMain-alt1: 'E'
       scrollUpMain-alt2: '<c-u>'
       scrollDownMain-alt2: '<c-e>'
+      undo: 'l'
+      redo: '<c-r>'
+      diffingMenu: 'M'
+      filteringMenu: '<c-f>'
     files:
       ignoreFile: 'I'
     commits:
       moveDownCommit: '<c-e>'
       moveUpCommit: '<c-u>'
-      toggleDiffCommit: 'l'
     branches:
       viewGitFlowOptions: 'I'
+      setUpstream: 'U'
 ```
 
 ## Custom pull request URLs

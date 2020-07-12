@@ -19,6 +19,11 @@ func NewDummyOSCommand() *OSCommand {
 
 // NewDummyAppConfig creates a new dummy AppConfig for testing
 func NewDummyAppConfig() *config.AppConfig {
+	userConfig := viper.New()
+	userConfig.SetConfigType("yaml")
+	if err := config.LoadDefaults(userConfig, config.GetDefaultConfig()); err != nil {
+		panic(err)
+	}
 	appConfig := &config.AppConfig{
 		Name:        "lazygit",
 		Version:     "unversioned",
@@ -26,7 +31,7 @@ func NewDummyAppConfig() *config.AppConfig {
 		BuildDate:   "",
 		Debug:       false,
 		BuildSource: "",
-		UserConfig:  viper.New(),
+		UserConfig:  userConfig,
 	}
 	_ = yaml.Unmarshal([]byte{}, appConfig.AppState)
 	return appConfig

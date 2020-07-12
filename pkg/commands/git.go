@@ -453,7 +453,7 @@ func (c *GitCommand) usingGpg() bool {
 func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
 	command := fmt.Sprintf("git commit %s -m %s", flags, c.OSCommand.Quote(message))
 	if c.usingGpg() {
-		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
+		return c.OSCommand.ExecutableFromString(fmt.Sprintf("%s %s %s", c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)), nil
 	}
 
 	return nil, c.OSCommand.RunCommand(command)
@@ -470,7 +470,7 @@ func (c *GitCommand) GetHeadCommitMessage() (string, error) {
 func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 	command := "git commit --amend --no-edit --allow-empty"
 	if c.usingGpg() {
-		return c.OSCommand.PrepareSubProcess(c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command), nil
+		return c.OSCommand.ExecutableFromString(fmt.Sprintf("%s %s %s", c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, command)), nil
 	}
 
 	return nil, c.OSCommand.RunCommand(command)
@@ -640,7 +640,11 @@ func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {
 }
 
 func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
-	return fmt.Sprintf("git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium %s --", branchName)
+	branchLogCmdTemplate := c.Config.GetUserConfig().GetString("git.branchLogCmd")
+	templateValues := map[string]string{
+		"branchName": branchName,
+	}
+	return utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)
 }
 
 // GetRemoteURL returns current repo remote url

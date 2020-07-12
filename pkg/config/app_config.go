@@ -270,6 +270,7 @@ git:
     args: ""
   skipHookPrefix: 'WIP'
   autoFetch: true
+  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
   overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
 update:
   method: prompt # can be: prompt | background | never
