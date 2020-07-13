@@ -118,6 +118,19 @@ func (c *OSCommand) ExecutableFromString(commandStr string) *exec.Cmd {
 	return cmd
 }
 
+// ShellCommandFromString takes a string like `git commit` and returns an executable shell command for it
+func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
+	quotedCommand := ""
+	// Windows does not seem to like quotes around the command
+	if c.Platform.os == "windows" {
+		quotedCommand = commandStr
+	} else {
+		quotedCommand = c.Quote(commandStr)
+	}
+
+	return c.ExecutableFromString(fmt.Sprintf("%s %s %s", c.Platform.shell, c.Platform.shellArg, quotedCommand))
+}
+
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
 func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string) string) error {
 	return RunCommandWithOutputLiveWrapper(c, command, output)
