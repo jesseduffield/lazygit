@@ -453,15 +453,7 @@ func (c *GitCommand) usingGpg() bool {
 func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
 	command := fmt.Sprintf("git commit %s -m %s", flags, c.OSCommand.Quote(message))
 	if c.usingGpg() {
-		quotedCommand := ""
-		// Windows does not seem to like quotes around the command
-		if c.OSCommand.Platform.os == "windows" {
-			quotedCommand = command
-		} else {
-			quotedCommand = c.OSCommand.Quote(command)
-		}
-
-		return c.OSCommand.ExecutableFromString(fmt.Sprintf("%s %s %s", c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, quotedCommand)), nil
+		return c.OSCommand.ShellCommandFromString(command), nil
 	}
 
 	return nil, c.OSCommand.RunCommand(command)
@@ -478,15 +470,7 @@ func (c *GitCommand) GetHeadCommitMessage() (string, error) {
 func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 	command := "git commit --amend --no-edit --allow-empty"
 	if c.usingGpg() {
-		quotedCommand := ""
-		// Windows does not seem to like quotes around the command
-		if c.OSCommand.Platform.os == "windows" {
-			quotedCommand = command
-		} else {
-			quotedCommand = c.OSCommand.Quote(command)
-		}
-
-		return c.OSCommand.ExecutableFromString(fmt.Sprintf("%s %s %s", c.OSCommand.Platform.shell, c.OSCommand.Platform.shellArg, quotedCommand)), nil
+		return c.OSCommand.ShellCommandFromString(command), nil
 	}
 
 	return nil, c.OSCommand.RunCommand(command)
