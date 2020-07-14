@@ -815,7 +815,7 @@ func TestGitCommandCommit(t *testing.T) {
 			"Commit using gpg",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "bash", cmd)
-				assert.EqualValues(t, []string{"-c", "git commit  -m 'test'"}, args)
+				assert.EqualValues(t, []string{"-c", "git commit  -m \"test\""}, args)
 
 				return exec.Command("echo")
 			},
