@@ -12,9 +12,9 @@ func getPlatform() *Platform {
 		catCmd:               "cat",
 		shell:                "bash",
 		shellArg:             "-c",
+		escapedQuote:         "'",
 		openCommand:          "open {{filename}}",
 		openLinkCommand:      "open {{link}}",
-		escapedQuote:         `\'`,
-		fallbackEscapedQuote: `\"`,
+		fallbackEscapedQuote: "\"",
 	}
 }
