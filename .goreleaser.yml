@@ -40,8 +40,8 @@ changelog:
       - '^bump'
 brews:
   -
-    # Reporitory to push the tap to.
-    github:
+    # Repository to push the tap to.
+    tap:
       owner: jesseduffield
       name: homebrew-lazygit
 
