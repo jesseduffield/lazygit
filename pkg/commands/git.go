@@ -451,7 +451,7 @@ func (c *GitCommand) usingGpg() bool {
 
 // Commit commits to git
 func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
-	command := fmt.Sprintf("git commit %s -m %s", flags, c.OSCommand.Quote(message))
+	command := fmt.Sprintf("git commit %s -m %s", flags, strconv.Quote(message))
 	if c.usingGpg() {
 		return c.OSCommand.ShellCommandFromString(command), nil
 	}

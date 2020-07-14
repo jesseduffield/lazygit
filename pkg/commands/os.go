@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -125,10 +126,11 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 	if c.Platform.os == "windows" {
 		quotedCommand = commandStr
 	} else {
-		quotedCommand = c.Quote(commandStr)
+		quotedCommand = strconv.Quote(commandStr)
 	}
 
-	return c.ExecutableFromString(fmt.Sprintf("%s %s %s", c.Platform.shell, c.Platform.shellArg, quotedCommand))
+	shellCommand := fmt.Sprintf("%s %s %s", c.Platform.shell, c.Platform.shellArg, quotedCommand)
+	return c.ExecutableFromString(shellCommand)
 }
 
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
