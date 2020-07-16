@@ -150,6 +150,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 type handleCheckoutRefOptions struct {
 	WaitingStatus string
 	EnvVars       []string
+	onRefNotFound func(ref string) error
 }
 
 func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) error {
@@ -170,6 +171,10 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 	return gui.WithWaitingStatus(waitingStatus, func() error {
 		if err := gui.GitCommand.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
+
+			if options.onRefNotFound != nil && strings.Contains(err.Error(), "did not match any file(s) known to git") {
+				return options.onRefNotFound(ref)
+			}
 
 			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 				// offer to autostash changes
@@ -205,7 +210,13 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("BranchName")+":", "", func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutRef(gui.trimmedContent(v), handleCheckoutRefOptions{})
+		return gui.handleCheckoutRef(gui.trimmedContent(v), handleCheckoutRefOptions{
+			onRefNotFound: func(ref string) error {
+				return gui.createConfirmationPanel(gui.g, v, true, gui.Tr.SLocalize("BranchNotFoundTitle"), fmt.Sprintf("%s %s%s", gui.Tr.SLocalize("BranchNotFoundPrompt"), ref, "?"), func(_g *gocui.Gui, _v *gocui.View) error {
+					return gui.createNewBranchWithName(ref)
+				}, nil)
+			},
+		})
 	})
 }
 
@@ -229,12 +240,21 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 	return gui.createPromptPanel(g, v, message, "", func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v), branch.Name); err != nil {
-			return gui.surfaceError(err)
-		}
-		gui.State.Panels.Branches.SelectedLine = 0
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		return gui.createNewBranchWithName(gui.trimmedContent(v))
 	})
+}
+
+func (gui *Gui) createNewBranchWithName(newBranchName string) error {
+	branch := gui.getSelectedBranch()
+	if branch == nil {
+		return nil
+	}
+
+	if err := gui.GitCommand.NewBranch(newBranchName, branch.Name); err != nil {
+		return gui.surfaceError(err)
+	}
+	gui.State.Panels.Branches.SelectedLine = 0
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
 func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {

@@ -752,6 +752,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "NoFilesStagedPrompt",
 			Other: "You have not staged any files. Commit all files?",
+		}, &i18n.Message{
+			ID:    "BranchNotFoundTitle",
+			Other: "Branch not found",
+		}, &i18n.Message{
+			ID:    "BranchNotFoundPrompt",
+			Other: "Branch not found. Create a new branch named",
 		},
 	)
 }
