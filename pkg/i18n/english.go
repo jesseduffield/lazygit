@@ -157,9 +157,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CannotGitAdd",
 			Other: "Cannot git add --patch untracked files",
 		}, &i18n.Message{
-			ID:    "NoStagedFilesToCommit",
-			Other: "There are no staged files to commit",
-		}, &i18n.Message{
 			ID:    "NoFilesDisplay",
 			Other: "No file to display",
 		}, &i18n.Message{
@@ -1152,6 +1149,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "commitPrefixPatternError",
 			Other: "Error in commitPrefix pattern",
+		}, &i18n.Message{
+			ID:    "NoFilesStagedTitle",
+			Other: "No files staged",
+		}, &i18n.Message{
+			ID:    "NoFilesStagedPrompt",
+			Other: "You have not staged any files. Commit all files?",
 		},
 	)
 }

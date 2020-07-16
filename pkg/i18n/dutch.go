@@ -137,9 +137,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CannotGitAdd",
 			Other: "Kan commando niet uitvoeren git add --path untracked files",
 		}, &i18n.Message{
-			ID:    "NoStagedFilesToCommit",
-			Other: "Er zijn geen staged bestanden om te commiten",
-		}, &i18n.Message{
 			ID:    "NoFilesDisplay",
 			Other: "Geen bestanden om te laten zien",
 		}, &i18n.Message{
@@ -766,6 +763,12 @@ func addDutch(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "commitPrefixPatternError",
 			Other: "Error in commitPrefix pattern",
+		}, &i18n.Message{
+			ID:    "NoFilesStagedTitle",
+			Other: "No files staged",
+		}, &i18n.Message{
+			ID:    "NoFilesStagedPrompt",
+			Other: "You have not staged any files. Commit all files?",
 		},
 	)
 }
