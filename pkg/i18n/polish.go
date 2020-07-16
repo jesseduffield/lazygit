@@ -129,9 +129,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "CannotGitAdd",
 			Other: "Nie można git add --patch nieśledzonych plików",
 		}, &i18n.Message{
-			ID:    "NoStagedFilesToCommit",
-			Other: "Brak zatwierdzonych plików do commita",
-		}, &i18n.Message{
 			ID:    "NoFilesDisplay",
 			Other: "Brak pliku do wyświetlenia",
 		}, &i18n.Message{
@@ -749,6 +746,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "commitPrefixPatternError",
 			Other: "Error in commitPrefix pattern",
+		}, &i18n.Message{
+			ID:    "NoFilesStagedTitle",
+			Other: "No files staged",
+		}, &i18n.Message{
+			ID:    "NoFilesStagedPrompt",
+			Other: "You have not staged any files. Commit all files?",
 		},
 	)
 }

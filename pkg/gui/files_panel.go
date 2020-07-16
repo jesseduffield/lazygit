@@ -284,9 +284,12 @@ func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error 
 }
 
 func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-	if len(gui.stagedFiles()) == 0 && gui.GitCommand.WorkingTreeState() == "normal" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("NoStagedFilesToCommit"))
+	if len(gui.stagedFiles()) == 0 {
+		return gui.promptToStageAllAndRetry(func() error {
+			return gui.handleCommitPress(gui.g, filesView)
+		})
 	}
+
 	commitMessageView := gui.getCommitMessageView()
 	prefixPattern := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".pattern")
 	prefixReplace := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".replace")
@@ -317,10 +320,28 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 	return nil
 }
 
+func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
+	return gui.createConfirmationPanel(
+		gui.g, gui.getFilesView(), true, gui.Tr.SLocalize("NoFilesStagedTitle"), gui.Tr.SLocalize("NoFilesStagedPrompt"),
+		func(*gocui.Gui, *gocui.View) error {
+			if err := gui.GitCommand.StageAll(); err != nil {
+				return gui.surfaceError(err)
+			}
+			if err := gui.refreshFiles(); err != nil {
+				return gui.surfaceError(err)
+			}
+
+			return retry()
+		}, nil)
+}
+
 func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-	if len(gui.stagedFiles()) == 0 && gui.GitCommand.WorkingTreeState() == "normal" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("NoStagedFilesToCommit"))
+	if len(gui.stagedFiles()) == 0 {
+		return gui.promptToStageAllAndRetry(func() error {
+			return gui.handleAmendCommitPress(gui.g, filesView)
+		})
 	}
+
 	if len(gui.State.Commits) == 0 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoCommitToAmend"))
 	}
@@ -344,9 +365,12 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 // handleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress(g *gocui.Gui, filesView *gocui.View) error {
-	if len(gui.stagedFiles()) == 0 && gui.GitCommand.WorkingTreeState() == "normal" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("NoStagedFilesToCommit"))
+	if len(gui.stagedFiles()) == 0 {
+		return gui.promptToStageAllAndRetry(func() error {
+			return gui.handleCommitEditorPress(gui.g, filesView)
+		})
 	}
+
 	gui.PrepareSubProcess(g, "git", "commit")
 	return nil
 }
