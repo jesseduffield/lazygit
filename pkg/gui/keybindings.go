@@ -217,7 +217,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName: "",
 			Key:      gui.getKey("universal.return"),
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleQuit,
+			Handler:  gui.handleTopLevelReturn,
 		},
 		{
 			ViewName:    "",
@@ -845,12 +845,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "menu",
 			Key:         gui.getKey("universal.return"),
-			Handler:     gui.handleMenuClose,
-			Description: gui.Tr.SLocalize("closeMenu"),
-		},
-		{
-			ViewName:    "menu",
-			Key:         gui.getKey("universal.quit"),
 			Handler:     gui.handleMenuClose,
 			Description: gui.Tr.SLocalize("closeMenu"),
 		},

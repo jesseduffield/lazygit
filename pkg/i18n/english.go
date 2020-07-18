@@ -250,6 +250,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "close",
 			Other: "close",
 		}, &i18n.Message{
+			ID:    "quit",
+			Other: "quit",
+		}, &i18n.Message{
 			ID:    "SureResetThisCommit",
 			Other: "Are you sure you want to reset to this commit?",
 		}, &i18n.Message{

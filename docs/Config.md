@@ -50,6 +50,8 @@ Default path for the config file:
     days: 14 # how often an update is checked for
   reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
   confirmOnQuit: false
+  # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
+  quitOnTopLevelReturn: true
   keybinding:
     universal:
       quit: 'q'
