@@ -16,6 +16,8 @@
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: voor aangepast commando uit
+  <kbd>|</kbd>: view scoping options
+  <kbd>ctrl+e</kbd>: open diff menu
 </pre>
 
 ## Branches Panel
@@ -40,6 +42,7 @@
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: bekijk reset opties
   <kbd>R</kbd>: rename branch
+  <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>,</kbd>: previous page
   <kbd>.</kbd>: next page
   <kbd><</kbd>: scroll to top
@@ -53,6 +56,7 @@
   <kbd>esc</kbd>: return to remotes list
   <kbd>g</kbd>: bekijk reset opties
   <kbd>space</kbd>: uitchecken
+  <kbd>n</kbd>: nieuwe branch
   <kbd>M</kbd>: merge in met huidige checked out branch
   <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
@@ -134,11 +138,11 @@
   <kbd>p</kbd>: pick commit (when mid-rebase)
   <kbd>t</kbd>: commit omgedaan maken
   <kbd>c</kbd>: kopiëer commit (cherry-pick)
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>C</kbd>: kopiëer commit reeks (cherry-pick)
   <kbd>v</kbd>: plak commits (cherry-pick)
   <kbd>enter</kbd>: bekijk gecommite bestanden
   <kbd>space</kbd>: checkout commit
-  <kbd>i</kbd>: select commit to diff with another commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>,</kbd>: previous page
@@ -246,7 +250,6 @@
 
 <pre>
   <kbd>esc</kbd>: close menu
-  <kbd>q</kbd>: close menu
   <kbd>,</kbd>: previous page
   <kbd>.</kbd>: next page
   <kbd><</kbd>: scroll to top

@@ -34,6 +34,14 @@ func (gui *Gui) handleQuit(g *gocui.Gui, v *gocui.View) error {
 	return gui.quit(v)
 }
 
+func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
+	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {
+		return gui.handleQuit(g, v)
+	}
+
+	return nil
+}
+
 func (gui *Gui) quit(v *gocui.View) error {
 	if gui.State.Updating {
 		return gui.createUpdateQuitConfirmation(gui.g, v)

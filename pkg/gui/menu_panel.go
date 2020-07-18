@@ -25,7 +25,7 @@ func (gui *Gui) handleMenuSelect(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) renderMenuOptions() error {
 	optionsMap := map[string]string{
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.return"), gui.getKeyDisplay("universal.quit")):       gui.Tr.SLocalize("close"),
+		gui.getKeyDisplay("universal.return"): gui.Tr.SLocalize("close"),
 		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")): gui.Tr.SLocalize("navigate"),
 		gui.getKeyDisplay("universal.select"): gui.Tr.SLocalize("execute"),
 	}

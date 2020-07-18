@@ -278,6 +278,7 @@ update:
 reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
 splashUpdatesIndex: 0
 confirmOnQuit: false
+quitOnTopLevelReturn: true
 keybinding:
   universal:
     quit: 'q'

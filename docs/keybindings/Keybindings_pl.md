@@ -16,6 +16,8 @@
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
+  <kbd>|</kbd>: view scoping options
+  <kbd>ctrl+e</kbd>: open diff menu
 </pre>
 
 ## Gałęzie Panel
@@ -40,6 +42,7 @@
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: rename branch
+  <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>,</kbd>: previous page
   <kbd>.</kbd>: next page
   <kbd><</kbd>: scroll to top
@@ -53,6 +56,7 @@
   <kbd>esc</kbd>: return to remotes list
   <kbd>g</kbd>: view reset options
   <kbd>space</kbd>: przełącz
+  <kbd>n</kbd>: nowa gałąź
   <kbd>M</kbd>: scal do obecnej gałęzi
   <kbd>d</kbd>: usuń gałąź
   <kbd>r</kbd>: rebase branch
@@ -134,11 +138,11 @@
   <kbd>p</kbd>: pick commit (when mid-rebase)
   <kbd>t</kbd>: revert commit
   <kbd>c</kbd>: copy commit (cherry-pick)
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>enter</kbd>: view commit's files
   <kbd>space</kbd>: checkout commit
-  <kbd>i</kbd>: select commit to diff with another commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>,</kbd>: previous page
@@ -246,7 +250,6 @@
 
 <pre>
   <kbd>esc</kbd>: close menu
-  <kbd>q</kbd>: close menu
   <kbd>,</kbd>: previous page
   <kbd>.</kbd>: next page
   <kbd><</kbd>: scroll to top
