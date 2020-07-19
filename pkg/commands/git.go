@@ -509,7 +509,9 @@ func (c *GitCommand) CatFile(fileName string) (string, error) {
 
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
-	return c.OSCommand.RunCommand("git add %s", c.OSCommand.Quote(fileName))
+	// renamed files look like "file1 -> file2"
+	fileNames := strings.Split(fileName, " -> ")
+	return c.OSCommand.RunCommand("git add %s", c.OSCommand.Quote(fileNames[len(fileNames)-1]))
 }
 
 // StageAll stages all files
