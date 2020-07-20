@@ -124,6 +124,12 @@ func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
 	return gui.openFile(file.Name)
 }
 
+func (gui *Gui) handleEditOldCommitFile(g *gocui.Gui, v *gocui.View) error {
+	file := gui.getSelectedCommitFile()
+	_, err := gui.runSyncOrAsyncCommand(gui.OSCommand.EditFile(file.Name))
+	return err
+}
+
 func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
 		return err
