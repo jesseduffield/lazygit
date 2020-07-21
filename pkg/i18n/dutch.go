@@ -215,11 +215,14 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "NoTrackingThisBranch",
 			Other: "deze branch wordt niet gevolgd",
 		}, &i18n.Message{
+			ID:    "CommitMessageConfirm",
+			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindNewLine}}: Nieuwe lijn, {{.keyBindConfirm}}: Bevestig",
+		}, &i18n.Message{
 			ID:    "CommitWithoutMessageErr",
 			Other: "Je kan geen commit maken zonder commit bericht",
 		}, &i18n.Message{
 			ID:    "CloseConfirm",
-			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestigen",
+			Other: "{{.keyBindClose}}: Sluiten, {{.keyBindConfirm}}: Bevestig",
 		}, &i18n.Message{
 			ID:    "close",
 			Other: "sluiten",

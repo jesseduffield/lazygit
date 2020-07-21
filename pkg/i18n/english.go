@@ -241,6 +241,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "NoTrackingThisBranch",
 			Other: "There is no tracking for this branch",
 		}, &i18n.Message{
+			ID:    "CommitMessageConfirm",
+			Other: "{{.keyBindClose}}: close, {{.keyBindNewLine}}: new line, {{.keyBindConfirm}}: confirm",
+		}, &i18n.Message{
 			ID:    "CommitWithoutMessageErr",
 			Other: "You cannot commit without a commit message",
 		}, &i18n.Message{
