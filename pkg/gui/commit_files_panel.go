@@ -121,7 +121,20 @@ func (gui *Gui) refreshCommitFilesView() error {
 
 func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
 	file := gui.getSelectedCommitFile()
+	if file == nil {
+		return nil
+	}
+
 	return gui.openFile(file.Name)
+}
+
+func (gui *Gui) handleEditCommitFile(g *gocui.Gui, v *gocui.View) error {
+	file := gui.getSelectedCommitFile()
+	if file == nil {
+		return nil
+	}
+
+	return gui.editFile(file.Name)
 }
 
 func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {

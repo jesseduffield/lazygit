@@ -104,6 +104,7 @@
   <kbd>c</kbd>: bestand uitchecken
   <kbd>d</kbd>: uitsluit deze commit zijn veranderingen aan dit bestand
   <kbd>o</kbd>: open bestand
+  <kbd>e</kbd>: verander bestand
   <kbd>space</kbd>: toggle file included in patch
   <kbd>enter</kbd>: enter file to add selected lines to the patch
   <kbd>,</kbd>: previous page

@@ -104,6 +104,7 @@
   <kbd>c</kbd>: checkout file
   <kbd>d</kbd>: discard this commit's changes to this file
   <kbd>o</kbd>: otwórz plik
+  <kbd>e</kbd>: edytuj plik
   <kbd>space</kbd>: toggle file included in patch
   <kbd>enter</kbd>: enter file to add selected lines to the patch
   <kbd>,</kbd>: previous page
