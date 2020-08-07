@@ -61,5 +61,3 @@ brews:
     # conflicts:
     #   - svn
     #   - bash
-
-  # test comment to see if goreleaser only releases on new commits
