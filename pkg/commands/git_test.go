@@ -420,7 +420,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
 
-			s.test(gitCmd.GetStatusFiles())
+			s.test(gitCmd.GetStatusFiles(GetStatusFileOptions{}))
 		})
 	}
 }

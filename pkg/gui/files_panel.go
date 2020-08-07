@@ -411,7 +411,7 @@ func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshStateFiles() error {
 	// get files to stage
-	files := gui.GitCommand.GetStatusFiles()
+	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
 
 	if err := gui.fileWatcher.addFilesToFileWatcher(files); err != nil {
