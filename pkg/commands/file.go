@@ -1,5 +1,7 @@
 package commands
 
+import "strings"
+
 // File : A file from git status
 // duplicating this for now
 type File struct {
@@ -13,4 +15,8 @@ type File struct {
 	DisplayString           string
 	Type                    string // one of 'file', 'directory', and 'other'
 	ShortStatus             string // e.g. 'AD', ' A', 'M ', '??'
+}
+
+func (f *File) IsRename() bool {
+	return strings.Contains(f.Name, " -> ")
 }

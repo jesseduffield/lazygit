@@ -231,8 +231,12 @@ func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
 }
 
 // GetStatusFiles git status files
-func (c *GitCommand) GetStatusFiles() []*File {
-	statusOutput, _ := c.GitStatus()
+type GetStatusFileOptions struct {
+	NoRenames bool
+}
+
+func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
+	statusOutput, _ := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames})
 	statusStrings := utils.SplitLines(statusOutput)
 	files := []*File{}
 
@@ -542,8 +546,16 @@ func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 }
 
 // GitStatus returns the plaintext short status of the repo
-func (c *GitCommand) GitStatus() (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git status --untracked-files=all --porcelain")
+type GitStatusOptions struct {
+	NoRenames bool
+}
+
+func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
+	noRenamesFlag := ""
+	if opts.NoRenames {
+		noRenamesFlag = "--no-renames"
+	}
+	return c.OSCommand.RunCommandWithOutput("git status --untracked-files=all --porcelain %s", noRenamesFlag)
 }
 
 // IsInMergeState states whether we are still mid-merge
@@ -569,8 +581,61 @@ func (c *GitCommand) RebaseMode() (string, error) {
 	}
 }
 
+func (c *GitCommand) BeforeAndAfterFileForRename(file *File) (*File, *File, error) {
+
+	if !file.IsRename() {
+		return nil, nil, errors.New("Expected renamed file")
+	}
+
+	// we've got a file that represents a rename from one file to another. Unfortunately
+	// our File abstraction fails to consider this case, so here we will refetch
+	// all files, passing the --no-renames flag and then recursively call the function
+	// again for the before file and after file. At some point we should fix the abstraction itself
+
+	split := strings.Split(file.Name, " -> ")
+	filesWithoutRenames := c.GetStatusFiles(GetStatusFileOptions{NoRenames: true})
+	var beforeFile *File
+	var afterFile *File
+	for _, f := range filesWithoutRenames {
+		if f.Name == split[0] {
+			beforeFile = f
+		}
+		if f.Name == split[1] {
+			afterFile = f
+		}
+	}
+
+	if beforeFile == nil || afterFile == nil {
+		return nil, nil, errors.New("Could not find deleted file or new file for file rename")
+	}
+
+	if beforeFile.IsRename() || afterFile.IsRename() {
+		// probably won't happen but we want to ensure we don't get an infinite loop
+		return nil, nil, errors.New("Nested rename found")
+	}
+
+	return beforeFile, afterFile, nil
+}
+
 // DiscardAllFileChanges directly
 func (c *GitCommand) DiscardAllFileChanges(file *File) error {
+	if file.IsRename() {
+		beforeFile, afterFile, err := c.BeforeAndAfterFileForRename(file)
+		if err != nil {
+			return err
+		}
+
+		if err := c.DiscardAllFileChanges(beforeFile); err != nil {
+			return err
+		}
+
+		if err := c.DiscardAllFileChanges(afterFile); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
 	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
 	if file.HasStagedChanges || file.HasMergeConflicts {
@@ -1095,7 +1160,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 	// if you had staged an untracked file, that will now appear as 'AD' in git status
 	// meaning it's deleted in your working tree but added in your index. Given that it's
 	// now safely stashed, we need to remove it.
-	files := c.GetStatusFiles()
+	files := c.GetStatusFiles(GetStatusFileOptions{})
 	for _, file := range files {
 		if file.ShortStatus == "AD" {
 			if err := c.UnStageFile(file.Name, false); err != nil {
