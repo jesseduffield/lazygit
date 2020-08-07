@@ -279,7 +279,7 @@ func (c *GitCommand) StashSave(message string) error {
 }
 
 // MergeStatusFiles merge status files
-func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*File) []*File {
+func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*File, selectedFile *File) []*File {
 	if len(oldFiles) == 0 {
 		return newFiles
 	}
@@ -290,10 +290,15 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*File) []*File {
 	result := []*File{}
 	for _, oldFile := range oldFiles {
 		for newIndex, newFile := range newFiles {
-			if oldFile.Name == newFile.Name {
+			if includesInt(appendedIndexes, newIndex) {
+				continue
+			}
+			// if we just staged B and in doing so created 'A -> B' and we are currently have oldFile: A and newFile: 'A -> B', we want to wait until we come across B so the our cursor isn't jumping anywhere
+			waitForMatchingFile := selectedFile != nil && newFile.IsRename() && !selectedFile.IsRename() && newFile.Matches(selectedFile) && !oldFile.Matches(selectedFile)
+
+			if oldFile.Matches(newFile) && !waitForMatchingFile {
 				result = append(result, newFile)
 				appendedIndexes = append(appendedIndexes, newIndex)
-				break
 			}
 		}
 	}
