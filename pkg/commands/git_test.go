@@ -541,7 +541,7 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 
-			s.test(gitCmd.MergeStatusFiles(s.oldFiles, s.newFiles))
+			s.test(gitCmd.MergeStatusFiles(s.oldFiles, s.newFiles, nil))
 		})
 	}
 }

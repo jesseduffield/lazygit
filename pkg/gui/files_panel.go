@@ -410,12 +410,25 @@ func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshStateFiles() error {
+	// keep track of where the cursor is currently and the current file names
+	// when we refresh, go looking for a matching name
+	// move the cursor to there.
+	selectedFile, _ := gui.getSelectedFile()
+
 	// get files to stage
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
-	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files)
+	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files, selectedFile)
 
 	if err := gui.fileWatcher.addFilesToFileWatcher(files); err != nil {
 		return err
+	}
+
+	// let's try to find our file again and move the cursor to that
+	for idx, f := range gui.State.Files {
+		if selectedFile != nil && f.Matches(selectedFile) {
+			gui.State.Panels.Files.SelectedLine = idx
+			break
+		}
 	}
 
 	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
