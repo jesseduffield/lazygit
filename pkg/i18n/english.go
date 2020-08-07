@@ -529,12 +529,10 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "ToggleSelectionForPatch",
 			Other: `add/remove line(s) to patch`,
-		},
-		&i18n.Message{
+		}, &i18n.Message{
 			ID:    "TogglePanel",
 			Other: `switch to other panel`,
-		},
-		&i18n.Message{
+		}, &i18n.Message{
 			ID:    "CantStageStaged",
 			Other: `You can't stage an already staged change!`,
 		}, &i18n.Message{
@@ -929,7 +927,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "(not tracking any remote)",
 		}, &i18n.Message{
 			ID:    "ReturnToRemotesList",
-			Other: `return to remotes list`,
+			Other: `Return to remotes list`,
 		}, &i18n.Message{
 			ID:    "addNewRemote",
 			Other: `add new remote`,
