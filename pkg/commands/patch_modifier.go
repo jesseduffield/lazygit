@@ -258,3 +258,8 @@ func ModifiedPatchForRange(log *logrus.Entry, filename string, diffText string, 
 	p := NewPatchModifier(log, filename, diffText)
 	return p.ModifiedPatchForRange(firstLineIdx, lastLineIdx, reverse, keepOriginalHeader)
 }
+
+func ModifiedPatchForLines(log *logrus.Entry, filename string, diffText string, includedLineIndices []int, reverse bool, keepOriginalHeader bool) string {
+	p := NewPatchModifier(log, filename, diffText)
+	return p.ModifiedPatchForLines(includedLineIndices, reverse, keepOriginalHeader)
+}

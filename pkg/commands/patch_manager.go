@@ -23,7 +23,7 @@ type PatchManager struct {
 	ApplyPatch  applyPatchFunc
 }
 
-// NewPatchManager returns a new PatchModifier
+// NewPatchManager returns a new PatchManager
 func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc) *PatchManager {
 	return &PatchManager{
 		Log:        log,
@@ -31,7 +31,7 @@ func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc) *PatchManager
 	}
 }
 
-// NewPatchManager returns a new PatchModifier
+// NewPatchManager returns a new PatchManager
 func (p *PatchManager) Start(commitSha string, diffMap map[string]string) {
 	p.CommitSha = commitSha
 	p.fileInfoMap = map[string]*fileInfo{}
@@ -101,8 +101,7 @@ func (p *PatchManager) RenderPlainPatchForFile(filename string, reverse bool, ke
 		return info.diff
 	case PART:
 		// generate a new diff with just the selected lines
-		m := NewPatchModifier(p.Log, filename, info.diff)
-		return m.ModifiedPatchForLines(info.includedLineIndices, reverse, keepOriginalHeader)
+		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices, reverse, keepOriginalHeader)
 	default:
 		return ""
 	}
