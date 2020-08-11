@@ -491,7 +491,7 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 			BranchName:              opts.BranchName,
 		},
 	)
-	gui.HandleCredentialsPopup(err)
+	gui.handleCredentialsPopup(err)
 	if err != nil {
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}
@@ -518,7 +518,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 	go func() {
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
-		gui.HandleCredentialsPopup(err)
+		gui.handleCredentialsPopup(err)
 		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}()
 	return nil

@@ -130,7 +130,7 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 	}
 	go func() {
 		err := gui.fetch(true)
-		gui.HandleCredentialsPopup(err)
+		gui.handleCredentialsPopup(err)
 		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}()
 	return nil
