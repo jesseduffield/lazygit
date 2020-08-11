@@ -77,7 +77,7 @@ func (gui *Gui) handleCredentialsViewFocused(g *gocui.Gui, v *gocui.View) error 
 }
 
 // HandleCredentialsPopup handles the views after executing a command that might ask for credentials
-func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, cmdErr error) {
+func (gui *Gui) HandleCredentialsPopup(cmdErr error) {
 	_, _ = gui.g.SetViewOnBottom("credentials")
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
@@ -86,8 +86,5 @@ func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, cmdErr error) {
 		}
 		// we are not logging this error because it may contain a password
 		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(), false)
-	} else {
-		_ = gui.closeConfirmationPrompt(g, true)
-		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}
 }

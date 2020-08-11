@@ -369,11 +369,26 @@ func (c *GitCommand) RebaseBranch(branchName string) error {
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
+type FetchOptions struct {
+	PromptUserForCredential func(string) string
+	RemoteName              string
+	BranchName              string
+}
+
 // Fetch fetch git repo
-func (c *GitCommand) Fetch(promptUserForCredential func(string) string, canPromptForCredential bool) error {
-	return c.OSCommand.DetectUnamePass("git fetch", func(question string) string {
-		if canPromptForCredential {
-			return promptUserForCredential(question)
+func (c *GitCommand) Fetch(opts FetchOptions) error {
+	command := "git fetch"
+
+	if opts.RemoteName != "" {
+		command = fmt.Sprintf("%s %s", command, opts.RemoteName)
+	}
+	if opts.BranchName != "" {
+		command = fmt.Sprintf("%s %s", command, opts.BranchName)
+	}
+
+	return c.OSCommand.DetectUnamePass(command, func(question string) string {
+		if opts.PromptUserForCredential != nil {
+			return opts.PromptUserForCredential(question)
 		}
 		return "\n"
 	})
@@ -430,10 +445,20 @@ func (c *GitCommand) ListStash() (string, error) {
 	return c.OSCommand.RunCommandWithOutput("git stash list")
 }
 
+type MergeOpts struct {
+	FastForwardOnly bool
+}
+
 // Merge merge
-func (c *GitCommand) Merge(branchName string) error {
+func (c *GitCommand) Merge(branchName string, opts MergeOpts) error {
 	mergeArgs := c.Config.GetUserConfig().GetString("git.merging.args")
-	return c.OSCommand.RunCommand("git merge --no-edit %s %s", mergeArgs, branchName)
+
+	command := fmt.Sprintf("git merge --no-edit %s %s", mergeArgs, branchName)
+	if opts.FastForwardOnly {
+		command = fmt.Sprintf("%s --ff-only", command)
+	}
+
+	return c.OSCommand.RunCommand(command)
 }
 
 // AbortMerge abort merge
@@ -487,7 +512,7 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 
 // Pull pulls from repo
 func (c *GitCommand) Pull(args string, promptUserForCredential func(string) string) error {
-	return c.OSCommand.DetectUnamePass("git pull --no-edit "+args, promptUserForCredential)
+	return c.OSCommand.DetectUnamePass("git pull --no-edit --rebase ", promptUserForCredential)
 }
 
 // PullWithoutPasswordCheck assumes that the pull will not prompt the user for a password

@@ -446,7 +446,7 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 		}
 		for branchName, branch := range conf.Branches {
 			if branchName == currentBranch.Name {
-				return gui.pullFiles(v, fmt.Sprintf("%s %s", branch.Remote, branchName))
+				return gui.pullFiles(PullFilesOptions{RemoteName: branch.Remote, BranchName: branch.Name})
 			}
 		}
 
@@ -459,27 +459,49 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 				}
 				return gui.createErrorPanel(errorMessage)
 			}
-			return gui.pullFiles(v, "")
+			return gui.pullFiles(PullFilesOptions{})
 		})
 	}
 
-	return gui.pullFiles(v, "")
+	return gui.pullFiles(PullFilesOptions{})
 }
 
-func (gui *Gui) pullFiles(v *gocui.View, args string) error {
-	if err := gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("PullWait")); err != nil {
+type PullFilesOptions struct {
+	RemoteName string
+	BranchName string
+}
+
+func (gui *Gui) pullFiles(opts PullFilesOptions) error {
+	if err := gui.createLoaderPanel(gui.g, gui.g.CurrentView(), gui.Tr.SLocalize("PullWait")); err != nil {
 		return err
 	}
 
-	// we want to first fetch, handling username if it comes up, then either merge or rebase. If merging we might have a merge conflict, likewise if rebasing we might have a conflict too.
-	// we need a way of saying .then or .catch
-
-	// what if we had a struct which contained an array of functions to run, each of which return a function, or perhaps write to a channel when they're done, and if there is no error, we run the next thing. In this case we first want to fetch, potentially handling a credential popup, then we want to rebase.
+	strategy := gui.Config.GetUserConfig().GetString("git.pull.mode")
 
 	go func() {
-		err := gui.GitCommand.Pull(args, gui.promptUserForCredential)
-		// gui.handleGenericMergeCommandResult(err)
-		gui.HandleCredentialsPopup(gui.g, err)
+		err := gui.GitCommand.Fetch(
+			commands.FetchOptions{
+				PromptUserForCredential: gui.promptUserForCredential,
+				RemoteName:              opts.RemoteName,
+				BranchName:              opts.BranchName,
+			},
+		)
+		gui.HandleCredentialsPopup(err)
+		if err == nil {
+			switch strategy {
+			case "rebase":
+				err := gui.GitCommand.RebaseBranch("FETCH_HEAD")
+				_ = gui.handleGenericMergeCommandResult(err)
+			case "merge":
+				err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{})
+				_ = gui.handleGenericMergeCommandResult(err)
+			case "ff-only":
+				err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
+				_ = gui.handleGenericMergeCommandResult(err)
+			default:
+				_ = gui.createErrorPanel(fmt.Sprintf("git pull strategy '%s' unrecognised", strategy))
+			}
+		}
 	}()
 
 	return nil
@@ -492,7 +514,11 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 	go func() {
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
-		gui.HandleCredentialsPopup(g, err)
+		gui.HandleCredentialsPopup(err)
+		if err == nil {
+			_ = gui.closeConfirmationPrompt(gui.g, true)
+			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		}
 	}()
 	return nil
 }
