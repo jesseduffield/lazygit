@@ -8,8 +8,8 @@ import (
 
 type credentials chan string
 
-// waitForPassUname wait for a username or password input from the credentials popup
-func (gui *Gui) waitForPassUname(passOrUname string) string {
+// promptUserForCredential wait for a username or password input from the credentials popup
+func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView, _ := g.View("credentials")

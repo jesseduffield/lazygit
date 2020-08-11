@@ -167,7 +167,7 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (err error) {
-	err = gui.GitCommand.Fetch(gui.waitForPassUname, canAskForCredentials)
+	err = gui.GitCommand.Fetch(gui.promptUserForCredential, canAskForCredentials)
 
 	if canAskForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
 		colorFunction := color.New(color.FgRed).SprintFunc()
