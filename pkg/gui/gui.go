@@ -501,12 +501,12 @@ func (gui *Gui) startBackgroundFetch() {
 	if !isNew {
 		time.After(60 * time.Second)
 	}
-	_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
+	err := gui.fetch(gui.g, gui.g.CurrentView(), false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
 	} else {
 		gui.goEvery(time.Second*60, gui.stopChan, func() error {
-			_, err := gui.fetch(gui.g, gui.g.CurrentView(), false)
+			err := gui.fetch(gui.g, gui.g.CurrentView(), false)
 			return err
 		})
 	}
