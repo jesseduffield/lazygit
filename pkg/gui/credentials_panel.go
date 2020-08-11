@@ -9,9 +9,9 @@ import (
 type credentials chan string
 
 // waitForPassUname wait for a username or password input from the credentials popup
-func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUname string) string {
+func (gui *Gui) waitForPassUname(passOrUname string) string {
 	gui.credentials = make(chan string)
-	g.Update(func(g *gocui.Gui) error {
+	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView, _ := g.View("credentials")
 		if passOrUname == "username" {
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
@@ -20,7 +20,7 @@ func (gui *Gui) waitForPassUname(g *gocui.Gui, currentView *gocui.View, passOrUn
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
 			credentialsView.Mask = '*'
 		}
-		err := gui.switchFocus(g, currentView, credentialsView)
+		err := gui.switchFocus(g, gui.g.CurrentView(), credentialsView)
 		if err != nil {
 			return err
 		}

@@ -477,9 +477,7 @@ func (gui *Gui) pullFiles(v *gocui.View, args string) error {
 	// what if we had a struct which contained an array of functions to run, each of which return a function, or perhaps write to a channel when they're done, and if there is no error, we run the next thing. In this case we first want to fetch, potentially handling a credential popup, then we want to rebase.
 
 	go func() {
-		err := gui.GitCommand.Pull(args, func(passOrUname string) string {
-			return gui.waitForPassUname(gui.g, v, passOrUname)
-		})
+		err := gui.GitCommand.Pull(args, gui.waitForPassUname)
 		// gui.handleGenericMergeCommandResult(err)
 		gui.HandleCredentialsPopup(gui.g, err)
 	}()
@@ -493,9 +491,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 	}
 	go func() {
 		branchName := gui.getCheckedOutBranch().Name
-		err := gui.GitCommand.Push(branchName, force, upstream, args, func(passOrUname string) string {
-			return gui.waitForPassUname(g, v, passOrUname)
-		})
+		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.waitForPassUname)
 		gui.HandleCredentialsPopup(g, err)
 	}()
 	return nil
