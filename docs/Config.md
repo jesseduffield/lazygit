@@ -41,6 +41,8 @@ Default path for the config file:
       manualCommit: false
       # extra args passed to `git merge`, e.g. --no-ff
       args: ""
+    pull:
+      mode: 'merge' # one of 'merge' | 'rebase' | 'ff-only'
     skipHookPrefix: WIP
     autoFetch: true
     branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"

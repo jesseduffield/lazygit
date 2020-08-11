@@ -268,6 +268,8 @@ git:
   merging:
     manualCommit: false
     args: ""
+  pull:
+    mode: 'merge' # one of 'merge' | 'rebase' | 'ff-only'
   skipHookPrefix: 'WIP'
   autoFetch: true
   branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
