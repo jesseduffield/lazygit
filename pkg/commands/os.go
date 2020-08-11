@@ -139,9 +139,9 @@ func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string)
 }
 
 // DetectUnamePass detect a username / password question in a command
-// ask is a function that gets executen when this function detect you need to fillin a password
-// The ask argument will be "username" or "password" and expects the user's password or username back
-func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) error {
+// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password
+// The promptUserForCredential argument will be "username" or "password" and expects the user's password or username back
+func (c *OSCommand) DetectUnamePass(command string, promptUserForCredential func(string) string) error {
 	ttyText := ""
 	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
 		ttyText = ttyText + " " + word
@@ -155,7 +155,7 @@ func (c *OSCommand) DetectUnamePass(command string, ask func(string) string) err
 		for pattern, askFor := range prompts {
 			if match, _ := regexp.MatchString(pattern, ttyText); match {
 				ttyText = ""
-				return ask(askFor)
+				return promptUserForCredential(askFor)
 			}
 		}
 
