@@ -510,16 +510,6 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 	return nil, c.OSCommand.RunCommand(command)
 }
 
-// Pull pulls from repo
-func (c *GitCommand) Pull(args string, promptUserForCredential func(string) string) error {
-	return c.OSCommand.DetectUnamePass("git pull --no-edit --rebase ", promptUserForCredential)
-}
-
-// PullWithoutPasswordCheck assumes that the pull will not prompt the user for a password
-func (c *GitCommand) PullWithoutPasswordCheck(args string) error {
-	return c.OSCommand.RunCommand("git pull --no-edit " + args)
-}
-
 // Push pushes to a branch
 func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {
 	forceFlag := ""

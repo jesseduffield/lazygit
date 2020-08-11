@@ -476,38 +476,39 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 		return err
 	}
 
-	strategy := gui.Config.GetUserConfig().GetString("git.pull.mode")
+	mode := gui.Config.GetUserConfig().GetString("git.pull.mode")
 
-	go func() {
-		err := gui.GitCommand.Fetch(
-			commands.FetchOptions{
-				PromptUserForCredential: gui.promptUserForCredential,
-				RemoteName:              opts.RemoteName,
-				BranchName:              opts.BranchName,
-			},
-		)
-		gui.HandleCredentialsPopup(err)
-		if err != nil {
-			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-			return
-		}
-
-		switch strategy {
-		case "rebase":
-			err := gui.GitCommand.RebaseBranch("FETCH_HEAD")
-			_ = gui.handleGenericMergeCommandResult(err)
-		case "merge":
-			err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{})
-			_ = gui.handleGenericMergeCommandResult(err)
-		case "ff-only":
-			err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
-			_ = gui.handleGenericMergeCommandResult(err)
-		default:
-			_ = gui.createErrorPanel(fmt.Sprintf("git pull strategy '%s' unrecognised", strategy))
-		}
-	}()
+	go gui.pullWithMode(mode, opts)
 
 	return nil
+}
+
+func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
+	err := gui.GitCommand.Fetch(
+		commands.FetchOptions{
+			PromptUserForCredential: gui.promptUserForCredential,
+			RemoteName:              opts.RemoteName,
+			BranchName:              opts.BranchName,
+		},
+	)
+	gui.HandleCredentialsPopup(err)
+	if err != nil {
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	}
+
+	switch mode {
+	case "rebase":
+		err := gui.GitCommand.RebaseBranch("FETCH_HEAD")
+		return gui.handleGenericMergeCommandResult(err)
+	case "merge":
+		err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{})
+		return gui.handleGenericMergeCommandResult(err)
+	case "ff-only":
+		err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
+		return gui.handleGenericMergeCommandResult(err)
+	default:
+		return gui.createErrorPanel(fmt.Sprintf("git pull mode '%s' unrecognised", mode))
+	}
 }
 
 func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstream string, args string) error {
