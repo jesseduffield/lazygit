@@ -370,10 +370,10 @@ func (c *GitCommand) RebaseBranch(branchName string) error {
 }
 
 // Fetch fetch git repo
-func (c *GitCommand) Fetch(unamePassQuestion func(string) string, canAskForCredentials bool) error {
+func (c *GitCommand) Fetch(promptUserForCredential func(string) string, canPromptForCredential bool) error {
 	return c.OSCommand.DetectUnamePass("git fetch", func(question string) string {
-		if canAskForCredentials {
-			return unamePassQuestion(question)
+		if canPromptForCredential {
+			return promptUserForCredential(question)
 		}
 		return "\n"
 	})
@@ -486,8 +486,8 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 }
 
 // Pull pulls from repo
-func (c *GitCommand) Pull(args string, ask func(string) string) error {
-	return c.OSCommand.DetectUnamePass("git pull --no-edit "+args, ask)
+func (c *GitCommand) Pull(args string, promptUserForCredential func(string) string) error {
+	return c.OSCommand.DetectUnamePass("git pull --no-edit "+args, promptUserForCredential)
 }
 
 // PullWithoutPasswordCheck assumes that the pull will not prompt the user for a password
@@ -496,7 +496,7 @@ func (c *GitCommand) PullWithoutPasswordCheck(args string) error {
 }
 
 // Push pushes to a branch
-func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, ask func(string) string) error {
+func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease"
@@ -508,7 +508,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 	}
 
 	cmd := fmt.Sprintf("git push --follow-tags %s %s %s", forceFlag, setUpstreamArg, args)
-	return c.OSCommand.DetectUnamePass(cmd, ask)
+	return c.OSCommand.DetectUnamePass(cmd, promptUserForCredential)
 }
 
 // CatFile obtains the content of a file
