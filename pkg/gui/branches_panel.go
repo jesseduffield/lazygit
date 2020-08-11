@@ -131,10 +131,7 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 	go func() {
 		err := gui.fetch(true)
 		gui.HandleCredentialsPopup(err)
-		if err == nil {
-			_ = gui.closeConfirmationPrompt(gui.g, true)
-			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-		}
+		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}()
 	return nil
 }
