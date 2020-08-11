@@ -77,10 +77,8 @@ func (gui *Gui) handleCredentialsViewFocused(g *gocui.Gui, v *gocui.View) error 
 }
 
 // HandleCredentialsPopup handles the views after executing a command that might ask for credentials
-func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, popupOpened bool, cmdErr error) {
-	if popupOpened {
-		_, _ = gui.g.SetViewOnBottom("credentials")
-	}
+func (gui *Gui) HandleCredentialsPopup(g *gocui.Gui, cmdErr error) {
+	_, _ = gui.g.SetViewOnBottom("credentials")
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
 		if strings.Contains(errMessage, "Invalid username or password") {

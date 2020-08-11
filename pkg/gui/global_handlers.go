@@ -166,10 +166,8 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (unamePassOpend bool, err error) {
-	unamePassOpend = false
+func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (err error) {
 	err = gui.GitCommand.Fetch(func(passOrUname string) string {
-		unamePassOpend = true
 		return gui.waitForPassUname(gui.g, v, passOrUname)
 	}, canAskForCredentials)
 
@@ -184,5 +182,5 @@ func (gui *Gui) fetch(g *gocui.Gui, v *gocui.View, canAskForCredentials bool) (u
 
 	gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
 
-	return unamePassOpend, err
+	return err
 }

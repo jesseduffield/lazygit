@@ -471,13 +471,17 @@ func (gui *Gui) pullFiles(v *gocui.View, args string) error {
 		return err
 	}
 
+	// we want to first fetch, handling username if it comes up, then either merge or rebase. If merging we might have a merge conflict, likewise if rebasing we might have a conflict too.
+	// we need a way of saying .then or .catch
+
+	// what if we had a struct which contained an array of functions to run, each of which return a function, or perhaps write to a channel when they're done, and if there is no error, we run the next thing. In this case we first want to fetch, potentially handling a credential popup, then we want to rebase.
+
 	go func() {
-		unamePassOpend := false
 		err := gui.GitCommand.Pull(args, func(passOrUname string) string {
-			unamePassOpend = true
 			return gui.waitForPassUname(gui.g, v, passOrUname)
 		})
-		gui.HandleCredentialsPopup(gui.g, unamePassOpend, err)
+		// gui.handleGenericMergeCommandResult(err)
+		gui.HandleCredentialsPopup(gui.g, err)
 	}()
 
 	return nil
@@ -488,13 +492,11 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 		return err
 	}
 	go func() {
-		unamePassOpend := false
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, func(passOrUname string) string {
-			unamePassOpend = true
 			return gui.waitForPassUname(g, v, passOrUname)
 		})
-		gui.HandleCredentialsPopup(g, unamePassOpend, err)
+		gui.HandleCredentialsPopup(g, err)
 	}()
 	return nil
 }

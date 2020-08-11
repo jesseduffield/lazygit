@@ -129,8 +129,8 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	go func() {
-		unamePassOpend, err := gui.fetch(g, v, true)
-		gui.HandleCredentialsPopup(g, unamePassOpend, err)
+		err := gui.fetch(g, v, true)
+		gui.HandleCredentialsPopup(g, err)
 	}()
 	return nil
 }
