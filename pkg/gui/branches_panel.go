@@ -400,16 +400,11 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 
 		if gui.State.Panels.Branches.SelectedLine == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{})
-			return
 		} else {
-			if err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName); err != nil {
-				_ = gui.surfaceError(err)
-				return
-			}
+			err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
+			gui.handleCredentialsPopup(err)
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{BRANCHES}})
 		}
-
-		_ = gui.closeConfirmationPrompt(gui.g, true)
 	}()
 	return nil
 }

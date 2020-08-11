@@ -791,8 +791,9 @@ func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	return c.OSCommand.RunCommand("git apply %s %s", flagStr, c.OSCommand.Quote(filepath))
 }
 
-func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string) error {
-	return c.OSCommand.RunCommand("git fetch %s %s:%s", remoteName, remoteBranchName, branchName)
+func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string, promptUserForCredential func(string) string) error {
+	command := fmt.Sprintf("git fetch %s %s:%s", remoteName, remoteBranchName, branchName)
+	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
 }
 
 func (c *GitCommand) RunSkipEditorCommand(command string) error {
