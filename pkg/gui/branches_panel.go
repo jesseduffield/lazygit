@@ -129,8 +129,12 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	go func() {
-		err := gui.fetch(g, v, true)
-		gui.HandleCredentialsPopup(g, err)
+		err := gui.fetch(true)
+		gui.HandleCredentialsPopup(err)
+		if err == nil {
+			_ = gui.closeConfirmationPrompt(gui.g, true)
+			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		}
 	}()
 	return nil
 }
@@ -321,7 +325,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 	return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("MergingTitle"), prompt,
 		func(g *gocui.Gui, v *gocui.View) error {
 
-			err := gui.GitCommand.Merge(branchName)
+			err := gui.GitCommand.Merge(branchName, commands.MergeOpts{})
 			return gui.handleGenericMergeCommandResult(err)
 		}, nil)
 }

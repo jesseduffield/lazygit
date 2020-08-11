@@ -703,7 +703,7 @@ func TestGitCommandMerge(t *testing.T) {
 		return exec.Command("echo")
 	}
 
-	assert.NoError(t, gitCmd.Merge("test"))
+	assert.NoError(t, gitCmd.Merge("test", MergeOpts{}))
 }
 
 // TestGitCommandUsingGpg is a function.
