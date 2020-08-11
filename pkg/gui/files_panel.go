@@ -487,20 +487,23 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 			},
 		)
 		gui.HandleCredentialsPopup(err)
-		if err == nil {
-			switch strategy {
-			case "rebase":
-				err := gui.GitCommand.RebaseBranch("FETCH_HEAD")
-				_ = gui.handleGenericMergeCommandResult(err)
-			case "merge":
-				err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{})
-				_ = gui.handleGenericMergeCommandResult(err)
-			case "ff-only":
-				err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
-				_ = gui.handleGenericMergeCommandResult(err)
-			default:
-				_ = gui.createErrorPanel(fmt.Sprintf("git pull strategy '%s' unrecognised", strategy))
-			}
+		if err != nil {
+			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			return
+		}
+
+		switch strategy {
+		case "rebase":
+			err := gui.GitCommand.RebaseBranch("FETCH_HEAD")
+			_ = gui.handleGenericMergeCommandResult(err)
+		case "merge":
+			err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{})
+			_ = gui.handleGenericMergeCommandResult(err)
+		case "ff-only":
+			err := gui.GitCommand.Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
+			_ = gui.handleGenericMergeCommandResult(err)
+		default:
+			_ = gui.createErrorPanel(fmt.Sprintf("git pull strategy '%s' unrecognised", strategy))
 		}
 	}()
 
@@ -515,10 +518,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		gui.HandleCredentialsPopup(err)
-		if err == nil {
-			_ = gui.closeConfirmationPrompt(gui.g, true)
-			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-		}
+		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}()
 	return nil
 }
