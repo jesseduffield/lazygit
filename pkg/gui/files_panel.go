@@ -518,6 +518,13 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 	go func() {
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
+		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
+			gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
+				return gui.pushWithForceFlag(gui.g, v, true, upstream, args)
+			}, nil)
+
+			return
+		}
 		gui.handleCredentialsPopup(err)
 		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	}()
