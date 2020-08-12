@@ -4,6 +4,8 @@ import (
 	"log"
 	"strings"
 
+	"unicode/utf8"
+
 	"github.com/jesseduffield/gocui"
 )
 
@@ -178,14 +180,15 @@ func GetKeyDisplay(key interface{}) string {
 
 func (gui *Gui) getKey(name string) interface{} {
 	key := gui.Config.GetUserConfig().GetString("keybinding." + name)
-	if len(key) > 1 {
+	runeCount := utf8.RuneCountInString(key)
+	if runeCount > 1 {
 		binding := keymap[strings.ToLower(key)]
 		if binding == nil {
 			log.Fatalf("Unrecognized key %s for keybinding %s", strings.ToLower(key), name)
 		} else {
 			return binding
 		}
-	} else if len(key) == 1 {
+	} else if runeCount == 1 {
 		return []rune(key)[0]
 	}
 	log.Fatal("Key empty for keybinding: " + strings.ToLower(name))
