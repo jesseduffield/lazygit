@@ -60,7 +60,16 @@ func (gui *Gui) getMessageHeight(wrap bool, message string, width int) int {
 
 func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, wrap bool, prompt string) (int, int, int, int) {
 	width, height := g.Size()
+	// we want a minimum width up to a point, then we do it based on ratio.
 	panelWidth := 4 * width / 7
+	minWidth := 80
+	if panelWidth < minWidth {
+		if width-2 < minWidth {
+			panelWidth = width - 2
+		} else {
+			panelWidth = minWidth
+		}
+	}
 	panelHeight := gui.getMessageHeight(wrap, prompt, panelWidth)
 	if panelHeight > height*3/4 {
 		panelHeight = height * 3 / 4
