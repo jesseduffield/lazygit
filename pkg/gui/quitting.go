@@ -35,6 +35,13 @@ func (gui *Gui) handleQuit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
+	if gui.inDiffMode() {
+		return gui.exitDiffMode()
+	}
+	if gui.inFilterMode() {
+		return gui.exitFilterMode()
+	}
+
 	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {
 		return gui.handleQuit(g, v)
 	}
@@ -46,12 +53,7 @@ func (gui *Gui) quit(v *gocui.View) error {
 	if gui.State.Updating {
 		return gui.createUpdateQuitConfirmation(gui.g, v)
 	}
-	if gui.inDiffMode() {
-		return gui.exitDiffMode()
-	}
-	if gui.inFilterMode() {
-		return gui.exitFilterMode()
-	}
+
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
 		return gui.createConfirmationPanel(gui.g, v, true, "", gui.Tr.SLocalize("ConfirmQuit"), func(g *gocui.Gui, v *gocui.View) error {
 			return gocui.ErrQuit
