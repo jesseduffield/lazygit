@@ -84,7 +84,7 @@ func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleMergeRemoteBranch(g *gocui.Gui, v *gocui.View) error {
-	selectedBranchName := gui.getSelectedRemoteBranch().Name
+	selectedBranchName := gui.getSelectedRemoteBranch().FullName()
 	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
 }
 
