@@ -247,6 +247,7 @@ func GetDefaultConfig() []byte {
   skipStashWarning: true
   sidePanelWidth: 0.3333
   expandFocusedSidePanel: false
+  mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
   theme:
     lightTheme: false
     activeBorderColor:
