@@ -181,27 +181,27 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*box {
 			fullHeightBox("stash"),
 		}
 	} else if height >= 28 {
+		accordianMode := gui.Config.GetUserConfig().GetBool("gui.expandFocusedSidePanel")
+		accordianBox := func(defaultBox *box) *box {
+			if accordianMode && defaultBox.viewName == currentCyclableViewName {
+				return &box{
+					viewName: defaultBox.viewName,
+					weight:   2,
+				}
+			}
+
+			return defaultBox
+		}
+
 		return []*box{
 			{
 				viewName: "status",
 				size:     3,
 			},
-			{
-				viewName: "files",
-				weight:   1,
-			},
-			{
-				viewName: "branches",
-				weight:   1,
-			},
-			{
-				viewName: "commits",
-				weight:   1,
-			},
-			{
-				viewName: "stash",
-				size:     3,
-			},
+			accordianBox(&box{viewName: "files", weight: 1}),
+			accordianBox(&box{viewName: "branches", weight: 1}),
+			accordianBox(&box{viewName: "commits", weight: 1}),
+			accordianBox(&box{viewName: "stash", size: 3}),
 		}
 	} else {
 		squashedHeight := 1
