@@ -14,6 +14,7 @@ Default path for the config file:
     scrollHeight: 2 # how many lines you scroll by
     scrollPastBottom: true # enable scrolling past the bottom
     sidePanelWidth: 0.3333 # number from 0 to 1
+    expandFocusedSidePanel: false
     theme:
       lightTheme: false # For terminals with a light background
       activeBorderColor:

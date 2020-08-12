@@ -246,6 +246,7 @@ func GetDefaultConfig() []byte {
   skipUnstageLineWarning: false
   skipStashWarning: true
   sidePanelWidth: 0.3333
+  expandFocusedSidePanel: false
   theme:
     lightTheme: false
     activeBorderColor:
