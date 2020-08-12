@@ -132,10 +132,19 @@ func (gui *Gui) getViewDimensions(informationStr string, appStatus string) map[s
 					},
 					{
 						conditionalDirection: func(width int, height int) int {
-							if width < 160 && height > 30 { // 2 80 character width panels
+							mainPanelSplitMode := gui.Config.GetUserConfig().GetString("gui.mainPanelSplitMode")
+
+							switch mainPanelSplitMode {
+							case "vertical":
 								return ROW
-							} else {
+							case "horizontal":
 								return COLUMN
+							default:
+								if width < 160 && height > 30 { // 2 80 character width panels
+									return ROW
+								} else {
+									return COLUMN
+								}
 							}
 						},
 						direction: COLUMN,
