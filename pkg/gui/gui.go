@@ -339,7 +339,7 @@ func (gui *Gui) Run() error {
 	configPopupVersion := gui.Config.GetUserConfig().GetInt("StartupPopupVersion")
 	// -1 means we've disabled these popups
 	if configPopupVersion != -1 && configPopupVersion < StartupPopupVersion {
-		popupTasks = append(popupTasks, gui.showShamelessSelfPromotionMessage)
+		popupTasks = append(popupTasks, gui.showIntroPopupMessage)
 	}
 	gui.showInitialPopups(popupTasks)
 
@@ -459,7 +459,7 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 	}()
 }
 
-func (gui *Gui) showShamelessSelfPromotionMessage(done chan struct{}) error {
+func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	onConfirm := func() error {
 		done <- struct{}{}
 		return gui.Config.WriteToUserConfig("startupPopupVersion", StartupPopupVersion)
@@ -468,8 +468,8 @@ func (gui *Gui) showShamelessSelfPromotionMessage(done chan struct{}) error {
 	return gui.ask(askOpts{
 		returnToView:       nil,
 		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("ShamelessSelfPromotionTitle"),
-		prompt:             gui.Tr.SLocalize("ShamelessSelfPromotionMessage"),
+		title:              "",
+		prompt:             gui.Tr.SLocalize("IntroPopupMessage"),
 		handleConfirm:      onConfirm,
 		handleClose:        onConfirm,
 	})

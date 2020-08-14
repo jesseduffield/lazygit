@@ -443,18 +443,14 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "AnonymousReportingPrompt",
 			Other: "Zou je anonieme data rapportage willen aanzetten om lazygit beter te kunnen maken? (enter/esc)",
 		}, &i18n.Message{
-			ID:    "ShamelessSelfPromotionTitle",
-			Other: "Schaamteloose zelf promotie",
-		}, &i18n.Message{
-			ID: "ShamelessSelfPromotionMessage",
-			Other: `Bedankt voor het gebruik maken van lazygit! 3 dingen die je moet weten:
+			ID: "IntroPopupMessage",
+			Other: `Bedankt voor het gebruik maken van lazygit! 2 dingen die je moet weten:
 
-1) lazygit heeft nu basis muis support!
-
-2) Als je meer van lazygit zijn features wilt leren bekijk dan deze video:
+1) Als je meer van lazygit zijn features wilt leren bekijk dan deze video:
    https://youtu.be/CPLdltN7wgE
 
-3) Github matched nu elke donations euro voor euro voor de komende 12 maanden, dus als je graag zou willen doneren klik the doneer knop rechts onderin`,
+3) Als je git gebruikt, ben je een programmeur! Met jouw hulp kunnen we lazygit verbeteren, dus overweeg om een ​​donateur te worden en mee te doen aan het plezier op
+   https://github.com/jesseduffield/lazygit`,
 		}, &i18n.Message{
 			ID:    "GitconfigParseErr",
 			Other: `Gogit kon je gitconfig bestand niet goed parsen door de aanwezigheid van losstaande '\' tekens. Het weghalen van deze tekens zou het probleem moeten oplossen. `,
