@@ -47,24 +47,6 @@ type Box struct {
 	Weight int
 }
 
-func (b *Box) isStatic() bool {
-	return b.Size > 0
-}
-
-func (b *Box) getDirection(width int, height int) int {
-	if b.ConditionalDirection != nil {
-		return b.ConditionalDirection(width, height)
-	}
-	return b.Direction
-}
-
-func (b *Box) getChildren(width int, height int) []*Box {
-	if b.ConditionalChildren != nil {
-		return b.ConditionalChildren(width, height)
-	}
-	return b.Children
-}
-
 func ArrangeViews(root *Box, x0, y0, width, height int) map[string]Dimensions {
 	children := root.getChildren(width, height)
 	if len(children) == 0 {
@@ -132,6 +114,24 @@ func ArrangeViews(root *Box, x0, y0, width, height int) map[string]Dimensions {
 	}
 
 	return result
+}
+
+func (b *Box) isStatic() bool {
+	return b.Size > 0
+}
+
+func (b *Box) getDirection(width int, height int) int {
+	if b.ConditionalDirection != nil {
+		return b.ConditionalDirection(width, height)
+	}
+	return b.Direction
+}
+
+func (b *Box) getChildren(width int, height int) []*Box {
+	if b.ConditionalChildren != nil {
+		return b.ConditionalChildren(width, height)
+	}
+	return b.Children
 }
 
 func mergeDimensionMaps(a map[string]Dimensions, b map[string]Dimensions) map[string]Dimensions {
