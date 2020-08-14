@@ -123,7 +123,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	prevMainView, err := gui.g.View("main")
 	if err == nil {
 		_, prevMainHeight := prevMainView.Size()
-		newMainHeight := viewDimensions["main"].y1 - viewDimensions["main"].y0 - 1
+		newMainHeight := viewDimensions["main"].Y1 - viewDimensions["main"].Y0 - 1
 		heightDiff := newMainHeight - prevMainHeight
 		if heightDiff > 0 {
 			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
@@ -143,10 +143,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		return g.SetView(
 			viewName,
-			dimensionsObj.x0-frameOffset,
-			dimensionsObj.y0-frameOffset,
-			dimensionsObj.x1+frameOffset,
-			dimensionsObj.y1+frameOffset,
+			dimensionsObj.X0-frameOffset,
+			dimensionsObj.Y0-frameOffset,
+			dimensionsObj.X1+frameOffset,
+			dimensionsObj.Y1+frameOffset,
 			0,
 		)
 	}
