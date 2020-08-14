@@ -1,19 +1,20 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/gui/boxlayout"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) mainSectionChildren() []*box {
+func (gui *Gui) mainSectionChildren() []*boxlayout.Box {
 	currentViewName := gui.currentViewName()
 
 	// if we're not in split mode we can just show the one main panel. Likewise if
 	// the main panel is focused and we're in full-screen mode
 	if !gui.State.SplitMainPanel || (gui.State.ScreenMode == SCREEN_FULL && currentViewName == "main") {
-		return []*box{
+		return []*boxlayout.Box{
 			{
-				viewName: "main",
-				weight:   1,
+				ViewName: "main",
+				Weight:   1,
 			},
 		}
 	}
@@ -25,14 +26,14 @@ func (gui *Gui) mainSectionChildren() []*box {
 		main, secondary = secondary, main
 	}
 
-	return []*box{
+	return []*boxlayout.Box{
 		{
-			viewName: main,
-			weight:   1,
+			ViewName: main,
+			Weight:   1,
 		},
 		{
-			viewName: secondary,
-			weight:   1,
+			ViewName: secondary,
+			Weight:   1,
 		},
 	}
 }
@@ -65,41 +66,41 @@ func (gui *Gui) getMidSectionWeights() (int, int) {
 	return sideSectionWeight, mainSectionWeight
 }
 
-func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*box {
+func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*boxlayout.Box {
 	if gui.State.Searching.isSearching {
-		return []*box{
+		return []*boxlayout.Box{
 			{
-				viewName: "searchPrefix",
-				size:     len(SEARCH_PREFIX),
+				ViewName: "searchPrefix",
+				Size:     len(SEARCH_PREFIX),
 			},
 			{
-				viewName: "search",
-				weight:   1,
+				ViewName: "search",
+				Weight:   1,
 			},
 		}
 	}
 
-	result := []*box{}
+	result := []*boxlayout.Box{}
 
 	if len(appStatus) > 0 {
 		result = append(result,
-			&box{
-				viewName: "appStatus",
-				size:     len(appStatus) + len(INFO_SECTION_PADDING),
+			&boxlayout.Box{
+				ViewName: "appStatus",
+				Size:     len(appStatus) + len(INFO_SECTION_PADDING),
 			},
 		)
 	}
 
 	result = append(result,
-		[]*box{
+		[]*boxlayout.Box{
 			{
-				viewName: "options",
-				weight:   1,
+				ViewName: "options",
+				Weight:   1,
 			},
 			{
-				viewName: "information",
+				ViewName: "information",
 				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
-				size: len(INFO_SECTION_PADDING) + len(utils.Decolorise(informationStr)),
+				Size: len(INFO_SECTION_PADDING) + len(utils.Decolorise(informationStr)),
 			},
 		}...,
 	)
@@ -107,82 +108,82 @@ func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*
 	return result
 }
 
-func (gui *Gui) getViewDimensions(informationStr string, appStatus string) map[string]dimensions {
+func (gui *Gui) getViewDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
 	width, height := gui.g.Size()
 
 	sideSectionWeight, mainSectionWeight := gui.getMidSectionWeights()
 
-	sidePanelsDirection := COLUMN
+	sidePanelsDirection := boxlayout.COLUMN
 	portraitMode := width <= 84 && height > 45
 	if portraitMode {
-		sidePanelsDirection = ROW
+		sidePanelsDirection = boxlayout.ROW
 	}
 
-	root := &box{
-		direction: ROW,
-		children: []*box{
+	root := &boxlayout.Box{
+		Direction: boxlayout.ROW,
+		Children: []*boxlayout.Box{
 			{
-				direction: sidePanelsDirection,
-				weight:    1,
-				children: []*box{
+				Direction: sidePanelsDirection,
+				Weight:    1,
+				Children: []*boxlayout.Box{
 					{
-						direction:           ROW,
-						weight:              sideSectionWeight,
-						conditionalChildren: gui.sidePanelChildren,
+						Direction:           boxlayout.ROW,
+						Weight:              sideSectionWeight,
+						ConditionalChildren: gui.sidePanelChildren,
 					},
 					{
-						conditionalDirection: func(width int, height int) int {
+						ConditionalDirection: func(width int, height int) int {
 							mainPanelSplitMode := gui.Config.GetUserConfig().GetString("gui.mainPanelSplitMode")
 
 							switch mainPanelSplitMode {
 							case "vertical":
-								return ROW
+								return boxlayout.ROW
 							case "horizontal":
-								return COLUMN
+								return boxlayout.COLUMN
 							default:
 								if width < 160 && height > 30 { // 2 80 character width panels
-									return ROW
+									return boxlayout.ROW
 								} else {
-									return COLUMN
+									return boxlayout.COLUMN
 								}
 							}
 						},
-						direction: COLUMN,
-						weight:    mainSectionWeight,
-						children:  gui.mainSectionChildren(),
+						Direction: boxlayout.COLUMN,
+						Weight:    mainSectionWeight,
+						Children:  gui.mainSectionChildren(),
 					},
 				},
 			},
 			{
-				direction: COLUMN,
-				size:      1,
-				children:  gui.infoSectionChildren(informationStr, appStatus),
+				Direction: boxlayout.COLUMN,
+				Size:      1,
+				Children:  gui.infoSectionChildren(informationStr, appStatus),
 			},
 		},
 	}
 
-	return gui.arrangeViews(root, 0, 0, width, height)
+	return boxlayout.ArrangeViews(root, 0, 0, width, height)
 }
 
-func (gui *Gui) sidePanelChildren(width int, height int) []*box {
+func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 	currentCyclableViewName := gui.currentCyclableViewName()
 
 	if gui.State.ScreenMode == SCREEN_FULL || gui.State.ScreenMode == SCREEN_HALF {
-		fullHeightBox := func(viewName string) *box {
+		fullHeightBox := func(viewName string) *boxlayout.Box {
 			if viewName == currentCyclableViewName {
-				return &box{
-					viewName: viewName,
-					weight:   1,
+				return &boxlayout.Box{
+					ViewName: viewName,
+					Weight:   1,
 				}
 			} else {
-				return &box{
-					viewName: viewName,
-					size:     0,
+				return &boxlayout.Box{
+					ViewName: viewName,
+					Size:     0,
 				}
 			}
 		}
 
-		return []*box{
+		return []*boxlayout.Box{
 			fullHeightBox("status"),
 			fullHeightBox("files"),
 			fullHeightBox("branches"),
@@ -191,26 +192,26 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*box {
 		}
 	} else if height >= 28 {
 		accordianMode := gui.Config.GetUserConfig().GetBool("gui.expandFocusedSidePanel")
-		accordianBox := func(defaultBox *box) *box {
-			if accordianMode && defaultBox.viewName == currentCyclableViewName {
-				return &box{
-					viewName: defaultBox.viewName,
-					weight:   2,
+		accordianBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
+			if accordianMode && defaultBox.ViewName == currentCyclableViewName {
+				return &boxlayout.Box{
+					ViewName: defaultBox.ViewName,
+					Weight:   2,
 				}
 			}
 
 			return defaultBox
 		}
 
-		return []*box{
+		return []*boxlayout.Box{
 			{
-				viewName: "status",
-				size:     3,
+				ViewName: "status",
+				Size:     3,
 			},
-			accordianBox(&box{viewName: "files", weight: 1}),
-			accordianBox(&box{viewName: "branches", weight: 1}),
-			accordianBox(&box{viewName: "commits", weight: 1}),
-			accordianBox(&box{viewName: "stash", size: 3}),
+			accordianBox(&boxlayout.Box{ViewName: "files", Weight: 1}),
+			accordianBox(&boxlayout.Box{ViewName: "branches", Weight: 1}),
+			accordianBox(&boxlayout.Box{ViewName: "commits", Weight: 1}),
+			accordianBox(&boxlayout.Box{ViewName: "stash", Size: 3}),
 		}
 	} else {
 		squashedHeight := 1
@@ -218,21 +219,21 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*box {
 			squashedHeight = 3
 		}
 
-		squashedSidePanelBox := func(viewName string) *box {
+		squashedSidePanelBox := func(viewName string) *boxlayout.Box {
 			if viewName == currentCyclableViewName {
-				return &box{
-					viewName: viewName,
-					weight:   1,
+				return &boxlayout.Box{
+					ViewName: viewName,
+					Weight:   1,
 				}
 			} else {
-				return &box{
-					viewName: viewName,
-					size:     squashedHeight,
+				return &boxlayout.Box{
+					ViewName: viewName,
+					Size:     squashedHeight,
 				}
 			}
 		}
 
-		return []*box{
+		return []*boxlayout.Box{
 			squashedSidePanelBox("status"),
 			squashedSidePanelBox("files"),
 			squashedSidePanelBox("branches"),
