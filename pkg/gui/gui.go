@@ -336,9 +336,6 @@ func (gui *Gui) Run() error {
 	}
 
 	popupTasks := []func(chan struct{}) error{}
-	if gui.Config.GetUserConfig().GetString("reporting") == "undetermined" {
-		popupTasks = append(popupTasks, gui.promptAnonymousReporting)
-	}
 	configPopupVersion := gui.Config.GetUserConfig().GetInt("StartupPopupVersion")
 	// -1 means we've disabled these popups
 	if configPopupVersion != -1 && configPopupVersion < StartupPopupVersion {
@@ -475,23 +472,6 @@ func (gui *Gui) showShamelessSelfPromotionMessage(done chan struct{}) error {
 		prompt:             gui.Tr.SLocalize("ShamelessSelfPromotionMessage"),
 		handleConfirm:      onConfirm,
 		handleClose:        onConfirm,
-	})
-}
-
-func (gui *Gui) promptAnonymousReporting(done chan struct{}) error {
-	return gui.ask(askOpts{
-		returnToView:       nil,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("AnonymousReportingTitle"),
-		prompt:             gui.Tr.SLocalize("AnonymousReportingPrompt"),
-		handleConfirm: func() error {
-			done <- struct{}{}
-			return gui.Config.WriteToUserConfig("reporting", "on")
-		},
-		handleClose: func() error {
-			done <- struct{}{}
-			return gui.Config.WriteToUserConfig("reporting", "off")
-		},
 	})
 }
 
