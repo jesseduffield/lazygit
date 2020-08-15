@@ -21,15 +21,14 @@ func (gui *Gui) getSelectedBranch() *commands.Branch {
 	return gui.State.Branches[selectedLine]
 }
 
-// may want to standardise how these select methods work
-func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleBranchSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView("branches"); err != nil {
 		return err
 	}
 
@@ -40,7 +39,7 @@ func (gui *Gui) handleBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoBranchesThisRepo"))
 	}
 	branch := gui.getSelectedBranch()
-	v.FocusPoint(0, gui.State.Panels.Branches.SelectedLine)
+	gui.getBranchesView().FocusPoint(0, gui.State.Panels.Branches.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()
@@ -92,7 +91,7 @@ func (gui *Gui) renderLocalBranchesWithSelection() error {
 	displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView {
-		if err := gui.handleBranchSelect(gui.g, branchesView); err != nil {
+		if err := gui.handleBranchSelect(); err != nil {
 			return gui.surfaceError(err)
 		}
 	}
@@ -516,7 +515,7 @@ func (gui *Gui) onBranchesPanelSearchSelect(selectedLine int) error {
 	switch branchesView.Context {
 	case "local-branches":
 		gui.State.Panels.Branches.SelectedLine = selectedLine
-		return gui.handleBranchSelect(gui.g, branchesView)
+		return gui.handleBranchSelect()
 	case "remotes":
 		gui.State.Panels.Remotes.SelectedLine = selectedLine
 		return gui.handleRemoteSelect(gui.g, branchesView)
