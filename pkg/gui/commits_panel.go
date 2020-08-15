@@ -715,19 +715,6 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 	return gui.createResetMenu(commit.Sha)
 }
 
-func (gui *Gui) onCommitsPanelSearchSelect(selectedLine int) error {
-	commitsView := gui.getCommitsView()
-	switch commitsView.Context {
-	case "branch-commits":
-		gui.State.Panels.Commits.SelectedLine = selectedLine
-		return gui.handleCommitSelect()
-	case "reflog-commits":
-		gui.State.Panels.ReflogCommits.SelectedLine = selectedLine
-		return gui.handleReflogCommitSelect()
-	}
-	return nil
-}
-
 func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
