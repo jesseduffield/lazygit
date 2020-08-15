@@ -1,10 +1,10 @@
 # Lazygit Sneltoetsen
 
-## Global
+## Globaale Sneltoetsen
 
 <pre>
-  <kbd>pgup</kbd>: scroll omhoog naar hooft paneel (fn+up)
-  <kbd>pgdown</kbd>: scroll beneden naar hooft paneel (fn+down)
+  <kbd>pgup</kbd>: scroll naar beneden vanaf hooft paneel (fn+up)
+  <kbd>pgdown</kbd>: scroll naar beneden vabaf hooft paneel (fn+down)
   <kbd>m</kbd>: bekijk merge/rebase opties
   <kbd>ctrl+p</kbd>: bekijk aangepaste patch opties
   <kbd>P</kbd>: push
@@ -16,8 +16,8 @@
   <kbd>+</kbd>: volgende schermmode (normaal/half/groot )
   <kbd>_</kbd>: vorige schermmode
   <kbd>:</kbd>: voor aangepast commando uit
-  <kbd>|</kbd>: view scoping options
-  <kbd>ctrl+e</kbd>: open diff menu
+  <kbd>|</kbd>: bekijk scoping opties
+  <kbd>∂</kbd>: open diff menu
 </pre>
 
 ## Branches Paneel
@@ -37,64 +37,64 @@
   <kbd>n</kbd>: nieuwe branch
   <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
-  <kbd>M</kbd>: merge in met huidige uitgecheckte branch
+  <kbd>M</kbd>: merge in met huidige checked out branch
   <kbd>i</kbd>: laat git-flow opties zien
-  <kbd>f</kbd>: fast-forward deze branch van zijn upstream
+  <kbd>f</kbd>: fast-forward deze branch vanaf zijn upstream
   <kbd>g</kbd>: bekijk reset opties
   <kbd>R</kbd>: hernoem branch
-  <kbd>ctrl+o</kbd>: copieer branch name clipboard
+  <kbd>ctrl+o</kbd>: copieer branch name naar clipboard
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Branches Paneel (Remote Branches (in Remotes tab))
 
 <pre>
-  <kbd>esc</kbd>: ga terug naar remotes lijst
+  <kbd>esc</kbd>: Ga terug naar remotes lijst
   <kbd>g</kbd>: bekijk reset opties
   <kbd>space</kbd>: uitchecken
   <kbd>n</kbd>: nieuwe branch
-  <kbd>M</kbd>: merge in met huidige uitgecheckte branch
+  <kbd>M</kbd>: merge in met huidige checked out branch
   <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
-  <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>u</kbd>: stel in als upstream van uitgecheckte branch
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Branches Paneel (Remotes Tab)
 
 <pre>
-  <kbd>f</kbd>: remote ophalen
-  <kbd>n</kbd>: nieuwe remote toevoegen
+  <kbd>f</kbd>: fetch remote
+  <kbd>n</kbd>: voeg een nieuwe remote toe
   <kbd>d</kbd>: verwijder remote
   <kbd>e</kbd>: wijzig remote
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Branches Paneel (Tags Tab)
 
 <pre>
   <kbd>space</kbd>: uitchecken
-  <kbd>d</kbd>: verwijdert tag
+  <kbd>d</kbd>: verwijder tag
   <kbd>P</kbd>: push tag
-  <kbd>n</kbd>: nieuwe tag
+  <kbd>n</kbd>: creëer tag
   <kbd>g</kbd>: bekijk reset opties
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Commit bestanden Paneel
@@ -102,16 +102,16 @@
 <pre>
   <kbd>esc</kbd>: ga terug
   <kbd>c</kbd>: bestand uitchecken
-  <kbd>d</kbd>: uitsluit deze commit zijn wijzigingen aan dit bestand
+  <kbd>d</kbd>: uitsluit deze commit zijn veranderingen aan dit bestand
   <kbd>o</kbd>: open bestand
   <kbd>e</kbd>: verander bestand
-  <kbd>space</kbd>: wissel bestand opgenomen in patch
-  <kbd>enter</kbd>: open bestand om specifieke lijnen toe te voegen aan patch
+  <kbd>space</kbd>: toggle bestand inbegrepen in patch
+  <kbd>enter</kbd>: enter bestand to add selecteered lines to the patch
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Commits Paneel
@@ -132,14 +132,14 @@
   <kbd>F</kbd>: creëer fixup commit voor deze commit
   <kbd>S</kbd>: squash bovenstaande commits
   <kbd>d</kbd>: verwijder commit
-  <kbd>ctrl+j</kbd>: verplaats commit 1 omlaag
-  <kbd>ctrl+k</kbd>: verplaats commit 1 omhoog
-  <kbd>e</kbd>: verander commit
-  <kbd>A</kbd>: wijzig commit met staged wijzigingen
-  <kbd>p</kbd>: pick commit (wanneer midden in rebase)
-  <kbd>t</kbd>: commit omgedaan maken
+  <kbd>ctrl+j</kbd>: verplaats commit 1 naar beneden
+  <kbd>ctrl+k</kbd>: verplaats commit 1 naar boven
+  <kbd>e</kbd>: wijzig commit
+  <kbd>A</kbd>: wijzig commit met staged veranderingen
+  <kbd>p</kbd>: kies commit (wanneer midden in rebase)
+  <kbd>t</kbd>: commit ongedaan maken
   <kbd>c</kbd>: kopiëer commit (cherry-pick)
-  <kbd>ctrl+o</kbd>: kopiëer commit SHA naar clipboard
+  <kbd>ctrl+o</kbd>: copieer commit SHA naar clipboard
   <kbd>C</kbd>: kopiëer commit reeks (cherry-pick)
   <kbd>v</kbd>: plak commits (cherry-pick)
   <kbd>enter</kbd>: bekijk gecommite bestanden
@@ -148,9 +148,9 @@
   <kbd>ctrl+r</kbd>: reset cherry-picked (gecopieerde) commits selectie
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Commits Paneel (Reflog Tab)
@@ -160,44 +160,44 @@
   <kbd>g</kbd>: bekijk reset opties
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Bestanden Paneel
 
 <pre>
-  <kbd>c</kbd>: commit wijzigingen
-  <kbd>w</kbd>: commit wijzigingen zonder pre-commit hook
+  <kbd>c</kbd>: Commit veranderingen
+  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
   <kbd>A</kbd>: wijzig laatste commit
-  <kbd>C</kbd>: commit wijzigingen met de git editor
-  <kbd>space</kbd>: wissel staged
-  <kbd>d</kbd>: bekijk 'wijzigingen ongedaan maken' opties
+  <kbd>C</kbd>: commit veranderingen met de git editor
+  <kbd>space</kbd>: toggle staged
+  <kbd>d</kbd>: bekijk 'veranderingen ongedaan maken' opties
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
   <kbd>i</kbd>: voeg toe aan .gitignore
-  <kbd>r</kbd>: bestanden vernieuwen
+  <kbd>r</kbd>: refresh bestanden
   <kbd>s</kbd>: stash-bestanden
   <kbd>S</kbd>: bekijk stash opties
-  <kbd>a</kbd>: wissel staged alle
+  <kbd>a</kbd>: toggle staged alle
   <kbd>D</kbd>: bekijk reset opties
   <kbd>enter</kbd>: stage individuele hunks/lijnen
   <kbd>f</kbd>: fetch
-  <kbd>g</kbd>: bekijk upstream reset optie
+  <kbd>g</kbd>: bekijk upstream reset opties
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
-## Hoofd Paneel (Merging)
+## Hooft Paneel (Merggen)
 
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
-  <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick beide hunks
+  <kbd>space</kbd>: kies hunk
+  <kbd>b</kbd>: kies bijde hunks
   <kbd>◄</kbd>: selecteer voorgaand conflict
   <kbd>►</kbd>: selecteer volgende conflict
   <kbd>▲</kbd>: selecteer bovenste hunk
@@ -205,46 +205,48 @@
   <kbd>z</kbd>: ongedaan maken
 </pre>
 
-## Hoofd Paneel (Normaal)
+## Hooft Paneel (Normaal)
 
 <pre>
   <kbd>￣</kbd>: scroll omlaag (fn+up)
   <kbd>￤</kbd>: scroll omhoog (fn+down)
 </pre>
 
-## Hoofd Paneel (Patch Building)
+## Hooft Paneel (Patch Bouwen)
 
 <pre>
   <kbd>esc</kbd>: sluit lijn-bij-lijn mode
+  <kbd>o</kbd>: open bestand
   <kbd>▲</kbd>: selecteer de vorige lijn
   <kbd>▼</kbd>: selecteer de volgende lijn
   <kbd>◄</kbd>: selecteer de vorige hunk
   <kbd>►</kbd>: selecteer de volgende hunk
-  <kbd>space</kbd>: voeg toe/verwijdert lijn(en) in patch
-  <kbd>v</kbd>: wissel drag selectie
-  <kbd>V</kbd>: wissel drag selectie
-  <kbd>a</kbd>: wissel selectie hunk
+  <kbd>space</kbd>: voeg toe/verwijder lijn(en) in patch
+  <kbd>v</kbd>: toggle drag  selecteer
+  <kbd>V</kbd>: toggle drag  selecteer
+  <kbd>a</kbd>: toggle  selecteer hunk
 </pre>
 
-## Hoofd Paneel (Stage Lines/Hunks)
+## Hooft Paneel (Staging)
 
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
-  <kbd>space</kbd>: wissel lijn staged / unstaged
-  <kbd>d</kbd>: verwijdert wijziging (git reset)
-  <kbd>tab</kbd>: ga naar ander paneel
+  <kbd>space</kbd>: toggle lijnen staged / unstaged
+  <kbd>d</kbd>: verwijdert change (git reset)
+  <kbd>tab</kbd>: ga naar een ander paneel
+  <kbd>o</kbd>: open bestand
   <kbd>▲</kbd>: selecteer de vorige lijn
   <kbd>▼</kbd>: selecteer de volgende lijn
   <kbd>◄</kbd>: selecteer de vorige hunk
   <kbd>►</kbd>: selecteer de volgende hunk
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
-  <kbd>v</kbd>: wissel drag selectie
-  <kbd>V</kbd>: wissel drag selectie
-  <kbd>a</kbd>: wissel selectie hunk
-  <kbd>c</kbd>: commit wijzigingen
-  <kbd>w</kbd>: commit wijzigingen zonder pre-commit hook
-  <kbd>C</kbd>: commit wijzigingen met de git editor
+  <kbd>v</kbd>: toggle drag  selecteer
+  <kbd>V</kbd>: toggle drag  selecteer
+  <kbd>a</kbd>: toggle  selecteer hunk
+  <kbd>c</kbd>: Commit veranderingen
+  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
+  <kbd>C</kbd>: commit veranderingen met de git editor
 </pre>
 
 ## Menu Paneel
@@ -253,9 +255,9 @@
   <kbd>esc</kbd>: sluit menu
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll to top
-  <kbd>/</kbd>: start search
-  <kbd>></kbd>: scroll to bottom
+  <kbd><</kbd>: scroll naar boven
+  <kbd>/</kbd>: start met zoekken
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Stash Paneel
@@ -263,18 +265,18 @@
 <pre>
   <kbd>space</kbd>: toepassen
   <kbd>g</kbd>: pop
-  <kbd>d</kbd>: drop
+  <kbd>d</kbd>: laten vallen
   <kbd>,</kbd>: vorige pagina
   <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar bovenkant
+  <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar bodem
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Status Paneel
 
 <pre>
-  <kbd>e</kbd>: verander config file
+  <kbd>e</kbd>: verander config bestand
   <kbd>o</kbd>: open config bestand
   <kbd>u</kbd>: check voor updates
   <kbd>enter</kbd>: wissel naar een recente repo

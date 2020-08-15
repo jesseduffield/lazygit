@@ -17,7 +17,7 @@
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
   <kbd>|</kbd>: view scoping options
-  <kbd>ctrl+e</kbd>: open diff menu
+  <kbd>∂</kbd>: open diff menu
 </pre>
 
 ## Branches Panel
@@ -53,7 +53,7 @@
 ## Branches Panel (Remote Branches (in Remotes tab))
 
 <pre>
-  <kbd>esc</kbd>: return to remotes list
+  <kbd>esc</kbd>: Return to remotes list
   <kbd>g</kbd>: view reset options
   <kbd>space</kbd>: checkout
   <kbd>n</kbd>: new branch
@@ -216,6 +216,7 @@
 
 <pre>
   <kbd>esc</kbd>: exit line-by-line mode
+  <kbd>o</kbd>: open file
   <kbd>▲</kbd>: select previous line
   <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
@@ -233,6 +234,7 @@
   <kbd>space</kbd>: toggle line staged / unstaged
   <kbd>d</kbd>: delete change (git reset)
   <kbd>tab</kbd>: switch to other panel
+  <kbd>o</kbd>: open file
   <kbd>▲</kbd>: select previous line
   <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
