@@ -16,8 +16,8 @@ type menuItem struct {
 
 // list panel functions
 
-func (gui *Gui) handleMenuSelect(g *gocui.Gui, v *gocui.View) error {
-	v.FocusPoint(0, gui.State.Panels.Menu.SelectedLine)
+func (gui *Gui) handleMenuSelect() error {
+	gui.getMenuView().FocusPoint(0, gui.State.Panels.Menu.SelectedLine)
 	return nil
 }
 
