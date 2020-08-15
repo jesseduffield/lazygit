@@ -223,7 +223,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "status":
 		return gui.handleStatusSelect()
 	case "files":
-		return gui.focusAndSelectFile(g, v)
+		return gui.focusAndSelectFile()
 	case "branches":
 		branchesView := gui.getBranchesView()
 		switch branchesView.Context {

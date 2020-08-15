@@ -216,7 +216,7 @@ func (gui *Gui) allFilesStaged() bool {
 	return true
 }
 
-func (gui *Gui) focusAndSelectFile(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) focusAndSelectFile() error {
 	if _, err := gui.g.SetCurrentView("files"); err != nil {
 		return err
 	}
@@ -655,5 +655,5 @@ func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) err
 
 func (gui *Gui) onFilesPanelSearchSelect(selectedLine int) error {
 	gui.State.Panels.Files.SelectedLine = selectedLine
-	return gui.focusAndSelectFile(gui.g, gui.getFilesView())
+	return gui.focusAndSelectFile()
 }
