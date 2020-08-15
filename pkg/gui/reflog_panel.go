@@ -18,14 +18,14 @@ func (gui *Gui) getSelectedReflogCommit() *commands.Commit {
 	return reflogComits[selectedLine]
 }
 
-func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleReflogCommitSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView("commits"); err != nil {
 		return err
 	}
 
@@ -35,7 +35,7 @@ func (gui *Gui) handleReflogCommitSelect(g *gocui.Gui, v *gocui.View) error {
 	if commit == nil {
 		return gui.newStringTask("main", "No reflog history")
 	}
-	v.FocusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine)
+	gui.getCommitsView().FocusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()
@@ -107,7 +107,7 @@ func (gui *Gui) renderReflogCommitsWithSelection() error {
 	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "reflog-commits" {
-		if err := gui.handleReflogCommitSelect(gui.g, commitsView); err != nil {
+		if err := gui.handleReflogCommitSelect(); err != nil {
 			return err
 		}
 	}

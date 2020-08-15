@@ -60,8 +60,8 @@ func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchFocus(nil, gui.getFilesView())
 }
 
-func (gui *Gui) handleCredentialsViewFocused(g *gocui.Gui, v *gocui.View) error {
-	if _, err := g.SetViewOnTop("credentials"); err != nil {
+func (gui *Gui) handleCredentialsViewFocused() error {
+	if _, err := gui.g.SetViewOnTop("credentials"); err != nil {
 		return err
 	}
 

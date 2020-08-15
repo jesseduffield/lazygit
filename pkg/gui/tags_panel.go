@@ -17,14 +17,14 @@ func (gui *Gui) getSelectedTag() *commands.Tag {
 	return gui.State.Tags[selectedLine]
 }
 
-func (gui *Gui) handleTagSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleTagSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView("branches"); err != nil {
 		return err
 	}
 
@@ -34,7 +34,7 @@ func (gui *Gui) handleTagSelect(g *gocui.Gui, v *gocui.View) error {
 	if tag == nil {
 		return gui.newStringTask("main", "No tags")
 	}
-	v.FocusPoint(0, gui.State.Panels.Tags.SelectedLine)
+	gui.getBranchesView().FocusPoint(0, gui.State.Panels.Tags.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()
@@ -72,7 +72,7 @@ func (gui *Gui) renderTagsWithSelection() error {
 	displayStrings := presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
-		if err := gui.handleTagSelect(gui.g, branchesView); err != nil {
+		if err := gui.handleTagSelect(); err != nil {
 			return gui.surfaceError(err)
 		}
 	}

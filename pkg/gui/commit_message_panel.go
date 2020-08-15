@@ -56,8 +56,8 @@ func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchFocus(v, gui.getFilesView())
 }
 
-func (gui *Gui) handleCommitFocused(g *gocui.Gui, v *gocui.View) error {
-	if _, err := g.SetViewOnTop("commitMessage"); err != nil {
+func (gui *Gui) handleCommitFocused() error {
+	if _, err := gui.g.SetViewOnTop("commitMessage"); err != nil {
 		return err
 	}
 

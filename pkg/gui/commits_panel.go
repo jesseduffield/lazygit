@@ -21,7 +21,7 @@ func (gui *Gui) getSelectedCommit() *commands.Commit {
 	return gui.State.Commits[selectedLine]
 }
 
-func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
@@ -31,7 +31,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView("commits"); err != nil {
 		return err
 	}
 
@@ -54,7 +54,7 @@ func (gui *Gui) handleCommitSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 
-	v.FocusPoint(0, gui.State.Panels.Commits.SelectedLine)
+	gui.getCommitsView().FocusPoint(0, gui.State.Panels.Commits.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()
@@ -637,7 +637,7 @@ func (gui *Gui) renderBranchCommitsWithSelection() error {
 	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsView, displayStrings)
 	if gui.g.CurrentView() == commitsView && commitsView.Context == "branch-commits" {
-		if err := gui.handleCommitSelect(gui.g, commitsView); err != nil {
+		if err := gui.handleCommitSelect(); err != nil {
 			return err
 		}
 	}
@@ -709,10 +709,10 @@ func (gui *Gui) onCommitsPanelSearchSelect(selectedLine int) error {
 	switch commitsView.Context {
 	case "branch-commits":
 		gui.State.Panels.Commits.SelectedLine = selectedLine
-		return gui.handleCommitSelect(gui.g, commitsView)
+		return gui.handleCommitSelect()
 	case "reflog-commits":
 		gui.State.Panels.ReflogCommits.SelectedLine = selectedLine
-		return gui.handleReflogCommitSelect(gui.g, commitsView)
+		return gui.handleReflogCommitSelect()
 	}
 	return nil
 }
