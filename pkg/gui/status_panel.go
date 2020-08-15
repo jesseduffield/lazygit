@@ -70,14 +70,14 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 	case "rebasing", "merging":
 		workingTreeStatus := fmt.Sprintf("(%s)", gui.GitCommand.WorkingTreeState())
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
-			return gui.handleCreateRebaseOptionsMenu(gui.g, v)
+			return gui.handleCreateRebaseOptionsMenu()
 		}
 		if cursorInSubstring(cx, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
-			return gui.handleCreateRecentReposMenu(gui.g, v)
+			return gui.handleCreateRecentReposMenu()
 		}
 	default:
 		if cursorInSubstring(cx, upstreamStatus+" ", repoName) {
-			return gui.handleCreateRecentReposMenu(gui.g, v)
+			return gui.handleCreateRecentReposMenu()
 		}
 	}
 

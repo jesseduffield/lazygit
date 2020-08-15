@@ -26,12 +26,12 @@ func (gui *Gui) recordCurrentDirectory() error {
 
 func (gui *Gui) handleQuitWithoutChangingDirectory(g *gocui.Gui, v *gocui.View) error {
 	gui.State.RetainOriginalDir = true
-	return gui.quit(v)
+	return gui.quit()
 }
 
-func (gui *Gui) handleQuit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleQuit() error {
 	gui.State.RetainOriginalDir = false
-	return gui.quit(v)
+	return gui.quit()
 }
 
 func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
@@ -43,20 +43,20 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {
-		return gui.handleQuit(g, v)
+		return gui.handleQuit()
 	}
 
 	return nil
 }
 
-func (gui *Gui) quit(v *gocui.View) error {
+func (gui *Gui) quit() error {
 	if gui.State.Updating {
-		return gui.createUpdateQuitConfirmation(gui.g, v)
+		return gui.createUpdateQuitConfirmation()
 	}
 
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
 		return gui.ask(askOpts{
-			returnToView:       v,
+			returnToView:       gui.g.CurrentView(),
 			returnFocusOnClose: true,
 			title:              "",
 			prompt:             gui.Tr.SLocalize("ConfirmQuit"),

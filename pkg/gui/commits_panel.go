@@ -512,7 +512,7 @@ func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleSwitchToCommitFilesPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleSwitchToCommitFilesPanel() error {
 	if err := gui.refreshCommitFilesView(); err != nil {
 		return err
 	}

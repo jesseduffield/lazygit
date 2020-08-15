@@ -277,10 +277,10 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 }
 
 func (gui *Gui) handleDeleteBranch(g *gocui.Gui, v *gocui.View) error {
-	return gui.deleteBranch(g, v, false)
+	return gui.deleteBranch(false)
 }
 
-func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
+func (gui *Gui) deleteBranch(force bool) error {
 	selectedBranch := gui.getSelectedBranch()
 	if selectedBranch == nil {
 		return nil
@@ -289,10 +289,10 @@ func (gui *Gui) deleteBranch(g *gocui.Gui, v *gocui.View, force bool) error {
 	if checkedOutBranch.Name == selectedBranch.Name {
 		return gui.createErrorPanel(gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
 	}
-	return gui.deleteNamedBranch(g, v, selectedBranch, force)
+	return gui.deleteNamedBranch(selectedBranch, force)
 }
 
-func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *commands.Branch, force bool) error {
+func (gui *Gui) deleteNamedBranch(selectedBranch *commands.Branch, force bool) error {
 	title := gui.Tr.SLocalize("DeleteBranch")
 	var messageID string
 	if force {
@@ -308,7 +308,7 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 	)
 
 	return gui.ask(askOpts{
-		returnToView:       v,
+		returnToView:       gui.getBranchesView(),
 		returnFocusOnClose: true,
 		title:              title,
 		prompt:             message,
@@ -316,7 +316,7 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 			if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "is not fully merged") {
-					return gui.deleteNamedBranch(g, v, selectedBranch, true)
+					return gui.deleteNamedBranch(selectedBranch, true)
 				}
 				return gui.createErrorPanel(errMessage)
 			}

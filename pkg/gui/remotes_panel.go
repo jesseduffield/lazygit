@@ -96,7 +96,7 @@ func (gui *Gui) renderRemotesWithSelection() error {
 	return nil
 }
 
-func (gui *Gui) handleRemoteEnter(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRemoteEnter() error {
 	// naive implementation: get the branches and render them to the list, change the context
 	remote := gui.getSelectedRemote()
 	if remote == nil {
