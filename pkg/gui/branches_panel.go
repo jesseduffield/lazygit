@@ -518,7 +518,7 @@ func (gui *Gui) onBranchesPanelSearchSelect(selectedLine int) error {
 		return gui.handleBranchSelect()
 	case "remotes":
 		gui.State.Panels.Remotes.SelectedLine = selectedLine
-		return gui.handleRemoteSelect(gui.g, branchesView)
+		return gui.handleRemoteSelect()
 	case "remote-branches":
 		gui.State.Panels.RemoteBranches.SelectedLine = selectedLine
 		return gui.handleRemoteBranchSelect(gui.g, branchesView)
