@@ -77,7 +77,7 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 
 	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("DiscardFileChangesTitle"),
@@ -167,7 +167,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
-		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		return gui.ask(askOpts{
 			returnToView:       v,
 			returnFocusOnClose: true,
 			title:              gui.Tr.SLocalize("DiscardPatch"),
@@ -231,7 +231,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 	}
 
 	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
-		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		return gui.ask(askOpts{
 			returnToView:       gui.getCommitFilesView(),
 			returnFocusOnClose: false,
 			title:              gui.Tr.SLocalize("DiscardPatch"),

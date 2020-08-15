@@ -166,7 +166,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 	dirtyWorkingTree := len(gui.trackedFiles()) > 0
 	if dirtyWorkingTree {
 		// offer to autostash changes
-		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		return gui.ask(askOpts{
 			returnToView:       gui.getBranchesView(),
 			returnFocusOnClose: true,
 			title:              gui.Tr.SLocalize("AutoStashTitle"),

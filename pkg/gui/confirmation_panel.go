@@ -27,7 +27,7 @@ type createPopupPanelOpts struct {
 	handleClose         func() error
 }
 
-type createConfirmationPanelOpts struct {
+type askOpts struct {
 	returnToView       *gocui.View
 	returnFocusOnClose bool
 	title              string
@@ -45,7 +45,7 @@ func (gui *Gui) createLoaderPanel(currentView *gocui.View, prompt string) error 
 	})
 }
 
-func (gui *Gui) createConfirmationPanel(opts createConfirmationPanelOpts) error {
+func (gui *Gui) ask(opts askOpts) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
 		returnToView:       opts.returnToView,
 		title:              opts.title,
@@ -56,7 +56,7 @@ func (gui *Gui) createConfirmationPanel(opts createConfirmationPanelOpts) error 
 	})
 }
 
-func (gui *Gui) createPromptPanel(currentView *gocui.View, title string, initialContent string, handleConfirm func(string) error) error {
+func (gui *Gui) prompt(currentView *gocui.View, title string, initialContent string, handleConfirm func(string) error) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
 		returnToView:        currentView,
 		title:               title,
@@ -236,7 +236,7 @@ func (gui *Gui) createErrorPanel(message string) error {
 		return err
 	}
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       gui.g.CurrentView(),
 		title:              gui.Tr.SLocalize("Error"),
 		prompt:             coloredMessage,

@@ -104,7 +104,7 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("DeleteTagTitle"),
@@ -131,7 +131,7 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.createPromptPanel(v, title, "origin", func(response string) error {
+	return gui.prompt(v, title, "origin", func(response string) error {
 		if err := gui.GitCommand.PushTag(response, tag.Name); err != nil {
 			return gui.surfaceError(err)
 		}
@@ -140,7 +140,7 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
-	return gui.createPromptPanel(v, gui.Tr.SLocalize("CreateTagTitle"), "", func(tagName string) error {
+	return gui.prompt(v, gui.Tr.SLocalize("CreateTagTitle"), "", func(tagName string) error {
 		// leaving commit SHA blank so that we're just creating the tag for the current commit
 		if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
 			return gui.surfaceError(err)

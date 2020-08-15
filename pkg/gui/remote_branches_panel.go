@@ -95,7 +95,7 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	}
 	message := fmt.Sprintf("%s '%s'?", gui.Tr.SLocalize("DeleteRemoteBranchMessage"), remoteBranch.FullName())
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("DeleteRemoteBranch"),
@@ -129,7 +129,7 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("SetUpstreamTitle"),
@@ -164,7 +164,7 @@ func (gui *Gui) handleNewBranchOffRemote(g *gocui.Gui, v *gocui.View) error {
 			"branchName": branch.FullName(),
 		},
 	)
-	return gui.createPromptPanel(v, message, branch.FullName(), func(response string) error {
+	return gui.prompt(v, message, branch.FullName(), func(response string) error {
 		if err := gui.GitCommand.NewBranch(response, branch.FullName()); err != nil {
 			return gui.surfaceError(err)
 		}

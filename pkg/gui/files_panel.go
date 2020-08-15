@@ -249,7 +249,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if file.Tracked {
-		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		return gui.ask(askOpts{
 			returnToView:       gui.g.CurrentView(),
 			returnFocusOnClose: true,
 			title:              gui.Tr.SLocalize("IgnoreTracked"),
@@ -325,7 +325,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 }
 
 func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       gui.getFilesView(),
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("NoFilesStagedTitle"),
@@ -354,7 +354,7 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoCommitToAmend"))
 	}
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       filesView,
 		returnFocusOnClose: true,
 		title:              strings.Title(gui.Tr.SLocalize("AmendLastCommit")),
@@ -461,7 +461,7 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		return gui.createPromptPanel(v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(upstream string) error {
+		return gui.prompt(v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(upstream string) error {
 			if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
 				errorMessage := err.Error()
 				if strings.Contains(errorMessage, "does not exist") {
@@ -529,7 +529,7 @@ func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstr
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
-			gui.createConfirmationPanel(createConfirmationPanelOpts{
+			gui.ask(askOpts{
 				returnToView:       v,
 				returnFocusOnClose: true,
 				title:              gui.Tr.SLocalize("ForcePush"),
@@ -566,7 +566,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		if gui.GitCommand.PushToCurrent {
 			return gui.pushWithForceFlag(g, v, false, "", "--set-upstream")
 		} else {
-			return gui.createPromptPanel(v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(response string) error {
+			return gui.prompt(v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(response string) error {
 				return gui.pushWithForceFlag(g, v, false, response, "")
 			})
 		}
@@ -574,7 +574,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		return gui.pushWithForceFlag(g, v, false, "", "")
 	}
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("ForcePush"),
@@ -620,7 +620,7 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
-	return gui.createPromptPanel(v, gui.Tr.SLocalize("CustomCommand"), "", func(command string) error {
+	return gui.prompt(v, gui.Tr.SLocalize("CustomCommand"), "", func(command string) error {
 		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
 		return gui.Errors.ErrSubProcess
 	})

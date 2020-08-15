@@ -114,7 +114,7 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if !gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
-		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		return gui.ask(askOpts{
 			returnToView:       gui.getMainView(),
 			returnFocusOnClose: false,
 			title:              gui.Tr.SLocalize("UnstageLinesTitle"),

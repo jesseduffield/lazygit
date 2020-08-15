@@ -6,7 +6,7 @@ func (gui *Gui) inFilterMode() bool {
 
 func (gui *Gui) validateNotInFilterMode() (bool, error) {
 	if gui.inFilterMode() {
-		err := gui.createConfirmationPanel(createConfirmationPanelOpts{
+		err := gui.ask(askOpts{
 			returnToView:       gui.g.CurrentView(),
 			returnFocusOnClose: true,
 			title:              gui.Tr.SLocalize("MustExitFilterModeTitle"),
