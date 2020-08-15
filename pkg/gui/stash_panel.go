@@ -69,7 +69,7 @@ func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
 	skipStashWarning := gui.Config.GetUserConfig().GetBool("gui.skipStashWarning")
 
 	apply := func() error {
-		return gui.stashDo(g, v, "apply")
+		return gui.stashDo("apply")
 	}
 
 	if skipStashWarning {
@@ -91,7 +91,7 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 	skipStashWarning := gui.Config.GetUserConfig().GetBool("gui.skipStashWarning")
 
 	pop := func() error {
-		return gui.stashDo(g, v, "pop")
+		return gui.stashDo("pop")
 	}
 
 	if skipStashWarning {
@@ -116,12 +116,12 @@ func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 		title:              gui.Tr.SLocalize("StashDrop"),
 		prompt:             gui.Tr.SLocalize("SureDropStashEntry"),
 		handleConfirm: func() error {
-			return gui.stashDo(g, v, "drop")
+			return gui.stashDo("drop")
 		},
 	})
 }
 
-func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
+func (gui *Gui) stashDo(method string) error {
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
 		errorMessage := gui.Tr.TemplateLocalize(

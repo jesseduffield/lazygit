@@ -393,7 +393,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if you download humanlog and do tail -f development.log | humanlog
 	// this will let you see these branches as prettified json
 	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
-	return gui.resizeCurrentPopupPanel(g)
+	return gui.resizeCurrentPopupPanel()
 }
 
 func (gui *Gui) onInitialViewsCreation() error {

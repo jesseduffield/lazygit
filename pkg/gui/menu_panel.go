@@ -42,7 +42,7 @@ func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	return gui.returnFocus(g, v)
+	return gui.returnFocus(v)
 }
 
 type createMenuOptions struct {
@@ -73,7 +73,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 
 	list := utils.RenderDisplayStrings(stringArrays)
 
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, false, list)
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(false, list)
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
 	menuView.Title = title
 	menuView.FgColor = theme.GocuiDefaultTextColor
@@ -99,7 +99,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 			}
 		}
 
-		return gui.returnFocus(gui.g, menuView)
+		return gui.returnFocus(menuView)
 	}
 
 	gui.State.Panels.Menu.OnPress = wrappedHandlePress

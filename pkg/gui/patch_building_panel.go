@@ -7,7 +7,7 @@ import (
 
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	if !gui.GitCommand.PatchManager.CommitSelected() {
-		return gui.handleEscapePatchBuildingPanel(gui.g, nil)
+		return gui.handleEscapePatchBuildingPanel()
 	}
 
 	gui.State.SplitMainPanel = true
@@ -38,7 +38,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	}
 
 	if empty {
-		return gui.handleEscapePatchBuildingPanel(gui.g, nil)
+		return gui.handleEscapePatchBuildingPanel()
 	}
 
 	return nil
@@ -75,7 +75,7 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 	return nil
 }
 
-func (gui *Gui) handleEscapePatchBuildingPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEscapePatchBuildingPanel() error {
 	gui.handleEscapeLineByLinePanel()
 
 	if gui.GitCommand.PatchManager.IsEmpty() {

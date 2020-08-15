@@ -202,7 +202,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName: "",
 			Key:      gui.getKey("universal.quit"),
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleQuit,
+			Handler:  gui.wrappedHandler(gui.handleQuit),
 		},
 		{
 			ViewName: "",
@@ -214,7 +214,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName: "",
 			Key:      gui.getKey("universal.quit-alt1"),
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleQuit,
+			Handler:  gui.wrappedHandler(gui.handleQuit),
 		},
 		{
 			ViewName: "",
@@ -263,7 +263,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "",
 			Key:         gui.getKey("universal.createRebaseOptionsMenu"),
-			Handler:     gui.handleCreateRebaseOptionsMenu,
+			Handler:     gui.wrappedHandler(gui.handleCreateRebaseOptionsMenu),
 			Description: gui.Tr.SLocalize("ViewMergeRebaseOptions"),
 		},
 		{
@@ -353,13 +353,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "status",
 			Key:         gui.getKey("status.recentRepos"),
-			Handler:     gui.handleCreateRecentReposMenu,
+			Handler:     gui.wrappedHandler(gui.handleCreateRecentReposMenu),
 			Description: gui.Tr.SLocalize("SwitchRepo"),
 		},
 		{
 			ViewName:    "files",
 			Key:         gui.getKey("files.commitChanges"),
-			Handler:     gui.handleCommitPress,
+			Handler:     gui.wrappedHandler(gui.handleCommitPress),
 			Description: gui.Tr.SLocalize("CommitChanges"),
 		},
 		{
@@ -371,19 +371,19 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "files",
 			Key:         gui.getKey("files.amendLastCommit"),
-			Handler:     gui.handleAmendCommitPress,
+			Handler:     gui.wrappedHandler(gui.handleAmendCommitPress),
 			Description: gui.Tr.SLocalize("AmendLastCommit"),
 		},
 		{
 			ViewName:    "files",
 			Key:         gui.getKey("files.commitChangesWithEditor"),
-			Handler:     gui.handleCommitEditorPress,
+			Handler:     gui.wrappedHandler(gui.handleCommitEditorPress),
 			Description: gui.Tr.SLocalize("CommitChangesWithEditor"),
 		},
 		{
 			ViewName:    "files",
 			Key:         gui.getKey("universal.select"),
-			Handler:     gui.handleFilePress,
+			Handler:     gui.wrappedHandler(gui.handleFilePress),
 			Description: gui.Tr.SLocalize("toggleStaged"),
 		},
 		{
@@ -765,7 +765,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("universal.goInto"),
-			Handler:     gui.handleSwitchToCommitFilesPanel,
+			Handler:     gui.wrappedHandler(gui.handleSwitchToCommitFilesPanel),
 			Description: gui.Tr.SLocalize("viewCommitFiles"),
 		},
 		{
@@ -964,7 +964,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{"staging"},
 			Key:         gui.getKey("universal.return"),
-			Handler:     gui.handleStagingEscape,
+			Handler:     gui.wrappedHandler(gui.handleStagingEscape),
 			Description: gui.Tr.SLocalize("ReturnToFilesPanel"),
 		},
 		{
@@ -992,7 +992,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{"patch-building"},
 			Key:         gui.getKey("universal.return"),
-			Handler:     gui.handleEscapePatchBuildingPanel,
+			Handler:     gui.wrappedHandler(gui.handleEscapePatchBuildingPanel),
 			Description: gui.Tr.SLocalize("ExitLineByLineMode"),
 		},
 		{
@@ -1147,7 +1147,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{"staging"},
 			Key:         gui.getKey("files.commitChanges"),
-			Handler:     gui.handleCommitPress,
+			Handler:     gui.wrappedHandler(gui.handleCommitPress),
 			Description: gui.Tr.SLocalize("CommitChanges"),
 		},
 		{
@@ -1161,14 +1161,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{"staging"},
 			Key:         gui.getKey("files.commitChangesWithEditor"),
-			Handler:     gui.handleCommitEditorPress,
+			Handler:     gui.wrappedHandler(gui.handleCommitEditorPress),
 			Description: gui.Tr.SLocalize("CommitChangesWithEditor"),
 		},
 		{
 			ViewName:    "main",
 			Contexts:    []string{"merging"},
 			Key:         gui.getKey("universal.return"),
-			Handler:     gui.handleEscapeMerge,
+			Handler:     gui.wrappedHandler(gui.handleEscapeMerge),
 			Description: gui.Tr.SLocalize("ReturnToFilesPanel"),
 		},
 		{
@@ -1267,7 +1267,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts: []string{"remotes"},
 			Key:      gui.getKey("universal.goInto"),
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleRemoteEnter,
+			Handler:  gui.wrappedHandler(gui.handleRemoteEnter),
 		},
 		{
 			ViewName:    "branches",

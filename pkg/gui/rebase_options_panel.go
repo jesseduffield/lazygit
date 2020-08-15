@@ -3,11 +3,9 @@ package gui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/jesseduffield/gocui"
 )
 
-func (gui *Gui) handleCreateRebaseOptionsMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	options := []string{"continue", "abort"}
 
 	if gui.GitCommand.WorkingTreeState() == "rebasing" {

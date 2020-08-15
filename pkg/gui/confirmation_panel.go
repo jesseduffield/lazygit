@@ -76,7 +76,7 @@ func (gui *Gui) wrappedConfirmationFunction(function func() error, returnFocusOn
 			}
 		}
 
-		return gui.closeConfirmationPrompt(g, returnFocusOnClose)
+		return gui.closeConfirmationPrompt(returnFocusOnClose)
 	}
 }
 
@@ -89,24 +89,24 @@ func (gui *Gui) wrappedPromptConfirmationFunction(function func(string) error, r
 			}
 		}
 
-		return gui.closeConfirmationPrompt(g, returnFocusOnClose)
+		return gui.closeConfirmationPrompt(returnFocusOnClose)
 	}
 }
 
-func (gui *Gui) closeConfirmationPrompt(g *gocui.Gui, returnFocusOnClose bool) error {
-	view, err := g.View("confirmation")
+func (gui *Gui) closeConfirmationPrompt(returnFocusOnClose bool) error {
+	view, err := gui.g.View("confirmation")
 	if err != nil {
 		return nil // if it's already been closed we can just return
 	}
 	view.Editable = false
 	if returnFocusOnClose {
-		if err := gui.returnFocus(g, view); err != nil {
+		if err := gui.returnFocus(view); err != nil {
 			panic(err)
 		}
 	}
-	g.DeleteKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone)
-	g.DeleteKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone)
-	return g.DeleteView("confirmation")
+	gui.g.DeleteKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone)
+	gui.g.DeleteKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone)
+	return gui.g.DeleteView("confirmation")
 }
 
 func (gui *Gui) getMessageHeight(wrap bool, message string, width int) int {
@@ -123,8 +123,8 @@ func (gui *Gui) getMessageHeight(wrap bool, message string, width int) int {
 	return lineCount
 }
 
-func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, wrap bool, prompt string) (int, int, int, int) {
-	width, height := g.Size()
+func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, int, int, int) {
+	width, height := gui.g.Size()
 	// we want a minimum width up to a point, then we do it based on ratio.
 	panelWidth := 4 * width / 7
 	minWidth := 80
@@ -146,7 +146,7 @@ func (gui *Gui) getConfirmationPanelDimensions(g *gocui.Gui, wrap bool, prompt s
 }
 
 func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string, hasLoader bool) (*gocui.View, error) {
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(gui.g, true, prompt)
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
 	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
 	if err != nil {
 		if err.Error() != "unknown view" {
@@ -180,7 +180,7 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 	gui.g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {
-			if err := gui.closeConfirmationPrompt(g, true); err != nil {
+			if err := gui.closeConfirmationPrompt(true); err != nil {
 				gui.Log.Error(err)
 			}
 		}

@@ -24,11 +24,11 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
-		return gui.handleStagingEscape(gui.g, nil)
+		return gui.handleStagingEscape()
 	}
 
 	if !file.HasUnstagedChanges && !file.HasStagedChanges {
-		return gui.handleStagingEscape(gui.g, nil)
+		return gui.handleStagingEscape()
 	}
 
 	secondaryFocused := false
@@ -60,7 +60,7 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	// 4-5 lines in which case we'll swap panels
 	if len(strings.Split(diff, "\n")) < 5 {
 		if len(strings.Split(secondaryDiff, "\n")) < 5 {
-			return gui.handleStagingEscape(gui.g, nil)
+			return gui.handleStagingEscape()
 		}
 		secondaryFocused = !secondaryFocused
 		diff, secondaryDiff = secondaryDiff, diff
@@ -72,7 +72,7 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	}
 
 	if empty {
-		return gui.handleStagingEscape(gui.g, nil)
+		return gui.handleStagingEscape()
 	}
 
 	return nil
@@ -93,7 +93,7 @@ func (gui *Gui) handleTogglePanel(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshStagingPanel(false, -1)
 }
 
-func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStagingEscape() error {
 	gui.handleEscapeLineByLinePanel()
 
 	return gui.switchFocus(nil, gui.getFilesView())

@@ -112,7 +112,7 @@ func (gui *Gui) isIndexToDelete(i int, conflict commands.Conflict, pick string) 
 		(pick == "top" && i > conflict.Middle && i < conflict.End)
 }
 
-func (gui *Gui) resolveConflict(g *gocui.Gui, conflict commands.Conflict, pick string) error {
+func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
 	gitFile, err := gui.getSelectedFile()
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 	if gui.State.Panels.Merging.ConflictTop {
 		pick = "top"
 	}
-	err := gui.resolveConflict(g, conflict, pick)
+	err := gui.resolveConflict(conflict, pick)
 	if err != nil {
 		panic(err)
 	}
@@ -200,7 +200,7 @@ func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.pushFileSnapshot(g); err != nil {
 		return err
 	}
-	err := gui.resolveConflict(g, conflict, "both")
+	err := gui.resolveConflict(conflict, "both")
 	if err != nil {
 		panic(err)
 	}
@@ -298,7 +298,7 @@ func (gui *Gui) renderMergeOptions() error {
 	})
 }
 
-func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEscapeMerge() error {
 	gui.takeOverScrolling()
 
 	gui.State.Panels.Merging.EditHistory = stack.New()
@@ -308,7 +308,7 @@ func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 	// it's possible this method won't be called from the merging view so we need to
 	// ensure we only 'return' focus if we already have it
 	if gui.g.CurrentView() == gui.getMainView() {
-		return gui.switchFocus(v, gui.getFilesView())
+		return gui.switchFocus(gui.getMainView(), gui.getFilesView())
 	}
 	return nil
 }
@@ -323,13 +323,13 @@ func (gui *Gui) handleCompleteMerge() error {
 	// if we got conflicts after unstashing, we don't want to call any git
 	// commands to continue rebasing/merging here
 	if gui.GitCommand.WorkingTreeState() == "normal" {
-		return gui.handleEscapeMerge(gui.g, gui.getMainView())
+		return gui.handleEscapeMerge()
 	}
 	// if there are no more files with merge conflicts, we should ask whether the user wants to continue
 	if !gui.anyFilesWithMergeConflicts() {
 		return gui.promptToContinue()
 	}
-	return gui.handleEscapeMerge(gui.g, gui.getMainView())
+	return gui.handleEscapeMerge()
 }
 
 // promptToContinue asks the user if they want to continue the rebase/merge that's in progress

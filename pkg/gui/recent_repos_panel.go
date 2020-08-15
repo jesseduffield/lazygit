@@ -5,12 +5,11 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) handleCreateRecentReposMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateRecentReposMenu() error {
 	recentRepoPaths := gui.Config.GetAppState().RecentRepos
 	reposCount := utils.Min(len(recentRepoPaths), 20)
 	yellow := color.New(color.FgMagenta)

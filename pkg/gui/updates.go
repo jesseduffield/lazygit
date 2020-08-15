@@ -59,9 +59,9 @@ func (gui *Gui) onUpdateFinish(err error) error {
 	return nil
 }
 
-func (gui *Gui) createUpdateQuitConfirmation(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) createUpdateQuitConfirmation() error {
 	return gui.ask(askOpts{
-		returnToView:       v,
+		returnToView:       gui.g.CurrentView(),
 		returnFocusOnClose: true,
 		title:              "Currently Updating",
 		prompt:             "An update is in progress. Are you sure you want to quit?",
