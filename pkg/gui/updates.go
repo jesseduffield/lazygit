@@ -5,7 +5,7 @@ import "github.com/jesseduffield/gocui"
 func (gui *Gui) showUpdatePrompt(newVersion string) error {
 	currentView := gui.g.CurrentView()
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       currentView,
 		returnFocusOnClose: true,
 		title:              "New version available!",
@@ -60,7 +60,7 @@ func (gui *Gui) onUpdateFinish(err error) error {
 }
 
 func (gui *Gui) createUpdateQuitConfirmation(g *gocui.Gui, v *gocui.View) error {
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              "Currently Updating",

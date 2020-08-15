@@ -141,7 +141,7 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	message := gui.Tr.SLocalize("SureForceCheckout")
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              title,
@@ -186,7 +186,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 
 			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 				// offer to autostash changes
-				return gui.createConfirmationPanel(createConfirmationPanelOpts{
+				return gui.ask(askOpts{
 					returnToView:       gui.getBranchesView(),
 					returnFocusOnClose: true,
 					title:              gui.Tr.SLocalize("AutoStashTitle"),
@@ -222,11 +222,11 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	return gui.createPromptPanel(v, gui.Tr.SLocalize("BranchName")+":", "", func(response string) error {
+	return gui.prompt(v, gui.Tr.SLocalize("BranchName")+":", "", func(response string) error {
 		return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
 			onRefNotFound: func(ref string) error {
 
-				return gui.createConfirmationPanel(createConfirmationPanelOpts{
+				return gui.ask(askOpts{
 					returnToView:       v,
 					returnFocusOnClose: true,
 					title:              gui.Tr.SLocalize("BranchNotFoundTitle"),
@@ -259,7 +259,7 @@ func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
 			"branchName": branch.Name,
 		},
 	)
-	return gui.createPromptPanel(v, message, "", func(response string) error {
+	return gui.prompt(v, message, "", func(response string) error {
 		return gui.createNewBranchWithName(response)
 	})
 }
@@ -308,7 +308,7 @@ func (gui *Gui) deleteNamedBranch(g *gocui.Gui, v *gocui.View, selectedBranch *c
 		},
 	)
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              title,
@@ -346,7 +346,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		},
 	)
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       gui.getBranchesView(),
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("MergingTitle"),
@@ -389,7 +389,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		},
 	)
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       gui.getBranchesView(),
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("RebasingTitle"),
@@ -537,7 +537,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 	// way to get it to show up in the reflog)
 
 	promptForNewName := func() error {
-		return gui.createPromptPanel(v, gui.Tr.SLocalize("NewBranchNamePrompt")+" "+branch.Name+":", "", func(newBranchName string) error {
+		return gui.prompt(v, gui.Tr.SLocalize("NewBranchNamePrompt")+" "+branch.Name+":", "", func(newBranchName string) error {
 			if err := gui.GitCommand.RenameBranch(branch.Name, newBranchName); err != nil {
 				return gui.surfaceError(err)
 			}
@@ -559,7 +559,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 		return promptForNewName()
 	}
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       v,
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("renameBranch"),

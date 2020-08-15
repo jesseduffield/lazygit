@@ -133,7 +133,7 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 	}
 
 	if len(gui.trackedFiles()) > 0 {
-		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		return gui.ask(askOpts{
 			returnToView:       gui.g.CurrentView(),
 			returnFocusOnClose: true,
 			title:              gui.Tr.SLocalize("MustStashTitle"),

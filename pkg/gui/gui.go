@@ -468,7 +468,7 @@ func (gui *Gui) showShamelessSelfPromotionMessage(done chan struct{}) error {
 		return gui.Config.WriteToUserConfig("startupPopupVersion", StartupPopupVersion)
 	}
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       nil,
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("ShamelessSelfPromotionTitle"),
@@ -479,7 +479,7 @@ func (gui *Gui) showShamelessSelfPromotionMessage(done chan struct{}) error {
 }
 
 func (gui *Gui) promptAnonymousReporting(done chan struct{}) error {
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       nil,
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("AnonymousReportingTitle"),
@@ -518,7 +518,7 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	err := gui.fetch(false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.createConfirmationPanel(createConfirmationPanelOpts{
+		_ = gui.ask(askOpts{
 			returnToView:       gui.g.CurrentView(),
 			returnFocusOnClose: true,
 			title:              gui.Tr.SLocalize("NoAutomaticGitFetchTitle"),

@@ -121,7 +121,7 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	err := gui.createConfirmationPanel(createConfirmationPanelOpts{
+	err := gui.ask(askOpts{
 		returnToView:       gui.getCommitsView(),
 		returnFocusOnClose: true,
 		title:              gui.Tr.SLocalize("checkoutCommit"),

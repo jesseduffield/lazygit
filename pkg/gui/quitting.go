@@ -55,7 +55,7 @@ func (gui *Gui) quit(v *gocui.View) error {
 	}
 
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
-		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		return gui.ask(askOpts{
 			returnToView:       v,
 			returnFocusOnClose: true,
 			title:              "",

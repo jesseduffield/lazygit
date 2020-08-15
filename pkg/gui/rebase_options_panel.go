@@ -78,7 +78,7 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		// assume in this case that we're already done
 		return nil
 	} else if strings.Contains(result.Error(), "When you have resolved this problem") || strings.Contains(result.Error(), "fix conflicts") || strings.Contains(result.Error(), "Resolve all conflicts manually") {
-		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		return gui.ask(askOpts{
 			returnToView:       gui.getFilesView(),
 			returnFocusOnClose: true,
 			title:              gui.Tr.SLocalize("FoundConflictsTitle"),

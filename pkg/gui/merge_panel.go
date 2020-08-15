@@ -336,7 +336,7 @@ func (gui *Gui) handleCompleteMerge() error {
 func (gui *Gui) promptToContinue() error {
 	gui.takeOverScrolling()
 
-	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+	return gui.ask(askOpts{
 		returnToView:       gui.getFilesView(),
 		returnFocusOnClose: true,
 		title:              "continue",
