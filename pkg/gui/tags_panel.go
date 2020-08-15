@@ -104,12 +104,18 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.createConfirmationPanel(gui.g, v, true, gui.Tr.SLocalize("DeleteTagTitle"), prompt, func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
-			return gui.surfaceError(err)
-		}
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
-	}, nil)
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       v,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("DeleteTagTitle"),
+		prompt:             prompt,
+		handleConfirm: func() error {
+			if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
+				return gui.surfaceError(err)
+			}
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
+		},
+	})
 }
 
 func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
@@ -125,8 +131,8 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.createPromptPanel(gui.g, v, title, "origin", func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.PushTag(v.Buffer(), tag.Name); err != nil {
+	return gui.createPromptPanel(v, title, "origin", func(response string) error {
+		if err := gui.GitCommand.PushTag(response, tag.Name); err != nil {
 			return gui.surfaceError(err)
 		}
 		return nil
@@ -134,9 +140,8 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
-	return gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("CreateTagTitle"), "", func(g *gocui.Gui, v *gocui.View) error {
+	return gui.createPromptPanel(v, gui.Tr.SLocalize("CreateTagTitle"), "", func(tagName string) error {
 		// leaving commit SHA blank so that we're just creating the tag for the current commit
-		tagName := v.Buffer()
 		if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
 			return gui.surfaceError(err)
 		}

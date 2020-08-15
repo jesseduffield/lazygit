@@ -59,7 +59,7 @@ func (gui *Gui) newStringTask(viewName string, str string) error {
 	manager := gui.getManager(view)
 
 	f := func(stop chan struct{}) error {
-		gui.renderString(gui.g, viewName, str)
+		gui.renderString(viewName, str)
 		return nil
 	}
 

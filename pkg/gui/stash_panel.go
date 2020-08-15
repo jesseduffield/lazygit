@@ -76,11 +76,15 @@ func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
 		return apply()
 	}
 
-	title := gui.Tr.SLocalize("StashApply")
-	message := gui.Tr.SLocalize("SureApplyStashEntry")
-	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		return apply()
-	}, nil)
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       v,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("StashApply"),
+		prompt:             gui.Tr.SLocalize("SureApplyStashEntry"),
+		handleConfirm: func() error {
+			return apply()
+		},
+	})
 }
 
 func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
@@ -94,19 +98,27 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 		return pop()
 	}
 
-	title := gui.Tr.SLocalize("StashPop")
-	message := gui.Tr.SLocalize("SurePopStashEntry")
-	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		return pop()
-	}, nil)
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       v,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("StashPop"),
+		prompt:             gui.Tr.SLocalize("SurePopStashEntry"),
+		handleConfirm: func() error {
+			return pop()
+		},
+	})
 }
 
 func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
-	title := gui.Tr.SLocalize("StashDrop")
-	message := gui.Tr.SLocalize("SureDropStashEntry")
-	return gui.createConfirmationPanel(g, v, true, title, message, func(g *gocui.Gui, v *gocui.View) error {
-		return gui.stashDo(g, v, "drop")
-	}, nil)
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       v,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("StashDrop"),
+		prompt:             gui.Tr.SLocalize("SureDropStashEntry"),
+		handleConfirm: func() error {
+			return gui.stashDo(g, v, "drop")
+		},
+	})
 }
 
 func (gui *Gui) stashDo(g *gocui.Gui, v *gocui.View, method string) error {
@@ -130,8 +142,8 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoTrackedStagedFilesStash"))
 	}
-	return gui.createPromptPanel(gui.g, gui.getFilesView(), gui.Tr.SLocalize("StashChanges"), "", func(g *gocui.Gui, v *gocui.View) error {
-		if err := stashFunc(gui.trimmedContent(v)); err != nil {
+	return gui.createPromptPanel(gui.getFilesView(), gui.Tr.SLocalize("StashChanges"), "", func(stashComment string) error {
+		if err := stashFunc(stashComment); err != nil {
 			return gui.surfaceError(err)
 		}
 		return gui.refreshSidePanels(refreshOptions{scope: []int{STASH, FILES}})

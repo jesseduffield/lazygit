@@ -166,24 +166,30 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 	dirtyWorkingTree := len(gui.trackedFiles()) > 0
 	if dirtyWorkingTree {
 		// offer to autostash changes
-		return gui.createConfirmationPanel(gui.g, gui.getBranchesView(), true, gui.Tr.SLocalize("AutoStashTitle"), gui.Tr.SLocalize("AutoStashPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-			return gui.WithWaitingStatus(options.WaitingStatus, func() error {
-				if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + commitSha); err != nil {
-					return gui.surfaceError(err)
-				}
-				if err := reset(); err != nil {
-					return err
-				}
-
-				if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
-					if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
+		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+			returnToView:       gui.getBranchesView(),
+			returnFocusOnClose: true,
+			title:              gui.Tr.SLocalize("AutoStashTitle"),
+			prompt:             gui.Tr.SLocalize("AutoStashPrompt"),
+			handleConfirm: func() error {
+				return gui.WithWaitingStatus(options.WaitingStatus, func() error {
+					if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + commitSha); err != nil {
+						return gui.surfaceError(err)
+					}
+					if err := reset(); err != nil {
 						return err
 					}
-					return gui.surfaceError(err)
-				}
-				return nil
-			})
-		}, nil)
+
+					if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
+						if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
+							return err
+						}
+						return gui.surfaceError(err)
+					}
+					return nil
+				})
+			},
+		})
 	}
 
 	return gui.WithWaitingStatus(options.WaitingStatus, func() error {

@@ -4,7 +4,6 @@ import (
 	"math"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -176,12 +175,7 @@ func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
 	err = gui.GitCommand.Fetch(fetchOpts)
 
 	if canPromptForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
-		colorFunction := color.New(color.FgRed).SprintFunc()
-		coloredMessage := colorFunction(strings.TrimSpace(gui.Tr.SLocalize("PassUnameWrong")))
-		close := func(g *gocui.Gui, v *gocui.View) error {
-			return nil
-		}
-		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("Error"), coloredMessage, close, close)
+		gui.createErrorPanel(gui.Tr.SLocalize("PassUnameWrong"))
 	}
 
 	gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})

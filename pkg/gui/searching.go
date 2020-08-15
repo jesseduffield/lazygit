@@ -11,8 +11,8 @@ import (
 func (gui *Gui) handleOpenSearch(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Searching.isSearching = true
 	gui.State.Searching.view = v
-	gui.renderString(gui.g, "search", "")
-	if err := gui.switchFocus(gui.g, v, gui.getSearchView()); err != nil {
+	gui.renderString("search", "")
+	if err := gui.switchFocus(v, gui.getSearchView()); err != nil {
 		return err
 	}
 
@@ -21,7 +21,7 @@ func (gui *Gui) handleOpenSearch(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleSearch(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Searching.searchString = gui.getSearchView().Buffer()
-	if err := gui.switchFocus(gui.g, nil, gui.State.Searching.view); err != nil {
+	if err := gui.switchFocus(nil, gui.State.Searching.view); err != nil {
 		return err
 	}
 
@@ -36,7 +36,6 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 	return func(y int, index int, total int) error {
 		if total == 0 {
 			gui.renderString(
-				gui.g,
 				"search",
 				fmt.Sprintf(
 					"no matches for '%s' %s",
@@ -50,7 +49,6 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 			return nil
 		}
 		gui.renderString(
-			gui.g,
 			"search",
 			fmt.Sprintf(
 				"matches for '%s' (%d of %d) %s",
@@ -86,7 +84,7 @@ func (gui *Gui) onSearchEscape() error {
 }
 
 func (gui *Gui) handleSearchEscape(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.switchFocus(gui.g, nil, gui.State.Searching.view); err != nil {
+	if err := gui.switchFocus(nil, gui.State.Searching.view); err != nil {
 		return err
 	}
 

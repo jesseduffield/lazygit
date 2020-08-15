@@ -463,21 +463,35 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 }
 
 func (gui *Gui) showShamelessSelfPromotionMessage(done chan struct{}) error {
-	onConfirm := func(g *gocui.Gui, v *gocui.View) error {
+	onConfirm := func() error {
 		done <- struct{}{}
 		return gui.Config.WriteToUserConfig("startupPopupVersion", StartupPopupVersion)
 	}
 
-	return gui.createConfirmationPanel(gui.g, nil, true, gui.Tr.SLocalize("ShamelessSelfPromotionTitle"), gui.Tr.SLocalize("ShamelessSelfPromotionMessage"), onConfirm, onConfirm)
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       nil,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("ShamelessSelfPromotionTitle"),
+		prompt:             gui.Tr.SLocalize("ShamelessSelfPromotionMessage"),
+		handleConfirm:      onConfirm,
+		handleClose:        onConfirm,
+	})
 }
 
 func (gui *Gui) promptAnonymousReporting(done chan struct{}) error {
-	return gui.createConfirmationPanel(gui.g, nil, true, gui.Tr.SLocalize("AnonymousReportingTitle"), gui.Tr.SLocalize("AnonymousReportingPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		done <- struct{}{}
-		return gui.Config.WriteToUserConfig("reporting", "on")
-	}, func(g *gocui.Gui, v *gocui.View) error {
-		done <- struct{}{}
-		return gui.Config.WriteToUserConfig("reporting", "off")
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       nil,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("AnonymousReportingTitle"),
+		prompt:             gui.Tr.SLocalize("AnonymousReportingPrompt"),
+		handleConfirm: func() error {
+			done <- struct{}{}
+			return gui.Config.WriteToUserConfig("reporting", "on")
+		},
+		handleClose: func() error {
+			done <- struct{}{}
+			return gui.Config.WriteToUserConfig("reporting", "off")
+		},
 	})
 }
 
@@ -504,7 +518,12 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	err := gui.fetch(false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("NoAutomaticGitFetchTitle"), gui.Tr.SLocalize("NoAutomaticGitFetchBody"), nil, nil)
+		_ = gui.createConfirmationPanel(createConfirmationPanelOpts{
+			returnToView:       gui.g.CurrentView(),
+			returnFocusOnClose: true,
+			title:              gui.Tr.SLocalize("NoAutomaticGitFetchTitle"),
+			prompt:             gui.Tr.SLocalize("NoAutomaticGitFetchBody"),
+		})
 	} else {
 		gui.goEvery(time.Second*60, gui.stopChan, func() error {
 			err := gui.fetch(false)

@@ -175,7 +175,7 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.resetOrigin(gui.getMainView()); err != nil {
 		return err
 	}
-	return gui.switchFocus(g, v, focusedView)
+	return gui.switchFocus(v, focusedView)
 }
 
 func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
@@ -213,7 +213,7 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.resetOrigin(gui.getMainView()); err != nil {
 		return err
 	}
-	return gui.switchFocus(g, v, focusedView)
+	return gui.switchFocus(v, focusedView)
 }
 
 func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
@@ -272,7 +272,7 @@ func (gui *Gui) returnFocus(g *gocui.Gui, v *gocui.View) error {
 			gui.Log.Error(err)
 		}
 	}
-	return gui.switchFocus(g, v, previousView)
+	return gui.switchFocus(v, previousView)
 }
 
 func (gui *Gui) goToSideView(sideViewName string) func(g *gocui.Gui, v *gocui.View) error {
@@ -287,7 +287,7 @@ func (gui *Gui) goToSideView(sideViewName string) func(g *gocui.Gui, v *gocui.Vi
 			gui.Log.Error(err)
 			return nil
 		}
-		return gui.switchFocus(g, nil, view)
+		return gui.switchFocus(nil, view)
 	}
 }
 
@@ -303,7 +303,7 @@ func (gui *Gui) closePopupPanels() error {
 
 // pass in oldView = nil if you don't want to be able to return to your old view
 // TODO: move some of this logic into our onFocusLost and onFocus hooks
-func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
+func (gui *Gui) switchFocus(oldView, newView *gocui.View) error {
 	// we assume we'll never want to return focus to a popup panel i.e.
 	// we should never stack popup panels
 	if oldView != nil && !gui.isPopupPanel(oldView.Name()) {
@@ -318,20 +318,20 @@ func (gui *Gui) switchFocus(g *gocui.Gui, oldView, newView *gocui.View) error {
 		},
 	)
 	gui.Log.Info(message)
-	if _, err := g.SetCurrentView(newView.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView(newView.Name()); err != nil {
 		return err
 	}
-	if _, err := g.SetViewOnTop(newView.Name()); err != nil {
+	if _, err := gui.g.SetViewOnTop(newView.Name()); err != nil {
 		return err
 	}
 
-	g.Cursor = newView.Editable
+	gui.g.Cursor = newView.Editable
 
 	if err := gui.renderPanelOptions(); err != nil {
 		return err
 	}
 
-	return gui.newLineFocused(g, newView)
+	return gui.newLineFocused(gui.g, newView)
 }
 
 func (gui *Gui) resetOrigin(v *gocui.View) error {
@@ -350,9 +350,9 @@ func (gui *Gui) setViewContent(v *gocui.View, s string) {
 }
 
 // renderString resets the origin of a view and sets its content
-func (gui *Gui) renderString(g *gocui.Gui, viewName, s string) {
-	g.Update(func(*gocui.Gui) error {
-		v, err := g.View(viewName)
+func (gui *Gui) renderString(viewName, s string) {
+	gui.g.Update(func(*gocui.Gui) error {
+		v, err := gui.g.View(viewName)
 		if err != nil {
 			return nil // return gracefully if view has been deleted
 		}
@@ -377,7 +377,7 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 }
 
 func (gui *Gui) renderOptionsMap(optionsMap map[string]string) error {
-	gui.renderString(gui.g, "options", gui.optionsMapToString(optionsMap))
+	gui.renderString("options", gui.optionsMapToString(optionsMap))
 	return nil
 }
 

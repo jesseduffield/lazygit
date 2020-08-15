@@ -121,9 +121,15 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	err := gui.createConfirmationPanel(g, gui.getCommitsView(), true, gui.Tr.SLocalize("checkoutCommit"), gui.Tr.SLocalize("SureCheckoutThisCommit"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
-	}, nil)
+	err := gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       gui.getCommitsView(),
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("checkoutCommit"),
+		prompt:             gui.Tr.SLocalize("SureCheckoutThisCommit"),
+		handleConfirm: func() error {
+			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
+		},
+	})
 	if err != nil {
 		return err
 	}

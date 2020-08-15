@@ -172,7 +172,7 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 		return gui.createErrorPanel(gui.Tr.SLocalize("FileStagingRequirements"))
 	}
 	gui.changeMainViewsContext("staging")
-	if err := gui.switchFocus(gui.g, gui.getFilesView(), gui.getMainView()); err != nil {
+	if err := gui.switchFocus(gui.getFilesView(), gui.getMainView()); err != nil {
 		return err
 	}
 	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
@@ -249,9 +249,12 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if file.Tracked {
-		return gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("IgnoreTracked"), gui.Tr.SLocalize("IgnoreTrackedPrompt"),
-			// On confirmation
-			func(_ *gocui.Gui, _ *gocui.View) error {
+		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+			returnToView:       gui.g.CurrentView(),
+			returnFocusOnClose: true,
+			title:              gui.Tr.SLocalize("IgnoreTracked"),
+			prompt:             gui.Tr.SLocalize("IgnoreTrackedPrompt"),
+			handleConfirm: func() error {
 				if err := gui.GitCommand.Ignore(file.Name); err != nil {
 					return err
 				}
@@ -259,7 +262,8 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 					return err
 				}
 				return gui.refreshSidePanels(refreshOptions{scope: []int{FILES}})
-			}, nil)
+			},
+		})
 	}
 
 	if err := gui.GitCommand.Ignore(file.Name); err != nil {
@@ -275,7 +279,7 @@ func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error 
 		return gui.createErrorPanel(gui.Tr.SLocalize("SkipHookPrefixNotConfigured"))
 	}
 
-	gui.renderString(g, "commitMessage", skipHookPreifx)
+	gui.renderString("commitMessage", skipHookPreifx)
 	if err := gui.getCommitMessageView().SetCursor(len(skipHookPreifx), 0); err != nil {
 		return err
 	}
@@ -299,7 +303,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.SLocalize("commitPrefixPatternError"), err.Error()))
 		}
 		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
-		gui.renderString(g, "commitMessage", prefix)
+		gui.renderString("commitMessage", prefix)
 		if err := commitMessageView.SetCursor(len(prefix), 0); err != nil {
 			return err
 		}
@@ -310,7 +314,7 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 			return err
 		}
 
-		if err := gui.switchFocus(g, filesView, commitMessageView); err != nil {
+		if err := gui.switchFocus(filesView, commitMessageView); err != nil {
 			return err
 		}
 
@@ -321,9 +325,12 @@ func (gui *Gui) handleCommitPress(g *gocui.Gui, filesView *gocui.View) error {
 }
 
 func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
-	return gui.createConfirmationPanel(
-		gui.g, gui.getFilesView(), true, gui.Tr.SLocalize("NoFilesStagedTitle"), gui.Tr.SLocalize("NoFilesStagedPrompt"),
-		func(*gocui.Gui, *gocui.View) error {
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       gui.getFilesView(),
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("NoFilesStagedTitle"),
+		prompt:             gui.Tr.SLocalize("NoFilesStagedPrompt"),
+		handleConfirm: func() error {
 			if err := gui.GitCommand.StageAll(); err != nil {
 				return gui.surfaceError(err)
 			}
@@ -332,7 +339,8 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 			}
 
 			return retry()
-		}, nil)
+		},
+	})
 }
 
 func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) error {
@@ -346,20 +354,23 @@ func (gui *Gui) handleAmendCommitPress(g *gocui.Gui, filesView *gocui.View) erro
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoCommitToAmend"))
 	}
 
-	title := strings.Title(gui.Tr.SLocalize("AmendLastCommit"))
-	question := gui.Tr.SLocalize("SureToAmend")
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       filesView,
+		returnFocusOnClose: true,
+		title:              strings.Title(gui.Tr.SLocalize("AmendLastCommit")),
+		prompt:             gui.Tr.SLocalize("SureToAmend"),
+		handleConfirm: func() error {
+			ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return nil
+			}
 
-	return gui.createConfirmationPanel(g, filesView, true, title, question, func(g *gocui.Gui, v *gocui.View) error {
-		ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
-		if err != nil {
-			return err
-		}
-		if !ok {
-			return nil
-		}
-
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-	}, nil)
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		},
+	})
 }
 
 // handleCommitEditorPress - handle when the user wants to commit changes via
@@ -450,8 +461,7 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(g *gocui.Gui, v *gocui.View) error {
-			upstream := gui.trimmedContent(v)
+		return gui.createPromptPanel(v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(upstream string) error {
 			if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
 				errorMessage := err.Error()
 				if strings.Contains(errorMessage, "does not exist") {
@@ -472,7 +482,7 @@ type PullFilesOptions struct {
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
-	if err := gui.createLoaderPanel(gui.g, gui.g.CurrentView(), gui.Tr.SLocalize("PullWait")); err != nil {
+	if err := gui.createLoaderPanel(gui.g.CurrentView(), gui.Tr.SLocalize("PullWait")); err != nil {
 		return err
 	}
 
@@ -512,16 +522,22 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 }
 
 func (gui *Gui) pushWithForceFlag(g *gocui.Gui, v *gocui.View, force bool, upstream string, args string) error {
-	if err := gui.createLoaderPanel(gui.g, v, gui.Tr.SLocalize("PushWait")); err != nil {
+	if err := gui.createLoaderPanel(v, gui.Tr.SLocalize("PushWait")); err != nil {
 		return err
 	}
 	go func() {
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
-			gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-				return gui.pushWithForceFlag(gui.g, v, true, upstream, args)
-			}, nil)
+			gui.createConfirmationPanel(createConfirmationPanelOpts{
+				returnToView:       v,
+				returnFocusOnClose: true,
+				title:              gui.Tr.SLocalize("ForcePush"),
+				prompt:             gui.Tr.SLocalize("ForcePushPrompt"),
+				handleConfirm: func() error {
+					return gui.pushWithForceFlag(gui.g, v, true, upstream, args)
+				},
+			})
 
 			return
 		}
@@ -550,16 +566,23 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		if gui.GitCommand.PushToCurrent {
 			return gui.pushWithForceFlag(g, v, false, "", "--set-upstream")
 		} else {
-			return gui.createPromptPanel(g, v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(g *gocui.Gui, v *gocui.View) error {
-				return gui.pushWithForceFlag(g, v, false, gui.trimmedContent(v), "")
+			return gui.createPromptPanel(v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(response string) error {
+				return gui.pushWithForceFlag(g, v, false, response, "")
 			})
 		}
 	} else if currentBranch.Pullables == "0" {
 		return gui.pushWithForceFlag(g, v, false, "", "")
 	}
-	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("ForcePush"), gui.Tr.SLocalize("ForcePushPrompt"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.pushWithForceFlag(g, v, true, "", "")
-	}, nil)
+
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       v,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("ForcePush"),
+		prompt:             gui.Tr.SLocalize("ForcePushPrompt"),
+		handleConfirm: func() error {
+			return gui.pushWithForceFlag(g, v, true, "", "")
+		},
+	})
 }
 
 func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
@@ -574,7 +597,7 @@ func (gui *Gui) handleSwitchToMerge(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(gui.Tr.SLocalize("FileNoMergeCons"))
 	}
 	gui.changeMainViewsContext("merging")
-	if err := gui.switchFocus(g, v, gui.getMainView()); err != nil {
+	if err := gui.switchFocus(v, gui.getMainView()); err != nil {
 		return err
 	}
 	return gui.refreshMergePanel()
@@ -597,8 +620,7 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
-	return gui.createPromptPanel(g, v, gui.Tr.SLocalize("CustomCommand"), "", func(g *gocui.Gui, v *gocui.View) error {
-		command := gui.trimmedContent(v)
+	return gui.createPromptPanel(v, gui.Tr.SLocalize("CustomCommand"), "", func(command string) error {
 		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
 		return gui.Errors.ErrSubProcess
 	})

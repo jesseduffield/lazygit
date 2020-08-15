@@ -326,7 +326,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		informationView.BgColor = gocui.ColorDefault
 		informationView.FgColor = gocui.ColorGreen
 		informationView.Frame = false
-		gui.renderString(g, "information", INFO_SECTION_PADDING+informationStr)
+		gui.renderString("information", INFO_SECTION_PADDING+informationStr)
 	}
 	if gui.State.OldInformation != informationStr {
 		gui.setViewContent(informationView, informationStr)
@@ -342,7 +342,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
-		if err := gui.switchFocus(gui.g, nil, initialView); err != nil {
+		if err := gui.switchFocus(nil, initialView); err != nil {
 			return err
 		}
 	}

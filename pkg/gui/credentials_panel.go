@@ -20,7 +20,7 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
 			credentialsView.Mask = '*'
 		}
-		err := gui.switchFocus(g, gui.g.CurrentView(), credentialsView)
+		err := gui.switchFocus(gui.g.CurrentView(), credentialsView)
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		nextView = gui.getFilesView()
 	}
-	err = gui.switchFocus(g, nil, nextView)
+	err = gui.switchFocus(nil, nextView)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	gui.credentials <- ""
-	return gui.switchFocus(g, nil, gui.getFilesView())
+	return gui.switchFocus(nil, gui.getFilesView())
 }
 
 func (gui *Gui) handleCredentialsViewFocused(g *gocui.Gui, v *gocui.View) error {
@@ -72,7 +72,7 @@ func (gui *Gui) handleCredentialsViewFocused(g *gocui.Gui, v *gocui.View) error 
 			"keyBindConfirm": "enter",
 		},
 	)
-	gui.renderString(g, "options", message)
+	gui.renderString("options", message)
 	return nil
 }
 
@@ -85,7 +85,7 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 			errMessage = gui.Tr.SLocalize("PassUnameWrong")
 		}
 		// we are not logging this error because it may contain a password
-		_ = gui.createSpecificErrorPanel(errMessage, gui.getFilesView(), false)
+		gui.createErrorPanel(errMessage)
 	} else {
 		_ = gui.closeConfirmationPrompt(gui.g, true)
 	}
