@@ -7,9 +7,9 @@ type listView struct {
 	context                 string
 	getItemsLength          func() int
 	getSelectedLineIdxPtr   func() *int
-	handleFocus             func(g *gocui.Gui, v *gocui.View) error
-	handleItemSelect        func(g *gocui.Gui, v *gocui.View) error
-	handleClickSelectedItem func(g *gocui.Gui, v *gocui.View) error
+	handleFocus             func() error
+	handleItemSelect        func() error
+	handleClickSelectedItem func() error
 	gui                     *Gui
 	rendersToMainView       bool
 }
@@ -35,11 +35,7 @@ func (lv *listView) handleLineChange(change int) error {
 		}
 	}
 
-	view, err := lv.gui.g.View(lv.viewName)
-	if err != nil {
-		return err
-	}
-	return lv.handleItemSelect(lv.gui.g, view)
+	return lv.handleItemSelect()
 }
 
 func (lv *listView) handleNextPage(g *gocui.Gui, v *gocui.View) error {
@@ -86,7 +82,7 @@ func (lv *listView) handleClick(g *gocui.Gui, v *gocui.View) error {
 	newSelectedLineIdx := v.SelectedLineIdx()
 
 	if newSelectedLineIdx > lv.getItemsLength()-1 {
-		return lv.handleFocus(lv.gui.g, v)
+		return lv.handleFocus()
 	}
 
 	*selectedLineIdxPtr = newSelectedLineIdx
@@ -99,9 +95,9 @@ func (lv *listView) handleClick(g *gocui.Gui, v *gocui.View) error {
 
 	prevViewName := lv.gui.currentViewName()
 	if prevSelectedLineIdx == newSelectedLineIdx && prevViewName == lv.viewName && lv.handleClickSelectedItem != nil {
-		return lv.handleClickSelectedItem(lv.gui.g, v)
+		return lv.handleClickSelectedItem()
 	}
-	return lv.handleItemSelect(lv.gui.g, v)
+	return lv.handleItemSelect()
 }
 
 func (gui *Gui) getListViews() []*listView {
@@ -110,10 +106,10 @@ func (gui *Gui) getListViews() []*listView {
 			viewName:              "menu",
 			getItemsLength:        func() int { return gui.getMenuView().LinesHeight() },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Menu.SelectedLine },
-			handleFocus:           gui.wrappedHandler(gui.handleMenuSelect),
-			handleItemSelect:      gui.wrappedHandler(gui.handleMenuSelect),
+			handleFocus:           gui.handleMenuSelect,
+			handleItemSelect:      gui.handleMenuSelect,
 			// need to add a layer of indirection here because the callback changes during runtime
-			handleClickSelectedItem: gui.wrappedHandler(func() error { return gui.State.Panels.Menu.OnPress(gui.g, nil) }),
+			handleClickSelectedItem: func() error { return gui.State.Panels.Menu.OnPress(gui.g, nil) },
 			gui:                     gui,
 			rendersToMainView:       false,
 		},
@@ -121,9 +117,9 @@ func (gui *Gui) getListViews() []*listView {
 			viewName:                "files",
 			getItemsLength:          func() int { return len(gui.State.Files) },
 			getSelectedLineIdxPtr:   func() *int { return &gui.State.Panels.Files.SelectedLine },
-			handleFocus:             gui.wrappedHandler(gui.focusAndSelectFile),
-			handleItemSelect:        gui.wrappedHandler(gui.focusAndSelectFile),
-			handleClickSelectedItem: gui.wrappedHandler(gui.handleFilePress),
+			handleFocus:             gui.focusAndSelectFile,
+			handleItemSelect:        gui.focusAndSelectFile,
+			handleClickSelectedItem: gui.handleFilePress,
 			gui:                     gui,
 			rendersToMainView:       true,
 		},
@@ -132,8 +128,8 @@ func (gui *Gui) getListViews() []*listView {
 			context:               "local-branches",
 			getItemsLength:        func() int { return len(gui.State.Branches) },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Branches.SelectedLine },
-			handleFocus:           gui.wrappedHandler(gui.handleBranchSelect),
-			handleItemSelect:      gui.wrappedHandler(gui.handleBranchSelect),
+			handleFocus:           gui.handleBranchSelect,
+			handleItemSelect:      gui.handleBranchSelect,
 			gui:                   gui,
 			rendersToMainView:     true,
 		},
@@ -142,9 +138,9 @@ func (gui *Gui) getListViews() []*listView {
 			context:                 "remotes",
 			getItemsLength:          func() int { return len(gui.State.Remotes) },
 			getSelectedLineIdxPtr:   func() *int { return &gui.State.Panels.Remotes.SelectedLine },
-			handleFocus:             gui.wrappedHandler(gui.renderRemotesWithSelection),
-			handleItemSelect:        gui.wrappedHandler(gui.handleRemoteSelect),
-			handleClickSelectedItem: gui.wrappedHandler(gui.handleRemoteEnter),
+			handleFocus:             gui.renderRemotesWithSelection,
+			handleItemSelect:        gui.handleRemoteSelect,
+			handleClickSelectedItem: gui.handleRemoteEnter,
 			gui:                     gui,
 			rendersToMainView:       true,
 		},
@@ -153,8 +149,8 @@ func (gui *Gui) getListViews() []*listView {
 			context:               "remote-branches",
 			getItemsLength:        func() int { return len(gui.State.RemoteBranches) },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.RemoteBranches.SelectedLine },
-			handleFocus:           gui.wrappedHandler(gui.handleRemoteBranchSelect),
-			handleItemSelect:      gui.wrappedHandler(gui.handleRemoteBranchSelect),
+			handleFocus:           gui.handleRemoteBranchSelect,
+			handleItemSelect:      gui.handleRemoteBranchSelect,
 			gui:                   gui,
 			rendersToMainView:     true,
 		},
@@ -163,8 +159,8 @@ func (gui *Gui) getListViews() []*listView {
 			context:               "tags",
 			getItemsLength:        func() int { return len(gui.State.Tags) },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Tags.SelectedLine },
-			handleFocus:           gui.wrappedHandler(gui.handleTagSelect),
-			handleItemSelect:      gui.wrappedHandler(gui.handleTagSelect),
+			handleFocus:           gui.handleTagSelect,
+			handleItemSelect:      gui.handleTagSelect,
 			gui:                   gui,
 			rendersToMainView:     true,
 		},
@@ -174,9 +170,9 @@ func (gui *Gui) getListViews() []*listView {
 			context:                 "branch-commits",
 			getItemsLength:          func() int { return len(gui.State.Commits) },
 			getSelectedLineIdxPtr:   func() *int { return &gui.State.Panels.Commits.SelectedLine },
-			handleFocus:             gui.wrappedHandler(gui.handleCommitSelect),
-			handleItemSelect:        gui.wrappedHandler(gui.handleCommitSelect),
-			handleClickSelectedItem: gui.wrappedHandler(gui.handleSwitchToCommitFilesPanel),
+			handleFocus:             gui.handleCommitSelect,
+			handleItemSelect:        gui.handleCommitSelect,
+			handleClickSelectedItem: gui.handleSwitchToCommitFilesPanel,
 			gui:                     gui,
 			rendersToMainView:       true,
 		},
@@ -185,8 +181,8 @@ func (gui *Gui) getListViews() []*listView {
 			context:               "reflog-commits",
 			getItemsLength:        func() int { return len(gui.State.FilteredReflogCommits) },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.ReflogCommits.SelectedLine },
-			handleFocus:           gui.wrappedHandler(gui.handleReflogCommitSelect),
-			handleItemSelect:      gui.wrappedHandler(gui.handleReflogCommitSelect),
+			handleFocus:           gui.handleReflogCommitSelect,
+			handleItemSelect:      gui.handleReflogCommitSelect,
 			gui:                   gui,
 			rendersToMainView:     true,
 		},
@@ -194,8 +190,8 @@ func (gui *Gui) getListViews() []*listView {
 			viewName:              "stash",
 			getItemsLength:        func() int { return len(gui.State.StashEntries) },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Stash.SelectedLine },
-			handleFocus:           gui.wrappedHandler(gui.handleStashEntrySelect),
-			handleItemSelect:      gui.wrappedHandler(gui.handleStashEntrySelect),
+			handleFocus:           gui.handleStashEntrySelect,
+			handleItemSelect:      gui.handleStashEntrySelect,
 			gui:                   gui,
 			rendersToMainView:     true,
 		},
@@ -203,8 +199,8 @@ func (gui *Gui) getListViews() []*listView {
 			viewName:              "commitFiles",
 			getItemsLength:        func() int { return len(gui.State.CommitFiles) },
 			getSelectedLineIdxPtr: func() *int { return &gui.State.Panels.CommitFiles.SelectedLine },
-			handleFocus:           gui.wrappedHandler(gui.handleCommitFileSelect),
-			handleItemSelect:      gui.wrappedHandler(gui.handleCommitFileSelect),
+			handleFocus:           gui.handleCommitFileSelect,
+			handleItemSelect:      gui.handleCommitFileSelect,
 			gui:                   gui,
 			rendersToMainView:     true,
 		},
