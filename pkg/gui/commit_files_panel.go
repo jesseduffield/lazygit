@@ -248,8 +248,3 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 
 	return enterTheFile(selectedLineIdx)
 }
-
-func (gui *Gui) onCommitFilesPanelSearchSelect(selectedLine int) error {
-	gui.State.Panels.CommitFiles.SelectedLine = selectedLine
-	return gui.handleCommitFileSelect()
-}

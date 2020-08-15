@@ -28,10 +28,6 @@ func (gui *Gui) handleBranchSelect() error {
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView("branches"); err != nil {
-		return err
-	}
-
 	gui.getMainView().Title = "Log"
 
 	// This really shouldn't happen: there should always be a master branch
@@ -39,7 +35,6 @@ func (gui *Gui) handleBranchSelect() error {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoBranchesThisRepo"))
 	}
 	branch := gui.getSelectedBranch()
-	gui.getBranchesView().FocusPoint(0, gui.State.Panels.Branches.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()
@@ -508,22 +503,6 @@ func (gui *Gui) handleCreateResetToBranchMenu(g *gocui.Gui, v *gocui.View) error
 	}
 
 	return gui.createResetMenu(branch.Name)
-}
-
-func (gui *Gui) onBranchesPanelSearchSelect(selectedLine int) error {
-	branchesView := gui.getBranchesView()
-	switch branchesView.Context {
-	case "local-branches":
-		gui.State.Panels.Branches.SelectedLine = selectedLine
-		return gui.handleBranchSelect()
-	case "remotes":
-		gui.State.Panels.Remotes.SelectedLine = selectedLine
-		return gui.handleRemoteSelect()
-	case "remote-branches":
-		gui.State.Panels.RemoteBranches.SelectedLine = selectedLine
-		return gui.handleRemoteBranchSelect()
-	}
-	return nil
 }
 
 func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {

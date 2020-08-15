@@ -652,8 +652,3 @@ func (gui *Gui) handleStashChanges(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) error {
 	return gui.createResetMenu("@{upstream}")
 }
-
-func (gui *Gui) onFilesPanelSearchSelect(selectedLine int) error {
-	gui.State.Panels.Files.SelectedLine = selectedLine
-	return gui.focusAndSelectFile()
-}
