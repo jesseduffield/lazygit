@@ -228,7 +228,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		branchesView := gui.getBranchesView()
 		switch branchesView.Context {
 		case "local-branches":
-			return gui.handleBranchSelect(g, v)
+			return gui.handleBranchSelect()
 		case "remotes":
 			return gui.handleRemoteSelect(g, v)
 		case "remote-branches":
