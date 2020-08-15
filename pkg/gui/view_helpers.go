@@ -219,7 +219,7 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	switch v.Name() {
 	case "menu":
-		return gui.handleMenuSelect(g, v)
+		return gui.handleMenuSelect()
 	case "status":
 		return gui.handleStatusSelect(g, v)
 	case "files":
