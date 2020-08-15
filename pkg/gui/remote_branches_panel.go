@@ -19,14 +19,14 @@ func (gui *Gui) getSelectedRemoteBranch() *commands.RemoteBranch {
 	return gui.State.RemoteBranches[selectedLine]
 }
 
-func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRemoteBranchSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView("branches"); err != nil {
 		return err
 	}
 
@@ -37,7 +37,7 @@ func (gui *Gui) handleRemoteBranchSelect(g *gocui.Gui, v *gocui.View) error {
 		return gui.newStringTask("main", "No branches for this remote")
 	}
 
-	v.FocusPoint(0, gui.State.Panels.RemoteBranches.SelectedLine)
+	gui.getBranchesView().FocusPoint(0, gui.State.Panels.RemoteBranches.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()
@@ -64,7 +64,7 @@ func (gui *Gui) renderRemoteBranchesWithSelection() error {
 	displayStrings := presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "remote-branches" {
-		if err := gui.handleRemoteBranchSelect(gui.g, branchesView); err != nil {
+		if err := gui.handleRemoteBranchSelect(); err != nil {
 			return err
 		}
 	}
