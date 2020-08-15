@@ -81,17 +81,17 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	return gui.handleStatusSelect(gui.g, v)
+	return gui.handleStatusSelect()
 }
 
-func (gui *Gui) handleStatusSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStatusSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView("status"); err != nil {
 		return err
 	}
 

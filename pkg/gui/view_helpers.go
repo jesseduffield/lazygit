@@ -221,7 +221,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 	case "menu":
 		return gui.handleMenuSelect()
 	case "status":
-		return gui.handleStatusSelect(g, v)
+		return gui.handleStatusSelect()
 	case "files":
 		return gui.focusAndSelectFile(g, v)
 	case "branches":
