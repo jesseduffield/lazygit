@@ -1334,12 +1334,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("setUpstream"),
 		},
 		{
-			ViewName: "stash",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleStashEntrySelect,
-		},
-		{
 			ViewName: "status",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,

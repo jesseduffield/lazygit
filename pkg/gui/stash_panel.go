@@ -17,14 +17,14 @@ func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
 	return gui.State.StashEntries[selectedLine]
 }
 
-func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStashEntrySelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView("stash"); err != nil {
 		return err
 	}
 
@@ -34,7 +34,7 @@ func (gui *Gui) handleStashEntrySelect(g *gocui.Gui, v *gocui.View) error {
 	if stashEntry == nil {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoStashEntries"))
 	}
-	v.FocusPoint(0, gui.State.Panels.Stash.SelectedLine)
+	gui.getStashView().FocusPoint(0, gui.State.Panels.Stash.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()
@@ -152,5 +152,5 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 
 func (gui *Gui) onStashPanelSearchSelect(selectedLine int) error {
 	gui.State.Panels.Stash.SelectedLine = selectedLine
-	return gui.handleStashEntrySelect(gui.g, gui.getStashView())
+	return gui.handleStashEntrySelect()
 }

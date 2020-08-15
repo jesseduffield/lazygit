@@ -28,7 +28,7 @@ func (gui *Gui) resetToRef(ref string, strength string, options commands.RunComm
 		return err
 	}
 
-	return gui.handleCommitSelect(gui.g, gui.getCommitsView())
+	return gui.handleCommitSelect()
 }
 
 func (gui *Gui) createResetMenu(ref string) error {

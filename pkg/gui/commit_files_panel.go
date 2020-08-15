@@ -18,13 +18,13 @@ func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
 
 func (gui *Gui) handleCommitFilesClick(g *gocui.Gui, v *gocui.View) error {
 	itemCount := len(gui.State.CommitFiles)
-	handleSelect := gui.handleCommitFileSelect
+	handleSelect := gui.wrappedHandler(gui.handleCommitFileSelect)
 	selectedLine := &gui.State.Panels.CommitFiles.SelectedLine
 
 	return gui.handleClick(v, itemCount, selectedLine, handleSelect)
 }
 
-func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitFileSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
@@ -44,7 +44,7 @@ func (gui *Gui) handleCommitFileSelect(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	v.FocusPoint(0, gui.State.Panels.CommitFiles.SelectedLine)
+	gui.getCommitFilesView().FocusPoint(0, gui.State.Panels.CommitFiles.SelectedLine)
 
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Sha, commitFile.Name, false),
@@ -122,7 +122,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 	displayStrings := presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsFileView, displayStrings)
 
-	return gui.handleCommitFileSelect(gui.g, commitsFileView)
+	return gui.handleCommitFileSelect()
 }
 
 func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
@@ -251,5 +251,5 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 
 func (gui *Gui) onCommitFilesPanelSearchSelect(selectedLine int) error {
 	gui.State.Panels.CommitFiles.SelectedLine = selectedLine
-	return gui.handleCommitFileSelect(gui.g, gui.getCommitFilesView())
+	return gui.handleCommitFileSelect()
 }
