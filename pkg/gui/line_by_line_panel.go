@@ -1,6 +1,9 @@
 package gui
 
 import (
+	"fmt"
+
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
@@ -50,7 +53,7 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 			prevNewHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
 			selectedLineIdx = patchParser.GetNextStageableLineIndex(prevNewHunk.FirstLineIdx)
 			newHunk := patchParser.GetHunkContainingLine(selectedLineIdx, 0)
-			firstLineIdx, lastLineIdx = newHunk.FirstLineIdx, newHunk.LastLineIdx
+			firstLineIdx, lastLineIdx = newHunk.FirstLineIdx, newHunk.LastLineIdx()
 		} else {
 			selectedLineIdx = patchParser.GetNextStageableLineIndex(state.SelectedLineIdx)
 			firstLineIdx, lastLineIdx = selectedLineIdx, selectedLineIdx
@@ -121,7 +124,7 @@ func (gui *Gui) selectNewHunk(newHunk *commands.PatchHunk) error {
 	state := gui.State.Panels.LineByLine
 	state.SelectedLineIdx = state.PatchParser.GetNextStageableLineIndex(newHunk.FirstLineIdx)
 	if state.SelectMode == HUNK {
-		state.FirstLineIdx, state.LastLineIdx = newHunk.FirstLineIdx, newHunk.LastLineIdx
+		state.FirstLineIdx, state.LastLineIdx = newHunk.FirstLineIdx, newHunk.LastLineIdx()
 	} else {
 		state.FirstLineIdx, state.LastLineIdx = state.SelectedLineIdx, state.SelectedLineIdx
 	}
@@ -265,7 +268,7 @@ func (gui *Gui) focusSelection(includeCurrentHunk bool) error {
 	if includeCurrentHunk {
 		hunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
 		firstLineIdx = hunk.FirstLineIdx
-		lastLineIdx = hunk.LastLineIdx
+		lastLineIdx = hunk.LastLineIdx()
 	}
 
 	margin := 0 // we may want to have a margin in place to show context  but right now I'm thinking we keep this at zero
@@ -311,7 +314,7 @@ func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
 	} else {
 		state.SelectMode = HUNK
 		selectedHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
-		state.FirstLineIdx, state.LastLineIdx = selectedHunk.FirstLineIdx, selectedHunk.LastLineIdx
+		state.FirstLineIdx, state.LastLineIdx = selectedHunk.FirstLineIdx, selectedHunk.LastLineIdx()
 	}
 
 	if err := gui.refreshMainView(); err != nil {
@@ -324,4 +327,32 @@ func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleEscapeLineByLinePanel() {
 	gui.changeMainViewsContext("normal")
 	gui.State.Panels.LineByLine = nil
+}
+
+func (gui *Gui) handleOpenFileAtLine() error {
+	// again, would be good to use inheritance here (or maybe even composition)
+	var filename string
+	switch gui.State.MainContext {
+	case "patch-building":
+		filename = gui.getSelectedCommitFileName()
+	case "staging":
+		file, err := gui.getSelectedFile()
+		if err != nil {
+			return nil
+		}
+		filename = file.Name
+	default:
+		return errors.Errorf("unknown main context: %s", gui.State.MainContext)
+	}
+
+	state := gui.State.Panels.LineByLine
+	// need to look at current index, then work out what my hunk's header information is, and see how far my line is away from the hunk header
+	selectedHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
+	lineNumber := selectedHunk.LineNumberOfLine(state.SelectedLineIdx)
+	filenameWithLineNum := fmt.Sprintf("%s:%d", filename, lineNumber)
+	if err := gui.OSCommand.OpenFile(filenameWithLineNum); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -14,21 +14,40 @@ var hunkHeaderRegexp = regexp.MustCompile(`(?m)^@@ -(\d+)[^\+]+\+(\d+)[^@]+@@(.*
 var patchHeaderRegexp = regexp.MustCompile(`(?ms)(^diff.*?)^@@`)
 
 type PatchHunk struct {
-	header       string
 	FirstLineIdx int
-	LastLineIdx  int
+	oldStart     int
+	newStart     int
+	heading      string
 	bodyLines    []string
 }
 
-func newHunk(header string, body string, firstLineIdx int) *PatchHunk {
-	bodyLines := strings.SplitAfter(header+body, "\n")[1:] // dropping the header line
+func (hunk *PatchHunk) LastLineIdx() int {
+	return hunk.FirstLineIdx + len(hunk.bodyLines)
+}
+
+func newHunk(lines []string, firstLineIdx int) *PatchHunk {
+	header := lines[0]
+	bodyLines := lines[1:]
+
+	oldStart, newStart, heading := headerInfo(header)
 
 	return &PatchHunk{
-		header:       header,
+		oldStart:     oldStart,
+		newStart:     newStart,
+		heading:      heading,
 		FirstLineIdx: firstLineIdx,
-		LastLineIdx:  firstLineIdx + len(bodyLines),
 		bodyLines:    bodyLines,
 	}
+}
+
+func headerInfo(header string) (int, int, string) {
+	match := hunkHeaderRegexp.FindStringSubmatch(header)
+
+	oldStart := mustConvertToInt(match[1])
+	newStart := mustConvertToInt(match[2])
+	heading := match[3]
+
+	return oldStart, newStart, heading
 }
 
 func (hunk *PatchHunk) updatedLines(lineIndices []int, reverse bool) []string {
@@ -94,38 +113,21 @@ func (hunk *PatchHunk) formatWithChanges(lineIndices []int, reverse bool, startO
 }
 
 func (hunk *PatchHunk) updatedHeader(newBodyLines []string, startOffset int, reverse bool) (int, string, bool) {
-	changeCount := 0
-	oldLength := 0
-	newLength := 0
-	for _, line := range newBodyLines {
-		switch line[:1] {
-		case "+":
-			newLength++
-			changeCount++
-		case "-":
-			oldLength++
-			changeCount++
-		case " ":
-			oldLength++
-			newLength++
-		}
-	}
+	changeCount := nLinesWithPrefix(newBodyLines, []string{"+", "-"})
+	oldLength := nLinesWithPrefix(newBodyLines, []string{" ", "-"})
+	newLength := nLinesWithPrefix(newBodyLines, []string{"+", " "})
 
 	if changeCount == 0 {
 		// if nothing has changed we just return nothing
 		return startOffset, "", false
 	}
 
-	// get oldstart, newstart, and heading from header
-	match := hunkHeaderRegexp.FindStringSubmatch(hunk.header)
-
 	var oldStart int
 	if reverse {
-		oldStart = mustConvertToInt(match[2])
+		oldStart = hunk.newStart
 	} else {
-		oldStart = mustConvertToInt(match[1])
+		oldStart = hunk.oldStart
 	}
-	heading := match[3]
 
 	var newStartOffset int
 	// if the hunk went from zero to positive length, we need to increment the starting point by one
@@ -141,7 +143,7 @@ func (hunk *PatchHunk) updatedHeader(newBodyLines []string, startOffset int, rev
 	newStart := oldStart + startOffset + newStartOffset
 
 	newStartOffset = startOffset + newLength - oldLength
-	formattedHeader := hunk.formatHeader(oldStart, oldLength, newStart, newLength, heading)
+	formattedHeader := hunk.formatHeader(oldStart, oldLength, newStart, newLength, hunk.heading)
 	return newStartOffset, formattedHeader, true
 }
 
@@ -162,19 +164,33 @@ func GetHeaderFromDiff(diff string) string {
 }
 
 func GetHunksFromDiff(diff string) []*PatchHunk {
-	headers := hunkHeaderRegexp.FindAllString(diff, -1)
-	bodies := hunkHeaderRegexp.Split(diff, -1)[1:] // discarding top bit
+	hunks := []*PatchHunk{}
+	firstLineIdx := -1
+	var hunkLines []string
+	pastDiffHeader := false
 
-	headerFirstLineIndices := []int{}
-	for lineIdx, line := range strings.Split(diff, "\n") {
-		if strings.HasPrefix(line, "@@ -") {
-			headerFirstLineIndices = append(headerFirstLineIndices, lineIdx)
+	for lineIdx, line := range strings.SplitAfter(diff, "\n") {
+		isHunkHeader := strings.HasPrefix(line, "@@ -")
+
+		if isHunkHeader {
+			if pastDiffHeader { // we need to persist the current hunk
+				hunks = append(hunks, newHunk(hunkLines, firstLineIdx))
+			}
+			pastDiffHeader = true
+			firstLineIdx = lineIdx
+			hunkLines = []string{line}
+			continue
 		}
+
+		if !pastDiffHeader { // skip through the stuff that precedes the first hunk
+			continue
+		}
+
+		hunkLines = append(hunkLines, line)
 	}
 
-	hunks := make([]*PatchHunk, len(headers))
-	for index, header := range headers {
-		hunks[index] = newHunk(header, bodies[index], headerFirstLineIndices[index])
+	if pastDiffHeader {
+		hunks = append(hunks, newHunk(hunkLines, firstLineIdx))
 	}
 
 	return hunks
@@ -203,7 +219,7 @@ outer:
 	for _, hunk := range d.hunks {
 		// if there is any line in our lineIndices array that the hunk contains, we append it
 		for _, lineIdx := range lineIndices {
-			if lineIdx >= hunk.FirstLineIdx && lineIdx <= hunk.LastLineIdx {
+			if lineIdx >= hunk.FirstLineIdx && lineIdx <= hunk.LastLineIdx() {
 				hunksInRange = append(hunksInRange, hunk)
 				continue outer
 			}
@@ -251,7 +267,7 @@ func (d *PatchModifier) OriginalPatchLength() int {
 		return 0
 	}
 
-	return d.hunks[len(d.hunks)-1].LastLineIdx
+	return d.hunks[len(d.hunks)-1].LastLineIdx()
 }
 
 func ModifiedPatchForRange(log *logrus.Entry, filename string, diffText string, firstLineIdx int, lastLineIdx int, reverse bool, keepOriginalHeader bool) string {
@@ -262,4 +278,25 @@ func ModifiedPatchForRange(log *logrus.Entry, filename string, diffText string, 
 func ModifiedPatchForLines(log *logrus.Entry, filename string, diffText string, includedLineIndices []int, reverse bool, keepOriginalHeader bool) string {
 	p := NewPatchModifier(log, filename, diffText)
 	return p.ModifiedPatchForLines(includedLineIndices, reverse, keepOriginalHeader)
+}
+
+// I want to know, given a hunk, what line a given index is on
+func (hunk *PatchHunk) LineNumberOfLine(idx int) int {
+	lines := hunk.bodyLines[0 : idx-hunk.FirstLineIdx-1]
+
+	offset := nLinesWithPrefix(lines, []string{"+", " "})
+
+	return hunk.newStart + offset
+}
+
+func nLinesWithPrefix(lines []string, chars []string) int {
+	result := 0
+	for _, line := range lines {
+		for _, char := range chars {
+			if line[:1] == char {
+				result++
+			}
+		}
+	}
+	return result
 }

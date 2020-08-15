@@ -996,6 +996,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("ExitLineByLineMode"),
 		},
 		{
+			ViewName: "main",
+			Contexts: []string{"patch-building", "staging"},
+			Key:      gui.getKey("universal.openFile"),
+			Handler:  gui.wrappedHandler(gui.handleOpenFileAtLine),
+			// Description: gui.Tr.SLocalize("PrevLine"),
+		},
+		{
 			ViewName:    "main",
 			Contexts:    []string{"patch-building", "staging"},
 			Key:         gui.getKey("universal.prevItem"),
