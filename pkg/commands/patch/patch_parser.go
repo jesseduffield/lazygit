@@ -1,4 +1,4 @@
-package commands
+package patch
 
 import (
 	"regexp"

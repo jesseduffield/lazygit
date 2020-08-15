@@ -22,6 +22,7 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -102,7 +103,7 @@ type lineByLinePanelState struct {
 	FirstLineIdx     int
 	LastLineIdx      int
 	Diff             string
-	PatchParser      *commands.PatchParser
+	PatchParser      *patch.PatchParser
 	SelectMode       int  // one of LINE, HUNK, or RANGE
 	SecondaryFocused bool // this is for if we show the left or right panel
 }

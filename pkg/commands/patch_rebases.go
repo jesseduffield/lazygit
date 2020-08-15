@@ -2,11 +2,13 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 )
 
 // DeletePatchesFromCommit applies a patch in reverse for a commit
-func (c *GitCommand) DeletePatchesFromCommit(commits []*Commit, commitIndex int, p *PatchManager) error {
+func (c *GitCommand) DeletePatchesFromCommit(commits []*Commit, commitIndex int, p *patch.PatchManager) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
 		return err
 	}
@@ -33,7 +35,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*Commit, commitIndex int,
 	return c.GenericMerge("rebase", "continue")
 }
 
-func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitIdx int, destinationCommitIdx int, p *PatchManager) error {
+func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error {
 	if sourceCommitIdx < destinationCommitIdx {
 		if err := c.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx); err != nil {
 			return err
@@ -134,7 +136,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitId
 	return c.GenericMerge("rebase", "continue")
 }
 
-func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *PatchManager, stash bool) error {
+func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
 	if stash {
 		if err := c.StashSave(c.Tr.SLocalize("StashPrefix") + commits[commitIdx].Sha); err != nil {
 			return err
@@ -187,7 +189,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *Pat
 	return c.GenericMerge("rebase", "continue")
 }
 
-func (c *GitCommand) PullPatchIntoNewCommit(commits []*Commit, commitIdx int, p *PatchManager) error {
+func (c *GitCommand) PullPatchIntoNewCommit(commits []*Commit, commitIdx int, p *patch.PatchManager) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
 		return err
 	}

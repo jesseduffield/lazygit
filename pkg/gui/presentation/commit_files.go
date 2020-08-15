@@ -3,6 +3,7 @@ package presentation
 import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -26,11 +27,11 @@ func getCommitFileDisplayStrings(f *commands.CommitFile, diffed bool) []string {
 
 	var colour *color.Color
 	switch f.Status {
-	case commands.UNSELECTED:
+	case patch.UNSELECTED:
 		colour = defaultColor
-	case commands.WHOLE:
+	case patch.WHOLE:
 		colour = green
-	case commands.PART:
+	case patch.PART:
 		colour = yellow
 	}
 	if diffed {
