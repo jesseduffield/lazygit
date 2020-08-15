@@ -22,14 +22,14 @@ func (gui *Gui) getSelectedRemote() *commands.Remote {
 	return gui.State.Remotes[selectedLine]
 }
 
-func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRemoteSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
+	if _, err := gui.g.SetCurrentView("branches"); err != nil {
 		return err
 	}
 
@@ -39,7 +39,7 @@ func (gui *Gui) handleRemoteSelect(g *gocui.Gui, v *gocui.View) error {
 	if remote == nil {
 		return gui.newStringTask("main", "No remotes")
 	}
-	v.FocusPoint(0, gui.State.Panels.Remotes.SelectedLine)
+	gui.getBranchesView().FocusPoint(0, gui.State.Panels.Remotes.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()
@@ -88,7 +88,7 @@ func (gui *Gui) renderRemotesWithSelection() error {
 	gui.renderDisplayStrings(branchesView, displayStrings)
 
 	if gui.g.CurrentView() == branchesView && branchesView.Context == "remotes" {
-		if err := gui.handleRemoteSelect(gui.g, branchesView); err != nil {
+		if err := gui.handleRemoteSelect(); err != nil {
 			return err
 		}
 	}

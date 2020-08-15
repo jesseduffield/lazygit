@@ -230,7 +230,7 @@ func (gui *Gui) newLineFocused(g *gocui.Gui, v *gocui.View) error {
 		case "local-branches":
 			return gui.handleBranchSelect()
 		case "remotes":
-			return gui.handleRemoteSelect(g, v)
+			return gui.handleRemoteSelect()
 		case "remote-branches":
 			return gui.handleRemoteBranchSelect(g, v)
 		case "tags":
