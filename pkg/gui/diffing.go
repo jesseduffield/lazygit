@@ -150,8 +150,8 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 		{
 			displayString: gui.Tr.SLocalize("enterRefToDiff"),
 			onPress: func() error {
-				return gui.createPromptPanel(gui.g, v, gui.Tr.SLocalize("enteRefName"), "", func(g *gocui.Gui, promptView *gocui.View) error {
-					gui.State.Diff.Ref = strings.TrimSpace(promptView.Buffer())
+				return gui.createPromptPanel(v, gui.Tr.SLocalize("enteRefName"), "", func(response string) error {
+					gui.State.Diff.Ref = strings.TrimSpace(response)
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				})
 			},

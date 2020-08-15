@@ -133,9 +133,15 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 	}
 
 	if len(gui.trackedFiles()) > 0 {
-		return gui.createConfirmationPanel(gui.g, gui.g.CurrentView(), true, gui.Tr.SLocalize("MustStashTitle"), gui.Tr.SLocalize("MustStashWarning"), func(*gocui.Gui, *gocui.View) error {
-			return pull(true)
-		}, nil)
+		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+			returnToView:       gui.g.CurrentView(),
+			returnFocusOnClose: true,
+			title:              gui.Tr.SLocalize("MustStashTitle"),
+			prompt:             gui.Tr.SLocalize("MustStashWarning"),
+			handleConfirm: func() error {
+				return pull(true)
+			},
+		})
 	} else {
 		return pull(false)
 	}

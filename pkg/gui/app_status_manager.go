@@ -66,7 +66,7 @@ func (gui *Gui) WithWaitingStatus(name string, f func() error) error {
 				if appStatus == "" {
 					return
 				}
-				gui.renderString(gui.g, "appStatus", appStatus)
+				gui.renderString("appStatus", appStatus)
 			}
 		}()
 

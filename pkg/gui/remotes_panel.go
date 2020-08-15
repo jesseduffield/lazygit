@@ -116,10 +116,8 @@ func (gui *Gui) handleRemoteEnter(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
 	branchesView := gui.getBranchesView()
-	return gui.createPromptPanel(g, branchesView, gui.Tr.SLocalize("newRemoteName"), "", func(g *gocui.Gui, v *gocui.View) error {
-		remoteName := gui.trimmedContent(v)
-		return gui.createPromptPanel(g, branchesView, gui.Tr.SLocalize("newRemoteUrl"), "", func(g *gocui.Gui, v *gocui.View) error {
-			remoteUrl := gui.trimmedContent(v)
+	return gui.createPromptPanel(branchesView, gui.Tr.SLocalize("newRemoteName"), "", func(remoteName string) error {
+		return gui.createPromptPanel(branchesView, gui.Tr.SLocalize("newRemoteUrl"), "", func(remoteUrl string) error {
 			if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
 				return err
 			}
@@ -133,14 +131,20 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 	if remote == nil {
 		return nil
 	}
-	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("removeRemote"), gui.Tr.SLocalize("removeRemotePrompt")+" '"+remote.Name+"'?", func(*gocui.Gui, *gocui.View) error {
-		if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
-			return err
-		}
 
-		return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       v,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("removeRemote"),
+		prompt:             gui.Tr.SLocalize("removeRemotePrompt") + " '" + remote.Name + "'?",
+		handleConfirm: func() error {
+			if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
+				return err
+			}
 
-	}, nil)
+			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+		},
+	})
 }
 
 func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
@@ -157,9 +161,7 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.createPromptPanel(g, branchesView, editNameMessage, "", func(g *gocui.Gui, v *gocui.View) error {
-		updatedRemoteName := gui.trimmedContent(v)
-
+	return gui.createPromptPanel(branchesView, editNameMessage, "", func(updatedRemoteName string) error {
 		if updatedRemoteName != remote.Name {
 			if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
 				return gui.surfaceError(err)
@@ -173,8 +175,7 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 			},
 		)
 
-		return gui.createPromptPanel(g, branchesView, editUrlMessage, "", func(g *gocui.Gui, v *gocui.View) error {
-			updatedRemoteUrl := gui.trimmedContent(v)
+		return gui.createPromptPanel(branchesView, editUrlMessage, "", func(updatedRemoteUrl string) error {
 			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 				return gui.surfaceError(err)
 			}

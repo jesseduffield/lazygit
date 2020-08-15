@@ -15,7 +15,7 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	// We need to force focus here because the confirmation panel for safely staging lines does not return focus automatically.
 	// This is because if we tell it to return focus it will unconditionally return it to the main panel which may not be what we want
 	// e.g. in the event that there's nothing left to stage.
-	if err := gui.switchFocus(gui.g, nil, gui.getMainView()); err != nil {
+	if err := gui.switchFocus(nil, gui.getMainView()); err != nil {
 		return err
 	}
 
@@ -96,7 +96,7 @@ func (gui *Gui) handleTogglePanel(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleStagingEscape(g *gocui.Gui, v *gocui.View) error {
 	gui.handleEscapeLineByLinePanel()
 
-	return gui.switchFocus(gui.g, nil, gui.getFilesView())
+	return gui.switchFocus(nil, gui.getFilesView())
 }
 
 func (gui *Gui) handleToggleStagedSelection(g *gocui.Gui, v *gocui.View) error {
@@ -114,9 +114,15 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	if !gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
-		return gui.createConfirmationPanel(gui.g, gui.getMainView(), false, "unstage lines", "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true", func(*gocui.Gui, *gocui.View) error {
-			return gui.applySelection(true)
-		}, nil)
+		return gui.createConfirmationPanel(createConfirmationPanelOpts{
+			returnToView:       gui.getMainView(),
+			returnFocusOnClose: false,
+			title:              gui.Tr.SLocalize("UnstageLinesTitle"),
+			prompt:             gui.Tr.SLocalize("UnstageLinesPrompt"),
+			handleConfirm: func() error {
+				return gui.applySelection(true)
+			},
+		})
 	} else {
 		return gui.applySelection(true)
 	}

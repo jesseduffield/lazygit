@@ -308,7 +308,7 @@ func (gui *Gui) handleEscapeMerge(g *gocui.Gui, v *gocui.View) error {
 	// it's possible this method won't be called from the merging view so we need to
 	// ensure we only 'return' focus if we already have it
 	if gui.g.CurrentView() == gui.getMainView() {
-		return gui.switchFocus(g, v, gui.getFilesView())
+		return gui.switchFocus(v, gui.getFilesView())
 	}
 	return nil
 }
@@ -336,9 +336,15 @@ func (gui *Gui) handleCompleteMerge() error {
 func (gui *Gui) promptToContinue() error {
 	gui.takeOverScrolling()
 
-	return gui.createConfirmationPanel(gui.g, gui.getFilesView(), true, "continue", gui.Tr.SLocalize("ConflictsResolved"), func(g *gocui.Gui, v *gocui.View) error {
-		return gui.genericMergeCommand("continue")
-	}, nil)
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       gui.getFilesView(),
+		returnFocusOnClose: true,
+		title:              "continue",
+		prompt:             gui.Tr.SLocalize("ConflictsResolved"),
+		handleConfirm: func() error {
+			return gui.genericMergeCommand("continue")
+		},
+	})
 }
 
 func (gui *Gui) canScrollMergePanel() bool {

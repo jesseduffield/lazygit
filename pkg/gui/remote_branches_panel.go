@@ -94,15 +94,22 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	message := fmt.Sprintf("%s '%s'?", gui.Tr.SLocalize("DeleteRemoteBranchMessage"), remoteBranch.FullName())
-	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("DeleteRemoteBranch"), message, func(*gocui.Gui, *gocui.View) error {
-		return gui.WithWaitingStatus(gui.Tr.SLocalize("DeletingStatus"), func() error {
-			if err := gui.GitCommand.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name); err != nil {
-				return err
-			}
 
-			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
-		})
-	}, nil)
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       v,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("DeleteRemoteBranch"),
+		prompt:             message,
+		handleConfirm: func() error {
+			return gui.WithWaitingStatus(gui.Tr.SLocalize("DeletingStatus"), func() error {
+				if err := gui.GitCommand.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name); err != nil {
+					return err
+				}
+
+				return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+			})
+		},
+	})
 }
 
 func (gui *Gui) handleRebaseOntoRemoteBranch(g *gocui.Gui, v *gocui.View) error {
@@ -122,13 +129,19 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.createConfirmationPanel(g, v, true, gui.Tr.SLocalize("SetUpstreamTitle"), message, func(*gocui.Gui, *gocui.View) error {
-		if err := gui.GitCommand.SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
-			return err
-		}
+	return gui.createConfirmationPanel(createConfirmationPanelOpts{
+		returnToView:       v,
+		returnFocusOnClose: true,
+		title:              gui.Tr.SLocalize("SetUpstreamTitle"),
+		prompt:             message,
+		handleConfirm: func() error {
+			if err := gui.GitCommand.SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+				return err
+			}
 
-		return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
-	}, nil)
+			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+		},
+	})
 }
 
 func (gui *Gui) handleCreateResetToRemoteBranchMenu(g *gocui.Gui, v *gocui.View) error {
@@ -151,8 +164,8 @@ func (gui *Gui) handleNewBranchOffRemote(g *gocui.Gui, v *gocui.View) error {
 			"branchName": branch.FullName(),
 		},
 	)
-	return gui.createPromptPanel(g, v, message, branch.FullName(), func(g *gocui.Gui, v *gocui.View) error {
-		if err := gui.GitCommand.NewBranch(gui.trimmedContent(v), branch.FullName()); err != nil {
+	return gui.createPromptPanel(v, message, branch.FullName(), func(response string) error {
+		if err := gui.GitCommand.NewBranch(response, branch.FullName()); err != nil {
 			return gui.surfaceError(err)
 		}
 		gui.State.Panels.Branches.SelectedLine = 0
