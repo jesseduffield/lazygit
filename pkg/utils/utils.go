@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -333,4 +334,12 @@ func StringArraysOverlap(strArrA []string, strArrB []string) bool {
 	}
 
 	return false
+}
+
+func MustConvertToInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }

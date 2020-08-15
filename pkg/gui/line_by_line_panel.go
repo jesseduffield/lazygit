@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 )
 
 // Currently there are two 'pseudo-panels' that make use of this 'pseudo-panel'.
@@ -27,7 +27,7 @@ const (
 func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, secondaryFocused bool, selectedLineIdx int) (bool, error) {
 	state := gui.State.Panels.LineByLine
 
-	patchParser, err := commands.NewPatchParser(gui.Log, diff)
+	patchParser, err := patch.NewPatchParser(gui.Log, diff)
 	if err != nil {
 		return false, nil
 	}
@@ -85,7 +85,7 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 	secondaryView.Highlight = true
 	secondaryView.Wrap = false
 
-	secondaryPatchParser, err := commands.NewPatchParser(gui.Log, secondaryDiff)
+	secondaryPatchParser, err := patch.NewPatchParser(gui.Log, secondaryDiff)
 	if err != nil {
 		return false, nil
 	}
@@ -120,7 +120,7 @@ func (gui *Gui) handleSelectNextHunk(g *gocui.Gui, v *gocui.View) error {
 	return gui.selectNewHunk(newHunk)
 }
 
-func (gui *Gui) selectNewHunk(newHunk *commands.PatchHunk) error {
+func (gui *Gui) selectNewHunk(newHunk *patch.PatchHunk) error {
 	state := gui.State.Panels.LineByLine
 	state.SelectedLineIdx = state.PatchParser.GetNextStageableLineIndex(newHunk.FirstLineIdx)
 	if state.SelectMode == HUNK {

@@ -16,6 +16,7 @@ import (
 	"github.com/go-errors/errors"
 
 	gogit "github.com/go-git/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -84,7 +85,7 @@ type GitCommand struct {
 	removeFile           func(string) error
 	DotGitDir            string
 	onSuccessfulContinue func() error
-	PatchManager         *PatchManager
+	PatchManager         *patch.PatchManager
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	PushToCurrent bool
@@ -143,7 +144,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		PushToCurrent:      pushToCurrent,
 	}
 
-	gitCommand.PatchManager = NewPatchManager(log, gitCommand.ApplyPatch)
+	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch)
 
 	return gitCommand, nil
 }
@@ -1038,7 +1039,7 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 }
 
 // GetCommitFiles get the specified commit files
-func (c *GitCommand) GetCommitFiles(commitSha string, patchManager *PatchManager) ([]*CommitFile, error) {
+func (c *GitCommand) GetCommitFiles(commitSha string, patchManager *patch.PatchManager) ([]*CommitFile, error) {
 	files, err := c.OSCommand.RunCommandWithOutput("git diff-tree --no-commit-id --name-only -r --no-renames %s", commitSha)
 	if err != nil {
 		return nil, err
@@ -1047,7 +1048,7 @@ func (c *GitCommand) GetCommitFiles(commitSha string, patchManager *PatchManager
 	commitFiles := make([]*CommitFile, 0)
 
 	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
-		status := UNSELECTED
+		status := patch.UNSELECTED
 		if patchManager != nil && patchManager.CommitSha == commitSha {
 			status = patchManager.GetFileStatus(file)
 		}
