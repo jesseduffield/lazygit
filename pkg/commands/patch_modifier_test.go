@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,6 +87,15 @@ index e69de29..c6568ea 100644
 @@ -0,0 +1 @@
 +new line
 \ No newline at end of file
+`
+
+const exampleHunk = `@@ -1,5 +1,5 @@
+ apple
+-grape
++orange
+...
+...
+...
 `
 
 // TestModifyPatchForRange is a function.
@@ -503,6 +513,33 @@ func TestModifyPatchForRange(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			result := ModifiedPatchForRange(nil, s.filename, s.diffText, s.firstLineIndex, s.lastLineIndex, s.reverse, false)
+			if !assert.Equal(t, s.expected, result) {
+				fmt.Println(result)
+			}
+		})
+	}
+}
+
+func TestLineNumberOfLine(t *testing.T) {
+	type scenario struct {
+		testName string
+		hunk     *PatchHunk
+		idx      int
+		expected int
+	}
+
+	scenarios := []scenario{
+		{
+			testName: "nothing selected",
+			hunk:     newHunk(strings.SplitAfter(exampleHunk, "\n"), 10),
+			idx:      15,
+			expected: 3,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			result := s.hunk.LineNumberOfLine(s.idx)
 			if !assert.Equal(t, s.expected, result) {
 				fmt.Println(result)
 			}

@@ -191,7 +191,7 @@ for users of VSCode
 
 ```yaml
   os:
-    openCommand: 'code -r {{filename}}'
+    openCommand: 'code -rg {{filename}}'
 ```
 
 ## Color Attributes

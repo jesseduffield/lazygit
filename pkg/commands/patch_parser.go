@@ -63,7 +63,7 @@ func (p *PatchParser) GetHunkContainingLine(lineIndex int, offset int) *PatchHun
 	}
 
 	for index, hunk := range p.PatchHunks {
-		if lineIndex >= hunk.FirstLineIdx && lineIndex <= hunk.LastLineIdx {
+		if lineIndex >= hunk.FirstLineIdx && lineIndex <= hunk.LastLineIdx() {
 			resultIndex := index + offset
 			if resultIndex < 0 {
 				resultIndex = 0
@@ -75,7 +75,7 @@ func (p *PatchParser) GetHunkContainingLine(lineIndex int, offset int) *PatchHun
 	}
 
 	// if your cursor is past the last hunk, select the last hunk
-	if lineIndex > p.PatchHunks[len(p.PatchHunks)-1].LastLineIdx {
+	if lineIndex > p.PatchHunks[len(p.PatchHunks)-1].LastLineIdx() {
 		return p.PatchHunks[len(p.PatchHunks)-1]
 	}
 
