@@ -236,6 +236,8 @@ type guiState struct {
 	StartupStage          int    // one of INITIAL and COMPLETE. Allows us to not load everything at once
 	FilterPath            string // the filename that gets passed to git log
 	Diff                  DiffState
+
+	Contexts ContextTree
 }
 
 func (gui *Gui) resetState() {
