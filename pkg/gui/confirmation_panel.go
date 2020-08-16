@@ -168,9 +168,11 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 }
 
 func (gui *Gui) onNewPopupPanel() {
-	viewNames := []string{"commitMessage",
+	viewNames := []string{
+		"commitMessage",
 		"credentials",
-		"menu"}
+		"menu",
+	}
 	for _, viewName := range viewNames {
 		_, _ = gui.g.SetViewOnBottom(viewName)
 	}
