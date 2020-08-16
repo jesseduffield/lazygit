@@ -1,59 +1,8 @@
 package gui
 
 import (
-	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 )
-
-// changeContext is a helper function for when we want to change a 'main' context
-// which currently just means a context that affects both the main and secondary views
-// other views can have their context changed directly but this function helps
-// keep the main and secondary views in sync
-func (gui *Gui) changeMainViewsContext(context string) {
-	if gui.State.MainContext == context {
-		return
-	}
-
-	switch context {
-	case "normal", "patch-building", "staging", "merging":
-		gui.getMainView().Context = context
-		gui.getSecondaryView().Context = context
-	}
-
-	gui.State.MainContext = context
-}
-
-type Stack struct {
-	stack []Context
-}
-
-func (s *Stack) Push(contextKey Context) {
-	s.stack = append(s.stack, contextKey)
-}
-
-func (s *Stack) Pop() (Context, bool) {
-	if len(s.stack) == 0 {
-		return nil, false
-	}
-
-	n := len(s.stack) - 1
-	value := s.stack[n]
-	s.stack = s.stack[:n]
-
-	return value, true
-}
-
-// the context manager maintains a stack of contexts so that we can easily switch focus back and forth
-type contextManager struct {
-	gui   *Gui
-	stack stack.Stack
-}
-
-func (c *contextManager) push(contextKey string) {
-	c.stack.Push(contextKey)
-}
-
-// push focus, pop focus.
 
 const (
 	SIDE_CONTEXT int = iota
@@ -156,22 +105,43 @@ func (gui *Gui) switchContextToView(viewName string) error {
 	return gui.switchContext(gui.State.ViewContextMap[viewName])
 }
 
-func (gui *Gui) renderContextStack() string {
-	result := ""
-	for _, context := range gui.State.ContextStack {
-		result += context.GetViewName() + "\n"
+func (gui *Gui) returnFromContext() error {
+	// TODO: add mutexes
+
+	if len(gui.State.ContextStack) == 1 {
+		// cannot escape from bottommost context
+		return nil
 	}
-	return result
+
+	n := len(gui.State.ContextStack) - 1
+
+	currentContext := gui.State.ContextStack[n]
+	newContext := gui.State.ContextStack[n-1]
+
+	gui.State.ContextStack = gui.State.ContextStack[:n]
+
+	if err := currentContext.HandleFocusLost(); err != nil {
+		return err
+	}
+
+	return gui.activateContext(newContext)
 }
 
 func (gui *Gui) activateContext(c Context) error {
 	gui.Log.Warn(gui.renderContextStack())
 
-	if _, err := gui.g.SetCurrentView(c.GetViewName()); err != nil {
+	viewName := c.GetViewName()
+	_, err := gui.g.View(viewName)
+	// if view no longer exists, pop again
+	if err != nil {
+		return gui.returnFromContext()
+	}
+
+	if _, err := gui.g.SetCurrentView(viewName); err != nil {
 		return err
 	}
 
-	if _, err := gui.g.SetViewOnTop(c.GetViewName()); err != nil {
+	if _, err := gui.g.SetViewOnTop(viewName); err != nil {
 		return err
 	}
 
@@ -197,26 +167,12 @@ func (gui *Gui) activateContext(c Context) error {
 	return nil
 }
 
-func (gui *Gui) returnFromContext() error {
-	// TODO: add mutexes
-
-	if len(gui.State.ContextStack) == 1 {
-		// cannot escape from bottommost context
-		return nil
+func (gui *Gui) renderContextStack() string {
+	result := ""
+	for _, context := range gui.State.ContextStack {
+		result += context.GetViewName() + "\n"
 	}
-
-	n := len(gui.State.ContextStack) - 1
-
-	currentContext := gui.State.ContextStack[n]
-	newContext := gui.State.ContextStack[n-1]
-
-	gui.State.ContextStack = gui.State.ContextStack[:n]
-
-	if err := currentContext.HandleFocusLost(); err != nil {
-		return err
-	}
-
-	return gui.activateContext(newContext)
+	return result
 }
 
 func (gui *Gui) currentContext() Context {
@@ -267,7 +223,8 @@ func (gui *Gui) createContextTree() {
 			Context: BasicContext{
 				// TODO: think about different situations where this arises
 				OnFocus: func() error {
-					return gui.refreshStagingPanel(false, -1)
+					return nil
+					// return gui.refreshStagingPanel(false, -1)
 				},
 				Kind:     MAIN_CONTEXT,
 				ViewName: "main",
@@ -399,4 +356,22 @@ func (gui *Gui) onViewFocus(newView *gocui.View) error {
 	gui.setViewAsActiveForWindow(newView.Name())
 
 	return nil
+}
+
+// changeContext is a helper function for when we want to change a 'main' context
+// which currently just means a context that affects both the main and secondary views
+// other views can have their context changed directly but this function helps
+// keep the main and secondary views in sync
+func (gui *Gui) changeMainViewsContext(context string) {
+	if gui.State.MainContext == context {
+		return
+	}
+
+	switch context {
+	case "normal", "patch-building", "staging", "merging":
+		gui.getMainView().Context = context
+		gui.getSecondaryView().Context = context
+	}
+
+	gui.State.MainContext = context
 }

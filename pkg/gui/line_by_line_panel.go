@@ -332,7 +332,7 @@ func (gui *Gui) handleEscapeLineByLinePanel() {
 func (gui *Gui) handleOpenFileAtLine() error {
 	// again, would be good to use inheritance here (or maybe even composition)
 	var filename string
-	switch gui.currentContext().GetKey() {
+	switch gui.State.MainContext {
 	case "patch-building":
 		filename = gui.getSelectedCommitFileName()
 	case "staging":
