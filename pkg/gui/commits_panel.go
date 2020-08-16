@@ -742,7 +742,7 @@ func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 	}
 
 	for _, view := range gui.getListViews() {
-		if view.viewName == "commits" {
+		if view.ViewName == "commits" {
 			return view.handleGotoBottom(g, v)
 		}
 	}
