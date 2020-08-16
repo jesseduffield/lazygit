@@ -94,15 +94,13 @@ func (gui *Gui) wrappedPromptConfirmationFunction(function func(string) error, r
 }
 
 func (gui *Gui) closeConfirmationPrompt(returnFocusOnClose bool) error {
-	view, err := gui.g.View("confirmation")
-	if err != nil {
+	view := gui.getConfirmationView()
+	if view == nil {
 		return nil // if it's already been closed we can just return
 	}
 	view.Editable = false
-	if returnFocusOnClose {
-		if err := gui.returnFocus(view); err != nil {
-			panic(err)
-		}
+	if err := gui.returnFromContext(); err != nil {
+		return err
 	}
 
 	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.confirm"), gocui.ModNone)
@@ -164,7 +162,7 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 		confirmationView.FgColor = theme.GocuiDefaultTextColor
 	}
 	gui.g.Update(func(g *gocui.Gui) error {
-		return gui.switchFocus(currentView, confirmationView)
+		return gui.switchContext(gui.Contexts.Confirmation.Context)
 	})
 	return confirmationView, nil
 }

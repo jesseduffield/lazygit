@@ -35,8 +35,6 @@ func (gui *Gui) handleReflogCommitSelect() error {
 	if commit == nil {
 		return gui.newStringTask("main", "No reflog history")
 	}
-	gui.getCommitsView().FocusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine)
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}

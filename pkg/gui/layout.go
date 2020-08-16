@@ -12,68 +12,6 @@ import (
 const SEARCH_PREFIX = "search: "
 const INFO_SECTION_PADDING = " "
 
-// getFocusLayout returns a manager function for when view gain and lose focus
-func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
-	var previousView *gocui.View
-	return func(g *gocui.Gui) error {
-		newView := gui.g.CurrentView()
-		if err := gui.onFocusChange(); err != nil {
-			return err
-		}
-		// for now we don't consider losing focus to a popup panel as actually losing focus
-		if newView != previousView && !gui.isPopupPanel(newView.Name()) {
-			if err := gui.onFocusLost(previousView, newView); err != nil {
-				return err
-			}
-			if err := gui.onFocus(newView); err != nil {
-				return err
-			}
-			previousView = newView
-		}
-		return nil
-	}
-}
-
-func (gui *Gui) onFocusChange() error {
-	currentView := gui.g.CurrentView()
-	for _, view := range gui.g.Views() {
-		view.Highlight = view == currentView
-	}
-	return nil
-}
-
-func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
-	if v == nil {
-		return nil
-	}
-	if v.IsSearching() && newView.Name() != "search" {
-		if err := gui.onSearchEscape(); err != nil {
-			return err
-		}
-	}
-	switch v.Name() {
-	case "main":
-		// if we have lost focus to a first-class panel, we need to do some cleanup
-		gui.changeMainViewsContext("normal")
-	case "commitFiles":
-		if gui.State.MainContext != "patch-building" {
-			if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
-				return err
-			}
-		}
-	}
-	gui.Log.Info(v.Name() + " focus lost")
-	return nil
-}
-
-func (gui *Gui) onFocus(v *gocui.View) error {
-	if v == nil {
-		return nil
-	}
-	gui.Log.Info(v.Name() + " focus gained")
-	return nil
-}
-
 func (gui *Gui) informationStr() string {
 	if gui.inDiffMode() {
 		return utils.ColoredString(fmt.Sprintf("%s %s %s", gui.Tr.SLocalize("showingGitDiff"), "git diff "+gui.diffStr(), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgMagenta)
@@ -329,15 +267,12 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if gui.g.CurrentView() == nil {
-		initialView := gui.getFilesView()
+		initialContext := gui.Contexts.Files.Context
 		if gui.inFilterMode() {
-			initialView = gui.getCommitsView()
-		}
-		if _, err := gui.g.SetCurrentView(initialView.Name()); err != nil {
-			return err
+			initialContext = gui.Contexts.BranchCommits.Context
 		}
 
-		if err := gui.switchFocus(nil, initialView); err != nil {
+		if err := gui.switchContext(initialContext); err != nil {
 			return err
 		}
 	}
@@ -347,7 +282,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		lineCount    int
 		view         *gocui.View
 		context      string
-		listView     *listView
+		listView     *ListView
 	}
 
 	listViewStates := []listViewState{
@@ -397,6 +332,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 }
 
 func (gui *Gui) onInitialViewsCreation() error {
+	gui.createContextTree()
+
+	gui.switchContext(gui.Contexts.Files.Context)
+
 	gui.changeMainViewsContext("normal")
 
 	gui.getBranchesView().Context = "local-branches"

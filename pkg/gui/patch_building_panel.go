@@ -83,7 +83,7 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 		gui.State.SplitMainPanel = false
 	}
 
-	return gui.switchFocus(nil, gui.getCommitFilesView())
+	return gui.switchContext(gui.Contexts.BranchCommits.Files.Context)
 }
 
 func (gui *Gui) refreshSecondaryPatchPanel() error {

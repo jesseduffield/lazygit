@@ -30,7 +30,6 @@ func (gui *Gui) handleTagSelect() error {
 	if tag == nil {
 		return gui.newStringTask("main", "No tags")
 	}
-	gui.getBranchesView().FocusPoint(0, gui.State.Panels.Tags.SelectedLine)
 
 	if gui.inDiffMode() {
 		return gui.renderDiff()

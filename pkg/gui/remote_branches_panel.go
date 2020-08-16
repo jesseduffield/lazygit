@@ -37,8 +37,6 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 		return gui.newStringTask("main", "No branches for this remote")
 	}
 
-	gui.getBranchesView().FocusPoint(0, gui.State.Panels.RemoteBranches.SelectedLine)
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}

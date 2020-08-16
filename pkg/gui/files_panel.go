@@ -171,11 +171,10 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.SLocalize("FileStagingRequirements"))
 	}
-	gui.changeMainViewsContext("staging")
-	if err := gui.switchFocus(gui.getFilesView(), gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
+	gui.changeMainViewsContext("staging") // TODO: move into context code
+	gui.switchContext(gui.Contexts.Staging.Context)
+
+	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
 }
 
 func (gui *Gui) handleFilePress() error {
@@ -310,11 +309,7 @@ func (gui *Gui) handleCommitPress() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if _, err := g.SetViewOnTop("commitMessage"); err != nil {
-			return err
-		}
-
-		if err := gui.switchFocus(gui.getFilesView(), commitMessageView); err != nil {
+		if err := gui.switchContext(gui.Contexts.CommitMessage.Context); err != nil {
 			return err
 		}
 
@@ -596,11 +591,8 @@ func (gui *Gui) handleSwitchToMerge() error {
 	if !file.HasInlineMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.SLocalize("FileNoMergeCons"))
 	}
-	gui.changeMainViewsContext("merging")
-	if err := gui.switchFocus(gui.g.CurrentView(), gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.refreshMergePanel()
+	gui.changeMainViewsContext("merging") // TODO: move into context code
+	return gui.switchContext(gui.Contexts.Merging.Context)
 }
 
 func (gui *Gui) openFile(filename string) error {

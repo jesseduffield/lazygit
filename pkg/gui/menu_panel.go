@@ -17,7 +17,6 @@ type menuItem struct {
 // list panel functions
 
 func (gui *Gui) handleMenuSelect() error {
-	gui.getMenuView().FocusPoint(0, gui.State.Panels.Menu.SelectedLine)
 	return nil
 }
 
@@ -46,7 +45,7 @@ func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return err
 	}
-	return gui.returnFocus(v)
+	return gui.returnFromContext()
 }
 
 type createMenuOptions struct {
@@ -84,8 +83,6 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 	menuView.ContainsList = true
 	menuView.Clear()
 	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
-		gui.State.Panels.Menu.SelectedLine = selectedLine
-		menuView.FocusPoint(0, selectedLine)
 		return nil
 	}))
 	fmt.Fprint(menuView, list)
@@ -103,7 +100,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 			}
 		}
 
-		return gui.returnFocus(menuView)
+		return gui.returnFromContext()
 	}
 
 	gui.State.Panels.Menu.OnPress = wrappedHandlePress
@@ -117,13 +114,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if _, err := gui.g.View("menu"); err == nil {
-			if _, err := g.SetViewOnTop("menu"); err != nil {
-				return err
-			}
-		}
-		currentView := gui.g.CurrentView()
-		return gui.switchFocus(currentView, menuView)
+		return gui.switchContext(gui.Contexts.Menu.Context)
 	})
 	return nil
 }

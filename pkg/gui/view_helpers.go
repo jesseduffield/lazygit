@@ -6,13 +6,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
 
-func (gui *Gui) getCyclableViews() []string {
+func (gui *Gui) getCyclableWindows() []string {
 	return []string{"status", "files", "branches", "commits", "stash"}
 }
 
@@ -140,157 +139,6 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	return nil
 }
 
-func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
-	var focusedViewName string
-	cyclableViews := gui.getCyclableViews()
-	if v == nil || v.Name() == cyclableViews[len(cyclableViews)-1] {
-		focusedViewName = cyclableViews[0]
-	} else {
-		// if we're in the commitFiles view we'll act like we're in the commits view
-		viewName := v.Name()
-		if viewName == "commitFiles" {
-			viewName = "commits"
-		}
-		for i := range cyclableViews {
-			if viewName == cyclableViews[i] {
-				focusedViewName = cyclableViews[i+1]
-				break
-			}
-			if i == len(cyclableViews)-1 {
-				message := gui.Tr.TemplateLocalize(
-					"IssntListOfViews",
-					Teml{
-						"name": viewName,
-					},
-				)
-				gui.Log.Info(message)
-				return nil
-			}
-		}
-	}
-	focusedView, err := g.View(focusedViewName)
-	if err != nil {
-		panic(err)
-	}
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.switchFocus(v, focusedView)
-}
-
-func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
-	cyclableViews := gui.getCyclableViews()
-	var focusedViewName string
-	if v == nil || v.Name() == cyclableViews[0] {
-		focusedViewName = cyclableViews[len(cyclableViews)-1]
-	} else {
-		// if we're in the commitFiles view we'll act like we're in the commits view
-		viewName := v.Name()
-		if viewName == "commitFiles" {
-			viewName = "commits"
-		}
-		for i := range cyclableViews {
-			if viewName == cyclableViews[i] {
-				focusedViewName = cyclableViews[i-1] // TODO: make this work properly
-				break
-			}
-			if i == len(cyclableViews)-1 {
-				message := gui.Tr.TemplateLocalize(
-					"IssntListOfViews",
-					Teml{
-						"name": viewName,
-					},
-				)
-				gui.Log.Info(message)
-				return nil
-			}
-		}
-	}
-	focusedView, err := g.View(focusedViewName)
-	if err != nil {
-		panic(err)
-	}
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.switchFocus(v, focusedView)
-}
-
-func (gui *Gui) newLineFocused(v *gocui.View) error {
-	switch v.Name() {
-	case "menu":
-		return gui.handleMenuSelect()
-	case "status":
-		return gui.handleStatusSelect()
-	case "files":
-		return gui.focusAndSelectFile()
-	case "branches":
-		branchesView := gui.getBranchesView()
-		switch branchesView.Context {
-		case "local-branches":
-			return gui.handleBranchSelect()
-		case "remotes":
-			return gui.handleRemoteSelect()
-		case "remote-branches":
-			return gui.handleRemoteBranchSelect()
-		case "tags":
-			return gui.handleTagSelect()
-		default:
-			return errors.New("unknown branches panel context: " + branchesView.Context)
-		}
-	case "commits":
-		return gui.handleCommitSelect()
-	case "commitFiles":
-		return gui.handleCommitFileSelect()
-	case "stash":
-		return gui.handleStashEntrySelect()
-	case "confirmation":
-		return nil
-	case "commitMessage":
-		return gui.handleCommitFocused()
-	case "credentials":
-		return gui.handleCredentialsViewFocused()
-	case "main":
-		if gui.State.MainContext == "merging" {
-			return gui.refreshMergePanel()
-		}
-		v.Highlight = false
-		return nil
-	case "search":
-		return nil
-	default:
-		panic(gui.Tr.SLocalize("NoViewMachingNewLineFocusedSwitchStatement"))
-	}
-}
-
-func (gui *Gui) returnFocus(v *gocui.View) error {
-	previousView, err := gui.g.View(gui.State.PreviousView)
-	if err != nil {
-		// always fall back to files view if there's no 'previous' view stored
-		previousView, err = gui.g.View("files")
-		if err != nil {
-			gui.Log.Error(err)
-		}
-	}
-	return gui.switchFocus(v, previousView)
-}
-
-func (gui *Gui) goToSideView(sideViewName string) func(g *gocui.Gui, v *gocui.View) error {
-	return func(g *gocui.Gui, v *gocui.View) error {
-		view, err := g.View(sideViewName)
-		if err != nil {
-			gui.Log.Error(err)
-			return nil
-		}
-		err = gui.closePopupPanels()
-		if err != nil {
-			gui.Log.Error(err)
-			return nil
-		}
-		return gui.switchFocus(nil, view)
-	}
-}
-
 func (gui *Gui) closePopupPanels() error {
 	gui.onNewPopupPanel()
 	err := gui.closeConfirmationPrompt(true)
@@ -299,39 +147,6 @@ func (gui *Gui) closePopupPanels() error {
 		return err
 	}
 	return nil
-}
-
-// pass in oldView = nil if you don't want to be able to return to your old view
-// TODO: move some of this logic into our onFocusLost and onFocus hooks
-func (gui *Gui) switchFocus(oldView, newView *gocui.View) error {
-	// we assume we'll never want to return focus to a popup panel i.e.
-	// we should never stack popup panels
-	if oldView != nil && !gui.isPopupPanel(oldView.Name()) {
-		gui.State.PreviousView = oldView.Name()
-	}
-
-	gui.Log.Info("setting highlight to true for view" + newView.Name())
-	message := gui.Tr.TemplateLocalize(
-		"newFocusedViewIs",
-		Teml{
-			"newFocusedView": newView.Name(),
-		},
-	)
-	gui.Log.Info(message)
-	if _, err := gui.g.SetCurrentView(newView.Name()); err != nil {
-		return err
-	}
-	if _, err := gui.g.SetViewOnTop(newView.Name()); err != nil {
-		return err
-	}
-
-	gui.g.Cursor = newView.Editable
-
-	if err := gui.renderPanelOptions(); err != nil {
-		return err
-	}
-
-	return gui.newLineFocused(newView)
 }
 
 func (gui *Gui) resetOrigin(v *gocui.View) error {
@@ -439,6 +254,11 @@ func (gui *Gui) getSearchView() *gocui.View {
 
 func (gui *Gui) getStatusView() *gocui.View {
 	v, _ := gui.g.View("status")
+	return v
+}
+
+func (gui *Gui) getConfirmationView() *gocui.View {
+	v, _ := gui.g.View("confirmation")
 	return v
 }
 

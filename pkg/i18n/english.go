@@ -406,9 +406,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "IssntListOfViews",
 			Other: "{{.name}} is not in the list of views",
 		}, &i18n.Message{
-			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
-			Other: "No view matching newLineFocused switch statement",
-		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "new focused view is {{.newFocusedView}}",
 		}, &i18n.Message{

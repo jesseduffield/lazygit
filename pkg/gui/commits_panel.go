@@ -54,8 +54,6 @@ func (gui *Gui) handleCommitSelect() error {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
 
-	gui.getCommitsView().FocusPoint(0, gui.State.Panels.Commits.SelectedLine)
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}
@@ -104,7 +102,7 @@ func (gui *Gui) refreshCommits() error {
 
 	go func() {
 		_ = gui.refreshCommitsWithLimit()
-		if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.g.CurrentView() == gui.getMainView() && gui.State.MainContext == "patch-building") {
+		if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.Context.GetKey()) {
 			_ = gui.refreshCommitFilesView()
 		}
 		wg.Done()
@@ -528,7 +526,7 @@ func (gui *Gui) handleSwitchToCommitFilesPanel() error {
 		return err
 	}
 
-	return gui.switchFocus(gui.getCommitsView(), gui.getCommitFilesView())
+	return gui.switchContext(gui.Contexts.BranchCommits.Files.Context)
 }
 
 func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool) {
