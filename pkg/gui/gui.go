@@ -217,7 +217,6 @@ type guiState struct {
 	RemoteBranches        []*commands.RemoteBranch
 	Tags                  []*commands.Tag
 	MenuItemCount         int // can't store the actual list because it's of interface{} type
-	PreviousView          string
 	Updating              bool
 	Panels                *panelStates
 	MainContext           string // used to keep the main and secondary views' contexts in sync
@@ -260,7 +259,6 @@ func (gui *Gui) resetState() {
 
 	gui.State = &guiState{
 		Files:                 make([]*commands.File, 0),
-		PreviousView:          "files",
 		Commits:               make([]*commands.Commit, 0),
 		FilteredReflogCommits: make([]*commands.Commit, 0),
 		ReflogCommits:         make([]*commands.Commit, 0),
