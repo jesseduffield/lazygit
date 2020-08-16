@@ -144,6 +144,7 @@
   <kbd>v</kbd>: plak commits (cherry-pick)
   <kbd>enter</kbd>: bekijk gecommite bestanden
   <kbd>space</kbd>: checkout commit
+  <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (gecopieerde) commits selectie
   <kbd>,</kbd>: vorige pagina

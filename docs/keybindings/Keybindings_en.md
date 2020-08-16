@@ -144,6 +144,7 @@
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>enter</kbd>: view commit's files
   <kbd>space</kbd>: checkout commit
+  <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>,</kbd>: previous page

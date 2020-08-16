@@ -1167,6 +1167,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "UnstageLinesPrompt",
 			Other: "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true",
+		}, &i18n.Message{
+			ID:    "createNewBranchFromCommit",
+			Other: "create new branch off of commit",
 		},
 	)
 }
