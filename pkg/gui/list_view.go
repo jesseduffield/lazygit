@@ -4,7 +4,7 @@ import "github.com/jesseduffield/gocui"
 
 type ListView struct {
 	ViewName              string
-	Context               string
+	ContextKey            string
 	GetItemsLength        func() int
 	GetSelectedLineIdxPtr func() *int
 	OnFocus               func() error
@@ -14,11 +14,10 @@ type ListView struct {
 	Gui                   *Gui
 	RendersToMainView     bool
 	Kind                  int
-	Key                   string
 }
 
 func (lv *ListView) GetKey() string {
-	return lv.Key
+	return lv.ContextKey
 }
 
 func (lv *ListView) GetKind() int {
@@ -152,6 +151,7 @@ func (lv *ListView) onSearchSelect(selectedLineIdx int) error {
 func (gui *Gui) menuListView() *ListView {
 	return &ListView{
 		ViewName:              "menu",
+		ContextKey:            "menu",
 		GetItemsLength:        func() int { return gui.getMenuView().LinesHeight() },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Menu.SelectedLine },
 		OnFocus:               gui.handleMenuSelect,
@@ -161,13 +161,13 @@ func (gui *Gui) menuListView() *ListView {
 		Gui:                 gui,
 		RendersToMainView:   false,
 		Kind:                PERSISTENT_POPUP,
-		Key:                 "menu",
 	}
 }
 
 func (gui *Gui) filesListView() *ListView {
 	return &ListView{
 		ViewName:              "files",
+		ContextKey:            "files",
 		GetItemsLength:        func() int { return len(gui.State.Files) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Files.SelectedLine },
 		OnFocus:               gui.focusAndSelectFile,
@@ -176,14 +176,13 @@ func (gui *Gui) filesListView() *ListView {
 		Gui:                   gui,
 		RendersToMainView:     false,
 		Kind:                  SIDE_CONTEXT,
-		Key:                   "files",
 	}
 }
 
 func (gui *Gui) branchesListView() *ListView {
 	return &ListView{
 		ViewName:              "branches",
-		Context:               "local-branches",
+		ContextKey:            "local-branches",
 		GetItemsLength:        func() int { return len(gui.State.Branches) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Branches.SelectedLine },
 		OnFocus:               gui.handleBranchSelect,
@@ -191,14 +190,13 @@ func (gui *Gui) branchesListView() *ListView {
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
-		Key:                   "menu",
 	}
 }
 
 func (gui *Gui) remotesListView() *ListView {
 	return &ListView{
 		ViewName:              "branches",
-		Context:               "remotes",
+		ContextKey:            "remotes",
 		GetItemsLength:        func() int { return len(gui.State.Remotes) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Remotes.SelectedLine },
 		OnFocus:               gui.renderRemotesWithSelection,
@@ -213,7 +211,7 @@ func (gui *Gui) remotesListView() *ListView {
 func (gui *Gui) remoteBranchesListView() *ListView {
 	return &ListView{
 		ViewName:              "branches",
-		Context:               "remote-branches",
+		ContextKey:            "remote-branches",
 		GetItemsLength:        func() int { return len(gui.State.RemoteBranches) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.RemoteBranches.SelectedLine },
 		OnFocus:               gui.handleRemoteBranchSelect,
@@ -227,7 +225,7 @@ func (gui *Gui) remoteBranchesListView() *ListView {
 func (gui *Gui) tagsListView() *ListView {
 	return &ListView{
 		ViewName:              "branches",
-		Context:               "tags",
+		ContextKey:            "tags",
 		GetItemsLength:        func() int { return len(gui.State.Tags) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Tags.SelectedLine },
 		OnFocus:               gui.handleTagSelect,
@@ -241,7 +239,7 @@ func (gui *Gui) tagsListView() *ListView {
 func (gui *Gui) branchCommitsListView() *ListView {
 	return &ListView{
 		ViewName:              "commits",
-		Context:               "branch-commits",
+		ContextKey:            "branch-commits",
 		GetItemsLength:        func() int { return len(gui.State.Commits) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Commits.SelectedLine },
 		OnFocus:               gui.handleCommitSelect,
@@ -256,7 +254,7 @@ func (gui *Gui) branchCommitsListView() *ListView {
 func (gui *Gui) reflogCommitsListView() *ListView {
 	return &ListView{
 		ViewName:              "commits",
-		Context:               "reflog-commits",
+		ContextKey:            "reflog-commits",
 		GetItemsLength:        func() int { return len(gui.State.FilteredReflogCommits) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.ReflogCommits.SelectedLine },
 		OnFocus:               gui.handleReflogCommitSelect,
@@ -270,6 +268,7 @@ func (gui *Gui) reflogCommitsListView() *ListView {
 func (gui *Gui) stashListView() *ListView {
 	return &ListView{
 		ViewName:              "stash",
+		ContextKey:            "stash",
 		GetItemsLength:        func() int { return len(gui.State.StashEntries) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Stash.SelectedLine },
 		OnFocus:               gui.handleStashEntrySelect,
@@ -283,6 +282,7 @@ func (gui *Gui) stashListView() *ListView {
 func (gui *Gui) commitFilesListView() *ListView {
 	return &ListView{
 		ViewName:              "commitFiles",
+		ContextKey:            "commitFiles",
 		GetItemsLength:        func() int { return len(gui.State.CommitFiles) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.CommitFiles.SelectedLine },
 		OnFocus:               gui.handleCommitFileSelect,

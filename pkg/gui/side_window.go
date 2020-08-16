@@ -25,7 +25,7 @@ func (gui *Gui) nextSideWindow() error {
 
 	viewName := gui.getViewNameForWindow(newWindow)
 
-	return gui.switchContext(gui.State.ViewContextMap[viewName])
+	return gui.switchContextToView(viewName)
 }
 
 func (gui *Gui) previousSideWindow() error {
@@ -51,7 +51,7 @@ func (gui *Gui) previousSideWindow() error {
 
 	viewName := gui.getViewNameForWindow(newWindow)
 
-	return gui.switchContext(gui.State.ViewContextMap[viewName])
+	return gui.switchContextToView(viewName)
 }
 
 func (gui *Gui) goToSideWindow(sideViewName string) func(g *gocui.Gui, v *gocui.View) error {
@@ -61,6 +61,6 @@ func (gui *Gui) goToSideWindow(sideViewName string) func(g *gocui.Gui, v *gocui.
 			gui.Log.Error(err)
 			return nil
 		}
-		return gui.switchContext(gui.State.ViewContextMap[sideViewName])
+		return gui.switchContextToView(sideViewName)
 	}
 }
