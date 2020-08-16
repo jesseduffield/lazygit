@@ -216,7 +216,18 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 	if gui.State.Panels.Commits.SelectedLine != 0 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
-	return gui.prompt(v, gui.Tr.SLocalize("renameCommit"), "", func(response string) error {
+
+	commit := gui.getSelectedCommit()
+	if commit == nil {
+		return nil
+	}
+
+	message, err := gui.GitCommand.GetCommitMessage(commit.Sha)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+
+	return gui.prompt(v, gui.Tr.SLocalize("renameCommit"), message, func(response string) error {
 		if err := gui.GitCommand.RenameCommit(response); err != nil {
 			return gui.surfaceError(err)
 		}
