@@ -113,6 +113,9 @@ func (gui *Gui) handleMouseDownMain(g *gocui.Gui, v *gocui.View) error {
 
 	switch g.CurrentView().Name() {
 	case "files":
+		// set filename, set primary/secondary selected, set line number, then switch context
+		// I'll need to know it was changed though.
+		// Could I pass something along to the context change?
 		return gui.enterFile(false, v.SelectedLineIdx())
 	case "commitFiles":
 		return gui.enterCommitFile(v.SelectedLineIdx())
