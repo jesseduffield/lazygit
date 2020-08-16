@@ -113,7 +113,8 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
-	if err := app.setupRepo(); err != nil {
+	showRecentRepos, err := app.setupRepo()
+	if err != nil {
 		return app, err
 	}
 
@@ -121,36 +122,49 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	if err != nil {
 		return app, err
 	}
-	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater, filterPath)
+	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater, filterPath, showRecentRepos)
 	if err != nil {
 		return app, err
 	}
 	return app, nil
 }
 
-func (app *App) setupRepo() error {
+func (app *App) setupRepo() (bool, error) {
 	// if we are not in a git repo, we ask if we want to `git init`
 	if err := app.OSCommand.RunCommand("git status"); err != nil {
 		cwd, err := os.Getwd()
 		if err != nil {
-			return err
+			return false, err
 		}
 		info, _ := os.Stat(filepath.Join(cwd, ".git"))
 		if info != nil && info.IsDir() {
-			return err // Current directory appears to be a git repository.
+			return false, err // Current directory appears to be a git repository.
 		}
 
 		// Offer to initialize a new repository in current directory.
 		fmt.Print(app.Tr.SLocalize("CreateRepo"))
 		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 		if strings.Trim(response, " \n") != "y" {
+			// check if we have a recent repo we can open
+			recentRepos := app.Config.GetAppState().RecentRepos
+			if len(recentRepos) > 0 {
+				var err error
+				// try opening each repo in turn, in case any have been deleted
+				for _, repoDir := range recentRepos {
+					if err = os.Chdir(repoDir); err == nil {
+						return true, nil
+					}
+				}
+				return false, err
+			}
+
 			os.Exit(1)
 		}
 		if err := app.OSCommand.RunCommand("git init"); err != nil {
-			return err
+			return false, err
 		}
 	}
-	return nil
+	return false, nil
 }
 
 func (app *App) Run() error {
@@ -204,7 +218,7 @@ func (app *App) KnownError(err error) (string, bool) {
 
 	mappings := []errorMapping{
 		{
-			originalError: "fatal: not a git repository (or any of the parent directories): .git",
+			originalError: "fatal: not a git repository",
 			newError:      app.Tr.SLocalize("notARepository"),
 		},
 	}

@@ -93,6 +93,10 @@ type Gui struct {
 	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
 	stopChan             chan struct{}
+
+	// when lazygit is opened outside a git directory we want to open to the most
+	// recent repo with the recent repos popup showing
+	showRecentRepos bool
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -278,7 +282,7 @@ func (gui *Gui) resetState() {
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
 	gui := &Gui{
 		Log:                  log,
 		GitCommand:           gitCommand,
@@ -288,6 +292,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 		Updater:              updater,
 		statusManager:        &statusManager{},
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
+		showRecentRepos:      showRecentRepos,
 	}
 
 	gui.resetState()

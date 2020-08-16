@@ -402,6 +402,13 @@ func (gui *Gui) onInitialViewsCreation() error {
 	gui.getBranchesView().Context = "local-branches"
 	gui.getCommitsView().Context = "branch-commits"
 
+	if gui.showRecentRepos {
+		if err := gui.handleCreateRecentReposMenu(); err != nil {
+			return err
+		}
+		gui.showRecentRepos = false
+	}
+
 	return gui.loadNewRepo()
 }
 
