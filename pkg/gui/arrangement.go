@@ -244,27 +244,22 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 }
 
 func (gui *Gui) currentCyclableViewName() string {
-	currView := gui.g.CurrentView()
-	currentCyclebleView := gui.State.PreviousView
-	if currView != nil {
-		viewName := currView.Name()
-		usePreviousView := true
-		for _, view := range gui.getCyclableViews() {
-			if view == viewName {
-				currentCyclebleView = viewName
-				usePreviousView = false
-				break
+	// there is always a cyclable context in the context stack. We'll look from top to bottom
+	for idx := range gui.State.ContextStack {
+		reversedIdx := len(gui.State.ContextStack) - 1 - idx
+		context := gui.State.ContextStack[reversedIdx]
+
+		if context.GetKind() == SIDE_CONTEXT {
+			viewName := context.GetViewName()
+
+			// unfortunate result of the fact that these are separate views, have to map explicitly
+			if viewName == "commitFiles" {
+				return "commits"
 			}
-		}
-		if usePreviousView {
-			currentCyclebleView = gui.State.PreviousView
+
+			return viewName
 		}
 	}
 
-	// unfortunate result of the fact that these are separate views, have to map explicitly
-	if currentCyclebleView == "commitFiles" {
-		return "commits"
-	}
-
-	return currentCyclebleView
+	return "files" // default
 }

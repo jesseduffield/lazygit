@@ -97,6 +97,7 @@ type Gui struct {
 	// when lazygit is opened outside a git directory we want to open to the most
 	// recent repo with the recent repos popup showing
 	showRecentRepos bool
+	Contexts             ContextTree
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -237,7 +238,15 @@ type guiState struct {
 	FilterPath            string // the filename that gets passed to git log
 	Diff                  DiffState
 
-	Contexts ContextTree
+	ContextStack   []Context
+	ViewContextMap map[string]Context
+
+	// 	WindowViewNameMap is a mapping of windows to the current view of that window.
+	// Currently the only case where the distinction between a window and a view
+	// matters is with the commits view and the commitFiles view which both appear
+	// in the same place (and thus constitute the 'commits' window).
+	// If a window contains only one view, it shares the same name as the view.
+	WindowViewNameMap map[string]string
 }
 
 func (gui *Gui) resetState() {

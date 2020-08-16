@@ -321,9 +321,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "IssntListOfViews",
 			Other: "{{.name}} nie jest na liście widoków",
 		}, &i18n.Message{
-			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
-			Other: "Brak widoku pasującego do instrukcji przełączania newLineFocused",
-		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "nowy skupiony widok to {{.newFocusedView}}",
 		}, &i18n.Message{

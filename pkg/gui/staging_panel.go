@@ -12,12 +12,12 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 
 	state := gui.State.Panels.LineByLine
 
-	// We need to force focus here because the confirmation panel for safely staging lines does not return focus automatically.
-	// This is because if we tell it to return focus it will unconditionally return it to the main panel which may not be what we want
-	// e.g. in the event that there's nothing left to stage.
-	if err := gui.switchFocus(nil, gui.getMainView()); err != nil {
-		return err
-	}
+	// // We need to force focus here because the confirmation panel for safely staging lines does not return focus automatically.
+	// // This is because if we tell it to return focus it will unconditionally return it to the main panel which may not be what we want
+	// // e.g. in the event that there's nothing left to stage.
+	// if err := gui.switchContext(nil, gui.getMainView()); err != nil {
+	// 	return err
+	// }
 
 	file, err := gui.getSelectedFile()
 	if err != nil {
@@ -96,7 +96,7 @@ func (gui *Gui) handleTogglePanel(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleStagingEscape() error {
 	gui.handleEscapeLineByLinePanel()
 
-	return gui.switchFocus(nil, gui.getFilesView())
+	return gui.switchContext(gui.Contexts.Files.Context)
 }
 
 func (gui *Gui) handleToggleStagedSelection(g *gocui.Gui, v *gocui.View) error {

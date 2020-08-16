@@ -2,27 +2,54 @@ package gui
 
 import "github.com/jesseduffield/gocui"
 
-type listView struct {
+type ListView struct {
 	ViewName              string
 	Context               string
 	GetItemsLength        func() int
 	GetSelectedLineIdxPtr func() *int
 	OnFocus               func() error
+	OnFocusLost           func() error
 	OnItemSelect          func() error
 	OnClickSelectedItem   func() error
 	Gui                   *Gui
 	RendersToMainView     bool
+	Kind                  int
+	Key                   string
 }
 
-func (lv *listView) handlePrevLine(g *gocui.Gui, v *gocui.View) error {
+func (lv *ListView) GetKey() string {
+	return lv.Key
+}
+
+func (lv *ListView) GetKind() int {
+	return lv.Kind
+}
+
+func (lv *ListView) GetViewName() string {
+	return lv.ViewName
+}
+
+func (lv *ListView) HandleFocusLost() error {
+	if lv.OnFocusLost != nil {
+		return lv.OnFocusLost()
+	}
+
+	return nil
+}
+
+func (lv *ListView) HandleFocus() error {
+	return lv.OnFocus()
+}
+
+func (lv *ListView) handlePrevLine(g *gocui.Gui, v *gocui.View) error {
 	return lv.handleLineChange(-1)
 }
 
-func (lv *listView) handleNextLine(g *gocui.Gui, v *gocui.View) error {
+func (lv *ListView) handleNextLine(g *gocui.Gui, v *gocui.View) error {
 	return lv.handleLineChange(1)
 }
 
-func (lv *listView) handleLineChange(change int) error {
+func (lv *ListView) handleLineChange(change int) error {
 	if !lv.Gui.isPopupPanel(lv.ViewName) && lv.Gui.popupPanelFocused() {
 		return nil
 	}
@@ -50,7 +77,7 @@ func (lv *listView) handleLineChange(change int) error {
 	return nil
 }
 
-func (lv *listView) handleNextPage(g *gocui.Gui, v *gocui.View) error {
+func (lv *ListView) handleNextPage(g *gocui.Gui, v *gocui.View) error {
 	view, err := lv.Gui.g.View(lv.ViewName)
 	if err != nil {
 		return nil
@@ -63,15 +90,15 @@ func (lv *listView) handleNextPage(g *gocui.Gui, v *gocui.View) error {
 	return lv.handleLineChange(delta)
 }
 
-func (lv *listView) handleGotoTop(g *gocui.Gui, v *gocui.View) error {
+func (lv *ListView) handleGotoTop(g *gocui.Gui, v *gocui.View) error {
 	return lv.handleLineChange(-lv.GetItemsLength())
 }
 
-func (lv *listView) handleGotoBottom(g *gocui.Gui, v *gocui.View) error {
+func (lv *ListView) handleGotoBottom(g *gocui.Gui, v *gocui.View) error {
 	return lv.handleLineChange(lv.GetItemsLength())
 }
 
-func (lv *listView) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
+func (lv *ListView) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
 	view, err := lv.Gui.g.View(lv.ViewName)
 	if err != nil {
 		return nil
@@ -84,7 +111,7 @@ func (lv *listView) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
 	return lv.handleLineChange(-delta)
 }
 
-func (lv *listView) handleClick(g *gocui.Gui, v *gocui.View) error {
+func (lv *ListView) handleClick(g *gocui.Gui, v *gocui.View) error {
 	if !lv.Gui.isPopupPanel(lv.ViewName) && lv.Gui.popupPanelFocused() {
 		return nil
 	}
@@ -94,12 +121,12 @@ func (lv *listView) handleClick(g *gocui.Gui, v *gocui.View) error {
 	newSelectedLineIdx := v.SelectedLineIdx()
 
 	// we need to focus the view
-	if err := lv.Gui.switchFocus(nil, v); err != nil {
+	if err := lv.Gui.switchContext(lv); err != nil {
 		return err
 	}
 
 	if newSelectedLineIdx > lv.GetItemsLength()-1 {
-		return lv.OnFocus()
+		return nil
 	}
 
 	*selectedLineIdxPtr = newSelectedLineIdx
@@ -114,7 +141,7 @@ func (lv *listView) handleClick(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (lv *listView) onSearchSelect(selectedLineIdx int) error {
+func (lv *ListView) onSearchSelect(selectedLineIdx int) error {
 	*lv.GetSelectedLineIdxPtr() = selectedLineIdx
 	if lv.OnItemSelect != nil {
 		return lv.OnItemSelect()
@@ -122,8 +149,8 @@ func (lv *listView) onSearchSelect(selectedLineIdx int) error {
 	return nil
 }
 
-func (gui *Gui) menuListView() *listView {
-	return &listView{
+func (gui *Gui) menuListView() *ListView {
+	return &ListView{
 		ViewName:              "menu",
 		GetItemsLength:        func() int { return gui.getMenuView().LinesHeight() },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Menu.SelectedLine },
@@ -133,11 +160,13 @@ func (gui *Gui) menuListView() *listView {
 		OnClickSelectedItem: func() error { return gui.State.Panels.Menu.OnPress(gui.g, nil) },
 		Gui:                 gui,
 		RendersToMainView:   false,
+		Kind:                PERSISTENT_POPUP,
+		Key:                 "menu",
 	}
 }
 
-func (gui *Gui) filesListView() *listView {
-	return &listView{
+func (gui *Gui) filesListView() *ListView {
+	return &ListView{
 		ViewName:              "files",
 		GetItemsLength:        func() int { return len(gui.State.Files) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Files.SelectedLine },
@@ -146,11 +175,13 @@ func (gui *Gui) filesListView() *listView {
 		OnClickSelectedItem:   gui.handleFilePress,
 		Gui:                   gui,
 		RendersToMainView:     false,
+		Kind:                  SIDE_CONTEXT,
+		Key:                   "files",
 	}
 }
 
-func (gui *Gui) branchesListView() *listView {
-	return &listView{
+func (gui *Gui) branchesListView() *ListView {
+	return &ListView{
 		ViewName:              "branches",
 		Context:               "local-branches",
 		GetItemsLength:        func() int { return len(gui.State.Branches) },
@@ -159,11 +190,13 @@ func (gui *Gui) branchesListView() *listView {
 		OnItemSelect:          gui.handleBranchSelect,
 		Gui:                   gui,
 		RendersToMainView:     true,
+		Kind:                  SIDE_CONTEXT,
+		Key:                   "menu",
 	}
 }
 
-func (gui *Gui) remotesListView() *listView {
-	return &listView{
+func (gui *Gui) remotesListView() *ListView {
+	return &ListView{
 		ViewName:              "branches",
 		Context:               "remotes",
 		GetItemsLength:        func() int { return len(gui.State.Remotes) },
@@ -173,11 +206,12 @@ func (gui *Gui) remotesListView() *listView {
 		OnClickSelectedItem:   gui.handleRemoteEnter,
 		Gui:                   gui,
 		RendersToMainView:     true,
+		Kind:                  SIDE_CONTEXT,
 	}
 }
 
-func (gui *Gui) remoteBranchesListView() *listView {
-	return &listView{
+func (gui *Gui) remoteBranchesListView() *ListView {
+	return &ListView{
 		ViewName:              "branches",
 		Context:               "remote-branches",
 		GetItemsLength:        func() int { return len(gui.State.RemoteBranches) },
@@ -186,11 +220,12 @@ func (gui *Gui) remoteBranchesListView() *listView {
 		OnItemSelect:          gui.handleRemoteBranchSelect,
 		Gui:                   gui,
 		RendersToMainView:     true,
+		Kind:                  SIDE_CONTEXT,
 	}
 }
 
-func (gui *Gui) tagsListView() *listView {
-	return &listView{
+func (gui *Gui) tagsListView() *ListView {
+	return &ListView{
 		ViewName:              "branches",
 		Context:               "tags",
 		GetItemsLength:        func() int { return len(gui.State.Tags) },
@@ -199,11 +234,12 @@ func (gui *Gui) tagsListView() *listView {
 		OnItemSelect:          gui.handleTagSelect,
 		Gui:                   gui,
 		RendersToMainView:     true,
+		Kind:                  SIDE_CONTEXT,
 	}
 }
 
-func (gui *Gui) branchCommitsListView() *listView {
-	return &listView{
+func (gui *Gui) branchCommitsListView() *ListView {
+	return &ListView{
 		ViewName:              "commits",
 		Context:               "branch-commits",
 		GetItemsLength:        func() int { return len(gui.State.Commits) },
@@ -213,11 +249,12 @@ func (gui *Gui) branchCommitsListView() *listView {
 		OnClickSelectedItem:   gui.handleSwitchToCommitFilesPanel,
 		Gui:                   gui,
 		RendersToMainView:     true,
+		Kind:                  SIDE_CONTEXT,
 	}
 }
 
-func (gui *Gui) reflogCommitsListView() *listView {
-	return &listView{
+func (gui *Gui) reflogCommitsListView() *ListView {
+	return &ListView{
 		ViewName:              "commits",
 		Context:               "reflog-commits",
 		GetItemsLength:        func() int { return len(gui.State.FilteredReflogCommits) },
@@ -226,11 +263,12 @@ func (gui *Gui) reflogCommitsListView() *listView {
 		OnItemSelect:          gui.handleReflogCommitSelect,
 		Gui:                   gui,
 		RendersToMainView:     true,
+		Kind:                  SIDE_CONTEXT,
 	}
 }
 
-func (gui *Gui) stashListView() *listView {
-	return &listView{
+func (gui *Gui) stashListView() *ListView {
+	return &ListView{
 		ViewName:              "stash",
 		GetItemsLength:        func() int { return len(gui.State.StashEntries) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Stash.SelectedLine },
@@ -238,11 +276,12 @@ func (gui *Gui) stashListView() *listView {
 		OnItemSelect:          gui.handleStashEntrySelect,
 		Gui:                   gui,
 		RendersToMainView:     true,
+		Kind:                  SIDE_CONTEXT,
 	}
 }
 
-func (gui *Gui) commitFilesListView() *listView {
-	return &listView{
+func (gui *Gui) commitFilesListView() *ListView {
+	return &ListView{
 		ViewName:              "commitFiles",
 		GetItemsLength:        func() int { return len(gui.State.CommitFiles) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.CommitFiles.SelectedLine },
@@ -250,11 +289,12 @@ func (gui *Gui) commitFilesListView() *listView {
 		OnItemSelect:          gui.handleCommitFileSelect,
 		Gui:                   gui,
 		RendersToMainView:     true,
+		Kind:                  SIDE_CONTEXT,
 	}
 }
 
-func (gui *Gui) getListViews() []*listView {
-	return []*listView{
+func (gui *Gui) getListViews() []*ListView {
+	return []*ListView{
 		gui.menuListView(),
 		gui.filesListView(),
 		gui.branchesListView(),

@@ -44,8 +44,6 @@ func (gui *Gui) handleCommitFileSelect() error {
 		return err
 	}
 
-	gui.getCommitFilesView().FocusPoint(0, gui.State.Panels.CommitFiles.SelectedLine)
-
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Sha, commitFile.Name, false),
 	)
@@ -57,7 +55,7 @@ func (gui *Gui) handleCommitFileSelect() error {
 }
 
 func (gui *Gui) handleSwitchToCommitsPanel(g *gocui.Gui, v *gocui.View) error {
-	return gui.switchFocus(v, gui.getCommitsView())
+	return gui.switchContext(gui.Contexts.BranchCommits.Context)
 }
 
 func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
@@ -223,8 +221,8 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 			}
 		}
 
-		gui.changeMainViewsContext("patch-building")
-		if err := gui.switchFocus(gui.getCommitFilesView(), gui.getMainView()); err != nil {
+		gui.changeMainViewsContext("patch-building") // TODO: bring into context code
+		if err := gui.switchContext(gui.Contexts.PatchBuilding.Context); err != nil {
 			return err
 		}
 		return gui.refreshPatchBuildingPanel(selectedLineIdx)
@@ -241,7 +239,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 				return enterTheFile(selectedLineIdx)
 			},
 			handleClose: func() error {
-				return gui.switchFocus(nil, gui.getCommitFilesView())
+				return gui.switchContext(gui.Contexts.BranchCommits.Files.Context)
 			},
 		})
 	}

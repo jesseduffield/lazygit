@@ -308,7 +308,7 @@ func (gui *Gui) handleEscapeMerge() error {
 	// it's possible this method won't be called from the merging view so we need to
 	// ensure we only 'return' focus if we already have it
 	if gui.g.CurrentView() == gui.getMainView() {
-		return gui.switchFocus(gui.getMainView(), gui.getFilesView())
+		return gui.switchContext(gui.Contexts.Files.Context)
 	}
 	return nil
 }

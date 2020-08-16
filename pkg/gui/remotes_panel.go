@@ -39,8 +39,6 @@ func (gui *Gui) handleRemoteSelect() error {
 	if remote == nil {
 		return gui.newStringTask("main", "No remotes")
 	}
-	gui.getBranchesView().FocusPoint(0, gui.State.Panels.Remotes.SelectedLine)
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}

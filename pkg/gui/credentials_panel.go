@@ -20,10 +20,11 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
 			credentialsView.Mask = '*'
 		}
-		err := gui.switchFocus(gui.g.CurrentView(), credentialsView)
-		if err != nil {
+
+		if err := gui.switchContext(gui.Contexts.Credentials.Context); err != nil {
 			return err
 		}
+
 		gui.RenderCommitLength()
 		return nil
 	})
@@ -38,15 +39,11 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	gui.credentials <- message
 	v.Clear()
 	_ = v.SetCursor(0, 0)
-	_, _ = g.SetViewOnBottom("credentials")
-	nextView, err := gui.g.View("confirmation")
-	if err != nil {
-		nextView = gui.getFilesView()
-	}
-	err = gui.switchFocus(nil, nextView)
-	if err != nil {
+	_, _ = g.SetViewOnBottom("credentials") // TODO: move to context code
+	if err := gui.returnFromContext(); err != nil {
 		return err
 	}
+
 	return gui.refreshSidePanels(refreshOptions{})
 }
 
@@ -57,7 +54,7 @@ func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	gui.credentials <- ""
-	return gui.switchFocus(nil, gui.getFilesView())
+	return gui.returnFromContext()
 }
 
 func (gui *Gui) handleCredentialsViewFocused() error {

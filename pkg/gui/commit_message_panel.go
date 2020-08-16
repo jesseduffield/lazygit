@@ -44,19 +44,19 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	v.Clear()
+	_, _ = g.SetViewOnBottom("commitMessage") // TODO: bring into context code
 	_ = v.SetCursor(0, 0)
 	_ = v.SetOrigin(0, 0)
-	_, _ = g.SetViewOnBottom("commitMessage")
-	_ = gui.switchFocus(v, gui.getFilesView())
+	_ = gui.returnFromContext()
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
-	_, _ = g.SetViewOnBottom("commitMessage")
-	return gui.switchFocus(v, gui.getFilesView())
+	_, _ = g.SetViewOnBottom("commitMessage") // TODO: bring into context code
+	return gui.returnFromContext()
 }
 
-func (gui *Gui) handleCommitFocused() error {
+func (gui *Gui) handleCommitMessageFocused() error {
 	if _, err := gui.g.SetViewOnTop("commitMessage"); err != nil {
 		return err
 	}

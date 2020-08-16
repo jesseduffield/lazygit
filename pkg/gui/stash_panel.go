@@ -34,8 +34,6 @@ func (gui *Gui) handleStashEntrySelect() error {
 	if stashEntry == nil {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoStashEntries"))
 	}
-	gui.getStashView().FocusPoint(0, gui.State.Panels.Stash.SelectedLine)
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}
