@@ -249,7 +249,9 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 	}
 
-	return c.PrepareSubProcess(editor, filename), nil
+	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, filename))
+
+	return c.PrepareSubProcess(splitCmd[0], splitCmd[1:]...), nil
 }
 
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it
