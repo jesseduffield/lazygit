@@ -501,6 +501,13 @@ func (c *GitCommand) GetHeadCommitMessage() (string, error) {
 	return strings.TrimSpace(message), err
 }
 
+func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
+	cmdStr := "git rev-list --format=%B --max-count=1 " + commitSha
+	messageWithHeader, err := c.OSCommand.RunCommandWithOutput(cmdStr)
+	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "\n")
+	return strings.TrimSpace(message), err
+}
+
 // AmendHead amends HEAD with whatever is staged in your working tree
 func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 	command := "git commit --amend --no-edit --allow-empty"
