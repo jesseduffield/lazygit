@@ -19,11 +19,8 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	// 	return err
 	// }
 
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
+	file := gui.getSelectedFile()
+	if file == nil {
 		return gui.handleStagingEscape()
 	}
 
@@ -131,9 +128,9 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) applySelection(reverse bool) error {
 	state := gui.State.Panels.LineByLine
 
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		return err
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
 	}
 
 	patch := patch.ModifiedPatchForRange(gui.Log, file.Name, state.Diff, state.FirstLineIdx, state.LastLineIdx, reverse, false)
@@ -148,7 +145,7 @@ func (gui *Gui) applySelection(reverse bool) error {
 	if !reverse || state.SecondaryFocused {
 		applyFlags = append(applyFlags, "cached")
 	}
-	err = gui.GitCommand.ApplyPatch(patch, applyFlags...)
+	err := gui.GitCommand.ApplyPatch(patch, applyFlags...)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

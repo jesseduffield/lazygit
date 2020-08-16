@@ -5,11 +5,8 @@ import (
 )
 
 func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
+	file := gui.getSelectedFile()
+	if file == nil {
 		return nil
 	}
 

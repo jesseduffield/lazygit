@@ -15,8 +15,8 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 	fileName := ""
 	switch v.Name() {
 	case "files":
-		file, err := gui.getSelectedFile()
-		if err == nil {
+		file := gui.getSelectedFile()
+		if file != nil {
 			fileName = file.Name
 		}
 	case "commitFiles":
