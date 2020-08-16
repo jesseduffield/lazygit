@@ -176,6 +176,7 @@ func (gui *Gui) activateContext(c Context) error {
 	}
 
 	newView := gui.g.CurrentView()
+	newView.Context = c.GetKey()
 
 	gui.g.Cursor = newView.Editable
 
@@ -190,6 +191,7 @@ func (gui *Gui) activateContext(c Context) error {
 		return err
 	}
 
+	// TODO: consider removing this and instead depending on the .Context field of views
 	gui.State.ViewContextMap[c.GetViewName()] = c
 
 	return nil
@@ -228,6 +230,7 @@ func (gui *Gui) createContextTree() {
 				OnFocus:  gui.handleStatusSelect,
 				Kind:     SIDE_CONTEXT,
 				ViewName: "status",
+				Key:      "status",
 			},
 		},
 		Files: SimpleContextNode{
@@ -314,7 +317,7 @@ func (gui *Gui) createContextTree() {
 				OnFocus:  func() error { return gui.handleCommitMessageFocused() },
 				Kind:     PERSISTENT_POPUP,
 				ViewName: "commitMessage",
-				Key:      "commit-message",
+				Key:      "commit-message", // admittedly awkward to have view names in camelCase and contexts in kebab-case
 			},
 		},
 		Search: SimpleContextNode{

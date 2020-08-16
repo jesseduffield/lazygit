@@ -286,20 +286,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	listViewStates := []listViewState{
-		{view: filesView, context: "", selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files), listView: gui.filesListView()},
+		{view: filesView, context: "files", selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files), listView: gui.filesListView()},
 		{view: branchesView, context: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches), listView: gui.branchesListView()},
 		{view: branchesView, context: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes), listView: gui.remotesListView()},
 		{view: branchesView, context: "remote-branches", selectedLine: gui.State.Panels.RemoteBranches.SelectedLine, lineCount: len(gui.State.Remotes), listView: gui.remoteBranchesListView()},
 		{view: branchesView, context: "tags", selectedLine: gui.State.Panels.Tags.SelectedLine, lineCount: len(gui.State.Tags), listView: gui.tagsListView()},
 		{view: commitsView, context: "branch-commits", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits), listView: gui.branchCommitsListView()},
 		{view: commitsView, context: "reflog-commits", selectedLine: gui.State.Panels.ReflogCommits.SelectedLine, lineCount: len(gui.State.FilteredReflogCommits), listView: gui.reflogCommitsListView()},
-		{view: stashView, context: "", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries), listView: gui.stashListView()},
-		{view: commitFilesView, context: "", selectedLine: gui.State.Panels.CommitFiles.SelectedLine, lineCount: len(gui.State.CommitFiles), listView: gui.commitFilesListView()},
+		{view: stashView, context: "stash", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries), listView: gui.stashListView()},
+		{view: commitFilesView, context: "commit-files", selectedLine: gui.State.Panels.CommitFiles.SelectedLine, lineCount: len(gui.State.CommitFiles), listView: gui.commitFilesListView()},
 	}
 
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
-		listViewStates = append(listViewStates, listViewState{view: menuView, context: "", selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount, listView: gui.menuListView()})
+		listViewStates = append(listViewStates, listViewState{view: menuView, context: "menu", selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount, listView: gui.menuListView()})
 	}
 	for _, listViewState := range listViewStates {
 		// ignore views where the context doesn't match up with the selected line we're trying to focus
