@@ -352,19 +352,23 @@ func (gui *Gui) setViewContent(v *gocui.View, s string) {
 // renderString resets the origin of a view and sets its content
 func (gui *Gui) renderString(viewName, s string) {
 	gui.g.Update(func(*gocui.Gui) error {
-		v, err := gui.g.View(viewName)
-		if err != nil {
-			return nil // return gracefully if view has been deleted
-		}
-		if err := v.SetOrigin(0, 0); err != nil {
-			return err
-		}
-		if err := v.SetCursor(0, 0); err != nil {
-			return err
-		}
-		gui.setViewContent(v, s)
-		return nil
+		return gui.renderStringSync(viewName, s)
 	})
+}
+
+func (gui *Gui) renderStringSync(viewName, s string) error {
+	v, err := gui.g.View(viewName)
+	if err != nil {
+		return nil // return gracefully if view has been deleted
+	}
+	if err := v.SetOrigin(0, 0); err != nil {
+		return err
+	}
+	if err := v.SetCursor(0, 0); err != nil {
+		return err
+	}
+	gui.setViewContent(v, s)
+	return nil
 }
 
 func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
