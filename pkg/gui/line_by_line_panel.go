@@ -336,8 +336,8 @@ func (gui *Gui) handleOpenFileAtLine() error {
 	case "patch-building":
 		filename = gui.getSelectedCommitFileName()
 	case "staging":
-		file, err := gui.getSelectedFile()
-		if err != nil {
+		file := gui.getSelectedFile()
+		if file == nil {
 			return nil
 		}
 		filename = file.Name

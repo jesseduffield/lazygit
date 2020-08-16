@@ -113,9 +113,9 @@ func (gui *Gui) isIndexToDelete(i int, conflict commands.Conflict, pick string) 
 }
 
 func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
-	gitFile, err := gui.getSelectedFile()
-	if err != nil {
-		return err
+	gitFile := gui.getSelectedFile()
+	if gitFile == nil {
+		return nil
 	}
 	file, err := os.Open(gitFile.Name)
 	if err != nil {
@@ -139,9 +139,9 @@ func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
 }
 
 func (gui *Gui) pushFileSnapshot(g *gocui.Gui) error {
-	gitFile, err := gui.getSelectedFile()
-	if err != nil {
-		return err
+	gitFile := gui.getSelectedFile()
+	if gitFile == nil {
+		return nil
 	}
 	content, err := gui.GitCommand.CatFile(gitFile.Name)
 	if err != nil {
@@ -156,9 +156,9 @@ func (gui *Gui) handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	prevContent := gui.State.Panels.Merging.EditHistory.Pop().(string)
-	gitFile, err := gui.getSelectedFile()
-	if err != nil {
-		return err
+	gitFile := gui.getSelectedFile()
+	if gitFile == nil {
+		return nil
 	}
 	if err := ioutil.WriteFile(gitFile.Name, []byte(prevContent), 0644); err != nil {
 		return err
@@ -249,16 +249,15 @@ func (gui *Gui) refreshMergePanel() error {
 }
 
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
-	item, err := gui.getSelectedFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return "", err
-		}
+	item := gui.getSelectedFile()
+	if item == nil {
 		return "", gui.newStringTask("main", gui.Tr.SLocalize("NoFilesDisplay"))
 	}
+
 	if item.Type != "file" {
 		return "", gui.newStringTask("main", gui.Tr.SLocalize("NotAFile"))
 	}
+
 	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
 		gui.Log.Error(err)
@@ -353,8 +352,8 @@ func (gui *Gui) canScrollMergePanel() bool {
 		return false
 	}
 
-	file, err := gui.getSelectedFile()
-	if err != nil {
+	file := gui.getSelectedFile()
+	if file == nil {
 		return false
 	}
 

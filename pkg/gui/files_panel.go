@@ -19,13 +19,13 @@ import (
 
 // list panel functions
 
-func (gui *Gui) getSelectedFile() (*commands.File, error) {
+func (gui *Gui) getSelectedFile() *commands.File {
 	selectedLine := gui.State.Panels.Files.SelectedLine
 	if selectedLine == -1 {
-		return &commands.File{}, gui.Errors.ErrNoFiles
+		return &commands.File{}
 	}
 
-	return gui.State.Files[selectedLine], nil
+	return gui.State.Files[selectedLine]
 }
 
 func (gui *Gui) selectFile(alreadySelected bool) error {
@@ -35,11 +35,8 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.renderDiff()
 	}
 
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
+	file := gui.getSelectedFile()
+	if file == nil {
 		gui.State.SplitMainPanel = false
 		gui.getMainView().Title = ""
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
@@ -95,7 +92,7 @@ func (gui *Gui) refreshFiles() error {
 		gui.State.RefreshingFilesMutex.Unlock()
 	}()
 
-	selectedFile, _ := gui.getSelectedFile()
+	selectedFile := gui.getSelectedFile()
 
 	filesView := gui.getFilesView()
 	if filesView == nil {
@@ -111,8 +108,8 @@ func (gui *Gui) refreshFiles() error {
 		gui.renderDisplayStrings(filesView, displayStrings)
 
 		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == "merging") {
-			newSelectedFile, _ := gui.getSelectedFile()
-			alreadySelected := newSelectedFile.Name == selectedFile.Name
+			newSelectedFile := gui.getSelectedFile()
+			alreadySelected := selectedFile != nil && newSelectedFile != nil && newSelectedFile.Name == selectedFile.Name
 			return gui.selectFile(alreadySelected)
 		}
 		return nil
@@ -146,10 +143,11 @@ func (gui *Gui) trackedFiles() []*commands.File {
 }
 
 func (gui *Gui) stageSelectedFile(g *gocui.Gui) error {
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		return err
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
 	}
+
 	return gui.GitCommand.StageFile(file.Name)
 }
 
@@ -158,13 +156,11 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error {
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
+	file := gui.getSelectedFile()
+	if file == nil {
 		return nil
 	}
+
 	if file.HasInlineMergeConflicts {
 		return gui.handleSwitchToMerge()
 	}
@@ -178,12 +174,9 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 }
 
 func (gui *Gui) handleFilePress() error {
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		if err == gui.Errors.ErrNoFiles {
-			return nil
-		}
-		return err
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
 	}
 
 	if file.HasInlineMergeConflicts {
@@ -191,12 +184,13 @@ func (gui *Gui) handleFilePress() error {
 	}
 
 	if file.HasUnstagedChanges {
-		err = gui.GitCommand.StageFile(file.Name)
+		if err := gui.GitCommand.StageFile(file.Name); err != nil {
+			return gui.surfaceError(err)
+		}
 	} else {
-		err = gui.GitCommand.UnStageFile(file.Name, file.Tracked)
-	}
-	if err != nil {
-		return gui.surfaceError(err)
+		if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
+			return gui.surfaceError(err)
+		}
 	}
 
 	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
@@ -242,9 +236,9 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		return gui.surfaceError(err)
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
 	}
 
 	if file.Tracked {
@@ -395,18 +389,18 @@ func (gui *Gui) editFile(filename string) error {
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		return gui.surfaceError(err)
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
 	}
 
 	return gui.editFile(file.Name)
 }
 
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		return gui.surfaceError(err)
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
 	}
 	return gui.openFile(file.Name)
 }
@@ -419,7 +413,7 @@ func (gui *Gui) refreshStateFiles() error {
 	// keep track of where the cursor is currently and the current file names
 	// when we refresh, go looking for a matching name
 	// move the cursor to there.
-	selectedFile, _ := gui.getSelectedFile()
+	selectedFile := gui.getSelectedFile()
 
 	// get files to stage
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
@@ -581,13 +575,11 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSwitchToMerge() error {
-	file, err := gui.getSelectedFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return gui.surfaceError(err)
-		}
+	file := gui.getSelectedFile()
+	if file == nil {
 		return nil
 	}
+
 	if !file.HasInlineMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.SLocalize("FileNoMergeCons"))
 	}
