@@ -85,7 +85,7 @@ func (gui *Gui) wrappedPromptConfirmationFunction(function func(string) error, r
 
 		if function != nil {
 			if err := function(v.Buffer()); err != nil {
-				return err
+				return gui.surfaceError(err)
 			}
 		}
 

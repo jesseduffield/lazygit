@@ -771,3 +771,27 @@ func (gui *Gui) handleClipboardCopyCommit(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.OSCommand.CopyToClipboard(commit.Sha)
 }
+
+func (gui *Gui) handleNewBranchOffCommit() error {
+	commit := gui.getSelectedCommit()
+	if commit == nil {
+		return nil
+	}
+
+	message := gui.Tr.TemplateLocalize(
+		"NewBranchNameBranchOff",
+		Teml{
+			"branchName": commit.NameWithSha(),
+		},
+	)
+
+	return gui.prompt(gui.getCommitsView(), message, "", func(response string) error {
+		if err := gui.GitCommand.NewBranch(response, commit.Sha); err != nil {
+			return err
+		}
+		gui.State.Panels.Commits.SelectedLine = 0
+		gui.State.Panels.Branches.SelectedLine = 0
+
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	})
+}

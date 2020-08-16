@@ -401,8 +401,8 @@ func (c *GitCommand) ResetToCommit(sha string, strength string, options RunComma
 }
 
 // NewBranch create new branch
-func (c *GitCommand) NewBranch(name string, baseBranch string) error {
-	return c.OSCommand.RunCommand("git checkout -b %s %s", name, baseBranch)
+func (c *GitCommand) NewBranch(name string, base string) error {
+	return c.OSCommand.RunCommand("git checkout -b %s %s", name, base)
 }
 
 // CurrentBranchName get the current branch name and displayname.

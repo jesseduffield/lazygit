@@ -778,6 +778,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "commits",
 			Contexts:    []string{"branch-commits"},
+			Key:         gui.getKey("universal.new"),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCommit),
+			Description: gui.Tr.SLocalize("createNewBranchFromCommit"),
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{"branch-commits"},
 			Key:         gui.getKey("commits.tagCommit"),
 			Handler:     gui.handleTagCommit,
 			Description: gui.Tr.SLocalize("tagCommit"),
