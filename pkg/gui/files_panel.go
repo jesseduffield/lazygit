@@ -279,7 +279,7 @@ func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error 
 		return gui.createErrorPanel(gui.Tr.SLocalize("SkipHookPrefixNotConfigured"))
 	}
 
-	gui.renderString("commitMessage", skipHookPreifx)
+	gui.renderStringSync("commitMessage", skipHookPreifx)
 	if err := gui.getCommitMessageView().SetCursor(len(skipHookPreifx), 0); err != nil {
 		return err
 	}
