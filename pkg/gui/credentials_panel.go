@@ -58,15 +58,11 @@ func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCredentialsViewFocused() error {
-	if _, err := gui.g.SetViewOnTop("credentials"); err != nil {
-		return err
-	}
-
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{
-			"keyBindClose":   "esc",
-			"keyBindConfirm": "enter",
+			"keyBindClose":   gui.getKeyDisplay("universal.return"),
+			"keyBindConfirm": gui.getKeyDisplay("universal.confirm"),
 		},
 	)
 	gui.renderString("options", message)
