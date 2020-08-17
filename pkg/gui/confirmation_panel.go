@@ -105,12 +105,8 @@ func (gui *Gui) closeConfirmationPrompt(returnFocusOnClose bool) error {
 		}
 	}
 
-	for _, key := range gui.menuConfirmationKeys() {
-		if err := gui.g.DeleteKeybinding("confirmation", key, gocui.ModNone); err != nil {
-			return err
-		}
-	}
-
+	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.confirm"), gocui.ModNone)
+	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.confirm-alt1"), gocui.ModNone)
 	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.return"), gocui.ModNone)
 
 	return gui.g.DeleteView("confirmation")
@@ -230,10 +226,11 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		onConfirm = gui.wrappedConfirmationFunction(opts.handleConfirm, opts.returnFocusOnClose)
 	}
 
-	for _, key := range gui.menuConfirmationKeys() {
-		if err := gui.g.SetKeybinding("confirmation", nil, key, gocui.ModNone, onConfirm); err != nil {
-			return err
-		}
+	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.confirm"), gocui.ModNone, onConfirm); err != nil {
+		return err
+	}
+	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.confirm-alt1"), gocui.ModNone, onConfirm); err != nil {
+		return err
 	}
 
 	return gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.return"), gocui.ModNone, gui.wrappedConfirmationFunction(opts.handleClose, opts.returnFocusOnClose))
