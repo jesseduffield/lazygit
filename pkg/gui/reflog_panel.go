@@ -25,10 +25,6 @@ func (gui *Gui) handleReflogCommitSelect() error {
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView("commits"); err != nil {
-		return err
-	}
-
 	gui.getMainView().Title = "Reflog Entry"
 
 	commit := gui.getSelectedReflogCommit()

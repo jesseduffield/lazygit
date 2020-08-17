@@ -2,7 +2,7 @@ package gui
 
 import "github.com/jesseduffield/gocui"
 
-type ListView struct {
+type ListContext struct {
 	ViewName              string
 	ContextKey            string
 	GetItemsLength        func() int
@@ -16,68 +16,68 @@ type ListView struct {
 	Kind                  int
 }
 
-func (lv *ListView) GetKey() string {
-	return lv.ContextKey
+func (lc *ListContext) GetKey() string {
+	return lc.ContextKey
 }
 
-func (lv *ListView) GetKind() int {
-	return lv.Kind
+func (lc *ListContext) GetKind() int {
+	return lc.Kind
 }
 
-func (lv *ListView) GetViewName() string {
-	return lv.ViewName
+func (lc *ListContext) GetViewName() string {
+	return lc.ViewName
 }
 
-func (lv *ListView) HandleFocusLost() error {
-	if lv.OnFocusLost != nil {
-		return lv.OnFocusLost()
+func (lc *ListContext) HandleFocusLost() error {
+	if lc.OnFocusLost != nil {
+		return lc.OnFocusLost()
 	}
 
 	return nil
 }
 
-func (lv *ListView) HandleFocus() error {
-	return lv.OnFocus()
+func (lc *ListContext) HandleFocus() error {
+	return lc.OnFocus()
 }
 
-func (lv *ListView) handlePrevLine(g *gocui.Gui, v *gocui.View) error {
-	return lv.handleLineChange(-1)
+func (lc *ListContext) handlePrevLine(g *gocui.Gui, v *gocui.View) error {
+	return lc.handleLineChange(-1)
 }
 
-func (lv *ListView) handleNextLine(g *gocui.Gui, v *gocui.View) error {
-	return lv.handleLineChange(1)
+func (lc *ListContext) handleNextLine(g *gocui.Gui, v *gocui.View) error {
+	return lc.handleLineChange(1)
 }
 
-func (lv *ListView) handleLineChange(change int) error {
-	if !lv.Gui.isPopupPanel(lv.ViewName) && lv.Gui.popupPanelFocused() {
+func (lc *ListContext) handleLineChange(change int) error {
+	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.popupPanelFocused() {
 		return nil
 	}
 
-	view, err := lv.Gui.g.View(lv.ViewName)
+	view, err := lc.Gui.g.View(lc.ViewName)
 	if err != nil {
 		return err
 	}
 
-	lv.Gui.changeSelectedLine(lv.GetSelectedLineIdxPtr(), lv.GetItemsLength(), change)
-	view.FocusPoint(0, *lv.GetSelectedLineIdxPtr())
+	lc.Gui.changeSelectedLine(lc.GetSelectedLineIdxPtr(), lc.GetItemsLength(), change)
+	view.FocusPoint(0, *lc.GetSelectedLineIdxPtr())
 
-	if lv.RendersToMainView {
-		if err := lv.Gui.resetOrigin(lv.Gui.getMainView()); err != nil {
+	if lc.RendersToMainView {
+		if err := lc.Gui.resetOrigin(lc.Gui.getMainView()); err != nil {
 			return err
 		}
-		if err := lv.Gui.resetOrigin(lv.Gui.getSecondaryView()); err != nil {
+		if err := lc.Gui.resetOrigin(lc.Gui.getSecondaryView()); err != nil {
 			return err
 		}
 	}
 
-	if lv.OnItemSelect != nil {
-		return lv.OnItemSelect()
+	if lc.OnItemSelect != nil {
+		return lc.OnItemSelect()
 	}
 	return nil
 }
 
-func (lv *ListView) handleNextPage(g *gocui.Gui, v *gocui.View) error {
-	view, err := lv.Gui.g.View(lv.ViewName)
+func (lc *ListContext) handleNextPage(g *gocui.Gui, v *gocui.View) error {
+	view, err := lc.Gui.g.View(lc.ViewName)
 	if err != nil {
 		return nil
 	}
@@ -86,19 +86,19 @@ func (lv *ListView) handleNextPage(g *gocui.Gui, v *gocui.View) error {
 	if delta == 0 {
 		delta = 1
 	}
-	return lv.handleLineChange(delta)
+	return lc.handleLineChange(delta)
 }
 
-func (lv *ListView) handleGotoTop(g *gocui.Gui, v *gocui.View) error {
-	return lv.handleLineChange(-lv.GetItemsLength())
+func (lc *ListContext) handleGotoTop(g *gocui.Gui, v *gocui.View) error {
+	return lc.handleLineChange(-lc.GetItemsLength())
 }
 
-func (lv *ListView) handleGotoBottom(g *gocui.Gui, v *gocui.View) error {
-	return lv.handleLineChange(lv.GetItemsLength())
+func (lc *ListContext) handleGotoBottom(g *gocui.Gui, v *gocui.View) error {
+	return lc.handleLineChange(lc.GetItemsLength())
 }
 
-func (lv *ListView) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
-	view, err := lv.Gui.g.View(lv.ViewName)
+func (lc *ListContext) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
+	view, err := lc.Gui.g.View(lc.ViewName)
 	if err != nil {
 		return nil
 	}
@@ -107,49 +107,49 @@ func (lv *ListView) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
 	if delta == 0 {
 		delta = 1
 	}
-	return lv.handleLineChange(-delta)
+	return lc.handleLineChange(-delta)
 }
 
-func (lv *ListView) handleClick(g *gocui.Gui, v *gocui.View) error {
-	if !lv.Gui.isPopupPanel(lv.ViewName) && lv.Gui.popupPanelFocused() {
+func (lc *ListContext) handleClick(g *gocui.Gui, v *gocui.View) error {
+	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.popupPanelFocused() {
 		return nil
 	}
 
-	selectedLineIdxPtr := lv.GetSelectedLineIdxPtr()
+	selectedLineIdxPtr := lc.GetSelectedLineIdxPtr()
 	prevSelectedLineIdx := *selectedLineIdxPtr
 	newSelectedLineIdx := v.SelectedLineIdx()
 
 	// we need to focus the view
-	if err := lv.Gui.switchContext(lv); err != nil {
+	if err := lc.Gui.switchContext(lc); err != nil {
 		return err
 	}
 
-	if newSelectedLineIdx > lv.GetItemsLength()-1 {
+	if newSelectedLineIdx > lc.GetItemsLength()-1 {
 		return nil
 	}
 
 	*selectedLineIdxPtr = newSelectedLineIdx
 
-	prevViewName := lv.Gui.currentViewName()
-	if prevSelectedLineIdx == newSelectedLineIdx && prevViewName == lv.ViewName && lv.OnClickSelectedItem != nil {
-		return lv.OnClickSelectedItem()
+	prevViewName := lc.Gui.currentViewName()
+	if prevSelectedLineIdx == newSelectedLineIdx && prevViewName == lc.ViewName && lc.OnClickSelectedItem != nil {
+		return lc.OnClickSelectedItem()
 	}
-	if lv.OnItemSelect != nil {
-		return lv.OnItemSelect()
-	}
-	return nil
-}
-
-func (lv *ListView) onSearchSelect(selectedLineIdx int) error {
-	*lv.GetSelectedLineIdxPtr() = selectedLineIdx
-	if lv.OnItemSelect != nil {
-		return lv.OnItemSelect()
+	if lc.OnItemSelect != nil {
+		return lc.OnItemSelect()
 	}
 	return nil
 }
 
-func (gui *Gui) menuListView() *ListView {
-	return &ListView{
+func (lc *ListContext) onSearchSelect(selectedLineIdx int) error {
+	*lc.GetSelectedLineIdxPtr() = selectedLineIdx
+	if lc.OnItemSelect != nil {
+		return lc.OnItemSelect()
+	}
+	return nil
+}
+
+func (gui *Gui) menuListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "menu",
 		ContextKey:            "menu",
 		GetItemsLength:        func() int { return gui.getMenuView().LinesHeight() },
@@ -164,8 +164,8 @@ func (gui *Gui) menuListView() *ListView {
 	}
 }
 
-func (gui *Gui) filesListView() *ListView {
-	return &ListView{
+func (gui *Gui) filesListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "files",
 		ContextKey:            "files",
 		GetItemsLength:        func() int { return len(gui.State.Files) },
@@ -179,8 +179,8 @@ func (gui *Gui) filesListView() *ListView {
 	}
 }
 
-func (gui *Gui) branchesListView() *ListView {
-	return &ListView{
+func (gui *Gui) branchesListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "branches",
 		ContextKey:            "local-branches",
 		GetItemsLength:        func() int { return len(gui.State.Branches) },
@@ -193,8 +193,8 @@ func (gui *Gui) branchesListView() *ListView {
 	}
 }
 
-func (gui *Gui) remotesListView() *ListView {
-	return &ListView{
+func (gui *Gui) remotesListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "branches",
 		ContextKey:            "remotes",
 		GetItemsLength:        func() int { return len(gui.State.Remotes) },
@@ -208,8 +208,8 @@ func (gui *Gui) remotesListView() *ListView {
 	}
 }
 
-func (gui *Gui) remoteBranchesListView() *ListView {
-	return &ListView{
+func (gui *Gui) remoteBranchesListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "branches",
 		ContextKey:            "remote-branches",
 		GetItemsLength:        func() int { return len(gui.State.RemoteBranches) },
@@ -222,8 +222,8 @@ func (gui *Gui) remoteBranchesListView() *ListView {
 	}
 }
 
-func (gui *Gui) tagsListView() *ListView {
-	return &ListView{
+func (gui *Gui) tagsListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "branches",
 		ContextKey:            "tags",
 		GetItemsLength:        func() int { return len(gui.State.Tags) },
@@ -236,8 +236,8 @@ func (gui *Gui) tagsListView() *ListView {
 	}
 }
 
-func (gui *Gui) branchCommitsListView() *ListView {
-	return &ListView{
+func (gui *Gui) branchCommitsListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "commits",
 		ContextKey:            "branch-commits",
 		GetItemsLength:        func() int { return len(gui.State.Commits) },
@@ -251,8 +251,8 @@ func (gui *Gui) branchCommitsListView() *ListView {
 	}
 }
 
-func (gui *Gui) reflogCommitsListView() *ListView {
-	return &ListView{
+func (gui *Gui) reflogCommitsListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "commits",
 		ContextKey:            "reflog-commits",
 		GetItemsLength:        func() int { return len(gui.State.FilteredReflogCommits) },
@@ -265,8 +265,8 @@ func (gui *Gui) reflogCommitsListView() *ListView {
 	}
 }
 
-func (gui *Gui) stashListView() *ListView {
-	return &ListView{
+func (gui *Gui) stashListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "stash",
 		ContextKey:            "stash",
 		GetItemsLength:        func() int { return len(gui.State.StashEntries) },
@@ -279,8 +279,8 @@ func (gui *Gui) stashListView() *ListView {
 	}
 }
 
-func (gui *Gui) commitFilesListView() *ListView {
-	return &ListView{
+func (gui *Gui) commitFilesListContext() *ListContext {
+	return &ListContext{
 		ViewName:              "commitFiles",
 		ContextKey:            "commitFiles",
 		GetItemsLength:        func() int { return len(gui.State.CommitFiles) },
@@ -293,17 +293,17 @@ func (gui *Gui) commitFilesListView() *ListView {
 	}
 }
 
-func (gui *Gui) getListViews() []*ListView {
-	return []*ListView{
-		gui.menuListView(),
-		gui.filesListView(),
-		gui.branchesListView(),
-		gui.remotesListView(),
-		gui.remoteBranchesListView(),
-		gui.tagsListView(),
-		gui.branchCommitsListView(),
-		gui.reflogCommitsListView(),
-		gui.stashListView(),
-		gui.commitFilesListView(),
+func (gui *Gui) getListContexts() []*ListContext {
+	return []*ListContext{
+		gui.menuListContext(),
+		gui.filesListContext(),
+		gui.branchesListContext(),
+		gui.remotesListContext(),
+		gui.remoteBranchesListContext(),
+		gui.tagsListContext(),
+		gui.branchCommitsListContext(),
+		gui.reflogCommitsListContext(),
+		gui.stashListContext(),
+		gui.commitFilesListContext(),
 	}
 }

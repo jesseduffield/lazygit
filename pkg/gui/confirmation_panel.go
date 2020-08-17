@@ -174,7 +174,7 @@ func (gui *Gui) onNewPopupPanel() {
 		"menu",
 	}
 	for _, viewName := range viewNames {
-		_, _ = gui.g.SetViewOnBottom(viewName)
+		_, _ = gui.g.SetViewOnBottom(viewName) // TODO: investigate
 	}
 }
 

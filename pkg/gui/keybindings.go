@@ -1348,12 +1348,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.handleStatusClick,
 		},
 		{
-			ViewName: "commitFiles",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleCommitFilesClick,
-		},
-		{
 			ViewName: "search",
 			Key:      gui.getKey("universal.confirm"),
 			Modifier: gocui.ModNone,
@@ -1406,39 +1400,39 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		bindings = append(bindings, &Binding{ViewName: "", Key: rune(i+1) + '0', Modifier: gocui.ModNone, Handler: gui.goToSideWindow(window)})
 	}
 
-	for _, listView := range gui.getListViews() {
+	for _, listContext := range gui.getListContexts() {
 		bindings = append(bindings, []*Binding{
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gui.getKey("universal.prevItem-alt"), Modifier: gocui.ModNone, Handler: listView.handlePrevLine},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gui.getKey("universal.prevItem"), Modifier: gocui.ModNone, Handler: listView.handlePrevLine},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listView.handlePrevLine},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gui.getKey("universal.nextItem-alt"), Modifier: gocui.ModNone, Handler: listView.handleNextLine},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gui.getKey("universal.nextItem"), Modifier: gocui.ModNone, Handler: listView.handleNextLine},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gui.getKey("universal.prevPage"), Modifier: gocui.ModNone, Handler: listView.handlePrevPage, Description: gui.Tr.SLocalize("prevPage")},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gui.getKey("universal.nextPage"), Modifier: gocui.ModNone, Handler: listView.handleNextPage, Description: gui.Tr.SLocalize("nextPage")},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gui.getKey("universal.gotoTop"), Modifier: gocui.ModNone, Handler: listView.handleGotoTop, Description: gui.Tr.SLocalize("gotoTop")},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listView.handleNextLine},
-			{ViewName: listView.ViewName, Contexts: []string{listView.ContextKey}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listView.handleClick},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gui.getKey("universal.prevItem-alt"), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gui.getKey("universal.prevItem"), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gui.getKey("universal.nextItem-alt"), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gui.getKey("universal.nextItem"), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gui.getKey("universal.prevPage"), Modifier: gocui.ModNone, Handler: listContext.handlePrevPage, Description: gui.Tr.SLocalize("prevPage")},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gui.getKey("universal.nextPage"), Modifier: gocui.ModNone, Handler: listContext.handleNextPage, Description: gui.Tr.SLocalize("nextPage")},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gui.getKey("universal.gotoTop"), Modifier: gocui.ModNone, Handler: listContext.handleGotoTop, Description: gui.Tr.SLocalize("gotoTop")},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
+			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listContext.handleClick},
 		}...)
 
 		// the commits panel needs to lazyload things so it has a couple of its own handlers
 		openSearchHandler := gui.handleOpenSearch
-		gotoBottomHandler := listView.handleGotoBottom
-		if listView.ViewName == "commits" {
+		gotoBottomHandler := listContext.handleGotoBottom
+		if listContext.ViewName == "commits" {
 			openSearchHandler = gui.handleOpenSearchForCommitsPanel
 			gotoBottomHandler = gui.handleGotoBottomForCommitsPanel
 		}
 
 		bindings = append(bindings, []*Binding{
 			{
-				ViewName:    listView.ViewName,
-				Contexts:    []string{listView.ContextKey},
+				ViewName:    listContext.ViewName,
+				Contexts:    []string{listContext.ContextKey},
 				Key:         gui.getKey("universal.startSearch"),
 				Handler:     openSearchHandler,
 				Description: gui.Tr.SLocalize("startSearch"),
 			},
 			{
-				ViewName:    listView.ViewName,
-				Contexts:    []string{listView.ContextKey},
+				ViewName:    listContext.ViewName,
+				Contexts:    []string{listContext.ContextKey},
 				Key:         gui.getKey("universal.gotoBottom"),
 				Handler:     gotoBottomHandler,
 				Description: gui.Tr.SLocalize("gotoBottom"),

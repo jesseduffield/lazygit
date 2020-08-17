@@ -63,6 +63,10 @@ func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 	currentBranch := gui.currentBranch()
 
+	if err := gui.switchContext(gui.Contexts.Status.Context); err != nil {
+		return err
+	}
+
 	cx, _ := v.Cursor()
 	upstreamStatus := fmt.Sprintf("↑%s↓%s", currentBranch.Pushables, currentBranch.Pullables)
 	repoName := utils.GetCurrentRepoName()
@@ -90,10 +94,6 @@ func (gui *Gui) handleStatusSelect() error {
 	}
 
 	gui.State.SplitMainPanel = false
-
-	if _, err := gui.g.SetCurrentView("status"); err != nil {
-		return err
-	}
 
 	gui.getMainView().Title = ""
 

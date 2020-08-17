@@ -16,14 +16,6 @@ func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
 	return gui.State.CommitFiles[selectedLine]
 }
 
-func (gui *Gui) handleCommitFilesClick(g *gocui.Gui, v *gocui.View) error {
-	itemCount := len(gui.State.CommitFiles)
-	handleSelect := gui.wrappedHandler(gui.handleCommitFileSelect)
-	selectedLine := &gui.State.Panels.CommitFiles.SelectedLine
-
-	return gui.handleClick(v, itemCount, selectedLine, handleSelect)
-}
-
 func (gui *Gui) handleCommitFileSelect() error {
 	if gui.popupPanelFocused() {
 		return nil
