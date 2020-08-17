@@ -282,42 +282,42 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	type listViewState struct {
+	type listContextState struct {
 		selectedLine int
 		lineCount    int
 		view         *gocui.View
-		context      string
-		listView     *ListView
+		contextKey   string
+		listContext  *ListContext
 	}
 
-	listViewStates := []listViewState{
-		{view: filesView, context: "files", selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files), listView: gui.filesListView()},
-		{view: branchesView, context: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches), listView: gui.branchesListView()},
-		{view: branchesView, context: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes), listView: gui.remotesListView()},
-		{view: branchesView, context: "remote-branches", selectedLine: gui.State.Panels.RemoteBranches.SelectedLine, lineCount: len(gui.State.Remotes), listView: gui.remoteBranchesListView()},
-		{view: branchesView, context: "tags", selectedLine: gui.State.Panels.Tags.SelectedLine, lineCount: len(gui.State.Tags), listView: gui.tagsListView()},
-		{view: commitsView, context: "branch-commits", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits), listView: gui.branchCommitsListView()},
-		{view: commitsView, context: "reflog-commits", selectedLine: gui.State.Panels.ReflogCommits.SelectedLine, lineCount: len(gui.State.FilteredReflogCommits), listView: gui.reflogCommitsListView()},
-		{view: stashView, context: "stash", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries), listView: gui.stashListView()},
-		{view: commitFilesView, context: "commit-files", selectedLine: gui.State.Panels.CommitFiles.SelectedLine, lineCount: len(gui.State.CommitFiles), listView: gui.commitFilesListView()},
+	listContextStates := []listContextState{
+		{view: filesView, contextKey: "files", selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files), listContext: gui.filesListContext()},
+		{view: branchesView, contextKey: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches), listContext: gui.branchesListContext()},
+		{view: branchesView, contextKey: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes), listContext: gui.remotesListContext()},
+		{view: branchesView, contextKey: "remote-branches", selectedLine: gui.State.Panels.RemoteBranches.SelectedLine, lineCount: len(gui.State.Remotes), listContext: gui.remoteBranchesListContext()},
+		{view: branchesView, contextKey: "tags", selectedLine: gui.State.Panels.Tags.SelectedLine, lineCount: len(gui.State.Tags), listContext: gui.tagsListContext()},
+		{view: commitsView, contextKey: "branch-commits", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits), listContext: gui.branchCommitsListContext()},
+		{view: commitsView, contextKey: "reflog-commits", selectedLine: gui.State.Panels.ReflogCommits.SelectedLine, lineCount: len(gui.State.FilteredReflogCommits), listContext: gui.reflogCommitsListContext()},
+		{view: stashView, contextKey: "stash", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries), listContext: gui.stashListContext()},
+		{view: commitFilesView, contextKey: "commit-files", selectedLine: gui.State.Panels.CommitFiles.SelectedLine, lineCount: len(gui.State.CommitFiles), listContext: gui.commitFilesListContext()},
 	}
 
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
-		listViewStates = append(listViewStates, listViewState{view: menuView, context: "menu", selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount, listView: gui.menuListView()})
+		listContextStates = append(listContextStates, listContextState{view: menuView, contextKey: "menu", selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount, listContext: gui.menuListContext()})
 	}
-	for _, listViewState := range listViewStates {
-		// ignore views where the context doesn't match up with the selected line we're trying to focus
-		if listViewState.context != "" && (listViewState.view.Context != listViewState.context) {
+	for _, listContextState := range listContextStates {
+		// ignore contexts whose view is owned by another context right now
+		if listContextState.view.Context != listContextState.contextKey {
 			continue
 		}
 		// check if the selected line is now out of view and if so refocus it
-		listViewState.view.FocusPoint(0, listViewState.selectedLine)
+		listContextState.view.FocusPoint(0, listContextState.selectedLine)
 
-		listViewState.view.SelBgColor = theme.GocuiSelectedLineBgColor
+		listContextState.view.SelBgColor = theme.GocuiSelectedLineBgColor
 
 		// I doubt this is expensive though it's admittedly redundant after the first render
-		listViewState.view.SetOnSelectItem(gui.onSelectItemWrapper(listViewState.listView.onSearchSelect))
+		listContextState.view.SetOnSelectItem(gui.onSelectItemWrapper(listContextState.listContext.onSearchSelect))
 	}
 
 	mainViewWidth, mainViewHeight := gui.getMainView().Size()
@@ -339,12 +339,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 func (gui *Gui) onInitialViewsCreation() error {
 	gui.createContextTree()
 
-	gui.switchContext(gui.Contexts.Files.Context)
+	if err := gui.switchContext(gui.Contexts.Files.Context); err != nil {
+		return err
+	}
 
 	gui.changeMainViewsContext("normal")
-
-	gui.getBranchesView().Context = "local-branches"
-	gui.getCommitsView().Context = "branch-commits"
 
 	if gui.showRecentRepos {
 		if err := gui.handleCreateRecentReposMenu(); err != nil {

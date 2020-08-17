@@ -37,9 +37,7 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
 	gui.credentials <- message
-	v.Clear()
-	_ = v.SetCursor(0, 0)
-	_, _ = g.SetViewOnBottom("credentials") // TODO: move to context code
+	gui.clearEditorView(v)
 	if err := gui.returnFromContext(); err != nil {
 		return err
 	}
@@ -48,8 +46,6 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
-	_, _ = g.SetViewOnBottom("credentials")
-
 	gui.credentials <- ""
 	return gui.returnFromContext()
 }
@@ -68,7 +64,6 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 
 // handleCredentialsPopup handles the views after executing a command that might ask for credentials
 func (gui *Gui) handleCredentialsPopup(cmdErr error) {
-	_, _ = gui.g.SetViewOnBottom("credentials")
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
 		if strings.Contains(errMessage, "Invalid username or password") {

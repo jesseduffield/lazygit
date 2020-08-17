@@ -210,10 +210,6 @@ func (gui *Gui) allFilesStaged() bool {
 }
 
 func (gui *Gui) focusAndSelectFile() error {
-	if _, err := gui.g.SetCurrentView("files"); err != nil {
-		return err
-	}
-
 	return gui.selectFile(false)
 }
 

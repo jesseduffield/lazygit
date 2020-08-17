@@ -76,6 +76,7 @@ type ContextTree struct {
 	BranchCommits CommitsContextNode
 	ReflogCommits SimpleContextNode
 	Stash         SimpleContextNode
+	Normal        SimpleContextNode
 	Staging       SimpleContextNode
 	PatchBuilding SimpleContextNode
 	Merging       SimpleContextNode
@@ -120,11 +121,24 @@ func (gui *Gui) returnFromContext() error {
 
 	gui.State.ContextStack = gui.State.ContextStack[:n]
 
-	if err := currentContext.HandleFocusLost(); err != nil {
+	if err := gui.deactivateContext(currentContext); err != nil {
 		return err
 	}
 
 	return gui.activateContext(newContext)
+}
+
+func (gui *Gui) deactivateContext(c Context) error {
+	// if we are the kind of context that is sent to back upon deactivation, we should do that
+	if c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP {
+		_, _ = gui.g.SetViewOnBottom(c.GetViewName())
+	}
+
+	if err := c.HandleFocusLost(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) activateContext(c Context) error {
@@ -188,34 +202,44 @@ func (gui *Gui) createContextTree() {
 			},
 		},
 		Files: SimpleContextNode{
-			Context: gui.filesListView(),
+			Context: gui.filesListContext(),
 		},
 		Menu: SimpleContextNode{
-			Context: gui.menuListView(),
+			Context: gui.menuListContext(),
 		},
 		Remotes: RemotesContextNode{
-			Context: gui.remotesListView(),
+			Context: gui.remotesListContext(),
 			Branches: SimpleContextNode{
-				Context: gui.remoteBranchesListView(),
+				Context: gui.remoteBranchesListContext(),
 			},
 		},
 		BranchCommits: CommitsContextNode{
-			Context: gui.branchCommitsListView(),
+			Context: gui.branchCommitsListContext(),
 			Files: SimpleContextNode{
-				Context: gui.commitFilesListView(),
+				Context: gui.commitFilesListContext(),
 			},
 		},
 		ReflogCommits: SimpleContextNode{
-			Context: gui.reflogCommitsListView(),
+			Context: gui.reflogCommitsListContext(),
 		},
 		Branches: SimpleContextNode{
-			Context: gui.branchesListView(),
+			Context: gui.branchesListContext(),
 		},
 		Tags: SimpleContextNode{
-			Context: gui.tagsListView(),
+			Context: gui.tagsListContext(),
 		},
 		Stash: SimpleContextNode{
-			Context: gui.stashListView(),
+			Context: gui.stashListContext(),
+		},
+		Normal: SimpleContextNode{
+			Context: BasicContext{
+				OnFocus: func() error {
+					return nil // TODO: should we do something here? We should allow for scrolling the panel
+				},
+				Kind:     MAIN_CONTEXT,
+				ViewName: "main",
+				Key:      "normal",
+			},
 		},
 		Staging: SimpleContextNode{
 			Context: BasicContext{
@@ -295,7 +319,18 @@ func (gui *Gui) createContextTree() {
 		"confirmation":  gui.Contexts.Confirmation.Context,
 		"credentials":   gui.Contexts.Credentials.Context,
 		"commitMessage": gui.Contexts.CommitMessage.Context,
-		"main":          gui.Contexts.Staging.Context,
+		"main":          gui.Contexts.Normal.Context,
+		"secondary":     gui.Contexts.Normal.Context,
+	}
+
+	for viewName, context := range gui.State.ViewContextMap {
+		// see if the view exists. If it does, set the context on it
+		view, err := gui.g.View(viewName)
+		if err != nil {
+			continue
+		}
+
+		view.Context = context.GetKey()
 	}
 }
 

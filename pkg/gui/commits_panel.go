@@ -31,10 +31,6 @@ func (gui *Gui) handleCommitSelect() error {
 		return err
 	}
 
-	if _, err := gui.g.SetCurrentView("commits"); err != nil {
-		return err
-	}
-
 	state := gui.State.Panels.Commits
 	if state.SelectedLine > 290 && state.LimitCommits {
 		state.LimitCommits = false
@@ -739,9 +735,9 @@ func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 		}
 	}
 
-	for _, view := range gui.getListViews() {
-		if view.ViewName == "commits" {
-			return view.handleGotoBottom(g, v)
+	for _, context := range gui.getListContexts() {
+		if context.ViewName == "commits" {
+			return context.handleGotoBottom(g, v)
 		}
 	}
 

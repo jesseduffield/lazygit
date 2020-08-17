@@ -359,30 +359,6 @@ func (gui *Gui) popupPanelFocused() bool {
 	return gui.isPopupPanel(gui.currentViewName())
 }
 
-func (gui *Gui) handleClick(v *gocui.View, itemCount int, selectedLine *int, handleSelect func(*gocui.Gui, *gocui.View) error) error {
-	if gui.popupPanelFocused() && v != nil && !gui.isPopupPanel(v.Name()) {
-		return nil
-	}
-
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
-		return err
-	}
-
-	newSelectedLine := v.SelectedLineIdx()
-
-	if newSelectedLine < 0 {
-		newSelectedLine = 0
-	}
-
-	if newSelectedLine > itemCount-1 {
-		newSelectedLine = itemCount - 1
-	}
-
-	*selectedLine = newSelectedLine
-
-	return handleSelect(gui.g, v)
-}
-
 // often gocui wants functions in the form `func(g *gocui.Gui, v *gocui.View) error`
 // but sometimes we just have a function that returns an error, so this is a
 // convenience wrapper to give gocui what it wants.
@@ -395,4 +371,10 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 // secondaryViewFocused tells us whether it appears that the secondary view is focused. The view is actually never focused for real: we just swap the main and secondary views and then you're still focused on the main view so that we can give you access to all its keybindings for free. I will probably regret this design decision soon enough.
 func (gui *Gui) secondaryViewFocused() bool {
 	return gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused
+}
+
+func (gui *Gui) clearEditorView(v *gocui.View) {
+	v.Clear()
+	_ = v.SetCursor(0, 0)
+	_ = v.SetOrigin(0, 0)
 }

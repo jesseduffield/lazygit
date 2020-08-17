@@ -24,16 +24,13 @@ func (gui *Gui) handleStashEntrySelect() error {
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView("stash"); err != nil {
-		return err
-	}
-
 	gui.getMainView().Title = "Stash"
 
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoStashEntries"))
 	}
+
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}

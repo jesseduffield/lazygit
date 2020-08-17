@@ -26,10 +26,6 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 
 	gui.State.SplitMainPanel = false
 
-	if _, err := gui.g.SetCurrentView("branches"); err != nil {
-		return err
-	}
-
 	gui.getMainView().Title = "Remote Branch"
 
 	remoteBranch := gui.getSelectedRemoteBranch()
