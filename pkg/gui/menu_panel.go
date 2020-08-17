@@ -32,8 +32,12 @@ func (gui *Gui) renderMenuOptions() error {
 	return gui.renderOptionsMap(optionsMap)
 }
 
+func (gui *Gui) menuConfirmationKeys() []interface{} {
+	return []interface{}{gui.getKey("universal.select"), gui.getKey("universal.confirm"), gui.getKey("universal.confirm-alt1")}
+}
+
 func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
-	for _, key := range []gocui.Key{gocui.KeySpace, gocui.KeyEnter} {
+	for _, key := range gui.menuConfirmationKeys() {
 		if err := g.DeleteKeybinding("menu", key, gocui.ModNone); err != nil {
 			return err
 		}
@@ -104,7 +108,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 
 	gui.State.Panels.Menu.OnPress = wrappedHandlePress
 
-	for _, key := range []gocui.Key{gocui.KeySpace, gocui.KeyEnter, 'y'} {
+	for _, key := range gui.menuConfirmationKeys() {
 		_ = gui.g.DeleteKeybinding("menu", key, gocui.ModNone)
 
 		if err := gui.g.SetKeybinding("menu", nil, key, gocui.ModNone, wrappedHandlePress); err != nil {

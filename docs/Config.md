@@ -81,6 +81,8 @@ Default path for the config file:
       optionMenu-alt1: '?' # show help menu
       select: '<space>'
       goInto: '<enter>'
+      confirm: '<enter>'
+      confirm-alt1: 'y'
       remove: 'd'
       new: 'n'
       edit: 'e'

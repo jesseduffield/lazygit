@@ -104,8 +104,15 @@ func (gui *Gui) closeConfirmationPrompt(returnFocusOnClose bool) error {
 			panic(err)
 		}
 	}
-	gui.g.DeleteKeybinding("confirmation", gocui.KeyEnter, gocui.ModNone)
-	gui.g.DeleteKeybinding("confirmation", gocui.KeyEsc, gocui.ModNone)
+
+	for _, key := range gui.menuConfirmationKeys() {
+		if err := gui.g.DeleteKeybinding("confirmation", key, gocui.ModNone); err != nil {
+			return err
+		}
+	}
+
+	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.return"), gocui.ModNone)
+
 	return gui.g.DeleteView("confirmation")
 }
 
@@ -216,17 +223,20 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 	)
 
 	gui.renderString("options", actions)
+	var onConfirm func(*gocui.Gui, *gocui.View) error
 	if opts.handleConfirmPrompt != nil {
-		if err := gui.g.SetKeybinding("confirmation", nil, gocui.KeyEnter, gocui.ModNone, gui.wrappedPromptConfirmationFunction(opts.handleConfirmPrompt, opts.returnFocusOnClose)); err != nil {
-			return err
-		}
+		onConfirm = gui.wrappedPromptConfirmationFunction(opts.handleConfirmPrompt, opts.returnFocusOnClose)
 	} else {
-		if err := gui.g.SetKeybinding("confirmation", nil, gocui.KeyEnter, gocui.ModNone, gui.wrappedConfirmationFunction(opts.handleConfirm, opts.returnFocusOnClose)); err != nil {
+		onConfirm = gui.wrappedConfirmationFunction(opts.handleConfirm, opts.returnFocusOnClose)
+	}
+
+	for _, key := range gui.menuConfirmationKeys() {
+		if err := gui.g.SetKeybinding("confirmation", nil, key, gocui.ModNone, onConfirm); err != nil {
 			return err
 		}
 	}
 
-	return gui.g.SetKeybinding("confirmation", nil, gocui.KeyEsc, gocui.ModNone, gui.wrappedConfirmationFunction(opts.handleClose, opts.returnFocusOnClose))
+	return gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.return"), gocui.ModNone, gui.wrappedConfirmationFunction(opts.handleClose, opts.returnFocusOnClose))
 }
 
 func (gui *Gui) createErrorPanel(message string) error {

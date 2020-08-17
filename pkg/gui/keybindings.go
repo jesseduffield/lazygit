@@ -831,25 +831,25 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "commitMessage",
-			Key:      gocui.KeyEnter,
+			Key:      gui.getKey("universal.confirm"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCommitConfirm,
 		},
 		{
 			ViewName: "commitMessage",
-			Key:      gocui.KeyEsc,
+			Key:      gui.getKey("universal.return"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCommitClose,
 		},
 		{
 			ViewName: "credentials",
-			Key:      gocui.KeyEnter,
+			Key:      gui.getKey("universal.confirm"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleSubmitCredential,
 		},
 		{
 			ViewName: "credentials",
-			Key:      gocui.KeyEsc,
+			Key:      gui.getKey("universal.return"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCloseCredentialsView,
 		},
@@ -1355,7 +1355,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "search",
-			Key:      gocui.KeyEnter,
+			Key:      gui.getKey("universal.confirm"),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleSearch,
 		},

@@ -309,6 +309,8 @@ keybinding:
     optionMenu-alt1: '?'
     select: '<space>'
     goInto: '<enter>'
+    confirm: '<enter>'
+    confirm-alt1: 'y'
     remove: 'd'
     new: 'n'
     edit: 'e'
