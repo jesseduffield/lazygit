@@ -314,6 +314,7 @@ func (gui *Gui) createContextTree() {
 		"files":         gui.Contexts.Files.Context,
 		"branches":      gui.Contexts.Branches.Context,
 		"commits":       gui.Contexts.BranchCommits.Context,
+		"commitFiles":   gui.Contexts.BranchCommits.Files.Context,
 		"stash":         gui.Contexts.Stash.Context,
 		"menu":          gui.Contexts.Menu.Context,
 		"confirmation":  gui.Contexts.Confirmation.Context,
@@ -323,6 +324,8 @@ func (gui *Gui) createContextTree() {
 		"secondary":     gui.Contexts.Normal.Context,
 	}
 
+	// arguably we should only have our ViewContextMap and we should do away with
+	// contexts on views, or vice versa
 	for viewName, context := range gui.State.ViewContextMap {
 		// see if the view exists. If it does, set the context on it
 		view, err := gui.g.View(viewName)
