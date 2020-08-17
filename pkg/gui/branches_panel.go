@@ -13,6 +13,10 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedBranch() *commands.Branch {
+	if len(gui.State.Branches) == 0 {
+		return nil
+	}
+
 	selectedLine := gui.State.Panels.Branches.SelectedLine
 	if selectedLine == -1 {
 		return nil
@@ -26,27 +30,32 @@ func (gui *Gui) handleBranchSelect() error {
 		return nil
 	}
 
-	gui.splitMainPanel(false)
-
-	gui.getMainView().Title = "Log"
-
-	// This really shouldn't happen: there should always be a master branch
-	if len(gui.State.Branches) == 0 {
-		return gui.newStringTask("main", gui.Tr.SLocalize("NoBranchesThisRepo"))
-	}
-	branch := gui.getSelectedBranch()
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}
 
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
-	)
-	if err := gui.newCmdTask("main", cmd); err != nil {
-		gui.Log.Error(err)
+	refreshOpts := refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Log",
+			task: {
+				kind: RENDER_STRING,
+				str:  gui.Tr.SLocalize("NoBranchesThisRepo"),
+			},
+		},
 	}
-	return nil
+
+	branch := gui.getSelectedBranch()
+	if branch == nil {
+		refreshOpts.main.task = func() error { return gui.newStringTask("main", gui.Tr.SLocalize("NoBranchesThisRepo")) }
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
+		)
+
+		refreshOpts.main.task = func() error { return gui.newPtyTask("main", cmd) }
+	}
+
+	return gui.refreshMain(refreshOpts)
 }
 
 // gui.refreshStatus is called at the end of this because that's when we can

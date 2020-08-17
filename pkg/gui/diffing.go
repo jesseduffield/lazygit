@@ -18,20 +18,22 @@ func (gui *Gui) exitDiffMode() error {
 }
 
 func (gui *Gui) renderDiff() error {
-	gui.getMainView().Title = "Diff"
-	gui.splitMainPanel(false)
-	filterArg := ""
-	if gui.inFilterMode() {
-		filterArg = fmt.Sprintf(" -- %s", gui.State.FilterPath)
-	}
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Diff",
+			task: func() error {
+				filterArg := ""
+				if gui.inFilterMode() {
+					filterArg = fmt.Sprintf(" -- %s", gui.State.FilterPath)
+				}
 
-	cmd := gui.OSCommand.ExecutableFromString(
-		fmt.Sprintf("git diff --color %s %s", gui.diffStr(), filterArg),
-	)
-	if err := gui.newPtyTask("main", cmd); err != nil {
-		gui.Log.Error(err)
-	}
-	return nil
+				cmd := gui.OSCommand.ExecutableFromString(
+					fmt.Sprintf("git diff --color %s %s", gui.diffStr(), filterArg),
+				)
+				return gui.newPtyTask("main", cmd)
+			},
+		},
+	})
 }
 
 // currentDiffTerminals returns the current diff terminals of the currently selected item.
