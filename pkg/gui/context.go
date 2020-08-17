@@ -155,8 +155,6 @@ func (gui *Gui) activateContext(c Context) error {
 		return err
 	}
 
-	// return gui.newLineFocused(newView)
-
 	if err := c.HandleFocus(); err != nil {
 		return err
 	}
