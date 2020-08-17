@@ -203,10 +203,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err.Error() != "unknown view" {
 				return err
 			}
-			_, err := g.SetViewOnBottom("credentials")
-			if err != nil {
-				return err
-			}
+			_, _ = g.SetViewOnBottom("credentials")
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
 			credentialsView.FgColor = textColor
 			credentialsView.Editable = true
@@ -256,9 +253,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		appStatusView.BgColor = gocui.ColorDefault
 		appStatusView.FgColor = gocui.ColorCyan
 		appStatusView.Frame = false
-		if _, err := g.SetViewOnBottom("appStatus"); err != nil {
-			return err
-		}
+		_, _ = g.SetViewOnBottom("appStatus")
 	}
 
 	informationView, err := setViewFromDimensions("information", "information", false)
