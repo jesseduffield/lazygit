@@ -73,8 +73,18 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	setViewFromDimensions := func(viewName string, boxName string, frame bool) (*gocui.View, error) {
-		dimensionsObj := viewDimensions[boxName]
+	setViewFromDimensions := func(viewName string, windowName string, frame bool) (*gocui.View, error) {
+		dimensionsObj, ok := viewDimensions[windowName]
+
+		if !ok {
+			// view not specified in dimensions object: so create the view and hide it
+			view, err := g.SetView(viewName, 0, 0, 0, 0, 0)
+			if err != nil {
+				return view, err
+			}
+			return g.SetViewOnBottom(viewName)
+		}
+
 		frameOffset := 1
 		if frame {
 			frameOffset = 0
