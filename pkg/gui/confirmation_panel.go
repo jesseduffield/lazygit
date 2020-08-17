@@ -167,19 +167,7 @@ func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt 
 	return confirmationView, nil
 }
 
-func (gui *Gui) onNewPopupPanel() {
-	viewNames := []string{
-		"commitMessage",
-		"credentials",
-		"menu",
-	}
-	for _, viewName := range viewNames {
-		_, _ = gui.g.SetViewOnBottom(viewName) // TODO: investigate
-	}
-}
-
 func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
-	gui.onNewPopupPanel()
 	gui.g.Update(func(g *gocui.Gui) error {
 		// delete the existing confirmation panel if it exists
 		if view, _ := g.View("confirmation"); view != nil {

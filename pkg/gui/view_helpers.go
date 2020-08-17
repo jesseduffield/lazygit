@@ -139,16 +139,6 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	return nil
 }
 
-func (gui *Gui) closePopupPanels() error {
-	gui.onNewPopupPanel()
-	err := gui.closeConfirmationPrompt(true)
-	if err != nil {
-		gui.Log.Error(err)
-		return err
-	}
-	return nil
-}
-
 func (gui *Gui) resetOrigin(v *gocui.View) error {
 	_ = v.SetCursor(0, 0)
 	return v.SetOrigin(0, 0)
