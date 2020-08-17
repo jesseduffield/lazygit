@@ -22,7 +22,7 @@ import (
 func (gui *Gui) getSelectedFile() *commands.File {
 	selectedLine := gui.State.Panels.Files.SelectedLine
 	if selectedLine == -1 {
-		return &commands.File{}
+		return nil
 	}
 
 	return gui.State.Files[selectedLine]
