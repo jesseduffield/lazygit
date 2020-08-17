@@ -37,7 +37,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 
 	file := gui.getSelectedFile()
 	if file == nil {
-		gui.State.SplitMainPanel = false
+		gui.splitMainPanel(false)
 		gui.getMainView().Title = ""
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
 	}
@@ -53,12 +53,12 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 
 	if file.HasInlineMergeConflicts {
 		gui.getMainView().Title = gui.Tr.SLocalize("MergeConflictsTitle")
-		gui.State.SplitMainPanel = false
+		gui.splitMainPanel(false)
 		return gui.refreshMergePanel()
 	}
 
 	if file.HasStagedChanges && file.HasUnstagedChanges {
-		gui.State.SplitMainPanel = true
+		gui.splitMainPanel(true)
 		gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
 		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
 		cmdStr := gui.GitCommand.DiffCmdStr(file, false, true)
@@ -67,7 +67,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 			return err
 		}
 	} else {
-		gui.State.SplitMainPanel = false
+		gui.splitMainPanel(false)
 		if file.HasUnstagedChanges {
 			gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
 		} else {

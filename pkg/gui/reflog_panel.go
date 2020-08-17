@@ -23,7 +23,7 @@ func (gui *Gui) handleReflogCommitSelect() error {
 		return nil
 	}
 
-	gui.State.SplitMainPanel = false
+	gui.splitMainPanel(false)
 
 	gui.getMainView().Title = "Reflog Entry"
 

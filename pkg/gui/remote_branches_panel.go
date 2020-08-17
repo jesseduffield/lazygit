@@ -24,7 +24,7 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 		return nil
 	}
 
-	gui.State.SplitMainPanel = false
+	gui.splitMainPanel(false)
 
 	gui.getMainView().Title = "Remote Branch"
 

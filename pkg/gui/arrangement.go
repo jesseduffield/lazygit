@@ -10,7 +10,7 @@ func (gui *Gui) mainSectionChildren() []*boxlayout.Box {
 
 	// if we're not in split mode we can just show the one main panel. Likewise if
 	// the main panel is focused and we're in full-screen mode
-	if !gui.State.SplitMainPanel || (gui.State.ScreenMode == SCREEN_FULL && currentViewName == "main") {
+	if !gui.isMainPanelSplit() || (gui.State.ScreenMode == SCREEN_FULL && currentViewName == "main") {
 		return []*boxlayout.Box{
 			{
 				ViewName: "main",
@@ -47,7 +47,7 @@ func (gui *Gui) getMidSectionWeights() (int, int) {
 	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
 	sideSectionWeight := 1
 
-	if gui.State.SplitMainPanel {
+	if gui.isMainPanelSplit() {
 		mainSectionWeight = 5 // need to shrink side panel to make way for main panels if side-by-side
 	}
 

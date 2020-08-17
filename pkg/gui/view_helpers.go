@@ -368,3 +368,16 @@ func (gui *Gui) clearEditorView(v *gocui.View) {
 	_ = v.SetCursor(0, 0)
 	_ = v.SetOrigin(0, 0)
 }
+
+func (gui *Gui) splitMainPanel(state bool) {
+	gui.State.SplitMainPanel = state
+
+	// no need to set view on bottom when state is false: it will have zero size anyway thanks to our view arrangement code.
+	if state {
+		_, _ = gui.g.SetViewOnTop("secondary")
+	}
+}
+
+func (gui *Gui) isMainPanelSplit() bool {
+	return gui.State.SplitMainPanel
+}
