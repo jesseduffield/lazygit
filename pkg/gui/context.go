@@ -90,6 +90,13 @@ func (gui *Gui) switchContext(c Context) error {
 	// push onto stack
 	// if we are switching to a side context, remove all other contexts in the stack
 	if c.GetKind() == SIDE_CONTEXT {
+		for _, stackContext := range gui.State.ContextStack {
+			if stackContext.GetKey() != c.GetKey() {
+				if err := gui.deactivateContext(stackContext); err != nil {
+					return err
+				}
+			}
+		}
 		gui.State.ContextStack = []Context{c}
 	} else {
 		// TODO: think about other exceptional cases

@@ -56,11 +56,6 @@ func (gui *Gui) previousSideWindow() error {
 
 func (gui *Gui) goToSideWindow(sideViewName string) func(g *gocui.Gui, v *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
-		err := gui.closePopupPanels()
-		if err != nil {
-			gui.Log.Error(err)
-			return nil
-		}
 		return gui.switchContextToView(sideViewName)
 	}
 }
