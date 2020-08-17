@@ -27,7 +27,7 @@ func (gui *Gui) handleRemoteSelect() error {
 		return nil
 	}
 
-	gui.State.SplitMainPanel = false
+	gui.splitMainPanel(false)
 
 	gui.getMainView().Title = "Remote"
 

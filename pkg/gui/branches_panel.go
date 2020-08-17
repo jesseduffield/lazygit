@@ -26,7 +26,7 @@ func (gui *Gui) handleBranchSelect() error {
 		return nil
 	}
 
-	gui.State.SplitMainPanel = false
+	gui.splitMainPanel(false)
 
 	gui.getMainView().Title = "Log"
 

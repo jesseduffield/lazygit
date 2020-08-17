@@ -19,7 +19,7 @@ func (gui *Gui) exitDiffMode() error {
 
 func (gui *Gui) renderDiff() error {
 	gui.getMainView().Title = "Diff"
-	gui.State.SplitMainPanel = false
+	gui.splitMainPanel(false)
 	filterArg := ""
 	if gui.inFilterMode() {
 		filterArg = fmt.Sprintf(" -- %s", gui.State.FilterPath)

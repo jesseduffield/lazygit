@@ -10,7 +10,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 
-	gui.State.SplitMainPanel = true
+	gui.splitMainPanel(true)
 
 	gui.getMainView().Title = "Patch"
 	gui.getSecondaryView().Title = "Custom Patch"
@@ -80,7 +80,7 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 
 	if gui.GitCommand.PatchManager.IsEmpty() {
 		gui.GitCommand.PatchManager.Reset()
-		gui.State.SplitMainPanel = false
+		gui.splitMainPanel(false)
 	}
 
 	return gui.switchContext(gui.Contexts.BranchCommits.Files.Context)
@@ -88,7 +88,7 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 
 func (gui *Gui) refreshSecondaryPatchPanel() error {
 	if gui.GitCommand.PatchManager.CommitSelected() {
-		gui.State.SplitMainPanel = true
+		gui.splitMainPanel(true)
 		secondaryView := gui.getSecondaryView()
 		secondaryView.Highlight = true
 		secondaryView.Wrap = false
@@ -98,7 +98,7 @@ func (gui *Gui) refreshSecondaryPatchPanel() error {
 			return nil
 		})
 	} else {
-		gui.State.SplitMainPanel = false
+		gui.splitMainPanel(false)
 	}
 
 	return nil

@@ -8,16 +8,9 @@ import (
 )
 
 func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx int) error {
-	gui.State.SplitMainPanel = true
+	gui.splitMainPanel(true)
 
 	state := gui.State.Panels.LineByLine
-
-	// // We need to force focus here because the confirmation panel for safely staging lines does not return focus automatically.
-	// // This is because if we tell it to return focus it will unconditionally return it to the main panel which may not be what we want
-	// // e.g. in the event that there's nothing left to stage.
-	// if err := gui.switchContext(nil, gui.getMainView()); err != nil {
-	// 	return err
-	// }
 
 	file := gui.getSelectedFile()
 	if file == nil {

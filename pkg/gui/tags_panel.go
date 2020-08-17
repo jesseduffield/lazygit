@@ -22,7 +22,7 @@ func (gui *Gui) handleTagSelect() error {
 		return nil
 	}
 
-	gui.State.SplitMainPanel = false
+	gui.splitMainPanel(false)
 
 	gui.getMainView().Title = "Tag"
 

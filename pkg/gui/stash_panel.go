@@ -22,7 +22,7 @@ func (gui *Gui) handleStashEntrySelect() error {
 		return nil
 	}
 
-	gui.State.SplitMainPanel = false
+	gui.splitMainPanel(false)
 
 	gui.getMainView().Title = "Stash"
 
