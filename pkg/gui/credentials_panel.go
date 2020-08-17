@@ -48,10 +48,7 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
-	_, err := g.SetViewOnBottom("credentials")
-	if err != nil {
-		return err
-	}
+	_, _ = g.SetViewOnBottom("credentials")
 
 	gui.credentials <- ""
 	return gui.returnFromContext()

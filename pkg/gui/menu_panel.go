@@ -94,11 +94,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 			return err
 		}
 
-		if _, err := gui.g.View("menu"); err == nil {
-			if _, err := gui.g.SetViewOnBottom("menu"); err != nil {
-				return err
-			}
-		}
+		_, _ = gui.g.SetViewOnBottom("menu")
 
 		return gui.returnFromContext()
 	}
