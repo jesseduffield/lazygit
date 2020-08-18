@@ -27,19 +27,24 @@ func (gui *Gui) handleRemoteSelect() error {
 		return nil
 	}
 
-	gui.splitMainPanel(false)
-
-	gui.getMainView().Title = "Remote"
-
-	remote := gui.getSelectedRemote()
-	if remote == nil {
-		return gui.newStringTask("main", "No remotes")
-	}
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}
 
-	return gui.newStringTask("main", fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
+	var task updateTask
+	remote := gui.getSelectedRemote()
+	if remote == nil {
+		task = gui.createRenderStringTask("No remotes")
+	} else {
+		task = gui.createRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
+	}
+
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Remote",
+			task:  task,
+		},
+	})
 }
 
 func (gui *Gui) refreshRemotes() error {

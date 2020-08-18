@@ -21,29 +21,29 @@ func (gui *Gui) handleCommitFileSelect() error {
 		return nil
 	}
 
-	gui.getMainView().Title = "Patch"
 	if gui.currentViewName() == "commitFiles" {
 		gui.handleEscapeLineByLinePanel()
 	}
 
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
+		// TODO: consider making it so that we can also render strings to our own view through some common interface, or just render this to the main view for consistency
 		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
-	}
-
-	if err := gui.refreshSecondaryPatchPanel(); err != nil {
-		return err
 	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Sha, commitFile.Name, false),
 	)
-	if err := gui.newPtyTask("main", cmd); err != nil {
-		gui.Log.Error(err)
-	}
+	task := gui.createRunPtyTask(cmd)
 
-	return nil
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Patch",
+			task:  task,
+		},
+		secondary: gui.secondaryPatchPanelUpdateOpts(),
+	})
 }
 
 func (gui *Gui) handleSwitchToCommitsPanel(g *gocui.Gui, v *gocui.View) error {

@@ -80,13 +80,14 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 
 	if gui.GitCommand.PatchManager.IsEmpty() {
 		gui.GitCommand.PatchManager.Reset()
-		gui.splitMainPanel(false)
 	}
 
 	return gui.switchContext(gui.Contexts.BranchCommits.Files.Context)
 }
 
 func (gui *Gui) refreshSecondaryPatchPanel() error {
+	// TODO: swap out for secondaryPatchPanelUpdateOpts
+
 	if gui.GitCommand.PatchManager.CommitSelected() {
 		gui.splitMainPanel(true)
 		secondaryView := gui.getSecondaryView()
@@ -99,6 +100,21 @@ func (gui *Gui) refreshSecondaryPatchPanel() error {
 		})
 	} else {
 		gui.splitMainPanel(false)
+	}
+
+	return nil
+}
+
+func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
+	if gui.GitCommand.PatchManager.CommitSelected() {
+		patch := gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false)
+
+		return &viewUpdateOpts{
+			title:     "Custom Patch",
+			noWrap:    true,
+			highlight: true,
+			task:      gui.createRenderStringWithoutScrollTask(patch),
+		}
 	}
 
 	return nil

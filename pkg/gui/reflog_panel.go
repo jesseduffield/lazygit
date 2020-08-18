@@ -23,24 +23,24 @@ func (gui *Gui) handleReflogCommitSelect() error {
 		return gui.renderDiff()
 	}
 
-	refreshOpts := refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Reflog Entry",
-		},
-	}
-
 	commit := gui.getSelectedReflogCommit()
+	var task updateTask
 	if commit == nil {
-		refreshOpts.main.task = func() error { return gui.newStringTask("main", "No reflog history") }
+		task = gui.createRenderStringTask("No reflog history")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
 		)
 
-		refreshOpts.main.task = func() error { return gui.newPtyTask("main", cmd) }
+		task = gui.createRunPtyTask(cmd)
 	}
 
-	return gui.refreshMain(refreshOpts)
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Reflog Entry",
+			task:  task,
+		},
+	})
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only

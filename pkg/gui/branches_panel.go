@@ -34,28 +34,24 @@ func (gui *Gui) handleBranchSelect() error {
 		return gui.renderDiff()
 	}
 
-	refreshOpts := refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Log",
-			task: {
-				kind: RENDER_STRING,
-				str:  gui.Tr.SLocalize("NoBranchesThisRepo"),
-			},
-		},
-	}
-
+	var task updateTask
 	branch := gui.getSelectedBranch()
 	if branch == nil {
-		refreshOpts.main.task = func() error { return gui.newStringTask("main", gui.Tr.SLocalize("NoBranchesThisRepo")) }
+		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoBranchesThisRepo"))
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
 		)
 
-		refreshOpts.main.task = func() error { return gui.newPtyTask("main", cmd) }
+		task = gui.createRunPtyTask(cmd)
 	}
 
-	return gui.refreshMain(refreshOpts)
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Log",
+			task:  task,
+		},
+	})
 }
 
 // gui.refreshStatus is called at the end of this because that's when we can

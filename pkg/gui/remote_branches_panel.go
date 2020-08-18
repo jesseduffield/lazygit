@@ -24,27 +24,27 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 		return nil
 	}
 
-	gui.splitMainPanel(false)
-
-	gui.getMainView().Title = "Remote Branch"
-
-	remoteBranch := gui.getSelectedRemoteBranch()
-	if remoteBranch == nil {
-		return gui.newStringTask("main", "No branches for this remote")
-	}
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}
 
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.GetBranchGraphCmdStr(remoteBranch.FullName()),
-	)
-	if err := gui.newCmdTask("main", cmd); err != nil {
-		gui.Log.Error(err)
+	var task updateTask
+	remoteBranch := gui.getSelectedRemoteBranch()
+	if remoteBranch == nil {
+		task = gui.createRenderStringTask("No branches for this remote")
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.GetBranchGraphCmdStr(remoteBranch.FullName()),
+		)
+		task = gui.createRunCommandTask(cmd)
 	}
 
-	return nil
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Remote Branch",
+			task:  task,
+		},
+	})
 }
 
 func (gui *Gui) handleRemoteBranchesEscape(g *gocui.Gui, v *gocui.View) error {

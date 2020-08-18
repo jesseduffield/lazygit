@@ -22,6 +22,10 @@ func (gui *Gui) handleStashEntrySelect() error {
 		return nil
 	}
 
+	if gui.inDiffMode() {
+		return gui.renderDiff()
+	}
+
 	gui.splitMainPanel(false)
 
 	gui.getMainView().Title = "Stash"
@@ -29,10 +33,6 @@ func (gui *Gui) handleStashEntrySelect() error {
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
 		return gui.newStringTask("main", gui.Tr.SLocalize("NoStashEntries"))
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
 	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
