@@ -26,23 +26,23 @@ func (gui *Gui) handleStashEntrySelect() error {
 		return gui.renderDiff()
 	}
 
-	gui.splitMainPanel(false)
-
-	gui.getMainView().Title = "Stash"
-
+	var task updateTask
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
-		return gui.newStringTask("main", gui.Tr.SLocalize("NoStashEntries"))
+		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoStashEntries"))
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
+		)
+		task = gui.createRunPtyTask(cmd)
 	}
 
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
-	)
-	if err := gui.newPtyTask("main", cmd); err != nil {
-		gui.Log.Error(err)
-	}
-
-	return nil
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Stash",
+			task:  task,
+		},
+	})
 }
 
 func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
