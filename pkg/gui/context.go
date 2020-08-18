@@ -87,23 +87,27 @@ type ContextTree struct {
 }
 
 func (gui *Gui) switchContext(c Context) error {
-	// push onto stack
-	// if we are switching to a side context, remove all other contexts in the stack
-	if c.GetKind() == SIDE_CONTEXT {
-		for _, stackContext := range gui.State.ContextStack {
-			if stackContext.GetKey() != c.GetKey() {
-				if err := gui.deactivateContext(stackContext); err != nil {
-					return err
+	gui.g.Update(func(*gocui.Gui) error {
+		// push onto stack
+		// if we are switching to a side context, remove all other contexts in the stack
+		if c.GetKind() == SIDE_CONTEXT {
+			for _, stackContext := range gui.State.ContextStack {
+				if stackContext.GetKey() != c.GetKey() {
+					if err := gui.deactivateContext(stackContext); err != nil {
+						return err
+					}
 				}
 			}
+			gui.State.ContextStack = []Context{c}
+		} else {
+			// TODO: think about other exceptional cases
+			gui.State.ContextStack = append(gui.State.ContextStack, c)
 		}
-		gui.State.ContextStack = []Context{c}
-	} else {
-		// TODO: think about other exceptional cases
-		gui.State.ContextStack = append(gui.State.ContextStack, c)
-	}
 
-	return gui.activateContext(c)
+		return gui.activateContext(c)
+	})
+
+	return nil
 }
 
 // switchContextToView is to be used when you don't know which context you
@@ -114,25 +118,29 @@ func (gui *Gui) switchContextToView(viewName string) error {
 }
 
 func (gui *Gui) returnFromContext() error {
-	// TODO: add mutexes
+	gui.g.Update(func(*gocui.Gui) error {
+		// TODO: add mutexes
 
-	if len(gui.State.ContextStack) == 1 {
-		// cannot escape from bottommost context
-		return nil
-	}
+		if len(gui.State.ContextStack) == 1 {
+			// cannot escape from bottommost context
+			return nil
+		}
 
-	n := len(gui.State.ContextStack) - 1
+		n := len(gui.State.ContextStack) - 1
 
-	currentContext := gui.State.ContextStack[n]
-	newContext := gui.State.ContextStack[n-1]
+		currentContext := gui.State.ContextStack[n]
+		newContext := gui.State.ContextStack[n-1]
 
-	gui.State.ContextStack = gui.State.ContextStack[:n]
+		gui.State.ContextStack = gui.State.ContextStack[:n]
 
-	if err := gui.deactivateContext(currentContext); err != nil {
-		return err
-	}
+		if err := gui.deactivateContext(currentContext); err != nil {
+			return err
+		}
 
-	return gui.activateContext(newContext)
+		return gui.activateContext(newContext)
+	})
+
+	return nil
 }
 
 func (gui *Gui) deactivateContext(c Context) error {
