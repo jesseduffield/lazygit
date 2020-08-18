@@ -96,7 +96,7 @@ func (gui *Gui) refreshCommits() error {
 
 	go func() {
 		_ = gui.refreshCommitsWithLimit()
-		if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.Context.GetKey()) {
+		if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.currentContextKey() == gui.Contexts.PatchBuilding.Context.GetKey()) {
 			_ = gui.refreshCommitFilesView()
 		}
 		wg.Done()
