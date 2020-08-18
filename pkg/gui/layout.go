@@ -343,8 +343,6 @@ func (gui *Gui) onInitialViewsCreation() error {
 		return err
 	}
 
-	gui.changeMainViewsContext("normal")
-
 	if gui.showRecentRepos {
 		if err := gui.handleCreateRecentReposMenu(); err != nil {
 			return err

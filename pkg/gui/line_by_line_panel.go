@@ -325,7 +325,6 @@ func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleEscapeLineByLinePanel() {
-	gui.changeMainViewsContext("normal")
 	gui.State.Panels.LineByLine = nil
 }
 

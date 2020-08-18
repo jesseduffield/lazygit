@@ -209,7 +209,6 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 			}
 		}
 
-		gui.changeMainViewsContext("patch-building") // TODO: bring into context code
 		if err := gui.switchContext(gui.Contexts.PatchBuilding.Context); err != nil {
 			return err
 		}
