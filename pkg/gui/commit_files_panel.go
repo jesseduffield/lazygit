@@ -87,10 +87,6 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshCommitFilesView() error {
-	if err := gui.refreshSecondaryPatchPanel(); err != nil {
-		return err
-	}
-
 	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
 		return err
 	}
