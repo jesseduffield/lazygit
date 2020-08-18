@@ -96,8 +96,9 @@ type Gui struct {
 
 	// when lazygit is opened outside a git directory we want to open to the most
 	// recent repo with the recent repos popup showing
-	showRecentRepos bool
-	Contexts        ContextTree
+	showRecentRepos   bool
+	Contexts          ContextTree
+	ViewTabContextMap map[string]tabContexts
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -308,6 +309,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	gui.resetState()
 	gui.State.FilterPath = filterPath
 	gui.Contexts = gui.contextTree()
+	gui.ViewTabContextMap = gui.viewTabContextMap()
 
 	gui.watchFilesForChanges()
 

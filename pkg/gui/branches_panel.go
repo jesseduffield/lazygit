@@ -446,30 +446,24 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) onBranchesTabClick(tabIndex int) error {
-	contexts := []string{"local-branches", "remotes", "tags"}
 	branchesView := gui.getBranchesView()
 	branchesView.TabIndex = tabIndex
 
-	return gui.switchBranchesPanelContext(contexts[tabIndex])
+	context := gui.ViewTabContextMap["branches"][tabIndex].contexts[0]
+
+	return gui.switchContext(context)
 }
 
-func (gui *Gui) switchBranchesPanelContext(context string) error {
-	branchesView := gui.getBranchesView()
-	branchesView.Context = context
-	if err := gui.onSearchEscape(); err != nil {
-		return err
+func (gui *Gui) tabIndexForContext(c Context, tabContexts tabContexts) int {
+	for i, tabContext := range tabContexts {
+		for _, context := range tabContext.contexts {
+			if context.GetKey() == c.GetKey() {
+				return i
+			}
+		}
 	}
-
-	contextTabIndexMap := map[string]int{
-		"local-branches":  0,
-		"remotes":         1,
-		"remote-branches": 1,
-		"tags":            2,
-	}
-
-	branchesView.TabIndex = contextTabIndexMap[context]
-
-	return gui.refreshBranchesViewWithSelection()
+	gui.Log.Errorf("tab not found for context %s", c.GetKey())
+	return 0
 }
 
 func (gui *Gui) refreshBranchesViewWithSelection() error {
