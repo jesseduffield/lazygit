@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
 )
 
@@ -102,6 +104,10 @@ func (gui *Gui) switchContext(c Context) error {
 		} else {
 			// TODO: think about other exceptional cases
 			gui.State.ContextStack = append(gui.State.ContextStack, c)
+		}
+
+		if c.GetViewName() == "main" {
+			gui.changeMainViewsContext(c.GetKey())
 		}
 
 		return gui.activateContext(c)
@@ -422,6 +428,8 @@ func (gui *Gui) changeMainViewsContext(context string) {
 	case "normal", "patch-building", "staging", "merging":
 		gui.getMainView().Context = context
 		gui.getSecondaryView().Context = context
+	default:
+		panic(fmt.Sprintf("unknown context for main: %s", context))
 	}
 
 	gui.State.MainContext = context
