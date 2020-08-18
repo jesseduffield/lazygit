@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/go-errors/errors"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -255,17 +256,17 @@ func (gui *Gui) refreshMergePanel() error {
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 	item := gui.getSelectedFile()
 	if item == nil {
-		return "", gui.newStringTask("main", gui.Tr.SLocalize("NoFilesDisplay"))
+		return "", errors.New(gui.Tr.SLocalize("NoFilesDisplay"))
 	}
 
 	if item.Type != "file" {
-		return "", gui.newStringTask("main", gui.Tr.SLocalize("NotAFile"))
+		return "", errors.New(gui.Tr.SLocalize("NotAFile"))
 	}
 
 	cat, err := gui.GitCommand.CatFile(item.Name)
 	if err != nil {
 		gui.Log.Error(err)
-		return "", gui.newStringTask("main", err.Error())
+		return "", err
 	}
 	return cat, nil
 }

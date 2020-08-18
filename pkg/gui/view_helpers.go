@@ -266,6 +266,9 @@ func (gui *Gui) currentViewName() string {
 
 func (gui *Gui) resizeCurrentPopupPanel() error {
 	v := gui.g.CurrentView()
+	if v == nil {
+		return nil
+	}
 	if gui.isPopupPanel(v.Name()) {
 		return gui.resizePopupPanel(v)
 	}
