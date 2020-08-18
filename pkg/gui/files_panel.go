@@ -37,12 +37,16 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 
 	file := gui.getSelectedFile()
 	if file == nil {
-		gui.splitMainPanel(false)
-		gui.getMainView().Title = ""
-		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
+		return gui.refreshMain(refreshMainOpts{
+			main: &viewUpdateOpts{
+				title: "",
+				task:  gui.createRenderStringTask(gui.Tr.SLocalize("NoChangedFiles")),
+			},
+		})
 	}
 
 	if !alreadySelected {
+		// TODO: pull into update task interface
 		if err := gui.resetOrigin(gui.getMainView()); err != nil {
 			return err
 		}
@@ -52,36 +56,30 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	}
 
 	if file.HasInlineMergeConflicts {
-		gui.getMainView().Title = gui.Tr.SLocalize("MergeConflictsTitle")
-		gui.splitMainPanel(false)
 		return gui.refreshMergePanel()
-	}
-
-	if file.HasStagedChanges && file.HasUnstagedChanges {
-		gui.splitMainPanel(true)
-		gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
-		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
-		cmdStr := gui.GitCommand.DiffCmdStr(file, false, true)
-		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-		if err := gui.newPtyTask("secondary", cmd); err != nil {
-			return err
-		}
-	} else {
-		gui.splitMainPanel(false)
-		if file.HasUnstagedChanges {
-			gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
-		} else {
-			gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
-		}
 	}
 
 	cmdStr := gui.GitCommand.DiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
 	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-	if err := gui.newPtyTask("main", cmd); err != nil {
-		return err
+
+	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
+		title: gui.Tr.SLocalize("UnstagedChanges"),
+		task:  gui.createRunPtyTask(cmd),
+	}}
+
+	if file.HasStagedChanges && file.HasUnstagedChanges {
+		cmdStr := gui.GitCommand.DiffCmdStr(file, false, true)
+		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+
+		refreshOpts.secondary = &viewUpdateOpts{
+			title: gui.Tr.SLocalize("StagedChanges"),
+			task:  gui.createRunPtyTask(cmd),
+		}
+	} else if !file.HasUnstagedChanges {
+		refreshOpts.main.title = gui.Tr.SLocalize("StagedChanges")
 	}
 
-	return nil
+	return gui.refreshMain(refreshOpts)
 }
 
 func (gui *Gui) refreshFiles() error {

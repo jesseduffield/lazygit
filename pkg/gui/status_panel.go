@@ -93,10 +93,6 @@ func (gui *Gui) handleStatusSelect() error {
 		return nil
 	}
 
-	gui.splitMainPanel(false)
-
-	gui.getMainView().Title = ""
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}
@@ -114,7 +110,12 @@ func (gui *Gui) handleStatusSelect() error {
 			magenta.Sprint("Become a sponsor (github is matching all donations for 12 months): https://github.com/sponsors/jesseduffield"), // caffeine ain't free
 		}, "\n\n")
 
-	return gui.newStringTask("main", dashboardString)
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "",
+			task:  gui.createRenderStringTask(dashboardString),
+		},
+	})
 }
 
 func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {

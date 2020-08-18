@@ -26,9 +26,8 @@ func (gui *Gui) handleCommitSelect() error {
 		return nil
 	}
 
-	// this probably belongs in an 'onFocus' function than a 'commit selected' function
-	if err := gui.refreshSecondaryPatchPanel(); err != nil {
-		return err
+	if gui.inDiffMode() {
+		return gui.renderDiff()
 	}
 
 	state := gui.State.Panels.Commits
@@ -41,27 +40,26 @@ func (gui *Gui) handleCommitSelect() error {
 		}()
 	}
 
-	gui.getMainView().Title = "Patch"
-	gui.getSecondaryView().Title = "Custom Patch"
 	gui.handleEscapeLineByLinePanel()
 
+	var task updateTask
 	commit := gui.getSelectedCommit()
 	if commit == nil {
-		return gui.newStringTask("main", gui.Tr.SLocalize("NoCommitsThisBranch"))
+		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoCommitsThisBranch"))
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
+		)
+		task = gui.createRunPtyTask(cmd)
 	}
 
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
-	)
-	if err := gui.newPtyTask("main", cmd); err != nil {
-		gui.Log.Error(err)
-	}
-
-	return nil
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Patch",
+			task:  task,
+		},
+		secondary: gui.secondaryPatchPanelUpdateOpts(),
+	})
 }
 
 // during startup, the bottleneck is fetching the reflog entries. We need these

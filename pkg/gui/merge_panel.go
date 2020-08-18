@@ -238,14 +238,13 @@ func (gui *Gui) refreshMergePanel() error {
 		return err
 	}
 
-	mainView := gui.getMainView()
-	mainView.Wrap = false
-
-	if err := gui.newStringTaskWithoutScroll("main", content); err != nil {
-		return err
-	}
-
-	return nil
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title:  gui.Tr.SLocalize("MergeConflictsTitle"),
+			task:   gui.createRenderStringWithoutScrollTask(content),
+			noWrap: true,
+		},
+	})
 }
 
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {

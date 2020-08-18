@@ -22,27 +22,27 @@ func (gui *Gui) handleTagSelect() error {
 		return nil
 	}
 
-	gui.splitMainPanel(false)
-
-	gui.getMainView().Title = "Tag"
-
-	tag := gui.getSelectedTag()
-	if tag == nil {
-		return gui.newStringTask("main", "No tags")
-	}
-
 	if gui.inDiffMode() {
 		return gui.renderDiff()
 	}
 
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.GetBranchGraphCmdStr(tag.Name),
-	)
-	if err := gui.newCmdTask("main", cmd); err != nil {
-		gui.Log.Error(err)
+	var task updateTask
+	tag := gui.getSelectedTag()
+	if tag == nil {
+		task = gui.createRenderStringTask("No tags")
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.GetBranchGraphCmdStr(tag.Name),
+		)
+		task = gui.createRunCommandTask(cmd)
 	}
 
-	return nil
+	return gui.refreshMain(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Tag",
+			task:  task,
+		},
+	})
 }
 
 func (gui *Gui) refreshTags() error {
