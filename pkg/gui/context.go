@@ -208,12 +208,17 @@ func (gui *Gui) renderContextStack() string {
 	return result
 }
 
-func (gui *Gui) currentContext() Context {
-	return gui.State.ContextStack[len(gui.State.ContextStack)-1]
+func (gui *Gui) currentContextKey() string {
+	// on startup the stack can be empty so we'll return an empty string in that case
+	if len(gui.State.ContextStack) == 0 {
+		return ""
+	}
+
+	return gui.State.ContextStack[len(gui.State.ContextStack)-1].GetKey()
 }
 
-func (gui *Gui) createContextTree() {
-	gui.Contexts = ContextTree{
+func (gui *Gui) contextTree() ContextTree {
+	return ContextTree{
 		Status: SimpleContextNode{
 			Context: BasicContext{
 				OnFocus:  gui.handleStatusSelect,
@@ -329,8 +334,10 @@ func (gui *Gui) createContextTree() {
 			},
 		},
 	}
+}
 
-	gui.State.ViewContextMap = map[string]Context{
+func (gui *Gui) initialViewContextMap() map[string]Context {
+	return map[string]Context{
 		"status":        gui.Contexts.Status.Context,
 		"files":         gui.Contexts.Files.Context,
 		"branches":      gui.Contexts.Branches.Context,
@@ -344,7 +351,9 @@ func (gui *Gui) createContextTree() {
 		"main":          gui.Contexts.Normal.Context,
 		"secondary":     gui.Contexts.Normal.Context,
 	}
+}
 
+func (gui *Gui) setInitialViewContexts() {
 	// arguably we should only have our ViewContextMap and we should do away with
 	// contexts on views, or vice versa
 	for viewName, context := range gui.State.ViewContextMap {

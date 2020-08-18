@@ -282,10 +282,11 @@ func (gui *Gui) resetState() {
 				EditHistory:   stack.New(),
 			},
 		},
-		SideView:   nil,
-		Ptmx:       nil,
-		FilterPath: prevFilterPath,
-		Diff:       prevDiff,
+		SideView:       nil,
+		Ptmx:           nil,
+		FilterPath:     prevFilterPath,
+		Diff:           prevDiff,
+		ViewContextMap: gui.initialViewContextMap(),
 	}
 }
 
@@ -306,6 +307,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 
 	gui.resetState()
 	gui.State.FilterPath = filterPath
+	gui.Contexts = gui.contextTree()
 
 	gui.watchFilesForChanges()
 
