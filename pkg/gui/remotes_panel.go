@@ -110,7 +110,7 @@ func (gui *Gui) handleRemoteEnter() error {
 	}
 	gui.State.Panels.RemoteBranches.SelectedLine = newSelectedLine
 
-	return gui.switchBranchesPanelContext("remote-branches")
+	return gui.switchContext(gui.Contexts.Remotes.Branches.Context)
 }
 
 func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {

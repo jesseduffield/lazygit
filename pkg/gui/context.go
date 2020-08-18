@@ -106,10 +106,6 @@ func (gui *Gui) switchContext(c Context) error {
 			gui.State.ContextStack = append(gui.State.ContextStack, c)
 		}
 
-		if c.GetViewName() == "main" {
-			gui.changeMainViewsContext(c.GetKey())
-		}
-
 		return gui.activateContext(c)
 	})
 
@@ -171,6 +167,12 @@ func (gui *Gui) activateContext(c Context) error {
 	if err != nil {
 		return gui.returnFromContext()
 	}
+
+	if viewName == "main" {
+		gui.changeMainViewsContext(c.GetKey())
+	}
+
+	gui.setViewTabForContext(c)
 
 	if _, err := gui.g.SetCurrentView(viewName); err != nil {
 		return err
@@ -442,4 +444,67 @@ func (gui *Gui) changeMainViewsContext(context string) {
 	}
 
 	gui.State.MainContext = context
+}
+
+func (gui *Gui) viewTabContextMap() map[string]tabContexts {
+	return map[string]tabContexts{
+		"branches": tabContexts{
+			{
+				tab:      "Branches",
+				contexts: []Context{gui.Contexts.Branches.Context},
+			},
+			{
+				tab: "Remotes",
+				contexts: []Context{
+					gui.Contexts.Remotes.Context,
+					gui.Contexts.Remotes.Branches.Context,
+				},
+			},
+			{
+				tab:      "Tags",
+				contexts: []Context{gui.Contexts.Tags.Context},
+			},
+		},
+		"commits": tabContexts{
+			{
+				tab:      "Commits",
+				contexts: []Context{gui.Contexts.BranchCommits.Context},
+			},
+			{
+				tab: "Reflog",
+				contexts: []Context{
+					gui.Contexts.ReflogCommits.Context,
+				},
+			},
+		},
+	}
+}
+
+func (gui *Gui) setViewTabForContext(c Context) {
+	// search for the context in our map and if we find it, set the tab for the corresponding view
+
+	tabContexts, ok := gui.ViewTabContextMap[c.GetViewName()]
+	if !ok {
+		return
+	}
+
+	for tabIndex, tabContext := range tabContexts {
+		for _, context := range tabContext.contexts {
+			if context.GetKey() == c.GetKey() {
+				// get the view, set the tab
+				v, err := gui.g.View(c.GetViewName())
+				if err != nil {
+					gui.Log.Error(err)
+					return
+				}
+				v.TabIndex = tabIndex
+				return
+			}
+		}
+	}
+}
+
+type tabContexts []struct {
+	tab      string
+	contexts []Context
 }

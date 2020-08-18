@@ -48,7 +48,7 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 }
 
 func (gui *Gui) handleRemoteBranchesEscape(g *gocui.Gui, v *gocui.View) error {
-	return gui.switchBranchesPanelContext("remotes")
+	return gui.switchContext(gui.Contexts.Remotes.Context)
 }
 
 func (gui *Gui) renderRemoteBranchesWithSelection() error {
@@ -74,7 +74,7 @@ func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.handleCheckoutRef(remoteBranch.FullName(), handleCheckoutRefOptions{}); err != nil {
 		return err
 	}
-	return gui.switchBranchesPanelContext("local-branches")
+	return gui.switchContext(gui.Contexts.Branches.Context)
 }
 
 func (gui *Gui) handleMergeRemoteBranch(g *gocui.Gui, v *gocui.View) error {
@@ -163,7 +163,8 @@ func (gui *Gui) handleNewBranchOffRemote(g *gocui.Gui, v *gocui.View) error {
 			return gui.surfaceError(err)
 		}
 		gui.State.Panels.Branches.SelectedLine = 0
-		if err := gui.switchBranchesPanelContext("local-branches"); err != nil {
+
+		if err := gui.switchContext(gui.Contexts.Branches.Context); err != nil {
 			return err
 		}
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
