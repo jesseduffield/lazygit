@@ -19,8 +19,13 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) findConflicts(content string) ([]commands.Conflict, error) {
+func (gui *Gui) findConflicts(content string) []commands.Conflict {
 	conflicts := make([]commands.Conflict, 0)
+
+	if content == "" {
+		return conflicts
+	}
+
 	var newConflict commands.Conflict
 	for i, line := range utils.SplitLines(content) {
 		trimmedLine := strings.TrimPrefix(line, "++")
@@ -34,7 +39,7 @@ func (gui *Gui) findConflicts(content string) ([]commands.Conflict, error) {
 			conflicts = append(conflicts, newConflict)
 		}
 	}
-	return conflicts, nil
+	return conflicts
 }
 
 func (gui *Gui) shiftConflict(conflicts []commands.Conflict) (commands.Conflict, []commands.Conflict) {
@@ -211,15 +216,15 @@ func (gui *Gui) refreshMergePanel() error {
 	panelState := gui.State.Panels.Merging
 	cat, err := gui.catSelectedFile(gui.g)
 	if err != nil {
-		return err
+		return gui.refreshMain(refreshMainOpts{
+			main: &viewUpdateOpts{
+				title: "",
+				task:  gui.createRenderStringTask(err.Error()),
+			},
+		})
 	}
-	if cat == "" {
-		return nil
-	}
-	panelState.Conflicts, err = gui.findConflicts(cat)
-	if err != nil {
-		return err
-	}
+
+	panelState.Conflicts = gui.findConflicts(cat)
 
 	// handle potential fixes that the user made in their editor since we last refreshed
 	if len(panelState.Conflicts) == 0 {
