@@ -24,14 +24,6 @@ func (gui *Gui) getSelectedBranch() *commands.Branch {
 }
 
 func (gui *Gui) handleBranchSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
 	var task updateTask
 	branch := gui.getSelectedBranch()
 	if branch == nil {
