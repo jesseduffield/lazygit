@@ -299,7 +299,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		{view: commitsView, contextKey: "branch-commits", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits), listContext: gui.branchCommitsListContext()},
 		{view: commitsView, contextKey: "reflog-commits", selectedLine: gui.State.Panels.ReflogCommits.SelectedLine, lineCount: len(gui.State.FilteredReflogCommits), listContext: gui.reflogCommitsListContext()},
 		{view: stashView, contextKey: "stash", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries), listContext: gui.stashListContext()},
-		{view: commitFilesView, contextKey: "commit-files", selectedLine: gui.State.Panels.CommitFiles.SelectedLine, lineCount: len(gui.State.CommitFiles), listContext: gui.commitFilesListContext()},
+		{view: commitFilesView, contextKey: "commitFiles", selectedLine: gui.State.Panels.CommitFiles.SelectedLine, lineCount: len(gui.State.CommitFiles), listContext: gui.commitFilesListContext()},
 	}
 
 	// menu view might not exist so we check to be safe

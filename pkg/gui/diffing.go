@@ -44,7 +44,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 	switch gui.currentContextKey() {
 	case "files":
 		// not supporting files for now
-	case "commit-files":
+	case "commitFiles":
 		// not supporting commit files for now
 	case "branch-commits":
 		item := gui.getSelectedCommit()

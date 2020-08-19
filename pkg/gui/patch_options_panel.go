@@ -77,7 +77,7 @@ func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
 }
 
 func (gui *Gui) returnFocusFromLineByLinePanelIfNecessary() error {
-	if gui.State.MainContext == "patch-building" {
+	if gui.State.MainContext == "patchBuilding" {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 	return nil
