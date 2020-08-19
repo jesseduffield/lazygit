@@ -98,7 +98,7 @@ type Gui struct {
 	// recent repo with the recent repos popup showing
 	showRecentRepos   bool
 	Contexts          ContextTree
-	ViewTabContextMap map[string]tabContexts
+	ViewTabContextMap map[string][]tabContext
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be

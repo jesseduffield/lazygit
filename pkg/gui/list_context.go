@@ -11,9 +11,12 @@ type ListContext struct {
 	OnFocusLost           func() error
 	OnItemSelect          func() error
 	OnClickSelectedItem   func() error
-	Gui                   *Gui
-	RendersToMainView     bool
-	Kind                  int
+
+	// OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
+	OnRender          func() error
+	Gui               *Gui
+	RendersToMainView bool
+	Kind              int
 }
 
 func (lc *ListContext) GetKey() string {
@@ -38,6 +41,10 @@ func (lc *ListContext) HandleFocusLost() error {
 
 func (lc *ListContext) HandleFocus() error {
 	return lc.OnFocus()
+}
+
+func (lc *ListContext) HandleRender() error {
+	return lc.OnRender()
 }
 
 func (lc *ListContext) handlePrevLine(g *gocui.Gui, v *gocui.View) error {
@@ -187,9 +194,9 @@ func (gui *Gui) branchesListContext() *ListContext {
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Branches.SelectedLine },
 		OnFocus:               gui.handleBranchSelect,
 		OnItemSelect:          gui.handleBranchSelect,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		Gui:               gui,
+		RendersToMainView: true,
+		Kind:              SIDE_CONTEXT,
 	}
 }
 
