@@ -147,7 +147,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
-		branchesView.Tabs = []string{"Local Branches", "Remotes", "Tags"}
+		branchesView.Tabs = gui.viewTabNames("branches")
 		branchesView.FgColor = textColor
 		branchesView.ContainsList = true
 	}
@@ -168,7 +168,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		commitsView.Title = gui.Tr.SLocalize("CommitsTitle")
-		commitsView.Tabs = []string{"Commits", "Reflog"}
+		commitsView.Tabs = gui.viewTabNames("commits")
 		commitsView.FgColor = textColor
 		commitsView.ContainsList = true
 	}

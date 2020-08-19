@@ -168,18 +168,42 @@ func (gui *Gui) deactivateContext(c Context) error {
 	return nil
 }
 
+func (gui *Gui) rerenderIfVisible(c Context) error {
+	v, err := gui.g.View(c.GetViewName())
+	if err != nil {
+		return nil
+	}
+
+	if v.Context == c.GetKey() {
+		if err := c.HandleRender(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (gui *Gui) activateContext(c Context) error {
 	gui.Log.Warn(spew.Sdump(gui.renderContextStack()))
 
 	viewName := c.GetViewName()
-	_, err := gui.g.View(viewName)
+	v, err := gui.g.View(viewName)
 	// if view no longer exists, pop again
 	if err != nil {
 		return gui.returnFromContext()
 	}
 
+	// if the new context's view was previously displaying another context, render the new context
+	if v.Context != c.GetKey() {
+		if err := c.HandleRender(); err != nil {
+			return err
+		}
+	}
+
 	if viewName == "main" {
 		gui.changeMainViewsContext(c.GetKey())
+	} else {
+		gui.changeMainViewsContext("normal")
 	}
 
 	gui.setViewTabForContext(c)
@@ -421,11 +445,6 @@ func (gui *Gui) onViewFocusLost(v *gocui.View, newView *gocui.View) error {
 		}
 	}
 
-	if v.Name() == "main" {
-		// if we have lost focus to a first-class panel, we need to do some cleanup
-		gui.changeMainViewsContext("normal")
-	}
-
 	gui.Log.Info(v.Name() + " focus lost")
 	return nil
 }
@@ -458,9 +477,9 @@ func (gui *Gui) changeMainViewsContext(context string) {
 
 func (gui *Gui) viewTabContextMap() map[string][]tabContext {
 	return map[string][]tabContext{
-		"branches": []tabContext{
+		"branches": {
 			{
-				tab:      "Branches",
+				tab:      "Local Branches",
 				contexts: []Context{gui.Contexts.Branches.Context},
 			},
 			{
@@ -475,7 +494,7 @@ func (gui *Gui) viewTabContextMap() map[string][]tabContext {
 				contexts: []Context{gui.Contexts.Tags.Context},
 			},
 		},
-		"commits": []tabContext{
+		"commits": {
 			{
 				tab:      "Commits",
 				contexts: []Context{gui.Contexts.BranchCommits.Context},
@@ -488,6 +507,17 @@ func (gui *Gui) viewTabContextMap() map[string][]tabContext {
 			},
 		},
 	}
+}
+
+func (gui *Gui) viewTabNames(viewName string) []string {
+	tabContexts := gui.ViewTabContextMap[viewName]
+
+	result := make([]string, len(tabContexts))
+	for i, tabContext := range tabContexts {
+		result[i] = tabContext.tab
+	}
+
+	return result
 }
 
 func (gui *Gui) setViewTabForContext(c Context) {
@@ -521,4 +551,9 @@ func (gui *Gui) setViewTabForContext(c Context) {
 type tabContext struct {
 	tab      string
 	contexts []Context
+}
+
+func (gui *Gui) handleContextRefresh(c Context) {
+	// if context is not the current context of it's view, return
+
 }
