@@ -454,18 +454,6 @@ func (gui *Gui) onBranchesTabClick(tabIndex int) error {
 	return gui.switchContext(context)
 }
 
-func (gui *Gui) tabIndexForContext(c Context, tabContexts tabContexts) int {
-	for i, tabContext := range tabContexts {
-		for _, context := range tabContext.contexts {
-			if context.GetKey() == c.GetKey() {
-				return i
-			}
-		}
-	}
-	gui.Log.Errorf("tab not found for context %s", c.GetKey())
-	return 0
-}
-
 func (gui *Gui) refreshBranchesViewWithSelection() error {
 	branchesView := gui.getBranchesView()
 

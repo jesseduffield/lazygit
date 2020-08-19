@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/gocui"
 )
 
@@ -18,6 +19,7 @@ func GetKindWrapper(k int) func() int { return func() int { return k } }
 type Context interface {
 	HandleFocus() error
 	HandleFocusLost() error
+	HandleRender() error
 	GetKind() int
 	GetViewName() string
 	GetKey() string
@@ -26,9 +28,17 @@ type Context interface {
 type BasicContext struct {
 	OnFocus     func() error
 	OnFocusLost func() error
+	OnRender    func() error
 	Kind        int
 	Key         string
 	ViewName    string
+}
+
+func (c BasicContext) HandleRender() error {
+	if c.OnRender != nil {
+		return c.OnRender()
+	}
+	return nil
 }
 
 func (c BasicContext) GetViewName() string {
@@ -159,7 +169,7 @@ func (gui *Gui) deactivateContext(c Context) error {
 }
 
 func (gui *Gui) activateContext(c Context) error {
-	gui.Log.Warn(gui.renderContextStack())
+	gui.Log.Warn(spew.Sdump(gui.renderContextStack()))
 
 	viewName := c.GetViewName()
 	_, err := gui.g.View(viewName)
@@ -205,7 +215,7 @@ func (gui *Gui) activateContext(c Context) error {
 func (gui *Gui) renderContextStack() string {
 	result := ""
 	for _, context := range gui.State.ContextStack {
-		result += context.GetViewName() + "\n"
+		result += context.GetKey() + "\n"
 	}
 	return result
 }
@@ -446,9 +456,9 @@ func (gui *Gui) changeMainViewsContext(context string) {
 	gui.State.MainContext = context
 }
 
-func (gui *Gui) viewTabContextMap() map[string]tabContexts {
-	return map[string]tabContexts{
-		"branches": tabContexts{
+func (gui *Gui) viewTabContextMap() map[string][]tabContext {
+	return map[string][]tabContext{
+		"branches": []tabContext{
 			{
 				tab:      "Branches",
 				contexts: []Context{gui.Contexts.Branches.Context},
@@ -465,7 +475,7 @@ func (gui *Gui) viewTabContextMap() map[string]tabContexts {
 				contexts: []Context{gui.Contexts.Tags.Context},
 			},
 		},
-		"commits": tabContexts{
+		"commits": []tabContext{
 			{
 				tab:      "Commits",
 				contexts: []Context{gui.Contexts.BranchCommits.Context},
@@ -481,10 +491,13 @@ func (gui *Gui) viewTabContextMap() map[string]tabContexts {
 }
 
 func (gui *Gui) setViewTabForContext(c Context) {
+	gui.Log.Warnf("in set view tab: %s", c.GetKey())
+
 	// search for the context in our map and if we find it, set the tab for the corresponding view
 
 	tabContexts, ok := gui.ViewTabContextMap[c.GetViewName()]
 	if !ok {
+		gui.Log.Warnf("in set view tab: returning")
 		return
 	}
 
@@ -497,6 +510,7 @@ func (gui *Gui) setViewTabForContext(c Context) {
 					gui.Log.Error(err)
 					return
 				}
+				gui.Log.Warnf("index: %d", tabIndex)
 				v.TabIndex = tabIndex
 				return
 			}
@@ -504,7 +518,7 @@ func (gui *Gui) setViewTabForContext(c Context) {
 	}
 }
 
-type tabContexts []struct {
+type tabContext struct {
 	tab      string
 	contexts []Context
 }
