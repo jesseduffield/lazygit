@@ -14,10 +14,44 @@ type ListContext struct {
 	OnFocus               func() error
 	OnFocusLost           func() error
 	OnClickSelectedItem   func() error
+	GetItems              func() []ListItem
 
 	Gui               *Gui
 	RendersToMainView bool
 	Kind              int
+}
+
+type ListItem interface {
+	ID() string
+}
+
+func (lc *ListContext) GetSelectedItem() ListItem {
+	items := lc.GetItems()
+
+	if len(items) == 0 {
+		return nil
+	}
+
+	selectedLineIdx := *lc.GetSelectedLineIdxPtr()
+
+	if selectedLineIdx > len(items)-1 {
+		return nil
+	}
+
+	item := items[selectedLineIdx]
+
+	return item
+}
+
+func (lc *ListContext) GetSelectedItemId() string {
+
+	item := lc.GetSelectedItem()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.ID()
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
@@ -63,6 +97,10 @@ func (lc *ListContext) HandleFocus() error {
 	if lc.Gui.inDiffMode() {
 		return lc.Gui.renderDiff()
 	}
+
+	// every time you select an item we need to store that item's ID on the context (a string). After a state refresh, after we update the selected line, we need to check if the selected item is new, in which case we will reset the origin. In the case of the merge panel we set the origin in a custom way, so it can't be as simple as just resetting the origin. for files we need to know whether we're dealing with a file with merge conflicts, and if so, we need to scroll to the file in a custom way, after rendering to the main view.
+
+	// we can use this id to know what to do once we're actually in the merging context, so that we're not affected by outside state changes.
 
 	if lc.OnFocus != nil {
 		return lc.OnFocus()
@@ -186,6 +224,7 @@ func (gui *Gui) menuListContext() *ListContext {
 		Gui:                 gui,
 		RendersToMainView:   false,
 		Kind:                PERSISTENT_POPUP,
+		// GetItems:
 
 		// no GetDisplayStrings field because we do a custom render on menu creation
 	}

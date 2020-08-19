@@ -1383,6 +1383,24 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownConfirmationPanel,
 		},
+		{
+			ViewName: "menu",
+			Key:      gui.getKey("universal.select"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.wrappedHandler(gui.onMenuPress),
+		},
+		{
+			ViewName: "menu",
+			Key:      gui.getKey("universal.confirm"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.wrappedHandler(gui.onMenuPress),
+		},
+		{
+			ViewName: "menu",
+			Key:      gui.getKey("universal.confirm-alt1"),
+			Modifier: gocui.ModNone,
+			Handler:  gui.wrappedHandler(gui.onMenuPress),
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {

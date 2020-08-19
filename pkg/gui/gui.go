@@ -222,7 +222,7 @@ type guiState struct {
 	Remotes               []*commands.Remote
 	RemoteBranches        []*commands.RemoteBranch
 	Tags                  []*commands.Tag
-	MenuItemCount         int // can't store the actual list because it's of interface{} type
+	MenuItems             []*menuItem
 	Updating              bool
 	Panels                *panelStates
 	MainContext           string // used to keep the main and secondary views' contexts in sync

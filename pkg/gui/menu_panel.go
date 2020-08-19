@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -12,6 +13,15 @@ type menuItem struct {
 	displayString  string
 	displayStrings []string
 	onPress        func() error
+}
+
+// every item in a list context needs an ID
+func (i *menuItem) ID() string {
+	if i.displayString != "" {
+		return i.displayString
+	}
+
+	return strings.Join(i.displayStrings, "-")
 }
 
 // list panel functions
@@ -31,16 +41,7 @@ func (gui *Gui) renderMenuOptions() error {
 	return gui.renderOptionsMap(optionsMap)
 }
 
-func (gui *Gui) menuConfirmationKeys() []interface{} {
-	return []interface{}{gui.getKey("universal.select"), gui.getKey("universal.confirm"), gui.getKey("universal.confirm-alt1")}
-}
-
 func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
-	for _, key := range gui.menuConfirmationKeys() {
-		if err := g.DeleteKeybinding("menu", key, gocui.ModNone); err != nil {
-			return err
-		}
-	}
 	err := g.DeleteView("menu")
 	if err != nil {
 		return err
@@ -63,7 +64,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 		})
 	}
 
-	gui.State.MenuItemCount = len(items)
+	gui.State.MenuItems = items
 
 	stringArrays := make([][]string, len(items))
 	for i, item := range items {
@@ -88,27 +89,17 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 	fmt.Fprint(menuView, list)
 	gui.State.Panels.Menu.SelectedLine = 0
 
-	wrappedHandlePress := func(g *gocui.Gui, v *gocui.View) error {
-		selectedLine := gui.State.Panels.Menu.SelectedLine
-		if err := items[selectedLine].onPress(); err != nil {
-			return err
-		}
-
-		return gui.returnFromContext()
-	}
-
-	gui.State.Panels.Menu.OnPress = wrappedHandlePress
-
-	for _, key := range gui.menuConfirmationKeys() {
-		_ = gui.g.DeleteKeybinding("menu", key, gocui.ModNone)
-
-		if err := gui.g.SetKeybinding("menu", nil, key, gocui.ModNone, wrappedHandlePress); err != nil {
-			return err
-		}
-	}
-
 	gui.g.Update(func(g *gocui.Gui) error {
 		return gui.switchContext(gui.Contexts.Menu.Context)
 	})
 	return nil
+}
+
+func (gui *Gui) onMenuPress() error {
+	selectedLine := gui.State.Panels.Menu.SelectedLine
+	if err := gui.State.MenuItems[selectedLine].onPress(); err != nil {
+		return err
+	}
+
+	return gui.returnFromContext()
 }
