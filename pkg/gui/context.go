@@ -98,159 +98,26 @@ type ContextTree struct {
 	Search        SimpleContextNode
 }
 
-func (gui *Gui) switchContext(c Context) error {
-	gui.g.Update(func(*gocui.Gui) error {
-		// push onto stack
-		// if we are switching to a side context, remove all other contexts in the stack
-		if c.GetKind() == SIDE_CONTEXT {
-			for _, stackContext := range gui.State.ContextStack {
-				if stackContext.GetKey() != c.GetKey() {
-					if err := gui.deactivateContext(stackContext); err != nil {
-						return err
-					}
-				}
-			}
-			gui.State.ContextStack = []Context{c}
-		} else {
-			// TODO: think about other exceptional cases
-			gui.State.ContextStack = append(gui.State.ContextStack, c)
-		}
-
-		return gui.activateContext(c)
-	})
-
-	return nil
-}
-
-// switchContextToView is to be used when you don't know which context you
-// want to switch to: you only know the view that you want to switch to. It will
-// look up the context currently active for that view and switch to that context
-func (gui *Gui) switchContextToView(viewName string) error {
-	return gui.switchContext(gui.State.ViewContextMap[viewName])
-}
-
-func (gui *Gui) returnFromContext() error {
-	gui.g.Update(func(*gocui.Gui) error {
-		// TODO: add mutexes
-
-		if len(gui.State.ContextStack) == 1 {
-			// cannot escape from bottommost context
-			return nil
-		}
-
-		n := len(gui.State.ContextStack) - 1
-
-		currentContext := gui.State.ContextStack[n]
-		newContext := gui.State.ContextStack[n-1]
-
-		gui.State.ContextStack = gui.State.ContextStack[:n]
-
-		if err := gui.deactivateContext(currentContext); err != nil {
-			return err
-		}
-
-		return gui.activateContext(newContext)
-	})
-
-	return nil
-}
-
-func (gui *Gui) deactivateContext(c Context) error {
-	// if we are the kind of context that is sent to back upon deactivation, we should do that
-	if c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP {
-		_, _ = gui.g.SetViewOnBottom(c.GetViewName())
+func (gui *Gui) allContexts() []Context {
+	return []Context{
+		gui.Contexts.Status.Context,
+		gui.Contexts.Files.Context,
+		gui.Contexts.Branches.Context,
+		gui.Contexts.Remotes.Context,
+		gui.Contexts.Remotes.Branches.Context,
+		gui.Contexts.BranchCommits.Context,
+		gui.Contexts.BranchCommits.Files.Context,
+		gui.Contexts.ReflogCommits.Context,
+		gui.Contexts.Stash.Context,
+		gui.Contexts.Menu.Context,
+		gui.Contexts.Confirmation.Context,
+		gui.Contexts.Credentials.Context,
+		gui.Contexts.CommitMessage.Context,
+		gui.Contexts.Normal.Context,
+		gui.Contexts.Staging.Context,
+		gui.Contexts.Merging.Context,
+		gui.Contexts.PatchBuilding.Context,
 	}
-
-	if err := c.HandleFocusLost(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (gui *Gui) rerenderIfVisible(c Context) error {
-	v, err := gui.g.View(c.GetViewName())
-	if err != nil {
-		return nil
-	}
-
-	if v.Context == c.GetKey() {
-		if err := c.HandleRender(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (gui *Gui) activateContext(c Context) error {
-	gui.Log.Warn(spew.Sdump(gui.renderContextStack()))
-
-	viewName := c.GetViewName()
-	v, err := gui.g.View(viewName)
-	// if view no longer exists, pop again
-	if err != nil {
-		return gui.returnFromContext()
-	}
-
-	// if the new context's view was previously displaying another context, render the new context
-	if v.Context != c.GetKey() {
-		if err := c.HandleRender(); err != nil {
-			return err
-		}
-	}
-
-	if viewName == "main" {
-		gui.changeMainViewsContext(c.GetKey())
-	} else {
-		gui.changeMainViewsContext("normal")
-	}
-
-	gui.setViewTabForContext(c)
-
-	if _, err := gui.g.SetCurrentView(viewName); err != nil {
-		return err
-	}
-
-	if _, err := gui.g.SetViewOnTop(viewName); err != nil {
-		return err
-	}
-
-	newView := gui.g.CurrentView()
-	newView.Context = c.GetKey()
-
-	gui.g.Cursor = newView.Editable
-
-	// TODO: move this logic to the context
-	if err := gui.renderPanelOptions(); err != nil {
-		return err
-	}
-
-	if err := c.HandleFocus(); err != nil {
-		return err
-	}
-
-	// TODO: consider removing this and instead depending on the .Context field of views
-	gui.State.ViewContextMap[c.GetViewName()] = c
-
-	return nil
-}
-
-func (gui *Gui) renderContextStack() string {
-	result := ""
-	for _, context := range gui.State.ContextStack {
-		result += context.GetKey() + "\n"
-	}
-	return result
-}
-
-func (gui *Gui) currentContextKey() string {
-	// on startup the stack can be empty so we'll return an empty string in that case
-	if len(gui.State.ContextStack) == 0 {
-		return ""
-	}
-
-	return gui.State.ContextStack[len(gui.State.ContextStack)-1].GetKey()
 }
 
 func (gui *Gui) contextTree() ContextTree {
@@ -389,6 +256,174 @@ func (gui *Gui) initialViewContextMap() map[string]Context {
 	}
 }
 
+func (gui *Gui) switchContext(c Context) error {
+	gui.g.Update(func(*gocui.Gui) error {
+		// push onto stack
+		// if we are switching to a side context, remove all other contexts in the stack
+		if c.GetKind() == SIDE_CONTEXT {
+			for _, stackContext := range gui.State.ContextStack {
+				if stackContext.GetKey() != c.GetKey() {
+					if err := gui.deactivateContext(stackContext); err != nil {
+						return err
+					}
+				}
+			}
+			gui.State.ContextStack = []Context{c}
+		} else {
+			// TODO: think about other exceptional cases
+			gui.State.ContextStack = append(gui.State.ContextStack, c)
+		}
+
+		return gui.activateContext(c)
+	})
+
+	return nil
+}
+
+// switchContextToView is to be used when you don't know which context you
+// want to switch to: you only know the view that you want to switch to. It will
+// look up the context currently active for that view and switch to that context
+func (gui *Gui) switchContextToView(viewName string) error {
+	return gui.switchContext(gui.State.ViewContextMap[viewName])
+}
+
+func (gui *Gui) returnFromContext() error {
+	gui.g.Update(func(*gocui.Gui) error {
+		// TODO: add mutexes
+
+		if len(gui.State.ContextStack) == 1 {
+			// cannot escape from bottommost context
+			return nil
+		}
+
+		n := len(gui.State.ContextStack) - 1
+
+		currentContext := gui.State.ContextStack[n]
+		newContext := gui.State.ContextStack[n-1]
+
+		gui.State.ContextStack = gui.State.ContextStack[:n]
+
+		if err := gui.deactivateContext(currentContext); err != nil {
+			return err
+		}
+
+		return gui.activateContext(newContext)
+	})
+
+	return nil
+}
+
+func (gui *Gui) deactivateContext(c Context) error {
+	// if we are the kind of context that is sent to back upon deactivation, we should do that
+	if c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP {
+		_, _ = gui.g.SetViewOnBottom(c.GetViewName())
+	}
+
+	if err := c.HandleFocusLost(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// postRefreshUpdate is to be called on a context after the state that it depends on has been refreshed
+// if the context's view is set to another context we do nothing.
+// if the context's view is the current view we trigger a focus; re-selecting the current item.
+func (gui *Gui) postRefreshUpdate(c Context) error {
+	v, err := gui.g.View(c.GetViewName())
+	if err != nil {
+		return nil
+	}
+
+	if v.Context != c.GetKey() {
+		return nil
+	}
+
+	if err := c.HandleRender(); err != nil {
+		return err
+	}
+
+	if gui.currentViewName() == c.GetViewName() {
+		if err := c.HandleFocus(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (gui *Gui) activateContext(c Context) error {
+	gui.Log.Warn(spew.Sdump(gui.renderContextStack()))
+
+	viewName := c.GetViewName()
+	v, err := gui.g.View(viewName)
+	// if view no longer exists, pop again
+	if err != nil {
+		return gui.returnFromContext()
+	}
+
+	// if the new context's view was previously displaying another context, render the new context
+	if v.Context != c.GetKey() {
+		if err := c.HandleRender(); err != nil {
+			return err
+		}
+	}
+
+	gui.setViewAsActiveForWindow(viewName)
+
+	if viewName == "main" {
+		gui.changeMainViewsContext(c.GetKey())
+	} else {
+		gui.changeMainViewsContext("normal")
+	}
+
+	gui.setViewTabForContext(c)
+
+	if _, err := gui.g.SetCurrentView(viewName); err != nil {
+		return err
+	}
+
+	if _, err := gui.g.SetViewOnTop(viewName); err != nil {
+		return err
+	}
+
+	newView := gui.g.CurrentView()
+	newView.Context = c.GetKey()
+
+	gui.g.Cursor = newView.Editable
+
+	// TODO: move this logic to the context
+	if err := gui.renderPanelOptions(); err != nil {
+		return err
+	}
+
+	if err := c.HandleFocus(); err != nil {
+		return err
+	}
+
+	// TODO: consider removing this and instead depending on the .Context field of views
+	gui.State.ViewContextMap[c.GetViewName()] = c
+
+	return nil
+}
+
+func (gui *Gui) renderContextStack() string {
+	result := ""
+	for _, context := range gui.State.ContextStack {
+		result += context.GetKey() + "\n"
+	}
+	return result
+}
+
+func (gui *Gui) currentContextKey() string {
+	// on startup the stack can be empty so we'll return an empty string in that case
+	if len(gui.State.ContextStack) == 0 {
+		return ""
+	}
+
+	return gui.State.ContextStack[len(gui.State.ContextStack)-1].GetKey()
+}
+
 func (gui *Gui) setInitialViewContexts() {
 	// arguably we should only have our ViewContextMap and we should do away with
 	// contexts on views, or vice versa
@@ -417,9 +452,6 @@ func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 				return err
 			}
 
-			if err := gui.onViewFocus(newView); err != nil {
-				return err
-			}
 			previousView = newView
 		}
 		return nil
@@ -446,12 +478,6 @@ func (gui *Gui) onViewFocusLost(v *gocui.View, newView *gocui.View) error {
 	}
 
 	gui.Log.Info(v.Name() + " focus lost")
-	return nil
-}
-
-func (gui *Gui) onViewFocus(newView *gocui.View) error {
-	gui.setViewAsActiveForWindow(newView.Name())
-
 	return nil
 }
 
@@ -553,7 +579,24 @@ type tabContext struct {
 	contexts []Context
 }
 
-func (gui *Gui) handleContextRefresh(c Context) {
-	// if context is not the current context of it's view, return
+func (gui *Gui) contextForContextKey(contextKey string) Context {
+	for _, context := range gui.allContexts() {
+		if context.GetKey() == contextKey {
+			return context
+		}
+	}
 
+	panic(fmt.Sprintf("context now found for key %s", contextKey))
+}
+
+func (gui *Gui) rerenderView(viewName string) error {
+	v, err := gui.g.View(viewName)
+	if err != nil {
+		return nil
+	}
+
+	contextKey := v.Context
+	context := gui.contextForContextKey(contextKey)
+
+	return context.HandleRender()
 }
