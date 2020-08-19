@@ -6,15 +6,15 @@ import (
 )
 
 type ListContext struct {
-	ViewName              string
-	ContextKey            string
-	GetItemsLength        func() int
-	GetSelectedLineIdxPtr func() *int
-	GetDisplayStrings     func() [][]string
-	OnFocus               func() error
-	OnFocusLost           func() error
-	OnClickSelectedItem   func() error
-	GetItems              func() []ListItem
+	ViewName            string
+	ContextKey          string
+	GetItemsLength      func() int
+	GetDisplayStrings   func() [][]string
+	OnFocus             func() error
+	OnFocusLost         func() error
+	OnClickSelectedItem func() error
+	GetItems            func() []ListItem
+	GetPanelState       func() IListPanelState
 
 	Gui               *Gui
 	RendersToMainView bool
@@ -32,7 +32,7 @@ func (lc *ListContext) GetSelectedItem() ListItem {
 		return nil
 	}
 
-	selectedLineIdx := *lc.GetSelectedLineIdxPtr()
+	selectedLineIdx := lc.GetPanelState().GetSelectedLineIdx()
 
 	if selectedLineIdx > len(items)-1 {
 		return nil
@@ -62,7 +62,7 @@ func (lc *ListContext) OnRender() error {
 	}
 
 	if lc.GetDisplayStrings != nil {
-		lc.Gui.refreshSelectedLine(lc.GetSelectedLineIdxPtr(), lc.GetItemsLength())
+		lc.Gui.refreshSelectedLine(lc.GetPanelState(), lc.GetItemsLength())
 		lc.Gui.renderDisplayStrings(view, lc.GetDisplayStrings())
 	}
 
@@ -131,8 +131,8 @@ func (lc *ListContext) handleLineChange(change int) error {
 		return err
 	}
 
-	lc.Gui.changeSelectedLine(lc.GetSelectedLineIdxPtr(), lc.GetItemsLength(), change)
-	view.FocusPoint(0, *lc.GetSelectedLineIdxPtr())
+	lc.Gui.changeSelectedLine(lc.GetPanelState(), lc.GetItemsLength(), change)
+	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
 
 	if lc.RendersToMainView {
 		if err := lc.Gui.resetOrigin(lc.Gui.getMainView()); err != nil {
@@ -185,8 +185,7 @@ func (lc *ListContext) handleClick(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	selectedLineIdxPtr := lc.GetSelectedLineIdxPtr()
-	prevSelectedLineIdx := *selectedLineIdxPtr
+	prevSelectedLineIdx := lc.GetPanelState().GetSelectedLineIdx()
 	newSelectedLineIdx := v.SelectedLineIdx()
 
 	// we need to focus the view
@@ -198,7 +197,7 @@ func (lc *ListContext) handleClick(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	*selectedLineIdxPtr = newSelectedLineIdx
+	lc.GetPanelState().SetSelectedLineIdx(newSelectedLineIdx)
 
 	prevViewName := lc.Gui.currentViewName()
 	if prevSelectedLineIdx == newSelectedLineIdx && prevViewName == lc.ViewName && lc.OnClickSelectedItem != nil {
@@ -208,23 +207,22 @@ func (lc *ListContext) handleClick(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (lc *ListContext) onSearchSelect(selectedLineIdx int) error {
-	*lc.GetSelectedLineIdxPtr() = selectedLineIdx
+	lc.GetPanelState().SetSelectedLineIdx(selectedLineIdx)
 	return lc.HandleFocus()
 }
 
 func (gui *Gui) menuListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "menu",
-		ContextKey:            "menu",
-		GetItemsLength:        func() int { return gui.getMenuView().LinesHeight() },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Menu.SelectedLine },
-		OnFocus:               gui.handleMenuSelect,
+		ViewName:       "menu",
+		ContextKey:     "menu",
+		GetItemsLength: func() int { return gui.getMenuView().LinesHeight() },
+		GetPanelState:  func() IListPanelState { return gui.State.Panels.Menu },
+		OnFocus:        gui.handleMenuSelect,
 		// need to add a layer of indirection here because the callback changes during runtime
 		OnClickSelectedItem: func() error { return gui.State.Panels.Menu.OnPress(gui.g, nil) },
 		Gui:                 gui,
 		RendersToMainView:   false,
 		Kind:                PERSISTENT_POPUP,
-		// GetItems:
 
 		// no GetDisplayStrings field because we do a custom render on menu creation
 	}
@@ -232,15 +230,15 @@ func (gui *Gui) menuListContext() *ListContext {
 
 func (gui *Gui) filesListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "files",
-		ContextKey:            "files",
-		GetItemsLength:        func() int { return len(gui.State.Files) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Files.SelectedLine },
-		OnFocus:               gui.focusAndSelectFile,
-		OnClickSelectedItem:   gui.handleFilePress,
-		Gui:                   gui,
-		RendersToMainView:     false,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:            "files",
+		ContextKey:          "files",
+		GetItemsLength:      func() int { return len(gui.State.Files) },
+		GetPanelState:       func() IListPanelState { return gui.State.Panels.Files },
+		OnFocus:             gui.focusAndSelectFile,
+		OnClickSelectedItem: gui.handleFilePress,
+		Gui:                 gui,
+		RendersToMainView:   false,
+		Kind:                SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Diff.Ref)
 		},
@@ -249,14 +247,14 @@ func (gui *Gui) filesListContext() *ListContext {
 
 func (gui *Gui) branchesListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "branches",
-		ContextKey:            "local-branches",
-		GetItemsLength:        func() int { return len(gui.State.Branches) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Branches.SelectedLine },
-		OnFocus:               gui.handleBranchSelect,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:          "branches",
+		ContextKey:        "local-branches",
+		GetItemsLength:    func() int { return len(gui.State.Branches) },
+		GetPanelState:     func() IListPanelState { return gui.State.Panels.Branches },
+		OnFocus:           gui.handleBranchSelect,
+		Gui:               gui,
+		RendersToMainView: true,
+		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 		},
@@ -265,15 +263,15 @@ func (gui *Gui) branchesListContext() *ListContext {
 
 func (gui *Gui) remotesListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "branches",
-		ContextKey:            "remotes",
-		GetItemsLength:        func() int { return len(gui.State.Remotes) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Remotes.SelectedLine },
-		OnFocus:               gui.handleRemoteSelect,
-		OnClickSelectedItem:   gui.handleRemoteEnter,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:            "branches",
+		ContextKey:          "remotes",
+		GetItemsLength:      func() int { return len(gui.State.Remotes) },
+		GetPanelState:       func() IListPanelState { return gui.State.Panels.Remotes },
+		OnFocus:             gui.handleRemoteSelect,
+		OnClickSelectedItem: gui.handleRemoteEnter,
+		Gui:                 gui,
+		RendersToMainView:   true,
+		Kind:                SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Diff.Ref)
 		},
@@ -282,14 +280,14 @@ func (gui *Gui) remotesListContext() *ListContext {
 
 func (gui *Gui) remoteBranchesListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "branches",
-		ContextKey:            "remote-branches",
-		GetItemsLength:        func() int { return len(gui.State.RemoteBranches) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.RemoteBranches.SelectedLine },
-		OnFocus:               gui.handleRemoteBranchSelect,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:          "branches",
+		ContextKey:        "remote-branches",
+		GetItemsLength:    func() int { return len(gui.State.RemoteBranches) },
+		GetPanelState:     func() IListPanelState { return gui.State.Panels.RemoteBranches },
+		OnFocus:           gui.handleRemoteBranchSelect,
+		Gui:               gui,
+		RendersToMainView: true,
+		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Diff.Ref)
 		},
@@ -298,14 +296,14 @@ func (gui *Gui) remoteBranchesListContext() *ListContext {
 
 func (gui *Gui) tagsListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "branches",
-		ContextKey:            "tags",
-		GetItemsLength:        func() int { return len(gui.State.Tags) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Tags.SelectedLine },
-		OnFocus:               gui.handleTagSelect,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:          "branches",
+		ContextKey:        "tags",
+		GetItemsLength:    func() int { return len(gui.State.Tags) },
+		GetPanelState:     func() IListPanelState { return gui.State.Panels.Tags },
+		OnFocus:           gui.handleTagSelect,
+		Gui:               gui,
+		RendersToMainView: true,
+		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Diff.Ref)
 		},
@@ -314,15 +312,15 @@ func (gui *Gui) tagsListContext() *ListContext {
 
 func (gui *Gui) branchCommitsListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "commits",
-		ContextKey:            "branch-commits",
-		GetItemsLength:        func() int { return len(gui.State.Commits) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Commits.SelectedLine },
-		OnFocus:               gui.handleCommitSelect,
-		OnClickSelectedItem:   gui.handleSwitchToCommitFilesPanel,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:            "commits",
+		ContextKey:          "branch-commits",
+		GetItemsLength:      func() int { return len(gui.State.Commits) },
+		GetPanelState:       func() IListPanelState { return gui.State.Panels.Commits },
+		OnFocus:             gui.handleCommitSelect,
+		OnClickSelectedItem: gui.handleSwitchToCommitFilesPanel,
+		Gui:                 gui,
+		RendersToMainView:   true,
+		Kind:                SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
 		},
@@ -331,14 +329,14 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 
 func (gui *Gui) reflogCommitsListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "commits",
-		ContextKey:            "reflog-commits",
-		GetItemsLength:        func() int { return len(gui.State.FilteredReflogCommits) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.ReflogCommits.SelectedLine },
-		OnFocus:               gui.handleReflogCommitSelect,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:          "commits",
+		ContextKey:        "reflog-commits",
+		GetItemsLength:    func() int { return len(gui.State.FilteredReflogCommits) },
+		GetPanelState:     func() IListPanelState { return gui.State.Panels.ReflogCommits },
+		OnFocus:           gui.handleReflogCommitSelect,
+		Gui:               gui,
+		RendersToMainView: true,
+		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 		},
@@ -347,14 +345,14 @@ func (gui *Gui) reflogCommitsListContext() *ListContext {
 
 func (gui *Gui) stashListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "stash",
-		ContextKey:            "stash",
-		GetItemsLength:        func() int { return len(gui.State.StashEntries) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Stash.SelectedLine },
-		OnFocus:               gui.handleStashEntrySelect,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:          "stash",
+		ContextKey:        "stash",
+		GetItemsLength:    func() int { return len(gui.State.StashEntries) },
+		GetPanelState:     func() IListPanelState { return gui.State.Panels.Stash },
+		OnFocus:           gui.handleStashEntrySelect,
+		Gui:               gui,
+		RendersToMainView: true,
+		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Diff.Ref)
 		},
@@ -363,14 +361,14 @@ func (gui *Gui) stashListContext() *ListContext {
 
 func (gui *Gui) commitFilesListContext() *ListContext {
 	return &ListContext{
-		ViewName:              "commitFiles",
-		ContextKey:            "commitFiles",
-		GetItemsLength:        func() int { return len(gui.State.CommitFiles) },
-		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.CommitFiles.SelectedLine },
-		OnFocus:               gui.handleCommitFileSelect,
-		Gui:                   gui,
-		RendersToMainView:     true,
-		Kind:                  SIDE_CONTEXT,
+		ViewName:          "commitFiles",
+		ContextKey:        "commitFiles",
+		GetItemsLength:    func() int { return len(gui.State.CommitFiles) },
+		GetPanelState:     func() IListPanelState { return gui.State.Panels.CommitFiles },
+		OnFocus:           gui.handleCommitFileSelect,
+		Gui:               gui,
+		RendersToMainView: true,
+		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Diff.Ref)
 		},

@@ -309,7 +309,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			continue
 		}
 		// check if the selected line is now out of view and if so refocus it
-		listContextState.view.FocusPoint(0, *listContextState.listContext.GetSelectedLineIdxPtr())
+		listContextState.view.FocusPoint(0, listContextState.listContext.GetPanelState().GetSelectedLineIdx())
 
 		listContextState.view.SelBgColor = theme.GocuiSelectedLineBgColor
 

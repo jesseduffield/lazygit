@@ -289,25 +289,32 @@ func (gui *Gui) resizePopupPanel(v *gocui.View) error {
 	return err
 }
 
-func (gui *Gui) changeSelectedLine(line *int, total int, change int) {
+func (gui *Gui) changeSelectedLine(panelState IListPanelState, total int, change int) {
 	// TODO: find out why we're doing this
-	if *line == -1 {
+	line := panelState.GetSelectedLineIdx()
+
+	if line == -1 {
 		return
 	}
-	if *line+change < 0 {
-		*line = 0
-	} else if *line+change >= total {
-		*line = total - 1
+	var newLine int
+	if line+change < 0 {
+		newLine = 0
+	} else if line+change >= total {
+		newLine = total - 1
 	} else {
-		*line += change
+		newLine = line + change
 	}
+
+	panelState.SetSelectedLineIdx(newLine)
 }
 
-func (gui *Gui) refreshSelectedLine(line *int, total int) {
-	if *line == -1 && total > 0 {
-		*line = 0
-	} else if total-1 < *line {
-		*line = total - 1
+func (gui *Gui) refreshSelectedLine(panelState IListPanelState, total int) {
+	line := panelState.GetSelectedLineIdx()
+
+	if line == -1 && total > 0 {
+		panelState.SetSelectedLineIdx(0)
+	} else if total-1 < line {
+		panelState.SetSelectedLineIdx(total - 1)
 	}
 }
 
