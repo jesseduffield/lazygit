@@ -332,7 +332,7 @@ func (gui *Gui) handleOpenFileAtLine() error {
 	// again, would be good to use inheritance here (or maybe even composition)
 	var filename string
 	switch gui.State.MainContext {
-	case "patch-building":
+	case "patchBuilding":
 		filename = gui.getSelectedCommitFileName()
 	case "staging":
 		file := gui.getSelectedFile()

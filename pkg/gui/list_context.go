@@ -326,7 +326,7 @@ func (gui *Gui) stashListContext() *ListContext {
 func (gui *Gui) commitFilesListContext() *ListContext {
 	return &ListContext{
 		ViewName:              "commitFiles",
-		ContextKey:            "commit-files",
+		ContextKey:            "commitFiles",
 		GetItemsLength:        func() int { return len(gui.State.CommitFiles) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.CommitFiles.SelectedLine },
 		OnFocus:               gui.handleCommitFileSelect,

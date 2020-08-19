@@ -191,7 +191,7 @@ func (gui *Gui) contextTree() ContextTree {
 				},
 				Kind:     MAIN_CONTEXT,
 				ViewName: "main",
-				Key:      "patch-building",
+				Key:      "patchBuilding",
 			},
 		},
 		Merging: SimpleContextNode{
@@ -526,7 +526,7 @@ func (gui *Gui) changeMainViewsContext(context string) {
 	}
 
 	switch context {
-	case "normal", "patch-building", "staging", "merging":
+	case "normal", "patchBuilding", "staging", "merging":
 		gui.getMainView().Context = context
 		gui.getSecondaryView().Context = context
 	default:
