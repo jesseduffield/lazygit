@@ -23,6 +23,7 @@ type Context interface {
 	GetKind() int
 	GetViewName() string
 	GetKey() string
+	GetSelectedItemId() string
 }
 
 type BasicContext struct {
@@ -32,6 +33,11 @@ type BasicContext struct {
 	Kind        int
 	Key         string
 	ViewName    string
+}
+
+// TODO: think about whether we need this on the Context interface or if it should just be on the ListContext struct
+func (c BasicContext) GetSelectedItemId() string {
+	return ""
 }
 
 func (c BasicContext) HandleRender() error {
