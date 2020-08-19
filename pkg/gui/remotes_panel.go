@@ -78,12 +78,6 @@ func (gui *Gui) renderRemotesWithSelection() error {
 	displayStrings := presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
 
-	if gui.g.CurrentView() == branchesView && branchesView.Context == "remotes" {
-		if err := gui.handleRemoteSelect(); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
