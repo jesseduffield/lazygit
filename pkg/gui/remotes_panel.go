@@ -13,7 +13,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedRemote() *commands.Remote {
-	selectedLine := gui.State.Panels.Remotes.SelectedLine
+	selectedLine := gui.State.Panels.Remotes.SelectedLineIdx
 	if selectedLine == -1 || len(gui.State.Remotes) == 0 {
 		return nil
 	}
@@ -74,7 +74,7 @@ func (gui *Gui) handleRemoteEnter() error {
 	if len(remote.Branches) == 0 {
 		newSelectedLine = -1
 	}
-	gui.State.Panels.RemoteBranches.SelectedLine = newSelectedLine
+	gui.State.Panels.RemoteBranches.SelectedLineIdx = newSelectedLine
 
 	return gui.switchContext(gui.Contexts.Remotes.Branches.Context)
 }

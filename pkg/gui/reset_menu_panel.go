@@ -12,8 +12,8 @@ func (gui *Gui) resetToRef(ref string, strength string, options commands.RunComm
 		return gui.surfaceError(err)
 	}
 
-	gui.State.Panels.Commits.SelectedLine = 0
-	gui.State.Panels.ReflogCommits.SelectedLine = 0
+	gui.State.Panels.Commits.SelectedLineIdx = 0
+	gui.State.Panels.ReflogCommits.SelectedLineIdx = 0
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	gui.State.Panels.Commits.LimitCommits = true
 

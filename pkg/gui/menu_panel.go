@@ -87,7 +87,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 		return nil
 	}))
 	fmt.Fprint(menuView, list)
-	gui.State.Panels.Menu.SelectedLine = 0
+	gui.State.Panels.Menu.SelectedLineIdx = 0
 
 	gui.g.Update(func(g *gocui.Gui) error {
 		return gui.switchContext(gui.Contexts.Menu.Context)
@@ -96,7 +96,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 }
 
 func (gui *Gui) onMenuPress() error {
-	selectedLine := gui.State.Panels.Menu.SelectedLine
+	selectedLine := gui.State.Panels.Menu.SelectedLineIdx
 	if err := gui.State.MenuItems[selectedLine].onPress(); err != nil {
 		return err
 	}

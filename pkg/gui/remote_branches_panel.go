@@ -10,7 +10,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedRemoteBranch() *commands.RemoteBranch {
-	selectedLine := gui.State.Panels.RemoteBranches.SelectedLine
+	selectedLine := gui.State.Panels.RemoteBranches.SelectedLineIdx
 	if selectedLine == -1 || len(gui.State.RemoteBranches) == 0 {
 		return nil
 	}
@@ -138,7 +138,7 @@ func (gui *Gui) handleNewBranchOffRemote(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.NewBranch(response, branch.FullName()); err != nil {
 			return gui.surfaceError(err)
 		}
-		gui.State.Panels.Branches.SelectedLine = 0
+		gui.State.Panels.Branches.SelectedLineIdx = 0
 
 		if err := gui.switchContext(gui.Contexts.Branches.Context); err != nil {
 			return err

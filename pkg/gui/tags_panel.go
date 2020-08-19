@@ -8,7 +8,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedTag() *commands.Tag {
-	selectedLine := gui.State.Panels.Tags.SelectedLine
+	selectedLine := gui.State.Panels.Tags.SelectedLineIdx
 	if selectedLine == -1 || len(gui.State.Tags) == 0 {
 		return nil
 	}
@@ -116,7 +116,7 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 			// find the index of the tag and set that as the currently selected line
 			for i, tag := range gui.State.Tags {
 				if tag.Name == tagName {
-					gui.State.Panels.Tags.SelectedLine = i
+					gui.State.Panels.Tags.SelectedLineIdx = i
 					if err := gui.Contexts.Tags.Context.HandleRender(); err != nil {
 						gui.Log.Error(err)
 					}

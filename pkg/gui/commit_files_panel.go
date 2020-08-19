@@ -7,7 +7,7 @@ import (
 )
 
 func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
-	selectedLine := gui.State.Panels.CommitFiles.SelectedLine
+	selectedLine := gui.State.Panels.CommitFiles.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}
@@ -44,7 +44,7 @@ func (gui *Gui) handleSwitchToCommitsPanel(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
-	file := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine]
+	file := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLineIdx]
 
 	if err := gui.GitCommand.CheckoutFile(file.Sha, file.Name); err != nil {
 		return gui.surfaceError(err)
@@ -58,7 +58,7 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
+	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLineIdx].Name
 
 	return gui.ask(askOpts{
 		returnToView:       v,
@@ -67,7 +67,7 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 		prompt:             gui.Tr.SLocalize("DiscardFileChangesPrompt"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
-				if err := gui.GitCommand.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, fileName); err != nil {
+				if err := gui.GitCommand.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
 					if err := gui.handleGenericMergeCommandResult(err); err != nil {
 						return err
 					}

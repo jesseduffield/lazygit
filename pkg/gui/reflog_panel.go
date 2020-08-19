@@ -8,7 +8,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedReflogCommit() *commands.Commit {
-	selectedLine := gui.State.Panels.ReflogCommits.SelectedLine
+	selectedLine := gui.State.Panels.ReflogCommits.SelectedLineIdx
 	reflogComits := gui.State.FilteredReflogCommits
 	if selectedLine == -1 || len(reflogComits) == 0 {
 		return nil
@@ -102,7 +102,7 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	gui.State.Panels.ReflogCommits.SelectedLine = 0
+	gui.State.Panels.ReflogCommits.SelectedLineIdx = 0
 
 	return nil
 }
