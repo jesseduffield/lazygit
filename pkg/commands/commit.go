@@ -24,3 +24,7 @@ func (c *Commit) ShortSha() string {
 func (c *Commit) NameWithSha() string {
 	return fmt.Sprintf("%s %s", c.Sha[:7], c.Name)
 }
+
+func (c *Commit) RefName() string {
+	return c.Sha
+}

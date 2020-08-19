@@ -4,3 +4,7 @@ package commands
 type Tag struct {
 	Name string
 }
+
+func (t *Tag) RefName() string {
+	return t.Name
+}

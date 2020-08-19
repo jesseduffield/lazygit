@@ -12,3 +12,7 @@ type Branch struct {
 	UpstreamName string
 	Head         bool
 }
+
+func (b *Branch) RefName() string {
+	return b.Name
+}

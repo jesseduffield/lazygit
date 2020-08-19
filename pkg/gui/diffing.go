@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
 func (gui *Gui) inDiffMode() bool {
@@ -42,62 +41,55 @@ func (gui *Gui) renderDiff() error {
 // which becomes an option when you bring up the diff menu, but when you're just
 // flicking through branches it will be using the local branch name.
 func (gui *Gui) currentDiffTerminals() []string {
-	currentView := gui.g.CurrentView()
-	if currentView == nil {
-		return nil
-	}
-	names := []string{}
-	switch currentView.Name() {
+	switch gui.currentContextKey() {
 	case "files":
 		// not supporting files for now
-
-	case "commitFiles":
+	case "commit-files":
 		// not supporting commit files for now
-
-	case "commits":
-		var commit *commands.Commit
-		switch gui.getCommitsView().Context {
-		case "reflog-commits":
-			commit = gui.getSelectedReflogCommit()
-		case "branch-commits":
-			commit = gui.getSelectedCommit()
+	case "branch-commits":
+		item := gui.getSelectedCommit()
+		if item != nil {
+			return []string{item.RefName()}
 		}
-		if commit != nil {
-			names = append(names, commit.Sha)
+	case "reflog-commits":
+		item := gui.getSelectedReflogCommit()
+		if item != nil {
+			return []string{item.RefName()}
 		}
 	case "stash":
-		entry := gui.getSelectedStashEntry()
-		if entry != nil {
-			names = append(names, entry.RefName())
+		item := gui.getSelectedStashEntry()
+		if item != nil {
+			return []string{item.RefName()}
 		}
-	case "branches":
-		switch gui.getBranchesView().Context {
-		case "local-branches":
-			branch := gui.getSelectedBranch()
-			if branch != nil {
-				names = append(names, branch.Name)
-				if branch.UpstreamName != "" {
-					names = append(names, branch.UpstreamName)
-				}
+
+	case "local-branches":
+		branch := gui.getSelectedBranch()
+		if branch != nil {
+			names := []string{branch.RefName()}
+			if branch.UpstreamName != "" {
+				names = append(names, branch.UpstreamName)
 			}
-		case "remotes":
-			remote := gui.getSelectedRemote()
-			if remote != nil {
-				names = append(names, remote.Name)
-			}
-		case "remote-branches":
-			remoteBranch := gui.getSelectedRemoteBranch()
-			if remoteBranch != nil {
-				names = append(names, remoteBranch.FullName())
-			}
-		case "tags":
-			tag := gui.getSelectedTag()
-			if tag != nil {
-				names = append(names, tag.Name)
-			}
+			return names
+		}
+		return nil
+	case "remotes":
+		item := gui.getSelectedRemote()
+		if item != nil {
+			return []string{item.RefName()}
+		}
+	case "remote-branches":
+		item := gui.getSelectedRemoteBranch()
+		if item != nil {
+			return []string{item.RefName()}
+		}
+	case "tags":
+		item := gui.getSelectedTag()
+		if item != nil {
+			return []string{item.RefName()}
 		}
 	}
-	return names
+
+	return nil
 }
 
 func (gui *Gui) currentDiffTerminal() string {
