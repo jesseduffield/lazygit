@@ -420,7 +420,7 @@ func (gui *Gui) refreshStateFiles() error {
 		}
 	}
 
-	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
+	gui.refreshSelectedLine(gui.State.Panels.Files, len(gui.State.Files))
 	return nil
 }
 
