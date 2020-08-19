@@ -248,7 +248,7 @@ func (gui *Gui) filesListContext() *ListContext {
 func (gui *Gui) branchesListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "branches",
-		ContextKey:        "local-branches",
+		ContextKey:        "localBranches",
 		GetItemsLength:    func() int { return len(gui.State.Branches) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.Branches },
 		OnFocus:           gui.handleBranchSelect,
@@ -281,7 +281,7 @@ func (gui *Gui) remotesListContext() *ListContext {
 func (gui *Gui) remoteBranchesListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "branches",
-		ContextKey:        "remote-branches",
+		ContextKey:        "remoteBranches",
 		GetItemsLength:    func() int { return len(gui.State.RemoteBranches) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.RemoteBranches },
 		OnFocus:           gui.handleRemoteBranchSelect,
@@ -313,7 +313,7 @@ func (gui *Gui) tagsListContext() *ListContext {
 func (gui *Gui) branchCommitsListContext() *ListContext {
 	return &ListContext{
 		ViewName:            "commits",
-		ContextKey:          "branch-commits",
+		ContextKey:          "branchCommits",
 		GetItemsLength:      func() int { return len(gui.State.Commits) },
 		GetPanelState:       func() IListPanelState { return gui.State.Panels.Commits },
 		OnFocus:             gui.handleCommitSelect,
@@ -330,7 +330,7 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 func (gui *Gui) reflogCommitsListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "commits",
-		ContextKey:        "reflog-commits",
+		ContextKey:        "reflogCommits",
 		GetItemsLength:    func() int { return len(gui.State.FilteredReflogCommits) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.ReflogCommits },
 		OnFocus:           gui.handleReflogCommitSelect,

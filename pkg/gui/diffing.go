@@ -46,12 +46,12 @@ func (gui *Gui) currentDiffTerminals() []string {
 		// not supporting files for now
 	case "commitFiles":
 		// not supporting commit files for now
-	case "branch-commits":
+	case "branchCommits":
 		item := gui.getSelectedCommit()
 		if item != nil {
 			return []string{item.RefName()}
 		}
-	case "reflog-commits":
+	case "reflogCommits":
 		item := gui.getSelectedReflogCommit()
 		if item != nil {
 			return []string{item.RefName()}
@@ -62,7 +62,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 			return []string{item.RefName()}
 		}
 
-	case "local-branches":
+	case "localBranches":
 		branch := gui.getSelectedBranch()
 		if branch != nil {
 			names := []string{branch.RefName()}
@@ -77,7 +77,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 		if item != nil {
 			return []string{item.RefName()}
 		}
-	case "remote-branches":
+	case "remoteBranches":
 		item := gui.getSelectedRemoteBranch()
 		if item != nil {
 			return []string{item.RefName()}
