@@ -593,13 +593,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "branches",
 			Key:         gui.getKey("universal.nextTab"),
-			Handler:     gui.handleNextBranchesTab,
+			Handler:     gui.handleNextTab,
 			Description: gui.Tr.SLocalize("nextTab"),
 		},
 		{
 			ViewName:    "branches",
 			Key:         gui.getKey("universal.prevTab"),
-			Handler:     gui.handlePrevBranchesTab,
+			Handler:     gui.handlePrevTab,
 			Description: gui.Tr.SLocalize("prevTab"),
 		},
 		{
@@ -626,13 +626,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "commits",
 			Key:         gui.getKey("universal.nextTab"),
-			Handler:     gui.handleNextCommitsTab,
+			Handler:     gui.handleNextTab,
 			Description: gui.Tr.SLocalize("nextTab"),
 		},
 		{
 			ViewName:    "commits",
 			Key:         gui.getKey("universal.prevTab"),
-			Handler:     gui.handlePrevCommitsTab,
+			Handler:     gui.handlePrevTab,
 			Description: gui.Tr.SLocalize("prevTab"),
 		},
 		{
@@ -1415,8 +1415,8 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 	}
 
 	tabClickBindings := map[string]func(int) error{
-		"branches": gui.onBranchesTabClick,
-		"commits":  gui.onCommitsTabClick,
+		"branches": func(tabIndex int) error { return gui.onViewTabClick("branches", tabIndex) },
+		"commits":  func(tabIndex int) error { return gui.onViewTabClick("commits", tabIndex) },
 	}
 
 	for viewName, binding := range tabClickBindings {

@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -633,38 +632,8 @@ func (gui *Gui) renderBranchCommitsWithSelection() error {
 	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
 	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsView, displayStrings)
-	if gui.g.CurrentView() == commitsView && commitsView.Context == "branch-commits" {
-		if err := gui.handleCommitSelect(); err != nil {
-			return err
-		}
-	}
 
 	return nil
-}
-
-func (gui *Gui) onCommitsTabClick(tabIndex int) error {
-	contexts := []string{"branch-commits", "reflog-commits"}
-	commitsView := gui.getCommitsView()
-	commitsView.TabIndex = tabIndex
-
-	return gui.switchCommitsPanelContext(contexts[tabIndex])
-}
-
-func (gui *Gui) switchCommitsPanelContext(context string) error {
-	commitsView := gui.getCommitsView()
-	commitsView.Context = context
-	if err := gui.onSearchEscape(); err != nil {
-		return err
-	}
-
-	contextTabIndexMap := map[string]int{
-		"branch-commits": 0,
-		"reflog-commits": 1,
-	}
-
-	commitsView.TabIndex = contextTabIndexMap[context]
-
-	return gui.refreshCommitsViewWithSelection()
 }
 
 func (gui *Gui) refreshCommitsViewWithSelection() error {
@@ -678,18 +647,6 @@ func (gui *Gui) refreshCommitsViewWithSelection() error {
 	}
 
 	return nil
-}
-
-func (gui *Gui) handleNextCommitsTab(g *gocui.Gui, v *gocui.View) error {
-	return gui.onCommitsTabClick(
-		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
-	)
-}
-
-func (gui *Gui) handlePrevCommitsTab(g *gocui.Gui, v *gocui.View) error {
-	return gui.onCommitsTabClick(
-		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
-	)
 }
 
 func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
