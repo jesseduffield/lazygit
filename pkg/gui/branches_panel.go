@@ -76,7 +76,7 @@ func (gui *Gui) refreshBranches() {
 	}
 	gui.State.Branches = builder.Build()
 
-	if err := gui.rerenderIfVisible(gui.Contexts.Branches.Context); err != nil {
+	if err := gui.postRefreshUpdate(gui.Contexts.Branches.Context); err != nil {
 		gui.Log.Error(err)
 	}
 

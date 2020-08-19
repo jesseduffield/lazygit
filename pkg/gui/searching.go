@@ -11,7 +11,9 @@ import (
 func (gui *Gui) handleOpenSearch(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Searching.isSearching = true
 	gui.State.Searching.view = v
+
 	gui.renderString("search", "")
+
 	if err := gui.switchContext(gui.Contexts.Search.Context); err != nil {
 		return err
 	}
