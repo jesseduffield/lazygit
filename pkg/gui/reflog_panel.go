@@ -85,11 +85,7 @@ func (gui *Gui) refreshReflogCommits() error {
 		state.FilteredReflogCommits = state.ReflogCommits
 	}
 
-	if gui.getCommitsView().Context == "reflog-commits" {
-		return gui.renderReflogCommitsWithSelection()
-	}
-
-	return nil
+	return gui.postRefreshUpdate(gui.Contexts.ReflogCommits.Context)
 }
 
 func (gui *Gui) renderReflogCommitsWithSelection() error {
@@ -98,11 +94,6 @@ func (gui *Gui) renderReflogCommitsWithSelection() error {
 	gui.refreshSelectedLine(&gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.FilteredReflogCommits))
 	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsView, displayStrings)
-	if gui.g.CurrentView() == commitsView && commitsView.Context == "reflog-commits" {
-		if err := gui.handleReflogCommitSelect(); err != nil {
-			return err
-		}
-	}
 
 	return nil
 }
