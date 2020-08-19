@@ -89,11 +89,6 @@ func (gui *Gui) renderLocalBranchesWithSelection() error {
 	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
 	displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
-	// if gui.g.CurrentView() == branchesView {
-	// 	if err := gui.handleBranchSelect(); err != nil {
-	// 		return gui.surfaceError(err)
-	// 	}
-	// }
 
 	return nil
 }
@@ -451,23 +446,6 @@ func (gui *Gui) onBranchesTabClick(tabIndex int) error {
 	context := gui.ViewTabContextMap["branches"][tabIndex].contexts[0]
 
 	return gui.switchContext(context)
-}
-
-func (gui *Gui) refreshBranchesViewWithSelection() error {
-	branchesView := gui.getBranchesView()
-
-	switch branchesView.Context {
-	case "local-branches":
-		return gui.renderLocalBranchesWithSelection()
-	case "remotes":
-		return gui.renderRemotesWithSelection()
-	case "remote-branches":
-		return gui.renderRemoteBranchesWithSelection()
-	case "tags":
-		return gui.renderTagsWithSelection()
-	}
-
-	return nil
 }
 
 func (gui *Gui) handleNextBranchesTab(g *gocui.Gui, v *gocui.View) error {

@@ -119,13 +119,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	}
 	gui.State.Commits = commits
 
-	if gui.getCommitsView().Context == "branch-commits" {
-		if err := gui.renderBranchCommitsWithSelection(); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return gui.postRefreshUpdate(gui.Contexts.BranchCommits.Context)
 }
 
 // specific functions
@@ -439,12 +433,12 @@ func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
 	for index, cherryPickedCommit := range gui.State.CherryPickedCommits {
 		if commit.Sha == cherryPickedCommit.Sha {
 			gui.State.CherryPickedCommits = append(gui.State.CherryPickedCommits[0:index], gui.State.CherryPickedCommits[index+1:]...)
-			return gui.renderBranchCommitsWithSelection()
+			return gui.Contexts.BranchCommits.Context.HandleRender()
 		}
 	}
 
 	gui.addCommitToCherryPickedCommits(gui.State.Panels.Commits.SelectedLine)
-	return gui.renderBranchCommitsWithSelection()
+	return gui.Contexts.BranchCommits.Context.HandleRender()
 }
 
 func (gui *Gui) cherryPickedCommitShaMap() map[string]bool {
@@ -492,7 +486,7 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 		gui.addCommitToCherryPickedCommits(index)
 	}
 
-	return gui.renderBranchCommitsWithSelection()
+	return gui.Contexts.BranchCommits.Context.HandleRender()
 }
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
@@ -678,7 +672,7 @@ func (gui *Gui) refreshCommitsViewWithSelection() error {
 
 	switch commitsView.Context {
 	case "branch-commits":
-		return gui.renderBranchCommitsWithSelection()
+		return gui.Contexts.BranchCommits.Context.HandleRender()
 	case "reflog-commits":
 		return gui.renderReflogCommitsWithSelection()
 	}
@@ -721,7 +715,7 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 
 func (gui *Gui) handleResetCherryPick(g *gocui.Gui, v *gocui.View) error {
 	gui.State.CherryPickedCommits = []*commands.Commit{}
-	return gui.renderBranchCommitsWithSelection()
+	return gui.Contexts.BranchCommits.Context.HandleRender()
 }
 
 func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
