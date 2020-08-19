@@ -101,6 +101,10 @@ type Gui struct {
 	ViewTabContextMap map[string][]tabContext
 }
 
+type hasSelectedLine struct {
+	SelectedLine int
+}
+
 // for now the staging panel state, unlike the other panel states, is going to be
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
@@ -126,46 +130,47 @@ type mergingPanelState struct {
 }
 
 type filePanelState struct {
-	SelectedLine int
+	hasSelectedLine
 }
 
 // TODO: consider splitting this out into the window and the branches view
 type branchPanelState struct {
-	SelectedLine int
+	hasSelectedLine
 }
 
 type remotePanelState struct {
-	SelectedLine int
+	hasSelectedLine
 }
 
 type remoteBranchesState struct {
-	SelectedLine int
+	hasSelectedLine
 }
 
 type tagsPanelState struct {
-	SelectedLine int
+	hasSelectedLine
 }
 
 type commitPanelState struct {
-	SelectedLine int
+	hasSelectedLine
+
 	LimitCommits bool
 }
 
 type reflogCommitPanelState struct {
-	SelectedLine int
+	hasSelectedLine
 }
 
 type stashPanelState struct {
-	SelectedLine int
+	hasSelectedLine
 }
 
 type menuPanelState struct {
-	SelectedLine int
-	OnPress      func(g *gocui.Gui, v *gocui.View) error
+	hasSelectedLine
+	OnPress func(g *gocui.Gui, v *gocui.View) error
 }
 
 type commitFilesPanelState struct {
-	SelectedLine int
+	hasSelectedLine
 }
 
 type panelStates struct {
@@ -266,16 +271,16 @@ func (gui *Gui) resetState() {
 		CherryPickedCommits:   make([]*commands.Commit, 0),
 		StashEntries:          make([]*commands.StashEntry, 0),
 		Panels: &panelStates{
-			Files:          &filePanelState{SelectedLine: -1},
-			Branches:       &branchPanelState{SelectedLine: 0},
-			Remotes:        &remotePanelState{SelectedLine: 0},
-			RemoteBranches: &remoteBranchesState{SelectedLine: -1},
-			Tags:           &tagsPanelState{SelectedLine: -1},
-			Commits:        &commitPanelState{SelectedLine: -1, LimitCommits: true},
-			ReflogCommits:  &reflogCommitPanelState{SelectedLine: 0}, // TODO: might need to make -1
-			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
-			Stash:          &stashPanelState{SelectedLine: -1},
-			Menu:           &menuPanelState{SelectedLine: 0},
+			Files:          &filePanelState{hasSelectedLine{SelectedLine: -1}},
+			Branches:       &branchPanelState{hasSelectedLine{SelectedLine: 0}},
+			Remotes:        &remotePanelState{hasSelectedLine{SelectedLine: 0}},
+			RemoteBranches: &remoteBranchesState{hasSelectedLine{SelectedLine: -1}},
+			Tags:           &tagsPanelState{hasSelectedLine{SelectedLine: -1}},
+			Commits:        &commitPanelState{hasSelectedLine: hasSelectedLine{SelectedLine: -1}, LimitCommits: true},
+			ReflogCommits:  &reflogCommitPanelState{hasSelectedLine{SelectedLine: 0}}, // TODO: might need to make -1
+			CommitFiles:    &commitFilesPanelState{hasSelectedLine{SelectedLine: -1}},
+			Stash:          &stashPanelState{hasSelectedLine{SelectedLine: -1}},
+			Menu:           &menuPanelState{hasSelectedLine: hasSelectedLine{SelectedLine: 0}, OnPress: nil},
 			Merging: &mergingPanelState{
 				ConflictIndex: 0,
 				ConflictTop:   true,

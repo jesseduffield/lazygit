@@ -3,7 +3,6 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -54,16 +53,6 @@ func (gui *Gui) refreshTags() error {
 	gui.State.Tags = tags
 
 	return gui.postRefreshUpdate(gui.Contexts.Tags.Context)
-}
-
-func (gui *Gui) renderTagsContext() error {
-	branchesView := gui.getBranchesView()
-
-	gui.refreshSelectedLine(&gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags))
-	displayStrings := presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(branchesView, displayStrings)
-
-	return nil
 }
 
 func (gui *Gui) handleCheckoutTag(g *gocui.Gui, v *gocui.View) error {
@@ -136,7 +125,10 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 			for i, tag := range gui.State.Tags {
 				if tag.Name == tagName {
 					gui.State.Panels.Tags.SelectedLine = i
-					_ = gui.renderTagsContext()
+					if err := gui.Contexts.Tags.Context.HandleRender(); err != nil {
+						gui.Log.Error(err)
+					}
+
 					return
 				}
 			}

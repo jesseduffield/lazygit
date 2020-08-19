@@ -7,7 +7,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -68,17 +67,6 @@ func (gui *Gui) refreshRemotes() error {
 	}
 
 	return gui.postRefreshUpdate(gui.contextForContextKey(gui.getBranchesView().Context))
-}
-
-func (gui *Gui) renderRemotesContext() error {
-	branchesView := gui.getBranchesView()
-
-	gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
-
-	displayStrings := presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(branchesView, displayStrings)
-
-	return nil
 }
 
 func (gui *Gui) handleRemoteEnter() error {

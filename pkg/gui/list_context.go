@@ -1,22 +1,39 @@
 package gui
 
-import "github.com/jesseduffield/gocui"
+import (
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+)
 
 type ListContext struct {
 	ViewName              string
 	ContextKey            string
 	GetItemsLength        func() int
 	GetSelectedLineIdxPtr func() *int
+	GetDisplayStrings     func() [][]string
 	OnFocus               func() error
 	OnFocusLost           func() error
 	OnItemSelect          func() error
 	OnClickSelectedItem   func() error
 
-	// OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
-	OnRender          func() error
 	Gui               *Gui
 	RendersToMainView bool
 	Kind              int
+}
+
+// OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
+func (lc *ListContext) OnRender() error {
+	view, err := lc.Gui.g.View(lc.ViewName)
+	if err != nil {
+		return nil
+	}
+
+	if lc.GetDisplayStrings != nil {
+		lc.Gui.refreshSelectedLine(lc.GetSelectedLineIdxPtr(), lc.GetItemsLength())
+		lc.Gui.renderDisplayStrings(view, lc.GetDisplayStrings())
+	}
+
+	return nil
 }
 
 func (lc *ListContext) GetKey() string {
@@ -163,13 +180,13 @@ func (gui *Gui) menuListContext() *ListContext {
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Menu.SelectedLine },
 		OnFocus:               gui.handleMenuSelect,
 		OnItemSelect:          gui.handleMenuSelect,
-		// rendering the menu happens on creation
-		OnRender: func() error { return nil },
 		// need to add a layer of indirection here because the callback changes during runtime
 		OnClickSelectedItem: func() error { return gui.State.Panels.Menu.OnPress(gui.g, nil) },
 		Gui:                 gui,
 		RendersToMainView:   false,
 		Kind:                PERSISTENT_POPUP,
+
+		// no GetDisplayStrings field because we do a custom render on menu creation
 	}
 }
 
@@ -182,10 +199,12 @@ func (gui *Gui) filesListContext() *ListContext {
 		OnFocus:               gui.focusAndSelectFile,
 		OnItemSelect:          gui.focusAndSelectFile,
 		OnClickSelectedItem:   gui.handleFilePress,
-		OnRender:              gui.renderFiles,
 		Gui:                   gui,
 		RendersToMainView:     false,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Diff.Ref)
+		},
 	}
 }
 
@@ -197,10 +216,12 @@ func (gui *Gui) branchesListContext() *ListContext {
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Branches.SelectedLine },
 		OnFocus:               gui.handleBranchSelect,
 		OnItemSelect:          gui.handleBranchSelect,
-		OnRender:              gui.renderLocalBranchesContext,
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
+		},
 	}
 }
 
@@ -213,10 +234,12 @@ func (gui *Gui) remotesListContext() *ListContext {
 		OnFocus:               gui.handleRemoteSelect,
 		OnItemSelect:          gui.handleRemoteSelect,
 		OnClickSelectedItem:   gui.handleRemoteEnter,
-		OnRender:              gui.renderRemotesContext,
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Diff.Ref)
+		},
 	}
 }
 
@@ -228,10 +251,12 @@ func (gui *Gui) remoteBranchesListContext() *ListContext {
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.RemoteBranches.SelectedLine },
 		OnFocus:               gui.handleRemoteBranchSelect,
 		OnItemSelect:          gui.handleRemoteBranchSelect,
-		OnRender:              gui.renderRemoteBranchesContext,
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Diff.Ref)
+		},
 	}
 }
 
@@ -243,10 +268,12 @@ func (gui *Gui) tagsListContext() *ListContext {
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Tags.SelectedLine },
 		OnFocus:               gui.handleTagSelect,
 		OnItemSelect:          gui.handleTagSelect,
-		OnRender:              gui.renderTagsContext,
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Diff.Ref)
+		},
 	}
 }
 
@@ -259,10 +286,12 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 		OnFocus:               gui.handleCommitSelect,
 		OnItemSelect:          gui.handleCommitSelect,
 		OnClickSelectedItem:   gui.handleSwitchToCommitFilesPanel,
-		OnRender:              gui.renderBranchCommitsContext,
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
+		},
 	}
 }
 
@@ -274,10 +303,12 @@ func (gui *Gui) reflogCommitsListContext() *ListContext {
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.ReflogCommits.SelectedLine },
 		OnFocus:               gui.handleReflogCommitSelect,
 		OnItemSelect:          gui.handleReflogCommitSelect,
-		OnRender:              gui.renderReflogCommitsContext,
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
+		},
 	}
 }
 
@@ -289,10 +320,13 @@ func (gui *Gui) stashListContext() *ListContext {
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Stash.SelectedLine },
 		OnFocus:               gui.handleStashEntrySelect,
 		OnItemSelect:          gui.handleStashEntrySelect,
-		OnRender:              gui.renderStash,
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			// TODO :see if we still need to reset the origin here
+			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Diff.Ref)
+		},
 	}
 }
 
@@ -304,10 +338,12 @@ func (gui *Gui) commitFilesListContext() *ListContext {
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.CommitFiles.SelectedLine },
 		OnFocus:               gui.handleCommitFileSelect,
 		OnItemSelect:          gui.handleCommitFileSelect,
-		OnRender:              gui.renderCommitFiles,
 		Gui:                   gui,
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Diff.Ref)
+		},
 	}
 }
 

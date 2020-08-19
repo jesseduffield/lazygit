@@ -3,7 +3,6 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -86,16 +85,6 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	return gui.postRefreshUpdate(gui.Contexts.ReflogCommits.Context)
-}
-
-func (gui *Gui) renderReflogCommitsContext() error {
-	commitsView := gui.getCommitsView()
-
-	gui.refreshSelectedLine(&gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.FilteredReflogCommits))
-	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(commitsView, displayStrings)
-
-	return nil
 }
 
 func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
