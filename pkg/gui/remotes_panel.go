@@ -67,15 +67,7 @@ func (gui *Gui) refreshRemotes() error {
 		}
 	}
 
-	// TODO: see if this works for deleting remote branches
-	switch gui.getBranchesView().Context {
-	case "remotes":
-		return gui.renderRemotesWithSelection()
-	case "remote-branches":
-		return gui.renderRemoteBranchesWithSelection()
-	}
-
-	return nil
+	return gui.postRefreshUpdate(gui.contextForContextKey(gui.getBranchesView().Context))
 }
 
 func (gui *Gui) renderRemotesWithSelection() error {

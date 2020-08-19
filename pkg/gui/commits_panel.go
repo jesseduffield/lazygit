@@ -636,19 +636,6 @@ func (gui *Gui) renderBranchCommitsWithSelection() error {
 	return nil
 }
 
-func (gui *Gui) refreshCommitsViewWithSelection() error {
-	commitsView := gui.getCommitsView()
-
-	switch commitsView.Context {
-	case "branch-commits":
-		return gui.Contexts.BranchCommits.Context.HandleRender()
-	case "reflog-commits":
-		return gui.renderReflogCommitsWithSelection()
-	}
-
-	return nil
-}
-
 func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 	commit := gui.getSelectedCommit()
 	if commit == nil {
