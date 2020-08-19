@@ -20,14 +20,6 @@ func (gui *Gui) getSelectedCommit() *commands.Commit {
 }
 
 func (gui *Gui) handleCommitSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
 	state := gui.State.Panels.Commits
 	if state.SelectedLine > 290 && state.LimitCommits {
 		state.LimitCommits = false

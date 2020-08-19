@@ -19,14 +19,6 @@ func (gui *Gui) getSelectedRemoteBranch() *commands.RemoteBranch {
 }
 
 func (gui *Gui) handleRemoteBranchSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
 	var task updateTask
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {

@@ -18,10 +18,6 @@ func (gui *Gui) getSelectedReflogCommit() *commands.Commit {
 }
 
 func (gui *Gui) handleReflogCommitSelect() error {
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
 	commit := gui.getSelectedReflogCommit()
 	var task updateTask
 	if commit == nil {

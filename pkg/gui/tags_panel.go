@@ -17,14 +17,6 @@ func (gui *Gui) getSelectedTag() *commands.Tag {
 }
 
 func (gui *Gui) handleTagSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
 	var task updateTask
 	tag := gui.getSelectedTag()
 	if tag == nil {

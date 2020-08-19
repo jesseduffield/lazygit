@@ -61,6 +61,11 @@ func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
+	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	currentBranch := gui.currentBranch()
 
 	if err := gui.switchContext(gui.Contexts.Status.Context); err != nil {
@@ -89,12 +94,9 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStatusSelect() error {
+	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
 	if gui.popupPanelFocused() {
 		return nil
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
 	}
 
 	magenta := color.New(color.FgMagenta)

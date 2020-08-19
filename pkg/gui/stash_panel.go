@@ -17,14 +17,6 @@ func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
 }
 
 func (gui *Gui) handleStashEntrySelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
 	var task updateTask
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {

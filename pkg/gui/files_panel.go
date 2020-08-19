@@ -30,10 +30,6 @@ func (gui *Gui) getSelectedFile() *commands.File {
 func (gui *Gui) selectFile(alreadySelected bool) error {
 	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLine)
 
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
 	file := gui.getSelectedFile()
 	if file == nil {
 		return gui.refreshMain(refreshMainOpts{

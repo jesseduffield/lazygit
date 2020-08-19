@@ -16,13 +16,7 @@ func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
 }
 
 func (gui *Gui) handleCommitFileSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	if gui.currentViewName() == "commitFiles" {
-		gui.handleEscapeLineByLinePanel()
-	}
+	gui.handleEscapeLineByLinePanel()
 
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {

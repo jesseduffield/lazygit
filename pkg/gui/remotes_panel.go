@@ -22,14 +22,6 @@ func (gui *Gui) getSelectedRemote() *commands.Remote {
 }
 
 func (gui *Gui) handleRemoteSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
 	var task updateTask
 	remote := gui.getSelectedRemote()
 	if remote == nil {
