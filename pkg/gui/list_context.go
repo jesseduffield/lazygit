@@ -317,7 +317,6 @@ func (gui *Gui) stashListContext() *ListContext {
 		RendersToMainView:     true,
 		Kind:                  SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			// TODO :see if we still need to reset the origin here
 			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Diff.Ref)
 		},
 	}
