@@ -626,7 +626,7 @@ func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) renderBranchCommitsWithSelection() error {
+func (gui *Gui) renderBranchCommitsContext() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))

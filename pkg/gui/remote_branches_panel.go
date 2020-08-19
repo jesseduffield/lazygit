@@ -51,7 +51,7 @@ func (gui *Gui) handleRemoteBranchesEscape(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchContext(gui.Contexts.Remotes.Context)
 }
 
-func (gui *Gui) renderRemoteBranchesWithSelection() error {
+func (gui *Gui) renderRemoteBranchesContext() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.RemoteBranches.SelectedLine, len(gui.State.RemoteBranches))

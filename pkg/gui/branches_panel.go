@@ -82,7 +82,7 @@ func (gui *Gui) refreshBranches() {
 	gui.refreshStatus()
 }
 
-func (gui *Gui) renderLocalBranchesWithSelection() error {
+func (gui *Gui) renderLocalBranchesContext() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))

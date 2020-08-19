@@ -70,7 +70,7 @@ func (gui *Gui) refreshRemotes() error {
 	return gui.postRefreshUpdate(gui.contextForContextKey(gui.getBranchesView().Context))
 }
 
-func (gui *Gui) renderRemotesWithSelection() error {
+func (gui *Gui) renderRemotesContext() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Remotes.SelectedLine, len(gui.State.Remotes))
