@@ -3,7 +3,6 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -48,18 +47,7 @@ func (gui *Gui) handleStashEntrySelect() error {
 func (gui *Gui) refreshStashEntries() error {
 	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.FilterPath)
 
-	return gui.renderStash()
-}
-
-func (gui *Gui) renderStash() error {
-	gui.refreshSelectedLine(&gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries))
-
-	stashView := gui.getStashView()
-
-	displayStrings := presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(stashView, displayStrings)
-
-	return gui.resetOrigin(stashView)
+	return gui.Contexts.Stash.Context.HandleRender()
 }
 
 // specific functions

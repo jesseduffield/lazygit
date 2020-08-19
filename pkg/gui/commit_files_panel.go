@@ -4,7 +4,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
@@ -103,16 +102,6 @@ func (gui *Gui) refreshCommitFilesView() error {
 	gui.State.CommitFiles = files
 
 	return gui.postRefreshUpdate(gui.Contexts.BranchCommits.Files.Context)
-}
-
-func (gui *Gui) renderCommitFiles() error {
-	gui.refreshSelectedLine(&gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles))
-
-	commitsFileView := gui.getCommitFilesView()
-	displayStrings := presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(commitsFileView, displayStrings)
-
-	return nil
 }
 
 func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {

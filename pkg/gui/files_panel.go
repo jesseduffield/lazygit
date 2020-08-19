@@ -13,7 +13,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -102,7 +101,7 @@ func (gui *Gui) refreshFiles() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if err := gui.renderFiles(); err != nil {
+		if err := gui.Contexts.Files.Context.HandleRender(); err != nil {
 			return err
 		}
 
@@ -114,18 +113,6 @@ func (gui *Gui) refreshFiles() error {
 		return nil
 	})
 
-	return nil
-}
-
-func (gui *Gui) renderFiles() error {
-	filesView := gui.getFilesView()
-	if filesView == nil {
-		// if the filesView hasn't been instantiated yet we just return
-		return nil
-	}
-
-	displayStrings := presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(filesView, displayStrings)
 	return nil
 }
 

@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -80,16 +79,6 @@ func (gui *Gui) refreshBranches() {
 	}
 
 	gui.refreshStatus()
-}
-
-func (gui *Gui) renderLocalBranchesContext() error {
-	branchesView := gui.getBranchesView()
-
-	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-	displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(branchesView, displayStrings)
-
-	return nil
 }
 
 // specific functions

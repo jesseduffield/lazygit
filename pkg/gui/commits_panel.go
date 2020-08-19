@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
@@ -624,16 +623,6 @@ func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 		},
 	})
-}
-
-func (gui *Gui) renderBranchCommitsContext() error {
-	commitsView := gui.getCommitsView()
-
-	gui.refreshSelectedLine(&gui.State.Panels.Commits.SelectedLine, len(gui.State.Commits))
-	displayStrings := presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
-	gui.renderDisplayStrings(commitsView, displayStrings)
-
-	return nil
 }
 
 func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
