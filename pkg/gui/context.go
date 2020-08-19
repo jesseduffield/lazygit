@@ -105,6 +105,7 @@ func (gui *Gui) allContexts() []Context {
 		gui.Contexts.Branches.Context,
 		gui.Contexts.Remotes.Context,
 		gui.Contexts.Remotes.Branches.Context,
+		gui.Contexts.Tags.Context,
 		gui.Contexts.BranchCommits.Context,
 		gui.Contexts.BranchCommits.Files.Context,
 		gui.Contexts.ReflogCommits.Context,
@@ -253,6 +254,40 @@ func (gui *Gui) initialViewContextMap() map[string]Context {
 		"commitMessage": gui.Contexts.CommitMessage.Context,
 		"main":          gui.Contexts.Normal.Context,
 		"secondary":     gui.Contexts.Normal.Context,
+	}
+}
+
+func (gui *Gui) viewTabContextMap() map[string][]tabContext {
+	return map[string][]tabContext{
+		"branches": {
+			{
+				tab:      "Local Branches",
+				contexts: []Context{gui.Contexts.Branches.Context},
+			},
+			{
+				tab: "Remotes",
+				contexts: []Context{
+					gui.Contexts.Remotes.Context,
+					gui.Contexts.Remotes.Branches.Context,
+				},
+			},
+			{
+				tab:      "Tags",
+				contexts: []Context{gui.Contexts.Tags.Context},
+			},
+		},
+		"commits": {
+			{
+				tab:      "Commits",
+				contexts: []Context{gui.Contexts.BranchCommits.Context},
+			},
+			{
+				tab: "Reflog",
+				contexts: []Context{
+					gui.Contexts.ReflogCommits.Context,
+				},
+			},
+		},
 	}
 }
 
@@ -499,40 +534,6 @@ func (gui *Gui) changeMainViewsContext(context string) {
 	}
 
 	gui.State.MainContext = context
-}
-
-func (gui *Gui) viewTabContextMap() map[string][]tabContext {
-	return map[string][]tabContext{
-		"branches": {
-			{
-				tab:      "Local Branches",
-				contexts: []Context{gui.Contexts.Branches.Context},
-			},
-			{
-				tab: "Remotes",
-				contexts: []Context{
-					gui.Contexts.Remotes.Context,
-					gui.Contexts.Remotes.Branches.Context,
-				},
-			},
-			{
-				tab:      "Tags",
-				contexts: []Context{gui.Contexts.Tags.Context},
-			},
-		},
-		"commits": {
-			{
-				tab:      "Commits",
-				contexts: []Context{gui.Contexts.BranchCommits.Context},
-			},
-			{
-				tab: "Reflog",
-				contexts: []Context{
-					gui.Contexts.ReflogCommits.Context,
-				},
-			},
-		},
-	}
 }
 
 func (gui *Gui) viewTabNames(viewName string) []string {

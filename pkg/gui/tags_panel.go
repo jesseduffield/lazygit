@@ -53,11 +53,7 @@ func (gui *Gui) refreshTags() error {
 
 	gui.State.Tags = tags
 
-	if gui.getBranchesView().Context == "tags" {
-		return gui.renderTagsContext()
-	}
-
-	return nil
+	return gui.postRefreshUpdate(gui.Contexts.Tags.Context)
 }
 
 func (gui *Gui) renderTagsContext() error {
@@ -66,11 +62,6 @@ func (gui *Gui) renderTagsContext() error {
 	gui.refreshSelectedLine(&gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags))
 	displayStrings := presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
-	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
-		if err := gui.handleTagSelect(); err != nil {
-			return gui.surfaceError(err)
-		}
-	}
 
 	return nil
 }
@@ -145,7 +136,7 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 			for i, tag := range gui.State.Tags {
 				if tag.Name == tagName {
 					gui.State.Panels.Tags.SelectedLine = i
-					gui.renderTagsContext()
+					_ = gui.renderTagsContext()
 					return
 				}
 			}
