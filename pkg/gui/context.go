@@ -16,6 +16,28 @@ const (
 
 func GetKindWrapper(k int) func() int { return func() int { return k } }
 
+const (
+	STATUS_CONTEXT_KEY              = "status"
+	FILES_CONTEXT_KEY               = "files"
+	LOCAL_BRANCHES_CONTEXT_KEY      = "localBranches"
+	REMOTES_CONTEXT_KEY             = "remotes"
+	REMOTE_BRANCHES_CONTEXT_KEY     = "remoteBranches"
+	TAGS_CONTEXT_KEY                = "tags"
+	BRANCH_COMMITS_CONTEXT_KEY      = "commits"
+	REFLOG_COMMITS_CONTEXT_KEY      = "reflogCommits"
+	COMMIT_FILES_CONTEXT_KEY        = "commitFiles"
+	STASH_CONTEXT_KEY               = "stash"
+	MAIN_NORMAL_CONTEXT_KEY         = "normal"
+	MAIN_MERGING_CONTEXT_KEY        = "merging"
+	MAIN_PATCH_BUILDING_CONTEXT_KEY = "patchBuilding"
+	MAIN_STAGING_CONTEXT_KEY        = "staging"
+	MENU_CONTEXT_KEY                = "menu"
+	CREDENTIALS_CONTEXT_KEY         = "credentials"
+	CONFIRMATION_CONTEXT_KEY        = "confirmation"
+	SEARCH_CONTEXT_KEY              = "confirmation"
+	COMMIT_MESSAGE_CONTEXT_KEY      = "commitMessage"
+)
+
 type Context interface {
 	HandleFocus() error
 	HandleFocusLost() error
@@ -232,7 +254,7 @@ func (gui *Gui) contextTree() ContextTree {
 				OnFocus:  func() error { return gui.handleCommitMessageFocused() },
 				Kind:     PERSISTENT_POPUP,
 				ViewName: "commitMessage",
-				Key:      "commit-message", // admittedly awkward to have view names in camelCase and contexts in kebab-case
+				Key:      "commitMessage",
 			},
 		},
 		Search: SimpleContextNode{
