@@ -19,7 +19,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedFile() *commands.File {
-	selectedLine := gui.State.Panels.Files.SelectedLine
+	selectedLine := gui.State.Panels.Files.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}
@@ -28,7 +28,7 @@ func (gui *Gui) getSelectedFile() *commands.File {
 }
 
 func (gui *Gui) selectFile(alreadySelected bool) error {
-	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLine)
+	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
 
 	file := gui.getSelectedFile()
 	if file == nil {
@@ -415,7 +415,7 @@ func (gui *Gui) refreshStateFiles() error {
 	// let's try to find our file again and move the cursor to that
 	for idx, f := range gui.State.Files {
 		if selectedFile != nil && f.Matches(selectedFile) {
-			gui.State.Panels.Files.SelectedLine = idx
+			gui.State.Panels.Files.SelectedLineIdx = idx
 			break
 		}
 	}

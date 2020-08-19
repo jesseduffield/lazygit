@@ -11,7 +11,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedCommit() *commands.Commit {
-	selectedLine := gui.State.Panels.Commits.SelectedLine
+	selectedLine := gui.State.Panels.Commits.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}
@@ -21,7 +21,7 @@ func (gui *Gui) getSelectedCommit() *commands.Commit {
 
 func (gui *Gui) handleCommitSelect() error {
 	state := gui.State.Panels.Commits
-	if state.SelectedLine > 290 && state.LimitCommits {
+	if state.SelectedLineIdx > 290 && state.LimitCommits {
 		state.LimitCommits = false
 		go func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {
@@ -138,7 +138,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 		prompt:             gui.Tr.SLocalize("SureSquashThisCommit"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("SquashingStatus"), func() error {
-				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "squash")
+				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "squash")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -169,7 +169,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 		prompt:             gui.Tr.SLocalize("SureFixupThisCommit"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("FixingStatus"), func() error {
-				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "fixup")
+				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "fixup")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -189,7 +189,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	if gui.State.Panels.Commits.SelectedLine != 0 {
+	if gui.State.Panels.Commits.SelectedLineIdx != 0 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
 
@@ -225,7 +225,7 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	subProcess, err := gui.GitCommand.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLine)
+	subProcess, err := gui.GitCommand.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -241,7 +241,7 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
-	selectedCommit := gui.State.Commits[gui.State.Panels.Commits.SelectedLine]
+	selectedCommit := gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx]
 	if selectedCommit.Status != "rebasing" {
 		return false, nil
 	}
@@ -254,7 +254,7 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 		return true, gui.createErrorPanel(gui.Tr.SLocalize("rewordNotSupported"))
 	}
 
-	if err := gui.GitCommand.EditRebaseTodo(gui.State.Panels.Commits.SelectedLine, action); err != nil {
+	if err := gui.GitCommand.EditRebaseTodo(gui.State.Panels.Commits.SelectedLineIdx, action); err != nil {
 		return false, gui.surfaceError(err)
 	}
 	// TODO: consider doing this in a way that is less expensive. We don't actually
@@ -282,7 +282,7 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 		prompt:             gui.Tr.SLocalize("DeleteCommitPrompt"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("DeletingStatus"), func() error {
-				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "drop")
+				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "drop")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -294,7 +294,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	index := gui.State.Panels.Commits.SelectedLine
+	index := gui.State.Panels.Commits.SelectedLineIdx
 	selectedCommit := gui.State.Commits[index]
 	if selectedCommit.Status == "rebasing" {
 		if gui.State.Commits[index+1].Status != "rebasing" {
@@ -303,14 +303,14 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.MoveTodoDown(index); err != nil {
 			return gui.surfaceError(err)
 		}
-		gui.State.Panels.Commits.SelectedLine++
+		gui.State.Panels.Commits.SelectedLineIdx++
 		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
 		err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index)
 		if err == nil {
-			gui.State.Panels.Commits.SelectedLine++
+			gui.State.Panels.Commits.SelectedLineIdx++
 		}
 		return gui.handleGenericMergeCommandResult(err)
 	})
@@ -321,7 +321,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	index := gui.State.Panels.Commits.SelectedLine
+	index := gui.State.Panels.Commits.SelectedLineIdx
 	if index == 0 {
 		return nil
 	}
@@ -330,14 +330,14 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 		if err := gui.GitCommand.MoveTodoDown(index - 1); err != nil {
 			return gui.surfaceError(err)
 		}
-		gui.State.Panels.Commits.SelectedLine--
+		gui.State.Panels.Commits.SelectedLineIdx--
 		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
 		err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index-1)
 		if err == nil {
-			gui.State.Panels.Commits.SelectedLine--
+			gui.State.Panels.Commits.SelectedLineIdx--
 		}
 		return gui.handleGenericMergeCommandResult(err)
 	})
@@ -357,7 +357,7 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
-		err = gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLine, "edit")
+		err = gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "edit")
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -374,7 +374,7 @@ func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
 		prompt:             gui.Tr.SLocalize("AmendCommitPrompt"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("AmendingStatus"), func() error {
-				err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha)
+				err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha)
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -404,10 +404,10 @@ func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	if err := gui.GitCommand.Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLine].Sha); err != nil {
+	if err := gui.GitCommand.Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha); err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.State.Panels.Commits.SelectedLine++
+	gui.State.Panels.Commits.SelectedLineIdx++
 	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
 }
 
@@ -417,7 +417,7 @@ func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	// get currently selected commit, add the sha to state.
-	commit := gui.State.Commits[gui.State.Panels.Commits.SelectedLine]
+	commit := gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx]
 
 	// we will un-copy it if it's already copied
 	for index, cherryPickedCommit := range gui.State.CherryPickedCommits {
@@ -427,7 +427,7 @@ func (gui *Gui) handleCopyCommit(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	gui.addCommitToCherryPickedCommits(gui.State.Panels.Commits.SelectedLine)
+	gui.addCommitToCherryPickedCommits(gui.State.Panels.Commits.SelectedLineIdx)
 	return gui.Contexts.BranchCommits.Context.HandleRender()
 }
 
@@ -464,7 +464,7 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 	// find the last commit that is copied that's above our position
 	// if there are none, startIndex = 0
 	startIndex := 0
-	for index, commit := range gui.State.Commits[0:gui.State.Panels.Commits.SelectedLine] {
+	for index, commit := range gui.State.Commits[0:gui.State.Panels.Commits.SelectedLineIdx] {
 		if commitShaMap[commit.Sha] {
 			startIndex = index
 		}
@@ -472,7 +472,7 @@ func (gui *Gui) handleCopyCommitRange(g *gocui.Gui, v *gocui.View) error {
 
 	gui.Log.Info("commit copy start index: " + strconv.Itoa(startIndex))
 
-	for index := startIndex; index <= gui.State.Panels.Commits.SelectedLine; index++ {
+	for index := startIndex; index <= gui.State.Panels.Commits.SelectedLineIdx; index++ {
 		gui.addCommitToCherryPickedCommits(index)
 	}
 
@@ -687,8 +687,8 @@ func (gui *Gui) handleNewBranchOffCommit() error {
 		if err := gui.GitCommand.NewBranch(response, commit.Sha); err != nil {
 			return err
 		}
-		gui.State.Panels.Commits.SelectedLine = 0
-		gui.State.Panels.Branches.SelectedLine = 0
+		gui.State.Panels.Commits.SelectedLineIdx = 0
+		gui.State.Panels.Branches.SelectedLineIdx = 0
 
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	})

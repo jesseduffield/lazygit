@@ -8,7 +8,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
-	selectedLine := gui.State.Panels.Stash.SelectedLine
+	selectedLine := gui.State.Panels.Stash.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}

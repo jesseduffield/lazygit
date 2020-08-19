@@ -15,7 +15,7 @@ func (gui *Gui) getSelectedBranch() *commands.Branch {
 		return nil
 	}
 
-	selectedLine := gui.State.Panels.Branches.SelectedLine
+	selectedLine := gui.State.Panels.Branches.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}
@@ -76,10 +76,10 @@ func (gui *Gui) refreshBranches() {
 // specific functions
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
-	if gui.State.Panels.Branches.SelectedLine == -1 {
+	if gui.State.Panels.Branches.SelectedLineIdx == -1 {
 		return nil
 	}
-	if gui.State.Panels.Branches.SelectedLine == 0 {
+	if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
 	branch := gui.getSelectedBranch()
@@ -143,8 +143,8 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 	cmdOptions := commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		gui.State.Panels.Branches.SelectedLine = 0
-		gui.State.Panels.Commits.SelectedLine = 0
+		gui.State.Panels.Branches.SelectedLineIdx = 0
+		gui.State.Panels.Commits.SelectedLineIdx = 0
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		gui.State.Panels.Commits.LimitCommits = true
 	}
@@ -246,7 +246,7 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 	if err := gui.GitCommand.NewBranch(newBranchName, branch.Name); err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.State.Panels.Branches.SelectedLine = 0
+	gui.State.Panels.Branches.SelectedLineIdx = 0
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
@@ -408,7 +408,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	go func() {
 		_ = gui.createLoaderPanel(v, message)
 
-		if gui.State.Panels.Branches.SelectedLine == 0 {
+		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{})
 		} else {
 			err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)

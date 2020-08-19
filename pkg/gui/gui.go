@@ -102,15 +102,15 @@ type Gui struct {
 }
 
 type listPanelState struct {
-	SelectedLine int
+	SelectedLineIdx int
 }
 
 func (h *listPanelState) SetSelectedLineIdx(value int) {
-	h.SelectedLine = value
+	h.SelectedLineIdx = value
 }
 
 func (h *listPanelState) GetSelectedLineIdx() int {
-	return h.SelectedLine
+	return h.SelectedLineIdx
 }
 
 type IListPanelState interface {
@@ -284,16 +284,16 @@ func (gui *Gui) resetState() {
 		CherryPickedCommits:   make([]*commands.Commit, 0),
 		StashEntries:          make([]*commands.StashEntry, 0),
 		Panels: &panelStates{
-			Files:          &filePanelState{listPanelState{SelectedLine: -1}},
-			Branches:       &branchPanelState{listPanelState{SelectedLine: 0}},
-			Remotes:        &remotePanelState{listPanelState{SelectedLine: 0}},
-			RemoteBranches: &remoteBranchesState{listPanelState{SelectedLine: -1}},
-			Tags:           &tagsPanelState{listPanelState{SelectedLine: -1}},
-			Commits:        &commitPanelState{listPanelState: listPanelState{SelectedLine: -1}, LimitCommits: true},
-			ReflogCommits:  &reflogCommitPanelState{listPanelState{SelectedLine: 0}}, // TODO: might need to make -1
-			CommitFiles:    &commitFilesPanelState{listPanelState{SelectedLine: -1}},
-			Stash:          &stashPanelState{listPanelState{SelectedLine: -1}},
-			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLine: 0}, OnPress: nil},
+			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
+			Branches:       &branchPanelState{listPanelState{SelectedLineIdx: 0}},
+			Remotes:        &remotePanelState{listPanelState{SelectedLineIdx: 0}},
+			RemoteBranches: &remoteBranchesState{listPanelState{SelectedLineIdx: -1}},
+			Tags:           &tagsPanelState{listPanelState{SelectedLineIdx: -1}},
+			Commits:        &commitPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, LimitCommits: true},
+			ReflogCommits:  &reflogCommitPanelState{listPanelState{SelectedLineIdx: 0}}, // TODO: might need to make -1
+			CommitFiles:    &commitFilesPanelState{listPanelState{SelectedLineIdx: -1}},
+			Stash:          &stashPanelState{listPanelState{SelectedLineIdx: -1}},
+			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
 			Merging: &mergingPanelState{
 				ConflictIndex: 0,
 				ConflictTop:   true,
