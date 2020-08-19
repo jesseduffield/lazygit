@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -437,26 +436,6 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 		}
 	}()
 	return nil
-}
-
-func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
-	context := gui.ViewTabContextMap[viewName][tabIndex].contexts[0]
-
-	return gui.switchContext(context)
-}
-
-func (gui *Gui) handleNextTab(g *gocui.Gui, v *gocui.View) error {
-	return gui.onViewTabClick(
-		v.Name(),
-		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
-	)
-}
-
-func (gui *Gui) handlePrevTab(g *gocui.Gui, v *gocui.View) error {
-	return gui.onViewTabClick(
-		v.Name(),
-		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
-	)
 }
 
 func (gui *Gui) handleCreateResetToBranchMenu(g *gocui.Gui, v *gocui.View) error {

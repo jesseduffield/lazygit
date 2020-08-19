@@ -371,3 +371,23 @@ func (gui *Gui) clearEditorView(v *gocui.View) {
 	_ = v.SetCursor(0, 0)
 	_ = v.SetOrigin(0, 0)
 }
+
+func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
+	context := gui.ViewTabContextMap[viewName][tabIndex].contexts[0]
+
+	return gui.switchContext(context)
+}
+
+func (gui *Gui) handleNextTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onViewTabClick(
+		v.Name(),
+		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
+	)
+}
+
+func (gui *Gui) handlePrevTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onViewTabClick(
+		v.Name(),
+		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
+	)
+}

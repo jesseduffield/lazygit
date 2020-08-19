@@ -210,7 +210,7 @@ func (gui *Gui) remotesListContext() *ListContext {
 		ContextKey:            "remotes",
 		GetItemsLength:        func() int { return len(gui.State.Remotes) },
 		GetSelectedLineIdxPtr: func() *int { return &gui.State.Panels.Remotes.SelectedLine },
-		OnFocus:               gui.renderRemotesWithSelection,
+		OnFocus:               gui.handleRemoteSelect,
 		OnItemSelect:          gui.handleRemoteSelect,
 		OnClickSelectedItem:   gui.handleRemoteEnter,
 		OnRender:              gui.renderRemotesWithSelection,

@@ -57,11 +57,6 @@ func (gui *Gui) renderRemoteBranchesWithSelection() error {
 	gui.refreshSelectedLine(&gui.State.Panels.RemoteBranches.SelectedLine, len(gui.State.RemoteBranches))
 	displayStrings := presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
-	if gui.g.CurrentView() == branchesView && branchesView.Context == "remote-branches" {
-		if err := gui.handleRemoteBranchSelect(); err != nil {
-			return err
-		}
-	}
 
 	return nil
 }

@@ -547,13 +547,9 @@ func (gui *Gui) viewTabNames(viewName string) []string {
 }
 
 func (gui *Gui) setViewTabForContext(c Context) {
-	gui.Log.Warnf("in set view tab: %s", c.GetKey())
-
 	// search for the context in our map and if we find it, set the tab for the corresponding view
-
 	tabContexts, ok := gui.ViewTabContextMap[c.GetViewName()]
 	if !ok {
-		gui.Log.Warnf("in set view tab: returning")
 		return
 	}
 
@@ -566,7 +562,6 @@ func (gui *Gui) setViewTabForContext(c Context) {
 					gui.Log.Error(err)
 					return
 				}
-				gui.Log.Warnf("index: %d", tabIndex)
 				v.TabIndex = tabIndex
 				return
 			}
