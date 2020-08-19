@@ -12,23 +12,20 @@ func (gui *Gui) resetToRef(ref string, strength string, options commands.RunComm
 		return gui.surfaceError(err)
 	}
 
-	if err := gui.switchCommitsPanelContext("branch-commits"); err != nil {
-		return err
-	}
-
 	gui.State.Panels.Commits.SelectedLine = 0
 	gui.State.Panels.ReflogCommits.SelectedLine = 0
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	gui.State.Panels.Commits.LimitCommits = true
 
-	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES, BRANCHES, REFLOG, COMMITS}}); err != nil {
-		return err
-	}
-	if err := gui.resetOrigin(gui.getCommitsView()); err != nil {
+	if err := gui.switchContext(gui.Contexts.BranchCommits.Context); err != nil {
 		return err
 	}
 
-	return gui.handleCommitSelect()
+	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES, BRANCHES, REFLOG, COMMITS}}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) createResetMenu(ref string) error {
