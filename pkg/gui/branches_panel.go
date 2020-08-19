@@ -439,23 +439,22 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) onBranchesTabClick(tabIndex int) error {
-	branchesView := gui.getBranchesView()
-	branchesView.TabIndex = tabIndex
-
-	context := gui.ViewTabContextMap["branches"][tabIndex].contexts[0]
+func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
+	context := gui.ViewTabContextMap[viewName][tabIndex].contexts[0]
 
 	return gui.switchContext(context)
 }
 
-func (gui *Gui) handleNextBranchesTab(g *gocui.Gui, v *gocui.View) error {
-	return gui.onBranchesTabClick(
+func (gui *Gui) handleNextTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onViewTabClick(
+		v.Name(),
 		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
 	)
 }
 
-func (gui *Gui) handlePrevBranchesTab(g *gocui.Gui, v *gocui.View) error {
-	return gui.onBranchesTabClick(
+func (gui *Gui) handlePrevTab(g *gocui.Gui, v *gocui.View) error {
+	return gui.onViewTabClick(
+		v.Name(),
 		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
 	)
 }
