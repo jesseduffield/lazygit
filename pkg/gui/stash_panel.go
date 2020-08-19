@@ -45,9 +45,13 @@ func (gui *Gui) handleStashEntrySelect() error {
 	})
 }
 
-func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
+func (gui *Gui) refreshStashEntries() error {
 	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.FilterPath)
 
+	return gui.renderStash()
+}
+
+func (gui *Gui) renderStash() error {
 	gui.refreshSelectedLine(&gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries))
 
 	stashView := gui.getStashView()

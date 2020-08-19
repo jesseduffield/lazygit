@@ -102,8 +102,9 @@ func (gui *Gui) refreshFiles() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		displayStrings := presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Diff.Ref)
-		gui.renderDisplayStrings(filesView, displayStrings)
+		if err := gui.renderFiles(); err != nil {
+			return err
+		}
 
 		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == "merging") {
 			newSelectedFile := gui.getSelectedFile()
@@ -113,6 +114,18 @@ func (gui *Gui) refreshFiles() error {
 		return nil
 	})
 
+	return nil
+}
+
+func (gui *Gui) renderFiles() error {
+	filesView := gui.getFilesView()
+	if filesView == nil {
+		// if the filesView hasn't been instantiated yet we just return
+		return nil
+	}
+
+	displayStrings := presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Diff.Ref)
+	gui.renderDisplayStrings(filesView, displayStrings)
 	return nil
 }
 

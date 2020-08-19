@@ -102,13 +102,21 @@ func (gui *Gui) refreshCommitFilesView() error {
 	}
 	gui.State.CommitFiles = files
 
+	if err := gui.renderCommitFiles(); err != nil {
+		return err
+	}
+
+	return gui.handleCommitFileSelect()
+}
+
+func (gui *Gui) renderCommitFiles() error {
 	gui.refreshSelectedLine(&gui.State.Panels.CommitFiles.SelectedLine, len(gui.State.CommitFiles))
 
 	commitsFileView := gui.getCommitFilesView()
 	displayStrings := presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(commitsFileView, displayStrings)
 
-	return gui.handleCommitFileSelect()
+	return nil
 }
 
 func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {

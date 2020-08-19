@@ -86,9 +86,9 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go gui.refreshStashEntries(gui.g)
+					go gui.refreshStashEntries()
 				} else {
-					gui.refreshStashEntries(gui.g)
+					gui.refreshStashEntries()
 				}
 				wg.Done()
 			}()

@@ -76,9 +76,8 @@ func (gui *Gui) refreshBranches() {
 	}
 	gui.State.Branches = builder.Build()
 
-	// TODO: if we're in the remotes view and we've just deleted a remote we need to refresh accordingly
-	if gui.getBranchesView().Context == "local-branches" {
-		_ = gui.renderLocalBranchesWithSelection()
+	if err := gui.rerenderIfVisible(gui.Contexts.Branches.Context); err != nil {
+		gui.Log.Error(err)
 	}
 
 	gui.refreshStatus()
@@ -90,11 +89,11 @@ func (gui *Gui) renderLocalBranchesWithSelection() error {
 	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
 	displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
 	gui.renderDisplayStrings(branchesView, displayStrings)
-	if gui.g.CurrentView() == branchesView {
-		if err := gui.handleBranchSelect(); err != nil {
-			return gui.surfaceError(err)
-		}
-	}
+	// if gui.g.CurrentView() == branchesView {
+	// 	if err := gui.handleBranchSelect(); err != nil {
+	// 		return gui.surfaceError(err)
+	// 	}
+	// }
 
 	return nil
 }
