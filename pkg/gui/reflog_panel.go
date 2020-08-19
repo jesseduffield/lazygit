@@ -88,7 +88,7 @@ func (gui *Gui) refreshReflogCommits() error {
 	return gui.postRefreshUpdate(gui.Contexts.ReflogCommits.Context)
 }
 
-func (gui *Gui) renderReflogCommitsWithSelection() error {
+func (gui *Gui) renderReflogCommitsContext() error {
 	commitsView := gui.getCommitsView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.FilteredReflogCommits))

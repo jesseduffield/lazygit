@@ -54,13 +54,13 @@ func (gui *Gui) refreshTags() error {
 	gui.State.Tags = tags
 
 	if gui.getBranchesView().Context == "tags" {
-		return gui.renderTagsWithSelection()
+		return gui.renderTagsContext()
 	}
 
 	return nil
 }
 
-func (gui *Gui) renderTagsWithSelection() error {
+func (gui *Gui) renderTagsContext() error {
 	branchesView := gui.getBranchesView()
 
 	gui.refreshSelectedLine(&gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags))
@@ -145,7 +145,7 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 			for i, tag := range gui.State.Tags {
 				if tag.Name == tagName {
 					gui.State.Panels.Tags.SelectedLine = i
-					gui.renderTagsWithSelection()
+					gui.renderTagsContext()
 					return
 				}
 			}
