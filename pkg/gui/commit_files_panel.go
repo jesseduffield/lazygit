@@ -102,11 +102,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 	}
 	gui.State.CommitFiles = files
 
-	if err := gui.renderCommitFiles(); err != nil {
-		return err
-	}
-
-	return gui.handleCommitFileSelect()
+	return gui.postRefreshUpdate(gui.Contexts.BranchCommits.Files.Context)
 }
 
 func (gui *Gui) renderCommitFiles() error {
