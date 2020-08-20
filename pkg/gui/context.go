@@ -14,8 +14,6 @@ const (
 	PERSISTENT_POPUP
 )
 
-func GetKindWrapper(k int) func() int { return func() int { return k } }
-
 const (
 	STATUS_CONTEXT_KEY              = "status"
 	FILES_CONTEXT_KEY               = "files"
