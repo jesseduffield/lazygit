@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/gocui"
 )
 
@@ -414,8 +413,6 @@ func (gui *Gui) postRefreshUpdate(c Context) error {
 }
 
 func (gui *Gui) activateContext(c Context) error {
-	gui.Log.Warn(spew.Sdump(gui.renderContextStack()))
-
 	viewName := c.GetViewName()
 	v, err := gui.g.View(viewName)
 	// if view no longer exists, pop again
