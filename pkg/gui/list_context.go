@@ -19,10 +19,19 @@ type ListContext struct {
 	Gui               *Gui
 	RendersToMainView bool
 	Kind              int
+	ParentContext     Context
 }
 
 type ListItem interface {
 	ID() string
+}
+
+func (lc *ListContext) SetParentContext(c Context) {
+	lc.ParentContext = c
+}
+
+func (lc *ListContext) GetParentContext() Context {
+	return lc.ParentContext
 }
 
 func (lc *ListContext) GetSelectedItem() ListItem {
@@ -317,7 +326,7 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 		GetItemsLength:      func() int { return len(gui.State.Commits) },
 		GetPanelState:       func() IListPanelState { return gui.State.Panels.Commits },
 		OnFocus:             gui.handleCommitSelect,
-		OnClickSelectedItem: gui.handleSwitchToCommitFilesPanel,
+		OnClickSelectedItem: gui.handleViewCommitFiles,
 		Gui:                 gui,
 		RendersToMainView:   true,
 		Kind:                SIDE_CONTEXT,

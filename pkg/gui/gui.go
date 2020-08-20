@@ -184,6 +184,10 @@ type menuPanelState struct {
 
 type commitFilesPanelState struct {
 	listPanelState
+
+	// this is the SHA of the commit or the stash index of the stash.
+	// Not sure if ref is actually the right word here
+	refName string
 }
 
 type panelStates struct {
@@ -291,7 +295,7 @@ func (gui *Gui) resetState() {
 			Tags:           &tagsPanelState{listPanelState{SelectedLineIdx: -1}},
 			Commits:        &commitPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, LimitCommits: true},
 			ReflogCommits:  &reflogCommitPanelState{listPanelState{SelectedLineIdx: 0}}, // TODO: might need to make -1
-			CommitFiles:    &commitFilesPanelState{listPanelState{SelectedLineIdx: -1}},
+			CommitFiles:    &commitFilesPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, refName: ""},
 			Stash:          &stashPanelState{listPanelState{SelectedLineIdx: -1}},
 			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
 			Merging: &mergingPanelState{

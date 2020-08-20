@@ -82,7 +82,7 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 		gui.GitCommand.PatchManager.Reset()
 	}
 
-	return gui.switchContext(gui.Contexts.BranchCommits.Files.Context)
+	return gui.switchContext(gui.Contexts.CommitFiles.Context)
 }
 
 func (gui *Gui) refreshSecondaryPatchPanel() error {

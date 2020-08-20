@@ -765,7 +765,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("universal.goInto"),
-			Handler:     gui.wrappedHandler(gui.handleSwitchToCommitFilesPanel),
+			Handler:     gui.wrappedHandler(gui.handleViewCommitFiles),
 			Description: gui.Tr.SLocalize("viewCommitFiles"),
 		},
 		{
@@ -796,6 +796,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.resetCherryPick"),
 			Handler:     gui.handleResetCherryPick,
 			Description: gui.Tr.SLocalize("resetCherryPick"),
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{REFLOG_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("universal.goInto"),
+			Handler:     gui.wrappedHandler(gui.handleViewReflogCommitFiles),
+			Description: gui.Tr.SLocalize("viewCommitFiles"),
 		},
 		{
 			ViewName:    "commits",
@@ -864,12 +871,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleInfoClick,
-		},
-		{
-			ViewName:    "commitFiles",
-			Key:         gui.getKey("universal.return"),
-			Handler:     gui.handleSwitchToCommitsPanel,
-			Description: gui.Tr.SLocalize("goBack"),
 		},
 		{
 			ViewName:    "commitFiles",

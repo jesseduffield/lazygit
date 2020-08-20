@@ -39,10 +39,6 @@ func (gui *Gui) handleCommitFileSelect() error {
 	})
 }
 
-func (gui *Gui) handleSwitchToCommitsPanel(g *gocui.Gui, v *gocui.View) error {
-	return gui.switchContext(gui.Contexts.BranchCommits.Context)
-}
-
 func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
 	file := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLineIdx]
 
@@ -84,18 +80,13 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return err
 	}
 
-	commit := gui.getSelectedCommit()
-	if commit == nil {
-		return nil
-	}
-
-	files, err := gui.GitCommand.GetCommitFiles(commit.Sha, gui.GitCommand.PatchManager)
+	files, err := gui.GitCommand.GetCommitFiles(gui.State.Panels.CommitFiles.refName, gui.GitCommand.PatchManager)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
 	gui.State.CommitFiles = files
 
-	return gui.postRefreshUpdate(gui.Contexts.BranchCommits.Files.Context)
+	return gui.postRefreshUpdate(gui.Contexts.CommitFiles.Context)
 }
 
 func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
@@ -213,7 +204,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 				return enterTheFile(selectedLineIdx)
 			},
 			handleClose: func() error {
-				return gui.switchContext(gui.Contexts.BranchCommits.Files.Context)
+				return gui.switchContext(gui.Contexts.CommitFiles.Context)
 			},
 		})
 	}
