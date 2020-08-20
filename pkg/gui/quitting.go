@@ -42,6 +42,12 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 		return gui.exitFilterMode()
 	}
 
+	currentContext := gui.currentContext()
+	if currentContext != nil && currentContext.GetParentContext() != nil {
+		// TODO: think about whether this should be marked as a return rather than adding to the stack
+		gui.switchContext(currentContext.GetParentContext())
+	}
+
 	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {
 		return gui.handleQuit()
 	}

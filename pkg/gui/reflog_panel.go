@@ -112,3 +112,19 @@ func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.createResetMenu(commit.Sha)
 }
+
+func (gui *Gui) handleViewReflogCommitFiles() error {
+	commit := gui.getSelectedReflogCommit()
+	if commit == nil {
+		return nil
+	}
+
+	gui.State.Panels.CommitFiles.refName = commit.Sha
+	gui.Contexts.CommitFiles.Context.SetParentContext(gui.Contexts.ReflogCommits.Context)
+
+	if err := gui.refreshCommitFilesView(); err != nil {
+		return err
+	}
+
+	return gui.switchContext(gui.Contexts.CommitFiles.Context)
+}

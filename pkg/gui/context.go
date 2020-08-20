@@ -43,6 +43,8 @@ type Context interface {
 	GetViewName() string
 	GetKey() string
 	GetSelectedItemId() string
+	SetParentContext(Context)
+	GetParentContext() Context
 }
 
 type BasicContext struct {
@@ -52,6 +54,14 @@ type BasicContext struct {
 	Kind        int
 	Key         string
 	ViewName    string
+}
+
+func (c BasicContext) SetParentContext(Context) {
+	panic("can't set parent context on basic context")
+}
+
+func (c BasicContext) GetParentContext() Context {
+	panic("can't get parent context on basic context")
 }
 
 // TODO: think about whether we need this on the Context interface or if it should just be on the ListContext struct
@@ -98,11 +108,6 @@ type RemotesContextNode struct {
 	Branches SimpleContextNode
 }
 
-type CommitsContextNode struct {
-	Context Context
-	Files   SimpleContextNode
-}
-
 type ContextTree struct {
 	Status        SimpleContextNode
 	Files         SimpleContextNode
@@ -110,7 +115,8 @@ type ContextTree struct {
 	Branches      SimpleContextNode
 	Remotes       RemotesContextNode
 	Tags          SimpleContextNode
-	BranchCommits CommitsContextNode
+	BranchCommits SimpleContextNode
+	CommitFiles   SimpleContextNode
 	ReflogCommits SimpleContextNode
 	Stash         SimpleContextNode
 	Normal        SimpleContextNode
@@ -132,7 +138,7 @@ func (gui *Gui) allContexts() []Context {
 		gui.Contexts.Remotes.Branches.Context,
 		gui.Contexts.Tags.Context,
 		gui.Contexts.BranchCommits.Context,
-		gui.Contexts.BranchCommits.Files.Context,
+		gui.Contexts.CommitFiles.Context,
 		gui.Contexts.ReflogCommits.Context,
 		gui.Contexts.Stash.Context,
 		gui.Contexts.Menu.Context,
@@ -168,11 +174,11 @@ func (gui *Gui) contextTree() ContextTree {
 				Context: gui.remoteBranchesListContext(),
 			},
 		},
-		BranchCommits: CommitsContextNode{
+		BranchCommits: SimpleContextNode{
 			Context: gui.branchCommitsListContext(),
-			Files: SimpleContextNode{
-				Context: gui.commitFilesListContext(),
-			},
+		},
+		CommitFiles: SimpleContextNode{
+			Context: gui.commitFilesListContext(),
 		},
 		ReflogCommits: SimpleContextNode{
 			Context: gui.reflogCommitsListContext(),
@@ -271,7 +277,7 @@ func (gui *Gui) initialViewContextMap() map[string]Context {
 		"files":         gui.Contexts.Files.Context,
 		"branches":      gui.Contexts.Branches.Context,
 		"commits":       gui.Contexts.BranchCommits.Context,
-		"commitFiles":   gui.Contexts.BranchCommits.Files.Context,
+		"commitFiles":   gui.Contexts.CommitFiles.Context,
 		"stash":         gui.Contexts.Stash.Context,
 		"menu":          gui.Contexts.Menu.Context,
 		"confirmation":  gui.Contexts.Confirmation.Context,
@@ -474,12 +480,22 @@ func (gui *Gui) renderContextStack() string {
 }
 
 func (gui *Gui) currentContextKey() string {
-	// on startup the stack can be empty so we'll return an empty string in that case
-	if len(gui.State.ContextStack) == 0 {
+	currentContext := gui.currentContext()
+
+	if currentContext == nil {
 		return ""
 	}
 
-	return gui.State.ContextStack[len(gui.State.ContextStack)-1].GetKey()
+	return currentContext.GetKey()
+}
+
+func (gui *Gui) currentContext() Context {
+	// on startup the stack can be empty so we'll return an empty string in that case
+	if len(gui.State.ContextStack) == 0 {
+		return nil
+	}
+
+	return gui.State.ContextStack[len(gui.State.ContextStack)-1]
 }
 
 func (gui *Gui) setInitialViewContexts() {

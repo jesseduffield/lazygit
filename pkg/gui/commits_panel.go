@@ -499,12 +499,20 @@ func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleSwitchToCommitFilesPanel() error {
+func (gui *Gui) handleViewCommitFiles() error {
+	commit := gui.getSelectedCommit()
+	if commit == nil {
+		return nil
+	}
+
+	gui.State.Panels.CommitFiles.refName = commit.Sha
+	gui.Contexts.CommitFiles.Context.SetParentContext(gui.Contexts.BranchCommits.Context)
+
 	if err := gui.refreshCommitFilesView(); err != nil {
 		return err
 	}
 
-	return gui.switchContext(gui.Contexts.BranchCommits.Files.Context)
+	return gui.switchContext(gui.Contexts.CommitFiles.Context)
 }
 
 func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool) {
