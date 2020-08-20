@@ -42,27 +42,27 @@ func (gui *Gui) renderDiff() error {
 // flicking through branches it will be using the local branch name.
 func (gui *Gui) currentDiffTerminals() []string {
 	switch gui.currentContextKey() {
-	case "files":
+	case FILES_CONTEXT_KEY:
 		// not supporting files for now
-	case "commitFiles":
+	case COMMIT_FILES_CONTEXT_KEY:
 		// not supporting commit files for now
-	case "branchCommits":
+	case BRANCH_COMMITS_CONTEXT_KEY:
 		item := gui.getSelectedCommit()
 		if item != nil {
 			return []string{item.RefName()}
 		}
-	case "reflogCommits":
+	case REFLOG_COMMITS_CONTEXT_KEY:
 		item := gui.getSelectedReflogCommit()
 		if item != nil {
 			return []string{item.RefName()}
 		}
-	case "stash":
+	case STASH_CONTEXT_KEY:
 		item := gui.getSelectedStashEntry()
 		if item != nil {
 			return []string{item.RefName()}
 		}
 
-	case "localBranches":
+	case LOCAL_BRANCHES_CONTEXT_KEY:
 		branch := gui.getSelectedBranch()
 		if branch != nil {
 			names := []string{branch.RefName()}
@@ -72,17 +72,17 @@ func (gui *Gui) currentDiffTerminals() []string {
 			return names
 		}
 		return nil
-	case "remotes":
+	case REMOTES_CONTEXT_KEY:
 		item := gui.getSelectedRemote()
 		if item != nil {
 			return []string{item.RefName()}
 		}
-	case "remoteBranches":
+	case REMOTE_BRANCHES_CONTEXT_KEY:
 		item := gui.getSelectedRemoteBranch()
 		if item != nil {
 			return []string{item.RefName()}
 		}
-	case "tags":
+	case TAGS_CONTEXT_KEY:
 		item := gui.getSelectedTag()
 		if item != nil {
 			return []string{item.RefName()}

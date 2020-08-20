@@ -231,7 +231,7 @@ func (gui *Gui) menuListContext() *ListContext {
 func (gui *Gui) filesListContext() *ListContext {
 	return &ListContext{
 		ViewName:            "files",
-		ContextKey:          "files",
+		ContextKey:          FILES_CONTEXT_KEY,
 		GetItemsLength:      func() int { return len(gui.State.Files) },
 		GetPanelState:       func() IListPanelState { return gui.State.Panels.Files },
 		OnFocus:             gui.focusAndSelectFile,
@@ -248,7 +248,7 @@ func (gui *Gui) filesListContext() *ListContext {
 func (gui *Gui) branchesListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "branches",
-		ContextKey:        "localBranches",
+		ContextKey:        LOCAL_BRANCHES_CONTEXT_KEY,
 		GetItemsLength:    func() int { return len(gui.State.Branches) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.Branches },
 		OnFocus:           gui.handleBranchSelect,
@@ -264,7 +264,7 @@ func (gui *Gui) branchesListContext() *ListContext {
 func (gui *Gui) remotesListContext() *ListContext {
 	return &ListContext{
 		ViewName:            "branches",
-		ContextKey:          "remotes",
+		ContextKey:          REMOTES_CONTEXT_KEY,
 		GetItemsLength:      func() int { return len(gui.State.Remotes) },
 		GetPanelState:       func() IListPanelState { return gui.State.Panels.Remotes },
 		OnFocus:             gui.handleRemoteSelect,
@@ -281,7 +281,7 @@ func (gui *Gui) remotesListContext() *ListContext {
 func (gui *Gui) remoteBranchesListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "branches",
-		ContextKey:        "remoteBranches",
+		ContextKey:        REMOTE_BRANCHES_CONTEXT_KEY,
 		GetItemsLength:    func() int { return len(gui.State.RemoteBranches) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.RemoteBranches },
 		OnFocus:           gui.handleRemoteBranchSelect,
@@ -297,7 +297,7 @@ func (gui *Gui) remoteBranchesListContext() *ListContext {
 func (gui *Gui) tagsListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "branches",
-		ContextKey:        "tags",
+		ContextKey:        TAGS_CONTEXT_KEY,
 		GetItemsLength:    func() int { return len(gui.State.Tags) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.Tags },
 		OnFocus:           gui.handleTagSelect,
@@ -313,7 +313,7 @@ func (gui *Gui) tagsListContext() *ListContext {
 func (gui *Gui) branchCommitsListContext() *ListContext {
 	return &ListContext{
 		ViewName:            "commits",
-		ContextKey:          "branchCommits",
+		ContextKey:          BRANCH_COMMITS_CONTEXT_KEY,
 		GetItemsLength:      func() int { return len(gui.State.Commits) },
 		GetPanelState:       func() IListPanelState { return gui.State.Panels.Commits },
 		OnFocus:             gui.handleCommitSelect,
@@ -330,7 +330,7 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 func (gui *Gui) reflogCommitsListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "commits",
-		ContextKey:        "reflogCommits",
+		ContextKey:        REFLOG_COMMITS_CONTEXT_KEY,
 		GetItemsLength:    func() int { return len(gui.State.FilteredReflogCommits) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.ReflogCommits },
 		OnFocus:           gui.handleReflogCommitSelect,
@@ -346,7 +346,7 @@ func (gui *Gui) reflogCommitsListContext() *ListContext {
 func (gui *Gui) stashListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "stash",
-		ContextKey:        "stash",
+		ContextKey:        STASH_CONTEXT_KEY,
 		GetItemsLength:    func() int { return len(gui.State.StashEntries) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.Stash },
 		OnFocus:           gui.handleStashEntrySelect,
@@ -362,7 +362,7 @@ func (gui *Gui) stashListContext() *ListContext {
 func (gui *Gui) commitFilesListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "commitFiles",
-		ContextKey:        "commitFiles",
+		ContextKey:        COMMIT_FILES_CONTEXT_KEY,
 		GetItemsLength:    func() int { return len(gui.State.CommitFiles) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.CommitFiles },
 		OnFocus:           gui.handleCommitFileSelect,
