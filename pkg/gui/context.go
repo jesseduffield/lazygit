@@ -156,7 +156,7 @@ func (gui *Gui) contextTree() ContextTree {
 				OnFocus:  gui.handleStatusSelect,
 				Kind:     SIDE_CONTEXT,
 				ViewName: "status",
-				Key:      "status",
+				Key:      STATUS_CONTEXT_KEY,
 			},
 		},
 		Files: SimpleContextNode{
