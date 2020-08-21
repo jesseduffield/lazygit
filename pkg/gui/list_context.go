@@ -362,7 +362,7 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
 		},
 		Contains:        CONTAINS_FILES,
-		GetSelectedItem: func() ListItem { return gui.getSelectedCommit() },
+		GetSelectedItem: func() ListItem { return gui.getSelectedLocalCommit() },
 	}
 }
 

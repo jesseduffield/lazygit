@@ -47,7 +47,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 	case COMMIT_FILES_CONTEXT_KEY:
 		// not supporting commit files for now
 	case BRANCH_COMMITS_CONTEXT_KEY:
-		item := gui.getSelectedCommit()
+		item := gui.getSelectedLocalCommit()
 		if item != nil {
 			return []string{item.RefName()}
 		}

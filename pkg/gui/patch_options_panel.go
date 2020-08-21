@@ -43,7 +43,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		}...)
 
 		if gui.currentContext() == gui.Contexts.BranchCommits.Context {
-			selectedCommit := gui.getSelectedCommit()
+			selectedCommit := gui.getSelectedLocalCommit()
 			if selectedCommit != nil && gui.GitCommand.PatchManager.Parent != selectedCommit.Sha {
 				// adding this option to index 1
 				menuItems = append(
