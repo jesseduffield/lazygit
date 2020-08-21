@@ -22,7 +22,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 		return nil
 	}
 
-	diff, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, true)
+	diff, err := gui.GitCommand.ShowCommitFile(commitFile.Parent, commitFile.Name, true)
 	if err != nil {
 		return err
 	}
