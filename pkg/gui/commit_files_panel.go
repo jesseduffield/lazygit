@@ -27,7 +27,7 @@ func (gui *Gui) handleCommitFileSelect() error {
 	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Sha, commitFile.Name, false),
+		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Parent, commitFile.Name, false),
 	)
 	task := gui.createRunPtyTask(cmd)
 
@@ -43,7 +43,7 @@ func (gui *Gui) handleCommitFileSelect() error {
 func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
 	file := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLineIdx]
 
-	if err := gui.GitCommand.CheckoutFile(file.Sha, file.Name); err != nil {
+	if err := gui.GitCommand.CheckoutFile(file.Parent, file.Name); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -133,7 +133,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommitFilesView()
 	}
 
-	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
+	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Parent {
 		return gui.ask(askOpts{
 			returnToView:       v,
 			returnFocusOnClose: true,
@@ -152,7 +152,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) startPatchManager() error {
 	diffMap := map[string]string{}
 	for _, commitFile := range gui.State.CommitFiles {
-		commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, true)
+		commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Parent, commitFile.Name, true)
 		if err != nil {
 			return err
 		}
@@ -196,7 +196,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		return gui.refreshPatchBuildingPanel(selectedLineIdx)
 	}
 
-	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Sha {
+	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Parent {
 		return gui.ask(askOpts{
 			returnToView:       gui.getCommitFilesView(),
 			returnFocusOnClose: false,

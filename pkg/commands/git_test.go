@@ -1874,8 +1874,8 @@ func TestGitCommandGetFilesInRef(t *testing.T) {
 			func(commitFiles []*CommitFile, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, []*CommitFile{
-					{Sha: "123456", Name: "hello", DisplayString: "hello"},
-					{Sha: "123456", Name: "world", DisplayString: "world"},
+					{Parent: "123456", Name: "hello", DisplayString: "hello"},
+					{Parent: "123456", Name: "world", DisplayString: "world"},
 				}, commitFiles)
 			},
 		},

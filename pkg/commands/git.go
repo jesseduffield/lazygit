@@ -1046,13 +1046,13 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 }
 
 // GetFilesInRef get the specified commit files
-func (c *GitCommand) GetFilesInRef(commitSha string, isStash bool, patchManager *patch.PatchManager) ([]*CommitFile, error) {
+func (c *GitCommand) GetFilesInRef(parent string, isStash bool, patchManager *patch.PatchManager) ([]*CommitFile, error) {
 	command := "git diff-tree"
 	if isStash {
 		command = "git stash show"
 	}
 
-	files, err := c.OSCommand.RunCommandWithOutput("%s --no-commit-id --name-only -r --no-renames %s", command, commitSha)
+	files, err := c.OSCommand.RunCommandWithOutput("%s --no-commit-id --name-only -r --no-renames %s", command, parent)
 	if err != nil {
 		return nil, err
 	}
@@ -1061,12 +1061,12 @@ func (c *GitCommand) GetFilesInRef(commitSha string, isStash bool, patchManager 
 
 	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
 		status := patch.UNSELECTED
-		if patchManager != nil && patchManager.CommitSha == commitSha {
+		if patchManager != nil && patchManager.CommitSha == parent {
 			status = patchManager.GetFileStatus(file)
 		}
 
 		commitFiles = append(commitFiles, &CommitFile{
-			Sha:           commitSha,
+			Parent:        parent,
 			Name:          file,
 			DisplayString: file,
 			Status:        status,
