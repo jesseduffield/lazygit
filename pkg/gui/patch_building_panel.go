@@ -6,7 +6,7 @@ import (
 )
 
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
-	if !gui.GitCommand.PatchManager.CommitSelected() {
+	if !gui.GitCommand.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 
@@ -88,7 +88,7 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 func (gui *Gui) refreshSecondaryPatchPanel() error {
 	// TODO: swap out for secondaryPatchPanelUpdateOpts
 
-	if gui.GitCommand.PatchManager.CommitSelected() {
+	if gui.GitCommand.PatchManager.Active() {
 		gui.splitMainPanel(true)
 		secondaryView := gui.getSecondaryView()
 		secondaryView.Highlight = true
@@ -106,7 +106,7 @@ func (gui *Gui) refreshSecondaryPatchPanel() error {
 }
 
 func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
-	if gui.GitCommand.PatchManager.CommitSelected() {
+	if gui.GitCommand.PatchManager.Active() {
 		patch := gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false)
 
 		return &viewUpdateOpts{

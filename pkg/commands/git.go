@@ -1061,7 +1061,7 @@ func (c *GitCommand) GetFilesInRef(parent string, isStash bool, patchManager *pa
 
 	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
 		status := patch.UNSELECTED
-		if patchManager != nil && patchManager.CommitSha == parent {
+		if patchManager != nil && patchManager.Parent == parent {
 			status = patchManager.GetFileStatus(file)
 		}
 

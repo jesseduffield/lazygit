@@ -12,7 +12,7 @@ const (
 	UNSELECTED = iota
 	// WHOLE is for when you want to add the whole diff of a file to the patch,
 	// including e.g. if it was deleted
-	WHOLE = iota
+	WHOLE
 	// PART is for when you're only talking about specific lines that have been modified
 	PART
 )
@@ -25,9 +25,13 @@ type fileInfo struct {
 
 type applyPatchFunc func(patch string, flags ...string) error
 
-// PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit)
+// PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
 type PatchManager struct {
-	CommitSha   string
+	// Parent is the commit sha if we're dealing with files of a commit, or a stash ref for a stash
+	Parent string
+
+	// CanRebase tells us whether we're allowed to modify our commits. CanRebase should be true for commits of the currently checked out branch and false for everything else
+	CanRebase   bool
 	fileInfoMap map[string]*fileInfo
 	Log         *logrus.Entry
 	ApplyPatch  applyPatchFunc
@@ -42,8 +46,8 @@ func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc) *PatchManager
 }
 
 // NewPatchManager returns a new PatchManager
-func (p *PatchManager) Start(commitSha string, diffMap map[string]string) {
-	p.CommitSha = commitSha
+func (p *PatchManager) Start(parent string, diffMap map[string]string) {
+	p.Parent = parent
 	p.fileInfoMap = map[string]*fileInfo{}
 	for filename, diff := range diffMap {
 		p.fileInfoMap[filename] = &fileInfo{
@@ -219,12 +223,12 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 
 // clears the patch
 func (p *PatchManager) Reset() {
-	p.CommitSha = ""
+	p.Parent = ""
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
-func (p *PatchManager) CommitSelected() bool {
-	return p.CommitSha != ""
+func (p *PatchManager) Active() bool {
+	return p.Parent != ""
 }
 
 func (p *PatchManager) IsEmpty() bool {

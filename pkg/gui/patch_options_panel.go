@@ -7,13 +7,13 @@ import (
 )
 
 func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
-	if !gui.GitCommand.PatchManager.CommitSelected() {
+	if !gui.GitCommand.PatchManager.Active() {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoPatchError"))
 	}
 
 	menuItems := []*menuItem{
 		{
-			displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.CommitSha),
+			displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.Parent),
 			onPress:       gui.handleDeletePatchFromCommit,
 		},
 		{
@@ -39,7 +39,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 	}
 
 	selectedCommit := gui.getSelectedCommit()
-	if selectedCommit != nil && gui.GitCommand.PatchManager.CommitSha != selectedCommit.Sha {
+	if selectedCommit != nil && gui.GitCommand.PatchManager.Parent != selectedCommit.Sha {
 		// adding this option to index 1
 		menuItems = append(
 			menuItems[:1],
@@ -59,7 +59,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 
 func (gui *Gui) getPatchCommitIndex() int {
 	for index, commit := range gui.State.Commits {
-		if commit.Sha == gui.GitCommand.PatchManager.CommitSha {
+		if commit.Sha == gui.GitCommand.PatchManager.Parent {
 			return index
 		}
 	}
