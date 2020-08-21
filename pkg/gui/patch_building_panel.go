@@ -82,7 +82,11 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 		gui.GitCommand.PatchManager.Reset()
 	}
 
-	return gui.switchContext(gui.Contexts.CommitFiles.Context)
+	if gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.Context.GetKey() {
+		return gui.switchContext(gui.Contexts.CommitFiles.Context)
+	}
+
+	return nil
 }
 
 func (gui *Gui) refreshSecondaryPatchPanel() error {
