@@ -37,14 +37,14 @@ type CommitListBuilder struct {
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *OSCommand, tr *i18n.Localizer, cherryPickedCommits []*Commit) (*CommitListBuilder, error) {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *OSCommand, tr *i18n.Localizer, cherryPickedCommits []*Commit) *CommitListBuilder {
 	return &CommitListBuilder{
 		Log:                 log,
 		GitCommand:          gitCommand,
 		OSCommand:           osCommand,
 		Tr:                  tr,
 		CherryPickedCommits: cherryPickedCommits,
-	}, nil
+	}
 }
 
 // extractCommitFromLine takes a line from a git log and extracts the sha, message, date, and tag if present
@@ -82,33 +82,40 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 }
 
 type GetCommitsOptions struct {
-	Limit      bool
-	FilterPath string
+	Limit                bool
+	FilterPath           string
+	IncludeRebaseCommits bool
+	RefName              string // e.g. "HEAD" or "my_branch"
 }
 
 // GetCommits obtains the commits of the current branch
-func (c *CommitListBuilder) GetCommits(options GetCommitsOptions) ([]*Commit, error) {
+func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*Commit, error) {
 	commits := []*Commit{}
 	var rebasingCommits []*Commit
-	rebaseMode, err := c.GitCommand.RebaseMode()
-	if err != nil {
-		return nil, err
-	}
-	if rebaseMode != "" && options.FilterPath == "" {
-		// here we want to also prepend the commits that we're in the process of rebasing
-		rebasingCommits, err = c.getRebasingCommits(rebaseMode)
+	rebaseMode := ""
+
+	if opts.IncludeRebaseCommits {
+		var err error
+		rebaseMode, err = c.GitCommand.RebaseMode()
 		if err != nil {
 			return nil, err
 		}
-		if len(rebasingCommits) > 0 {
-			commits = append(commits, rebasingCommits...)
+		if rebaseMode != "" && opts.FilterPath == "" {
+			// here we want to also prepend the commits that we're in the process of rebasing
+			rebasingCommits, err = c.getRebasingCommits(rebaseMode)
+			if err != nil {
+				return nil, err
+			}
+			if len(rebasingCommits) > 0 {
+				commits = append(commits, rebasingCommits...)
+			}
 		}
 	}
 
-	unpushedCommits := c.getUnpushedCommits()
-	cmd := c.getLogCmd(options)
+	unpushedCommits := c.getUnpushedCommits(opts.RefName)
+	cmd := c.getLogCmd(opts)
 
-	err = RunLineOutputCmd(cmd, func(line string) (bool, error) {
+	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		if strings.Split(line, " ")[0] != "gpg:" {
 			commit := c.extractCommitFromLine(line)
 			_, unpushed := unpushedCommits[commit.ShortSha()]
@@ -287,9 +294,9 @@ func (c *CommitListBuilder) getMergeBase() (string, error) {
 
 // getUnpushedCommits Returns the sha's of the commits that have not yet been pushed
 // to the remote branch of the current branch, a map is returned to ease look up
-func (c *CommitListBuilder) getUnpushedCommits() map[string]bool {
+func (c *CommitListBuilder) getUnpushedCommits(refName string) map[string]bool {
 	pushables := map[string]bool{}
-	o, err := c.OSCommand.RunCommandWithOutput("git rev-list @{u}..HEAD --abbrev-commit --abbrev=8")
+	o, err := c.OSCommand.RunCommandWithOutput("git rev-list %s@{u}..%s --abbrev-commit --abbrev=8", refName, refName)
 	if err != nil {
 		return pushables
 	}
@@ -301,16 +308,16 @@ func (c *CommitListBuilder) getUnpushedCommits() map[string]bool {
 }
 
 // getLog gets the git log.
-func (c *CommitListBuilder) getLogCmd(options GetCommitsOptions) *exec.Cmd {
+func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 	limitFlag := ""
-	if options.Limit {
+	if opts.Limit {
 		limitFlag = "-300"
 	}
 
 	filterFlag := ""
-	if options.FilterPath != "" {
-		filterFlag = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(options.FilterPath))
+	if opts.FilterPath != "" {
+		filterFlag = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(opts.FilterPath))
 	}
 
-	return c.OSCommand.ExecutableFromString(fmt.Sprintf("git log --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%s\" %s --abbrev=%d --date=unix %s", SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20, filterFlag))
+	return c.OSCommand.ExecutableFromString(fmt.Sprintf("git log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%s\" %s --abbrev=%d --date=unix %s", opts.RefName, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20, filterFlag))
 }

@@ -98,12 +98,16 @@ func (gui *Gui) refreshCommits() error {
 }
 
 func (gui *Gui) refreshCommitsWithLimit() error {
-	builder, err := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits)
-	if err != nil {
-		return err
-	}
+	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits)
 
-	commits, err := builder.GetCommits(commands.GetCommitsOptions{Limit: gui.State.Panels.Commits.LimitCommits, FilterPath: gui.State.FilterPath})
+	commits, err := builder.GetCommits(
+		commands.GetCommitsOptions{
+			Limit:                gui.State.Panels.Commits.LimitCommits,
+			FilterPath:           gui.State.FilterPath,
+			IncludeRebaseCommits: true,
+			RefName:              "HEAD",
+		},
+	)
 	if err != nil {
 		return err
 	}

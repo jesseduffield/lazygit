@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/gocui"
 )
 
@@ -22,6 +23,7 @@ const (
 	TAGS_CONTEXT_KEY                = "tags"
 	BRANCH_COMMITS_CONTEXT_KEY      = "commits"
 	REFLOG_COMMITS_CONTEXT_KEY      = "reflogCommits"
+	SUB_COMMITS_CONTEXT_KEY         = "subCommits"
 	COMMIT_FILES_CONTEXT_KEY        = "commitFiles"
 	STASH_CONTEXT_KEY               = "stash"
 	MAIN_NORMAL_CONTEXT_KEY         = "normal"
@@ -129,6 +131,7 @@ type ContextTree struct {
 	BranchCommits SimpleContextNode
 	CommitFiles   SimpleContextNode
 	ReflogCommits SimpleContextNode
+	SubCommits    SimpleContextNode
 	Stash         SimpleContextNode
 	Normal        SimpleContextNode
 	Staging       SimpleContextNode
@@ -160,6 +163,7 @@ func (gui *Gui) allContexts() []Context {
 		gui.Contexts.Staging.Context,
 		gui.Contexts.Merging.Context,
 		gui.Contexts.PatchBuilding.Context,
+		gui.Contexts.SubCommits.Context,
 	}
 }
 
@@ -193,6 +197,9 @@ func (gui *Gui) contextTree() ContextTree {
 		},
 		ReflogCommits: SimpleContextNode{
 			Context: gui.reflogCommitsListContext(),
+		},
+		SubCommits: SimpleContextNode{
+			Context: gui.subCommitsListContext(),
 		},
 		Branches: SimpleContextNode{
 			Context: gui.branchesListContext(),
@@ -508,6 +515,31 @@ func (gui *Gui) currentContext() Context {
 	}
 
 	return gui.State.ContextStack[len(gui.State.ContextStack)-1]
+}
+
+func (gui *Gui) currentSideContext() *ListContext {
+	stack := gui.State.ContextStack
+
+	// on startup the stack can be empty so we'll return an empty string in that case
+	if len(stack) == 0 {
+		return nil
+	}
+
+	// find the first context in the stack with the type of SIDE_CONTEXT
+	for i := range stack {
+		context := stack[len(stack)-1-i]
+
+		if context.GetKind() == SIDE_CONTEXT {
+			gui.Log.Warn(spew.Sdump(context.GetKey()))
+			return context.(*ListContext)
+		}
+	}
+
+	return nil
+}
+
+func (gui *Gui) defaultSideContext() Context {
+	return gui.Contexts.Files.Context
 }
 
 func (gui *Gui) setInitialViewContexts() {

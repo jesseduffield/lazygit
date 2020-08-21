@@ -173,6 +173,13 @@ type reflogCommitPanelState struct {
 	listPanelState
 }
 
+type subCommitPanelState struct {
+	listPanelState
+
+	// e.g. name of branch whose commits we're looking at
+	refName string
+}
+
 type stashPanelState struct {
 	listPanelState
 }
@@ -199,6 +206,7 @@ type panelStates struct {
 	Tags           *tagsPanelState
 	Commits        *commitPanelState
 	ReflogCommits  *reflogCommitPanelState
+	SubCommits     *subCommitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
 	LineByLine     *lineByLinePanelState
@@ -237,6 +245,7 @@ type guiState struct {
 	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
 	ReflogCommits         []*commands.Commit
+	SubCommits            []*commands.Commit
 	Remotes               []*commands.Remote
 	RemoteBranches        []*commands.RemoteBranch
 	Tags                  []*commands.Tag
@@ -289,13 +298,15 @@ func (gui *Gui) resetState() {
 		CherryPickedCommits:   make([]*commands.Commit, 0),
 		StashEntries:          make([]*commands.StashEntry, 0),
 		Panels: &panelStates{
+			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
 			Branches:       &branchPanelState{listPanelState{SelectedLineIdx: 0}},
 			Remotes:        &remotePanelState{listPanelState{SelectedLineIdx: 0}},
 			RemoteBranches: &remoteBranchesState{listPanelState{SelectedLineIdx: -1}},
 			Tags:           &tagsPanelState{listPanelState{SelectedLineIdx: -1}},
 			Commits:        &commitPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, LimitCommits: true},
-			ReflogCommits:  &reflogCommitPanelState{listPanelState{SelectedLineIdx: 0}}, // TODO: might need to make -1
+			ReflogCommits:  &reflogCommitPanelState{listPanelState{SelectedLineIdx: 0}},
+			SubCommits:     &subCommitPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, refName: ""},
 			CommitFiles:    &commitFilesPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, refName: ""},
 			Stash:          &stashPanelState{listPanelState{SelectedLineIdx: -1}},
 			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},

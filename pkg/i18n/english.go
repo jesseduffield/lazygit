@@ -1173,6 +1173,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "buildingPatch",
 			Other: "building patch",
+		}, &i18n.Message{
+			ID:    "viewCommits",
+			Other: "view commits",
 		},
 	)
 }
