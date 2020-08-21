@@ -2,7 +2,6 @@ package gui
 
 import (
 	"github.com/davecgh/go-spew/spew"
-	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
@@ -122,7 +121,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	toggleTheFile := func() error {
-		if !gui.GitCommand.PatchManager.CommitSelected() {
+		if !gui.GitCommand.PatchManager.Active() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
@@ -133,7 +132,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommitFilesView()
 	}
 
-	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Parent {
+	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.Parent != commitFile.Parent {
 		return gui.ask(askOpts{
 			returnToView:       v,
 			returnFocusOnClose: true,
@@ -151,6 +150,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) startPatchManager() error {
 	diffMap := map[string]string{}
+	// TODO: only load these files as we need to
 	for _, commitFile := range gui.State.CommitFiles {
 		commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Parent, commitFile.Name, true)
 		if err != nil {
@@ -159,12 +159,7 @@ func (gui *Gui) startPatchManager() error {
 		diffMap[commitFile.Name] = commitText
 	}
 
-	commit := gui.getSelectedCommit()
-	if commit == nil {
-		return errors.New("No commit selected")
-	}
-
-	gui.GitCommand.PatchManager.Start(commit.Sha, diffMap)
+	gui.GitCommand.PatchManager.Start(gui.State.Panels.CommitFiles.refName, diffMap)
 	return nil
 }
 
@@ -184,7 +179,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 	}
 
 	enterTheFile := func(selectedLineIdx int) error {
-		if !gui.GitCommand.PatchManager.CommitSelected() {
+		if !gui.GitCommand.PatchManager.Active() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
@@ -196,7 +191,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		return gui.refreshPatchBuildingPanel(selectedLineIdx)
 	}
 
-	if gui.GitCommand.PatchManager.CommitSelected() && gui.GitCommand.PatchManager.CommitSha != commitFile.Parent {
+	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.Parent != commitFile.Parent {
 		return gui.ask(askOpts{
 			returnToView:       gui.getCommitFilesView(),
 			returnFocusOnClose: false,

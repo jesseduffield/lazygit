@@ -887,7 +887,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Discard Patch",
 		}, &i18n.Message{
 			ID:    "DiscardPatchConfirm",
-			Other: "You can only build a patch from one commit at a time. Discard current patch?",
+			Other: "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
 		}, &i18n.Message{
 			ID:    "CantPatchWhileRebasingError",
 			Other: "You cannot build a patch or run patch commands while in a merging or rebasing state",
