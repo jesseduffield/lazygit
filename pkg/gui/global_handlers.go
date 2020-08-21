@@ -142,21 +142,18 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 	width, _ := v.Size()
 
 	// if we're in the normal context there will be a donate button here
-	// if we have ('reset') at the end then
-	if gui.inFilterMode() {
-		if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
+	if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
+		if gui.inFilterMode() {
 			return gui.exitFilterMode()
-		} else {
-			return nil
 		}
-	}
-
-	if gui.inDiffMode() {
-		if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
+		if gui.inDiffMode() {
 			return gui.exitDiffMode()
-		} else {
-			return nil
 		}
+		if gui.GitCommand.PatchManager.Active() {
+			return gui.handleResetPatch()
+		}
+	} else {
+		return nil
 	}
 
 	if cx <= len(gui.Tr.SLocalize("Donate"))+len(INFO_SECTION_PADDING) {
