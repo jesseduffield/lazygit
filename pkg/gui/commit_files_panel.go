@@ -6,6 +6,20 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
+const (
+	// these are the possible ref types for refs that you can view files of.
+	// for local commits, we're allowed to build a patch and do things involving rebasing
+	// with that patch
+	REF_TYPE_LOCAL_COMMIT = iota
+
+	// for other kinds of commits like reflog commits, we can't do anything rebasey
+	REF_TYPE_OTHER_COMMIT
+
+	// for stash entries we can't do anything rebasey, and the command for
+	// obtaining the files is slightly different
+	REF_TYPE_STASH
+)
+
 func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
 	selectedLine := gui.State.Panels.CommitFiles.SelectedLineIdx
 	if selectedLine == -1 {
@@ -80,7 +94,8 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return err
 	}
 
-	files, err := gui.GitCommand.GetFilesInRef(gui.State.Panels.CommitFiles.refName, gui.State.Panels.CommitFiles.isStash, gui.GitCommand.PatchManager)
+	isStash := gui.State.Panels.CommitFiles.refType == REF_TYPE_STASH
+	files, err := gui.GitCommand.GetFilesInRef(gui.State.Panels.CommitFiles.refName, isStash, gui.GitCommand.PatchManager)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -159,7 +174,8 @@ func (gui *Gui) startPatchManager() error {
 		diffMap[commitFile.Name] = commitText
 	}
 
-	gui.GitCommand.PatchManager.Start(gui.State.Panels.CommitFiles.refName, diffMap)
+	canRebase := gui.State.Panels.CommitFiles.refType == REF_TYPE_LOCAL_COMMIT
+	gui.GitCommand.PatchManager.Start(gui.State.Panels.CommitFiles.refName, diffMap, canRebase)
 	return nil
 }
 
@@ -210,14 +226,14 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 	return enterTheFile(selectedLineIdx)
 }
 
-func (gui *Gui) switchToCommitFilesContext(refName string, isStash bool, context Context, windowName string) error {
+func (gui *Gui) switchToCommitFilesContext(refName string, refType int, context Context, windowName string) error {
 	// sometimes the commitFiles view is already shown in another window, so we need to ensure that window
 	// no longer considers the commitFiles view as its main view.
 	gui.resetWindowForView("commitFiles")
 
 	gui.State.Panels.CommitFiles.SelectedLineIdx = 0
 	gui.State.Panels.CommitFiles.refName = refName
-	gui.State.Panels.CommitFiles.isStash = isStash
+	gui.State.Panels.CommitFiles.refType = refType
 	gui.Contexts.CommitFiles.Context.SetParentContext(context)
 	gui.Contexts.CommitFiles.Context.SetWindowName(windowName)
 

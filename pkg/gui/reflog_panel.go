@@ -119,5 +119,5 @@ func (gui *Gui) handleViewReflogCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.ReflogCommits.Context, "commits")
+	return gui.switchToCommitFilesContext(commit.Sha, REF_TYPE_OTHER_COMMIT, gui.Contexts.ReflogCommits.Context, "commits")
 }

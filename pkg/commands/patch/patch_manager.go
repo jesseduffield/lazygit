@@ -46,8 +46,9 @@ func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc) *PatchManager
 }
 
 // NewPatchManager returns a new PatchManager
-func (p *PatchManager) Start(parent string, diffMap map[string]string) {
+func (p *PatchManager) Start(parent string, diffMap map[string]string, canRebase bool) {
 	p.Parent = parent
+	p.CanRebase = canRebase
 	p.fileInfoMap = map[string]*fileInfo{}
 	for filename, diff := range diffMap {
 		p.fileInfoMap[filename] = &fileInfo{
