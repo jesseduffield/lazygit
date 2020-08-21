@@ -1170,6 +1170,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "viewStashFiles",
 			Other: "view stash entry's files",
+		}, &i18n.Message{
+			ID:    "buildingPatch",
+			Other: "building patch",
 		},
 	)
 }
