@@ -8,3 +8,7 @@ type Tag struct {
 func (t *Tag) RefName() string {
 	return t.Name
 }
+
+func (t *Tag) ID() string {
+	return t.RefName()
+}

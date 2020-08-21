@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/gocui"
 )
 
@@ -530,7 +529,6 @@ func (gui *Gui) currentSideContext() *ListContext {
 		context := stack[len(stack)-1-i]
 
 		if context.GetKind() == SIDE_CONTEXT {
-			gui.Log.Warn(spew.Sdump(context.GetKey()))
 			return context.(*ListContext)
 		}
 	}

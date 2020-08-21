@@ -13,3 +13,7 @@ func (r *RemoteBranch) FullName() string {
 func (r *RemoteBranch) RefName() string {
 	return r.FullName()
 }
+
+func (r *RemoteBranch) ID() string {
+	return r.RefName()
+}

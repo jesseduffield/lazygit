@@ -7,3 +7,7 @@ type CommitFile struct {
 	DisplayString string
 	Status        int // one of 'WHOLE' 'PART' 'NONE'
 }
+
+func (f *CommitFile) ID() string {
+	return f.Name
+}
