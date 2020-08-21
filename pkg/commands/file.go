@@ -36,3 +36,7 @@ func (f *File) Names() []string {
 func (f *File) Matches(f2 *File) bool {
 	return utils.StringArraysOverlap(f.Names(), f2.Names())
 }
+
+func (f *File) ID() string {
+	return f.Name
+}

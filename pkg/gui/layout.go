@@ -338,7 +338,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 func (gui *Gui) onInitialViewsCreation() error {
 	gui.setInitialViewContexts()
 
-	if err := gui.switchContext(gui.Contexts.Files.Context); err != nil {
+	if err := gui.switchContext(gui.defaultSideContext()); err != nil {
 		return err
 	}
 

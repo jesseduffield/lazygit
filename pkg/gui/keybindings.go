@@ -557,6 +557,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{LOCAL_BRANCHES_CONTEXT_KEY},
+			Key:         gui.getKey("universal.goInto"),
+			Handler:     gui.wrappedHandler(gui.handleSwitchToSubCommits),
+			Description: gui.Tr.SLocalize("viewCommits"),
+		},
+		{
+			ViewName:    "branches",
 			Contexts:    []string{TAGS_CONTEXT_KEY},
 			Key:         gui.getKey("universal.select"),
 			Handler:     gui.handleCheckoutTag,
@@ -592,6 +599,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
+			Contexts:    []string{TAGS_CONTEXT_KEY},
+			Key:         gui.getKey("universal.goInto"),
+			Handler:     gui.wrappedHandler(gui.handleSwitchToSubCommits),
+			Description: gui.Tr.SLocalize("viewCommits"),
+		},
+		{
+			ViewName:    "branches",
 			Key:         gui.getKey("universal.nextTab"),
 			Handler:     gui.handleNextTab,
 			Description: gui.Tr.SLocalize("nextTab"),
@@ -615,6 +629,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Handler:     gui.handleCreateResetToRemoteBranchMenu,
 			Description: gui.Tr.SLocalize("viewResetOptions"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{REMOTE_BRANCHES_CONTEXT_KEY},
+			Key:         gui.getKey("universal.goInto"),
+			Handler:     gui.wrappedHandler(gui.handleSwitchToSubCommits),
+			Description: gui.Tr.SLocalize("viewCommits"),
 		},
 		{
 			ViewName:    "branches",
@@ -816,6 +837,27 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts:    []string{REFLOG_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Handler:     gui.handleCreateReflogResetMenu,
+			Description: gui.Tr.SLocalize("viewResetOptions"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("universal.goInto"),
+			Handler:     gui.wrappedHandler(gui.handleViewSubCommitFiles),
+			Description: gui.Tr.SLocalize("viewCommitFiles"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("universal.select"),
+			Handler:     gui.handleCheckoutSubCommit,
+			Description: gui.Tr.SLocalize("checkoutCommit"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("commits.viewResetOptions"),
+			Handler:     gui.wrappedHandler(gui.handleCreateSubCommitResetMenu),
 			Description: gui.Tr.SLocalize("viewResetOptions"),
 		},
 		{
