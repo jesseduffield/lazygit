@@ -45,22 +45,22 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 				onPress:       gui.handlePullPatchIntoNewCommit,
 			},
 		}...)
-	}
 
-	selectedCommit := gui.getSelectedCommit()
-	if selectedCommit != nil && gui.GitCommand.PatchManager.Parent != selectedCommit.Sha {
-		// adding this option to index 1
-		menuItems = append(
-			menuItems[:1],
-			append(
-				[]*menuItem{
-					{
-						displayString: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
-						onPress:       gui.handleMovePatchToSelectedCommit,
-					},
-				}, menuItems[1:]...,
-			)...,
-		)
+		selectedCommit := gui.getSelectedCommit()
+		if selectedCommit != nil && gui.GitCommand.PatchManager.Parent != selectedCommit.Sha {
+			// adding this option to index 1
+			menuItems = append(
+				menuItems[:1],
+				append(
+					[]*menuItem{
+						{
+							displayString: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
+							onPress:       gui.handleMovePatchToSelectedCommit,
+						},
+					}, menuItems[1:]...,
+				)...,
+			)
+		}
 	}
 
 	return gui.createMenu(gui.Tr.SLocalize("PatchOptionsTitle"), menuItems, createMenuOptions{showCancel: true})
