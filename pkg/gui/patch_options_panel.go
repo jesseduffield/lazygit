@@ -46,20 +46,22 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 			},
 		}...)
 
-		selectedCommit := gui.getSelectedCommit()
-		if selectedCommit != nil && gui.GitCommand.PatchManager.Parent != selectedCommit.Sha {
-			// adding this option to index 1
-			menuItems = append(
-				menuItems[:1],
-				append(
-					[]*menuItem{
-						{
-							displayString: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
-							onPress:       gui.handleMovePatchToSelectedCommit,
-						},
-					}, menuItems[1:]...,
-				)...,
-			)
+		if gui.currentContext() == gui.Contexts.BranchCommits.Context {
+			selectedCommit := gui.getSelectedCommit()
+			if selectedCommit != nil && gui.GitCommand.PatchManager.Parent != selectedCommit.Sha {
+				// adding this option to index 1
+				menuItems = append(
+					menuItems[:1],
+					append(
+						[]*menuItem{
+							{
+								displayString: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
+								onPress:       gui.handleMovePatchToSelectedCommit,
+							},
+						}, menuItems[1:]...,
+					)...,
+				)
+			}
 		}
 	}
 
