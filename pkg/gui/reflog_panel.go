@@ -119,12 +119,5 @@ func (gui *Gui) handleViewReflogCommitFiles() error {
 		return nil
 	}
 
-	gui.State.Panels.CommitFiles.refName = commit.Sha
-	gui.Contexts.CommitFiles.Context.SetParentContext(gui.Contexts.ReflogCommits.Context)
-
-	if err := gui.refreshCommitFilesView(); err != nil {
-		return err
-	}
-
-	return gui.switchContext(gui.Contexts.CommitFiles.Context)
+	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.ReflogCommits.Context, "commits")
 }

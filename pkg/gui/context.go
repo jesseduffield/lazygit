@@ -41,6 +41,8 @@ type Context interface {
 	HandleRender() error
 	GetKind() int
 	GetViewName() string
+	GetWindowName() string
+	SetWindowName(string)
 	GetKey() string
 	GetSelectedItemId() string
 	SetParentContext(Context)
@@ -54,6 +56,15 @@ type BasicContext struct {
 	Kind        int
 	Key         string
 	ViewName    string
+}
+
+func (c BasicContext) SetWindowName(windowName string) {
+	panic("can't set window name on basic context")
+}
+
+func (c BasicContext) GetWindowName() string {
+	// TODO: fix this up
+	return c.GetViewName()
 }
 
 func (c BasicContext) SetParentContext(Context) {
@@ -433,6 +444,7 @@ func (gui *Gui) activateContext(c Context) error {
 		}
 	}
 
+	// ensure that any other window for which this view was active is now set to the default for that window.
 	gui.setViewAsActiveForWindow(viewName)
 
 	if viewName == "main" {

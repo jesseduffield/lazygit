@@ -50,7 +50,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	informationStr := gui.informationStr()
 	appStatus := gui.statusManager.getStatusString()
 
-	viewDimensions := gui.getViewDimensions(informationStr, appStatus)
+	viewDimensions := gui.getWindowDimensions(informationStr, appStatus)
 
 	_, _ = g.SetViewOnBottom("limit")
 	_ = g.DeleteView("limit")
@@ -152,7 +152,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.ContainsList = true
 	}
 
-	commitFilesView, err := setViewFromDimensions("commitFiles", "commits", true)
+	commitFilesView, err := setViewFromDimensions("commitFiles", gui.Contexts.CommitFiles.Context.GetWindowName(), true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err

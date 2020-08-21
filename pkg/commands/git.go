@@ -1045,9 +1045,14 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
-// GetCommitFiles get the specified commit files
-func (c *GitCommand) GetCommitFiles(commitSha string, patchManager *patch.PatchManager) ([]*CommitFile, error) {
-	files, err := c.OSCommand.RunCommandWithOutput("git diff-tree --no-commit-id --name-only -r --no-renames %s", commitSha)
+// GetFilesInRef get the specified commit files
+func (c *GitCommand) GetFilesInRef(commitSha string, isStash bool, patchManager *patch.PatchManager) ([]*CommitFile, error) {
+	command := "git diff-tree"
+	if isStash {
+		command = "git stash show"
+	}
+
+	files, err := c.OSCommand.RunCommandWithOutput("%s --no-commit-id --name-only -r --no-renames %s", command, commitSha)
 	if err != nil {
 		return nil, err
 	}
@@ -1083,7 +1088,7 @@ func (c *GitCommand) ShowCommitFileCmdStr(commitSha, fileName string, plain bool
 		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git show --no-renames --color=%s %s -- %s", colorArg, commitSha, fileName)
+	return fmt.Sprintf("git diff --no-renames --color=%s %s^..%s -- %s", colorArg, commitSha, commitSha, fileName)
 }
 
 // CheckoutFile checks out the file for the given commit

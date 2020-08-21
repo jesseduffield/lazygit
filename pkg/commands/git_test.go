@@ -1852,8 +1852,8 @@ func TestGitCommandShowCommitFile(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetCommitFiles is a function.
-func TestGitCommandGetCommitFiles(t *testing.T) {
+// TestGitCommandGetFilesInRef is a function.
+func TestGitCommandGetFilesInRef(t *testing.T) {
 	type scenario struct {
 		testName  string
 		commitSha string
@@ -1886,7 +1886,7 @@ func TestGitCommandGetCommitFiles(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.GetCommitFiles(s.commitSha, nil))
+			s.test(gitCmd.GetFilesInRef(s.commitSha, false, nil))
 		})
 	}
 }

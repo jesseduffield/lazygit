@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -80,11 +81,13 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return err
 	}
 
-	files, err := gui.GitCommand.GetCommitFiles(gui.State.Panels.CommitFiles.refName, gui.GitCommand.PatchManager)
+	files, err := gui.GitCommand.GetFilesInRef(gui.State.Panels.CommitFiles.refName, gui.State.Panels.CommitFiles.isStash, gui.GitCommand.PatchManager)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
 	gui.State.CommitFiles = files
+
+	gui.Log.Warn(spew.Sdump(files))
 
 	return gui.postRefreshUpdate(gui.Contexts.CommitFiles.Context)
 }
@@ -210,4 +213,24 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 	}
 
 	return enterTheFile(selectedLineIdx)
+}
+
+func (gui *Gui) switchToCommitFilesContext(refName string, isStash bool, context Context, windowName string) error {
+	// sometimes the commitFiles view is already shown in another window, so we need to ensure that window
+	// no longer considers the commitFiles view as its main view.
+
+	window := gui.getWindowForViewName("commitFiles")
+	gui.State.WindowViewNameMap[window] = window
+
+	gui.State.Panels.CommitFiles.SelectedLineIdx = 0
+	gui.State.Panels.CommitFiles.refName = refName
+	gui.State.Panels.CommitFiles.isStash = isStash
+	gui.Contexts.CommitFiles.Context.SetParentContext(context)
+	gui.Contexts.CommitFiles.Context.SetWindowName(windowName)
+
+	if err := gui.refreshCommitFilesView(); err != nil {
+		return err
+	}
+
+	return gui.switchContext(gui.Contexts.CommitFiles.Context)
 }

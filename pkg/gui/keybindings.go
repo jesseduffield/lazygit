@@ -820,6 +820,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "stash",
+			Key:         gui.getKey("universal.goInto"),
+			Handler:     gui.wrappedHandler(gui.handleViewStashFiles),
+			Description: gui.Tr.SLocalize("viewStashFiles"),
+		},
+		{
+			ViewName:    "stash",
 			Key:         gui.getKey("universal.select"),
 			Handler:     gui.handleStashApply,
 			Description: gui.Tr.SLocalize("apply"),

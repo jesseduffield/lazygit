@@ -16,9 +16,8 @@ func (gui *Gui) getViewNameForWindow(window string) string {
 }
 
 func (gui *Gui) getWindowForViewName(viewName string) string {
-	// should soft-code this
 	if viewName == "commitFiles" {
-		return "commits"
+		return gui.Contexts.CommitFiles.Context.GetWindowName()
 	}
 
 	return viewName

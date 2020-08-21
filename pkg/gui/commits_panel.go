@@ -505,14 +505,7 @@ func (gui *Gui) handleViewCommitFiles() error {
 		return nil
 	}
 
-	gui.State.Panels.CommitFiles.refName = commit.Sha
-	gui.Contexts.CommitFiles.Context.SetParentContext(gui.Contexts.BranchCommits.Context)
-
-	if err := gui.refreshCommitFilesView(); err != nil {
-		return err
-	}
-
-	return gui.switchContext(gui.Contexts.CommitFiles.Context)
+	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.BranchCommits.Context, "commits")
 }
 
 func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool) {
