@@ -20,10 +20,26 @@ type ListContext struct {
 	RendersToMainView bool
 	Kind              int
 	ParentContext     Context
+	WindowName        string
 }
 
 type ListItem interface {
 	ID() string
+}
+
+func (lc *ListContext) SetWindowName(windowName string) {
+	lc.WindowName = windowName
+}
+
+func (lc *ListContext) GetWindowName() string {
+	windowName := lc.WindowName
+
+	if windowName != "" {
+		return windowName
+	}
+
+	// TODO: actually set this for everything so we don't default to the view name
+	return lc.ViewName
 }
 
 func (lc *ListContext) SetParentContext(c Context) {
@@ -371,6 +387,7 @@ func (gui *Gui) stashListContext() *ListContext {
 func (gui *Gui) commitFilesListContext() *ListContext {
 	return &ListContext{
 		ViewName:          "commitFiles",
+		WindowName:        "commits",
 		ContextKey:        COMMIT_FILES_CONTEXT_KEY,
 		GetItemsLength:    func() int { return len(gui.State.CommitFiles) },
 		GetPanelState:     func() IListPanelState { return gui.State.Panels.CommitFiles },

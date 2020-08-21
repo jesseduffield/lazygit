@@ -128,3 +128,12 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 		return gui.refreshSidePanels(refreshOptions{scope: []int{STASH, FILES}})
 	})
 }
+
+func (gui *Gui) handleViewStashFiles() error {
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
+	return gui.switchToCommitFilesContext(stashEntry.RefName(), true, gui.Contexts.Stash.Context, "stash")
+}

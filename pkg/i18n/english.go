@@ -1167,6 +1167,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "createNewBranchFromCommit",
 			Other: "create new branch off of commit",
+		}, &i18n.Message{
+			ID:    "viewStashFiles",
+			Other: "view stash entry's files",
 		},
 	)
 }

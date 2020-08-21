@@ -188,6 +188,7 @@ type commitFilesPanelState struct {
 	// this is the SHA of the commit or the stash index of the stash.
 	// Not sure if ref is actually the right word here
 	refName string
+	isStash bool // true if we're dealing with a stash entry rather than a commit
 }
 
 type panelStates struct {
