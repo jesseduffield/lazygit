@@ -125,7 +125,11 @@ func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
 func (gui *Gui) handleCopyPatchToClipboard() error {
 	// TODO: test that this works
 
-	return gui.OSCommand.CopyToClipboard(
+	if err := gui.OSCommand.CopyToClipboard(
 		strings.Join(gui.GitCommand.PatchManager.RenderEachFilePatch(true), "\n"),
-	)
+	); err != nil {
+		return gui.surfaceError(err)
+	}
+
+	return nil
 }
