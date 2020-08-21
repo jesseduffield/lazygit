@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
@@ -100,8 +99,6 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return gui.surfaceError(err)
 	}
 	gui.State.CommitFiles = files
-
-	gui.Log.Warn(spew.Sdump(files))
 
 	return gui.postRefreshUpdate(gui.Contexts.CommitFiles.Context)
 }
