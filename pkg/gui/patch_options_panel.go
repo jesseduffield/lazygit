@@ -13,8 +13,8 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 
 	menuItems := []*menuItem{
 		{
-			displayString: "copy patch to clipboard",
-			onPress:       gui.handleCopyPatchToClipboard,
+			displayString: "reset patch",
+			onPress:       gui.handleResetPatch,
 		},
 		{
 			displayString: "apply patch",
@@ -23,10 +23,6 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		{
 			displayString: "apply patch in reverse",
 			onPress:       func() error { return gui.handleApplyPatch(true) },
-		},
-		{
-			displayString: "reset patch",
-			onPress:       gui.handleResetPatch,
 		},
 	}
 
