@@ -496,7 +496,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "branches",
 			Contexts:    []string{LOCAL_BRANCHES_CONTEXT_KEY},
 			Key:         gui.getKey("universal.new"),
-			Handler:     gui.handleNewBranch,
+			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCurrentItem),
 			Description: gui.Tr.SLocalize("newBranch"),
 		},
 		{
@@ -801,7 +801,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("universal.new"),
 			Modifier:    gocui.ModNone,
-			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCommit),
+			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCurrentItem),
 			Description: gui.Tr.SLocalize("createNewBranchFromCommit"),
 		},
 		{
@@ -859,6 +859,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Handler:     gui.wrappedHandler(gui.handleCreateSubCommitResetMenu),
 			Description: gui.Tr.SLocalize("viewResetOptions"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("universal.new"),
+			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCurrentItem),
+			Description: gui.Tr.SLocalize("newBranch"),
 		},
 		{
 			ViewName:    "stash",
@@ -1358,10 +1365,9 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "branches",
 			Contexts:    []string{REMOTE_BRANCHES_CONTEXT_KEY},
 			Key:         gui.getKey("universal.new"),
-			Handler:     gui.handleNewBranchOffRemote,
+			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCurrentItem),
 			Description: gui.Tr.SLocalize("newBranch"),
 		},
-
 		{
 			ViewName:    "branches",
 			Contexts:    []string{REMOTE_BRANCHES_CONTEXT_KEY},

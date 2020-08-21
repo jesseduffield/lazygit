@@ -46,6 +46,7 @@ type Context interface {
 	SetWindowName(string)
 	GetKey() string
 	GetSelectedItemId() string
+	GetSelectedItem() ListItem
 	SetParentContext(Context)
 	GetParentContext() Context
 }
@@ -61,6 +62,10 @@ type BasicContext struct {
 
 func (c BasicContext) SetWindowName(windowName string) {
 	panic("can't set window name on basic context")
+}
+
+func (c BasicContext) GetSelectedItem() ListItem {
+	return nil
 }
 
 func (c BasicContext) GetWindowName() string {
@@ -676,4 +681,15 @@ func (gui *Gui) rerenderView(viewName string) error {
 	context := gui.contextForContextKey(contextKey)
 
 	return context.HandleRender()
+}
+
+func (gui *Gui) getCurrentSideView() *gocui.View {
+	currentSideContext := gui.currentSideContext()
+	if currentSideContext == nil {
+		return nil
+	}
+
+	view, _ := gui.g.View(currentSideContext.GetViewName())
+
+	return view
 }
