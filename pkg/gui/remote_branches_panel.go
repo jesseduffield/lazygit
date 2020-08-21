@@ -122,27 +122,3 @@ func (gui *Gui) handleCreateResetToRemoteBranchMenu(g *gocui.Gui, v *gocui.View)
 
 	return gui.createResetMenu(selectedBranch.FullName())
 }
-
-func (gui *Gui) handleNewBranchOffRemote(g *gocui.Gui, v *gocui.View) error {
-	branch := gui.getSelectedRemoteBranch()
-	if branch == nil {
-		return nil
-	}
-	message := gui.Tr.TemplateLocalize(
-		"NewBranchNameBranchOff",
-		Teml{
-			"branchName": branch.FullName(),
-		},
-	)
-	return gui.prompt(v, message, branch.FullName(), func(response string) error {
-		if err := gui.GitCommand.NewBranch(response, branch.FullName()); err != nil {
-			return gui.surfaceError(err)
-		}
-		gui.State.Panels.Branches.SelectedLineIdx = 0
-
-		if err := gui.switchContext(gui.Contexts.Branches.Context); err != nil {
-			return err
-		}
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-	})
-}

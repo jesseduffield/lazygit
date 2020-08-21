@@ -221,22 +221,6 @@ func (gui *Gui) getCheckedOutBranch() *commands.Branch {
 	return gui.State.Branches[0]
 }
 
-func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
-	branch := gui.getSelectedBranch()
-	if branch == nil {
-		return nil
-	}
-	message := gui.Tr.TemplateLocalize(
-		"NewBranchNameBranchOff",
-		Teml{
-			"branchName": branch.Name,
-		},
-	)
-	return gui.prompt(v, message, "", func(response string) error {
-		return gui.createNewBranchWithName(response)
-	})
-}
-
 func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 	branch := gui.getSelectedBranch()
 	if branch == nil {
