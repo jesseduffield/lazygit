@@ -10,7 +10,7 @@ import (
 
 // list panel functions
 
-func (gui *Gui) getSelectedCommit() *commands.Commit {
+func (gui *Gui) getSelectedLocalCommit() *commands.Commit {
 	selectedLine := gui.State.Panels.Commits.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
@@ -33,7 +33,7 @@ func (gui *Gui) handleCommitSelect() error {
 	gui.handleEscapeLineByLinePanel()
 
 	var task updateTask
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	} else {
@@ -197,7 +197,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(gui.Tr.SLocalize("OnlyRenameTopCommit"))
 	}
 
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
@@ -504,7 +504,7 @@ func (gui *Gui) HandlePasteCommits(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleViewCommitFiles() error {
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
@@ -530,7 +530,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
@@ -560,7 +560,7 @@ func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) er
 		return err
 	}
 
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
@@ -588,7 +588,7 @@ func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
 	// TODO: bring up menu asking if you want to make a lightweight or annotated tag
 	// if annotated, switch to a subprocess to create the message
 
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
@@ -606,7 +606,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 }
 
 func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
@@ -623,7 +623,7 @@ func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	}
@@ -667,7 +667,7 @@ func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 }
 
 func (gui *Gui) handleClipboardCopyCommit(g *gocui.Gui, v *gocui.View) error {
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
@@ -676,7 +676,7 @@ func (gui *Gui) handleClipboardCopyCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleNewBranchOffCommit() error {
-	commit := gui.getSelectedCommit()
+	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
@@ -688,7 +688,7 @@ func (gui *Gui) handleNewBranchOffCommit() error {
 		},
 	)
 
-	return gui.prompt(gui.getCommitsView(), message, "", func(response string) error {
+	return gui.prompt(gui.getCurrentSideView(), message, "", func(response string) error {
 		if err := gui.GitCommand.NewBranch(response, commit.Sha); err != nil {
 			return err
 		}
