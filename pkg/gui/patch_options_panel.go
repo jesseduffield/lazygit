@@ -13,7 +13,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 
 	menuItems := []*menuItem{
 		{
-			displayString: "copy patch",
+			displayString: "copy patch to clipboard",
 			onPress:       gui.handleCopyPatchToClipboard,
 		},
 		{
