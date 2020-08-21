@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -118,4 +120,12 @@ func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
 	}
 
 	return nil
+}
+
+func (gui *Gui) handleCopyPatchToClipboard() error {
+	// TODO: test that this works
+
+	return gui.OSCommand.CopyToClipboard(
+		strings.Join(gui.GitCommand.PatchManager.RenderEachFilePatch(true), "\n"),
+	)
 }
