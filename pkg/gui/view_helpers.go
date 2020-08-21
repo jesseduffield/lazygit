@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
@@ -159,9 +160,7 @@ func (gui *Gui) nextView(g *gocui.Gui, v *gocui.View) error {
 			if i == len(cyclableViews)-1 {
 				message := gui.Tr.TemplateLocalize(
 					"IssntListOfViews",
-					Teml{
-						"name": viewName,
-					},
+					Teml{"name": viewName},
 				)
 				gui.Log.Info(message)
 				return nil
@@ -197,9 +196,7 @@ func (gui *Gui) previousView(g *gocui.Gui, v *gocui.View) error {
 			if i == len(cyclableViews)-1 {
 				message := gui.Tr.TemplateLocalize(
 					"IssntListOfViews",
-					Teml{
-						"name": viewName,
-					},
+					Teml{"name": viewName},
 				)
 				gui.Log.Info(message)
 				return nil
@@ -224,6 +221,8 @@ func (gui *Gui) newLineFocused(v *gocui.View) error {
 		return gui.handleStatusSelect()
 	case "files":
 		return gui.focusAndSelectFile()
+	case "extensiveFiles":
+		return gui.handleExtensiveFileSelect(v, false)
 	case "branches":
 		branchesView := gui.getBranchesView()
 		switch branchesView.Context {
@@ -313,9 +312,7 @@ func (gui *Gui) switchFocus(oldView, newView *gocui.View) error {
 	gui.Log.Info("setting highlight to true for view" + newView.Name())
 	message := gui.Tr.TemplateLocalize(
 		"newFocusedViewIs",
-		Teml{
-			"newFocusedView": newView.Name(),
-		},
+		Teml{"newFocusedView": newView.Name()},
 	)
 	gui.Log.Info(message)
 	if _, err := gui.g.SetCurrentView(newView.Name()); err != nil {
@@ -389,6 +386,11 @@ func (gui *Gui) renderOptionsMap(optionsMap map[string]string) error {
 // i'm so sorry but had to add this getBranchesView
 func (gui *Gui) getFilesView() *gocui.View {
 	v, _ := gui.g.View("files")
+	return v
+}
+
+func (gui *Gui) GetExtendedFilesView() *gocui.View {
+	v, _ := gui.g.View("extensiveFiles")
 	return v
 }
 
@@ -498,6 +500,96 @@ func (gui *Gui) refreshSelectedLine(line *int, total int) {
 	}
 }
 
+// refreshSelected refreshes the cursor position
+//
+// action tells if the cursor is moved
+//  0  = nothing
+// 'u' = up
+// 'd' = down
+// 'l' = left
+// 'r' = right
+func (gui *Gui) refreshSelected(selectedPrt *[]int, tree *commands.Dir, action rune) {
+	selected := *selectedPrt
+	currentDir := tree
+	var selectedFile *commands.File
+	if len(selected) == 0 {
+		if len(tree.Files) == 0 && len(tree.SubDirs) == 0 {
+			return
+		} else {
+			selected = []int{0}
+		}
+	}
+
+	for i, key := range selected {
+		if len(currentDir.Files)+len(currentDir.SubDirs) == 0 {
+			break
+		}
+
+		if key < len(currentDir.Files) {
+			// Selected a file
+			if i+1 == len(selected) {
+				selectedFile = currentDir.Files[key]
+				break
+			}
+			selected = selected[:i+1]
+			selectedFile = currentDir.Files[key]
+			break
+		}
+		key -= len(currentDir.Files)
+		if key >= len(currentDir.SubDirs) {
+			// Slected something out of range
+			selected[i] = len(currentDir.Files) + len(currentDir.SubDirs) - 1
+
+			currentDir = currentDir.SubDirs[selected[i]]
+			selected = selected[:i+1]
+			break
+		}
+		currentDir = currentDir.SubDirs[key]
+	}
+
+	switch action {
+	case 'u':
+		newPos := selected[len(selected)-1] - 1
+		if newPos >= 0 {
+			selected[len(selected)-1] = newPos
+		} else if len(selected) > 1 {
+			selected = selected[:len(selected)-1]
+		}
+	case 'd':
+		firstRound := true
+		for {
+			newPos := selected[len(selected)-1] + 1
+			parrent := currentDir.Parrent
+			if selectedFile != nil && firstRound {
+				parrent = currentDir
+			}
+
+			if newPos < len(parrent.Files)+len(parrent.SubDirs) {
+				selected[len(selected)-1] = newPos
+				break
+			}
+
+			parrent = parrent.Parrent
+			if len(selected) <= 1 || selected[len(selected)-2]+1 >= len(parrent.Files)+len(parrent.SubDirs) {
+				break
+			}
+
+			selected = selected[:len(selected)-1]
+			firstRound = false
+		}
+	case 'l':
+		if len(selected) > 1 {
+			selected = selected[:len(selected)-1]
+		}
+	case 'r':
+		if selectedFile == nil && len(currentDir.SubDirs)+len(currentDir.Files) > 0 {
+			selected = append(selected, 0)
+		}
+	}
+
+	*selectedPrt = selected
+}
+
 func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
 	gui.g.Update(func(g *gocui.Gui) error {
 		list := utils.RenderDisplayStrings(displayStrings)
@@ -535,8 +627,17 @@ func (gui *Gui) isPopupPanel(viewName string) bool {
 	return viewName == "commitMessage" || viewName == "credentials" || viewName == "confirmation" || viewName == "menu"
 }
 
+func (gui *Gui) isAdvancedView(viewName string) bool {
+	return viewName == "extensiveFiles"
+}
+
 func (gui *Gui) popupPanelFocused() bool {
 	return gui.isPopupPanel(gui.currentViewName())
+}
+
+func (gui *Gui) popupOrAdvancedPanelFocused() bool {
+	viewName := gui.currentViewName()
+	return gui.isAdvancedView(viewName) || gui.isPopupPanel(viewName)
 }
 
 func (gui *Gui) handleClick(v *gocui.View, itemCount int, selectedLine *int, handleSelect func(*gocui.Gui, *gocui.View) error) error {

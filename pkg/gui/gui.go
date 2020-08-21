@@ -4,21 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"runtime"
-	"sync"
-
-	// "io"
-	// "io/ioutil"
-
 	"os/exec"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/go-errors/errors"
-
-	// "strings"
-
 	"github.com/fatih/color"
+	"github.com/go-errors/errors"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -127,6 +120,11 @@ type filePanelState struct {
 	SelectedLine int
 }
 
+type extensiveFilePanelState struct {
+	// The path to the currently selected item
+	Selected []int
+}
+
 // TODO: consider splitting this out into the window and the branches view
 type branchPanelState struct {
 	SelectedLine int
@@ -168,6 +166,7 @@ type commitFilesPanelState struct {
 
 type panelStates struct {
 	Files          *filePanelState
+	ExtensiveFiles *extensiveFilePanelState
 	Branches       *branchPanelState
 	Remotes        *remotePanelState
 	RemoteBranches *remoteBranchesState
@@ -200,11 +199,12 @@ type DiffState struct {
 }
 
 type guiState struct {
-	Files        []*commands.File
-	Branches     []*commands.Branch
-	Commits      []*commands.Commit
-	StashEntries []*commands.StashEntry
-	CommitFiles  []*commands.CommitFile
+	Files          []*commands.File
+	ExtensiveFiles *commands.Dir
+	Branches       []*commands.Branch
+	Commits        []*commands.Commit
+	StashEntries   []*commands.StashEntry
+	CommitFiles    []*commands.CommitFile
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*commands.Commit
@@ -257,6 +257,7 @@ func (gui *Gui) resetState() {
 		StashEntries:          make([]*commands.StashEntry, 0),
 		Panels: &panelStates{
 			Files:          &filePanelState{SelectedLine: -1},
+			ExtensiveFiles: &extensiveFilePanelState{Selected: []int{0}},
 			Branches:       &branchPanelState{SelectedLine: 0},
 			Remotes:        &remotePanelState{SelectedLine: 0},
 			RemoteBranches: &remoteBranchesState{SelectedLine: -1},

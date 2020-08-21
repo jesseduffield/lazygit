@@ -18,7 +18,7 @@ func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
 }
 
 func (gui *Gui) handleStashEntrySelect() error {
-	if gui.popupPanelFocused() {
+	if gui.popupOrAdvancedPanelFocused() {
 		return nil
 	}
 

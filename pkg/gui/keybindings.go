@@ -357,112 +357,10 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("SwitchRepo"),
 		},
 		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.commitChanges"),
-			Handler:     gui.wrappedHandler(gui.handleCommitPress),
-			Description: gui.Tr.SLocalize("CommitChanges"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.commitChangesWithoutHook"),
-			Handler:     gui.handleWIPCommitPress,
-			Description: gui.Tr.SLocalize("commitChangesWithoutHook"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.amendLastCommit"),
-			Handler:     gui.wrappedHandler(gui.handleAmendCommitPress),
-			Description: gui.Tr.SLocalize("AmendLastCommit"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.commitChangesWithEditor"),
-			Handler:     gui.wrappedHandler(gui.handleCommitEditorPress),
-			Description: gui.Tr.SLocalize("CommitChangesWithEditor"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("universal.select"),
-			Handler:     gui.wrappedHandler(gui.handleFilePress),
-			Description: gui.Tr.SLocalize("toggleStaged"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("universal.remove"),
-			Handler:     gui.handleCreateDiscardMenu,
-			Description: gui.Tr.SLocalize("viewDiscardOptions"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("universal.edit"),
-			Handler:     gui.handleFileEdit,
-			Description: gui.Tr.SLocalize("editFile"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("universal.openFile"),
-			Handler:     gui.handleFileOpen,
-			Description: gui.Tr.SLocalize("openFile"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.ignoreFile"),
-			Handler:     gui.handleIgnoreFile,
-			Description: gui.Tr.SLocalize("ignoreFile"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.refreshFiles"),
-			Handler:     gui.handleRefreshFiles,
-			Description: gui.Tr.SLocalize("refreshFiles"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.stashAllChanges"),
-			Handler:     gui.handleStashChanges,
-			Description: gui.Tr.SLocalize("stashAllChanges"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.viewStashOptions"),
-			Handler:     gui.handleCreateStashMenu,
-			Description: gui.Tr.SLocalize("viewStashOptions"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.toggleStagedAll"),
-			Handler:     gui.handleStageAll,
-			Description: gui.Tr.SLocalize("toggleStagedAll"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.viewResetOptions"),
-			Handler:     gui.handleCreateResetMenu,
-			Description: gui.Tr.SLocalize("viewResetOptions"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("universal.goInto"),
-			Handler:     gui.handleEnterFile,
-			Description: gui.Tr.SLocalize("StageLines"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("files.fetch"),
-			Handler:     gui.handleGitFetch,
-			Description: gui.Tr.SLocalize("fetch"),
-		},
-		{
 			ViewName:    "",
 			Key:         gui.getKey("universal.executeCustomCommand"),
 			Handler:     gui.handleCustomCommand,
 			Description: gui.Tr.SLocalize("executeCustomCommand"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("commits.viewResetOptions"),
-			Handler:     gui.handleCreateResetToUpstreamMenu,
-			Description: gui.Tr.SLocalize("viewResetToUpstreamOptions"),
 		},
 		{
 			ViewName:    "branches",
@@ -1389,6 +1287,141 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownConfirmationPanel,
 		},
+		{
+			ViewName:    "files",
+			Key:         gui.getKey("files.switchToExtensiveFilesView"),
+			Handler:     gui.handleOpenExtensiveView,
+			Description: gui.Tr.SLocalize("SwitchToExtensiveFilesView"),
+		},
+		{
+			ViewName:    "extensiveFiles",
+			Key:         gui.getKey("extensiveFiles.switchToFilesView"),
+			Handler:     gui.handleCloseExtensiveView,
+			Description: gui.Tr.SLocalize("SwitchToFilesView"),
+		},
+		{
+			ViewName: "extensiveFiles",
+			Key:      gui.getKey("extensiveFiles.right"),
+			Handler:  gui.handleFilesGoInsideFolder,
+		}, {
+			ViewName: "extensiveFiles",
+			Key:      gui.getKey("extensiveFiles.left"),
+			Handler:  gui.handleFilesGoToFolderParent,
+		}, {
+			ViewName: "extensiveFiles",
+			Key:      gui.getKey("extensiveFiles.down"),
+			Handler:  gui.handleFilesNextFileOrFolder,
+		}, {
+			ViewName: "extensiveFiles",
+			Key:      gui.getKey("extensiveFiles.up"),
+			Handler:  gui.handleFilesPrevFileOrFolder,
+		},
+	}
+
+	// Keybindings for files and extensiveFiles
+	sharedFileViewBindings := []Binding{
+		{
+			Key:         gui.getKey("files.commitChanges"),
+			Handler:     gui.wrappedHandler(gui.handleCommitPress),
+			Description: gui.Tr.SLocalize("CommitChanges"),
+		},
+		{
+			Key:         gui.getKey("files.commitChangesWithoutHook"),
+			Handler:     gui.handleWIPCommitPress,
+			Description: gui.Tr.SLocalize("commitChangesWithoutHook"),
+		},
+		{
+			Key:         gui.getKey("files.amendLastCommit"),
+			Handler:     gui.wrappedHandler(gui.handleAmendCommitPress),
+			Description: gui.Tr.SLocalize("AmendLastCommit"),
+		},
+		{
+			Key:         gui.getKey("files.commitChangesWithEditor"),
+			Handler:     gui.wrappedHandler(gui.handleCommitEditorPress),
+			Description: gui.Tr.SLocalize("CommitChangesWithEditor"),
+		},
+		{
+			Key:         gui.getKey("universal.select"),
+			Handler:     gui.wrappedHandler(gui.handleFilePress),
+			Description: gui.Tr.SLocalize("toggleStaged"),
+		},
+		{
+			Key:         gui.getKey("universal.remove"),
+			Handler:     gui.handleCreateDiscardMenu,
+			Description: gui.Tr.SLocalize("viewDiscardOptions"),
+		},
+		{
+			Key:         gui.getKey("universal.edit"),
+			Handler:     gui.handleFileEdit,
+			Description: gui.Tr.SLocalize("editFile"),
+		},
+		{
+			Key:         gui.getKey("universal.openFile"),
+			Handler:     gui.handleFileOpen,
+			Description: gui.Tr.SLocalize("openFile"),
+		},
+		{
+			Key:         gui.getKey("files.ignoreFile"),
+			Handler:     gui.handleIgnoreFile,
+			Description: gui.Tr.SLocalize("ignoreFile"),
+		},
+		{
+			Key:         gui.getKey("files.refreshFiles"),
+			Handler:     gui.handleRefreshFiles,
+			Description: gui.Tr.SLocalize("refreshFiles"),
+		},
+		{
+			Key:         gui.getKey("files.stashAllChanges"),
+			Handler:     gui.handleStashChanges,
+			Description: gui.Tr.SLocalize("stashAllChanges"),
+		},
+		{
+			Key:         gui.getKey("files.viewStashOptions"),
+			Handler:     gui.handleCreateStashMenu,
+			Description: gui.Tr.SLocalize("viewStashOptions"),
+		},
+		{
+			Key:         gui.getKey("files.toggleStagedAll"),
+			Handler:     gui.handleStageAll,
+			Description: gui.Tr.SLocalize("toggleStagedAll"),
+		},
+		{
+			Key:         gui.getKey("files.viewResetOptions"),
+			Handler:     gui.handleCreateResetMenu,
+			Description: gui.Tr.SLocalize("viewResetOptions"),
+		},
+		{
+			Key:         gui.getKey("universal.goInto"),
+			Handler:     gui.handleEnterFile,
+			Description: gui.Tr.SLocalize("StageLines"),
+		},
+		{
+			Key:         gui.getKey("files.fetch"),
+			Handler:     gui.handleGitFetch,
+			Description: gui.Tr.SLocalize("fetch"),
+		},
+		{
+			Key:         gui.getKey("commits.viewResetOptions"),
+			Handler:     gui.handleCreateResetToUpstreamMenu,
+			Description: gui.Tr.SLocalize("viewResetToUpstreamOptions"),
+		},
+	}
+	for _, binding := range sharedFileViewBindings {
+		bindings = append(
+			bindings,
+			&Binding{
+				ViewName:    "files",
+				Key:         binding.Key,
+				Handler:     binding.Handler,
+				Description: binding.Description,
+			},
+			&Binding{
+				ViewName:    "extensiveFiles",
+				Key:         binding.Key,
+				Handler:     binding.Handler,
+				Description: binding.Description,
+			},
+		)
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {

@@ -12,12 +12,10 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-
-	"github.com/kardianos/osext"
-
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/kardianos/osext"
 	"github.com/sirupsen/logrus"
 )
 

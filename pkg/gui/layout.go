@@ -21,7 +21,8 @@ func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 			return err
 		}
 		// for now we don't consider losing focus to a popup panel as actually losing focus
-		if newView != previousView && !gui.isPopupPanel(newView.Name()) {
+		viewName := newView.Name()
+		if newView != previousView && !gui.isPopupPanel(viewName) && !gui.isAdvancedView(viewName) {
 			if err := gui.onFocusLost(previousView, newView); err != nil {
 				return err
 			}
@@ -194,6 +195,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		filesView.ContainsList = true
 	}
 
+	extensiveFilesView, err := setViewFromDimensions("extensiveFiles", "extensiveFiles", true)
+	if err != nil {
+		if err.Error() != "unknown view" {
+			return err
+		}
+		extensiveFilesView.Title = gui.Tr.SLocalize("FilesTitle")
+		extensiveFilesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onFilesPanelSearchSelect))
+	}
+
 	branchesView, err := setViewFromDimensions("branches", "branches", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
@@ -354,20 +364,28 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		context      string
 	}
 
+	state := gui.State
+	panels := state.Panels
+
 	listViews := []listViewState{
-		{view: filesView, context: "", selectedLine: gui.State.Panels.Files.SelectedLine, lineCount: len(gui.State.Files)},
-		{view: branchesView, context: "local-branches", selectedLine: gui.State.Panels.Branches.SelectedLine, lineCount: len(gui.State.Branches)},
-		{view: branchesView, context: "remotes", selectedLine: gui.State.Panels.Remotes.SelectedLine, lineCount: len(gui.State.Remotes)},
-		{view: branchesView, context: "remote-branches", selectedLine: gui.State.Panels.RemoteBranches.SelectedLine, lineCount: len(gui.State.Remotes)},
-		{view: commitsView, context: "branch-commits", selectedLine: gui.State.Panels.Commits.SelectedLine, lineCount: len(gui.State.Commits)},
-		{view: commitsView, context: "reflog-commits", selectedLine: gui.State.Panels.ReflogCommits.SelectedLine, lineCount: len(gui.State.FilteredReflogCommits)},
-		{view: stashView, context: "", selectedLine: gui.State.Panels.Stash.SelectedLine, lineCount: len(gui.State.StashEntries)},
-		{view: commitFilesView, context: "", selectedLine: gui.State.Panels.CommitFiles.SelectedLine, lineCount: len(gui.State.CommitFiles)},
+		{view: filesView, context: "", selectedLine: panels.Files.SelectedLine, lineCount: len(state.Files)},
+		{view: branchesView, context: "local-branches", selectedLine: panels.Branches.SelectedLine, lineCount: len(state.Branches)},
+		{view: branchesView, context: "remotes", selectedLine: panels.Remotes.SelectedLine, lineCount: len(state.Remotes)},
+		{view: branchesView, context: "remote-branches", selectedLine: panels.RemoteBranches.SelectedLine, lineCount: len(state.Remotes)},
+		{view: commitsView, context: "branch-commits", selectedLine: panels.Commits.SelectedLine, lineCount: len(state.Commits)},
+		{view: commitsView, context: "reflog-commits", selectedLine: panels.ReflogCommits.SelectedLine, lineCount: len(state.FilteredReflogCommits)},
+		{view: stashView, context: "", selectedLine: panels.Stash.SelectedLine, lineCount: len(state.StashEntries)},
+		{view: commitFilesView, context: "", selectedLine: panels.CommitFiles.SelectedLine, lineCount: len(state.CommitFiles)},
 	}
 
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
-		listViews = append(listViews, listViewState{view: menuView, context: "", selectedLine: gui.State.Panels.Menu.SelectedLine, lineCount: gui.State.MenuItemCount})
+		listViews = append(listViews, listViewState{
+			view:         menuView,
+			context:      "",
+			selectedLine: state.Panels.Menu.SelectedLine,
+			lineCount:    state.MenuItemCount,
+		})
 	}
 	for _, listView := range listViews {
 		// ignore views where the context doesn't match up with the selected line we're trying to focus
@@ -381,9 +399,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	mainViewWidth, mainViewHeight := gui.getMainView().Size()
-	if mainViewWidth != gui.State.PrevMainWidth || mainViewHeight != gui.State.PrevMainHeight {
-		gui.State.PrevMainWidth = mainViewWidth
-		gui.State.PrevMainHeight = mainViewHeight
+	if mainViewWidth != state.PrevMainWidth || mainViewHeight != state.PrevMainHeight {
+		state.PrevMainWidth = mainViewWidth
+		state.PrevMainHeight = mainViewHeight
 		if err := gui.onResize(); err != nil {
 			return err
 		}

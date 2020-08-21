@@ -175,11 +175,16 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 					ViewName: viewName,
 					Weight:   1,
 				}
-			} else {
-				return &boxlayout.Box{
-					ViewName: viewName,
-					Size:     0,
-				}
+			}
+			return &boxlayout.Box{
+				ViewName: viewName,
+				Size:     0,
+			}
+		}
+
+		if gui.isAdvancedView(gui.currentViewName()) {
+			return []*boxlayout.Box{
+				fullHeightBox("extensiveFiles"),
 			}
 		}
 
@@ -201,6 +206,12 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			}
 
 			return defaultBox
+		}
+
+		if gui.isAdvancedView(gui.currentViewName()) {
+			return []*boxlayout.Box{
+				accordianBox(&boxlayout.Box{ViewName: "extensiveFiles", Weight: 1}),
+			}
 		}
 
 		return []*boxlayout.Box{

@@ -177,9 +177,12 @@ func (gui *Gui) handleSelectNewLine(newSelectedLineIdx int) error {
 }
 
 func (gui *Gui) handleMouseDown(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
-
 	if gui.popupPanelFocused() {
+		return nil
+	}
+
+	state := gui.State.Panels.LineByLine
+	if state == nil {
 		return nil
 	}
 

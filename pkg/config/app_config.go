@@ -351,6 +351,13 @@ keybinding:
     toggleStagedAll: 'a'
     viewResetOptions: 'D'
     fetch: 'f'
+    switchToExtensiveFilesView: 'v'
+  extensiveFiles:
+    switchToFilesView: 'v'
+    up: '<up>'
+    down: '<down>'
+    left: '<left>'
+    right: '<right>'
   branches:
     createPullRequest: 'o'
     checkoutBranchByName: 'c'
