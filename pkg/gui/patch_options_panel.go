@@ -13,16 +13,8 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 
 	menuItems := []*menuItem{
 		{
-			displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.Parent),
-			onPress:       gui.handleDeletePatchFromCommit,
-		},
-		{
-			displayString: "pull patch out into index",
-			onPress:       gui.handlePullPatchIntoWorkingTree,
-		},
-		{
-			displayString: "pull patch into new commit",
-			onPress:       gui.handlePullPatchIntoNewCommit,
+			displayString: "copy patch",
+			onPress:       gui.handleCopyPatchToClipboard,
 		},
 		{
 			displayString: "apply patch",
@@ -36,6 +28,23 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 			displayString: "reset patch",
 			onPress:       gui.handleResetPatch,
 		},
+	}
+
+	if gui.GitCommand.PatchManager.CanRebase {
+		menuItems = append(menuItems, []*menuItem{
+			{
+				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.Parent),
+				onPress:       gui.handleDeletePatchFromCommit,
+			},
+			{
+				displayString: "pull patch out into index",
+				onPress:       gui.handlePullPatchIntoWorkingTree,
+			},
+			{
+				displayString: "pull patch into new commit",
+				onPress:       gui.handlePullPatchIntoNewCommit,
+			},
+		}...)
 	}
 
 	selectedCommit := gui.getSelectedCommit()
