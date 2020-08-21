@@ -191,6 +191,7 @@
   <kbd><</kbd>: scroll naar boven
   <kbd>/</kbd>: start met zoekken
   <kbd>></kbd>: scroll naar beneden
+  <kbd>v</kbd>: ga naar een aftakking weergave
 </pre>
 
 ## Hooft Paneel (Merggen)
