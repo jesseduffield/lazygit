@@ -10,3 +10,7 @@ type Remote struct {
 func (r *Remote) RefName() string {
 	return r.Name
 }
+
+func (r *Remote) ID() string {
+	return r.RefName()
+}

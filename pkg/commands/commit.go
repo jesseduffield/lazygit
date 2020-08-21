@@ -28,3 +28,7 @@ func (c *Commit) NameWithSha() string {
 func (c *Commit) RefName() string {
 	return c.Sha
 }
+
+func (c *Commit) ID() string {
+	return c.RefName()
+}
