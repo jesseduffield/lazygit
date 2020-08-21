@@ -141,6 +141,10 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 
 		gui.GitCommand.PatchManager.ToggleFileWhole(commitFile.Name)
 
+		if gui.GitCommand.PatchManager.IsEmpty() {
+			gui.GitCommand.PatchManager.Reset()
+		}
+
 		return gui.refreshCommitFilesView()
 	}
 
