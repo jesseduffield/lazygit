@@ -34,3 +34,9 @@ func (gui *Gui) setViewAsActiveForWindow(viewName string) {
 func (gui *Gui) currentWindow() string {
 	return gui.getWindowForViewName(gui.currentViewName())
 }
+
+func (gui *Gui) resetWindowForView(viewName string) {
+	window := gui.getWindowForViewName(viewName)
+	// we assume here that the window contains as its default view a view with the same name as the window
+	gui.State.WindowViewNameMap[window] = window
+}

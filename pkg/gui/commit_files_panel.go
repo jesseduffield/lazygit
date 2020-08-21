@@ -218,9 +218,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 func (gui *Gui) switchToCommitFilesContext(refName string, isStash bool, context Context, windowName string) error {
 	// sometimes the commitFiles view is already shown in another window, so we need to ensure that window
 	// no longer considers the commitFiles view as its main view.
-
-	window := gui.getWindowForViewName("commitFiles")
-	gui.State.WindowViewNameMap[window] = window
+	gui.resetWindowForView("commitFiles")
 
 	gui.State.Panels.CommitFiles.SelectedLineIdx = 0
 	gui.State.Panels.CommitFiles.refName = refName
