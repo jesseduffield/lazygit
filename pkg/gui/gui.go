@@ -301,11 +301,9 @@ type guiState struct {
 	ContextStack   []Context
 	ViewContextMap map[string]Context
 
-	// 	WindowViewNameMap is a mapping of windows to the current view of that window.
-	// Currently the only case where the distinction between a window and a view
-	// matters is with the commits view and the commitFiles view which both appear
-	// in the same place (and thus constitute the 'commits' window).
-	// If a window contains only one view, it shares the same name as the view.
+	// WindowViewNameMap is a mapping of windows to the current view of that window.
+	// Some views move between windows for example the commitFiles view and when cycling through
+	// side windows we need to know which view to give focus to for a given window
 	WindowViewNameMap map[string]string
 }
 
