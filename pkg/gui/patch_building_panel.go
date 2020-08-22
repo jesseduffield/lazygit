@@ -107,26 +107,6 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 	return nil
 }
 
-func (gui *Gui) refreshSecondaryPatchPanel() error {
-	// TODO: swap out for secondaryPatchPanelUpdateOpts
-
-	if gui.GitCommand.PatchManager.Active() {
-		gui.splitMainPanel(true)
-		secondaryView := gui.getSecondaryView()
-		secondaryView.Highlight = true
-		secondaryView.Wrap = false
-
-		gui.g.Update(func(*gocui.Gui) error {
-			gui.setViewContent(gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
-			return nil
-		})
-	} else {
-		gui.splitMainPanel(false)
-	}
-
-	return nil
-}
-
 func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
 	if gui.GitCommand.PatchManager.Active() {
 		patch := gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false)
