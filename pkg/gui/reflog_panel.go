@@ -30,7 +30,7 @@ func (gui *Gui) handleReflogCommitSelect() error {
 		task = gui.createRunPtyTask(cmd)
 	}
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Reflog Entry",
 			task:  task,

@@ -32,7 +32,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 
 	file := gui.getSelectedFile()
 	if file == nil {
-		return gui.refreshMain(refreshMainOpts{
+		return gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
 				title: "",
 				task:  gui.createRenderStringTask(gui.Tr.SLocalize("NoChangedFiles")),
@@ -74,7 +74,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		refreshOpts.main.title = gui.Tr.SLocalize("StagedChanges")
 	}
 
-	return gui.refreshMain(refreshOpts)
+	return gui.refreshMainViews(refreshOpts)
 }
 
 func (gui *Gui) refreshFiles() error {

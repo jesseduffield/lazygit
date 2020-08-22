@@ -28,7 +28,7 @@ func (gui *Gui) handleStashEntrySelect() error {
 		task = gui.createRunPtyTask(cmd)
 	}
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Stash",
 			task:  task,

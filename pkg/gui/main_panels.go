@@ -14,6 +14,11 @@ type viewUpdateOpts struct {
 	task updateTask
 }
 
+type coordinates struct {
+	x int
+	y int
+}
+
 type refreshMainOpts struct {
 	main      *viewUpdateOpts
 	secondary *viewUpdateOpts
@@ -118,30 +123,37 @@ func (gui *Gui) runTaskForView(viewName string, task updateTask) error {
 	return nil
 }
 
-func (gui *Gui) refreshMain(opts refreshMainOpts) error {
-	mainView := gui.getMainView()
-	secondaryView := gui.getSecondaryView()
+func (gui *Gui) refreshMainView(opts *viewUpdateOpts, viewName string) error {
+	view, err := gui.g.View(viewName)
+	if err != nil {
+		gui.Log.Error(err)
+		return nil
+	}
 
+	view.Title = opts.title
+	view.Wrap = !opts.noWrap
+	view.Highlight = opts.highlight
+
+	if err := gui.runTaskForView("main", opts.task); err != nil {
+		gui.Log.Error(err)
+		return nil
+	}
+
+	return nil
+}
+
+func (gui *Gui) refreshMainViews(opts refreshMainOpts) error {
 	if opts.main != nil {
-		mainView.Title = opts.main.title
-		mainView.Wrap = !opts.main.noWrap
-		mainView.Highlight = opts.main.highlight // TODO: see what the default should be
-
-		if err := gui.runTaskForView("main", opts.main.task); err != nil {
-			gui.Log.Error(err)
-			return nil
+		if err := gui.refreshMainView(opts.main, "main"); err != nil {
+			return err
 		}
 	}
 
 	gui.splitMainPanel(opts.secondary != nil)
 
 	if opts.secondary != nil {
-		secondaryView.Title = opts.secondary.title
-		secondaryView.Wrap = !opts.secondary.noWrap
-		mainView.Highlight = opts.main.highlight // TODO: see what the default should be
-		if err := gui.runTaskForView("secondary", opts.secondary.task); err != nil {
-			gui.Log.Error(err)
-			return nil
+		if err := gui.refreshMainView(opts.secondary, "secondary"); err != nil {
+			return err
 		}
 	}
 
