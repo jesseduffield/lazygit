@@ -26,12 +26,14 @@ type fileInfo struct {
 }
 
 type applyPatchFunc func(patch string, flags ...string) error
-type loadFileDiffFunc func(parent string, filename string, plain bool) (string, error)
+type loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
 
 // PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
 type PatchManager struct {
-	// Parent is the commit sha if we're dealing with files of a commit, or a stash ref for a stash
-	Parent string
+	// To is the commit sha if we're dealing with files of a commit, or a stash ref for a stash
+	To      string // TODO: rename to 'to'
+	From    string
+	Reverse bool
 
 	// CanRebase tells us whether we're allowed to modify our commits. CanRebase should be true for commits of the currently checked out branch and false for everything else
 	CanRebase bool
@@ -41,7 +43,7 @@ type PatchManager struct {
 	Log         *logrus.Entry
 	ApplyPatch  applyPatchFunc
 
-	// LoadFileDiff loads the diff of a file, for a given parent (typically a commit SHA)
+	// LoadFileDiff loads the diff of a file, for a given to (typically a commit SHA)
 	LoadFileDiff loadFileDiffFunc
 }
 
@@ -55,8 +57,10 @@ func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc, loadFileDiff 
 }
 
 // NewPatchManager returns a new PatchManager
-func (p *PatchManager) Start(parent string, canRebase bool) {
-	p.Parent = parent
+func (p *PatchManager) Start(from, to string, reverse bool, canRebase bool) {
+	p.To = to
+	p.From = from
+	p.Reverse = reverse
 	p.CanRebase = canRebase
 	p.fileInfoMap = map[string]*fileInfo{}
 }
@@ -107,7 +111,7 @@ func (p *PatchManager) getFileInfo(filename string) (*fileInfo, error) {
 		return info, nil
 	}
 
-	diff, err := p.LoadFileDiff(p.Parent, filename, true)
+	diff, err := p.LoadFileDiff(p.From, p.To, p.Reverse, filename, true)
 	if err != nil {
 		return nil, err
 	}
@@ -269,12 +273,12 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 
 // clears the patch
 func (p *PatchManager) Reset() {
-	p.Parent = ""
+	p.To = ""
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
 func (p *PatchManager) Active() bool {
-	return p.Parent != ""
+	return p.To != ""
 }
 
 func (p *PatchManager) IsEmpty() bool {
@@ -285,4 +289,9 @@ func (p *PatchManager) IsEmpty() bool {
 	}
 
 	return true
+}
+
+// if any of these things change we'll need to reset and start a new patch
+func (p *PatchManager) NewPatchRequired(from string, to string, reverse bool) bool {
+	return from != p.From || to != p.To || reverse != p.Reverse
 }

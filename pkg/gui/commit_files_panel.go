@@ -38,8 +38,11 @@ func (gui *Gui) handleCommitFileSelect() error {
 		return nil
 	}
 
+	to := commitFile.Parent
+	from, reverse := gui.getFromAndReverseArgsForDiff(to)
+
 	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowCommitFileCmdStr(commitFile.Parent, commitFile.Name, false),
+		gui.GitCommand.ShowFileDiffCmdStr(from, to, reverse, commitFile.Name, false),
 	)
 	task := gui.createRunPtyTask(cmd)
 
@@ -167,7 +170,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 		return gui.refreshCommitFilesView()
 	}
 
-	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.Parent != commitFile.Parent {
+	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != commitFile.Parent {
 		return gui.ask(askOpts{
 			returnToView:       v,
 			returnFocusOnClose: true,
@@ -185,7 +188,11 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) startPatchManager() error {
 	canRebase := gui.State.Panels.CommitFiles.refType == REF_TYPE_LOCAL_COMMIT
-	gui.GitCommand.PatchManager.Start(gui.State.Panels.CommitFiles.refName, canRebase)
+
+	to := gui.State.Panels.CommitFiles.refName
+	from, reverse := gui.getFromAndReverseArgsForDiff(to)
+
+	gui.GitCommand.PatchManager.Start(from, to, reverse, canRebase)
 	return nil
 }
 
@@ -217,7 +224,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		return gui.refreshPatchBuildingPanel(selectedLineIdx)
 	}
 
-	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.Parent != commitFile.Parent {
+	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != commitFile.Parent {
 		return gui.ask(askOpts{
 			returnToView:       gui.getCommitFilesView(),
 			returnFocusOnClose: false,
