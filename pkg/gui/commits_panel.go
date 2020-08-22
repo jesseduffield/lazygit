@@ -571,12 +571,3 @@ func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 
 	return nil
 }
-
-func (gui *Gui) handleClipboardCopyCommit(g *gocui.Gui, v *gocui.View) error {
-	commit := gui.getSelectedLocalCommit()
-	if commit == nil {
-		return nil
-	}
-
-	return gui.OSCommand.CopyToClipboard(commit.Sha)
-}

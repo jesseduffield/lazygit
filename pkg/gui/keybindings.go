@@ -552,7 +552,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "branches",
 			Contexts:    []string{LOCAL_BRANCHES_CONTEXT_KEY},
 			Key:         gui.getKey("universal.copyToClipboard"),
-			Handler:     gui.handleClipboardCopyBranch,
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
 			Description: gui.Tr.SLocalize("copyBranchNameToClipboard"),
 		},
 		{
@@ -765,7 +765,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("universal.copyToClipboard"),
-			Handler:     gui.handleClipboardCopyCommit,
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
 			Description: gui.Tr.SLocalize("copyCommitShaToClipboard"),
 		},
 		{
@@ -861,6 +861,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("resetCherryPick"),
 		},
 		{
+			ViewName:    "commits",
+			Contexts:    []string{REFLOG_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("universal.copyToClipboard"),
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
+			Description: gui.Tr.SLocalize("copyCommitShaToClipboard"),
+		},
+		{
 			ViewName:    "branches",
 			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("universal.goInto"),
@@ -908,6 +915,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.resetCherryPick"),
 			Handler:     gui.wrappedHandler(gui.exitCherryPickingMode),
 			Description: gui.Tr.SLocalize("resetCherryPick"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("universal.copyToClipboard"),
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
+			Description: gui.Tr.SLocalize("copyCommitShaToClipboard"),
 		},
 		{
 			ViewName:    "stash",

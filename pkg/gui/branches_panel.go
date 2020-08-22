@@ -460,15 +460,6 @@ func (gui *Gui) currentBranch() *commands.Branch {
 	return gui.State.Branches[0]
 }
 
-func (gui *Gui) handleClipboardCopyBranch(g *gocui.Gui, v *gocui.View) error {
-	branch := gui.getSelectedBranch()
-	if branch == nil {
-		return nil
-	}
-
-	return gui.OSCommand.CopyToClipboard(branch.Name)
-}
-
 func (gui *Gui) handleNewBranchOffCurrentItem() error {
 	context := gui.currentSideContext()
 

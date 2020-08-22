@@ -693,3 +693,12 @@ func (gui *Gui) getCurrentSideView() *gocui.View {
 
 	return view
 }
+
+func (gui *Gui) getSideContextSelectedItem() ListItem {
+	currentSideContext := gui.currentSideContext()
+	if currentSideContext == nil {
+		return nil
+	}
+
+	return currentSideContext.GetSelectedItem()
+}
