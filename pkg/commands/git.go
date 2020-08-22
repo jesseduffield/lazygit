@@ -1052,14 +1052,29 @@ func (c *GitCommand) GetFilesInRef(parent string, isStash bool, patchManager *pa
 		command = "git stash show"
 	}
 
-	files, err := c.OSCommand.RunCommandWithOutput("%s --no-commit-id --name-only -r --no-renames %s", command, parent)
+	filenames, err := c.OSCommand.RunCommandWithOutput("%s --no-commit-id --name-only -r --no-renames %s", command, parent)
 	if err != nil {
 		return nil, err
 	}
 
+	return c.GetCommitFilesFromFilenames(filenames, parent, patchManager), nil
+}
+
+// GetFilesInDiff get the specified commit files
+func (c *GitCommand) GetFilesInDiff(from string, to string, parent string, patchManager *patch.PatchManager) ([]*CommitFile, error) {
+	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --name-only %s %s", from, to)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.GetCommitFilesFromFilenames(filenames, parent, patchManager), nil
+}
+
+// filenames string is something like "file1\nfile2\nfile3"
+func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string, patchManager *patch.PatchManager) []*CommitFile {
 	commitFiles := make([]*CommitFile, 0)
 
-	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
+	for _, file := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
 		status := patch.UNSELECTED
 		if patchManager != nil && patchManager.Parent == parent {
 			status = patchManager.GetFileStatus(file)
@@ -1073,7 +1088,7 @@ func (c *GitCommand) GetFilesInRef(parent string, isStash bool, patchManager *pa
 		})
 	}
 
-	return commitFiles, nil
+	return commitFiles
 }
 
 // ShowCommitFile get the diff of specified commit file

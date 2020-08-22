@@ -94,7 +94,24 @@ func (gui *Gui) refreshCommitFilesView() error {
 	}
 
 	isStash := gui.State.Panels.CommitFiles.refType == REF_TYPE_STASH
-	files, err := gui.GitCommand.GetFilesInRef(gui.State.Panels.CommitFiles.refName, isStash, gui.GitCommand.PatchManager)
+	refName := gui.State.Panels.CommitFiles.refName
+	diffing := gui.State.Modes.Diffing
+
+	var files []*commands.CommitFile
+	var err error
+	if diffing.Active() {
+		from := diffing.Ref
+		to := refName
+
+		if diffing.Reverse {
+			from, to = to, from
+		}
+
+		files, err = gui.GitCommand.GetFilesInDiff(from, to, refName, gui.GitCommand.PatchManager)
+	} else {
+		files, err = gui.GitCommand.GetFilesInRef(refName, isStash, gui.GitCommand.PatchManager)
+	}
+
 	if err != nil {
 		return gui.surfaceError(err)
 	}
