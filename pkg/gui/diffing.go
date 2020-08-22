@@ -8,11 +8,11 @@ import (
 )
 
 func (gui *Gui) inDiffMode() bool {
-	return gui.State.Diff.Ref != ""
+	return gui.State.Modes.Diffing.Ref != ""
 }
 
 func (gui *Gui) exitDiffMode() error {
-	gui.State.Diff = DiffState{}
+	gui.State.Modes.Diffing = Diffing{}
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
@@ -20,7 +20,7 @@ func (gui *Gui) renderDiff() error {
 	filterArg := ""
 
 	if gui.inFilterMode() {
-		filterArg = fmt.Sprintf(" -- %s", gui.State.FilterPath)
+		filterArg = fmt.Sprintf(" -- %s", gui.State.Modes.Filtering.Path)
 	}
 
 	cmd := gui.OSCommand.ExecutableFromString(
@@ -42,54 +42,33 @@ func (gui *Gui) renderDiff() error {
 // flicking through branches it will be using the local branch name.
 func (gui *Gui) currentDiffTerminals() []string {
 	switch gui.currentContextKey() {
-	case FILES_CONTEXT_KEY:
-		// not supporting files for now
-	case COMMIT_FILES_CONTEXT_KEY:
-		// not supporting commit files for now
-	case BRANCH_COMMITS_CONTEXT_KEY:
-		item := gui.getSelectedLocalCommit()
-		if item != nil {
-			return []string{item.RefName()}
-		}
-	case REFLOG_COMMITS_CONTEXT_KEY:
-		item := gui.getSelectedReflogCommit()
-		if item != nil {
-			return []string{item.RefName()}
-		}
-	case STASH_CONTEXT_KEY:
-		item := gui.getSelectedStashEntry()
-		if item != nil {
-			return []string{item.RefName()}
-		}
-
+	case "":
+		return nil
+	case FILES_CONTEXT_KEY, COMMIT_FILES_CONTEXT_KEY:
+		// not supporting these for now because I'm not sure how it would actually work
+		return nil
 	case LOCAL_BRANCHES_CONTEXT_KEY:
+		// for our local branches we want to include both the branch and its upstream
 		branch := gui.getSelectedBranch()
 		if branch != nil {
-			names := []string{branch.RefName()}
+			names := []string{branch.ID()}
 			if branch.UpstreamName != "" {
 				names = append(names, branch.UpstreamName)
 			}
 			return names
 		}
 		return nil
-	case REMOTES_CONTEXT_KEY:
-		item := gui.getSelectedRemote()
-		if item != nil {
-			return []string{item.RefName()}
+	default:
+		context := gui.currentSideContext()
+		if context == nil {
+			return nil
 		}
-	case REMOTE_BRANCHES_CONTEXT_KEY:
-		item := gui.getSelectedRemoteBranch()
-		if item != nil {
-			return []string{item.RefName()}
+		item := context.GetSelectedItem()
+		if item == nil {
+			return nil
 		}
-	case TAGS_CONTEXT_KEY:
-		item := gui.getSelectedTag()
-		if item != nil {
-			return []string{item.RefName()}
-		}
+		return []string{item.ID()}
 	}
-
-	return nil
 }
 
 func (gui *Gui) currentDiffTerminal() string {
@@ -101,13 +80,13 @@ func (gui *Gui) currentDiffTerminal() string {
 }
 
 func (gui *Gui) diffStr() string {
-	output := gui.State.Diff.Ref
+	output := gui.State.Modes.Diffing.Ref
 
 	right := gui.currentDiffTerminal()
 	if right != "" {
 		output += " " + right
 	}
-	if gui.State.Diff.Reverse {
+	if gui.State.Modes.Diffing.Reverse {
 		output += " -R"
 	}
 	return output
@@ -127,7 +106,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 			{
 				displayString: fmt.Sprintf("%s %s", gui.Tr.SLocalize("diff"), name),
 				onPress: func() error {
-					gui.State.Diff.Ref = name
+					gui.State.Modes.Diffing.Ref = name
 					// can scope this down based on current view but too lazy right now
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				},
@@ -140,7 +119,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 			displayString: gui.Tr.SLocalize("enterRefToDiff"),
 			onPress: func() error {
 				return gui.prompt(v, gui.Tr.SLocalize("enteRefName"), "", func(response string) error {
-					gui.State.Diff.Ref = strings.TrimSpace(response)
+					gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				})
 			},
@@ -152,14 +131,14 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 			{
 				displayString: gui.Tr.SLocalize("swapDiff"),
 				onPress: func() error {
-					gui.State.Diff.Reverse = !gui.State.Diff.Reverse
+					gui.State.Modes.Diffing.Reverse = !gui.State.Modes.Diffing.Reverse
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				},
 			},
 			{
 				displayString: gui.Tr.SLocalize("exitDiffMode"),
 				onPress: func() error {
-					gui.State.Diff = DiffState{}
+					gui.State.Modes.Diffing = Diffing{}
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				},
 			},

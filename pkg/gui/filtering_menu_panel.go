@@ -32,7 +32,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 		menuItems = append(menuItems, &menuItem{
 			displayString: fmt.Sprintf("%s '%s'", gui.Tr.SLocalize("filterBy"), fileName),
 			onPress: func() error {
-				gui.State.FilterPath = fileName
+				gui.State.Modes.Filtering.Path = fileName
 				return gui.Errors.ErrRestart
 			},
 		})
@@ -42,7 +42,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 		displayString: gui.Tr.SLocalize("filterPathOption"),
 		onPress: func() error {
 			return gui.prompt(v, gui.Tr.SLocalize("enterFileName"), "", func(response string) error {
-				gui.State.FilterPath = strings.TrimSpace(response)
+				gui.State.Modes.Filtering.Path = strings.TrimSpace(response)
 				return gui.Errors.ErrRestart
 			})
 		},
@@ -52,7 +52,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 		menuItems = append(menuItems, &menuItem{
 			displayString: gui.Tr.SLocalize("exitFilterMode"),
 			onPress: func() error {
-				gui.State.FilterPath = ""
+				gui.State.Modes.Filtering.Path = ""
 				return gui.Errors.ErrRestart
 			},
 		})

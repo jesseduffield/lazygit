@@ -24,7 +24,7 @@ func (gui *Gui) handleReflogCommitSelect() error {
 		task = gui.createRenderStringTask("No reflog history")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.Path),
 		)
 
 		task = gui.createRunPtyTask(cmd)
@@ -73,7 +73,7 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	if gui.inFilterMode() {
-		if err := refresh(&state.FilteredReflogCommits, state.FilterPath); err != nil {
+		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.Path); err != nil {
 			return err
 		}
 	} else {

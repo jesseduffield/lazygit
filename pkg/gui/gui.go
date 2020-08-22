@@ -227,9 +227,23 @@ const (
 )
 
 // if ref is blank we're not diffing anything
-type DiffState struct {
+type Diffing struct {
 	Ref     string
 	Reverse bool
+}
+
+type Filtering struct {
+	Path string // the filename that gets passed to git log
+}
+
+type CherryPicking struct {
+	CherryPickedCommits []*commands.Commit
+}
+
+type Modes struct {
+	Filtering     Filtering
+	CherryPicking CherryPicking
+	Diffing       Diffing
 }
 
 type guiState struct {
@@ -253,7 +267,6 @@ type guiState struct {
 	Updating              bool
 	Panels                *panelStates
 	MainContext           string // used to keep the main and secondary views' contexts in sync
-	CherryPickedCommits   []*commands.Commit
 	SplitMainPanel        bool
 	RetainOriginalDir     bool
 	IsRefreshingFiles     bool
@@ -266,9 +279,9 @@ type guiState struct {
 	PrevMainWidth         int
 	PrevMainHeight        int
 	OldInformation        string
-	StartupStage          int    // one of INITIAL and COMPLETE. Allows us to not load everything at once
-	FilterPath            string // the filename that gets passed to git log
-	Diff                  DiffState
+	StartupStage          int // one of INITIAL and COMPLETE. Allows us to not load everything at once
+
+	Modes Modes
 
 	ContextStack   []Context
 	ViewContextMap map[string]Context
@@ -284,10 +297,20 @@ type guiState struct {
 func (gui *Gui) resetState() {
 	// we carry over the filter path and diff state
 	prevFilterPath := ""
-	prevDiff := DiffState{}
+	prevDiff := Diffing{}
 	if gui.State != nil {
-		prevFilterPath = gui.State.FilterPath
-		prevDiff = gui.State.Diff
+		prevFilterPath = gui.State.Modes.Filtering.Path
+		prevDiff = gui.State.Modes.Diffing
+	}
+
+	modes := Modes{
+		Filtering: Filtering{
+			Path: prevFilterPath,
+		},
+		CherryPicking: CherryPicking{
+			CherryPickedCommits: make([]*commands.Commit, 0),
+		},
+		Diffing: prevDiff,
 	}
 
 	gui.State = &guiState{
@@ -295,7 +318,6 @@ func (gui *Gui) resetState() {
 		Commits:               make([]*commands.Commit, 0),
 		FilteredReflogCommits: make([]*commands.Commit, 0),
 		ReflogCommits:         make([]*commands.Commit, 0),
-		CherryPickedCommits:   make([]*commands.Commit, 0),
 		StashEntries:          make([]*commands.StashEntry, 0),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
@@ -319,8 +341,7 @@ func (gui *Gui) resetState() {
 		},
 		SideView:       nil,
 		Ptmx:           nil,
-		FilterPath:     prevFilterPath,
-		Diff:           prevDiff,
+		Modes:          modes,
 		ViewContextMap: gui.initialViewContextMap(),
 	}
 }
@@ -341,7 +362,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	}
 
 	gui.resetState()
-	gui.State.FilterPath = filterPath
+	gui.State.Modes.Filtering.Path = filterPath
 	gui.Contexts = gui.contextTree()
 	gui.ViewTabContextMap = gui.viewTabContextMap()
 

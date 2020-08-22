@@ -758,7 +758,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("commits.cherryPickCopy"),
-			Handler:     gui.handleCopyCommit,
+			Handler:     gui.wrappedHandler(gui.handleCopyCommit),
 			Description: gui.Tr.SLocalize("cherryPickCopy"),
 		},
 		{
@@ -772,14 +772,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("commits.cherryPickCopyRange"),
-			Handler:     gui.handleCopyCommitRange,
+			Handler:     gui.wrappedHandler(gui.handleCopyCommitRange),
 			Description: gui.Tr.SLocalize("cherryPickCopyRange"),
 		},
 		{
 			ViewName:    "commits",
 			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("commits.pasteCommits"),
-			Handler:     gui.HandlePasteCommits,
+			Handler:     gui.wrappedHandler(gui.HandlePasteCommits),
 			Description: gui.Tr.SLocalize("pasteCommits"),
 		},
 		{
@@ -866,6 +866,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("universal.new"),
 			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCurrentItem),
 			Description: gui.Tr.SLocalize("newBranch"),
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("commits.cherryPickCopy"),
+			Handler:     gui.wrappedHandler(gui.handleCopyCommit),
+			Description: gui.Tr.SLocalize("cherryPickCopy"),
 		},
 		{
 			ViewName:    "stash",
