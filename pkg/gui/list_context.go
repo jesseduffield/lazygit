@@ -128,7 +128,7 @@ func (lc *ListContext) HandleFocus() error {
 
 	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
 
-	if lc.Gui.inDiffMode() {
+	if lc.Gui.State.Modes.Diffing.Active() {
 		return lc.Gui.renderDiff()
 	}
 
@@ -403,6 +403,7 @@ func (gui *Gui) subCommitsListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
+			gui.Log.Warn("getting display strings for sub commits")
 			return presentation.GetCommitListDisplayStrings(gui.State.SubCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.CherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_COMMITS,

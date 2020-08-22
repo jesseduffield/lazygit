@@ -48,7 +48,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 		},
 	})
 
-	if gui.inFilterMode() {
+	if gui.State.Modes.Filtering.Active() {
 		menuItems = append(menuItems, &menuItem{
 			displayString: gui.Tr.SLocalize("exitFilterMode"),
 			onPress: func() error {

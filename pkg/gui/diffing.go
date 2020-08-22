@@ -7,10 +7,6 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-func (gui *Gui) inDiffMode() bool {
-	return gui.State.Modes.Diffing.Ref != ""
-}
-
 func (gui *Gui) exitDiffMode() error {
 	gui.State.Modes.Diffing = Diffing{}
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -19,7 +15,7 @@ func (gui *Gui) exitDiffMode() error {
 func (gui *Gui) renderDiff() error {
 	filterArg := ""
 
-	if gui.inFilterMode() {
+	if gui.State.Modes.Filtering.Active() {
 		filterArg = fmt.Sprintf(" -- %s", gui.State.Modes.Filtering.Path)
 	}
 
@@ -126,7 +122,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 		},
 	}...)
 
-	if gui.inDiffMode() {
+	if gui.State.Modes.Diffing.Active() {
 		menuItems = append(menuItems, []*menuItem{
 			{
 				displayString: gui.Tr.SLocalize("swapDiff"),

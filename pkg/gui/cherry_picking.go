@@ -6,6 +6,20 @@ import (
 
 // you can only copy from one context at a time, because the order and position of commits matter
 
+func (gui *Gui) resetCherryPickingIfNecessary(context Context) error {
+	oldContextKey := gui.State.Modes.CherryPicking.ContextKey
+
+	if oldContextKey != context.GetKey() {
+		// need to reset the cherry picking mode
+		gui.State.Modes.CherryPicking.ContextKey = context.GetKey()
+		gui.State.Modes.CherryPicking.CherryPickedCommits = make([]*commands.Commit, 0)
+
+		return gui.rerenderContextViewIfPresent(oldContextKey)
+	}
+
+	return nil
+}
+
 func (gui *Gui) handleCopyCommit() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
@@ -15,6 +29,10 @@ func (gui *Gui) handleCopyCommit() error {
 	context := gui.currentSideContext()
 	if context == nil {
 		return nil
+	}
+
+	if err := gui.resetCherryPickingIfNecessary(context); err != nil {
+		return err
 	}
 
 	commit, ok := context.SelectedItem().(*commands.Commit)
@@ -33,7 +51,7 @@ func (gui *Gui) handleCopyCommit() error {
 		}
 	}
 
-	gui.addCommitToCherryPickedCommits(gui.State.Panels.Commits.SelectedLineIdx)
+	gui.addCommitToCherryPickedCommits(context.GetPanelState().GetSelectedLineIdx())
 	return context.HandleRender()
 }
 
@@ -45,12 +63,33 @@ func (gui *Gui) CherryPickedCommitShaMap() map[string]bool {
 	return commitShaMap
 }
 
+func (gui *Gui) commitsListForContext() []*commands.Commit {
+	context := gui.currentSideContext()
+	if context == nil {
+		return nil
+	}
+
+	// using a switch statement, but we should use polymorphism
+	switch context.GetKey() {
+	case BRANCH_COMMITS_CONTEXT_KEY:
+		return gui.State.Commits
+	case REFLOG_COMMITS_CONTEXT_KEY:
+		return gui.State.FilteredReflogCommits
+	case SUB_COMMITS_CONTEXT_KEY:
+		return gui.State.SubCommits
+	default:
+		gui.Log.Errorf("no commit list for context %s", context.GetKey())
+		return nil
+	}
+}
+
 func (gui *Gui) addCommitToCherryPickedCommits(index int) {
 	commitShaMap := gui.CherryPickedCommitShaMap()
-	commitShaMap[gui.State.Commits[index].Sha] = true
+	commitsList := gui.commitsListForContext()
+	commitShaMap[commitsList[index].Sha] = true
 
 	newCommits := []*commands.Commit{}
-	for _, commit := range gui.State.Commits {
+	for _, commit := range commitsList {
 		if commitShaMap[commit.Sha] {
 			// duplicating just the things we need to put in the rebase TODO list
 			newCommits = append(newCommits, &commands.Commit{Name: commit.Name, Sha: commit.Sha})
@@ -65,18 +104,34 @@ func (gui *Gui) handleCopyCommitRange() error {
 		return err
 	}
 
+	// get currently selected commit, add the sha to state.
+	context := gui.currentSideContext()
+	if context == nil {
+		return nil
+	}
+
+	gui.resetCherryPickingIfNecessary(context)
+
+	commit, ok := context.SelectedItem().(*commands.Commit)
+	if !ok {
+		gui.Log.Error("type cast failed for handling copy commit")
+	}
+	if commit == nil {
+		return nil
+	}
+
 	commitShaMap := gui.CherryPickedCommitShaMap()
 
 	// find the last commit that is copied that's above our position
 	// if there are none, startIndex = 0
 	startIndex := 0
-	for index, commit := range gui.State.Commits[0:gui.State.Panels.Commits.SelectedLineIdx] {
+	for index, commit := range gui.commitsListForContext()[0:context.GetPanelState().GetSelectedLineIdx()] {
 		if commitShaMap[commit.Sha] {
 			startIndex = index
 		}
 	}
 
-	for index := startIndex; index <= gui.State.Panels.Commits.SelectedLineIdx; index++ {
+	for index := startIndex; index <= context.GetPanelState().GetSelectedLineIdx(); index++ {
 		gui.addCommitToCherryPickedCommits(index)
 	}
 
@@ -101,4 +156,42 @@ func (gui *Gui) HandlePasteCommits() error {
 			})
 		},
 	})
+}
+
+func (gui *Gui) exitCherryPickingMode() error {
+	contextKey := gui.State.Modes.CherryPicking.ContextKey
+
+	gui.State.Modes.CherryPicking.ContextKey = ""
+	gui.State.Modes.CherryPicking.CherryPickedCommits = nil
+
+	if contextKey == "" {
+		gui.Log.Warn("context key blank when trying to exit cherry picking mode")
+		return nil
+	}
+
+	return gui.rerenderContextViewIfPresent(contextKey)
+}
+
+func (gui *Gui) rerenderContextViewIfPresent(contextKey string) error {
+	if contextKey == "" {
+		return nil
+	}
+
+	context := gui.contextForContextKey(contextKey)
+
+	viewName := context.GetViewName()
+
+	view, err := gui.g.View(viewName)
+	if err != nil {
+		gui.Log.Warn(err)
+		return nil
+	}
+
+	if view.Context == contextKey {
+		if err := context.HandleRender(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

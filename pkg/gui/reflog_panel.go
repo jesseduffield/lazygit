@@ -72,7 +72,7 @@ func (gui *Gui) refreshReflogCommits() error {
 		return err
 	}
 
-	if gui.inFilterMode() {
+	if gui.State.Modes.Filtering.Active() {
 		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.Path); err != nil {
 			return err
 		}

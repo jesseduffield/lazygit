@@ -1,11 +1,7 @@
 package gui
 
-func (gui *Gui) inFilterMode() bool {
-	return gui.State.Modes.Filtering.Path != ""
-}
-
 func (gui *Gui) validateNotInFilterMode() (bool, error) {
-	if gui.inFilterMode() {
+	if gui.State.Modes.Filtering.Active() {
 		err := gui.ask(askOpts{
 			returnToView:       gui.g.CurrentView(),
 			returnFocusOnClose: true,

@@ -232,12 +232,27 @@ type Diffing struct {
 	Reverse bool
 }
 
+func (m *Diffing) Active() bool {
+	return m.Ref != ""
+}
+
 type Filtering struct {
 	Path string // the filename that gets passed to git log
 }
 
+func (m *Filtering) Active() bool {
+	return m.Path != ""
+}
+
 type CherryPicking struct {
 	CherryPickedCommits []*commands.Commit
+
+	// we only allow cherry picking from one context at a time, so you can't copy a commit from the local commits context and then also copy a commit in the reflog context
+	ContextKey string
+}
+
+func (m *CherryPicking) Active() bool {
+	return len(m.CherryPickedCommits) > 0
 }
 
 type Modes struct {
@@ -309,6 +324,7 @@ func (gui *Gui) resetState() {
 		},
 		CherryPicking: CherryPicking{
 			CherryPickedCommits: make([]*commands.Commit, 0),
+			ContextKey:          "",
 		},
 		Diffing: prevDiff,
 	}
@@ -383,7 +399,7 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
-	if gui.inFilterMode() {
+	if gui.State.Modes.Filtering.Active() {
 		gui.State.ScreenMode = SCREEN_HALF
 	} else {
 		gui.State.ScreenMode = SCREEN_NORMAL
