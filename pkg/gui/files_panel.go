@@ -247,7 +247,7 @@ func (gui *Gui) handleFilePress() error {
 			return gui.handleSwitchToMerge()
 		}
 
-		if file.HasUnstagedChanges {
+		if dir.HasUnstagedChanges {
 			err = gui.GitCommand.StageFile(dir.AbsolutePath())
 		} else {
 			err = gui.GitCommand.UnStageFile(dir.AbsolutePath(), dir.Tracked)
