@@ -43,8 +43,8 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	}
 
 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
-	diff := gui.GitCommand.Diff(file, true, secondaryFocused)
-	secondaryDiff := gui.GitCommand.Diff(file, true, !secondaryFocused)
+	diff := gui.GitCommand.WorktreeFileDiff(file, true, secondaryFocused)
+	secondaryDiff := gui.GitCommand.WorktreeFileDiff(file, true, !secondaryFocused)
 
 	// if we have e.g. a deleted file with nothing else to the diff will have only
 	// 4-5 lines in which case we'll swap panels

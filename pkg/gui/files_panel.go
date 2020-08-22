@@ -54,7 +54,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.refreshMergePanel()
 	}
 
-	cmdStr := gui.GitCommand.DiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+	cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
 	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
 
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
@@ -63,7 +63,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	}}
 
 	if file.HasStagedChanges && file.HasUnstagedChanges {
-		cmdStr := gui.GitCommand.DiffCmdStr(file, false, true)
+		cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, true)
 		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
 
 		refreshOpts.secondary = &viewUpdateOpts{
