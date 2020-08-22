@@ -1921,7 +1921,7 @@ func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.DiscardUnstagedFileChanges(s.file))
+			s.test(gitCmd.DiscardUnstagedFileChanges(s.file.Name))
 		})
 	}
 }
