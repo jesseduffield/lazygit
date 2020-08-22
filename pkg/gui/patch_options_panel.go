@@ -29,7 +29,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 	if gui.GitCommand.PatchManager.CanRebase {
 		menuItems = append(menuItems, []*menuItem{
 			{
-				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.Parent),
+				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.To),
 				onPress:       gui.handleDeletePatchFromCommit,
 			},
 			{
@@ -44,7 +44,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 
 		if gui.currentContext() == gui.Contexts.BranchCommits.Context {
 			selectedCommit := gui.getSelectedLocalCommit()
-			if selectedCommit != nil && gui.GitCommand.PatchManager.Parent != selectedCommit.Sha {
+			if selectedCommit != nil && gui.GitCommand.PatchManager.To != selectedCommit.Sha {
 				// adding this option to index 1
 				menuItems = append(
 					menuItems[:1],
@@ -66,7 +66,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 
 func (gui *Gui) getPatchCommitIndex() int {
 	for index, commit := range gui.State.Commits {
-		if commit.Sha == gui.GitCommand.PatchManager.Parent {
+		if commit.Sha == gui.GitCommand.PatchManager.To {
 			return index
 		}
 	}

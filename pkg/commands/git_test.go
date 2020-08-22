@@ -1847,7 +1847,7 @@ func TestGitCommandShowCommitFile(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.ShowCommitFile(s.commitSha, s.fileName, true))
+			s.test(gitCmd.ShowFileDiff(s.commitSha+"^", s.commitSha, false, s.fileName, true))
 		})
 	}
 }
