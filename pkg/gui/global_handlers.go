@@ -141,21 +141,17 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 	cx, _ := v.Cursor()
 	width, _ := v.Size()
 
-	// if we're in the normal context there will be a donate button here
-	if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
-		if gui.State.Modes.Filtering.Active() {
-			return gui.exitFilterMode()
-		}
-		if gui.State.Modes.Diffing.Active() {
-			return gui.exitDiffMode()
-		}
-		if gui.GitCommand.PatchManager.Active() {
-			return gui.handleResetPatch()
-		}
-	} else {
+	if width-cx > len(gui.Tr.SLocalize("(reset)")) {
 		return nil
 	}
 
+	for _, mode := range gui.modeStatuses() {
+		if mode.isActive() {
+			return mode.reset()
+		}
+	}
+
+	// if we're not in an active mode we show the donate button
 	if cx <= len(gui.Tr.SLocalize("Donate"))+len(INFO_SECTION_PADDING) {
 		return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
 	}

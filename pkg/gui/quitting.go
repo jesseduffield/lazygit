@@ -43,7 +43,7 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 
 	for _, mode := range gui.modeStatuses() {
 		if mode.isActive() {
-			return mode.onReset()
+			return mode.reset()
 		}
 	}
 
