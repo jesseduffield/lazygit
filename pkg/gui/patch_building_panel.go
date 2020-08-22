@@ -49,7 +49,10 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 
 	toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
 	filename := gui.getSelectedCommitFileName()
-	includedLineIndices := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+	includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+	if err != nil {
+		return err
+	}
 	currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
 	if currentLineIsStaged {
 		toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange

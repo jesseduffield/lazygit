@@ -156,7 +156,9 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		gui.GitCommand.PatchManager.ToggleFileWhole(commitFile.Name)
+		if err := gui.GitCommand.PatchManager.ToggleFileWhole(commitFile.Name); err != nil {
+			return err
+		}
 
 		if gui.GitCommand.PatchManager.IsEmpty() {
 			gui.GitCommand.PatchManager.Reset()
@@ -193,7 +195,7 @@ func (gui *Gui) startPatchManager() error {
 	}
 
 	canRebase := gui.State.Panels.CommitFiles.refType == REF_TYPE_LOCAL_COMMIT
-	gui.GitCommand.PatchManager.Start(gui.State.Panels.CommitFiles.refName, diffMap, canRebase)
+	gui.GitCommand.PatchManager.Start(gui.State.Panels.CommitFiles.refName, canRebase)
 	return nil
 }
 
