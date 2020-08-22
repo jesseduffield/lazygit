@@ -12,3 +12,7 @@ func (t *Tag) RefName() string {
 func (t *Tag) ID() string {
 	return t.RefName()
 }
+
+func (t *Tag) Description() string {
+	return "tag " + t.Name
+}

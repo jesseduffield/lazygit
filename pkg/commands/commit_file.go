@@ -11,3 +11,7 @@ type CommitFile struct {
 func (f *CommitFile) ID() string {
 	return f.Name
 }
+
+func (f *CommitFile) Description() string {
+	return f.Name
+}

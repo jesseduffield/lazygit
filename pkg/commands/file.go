@@ -40,3 +40,7 @@ func (f *File) Matches(f2 *File) bool {
 func (f *File) ID() string {
 	return f.Name
 }
+
+func (f *File) Description() string {
+	return f.Name
+}

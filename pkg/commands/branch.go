@@ -20,3 +20,7 @@ func (b *Branch) RefName() string {
 func (b *Branch) ID() string {
 	return b.RefName()
 }
+
+func (b *Branch) Description() string {
+	return b.RefName()
+}

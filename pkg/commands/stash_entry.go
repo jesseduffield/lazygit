@@ -15,3 +15,7 @@ func (s *StashEntry) RefName() string {
 func (s *StashEntry) ID() string {
 	return s.RefName()
 }
+
+func (s *StashEntry) Description() string {
+	return s.RefName() + ": " + s.Name
+}
