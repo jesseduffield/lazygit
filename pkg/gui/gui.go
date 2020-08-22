@@ -186,7 +186,7 @@ type stashPanelState struct {
 
 type menuPanelState struct {
 	listPanelState
-	OnPress func(g *gocui.Gui, v *gocui.View) error
+	OnPress func() error
 }
 
 type commitFilesPanelState struct {
