@@ -868,7 +868,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("newBranch"),
 		},
 		{
-			ViewName:    "commits",
+			ViewName:    "branches",
 			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("commits.cherryPickCopy"),
 			Handler:     gui.wrappedHandler(gui.handleCopyCommit),

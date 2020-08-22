@@ -143,10 +143,10 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 
 	// if we're in the normal context there will be a donate button here
 	if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
-		if gui.inFilterMode() {
+		if gui.State.Modes.Filtering.Active() {
 			return gui.exitFilterMode()
 		}
-		if gui.inDiffMode() {
+		if gui.State.Modes.Diffing.Active() {
 			return gui.exitDiffMode()
 		}
 		if gui.GitCommand.PatchManager.Active() {

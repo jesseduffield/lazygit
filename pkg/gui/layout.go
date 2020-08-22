@@ -1,27 +1,22 @@
 package gui
 
 import (
-	"fmt"
-
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 const SEARCH_PREFIX = "search: "
 const INFO_SECTION_PADDING = " "
 
 func (gui *Gui) informationStr() string {
-	if gui.inDiffMode() {
-		return utils.ColoredString(fmt.Sprintf("%s %s %s", gui.Tr.SLocalize("showingGitDiff"), "git diff "+gui.diffStr(), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgMagenta)
-	} else if gui.inFilterMode() {
-		return utils.ColoredString(fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("filteringBy"), gui.State.Modes.Filtering.Path, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgRed, color.Bold)
-	} else if gui.GitCommand.PatchManager.Active() {
-		return utils.ColoredString(fmt.Sprintf("%s %s", gui.Tr.SLocalize("buildingPatch"), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgYellow, color.Bold)
-	} else if len(gui.State.Modes.CherryPicking.CherryPickedCommits) > 0 {
-		return utils.ColoredString(fmt.Sprintf("%d commits copied", len(gui.State.Modes.CherryPicking.CherryPickedCommits)), color.FgCyan)
-	} else if gui.g.Mouse {
+	for _, mode := range gui.modeStatuses() {
+		if mode.isActive() {
+			return mode.description()
+		}
+	}
+
+	if gui.g.Mouse {
 		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
 		return donate + " " + gui.Config.GetVersion()
 	} else {
@@ -275,7 +270,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if gui.g.CurrentView() == nil {
 		initialContext := gui.Contexts.Files.Context
-		if gui.inFilterMode() {
+		if gui.State.Modes.Filtering.Active() {
 			initialContext = gui.Contexts.BranchCommits.Context
 		}
 

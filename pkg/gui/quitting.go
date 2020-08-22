@@ -41,15 +41,10 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 		return gui.switchContext(currentContext.GetParentContext())
 	}
 
-	if gui.inDiffMode() {
-		return gui.exitDiffMode()
-	}
-	if gui.inFilterMode() {
-		return gui.exitFilterMode()
-	}
-
-	if gui.GitCommand.PatchManager.Active() {
-		return gui.handleResetPatch()
+	for _, mode := range gui.modeStatuses() {
+		if mode.isActive() {
+			return mode.onReset()
+		}
 	}
 
 	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {
