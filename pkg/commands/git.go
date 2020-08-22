@@ -1045,29 +1045,19 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
-// GetFilesInRef get the specified commit files
-func (c *GitCommand) GetFilesInRef(refName string, isStash bool, patchManager *patch.PatchManager) ([]*CommitFile, error) {
-	command := "git diff-tree"
-	if isStash {
-		command = "git stash show"
-	}
-
-	filenames, err := c.OSCommand.RunCommandWithOutput("%s --no-commit-id --name-only -r --no-renames %s", command, refName)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.GetCommitFilesFromFilenames(filenames, refName, patchManager), nil
-}
-
 // GetFilesInDiff get the specified commit files
-func (c *GitCommand) GetFilesInDiff(from string, to string, parent string, patchManager *patch.PatchManager) ([]*CommitFile, error) {
-	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --name-only %s %s", from, to)
+func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchManager *patch.PatchManager) ([]*CommitFile, error) {
+	reverseFlag := ""
+	if reverse {
+		reverseFlag = " -R "
+	}
+
+	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --name-only %s %s %s", reverseFlag, from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	return c.GetCommitFilesFromFilenames(filenames, parent, patchManager), nil
+	return c.GetCommitFilesFromFilenames(filenames, to, patchManager), nil
 }
 
 // filenames string is something like "file1\nfile2\nfile3"
