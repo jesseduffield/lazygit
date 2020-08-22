@@ -184,16 +184,6 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) startPatchManager() error {
-	diffMap := map[string]string{}
-	// TODO: only load these files as we need to
-	for _, commitFile := range gui.State.CommitFiles {
-		commitText, err := gui.GitCommand.ShowCommitFile(commitFile.Parent, commitFile.Name, true)
-		if err != nil {
-			return err
-		}
-		diffMap[commitFile.Name] = commitText
-	}
-
 	canRebase := gui.State.Panels.CommitFiles.refType == REF_TYPE_LOCAL_COMMIT
 	gui.GitCommand.PatchManager.Start(gui.State.Panels.CommitFiles.refName, canRebase)
 	return nil
