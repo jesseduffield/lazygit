@@ -468,3 +468,40 @@ func (gui *Gui) handleClipboardCopyBranch(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.OSCommand.CopyToClipboard(branch.Name)
 }
+
+func (gui *Gui) handleNewBranchOffCurrentItem() error {
+	context := gui.currentSideContext()
+
+	item := context.GetSelectedItem()
+	if item == nil {
+		return nil
+	}
+
+	message := gui.Tr.TemplateLocalize(
+		"NewBranchNameBranchOff",
+		Teml{
+			"branchName": item.Description(),
+		},
+	)
+
+	return gui.prompt(gui.getCurrentSideView(), message, "", func(response string) error {
+		if err := gui.GitCommand.NewBranch(response, item.ID()); err != nil {
+			return err
+		}
+
+		// if we're currently in the branch commits context then the selected commit
+		// is about to go to the top of the list
+		if context.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
+			context.GetPanelState().SetSelectedLineIdx(0)
+		}
+
+		if context.GetKey() != gui.Contexts.Branches.Context.GetKey() {
+			if err := gui.switchContext(gui.Contexts.Branches.Context); err != nil {
+				return err
+			}
+			gui.State.Panels.Branches.SelectedLineIdx = 0
+		}
+
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	})
+}
