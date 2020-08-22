@@ -215,9 +215,9 @@ func (gui *Gui) contextTree() ContextTree {
 		},
 		Staging: SimpleContextNode{
 			Context: BasicContext{
-				// TODO: think about different situations where this arises
 				OnFocus: func() error {
 					return nil
+					// TODO: centralise the code here
 					// return gui.refreshStagingPanel(false, -1)
 				},
 				Kind:     MAIN_CONTEXT,
@@ -227,9 +227,10 @@ func (gui *Gui) contextTree() ContextTree {
 		},
 		PatchBuilding: SimpleContextNode{
 			Context: BasicContext{
-				// TODO: think about different situations where this arises
 				OnFocus: func() error {
-					return gui.refreshPatchBuildingPanel(-1)
+					return nil
+					// TODO: centralise the code here
+					// return gui.refreshPatchBuildingPanel(-1)
 				},
 				Kind:     MAIN_CONTEXT,
 				ViewName: "main",
@@ -238,9 +239,10 @@ func (gui *Gui) contextTree() ContextTree {
 		},
 		Merging: SimpleContextNode{
 			Context: BasicContext{
-				// TODO: think about different situations where this arises
 				OnFocus: func() error {
-					return gui.refreshMergePanel()
+					return nil
+					// TODO: centralise the code here
+					// return gui.refreshMergePanel()
 				},
 				Kind:     MAIN_CONTEXT,
 				ViewName: "main",
