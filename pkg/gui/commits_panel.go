@@ -554,11 +554,6 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 	return gui.handleOpenSearch(gui.g, v)
 }
 
-func (gui *Gui) handleResetCherryPick(g *gocui.Gui, v *gocui.View) error {
-	gui.State.Modes.CherryPicking.CherryPickedCommits = []*commands.Commit{}
-	return gui.Contexts.BranchCommits.Context.HandleRender()
-}
-
 func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {

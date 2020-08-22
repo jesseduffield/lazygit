@@ -367,7 +367,7 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 		RendersToMainView:   true,
 		Kind:                SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.CherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
+			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_FILES,
 		SelectedItem: func() ListItem { return gui.getSelectedLocalCommit() },
@@ -385,7 +385,7 @@ func (gui *Gui) reflogCommitsListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
+			return presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_FILES,
 		SelectedItem: func() ListItem { return gui.getSelectedReflogCommit() },
@@ -404,7 +404,7 @@ func (gui *Gui) subCommitsListContext() *ListContext {
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
 			gui.Log.Warn("getting display strings for sub commits")
-			return presentation.GetCommitListDisplayStrings(gui.State.SubCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.CherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
+			return presentation.GetCommitListDisplayStrings(gui.State.SubCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_COMMITS,
 		SelectedItem: func() ListItem { return gui.getSelectedSubCommit() },

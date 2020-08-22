@@ -55,7 +55,7 @@ func (gui *Gui) handleCopyCommit() error {
 	return context.HandleRender()
 }
 
-func (gui *Gui) CherryPickedCommitShaMap() map[string]bool {
+func (gui *Gui) cherryPickedCommitShaMap() map[string]bool {
 	commitShaMap := map[string]bool{}
 	for _, commit := range gui.State.Modes.CherryPicking.CherryPickedCommits {
 		commitShaMap[commit.Sha] = true
@@ -84,7 +84,7 @@ func (gui *Gui) commitsListForContext() []*commands.Commit {
 }
 
 func (gui *Gui) addCommitToCherryPickedCommits(index int) {
-	commitShaMap := gui.CherryPickedCommitShaMap()
+	commitShaMap := gui.cherryPickedCommitShaMap()
 	commitsList := gui.commitsListForContext()
 	commitShaMap[commitsList[index].Sha] = true
 
@@ -110,7 +110,9 @@ func (gui *Gui) handleCopyCommitRange() error {
 		return nil
 	}
 
-	gui.resetCherryPickingIfNecessary(context)
+	if err := gui.resetCherryPickingIfNecessary(context); err != nil {
+		return err
+	}
 
 	commit, ok := context.SelectedItem().(*commands.Commit)
 	if !ok {
@@ -120,7 +122,7 @@ func (gui *Gui) handleCopyCommitRange() error {
 		return nil
 	}
 
-	commitShaMap := gui.CherryPickedCommitShaMap()
+	commitShaMap := gui.cherryPickedCommitShaMap()
 
 	// find the last commit that is copied that's above our position
 	// if there are none, startIndex = 0
@@ -135,7 +137,7 @@ func (gui *Gui) handleCopyCommitRange() error {
 		gui.addCommitToCherryPickedCommits(index)
 	}
 
-	return gui.Contexts.BranchCommits.Context.HandleRender()
+	return context.HandleRender()
 }
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied

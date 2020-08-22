@@ -815,7 +815,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("commits.resetCherryPick"),
-			Handler:     gui.handleResetCherryPick,
+			Handler:     gui.wrappedHandler(gui.exitCherryPickingMode),
 			Description: gui.Tr.SLocalize("resetCherryPick"),
 		},
 		{
@@ -838,6 +838,27 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.viewResetOptions"),
 			Handler:     gui.handleCreateReflogResetMenu,
 			Description: gui.Tr.SLocalize("viewResetOptions"),
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{REFLOG_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("commits.cherryPickCopy"),
+			Handler:     gui.wrappedHandler(gui.handleCopyCommit),
+			Description: gui.Tr.SLocalize("cherryPickCopy"),
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{REFLOG_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("commits.cherryPickCopyRange"),
+			Handler:     gui.wrappedHandler(gui.handleCopyCommitRange),
+			Description: gui.Tr.SLocalize("cherryPickCopyRange"),
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{REFLOG_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("commits.resetCherryPick"),
+			Handler:     gui.wrappedHandler(gui.exitCherryPickingMode),
+			Description: gui.Tr.SLocalize("resetCherryPick"),
 		},
 		{
 			ViewName:    "branches",
@@ -873,6 +894,20 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("commits.cherryPickCopy"),
 			Handler:     gui.wrappedHandler(gui.handleCopyCommit),
 			Description: gui.Tr.SLocalize("cherryPickCopy"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("commits.cherryPickCopyRange"),
+			Handler:     gui.wrappedHandler(gui.handleCopyCommitRange),
+			Description: gui.Tr.SLocalize("cherryPickCopyRange"),
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("commits.resetCherryPick"),
+			Handler:     gui.wrappedHandler(gui.exitCherryPickingMode),
+			Description: gui.Tr.SLocalize("resetCherryPick"),
 		},
 		{
 			ViewName:    "stash",
