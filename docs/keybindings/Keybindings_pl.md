@@ -191,6 +191,7 @@
   <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
   <kbd>></kbd>: scroll to bottom
+  <kbd>v</kbd>: go to a more advanced tree view
 </pre>
 
 ## Main Panel (Merging)

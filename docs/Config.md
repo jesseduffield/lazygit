@@ -10,19 +10,22 @@ Default path for the config file:
 
 ```yaml
   gui:
-    # stuff relating to the UI
+    ## stuff relating to the UI
     scrollHeight: 2 # how many lines you scroll by
     scrollPastBottom: true # enable scrolling past the bottom
+    mouseEvents: true
+    skipUnstageLineWarning: false
+    skipStashWarning: true
     sidePanelWidth: 0.3333 # number from 0 to 1
     expandFocusedSidePanel: false
     mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
     theme:
       lightTheme: false # For terminals with a light background
       activeBorderColor:
-        - white
+        - green
         - bold
       inactiveBorderColor:
-        - green
+        - white
       optionsTextColor:
         - blue
       selectedLineBgColor:
@@ -31,9 +34,6 @@ Default path for the config file:
         - blue
     commitLength:
       show: true
-    mouseEvents: true
-    skipUnstageLineWarning: false
-    skipStashWarning: true
   git:
     paging:
       colorArg: always
@@ -45,7 +45,7 @@ Default path for the config file:
       args: ""
     pull:
       mode: 'merge' # one of 'merge' | 'rebase' | 'ff-only'
-    skipHookPrefix: WIP
+    skipHookPrefix: 'WIP'
     autoFetch: true
     branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
     overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
@@ -53,6 +53,7 @@ Default path for the config file:
     method: prompt # can be: prompt | background | never
     days: 14 # how often an update is checked for
   reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
+  splashUpdatesIndex: 0
   confirmOnQuit: false
   # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
   quitOnTopLevelReturn: true
@@ -77,6 +78,7 @@ Default path for the config file:
       nextBlock-alt: 'l' # goto the next block / panel
       nextMatch: 'n'
       prevMatch: 'N'
+      startSearch: '/'
       optionMenu: 'x' # show help menu
       optionMenu-alt1: '?' # show help menu
       select: '<space>'
@@ -105,7 +107,7 @@ Default path for the config file:
       prevScreenMode: '_'
       undo: 'z'
       redo: '<c-z>'
-      filteringMenu: '<c-s>'
+      filteringMenu: <c-s>
       diffingMenu: '<c-e>'
       copyToClipboard: '<c-o>'
     status:
@@ -120,14 +122,22 @@ Default path for the config file:
       refreshFiles: 'r'
       stashAllChanges: 's'
       viewStashOptions: 'S'
-      toggleStagedAll: 'a' # stage/unstage all
+      toggleStagedAll: 'a'
       viewResetOptions: 'D'
       fetch: 'f'
+      switchToExtensiveFilesView: 'v'
+    extensiveFiles:
+      switchToFilesView: 'v'
+      up: '<up>'
+      down: '<down>'
+      left: '<left>'
+      right: '<right>'
     branches:
       createPullRequest: 'o'
       checkoutBranchByName: 'c'
       forceCheckoutBranch: 'F'
       rebaseBranch: 'r'
+      renameBranch: 'R'
       mergeIntoCurrentBranch: 'M'
       viewGitFlowOptions: 'i'
       fastForward: 'f' # fast-forward this branch from its upstream
