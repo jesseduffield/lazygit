@@ -178,3 +178,14 @@ func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
 
 	return err
 }
+
+func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
+	// important to note that this assumes we've selected an item in a side context
+	item := gui.getSideContextSelectedItem()
+
+	if item == nil {
+		return nil
+	}
+
+	return gui.OSCommand.CopyToClipboard(item.ID())
+}
