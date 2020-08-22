@@ -275,7 +275,7 @@ func (gui *Gui) filesListContext() *ListContext {
 		RendersToMainView:   false,
 		Kind:                SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Diff.Ref)
+			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_NOTHING,
 		SelectedItem: func() ListItem { return gui.getSelectedFile() },
@@ -293,7 +293,7 @@ func (gui *Gui) branchesListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
+			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_COMMITS,
 		SelectedItem: func() ListItem { return gui.getSelectedBranch() },
@@ -312,7 +312,7 @@ func (gui *Gui) remotesListContext() *ListContext {
 		RendersToMainView:   true,
 		Kind:                SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Diff.Ref)
+			return presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_BRANCHES,
 		SelectedItem: func() ListItem { return gui.getSelectedRemote() },
@@ -330,7 +330,7 @@ func (gui *Gui) remoteBranchesListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Diff.Ref)
+			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_COMMITS,
 		SelectedItem: func() ListItem { return gui.getSelectedRemoteBranch() },
@@ -348,7 +348,7 @@ func (gui *Gui) tagsListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Diff.Ref)
+			return presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_COMMITS,
 		SelectedItem: func() ListItem { return gui.getSelectedTag() },
@@ -367,7 +367,7 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 		RendersToMainView:   true,
 		Kind:                SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
+			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.CherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_FILES,
 		SelectedItem: func() ListItem { return gui.getSelectedLocalCommit() },
@@ -385,7 +385,7 @@ func (gui *Gui) reflogCommitsListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
+			return presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_FILES,
 		SelectedItem: func() ListItem { return gui.getSelectedReflogCommit() },
@@ -403,7 +403,7 @@ func (gui *Gui) subCommitsListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetCommitListDisplayStrings(gui.State.SubCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Diff.Ref)
+			return presentation.GetCommitListDisplayStrings(gui.State.SubCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.CherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_COMMITS,
 		SelectedItem: func() ListItem { return gui.getSelectedSubCommit() },
@@ -421,7 +421,7 @@ func (gui *Gui) stashListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Diff.Ref)
+			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_FILES,
 		SelectedItem: func() ListItem { return gui.getSelectedStashEntry() },
@@ -440,7 +440,7 @@ func (gui *Gui) commitFilesListContext() *ListContext {
 		RendersToMainView: true,
 		Kind:              SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Diff.Ref)
+			return presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Modes.Diffing.Ref)
 		},
 		Contains:     CONTAINS_NOTHING,
 		SelectedItem: func() ListItem { return gui.getSelectedCommitFile() },

@@ -37,7 +37,7 @@ func (gui *Gui) handleStashEntrySelect() error {
 }
 
 func (gui *Gui) refreshStashEntries() error {
-	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.FilterPath)
+	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.Modes.Filtering.Path)
 
 	return gui.Contexts.Stash.Context.HandleRender()
 }

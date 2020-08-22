@@ -1,7 +1,7 @@
 package gui
 
 func (gui *Gui) inFilterMode() bool {
-	return gui.State.FilterPath != ""
+	return gui.State.Modes.Filtering.Path != ""
 }
 
 func (gui *Gui) validateNotInFilterMode() (bool, error) {
@@ -22,6 +22,6 @@ func (gui *Gui) validateNotInFilterMode() (bool, error) {
 }
 
 func (gui *Gui) exitFilterMode() error {
-	gui.State.FilterPath = ""
+	gui.State.Modes.Filtering.Path = ""
 	return gui.Errors.ErrRestart
 }

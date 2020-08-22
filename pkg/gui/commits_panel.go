@@ -37,7 +37,7 @@ func (gui *Gui) handleCommitSelect() error {
 		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoCommitsThisBranch"))
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.Path),
 		)
 		task = gui.createRunPtyTask(cmd)
 	}
@@ -97,12 +97,12 @@ func (gui *Gui) refreshCommits() error {
 }
 
 func (gui *Gui) refreshCommitsWithLimit() error {
-	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.CherryPickedCommits)
+	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr, gui.State.Modes.CherryPicking.CherryPickedCommits)
 
 	commits, err := builder.GetCommits(
 		commands.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
-			FilterPath:           gui.State.FilterPath,
+			FilterPath:           gui.State.Modes.Filtering.Path,
 			IncludeRebaseCommits: true,
 			RefName:              "HEAD",
 		},
@@ -555,7 +555,7 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 }
 
 func (gui *Gui) handleResetCherryPick(g *gocui.Gui, v *gocui.View) error {
-	gui.State.CherryPickedCommits = []*commands.Commit{}
+	gui.State.Modes.CherryPicking.CherryPickedCommits = []*commands.Commit{}
 	return gui.Contexts.BranchCommits.Context.HandleRender()
 }
 
