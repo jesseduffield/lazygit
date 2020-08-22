@@ -43,11 +43,19 @@ func (f *File) Matches(f2 *File) bool {
 
 // Dir is a directory containing files
 type Dir struct {
-	Name        string
-	Parrent     *Dir
-	Files       []*File
-	SubDirs     []*Dir
-	ShortStatus string // e.g. 'AD', ' A', 'M ', '??'
+	Name                    string
+	Parrent                 *Dir
+	Files                   []*File
+	SubDirs                 []*Dir
+	ShortStatus             string // e.g. "AD", " A", "M ", "??"
+	Untracked               bool
+	HasStagedChanges        bool
+	HasUnstagedChanges      bool
+	Tracked                 bool
+	Deleted                 bool
+	HasNoStagedChanges      bool
+	HasMergeConflicts       bool
+	HasInlineMergeConflicts bool
 }
 
 // MergeGITStatus merges 2 git status together
@@ -141,8 +149,20 @@ func (d *Dir) AddFile(f *File) {
 	lastStatus := f.ShortStatus
 	current := d
 	for {
-		current.ShortStatus = MergeGITStatus(lastStatus, current.ShortStatus)
-		lastStatus = current.ShortStatus
+		lastStatus = MergeGITStatus(lastStatus, current.ShortStatus)
+
+		stagedChange := rune(lastStatus[0])
+		unstagedChange := rune(lastStatus[1])
+
+		current.ShortStatus = lastStatus
+		current.HasNoStagedChanges = strings.ContainsRune(" U?", stagedChange)
+		current.HasStagedChanges = !current.HasNoStagedChanges
+		current.HasUnstagedChanges = unstagedChange != ' '
+		current.Deleted = unstagedChange == 'D' || stagedChange == 'D'
+		current.Untracked = utils.IncludesString([]string{"??", "A ", "AM"}, lastStatus)
+		current.Tracked = !current.Untracked
+		current.HasMergeConflicts = utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, lastStatus)
+		current.HasInlineMergeConflicts = utils.IncludesString([]string{"UU", "AA"}, lastStatus)
 
 		current = current.Parrent
 		if current == nil {
@@ -315,6 +335,27 @@ func (d *Dir) GetTreeDisplayString(focused bool) string {
 		output += green.Sprint(dirName)
 	}
 	return output
+}
+
+// AbsolutePath returns the absolute path of the dir relative to the git repo
+func (d *Dir) AbsolutePath() string {
+	dir := d
+	path := d.Name
+
+	if dir.Parrent == nil {
+		return path
+	}
+
+	for {
+		dir = d.Parrent
+		if dir.Parrent == nil {
+			// This checks if we don't include the root dir
+			break
+		}
+		path = dir.Name + "/" + path
+	}
+
+	return path
 }
 
 // GetTreeDisplayString returns the display string of a file for the tree view

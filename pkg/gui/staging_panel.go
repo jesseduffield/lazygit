@@ -19,8 +19,8 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 		return err
 	}
 
-	file, err := gui.getSelectedFile()
-	if err != nil {
+	file, _, err := gui.getSelectedDirOrFile()
+	if err != nil || file == nil {
 		if err != gui.Errors.ErrNoFiles {
 			return err
 		}
@@ -123,16 +123,15 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 				return gui.applySelection(true)
 			},
 		})
-	} else {
-		return gui.applySelection(true)
 	}
+	return gui.applySelection(true)
 }
 
 func (gui *Gui) applySelection(reverse bool) error {
 	state := gui.State.Panels.LineByLine
 
-	file, err := gui.getSelectedFile()
-	if err != nil {
+	file, _, err := gui.getSelectedDirOrFile()
+	if err != nil || file == nil {
 		return err
 	}
 

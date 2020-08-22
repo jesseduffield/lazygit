@@ -113,8 +113,8 @@ func (gui *Gui) isIndexToDelete(i int, conflict commands.Conflict, pick string) 
 }
 
 func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
-	gitFile, err := gui.getSelectedFile()
-	if err != nil {
+	gitFile, _, err := gui.getSelectedDirOrFile()
+	if err != nil || gitFile == nil {
 		return err
 	}
 	file, err := os.Open(gitFile.Name)
@@ -139,8 +139,8 @@ func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
 }
 
 func (gui *Gui) pushFileSnapshot(g *gocui.Gui) error {
-	gitFile, err := gui.getSelectedFile()
-	if err != nil {
+	gitFile, _, err := gui.getSelectedDirOrFile()
+	if err != nil || gitFile == nil {
 		return err
 	}
 	content, err := gui.GitCommand.CatFile(gitFile.Name)
@@ -156,8 +156,8 @@ func (gui *Gui) handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	prevContent := gui.State.Panels.Merging.EditHistory.Pop().(string)
-	gitFile, err := gui.getSelectedFile()
-	if err != nil {
+	gitFile, _, err := gui.getSelectedDirOrFile()
+	if err != nil || gitFile == nil {
 		return err
 	}
 	if err := ioutil.WriteFile(gitFile.Name, []byte(prevContent), 0644); err != nil {
@@ -249,14 +249,14 @@ func (gui *Gui) refreshMergePanel() error {
 }
 
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
-	item, err := gui.getSelectedFile()
+	item, _, err := gui.getSelectedDirOrFile()
 	if err != nil {
 		if err != gui.Errors.ErrNoFiles {
 			return "", err
 		}
 		return "", gui.newStringTask("main", gui.Tr.SLocalize("NoFilesDisplay"))
 	}
-	if item.Type != "file" {
+	if item.Type != "file" || item == nil {
 		return "", gui.newStringTask("main", gui.Tr.SLocalize("NotAFile"))
 	}
 	cat, err := gui.GitCommand.CatFile(item.Name)
@@ -353,10 +353,16 @@ func (gui *Gui) canScrollMergePanel() bool {
 		return false
 	}
 
-	file, err := gui.getSelectedFile()
+	file, dir, err := gui.getSelectedDirOrFile()
 	if err != nil {
 		return false
 	}
 
-	return file.HasInlineMergeConflicts
+	if file != nil {
+		return file.HasInlineMergeConflicts
+	} else if dir != nil {
+		return dir.HasInlineMergeConflicts
+	}
+
+	return false
 }

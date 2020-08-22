@@ -243,11 +243,11 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 
 	for _, statusString := range statusStrings {
 		change := statusString[0:2]
-		stagedChange := change[0:1]
-		unstagedChange := statusString[1:2]
+		stagedChange := rune(change[0])
+		unstagedChange := rune(statusString[1])
 		filename := c.OSCommand.Unquote(statusString[3:])
 		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
-		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
+		hasNoStagedChanges := strings.ContainsRune(" U?", stagedChange)
 		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
 		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
 
@@ -255,9 +255,9 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 			Name:                    filename,
 			DisplayString:           statusString,
 			HasStagedChanges:        !hasNoStagedChanges,
-			HasUnstagedChanges:      unstagedChange != " ",
+			HasUnstagedChanges:      unstagedChange != ' ',
 			Tracked:                 !untracked,
-			Deleted:                 unstagedChange == "D" || stagedChange == "D",
+			Deleted:                 unstagedChange == 'D' || stagedChange == 'D',
 			HasMergeConflicts:       hasMergeConflicts,
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
 			Type:                    c.OSCommand.FileType(filename),
@@ -675,12 +675,12 @@ func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 	if !file.Tracked {
 		return c.removeFile(file.Name)
 	}
-	return c.DiscardUnstagedFileChanges(file)
+	return c.DiscardUnstagedFileChanges(file.Name)
 }
 
 // DiscardUnstagedFileChanges directly
-func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
-	quotedFileName := c.OSCommand.Quote(file.Name)
+func (c *GitCommand) DiscardUnstagedFileChanges(name string) error {
+	quotedFileName := c.OSCommand.Quote(name)
 	return c.OSCommand.RunCommand("git checkout -- %s", quotedFileName)
 }
 
