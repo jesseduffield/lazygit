@@ -236,7 +236,11 @@ func (gui *Gui) refreshMainView() error {
 	// how to get around this
 	if gui.currentContextKey() == gui.Contexts.PatchBuilding.Context.GetKey() {
 		filename := gui.getSelectedCommitFileName()
-		includedLineIndices = gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+		var err error
+		includedLineIndices, err = gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+		if err != nil {
+			return err
+		}
 	}
 	colorDiff := state.PatchParser.Render(state.FirstLineIdx, state.LastLineIdx, includedLineIndices)
 

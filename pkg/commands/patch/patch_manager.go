@@ -1,7 +1,9 @@
 package patch
 
 import (
+	"errors"
 	"sort"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -24,6 +26,7 @@ type fileInfo struct {
 }
 
 type applyPatchFunc func(patch string, flags ...string) error
+type loadFileDiffFunc func(parent string, filename string, plain bool) (string, error)
 
 // PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
 type PatchManager struct {
@@ -31,53 +34,63 @@ type PatchManager struct {
 	Parent string
 
 	// CanRebase tells us whether we're allowed to modify our commits. CanRebase should be true for commits of the currently checked out branch and false for everything else
-	CanRebase   bool
+	CanRebase bool
+
+	// fileInfoMap starts empty but you add files to it as you go along
 	fileInfoMap map[string]*fileInfo
 	Log         *logrus.Entry
 	ApplyPatch  applyPatchFunc
+
+	// LoadFileDiff loads the diff of a file, for a given parent (typically a commit SHA)
+	LoadFileDiff loadFileDiffFunc
 }
 
 // NewPatchManager returns a new PatchManager
-func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc) *PatchManager {
+func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc, loadFileDiff loadFileDiffFunc) *PatchManager {
 	return &PatchManager{
-		Log:        log,
-		ApplyPatch: applyPatch,
+		Log:          log,
+		ApplyPatch:   applyPatch,
+		LoadFileDiff: loadFileDiff,
 	}
 }
 
 // NewPatchManager returns a new PatchManager
-func (p *PatchManager) Start(parent string, diffMap map[string]string, canRebase bool) {
+func (p *PatchManager) Start(parent string, canRebase bool) {
 	p.Parent = parent
 	p.CanRebase = canRebase
 	p.fileInfoMap = map[string]*fileInfo{}
-	for filename, diff := range diffMap {
-		p.fileInfoMap[filename] = &fileInfo{
-			mode: UNSELECTED,
-			diff: diff,
-		}
+}
+
+func (p *PatchManager) addFileWhole(info *fileInfo) {
+	info.mode = WHOLE
+	lineCount := len(strings.Split(info.diff, "\n"))
+	info.includedLineIndices = make([]int, lineCount)
+	// add every line index
+	for i := 0; i < lineCount; i++ {
+		info.includedLineIndices[i] = i
 	}
 }
 
-func (p *PatchManager) AddFile(filename string) {
-	p.fileInfoMap[filename].mode = WHOLE
-	p.fileInfoMap[filename].includedLineIndices = nil
+func (p *PatchManager) removeFile(info *fileInfo) {
+	info.mode = UNSELECTED
+	info.includedLineIndices = nil
 }
 
-func (p *PatchManager) RemoveFile(filename string) {
-	p.fileInfoMap[filename].mode = UNSELECTED
-	p.fileInfoMap[filename].includedLineIndices = nil
-}
-
-func (p *PatchManager) ToggleFileWhole(filename string) {
-	info := p.fileInfoMap[filename]
+func (p *PatchManager) ToggleFileWhole(filename string) error {
+	info, err := p.getFileInfo(filename)
+	if err != nil {
+		return err
+	}
 	switch info.mode {
-	case UNSELECTED:
-		p.AddFile(filename)
+	case UNSELECTED, PART:
+		p.addFileWhole(info)
 	case WHOLE:
-		p.RemoveFile(filename)
-	case PART:
-		p.AddFile(filename)
+		p.removeFile(info)
+	default:
+		return errors.New("unknown file mode")
 	}
+
+	return nil
 }
 
 func getIndicesForRange(first, last int) []int {
@@ -88,24 +101,55 @@ func getIndicesForRange(first, last int) []int {
 	return indices
 }
 
-func (p *PatchManager) AddFileLineRange(filename string, firstLineIdx, lastLineIdx int) {
-	info := p.fileInfoMap[filename]
-	info.mode = PART
-	info.includedLineIndices = utils.UnionInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+func (p *PatchManager) getFileInfo(filename string) (*fileInfo, error) {
+	info, ok := p.fileInfoMap[filename]
+	if ok {
+		return info, nil
+	}
+
+	diff, err := p.LoadFileDiff(p.Parent, filename, true)
+	if err != nil {
+		return nil, err
+	}
+	info = &fileInfo{
+		mode: UNSELECTED,
+		diff: diff,
+	}
+
+	p.fileInfoMap[filename] = info
+
+	return info, nil
 }
 
-func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLineIdx int) {
-	info := p.fileInfoMap[filename]
+func (p *PatchManager) AddFileLineRange(filename string, firstLineIdx, lastLineIdx int) error {
+	info, err := p.getFileInfo(filename)
+	if err != nil {
+		return err
+	}
+	info.mode = PART
+	info.includedLineIndices = utils.UnionInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+
+	return nil
+}
+
+func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLineIdx int) error {
+	info, err := p.getFileInfo(filename)
+	if err != nil {
+		return err
+	}
 	info.mode = PART
 	info.includedLineIndices = utils.DifferenceInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
 	if len(info.includedLineIndices) == 0 {
-		p.RemoveFile(filename)
+		p.removeFile(info)
 	}
+
+	return nil
 }
 
-func (p *PatchManager) RenderPlainPatchForFile(filename string, reverse bool, keepOriginalHeader bool) string {
-	info := p.fileInfoMap[filename]
-	if info == nil {
+func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool, keepOriginalHeader bool) string {
+	info, err := p.getFileInfo(filename)
+	if err != nil {
+		p.Log.Error(err)
 		return ""
 	}
 
@@ -123,7 +167,7 @@ func (p *PatchManager) RenderPlainPatchForFile(filename string, reverse bool, ke
 }
 
 func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool, keepOriginalHeader bool) string {
-	patch := p.RenderPlainPatchForFile(filename, reverse, keepOriginalHeader)
+	patch := p.renderPlainPatchForFile(filename, reverse, keepOriginalHeader)
 	if plain {
 		return patch
 	}
@@ -136,7 +180,7 @@ func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse b
 	return parser.Render(-1, -1, nil)
 }
 
-func (p *PatchManager) RenderEachFilePatch(plain bool) []string {
+func (p *PatchManager) renderEachFilePatch(plain bool) []string {
 	// sort files by name then iterate through and render each patch
 	filenames := make([]string, len(p.fileInfoMap))
 	index := 0
@@ -159,7 +203,7 @@ func (p *PatchManager) RenderEachFilePatch(plain bool) []string {
 
 func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
 	result := ""
-	for _, patch := range p.RenderEachFilePatch(plain) {
+	for _, patch := range p.renderEachFilePatch(plain) {
 		if patch != "" {
 			result += patch + "\n"
 		}
@@ -167,20 +211,21 @@ func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
 	return result
 }
 
-func (p *PatchManager) GetFileStatus(filename string) int {
-	info := p.fileInfoMap[filename]
-	if info == nil {
-		return UNSELECTED
+func (p *PatchManager) GetFileStatus(filename string) (int, error) {
+	info, err := p.getFileInfo(filename)
+	if err != nil {
+		return 0, err
 	}
-	return info.mode
+
+	return info.mode, nil
 }
 
-func (p *PatchManager) GetFileIncLineIndices(filename string) []int {
-	info := p.fileInfoMap[filename]
-	if info == nil {
-		return []int{}
+func (p *PatchManager) GetFileIncLineIndices(filename string) ([]int, error) {
+	info, err := p.getFileInfo(filename)
+	if err != nil {
+		return nil, err
 	}
-	return info.includedLineIndices
+	return info.includedLineIndices, nil
 }
 
 func (p *PatchManager) ApplyPatches(reverse bool) error {
