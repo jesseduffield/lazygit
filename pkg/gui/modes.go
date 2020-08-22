@@ -10,7 +10,7 @@ import (
 type modeStatus struct {
 	isActive    func() bool
 	description func() string
-	onReset     func() error
+	reset       func() error
 }
 
 func (gui *Gui) modeStatuses() []modeStatus {
@@ -18,30 +18,44 @@ func (gui *Gui) modeStatuses() []modeStatus {
 		{
 			isActive: gui.State.Modes.Diffing.Active,
 			description: func() string {
-				return utils.ColoredString(fmt.Sprintf("%s %s %s", gui.Tr.SLocalize("showingGitDiff"), "git diff "+gui.diffStr(), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgMagenta)
+				return utils.ColoredString(
+					fmt.Sprintf("%s %s %s", gui.Tr.SLocalize("showingGitDiff"), "git diff "+gui.diffStr(), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)),
+					color.FgMagenta,
+				)
 			},
-			onReset: gui.exitDiffMode,
+			reset: gui.exitDiffMode,
 		},
 		{
 			isActive: gui.State.Modes.Filtering.Active,
 			description: func() string {
-				return utils.ColoredString(fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("filteringBy"), gui.State.Modes.Filtering.Path, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgRed, color.Bold)
+				return utils.ColoredString(
+					fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("filteringBy"), gui.State.Modes.Filtering.Path, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)),
+					color.FgRed,
+					color.Bold,
+				)
 			},
-			onReset: gui.exitFilterMode,
+			reset: gui.exitFilterMode,
 		},
 		{
 			isActive: gui.GitCommand.PatchManager.Active,
 			description: func() string {
-				return utils.ColoredString(fmt.Sprintf("%s %s", gui.Tr.SLocalize("buildingPatch"), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgYellow, color.Bold)
+				return utils.ColoredString(
+					fmt.Sprintf("%s %s", gui.Tr.SLocalize("buildingPatch"), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)),
+					color.FgYellow,
+					color.Bold,
+				)
 			},
-			onReset: gui.handleResetPatch,
+			reset: gui.handleResetPatch,
 		},
 		{
 			isActive: gui.State.Modes.CherryPicking.Active,
 			description: func() string {
-				return utils.ColoredString(fmt.Sprintf("%d commits copied", len(gui.State.Modes.CherryPicking.CherryPickedCommits)), color.FgCyan)
+				return utils.ColoredString(
+					fmt.Sprintf("%d commits copied %s", len(gui.State.Modes.CherryPicking.CherryPickedCommits), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)),
+					color.FgCyan,
+				)
 			},
-			onReset: gui.exitCherryPickingMode,
+			reset: gui.exitCherryPickingMode,
 		},
 	}
 }
