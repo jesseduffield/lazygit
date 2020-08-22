@@ -126,16 +126,17 @@ func (gui *Gui) refreshFiles() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		currentView := g.CurrentView()
+		view := gui.getFilesView()
 
 		newSelectedFile, newSelectedDir, _ := gui.getSelectedDirOrFile()
 		if isExtensiveFiles {
+			view = gui.GetExtendedFilesView()
 			list := gui.State.ExtensiveFiles.Render(newSelectedFile, newSelectedDir)
-			currentView.Clear()
-			fmt.Fprint(currentView, list)
+			view.Clear()
+			fmt.Fprint(view, list)
 		} else {
 			list := presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Diff.Ref)
-			gui.renderDisplayStrings(currentView, list)
+			gui.renderDisplayStrings(view, list)
 		}
 
 		if newSelectedFile != nil && (g.CurrentView() == view || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == "merging")) {
