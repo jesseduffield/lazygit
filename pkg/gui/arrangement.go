@@ -236,11 +236,19 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 					ViewName: viewName,
 					Weight:   1,
 				}
-			} else {
-				return &boxlayout.Box{
-					ViewName: viewName,
-					Size:     squashedHeight,
-				}
+			}
+			return &boxlayout.Box{
+				ViewName: viewName,
+				Size:     squashedHeight,
+			}
+		}
+
+		if gui.isAdvancedView(gui.currentViewName()) {
+			return []*boxlayout.Box{
+				{
+					ViewName: "extensiveFiles",
+					Weight:   1,
+				},
 			}
 		}
 
