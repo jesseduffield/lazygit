@@ -1474,7 +1474,7 @@ func TestGitCommandDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			gitCmd.Diff(s.file, s.plain, s.cached)
+			gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached)
 		})
 	}
 }

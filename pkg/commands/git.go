@@ -758,14 +758,14 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
 	return err == nil
 }
 
-// Diff returns the diff of a file
-func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
+// WorktreeFileDiff returns the diff of a file
+func (c *GitCommand) WorktreeFileDiff(file *File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := c.OSCommand.RunCommandWithOutput(c.DiffCmdStr(file, plain, cached))
+	s, _ := c.OSCommand.RunCommandWithOutput(c.WorktreeFileDiffCmdStr(file, plain, cached))
 	return s
 }
 
-func (c *GitCommand) DiffCmdStr(file *File, plain bool, cached bool) string {
+func (c *GitCommand) WorktreeFileDiffCmdStr(file *File, plain bool, cached bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()
