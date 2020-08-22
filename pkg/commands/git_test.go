@@ -1814,44 +1814,6 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 	}
 }
 
-// TestGitCommandShowCommitFile is a function.
-func TestGitCommandShowCommitFile(t *testing.T) {
-	type scenario struct {
-		testName  string
-		commitSha string
-		fileName  string
-		command   func(string, ...string) *exec.Cmd
-		test      func(string, error)
-	}
-
-	scenarios := []scenario{
-		{
-			"valid case",
-			"123456",
-			"hello.txt",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  "git show --no-renames --color=never 123456 -- hello.txt",
-					Replace: "echo -n hello",
-				},
-			}),
-			func(str string, err error) {
-				assert.NoError(t, err)
-				assert.Equal(t, "hello", str)
-			},
-		},
-	}
-
-	gitCmd := NewDummyGitCommand()
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.ShowFileDiff(s.commitSha+"^", s.commitSha, false, s.fileName, true))
-		})
-	}
-}
-
 // TestGitCommandDiscardUnstagedFileChanges is a function.
 func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 	type scenario struct {
