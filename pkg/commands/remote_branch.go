@@ -17,3 +17,7 @@ func (r *RemoteBranch) RefName() string {
 func (r *RemoteBranch) ID() string {
 	return r.RefName()
 }
+
+func (r *RemoteBranch) Description() string {
+	return r.RefName()
+}
