@@ -41,6 +41,9 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 	if gui.inFilterMode() {
 		return gui.exitFilterMode()
 	}
+	if gui.isExtensiveView(v) {
+		return gui.handleCloseExtensiveView(g, v)
+	}
 
 	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {
 		return gui.handleQuit()
