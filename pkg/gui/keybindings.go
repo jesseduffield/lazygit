@@ -892,6 +892,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("drop"),
 		},
 		{
+			ViewName:    "stash",
+			Key:         gui.getKey("universal.new"),
+			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCurrentItem),
+			Description: gui.Tr.SLocalize("newBranch"),
+		},
+		{
 			ViewName: "commitMessage",
 			Key:      gui.getKey("universal.confirm"),
 			Modifier: gocui.ModNone,
