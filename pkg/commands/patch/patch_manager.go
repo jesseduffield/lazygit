@@ -31,7 +31,7 @@ type loadFileDiffFunc func(from string, to string, reverse bool, filename string
 // PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
 type PatchManager struct {
 	// To is the commit sha if we're dealing with files of a commit, or a stash ref for a stash
-	To      string // TODO: rename to 'to'
+	To      string
 	From    string
 	Reverse bool
 
