@@ -40,9 +40,10 @@ func (gui *Gui) currentDiffTerminals() []string {
 	switch gui.currentContextKey() {
 	case "":
 		return nil
-	case FILES_CONTEXT_KEY, COMMIT_FILES_CONTEXT_KEY:
-		// not supporting these for now because I'm not sure how it would actually work
-		return nil
+	case FILES_CONTEXT_KEY:
+		return []string{""}
+	case COMMIT_FILES_CONTEXT_KEY:
+		return []string{gui.State.Panels.CommitFiles.refName}
 	case LOCAL_BRANCHES_CONTEXT_KEY:
 		// for our local branches we want to include both the branch and its upstream
 		branch := gui.getSelectedBranch()
@@ -75,6 +76,19 @@ func (gui *Gui) currentDiffTerminal() string {
 	return names[0]
 }
 
+func (gui *Gui) currentlySelectedFilename() string {
+	switch gui.currentContextKey() {
+	case FILES_CONTEXT_KEY, COMMIT_FILES_CONTEXT_KEY:
+		item := gui.getSideContextSelectedItem()
+		if item == nil {
+			return ""
+		}
+		return item.ID()
+	default:
+		return ""
+	}
+}
+
 func (gui *Gui) diffStr() string {
 	output := gui.State.Modes.Diffing.Ref
 
@@ -82,9 +96,16 @@ func (gui *Gui) diffStr() string {
 	if right != "" {
 		output += " " + right
 	}
+
 	if gui.State.Modes.Diffing.Reverse {
 		output += " -R"
 	}
+
+	file := gui.currentlySelectedFilename()
+	if file != "" {
+		output += " -- " + file
+	}
+
 	return output
 }
 
