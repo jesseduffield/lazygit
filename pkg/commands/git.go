@@ -1077,12 +1077,7 @@ func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string
 	for _, file := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
 		status := patch.UNSELECTED
 		if patchManager != nil && patchManager.Parent == parent {
-			var err error
-			status, err = patchManager.GetFileStatus(file)
-			if err != nil {
-				c.Log.Error(err)
-				continue
-			}
+			status = patchManager.GetFileStatus(file)
 		}
 
 		commitFiles = append(commitFiles, &CommitFile{

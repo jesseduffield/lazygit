@@ -211,13 +211,13 @@ func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
 	return result
 }
 
-func (p *PatchManager) GetFileStatus(filename string) (int, error) {
-	info, err := p.getFileInfo(filename)
-	if err != nil {
-		return 0, err
+func (p *PatchManager) GetFileStatus(filename string) int {
+	info, ok := p.fileInfoMap[filename]
+	if !ok {
+		return UNSELECTED
 	}
 
-	return info.mode, nil
+	return info.mode
 }
 
 func (p *PatchManager) GetFileIncLineIndices(filename string) ([]int, error) {
