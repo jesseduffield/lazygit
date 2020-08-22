@@ -74,7 +74,7 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, REF_TYPE_OTHER_COMMIT, gui.Contexts.SubCommits.Context, "branches")
+	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.SubCommits.Context, "branches")
 }
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {

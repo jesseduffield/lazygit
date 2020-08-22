@@ -194,8 +194,8 @@ type commitFilesPanelState struct {
 
 	// this is the SHA of the commit or the stash index of the stash.
 	// Not sure if ref is actually the right word here
-	refName string
-	refType int // eg REF_TYPE_LOCAL_COMMIT
+	refName   string
+	canRebase bool
 }
 
 type panelStates struct {

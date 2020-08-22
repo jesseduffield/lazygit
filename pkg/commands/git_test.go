@@ -1852,45 +1852,6 @@ func TestGitCommandShowCommitFile(t *testing.T) {
 	}
 }
 
-// TestGitCommandGetFilesInRef is a function.
-func TestGitCommandGetFilesInRef(t *testing.T) {
-	type scenario struct {
-		testName  string
-		commitSha string
-		command   func(string, ...string) *exec.Cmd
-		test      func([]*CommitFile, error)
-	}
-
-	scenarios := []scenario{
-		{
-			"valid case",
-			"123456",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  "git diff-tree --no-commit-id --name-only -r --no-renames 123456",
-					Replace: "echo 'hello\nworld'",
-				},
-			}),
-			func(commitFiles []*CommitFile, err error) {
-				assert.NoError(t, err)
-				assert.Equal(t, []*CommitFile{
-					{Parent: "123456", Name: "hello", DisplayString: "hello"},
-					{Parent: "123456", Name: "world", DisplayString: "world"},
-				}, commitFiles)
-			},
-		},
-	}
-
-	gitCmd := NewDummyGitCommand()
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
-			s.test(gitCmd.GetFilesInRef(s.commitSha, false, nil))
-		})
-	}
-}
-
 // TestGitCommandDiscardUnstagedFileChanges is a function.
 func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 	type scenario struct {

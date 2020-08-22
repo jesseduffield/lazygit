@@ -5,20 +5,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
-const (
-	// these are the possible ref types for refs that you can view files of.
-	// for local commits, we're allowed to build a patch and do things involving rebasing
-	// with that patch
-	REF_TYPE_LOCAL_COMMIT = iota
-
-	// for other kinds of commits like reflog commits, we can't do anything rebasey
-	REF_TYPE_OTHER_COMMIT
-
-	// for stash entries we can't do anything rebasey, and the command for
-	// obtaining the files is slightly different
-	REF_TYPE_STASH
-)
-
 func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
 	selectedLine := gui.State.Panels.CommitFiles.SelectedLineIdx
 	if selectedLine == -1 {
@@ -96,25 +82,10 @@ func (gui *Gui) refreshCommitFilesView() error {
 		return err
 	}
 
-	isStash := gui.State.Panels.CommitFiles.refType == REF_TYPE_STASH
-	refName := gui.State.Panels.CommitFiles.refName
-	diffing := gui.State.Modes.Diffing
+	to := gui.State.Panels.CommitFiles.refName
+	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	var files []*commands.CommitFile
-	var err error
-	if diffing.Active() {
-		from := diffing.Ref
-		to := refName
-
-		if diffing.Reverse {
-			from, to = to, from
-		}
-
-		files, err = gui.GitCommand.GetFilesInDiff(from, to, refName, gui.GitCommand.PatchManager)
-	} else {
-		files, err = gui.GitCommand.GetFilesInRef(refName, isStash, gui.GitCommand.PatchManager)
-	}
-
+	files, err := gui.GitCommand.GetFilesInDiff(from, to, reverse, gui.GitCommand.PatchManager)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -187,7 +158,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) startPatchManager() error {
-	canRebase := gui.State.Panels.CommitFiles.refType == REF_TYPE_LOCAL_COMMIT
+	canRebase := gui.State.Panels.CommitFiles.canRebase
 
 	to := gui.State.Panels.CommitFiles.refName
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
@@ -243,14 +214,14 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 	return enterTheFile(selectedLineIdx)
 }
 
-func (gui *Gui) switchToCommitFilesContext(refName string, refType int, context Context, windowName string) error {
+func (gui *Gui) switchToCommitFilesContext(refName string, canRebase bool, context Context, windowName string) error {
 	// sometimes the commitFiles view is already shown in another window, so we need to ensure that window
 	// no longer considers the commitFiles view as its main view.
 	gui.resetWindowForView("commitFiles")
 
 	gui.State.Panels.CommitFiles.SelectedLineIdx = 0
 	gui.State.Panels.CommitFiles.refName = refName
-	gui.State.Panels.CommitFiles.refType = refType
+	gui.State.Panels.CommitFiles.canRebase = canRebase
 	gui.Contexts.CommitFiles.Context.SetParentContext(context)
 	gui.Contexts.CommitFiles.Context.SetWindowName(windowName)
 
