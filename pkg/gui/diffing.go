@@ -13,14 +13,8 @@ func (gui *Gui) exitDiffMode() error {
 }
 
 func (gui *Gui) renderDiff() error {
-	filterArg := ""
-
-	if gui.State.Modes.Filtering.Active() {
-		filterArg = fmt.Sprintf(" -- %s", gui.State.Modes.Filtering.Path)
-	}
-
 	cmd := gui.OSCommand.ExecutableFromString(
-		fmt.Sprintf("git diff --color %s %s", gui.diffStr(), filterArg),
+		fmt.Sprintf("git diff --color %s", gui.diffStr()),
 	)
 	task := gui.createRunPtyTask(cmd)
 
@@ -100,6 +94,8 @@ func (gui *Gui) diffStr() string {
 	file := gui.currentlySelectedFilename()
 	if file != "" {
 		output += " -- " + file
+	} else if gui.State.Modes.Filtering.Active() {
+		output += " -- " + gui.State.Modes.Filtering.Path
 	}
 
 	return output
