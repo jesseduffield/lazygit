@@ -32,7 +32,7 @@ func (gui *Gui) handleCommitFileSelect() error {
 	)
 	task := gui.createRunPtyTask(cmd)
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Patch",
 			task:  task,

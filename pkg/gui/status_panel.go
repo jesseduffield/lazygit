@@ -112,7 +112,7 @@ func (gui *Gui) handleStatusSelect() error {
 			magenta.Sprint("Become a sponsor (github is matching all donations for 12 months): https://github.com/sponsors/jesseduffield"), // caffeine ain't free
 		}, "\n\n")
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "",
 			task:  gui.createRenderStringTask(dashboardString),

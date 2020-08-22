@@ -30,7 +30,7 @@ func (gui *Gui) handleSubCommitSelect() error {
 		task = gui.createRunPtyTask(cmd)
 	}
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Commit",
 			task:  task,

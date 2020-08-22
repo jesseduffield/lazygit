@@ -73,7 +73,7 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 		SecondaryFocused: secondaryFocused,
 	}
 
-	if err := gui.refreshMainView(); err != nil {
+	if err := gui.refreshMainViewForLineByLine(); err != nil {
 		return false, err
 	}
 
@@ -129,7 +129,7 @@ func (gui *Gui) selectNewHunk(newHunk *patch.PatchHunk) error {
 		state.FirstLineIdx, state.LastLineIdx = state.SelectedLineIdx, state.SelectedLineIdx
 	}
 
-	if err := gui.refreshMainView(); err != nil {
+	if err := gui.refreshMainViewForLineByLine(); err != nil {
 		return err
 	}
 
@@ -169,7 +169,7 @@ func (gui *Gui) handleSelectNewLine(newSelectedLineIdx int) error {
 		state.FirstLineIdx = state.SelectedLineIdx
 	}
 
-	if err := gui.refreshMainView(); err != nil {
+	if err := gui.refreshMainViewForLineByLine(); err != nil {
 		return err
 	}
 
@@ -228,7 +228,7 @@ func (gui *Gui) getSelectedCommitFileName() string {
 	return gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLineIdx].Name
 }
 
-func (gui *Gui) refreshMainView() error {
+func (gui *Gui) refreshMainViewForLineByLine() error {
 	state := gui.State.Panels.LineByLine
 
 	var includedLineIndices []int
@@ -306,7 +306,7 @@ func (gui *Gui) handleToggleSelectRange(g *gocui.Gui, v *gocui.View) error {
 	}
 	state.FirstLineIdx, state.LastLineIdx = state.SelectedLineIdx, state.SelectedLineIdx
 
-	return gui.refreshMainView()
+	return gui.refreshMainViewForLineByLine()
 }
 
 func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
@@ -321,7 +321,7 @@ func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
 		state.FirstLineIdx, state.LastLineIdx = selectedHunk.FirstLineIdx, selectedHunk.LastLineIdx()
 	}
 
-	if err := gui.refreshMainView(); err != nil {
+	if err := gui.refreshMainViewForLineByLine(); err != nil {
 		return err
 	}
 

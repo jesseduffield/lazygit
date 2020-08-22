@@ -217,7 +217,7 @@ func (gui *Gui) refreshMergePanel() error {
 	panelState := gui.State.Panels.Merging
 	cat, err := gui.catSelectedFile(gui.g)
 	if err != nil {
-		return gui.refreshMain(refreshMainOpts{
+		return gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
 				title: "",
 				task:  gui.createRenderStringTask(err.Error()),
@@ -244,7 +244,7 @@ func (gui *Gui) refreshMergePanel() error {
 		return err
 	}
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title:  gui.Tr.SLocalize("MergeConflictsTitle"),
 			task:   gui.createRenderStringWithoutScrollTask(content),

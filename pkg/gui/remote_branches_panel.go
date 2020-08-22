@@ -30,7 +30,7 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 		task = gui.createRunCommandTask(cmd)
 	}
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Remote Branch",
 			task:  task,

@@ -36,7 +36,7 @@ func (gui *Gui) handleBranchSelect() error {
 		task = gui.createRunPtyTask(cmd)
 	}
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Log",
 			task:  task,

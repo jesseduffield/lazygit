@@ -18,7 +18,7 @@ func (gui *Gui) renderDiff() error {
 	)
 	task := gui.createRunPtyTask(cmd)
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Diff",
 			task:  task,

@@ -28,7 +28,7 @@ func (gui *Gui) handleTagSelect() error {
 		task = gui.createRunCommandTask(cmd)
 	}
 
-	return gui.refreshMain(refreshMainOpts{
+	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Tag",
 			task:  task,
