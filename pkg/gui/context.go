@@ -45,8 +45,6 @@ type Context interface {
 	GetWindowName() string
 	SetWindowName(string)
 	GetKey() string
-	GetSelectedItemId() string
-	GetSelectedItem() ListItem
 	SetParentContext(Context)
 	GetParentContext() Context
 }
@@ -64,10 +62,6 @@ func (c BasicContext) SetWindowName(windowName string) {
 	panic("can't set window name on basic context")
 }
 
-func (c BasicContext) GetSelectedItem() ListItem {
-	return nil
-}
-
 func (c BasicContext) GetWindowName() string {
 	// TODO: fix this up
 	return c.GetViewName()
@@ -79,11 +73,6 @@ func (c BasicContext) SetParentContext(Context) {
 
 func (c BasicContext) GetParentContext() Context {
 	panic("can't get parent context on basic context")
-}
-
-// TODO: think about whether we need this on the Context interface or if it should just be on the ListContext struct
-func (c BasicContext) GetSelectedItemId() string {
-	return ""
 }
 
 func (c BasicContext) HandleRender() error {
@@ -534,7 +523,12 @@ func (gui *Gui) currentSideContext() *ListContext {
 		context := stack[len(stack)-1-i]
 
 		if context.GetKind() == SIDE_CONTEXT {
-			return context.(*ListContext)
+			// not all side contexts are list contexts (e.g. the status panel)
+			listContext, ok := context.(*ListContext)
+			if !ok {
+				return nil
+			}
+			return listContext
 		}
 	}
 
@@ -694,11 +688,17 @@ func (gui *Gui) getCurrentSideView() *gocui.View {
 	return view
 }
 
-func (gui *Gui) getSideContextSelectedItem() ListItem {
+func (gui *Gui) getSideContextSelectedItemId() string {
 	currentSideContext := gui.currentSideContext()
 	if currentSideContext == nil {
-		return nil
+		return ""
 	}
 
-	return currentSideContext.GetSelectedItem()
+	item, ok := currentSideContext.GetSelectedItem()
+
+	if ok {
+		return item.ID()
+	}
+
+	return ""
 }

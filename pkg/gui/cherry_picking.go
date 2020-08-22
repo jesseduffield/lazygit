@@ -35,11 +35,12 @@ func (gui *Gui) handleCopyCommit() error {
 		return err
 	}
 
-	commit, ok := context.SelectedItem().(*commands.Commit)
+	item, ok := context.SelectedItem()
 	if !ok {
-		gui.Log.Error("type cast failed for handling copy commit")
+		return nil
 	}
-	if commit == nil {
+	commit, ok := item.(*commands.Commit)
+	if !ok {
 		return nil
 	}
 
@@ -114,26 +115,24 @@ func (gui *Gui) handleCopyCommitRange() error {
 		return err
 	}
 
-	commit, ok := context.SelectedItem().(*commands.Commit)
-	if !ok {
-		gui.Log.Error("type cast failed for handling copy commit")
-	}
-	if commit == nil {
+	commitShaMap := gui.cherryPickedCommitShaMap()
+	commitsList := gui.commitsListForContext()
+	selectedLineIdx := context.GetPanelState().GetSelectedLineIdx()
+
+	if selectedLineIdx > len(commitsList)-1 {
 		return nil
 	}
-
-	commitShaMap := gui.cherryPickedCommitShaMap()
 
 	// find the last commit that is copied that's above our position
 	// if there are none, startIndex = 0
 	startIndex := 0
-	for index, commit := range gui.commitsListForContext()[0:context.GetPanelState().GetSelectedLineIdx()] {
+	for index, commit := range commitsList[0:selectedLineIdx] {
 		if commitShaMap[commit.Sha] {
 			startIndex = index
 		}
 	}
 
-	for index := startIndex; index <= context.GetPanelState().GetSelectedLineIdx(); index++ {
+	for index := startIndex; index <= selectedLineIdx; index++ {
 		gui.addCommitToCherryPickedCommits(index)
 	}
 

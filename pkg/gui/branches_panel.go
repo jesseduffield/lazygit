@@ -463,8 +463,8 @@ func (gui *Gui) currentBranch() *commands.Branch {
 func (gui *Gui) handleNewBranchOffCurrentItem() error {
 	context := gui.currentSideContext()
 
-	item := context.GetSelectedItem()
-	if item == nil {
+	item, ok := context.GetSelectedItem()
+	if !ok {
 		return nil
 	}
 

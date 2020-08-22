@@ -60,8 +60,8 @@ func (gui *Gui) currentDiffTerminals() []string {
 		if context == nil {
 			return nil
 		}
-		item := context.GetSelectedItem()
-		if item == nil {
+		item, ok := context.GetSelectedItem()
+		if !ok {
 			return nil
 		}
 		return []string{item.ID()}
@@ -79,11 +79,7 @@ func (gui *Gui) currentDiffTerminal() string {
 func (gui *Gui) currentlySelectedFilename() string {
 	switch gui.currentContextKey() {
 	case FILES_CONTEXT_KEY, COMMIT_FILES_CONTEXT_KEY:
-		item := gui.getSideContextSelectedItem()
-		if item == nil {
-			return ""
-		}
-		return item.ID()
+		return gui.getSideContextSelectedItemId()
 	default:
 		return ""
 	}

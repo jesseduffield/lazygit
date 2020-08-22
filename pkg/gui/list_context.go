@@ -21,8 +21,10 @@ type ListContext struct {
 	OnFocus             func() error
 	OnFocusLost         func() error
 	OnClickSelectedItem func() error
-	SelectedItem        func() ListItem
-	GetPanelState       func() IListPanelState
+
+	// have to return whether item is nil because you can't work it out on the calling end once the pointer is wrapped in an interface (unless you want to use reflection)
+	SelectedItem  func() (ListItem, bool)
+	GetPanelState func() IListPanelState
 
 	Gui               *Gui
 	RendersToMainView bool
@@ -40,7 +42,7 @@ type ListItem interface {
 	Description() string
 }
 
-func (lc *ListContext) GetSelectedItem() ListItem {
+func (lc *ListContext) GetSelectedItem() (ListItem, bool) {
 	return lc.SelectedItem()
 }
 
@@ -72,9 +74,9 @@ func (lc *ListContext) GetParentContext() Context {
 }
 
 func (lc *ListContext) GetSelectedItemId() string {
-	item := lc.SelectedItem()
+	item, ok := lc.SelectedItem()
 
-	if item == nil {
+	if !ok {
 		return ""
 	}
 
@@ -277,8 +279,11 @@ func (gui *Gui) filesListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_NOTHING,
-		SelectedItem: func() ListItem { return gui.getSelectedFile() },
+		Contains: CONTAINS_NOTHING,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedFile()
+			return item, item != nil
+		},
 	}
 }
 
@@ -295,8 +300,11 @@ func (gui *Gui) branchesListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_COMMITS,
-		SelectedItem: func() ListItem { return gui.getSelectedBranch() },
+		Contains: CONTAINS_COMMITS,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedBranch()
+			return item, item != nil
+		},
 	}
 }
 
@@ -314,8 +322,11 @@ func (gui *Gui) remotesListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_BRANCHES,
-		SelectedItem: func() ListItem { return gui.getSelectedRemote() },
+		Contains: CONTAINS_BRANCHES,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedRemote()
+			return item, item != nil
+		},
 	}
 }
 
@@ -332,8 +343,11 @@ func (gui *Gui) remoteBranchesListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_COMMITS,
-		SelectedItem: func() ListItem { return gui.getSelectedRemoteBranch() },
+		Contains: CONTAINS_COMMITS,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedRemoteBranch()
+			return item, item != nil
+		},
 	}
 }
 
@@ -350,8 +364,11 @@ func (gui *Gui) tagsListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_COMMITS,
-		SelectedItem: func() ListItem { return gui.getSelectedTag() },
+		Contains: CONTAINS_COMMITS,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedTag()
+			return item, item != nil
+		},
 	}
 }
 
@@ -369,8 +386,11 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_FILES,
-		SelectedItem: func() ListItem { return gui.getSelectedLocalCommit() },
+		Contains: CONTAINS_FILES,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedLocalCommit()
+			return item, item != nil
+		},
 	}
 }
 
@@ -387,8 +407,11 @@ func (gui *Gui) reflogCommitsListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_FILES,
-		SelectedItem: func() ListItem { return gui.getSelectedReflogCommit() },
+		Contains: CONTAINS_FILES,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedReflogCommit()
+			return item, item != nil
+		},
 	}
 }
 
@@ -406,8 +429,11 @@ func (gui *Gui) subCommitsListContext() *ListContext {
 			gui.Log.Warn("getting display strings for sub commits")
 			return presentation.GetCommitListDisplayStrings(gui.State.SubCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_COMMITS,
-		SelectedItem: func() ListItem { return gui.getSelectedSubCommit() },
+		Contains: CONTAINS_COMMITS,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedSubCommit()
+			return item, item != nil
+		},
 	}
 }
 
@@ -424,8 +450,11 @@ func (gui *Gui) stashListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_FILES,
-		SelectedItem: func() ListItem { return gui.getSelectedStashEntry() },
+		Contains: CONTAINS_FILES,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedStashEntry()
+			return item, item != nil
+		},
 	}
 }
 
@@ -443,8 +472,11 @@ func (gui *Gui) commitFilesListContext() *ListContext {
 		GetDisplayStrings: func() [][]string {
 			return presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Modes.Diffing.Ref)
 		},
-		Contains:     CONTAINS_NOTHING,
-		SelectedItem: func() ListItem { return gui.getSelectedCommitFile() },
+		Contains: CONTAINS_NOTHING,
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedCommitFile()
+			return item, item != nil
+		},
 	}
 }
 
