@@ -265,4 +265,5 @@ If you want to see what I (Jesse) am up to in terms of development, follow me on
 
 If you find that lazygit doesn't quite satisfy your requirements, these may be a better fit:
 
+- [GitUI](https://github.com/Extrawurst/gitui)
 - [tig](https://github.com/jonas/tig)
