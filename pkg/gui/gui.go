@@ -309,22 +309,24 @@ type guiState struct {
 
 func (gui *Gui) resetState() {
 	// we carry over the filter path and diff state
-	prevFilterPath := ""
+	prevFiltering := Filtering{
+		Path: "",
+	}
 	prevDiff := Diffing{}
+	prevCherryPicking := CherryPicking{
+		CherryPickedCommits: make([]*commands.Commit, 0),
+		ContextKey:          "",
+	}
 	if gui.State != nil {
-		prevFilterPath = gui.State.Modes.Filtering.Path
+		prevFiltering = gui.State.Modes.Filtering
 		prevDiff = gui.State.Modes.Diffing
+		prevCherryPicking = gui.State.Modes.CherryPicking
 	}
 
 	modes := Modes{
-		Filtering: Filtering{
-			Path: prevFilterPath,
-		},
-		CherryPicking: CherryPicking{
-			CherryPickedCommits: make([]*commands.Commit, 0),
-			ContextKey:          "",
-		},
-		Diffing: prevDiff,
+		Filtering:     prevFiltering,
+		CherryPicking: prevCherryPicking,
+		Diffing:       prevDiff,
 	}
 
 	gui.State = &guiState{
