@@ -341,10 +341,18 @@ func (gui *Gui) promptToContinue() error {
 	gui.takeOverScrolling()
 
 	return gui.ask(askOpts{
-		title:  "continue",
-		prompt: gui.Tr.SLocalize("ConflictsResolved"),
+		title:               "continue",
+		prompt:              gui.Tr.SLocalize("ConflictsResolved"),
+		handlersManageFocus: true,
 		handleConfirm: func() error {
+			if err := gui.switchContext(gui.Contexts.Files.Context); err != nil {
+				return err
+			}
+
 			return gui.genericMergeCommand("continue")
+		},
+		handleClose: func() error {
+			return gui.switchContext(gui.Contexts.Files.Context)
 		},
 	})
 }

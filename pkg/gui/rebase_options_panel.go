@@ -77,12 +77,17 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		return nil
 	} else if strings.Contains(result.Error(), "When you have resolved this problem") || strings.Contains(result.Error(), "fix conflicts") || strings.Contains(result.Error(), "Resolve all conflicts manually") {
 		return gui.ask(askOpts{
-			title:  gui.Tr.SLocalize("FoundConflictsTitle"),
-			prompt: gui.Tr.SLocalize("FoundConflicts"),
+			title:               gui.Tr.SLocalize("FoundConflictsTitle"),
+			prompt:              gui.Tr.SLocalize("FoundConflicts"),
+			handlersManageFocus: true,
 			handleConfirm: func() error {
-				return nil
+				return gui.switchContext(gui.Contexts.Files.Context)
 			},
 			handleClose: func() error {
+				if err := gui.returnFromContext(); err != nil {
+					return err
+				}
+
 				return gui.genericMergeCommand("abort")
 			},
 		})
