@@ -572,6 +572,7 @@ func (gui *Gui) handleSwitchToMerge() error {
 	if !file.HasInlineMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.SLocalize("FileNoMergeCons"))
 	}
+
 	return gui.switchContext(gui.Contexts.Merging.Context)
 }
 

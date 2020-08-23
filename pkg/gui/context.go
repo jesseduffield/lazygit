@@ -249,9 +249,7 @@ func (gui *Gui) contextTree() ContextTree {
 		Merging: SimpleContextNode{
 			Context: BasicContext{
 				OnFocus: func() error {
-					return nil
-					// TODO: centralise the code here
-					// return gui.refreshMergePanel()
+					return gui.refreshMergePanel()
 				},
 				Kind:            MAIN_CONTEXT,
 				ViewName:        "main",
@@ -448,13 +446,7 @@ func (gui *Gui) activateContext(c Context) error {
 	if err != nil {
 		return gui.returnFromContext()
 	}
-
-	// if the new context's view was previously displaying another context, render the new context
-	if v.Context != c.GetKey() {
-		if err := c.HandleRender(); err != nil {
-			return err
-		}
-	}
+	originalViewContextKey := v.Context
 
 	// ensure that any other window for which this view was active is now set to the default for that window.
 	gui.setViewAsActiveForWindow(viewName)
@@ -475,10 +467,16 @@ func (gui *Gui) activateContext(c Context) error {
 		return err
 	}
 
-	newView := gui.g.CurrentView()
-	newView.Context = c.GetKey()
+	// if the new context's view was previously displaying another context, render the new context
+	if originalViewContextKey != c.GetKey() {
+		if err := c.HandleRender(); err != nil {
+			return err
+		}
+	}
 
-	gui.g.Cursor = newView.Editable
+	v.Context = c.GetKey()
+
+	gui.g.Cursor = v.Editable
 
 	// render the options available for the current context at the bottom of the screen
 	optionsMap := c.GetOptionsMap()
