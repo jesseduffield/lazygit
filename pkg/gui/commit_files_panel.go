@@ -7,7 +7,7 @@ import (
 
 func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
 	selectedLine := gui.State.Panels.CommitFiles.SelectedLineIdx
-	if selectedLine == -1 {
+	if selectedLine == -1 || selectedLine > len(gui.State.CommitFiles)-1 {
 		return nil
 	}
 
@@ -19,8 +19,6 @@ func (gui *Gui) handleCommitFileSelect() error {
 
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
-		// TODO: consider making it so that we can also render strings to our own view through some common interface, or just render this to the main view for consistency
-		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
 	}
 
@@ -42,7 +40,10 @@ func (gui *Gui) handleCommitFileSelect() error {
 }
 
 func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
-	file := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLineIdx]
+	file := gui.getSelectedCommitFile()
+	if file == nil {
+		return nil
+	}
 
 	if err := gui.GitCommand.CheckoutFile(file.Parent, file.Name); err != nil {
 		return gui.surfaceError(err)
@@ -113,7 +114,6 @@ func (gui *Gui) handleEditCommitFile(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
-		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
 	}
 
@@ -166,7 +166,6 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
-		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
 	}
 

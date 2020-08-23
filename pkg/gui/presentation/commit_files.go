@@ -9,6 +9,10 @@ import (
 )
 
 func GetCommitFileListDisplayStrings(commitFiles []*commands.CommitFile, diffName string) [][]string {
+	if len(commitFiles) == 0 {
+		return [][]string{{utils.ColoredString("(none)", color.FgRed)}}
+	}
+
 	lines := make([][]string, len(commitFiles))
 
 	for i := range commitFiles {
@@ -54,6 +58,6 @@ func getColorForChangeStatus(changeStatus string) color.Attribute {
 	case "T":
 		return color.FgMagenta
 	default:
-		return color.FgWhite
+		return theme.DefaultTextColor
 	}
 }

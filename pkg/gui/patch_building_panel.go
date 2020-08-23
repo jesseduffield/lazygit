@@ -31,7 +31,6 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	// get diff from commit file that's currently selected
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
-		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
 	}
 
@@ -76,7 +75,6 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 	// add range of lines to those set for the file
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
-		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
 	}
 
