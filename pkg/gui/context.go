@@ -210,7 +210,7 @@ func (gui *Gui) contextTree() ContextTree {
 				},
 				Kind:     MAIN_CONTEXT,
 				ViewName: "main",
-				Key:      "normal",
+				Key:      MAIN_NORMAL_CONTEXT_KEY,
 			},
 		},
 		Staging: SimpleContextNode{
@@ -222,7 +222,7 @@ func (gui *Gui) contextTree() ContextTree {
 				},
 				Kind:     MAIN_CONTEXT,
 				ViewName: "main",
-				Key:      "staging",
+				Key:      MAIN_STAGING_CONTEXT_KEY,
 			},
 		},
 		PatchBuilding: SimpleContextNode{
@@ -234,7 +234,7 @@ func (gui *Gui) contextTree() ContextTree {
 				},
 				Kind:     MAIN_CONTEXT,
 				ViewName: "main",
-				Key:      "patchBuilding",
+				Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
 			},
 		},
 		Merging: SimpleContextNode{
@@ -246,7 +246,7 @@ func (gui *Gui) contextTree() ContextTree {
 				},
 				Kind:     MAIN_CONTEXT,
 				ViewName: "main",
-				Key:      "merging",
+				Key:      MAIN_MERGING_CONTEXT_KEY,
 			},
 		},
 		Credentials: SimpleContextNode{
@@ -254,7 +254,7 @@ func (gui *Gui) contextTree() ContextTree {
 				OnFocus:  func() error { return gui.handleCredentialsViewFocused() },
 				Kind:     PERSISTENT_POPUP,
 				ViewName: "credentials",
-				Key:      "credentials",
+				Key:      CREDENTIALS_CONTEXT_KEY,
 			},
 		},
 		Confirmation: SimpleContextNode{
@@ -262,7 +262,7 @@ func (gui *Gui) contextTree() ContextTree {
 				OnFocus:  func() error { return nil },
 				Kind:     TEMPORARY_POPUP,
 				ViewName: "confirmation",
-				Key:      "confirmation",
+				Key:      CONFIRMATION_CONTEXT_KEY,
 			},
 		},
 		CommitMessage: SimpleContextNode{
@@ -270,7 +270,7 @@ func (gui *Gui) contextTree() ContextTree {
 				OnFocus:  func() error { return gui.handleCommitMessageFocused() },
 				Kind:     PERSISTENT_POPUP,
 				ViewName: "commitMessage",
-				Key:      "commitMessage",
+				Key:      COMMIT_MESSAGE_CONTEXT_KEY,
 			},
 		},
 		Search: SimpleContextNode{
@@ -278,7 +278,7 @@ func (gui *Gui) contextTree() ContextTree {
 				OnFocus:  func() error { return nil },
 				Kind:     PERSISTENT_POPUP,
 				ViewName: "search",
-				Key:      "search",
+				Key:      SEARCH_CONTEXT_KEY,
 			},
 		},
 	}

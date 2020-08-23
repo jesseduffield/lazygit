@@ -4,7 +4,7 @@ package gui
 // A view is a box that renders content, and within a window only one view will
 // appear at a time. When a view appears within a window, it occupies the whole
 // space. Right now most windows are 1:1 with views, except for commitFiles which
-// is a view belonging to the 'commits' window, alongside the 'commits' view.
+// is a view that moves between windows
 
 func (gui *Gui) getViewNameForWindow(window string) string {
 	viewName, ok := gui.State.WindowViewNameMap[window]
