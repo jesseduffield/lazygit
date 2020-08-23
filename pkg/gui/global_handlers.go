@@ -34,14 +34,20 @@ func (gui *Gui) prevScreenMode(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) scrollUpView(viewName string) error {
-	mainView, _ := gui.g.View(viewName)
+	mainView, err := gui.g.View(viewName)
+	if err != nil {
+		return nil
+	}
 	ox, oy := mainView.Origin()
 	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))))
 	return mainView.SetOrigin(ox, newOy)
 }
 
 func (gui *Gui) scrollDownView(viewName string) error {
-	mainView, _ := gui.g.View(viewName)
+	mainView, err := gui.g.View(viewName)
+	if err != nil {
+		return nil
+	}
 	ox, oy := mainView.Origin()
 	y := oy
 	if !gui.Config.GetUserConfig().GetBool("gui.scrollPastBottom") {
