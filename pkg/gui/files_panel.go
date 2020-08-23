@@ -425,6 +425,10 @@ func (gui *Gui) refreshStateFiles() error {
 }
 
 func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	// if we have no upstream branch we need to set that first
 	currentBranch := gui.currentBranch()
 	if currentBranch.Pullables == "?" {
@@ -526,6 +530,10 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 }
 
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	// if we have pullables we'll ask if the user wants to force push
 	currentBranch := gui.currentBranch()
 
