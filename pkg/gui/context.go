@@ -591,20 +591,20 @@ func (gui *Gui) onViewFocusLost(v *gocui.View, newView *gocui.View) error {
 // which currently just means a context that affects both the main and secondary views
 // other views can have their context changed directly but this function helps
 // keep the main and secondary views in sync
-func (gui *Gui) changeMainViewsContext(context string) {
-	if gui.State.MainContext == context {
+func (gui *Gui) changeMainViewsContext(contextKey string) {
+	if gui.State.MainContext == contextKey {
 		return
 	}
 
-	switch context {
-	case "normal", "patchBuilding", "staging", "merging":
-		gui.getMainView().Context = context
-		gui.getSecondaryView().Context = context
+	switch contextKey {
+	case MAIN_NORMAL_CONTEXT_KEY, MAIN_PATCH_BUILDING_CONTEXT_KEY, MAIN_STAGING_CONTEXT_KEY, MAIN_MERGING_CONTEXT_KEY:
+		gui.getMainView().Context = contextKey
+		gui.getSecondaryView().Context = contextKey
 	default:
-		panic(fmt.Sprintf("unknown context for main: %s", context))
+		panic(fmt.Sprintf("unknown context for main: %s", contextKey))
 	}
 
-	gui.State.MainContext = context
+	gui.State.MainContext = contextKey
 }
 
 func (gui *Gui) viewTabNames(viewName string) []string {
