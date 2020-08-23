@@ -343,6 +343,21 @@ func (gui *Gui) viewTabContextMap() map[string][]tabContext {
 	}
 }
 
+func (gui *Gui) currentContextKeyIgnoringPopups() string {
+	stack := gui.State.ContextStack
+
+	for i := range stack {
+		reversedIndex := len(stack) - 1 - i
+		context := stack[reversedIndex]
+		kind := stack[reversedIndex].GetKind()
+		if kind != TEMPORARY_POPUP && kind != PERSISTENT_POPUP {
+			return context.GetKey()
+		}
+	}
+
+	return ""
+}
+
 func (gui *Gui) switchContext(c Context) error {
 	gui.g.Update(func(*gocui.Gui) error {
 		// push onto stack
