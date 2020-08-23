@@ -134,7 +134,7 @@ func (gui *Gui) refreshMainView(opts *viewUpdateOpts, viewName string) error {
 	view.Wrap = !opts.noWrap
 	view.Highlight = opts.highlight
 
-	if err := gui.runTaskForView("main", opts.task); err != nil {
+	if err := gui.runTaskForView(viewName, opts.task); err != nil {
 		gui.Log.Error(err)
 		return nil
 	}
