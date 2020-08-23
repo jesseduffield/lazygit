@@ -46,7 +46,9 @@ type Context interface {
 	SetWindowName(string)
 	GetKey() string
 	SetParentContext(Context)
-	GetParentContext() Context
+
+	// we return a bool here to tell us whether or not the returned value just wraps a nil
+	GetParentContext() (Context, bool)
 	GetOptionsMap() map[string]string
 }
 
@@ -80,8 +82,8 @@ func (c BasicContext) SetParentContext(Context) {
 	panic("can't set parent context on basic context")
 }
 
-func (c BasicContext) GetParentContext() Context {
-	panic("can't get parent context on basic context")
+func (c BasicContext) GetParentContext() (Context, bool) {
+	return nil, false
 }
 
 func (c BasicContext) HandleRender() error {

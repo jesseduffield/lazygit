@@ -36,9 +36,11 @@ func (gui *Gui) handleQuit() error {
 
 func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 	currentContext := gui.currentContext()
-	if currentContext != nil && currentContext.GetParentContext() != nil {
+
+	parentContext, hasParent := currentContext.GetParentContext()
+	if hasParent && currentContext != nil && parentContext != nil {
 		// TODO: think about whether this should be marked as a return rather than adding to the stack
-		return gui.switchContext(currentContext.GetParentContext())
+		return gui.switchContext(parentContext)
 	}
 
 	for _, mode := range gui.modeStatuses() {
