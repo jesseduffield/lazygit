@@ -287,6 +287,7 @@ type guiState struct {
 	IsRefreshingFiles     bool
 	RefreshingFilesMutex  sync.Mutex
 	RefreshingStatusMutex sync.Mutex
+	FetchMutex            sync.Mutex
 	Searching             searchingState
 	ScreenMode            int
 	SideView              *gocui.View
