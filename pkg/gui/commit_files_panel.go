@@ -185,8 +185,9 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 
 	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != commitFile.Parent {
 		return gui.ask(askOpts{
-			title:  gui.Tr.SLocalize("DiscardPatch"),
-			prompt: gui.Tr.SLocalize("DiscardPatchConfirm"),
+			title:               gui.Tr.SLocalize("DiscardPatch"),
+			prompt:              gui.Tr.SLocalize("DiscardPatchConfirm"),
+			handlersManageFocus: true,
 			handleConfirm: func() error {
 				gui.GitCommand.PatchManager.Reset()
 				return enterTheFile(selectedLineIdx)

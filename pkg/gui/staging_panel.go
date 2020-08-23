@@ -105,10 +105,18 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 
 	if !gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
 		return gui.ask(askOpts{
-			title:  gui.Tr.SLocalize("UnstageLinesTitle"),
-			prompt: gui.Tr.SLocalize("UnstageLinesPrompt"),
+			title:               gui.Tr.SLocalize("UnstageLinesTitle"),
+			prompt:              gui.Tr.SLocalize("UnstageLinesPrompt"),
+			handlersManageFocus: true,
 			handleConfirm: func() error {
+				if err := gui.switchContext(gui.Contexts.Staging.Context); err != nil {
+					return err
+				}
+
 				return gui.applySelection(true)
+			},
+			handleClose: func() error {
+				return gui.switchContext(gui.Contexts.Staging.Context)
 			},
 		})
 	} else {
