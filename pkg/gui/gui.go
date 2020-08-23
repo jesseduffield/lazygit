@@ -410,8 +410,6 @@ func (gui *Gui) Run() error {
 	g.NextSearchMatchKey = gui.getKey("universal.nextMatch")
 	g.PrevSearchMatchKey = gui.getKey("universal.prevMatch")
 
-	gui.stopChan = make(chan struct{})
-
 	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
 	if gui.Config.GetUserConfig().GetBool("gui.mouseEvents") {
@@ -452,6 +450,7 @@ func (gui *Gui) Run() error {
 // otherwise it handles the error, possibly by quitting the application
 func (gui *Gui) RunWithSubprocesses() error {
 	for {
+		gui.stopChan = make(chan struct{})
 		if err := gui.Run(); err != nil {
 			for _, manager := range gui.viewBufferManagerMap {
 				manager.Close()
@@ -464,28 +463,27 @@ func (gui *Gui) RunWithSubprocesses() error {
 
 			close(gui.stopChan)
 
-			if err == gocui.ErrQuit {
+			switch err {
+			case gocui.ErrQuit:
 				if !gui.State.RetainOriginalDir {
 					if err := gui.recordCurrentDirectory(); err != nil {
 						return err
 					}
 				}
 
-				break
-			} else if err == gui.Errors.ErrSwitchRepo {
+				return nil
+			case gui.Errors.ErrSwitchRepo, gui.Errors.ErrRestart:
 				continue
-			} else if err == gui.Errors.ErrRestart {
-				continue
-			} else if err == gui.Errors.ErrSubProcess {
+			case gui.Errors.ErrSubProcess:
+
 				if err := gui.runCommand(); err != nil {
 					return err
 				}
-			} else {
+			default:
 				return err
 			}
 		}
 	}
-	return nil
 }
 
 func (gui *Gui) runCommand() error {
