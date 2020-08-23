@@ -423,8 +423,13 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	// if we have no upstream branch we need to set that first
 	currentBranch := gui.currentBranch()
+	if currentBranch == nil {
+		// need to wait for branches to refresh
+		return nil
+	}
+
+	// if we have no upstream branch we need to set that first
 	if currentBranch.Pullables == "?" {
 		// see if we have this branch in our config with an upstream
 		conf, err := gui.GitCommand.Repo.Config()

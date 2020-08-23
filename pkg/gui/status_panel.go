@@ -67,6 +67,10 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	currentBranch := gui.currentBranch()
+	if currentBranch == nil {
+		// need to wait for branches to refresh
+		return nil
+	}
 
 	if err := gui.switchContext(gui.Contexts.Status.Context); err != nil {
 		return err
