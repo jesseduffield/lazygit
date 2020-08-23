@@ -14,7 +14,7 @@ require (
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/gocui v0.3.1-0.20200823073938-1a970a28d894
-	github.com/jesseduffield/termbox-go v0.0.0-20200405031649-4dc645f7e8ba // indirect
+	github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect

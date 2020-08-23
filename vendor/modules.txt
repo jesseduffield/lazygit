@@ -102,7 +102,7 @@ github.com/jbenet/go-context/io
 # github.com/jesseduffield/gocui v0.3.1-0.20200823073938-1a970a28d894
 ## explicit
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/termbox-go v0.0.0-20200405031649-4dc645f7e8ba
+# github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe
 ## explicit
 github.com/jesseduffield/termbox-go
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0

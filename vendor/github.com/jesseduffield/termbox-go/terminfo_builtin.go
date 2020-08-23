@@ -61,4 +61,5 @@ var terms = []struct {
 	{"rxvt-unicode", rxvt_unicode_keys, rxvt_unicode_funcs},
 	{"linux", linux_keys, linux_funcs},
 	{"rxvt-256color", rxvt_256color_keys, rxvt_256color_funcs},
+	{"alacritty", xterm_keys, xterm_funcs},
 }

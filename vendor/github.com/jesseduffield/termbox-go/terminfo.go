@@ -123,6 +123,7 @@ func setup_term_builtin() error {
 		// let's assume that 'cygwin' is xterm compatible
 		{"cygwin", xterm_keys, xterm_funcs},
 		{"st", xterm_keys, xterm_funcs},
+		{"alacritty", xterm_keys, xterm_funcs},
 	}
 
 	// try compatibility variants
