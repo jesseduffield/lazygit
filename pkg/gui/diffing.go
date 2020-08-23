@@ -31,7 +31,7 @@ func (gui *Gui) renderDiff() error {
 // which becomes an option when you bring up the diff menu, but when you're just
 // flicking through branches it will be using the local branch name.
 func (gui *Gui) currentDiffTerminals() []string {
-	switch gui.currentContextKey() {
+	switch gui.currentContext().GetKey() {
 	case "":
 		return nil
 	case FILES_CONTEXT_KEY:
@@ -71,7 +71,7 @@ func (gui *Gui) currentDiffTerminal() string {
 }
 
 func (gui *Gui) currentlySelectedFilename() string {
-	switch gui.currentContextKey() {
+	switch gui.currentContext().GetKey() {
 	case FILES_CONTEXT_KEY, COMMIT_FILES_CONTEXT_KEY:
 		return gui.getSideContextSelectedItemId()
 	default:

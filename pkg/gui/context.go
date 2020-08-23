@@ -493,20 +493,9 @@ func (gui *Gui) renderContextStack() string {
 	return result
 }
 
-func (gui *Gui) currentContextKey() string {
-	currentContext := gui.currentContext()
-
-	if currentContext == nil {
-		return ""
-	}
-
-	return currentContext.GetKey()
-}
-
 func (gui *Gui) currentContext() Context {
-	// on startup the stack can be empty so we'll return an empty string in that case
 	if len(gui.State.ContextStack) == 0 {
-		return nil
+		return gui.defaultSideContext()
 	}
 
 	return gui.State.ContextStack[len(gui.State.ContextStack)-1]
