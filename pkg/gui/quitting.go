@@ -61,10 +61,8 @@ func (gui *Gui) quit() error {
 
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
 		return gui.ask(askOpts{
-			returnToView:       gui.g.CurrentView(),
-			returnFocusOnClose: true,
-			title:              "",
-			prompt:             gui.Tr.SLocalize("ConfirmQuit"),
+			title:  "",
+			prompt: gui.Tr.SLocalize("ConfirmQuit"),
 			handleConfirm: func() error {
 				return gocui.ErrQuit
 			},

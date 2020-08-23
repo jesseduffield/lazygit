@@ -90,10 +90,8 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	err := gui.ask(askOpts{
-		returnToView:       gui.getCommitsView(),
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("checkoutCommit"),
-		prompt:             gui.Tr.SLocalize("SureCheckoutThisCommit"),
+		title:  gui.Tr.SLocalize("checkoutCommit"),
+		prompt: gui.Tr.SLocalize("SureCheckoutThisCommit"),
 		handleConfirm: func() error {
 			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 		},

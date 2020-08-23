@@ -41,7 +41,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 	menuItems = append(menuItems, &menuItem{
 		displayString: gui.Tr.SLocalize("filterPathOption"),
 		onPress: func() error {
-			return gui.prompt(v, gui.Tr.SLocalize("enterFileName"), "", func(response string) error {
+			return gui.prompt(gui.Tr.SLocalize("enterFileName"), "", func(response string) error {
 				gui.State.Modes.Filtering.Path = strings.TrimSpace(response)
 				return gui.Errors.ErrRestart
 			})

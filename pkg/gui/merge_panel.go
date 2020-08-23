@@ -341,10 +341,8 @@ func (gui *Gui) promptToContinue() error {
 	gui.takeOverScrolling()
 
 	return gui.ask(askOpts{
-		returnToView:       gui.getFilesView(),
-		returnFocusOnClose: true,
-		title:              "continue",
-		prompt:             gui.Tr.SLocalize("ConflictsResolved"),
+		title:  "continue",
+		prompt: gui.Tr.SLocalize("ConflictsResolved"),
 		handleConfirm: func() error {
 			return gui.genericMergeCommand("continue")
 		},

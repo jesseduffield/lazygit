@@ -555,12 +555,10 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       nil,
-		returnFocusOnClose: true,
-		title:              "",
-		prompt:             gui.Tr.SLocalize("IntroPopupMessage"),
-		handleConfirm:      onConfirm,
-		handleClose:        onConfirm,
+		title:         "",
+		prompt:        gui.Tr.SLocalize("IntroPopupMessage"),
+		handleConfirm: onConfirm,
+		handleClose:   onConfirm,
 	})
 }
 
@@ -588,10 +586,8 @@ func (gui *Gui) startBackgroundFetch() {
 	err := gui.fetch(false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = gui.ask(askOpts{
-			returnToView:       gui.g.CurrentView(),
-			returnFocusOnClose: true,
-			title:              gui.Tr.SLocalize("NoAutomaticGitFetchTitle"),
-			prompt:             gui.Tr.SLocalize("NoAutomaticGitFetchBody"),
+			title:  gui.Tr.SLocalize("NoAutomaticGitFetchTitle"),
+			prompt: gui.Tr.SLocalize("NoAutomaticGitFetchBody"),
 		})
 	} else {
 		gui.goEvery(time.Second*60, gui.stopChan, func() error {

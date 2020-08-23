@@ -56,10 +56,8 @@ func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("StashApply"),
-		prompt:             gui.Tr.SLocalize("SureApplyStashEntry"),
+		title:  gui.Tr.SLocalize("StashApply"),
+		prompt: gui.Tr.SLocalize("SureApplyStashEntry"),
 		handleConfirm: func() error {
 			return apply()
 		},
@@ -78,10 +76,8 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("StashPop"),
-		prompt:             gui.Tr.SLocalize("SurePopStashEntry"),
+		title:  gui.Tr.SLocalize("StashPop"),
+		prompt: gui.Tr.SLocalize("SurePopStashEntry"),
 		handleConfirm: func() error {
 			return pop()
 		},
@@ -90,10 +86,8 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("StashDrop"),
-		prompt:             gui.Tr.SLocalize("SureDropStashEntry"),
+		title:  gui.Tr.SLocalize("StashDrop"),
+		prompt: gui.Tr.SLocalize("SureDropStashEntry"),
 		handleConfirm: func() error {
 			return gui.stashDo("drop")
 		},
@@ -121,7 +115,7 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoTrackedStagedFilesStash"))
 	}
-	return gui.prompt(gui.getFilesView(), gui.Tr.SLocalize("StashChanges"), "", func(stashComment string) error {
+	return gui.prompt(gui.Tr.SLocalize("StashChanges"), "", func(stashComment string) error {
 		if err := stashFunc(stashComment); err != nil {
 			return gui.surfaceError(err)
 		}
