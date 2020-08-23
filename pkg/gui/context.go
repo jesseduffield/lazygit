@@ -47,15 +47,24 @@ type Context interface {
 	GetKey() string
 	SetParentContext(Context)
 	GetParentContext() Context
+	GetOptionsMap() map[string]string
 }
 
 type BasicContext struct {
-	OnFocus     func() error
-	OnFocusLost func() error
-	OnRender    func() error
-	Kind        int
-	Key         string
-	ViewName    string
+	OnFocus         func() error
+	OnFocusLost     func() error
+	OnRender        func() error
+	OnGetOptionsMap func() map[string]string
+	Kind            int
+	Key             string
+	ViewName        string
+}
+
+func (c BasicContext) GetOptionsMap() map[string]string {
+	if c.OnGetOptionsMap != nil {
+		return c.OnGetOptionsMap()
+	}
+	return nil
 }
 
 func (c BasicContext) SetWindowName(windowName string) {
@@ -244,9 +253,10 @@ func (gui *Gui) contextTree() ContextTree {
 					// TODO: centralise the code here
 					// return gui.refreshMergePanel()
 				},
-				Kind:     MAIN_CONTEXT,
-				ViewName: "main",
-				Key:      MAIN_MERGING_CONTEXT_KEY,
+				Kind:            MAIN_CONTEXT,
+				ViewName:        "main",
+				Key:             MAIN_MERGING_CONTEXT_KEY,
+				OnGetOptionsMap: gui.getMergingOptions,
 			},
 		},
 		Credentials: SimpleContextNode{
@@ -470,10 +480,12 @@ func (gui *Gui) activateContext(c Context) error {
 
 	gui.g.Cursor = newView.Editable
 
-	// TODO: move this logic to the context
-	if err := gui.renderPanelOptions(); err != nil {
-		return err
+	// render the options available for the current context at the bottom of the screen
+	optionsMap := c.GetOptionsMap()
+	if optionsMap == nil {
+		optionsMap = gui.globalOptionsMap()
 	}
+	gui.renderOptionsMap(optionsMap)
 
 	if err := c.HandleFocus(); err != nil {
 		return err

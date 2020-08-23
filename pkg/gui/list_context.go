@@ -13,6 +13,7 @@ type ListContext struct {
 	OnFocus             func() error
 	OnFocusLost         func() error
 	OnClickSelectedItem func() error
+	OnGetOptionsMap     func() map[string]string
 
 	// the boolean here tells us whether the item is nil. This is needed because you can't work it out on the calling end once the pointer is wrapped in an interface (unless you want to use reflection)
 	SelectedItem  func() (ListItem, bool)
@@ -68,6 +69,13 @@ func (lc *ListContext) GetSelectedItemId() string {
 	}
 
 	return item.ID()
+}
+
+func (lc *ListContext) GetOptionsMap() map[string]string {
+	if lc.OnGetOptionsMap != nil {
+		return lc.OnGetOptionsMap()
+	}
+	return nil
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
@@ -241,6 +249,7 @@ func (gui *Gui) menuListContext() *ListContext {
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: false,
 		Kind:                       PERSISTENT_POPUP,
+		OnGetOptionsMap:            gui.getMenuOptions,
 
 		// no GetDisplayStrings field because we do a custom render on menu creation
 	}

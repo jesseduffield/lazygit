@@ -292,14 +292,14 @@ func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
 	return nil
 }
 
-func (gui *Gui) renderMergeOptions() error {
-	return gui.renderOptionsMap(map[string]string{
+func (gui *Gui) getMergingOptions() map[string]string {
+	return map[string]string{
 		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")):   gui.Tr.SLocalize("selectHunk"),
 		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock")): gui.Tr.SLocalize("navigateConflicts"),
 		gui.getKeyDisplay("universal.select"):   gui.Tr.SLocalize("pickHunk"),
 		gui.getKeyDisplay("main.pickBothHunks"): gui.Tr.SLocalize("pickBothHunks"),
 		gui.getKeyDisplay("universal.undo"):     gui.Tr.SLocalize("undo"),
-	})
+	}
 }
 
 func (gui *Gui) handleEscapeMerge() error {

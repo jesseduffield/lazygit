@@ -101,7 +101,7 @@ func (gui *Gui) refreshFiles() error {
 			return err
 		}
 
-		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == "merging") {
+		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
 			newSelectedFile := gui.getSelectedFile()
 			alreadySelected := selectedFile != nil && newSelectedFile != nil && newSelectedFile.Name == selectedFile.Name
 			return gui.selectFile(alreadySelected)

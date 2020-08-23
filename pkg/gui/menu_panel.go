@@ -32,13 +32,12 @@ func (gui *Gui) handleMenuSelect() error {
 
 // specific functions
 
-func (gui *Gui) renderMenuOptions() error {
-	optionsMap := map[string]string{
+func (gui *Gui) getMenuOptions() map[string]string {
+	return map[string]string{
 		gui.getKeyDisplay("universal.return"): gui.Tr.SLocalize("close"),
 		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")): gui.Tr.SLocalize("navigate"),
 		gui.getKeyDisplay("universal.select"): gui.Tr.SLocalize("execute"),
 	}
-	return gui.renderOptionsMap(optionsMap)
 }
 
 func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
