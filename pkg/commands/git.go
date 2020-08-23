@@ -1066,6 +1066,9 @@ func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string
 
 	for _, line := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
 		// typical result looks like 'A my_file' meaning my_file was added
+		if line == "" {
+			continue
+		}
 		changeStatus := line[0:1]
 		name := line[2:]
 		status := patch.UNSELECTED
