@@ -468,7 +468,12 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		},
 	)
 
-	return gui.prompt(message, "", func(response string) error {
+	prefilledName := ""
+	if context.GetKey() == REMOTE_BRANCHES_CONTEXT_KEY {
+		// will set to the remote's existing name
+		prefilledName = item.ID()
+	}
+	return gui.prompt(message, prefilledName, func(response string) error {
 		if err := gui.GitCommand.NewBranch(response, item.ID()); err != nil {
 			return err
 		}
