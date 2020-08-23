@@ -2,7 +2,6 @@ package gui
 
 import "github.com/jesseduffield/gocui"
 
-
 func (gui *Gui) showUpdatePrompt(newVersion string) error {
 	return gui.ask(askOpts{
 		title:  "New version available!",
