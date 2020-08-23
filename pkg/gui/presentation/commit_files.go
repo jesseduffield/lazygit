@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetCommitFileListDisplayStrings(commitFiles []*commands.CommitFile, diffName string) [][]string {
@@ -37,5 +38,22 @@ func getCommitFileDisplayStrings(f *commands.CommitFile, diffed bool) []string {
 	if diffed {
 		colour = diffTerminalColor
 	}
-	return []string{colour.Sprint(f.DisplayString)}
+	return []string{utils.ColoredString(f.ChangeStatus, getColorForChangeStatus(f.ChangeStatus)), colour.Sprint(f.Name)}
+}
+
+func getColorForChangeStatus(changeStatus string) color.Attribute {
+	switch changeStatus {
+	case "A":
+		return color.FgGreen
+	case "M", "R":
+		return color.FgYellow
+	case "D":
+		return color.FgRed
+	case "C":
+		return color.FgCyan
+	case "T":
+		return color.FgMagenta
+	default:
+		return color.FgWhite
+	}
 }

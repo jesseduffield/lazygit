@@ -1052,7 +1052,7 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchM
 		reverseFlag = " -R "
 	}
 
-	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --name-only %s %s %s", reverseFlag, from, to)
+	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --name-status %s %s %s", reverseFlag, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -1064,17 +1064,20 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchM
 func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string, patchManager *patch.PatchManager) []*CommitFile {
 	commitFiles := make([]*CommitFile, 0)
 
-	for _, file := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
+	for _, line := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
+		// typical result looks like 'A my_file' meaning my_file was added
+		changeStatus := line[0:1]
+		name := line[2:]
 		status := patch.UNSELECTED
 		if patchManager != nil && patchManager.To == parent {
-			status = patchManager.GetFileStatus(file)
+			status = patchManager.GetFileStatus(name)
 		}
 
 		commitFiles = append(commitFiles, &CommitFile{
-			Parent:        parent,
-			Name:          file,
-			DisplayString: file,
-			Status:        status,
+			Parent:       parent,
+			Name:         name,
+			ChangeStatus: changeStatus,
+			Status:       status,
 		})
 	}
 
