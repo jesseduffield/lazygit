@@ -113,10 +113,6 @@ func (gui *Gui) handleEditCommitFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
-	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
-		return err
-	}
-
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
 		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
@@ -172,10 +168,6 @@ func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
-	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
-		return err
-	}
-
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
 		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))

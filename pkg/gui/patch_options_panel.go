@@ -26,7 +26,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		},
 	}
 
-	if gui.GitCommand.PatchManager.CanRebase {
+	if gui.GitCommand.PatchManager.CanRebase && gui.workingTreeState() == "normal" {
 		menuItems = append(menuItems, []*menuItem{
 			{
 				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.To),
@@ -74,9 +74,6 @@ func (gui *Gui) getPatchCommitIndex() int {
 }
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
-	if gui.GitCommand.WorkingTreeState() != "normal" {
-		return false, gui.createErrorPanel(gui.Tr.SLocalize("CantPatchWhileRebasingError"))
-	}
 	if gui.GitCommand.WorkingTreeState() != "normal" {
 		return false, gui.createErrorPanel(gui.Tr.SLocalize("CantPatchWhileRebasingError"))
 	}
@@ -183,5 +180,10 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 
 func (gui *Gui) handleResetPatch() error {
 	gui.GitCommand.PatchManager.Reset()
+	if gui.currentContextKeyIgnoringPopups() == MAIN_PATCH_BUILDING_CONTEXT_KEY {
+		if err := gui.switchContext(gui.Contexts.CommitFiles.Context); err != nil {
+			return err
+		}
+	}
 	return gui.refreshCommitFilesView()
 }
