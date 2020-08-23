@@ -6,8 +6,8 @@ type CommitFile struct {
 	Parent string
 	Name   string
 
-	// Status tells us whether the file has been wholly or partially added to a patch. We might want to pull this logic up into the gui package and make it a map like we do with cherry picked commits
-	Status int // one of 'WHOLE' 'PART' 'NONE'
+	// PatchStatus tells us whether the file has been wholly or partially added to a patch. We might want to pull this logic up into the gui package and make it a map like we do with cherry picked commits
+	PatchStatus int // one of 'WHOLE' 'PART' 'NONE'
 
 	ChangeStatus string // e.g. 'A' for added or 'M' for modified. This is based on the result from git diff --name-status
 }

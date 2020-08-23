@@ -31,7 +31,7 @@ func getCommitFileDisplayStrings(f *commands.CommitFile, diffed bool) []string {
 	diffTerminalColor := color.New(theme.DiffTerminalColor)
 
 	var colour *color.Color
-	switch f.Status {
+	switch f.PatchStatus {
 	case patch.UNSELECTED:
 		colour = defaultColor
 	case patch.WHOLE:
