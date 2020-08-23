@@ -270,7 +270,7 @@ func (gui *Gui) filesListContext() *ListContext {
 			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Modes.Diffing.Ref)
 		},
 		SelectedItem: func() (ListItem, bool) {
-			item := gui.getSelectedFile()
+			item, _ := gui.getSelectedDirOrFile()
 			return item, item != nil
 		},
 	}

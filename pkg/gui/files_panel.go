@@ -27,7 +27,7 @@ func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir) {
 		return file, dir
 	}
 
-	selectedLine := gui.State.Panels.Files.SelectedLine
+	selectedLine := gui.State.Panels.Files.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil, nil
 	}
@@ -127,7 +127,6 @@ func (gui *Gui) refreshFiles() error {
 		}
 
 		if g.CurrentView() == view || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
-			newSelectedFile := gui.getSelectedFile()
 			alreadySelected := selectedFile != nil && newSelectedFile != nil && newSelectedFile.Name == selectedFile.Name
 			return gui.selectFile(alreadySelected)
 		}
@@ -722,7 +721,7 @@ func (gui *Gui) handleExtensiveFilesFocus(v *gocui.View) error {
 		return gui.selectFile(false)
 	}
 
-	gui.State.Panels.Files.SelectedLine = newSelectedLine
+	gui.State.Panels.Files.SelectedLineIdx = newSelectedLine
 
 	return nil
 }
@@ -832,31 +831,27 @@ func (gui *Gui) handleExtensiveFileSelect(v *gocui.View, alreadySelected bool) e
 			return gui.refreshMergePanel()
 		}
 
-		content := gui.GitCommand.Diff(file, false, false)
-		contentCached := gui.GitCommand.Diff(file, false, true)
-		leftContent := content
+		cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+
+		refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
+			title: gui.Tr.SLocalize("UnstagedChanges"),
+			task:  gui.createRunPtyTask(cmd),
+		}}
+
 		if file.HasStagedChanges && file.HasUnstagedChanges {
-			gui.State.SplitMainPanel = true
-			gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
-			gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
-		} else {
-			gui.State.SplitMainPanel = false
-			if file.HasUnstagedChanges {
-				leftContent = content
-				gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
-			} else {
-				leftContent = contentCached
-				gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
+			cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, true)
+			cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+
+			refreshOpts.secondary = &viewUpdateOpts{
+				title: gui.Tr.SLocalize("StagedChanges"),
+				task:  gui.createRunPtyTask(cmd),
 			}
+		} else if !file.HasUnstagedChanges {
+			refreshOpts.main.title = gui.Tr.SLocalize("StagedChanges")
 		}
 
-		if alreadySelected {
-			gui.g.Update(func(*gocui.Gui) error {
-				gui.setViewContent(gui.getMainView(), leftContent)
-				return nil
-			})
-			return nil
-		}
+		return gui.refreshMainViews(refreshOpts)
 	}
 
 	return nil
