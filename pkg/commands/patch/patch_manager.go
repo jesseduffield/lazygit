@@ -36,6 +36,7 @@ type PatchManager struct {
 	Reverse bool
 
 	// CanRebase tells us whether we're allowed to modify our commits. CanRebase should be true for commits of the currently checked out branch and false for everything else
+	// TODO: move this out into a proper mode struct in the gui package: it doesn't really belong here
 	CanRebase bool
 
 	// fileInfoMap starts empty but you add files to it as you go along

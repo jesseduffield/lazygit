@@ -107,7 +107,5 @@ func (gui *Gui) handleSwitchToSubCommits() error {
 		return nil
 	}
 
-	gui.Log.Warn(currentContext.GetKey())
-
 	return gui.switchToSubCommitsContext(currentContext.GetSelectedItemId())
 }

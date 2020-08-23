@@ -42,7 +42,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 			},
 		}...)
 
-		if gui.currentContext() == gui.Contexts.BranchCommits.Context {
+		if gui.currentContext().GetKey() == gui.Contexts.BranchCommits.Context.GetKey() {
 			selectedCommit := gui.getSelectedLocalCommit()
 			if selectedCommit != nil && gui.GitCommand.PatchManager.To != selectedCommit.Sha {
 				// adding this option to index 1
@@ -84,7 +84,7 @@ func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
 }
 
 func (gui *Gui) returnFocusFromLineByLinePanelIfNecessary() error {
-	if gui.State.MainContext == "patchBuilding" {
+	if gui.State.MainContext == MAIN_PATCH_BUILDING_CONTEXT_KEY {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 	return nil

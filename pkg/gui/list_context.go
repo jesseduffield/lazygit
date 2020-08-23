@@ -232,13 +232,12 @@ func (lc *ListContext) onSearchSelect(selectedLineIdx int) error {
 
 func (gui *Gui) menuListContext() *ListContext {
 	return &ListContext{
-		ViewName:       "menu",
-		ContextKey:     "menu",
-		GetItemsLength: func() int { return gui.getMenuView().LinesHeight() },
-		GetPanelState:  func() IListPanelState { return gui.State.Panels.Menu },
-		OnFocus:        gui.handleMenuSelect,
-		// need to add a layer of indirection here because the callback changes during runtime
-		OnClickSelectedItem:        func() error { return gui.State.Panels.Menu.OnPress() },
+		ViewName:                   "menu",
+		ContextKey:                 "menu",
+		GetItemsLength:             func() int { return gui.getMenuView().LinesHeight() },
+		GetPanelState:              func() IListPanelState { return gui.State.Panels.Menu },
+		OnFocus:                    gui.handleMenuSelect,
+		OnClickSelectedItem:        func() error { return gui.onMenuPress() },
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: false,
 		Kind:                       PERSISTENT_POPUP,
