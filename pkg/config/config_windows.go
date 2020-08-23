@@ -5,6 +5,5 @@ func GetPlatformDefaultConfig() []byte {
 	return []byte(
 		`os:
   openCommand: 'cmd /c "start "" {{filename}}"'
-  openLinkCommand: 'cmd /c "start "" {{link}}"'
-  copyToClipboardCommand: 'cmd \c "echo -n {{str}} > /dev/clipboard"'`)
+  openLinkCommand: 'cmd /c "start "" {{link}}"'`)
 }
