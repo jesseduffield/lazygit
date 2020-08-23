@@ -1080,7 +1080,7 @@ func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string
 			Parent:       parent,
 			Name:         name,
 			ChangeStatus: changeStatus,
-			Status:       status,
+			PatchStatus:  status,
 		})
 	}
 
