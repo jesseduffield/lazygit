@@ -122,7 +122,7 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.prompt(editNameMessage, "", func(updatedRemoteName string) error {
+	return gui.prompt(editNameMessage, remote.Name, func(updatedRemoteName string) error {
 		if updatedRemoteName != remote.Name {
 			if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
 				return gui.surfaceError(err)
@@ -136,7 +136,13 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 			},
 		)
 
-		return gui.prompt(editUrlMessage, "", func(updatedRemoteUrl string) error {
+		urls := remote.Urls
+		url := ""
+		if len(urls) > 0 {
+			url = urls[0]
+		}
+
+		return gui.prompt(editUrlMessage, url, func(updatedRemoteUrl string) error {
 			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 				return gui.surfaceError(err)
 			}
