@@ -73,7 +73,7 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 		SecondaryFocused: secondaryFocused,
 	}
 
-	if err := gui.refreshMainView(); err != nil {
+	if err := gui.refreshMainViewForLineByLine(); err != nil {
 		return false, err
 	}
 
@@ -129,7 +129,7 @@ func (gui *Gui) selectNewHunk(newHunk *patch.PatchHunk) error {
 		state.FirstLineIdx, state.LastLineIdx = state.SelectedLineIdx, state.SelectedLineIdx
 	}
 
-	if err := gui.refreshMainView(); err != nil {
+	if err := gui.refreshMainViewForLineByLine(); err != nil {
 		return err
 	}
 
@@ -169,7 +169,7 @@ func (gui *Gui) handleSelectNewLine(newSelectedLineIdx int) error {
 		state.FirstLineIdx = state.SelectedLineIdx
 	}
 
-	if err := gui.refreshMainView(); err != nil {
+	if err := gui.refreshMainViewForLineByLine(); err != nil {
 		return err
 	}
 
@@ -228,18 +228,22 @@ func (gui *Gui) handleMouseScrollDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) getSelectedCommitFileName() string {
-	return gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLine].Name
+	return gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLineIdx].Name
 }
 
-func (gui *Gui) refreshMainView() error {
+func (gui *Gui) refreshMainViewForLineByLine() error {
 	state := gui.State.Panels.LineByLine
 
 	var includedLineIndices []int
 	// I'd prefer not to have knowledge of contexts using this file but I'm not sure
 	// how to get around this
-	if gui.State.MainContext == "patch-building" {
+	if gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.Context.GetKey() {
 		filename := gui.getSelectedCommitFileName()
-		includedLineIndices = gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+		var err error
+		includedLineIndices, err = gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+		if err != nil {
+			return err
+		}
 	}
 	colorDiff := state.PatchParser.Render(state.FirstLineIdx, state.LastLineIdx, includedLineIndices)
 
@@ -305,7 +309,7 @@ func (gui *Gui) handleToggleSelectRange(g *gocui.Gui, v *gocui.View) error {
 	}
 	state.FirstLineIdx, state.LastLineIdx = state.SelectedLineIdx, state.SelectedLineIdx
 
-	return gui.refreshMainView()
+	return gui.refreshMainViewForLineByLine()
 }
 
 func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
@@ -320,7 +324,7 @@ func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
 		state.FirstLineIdx, state.LastLineIdx = selectedHunk.FirstLineIdx, selectedHunk.LastLineIdx()
 	}
 
-	if err := gui.refreshMainView(); err != nil {
+	if err := gui.refreshMainViewForLineByLine(); err != nil {
 		return err
 	}
 
@@ -328,7 +332,6 @@ func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleEscapeLineByLinePanel() {
-	gui.changeMainViewsContext("normal")
 	gui.State.Panels.LineByLine = nil
 }
 
@@ -336,11 +339,11 @@ func (gui *Gui) handleOpenFileAtLine() error {
 	// again, would be good to use inheritance here (or maybe even composition)
 	var filename string
 	switch gui.State.MainContext {
-	case "patch-building":
+	case gui.Contexts.PatchBuilding.Context.GetKey():
 		filename = gui.getSelectedCommitFileName()
-	case "staging":
-		file, _, err := gui.getSelectedDirOrFile()
-		if err != nil || file == nil {
+	case gui.Contexts.Staging.Context.GetKey():
+		file, _ := gui.getSelectedDirOrFile()
+		if file == nil {
 			return nil
 		}
 		filename = file.Name

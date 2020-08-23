@@ -5,12 +5,25 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// getFromAndReverseArgsForDiff tells us the from and reverse args to be used in a diff command. If we're not in diff mode we'll end up with the equivalent of a `git show` i.e `git diff blah^..blah`.
+func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
+	from := to + "^"
+	reverse := false
+
+	if gui.State.Modes.Diffing.Active() {
+		reverse = gui.State.Modes.Diffing.Reverse
+		from = gui.State.Modes.Diffing.Ref
+	}
+
+	return from, reverse
+}
+
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
-	if !gui.GitCommand.PatchManager.CommitSelected() {
+	if !gui.GitCommand.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 
-	gui.State.SplitMainPanel = true
+	gui.splitMainPanel(true)
 
 	gui.getMainView().Title = "Patch"
 	gui.getSecondaryView().Title = "Custom Patch"
@@ -18,11 +31,12 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	// get diff from commit file that's currently selected
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
-		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
 	}
 
-	diff, err := gui.GitCommand.ShowCommitFile(commitFile.Sha, commitFile.Name, true)
+	to := commitFile.Parent
+	from, reverse := gui.getFromAndReverseArgsForDiff(to)
+	diff, err := gui.GitCommand.ShowFileDiff(from, to, reverse, commitFile.Name, true)
 	if err != nil {
 		return err
 	}
@@ -49,7 +63,10 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 
 	toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
 	filename := gui.getSelectedCommitFileName()
-	includedLineIndices := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+	includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+	if err != nil {
+		return err
+	}
 	currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
 	if currentLineIsStaged {
 		toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
@@ -58,7 +75,6 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 	// add range of lines to those set for the file
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
-		gui.renderString("commitFiles", gui.Tr.SLocalize("NoCommiteFiles"))
 		return nil
 	}
 
@@ -80,25 +96,26 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 
 	if gui.GitCommand.PatchManager.IsEmpty() {
 		gui.GitCommand.PatchManager.Reset()
-		gui.State.SplitMainPanel = false
 	}
 
-	return gui.switchFocus(nil, gui.getCommitFilesView())
+	if gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.Context.GetKey() {
+		return gui.switchContext(gui.Contexts.CommitFiles.Context)
+	} else {
+		// need to re-focus in case the secondary view should now be hidden
+		return gui.currentContext().HandleFocus()
+	}
 }
 
-func (gui *Gui) refreshSecondaryPatchPanel() error {
-	if gui.GitCommand.PatchManager.CommitSelected() {
-		gui.State.SplitMainPanel = true
-		secondaryView := gui.getSecondaryView()
-		secondaryView.Highlight = true
-		secondaryView.Wrap = false
+func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
+	if gui.GitCommand.PatchManager.Active() {
+		patch := gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false)
 
-		gui.g.Update(func(*gocui.Gui) error {
-			gui.setViewContent(gui.getSecondaryView(), gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false))
-			return nil
-		})
-	} else {
-		gui.State.SplitMainPanel = false
+		return &viewUpdateOpts{
+			title:     "Custom Patch",
+			noWrap:    true,
+			highlight: true,
+			task:      gui.createRenderStringWithoutScrollTask(patch),
+		}
 	}
 
 	return nil

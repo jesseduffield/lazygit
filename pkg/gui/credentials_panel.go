@@ -20,10 +20,11 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
 			credentialsView.Mask = '*'
 		}
-		err := gui.switchFocus(gui.g.CurrentView(), credentialsView)
-		if err != nil {
+
+		if err := gui.switchContext(gui.Contexts.Credentials.Context); err != nil {
 			return err
 		}
+
 		gui.RenderCommitLength()
 		return nil
 	})
@@ -36,40 +37,25 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
 	gui.credentials <- message
-	v.Clear()
-	_ = v.SetCursor(0, 0)
-	_, _ = g.SetViewOnBottom("credentials")
-	nextView, err := gui.g.View("confirmation")
-	if err != nil {
-		nextView = gui.getFilesView()
-	}
-	err = gui.switchFocus(nil, nextView)
-	if err != nil {
+	gui.clearEditorView(v)
+	if err := gui.returnFromContext(); err != nil {
 		return err
 	}
+
 	return gui.refreshSidePanels(refreshOptions{})
 }
 
 func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
-	_, err := g.SetViewOnBottom("credentials")
-	if err != nil {
-		return err
-	}
-
 	gui.credentials <- ""
-	return gui.switchFocus(nil, gui.getFilesView())
+	return gui.returnFromContext()
 }
 
 func (gui *Gui) handleCredentialsViewFocused() error {
-	if _, err := gui.g.SetViewOnTop("credentials"); err != nil {
-		return err
-	}
-
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{
-			"keyBindClose":   "esc",
-			"keyBindConfirm": "enter",
+			"keyBindClose":   gui.getKeyDisplay("universal.return"),
+			"keyBindConfirm": gui.getKeyDisplay("universal.confirm"),
 		},
 	)
 	gui.renderString("options", message)
@@ -78,7 +64,6 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 
 // handleCredentialsPopup handles the views after executing a command that might ask for credentials
 func (gui *Gui) handleCredentialsPopup(cmdErr error) {
-	_, _ = gui.g.SetViewOnBottom("credentials")
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
 		if strings.Contains(errMessage, "Invalid username or password") {
@@ -87,6 +72,6 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 		// we are not logging this error because it may contain a password
 		gui.createErrorPanel(errMessage)
 	} else {
-		_ = gui.closeConfirmationPrompt(true)
+		_ = gui.closeConfirmationPrompt(false)
 	}
 }

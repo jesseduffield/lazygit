@@ -398,9 +398,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "IssntListOfViews",
 			Other: "{{.name}} is niet in de lijst van weergaves",
 		}, &i18n.Message{
-			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
-			Other: "Er machen geen weergave met de newLineFocused switch declaratie",
-		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "nieuw gefocussed weergave is {{.newFocusedView}}",
 		}, &i18n.Message{

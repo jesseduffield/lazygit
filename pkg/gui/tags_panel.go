@@ -3,13 +3,12 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
 
 func (gui *Gui) getSelectedTag() *commands.Tag {
-	selectedLine := gui.State.Panels.Tags.SelectedLine
+	selectedLine := gui.State.Panels.Tags.SelectedLineIdx
 	if selectedLine == -1 || len(gui.State.Tags) == 0 {
 		return nil
 	}
@@ -18,36 +17,23 @@ func (gui *Gui) getSelectedTag() *commands.Tag {
 }
 
 func (gui *Gui) handleTagSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	gui.State.SplitMainPanel = false
-
-	if _, err := gui.g.SetCurrentView("branches"); err != nil {
-		return err
-	}
-
-	gui.getMainView().Title = "Tag"
-
+	var task updateTask
 	tag := gui.getSelectedTag()
 	if tag == nil {
-		return gui.newStringTask("main", "No tags")
-	}
-	gui.getBranchesView().FocusPoint(0, gui.State.Panels.Tags.SelectedLine)
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.GetBranchGraphCmdStr(tag.Name),
-	)
-	if err := gui.newCmdTask("main", cmd); err != nil {
-		gui.Log.Error(err)
+		task = gui.createRenderStringTask("No tags")
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.GetBranchGraphCmdStr(tag.Name),
+		)
+		task = gui.createRunCommandTask(cmd)
 	}
 
-	return nil
+	return gui.refreshMainViews(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Tag",
+			task:  task,
+		},
+	})
 }
 
 func (gui *Gui) refreshTags() error {
@@ -58,26 +44,7 @@ func (gui *Gui) refreshTags() error {
 
 	gui.State.Tags = tags
 
-	if gui.getBranchesView().Context == "tags" {
-		return gui.renderTagsWithSelection()
-	}
-
-	return nil
-}
-
-func (gui *Gui) renderTagsWithSelection() error {
-	branchesView := gui.getBranchesView()
-
-	gui.refreshSelectedLine(&gui.State.Panels.Tags.SelectedLine, len(gui.State.Tags))
-	displayStrings := presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(branchesView, displayStrings)
-	if gui.g.CurrentView() == branchesView && branchesView.Context == "tags" {
-		if err := gui.handleTagSelect(); err != nil {
-			return gui.surfaceError(err)
-		}
-	}
-
-	return nil
+	return gui.postRefreshUpdate(gui.Contexts.Tags.Context)
 }
 
 func (gui *Gui) handleCheckoutTag(g *gocui.Gui, v *gocui.View) error {
@@ -88,7 +55,7 @@ func (gui *Gui) handleCheckoutTag(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.handleCheckoutRef(tag.Name, handleCheckoutRefOptions{}); err != nil {
 		return err
 	}
-	return gui.switchBranchesPanelContext("local-branches")
+	return gui.switchContext(gui.Contexts.Branches.Context)
 }
 
 func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
@@ -105,10 +72,8 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 	)
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("DeleteTagTitle"),
-		prompt:             prompt,
+		title:  gui.Tr.SLocalize("DeleteTagTitle"),
+		prompt: prompt,
 		handleConfirm: func() error {
 			if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
 				return gui.surfaceError(err)
@@ -131,7 +96,7 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.prompt(v, title, "origin", func(response string) error {
+	return gui.prompt(title, "origin", func(response string) error {
 		if err := gui.GitCommand.PushTag(response, tag.Name); err != nil {
 			return gui.surfaceError(err)
 		}
@@ -140,7 +105,7 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(v, gui.Tr.SLocalize("CreateTagTitle"), "", func(tagName string) error {
+	return gui.prompt(gui.Tr.SLocalize("CreateTagTitle"), "", func(tagName string) error {
 		// leaving commit SHA blank so that we're just creating the tag for the current commit
 		if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
 			return gui.surfaceError(err)
@@ -149,8 +114,11 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 			// find the index of the tag and set that as the currently selected line
 			for i, tag := range gui.State.Tags {
 				if tag.Name == tagName {
-					gui.State.Panels.Tags.SelectedLine = i
-					gui.renderTagsWithSelection()
+					gui.State.Panels.Tags.SelectedLineIdx = i
+					if err := gui.Contexts.Tags.Context.HandleRender(); err != nil {
+						gui.Log.Error(err)
+					}
+
 					return
 				}
 			}

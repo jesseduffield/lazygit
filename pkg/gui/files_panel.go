@@ -7,11 +7,10 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir, error) {
+func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir) {
 	currentView := gui.g.CurrentView()
 	viewNameToCheck := ""
 	if currentView != nil {
@@ -25,40 +24,37 @@ func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir, error) {
 		selected := gui.State.Panels.ExtensiveFiles.Selected
 		file, dir := gui.State.ExtensiveFiles.MatchPath(selected)
 
-		return file, dir, nil
+		return file, dir
 	}
 
 	selectedLine := gui.State.Panels.Files.SelectedLine
 	if selectedLine == -1 {
-		return nil, nil, gui.Errors.ErrNoFiles
+		return nil, nil
 	}
 
-	return gui.State.Files[selectedLine], nil, nil
+	return gui.State.Files[selectedLine], nil
 }
 
 func (gui *Gui) selectFile(alreadySelected bool) error {
-	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLine)
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
+	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
 
 	v := gui.g.CurrentView()
 	if gui.isExtensiveView(v) {
 		return gui.handleExtensiveFileSelect(v, alreadySelected)
 	}
 
-	file, _, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
-		gui.State.SplitMainPanel = false
-		gui.getMainView().Title = ""
-		return gui.newStringTask("main", gui.Tr.SLocalize("NoChangedFiles"))
+	file, _ := gui.getSelectedDirOrFile()
+	if file == nil {
+		return gui.refreshMainViews(refreshMainOpts{
+			main: &viewUpdateOpts{
+				title: "",
+				task:  gui.createRenderStringTask(gui.Tr.SLocalize("NoChangedFiles")),
+			},
+		})
 	}
 
 	if !alreadySelected {
+		// TODO: pull into update task interface
 		if err := gui.resetOrigin(gui.getMainView()); err != nil {
 			return err
 		}
@@ -68,36 +64,30 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	}
 
 	if file.HasInlineMergeConflicts {
-		gui.getMainView().Title = gui.Tr.SLocalize("MergeConflictsTitle")
-		gui.State.SplitMainPanel = false
 		return gui.refreshMergePanel()
 	}
 
-	if file.HasStagedChanges && file.HasUnstagedChanges {
-		gui.State.SplitMainPanel = true
-		gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
-		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
-		cmdStr := gui.GitCommand.DiffCmdStr(file, false, true)
-		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-		if err := gui.newPtyTask("secondary", cmd); err != nil {
-			return err
-		}
-	} else {
-		gui.State.SplitMainPanel = false
-		if file.HasUnstagedChanges {
-			gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
-		} else {
-			gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
-		}
-	}
-
-	cmdStr := gui.GitCommand.DiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+	cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
 	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-	if err := gui.newPtyTask("main", cmd); err != nil {
-		return err
+
+	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
+		title: gui.Tr.SLocalize("UnstagedChanges"),
+		task:  gui.createRunPtyTask(cmd),
+	}}
+
+	if file.HasStagedChanges && file.HasUnstagedChanges {
+		cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, true)
+		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+
+		refreshOpts.secondary = &viewUpdateOpts{
+			title: gui.Tr.SLocalize("StagedChanges"),
+			task:  gui.createRunPtyTask(cmd),
+		}
+	} else if !file.HasUnstagedChanges {
+		refreshOpts.main.title = gui.Tr.SLocalize("StagedChanges")
 	}
 
-	return nil
+	return gui.refreshMainViews(refreshOpts)
 }
 
 func (gui *Gui) refreshFiles() error {
@@ -110,7 +100,7 @@ func (gui *Gui) refreshFiles() error {
 
 	isExtensiveFiles := gui.isExtensiveView(gui.g.CurrentView())
 
-	selectedFile, selectedDir, _ := gui.getSelectedDirOrFile()
+	selectedFile, selectedDir := gui.getSelectedDirOrFile()
 
 	view := gui.getFilesView()
 	if isExtensiveFiles {
@@ -126,21 +116,20 @@ func (gui *Gui) refreshFiles() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		view := gui.getFilesView()
+		newSelectedFile, newSelectedDir := gui.getSelectedDirOrFile()
 
-		newSelectedFile, newSelectedDir, _ := gui.getSelectedDirOrFile()
 		if isExtensiveFiles {
-			view = gui.GetExtendedFilesView()
 			list := gui.State.ExtensiveFiles.Render(newSelectedFile, newSelectedDir)
 			view.Clear()
 			fmt.Fprint(view, list)
-		} else {
-			list := presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Diff.Ref)
-			gui.renderDisplayStrings(view, list)
+		} else if err := gui.Contexts.Files.Context.HandleRender(); err != nil {
+			return err
 		}
 
-		if newSelectedFile != nil && (g.CurrentView() == view || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == "merging")) {
-			return gui.selectFile(selectedFile != nil && newSelectedFile.Name == selectedFile.Name)
+		if g.CurrentView() == view || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
+			newSelectedFile := gui.getSelectedFile()
+			alreadySelected := selectedFile != nil && newSelectedFile != nil && newSelectedFile.Name == selectedFile.Name
+			return gui.selectFile(alreadySelected)
 		}
 
 		return gui.selectFile(
@@ -176,10 +165,7 @@ func (gui *Gui) trackedFiles() []*commands.File {
 }
 
 func (gui *Gui) stageSelectedFile(g *gocui.Gui) error {
-	file, dir, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		return err
-	}
+	file, dir := gui.getSelectedDirOrFile()
 	if file != nil {
 		return gui.GitCommand.StageFile(file.Name)
 	}
@@ -194,14 +180,8 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error {
-	file, _, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
-		return nil
-	}
-	if file != nil {
+	file, _ := gui.getSelectedDirOrFile()
+	if file == nil {
 		return nil
 	}
 
@@ -211,54 +191,49 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.SLocalize("FileStagingRequirements"))
 	}
-	gui.changeMainViewsContext("staging")
-	if err := gui.switchFocus(gui.getFilesView(), gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
+	gui.switchContext(gui.Contexts.Staging.Context)
+
+	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
 }
 
 func (gui *Gui) handleFilePress() error {
-	file, dir, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		if err == gui.Errors.ErrNoFiles {
-			return nil
-		}
-		return err
+	file, dir := gui.getSelectedDirOrFile()
+	if file == nil && dir == nil {
+		return nil
 	}
 
-	refresh := false
 	if file != nil {
-		refresh = true
 		if file.HasInlineMergeConflicts {
 			return gui.handleSwitchToMerge()
 		}
 
 		if file.HasUnstagedChanges {
-			err = gui.GitCommand.StageFile(file.Name)
+			if err := gui.GitCommand.StageFile(file.Name); err != nil {
+				return gui.surfaceError(err)
+			}
 		} else {
-			err = gui.GitCommand.UnStageFile(file.Name, file.Tracked)
+			if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
+				return gui.surfaceError(err)
+			}
 		}
-		if err != nil {
-			return gui.surfaceError(err)
-		}
-	} else if dir != nil {
-		refresh = true
+	} else {
 		if dir.HasInlineMergeConflicts {
 			return gui.handleSwitchToMerge()
 		}
 
 		if dir.HasUnstagedChanges {
-			err = gui.GitCommand.StageFile(dir.AbsolutePath())
+			if err := gui.GitCommand.StageFile(dir.AbsolutePath()); err != nil {
+				return gui.surfaceError(err)
+			}
 		} else {
-			err = gui.GitCommand.UnStageFile(dir.AbsolutePath(), dir.Tracked)
+			if err := gui.GitCommand.UnStageFile(dir.AbsolutePath(), dir.Tracked); err != nil {
+				return gui.surfaceError(err)
+			}
 		}
 	}
 
-	if refresh {
-		if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
-			return err
-		}
+	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
+		return err
 	}
 
 	return gui.selectFile(true)
@@ -274,10 +249,6 @@ func (gui *Gui) allFilesStaged(files []*commands.File) bool {
 }
 
 func (gui *Gui) focusAndSelectFile() error {
-	if _, err := gui.g.SetCurrentView("files"); err != nil {
-		return err
-	}
-
 	return gui.selectFile(false)
 }
 
@@ -300,18 +271,16 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
-	file, dir, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		return gui.surfaceError(err)
+	file, dir := gui.getSelectedDirOrFile()
+	if file == nil && dir == nil {
+		return nil
 	}
 
 	if file != nil {
 		if file.Tracked {
 			return gui.ask(askOpts{
-				returnToView:       gui.g.CurrentView(),
-				returnFocusOnClose: true,
-				title:              gui.Tr.SLocalize("IgnoreTracked"),
-				prompt:             gui.Tr.SLocalize("IgnoreTrackedPrompt"),
+				title:  gui.Tr.SLocalize("IgnoreTracked"),
+				prompt: gui.Tr.SLocalize("IgnoreTrackedPrompt"),
 				handleConfirm: func() error {
 					if err := gui.GitCommand.Ignore(file.Name); err != nil {
 						return err
@@ -330,10 +299,8 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	} else if dir != nil {
 		if dir.Tracked {
 			return gui.ask(askOpts{
-				returnToView:       gui.g.CurrentView(),
-				returnFocusOnClose: true,
-				title:              gui.Tr.SLocalize("IgnoreTracked"),
-				prompt:             gui.Tr.SLocalize("IgnoreTrackedPrompt"),
+				title:  gui.Tr.SLocalize("IgnoreTracked"),
+				prompt: gui.Tr.SLocalize("IgnoreTrackedPrompt"),
 				handleConfirm: func() error {
 					if err := gui.GitCommand.Ignore(dir.AbsolutePath()); err != nil {
 						return err
@@ -391,11 +358,7 @@ func (gui *Gui) handleCommitPress() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if _, err := g.SetViewOnTop("commitMessage"); err != nil {
-			return err
-		}
-
-		if err := gui.switchFocus(gui.getFilesView(), commitMessageView); err != nil {
+		if err := gui.switchContext(gui.Contexts.CommitMessage.Context); err != nil {
 			return err
 		}
 
@@ -407,10 +370,8 @@ func (gui *Gui) handleCommitPress() error {
 
 func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 	return gui.ask(askOpts{
-		returnToView:       gui.getFilesView(),
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("NoFilesStagedTitle"),
-		prompt:             gui.Tr.SLocalize("NoFilesStagedPrompt"),
+		title:  gui.Tr.SLocalize("NoFilesStagedTitle"),
+		prompt: gui.Tr.SLocalize("NoFilesStagedPrompt"),
 		handleConfirm: func() error {
 			if err := gui.GitCommand.StageAll(); err != nil {
 				return gui.surfaceError(err)
@@ -436,10 +397,8 @@ func (gui *Gui) handleAmendCommitPress() error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       gui.getFilesView(),
-		returnFocusOnClose: true,
-		title:              strings.Title(gui.Tr.SLocalize("AmendLastCommit")),
-		prompt:             gui.Tr.SLocalize("SureToAmend"),
+		title:  strings.Title(gui.Tr.SLocalize("AmendLastCommit")),
+		prompt: gui.Tr.SLocalize("SureToAmend"),
 		handleConfirm: func() error {
 			ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
 			if err != nil {
@@ -481,11 +440,7 @@ func (gui *Gui) editFile(filename string) error {
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
-	file, dir, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		return gui.surfaceError(err)
-	}
-
+	file, dir := gui.getSelectedDirOrFile()
 	if file != nil {
 		return gui.editFile(file.Name)
 	}
@@ -496,9 +451,9 @@ func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
-	file, _, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		return gui.surfaceError(err)
+	file, _ := gui.getSelectedDirOrFile()
+	if file == nil {
+		return nil
 	}
 	return gui.openFile(file.Name)
 }
@@ -511,7 +466,7 @@ func (gui *Gui) refreshStateFiles() error {
 	// keep track of where the cursor is currently and the current file names
 	// when we refresh, go looking for a matching name
 	// move the cursor to there.
-	selectedFile, _, _ := gui.getSelectedDirOrFile()
+	selectedFile, _ := gui.getSelectedDirOrFile()
 
 	// get files to stage
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
@@ -527,19 +482,28 @@ func (gui *Gui) refreshStateFiles() error {
 	// let's try to find our file again and move the cursor to that
 	for idx, f := range gui.State.Files {
 		if selectedFile != nil && f.Matches(selectedFile) {
-			gui.State.Panels.Files.SelectedLine = idx
+			gui.State.Panels.Files.SelectedLineIdx = idx
 			break
 		}
 	}
 
 	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 0)
-	gui.refreshSelectedLine(&gui.State.Panels.Files.SelectedLine, len(gui.State.Files))
+	gui.refreshSelectedLine(gui.State.Panels.Files, len(gui.State.Files))
 	return nil
 }
 
 func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
-	// if we have no upstream branch we need to set that first
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	currentBranch := gui.currentBranch()
+	if currentBranch == nil {
+		// need to wait for branches to refresh
+		return nil
+	}
+
+	// if we have no upstream branch we need to set that first
 	if currentBranch.Pullables == "?" {
 		// see if we have this branch in our config with an upstream
 		conf, err := gui.GitCommand.Repo.Config()
@@ -552,7 +516,7 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		return gui.prompt(v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(upstream string) error {
+		return gui.prompt(gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(upstream string) error {
 			if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
 				errorMessage := err.Error()
 				if strings.Contains(errorMessage, "does not exist") {
@@ -621,10 +585,8 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
 			gui.ask(askOpts{
-				returnToView:       v,
-				returnFocusOnClose: true,
-				title:              gui.Tr.SLocalize("ForcePush"),
-				prompt:             gui.Tr.SLocalize("ForcePushPrompt"),
+				title:  gui.Tr.SLocalize("ForcePush"),
+				prompt: gui.Tr.SLocalize("ForcePushPrompt"),
 				handleConfirm: func() error {
 					return gui.pushWithForceFlag(v, true, upstream, args)
 				},
@@ -639,6 +601,10 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 }
 
 func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
+	if gui.popupPanelFocused() {
+		return nil
+	}
+
 	// if we have pullables we'll ask if the user wants to force push
 	currentBranch := gui.currentBranch()
 
@@ -658,7 +624,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 			return gui.pushWithForceFlag(v, false, "", "--set-upstream")
 		}
 
-		return gui.prompt(v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(response string) error {
+		return gui.prompt(gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(response string) error {
 			return gui.pushWithForceFlag(v, false, response, "")
 		})
 	} else if currentBranch.Pullables == "0" {
@@ -666,10 +632,8 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("ForcePush"),
-		prompt:             gui.Tr.SLocalize("ForcePushPrompt"),
+		title:  gui.Tr.SLocalize("ForcePush"),
+		prompt: gui.Tr.SLocalize("ForcePushPrompt"),
 		handleConfirm: func() error {
 			return gui.pushWithForceFlag(v, true, "", "")
 		},
@@ -677,21 +641,16 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSwitchToMerge() error {
-	file, dir, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		if err != gui.Errors.ErrNoFiles {
-			return gui.surfaceError(err)
-		}
+	file, dir := gui.getSelectedDirOrFile()
+	if file == nil && dir == nil {
 		return nil
 	}
+
 	if (file != nil && !file.HasInlineMergeConflicts) || (dir != nil && !dir.HasInlineMergeConflicts) {
 		return gui.createErrorPanel(gui.Tr.SLocalize("FileNoMergeCons"))
 	}
-	gui.changeMainViewsContext("merging")
-	if err := gui.switchFocus(gui.g.CurrentView(), gui.getMainView()); err != nil {
-		return err
-	}
-	return gui.refreshMergePanel()
+
+	return gui.switchContext(gui.Contexts.Merging.Context)
 }
 
 func (gui *Gui) openFile(filename string) error {
@@ -711,7 +670,7 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(v, gui.Tr.SLocalize("CustomCommand"), "", func(command string) error {
+	return gui.prompt(gui.Tr.SLocalize("CustomCommand"), "", func(command string) error {
 		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
 		return gui.Errors.ErrSubProcess
 	})
@@ -744,28 +703,8 @@ func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) err
 	return gui.createResetMenu("@{upstream}")
 }
 
-func (gui *Gui) onFilesPanelSearchSelect(selectedLine int) error {
-	gui.State.Panels.Files.SelectedLine = selectedLine
-	return gui.focusAndSelectFile()
-}
-
 func (gui *Gui) isExtensiveView(v *gocui.View) bool {
 	return v != nil && v.Name() == "extensiveFiles"
-}
-
-func (gui *Gui) selectedFiles(v *gocui.View) (files []*commands.File, err error, hasErr bool) {
-	file, dir, err := gui.getSelectedDirOrFile()
-	if err != nil {
-		return nil, err, true
-	}
-	if file == nil && dir == nil {
-		return nil, nil, true
-	}
-
-	if file != nil {
-		return []*commands.File{file}, nil, false
-	}
-	return dir.AllFiles(), nil, false
 }
 
 func (gui *Gui) handleExtensiveFilesFocus(v *gocui.View) error {

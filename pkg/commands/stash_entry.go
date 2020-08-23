@@ -11,3 +11,11 @@ type StashEntry struct {
 func (s *StashEntry) RefName() string {
 	return fmt.Sprintf("stash@{%d}", s.Index)
 }
+
+func (s *StashEntry) ID() string {
+	return s.RefName()
+}
+
+func (s *StashEntry) Description() string {
+	return s.RefName() + ": " + s.Name
+}

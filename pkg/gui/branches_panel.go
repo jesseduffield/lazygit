@@ -6,14 +6,16 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
 
 func (gui *Gui) getSelectedBranch() *commands.Branch {
-	selectedLine := gui.State.Panels.Branches.SelectedLine
+	if len(gui.State.Branches) == 0 {
+		return nil
+	}
+
+	selectedLine := gui.State.Panels.Branches.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}
@@ -22,43 +24,31 @@ func (gui *Gui) getSelectedBranch() *commands.Branch {
 }
 
 func (gui *Gui) handleBranchSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	gui.State.SplitMainPanel = false
-
-	if _, err := gui.g.SetCurrentView("branches"); err != nil {
-		return err
-	}
-
-	gui.getMainView().Title = "Log"
-
-	// This really shouldn't happen: there should always be a master branch
-	if len(gui.State.Branches) == 0 {
-		return gui.newStringTask("main", gui.Tr.SLocalize("NoBranchesThisRepo"))
-	}
+	var task updateTask
 	branch := gui.getSelectedBranch()
-	gui.getBranchesView().FocusPoint(0, gui.State.Panels.Branches.SelectedLine)
+	if branch == nil {
+		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoBranchesThisRepo"))
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
+		)
 
-	if gui.inDiffMode() {
-		return gui.renderDiff()
+		task = gui.createRunPtyTask(cmd)
 	}
 
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
-	)
-	if err := gui.newCmdTask("main", cmd); err != nil {
-		gui.Log.Error(err)
-	}
-	return nil
+	return gui.refreshMainViews(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Log",
+			task:  task,
+		},
+	})
 }
 
 // gui.refreshStatus is called at the end of this because that's when we can
 // be sure there is a state.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches() {
 	reflogCommits := gui.State.FilteredReflogCommits
-	if gui.inFilterMode() {
+	if gui.State.Modes.Filtering.Active() {
 		// in filter mode we filter our reflog commits to just those containing the path
 		// however we need all the reflog entries to populate the recencies of our branches
 		// which allows us to order them correctly. So if we're filtering we'll just
@@ -76,36 +66,20 @@ func (gui *Gui) refreshBranches() {
 	}
 	gui.State.Branches = builder.Build()
 
-	// TODO: if we're in the remotes view and we've just deleted a remote we need to refresh accordingly
-	if gui.getBranchesView().Context == "local-branches" {
-		_ = gui.renderLocalBranchesWithSelection()
+	if err := gui.postRefreshUpdate(gui.Contexts.Branches.Context); err != nil {
+		gui.Log.Error(err)
 	}
 
 	gui.refreshStatus()
 }
 
-func (gui *Gui) renderLocalBranchesWithSelection() error {
-	branchesView := gui.getBranchesView()
-
-	gui.refreshSelectedLine(&gui.State.Panels.Branches.SelectedLine, len(gui.State.Branches))
-	displayStrings := presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(branchesView, displayStrings)
-	if gui.g.CurrentView() == branchesView {
-		if err := gui.handleBranchSelect(); err != nil {
-			return gui.surfaceError(err)
-		}
-	}
-
-	return nil
-}
-
 // specific functions
 
 func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
-	if gui.State.Panels.Branches.SelectedLine == -1 {
+	if gui.State.Panels.Branches.SelectedLineIdx == -1 {
 		return nil
 	}
-	if gui.State.Panels.Branches.SelectedLine == 0 {
+	if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
 	}
 	branch := gui.getSelectedBranch()
@@ -141,10 +115,8 @@ func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	title := gui.Tr.SLocalize("ForceCheckoutBranch")
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              title,
-		prompt:             message,
+		title:  title,
+		prompt: message,
 		handleConfirm: func() error {
 			if err := gui.GitCommand.Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
 				_ = gui.surfaceError(err)
@@ -169,8 +141,8 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 	cmdOptions := commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		gui.State.Panels.Branches.SelectedLine = 0
-		gui.State.Panels.Commits.SelectedLine = 0
+		gui.State.Panels.Branches.SelectedLineIdx = 0
+		gui.State.Panels.Commits.SelectedLineIdx = 0
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		gui.State.Panels.Commits.LimitCommits = true
 	}
@@ -186,10 +158,9 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 				// offer to autostash changes
 				return gui.ask(askOpts{
-					returnToView:       gui.getBranchesView(),
-					returnFocusOnClose: true,
-					title:              gui.Tr.SLocalize("AutoStashTitle"),
-					prompt:             gui.Tr.SLocalize("AutoStashPrompt"),
+
+					title:  gui.Tr.SLocalize("AutoStashTitle"),
+					prompt: gui.Tr.SLocalize("AutoStashPrompt"),
 					handleConfirm: func() error {
 						if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + ref); err != nil {
 							return gui.surfaceError(err)
@@ -221,15 +192,14 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(v, gui.Tr.SLocalize("BranchName")+":", "", func(response string) error {
+	return gui.prompt(gui.Tr.SLocalize("BranchName")+":", "", func(response string) error {
 		return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
 			onRefNotFound: func(ref string) error {
 
 				return gui.ask(askOpts{
-					returnToView:       v,
-					returnFocusOnClose: true,
-					title:              gui.Tr.SLocalize("BranchNotFoundTitle"),
-					prompt:             fmt.Sprintf("%s %s%s", gui.Tr.SLocalize("BranchNotFoundPrompt"), ref, "?"),
+
+					title:  gui.Tr.SLocalize("BranchNotFoundTitle"),
+					prompt: fmt.Sprintf("%s %s%s", gui.Tr.SLocalize("BranchNotFoundPrompt"), ref, "?"),
 					handleConfirm: func() error {
 						return gui.createNewBranchWithName(ref)
 					},
@@ -247,22 +217,6 @@ func (gui *Gui) getCheckedOutBranch() *commands.Branch {
 	return gui.State.Branches[0]
 }
 
-func (gui *Gui) handleNewBranch(g *gocui.Gui, v *gocui.View) error {
-	branch := gui.getSelectedBranch()
-	if branch == nil {
-		return nil
-	}
-	message := gui.Tr.TemplateLocalize(
-		"NewBranchNameBranchOff",
-		Teml{
-			"branchName": branch.Name,
-		},
-	)
-	return gui.prompt(v, message, "", func(response string) error {
-		return gui.createNewBranchWithName(response)
-	})
-}
-
 func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 	branch := gui.getSelectedBranch()
 	if branch == nil {
@@ -272,7 +226,8 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 	if err := gui.GitCommand.NewBranch(newBranchName, branch.Name); err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.State.Panels.Branches.SelectedLine = 0
+
+	gui.State.Panels.Branches.SelectedLineIdx = 0
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
@@ -308,10 +263,9 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *commands.Branch, force bool) e
 	)
 
 	return gui.ask(askOpts{
-		returnToView:       gui.getBranchesView(),
-		returnFocusOnClose: true,
-		title:              title,
-		prompt:             message,
+
+		title:  title,
+		prompt: message,
 		handleConfirm: func() error {
 			if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
@@ -346,10 +300,9 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 	)
 
 	return gui.ask(askOpts{
-		returnToView:       gui.getBranchesView(),
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("MergingTitle"),
-		prompt:             prompt,
+
+		title:  gui.Tr.SLocalize("MergingTitle"),
+		prompt: prompt,
 		handleConfirm: func() error {
 			err := gui.GitCommand.Merge(branchName, commands.MergeOpts{})
 			return gui.handleGenericMergeCommandResult(err)
@@ -389,10 +342,9 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 	)
 
 	return gui.ask(askOpts{
-		returnToView:       gui.getBranchesView(),
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("RebasingTitle"),
-		prompt:             prompt,
+
+		title:  gui.Tr.SLocalize("RebasingTitle"),
+		prompt: prompt,
 		handleConfirm: func() error {
 			err := gui.GitCommand.RebaseBranch(selectedBranchName)
 			return gui.handleGenericMergeCommandResult(err)
@@ -434,7 +386,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	go func() {
 		_ = gui.createLoaderPanel(v, message)
 
-		if gui.State.Panels.Branches.SelectedLine == 0 {
+		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{})
 		} else {
 			err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
@@ -445,62 +397,6 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) onBranchesTabClick(tabIndex int) error {
-	contexts := []string{"local-branches", "remotes", "tags"}
-	branchesView := gui.getBranchesView()
-	branchesView.TabIndex = tabIndex
-
-	return gui.switchBranchesPanelContext(contexts[tabIndex])
-}
-
-func (gui *Gui) switchBranchesPanelContext(context string) error {
-	branchesView := gui.getBranchesView()
-	branchesView.Context = context
-	if err := gui.onSearchEscape(); err != nil {
-		return err
-	}
-
-	contextTabIndexMap := map[string]int{
-		"local-branches":  0,
-		"remotes":         1,
-		"remote-branches": 1,
-		"tags":            2,
-	}
-
-	branchesView.TabIndex = contextTabIndexMap[context]
-
-	return gui.refreshBranchesViewWithSelection()
-}
-
-func (gui *Gui) refreshBranchesViewWithSelection() error {
-	branchesView := gui.getBranchesView()
-
-	switch branchesView.Context {
-	case "local-branches":
-		return gui.renderLocalBranchesWithSelection()
-	case "remotes":
-		return gui.renderRemotesWithSelection()
-	case "remote-branches":
-		return gui.renderRemoteBranchesWithSelection()
-	case "tags":
-		return gui.renderTagsWithSelection()
-	}
-
-	return nil
-}
-
-func (gui *Gui) handleNextBranchesTab(g *gocui.Gui, v *gocui.View) error {
-	return gui.onBranchesTabClick(
-		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
-	)
-}
-
-func (gui *Gui) handlePrevBranchesTab(g *gocui.Gui, v *gocui.View) error {
-	return gui.onBranchesTabClick(
-		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
-	)
-}
-
 func (gui *Gui) handleCreateResetToBranchMenu(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch()
 	if branch == nil {
@@ -508,22 +404,6 @@ func (gui *Gui) handleCreateResetToBranchMenu(g *gocui.Gui, v *gocui.View) error
 	}
 
 	return gui.createResetMenu(branch.Name)
-}
-
-func (gui *Gui) onBranchesPanelSearchSelect(selectedLine int) error {
-	branchesView := gui.getBranchesView()
-	switch branchesView.Context {
-	case "local-branches":
-		gui.State.Panels.Branches.SelectedLine = selectedLine
-		return gui.handleBranchSelect()
-	case "remotes":
-		gui.State.Panels.Remotes.SelectedLine = selectedLine
-		return gui.handleRemoteSelect()
-	case "remote-branches":
-		gui.State.Panels.RemoteBranches.SelectedLine = selectedLine
-		return gui.handleRemoteBranchSelect()
-	}
-	return nil
 }
 
 func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
@@ -536,7 +416,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 	// way to get it to show up in the reflog)
 
 	promptForNewName := func() error {
-		return gui.prompt(v, gui.Tr.SLocalize("NewBranchNamePrompt")+" "+branch.Name+":", "", func(newBranchName string) error {
+		return gui.prompt(gui.Tr.SLocalize("NewBranchNamePrompt")+" "+branch.Name+":", "", func(newBranchName string) error {
 			if err := gui.GitCommand.RenameBranch(branch.Name, newBranchName); err != nil {
 				return gui.surfaceError(err)
 			}
@@ -559,11 +439,10 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("renameBranch"),
-		prompt:             gui.Tr.SLocalize("RenameBranchWarning"),
-		handleConfirm:      promptForNewName,
+
+		title:         gui.Tr.SLocalize("renameBranch"),
+		prompt:        gui.Tr.SLocalize("RenameBranchWarning"),
+		handleConfirm: promptForNewName,
 	})
 }
 
@@ -574,11 +453,45 @@ func (gui *Gui) currentBranch() *commands.Branch {
 	return gui.State.Branches[0]
 }
 
-func (gui *Gui) handleClipboardCopyBranch(g *gocui.Gui, v *gocui.View) error {
-	branch := gui.getSelectedBranch()
-	if branch == nil {
+func (gui *Gui) handleNewBranchOffCurrentItem() error {
+	context := gui.currentSideContext()
+
+	item, ok := context.GetSelectedItem()
+	if !ok {
 		return nil
 	}
 
-	return gui.OSCommand.CopyToClipboard(branch.Name)
+	message := gui.Tr.TemplateLocalize(
+		"NewBranchNameBranchOff",
+		Teml{
+			"branchName": item.Description(),
+		},
+	)
+
+	prefilledName := ""
+	if context.GetKey() == REMOTE_BRANCHES_CONTEXT_KEY {
+		// will set to the remote's existing name
+		prefilledName = item.ID()
+	}
+	return gui.prompt(message, prefilledName, func(response string) error {
+		if err := gui.GitCommand.NewBranch(response, item.ID()); err != nil {
+			return err
+		}
+
+		// if we're currently in the branch commits context then the selected commit
+		// is about to go to the top of the list
+		if context.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
+			context.GetPanelState().SetSelectedLineIdx(0)
+		}
+
+		if context.GetKey() != gui.Contexts.Branches.Context.GetKey() {
+			if err := gui.switchContext(gui.Contexts.Branches.Context); err != nil {
+				return err
+			}
+		}
+
+		gui.State.Panels.Branches.SelectedLineIdx = 0
+
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	})
 }

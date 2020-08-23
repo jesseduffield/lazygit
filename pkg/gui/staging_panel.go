@@ -8,22 +8,12 @@ import (
 )
 
 func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx int) error {
-	gui.State.SplitMainPanel = true
+	gui.splitMainPanel(true)
 
 	state := gui.State.Panels.LineByLine
 
-	// We need to force focus here because the confirmation panel for safely staging lines does not return focus automatically.
-	// This is because if we tell it to return focus it will unconditionally return it to the main panel which may not be what we want
-	// e.g. in the event that there's nothing left to stage.
-	if err := gui.switchFocus(nil, gui.getMainView()); err != nil {
-		return err
-	}
-
-	file, _, err := gui.getSelectedDirOrFile()
-	if err != nil || file == nil {
-		if err != gui.Errors.ErrNoFiles {
-			return err
-		}
+	file, _ := gui.getSelectedDirOrFile()
+	if file == nil {
 		return gui.handleStagingEscape()
 	}
 
@@ -53,8 +43,8 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	}
 
 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
-	diff := gui.GitCommand.Diff(file, true, secondaryFocused)
-	secondaryDiff := gui.GitCommand.Diff(file, true, !secondaryFocused)
+	diff := gui.GitCommand.WorktreeFileDiff(file, true, secondaryFocused)
+	secondaryDiff := gui.GitCommand.WorktreeFileDiff(file, true, !secondaryFocused)
 
 	// if we have e.g. a deleted file with nothing else to the diff will have only
 	// 4-5 lines in which case we'll swap panels
@@ -96,7 +86,7 @@ func (gui *Gui) handleTogglePanel(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleStagingEscape() error {
 	gui.handleEscapeLineByLinePanel()
 
-	return gui.switchFocus(nil, gui.getFilesView())
+	return gui.switchContext(gui.Contexts.Files.Context)
 }
 
 func (gui *Gui) handleToggleStagedSelection(g *gocui.Gui, v *gocui.View) error {
@@ -115,12 +105,18 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 
 	if !gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
 		return gui.ask(askOpts{
-			returnToView:       gui.getMainView(),
-			returnFocusOnClose: false,
-			title:              gui.Tr.SLocalize("UnstageLinesTitle"),
-			prompt:             gui.Tr.SLocalize("UnstageLinesPrompt"),
+			title:               gui.Tr.SLocalize("UnstageLinesTitle"),
+			prompt:              gui.Tr.SLocalize("UnstageLinesPrompt"),
+			handlersManageFocus: true,
 			handleConfirm: func() error {
+				if err := gui.switchContext(gui.Contexts.Staging.Context); err != nil {
+					return err
+				}
+
 				return gui.applySelection(true)
+			},
+			handleClose: func() error {
+				return gui.switchContext(gui.Contexts.Staging.Context)
 			},
 		})
 	}
@@ -130,9 +126,9 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) applySelection(reverse bool) error {
 	state := gui.State.Panels.LineByLine
 
-	file, _, err := gui.getSelectedDirOrFile()
-	if err != nil || file == nil {
-		return err
+	file, _ := gui.getSelectedDirOrFile()
+	if file == nil {
+		return nil
 	}
 
 	patch := patch.ModifiedPatchForRange(gui.Log, file.Name, state.Diff, state.FirstLineIdx, state.LastLineIdx, reverse, false)
@@ -147,7 +143,7 @@ func (gui *Gui) applySelection(reverse bool) error {
 	if !reverse || state.SecondaryFocused {
 		applyFlags = append(applyFlags, "cached")
 	}
-	err = gui.GitCommand.ApplyPatch(patch, applyFlags...)
+	err := gui.GitCommand.ApplyPatch(patch, applyFlags...)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

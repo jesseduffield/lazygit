@@ -35,11 +35,16 @@ func (gui *Gui) handleQuit() error {
 }
 
 func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
-	if gui.inDiffMode() {
-		return gui.exitDiffMode()
+	currentContext := gui.currentContext()
+	if currentContext != nil && currentContext.GetParentContext() != nil {
+		// TODO: think about whether this should be marked as a return rather than adding to the stack
+		return gui.switchContext(currentContext.GetParentContext())
 	}
-	if gui.inFilterMode() {
-		return gui.exitFilterMode()
+
+	for _, mode := range gui.modeStatuses() {
+		if mode.isActive() {
+			return mode.reset()
+		}
 	}
 	if gui.isExtensiveView(v) {
 		return gui.handleCloseExtensiveView(g, v)
@@ -59,10 +64,8 @@ func (gui *Gui) quit() error {
 
 	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
 		return gui.ask(askOpts{
-			returnToView:       gui.g.CurrentView(),
-			returnFocusOnClose: true,
-			title:              "",
-			prompt:             gui.Tr.SLocalize("ConfirmQuit"),
+			title:  "",
+			prompt: gui.Tr.SLocalize("ConfirmQuit"),
 			handleConfirm: func() error {
 				return gocui.ErrQuit
 			},

@@ -43,24 +43,16 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	v.Clear()
-	_ = v.SetCursor(0, 0)
-	_ = v.SetOrigin(0, 0)
-	_, _ = g.SetViewOnBottom("commitMessage")
-	_ = gui.switchFocus(v, gui.getFilesView())
+	gui.clearEditorView(v)
+	_ = gui.returnFromContext()
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
 func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
-	_, _ = g.SetViewOnBottom("commitMessage")
-	return gui.switchFocus(v, gui.getFilesView())
+	return gui.returnFromContext()
 }
 
-func (gui *Gui) handleCommitFocused() error {
-	if _, err := gui.g.SetViewOnTop("commitMessage"); err != nil {
-		return err
-	}
-
+func (gui *Gui) handleCommitMessageFocused() error {
 	message := gui.Tr.TemplateLocalize(
 		"CommitMessageConfirm",
 		Teml{

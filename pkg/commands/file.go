@@ -416,3 +416,11 @@ func (f *File) GetY() int {
 	}
 	return count
 }
+
+func (f *File) ID() string {
+	return f.Name
+}
+
+func (f *File) Description() string {
+	return f.Name
+}

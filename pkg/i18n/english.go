@@ -406,9 +406,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "IssntListOfViews",
 			Other: "{{.name}} is not in the list of views",
 		}, &i18n.Message{
-			ID:    "NoViewMachingNewLineFocusedSwitchStatement",
-			Other: "No view matching newLineFocused switch statement",
-		}, &i18n.Message{
 			ID:    "newFocusedViewIs",
 			Other: "new focused view is {{.newFocusedView}}",
 		}, &i18n.Message{
@@ -890,7 +887,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "Discard Patch",
 		}, &i18n.Message{
 			ID:    "DiscardPatchConfirm",
-			Other: "You can only build a patch from one commit at a time. Discard current patch?",
+			Other: "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
 		}, &i18n.Message{
 			ID:    "CantPatchWhileRebasingError",
 			Other: "You cannot build a patch or run patch commands while in a merging or rebasing state",
@@ -1176,6 +1173,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "SwitchToFilesView",
 			Other: "Switch to back to the basic files view",
+		}, &i18n.Message{
+			ID:    "viewStashFiles",
+			Other: "view stash entry's files",
+		}, &i18n.Message{
+			ID:    "buildingPatch",
+			Other: "building patch",
+		}, &i18n.Message{
+			ID:    "viewCommits",
+			Other: "view commits",
 		},
 	)
 }

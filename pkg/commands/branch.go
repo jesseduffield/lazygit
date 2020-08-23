@@ -12,3 +12,15 @@ type Branch struct {
 	UpstreamName string
 	Head         bool
 }
+
+func (b *Branch) RefName() string {
+	return b.Name
+}
+
+func (b *Branch) ID() string {
+	return b.RefName()
+}
+
+func (b *Branch) Description() string {
+	return b.RefName()
+}

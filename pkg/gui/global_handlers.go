@@ -9,43 +9,45 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) nextScreenMode(g *gocui.Gui, v *gocui.View) error {
-	gui.State.ScreenMode = utils.NextIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
-	// commits render differently depending on whether we're in fullscreen more or not
-	if err := gui.refreshCommitsViewWithSelection(); err != nil {
-		return err
-	}
-	// same with branches
-	if err := gui.refreshBranchesViewWithSelection(); err != nil {
-		return err
+// these views need to be re-rendered when the screen mode changes. The commits view,
+// for example, will show authorship information in half and full screen mode.
+func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
+	for _, viewName := range []string{"branches", "commits"} {
+		if err := gui.rerenderView(viewName); err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func (gui *Gui) nextScreenMode(g *gocui.Gui, v *gocui.View) error {
+	gui.State.ScreenMode = utils.NextIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+
+	return gui.rerenderViewsWithScreenModeDependentContent()
 }
 
 func (gui *Gui) prevScreenMode(g *gocui.Gui, v *gocui.View) error {
 	gui.State.ScreenMode = utils.PrevIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
-	// commits render differently depending on whether we're in fullscreen more or not
-	if err := gui.refreshCommitsViewWithSelection(); err != nil {
-		return err
-	}
-	// same with branches
-	if err := gui.refreshBranchesViewWithSelection(); err != nil {
-		return err
-	}
 
-	return nil
+	return gui.rerenderViewsWithScreenModeDependentContent()
 }
 
 func (gui *Gui) scrollUpView(viewName string) error {
-	mainView, _ := gui.g.View(viewName)
+	mainView, err := gui.g.View(viewName)
+	if err != nil {
+		return nil
+	}
 	ox, oy := mainView.Origin()
 	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))))
 	return mainView.SetOrigin(ox, newOy)
 }
 
 func (gui *Gui) scrollDownView(viewName string) error {
-	mainView, _ := gui.g.View(viewName)
+	mainView, err := gui.g.View(viewName)
+	if err != nil {
+		return nil
+	}
 	ox, oy := mainView.Origin()
 	y := oy
 	if !gui.Config.GetUserConfig().GetBool("gui.scrollPastBottom") {
@@ -113,6 +115,9 @@ func (gui *Gui) handleMouseDownMain(g *gocui.Gui, v *gocui.View) error {
 
 	switch g.CurrentView().Name() {
 	case "files":
+		// set filename, set primary/secondary selected, set line number, then switch context
+		// I'll need to know it was changed though.
+		// Could I pass something along to the context change?
 		return gui.enterFile(false, v.SelectedLineIdx())
 	case "commitFiles":
 		return gui.enterCommitFile(v.SelectedLineIdx())
@@ -142,24 +147,17 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 	cx, _ := v.Cursor()
 	width, _ := v.Size()
 
-	// if we're in the normal context there will be a donate button here
-	// if we have ('reset') at the end then
-	if gui.inFilterMode() {
-		if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
-			return gui.exitFilterMode()
-		} else {
-			return nil
+	if width-cx > len(gui.Tr.SLocalize("(reset)")) {
+		return nil
+	}
+
+	for _, mode := range gui.modeStatuses() {
+		if mode.isActive() {
+			return mode.reset()
 		}
 	}
 
-	if gui.inDiffMode() {
-		if width-cx <= len(gui.Tr.SLocalize("(reset)")) {
-			return gui.exitDiffMode()
-		} else {
-			return nil
-		}
-	}
-
+	// if we're not in an active mode we show the donate button
 	if cx <= len(gui.Tr.SLocalize("Donate"))+len(INFO_SECTION_PADDING) {
 		return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
 	}
@@ -181,4 +179,15 @@ func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
 	gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
 
 	return err
+}
+
+func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
+	// important to note that this assumes we've selected an item in a side context
+	itemId := gui.getSideContextSelectedItemId()
+
+	if itemId == "" {
+		return nil
+	}
+
+	return gui.OSCommand.CopyToClipboard(itemId)
 }

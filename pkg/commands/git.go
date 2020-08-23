@@ -144,7 +144,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		PushToCurrent:      pushToCurrent,
 	}
 
-	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch)
+	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
 
 	return gitCommand, nil
 }
@@ -228,7 +228,7 @@ func stashEntryFromLine(line string, index int) *StashEntry {
 
 // GetStashEntryDiff stash diff
 func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
-	return fmt.Sprintf("git stash show -p --color=%s stash@{%d}", c.colorArg(), index)
+	return fmt.Sprintf("git stash show -p --stat --color=%s stash@{%d}", c.colorArg(), index)
 }
 
 // GetStatusFiles git status files
@@ -758,14 +758,14 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
 	return err == nil
 }
 
-// Diff returns the diff of a file
-func (c *GitCommand) Diff(file *File, plain bool, cached bool) string {
+// WorktreeFileDiff returns the diff of a file
+func (c *GitCommand) WorktreeFileDiff(file *File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := c.OSCommand.RunCommandWithOutput(c.DiffCmdStr(file, plain, cached))
+	s, _ := c.OSCommand.RunCommandWithOutput(c.WorktreeFileDiffCmdStr(file, plain, cached))
 	return s
 }
 
-func (c *GitCommand) DiffCmdStr(file *File, plain bool, cached bool) string {
+func (c *GitCommand) WorktreeFileDiffCmdStr(file *File, plain bool, cached bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()
@@ -1045,45 +1045,67 @@ func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
-// GetCommitFiles get the specified commit files
-func (c *GitCommand) GetCommitFiles(commitSha string, patchManager *patch.PatchManager) ([]*CommitFile, error) {
-	files, err := c.OSCommand.RunCommandWithOutput("git diff-tree --no-commit-id --name-only -r --no-renames %s", commitSha)
+// GetFilesInDiff get the specified commit files
+func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchManager *patch.PatchManager) ([]*CommitFile, error) {
+	reverseFlag := ""
+	if reverse {
+		reverseFlag = " -R "
+	}
+
+	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --name-status %s %s %s", reverseFlag, from, to)
 	if err != nil {
 		return nil, err
 	}
 
+	return c.GetCommitFilesFromFilenames(filenames, to, patchManager), nil
+}
+
+// filenames string is something like "file1\nfile2\nfile3"
+func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string, patchManager *patch.PatchManager) []*CommitFile {
 	commitFiles := make([]*CommitFile, 0)
 
-	for _, file := range strings.Split(strings.TrimRight(files, "\n"), "\n") {
+	for _, line := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
+		// typical result looks like 'A my_file' meaning my_file was added
+		if line == "" {
+			continue
+		}
+		changeStatus := line[0:1]
+		name := line[2:]
 		status := patch.UNSELECTED
-		if patchManager != nil && patchManager.CommitSha == commitSha {
-			status = patchManager.GetFileStatus(file)
+		if patchManager != nil && patchManager.To == parent {
+			status = patchManager.GetFileStatus(name)
 		}
 
 		commitFiles = append(commitFiles, &CommitFile{
-			Sha:           commitSha,
-			Name:          file,
-			DisplayString: file,
-			Status:        status,
+			Parent:       parent,
+			Name:         name,
+			ChangeStatus: changeStatus,
+			PatchStatus:  status,
 		})
 	}
 
-	return commitFiles, nil
+	return commitFiles
 }
 
-// ShowCommitFile get the diff of specified commit file
-func (c *GitCommand) ShowCommitFile(commitSha, fileName string, plain bool) (string, error) {
-	cmdStr := c.ShowCommitFileCmdStr(commitSha, fileName, plain)
+// ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
+// but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
+func (c *GitCommand) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
+	cmdStr := c.ShowFileDiffCmdStr(from, to, reverse, fileName, plain)
 	return c.OSCommand.RunCommandWithOutput(cmdStr)
 }
 
-func (c *GitCommand) ShowCommitFileCmdStr(commitSha, fileName string, plain bool) string {
+func (c *GitCommand) ShowFileDiffCmdStr(from string, to string, reverse bool, fileName string, plain bool) string {
 	colorArg := c.colorArg()
 	if plain {
 		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git show --no-renames --color=%s %s -- %s", colorArg, commitSha, fileName)
+	reverseFlag := ""
+	if reverse {
+		reverseFlag = " -R "
+	}
+
+	return fmt.Sprintf("git diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, fileName)
 }
 
 // CheckoutFile checks out the file for the given commit

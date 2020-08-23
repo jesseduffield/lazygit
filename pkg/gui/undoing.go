@@ -167,10 +167,8 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return gui.ask(askOpts{
-			returnToView:       gui.getBranchesView(),
-			returnFocusOnClose: true,
-			title:              gui.Tr.SLocalize("AutoStashTitle"),
-			prompt:             gui.Tr.SLocalize("AutoStashPrompt"),
+			title:  gui.Tr.SLocalize("AutoStashTitle"),
+			prompt: gui.Tr.SLocalize("AutoStashPrompt"),
 			handleConfirm: func() error {
 				return gui.WithWaitingStatus(options.WaitingStatus, func() error {
 					if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + commitSha); err != nil {

@@ -14,9 +14,9 @@ const (
 	COLUMN
 )
 
-// to give a high-level explanation of what's going on here. We layout our views by arranging a bunch of boxes in the window.
+// to give a high-level explanation of what's going on here. We layout our windows by arranging a bunch of boxes in the available space.
 // If a box has children, it needs to specify how it wants to arrange those children: ROW or COLUMN.
-// If a box represents a view, you can put the view name in the viewName field.
+// If a box represents a window, you can put the window name in the Window field.
 // When determining how to divvy-up the available height (for row children) or width (for column children), we first
 // give the boxes with a static `size` the space that they want. Then we apportion
 // the remaining space based on the weights of the dynamic boxes (you can't define
@@ -36,8 +36,8 @@ type Box struct {
 	// function which takes the width and height assigned to the box and decides the layout of the children.
 	ConditionalChildren func(width int, height int) []*Box
 
-	// ViewName refers to the name of the view this box represents, if there is one
-	ViewName string
+	// Window refers to the name of the window this box represents, if there is one
+	Window string
 
 	// static Size. If parent box's direction is ROW this refers to height, otherwise width
 	Size int
@@ -47,13 +47,13 @@ type Box struct {
 	Weight int
 }
 
-func ArrangeViews(root *Box, x0, y0, width, height int) map[string]Dimensions {
+func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions {
 	children := root.getChildren(width, height)
 	if len(children) == 0 {
 		// leaf node
-		if root.ViewName != "" {
-			dimensionsForView := Dimensions{X0: x0, Y0: y0, X1: x0 + width - 1, Y1: y0 + height - 1}
-			return map[string]Dimensions{root.ViewName: dimensionsForView}
+		if root.Window != "" {
+			dimensionsForWindow := Dimensions{X0: x0, Y0: y0, X1: x0 + width - 1, Y1: y0 + height - 1}
+			return map[string]Dimensions{root.Window: dimensionsForWindow}
 		}
 		return map[string]Dimensions{}
 	}
@@ -104,9 +104,9 @@ func ArrangeViews(root *Box, x0, y0, width, height int) map[string]Dimensions {
 
 		var resultForChild map[string]Dimensions
 		if direction == COLUMN {
-			resultForChild = ArrangeViews(child, x0+offset, y0, boxSize, height)
+			resultForChild = ArrangeWindows(child, x0+offset, y0, boxSize, height)
 		} else {
-			resultForChild = ArrangeViews(child, x0, y0+offset, width, boxSize)
+			resultForChild = ArrangeWindows(child, x0, y0+offset, width, boxSize)
 		}
 
 		result = mergeDimensionMaps(result, resultForChild)

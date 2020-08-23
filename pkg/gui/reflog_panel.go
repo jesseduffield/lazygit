@@ -3,13 +3,12 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
 
 func (gui *Gui) getSelectedReflogCommit() *commands.Commit {
-	selectedLine := gui.State.Panels.ReflogCommits.SelectedLine
+	selectedLine := gui.State.Panels.ReflogCommits.SelectedLineIdx
 	reflogComits := gui.State.FilteredReflogCommits
 	if selectedLine == -1 || len(reflogComits) == 0 {
 		return nil
@@ -19,36 +18,24 @@ func (gui *Gui) getSelectedReflogCommit() *commands.Commit {
 }
 
 func (gui *Gui) handleReflogCommitSelect() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	gui.State.SplitMainPanel = false
-
-	if _, err := gui.g.SetCurrentView("commits"); err != nil {
-		return err
-	}
-
-	gui.getMainView().Title = "Reflog Entry"
-
 	commit := gui.getSelectedReflogCommit()
+	var task updateTask
 	if commit == nil {
-		return gui.newStringTask("main", "No reflog history")
-	}
-	gui.getCommitsView().FocusPoint(0, gui.State.Panels.ReflogCommits.SelectedLine)
+		task = gui.createRenderStringTask("No reflog history")
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.Path),
+		)
 
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.FilterPath),
-	)
-	if err := gui.newPtyTask("main", cmd); err != nil {
-		gui.Log.Error(err)
+		task = gui.createRunPtyTask(cmd)
 	}
 
-	return nil
+	return gui.refreshMainViews(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Reflog Entry",
+			task:  task,
+		},
+	})
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only
@@ -85,34 +72,15 @@ func (gui *Gui) refreshReflogCommits() error {
 		return err
 	}
 
-	if gui.inFilterMode() {
-		if err := refresh(&state.FilteredReflogCommits, state.FilterPath); err != nil {
+	if gui.State.Modes.Filtering.Active() {
+		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.Path); err != nil {
 			return err
 		}
 	} else {
 		state.FilteredReflogCommits = state.ReflogCommits
 	}
 
-	if gui.getCommitsView().Context == "reflog-commits" {
-		return gui.renderReflogCommitsWithSelection()
-	}
-
-	return nil
-}
-
-func (gui *Gui) renderReflogCommitsWithSelection() error {
-	commitsView := gui.getCommitsView()
-
-	gui.refreshSelectedLine(&gui.State.Panels.ReflogCommits.SelectedLine, len(gui.State.FilteredReflogCommits))
-	displayStrings := presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(commitsView, displayStrings)
-	if gui.g.CurrentView() == commitsView && commitsView.Context == "reflog-commits" {
-		if err := gui.handleReflogCommitSelect(); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return gui.postRefreshUpdate(gui.Contexts.ReflogCommits.Context)
 }
 
 func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
@@ -122,10 +90,8 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	err := gui.ask(askOpts{
-		returnToView:       gui.getCommitsView(),
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("checkoutCommit"),
-		prompt:             gui.Tr.SLocalize("SureCheckoutThisCommit"),
+		title:  gui.Tr.SLocalize("checkoutCommit"),
+		prompt: gui.Tr.SLocalize("SureCheckoutThisCommit"),
 		handleConfirm: func() error {
 			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 		},
@@ -134,7 +100,7 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	gui.State.Panels.ReflogCommits.SelectedLine = 0
+	gui.State.Panels.ReflogCommits.SelectedLineIdx = 0
 
 	return nil
 }
@@ -143,4 +109,13 @@ func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
 	commit := gui.getSelectedReflogCommit()
 
 	return gui.createResetMenu(commit.Sha)
+}
+
+func (gui *Gui) handleViewReflogCommitFiles() error {
+	commit := gui.getSelectedReflogCommit()
+	if commit == nil {
+		return nil
+	}
+
+	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.ReflogCommits.Context, "commits")
 }

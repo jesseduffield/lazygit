@@ -89,7 +89,26 @@ type Gui struct {
 
 	// when lazygit is opened outside a git directory we want to open to the most
 	// recent repo with the recent repos popup showing
-	showRecentRepos bool
+	showRecentRepos   bool
+	Contexts          ContextTree
+	ViewTabContextMap map[string][]tabContext
+}
+
+type listPanelState struct {
+	SelectedLineIdx int
+}
+
+func (h *listPanelState) SetSelectedLineIdx(value int) {
+	h.SelectedLineIdx = value
+}
+
+func (h *listPanelState) GetSelectedLineIdx() int {
+	return h.SelectedLineIdx
+}
+
+type IListPanelState interface {
+	SetSelectedLineIdx(int)
+	GetSelectedLineIdx() int
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be
@@ -117,7 +136,7 @@ type mergingPanelState struct {
 }
 
 type filePanelState struct {
-	SelectedLine int
+	listPanelState
 }
 
 type extensiveFilePanelState struct {
@@ -127,41 +146,54 @@ type extensiveFilePanelState struct {
 
 // TODO: consider splitting this out into the window and the branches view
 type branchPanelState struct {
-	SelectedLine int
+	listPanelState
 }
 
 type remotePanelState struct {
-	SelectedLine int
+	listPanelState
 }
 
 type remoteBranchesState struct {
-	SelectedLine int
+	listPanelState
 }
 
 type tagsPanelState struct {
-	SelectedLine int
+	listPanelState
 }
 
 type commitPanelState struct {
-	SelectedLine int
+	listPanelState
+
 	LimitCommits bool
 }
 
 type reflogCommitPanelState struct {
-	SelectedLine int
+	listPanelState
+}
+
+type subCommitPanelState struct {
+	listPanelState
+
+	// e.g. name of branch whose commits we're looking at
+	refName string
 }
 
 type stashPanelState struct {
-	SelectedLine int
+	listPanelState
 }
 
 type menuPanelState struct {
-	SelectedLine int
-	OnPress      func(g *gocui.Gui, v *gocui.View) error
+	listPanelState
+	OnPress func() error
 }
 
 type commitFilesPanelState struct {
-	SelectedLine int
+	listPanelState
+
+	// this is the SHA of the commit or the stash index of the stash.
+	// Not sure if ref is actually the right word here
+	refName   string
+	canRebase bool
 }
 
 type panelStates struct {
@@ -173,6 +205,7 @@ type panelStates struct {
 	Tags           *tagsPanelState
 	Commits        *commitPanelState
 	ReflogCommits  *reflogCommitPanelState
+	SubCommits     *subCommitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
 	LineByLine     *lineByLinePanelState
@@ -193,9 +226,38 @@ const (
 )
 
 // if ref is blank we're not diffing anything
-type DiffState struct {
+type Diffing struct {
 	Ref     string
 	Reverse bool
+}
+
+func (m *Diffing) Active() bool {
+	return m.Ref != ""
+}
+
+type Filtering struct {
+	Path string // the filename that gets passed to git log
+}
+
+func (m *Filtering) Active() bool {
+	return m.Path != ""
+}
+
+type CherryPicking struct {
+	CherryPickedCommits []*commands.Commit
+
+	// we only allow cherry picking from one context at a time, so you can't copy a commit from the local commits context and then also copy a commit in the reflog context
+	ContextKey string
+}
+
+func (m *CherryPicking) Active() bool {
+	return len(m.CherryPickedCommits) > 0
+}
+
+type Modes struct {
+	Filtering     Filtering
+	CherryPicking CherryPicking
+	Diffing       Diffing
 }
 
 type guiState struct {
@@ -212,15 +274,14 @@ type guiState struct {
 	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
 	ReflogCommits         []*commands.Commit
+	SubCommits            []*commands.Commit
 	Remotes               []*commands.Remote
 	RemoteBranches        []*commands.RemoteBranch
 	Tags                  []*commands.Tag
-	MenuItemCount         int // can't store the actual list because it's of interface{} type
-	PreviousView          string
+	MenuItems             []*menuItem
 	Updating              bool
 	Panels                *panelStates
 	MainContext           string // used to keep the main and secondary views' contexts in sync
-	CherryPickedCommits   []*commands.Commit
 	SplitMainPanel        bool
 	RetainOriginalDir     bool
 	IsRefreshingFiles     bool
@@ -233,40 +294,61 @@ type guiState struct {
 	PrevMainWidth         int
 	PrevMainHeight        int
 	OldInformation        string
-	StartupStage          int    // one of INITIAL and COMPLETE. Allows us to not load everything at once
-	FilterPath            string // the filename that gets passed to git log
-	Diff                  DiffState
+	StartupStage          int // one of INITIAL and COMPLETE. Allows us to not load everything at once
+
+	Modes Modes
+
+	ContextStack   []Context
+	ViewContextMap map[string]Context
+
+	// WindowViewNameMap is a mapping of windows to the current view of that window.
+	// Some views move between windows for example the commitFiles view and when cycling through
+	// side windows we need to know which view to give focus to for a given window
+	WindowViewNameMap map[string]string
 }
 
 func (gui *Gui) resetState() {
 	// we carry over the filter path and diff state
-	prevFilterPath := ""
-	prevDiff := DiffState{}
+	prevFiltering := Filtering{
+		Path: "",
+	}
+	prevDiff := Diffing{}
+	prevCherryPicking := CherryPicking{
+		CherryPickedCommits: make([]*commands.Commit, 0),
+		ContextKey:          "",
+	}
 	if gui.State != nil {
-		prevFilterPath = gui.State.FilterPath
-		prevDiff = gui.State.Diff
+		prevFiltering = gui.State.Modes.Filtering
+		prevDiff = gui.State.Modes.Diffing
+		prevCherryPicking = gui.State.Modes.CherryPicking
+	}
+
+	modes := Modes{
+		Filtering:     prevFiltering,
+		CherryPicking: prevCherryPicking,
+		Diffing:       prevDiff,
 	}
 
 	gui.State = &guiState{
 		Files:                 make([]*commands.File, 0),
-		PreviousView:          "files",
 		Commits:               make([]*commands.Commit, 0),
 		FilteredReflogCommits: make([]*commands.Commit, 0),
 		ReflogCommits:         make([]*commands.Commit, 0),
-		CherryPickedCommits:   make([]*commands.Commit, 0),
 		StashEntries:          make([]*commands.StashEntry, 0),
 		Panels: &panelStates{
-			Files:          &filePanelState{SelectedLine: -1},
+			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
+			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
 			ExtensiveFiles: &extensiveFilePanelState{Selected: []int{0}},
-			Branches:       &branchPanelState{SelectedLine: 0},
-			Remotes:        &remotePanelState{SelectedLine: 0},
-			RemoteBranches: &remoteBranchesState{SelectedLine: -1},
-			Tags:           &tagsPanelState{SelectedLine: -1},
-			Commits:        &commitPanelState{SelectedLine: -1, LimitCommits: true},
-			ReflogCommits:  &reflogCommitPanelState{SelectedLine: 0}, // TODO: might need to make -1
-			CommitFiles:    &commitFilesPanelState{SelectedLine: -1},
-			Stash:          &stashPanelState{SelectedLine: -1},
-			Menu:           &menuPanelState{SelectedLine: 0},
+			Branches:       &branchPanelState{listPanelState{SelectedLineIdx: 0}},
+			Remotes:        &remotePanelState{listPanelState{SelectedLineIdx: 0}},
+			RemoteBranches: &remoteBranchesState{listPanelState{SelectedLineIdx: -1}},
+			Tags:           &tagsPanelState{listPanelState{SelectedLineIdx: -1}},
+			Commits:        &commitPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, LimitCommits: true},
+			ReflogCommits:  &reflogCommitPanelState{listPanelState{SelectedLineIdx: 0}},
+			SubCommits:     &subCommitPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, refName: ""},
+			CommitFiles:    &commitFilesPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, refName: ""},
+			Stash:          &stashPanelState{listPanelState{SelectedLineIdx: -1}},
+			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
 			Merging: &mergingPanelState{
 				ConflictIndex: 0,
 				ConflictTop:   true,
@@ -274,10 +356,10 @@ func (gui *Gui) resetState() {
 				EditHistory:   stack.New(),
 			},
 		},
-		SideView:   nil,
-		Ptmx:       nil,
-		FilterPath: prevFilterPath,
-		Diff:       prevDiff,
+		SideView:       nil,
+		Ptmx:           nil,
+		Modes:          modes,
+		ViewContextMap: gui.initialViewContextMap(),
 	}
 }
 
@@ -297,7 +379,9 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *comma
 	}
 
 	gui.resetState()
-	gui.State.FilterPath = filterPath
+	gui.State.Modes.Filtering.Path = filterPath
+	gui.Contexts = gui.contextTree()
+	gui.ViewTabContextMap = gui.viewTabContextMap()
 
 	gui.watchFilesForChanges()
 
@@ -316,7 +400,7 @@ func (gui *Gui) Run() error {
 	}
 	defer g.Close()
 
-	if gui.inFilterMode() {
+	if gui.State.Modes.Filtering.Active() {
 		gui.State.ScreenMode = SCREEN_HALF
 	} else {
 		gui.State.ScreenMode = SCREEN_NORMAL
@@ -357,10 +441,6 @@ func (gui *Gui) Run() error {
 	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFiles)
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
-
-	if err = gui.keybindings(g); err != nil {
-		return err
-	}
 
 	gui.Log.Warn("starting main loop")
 
@@ -472,12 +552,10 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       nil,
-		returnFocusOnClose: true,
-		title:              "",
-		prompt:             gui.Tr.SLocalize("IntroPopupMessage"),
-		handleConfirm:      onConfirm,
-		handleClose:        onConfirm,
+		title:         "",
+		prompt:        gui.Tr.SLocalize("IntroPopupMessage"),
+		handleConfirm: onConfirm,
+		handleClose:   onConfirm,
 	})
 }
 
@@ -505,10 +583,8 @@ func (gui *Gui) startBackgroundFetch() {
 	err := gui.fetch(false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = gui.ask(askOpts{
-			returnToView:       gui.g.CurrentView(),
-			returnFocusOnClose: true,
-			title:              gui.Tr.SLocalize("NoAutomaticGitFetchTitle"),
-			prompt:             gui.Tr.SLocalize("NoAutomaticGitFetchBody"),
+			title:  gui.Tr.SLocalize("NoAutomaticGitFetchTitle"),
+			prompt: gui.Tr.SLocalize("NoAutomaticGitFetchBody"),
 		})
 	} else {
 		gui.goEvery(time.Second*60, gui.stopChan, func() error {

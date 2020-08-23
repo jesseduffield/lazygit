@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestArrangeViews(t *testing.T) {
+func TestArrangeWindows(t *testing.T) {
 	type scenario struct {
 		testName string
 		root     *Box
@@ -31,7 +31,7 @@ func TestArrangeViews(t *testing.T) {
 		},
 		{
 			"Box with static and dynamic panel",
-			&Box{Children: []*Box{{Size: 1, ViewName: "static"}, {Weight: 1, ViewName: "dynamic"}}},
+			&Box{Children: []*Box{{Size: 1, Window: "static"}, {Weight: 1, Window: "dynamic"}}},
 			0,
 			0,
 			10,
@@ -49,7 +49,7 @@ func TestArrangeViews(t *testing.T) {
 		},
 		{
 			"Box with static and two dynamic panels",
-			&Box{Children: []*Box{{Size: 1, ViewName: "static"}, {Weight: 1, ViewName: "dynamic1"}, {Weight: 2, ViewName: "dynamic2"}}},
+			&Box{Children: []*Box{{Size: 1, Window: "static"}, {Weight: 1, Window: "dynamic1"}, {Weight: 2, Window: "dynamic2"}}},
 			0,
 			0,
 			10,
@@ -68,7 +68,7 @@ func TestArrangeViews(t *testing.T) {
 		},
 		{
 			"Box with COLUMN direction",
-			&Box{Direction: COLUMN, Children: []*Box{{Size: 1, ViewName: "static"}, {Weight: 1, ViewName: "dynamic1"}, {Weight: 2, ViewName: "dynamic2"}}},
+			&Box{Direction: COLUMN, Children: []*Box{{Size: 1, Window: "static"}, {Weight: 1, Window: "dynamic1"}, {Weight: 2, Window: "dynamic2"}}},
 			0,
 			0,
 			10,
@@ -93,7 +93,7 @@ func TestArrangeViews(t *testing.T) {
 				} else {
 					return ROW
 				}
-			}, Children: []*Box{{Weight: 1, ViewName: "dynamic1"}, {Weight: 1, ViewName: "dynamic2"}}},
+			}, Children: []*Box{{Weight: 1, Window: "dynamic1"}, {Weight: 1, Window: "dynamic2"}}},
 			0,
 			0,
 			4,
@@ -117,7 +117,7 @@ func TestArrangeViews(t *testing.T) {
 				} else {
 					return ROW
 				}
-			}, Children: []*Box{{Weight: 1, ViewName: "dynamic1"}, {Weight: 1, ViewName: "dynamic2"}}},
+			}, Children: []*Box{{Weight: 1, Window: "dynamic1"}, {Weight: 1, Window: "dynamic2"}}},
 			0,
 			0,
 			5,
@@ -137,9 +137,9 @@ func TestArrangeViews(t *testing.T) {
 			"Box with conditional children where box is wide",
 			&Box{ConditionalChildren: func(width int, height int) []*Box {
 				if width > 4 {
-					return []*Box{{ViewName: "wide", Weight: 1}}
+					return []*Box{{Window: "wide", Weight: 1}}
 				} else {
-					return []*Box{{ViewName: "narrow", Weight: 1}}
+					return []*Box{{Window: "narrow", Weight: 1}}
 				}
 			}},
 			0,
@@ -160,9 +160,9 @@ func TestArrangeViews(t *testing.T) {
 			"Box with conditional children where box is narrow",
 			&Box{ConditionalChildren: func(width int, height int) []*Box {
 				if width > 4 {
-					return []*Box{{ViewName: "wide", Weight: 1}}
+					return []*Box{{Window: "wide", Weight: 1}}
 				} else {
-					return []*Box{{ViewName: "narrow", Weight: 1}}
+					return []*Box{{Window: "narrow", Weight: 1}}
 				}
 			}},
 			0,
@@ -183,7 +183,7 @@ func TestArrangeViews(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(ArrangeViews(s.root, s.x0, s.y0, s.width, s.height))
+			s.test(ArrangeWindows(s.root, s.x0, s.y0, s.width, s.height))
 		})
 	}
 }

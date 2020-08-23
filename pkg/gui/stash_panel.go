@@ -3,13 +3,12 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 // list panel functions
 
 func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
-	selectedLine := gui.State.Panels.Stash.SelectedLine
+	selectedLine := gui.State.Panels.Stash.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}
@@ -18,49 +17,29 @@ func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
 }
 
 func (gui *Gui) handleStashEntrySelect() error {
-	if gui.popupOrAdvancedPanelFocused() {
-		return nil
-	}
-
-	gui.State.SplitMainPanel = false
-
-	if _, err := gui.g.SetCurrentView("stash"); err != nil {
-		return err
-	}
-
-	gui.getMainView().Title = "Stash"
-
+	var task updateTask
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
-		return gui.newStringTask("main", gui.Tr.SLocalize("NoStashEntries"))
-	}
-	gui.getStashView().FocusPoint(0, gui.State.Panels.Stash.SelectedLine)
-
-	if gui.inDiffMode() {
-		return gui.renderDiff()
-	}
-
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
-	)
-	if err := gui.newPtyTask("main", cmd); err != nil {
-		gui.Log.Error(err)
+		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoStashEntries"))
+	} else {
+		cmd := gui.OSCommand.ExecutableFromString(
+			gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
+		)
+		task = gui.createRunPtyTask(cmd)
 	}
 
-	return nil
+	return gui.refreshMainViews(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Stash",
+			task:  task,
+		},
+	})
 }
 
-func (gui *Gui) refreshStashEntries(g *gocui.Gui) error {
-	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.FilterPath)
+func (gui *Gui) refreshStashEntries() error {
+	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.Modes.Filtering.Path)
 
-	gui.refreshSelectedLine(&gui.State.Panels.Stash.SelectedLine, len(gui.State.StashEntries))
-
-	stashView := gui.getStashView()
-
-	displayStrings := presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Diff.Ref)
-	gui.renderDisplayStrings(stashView, displayStrings)
-
-	return gui.resetOrigin(stashView)
+	return gui.Contexts.Stash.Context.HandleRender()
 }
 
 // specific functions
@@ -77,10 +56,8 @@ func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("StashApply"),
-		prompt:             gui.Tr.SLocalize("SureApplyStashEntry"),
+		title:  gui.Tr.SLocalize("StashApply"),
+		prompt: gui.Tr.SLocalize("SureApplyStashEntry"),
 		handleConfirm: func() error {
 			return apply()
 		},
@@ -99,10 +76,8 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("StashPop"),
-		prompt:             gui.Tr.SLocalize("SurePopStashEntry"),
+		title:  gui.Tr.SLocalize("StashPop"),
+		prompt: gui.Tr.SLocalize("SurePopStashEntry"),
 		handleConfirm: func() error {
 			return pop()
 		},
@@ -111,10 +86,8 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("StashDrop"),
-		prompt:             gui.Tr.SLocalize("SureDropStashEntry"),
+		title:  gui.Tr.SLocalize("StashDrop"),
+		prompt: gui.Tr.SLocalize("SureDropStashEntry"),
 		handleConfirm: func() error {
 			return gui.stashDo("drop")
 		},
@@ -142,7 +115,7 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
 		return gui.createErrorPanel(gui.Tr.SLocalize("NoTrackedStagedFilesStash"))
 	}
-	return gui.prompt(gui.getFilesView(), gui.Tr.SLocalize("StashChanges"), "", func(stashComment string) error {
+	return gui.prompt(gui.Tr.SLocalize("StashChanges"), "", func(stashComment string) error {
 		if err := stashFunc(stashComment); err != nil {
 			return gui.surfaceError(err)
 		}
@@ -150,7 +123,11 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	})
 }
 
-func (gui *Gui) onStashPanelSearchSelect(selectedLine int) error {
-	gui.State.Panels.Stash.SelectedLine = selectedLine
-	return gui.handleStashEntrySelect()
+func (gui *Gui) handleViewStashFiles() error {
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
+	return gui.switchToCommitFilesContext(stashEntry.RefName(), false, gui.Contexts.Stash.Context, "stash")
 }

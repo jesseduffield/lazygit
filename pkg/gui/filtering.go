@@ -1,16 +1,10 @@
 package gui
 
-func (gui *Gui) inFilterMode() bool {
-	return gui.State.FilterPath != ""
-}
-
 func (gui *Gui) validateNotInFilterMode() (bool, error) {
-	if gui.inFilterMode() {
+	if gui.State.Modes.Filtering.Active() {
 		err := gui.ask(askOpts{
-			returnToView:       gui.g.CurrentView(),
-			returnFocusOnClose: true,
-			title:              gui.Tr.SLocalize("MustExitFilterModeTitle"),
-			prompt:             gui.Tr.SLocalize("MustExitFilterModePrompt"),
+			title:  gui.Tr.SLocalize("MustExitFilterModeTitle"),
+			prompt: gui.Tr.SLocalize("MustExitFilterModePrompt"),
 			handleConfirm: func() error {
 				return gui.exitFilterMode()
 			},
@@ -22,6 +16,6 @@ func (gui *Gui) validateNotInFilterMode() (bool, error) {
 }
 
 func (gui *Gui) exitFilterMode() error {
-	gui.State.FilterPath = ""
+	gui.State.Modes.Filtering.Path = ""
 	return gui.Errors.ErrRestart
 }

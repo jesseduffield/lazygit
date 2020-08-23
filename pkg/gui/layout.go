@@ -1,88 +1,22 @@
 package gui
 
 import (
-	"fmt"
-
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 const SEARCH_PREFIX = "search: "
 const INFO_SECTION_PADDING = " "
 
-// getFocusLayout returns a manager function for when view gain and lose focus
-func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
-	var previousView *gocui.View
-	return func(g *gocui.Gui) error {
-		newView := gui.g.CurrentView()
-		if err := gui.onFocusChange(); err != nil {
-			return err
-		}
-		// for now we don't consider losing focus to a popup panel as actually losing focus
-		viewName := newView.Name()
-		if newView != previousView && !gui.isPopupPanel(viewName) && !gui.isAdvancedView(viewName) {
-			if err := gui.onFocusLost(previousView, newView); err != nil {
-				return err
-			}
-			if err := gui.onFocus(newView); err != nil {
-				return err
-			}
-			previousView = newView
-		}
-		return nil
-	}
-}
-
-func (gui *Gui) onFocusChange() error {
-	currentView := gui.g.CurrentView()
-	for _, view := range gui.g.Views() {
-		view.Highlight = view == currentView
-	}
-	return nil
-}
-
-func (gui *Gui) onFocusLost(v *gocui.View, newView *gocui.View) error {
-	if v == nil {
-		return nil
-	}
-	if v.IsSearching() && newView.Name() != "search" {
-		if err := gui.onSearchEscape(); err != nil {
-			return err
-		}
-	}
-	switch v.Name() {
-	case "main":
-		// if we have lost focus to a first-class panel, we need to do some cleanup
-		gui.changeMainViewsContext("normal")
-	case "commitFiles":
-		if gui.State.MainContext != "patch-building" {
-			if _, err := gui.g.SetViewOnBottom(v.Name()); err != nil {
-				return err
-			}
-		}
-	}
-	gui.Log.Info(v.Name() + " focus lost")
-	return nil
-}
-
-func (gui *Gui) onFocus(v *gocui.View) error {
-	if v == nil {
-		return nil
-	}
-	gui.Log.Info(v.Name() + " focus gained")
-	return nil
-}
-
 func (gui *Gui) informationStr() string {
-	if gui.inDiffMode() {
-		return utils.ColoredString(fmt.Sprintf("%s %s %s", gui.Tr.SLocalize("showingGitDiff"), "git diff "+gui.diffStr(), utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgMagenta)
-	} else if gui.inFilterMode() {
-		return utils.ColoredString(fmt.Sprintf("%s '%s' %s", gui.Tr.SLocalize("filteringBy"), gui.State.FilterPath, utils.ColoredString(gui.Tr.SLocalize("(reset)"), color.Underline)), color.FgRed, color.Bold)
-	} else if len(gui.State.CherryPickedCommits) > 0 {
-		return utils.ColoredString(fmt.Sprintf("%d commits copied", len(gui.State.CherryPickedCommits)), color.FgCyan)
-	} else if gui.g.Mouse {
+	for _, mode := range gui.modeStatuses() {
+		if mode.isActive() {
+			return mode.description()
+		}
+	}
+
+	if gui.g.Mouse {
 		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
 		return donate + " " + gui.Config.GetVersion()
 	} else {
@@ -113,7 +47,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	informationStr := gui.informationStr()
 	appStatus := gui.statusManager.getStatusString()
 
-	viewDimensions := gui.getViewDimensions(informationStr, appStatus)
+	viewDimensions := gui.getWindowDimensions(informationStr, appStatus)
 
 	_, _ = g.SetViewOnBottom("limit")
 	_ = g.DeleteView("limit")
@@ -136,8 +70,21 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	setViewFromDimensions := func(viewName string, boxName string, frame bool) (*gocui.View, error) {
-		dimensionsObj := viewDimensions[boxName]
+	setViewFromDimensions := func(viewName string, windowName string, frame bool) (*gocui.View, error) {
+		dimensionsObj, ok := viewDimensions[windowName]
+
+		if !ok {
+			// view not specified in dimensions object: so create the view and hide it
+			// making the view take up the whole space in the background in case it needs
+			// to render content as soon as it appears, because lazyloaded content (via a pty task)
+			// cares about the size of the view.
+			view, err := g.SetView(viewName, 0, 0, width, height, 0)
+			if err != nil {
+				return view, err
+			}
+			return g.SetViewOnBottom(viewName)
+		}
+
 		frameOffset := 1
 		if frame {
 			frameOffset = 0
@@ -191,7 +138,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		filesView.Highlight = true
 		filesView.Title = gui.Tr.SLocalize("FilesTitle")
-		filesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onFilesPanelSearchSelect))
 		filesView.ContainsList = true
 	}
 
@@ -201,7 +147,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		extensiveFilesView.Title = gui.Tr.SLocalize("FilesTitle")
-		extensiveFilesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onFilesPanelSearchSelect))
 	}
 
 	branchesView, err := setViewFromDimensions("branches", "branches", true)
@@ -210,20 +155,18 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
-		branchesView.Tabs = []string{"Local Branches", "Remotes", "Tags"}
+		branchesView.Tabs = gui.viewTabNames("branches")
 		branchesView.FgColor = textColor
-		branchesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onBranchesPanelSearchSelect))
 		branchesView.ContainsList = true
 	}
 
-	commitFilesView, err := setViewFromDimensions("commitFiles", "commits", true)
+	commitFilesView, err := setViewFromDimensions("commitFiles", gui.Contexts.CommitFiles.Context.GetWindowName(), true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
 		commitFilesView.Title = gui.Tr.SLocalize("CommitFiles")
 		commitFilesView.FgColor = textColor
-		commitFilesView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onCommitFilesPanelSearchSelect))
 		commitFilesView.ContainsList = true
 	}
 
@@ -233,9 +176,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		commitsView.Title = gui.Tr.SLocalize("CommitsTitle")
-		commitsView.Tabs = []string{"Commits", "Reflog"}
+		commitsView.Tabs = gui.viewTabNames("commits")
 		commitsView.FgColor = textColor
-		commitsView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onCommitsPanelSearchSelect))
 		commitsView.ContainsList = true
 	}
 
@@ -246,7 +188,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		stashView.Title = gui.Tr.SLocalize("StashTitle")
 		stashView.FgColor = textColor
-		stashView.SetOnSelectItem(gui.onSelectItemWrapper(gui.onStashPanelSearchSelect))
 		stashView.ContainsList = true
 	}
 
@@ -270,10 +211,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err.Error() != "unknown view" {
 				return err
 			}
-			_, err := g.SetViewOnBottom("credentials")
-			if err != nil {
-				return err
-			}
+			_, _ = g.SetViewOnBottom("credentials")
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
 			credentialsView.FgColor = textColor
 			credentialsView.Editable = true
@@ -323,9 +261,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		appStatusView.BgColor = gocui.ColorDefault
 		appStatusView.FgColor = gocui.ColorCyan
 		appStatusView.Frame = false
-		if _, err := g.SetViewOnBottom("appStatus"); err != nil {
-			return err
-		}
+		_, _ = g.SetViewOnBottom("appStatus")
 	}
 
 	informationView, err := setViewFromDimensions("information", "information", false)
@@ -344,64 +280,58 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if gui.g.CurrentView() == nil {
-		initialView := gui.getFilesView()
-		if gui.inFilterMode() {
-			initialView = gui.getCommitsView()
-		}
-		if _, err := gui.g.SetCurrentView(initialView.Name()); err != nil {
-			return err
+		initialContext := gui.Contexts.Files.Context
+		if gui.State.Modes.Filtering.Active() {
+			initialContext = gui.Contexts.BranchCommits.Context
 		}
 
-		if err := gui.switchFocus(nil, initialView); err != nil {
+		if err := gui.switchContext(initialContext); err != nil {
 			return err
 		}
 	}
 
-	type listViewState struct {
-		selectedLine int
-		lineCount    int
-		view         *gocui.View
-		context      string
+	type listContextState struct {
+		view        *gocui.View
+		listContext *ListContext
 	}
 
-	state := gui.State
-	panels := state.Panels
-
-	listViews := []listViewState{
-		{view: filesView, context: "", selectedLine: panels.Files.SelectedLine, lineCount: len(state.Files)},
-		{view: branchesView, context: "local-branches", selectedLine: panels.Branches.SelectedLine, lineCount: len(state.Branches)},
-		{view: branchesView, context: "remotes", selectedLine: panels.Remotes.SelectedLine, lineCount: len(state.Remotes)},
-		{view: branchesView, context: "remote-branches", selectedLine: panels.RemoteBranches.SelectedLine, lineCount: len(state.Remotes)},
-		{view: commitsView, context: "branch-commits", selectedLine: panels.Commits.SelectedLine, lineCount: len(state.Commits)},
-		{view: commitsView, context: "reflog-commits", selectedLine: panels.ReflogCommits.SelectedLine, lineCount: len(state.FilteredReflogCommits)},
-		{view: stashView, context: "", selectedLine: panels.Stash.SelectedLine, lineCount: len(state.StashEntries)},
-		{view: commitFilesView, context: "", selectedLine: panels.CommitFiles.SelectedLine, lineCount: len(state.CommitFiles)},
+	listContextStates := []listContextState{
+		{view: filesView, listContext: gui.filesListContext()},
+		{view: branchesView, listContext: gui.branchesListContext()},
+		{view: branchesView, listContext: gui.remotesListContext()},
+		{view: branchesView, listContext: gui.remoteBranchesListContext()},
+		{view: branchesView, listContext: gui.tagsListContext()},
+		{view: commitsView, listContext: gui.branchCommitsListContext()},
+		{view: commitsView, listContext: gui.reflogCommitsListContext()},
+		{view: stashView, listContext: gui.stashListContext()},
+		{view: commitFilesView, listContext: gui.commitFilesListContext()},
 	}
 
 	// menu view might not exist so we check to be safe
 	if menuView, err := gui.g.View("menu"); err == nil {
-		listViews = append(listViews, listViewState{
-			view:         menuView,
-			context:      "",
-			selectedLine: state.Panels.Menu.SelectedLine,
-			lineCount:    state.MenuItemCount,
+		listContextStates = append(listContextStates, listContextState{
+			view:        menuView,
+			listContext: gui.menuListContext(),
 		})
 	}
-	for _, listView := range listViews {
-		// ignore views where the context doesn't match up with the selected line we're trying to focus
-		if listView.context != "" && (listView.view.Context != listView.context) {
+	for _, listContextState := range listContextStates {
+		// ignore contexts whose view is owned by another context right now
+		if listContextState.view.Context != listContextState.listContext.GetKey() {
 			continue
 		}
 		// check if the selected line is now out of view and if so refocus it
-		listView.view.FocusPoint(0, listView.selectedLine)
+		listContextState.view.FocusPoint(0, listContextState.listContext.GetPanelState().GetSelectedLineIdx())
 
-		listView.view.SelBgColor = theme.GocuiSelectedLineBgColor
+		listContextState.view.SelBgColor = theme.GocuiSelectedLineBgColor
+
+		// I doubt this is expensive though it's admittedly redundant after the first render
+		listContextState.view.SetOnSelectItem(gui.onSelectItemWrapper(listContextState.listContext.onSearchSelect))
 	}
 
 	mainViewWidth, mainViewHeight := gui.getMainView().Size()
-	if mainViewWidth != state.PrevMainWidth || mainViewHeight != state.PrevMainHeight {
-		state.PrevMainWidth = mainViewWidth
-		state.PrevMainHeight = mainViewHeight
+	if mainViewWidth != gui.State.PrevMainWidth || mainViewHeight != gui.State.PrevMainHeight {
+		gui.State.PrevMainWidth = mainViewWidth
+		gui.State.PrevMainHeight = mainViewHeight
 		if err := gui.onResize(); err != nil {
 			return err
 		}
@@ -415,10 +345,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 }
 
 func (gui *Gui) onInitialViewsCreation() error {
-	gui.changeMainViewsContext("normal")
+	gui.setInitialViewContexts()
 
-	gui.getBranchesView().Context = "local-branches"
-	gui.getCommitsView().Context = "branch-commits"
+	if err := gui.switchContext(gui.defaultSideContext()); err != nil {
+		return err
+	}
+
+	if err := gui.keybindings(); err != nil {
+		return err
+	}
 
 	if gui.showRecentRepos {
 		if err := gui.handleCreateRecentReposMenu(); err != nil {

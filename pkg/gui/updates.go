@@ -3,13 +3,9 @@ package gui
 import "github.com/jesseduffield/gocui"
 
 func (gui *Gui) showUpdatePrompt(newVersion string) error {
-	currentView := gui.g.CurrentView()
-
 	return gui.ask(askOpts{
-		returnToView:       currentView,
-		returnFocusOnClose: true,
-		title:              "New version available!",
-		prompt:             "Download latest version? (enter/esc)",
+		title:  "New version available!",
+		prompt: "Download latest version? (enter/esc)",
 		handleConfirm: func() error {
 			gui.startUpdating(newVersion)
 			return nil
@@ -61,10 +57,8 @@ func (gui *Gui) onUpdateFinish(err error) error {
 
 func (gui *Gui) createUpdateQuitConfirmation() error {
 	return gui.ask(askOpts{
-		returnToView:       gui.g.CurrentView(),
-		returnFocusOnClose: true,
-		title:              "Currently Updating",
-		prompt:             "An update is in progress. Are you sure you want to quit?",
+		title:  "Currently Updating",
+		prompt: "An update is in progress. Are you sure you want to quit?",
 		handleConfirm: func() error {
 			return gocui.ErrQuit
 		},
