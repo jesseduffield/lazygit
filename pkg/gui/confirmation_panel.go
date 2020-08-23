@@ -16,7 +16,6 @@ import (
 )
 
 type createPopupPanelOpts struct {
-	returnToView        *gocui.View
 	hasLoader           bool
 	returnFocusOnClose  bool
 	editable            bool
@@ -28,7 +27,6 @@ type createPopupPanelOpts struct {
 }
 
 type askOpts struct {
-	returnToView       *gocui.View
 	returnFocusOnClose bool
 	title              string
 	prompt             string
@@ -38,30 +36,25 @@ type askOpts struct {
 
 func (gui *Gui) createLoaderPanel(currentView *gocui.View, prompt string) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
-		returnToView:       currentView,
-		prompt:             prompt,
-		hasLoader:          true,
-		returnFocusOnClose: true,
+		prompt:    prompt,
+		hasLoader: true,
 	})
 }
 
 func (gui *Gui) ask(opts askOpts) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
-		returnToView:       opts.returnToView,
-		title:              opts.title,
-		prompt:             opts.prompt,
-		returnFocusOnClose: opts.returnFocusOnClose,
-		handleConfirm:      opts.handleConfirm,
-		handleClose:        opts.handleClose,
+		title:  opts.title,
+		prompt: opts.prompt,
+
+		handleConfirm: opts.handleConfirm,
+		handleClose:   opts.handleClose,
 	})
 }
 
-func (gui *Gui) prompt(currentView *gocui.View, title string, initialContent string, handleConfirm func(string) error) error {
+func (gui *Gui) prompt(title string, initialContent string, handleConfirm func(string) error) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
-		returnToView:        currentView,
 		title:               title,
 		prompt:              initialContent,
-		returnFocusOnClose:  true,
 		editable:            true,
 		handleConfirmPrompt: handleConfirm,
 	})
@@ -146,7 +139,7 @@ func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, i
 		height/2 + panelHeight/2
 }
 
-func (gui *Gui) prepareConfirmationPanel(currentView *gocui.View, title, prompt string, hasLoader bool) (*gocui.View, error) {
+func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool) (*gocui.View, error) {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
 	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
 	if err != nil {
@@ -175,7 +168,7 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 				gui.Log.Error(err)
 			}
 		}
-		confirmationView, err := gui.prepareConfirmationPanel(opts.returnToView, opts.title, opts.prompt, opts.hasLoader)
+		confirmationView, err := gui.prepareConfirmationPanel(opts.title, opts.prompt, opts.hasLoader)
 		if err != nil {
 			return err
 		}
@@ -232,10 +225,8 @@ func (gui *Gui) createErrorPanel(message string) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       gui.g.CurrentView(),
-		title:              gui.Tr.SLocalize("Error"),
-		prompt:             coloredMessage,
-		returnFocusOnClose: true,
+		title:  gui.Tr.SLocalize("Error"),
+		prompt: coloredMessage,
 	})
 }
 

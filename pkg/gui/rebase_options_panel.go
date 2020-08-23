@@ -77,10 +77,8 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		return nil
 	} else if strings.Contains(result.Error(), "When you have resolved this problem") || strings.Contains(result.Error(), "fix conflicts") || strings.Contains(result.Error(), "Resolve all conflicts manually") {
 		return gui.ask(askOpts{
-			returnToView:       gui.getFilesView(),
-			returnFocusOnClose: true,
-			title:              gui.Tr.SLocalize("FoundConflictsTitle"),
-			prompt:             gui.Tr.SLocalize("FoundConflicts"),
+			title:  gui.Tr.SLocalize("FoundConflictsTitle"),
+			prompt: gui.Tr.SLocalize("FoundConflicts"),
 			handleConfirm: func() error {
 				return nil
 			},

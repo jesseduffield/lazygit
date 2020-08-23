@@ -3,10 +3,8 @@ package gui
 func (gui *Gui) validateNotInFilterMode() (bool, error) {
 	if gui.State.Modes.Filtering.Active() {
 		err := gui.ask(askOpts{
-			returnToView:       gui.g.CurrentView(),
-			returnFocusOnClose: true,
-			title:              gui.Tr.SLocalize("MustExitFilterModeTitle"),
-			prompt:             gui.Tr.SLocalize("MustExitFilterModePrompt"),
+			title:  gui.Tr.SLocalize("MustExitFilterModeTitle"),
+			prompt: gui.Tr.SLocalize("MustExitFilterModePrompt"),
 			handleConfirm: func() error {
 				return gui.exitFilterMode()
 			},

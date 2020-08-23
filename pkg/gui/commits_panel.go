@@ -135,10 +135,8 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("Squash"),
-		prompt:             gui.Tr.SLocalize("SureSquashThisCommit"),
+		title:  gui.Tr.SLocalize("Squash"),
+		prompt: gui.Tr.SLocalize("SureSquashThisCommit"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("SquashingStatus"), func() error {
 				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "squash")
@@ -166,10 +164,8 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("Fixup"),
-		prompt:             gui.Tr.SLocalize("SureFixupThisCommit"),
+		title:  gui.Tr.SLocalize("Fixup"),
+		prompt: gui.Tr.SLocalize("SureFixupThisCommit"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("FixingStatus"), func() error {
 				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "fixup")
@@ -206,7 +202,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		return gui.surfaceError(err)
 	}
 
-	return gui.prompt(v, gui.Tr.SLocalize("renameCommit"), message, func(response string) error {
+	return gui.prompt(gui.Tr.SLocalize("renameCommit"), message, func(response string) error {
 		if err := gui.GitCommand.RenameCommit(response); err != nil {
 			return gui.surfaceError(err)
 		}
@@ -279,10 +275,8 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("DeleteCommitTitle"),
-		prompt:             gui.Tr.SLocalize("DeleteCommitPrompt"),
+		title:  gui.Tr.SLocalize("DeleteCommitTitle"),
+		prompt: gui.Tr.SLocalize("DeleteCommitPrompt"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("DeletingStatus"), func() error {
 				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "drop")
@@ -371,10 +365,8 @@ func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("AmendCommitTitle"),
-		prompt:             gui.Tr.SLocalize("AmendCommitPrompt"),
+		title:  gui.Tr.SLocalize("AmendCommitTitle"),
+		prompt: gui.Tr.SLocalize("AmendCommitPrompt"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("AmendingStatus"), func() error {
 				err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha)
@@ -447,9 +439,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("CreateFixupCommit"),
+		title: gui.Tr.SLocalize("CreateFixupCommit"),
 		prompt: gui.Tr.TemplateLocalize(
 			"SureCreateFixupCommit",
 			Teml{
@@ -477,9 +467,7 @@ func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) er
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("SquashAboveCommits"),
+		title: gui.Tr.SLocalize("SquashAboveCommits"),
 		prompt: gui.Tr.TemplateLocalize(
 			"SureSquashAboveCommits",
 			Teml{
@@ -508,7 +496,7 @@ func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
-	return gui.prompt(gui.getCommitsView(), gui.Tr.SLocalize("TagNameTitle"), "", func(response string) error {
+	return gui.prompt(gui.Tr.SLocalize("TagNameTitle"), "", func(response string) error {
 		if err := gui.GitCommand.CreateLightweightTag(response, commitSha); err != nil {
 			return gui.surfaceError(err)
 		}
@@ -523,10 +511,8 @@ func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       gui.getCommitsView(),
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("checkoutCommit"),
-		prompt:             gui.Tr.SLocalize("SureCheckoutThisCommit"),
+		title:  gui.Tr.SLocalize("checkoutCommit"),
+		prompt: gui.Tr.SLocalize("SureCheckoutThisCommit"),
 		handleConfirm: func() error {
 			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 		},

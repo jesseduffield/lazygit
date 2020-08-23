@@ -232,10 +232,8 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 
 	if file.Tracked {
 		return gui.ask(askOpts{
-			returnToView:       gui.g.CurrentView(),
-			returnFocusOnClose: true,
-			title:              gui.Tr.SLocalize("IgnoreTracked"),
-			prompt:             gui.Tr.SLocalize("IgnoreTrackedPrompt"),
+			title:  gui.Tr.SLocalize("IgnoreTracked"),
+			prompt: gui.Tr.SLocalize("IgnoreTrackedPrompt"),
 			handleConfirm: func() error {
 				if err := gui.GitCommand.Ignore(file.Name); err != nil {
 					return err
@@ -304,10 +302,8 @@ func (gui *Gui) handleCommitPress() error {
 
 func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 	return gui.ask(askOpts{
-		returnToView:       gui.getFilesView(),
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("NoFilesStagedTitle"),
-		prompt:             gui.Tr.SLocalize("NoFilesStagedPrompt"),
+		title:  gui.Tr.SLocalize("NoFilesStagedTitle"),
+		prompt: gui.Tr.SLocalize("NoFilesStagedPrompt"),
 		handleConfirm: func() error {
 			if err := gui.GitCommand.StageAll(); err != nil {
 				return gui.surfaceError(err)
@@ -333,10 +329,8 @@ func (gui *Gui) handleAmendCommitPress() error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       gui.getFilesView(),
-		returnFocusOnClose: true,
-		title:              strings.Title(gui.Tr.SLocalize("AmendLastCommit")),
-		prompt:             gui.Tr.SLocalize("SureToAmend"),
+		title:  strings.Title(gui.Tr.SLocalize("AmendLastCommit")),
+		prompt: gui.Tr.SLocalize("SureToAmend"),
 		handleConfirm: func() error {
 			ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
 			if err != nil {
@@ -443,7 +437,7 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		return gui.prompt(v, gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(upstream string) error {
+		return gui.prompt(gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(upstream string) error {
 			if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
 				errorMessage := err.Error()
 				if strings.Contains(errorMessage, "does not exist") {
@@ -512,10 +506,8 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
 			gui.ask(askOpts{
-				returnToView:       v,
-				returnFocusOnClose: true,
-				title:              gui.Tr.SLocalize("ForcePush"),
-				prompt:             gui.Tr.SLocalize("ForcePushPrompt"),
+				title:  gui.Tr.SLocalize("ForcePush"),
+				prompt: gui.Tr.SLocalize("ForcePushPrompt"),
 				handleConfirm: func() error {
 					return gui.pushWithForceFlag(v, true, upstream, args)
 				},
@@ -552,7 +544,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		if gui.GitCommand.PushToCurrent {
 			return gui.pushWithForceFlag(v, false, "", "--set-upstream")
 		} else {
-			return gui.prompt(v, gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(response string) error {
+			return gui.prompt(gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(response string) error {
 				return gui.pushWithForceFlag(v, false, response, "")
 			})
 		}
@@ -561,10 +553,8 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       v,
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("ForcePush"),
-		prompt:             gui.Tr.SLocalize("ForcePushPrompt"),
+		title:  gui.Tr.SLocalize("ForcePush"),
+		prompt: gui.Tr.SLocalize("ForcePushPrompt"),
 		handleConfirm: func() error {
 			return gui.pushWithForceFlag(v, true, "", "")
 		},
@@ -601,7 +591,7 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(v, gui.Tr.SLocalize("CustomCommand"), "", func(command string) error {
+	return gui.prompt(gui.Tr.SLocalize("CustomCommand"), "", func(command string) error {
 		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
 		return gui.Errors.ErrSubProcess
 	})

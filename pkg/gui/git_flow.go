@@ -51,7 +51,7 @@ func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
 	startHandler := func(branchType string) func() error {
 		return func() error {
 			title := gui.Tr.TemplateLocalize("NewBranchNamePrompt", map[string]interface{}{"branchType": branchType})
-			return gui.prompt(gui.getMenuView(), title, "", func(name string) error {
+			return gui.prompt(title, "", func(name string) error {
 				subProcess := gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "start", name)
 				gui.SubProcess = subProcess
 				return gui.Errors.ErrSubProcess

@@ -146,10 +146,8 @@ func (gui *Gui) HandlePasteCommits() error {
 	}
 
 	return gui.ask(askOpts{
-		returnToView:       gui.getCommitsView(),
-		returnFocusOnClose: true,
-		title:              gui.Tr.SLocalize("CherryPick"),
-		prompt:             gui.Tr.SLocalize("SureCherryPick"),
+		title:  gui.Tr.SLocalize("CherryPick"),
+		prompt: gui.Tr.SLocalize("SureCherryPick"),
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SLocalize("CherryPickingStatus"), func() error {
 				err := gui.GitCommand.CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
