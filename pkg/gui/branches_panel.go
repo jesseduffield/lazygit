@@ -226,6 +226,7 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 	if err := gui.GitCommand.NewBranch(newBranchName, branch.Name); err != nil {
 		return gui.surfaceError(err)
 	}
+
 	gui.State.Panels.Branches.SelectedLineIdx = 0
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
@@ -482,8 +483,9 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 			if err := gui.switchContext(gui.Contexts.Branches.Context); err != nil {
 				return err
 			}
-			gui.State.Panels.Branches.SelectedLineIdx = 0
 		}
+
+		gui.State.Panels.Branches.SelectedLineIdx = 0
 
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	})
