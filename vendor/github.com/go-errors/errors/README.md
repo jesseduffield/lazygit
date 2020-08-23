@@ -64,3 +64,6 @@ packages by Facebook and Dropbox, it was moved to one canonical location so
 everyone can benefit.
 
 This package is licensed under the MIT license, see LICENSE.MIT for details.
+
+## Changelog
+* v1.1.0 updated to use go1.13's standard-library errors.Is method instead of == in errors.Is

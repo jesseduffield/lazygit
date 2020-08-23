@@ -851,7 +851,7 @@ func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err err
 	var matchingParentViewKb *keybinding
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
-	if v.IsSearching() && Modifier(ev.Mod) == ModNone {
+	if v != nil && v.IsSearching() && Modifier(ev.Mod) == ModNone {
 		if eventMatchesKey(ev, g.NextSearchMatchKey) {
 			return true, v.gotoNextMatch()
 		} else if eventMatchesKey(ev, g.PrevSearchMatchKey) {
