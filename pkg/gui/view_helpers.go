@@ -185,9 +185,8 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 	return strings.Join(optionsArray, ", ")
 }
 
-func (gui *Gui) renderOptionsMap(optionsMap map[string]string) error {
+func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
 	gui.renderString("options", gui.optionsMapToString(optionsMap))
-	return nil
 }
 
 // TODO: refactor properly
@@ -327,28 +326,15 @@ func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
 	})
 }
 
-func (gui *Gui) renderPanelOptions() error {
-	currentView := gui.g.CurrentView()
-	switch currentView.Name() {
-	case "menu":
-		return gui.renderMenuOptions()
-	case "main":
-		if gui.State.MainContext == "merging" {
-			return gui.renderMergeOptions()
-		}
-	}
-	return gui.renderGlobalOptions()
-}
-
-func (gui *Gui) renderGlobalOptions() error {
-	return gui.renderOptionsMap(map[string]string{
+func (gui *Gui) globalOptionsMap() map[string]string {
+	return map[string]string{
 		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.scrollUpMain"), gui.getKeyDisplay("universal.scrollDownMain")):                                                                                 gui.Tr.SLocalize("scroll"),
 		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock"), gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")): gui.Tr.SLocalize("navigate"),
 		gui.getKeyDisplay("universal.return"):     gui.Tr.SLocalize("cancel"),
 		gui.getKeyDisplay("universal.quit"):       gui.Tr.SLocalize("quit"),
 		gui.getKeyDisplay("universal.optionMenu"): gui.Tr.SLocalize("menu"),
 		"1-5": gui.Tr.SLocalize("jump"),
-	})
+	}
 }
 
 func (gui *Gui) isPopupPanel(viewName string) bool {
