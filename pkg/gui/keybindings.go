@@ -1540,11 +1540,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	return bindings
 }
 
-func (gui *Gui) keybindings(g *gocui.Gui) error {
+func (gui *Gui) keybindings() error {
 	bindings := gui.GetInitialKeybindings()
 
 	for _, binding := range bindings {
-		if err := g.SetKeybinding(binding.ViewName, binding.Contexts, binding.Key, binding.Modifier, binding.Handler); err != nil {
+		if err := gui.g.SetKeybinding(binding.ViewName, binding.Contexts, binding.Key, binding.Modifier, binding.Handler); err != nil {
 			return err
 		}
 	}
@@ -1555,7 +1555,7 @@ func (gui *Gui) keybindings(g *gocui.Gui) error {
 	}
 
 	for viewName, binding := range tabClickBindings {
-		if err := g.SetTabClickBinding(viewName, binding); err != nil {
+		if err := gui.g.SetTabClickBinding(viewName, binding); err != nil {
 			return err
 		}
 	}
