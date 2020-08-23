@@ -441,10 +441,6 @@ func (gui *Gui) Run() error {
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
-	if err = gui.keybindings(g); err != nil {
-		return err
-	}
-
 	gui.Log.Warn("starting main loop")
 
 	err = g.MainLoop()

@@ -340,6 +340,10 @@ func (gui *Gui) onInitialViewsCreation() error {
 		return err
 	}
 
+	if err := gui.keybindings(); err != nil {
+		return err
+	}
+
 	if gui.showRecentRepos {
 		if err := gui.handleCreateRecentReposMenu(); err != nil {
 			return err
