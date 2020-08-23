@@ -165,6 +165,28 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 	return boxlayout.ArrangeWindows(root, 0, 0, width, height)
 }
 
+// The stash window by default only contains one line so that it's not hogging
+// too much space, but if you access it it should take up some space. This is
+// the default behaviour when accordian mode is NOT in effect. If it is in effect
+// then when it's accessed it will have weight 2, not 1.
+func (gui *Gui) getDefaultStashWindowBox() *boxlayout.Box {
+	box := &boxlayout.Box{Window: "stash"}
+	stashWindowAccessed := false
+	for _, context := range gui.State.ContextStack {
+		if context.GetWindowName() == "stash" {
+			stashWindowAccessed = true
+		}
+	}
+	// if the stash window is anywhere in our stack we should enlargen it
+	if stashWindowAccessed {
+		box.Weight = 1
+	} else {
+		box.Size = 3
+	}
+
+	return box
+}
+
 func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 	currentWindow := gui.currentSideWindowName()
 
@@ -211,7 +233,7 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			accordianBox(&boxlayout.Box{Window: "files", Weight: 1}),
 			accordianBox(&boxlayout.Box{Window: "branches", Weight: 1}),
 			accordianBox(&boxlayout.Box{Window: "commits", Weight: 1}),
-			accordianBox(&boxlayout.Box{Window: "stash", Size: 3}),
+			accordianBox(gui.getDefaultStashWindowBox()),
 		}
 	} else {
 		squashedHeight := 1

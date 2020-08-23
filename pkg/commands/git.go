@@ -228,7 +228,7 @@ func stashEntryFromLine(line string, index int) *StashEntry {
 
 // GetStashEntryDiff stash diff
 func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
-	return fmt.Sprintf("git stash show -p --color=%s stash@{%d}", c.colorArg(), index)
+	return fmt.Sprintf("git stash show -p --stat --color=%s stash@{%d}", c.colorArg(), index)
 }
 
 // GetStatusFiles git status files
