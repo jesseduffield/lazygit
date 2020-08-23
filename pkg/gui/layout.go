@@ -75,7 +75,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 		if !ok {
 			// view not specified in dimensions object: so create the view and hide it
-			view, err := g.SetView(viewName, 0, 0, 0, 0, 0)
+			// making the view take up the whole space in the background in case it needs
+			// to render content as soon as it appears, because lazyloaded content (via a pty task)
+			// cares about the size of the view.
+			view, err := g.SetView(viewName, 0, 0, width, height, 0)
 			if err != nil {
 				return view, err
 			}
