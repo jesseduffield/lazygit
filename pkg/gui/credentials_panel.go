@@ -72,6 +72,6 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 		// we are not logging this error because it may contain a password
 		gui.createErrorPanel(errMessage)
 	} else {
-		_ = gui.closeConfirmationPrompt(true)
+		_ = gui.closeConfirmationPrompt(false)
 	}
 }
