@@ -475,6 +475,9 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 }
 
 func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
+	gui.State.FetchMutex.Lock()
+	defer gui.State.FetchMutex.Unlock()
+
 	err := gui.GitCommand.Fetch(
 		commands.FetchOptions{
 			PromptUserForCredential: gui.promptUserForCredential,

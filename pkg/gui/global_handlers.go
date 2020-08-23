@@ -165,6 +165,9 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
+	gui.State.FetchMutex.Lock()
+	defer gui.State.FetchMutex.Unlock()
+
 	fetchOpts := commands.FetchOptions{}
 	if canPromptForCredentials {
 		fetchOpts.PromptUserForCredential = gui.promptUserForCredential
