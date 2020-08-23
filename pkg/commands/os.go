@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-errors/errors"
 
+	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
@@ -475,12 +476,5 @@ func RunLineOutputCmd(cmd *exec.Cmd, onLine func(line string) (bool, error)) err
 }
 
 func (c *OSCommand) CopyToClipboard(str string) error {
-	commandTemplate := c.Config.GetUserConfig().GetString("os.copyToClipboardCommand")
-	templateValues := map[string]string{
-		"str": c.Quote(str),
-	}
-
-	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-
-	return c.RunCommand(command)
+	return clipboard.WriteAll(str)
 }

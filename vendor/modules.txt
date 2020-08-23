@@ -1,3 +1,6 @@
+# github.com/atotto/clipboard v0.1.2
+## explicit
+github.com/atotto/clipboard
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 ## explicit
 github.com/cloudfoundry/jibber_jabber
