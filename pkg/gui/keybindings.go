@@ -1418,36 +1418,36 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
-			Key:         gui.getKey("files.switchToExtensiveFilesView"),
-			Handler:     gui.handleOpenExtensiveView,
-			Description: gui.Tr.SLocalize("SwitchToExtensiveFilesView"),
+			Key:         gui.getKey("files.switchToFilesTreeView"),
+			Handler:     gui.handleOpenFilesTreeView,
+			Description: gui.Tr.SLocalize("SwitchToFilesTreeView"),
 		},
 		{
-			ViewName:    "extensiveFiles",
-			Key:         gui.getKey("extensiveFiles.switchToFilesView"),
-			Handler:     gui.handleCloseExtensiveView,
+			ViewName:    "filesTree",
+			Key:         gui.getKey("filesTree.switchToFilesView"),
+			Handler:     gui.handleCloseFilesTreeView,
 			Description: gui.Tr.SLocalize("SwitchToFilesView"),
 		},
 		{
-			ViewName: "extensiveFiles",
-			Key:      gui.getKey("extensiveFiles.right"),
+			ViewName: "filesTree",
+			Key:      gui.getKey("filesTree.right"),
 			Handler:  gui.handleFilesGoInsideFolder,
 		}, {
-			ViewName: "extensiveFiles",
-			Key:      gui.getKey("extensiveFiles.left"),
+			ViewName: "filesTree",
+			Key:      gui.getKey("filesTree.left"),
 			Handler:  gui.handleFilesGoToFolderParent,
 		}, {
-			ViewName: "extensiveFiles",
-			Key:      gui.getKey("extensiveFiles.down"),
+			ViewName: "filesTree",
+			Key:      gui.getKey("filesTree.down"),
 			Handler:  gui.handleFilesNextFileOrFolder,
 		}, {
-			ViewName: "extensiveFiles",
-			Key:      gui.getKey("extensiveFiles.up"),
+			ViewName: "filesTree",
+			Key:      gui.getKey("filesTree.up"),
 			Handler:  gui.handleFilesPrevFileOrFolder,
 		},
 	}
 
-	// Keybindings for files and extensiveFiles
+	// Keybindings for files and filesTree
 	sharedFileViewBindings := []Binding{
 		{
 			Key:         gui.getKey("files.commitChanges"),
@@ -1545,7 +1545,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 				Description: binding.Description,
 			},
 			&Binding{
-				ViewName:    "extensiveFiles",
+				ViewName:    "filesTree",
 				Key:         binding.Key,
 				Handler:     binding.Handler,
 				Description: binding.Description,

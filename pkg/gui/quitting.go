@@ -46,8 +46,8 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 			return mode.reset()
 		}
 	}
-	if gui.isExtensiveView(v) {
-		return gui.handleCloseExtensiveView(g, v)
+	if gui.isFilesTreeView(v) {
+		return gui.handleCloseFilesTreeView(g, v)
 	}
 
 	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {

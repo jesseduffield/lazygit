@@ -1168,8 +1168,8 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "createNewBranchFromCommit",
 			Other: "create new branch off of commit",
 		}, &i18n.Message{
-			ID:    "SwitchToExtensiveFilesView",
-			Other: "Switch to a more extensive view",
+			ID:    "SwitchToFilesTreeView",
+			Other: "Switch to a files tree",
 		}, &i18n.Message{
 			ID:    "SwitchToFilesView",
 			Other: "Switch to back to the basic files view",

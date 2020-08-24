@@ -351,8 +351,8 @@ keybinding:
     toggleStagedAll: 'a'
     viewResetOptions: 'D'
     fetch: 'f'
-    switchToExtensiveFilesView: 'v'
-  extensiveFiles:
+    switchToFilesTreeView: 'v'
+  filesTree:
     switchToFilesView: 'v'
     up: '<up>'
     down: '<down>'

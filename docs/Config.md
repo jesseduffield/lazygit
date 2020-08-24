@@ -125,8 +125,8 @@ Default path for the config file:
       toggleStagedAll: 'a'
       viewResetOptions: 'D'
       fetch: 'f'
-      switchToExtensiveFilesView: 'v'
-    extensiveFiles:
+      switchToFilesTreeView: 'v'
+    filesTree:
       switchToFilesView: 'v'
       up: '<up>'
       down: '<down>'

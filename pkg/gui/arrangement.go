@@ -206,7 +206,7 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 
 		if gui.isAdvancedView(gui.currentViewName()) {
 			return []*boxlayout.Box{
-				fullHeightBox("extensiveFiles"),
+				fullHeightBox("filesTree"),
 			}
 		}
 
@@ -232,7 +232,7 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 
 		if gui.isAdvancedView(gui.currentViewName()) {
 			return []*boxlayout.Box{
-				accordianBox(&boxlayout.Box{Window: "extensiveFiles", Weight: 1}),
+				accordianBox(&boxlayout.Box{Window: "filesTree", Weight: 1}),
 			}
 		}
 
@@ -268,7 +268,7 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 		if gui.isAdvancedView(gui.currentViewName()) {
 			return []*boxlayout.Box{
 				{
-					Window: "extensiveFiles",
+					Window: "filesTree",
 					Weight: 1,
 				},
 			}

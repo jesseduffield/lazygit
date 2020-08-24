@@ -1154,7 +1154,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "BranchNotFoundPrompt",
 			Other: "Branch niet gevonden. Creëer een nieuwe branch genaamd",
 		}, &i18n.Message{
-			ID:    "SwitchToExtensiveFilesView",
+			ID:    "SwitchToFilesTreeView",
 			Other: "Paneel met meer informatie",
 		}, &i18n.Message{
 			ID:    "SwitchToFilesView",

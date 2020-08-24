@@ -276,6 +276,27 @@ func (gui *Gui) filesListContext() *ListContext {
 	}
 }
 
+func (gui *Gui) FilesTreeListContext() *ListContext {
+	return &ListContext{
+		ViewName:                   "filesTree",
+		ContextKey:                 FILES_TREE_CONTEXT_KEY,
+		GetItemsLength:             func() int { return gui.State.FilesTree.GetY() },
+		GetPanelState:              nil,
+		OnFocus:                    gui.focusAndSelectFile,
+		OnClickSelectedItem:        gui.handleFilePress,
+		Gui:                        gui,
+		ResetMainViewOriginOnFocus: false,
+		Kind:                       PERSISTENT_POPUP,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Modes.Diffing.Ref)
+		},
+		SelectedItem: func() (ListItem, bool) {
+			item, _ := gui.getSelectedDirOrFile()
+			return item, item != nil
+		},
+	}
+}
+
 func (gui *Gui) branchesListContext() *ListContext {
 	return &ListContext{
 		ViewName:                   "branches",

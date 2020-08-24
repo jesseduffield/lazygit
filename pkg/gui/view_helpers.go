@@ -198,7 +198,7 @@ func (gui *Gui) getFilesView() *gocui.View {
 }
 
 func (gui *Gui) GetExtendedFilesView() *gocui.View {
-	v, _ := gui.g.View("extensiveFiles")
+	v, _ := gui.g.View("filesTree")
 	return v
 }
 
@@ -435,10 +435,6 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 
 func (gui *Gui) isPopupPanel(viewName string) bool {
 	return viewName == "commitMessage" || viewName == "credentials" || viewName == "confirmation" || viewName == "menu"
-}
-
-func (gui *Gui) isAdvancedView(viewName string) bool {
-	return viewName == "extensiveFiles"
 }
 
 func (gui *Gui) popupPanelFocused() bool {

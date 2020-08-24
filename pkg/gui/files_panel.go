@@ -16,13 +16,13 @@ func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir) {
 	if currentView != nil {
 		viewNameToCheck = currentView.Name()
 	}
-	if viewNameToCheck != "extensiveFiles" && viewNameToCheck != "files" {
+	if viewNameToCheck != "filesTree" && viewNameToCheck != "files" {
 		viewNameToCheck = gui.State.PreviousView
 	}
 
-	if viewNameToCheck == "extensiveFiles" {
-		selected := gui.State.Panels.ExtensiveFiles.Selected
-		file, dir := gui.State.ExtensiveFiles.MatchPath(selected)
+	if viewNameToCheck == "filesTree" {
+		selected := gui.State.Panels.FilesTree.Selected
+		file, dir := gui.State.FilesTree.MatchPath(selected)
 
 		return file, dir
 	}
@@ -39,8 +39,8 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
 
 	v := gui.g.CurrentView()
-	if gui.isExtensiveView(v) {
-		return gui.handleExtensiveFileSelect(v, alreadySelected)
+	if gui.isFilesTreeView(v) {
+		return gui.handleFilesTreeSelect(v, alreadySelected)
 	}
 
 	file, _ := gui.getSelectedDirOrFile()
@@ -98,12 +98,12 @@ func (gui *Gui) refreshFiles() error {
 		gui.State.RefreshingFilesMutex.Unlock()
 	}()
 
-	isExtensiveFiles := gui.isExtensiveView(gui.g.CurrentView())
+	isFilesTree := gui.isFilesTreeView(gui.g.CurrentView())
 
 	selectedFile, selectedDir := gui.getSelectedDirOrFile()
 
 	view := gui.getFilesView()
-	if isExtensiveFiles {
+	if isFilesTree {
 		view = gui.GetExtendedFilesView()
 	}
 
@@ -118,8 +118,8 @@ func (gui *Gui) refreshFiles() error {
 	gui.g.Update(func(g *gocui.Gui) error {
 		newSelectedFile, newSelectedDir := gui.getSelectedDirOrFile()
 
-		if isExtensiveFiles {
-			list := gui.State.ExtensiveFiles.Render(newSelectedFile, newSelectedDir)
+		if isFilesTree {
+			list := gui.State.FilesTree.Render(newSelectedFile, newSelectedDir)
 			view.Clear()
 			fmt.Fprint(view, list)
 		} else if err := gui.Contexts.Files.Context.HandleRender(); err != nil {
@@ -471,7 +471,7 @@ func (gui *Gui) refreshStateFiles() error {
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
 	dir := commands.FilesToTree(gui.Log, files)
 
-	gui.State.ExtensiveFiles = dir
+	gui.State.FilesTree = dir
 	gui.State.Files = gui.GitCommand.MergeStatusFiles(gui.State.Files, files, selectedFile)
 
 	if err := gui.fileWatcher.addFilesToFileWatcher(files); err != nil {
@@ -486,7 +486,7 @@ func (gui *Gui) refreshStateFiles() error {
 		}
 	}
 
-	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 0)
+	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 0)
 	gui.refreshSelectedLine(gui.State.Panels.Files, len(gui.State.Files))
 	return nil
 }
@@ -702,11 +702,11 @@ func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) err
 	return gui.createResetMenu("@{upstream}")
 }
 
-func (gui *Gui) isExtensiveView(v *gocui.View) bool {
-	return v != nil && v.Name() == "extensiveFiles"
+func (gui *Gui) isFilesTreeView(v *gocui.View) bool {
+	return v != nil && v.Name() == "filesTree"
 }
 
-func (gui *Gui) handleExtensiveFilesFocus(v *gocui.View) error {
+func (gui *Gui) handleFilesTreeFocus(v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
@@ -714,7 +714,6 @@ func (gui *Gui) handleExtensiveFilesFocus(v *gocui.View) error {
 	cx, cy := v.Cursor()
 	_, oy := v.Origin()
 
-	// prevSelectedLine := gui.State.Panels.ExtensiveFiles.Selected
 	newSelectedLine := cy - oy
 
 	if newSelectedLine > len(gui.State.Files)-1 || len(utils.Decolorise(gui.State.Files[newSelectedLine].DisplayString)) < cx {
@@ -726,7 +725,7 @@ func (gui *Gui) handleExtensiveFilesFocus(v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) handleCloseExtensiveView(g *gocui.Gui, filesView *gocui.View) error {
+func (gui *Gui) handleCloseFilesTreeView(g *gocui.Gui, filesView *gocui.View) error {
 	viewNames := []string{
 		"status",
 		"branches",
@@ -750,8 +749,8 @@ func (gui *Gui) handleCloseExtensiveView(g *gocui.Gui, filesView *gocui.View) er
 	return gui.refreshFiles()
 }
 
-func (gui *Gui) handleOpenExtensiveView(g *gocui.Gui, filesView *gocui.View) error {
-	v, err := gui.g.SetViewOnTop("extensiveFiles")
+func (gui *Gui) handleOpenFilesTreeView(g *gocui.Gui, filesView *gocui.View) error {
+	v, err := gui.g.SetViewOnTop("filesTree")
 	if err != nil {
 		return err
 	}
@@ -768,8 +767,8 @@ func (gui *Gui) handleFilesGoInsideFolder(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	dir := gui.State.ExtensiveFiles
-	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 'r')
+	dir := gui.State.FilesTree
+	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 'r')
 
 	return gui.handleExtensiveFileSelect(v, false)
 }
@@ -780,8 +779,8 @@ func (gui *Gui) handleFilesGoToFolderParent(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	dir := gui.State.ExtensiveFiles
-	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 'l')
+	dir := gui.State.FilesTree
+	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 'l')
 
 	return gui.handleExtensiveFileSelect(v, false)
 }
@@ -792,8 +791,8 @@ func (gui *Gui) handleFilesNextFileOrFolder(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	dir := gui.State.ExtensiveFiles
-	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 'd')
+	dir := gui.State.FilesTree
+	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 'd')
 
 	return gui.handleExtensiveFileSelect(v, false)
 }
@@ -804,8 +803,8 @@ func (gui *Gui) handleFilesPrevFileOrFolder(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	dir := gui.State.ExtensiveFiles
-	gui.refreshSelected(&gui.State.Panels.ExtensiveFiles.Selected, dir, 'u')
+	dir := gui.State.FilesTree
+	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 'u')
 
 	return gui.handleExtensiveFileSelect(v, false)
 }
@@ -815,7 +814,7 @@ func (gui *Gui) handleExtensiveFileSelect(v *gocui.View, alreadySelected bool) e
 		return err
 	}
 
-	file, dir := gui.State.ExtensiveFiles.MatchPath(gui.State.Panels.ExtensiveFiles.Selected)
+	file, dir := gui.State.FilesTree.MatchPath(gui.State.Panels.FilesTree.Selected)
 
 	y := 0
 	if file != nil {

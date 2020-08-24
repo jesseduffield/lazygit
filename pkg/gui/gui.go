@@ -139,7 +139,7 @@ type filePanelState struct {
 	listPanelState
 }
 
-type extensiveFilePanelState struct {
+type filesTreePanelState struct {
 	// The path to the currently selected item
 	Selected []int
 }
@@ -198,7 +198,7 @@ type commitFilesPanelState struct {
 
 type panelStates struct {
 	Files          *filePanelState
-	ExtensiveFiles *extensiveFilePanelState
+	FilesTree      *filesTreePanelState
 	Branches       *branchPanelState
 	Remotes        *remotePanelState
 	RemoteBranches *remoteBranchesState
@@ -261,12 +261,12 @@ type Modes struct {
 }
 
 type guiState struct {
-	Files          []*commands.File
-	ExtensiveFiles *commands.Dir
-	Branches       []*commands.Branch
-	Commits        []*commands.Commit
-	StashEntries   []*commands.StashEntry
-	CommitFiles    []*commands.CommitFile
+	Files        []*commands.File
+	FilesTree    *commands.Dir
+	Branches     []*commands.Branch
+	Commits      []*commands.Commit
+	StashEntries []*commands.StashEntry
+	CommitFiles  []*commands.CommitFile
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*commands.Commit
@@ -338,7 +338,7 @@ func (gui *Gui) resetState() {
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
-			ExtensiveFiles: &extensiveFilePanelState{Selected: []int{0}},
+			FilesTree:      &filesTreePanelState{Selected: []int{0}},
 			Branches:       &branchPanelState{listPanelState{SelectedLineIdx: 0}},
 			Remotes:        &remotePanelState{listPanelState{SelectedLineIdx: 0}},
 			RemoteBranches: &remoteBranchesState{listPanelState{SelectedLineIdx: -1}},

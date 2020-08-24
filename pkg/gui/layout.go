@@ -141,12 +141,12 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		filesView.ContainsList = true
 	}
 
-	extensiveFilesView, err := setViewFromDimensions("extensiveFiles", "extensiveFiles", true)
+	filesTreeView, err := setViewFromDimensions("filesTree", "filesTree", true)
 	if err != nil {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		extensiveFilesView.Title = gui.Tr.SLocalize("FilesTitle")
+		filesTreeView.Title = gui.Tr.SLocalize("FilesTitle")
 	}
 
 	branchesView, err := setViewFromDimensions("branches", "branches", true)
