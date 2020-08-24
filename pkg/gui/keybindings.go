@@ -1038,6 +1038,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("openDiffingMenu"),
 		},
 		{
+			ViewName:    "",
+			Key:         gui.getKey("universal.diffingMenu-alt"),
+			Handler:     gui.handleCreateDiffingMenuPanel,
+			Description: gui.Tr.SLocalize("openDiffingMenu"),
+		},
+		{
 			ViewName: "secondary",
 			Key:      gocui.MouseWheelUp,
 			Modifier: gocui.ModNone,
