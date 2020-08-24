@@ -833,6 +833,20 @@ func (g *Gui) onKey(ev *termbox.Event) error {
 				}
 			}
 		}
+
+		newCx := mx - v.x0 - 1
+		newCy := my - v.y0 - 1
+		// if view  is editable don't go further than the furthest character for that line
+		if v.Editable && newCy >= 0 && newCy <= len(v.lines)-1 {
+			lastCharForLine := len(v.lines[newCy])
+			if lastCharForLine < newCx {
+				newCx = lastCharForLine
+			}
+		}
+		if err := v.SetCursor(newCx, newCy); err != nil {
+			return err
+		}
+
 		if err := v.SetCursor(mx-v.x0-1, my-v.y0-1); err != nil {
 			return err
 		}
