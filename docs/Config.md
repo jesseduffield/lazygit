@@ -106,7 +106,8 @@ Default path for the config file:
       undo: 'z'
       redo: '<c-z>'
       filteringMenu: '<c-s>'
-      diffingMenu: '<c-e>'
+      diffingMenu: 'W'
+      diffingMenu-alt: '<c-e>' # deprecated
       copyToClipboard: '<c-o>'
     status:
       checkForUpdate: 'u'

@@ -334,7 +334,8 @@ keybinding:
     undo: 'z'
     redo: '<c-z>'
     filteringMenu: <c-s>
-    diffingMenu: '<c-e>'
+    diffingMenu: 'W'
+    diffingMenu-alt: '<c-e>'
     copyToClipboard: '<c-o>'
   status:
     checkForUpdate: 'u'
