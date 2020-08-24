@@ -242,6 +242,10 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 	files := []*File{}
 
 	for _, statusString := range statusStrings {
+		if strings.HasPrefix(statusString, "warning") {
+			c.Log.Warning(statusString)
+			continue
+		}
 		change := statusString[0:2]
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
