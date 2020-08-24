@@ -237,7 +237,10 @@ type GetStatusFileOptions struct {
 }
 
 func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
-	statusOutput, _ := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames})
+	statusOutput, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames})
+	if err != nil {
+		c.Log.Error(err)
+	}
 	statusStrings := utils.SplitLines(statusOutput)
 	files := []*File{}
 
