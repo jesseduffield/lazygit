@@ -121,6 +121,13 @@ type Flock_t struct {
 	_      [4]byte
 }
 
+type DmNameList struct {
+	Dev  uint64
+	Next uint32
+	Name [0]byte
+	_    [4]byte
+}
+
 const (
 	FADV_DONTNEED = 0x4
 	FADV_NOREUSE  = 0x5
@@ -276,6 +283,7 @@ type Taskstats struct {
 	Freepages_delay_total     uint64
 	Thrashing_count           uint64
 	Thrashing_delay_total     uint64
+	Ac_btime64                uint64
 }
 
 type cpuMask uint32

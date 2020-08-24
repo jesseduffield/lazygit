@@ -29,7 +29,7 @@ cross linux     amd64 386 arm arm64 ppc64 ppc64le s390x mips mipsle mips64 mips6
 cross darwin    amd64 386 arm arm64
 cross freebsd   amd64 386 arm
 cross netbsd    amd64 386 arm
-cross openbsd   amd64 386
+cross openbsd   amd64 386 arm arm64
 cross dragonfly amd64
 cross solaris   amd64
 

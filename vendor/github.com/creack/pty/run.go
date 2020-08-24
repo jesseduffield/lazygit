@@ -11,6 +11,8 @@ import (
 // Start assigns a pseudo-terminal tty os.File to c.Stdin, c.Stdout,
 // and c.Stderr, calls c.Start, and returns the File of the tty's
 // corresponding pty.
+//
+// Starts the process in a new session and sets the controlling terminal.
 func Start(c *exec.Cmd) (pty *os.File, err error) {
 	return StartWithSize(c, nil)
 }
@@ -19,16 +21,35 @@ func Start(c *exec.Cmd) (pty *os.File, err error) {
 // and c.Stderr, calls c.Start, and returns the File of the tty's
 // corresponding pty.
 //
-// This will resize the pty to the specified size before starting the command
+// This will resize the pty to the specified size before starting the command.
+// Starts the process in a new session and sets the controlling terminal.
 func StartWithSize(c *exec.Cmd, sz *Winsize) (pty *os.File, err error) {
+	if c.SysProcAttr == nil {
+		c.SysProcAttr = &syscall.SysProcAttr{}
+	}
+	c.SysProcAttr.Setsid = true
+	c.SysProcAttr.Setctty = true
+	return StartWithAttrs(c, sz, c.SysProcAttr)
+}
+
+// StartWithAttrs assigns a pseudo-terminal tty os.File to c.Stdin, c.Stdout,
+// and c.Stderr, calls c.Start, and returns the File of the tty's
+// corresponding pty.
+//
+// This will resize the pty to the specified size before starting the command if a size is provided.
+// The `attrs` parameter overrides the one set in c.SysProcAttr.
+//
+// This should generally not be needed. Used in some edge cases where it is needed to create a pty
+// without a controlling terminal.
+func StartWithAttrs(c *exec.Cmd, sz *Winsize, attrs *syscall.SysProcAttr) (pty *os.File, err error) {
 	pty, tty, err := Open()
 	if err != nil {
 		return nil, err
 	}
 	defer tty.Close()
+
 	if sz != nil {
-		err = Setsize(pty, sz)
-		if err != nil {
+		if err := Setsize(pty, sz); err != nil {
 			pty.Close()
 			return nil, err
 		}
@@ -42,15 +63,11 @@ func StartWithSize(c *exec.Cmd, sz *Winsize) (pty *os.File, err error) {
 	if c.Stdin == nil {
 		c.Stdin = tty
 	}
-	if c.SysProcAttr == nil {
-		c.SysProcAttr = &syscall.SysProcAttr{}
-	}
-	c.SysProcAttr.Setctty = true
-	c.SysProcAttr.Setsid = true
-	c.SysProcAttr.Ctty = int(tty.Fd())
-	err = c.Start()
-	if err != nil {
-		pty.Close()
+
+	c.SysProcAttr = attrs
+
+	if err := c.Start(); err != nil {
+		_ = pty.Close()
 		return nil, err
 	}
 	return pty, err

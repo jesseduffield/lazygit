@@ -1,5 +1,5 @@
-// Created by cgo -godefs - DO NOT EDIT
-// cgo -godefs types_openbsd.go
+// +build openbsd
+// +build 386 amd64 arm arm64
 
 package pty
 

@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
-	github.com/creack/pty v1.1.10-0.20191209115840-8ab47f72e854
+	github.com/creack/pty v1.1.11
 	github.com/fatih/color v1.7.0
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-errors/errors v1.1.1
@@ -34,6 +34,7 @@ require (
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.4.0
 	github.com/tcnksm/go-gitconfig v0.1.2
+	golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8 // indirect
 	golang.org/x/text v0.3.2
 	gopkg.in/yaml.v2 v2.2.7
 )
