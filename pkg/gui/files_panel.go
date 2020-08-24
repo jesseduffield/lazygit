@@ -397,6 +397,7 @@ func (gui *Gui) refreshStateFiles() error {
 	// when we refresh, go looking for a matching name
 	// move the cursor to there.
 	selectedFile := gui.getSelectedFile()
+	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
 	// get files to stage
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
@@ -407,10 +408,13 @@ func (gui *Gui) refreshStateFiles() error {
 	}
 
 	// let's try to find our file again and move the cursor to that
-	for idx, f := range gui.State.Files {
-		if selectedFile != nil && f.Matches(selectedFile) {
-			gui.State.Panels.Files.SelectedLineIdx = idx
-			break
+	if selectedFile != nil {
+		for idx, f := range gui.State.Files {
+			selectedFileHasMoved := f.Matches(selectedFile) && idx != prevSelectedLineIdx
+			if selectedFileHasMoved {
+				gui.State.Panels.Files.SelectedLineIdx = idx
+				break
+			}
 		}
 	}
 
