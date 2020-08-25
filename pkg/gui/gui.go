@@ -72,6 +72,15 @@ func (gui *Gui) GenerateSentinelErrors() {
 	}
 }
 
+func (gui *Gui) sentinelErrorsArr() []error {
+	return []error{
+		gui.Errors.ErrSubProcess,
+		gui.Errors.ErrNoFiles,
+		gui.Errors.ErrSwitchRepo,
+		gui.Errors.ErrRestart,
+	}
+}
+
 // Teml is short for template used to make the required map[string]interface{} shorter when using gui.Tr.SLocalize and gui.Tr.TemplateLocalize
 type Teml i18n.Teml
 
