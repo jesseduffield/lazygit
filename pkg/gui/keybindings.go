@@ -1423,10 +1423,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("editRemote"),
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{REMOTE_BRANCHES_CONTEXT_KEY},
-			Key:         gui.getKey("universal.select"),
-			Handler:     gui.handleCheckoutRemoteBranch,
+			ViewName: "branches",
+			Contexts: []string{REMOTE_BRANCHES_CONTEXT_KEY},
+			Key:      gui.getKey("universal.select"),
+			// gonna use the exact same handler as the 'n' keybinding because everybody wants this to happen when they checkout a remote branch
+			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCurrentItem),
 			Description: gui.Tr.SLocalize("checkout"),
 		},
 		{
