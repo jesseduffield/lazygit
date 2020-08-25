@@ -41,7 +41,14 @@ func main() {
 	configFlag := false
 	flaggy.Bool(&configFlag, "c", "config", "Print the current default config")
 
+	workTree := ""
+	flaggy.String(&workTree, "w", "work-tree", "equivalent of --work-tree git argument, used for bare repositories")
+
 	flaggy.Parse()
+
+	if workTree != "" {
+		os.Setenv("GIT_WORK_TREE", workTree)
+	}
 
 	if versionFlag {
 		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s\n", commit, date, buildSource, version, runtime.GOOS, runtime.GOARCH)
