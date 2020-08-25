@@ -221,6 +221,10 @@ func (app *App) KnownError(err error) (string, bool) {
 			originalError: "fatal: not a git repository",
 			newError:      app.Tr.SLocalize("notARepository"),
 		},
+		{
+			originalError: "this operation must be run in a work tree",
+			newError:      app.Tr.SLocalize("mustBeRunInWorkTree"),
+		},
 	}
 
 	for _, mapping := range mappings {

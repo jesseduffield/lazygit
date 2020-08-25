@@ -105,24 +105,17 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		pushToCurrent = strings.TrimSpace(output) == "current"
 	}
 
-	fs := []func() error{
-		func() error {
-			return verifyInGitRepo(osCommand.RunCommand)
-		},
-		func() error {
-			return navigateToRepoRootDirectory(os.Stat, os.Chdir)
-		},
-		func() error {
-			var err error
-			repo, worktree, err = setupRepositoryAndWorktree(gogit.PlainOpen, tr.SLocalize)
-			return err
-		},
+	if err := verifyInGitRepo(osCommand.RunCommand); err != nil {
+		return nil, err
 	}
 
-	for _, f := range fs {
-		if err := f(); err != nil {
-			return nil, err
-		}
+	if err := navigateToRepoRootDirectory(os.Stat, os.Chdir); err != nil {
+		return nil, err
+	}
+
+	repo, worktree, err = setupRepositoryAndWorktree(gogit.PlainOpen, tr.SLocalize)
+	if err != nil {
+		return nil, err
 	}
 
 	dotGitDir, err := findDotGitDir(os.Stat, ioutil.ReadFile)

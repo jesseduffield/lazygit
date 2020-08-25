@@ -880,6 +880,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "notARepository",
 			Other: "Error: must be run inside a git repository",
 		}, &i18n.Message{
+			ID:    "mustBeRunInWorkTree",
+			Other: "Error: Must be run in a worktree. Use the --work-tree to specify the work tree. If you already did that, the directory is probably not a work tree (if it definitely is please raise an issue at https://github.com/jesseduffield/lazygit/issues",
+		}, &i18n.Message{
 			ID:    "jump",
 			Other: "jump to panel",
 		}, &i18n.Message{
