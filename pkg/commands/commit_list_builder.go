@@ -12,7 +12,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -112,14 +111,21 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*Commit, error
 		}
 	}
 
-	unpushedCommits := c.getUnpushedCommits(opts.RefName)
+	firstPushedCommit, err := c.getFirstPushedCommit(opts.RefName)
+	if err != nil {
+		return nil, err
+	}
+
 	cmd := c.getLogCmd(opts)
 
-	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
+	passedFirstPushedCommit := false
+	err = RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		if strings.Split(line, " ")[0] != "gpg:" {
 			commit := c.extractCommitFromLine(line)
-			_, unpushed := unpushedCommits[commit.ShortSha()]
-			commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[unpushed]
+			if commit.Sha == firstPushedCommit {
+				passedFirstPushedCommit = true
+			}
+			commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
 			commits = append(commits, commit)
 		}
 		return false, nil
@@ -292,19 +298,14 @@ func (c *CommitListBuilder) getMergeBase() (string, error) {
 	return output, nil
 }
 
-// getUnpushedCommits Returns the sha's of the commits that have not yet been pushed
-// to the remote branch of the current branch, a map is returned to ease look up
-func (c *CommitListBuilder) getUnpushedCommits(refName string) map[string]bool {
-	pushables := map[string]bool{}
-	o, err := c.OSCommand.RunCommandWithOutput("git rev-list %s@{u}..%s --abbrev-commit --abbrev=8", refName, refName)
+// getFirstPushedCommit returns the first commit SHA which has been pushed to the ref's upstream.
+// all commits above this are deemed unpushed and marked as such.
+func (c *CommitListBuilder) getFirstPushedCommit(refName string) (string, error) {
+	output, err := c.OSCommand.RunCommandWithOutput("git merge-base %s %s@{u}", refName, refName)
 	if err != nil {
-		return pushables
+		return "", err
 	}
-	for _, p := range utils.SplitLines(o) {
-		pushables[p] = true
-	}
-
-	return pushables
+	return strings.TrimSpace(output), nil
 }
 
 // getLog gets the git log.
