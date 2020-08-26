@@ -23,11 +23,16 @@ func (gui *Gui) handleOpenSearch(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleSearch(g *gocui.Gui, v *gocui.View) error {
 	gui.State.Searching.searchString = gui.getSearchView().Buffer()
-	if err := gui.switchContextToView(gui.State.Searching.view.Name()); err != nil {
+	if err := gui.returnFromContext(); err != nil {
 		return err
 	}
 
-	if err := gui.State.Searching.view.Search(gui.State.Searching.searchString); err != nil {
+	view := gui.State.Searching.view
+	if view == nil {
+		return nil
+	}
+
+	if err := view.Search(gui.State.Searching.searchString); err != nil {
 		return err
 	}
 
@@ -86,9 +91,13 @@ func (gui *Gui) onSearchEscape() error {
 }
 
 func (gui *Gui) handleSearchEscape(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.switchContextToView(gui.State.Searching.view.Name()); err != nil {
+	if err := gui.onSearchEscape(); err != nil {
 		return err
 	}
 
-	return gui.onSearchEscape()
+	if err := gui.returnFromContext(); err != nil {
+		return err
+	}
+
+	return nil
 }
