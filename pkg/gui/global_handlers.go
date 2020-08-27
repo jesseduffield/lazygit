@@ -147,12 +147,11 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 	cx, _ := v.Cursor()
 	width, _ := v.Size()
 
-	if width-cx > len(gui.Tr.SLocalize("(reset)")) {
-		return nil
-	}
-
 	for _, mode := range gui.modeStatuses() {
 		if mode.isActive() {
+			if width-cx > len(gui.Tr.SLocalize("(reset)")) {
+				return nil
+			}
 			return mode.reset()
 		}
 	}
