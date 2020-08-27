@@ -197,11 +197,6 @@ func (gui *Gui) getFilesView() *gocui.View {
 	return v
 }
 
-func (gui *Gui) GetExtendedFilesView() *gocui.View {
-	v, _ := gui.g.View("filesTree")
-	return v
-}
-
 func (gui *Gui) getCommitsView() *gocui.View {
 	v, _ := gui.g.View("commits")
 	return v

@@ -143,9 +143,8 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 							default:
 								if width < 160 && height > 30 { // 2 80 character width panels
 									return boxlayout.ROW
-								} else {
-									return boxlayout.COLUMN
 								}
+								return boxlayout.COLUMN
 							}
 						},
 						Direction: boxlayout.COLUMN,
@@ -204,12 +203,6 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			}
 		}
 
-		if gui.isAdvancedView(gui.currentViewName()) {
-			return []*boxlayout.Box{
-				fullHeightBox("filesTree"),
-			}
-		}
-
 		return []*boxlayout.Box{
 			fullHeightBox("status"),
 			fullHeightBox("files"),
@@ -228,12 +221,6 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			}
 
 			return defaultBox
-		}
-
-		if gui.isAdvancedView(gui.currentViewName()) {
-			return []*boxlayout.Box{
-				accordianBox(&boxlayout.Box{Window: "filesTree", Weight: 1}),
-			}
 		}
 
 		return []*boxlayout.Box{
@@ -262,15 +249,6 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			return &boxlayout.Box{
 				Window: window,
 				Size:   squashedHeight,
-			}
-		}
-
-		if gui.isAdvancedView(gui.currentViewName()) {
-			return []*boxlayout.Box{
-				{
-					Window: "filesTree",
-					Weight: 1,
-				},
 			}
 		}
 

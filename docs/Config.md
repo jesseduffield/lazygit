@@ -126,13 +126,7 @@ Default path for the config file:
       toggleStagedAll: 'a'
       viewResetOptions: 'D'
       fetch: 'f'
-      switchToFilesTreeView: 'v'
-    filesTree:
-      switchToFilesView: 'v'
-      up: '<up>'
-      down: '<down>'
-      left: '<left>'
-      right: '<right>'
+      toggleTree: 'v'
     branches:
       createPullRequest: 'o'
       checkoutBranchByName: 'c'

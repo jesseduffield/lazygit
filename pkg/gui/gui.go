@@ -146,11 +146,8 @@ type mergingPanelState struct {
 
 type filePanelState struct {
 	listPanelState
-}
-
-type filesTreePanelState struct {
-	// The path to the currently selected item
-	Selected []int
+	TreeSelected []int
+	ShowTreeView bool
 }
 
 // TODO: consider splitting this out into the window and the branches view
@@ -207,7 +204,6 @@ type commitFilesPanelState struct {
 
 type panelStates struct {
 	Files          *filePanelState
-	FilesTree      *filesTreePanelState
 	Branches       *branchPanelState
 	Remotes        *remotePanelState
 	RemoteBranches *remoteBranchesState
@@ -347,8 +343,7 @@ func (gui *Gui) resetState() {
 		StashEntries:          make([]*commands.StashEntry, 0),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
-			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
-			FilesTree:      &filesTreePanelState{Selected: []int{0}},
+			Files:          &filePanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, TreeSelected: []int{}},
 			Branches:       &branchPanelState{listPanelState{SelectedLineIdx: 0}},
 			Remotes:        &remotePanelState{listPanelState{SelectedLineIdx: 0}},
 			RemoteBranches: &remoteBranchesState{listPanelState{SelectedLineIdx: -1}},

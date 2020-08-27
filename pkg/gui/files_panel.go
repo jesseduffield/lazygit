@@ -11,20 +11,9 @@ import (
 )
 
 func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir) {
-	currentView := gui.g.CurrentView()
-	viewNameToCheck := ""
-	if currentView != nil {
-		viewNameToCheck = currentView.Name()
-	}
-	if viewNameToCheck != "filesTree" && viewNameToCheck != "files" {
-		viewNameToCheck = gui.State.PreviousView
-	}
-
-	if viewNameToCheck == "filesTree" {
-		selected := gui.State.Panels.FilesTree.Selected
-		file, dir := gui.State.FilesTree.MatchPath(selected)
-
-		return file, dir
+	if gui.State.Panels.Files.ShowTreeView {
+		selected := gui.State.Panels.Files.TreeSelected
+		return gui.State.FilesTree.MatchPath(selected)
 	}
 
 	selectedLine := gui.State.Panels.Files.SelectedLineIdx
@@ -37,11 +26,6 @@ func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir) {
 
 func (gui *Gui) selectFile(alreadySelected bool) error {
 	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
-
-	v := gui.g.CurrentView()
-	if gui.isFilesTreeView(v) {
-		return gui.handleFilesTreeSelect(v, alreadySelected)
-	}
 
 	file, _ := gui.getSelectedDirOrFile()
 	if file == nil {
@@ -98,14 +82,9 @@ func (gui *Gui) refreshFiles() error {
 		gui.State.RefreshingFilesMutex.Unlock()
 	}()
 
-	isFilesTree := gui.isFilesTreeView(gui.g.CurrentView())
-
 	selectedFile, selectedDir := gui.getSelectedDirOrFile()
 
 	view := gui.getFilesView()
-	if isFilesTree {
-		view = gui.GetExtendedFilesView()
-	}
 
 	if view == nil {
 		// if the filesView hasn't been instantiated yet we just return
@@ -118,11 +97,9 @@ func (gui *Gui) refreshFiles() error {
 	gui.g.Update(func(g *gocui.Gui) error {
 		newSelectedFile, newSelectedDir := gui.getSelectedDirOrFile()
 
-		if isFilesTree {
-			list := gui.State.FilesTree.Render(newSelectedFile, newSelectedDir)
-			view.Clear()
-			fmt.Fprint(view, list)
-		} else if err := gui.Contexts.Files.Context.HandleRender(); err != nil {
+		// list := gui.State.FilesTree.RenderAsList(newSelectedFile, newSelectedDir)
+		err := gui.Contexts.Files.Context.HandleRender()
+		if err != nil {
 			return err
 		}
 
@@ -490,7 +467,7 @@ func (gui *Gui) refreshStateFiles() error {
 		}
 	}
 
-	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 0)
+	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 0)
 	gui.refreshSelectedLine(gui.State.Panels.Files, len(gui.State.Files))
 	return nil
 }
@@ -709,10 +686,6 @@ func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) err
 	return gui.createResetMenu("@{upstream}")
 }
 
-func (gui *Gui) isFilesTreeView(v *gocui.View) bool {
-	return v != nil && v.Name() == "filesTree"
-}
-
 func (gui *Gui) handleFilesTreeFocus(v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil
@@ -732,39 +705,8 @@ func (gui *Gui) handleFilesTreeFocus(v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) handleCloseFilesTreeView(g *gocui.Gui, filesView *gocui.View) error {
-	viewNames := []string{
-		"status",
-		"branches",
-		"commits",
-		"stash",
-		"files", // files needs to be last in this array to give the focus back on files
-	}
-	var v *gocui.View
-	var err error
-	for _, viewName := range viewNames {
-		v, err = gui.g.SetViewOnTop(viewName)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = gui.switchFocus(gui.g.CurrentView(), v)
-	if err != nil {
-		return err
-	}
-	return gui.refreshFiles()
-}
-
-func (gui *Gui) handleOpenFilesTreeView(g *gocui.Gui, filesView *gocui.View) error {
-	v, err := gui.g.SetViewOnTop("filesTree")
-	if err != nil {
-		return err
-	}
-	err = gui.switchFocus(gui.g.CurrentView(), v)
-	if err != nil {
-		return err
-	}
+func (gui *Gui) handleToggleFilesTreeView(g *gocui.Gui, filesView *gocui.View) error {
+	gui.State.Panels.Files.ShowTreeView = !gui.State.Panels.Files.ShowTreeView
 	return gui.refreshFiles()
 }
 
@@ -775,7 +717,7 @@ func (gui *Gui) handleFilesGoInsideFolder(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	dir := gui.State.FilesTree
-	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 'r')
+	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'r')
 
 	return gui.handleExtensiveFileSelect(v, false)
 }
@@ -787,7 +729,7 @@ func (gui *Gui) handleFilesGoToFolderParent(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	dir := gui.State.FilesTree
-	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 'l')
+	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'l')
 
 	return gui.handleExtensiveFileSelect(v, false)
 }
@@ -799,7 +741,7 @@ func (gui *Gui) handleFilesNextFileOrFolder(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	dir := gui.State.FilesTree
-	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 'd')
+	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'd')
 
 	return gui.handleExtensiveFileSelect(v, false)
 }
@@ -811,7 +753,7 @@ func (gui *Gui) handleFilesPrevFileOrFolder(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	dir := gui.State.FilesTree
-	gui.refreshSelected(&gui.State.Panels.FilesTree.Selected, dir, 'u')
+	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'u')
 
 	return gui.handleExtensiveFileSelect(v, false)
 }
@@ -821,7 +763,7 @@ func (gui *Gui) handleExtensiveFileSelect(v *gocui.View, alreadySelected bool) e
 		return err
 	}
 
-	file, dir := gui.State.FilesTree.MatchPath(gui.State.Panels.FilesTree.Selected)
+	file, dir := gui.State.FilesTree.MatchPath(gui.State.Panels.Files.TreeSelected)
 
 	y := 0
 	if file != nil {
@@ -830,7 +772,7 @@ func (gui *Gui) handleExtensiveFileSelect(v *gocui.View, alreadySelected bool) e
 		y = dir.GetY()
 	}
 
-	gui.GetExtendedFilesView().FocusPoint(0, y)
+	gui.getFilesView().FocusPoint(0, y)
 
 	if file != nil {
 		if file.HasInlineMergeConflicts {

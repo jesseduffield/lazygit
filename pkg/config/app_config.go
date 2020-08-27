@@ -352,9 +352,7 @@ keybinding:
     toggleStagedAll: 'a'
     viewResetOptions: 'D'
     fetch: 'f'
-    switchToFilesTreeView: 'v'
-  filesTree:
-    switchToFilesView: 'v'
+    toggleTree: 'v'
     up: '<up>'
     down: '<down>'
     left: '<left>'

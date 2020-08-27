@@ -245,11 +245,6 @@ func (d *Dir) Combine(log *logrus.Entry) *Dir {
 	return d
 }
 
-// Render returns a string to render on the screen
-func (d *Dir) Render(focusedFile *File, focusedDir *Dir) string {
-	return strings.Join(d.RenderAsList(focusedFile, focusedDir), "\n")
-}
-
 // AllFiles returns all files in d
 func (d *Dir) AllFiles() []*File {
 	response := d.Files
