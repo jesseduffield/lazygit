@@ -132,7 +132,7 @@ func MergeGITStatus(a, b string) string {
 
 // Height returns the display height of this dir
 func (d *Dir) Height() (height int) {
-	if d.SubDirs != nil {
+	if d.Parrent != nil {
 		height++
 	}
 	height += len(d.Files)
@@ -182,31 +182,34 @@ func (d *Dir) NewDir(name string) *Dir {
 	return newDir
 }
 
-// MatchPath matches a path given and returns the file or dir depending on the end point
-func (d *Dir) MatchPath(path []int) (*File, *Dir) {
+// MatchIdx matches a index given and returns the file or dir matching the index
+func (d *Dir) MatchIdx(idx int) (*File, *Dir) {
 	currentDir := d
-	for _, key := range path {
-		if key < len(currentDir.Files) {
-			return currentDir.Files[key], nil
-		}
+	count := 0
+	found := false
 
-		key -= len(currentDir.Files)
-		if len(currentDir.SubDirs) == 0 {
-			if len(currentDir.Files) > 0 {
-				return currentDir.Files[len(currentDir.Files)-1], nil
+mainLoop:
+	for {
+		for _, dir := range currentDir.SubDirs {
+			if found {
+				return nil, dir
 			}
-			return nil, currentDir
+			dirHeight := dir.Height()
+			if count+dirHeight <= idx {
+				count += dirHeight
+				found = count == idx
+				continue
+			}
+			currentDir = dir
+			continue mainLoop
 		}
-		if key >= len(currentDir.SubDirs) {
-			key = len(currentDir.SubDirs) - 1
+		for i, file := range currentDir.Files {
+			if found || count+i == idx {
+				return file, nil
+			}
 		}
-		currentDir = currentDir.SubDirs[key]
-	}
-	if currentDir.Parrent == nil {
-		// We are at the root here, this issn't a line on the screen
 		return nil, nil
 	}
-	return nil, currentDir
 }
 
 // Combine 2 dirs if d only has has 1 subDir and no files
@@ -387,7 +390,7 @@ func (d *Dir) GetY() int {
 
 		for _, dir := range parrent.SubDirs {
 			if dir == current {
-				count += 1
+				count++
 				break
 			}
 			count += dir.Height()
@@ -397,6 +400,14 @@ func (d *Dir) GetY() int {
 		parrent = current.Parrent
 	}
 	return count
+}
+
+// RefreshSelected refreshes the cursor position
+func (d *Dir) RefreshSelected(selectedPrt *int) {
+	height := d.Height()
+	if height > *selectedPrt {
+		*selectedPrt = height - 1
+	}
 }
 
 // GetY returns the file it's y position

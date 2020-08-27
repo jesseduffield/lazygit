@@ -12,8 +12,8 @@ import (
 
 func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir) {
 	if gui.State.Panels.Files.ShowTree {
-		selected := gui.State.Panels.Files.TreeSelected
-		return gui.State.FilesTree.MatchPath(selected)
+		selected := gui.State.Panels.Files.SelectedLineIdx
+		return gui.State.FilesTree.MatchIdx(selected)
 	}
 
 	selectedLine := gui.State.Panels.Files.SelectedLineIdx
@@ -480,7 +480,7 @@ func (gui *Gui) refreshStateFiles() error {
 		}
 	}
 
-	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 0)
+	dir.RefreshSelected(&gui.State.Panels.Files.SelectedLineIdx)
 	gui.refreshSelectedLine(gui.State.Panels.Files, len(gui.State.Files))
 	return nil
 }
@@ -721,52 +721,4 @@ func (gui *Gui) handleFilesTreeFocus(v *gocui.View) error {
 func (gui *Gui) handleToggleFilesTreeView(g *gocui.Gui, filesView *gocui.View) error {
 	gui.State.Panels.Files.ShowTree = !gui.State.Panels.Files.ShowTree
 	return gui.refreshFiles()
-}
-
-// handleFilesGoInsideFolder handles the arrow right
-func (gui *Gui) handleFilesGoInsideFolder(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	dir := gui.State.FilesTree
-	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'r')
-
-	return gui.selectFile(false)
-}
-
-// handleFilesGoToFolderParent handles the arrow left
-func (gui *Gui) handleFilesGoToFolderParent(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	dir := gui.State.FilesTree
-	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'l')
-
-	return gui.selectFile(false)
-}
-
-// handleFilesNextFileOrFolder handles the arrow down
-func (gui *Gui) handleFilesNextFileOrFolder(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	dir := gui.State.FilesTree
-	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'd')
-
-	return gui.selectFile(false)
-}
-
-// handleFilesPrevFileOrFolder handles the arrow up
-func (gui *Gui) handleFilesPrevFileOrFolder(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	dir := gui.State.FilesTree
-	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'u')
-
-	return gui.selectFile(false)
 }

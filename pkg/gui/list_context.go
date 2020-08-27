@@ -260,9 +260,14 @@ func (gui *Gui) menuListContext() *ListContext {
 
 func (gui *Gui) filesListContext() *ListContext {
 	return &ListContext{
-		ViewName:                   "files",
-		ContextKey:                 FILES_CONTEXT_KEY,
-		GetItemsLength:             func() int { return len(gui.State.Files) },
+		ViewName:   "files",
+		ContextKey: FILES_CONTEXT_KEY,
+		GetItemsLength: func() int {
+			if !gui.State.Panels.Files.ShowTree {
+				return len(gui.State.Files)
+			}
+			return gui.State.FilesTree.Height()
+		},
 		GetPanelState:              func() IListPanelState { return gui.State.Panels.Files },
 		OnFocus:                    gui.focusAndSelectFile,
 		OnClickSelectedItem:        gui.handleFilePress,

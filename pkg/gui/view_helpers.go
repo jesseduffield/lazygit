@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
@@ -316,96 +315,6 @@ func (gui *Gui) refreshSelectedLine(panelState IListPanelState, total int) {
 	} else if total-1 < line {
 		panelState.SetSelectedLineIdx(total - 1)
 	}
-}
-
-// refreshSelected refreshes the cursor position
-//
-// action tells if the cursor is moved
-//  0  = nothing
-// 'u' = up
-// 'd' = down
-// 'l' = left
-// 'r' = right
-func (gui *Gui) refreshSelected(selectedPrt *[]int, tree *commands.Dir, action rune) {
-	selected := *selectedPrt
-	currentDir := tree
-	var selectedFile *commands.File
-	if len(selected) == 0 {
-		if len(tree.Files) == 0 && len(tree.SubDirs) == 0 {
-			return
-		} else {
-			selected = []int{0}
-		}
-	}
-
-	for i, key := range selected {
-		if len(currentDir.Files)+len(currentDir.SubDirs) == 0 {
-			break
-		}
-
-		if key < len(currentDir.Files) {
-			// Selected a file
-			if i+1 == len(selected) {
-				selectedFile = currentDir.Files[key]
-				break
-			}
-			selected = selected[:i+1]
-			selectedFile = currentDir.Files[key]
-			break
-		}
-		key -= len(currentDir.Files)
-		if key >= len(currentDir.SubDirs) {
-			// Slected something out of range
-			selected[i] = len(currentDir.Files) + len(currentDir.SubDirs) - 1
-
-			currentDir = currentDir.SubDirs[selected[i]]
-			selected = selected[:i+1]
-			break
-		}
-		currentDir = currentDir.SubDirs[key]
-	}
-
-	switch action {
-	case 'u':
-		newPos := selected[len(selected)-1] - 1
-		if newPos >= 0 {
-			selected[len(selected)-1] = newPos
-		} else if len(selected) > 1 {
-			selected = selected[:len(selected)-1]
-		}
-	case 'd':
-		firstRound := true
-		for {
-			newPos := selected[len(selected)-1] + 1
-			parrent := currentDir.Parrent
-			if selectedFile != nil && firstRound {
-				parrent = currentDir
-			}
-
-			if newPos < len(parrent.Files)+len(parrent.SubDirs) {
-				selected[len(selected)-1] = newPos
-				break
-			}
-
-			parrent = parrent.Parrent
-			if len(selected) <= 1 || selected[len(selected)-2]+1 >= len(parrent.Files)+len(parrent.SubDirs) {
-				break
-			}
-
-			selected = selected[:len(selected)-1]
-			firstRound = false
-		}
-	case 'l':
-		if len(selected) > 1 {
-			selected = selected[:len(selected)-1]
-		}
-	case 'r':
-		if selectedFile == nil && len(currentDir.SubDirs)+len(currentDir.Files) > 0 {
-			selected = append(selected, 0)
-		}
-	}
-
-	*selectedPrt = selected
 }
 
 func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {

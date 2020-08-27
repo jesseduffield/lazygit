@@ -109,7 +109,7 @@ func TestMatchPath(t *testing.T) {
 
 	type scenario struct {
 		testName     string
-		path         []int
+		index        int
 		expectedDir  *Dir
 		expectedFile *File
 	}
@@ -117,32 +117,32 @@ func TestMatchPath(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"match root",
-			[]int{},
+			0,
 			nil,
 			nil,
 		}, {
 			"folder 1",
-			[]int{0},
+			0,
 			folder1,
 			nil,
 		}, {
 			"folder 2",
-			[]int{1},
+			1,
 			folder2,
 			nil,
 		}, {
 			"folder 3",
-			[]int{2},
+			2,
 			folder3,
 			nil,
 		}, {
 			"sub folder 1",
-			[]int{1, 0},
+			3,
 			subFolder1,
 			nil,
 		}, {
 			"sub folder file 1",
-			[]int{1, 0, 0},
+			4,
 			nil,
 			file1,
 		},
@@ -150,7 +150,7 @@ func TestMatchPath(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			file, dir := testDir.MatchPath(s.path)
+			file, dir := testDir.MatchIdx(s.index)
 			if s.expectedDir != nil {
 				if dir == nil {
 					t.Errorf("expected dir %s but got nil", s.expectedDir.Name)
