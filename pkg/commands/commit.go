@@ -12,6 +12,9 @@ type Commit struct {
 	ExtraInfo     string // something like 'HEAD -> master, tag: v0.15.2'
 	Author        string
 	UnixTimestamp int64
+
+	// IsMerge tells us whether we're dealing with a merge commit i.e. a commit with two parents
+	IsMerge bool
 }
 
 func (c *Commit) ShortSha() string {

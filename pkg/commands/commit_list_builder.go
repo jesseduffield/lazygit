@@ -57,7 +57,9 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 	unixTimestamp := split[1]
 	author := split[2]
 	extraInfo := strings.TrimSpace(split[3])
-	message := strings.Join(split[4:], SEPARATION_CHAR)
+	parentHashes := split[4]
+
+	message := strings.Join(split[5:], SEPARATION_CHAR)
 	tags := []string{}
 
 	if extraInfo != "" {
@@ -70,6 +72,10 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 
 	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
 
+	// Any commit with multiple parents is a merge commit.
+	// If there's a space then it means there must be more than one parent hash
+	isMerge := strings.Contains(parentHashes, " ")
+
 	return &Commit{
 		Sha:           sha,
 		Name:          message,
@@ -77,6 +83,7 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 		ExtraInfo:     extraInfo,
 		UnixTimestamp: int64(unitTimestampInt),
 		Author:        author,
+		IsMerge:       isMerge,
 	}
 }
 
@@ -321,5 +328,18 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 		filterFlag = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(opts.FilterPath))
 	}
 
-	return c.OSCommand.ExecutableFromString(fmt.Sprintf("git log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%s\" %s --abbrev=%d --date=unix %s", opts.RefName, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, SEPARATION_CHAR, limitFlag, 20, filterFlag))
+	return c.OSCommand.ExecutableFromString(
+		fmt.Sprintf(
+			"git log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\" %s --abbrev=%d --date=unix %s",
+			opts.RefName,
+			SEPARATION_CHAR,
+			SEPARATION_CHAR,
+			SEPARATION_CHAR,
+			SEPARATION_CHAR,
+			SEPARATION_CHAR,
+			limitFlag,
+			20,
+			filterFlag,
+		),
+	)
 }
