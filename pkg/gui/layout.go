@@ -141,14 +141,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		filesView.ContainsList = true
 	}
 
-	filesTreeView, err := setViewFromDimensions("filesTree", "filesTree", true)
-	if err != nil {
-		if err.Error() != "unknown view" {
-			return err
-		}
-		filesTreeView.Title = gui.Tr.SLocalize("FilesTitle")
-	}
-
 	branchesView, err := setViewFromDimensions("branches", "branches", true)
 	if err != nil {
 		if err.Error() != "unknown view" {

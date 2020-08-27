@@ -147,7 +147,7 @@ type mergingPanelState struct {
 type filePanelState struct {
 	listPanelState
 	TreeSelected []int
-	ShowTreeView bool
+	ShowTree     bool
 }
 
 // TODO: consider splitting this out into the window and the branches view

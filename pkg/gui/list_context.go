@@ -270,7 +270,19 @@ func (gui *Gui) filesListContext() *ListContext {
 		ResetMainViewOriginOnFocus: false,
 		Kind:                       SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Modes.Diffing.Ref)
+			if !gui.State.Panels.Files.ShowTree {
+				return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Modes.Diffing.Ref)
+			}
+
+			newSelectedFile, newSelectedDir := gui.getSelectedDirOrFile()
+			list := gui.State.FilesTree.RenderAsList(newSelectedFile, newSelectedDir)
+			res := [][]string{}
+
+			for _, item := range list {
+				res = append(res, []string{item})
+			}
+
+			return res
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item, _ := gui.getSelectedDirOrFile()

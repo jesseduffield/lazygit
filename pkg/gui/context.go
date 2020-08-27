@@ -129,7 +129,6 @@ type RemotesContextNode struct {
 type ContextTree struct {
 	Status        SimpleContextNode
 	Files         SimpleContextNode
-	FilesTree     SimpleContextNode
 	Menu          SimpleContextNode
 	Branches      SimpleContextNode
 	Remotes       RemotesContextNode
@@ -153,7 +152,6 @@ func (gui *Gui) allContexts() []Context {
 	return []Context{
 		gui.Contexts.Status.Context,
 		gui.Contexts.Files.Context,
-		gui.Contexts.FilesTree.Context,
 		gui.Contexts.Branches.Context,
 		gui.Contexts.Remotes.Context,
 		gui.Contexts.Remotes.Branches.Context,
@@ -186,9 +184,6 @@ func (gui *Gui) contextTree() ContextTree {
 		},
 		Files: SimpleContextNode{
 			Context: gui.filesListContext(),
-		},
-		FilesTree: SimpleContextNode{
-			Context: gui.FilesTreeListContext(),
 		},
 		Menu: SimpleContextNode{
 			Context: gui.menuListContext(),

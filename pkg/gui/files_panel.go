@@ -11,7 +11,7 @@ import (
 )
 
 func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir) {
-	if gui.State.Panels.Files.ShowTreeView {
+	if gui.State.Panels.Files.ShowTree {
 		selected := gui.State.Panels.Files.TreeSelected
 		return gui.State.FilesTree.MatchPath(selected)
 	}
@@ -25,9 +25,12 @@ func (gui *Gui) getSelectedDirOrFile() (*commands.File, *commands.Dir) {
 }
 
 func (gui *Gui) selectFile(alreadySelected bool) error {
-	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
+	treeView := gui.State.Panels.Files.ShowTree
+	if !treeView {
+		gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
+	}
 
-	file, _ := gui.getSelectedDirOrFile()
+	file, dir := gui.getSelectedDirOrFile()
 	if file == nil {
 		return gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
@@ -35,6 +38,17 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 				task:  gui.createRenderStringTask(gui.Tr.SLocalize("NoChangedFiles")),
 			},
 		})
+	}
+
+	if !treeView {
+		y := 0
+		if file != nil {
+			y = file.GetY()
+		} else if dir != nil {
+			y = dir.GetY()
+		}
+
+		gui.getFilesView().FocusPoint(0, y)
 	}
 
 	if !alreadySelected {
@@ -97,7 +111,6 @@ func (gui *Gui) refreshFiles() error {
 	gui.g.Update(func(g *gocui.Gui) error {
 		newSelectedFile, newSelectedDir := gui.getSelectedDirOrFile()
 
-		// list := gui.State.FilesTree.RenderAsList(newSelectedFile, newSelectedDir)
 		err := gui.Contexts.Files.Context.HandleRender()
 		if err != nil {
 			return err
@@ -706,7 +719,7 @@ func (gui *Gui) handleFilesTreeFocus(v *gocui.View) error {
 }
 
 func (gui *Gui) handleToggleFilesTreeView(g *gocui.Gui, filesView *gocui.View) error {
-	gui.State.Panels.Files.ShowTreeView = !gui.State.Panels.Files.ShowTreeView
+	gui.State.Panels.Files.ShowTree = !gui.State.Panels.Files.ShowTree
 	return gui.refreshFiles()
 }
 
@@ -719,7 +732,7 @@ func (gui *Gui) handleFilesGoInsideFolder(g *gocui.Gui, v *gocui.View) error {
 	dir := gui.State.FilesTree
 	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'r')
 
-	return gui.handleExtensiveFileSelect(v, false)
+	return gui.selectFile(false)
 }
 
 // handleFilesGoToFolderParent handles the arrow left
@@ -731,7 +744,7 @@ func (gui *Gui) handleFilesGoToFolderParent(g *gocui.Gui, v *gocui.View) error {
 	dir := gui.State.FilesTree
 	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'l')
 
-	return gui.handleExtensiveFileSelect(v, false)
+	return gui.selectFile(false)
 }
 
 // handleFilesNextFileOrFolder handles the arrow down
@@ -743,7 +756,7 @@ func (gui *Gui) handleFilesNextFileOrFolder(g *gocui.Gui, v *gocui.View) error {
 	dir := gui.State.FilesTree
 	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'd')
 
-	return gui.handleExtensiveFileSelect(v, false)
+	return gui.selectFile(false)
 }
 
 // handleFilesPrevFileOrFolder handles the arrow up
@@ -755,52 +768,5 @@ func (gui *Gui) handleFilesPrevFileOrFolder(g *gocui.Gui, v *gocui.View) error {
 	dir := gui.State.FilesTree
 	gui.refreshSelected(&gui.State.Panels.Files.TreeSelected, dir, 'u')
 
-	return gui.handleExtensiveFileSelect(v, false)
-}
-
-func (gui *Gui) handleExtensiveFileSelect(v *gocui.View, alreadySelected bool) error {
-	if _, err := gui.g.SetCurrentView(v.Name()); err != nil {
-		return err
-	}
-
-	file, dir := gui.State.FilesTree.MatchPath(gui.State.Panels.Files.TreeSelected)
-
-	y := 0
-	if file != nil {
-		y = file.GetY()
-	} else if dir != nil {
-		y = dir.GetY()
-	}
-
-	gui.getFilesView().FocusPoint(0, y)
-
-	if file != nil {
-		if file.HasInlineMergeConflicts {
-			return gui.refreshMergePanel()
-		}
-
-		cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
-		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-
-		refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
-			title: gui.Tr.SLocalize("UnstagedChanges"),
-			task:  gui.createRunPtyTask(cmd),
-		}}
-
-		if file.HasStagedChanges && file.HasUnstagedChanges {
-			cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, true)
-			cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-
-			refreshOpts.secondary = &viewUpdateOpts{
-				title: gui.Tr.SLocalize("StagedChanges"),
-				task:  gui.createRunPtyTask(cmd),
-			}
-		} else if !file.HasUnstagedChanges {
-			refreshOpts.main.title = gui.Tr.SLocalize("StagedChanges")
-		}
-
-		return gui.refreshMainViews(refreshOpts)
-	}
-
-	return nil
+	return gui.selectFile(false)
 }
