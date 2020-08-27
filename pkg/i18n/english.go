@@ -1176,6 +1176,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "viewCommits",
 			Other: "view commits",
+		}, &i18n.Message{
+			ID:    "minGitVersionError",
+			Other: "Git version must be at least 2.0 (i.e. from 2014 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
 		},
 	)
 }
