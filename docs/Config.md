@@ -107,8 +107,9 @@ Default path for the config file:
       prevScreenMode: '_'
       undo: 'z'
       redo: '<c-z>'
-      filteringMenu: <c-s>
-      diffingMenu: '<c-e>'
+      filteringMenu: '<c-s>'
+      diffingMenu: 'W'
+      diffingMenu-alt: '<c-e>' # deprecated
       copyToClipboard: '<c-o>'
     status:
       checkForUpdate: 'u'

@@ -42,17 +42,6 @@ func (gui *Gui) handleRemoteBranchesEscape(g *gocui.Gui, v *gocui.View) error {
 	return gui.switchContext(gui.Contexts.Remotes.Context)
 }
 
-func (gui *Gui) handleCheckoutRemoteBranch(g *gocui.Gui, v *gocui.View) error {
-	remoteBranch := gui.getSelectedRemoteBranch()
-	if remoteBranch == nil {
-		return nil
-	}
-	if err := gui.handleCheckoutRef(remoteBranch.FullName(), handleCheckoutRefOptions{}); err != nil {
-		return err
-	}
-	return gui.switchContext(gui.Contexts.Branches.Context)
-}
-
 func (gui *Gui) handleMergeRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	selectedBranchName := gui.getSelectedRemoteBranch().FullName()
 	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)

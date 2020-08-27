@@ -237,11 +237,18 @@ type GetStatusFileOptions struct {
 }
 
 func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
-	statusOutput, _ := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames})
+	statusOutput, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames})
+	if err != nil {
+		c.Log.Error(err)
+	}
 	statusStrings := utils.SplitLines(statusOutput)
 	files := []*File{}
 
 	for _, statusString := range statusStrings {
+		if strings.HasPrefix(statusString, "warning") {
+			c.Log.Warning(statusString)
+			continue
+		}
 		change := statusString[0:2]
 		stagedChange := rune(change[0])
 		unstagedChange := rune(statusString[1])

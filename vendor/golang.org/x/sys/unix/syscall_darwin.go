@@ -423,6 +423,7 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 //sysnb	Getrlimit(which int, lim *Rlimit) (err error)
 //sysnb	Getrusage(who int, rusage *Rusage) (err error)
 //sysnb	Getsid(pid int) (sid int, err error)
+//sysnb	Gettimeofday(tp *Timeval) (err error)
 //sysnb	Getuid() (uid int)
 //sysnb	Issetugid() (tainted bool)
 //sys	Kqueue() (fd int, err error)

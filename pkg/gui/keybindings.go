@@ -936,6 +936,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("openDiffingMenu"),
 		},
 		{
+			ViewName:    "",
+			Key:         gui.getKey("universal.diffingMenu-alt"),
+			Handler:     gui.handleCreateDiffingMenuPanel,
+			Description: gui.Tr.SLocalize("openDiffingMenu"),
+		},
+		{
 			ViewName: "secondary",
 			Key:      gocui.MouseWheelUp,
 			Modifier: gocui.ModNone,
@@ -1315,10 +1321,11 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("editRemote"),
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{REMOTE_BRANCHES_CONTEXT_KEY},
-			Key:         gui.getKey("universal.select"),
-			Handler:     gui.handleCheckoutRemoteBranch,
+			ViewName: "branches",
+			Contexts: []string{REMOTE_BRANCHES_CONTEXT_KEY},
+			Key:      gui.getKey("universal.select"),
+			// gonna use the exact same handler as the 'n' keybinding because everybody wants this to happen when they checkout a remote branch
+			Handler:     gui.wrappedHandler(gui.handleNewBranchOffCurrentItem),
 			Description: gui.Tr.SLocalize("checkout"),
 		},
 		{
@@ -1555,7 +1562,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
 		bindings = append(bindings, []*Binding{
-			{ViewName: viewName, Key: gui.getKey("universal.togglePanel"), Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.nextSideWindow)},
 			{ViewName: viewName, Key: gui.getKey("universal.prevBlock"), Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.previousSideWindow)},
 			{ViewName: viewName, Key: gui.getKey("universal.nextBlock"), Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.nextSideWindow)},
 			{ViewName: viewName, Key: gui.getKey("universal.prevBlock-alt"), Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.previousSideWindow)},

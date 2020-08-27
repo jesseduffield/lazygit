@@ -21,45 +21,6 @@ func NewDummyCommitListBuilder() *CommitListBuilder {
 	}
 }
 
-// TestCommitListBuilderGetUnpushedCommits is a function.
-func TestCommitListBuilderGetUnpushedCommits(t *testing.T) {
-	type scenario struct {
-		testName string
-		command  func(string, ...string) *exec.Cmd
-		test     func(map[string]bool)
-	}
-
-	scenarios := []scenario{
-		{
-			"Can't retrieve pushable commits",
-			func(string, ...string) *exec.Cmd {
-				return exec.Command("test")
-			},
-			func(pushables map[string]bool) {
-				assert.EqualValues(t, map[string]bool{}, pushables)
-			},
-		},
-		{
-			"Retrieve pushable commits",
-			func(cmd string, args ...string) *exec.Cmd {
-				return exec.Command("echo", "8a2bb0e\n78976bc")
-			},
-			func(pushables map[string]bool) {
-				assert.Len(t, pushables, 2)
-				assert.EqualValues(t, map[string]bool{"8a2bb0e": true, "78976bc": true}, pushables)
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			c := NewDummyCommitListBuilder()
-			c.OSCommand.SetCommand(s.command)
-			s.test(c.getUnpushedCommits("HEAD"))
-		})
-	}
-}
-
 // TestCommitListBuilderGetMergeBase is a function.
 func TestCommitListBuilderGetMergeBase(t *testing.T) {
 	type scenario struct {

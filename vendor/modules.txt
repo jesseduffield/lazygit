@@ -1,7 +1,10 @@
+# github.com/atotto/clipboard v0.1.2
+## explicit
+github.com/atotto/clipboard
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 ## explicit
 github.com/cloudfoundry/jibber_jabber
-# github.com/creack/pty v1.1.10-0.20191209115840-8ab47f72e854
+# github.com/creack/pty v1.1.11
 ## explicit
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
@@ -99,10 +102,10 @@ github.com/hashicorp/hcl/json/token
 github.com/integrii/flaggy
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 github.com/jbenet/go-context/io
-# github.com/jesseduffield/gocui v0.3.1-0.20200823073938-1a970a28d894
+# github.com/jesseduffield/gocui v0.3.1-0.20200824100831-1b6ec5d7d449
 ## explicit
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/termbox-go v0.0.0-20200405031649-4dc645f7e8ba
+# github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe
 ## explicit
 github.com/jesseduffield/termbox-go
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
@@ -204,8 +207,10 @@ golang.org/x/crypto/ssh/knownhosts
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527
+# golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8
+## explicit
 golang.org/x/sys/cpu
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.2

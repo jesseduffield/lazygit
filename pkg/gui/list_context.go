@@ -23,7 +23,9 @@ type ListContext struct {
 	ResetMainViewOriginOnFocus bool
 	Kind                       int
 	ParentContext              Context
-	WindowName                 string
+	// we can't know on the calling end whether a Context is actually a nil value without reflection, so we're storing this flag here to tell us. There has got to be a better way around this.
+	hasParent  bool
+	WindowName string
 }
 
 type ListItem interface {
@@ -55,10 +57,11 @@ func (lc *ListContext) GetWindowName() string {
 
 func (lc *ListContext) SetParentContext(c Context) {
 	lc.ParentContext = c
+	lc.hasParent = true
 }
 
-func (lc *ListContext) GetParentContext() Context {
-	return lc.ParentContext
+func (lc *ListContext) GetParentContext() (Context, bool) {
+	return lc.ParentContext, lc.hasParent
 }
 
 func (lc *ListContext) GetSelectedItemId() string {

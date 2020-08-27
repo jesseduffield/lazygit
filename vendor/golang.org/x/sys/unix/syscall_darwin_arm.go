@@ -20,17 +20,6 @@ func setTimeval(sec, usec int64) Timeval {
 	return Timeval{Sec: int32(sec), Usec: int32(usec)}
 }
 
-//sysnb	gettimeofday(tp *Timeval) (sec int32, usec int32, err error)
-func Gettimeofday(tv *Timeval) (err error) {
-	// The tv passed to gettimeofday must be non-nil
-	// but is otherwise unused. The answers come back
-	// in the two registers.
-	sec, usec, err := gettimeofday(tv)
-	tv.Sec = int32(sec)
-	tv.Usec = int32(usec)
-	return err
-}
-
 func SetKevent(k *Kevent_t, fd, mode, flags int) {
 	k.Ident = uint32(fd)
 	k.Filter = int16(mode)
