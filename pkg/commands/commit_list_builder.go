@@ -111,14 +111,15 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*Commit, error
 		}
 	}
 
+	passedFirstPushedCommit := false
 	firstPushedCommit, err := c.getFirstPushedCommit(opts.RefName)
 	if err != nil {
-		return nil, err
+		// must have no upstream branch so we'll consider everything as pushed
+		passedFirstPushedCommit = true
 	}
 
 	cmd := c.getLogCmd(opts)
 
-	passedFirstPushedCommit := false
 	err = RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		if strings.Split(line, " ")[0] != "gpg:" {
 			commit := c.extractCommitFromLine(line)
