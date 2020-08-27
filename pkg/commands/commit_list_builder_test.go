@@ -13,11 +13,10 @@ func NewDummyCommitListBuilder() *CommitListBuilder {
 	osCommand := NewDummyOSCommand()
 
 	return &CommitListBuilder{
-		Log:                 NewDummyLog(),
-		GitCommand:          NewDummyGitCommandWithOSCommand(osCommand),
-		OSCommand:           osCommand,
-		Tr:                  i18n.NewLocalizer(NewDummyLog()),
-		CherryPickedCommits: []*Commit{},
+		Log:        NewDummyLog(),
+		GitCommand: NewDummyGitCommandWithOSCommand(osCommand),
+		OSCommand:  osCommand,
+		Tr:         i18n.NewLocalizer(NewDummyLog()),
 	}
 }
 

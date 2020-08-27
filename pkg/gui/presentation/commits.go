@@ -32,7 +32,6 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedC
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
 	blue := color.New(color.FgBlue)
-	cyan := color.New(color.FgCyan)
 	defaultColor := color.New(theme.DefaultTextColor)
 	diffedColor := color.New(theme.DiffTerminalColor)
 
@@ -66,7 +65,7 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedC
 	tagString := ""
 	secondColumnString := blue.Sprint(utils.UnixToDate(c.UnixTimestamp))
 	if c.Action != "" {
-		secondColumnString = cyan.Sprint(c.Action)
+		secondColumnString = color.New(actionColorMap(c.Action)).Sprint(c.Action)
 	} else if c.ExtraInfo != "" {
 		tagColor := color.New(color.FgMagenta, color.Bold)
 		tagString = utils.ColoredStringDirect(c.ExtraInfo, tagColor) + " "
@@ -82,7 +81,6 @@ func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
 	blue := color.New(color.FgBlue)
-	cyan := color.New(color.FgCyan)
 	defaultColor := color.New(theme.DefaultTextColor)
 	diffedColor := color.New(theme.DiffTerminalColor)
 
@@ -116,11 +114,26 @@ func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map
 	actionString := ""
 	tagString := ""
 	if c.Action != "" {
-		actionString = cyan.Sprint(utils.WithPadding(c.Action, 7)) + " "
+		actionString = color.New(actionColorMap(c.Action)).Sprint(utils.WithPadding(c.Action, 7)) + " "
 	} else if len(c.Tags) > 0 {
 		tagColor := color.New(color.FgMagenta, color.Bold)
 		tagString = utils.ColoredStringDirect(strings.Join(c.Tags, " "), tagColor) + " "
 	}
 
 	return []string{shaColor.Sprint(c.ShortSha()), actionString + tagString + defaultColor.Sprint(c.Name)}
+}
+
+func actionColorMap(str string) color.Attribute {
+	switch str {
+	case "pick":
+		return color.FgCyan
+	case "drop":
+		return color.FgRed
+	case "edit":
+		return color.FgGreen
+	case "fixup":
+		return color.FgMagenta
+	default:
+		return color.FgYellow
+	}
 }

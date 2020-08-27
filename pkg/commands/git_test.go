@@ -1639,7 +1639,7 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 			"master",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git rebase --interactive --autostash --keep-empty --rebase-merges master",
+					Expect:  "git rebase --interactive --autostash --keep-empty master",
 					Replace: "echo",
 				},
 			}),
@@ -1652,7 +1652,7 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 			"master",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git rebase --interactive --autostash --keep-empty --rebase-merges master",
+					Expect:  "git rebase --interactive --autostash --keep-empty master",
 					Replace: "test",
 				},
 			}),
@@ -1775,7 +1775,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 			"test999.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git rebase --interactive --autostash --keep-empty --rebase-merges abcdef",
+					Expect:  "git rebase --interactive --autostash --keep-empty abcdef",
 					Replace: "echo",
 				},
 				{

@@ -910,7 +910,8 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 		debug = "TRUE"
 	}
 
-	splitCmd := str.ToArgv(fmt.Sprintf("git rebase --interactive --autostash --keep-empty --rebase-merges %s", baseSha))
+	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty %s", baseSha)
+	splitCmd := str.ToArgv(cmdStr)
 
 	cmd := c.OSCommand.command(splitCmd[0], splitCmd[1:]...)
 
@@ -962,11 +963,18 @@ func (c *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, actionIndex in
 
 	todo := ""
 	for i, commit := range commits[0:baseIndex] {
-		a := "pick"
+		var commitAction string
 		if i == actionIndex {
-			a = action
+			commitAction = action
+		} else if commit.IsMerge {
+			// your typical interactive rebase will actually drop merge commits by default. Damn git CLI, you scary!
+			// doing this means we don't need to worry about rebasing over merges which always causes problems.
+			// you typically shouldn't be doing rebases that pass over merge commits anyway.
+			commitAction = "drop"
+		} else {
+			commitAction = "pick"
 		}
-		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
+		todo = commitAction + " " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
 	return todo, commits[baseIndex].Sha, nil
