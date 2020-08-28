@@ -318,7 +318,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 			return gui.surfaceError(err)
 		}
 		gui.State.Panels.Commits.SelectedLineIdx++
-		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
+		return gui.refreshRebaseCommits()
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
@@ -345,7 +345,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 			return gui.surfaceError(err)
 		}
 		gui.State.Panels.Commits.SelectedLineIdx--
-		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
+		return gui.refreshRebaseCommits()
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("MovingStatus"), func() error {
