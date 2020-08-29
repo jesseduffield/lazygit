@@ -169,7 +169,7 @@ func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
 
 	fetchOpts := commands.FetchOptions{}
 	if canPromptForCredentials {
-		fetchOpts.PromptUserForCredential = gui.promptUserForCredential
+		fetchOpts.Auth = gui.getCredentialsHandler(gui.Tr.SLocalize("PushWait"))
 	}
 
 	err = gui.GitCommand.Fetch(fetchOpts)
@@ -185,11 +185,11 @@ func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
 
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	// important to note that this assumes we've selected an item in a side context
-	itemId := gui.getSideContextSelectedItemId()
+	itemID := gui.getSideContextSelectedItemId()
 
-	if itemId == "" {
+	if itemID == "" {
 		return nil
 	}
 
-	return gui.OSCommand.CopyToClipboard(itemId)
+	return gui.OSCommand.CopyToClipboard(itemID)
 }

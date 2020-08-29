@@ -4,39 +4,70 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
-type credentials chan string
+// getCredentialsHandler returns a handler for the git credentials
+func (gui *Gui) getCredentialsHandler(title string) *commands.AuthInput {
+	gui.credentialsInput = make(chan string)
+	gui.credentialsInputOpen = true
+	res := &commands.AuthInput{
+		StdIn:   gui.credentialsInput,
+		Updates: make(chan commands.AuthUpdate),
+		Open:    true,
+	}
 
-// promptUserForCredential wait for a username or password input from the credentials popup
-func (gui *Gui) promptUserForCredential(passOrUname string) string {
-	gui.credentials = make(chan string)
-	gui.g.Update(func(g *gocui.Gui) error {
-		credentialsView, _ := g.View("credentials")
-		if passOrUname == "username" {
-			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
-			credentialsView.Mask = 0
-		} else {
-			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
-			credentialsView.Mask = '*'
+	go func(auth *commands.AuthInput) {
+		for {
+			update, open := <-res.Updates
+			if !open {
+				break
+			}
+
+			gui.g.Update(func(g *gocui.Gui) error {
+				v, _ := g.View("credentials")
+
+				question := update.MightBeQuestion
+				if question == nil {
+					v.Title = title
+					v.Editable = false
+					v.HasLoader = true
+				} else {
+					if !v.Editable {
+						v.Editable = true
+						v.HasLoader = false
+						gui.clearEditorView(v)
+					}
+					v.Title = *question
+				}
+
+				if update.MaskInput {
+					v.Mask = '*'
+				} else {
+					v.Mask = 0
+				}
+
+				if err := gui.switchContext(gui.Contexts.Credentials.Context); err != nil {
+					return err
+				}
+
+				gui.RenderCommitLength()
+				return nil
+			})
 		}
 
-		if err := gui.switchContext(gui.Contexts.Credentials.Context); err != nil {
-			return err
-		}
-
-		gui.RenderCommitLength()
-		return nil
-	})
-
-	// wait for username/passwords input
-	userInput := <-gui.credentials
-	return userInput + "\n"
+		gui.credentialsInputOpen = false
+		_, _ = gui.g.SetViewOnBottom("credentials")
+		_ = gui.returnFromContext()
+	}(res)
+	return res
 }
 
 func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
-	gui.credentials <- message
+	if gui.credentialsInputOpen {
+		gui.credentialsInput <- message
+	}
 	gui.clearEditorView(v)
 	if err := gui.returnFromContext(); err != nil {
 		return err
@@ -46,7 +77,10 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
-	gui.credentials <- ""
+	if gui.credentialsInputOpen {
+		gui.credentialsInput <- ""
+	}
+
 	return gui.returnFromContext()
 }
 

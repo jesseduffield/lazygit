@@ -207,6 +207,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
 			credentialsView.FgColor = textColor
 			credentialsView.Editable = true
+
+			// This view might have a ticker so we need to start the ticker here
+			gui.g.StartTicking()
 		}
 	}
 

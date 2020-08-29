@@ -1015,9 +1015,22 @@ func TestGitCommandPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.command = s.command
-			err := gitCmd.Push("test", s.forcePush, "", "", func(passOrUname string) string {
-				return "\n"
-			})
+
+			auth := &AuthInput{
+				StdIn:   make(chan string),
+				Updates: make(chan AuthUpdate),
+				Open:    true,
+			}
+
+			go func() {
+				for update := range auth.Updates {
+					if update.MightBeQuestion != nil {
+						auth.StdIn <- ""
+					}
+				}
+			}()
+
+			err := gitCmd.Push("test", s.forcePush, "", "", auth)
 			s.test(err)
 		})
 	}

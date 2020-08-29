@@ -378,9 +378,9 @@ func (c *GitCommand) RebaseBranch(branchName string) error {
 }
 
 type FetchOptions struct {
-	PromptUserForCredential func(string) string
-	RemoteName              string
-	BranchName              string
+	RemoteName string
+	BranchName string
+	Auth       *AuthInput
 }
 
 // Fetch fetch git repo
@@ -394,12 +394,7 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 		command = fmt.Sprintf("%s %s", command, opts.BranchName)
 	}
 
-	return c.OSCommand.DetectUnamePass(command, func(question string) string {
-		if opts.PromptUserForCredential != nil {
-			return opts.PromptUserForCredential(question)
-		}
-		return "\n"
-	})
+	return c.OSCommand.DetectUnamePass(command, opts.Auth)
 }
 
 // ResetToCommit reset to commit
@@ -526,7 +521,7 @@ func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
 }
 
 // Push pushes to a branch
-func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {
+func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, auth *AuthInput) error {
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease"
@@ -538,7 +533,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 	}
 
 	cmd := fmt.Sprintf("git push --follow-tags %s %s %s", forceFlag, setUpstreamArg, args)
-	return c.OSCommand.DetectUnamePass(cmd, promptUserForCredential)
+	return c.OSCommand.DetectUnamePass(cmd, auth)
 }
 
 // CatFile obtains the content of a file
@@ -806,9 +801,9 @@ func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	return c.OSCommand.RunCommand("git apply %s %s", flagStr, c.OSCommand.Quote(filepath))
 }
 
-func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string, promptUserForCredential func(string) string) error {
+func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string, auth *AuthInput) error {
 	command := fmt.Sprintf("git fetch %s %s:%s", remoteName, remoteBranchName, branchName)
-	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
+	return c.OSCommand.DetectUnamePass(command, auth)
 }
 
 func (c *GitCommand) RunSkipEditorCommand(command string) error {

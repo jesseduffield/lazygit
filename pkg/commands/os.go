@@ -7,10 +7,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-errors/errors"
 
@@ -135,34 +135,92 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 }
 
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
-func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string) string) error {
-	return RunCommandWithOutputLiveWrapper(c, command, output)
+func (c *OSCommand) RunCommandWithOutputLive(command string, stdOutWords func(string), stdIn *chan string) error {
+	return RunCommandWithOutputLiveWrapper(c, command, stdOutWords, stdIn)
+}
+
+// AuthUpdate contains the updates to the pushing progress
+type AuthUpdate struct {
+	// If MightBeQuestion is nil the command output is active
+	MightBeQuestion *string
+
+	// If true the user might type out private info and thus we better mask it with '*'
+	MaskInput bool
+}
+
+// AuthInput contains the items to interact with the shell
+type AuthInput struct {
+	Updates chan AuthUpdate
+	StdIn   chan string
+	Open    bool
 }
 
 // DetectUnamePass detect a username / password question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password
 // The promptUserForCredential argument will be "username" or "password" and expects the user's password or username back
-func (c *OSCommand) DetectUnamePass(command string, promptUserForCredential func(string) string) error {
-	ttyText := ""
-	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
-		ttyText = ttyText + " " + word
+func (c *OSCommand) DetectUnamePass(command string, auth *AuthInput) error {
+	if auth == nil {
+		return c.RunCommandWithOutputLive(command, nil, nil)
+	}
 
-		prompts := map[string]string{
-			`.+'s password:`:         "password",
-			`Password\s*for\s*'.+':`: "password",
-			`Username\s*for\s*'.+':`: "username",
+	defer func() {
+		auth.Open = false
+		close(auth.StdIn)
+		close(auth.Updates)
+	}()
+
+	var lock sync.Mutex
+	var outputCount uint64
+	var ttyText string
+	timeout := time.Millisecond * 250
+	lastOutput := time.Now().Add(timeout) // Give the RunCommandWithOutputLive command some time to startup
+
+	auth.Updates <- AuthUpdate{
+		MightBeQuestion: nil,
+		MaskInput:       true,
+	}
+
+	return c.RunCommandWithOutputLive(command, func(word string) {
+		parts := strings.Split(word, "\n")
+		lock.Lock()
+		defer lock.Unlock()
+		if len(parts) > 1 {
+			ttyText = parts[len(parts)-1]
+		} else {
+			ttyText += " " + parts[0]
 		}
 
-		for pattern, askFor := range prompts {
-			if match, _ := regexp.MatchString(pattern, ttyText); match {
-				ttyText = ""
-				return promptUserForCredential(askFor)
+		outputCount++
+
+		now := time.Now()
+
+		if lastOutput.After(now.Add(-timeout)) {
+			if auth.Open {
+				auth.Updates <- AuthUpdate{
+					MightBeQuestion: nil,
+					MaskInput:       true,
+				}
 			}
 		}
+		lastOutput = now
 
-		return ""
-	})
-	return errMessage
+		go func(outputIndex uint64) {
+			time.Sleep(timeout)
+			if outputCount != outputIndex {
+				return
+			}
+
+			lock.Lock()
+			defer lock.Unlock()
+
+			if auth.Open {
+				auth.Updates <- AuthUpdate{
+					MightBeQuestion: &ttyText,
+					MaskInput:       true,
+				}
+			}
+		}(outputCount)
+	}, &auth.StdIn)
 }
 
 // RunCommand runs a command and just returns the error

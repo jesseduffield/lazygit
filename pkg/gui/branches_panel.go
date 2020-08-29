@@ -386,10 +386,12 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	go func() {
 		_ = gui.createLoaderPanel(v, message)
 
+		auth := gui.getCredentialsHandler(message)
+
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
-			_ = gui.pullWithMode("ff-only", PullFilesOptions{})
+			_ = gui.pullWithMode("ff-only", PullFilesOptions{}, auth)
 		} else {
-			err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
+			err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName, auth)
 			gui.handleCredentialsPopup(err)
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{BRANCHES}})
 		}

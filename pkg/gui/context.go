@@ -391,6 +391,7 @@ func (gui *Gui) switchContextToView(viewName string) error {
 	return gui.switchContext(gui.State.ViewContextMap[viewName])
 }
 
+// TODO: add documentation about this function
 func (gui *Gui) returnFromContext() error {
 	gui.g.Update(func(*gocui.Gui) error {
 		// TODO: add mutexes

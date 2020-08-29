@@ -467,26 +467,24 @@ type PullFilesOptions struct {
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
-	if err := gui.createLoaderPanel(gui.g.CurrentView(), gui.Tr.SLocalize("PullWait")); err != nil {
-		return err
-	}
+	auth := gui.getCredentialsHandler(gui.Tr.SLocalize("PullWait"))
 
 	mode := gui.Config.GetUserConfig().GetString("git.pull.mode")
 
-	go gui.pullWithMode(mode, opts)
+	go gui.pullWithMode(mode, opts, auth)
 
 	return nil
 }
 
-func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
+func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions, auth *commands.AuthInput) error {
 	gui.State.FetchMutex.Lock()
 	defer gui.State.FetchMutex.Unlock()
 
 	err := gui.GitCommand.Fetch(
 		commands.FetchOptions{
-			PromptUserForCredential: gui.promptUserForCredential,
-			RemoteName:              opts.RemoteName,
-			BranchName:              opts.BranchName,
+			RemoteName: opts.RemoteName,
+			BranchName: opts.BranchName,
+			Auth:       auth,
 		},
 	)
 	gui.handleCredentialsPopup(err)
@@ -510,12 +508,11 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 }
 
 func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, args string) error {
-	if err := gui.createLoaderPanel(v, gui.Tr.SLocalize("PushWait")); err != nil {
-		return err
-	}
 	go func() {
+		auth := gui.getCredentialsHandler(gui.Tr.SLocalize("PushWait"))
+
 		branchName := gui.getCheckedOutBranch().Name
-		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
+		err := gui.GitCommand.Push(branchName, force, upstream, args, auth)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
 			gui.ask(askOpts{
 				title:  gui.Tr.SLocalize("ForcePush"),

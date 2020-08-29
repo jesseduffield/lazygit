@@ -97,7 +97,8 @@ type Gui struct {
 	Errors               SentinelErrors
 	Updater              *updates.Updater
 	statusManager        *statusManager
-	credentials          credentials
+	credentialsInput     chan string
+	credentialsInputOpen bool
 	waitForIntro         sync.WaitGroup
 	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager

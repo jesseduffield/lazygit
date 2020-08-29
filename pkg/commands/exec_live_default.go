@@ -8,16 +8,15 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/go-errors/errors"
-
 	"github.com/creack/pty"
+	"github.com/go-errors/errors"
 )
 
 // RunCommandWithOutputLiveWrapper runs a command and return every word that gets written in stdout
 // Output is a function that executes by every word that gets read by bufio
 // As return of output you need to give a string that will be written to stdin
 // NOTE: If the return data is empty it won't written anything to stdin
-func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) error {
+func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, stdOutWords func(string), stdIn *chan string) error {
 	cmd := c.ExecutableFromString(command)
 	cmd.Env = append(cmd.Env, "LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
 
@@ -30,16 +29,26 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		return err
 	}
 
-	go func() {
-		scanner := bufio.NewScanner(ptmx)
-		scanner.Split(scanWordsWithNewLines)
-		for scanner.Scan() {
-			toOutput := strings.Trim(scanner.Text(), " ")
-			_, _ = ptmx.WriteString(output(toOutput))
-		}
-	}()
+	if stdOutWords != nil {
+		go func() {
+			scanner := bufio.NewScanner(ptmx)
+			scanner.Split(scanWordsWithNewLines)
+			for scanner.Scan() {
+				stdOutWords(strings.Trim(scanner.Text(), " "))
+			}
+		}()
+	}
+
+	if stdIn != nil {
+		go func() {
+			for dateToWrite := range *stdIn {
+				_, _ = ptmx.WriteString(strings.TrimSpace(dateToWrite) + "\n")
+			}
+		}()
+	}
 
 	err = cmd.Wait()
+
 	ptmx.Close()
 	if err != nil {
 		return errors.New(stderr.String())
