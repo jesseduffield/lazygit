@@ -153,6 +153,7 @@ type AuthInput struct {
 	Updates chan AuthUpdate
 	StdIn   chan string
 	Open    bool
+	lock    sync.Mutex
 }
 
 // DetectUnamePass detect a username / password question in a command
@@ -164,12 +165,13 @@ func (c *OSCommand) DetectUnamePass(command string, auth *AuthInput) error {
 	}
 
 	defer func() {
+		auth.lock.Lock()
 		auth.Open = false
+		auth.lock.Unlock()
 		close(auth.StdIn)
 		close(auth.Updates)
 	}()
 
-	var lock sync.Mutex
 	var outputCount uint64
 	var ttyText string
 	timeout := time.Millisecond * 250
@@ -182,8 +184,8 @@ func (c *OSCommand) DetectUnamePass(command string, auth *AuthInput) error {
 
 	return c.RunCommandWithOutputLive(command, func(word string) {
 		parts := strings.Split(word, "\n")
-		lock.Lock()
-		defer lock.Unlock()
+		auth.lock.Lock()
+		defer auth.lock.Unlock()
 		if len(parts) > 1 {
 			ttyText = parts[len(parts)-1]
 		} else {
@@ -210,8 +212,8 @@ func (c *OSCommand) DetectUnamePass(command string, auth *AuthInput) error {
 				return
 			}
 
-			lock.Lock()
-			defer lock.Unlock()
+			auth.lock.Lock()
+			defer auth.lock.Unlock()
 
 			if auth.Open {
 				auth.Updates <- AuthUpdate{
