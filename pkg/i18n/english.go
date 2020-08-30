@@ -427,6 +427,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "ForcePushPrompt",
 			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
 		}, &i18n.Message{
+			ID:    "ForcePushDisabled",
+			Other: "Your branch has diverged from the remote branch and you've disabled force pushing",
+		}, &i18n.Message{
+			ID:    "UpdatesRejectedAndForcePushDisabled",
+			Other: "Updates were rejected and you have disabled force pushing",
+		}, &i18n.Message{
 			ID:    "checkForUpdate",
 			Other: "check for update",
 		}, &i18n.Message{
