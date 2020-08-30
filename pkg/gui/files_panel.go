@@ -517,7 +517,7 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
-			forcePushDisabled := gui.Config.GetUserConfig().Get("git.disableForcePushing").(bool)
+			forcePushDisabled := gui.Config.GetUserConfig().GetBool("git.disableForcePushing")
 			if forcePushDisabled {
 				gui.createErrorPanel(gui.Tr.SLocalize("UpdatesRejectedAndForcePushDisabled"))
 				return
@@ -568,7 +568,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		return gui.pushWithForceFlag(v, false, "", "")
 	}
 
-	forcePushDisabled := gui.Config.GetUserConfig().Get("git.disableForcePushing").(bool)
+	forcePushDisabled := gui.Config.GetUserConfig().GetBool("git.disableForcePushing")
 	if forcePushDisabled {
 		return gui.createErrorPanel(gui.Tr.SLocalize("ForcePushDisabled"))
 	}
