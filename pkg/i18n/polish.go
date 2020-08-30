@@ -339,6 +339,12 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "ForcePushPrompt",
 			Other: "Twoja gałąź rozeszła się z gałęzią zdalną. Wciśnij 'esc' aby anulować lub 'enter' aby wymusić wypchnięcie.",
 		}, &i18n.Message{
+			ID:    "ForcePushDisabled",
+			Other: "Your branch has diverged from the remote branch and you've disabled force pushing",
+		}, &i18n.Message{
+			ID:    "UpdatesRejectedAndForcePushDisabled",
+			Other: "Updates were rejected and you have disabled force pushing",
+		}, &i18n.Message{
 			ID:    "checkForUpdate",
 			Other: "sprawdź aktualizacje",
 		}, &i18n.Message{
