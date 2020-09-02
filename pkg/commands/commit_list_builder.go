@@ -172,7 +172,7 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*Commit, error
 		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
 
-	commits, err = c.setCommitMergedStatuses(commits)
+	commits, err = c.setCommitMergedStatuses(opts.RefName, commits)
 	if err != nil {
 		return nil, err
 	}
@@ -290,8 +290,8 @@ func (c *CommitListBuilder) commitFromPatch(content string) (*Commit, error) {
 	}, nil
 }
 
-func (c *CommitListBuilder) setCommitMergedStatuses(commits []*Commit) ([]*Commit, error) {
-	ancestor, err := c.getMergeBase()
+func (c *CommitListBuilder) setCommitMergedStatuses(refName string, commits []*Commit) ([]*Commit, error) {
+	ancestor, err := c.getMergeBase(refName)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func (c *CommitListBuilder) setCommitMergedStatuses(commits []*Commit) ([]*Commi
 	return commits, nil
 }
 
-func (c *CommitListBuilder) getMergeBase() (string, error) {
+func (c *CommitListBuilder) getMergeBase(refName string) (string, error) {
 	currentBranch, _, err := c.GitCommand.CurrentBranchName()
 	if err != nil {
 		return "", err
@@ -325,8 +325,18 @@ func (c *CommitListBuilder) getMergeBase() (string, error) {
 	}
 
 	// swallowing error because it's not a big deal; probably because there are no commits yet
-	output, _ := c.OSCommand.RunCommandWithOutput("git merge-base HEAD %s", baseBranch)
-	return output, nil
+	output, _ := c.OSCommand.RunCommandWithOutput("git merge-base %s %s", refName, baseBranch)
+	return ignoringWarnings(output), nil
+}
+
+func ignoringWarnings(commandOutput string) string {
+	trimmedOutput := strings.TrimSpace(commandOutput)
+	split := strings.Split(trimmedOutput, "\n")
+	// need to get last line in case the first line is a warning about how the error is ambiguous.
+	// At some point we should find a way to make it unambiguous
+	lastLine := split[len(split)-1]
+
+	return lastLine
 }
 
 // getFirstPushedCommit returns the first commit SHA which has been pushed to the ref's upstream.
@@ -336,7 +346,8 @@ func (c *CommitListBuilder) getFirstPushedCommit(refName string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimSpace(output), nil
+
+	return ignoringWarnings(output), nil
 }
 
 // getLog gets the git log.
