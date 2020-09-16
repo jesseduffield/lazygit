@@ -460,7 +460,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 1) If you want to learn about lazygit's features, watch this vid:
    https://youtu.be/CPLdltN7wgE
 
-3) If you're using git, that makes you a programmer! With your help we can make lazygit better, so consider becoming a contributor and joining the fun at
+2) If you're using git, that makes you a programmer! With your help we can make lazygit better, so consider becoming a contributor and joining the fun at
    https://github.com/jesseduffield/lazygit`,
 		}, &i18n.Message{
 			ID:    "GitconfigParseErr",
