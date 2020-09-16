@@ -452,7 +452,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 1) Als je meer van lazygit zijn features wilt leren bekijk dan deze video:
    https://youtu.be/CPLdltN7wgE
 
-3) Als je git gebruikt, ben je een programmeur! Met jouw hulp kunnen we lazygit verbeteren, dus overweeg om een ​​donateur te worden en mee te doen aan het plezier op
+2) Als je git gebruikt, ben je een programmeur! Met jouw hulp kunnen we lazygit verbeteren, dus overweeg om een ​​donateur te worden en mee te doen aan het plezier op
    https://github.com/jesseduffield/lazygit`,
 		}, &i18n.Message{
 			ID:    "GitconfigParseErr",
