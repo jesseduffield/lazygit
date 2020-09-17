@@ -66,7 +66,7 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 			},
 			func(output string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "blah\n", output)
+				assert.Equal(t, "blah", output)
 			},
 		},
 		{
@@ -86,7 +86,7 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 			},
 			func(output string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "blah\n", output)
+				assert.Equal(t, "blah", output)
 			},
 		},
 		{
