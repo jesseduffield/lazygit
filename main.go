@@ -39,7 +39,7 @@ func main() {
 	flaggy.Bool(&debuggingFlag, "d", "debug", "Run in debug mode with logging")
 
 	configFlag := false
-	flaggy.Bool(&configFlag, "c", "config", "Print the current default config")
+	flaggy.Bool(&configFlag, "c", "config", "Print the default config")
 
 	flaggy.Parse()
 
