@@ -332,15 +332,17 @@ func (gui *Gui) handleAmendCommitPress() error {
 		title:  strings.Title(gui.Tr.SLocalize("AmendLastCommit")),
 		prompt: gui.Tr.SLocalize("SureToAmend"),
 		handleConfirm: func() error {
-			ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
-			if err != nil {
-				return err
-			}
-			if !ok {
-				return nil
-			}
+			return gui.WithWaitingStatus(gui.Tr.SLocalize("AmendingStatus"), func() error {
+				ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
+				if err != nil {
+					return err
+				}
+				if !ok {
+					return nil
+				}
 
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			})
 		},
 	})
 }
