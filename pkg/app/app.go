@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -138,19 +139,33 @@ func (app *App) validateGitVersion() error {
 	if err != nil {
 		return minVersionError
 	}
-	// output should be something like: 'git version 2.23.0'
-	// first number in the string should be greater than 0
-	split := strings.Split(output, " ")
-	gitVersion := split[len(split)-1]
-	majorVersion, err := strconv.Atoi(gitVersion[0:1])
-	if err != nil {
-		return minVersionError
-	}
-	if majorVersion < 2 {
-		return minVersionError
+
+	if isGitVersionValid(output) {
+		return nil
 	}
 
-	return nil
+	return minVersionError
+}
+
+func isGitVersionValid(versionStr string) bool {
+	// output should be something like: 'git version 2.23.0 (blah)'
+	re := regexp.MustCompile(`[^\d]+([\d\.]+)`)
+	matches := re.FindStringSubmatch(versionStr)
+
+	if len(matches) == 0 {
+		return false
+	}
+
+	gitVersion := matches[1]
+	majorVersion, err := strconv.Atoi(gitVersion[0:1])
+	if err != nil {
+		return false
+	}
+	if majorVersion < 2 {
+		return false
+	}
+
+	return true
 }
 
 func (app *App) setupRepo() (bool, error) {
