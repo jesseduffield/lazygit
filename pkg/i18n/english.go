@@ -1150,6 +1150,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "copyBranchNameToClipboard",
 			Other: "copy branch name to clipboard",
 		}, &i18n.Message{
+			ID:    "copyFileNameToClipboard",
+			Other: "Copy the file name to the clipboard",
+		}, &i18n.Message{
+			ID:    "copyCommitFileNameToClipboard",
+			Other: "Copy the committed file name to the clipboard",
+		}, &i18n.Message{
 			ID:    "commitPrefixPatternError",
 			Other: "Error in commitPrefix pattern",
 		}, &i18n.Message{

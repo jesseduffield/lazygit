@@ -453,6 +453,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("fetch"),
 		},
 		{
+			ViewName:    "files",
+			Key:         gui.getKey("universal.copyToClipboard"),
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
+			Description: gui.Tr.SLocalize("copyFileNameToClipboard"),
+		},
+		{
 			ViewName:    "",
 			Key:         gui.getKey("universal.executeCustomCommand"),
 			Handler:     gui.handleCustomCommand,
@@ -866,6 +872,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("universal.copyToClipboard"),
 			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
 			Description: gui.Tr.SLocalize("copyCommitShaToClipboard"),
+		},
+		{
+			ViewName:    "commitFiles",
+			Key:         gui.getKey("universal.copyToClipboard"),
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
+			Description: gui.Tr.SLocalize("copyCommitFileNameToClipboard"),
 		},
 		{
 			ViewName:    "branches",
