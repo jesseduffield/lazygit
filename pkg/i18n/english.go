@@ -1151,7 +1151,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "copy branch name to clipboard",
 		}, &i18n.Message{
 			ID:    "copyFileNameToClipboard",
-			Other: "Copy the file name to the clipboard",
+			Other: "copy the file name to the clipboard",
 		}, &i18n.Message{
 			ID:    "copyCommitFileNameToClipboard",
 			Other: "Copy the committed file name to the clipboard",
