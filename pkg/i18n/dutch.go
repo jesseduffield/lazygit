@@ -1146,10 +1146,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			Other: "copieer branch name naar clipboard",
 		}, &i18n.Message{
 			ID:    "copyFileNameToClipboard",
-			Other: "Kopieer de bestandsnaam naar het klembord",
+			Other: "kopieer de bestandsnaam naar het klembord",
 		}, &i18n.Message{
 			ID:    "copyCommitFileNameToClipboard",
-			Other: "Kopieer de vastgelegde bestandsnaam naar het klembord",
+			Other: "kopieer de vastgelegde bestandsnaam naar het klembord",
 		}, &i18n.Message{
 			ID:    "commitPrefixPatternError",
 			Other: "Fout in commitPrefix patroon",
