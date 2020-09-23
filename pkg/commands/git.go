@@ -788,7 +788,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(file *File, plain bool, cached bool)
 		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
+	return fmt.Sprintf("git diff --no-ext-diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
@@ -1068,7 +1068,7 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchM
 		reverseFlag = " -R "
 	}
 
-	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --name-status %s %s %s", reverseFlag, from, to)
+	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --no-ext-diff --name-status %s %s %s", reverseFlag, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -1121,7 +1121,7 @@ func (c *GitCommand) ShowFileDiffCmdStr(from string, to string, reverse bool, fi
 		reverseFlag = " -R "
 	}
 
-	return fmt.Sprintf("git diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, fileName)
+	return fmt.Sprintf("git diff --no-ext-diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, fileName)
 }
 
 // CheckoutFile checks out the file for the given commit
