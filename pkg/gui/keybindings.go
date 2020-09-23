@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -175,7 +176,7 @@ func GetKeyDisplay(key interface{}) string {
 		keyInt = int(key)
 	}
 
-	return string(keyInt)
+	return fmt.Sprintf("%c", keyInt)
 }
 
 func (gui *Gui) getKey(name string) interface{} {
