@@ -246,7 +246,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 
 	for _, statusString := range statusStrings {
 		if strings.HasPrefix(statusString, "warning") {
-			c.Log.Warning(statusString)
+			c.Log.Warningf("warning when calling git status: %s", statusString)
 			continue
 		}
 		change := statusString[0:2]
@@ -792,8 +792,8 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(file *File, plain bool, cached bool)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
-	c.Log.Warn(patch)
 	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
+	c.Log.Infof("saving temporary patch to %s", filepath)
 	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
 	}

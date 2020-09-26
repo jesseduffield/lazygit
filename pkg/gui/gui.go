@@ -450,7 +450,7 @@ func (gui *Gui) Run() error {
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
-	gui.Log.Warn("starting main loop")
+	gui.Log.Info("starting main loop")
 
 	err = g.MainLoop()
 	return err

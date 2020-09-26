@@ -41,6 +41,9 @@ func main() {
 	configFlag := false
 	flaggy.Bool(&configFlag, "c", "config", "Print the default config")
 
+	logFlag := false
+	flaggy.Bool(&logFlag, "l", "logs", "Tail lazygit logs (intended to be used in a separate terminal tab to lazygit)")
+
 	flaggy.Parse()
 
 	if versionFlag {
@@ -50,6 +53,11 @@ func main() {
 
 	if configFlag {
 		fmt.Printf("%s\n", config.GetDefaultConfig())
+		os.Exit(0)
+	}
+
+	if logFlag {
+		app.TailLogs()
 		os.Exit(0)
 	}
 

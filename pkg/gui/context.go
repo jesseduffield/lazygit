@@ -610,7 +610,6 @@ func (gui *Gui) onViewFocusLost(v *gocui.View, newView *gocui.View) error {
 		}
 	}
 
-	gui.Log.Info(v.Name() + " focus lost")
 	return nil
 }
 

@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"unsafe"
 
@@ -27,6 +28,9 @@ const (
 	backgroundRed       = 0x40
 	backgroundIntensity = 0x80
 	backgroundMask      = (backgroundRed | backgroundBlue | backgroundGreen | backgroundIntensity)
+	commonLvbUnderscore = 0x8000
+
+	cENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x4
 )
 
 const (
@@ -78,6 +82,8 @@ var (
 	procGetConsoleCursorInfo       = kernel32.NewProc("GetConsoleCursorInfo")
 	procSetConsoleCursorInfo       = kernel32.NewProc("SetConsoleCursorInfo")
 	procSetConsoleTitle            = kernel32.NewProc("SetConsoleTitleW")
+	procGetConsoleMode             = kernel32.NewProc("GetConsoleMode")
+	procSetConsoleMode             = kernel32.NewProc("SetConsoleMode")
 	procCreateConsoleScreenBuffer  = kernel32.NewProc("CreateConsoleScreenBuffer")
 )
 
@@ -89,6 +95,7 @@ type Writer struct {
 	oldattr   word
 	oldpos    coord
 	rest      bytes.Buffer
+	mutex     sync.Mutex
 }
 
 // NewColorable returns new instance of Writer which handles escape sequence from File.
@@ -98,6 +105,10 @@ func NewColorable(file *os.File) io.Writer {
 	}
 
 	if isatty.IsTerminal(file.Fd()) {
+		var mode uint32
+		if r, _, _ := procGetConsoleMode.Call(file.Fd(), uintptr(unsafe.Pointer(&mode))); r != 0 && mode&cENABLE_VIRTUAL_TERMINAL_PROCESSING != 0 {
+			return file
+		}
 		var csbi consoleScreenBufferInfo
 		handle := syscall.Handle(file.Fd())
 		procGetConsoleScreenBufferInfo.Call(uintptr(handle), uintptr(unsafe.Pointer(&csbi)))
@@ -424,6 +435,8 @@ func atoiWithDefault(s string, def int) (int, error) {
 
 // Write writes data on console
 func (w *Writer) Write(data []byte) (n int, err error) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
 	var csbi consoleScreenBufferInfo
 	procGetConsoleScreenBufferInfo.Call(uintptr(w.handle), uintptr(unsafe.Pointer(&csbi)))
 
@@ -675,14 +688,19 @@ loop:
 					switch {
 					case n == 0 || n == 100:
 						attr = w.oldattr
-					case 1 <= n && n <= 5:
+					case n == 4:
+						attr |= commonLvbUnderscore
+					case (1 <= n && n <= 3) || n == 5:
 						attr |= foregroundIntensity
-					case n == 7:
-						attr = ((attr & foregroundMask) << 4) | ((attr & backgroundMask) >> 4)
-					case n == 22 || n == 25:
-						attr |= foregroundIntensity
-					case n == 27:
-						attr = ((attr & foregroundMask) << 4) | ((attr & backgroundMask) >> 4)
+					case n == 7 || n == 27:
+						attr =
+							(attr &^ (foregroundMask | backgroundMask)) |
+								((attr & foregroundMask) << 4) |
+								((attr & backgroundMask) >> 4)
+					case n == 22:
+						attr &^= foregroundIntensity
+					case n == 24:
+						attr &^= commonLvbUnderscore
 					case 30 <= n && n <= 37:
 						attr &= backgroundMask
 						if (n-30)&1 != 0 {
@@ -1002,4 +1020,24 @@ func n256setup() {
 		n256foreAttr[i] = c.foregroundAttr()
 		n256backAttr[i] = c.backgroundAttr()
 	}
+}
+
+// EnableColorsStdout enable colors if possible.
+func EnableColorsStdout(enabled *bool) func() {
+	var mode uint32
+	h := os.Stdout.Fd()
+	if r, _, _ := procGetConsoleMode.Call(h, uintptr(unsafe.Pointer(&mode))); r != 0 {
+		if r, _, _ = procSetConsoleMode.Call(h, uintptr(mode|cENABLE_VIRTUAL_TERMINAL_PROCESSING)); r != 0 {
+			if enabled != nil {
+				*enabled = true
+			}
+			return func() {
+				procSetConsoleMode.Call(h, uintptr(mode))
+			}
+		}
+	}
+	if enabled != nil {
+		*enabled = true
+	}
+	return func() {}
 }

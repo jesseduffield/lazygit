@@ -58,6 +58,7 @@ includes_Darwin='
 #define _DARWIN_USE_64_BIT_INODE
 #include <stdint.h>
 #include <sys/attr.h>
+#include <sys/clonefile.h>
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/ptrace.h>
@@ -193,6 +194,8 @@ struct ltchars {
 #include <sys/xattr.h>
 #include <linux/bpf.h>
 #include <linux/can.h>
+#include <linux/can/error.h>
+#include <linux/can/raw.h>
 #include <linux/capability.h>
 #include <linux/cryptouser.h>
 #include <linux/devlink.h>
@@ -514,6 +517,7 @@ ccflags="$@"
 		$2 ~ /^CP_/ ||
 		$2 ~ /^CPUSTATES$/ ||
 		$2 ~ /^ALG_/ ||
+		$2 ~ /^FI(CLONE|DEDUPERANGE)/ ||
 		$2 ~ /^FS_(POLICY_FLAGS|KEY_DESC|ENCRYPTION_MODE|[A-Z0-9_]+_KEY_SIZE)/ ||
 		$2 ~ /^FS_IOC_.*(ENCRYPTION|VERITY|[GS]ETFLAGS)/ ||
 		$2 ~ /^FS_VERITY_/ ||

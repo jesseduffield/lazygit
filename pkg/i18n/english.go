@@ -337,9 +337,6 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "Error",
 			Other: "Error",
 		}, &i18n.Message{
-			ID:    "resizingPopupPanel",
-			Other: "resizing popup panel",
-		}, &i18n.Message{
 			ID:    "RunningSubprocess",
 			Other: "running subprocess",
 		}, &i18n.Message{

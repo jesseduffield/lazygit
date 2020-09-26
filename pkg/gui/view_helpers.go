@@ -27,6 +27,39 @@ const (
 	STATUS
 )
 
+func getScopeNames(scopes []int) []string {
+	scopeNameMap := map[int]string{
+		COMMITS:  "commits",
+		BRANCHES: "branches",
+		FILES:    "files",
+		STASH:    "stash",
+		REFLOG:   "reflog",
+		TAGS:     "tags",
+		REMOTES:  "remotes",
+		STATUS:   "status",
+	}
+
+	scopeNames := make([]string, len(scopes))
+	for i, scope := range scopes {
+		scopeNames[i] = scopeNameMap[scope]
+	}
+
+	return scopeNames
+}
+
+func getModeName(mode int) string {
+	switch mode {
+	case SYNC:
+		return "sync"
+	case ASYNC:
+		return "async"
+	case BLOCK_UI:
+		return "block-ui"
+	default:
+		return "unknown mode"
+	}
+}
+
 const (
 	SYNC     = iota // wait until everything is done before returning
 	ASYNC           // return immediately, allowing each independent thing to update itself
@@ -48,6 +81,19 @@ func intArrToMap(arr []int) map[int]bool {
 }
 
 func (gui *Gui) refreshSidePanels(options refreshOptions) error {
+	if options.scope == nil {
+		gui.Log.Infof(
+			"refreshing all scopes in %s mode",
+			getModeName(options.mode),
+		)
+	} else {
+		gui.Log.Infof(
+			"refreshing the following scopes in %s mode: %s",
+			getModeName(options.mode),
+			strings.Join(getScopeNames(options.scope), ","),
+		)
+	}
+
 	wg := sync.WaitGroup{}
 
 	f := func() {
@@ -283,7 +329,6 @@ func (gui *Gui) resizePopupPanel(v *gocui.View) error {
 	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
 		return nil
 	}
-	gui.Log.Info(gui.Tr.SLocalize("resizingPopupPanel"))
 	_, err := gui.g.SetView(v.Name(), x0, y0, x1, y1, 0)
 	return err
 }

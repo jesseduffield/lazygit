@@ -62,7 +62,6 @@ func (gui *Gui) WithWaitingStatus(name string, f func() error) error {
 			defer ticker.Stop()
 			for range ticker.C {
 				appStatus := gui.statusManager.getStatusString()
-				gui.Log.Warn(appStatus)
 				if appStatus == "" {
 					return
 				}

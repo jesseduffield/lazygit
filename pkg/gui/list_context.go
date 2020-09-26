@@ -412,7 +412,6 @@ func (gui *Gui) subCommitsListContext() *ListContext {
 		ResetMainViewOriginOnFocus: true,
 		Kind:                       SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			gui.Log.Warn("getting display strings for sub commits")
 			return presentation.GetCommitListDisplayStrings(gui.State.SubCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
 		},
 		SelectedItem: func() (ListItem, bool) {

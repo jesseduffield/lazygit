@@ -410,11 +410,12 @@ func getDefaultAppState() []byte {
   `)
 }
 
-// // commenting this out until we use it again
-// func homeDirectory() string {
-// 	usr, err := user.Current()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	return usr.HomeDir
-// }
+func globalConfigDir() string {
+	configDirs := configdir.New("jesseduffield", "lazygit")
+	configDir := configDirs.QueryFolders(configdir.Global)[0]
+	return configDir.Path
+}
+
+func LogPath() string {
+	return filepath.Join(globalConfigDir(), "development.log")
+}
