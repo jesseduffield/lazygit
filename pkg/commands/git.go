@@ -911,6 +911,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	}
 
 	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty %s", baseSha)
+	c.Log.WithField("command", cmdStr).Info("RunCommand")
 	splitCmd := str.ToArgv(cmdStr)
 
 	cmd := c.OSCommand.command(splitCmd[0], splitCmd[1:]...)
