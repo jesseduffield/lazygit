@@ -121,7 +121,12 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 					for i, option := range prompt.Options {
 						option := option
 
-						name, err := gui.resolveTemplate(option.Name, promptResponses)
+						nameTemplate := option.Name
+						if nameTemplate == "" {
+							// this allows you to only pass values rather than bother with names/descriptions
+							nameTemplate = option.Value
+						}
+						name, err := gui.resolveTemplate(nameTemplate, promptResponses)
 						if err != nil {
 							return gui.surfaceError(err)
 						}
