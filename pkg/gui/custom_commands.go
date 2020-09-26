@@ -88,13 +88,25 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 			// going backwards so the outermost prompt is the first one
 			prompt := customCommand.Prompts[idx]
 
-			wrappedF := f // need to do this because f's value will change with each iteration
+			// need to do this because f's value will change with each iteration
+			wrappedF := f
+
 			switch prompt.Type {
 			case "prompt":
 				f = func() error {
+					title, err := gui.resolveTemplate(prompt.Title, promptResponses)
+					if err != nil {
+						return gui.surfaceError(err)
+					}
+
+					initialValue, err := gui.resolveTemplate(prompt.InitialValue, promptResponses)
+					if err != nil {
+						return gui.surfaceError(err)
+					}
+
 					return gui.prompt(
-						prompt.Title,
-						prompt.InitialValue,
+						title,
+						initialValue,
 						func(str string) error {
 							promptResponses[idx] = str
 
@@ -103,22 +115,43 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 					)
 				}
 			case "menu":
-				// need to make a menu here some how
-				menuItems := make([]*menuItem, len(prompt.Options))
-				for i, option := range prompt.Options {
-					option := option
-					menuItems[i] = &menuItem{
-						displayStrings: []string{option.Name, option.Description},
-						onPress: func() error {
-							promptResponses[idx] = option.Value
-
-							return wrappedF()
-						},
-					}
-				}
-
 				f = func() error {
-					return gui.createMenu(prompt.Title, menuItems, createMenuOptions{showCancel: true})
+					// need to make a menu here some how
+					menuItems := make([]*menuItem, len(prompt.Options))
+					for i, option := range prompt.Options {
+						option := option
+
+						name, err := gui.resolveTemplate(option.Name, promptResponses)
+						if err != nil {
+							return gui.surfaceError(err)
+						}
+
+						description, err := gui.resolveTemplate(option.Description, promptResponses)
+						if err != nil {
+							return gui.surfaceError(err)
+						}
+
+						value, err := gui.resolveTemplate(option.Value, promptResponses)
+						if err != nil {
+							return gui.surfaceError(err)
+						}
+
+						menuItems[i] = &menuItem{
+							displayStrings: []string{name, description},
+							onPress: func() error {
+								promptResponses[idx] = value
+
+								return wrappedF()
+							},
+						}
+					}
+
+					title, err := gui.resolveTemplate(prompt.Title, promptResponses)
+					if err != nil {
+						return gui.surfaceError(err)
+					}
+
+					return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 				}
 			default:
 				return gui.createErrorPanel("custom command prompt must have a type of 'prompt' or 'menu'")
