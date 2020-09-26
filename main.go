@@ -36,13 +36,13 @@ func main() {
 	flaggy.Bool(&versionFlag, "v", "version", "Print the current version")
 
 	debuggingFlag := false
-	flaggy.Bool(&debuggingFlag, "d", "debug", "Run in debug mode with logging")
+	flaggy.Bool(&debuggingFlag, "d", "debug", "Run in debug mode with logging (see --logs flag below). Use the LOG_LEVEL env var to set the log level (debug/info/warn/error)")
+
+	logFlag := false
+	flaggy.Bool(&logFlag, "l", "logs", "Tail lazygit logs (intended to be used when `lazygit --debug` is called in a separate terminal tab)")
 
 	configFlag := false
 	flaggy.Bool(&configFlag, "c", "config", "Print the default config")
-
-	logFlag := false
-	flaggy.Bool(&logFlag, "l", "logs", "Tail lazygit logs (intended to be used in a separate terminal tab to lazygit)")
 
 	flaggy.Parse()
 
