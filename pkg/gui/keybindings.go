@@ -189,7 +189,7 @@ func (gui *Gui) getKey(name string) interface{} {
 	if runeCount > 1 {
 		binding := keymap[strings.ToLower(key)]
 		if binding == nil {
-			log.Fatalf("Unrecognized key %s for keybinding %s", strings.ToLower(key), name)
+			log.Fatalf("Unrecognized key %s for keybinding %s. For permitted values see https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md", strings.ToLower(key), name)
 		} else {
 			return binding
 		}

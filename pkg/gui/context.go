@@ -36,6 +36,29 @@ const (
 	COMMIT_MESSAGE_CONTEXT_KEY      = "commitMessage"
 )
 
+var allContextKeys = []string{
+	STATUS_CONTEXT_KEY,
+	FILES_CONTEXT_KEY,
+	LOCAL_BRANCHES_CONTEXT_KEY,
+	REMOTES_CONTEXT_KEY,
+	REMOTE_BRANCHES_CONTEXT_KEY,
+	TAGS_CONTEXT_KEY,
+	BRANCH_COMMITS_CONTEXT_KEY,
+	REFLOG_COMMITS_CONTEXT_KEY,
+	SUB_COMMITS_CONTEXT_KEY,
+	COMMIT_FILES_CONTEXT_KEY,
+	STASH_CONTEXT_KEY,
+	MAIN_NORMAL_CONTEXT_KEY,
+	MAIN_MERGING_CONTEXT_KEY,
+	MAIN_PATCH_BUILDING_CONTEXT_KEY,
+	MAIN_STAGING_CONTEXT_KEY,
+	MENU_CONTEXT_KEY,
+	CREDENTIALS_CONTEXT_KEY,
+	CONFIRMATION_CONTEXT_KEY,
+	SEARCH_CONTEXT_KEY,
+	COMMIT_MESSAGE_CONTEXT_KEY,
+}
+
 type Context interface {
 	HandleFocus() error
 	HandleFocusLost() error
@@ -672,14 +695,24 @@ type tabContext struct {
 	contexts []Context
 }
 
-func (gui *Gui) contextForContextKey(contextKey string) Context {
+func (gui *Gui) mustContextForContextKey(contextKey string) Context {
+	context, ok := gui.contextForContextKey(contextKey)
+
+	if !ok {
+		panic(fmt.Sprintf("context now found for key %s", contextKey))
+	}
+
+	return context
+}
+
+func (gui *Gui) contextForContextKey(contextKey string) (Context, bool) {
 	for _, context := range gui.allContexts() {
 		if context.GetKey() == contextKey {
-			return context
+			return context, true
 		}
 	}
 
-	panic(fmt.Sprintf("context now found for key %s", contextKey))
+	return nil, false
 }
 
 func (gui *Gui) rerenderView(viewName string) error {
@@ -689,7 +722,7 @@ func (gui *Gui) rerenderView(viewName string) error {
 	}
 
 	contextKey := v.Context
-	context := gui.contextForContextKey(contextKey)
+	context := gui.mustContextForContextKey(contextKey)
 
 	return context.HandleRender()
 }

@@ -176,7 +176,7 @@ func (gui *Gui) rerenderContextViewIfPresent(contextKey string) error {
 		return nil
 	}
 
-	context := gui.contextForContextKey(contextKey)
+	context := gui.mustContextForContextKey(contextKey)
 
 	viewName := context.GetViewName()
 
