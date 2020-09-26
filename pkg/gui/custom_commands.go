@@ -3,6 +3,7 @@ package gui
 import (
 	"bytes"
 	"log"
+	"strings"
 	"text/template"
 
 	"github.com/fatih/color"
@@ -211,12 +212,15 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 
 	for _, customCommand := range customCommands {
 		var viewName string
-		if customCommand.Context == "global" || customCommand.Context == "" {
+		switch customCommand.Context {
+		case "global":
 			viewName = ""
-		} else {
-			context := gui.contextForContextKey(customCommand.Context)
-			if context == nil {
-				log.Fatalf("Error when setting custom command keybindings: unknown context: %s", customCommand.Context)
+		case "":
+			log.Fatalf("Error parsing custom command keybindings: context not provided (use context: 'global' for the global context). Key: %s, Command: %s", customCommand.Key, customCommand.Command)
+		default:
+			context, ok := gui.contextForContextKey(customCommand.Context)
+			if !ok {
+				log.Fatalf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeys, ", "))
 			}
 			// here we assume that a given context will always belong to the same view.
 			// Currently this is a safe bet but it's by no means guaranteed in the long term
