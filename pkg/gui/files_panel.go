@@ -14,6 +14,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mgutz/str"
 )
 
 // list panel functions
@@ -356,13 +357,14 @@ func (gui *Gui) handleCommitEditorPress() error {
 		})
 	}
 
-	gui.PrepareSubProcess("git", "commit")
+	gui.PrepareSubProcess("git commit")
 	return nil
 }
 
 // PrepareSubProcess - prepare a subprocess for execution and tell the gui to switch to it
-func (gui *Gui) PrepareSubProcess(commands ...string) {
-	gui.SubProcess = gui.GitCommand.PrepareCommitSubProcess()
+func (gui *Gui) PrepareSubProcess(command string) {
+	splitCmd := str.ToArgv(command)
+	gui.SubProcess = gui.OSCommand.PrepareSubProcess(splitCmd[0], splitCmd[1:]...)
 	gui.g.Update(func(g *gocui.Gui) error {
 		return gui.Errors.ErrSubProcess
 	})

@@ -1563,41 +1563,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	return bindings
 }
 
-func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
-	bindings := []*Binding{}
-
-	ms := gui.Config.GetUserConfig().GetStringMap("customCommands")
-	for contextKey := range ms {
-		var viewName string
-		if contextKey == "global" {
-			viewName = ""
-		} else {
-			context := gui.contextForContextKey(contextKey)
-			if context == nil {
-				log.Fatalf("Error when setting custom command keybindings: unknown context: %s", contextKey)
-			}
-			// here we assume that a given context will always belong to the same view.
-			// Currently this is a safe bet but it's by no means guaranteed in the long term
-			// and we might need to make some changes in the future to support it.
-			viewName = context.GetViewName()
-		}
-
-		keyMap := gui.Config.GetUserConfig().GetStringMapString(fmt.Sprintf("customCommands.%s", contextKey))
-		for key, command := range keyMap {
-			bindings = append(bindings, &Binding{
-				ViewName:    viewName,
-				Contexts:    []string{contextKey},
-				Key:         gui.getKey(key),
-				Modifier:    gocui.ModNone,
-				Handler:     gui.wrappedHandler(gui.handleCustomCommandKeybinding(command)),
-				Description: command,
-			})
-		}
-	}
-
-	return bindings
-}
-
 func (gui *Gui) keybindings() error {
 	bindings := gui.GetCustomCommandKeybindings()
 

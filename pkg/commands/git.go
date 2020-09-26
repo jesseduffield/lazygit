@@ -705,11 +705,6 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git checkout %s %s", forceArg, branch), RunCommandOptions{EnvVars: options.EnvVars})
 }
 
-// PrepareCommitSubProcess prepares a subprocess for `git commit`
-func (c *GitCommand) PrepareCommitSubProcess() *exec.Cmd {
-	return c.OSCommand.PrepareSubProcess("git", "commit")
-}
-
 // PrepareCommitAmendSubProcess prepares a subprocess for `git commit --amend --allow-empty`
 func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
 	return c.OSCommand.PrepareSubProcess("git", "commit", "--amend", "--allow-empty")
