@@ -72,7 +72,11 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 				return nil
 			}
 
-			return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCustomCommandStatus"), func() error {
+			loadingText := customCommand.LoadingText
+			if loadingText == "" {
+				loadingText = gui.Tr.SLocalize("runningCustomCommandStatus")
+			}
+			return gui.WithWaitingStatus(loadingText, func() error {
 				gui.OSCommand.PrepareSubProcess(cmdStr)
 
 				if err := gui.OSCommand.RunCommand(cmdStr); err != nil {
@@ -188,11 +192,12 @@ type CustomCommandPrompt struct {
 }
 
 type CustomCommand struct {
-	Key        string                `yaml:"key"`
-	Context    string                `yaml:"context"`
-	Command    string                `yaml:"command"`
-	Subprocess bool                  `yaml:"subprocess"`
-	Prompts    []CustomCommandPrompt `yaml:"prompts"`
+	Key         string                `yaml:"key"`
+	Context     string                `yaml:"context"`
+	Command     string                `yaml:"command"`
+	Subprocess  bool                  `yaml:"subprocess"`
+	Prompts     []CustomCommandPrompt `yaml:"prompts"`
+	LoadingText string                `yaml:"loadingText"`
 }
 
 func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
