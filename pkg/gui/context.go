@@ -477,11 +477,13 @@ func (gui *Gui) activateContext(c Context) error {
 	gui.setViewTabForContext(c)
 
 	if _, err := gui.g.SetCurrentView(viewName); err != nil {
-		return err
+		// if view no longer exists, pop again
+		return gui.returnFromContext()
 	}
 
 	if _, err := gui.g.SetViewOnTop(viewName); err != nil {
-		return err
+		// if view no longer exists, pop again
+		return gui.returnFromContext()
 	}
 
 	// if the new context's view was previously displaying another context, render the new context
