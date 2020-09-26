@@ -88,29 +88,63 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 			// going backwards so the outermost prompt is the first one
 			prompt := customCommand.Prompts[idx]
 
-			gui.Log.Warn(prompt.Title)
-
 			wrappedF := f // need to do this because f's value will change with each iteration
-			f = func() error {
-				return gui.prompt(
-					prompt.Title,
-					prompt.InitialValue,
-					func(str string) error {
-						promptResponses[idx] = str
+			switch prompt.Type {
+			case "prompt":
+				f = func() error {
+					return gui.prompt(
+						prompt.Title,
+						prompt.InitialValue,
+						func(str string) error {
+							promptResponses[idx] = str
 
-						return wrappedF()
-					},
-				)
+							return wrappedF()
+						},
+					)
+				}
+			case "menu":
+				// need to make a menu here some how
+				menuItems := make([]*menuItem, len(prompt.Options))
+				for i, option := range prompt.Options {
+					option := option
+					menuItems[i] = &menuItem{
+						displayStrings: []string{option.Name, option.Description},
+						onPress: func() error {
+							promptResponses[idx] = option.Value
+
+							return wrappedF()
+						},
+					}
+				}
+
+				f = func() error {
+					return gui.createMenu(prompt.Title, menuItems, createMenuOptions{showCancel: true})
+				}
+			default:
+				return gui.createErrorPanel("custom command prompt must have a type of 'prompt' or 'menu'")
 			}
+
 		}
 
 		return f()
 	}
 }
 
+type CustomCommandMenuOption struct {
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Value       string `yaml:"value"`
+}
+
 type CustomCommandPrompt struct {
-	Title        string `yaml:"title"`
+	Type  string `yaml:"type"` // one of 'prompt' and 'menu'
+	Title string `yaml:"title"`
+
+	// this only apply to prompts
 	InitialValue string `yaml:"initialValue"`
+
+	// this only applies to menus
+	Options []CustomCommandMenuOption
 }
 
 type CustomCommand struct {
