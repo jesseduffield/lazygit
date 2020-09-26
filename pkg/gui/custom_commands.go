@@ -20,7 +20,7 @@ type CustomCommandObjects struct {
 	SelectedTag          *commands.Tag
 	SelectedStashEntry   *commands.StashEntry
 	SelectedCommitFile   *commands.CommitFile
-	CurrentBranch        *commands.Branch
+	CheckedOutBranch     *commands.Branch
 }
 
 func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func() error {
@@ -36,7 +36,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 			SelectedStashEntry:   gui.getSelectedStashEntry(),
 			SelectedCommitFile:   gui.getSelectedCommitFile(),
 			SelectedSubCommit:    gui.getSelectedSubCommit(),
-			CurrentBranch:        gui.currentBranch(),
+			CheckedOutBranch:     gui.currentBranch(),
 		}
 
 		tmpl, err := template.New("custom command template").Parse(customCommand.Command)

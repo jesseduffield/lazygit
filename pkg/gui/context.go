@@ -32,7 +32,7 @@ const (
 	MENU_CONTEXT_KEY                = "menu"
 	CREDENTIALS_CONTEXT_KEY         = "credentials"
 	CONFIRMATION_CONTEXT_KEY        = "confirmation"
-	SEARCH_CONTEXT_KEY              = "confirmation"
+	SEARCH_CONTEXT_KEY              = "search"
 	COMMIT_MESSAGE_CONTEXT_KEY      = "commitMessage"
 )
 
