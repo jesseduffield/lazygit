@@ -1,6 +1,9 @@
 # github.com/atotto/clipboard v0.1.2
 ## explicit
 github.com/atotto/clipboard
+# github.com/aybabtme/humanlog v0.4.1
+## explicit
+github.com/aybabtme/humanlog
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 ## explicit
 github.com/cloudfoundry/jibber_jabber
@@ -16,7 +19,7 @@ github.com/emirpasic/gods/lists/arraylist
 github.com/emirpasic/gods/trees
 github.com/emirpasic/gods/trees/binaryheap
 github.com/emirpasic/gods/utils
-# github.com/fatih/color v1.7.0
+# github.com/fatih/color v1.9.0
 ## explicit
 github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.7
@@ -79,6 +82,9 @@ github.com/go-git/go-git/v5/utils/merkletrie/filesystem
 github.com/go-git/go-git/v5/utils/merkletrie/index
 github.com/go-git/go-git/v5/utils/merkletrie/internal/frame
 github.com/go-git/go-git/v5/utils/merkletrie/noder
+# github.com/go-logfmt/logfmt v0.5.0
+## explicit
+github.com/go-logfmt/logfmt
 # github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 ## explicit
 github.com/golang-collections/collections/stack
@@ -116,13 +122,14 @@ github.com/kevinburke/ssh_config
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
 ## explicit
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
+github.com/kr/logfmt
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
-# github.com/mattn/go-colorable v0.1.4
+# github.com/mattn/go-colorable v0.1.7
 ## explicit
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.11
-## explicit
+# github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.9
 ## explicit
@@ -207,7 +214,7 @@ golang.org/x/crypto/ssh/knownhosts
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8
+# golang.org/x/sys v0.0.0-20200923182605-d9f96fdee20d
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader

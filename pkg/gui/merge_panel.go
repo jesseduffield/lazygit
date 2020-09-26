@@ -30,7 +30,6 @@ func (gui *Gui) findConflicts(content string) []commands.Conflict {
 	var newConflict commands.Conflict
 	for i, line := range utils.SplitLines(content) {
 		trimmedLine := strings.TrimPrefix(line, "++")
-		gui.Log.Info(trimmedLine)
 		if trimmedLine == "<<<<<<< HEAD" || trimmedLine == "<<<<<<< MERGE_HEAD" || trimmedLine == "<<<<<<< Updated upstream" || trimmedLine == "<<<<<<< ours" {
 			newConflict = commands.Conflict{Start: i}
 		} else if trimmedLine == "=======" {
@@ -140,7 +139,6 @@ func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
 			output += line
 		}
 	}
-	gui.Log.Info(output)
 	return ioutil.WriteFile(gitFile.Name, []byte(output), 0644)
 }
 

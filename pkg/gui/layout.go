@@ -327,7 +327,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	// here is a good place log some stuff
-	// if you download humanlog and do tail -f development.log | humanlog
+	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
 	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
 	return gui.resizeCurrentPopupPanel()

@@ -182,7 +182,7 @@ func (gui *Gui) rerenderContextViewIfPresent(contextKey string) error {
 
 	view, err := gui.g.View(viewName)
 	if err != nil {
-		gui.Log.Warn(err)
+		gui.Log.Error(err)
 		return nil
 	}
 

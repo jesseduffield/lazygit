@@ -1,0 +1,20 @@
+build:
+  main: ./cmd/humanlog/main.go
+  binary: humanlog
+  ldflags: 
+    - -s -w -X main.build={{.Version}}
+  goos:
+    - windows
+    - darwin
+    - linux
+  goarch:
+    - amd64
+
+brews:
+  - github:
+      owner: aybabtme
+      name: homebrew-tap
+
+nfpms:
+  - formats:
+      - deb

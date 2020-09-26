@@ -329,9 +329,6 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "Error",
 			Other: "Foutmelding",
 		}, &i18n.Message{
-			ID:    "resizingPopupPanel",
-			Other: "resizen popup paneel",
-		}, &i18n.Message{
 			ID:    "RunningSubprocess",
 			Other: "subprocess lopend",
 		}, &i18n.Message{

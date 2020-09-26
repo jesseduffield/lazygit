@@ -59,15 +59,14 @@ func (w *fileWatcher) popOldestFilename() {
 	w.WatchedFilenames = w.WatchedFilenames[1:]
 	if err := w.Watcher.Remove(oldestFilename); err != nil {
 		// swallowing errors here because it doesn't really matter if we can't unwatch a file
-		w.Log.Warn(err)
+		w.Log.Error(err)
 	}
 }
 
 func (w *fileWatcher) watchFilename(filename string) {
-	w.Log.Warn(filename)
 	if err := w.Watcher.Add(filename); err != nil {
 		// swallowing errors here because it doesn't really matter if we can't watch a file
-		w.Log.Warn(err)
+		w.Log.Error(err)
 	}
 
 	// assume we're watching it now to be safe
@@ -138,7 +137,7 @@ func (gui *Gui) watchFilesForChanges() {
 			// watch for errors
 			case err := <-gui.fileWatcher.Watcher.Errors:
 				if err != nil {
-					gui.Log.Warn(err)
+					gui.Log.Error(err)
 				}
 			}
 		}

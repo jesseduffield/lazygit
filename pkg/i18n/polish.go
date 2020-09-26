@@ -270,9 +270,6 @@ func addPolish(i18nObject *i18n.Bundle) error {
 			ID:    "Error",
 			Other: "Błąd",
 		}, &i18n.Message{
-			ID:    "resizingPopupPanel",
-			Other: "skalowanie wyskakującego panelu",
-		}, &i18n.Message{
 			ID:    "RunningSubprocess",
 			Other: "uruchomiony podproces",
 		}, &i18n.Message{

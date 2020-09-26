@@ -6,18 +6,20 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/aybabtme/humanlog"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
-	"github.com/shibukawa/configdir"
 	"github.com/sirupsen/logrus"
 )
 
@@ -47,12 +49,6 @@ func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
 	return log
 }
 
-func globalConfigDir() string {
-	configDirs := configdir.New("jesseduffield", "lazygit")
-	configDir := configDirs.QueryFolders(configdir.Global)[0]
-	return configDir.Path
-}
-
 func getLogLevel() logrus.Level {
 	strLevel := os.Getenv("LOG_LEVEL")
 	level, err := logrus.ParseLevel(strLevel)
@@ -62,10 +58,10 @@ func getLogLevel() logrus.Level {
 	return level
 }
 
-func newDevelopmentLogger(config config.AppConfigurer) *logrus.Logger {
+func newDevelopmentLogger(configurer config.AppConfigurer) *logrus.Logger {
 	log := logrus.New()
 	log.SetLevel(getLogLevel())
-	file, err := os.OpenFile(filepath.Join(globalConfigDir(), "development.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(config.LogPath(), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
 	}
@@ -280,4 +276,37 @@ func (app *App) KnownError(err error) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func TailLogs() {
+	logFilePath := config.LogPath()
+
+	fmt.Printf("Tailing log file %s\n\n", logFilePath)
+
+	_, err := os.Stat(logFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Fatal("Log file does not exist. Run `lazygit --debug` first to create the log file")
+		}
+		log.Fatal(err)
+	}
+
+	cmd := exec.Command("tail", "-f", logFilePath)
+
+	stdout, _ := cmd.StdoutPipe()
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	opts := humanlog.DefaultOptions
+	opts.Truncates = false
+	if err := humanlog.Scanner(stdout, os.Stdout, opts); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+
+	os.Exit(0)
 }

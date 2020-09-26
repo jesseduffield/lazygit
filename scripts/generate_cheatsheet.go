@@ -123,7 +123,7 @@ func getBindingSections(mApp *app.App) []*bindingSection {
 	for _, group := range groupedBindings {
 		contextAndView := group.contextAndView
 		contextBindings := group.bindings
-		mApp.Log.Warn("viewname: " + contextAndView.viewName + ", context: " + contextAndView.context)
+		mApp.Log.Info("viewname: " + contextAndView.viewName + ", context: " + contextAndView.context)
 		viewName := contextAndView.viewName
 		if viewName == "" {
 			viewName = "global"

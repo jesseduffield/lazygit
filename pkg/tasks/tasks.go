@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
@@ -50,7 +51,9 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, linesToRead i
 		go func() {
 			<-stop
 			if err := commands.Kill(cmd); err != nil {
-				m.Log.Warn(err)
+				if !strings.Contains(err.Error(), "process already finished") {
+					m.Log.Errorf("error when running cmd task: %v", err)
+				}
 			}
 			if onDone != nil {
 				onDone()
@@ -120,7 +123,10 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, linesToRead i
 			}
 
 			if err := cmd.Wait(); err != nil {
-				m.Log.Warn(err)
+				// it's fine if we've killed this program ourselves
+				if !strings.Contains(err.Error(), "signal: killed") {
+					m.Log.Error(err)
+				}
 			}
 
 			m.refreshView()
@@ -170,15 +176,12 @@ func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error) error {
 		m.taskIDMutex.Lock()
 		m.newTaskId++
 		taskID := m.newTaskId
-		m.Log.Infof("starting task %d", taskID)
 		m.taskIDMutex.Unlock()
 
 		m.waitingMutex.Lock()
 		defer m.waitingMutex.Unlock()
 
-		m.Log.Infof("done waiting")
 		if taskID < m.newTaskId {
-			m.Log.Infof("returning cos the task is obsolete")
 			return
 		}
 
@@ -186,9 +189,7 @@ func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error) error {
 		notifyStopped := make(chan struct{})
 
 		if m.currentTask != nil {
-			m.Log.Info("asking task to stop")
 			m.currentTask.Stop()
-			m.Log.Info("task stopped")
 		}
 
 		m.currentTask = &Task{
@@ -203,7 +204,6 @@ func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error) error {
 				m.Log.Error(err) // might need an onError callback
 			}
 
-			m.Log.Infof("returning from task %d", taskID)
 			close(notifyStopped)
 		}()
 	}()
@@ -218,8 +218,6 @@ func (t *Task) Stop() {
 		return
 	}
 	close(t.stop)
-	t.Log.Info("closed stop channel, waiting for notifyStopped message")
 	<-t.notifyStopped
-	t.Log.Info("received notifystopped message")
 	t.stopped = true
 }
