@@ -5,8 +5,10 @@ import (
 	"log"
 	"text/template"
 
+	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type CustomCommandObjects struct {
@@ -92,7 +94,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 			wrappedF := f
 
 			switch prompt.Type {
-			case "prompt":
+			case "input":
 				f = func() error {
 					title, err := gui.resolveTemplate(prompt.Title, promptResponses)
 					if err != nil {
@@ -142,7 +144,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 						}
 
 						menuItems[i] = &menuItem{
-							displayStrings: []string{name, description},
+							displayStrings: []string{name, utils.ColoredString(description, color.FgYellow)},
 							onPress: func() error {
 								promptResponses[idx] = value
 
@@ -159,7 +161,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 					return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 				}
 			default:
-				return gui.createErrorPanel("custom command prompt must have a type of 'prompt' or 'menu'")
+				return gui.createErrorPanel("custom command prompt must have a type of 'input' or 'menu'")
 			}
 
 		}
@@ -175,7 +177,7 @@ type CustomCommandMenuOption struct {
 }
 
 type CustomCommandPrompt struct {
-	Type  string `yaml:"type"` // one of 'prompt' and 'menu'
+	Type  string `yaml:"type"` // one of 'input' and 'menu'
 	Title string `yaml:"title"`
 
 	// this only apply to prompts
