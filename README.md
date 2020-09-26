@@ -36,6 +36,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Undo/Redo](#undoredo)
 - [Configuration](#configuration)
   - [Custom pagers](#configuration)
+  - [Custom Commands](#configuration)
 - [Tutorials](#tutorials)
 - [Cool Features](#cool-features)
 - [Contributing](#contributing)
@@ -212,6 +213,12 @@ Check out the [configuration docs](docs/Config.md).
 ### Custom Pagers
 
 See the [docs](docs/Custom_Pagers.md)
+
+### Custom Commands
+
+If lazygit is missing a feature, there's a good chance you can implement it yourself with a custom command!
+
+See the [docs](docs/Custom_Command_Keybindings.md)
 
 ## Tutorials
 
