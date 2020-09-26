@@ -244,6 +244,9 @@ For contributor discussion about things not better discussed here in the repo, j
 
 [![Slack](/docs/resources/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/zt-5bo2clzo-hB8ZTVN5dWUCqj5QFiQVLA)
 
+Debugging Locally:
+Run `lazygit --debug` in one terminal tab and `lazygit --logs` in another to view the program and its log output side by side
+
 ## Donate
 
 If you would like to support the development of lazygit, consider [sponsoring me](https://github.com/sponsors/jesseduffield) (github is matching all donations dollar-for-dollar for 12 months)
