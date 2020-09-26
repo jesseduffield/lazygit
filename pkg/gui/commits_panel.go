@@ -85,8 +85,19 @@ func (gui *Gui) refreshCommits() error {
 
 	go func() {
 		_ = gui.refreshCommitsWithLimit()
-		if gui.g.CurrentView() == gui.getCommitFilesView() || (gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.Context.GetKey()) {
-			_ = gui.refreshCommitFilesView()
+		context, ok := gui.Contexts.CommitFiles.Context.GetParentContext()
+		if ok && context.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
+			// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
+			// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
+			// showing the contents of a different commit than the one we initially entered.
+			// Ideally we would know when to refresh the commit files context and when not to,
+			// or perhaps we could just pop that context off the stack whenever cycling windows.
+			// For now the awkwardness remains.
+			commit := gui.getSelectedLocalCommit()
+			if commit != nil {
+				gui.State.Panels.CommitFiles.refName = commit.RefName()
+				_ = gui.refreshCommitFilesView()
+			}
 		}
 		wg.Done()
 	}()
