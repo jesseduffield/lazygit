@@ -121,6 +121,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	if err != nil {
 		return app, err
 	}
+
 	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater, filterPath, showRecentRepos)
 	if err != nil {
 		return app, err
@@ -167,6 +168,11 @@ func isGitVersionValid(versionStr string) bool {
 func (app *App) setupRepo() (bool, error) {
 	if err := app.validateGitVersion(); err != nil {
 		return false, err
+	}
+
+	if os.Getenv("GIT_DIR") != "" {
+		// we've been given the git dir directly. We'll verify this dir when initializing our GitCommand object
+		return false, nil
 	}
 
 	// if we are not in a git repo, we ask if we want to `git init`
@@ -219,6 +225,14 @@ func (app *App) Run() error {
 	return err
 }
 
+func gitDir() string {
+	dir := os.Getenv("GIT_DIR")
+	if dir == "" {
+		return ".git"
+	}
+	return dir
+}
+
 // Rebase contains logic for when we've been run in demon mode, meaning we've
 // given lazygit as a command for git to call e.g. to edit a file
 func (app *App) Rebase() error {
@@ -230,7 +244,7 @@ func (app *App) Rebase() error {
 			return err
 		}
 
-	} else if strings.HasSuffix(os.Args[1], ".git/COMMIT_EDITMSG") {
+	} else if strings.HasSuffix(os.Args[1], filepath.Join(gitDir(), "COMMIT_EDITMSG")) { // TODO: test
 		// if we are rebasing and squashing, we'll see a COMMIT_EDITMSG
 		// but in this case we don't need to edit it, so we'll just return
 	} else {

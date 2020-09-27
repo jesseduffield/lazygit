@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/go-errors/errors"
@@ -22,8 +23,8 @@ var (
 func main() {
 	flaggy.DefaultParser.ShowVersionWithVersionFlag = false
 
-	repoPath := "."
-	flaggy.String(&repoPath, "p", "path", "Path of git repo")
+	repoPath := ""
+	flaggy.String(&repoPath, "p", "path", "Path of git repo. (Deprecated: use --git-dir for git directory and --work-tree for work tree directory)")
 
 	filterPath := ""
 	flaggy.String(&filterPath, "f", "filter", "Path to filter on in `git log -- <path>`. When in filter mode, the commits, reflog, and stash are filtered based on the given path, and some operations are restricted")
@@ -44,7 +45,30 @@ func main() {
 	configFlag := false
 	flaggy.Bool(&configFlag, "c", "config", "Print the default config")
 
+	workTree := ""
+	flaggy.String(&workTree, "w", "work-tree", "equivalent of the --work-tree git argument")
+
+	gitDir := ""
+	flaggy.String(&gitDir, "g", "git-dir", "equivalent of the --git-dir git argument")
+
 	flaggy.Parse()
+
+	if repoPath != "" {
+		if workTree != "" || gitDir != "" {
+			log.Fatal("--path option is incompatible with the --work-tree and --git-dir options")
+		}
+
+		workTree = repoPath
+		gitDir = filepath.Join(repoPath, ".git")
+	}
+
+	if workTree != "" {
+		os.Setenv("GIT_WORK_TREE", workTree)
+	}
+
+	if gitDir != "" {
+		os.Setenv("GIT_DIR", gitDir)
+	}
 
 	if versionFlag {
 		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s\n", commit, date, buildSource, version, runtime.GOOS, runtime.GOARCH)
@@ -61,8 +85,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if repoPath != "." {
-		if err := os.Chdir(repoPath); err != nil {
+	if workTree != "" {
+		if err := os.Chdir(workTree); err != nil {
 			log.Fatal(err.Error())
 		}
 	}
