@@ -36,7 +36,13 @@ customCommands:
     loadingText: 'creating branch'
 ```
 
-Custom command keybindings will appear alongside inbuilt keybindings when you view the options menu by pressing 'x'
+Looking at the command assigned to the 'n' key, here's what the result looks like:
+
+![](../../assets/custom-command-keybindings.gif)
+
+Custom command keybindings will appear alongside inbuilt keybindings when you view the options menu by pressing 'x':
+
+![](https://i.imgur.com/QB21FPx.png)
 
 For a given custom command, here are the allowed fields:
 | _field_ | _description_ | required |
