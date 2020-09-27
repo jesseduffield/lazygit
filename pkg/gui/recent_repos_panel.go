@@ -6,6 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -23,8 +24,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 				yellow.Sprint(innerPath),
 			},
 			onPress: func() error {
-				os.Unsetenv("GIT_WORK_TREE")
-				os.Unsetenv("GIT_DIR")
+				env.UnsetGitDirEnvs()
 				if err := os.Chdir(innerPath); err != nil {
 					return err
 				}

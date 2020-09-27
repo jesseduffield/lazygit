@@ -17,6 +17,7 @@ import (
 	"github.com/aybabtme/humanlog"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -170,7 +171,7 @@ func (app *App) setupRepo() (bool, error) {
 		return false, err
 	}
 
-	if os.Getenv("GIT_DIR") != "" {
+	if env.GetGitDirEnv() != "" {
 		// we've been given the git dir directly. We'll verify this dir when initializing our GitCommand object
 		return false, nil
 	}
@@ -226,7 +227,7 @@ func (app *App) Run() error {
 }
 
 func gitDir() string {
-	dir := os.Getenv("GIT_DIR")
+	dir := env.GetGitDirEnv()
 	if dir == "" {
 		return ".git"
 	}

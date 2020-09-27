@@ -11,6 +11,7 @@ import (
 	"github.com/integrii/flaggy"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 )
 
 var (
@@ -63,11 +64,11 @@ func main() {
 	}
 
 	if workTree != "" {
-		os.Setenv("GIT_WORK_TREE", workTree)
+		env.SetGitWorkTreeEnv(workTree)
 	}
 
 	if gitDir != "" {
-		os.Setenv("GIT_DIR", gitDir)
+		env.SetGitDirEnv(gitDir)
 	}
 
 	if versionFlag {

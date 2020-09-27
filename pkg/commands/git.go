@@ -18,6 +18,7 @@ import (
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -35,15 +36,18 @@ func verifyInGitRepo(runCmd func(string, ...interface{}) error) error {
 }
 
 func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {
-	if os.Getenv("GIT_DIR") != "" {
+	gitDir := env.GetGitDirEnv()
+	if gitDir != "" {
 		// we've been given the git directory explicitly so no need to navigate to it
-		_, err := stat(os.Getenv("GIT_DIR"))
+		_, err := stat(gitDir)
 		if err != nil {
 			return WrapError(err)
 		}
 
 		return nil
 	}
+
+	// we haven't been given the git dir explicitly so we assume it's in the current working directory as `.git/` (or an ancestor directory)
 
 	for {
 		_, err := stat(".git")
@@ -63,7 +67,7 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 }
 
 func setupRepository(openGitRepository func(string) (*gogit.Repository, error), sLocalize func(string) string) (*gogit.Repository, error) {
-	path := os.Getenv("GIT_DIR")
+	path := env.GetGitDirEnv()
 	if path == "" {
 		path = "."
 	}
@@ -149,8 +153,8 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 }
 
 func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filename string) ([]byte, error)) (string, error) {
-	if os.Getenv("GIT_DIR") != "" {
-		return os.Getenv("GIT_DIR"), nil
+	if env.GetGitDirEnv() != "" {
+		return env.GetGitDirEnv(), nil
 	}
 
 	f, err := stat(".git")
@@ -614,20 +618,20 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 
 // IsInMergeState states whether we are still mid-merge
 func (c *GitCommand) IsInMergeState() (bool, error) {
-	return c.OSCommand.FileExists(fmt.Sprintf("%s/MERGE_HEAD", c.DotGitDir))
+	return c.OSCommand.FileExists(filepath.Join(c.DotGitDir, "MERGE_HEAD"))
 }
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
 // and "interactive" for interactive rebase
 func (c *GitCommand) RebaseMode() (string, error) {
-	exists, err := c.OSCommand.FileExists(fmt.Sprintf("%s/rebase-apply", c.DotGitDir))
+	exists, err := c.OSCommand.FileExists(filepath.Join(c.DotGitDir, "rebase-apply"))
 	if err != nil {
 		return "", err
 	}
 	if exists {
 		return "normal", nil
 	}
-	exists, err = c.OSCommand.FileExists(fmt.Sprintf("%s/rebase-merge", c.DotGitDir))
+	exists, err = c.OSCommand.FileExists(filepath.Join(c.DotGitDir, "rebase-merge"))
 	if exists {
 		return "interactive", err
 	} else {
@@ -1006,7 +1010,7 @@ func (c *GitCommand) AmendTo(sha string) error {
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
 func (c *GitCommand) EditRebaseTodo(index int, action string) error {
-	fileName := fmt.Sprintf("%s/rebase-merge/git-rebase-todo", c.DotGitDir)
+	fileName := filepath.Join(c.DotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -1038,7 +1042,7 @@ func (c *GitCommand) getTodoCommitCount(content []string) int {
 
 // MoveTodoDown moves a rebase todo item down by one position
 func (c *GitCommand) MoveTodoDown(index int) error {
-	fileName := fmt.Sprintf("%s/rebase-merge/git-rebase-todo", c.DotGitDir)
+	fileName := filepath.Join(c.DotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
