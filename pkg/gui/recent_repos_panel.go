@@ -45,6 +45,14 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
 // so that we can open the same repo via the 'recent repos' menu
 func (gui *Gui) updateRecentRepoList() error {
+	if gui.GitCommand.IsBareRepo() {
+		// we could totally do this but it would require storing both the git-dir and the
+		// worktree in our recent repos list, which is a change that would need to be
+		// backwards compatible
+		gui.Log.Info("Not appending bare repo to recent repo list")
+		return nil
+	}
+
 	recentRepos := gui.Config.GetAppState().RecentRepos
 	currentRepo, err := os.Getwd()
 	if err != nil {

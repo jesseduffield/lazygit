@@ -24,7 +24,7 @@ func main() {
 	flaggy.DefaultParser.ShowVersionWithVersionFlag = false
 
 	repoPath := ""
-	flaggy.String(&repoPath, "p", "path", "Path of git repo. (Deprecated: use --git-dir for git directory and --work-tree for work tree directory)")
+	flaggy.String(&repoPath, "p", "path", "Path of git repo. (equivalent to --work-tree=<path> --git-dir=<path>/.git/)")
 
 	filterPath := ""
 	flaggy.String(&filterPath, "f", "filter", "Path to filter on in `git log -- <path>`. When in filter mode, the commits, reflog, and stash are filtered based on the given path, and some operations are restricted")
