@@ -66,10 +66,33 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 	}
 }
 
+// resolvePath takes a path containing a symlink and returns the true path
+func resolvePath(path string) (string, error) {
+	l, err := os.Lstat(path)
+	if err != nil {
+		return "", err
+	}
+
+	if l.Mode()&os.ModeSymlink == 0 {
+		return path, nil
+	}
+
+	return filepath.EvalSymlinks(path)
+}
+
 func setupRepository(openGitRepository func(string) (*gogit.Repository, error), sLocalize func(string) string) (*gogit.Repository, error) {
-	path := env.GetGitDirEnv()
-	if path == "" {
-		path = "."
+	unresolvedPath := env.GetGitDirEnv()
+	if unresolvedPath == "" {
+		var err error
+		unresolvedPath, err = os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	path, err := resolvePath(unresolvedPath)
+	if err != nil {
+		return nil, err
 	}
 
 	repository, err := openGitRepository(path)
