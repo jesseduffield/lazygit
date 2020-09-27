@@ -10,6 +10,7 @@ customCommands:
   - key: 'a'
     command: "git {{if .SelectedFile.HasUnstagedChanges}} add {{else}} reset {{end}} {{.SelectedFile.Name}}"
     context: 'files'
+    description: 'toggle file staged'
   - key: 'C'
     command: "git commit"
     context: 'global'
@@ -53,6 +54,7 @@ For a given custom command, here are the allowed fields:
 | subprocess | whether you want the command to run in a subprocess (necessary if you want to view the output of the command or provide user input) | no |
 | prompts | a list of prompts that will request user input before running the final command | no |
 | loadingText | text to display while waiting for command to finish | no |
+| description | text to display in the keybindings menu that appears when you press 'x' | no |
 
 ### Contexts
 
