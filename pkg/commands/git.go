@@ -35,6 +35,16 @@ func verifyInGitRepo(runCmd func(string, ...interface{}) error) error {
 }
 
 func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {
+	if os.Getenv("GIT_DIR") != "" {
+		// we've been given the git directory explicitly so no need to navigate to it
+		_, err := stat(os.Getenv("GIT_DIR"))
+		if err != nil {
+			return WrapError(err)
+		}
+
+		return nil
+	}
+
 	for {
 		_, err := stat(".git")
 
@@ -52,31 +62,29 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 	}
 }
 
-func setupRepositoryAndWorktree(openGitRepository func(string) (*gogit.Repository, error), sLocalize func(string) string) (repository *gogit.Repository, worktree *gogit.Worktree, err error) {
-	repository, err = openGitRepository(".")
+func setupRepository(openGitRepository func(string) (*gogit.Repository, error), sLocalize func(string) string) (*gogit.Repository, error) {
+	path := os.Getenv("GIT_DIR")
+	if path == "" {
+		path = "."
+	}
+
+	repository, err := openGitRepository(path)
 
 	if err != nil {
 		if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
-			return nil, nil, errors.New(sLocalize("GitconfigParseErr"))
+			return nil, errors.New(sLocalize("GitconfigParseErr"))
 		}
 
-		return
+		return nil, err
 	}
 
-	worktree, err = repository.Worktree()
-
-	if err != nil {
-		return
-	}
-
-	return
+	return repository, err
 }
 
 // GitCommand is our main git interface
 type GitCommand struct {
 	Log                  *logrus.Entry
 	OSCommand            *OSCommand
-	Worktree             *gogit.Worktree
 	Repo                 *gogit.Repository
 	Tr                   *i18n.Localizer
 	Config               config.AppConfigurer
@@ -93,7 +101,7 @@ type GitCommand struct {
 
 // NewGitCommand it runs git commands
 func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*GitCommand, error) {
-	var worktree *gogit.Worktree
+	// var worktree *gogit.Worktree
 	var repo *gogit.Repository
 
 	// see what our default push behaviour is
@@ -105,24 +113,16 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		pushToCurrent = strings.TrimSpace(output) == "current"
 	}
 
-	fs := []func() error{
-		func() error {
-			return verifyInGitRepo(osCommand.RunCommand)
-		},
-		func() error {
-			return navigateToRepoRootDirectory(os.Stat, os.Chdir)
-		},
-		func() error {
-			var err error
-			repo, worktree, err = setupRepositoryAndWorktree(gogit.PlainOpen, tr.SLocalize)
-			return err
-		},
+	if err := verifyInGitRepo(osCommand.RunCommand); err != nil {
+		return nil, err
 	}
 
-	for _, f := range fs {
-		if err := f(); err != nil {
-			return nil, err
-		}
+	if err := navigateToRepoRootDirectory(os.Stat, os.Chdir); err != nil {
+		return nil, err
+	}
+
+	if repo, err = setupRepository(gogit.PlainOpen, tr.SLocalize); err != nil {
+		return nil, err
 	}
 
 	dotGitDir, err := findDotGitDir(os.Stat, ioutil.ReadFile)
@@ -134,7 +134,6 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 		Log:                log,
 		OSCommand:          osCommand,
 		Tr:                 tr,
-		Worktree:           worktree,
 		Repo:               repo,
 		Config:             config,
 		getGlobalGitConfig: gitconfig.Global,
@@ -150,6 +149,10 @@ func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, 
 }
 
 func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filename string) ([]byte, error)) (string, error) {
+	if os.Getenv("GIT_DIR") != "" {
+		return os.Getenv("GIT_DIR"), nil
+	}
+
 	f, err := stat(".git")
 	if err != nil {
 		return "", err
@@ -236,8 +239,22 @@ type GetStatusFileOptions struct {
 	NoRenames bool
 }
 
+func (c *GitCommand) GetConfigValue(key string) string {
+	output, _ := c.OSCommand.RunCommandWithOutput("git config --get %s", key)
+	// looks like this returns an error if there is no matching value which we're okay with
+	return strings.TrimSpace(output)
+}
+
 func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
-	statusOutput, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames})
+	// check if config wants us ignoring untracked files
+	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
+
+	if untrackedFilesSetting == "" {
+		untrackedFilesSetting = "all"
+	}
+	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
+
+	statusOutput, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
 	if err != nil {
 		c.Log.Error(err)
 	}
@@ -582,7 +599,8 @@ func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 
 // GitStatus returns the plaintext short status of the repo
 type GitStatusOptions struct {
-	NoRenames bool
+	NoRenames         bool
+	UntrackedFilesArg string
 }
 
 func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
@@ -590,7 +608,8 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 	if opts.NoRenames {
 		noRenamesFlag = "--no-renames"
 	}
-	return c.OSCommand.RunCommandWithOutput("git status --untracked-files=all --porcelain %s", noRenamesFlag)
+
+	return c.OSCommand.RunCommandWithOutput("git status %s --porcelain %s", opts.UntrackedFilesArg, noRenamesFlag)
 }
 
 // IsInMergeState states whether we are still mid-merge

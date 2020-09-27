@@ -150,13 +150,13 @@ func TestNavigateToRepoRootDirectory(t *testing.T) {
 	}
 }
 
-// TestSetupRepositoryAndWorktree is a function.
-func TestSetupRepositoryAndWorktree(t *testing.T) {
+// TestSetupRepository is a function.
+func TestSetupRepository(t *testing.T) {
 	type scenario struct {
 		testName          string
 		openGitRepository func(string) (*gogit.Repository, error)
 		sLocalize         func(string) string
-		test              func(*gogit.Repository, *gogit.Worktree, error)
+		test              func(*gogit.Repository, error)
 	}
 
 	scenarios := []scenario{
@@ -168,7 +168,7 @@ func TestSetupRepositoryAndWorktree(t *testing.T) {
 			func(string) string {
 				return "error translated"
 			},
-			func(r *gogit.Repository, w *gogit.Worktree, err error) {
+			func(r *gogit.Repository, err error) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, "error translated")
 			},
@@ -179,20 +179,9 @@ func TestSetupRepositoryAndWorktree(t *testing.T) {
 				return nil, fmt.Errorf("Error from inside gogit")
 			},
 			func(string) string { return "" },
-			func(r *gogit.Repository, w *gogit.Worktree, err error) {
+			func(r *gogit.Repository, err error) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, "Error from inside gogit")
-			},
-		},
-		{
-			"An error occurred cause git repository is a bare repository",
-			func(string) (*gogit.Repository, error) {
-				return &gogit.Repository{}, nil
-			},
-			func(string) string { return "" },
-			func(r *gogit.Repository, w *gogit.Worktree, err error) {
-				assert.Error(t, err)
-				assert.Equal(t, gogit.ErrIsBareRepository, err)
 			},
 		},
 		{
@@ -204,9 +193,8 @@ func TestSetupRepositoryAndWorktree(t *testing.T) {
 				return r, nil
 			},
 			func(string) string { return "" },
-			func(r *gogit.Repository, w *gogit.Worktree, err error) {
+			func(r *gogit.Repository, err error) {
 				assert.NoError(t, err)
-				assert.NotNil(t, w)
 				assert.NotNil(t, r)
 			},
 		},
@@ -214,7 +202,7 @@ func TestSetupRepositoryAndWorktree(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(setupRepositoryAndWorktree(s.openGitRepository, s.sLocalize))
+			s.test(setupRepository(s.openGitRepository, s.sLocalize))
 		})
 	}
 }
