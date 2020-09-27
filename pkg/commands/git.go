@@ -1427,3 +1427,9 @@ func (c *GitCommand) WorkingTreeState() string {
 	}
 	return "normal"
 }
+
+func (c *GitCommand) IsBareRepo() bool {
+	// note: could use `git rev-parse --is-bare-repository` if we wanna drop go-git
+	_, err := c.Repo.Worktree()
+	return err == gogit.ErrIsBareRepository
+}
