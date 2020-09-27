@@ -130,3 +130,7 @@ If your custom keybinding collides with an inbuilt keybinding that is defined fo
 ### Debugging
 
 If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `subprocess: true` so that it doesn't actually execute the command but you can see how the placeholders were resolved. Alternatively you can run lazygit in debug mode with `lazygit --debug` and in another terminal window run `lazygit --logs` to see which commands are actually run
+
+### More Examples
+
+See the [wiki](https://github.com/jesseduffield/lazygit/wiki/Custom-Commands-Compendium) page for more examples, and feel free to add your own custom commands to this page so others can benefit!
