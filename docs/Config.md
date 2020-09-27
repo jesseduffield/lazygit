@@ -248,7 +248,7 @@ If you struggle to see the selected line I recomment using the reverse attribute
 
 ## Example Coloring
 
-![border example](/docs/resources/colored-border-example.png)
+![border example](../../assets/colored-border-example.png)
 
 ## Keybindings
 
