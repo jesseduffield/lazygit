@@ -7,19 +7,19 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetFileListDisplayStrings(files []*commands.File, diffName string) [][]string {
+func GetFileListDisplayStrings(files []*commands.File, diffName string, submoduleConfigs []*commands.SubmoduleConfig) [][]string {
 	lines := make([][]string, len(files))
 
 	for i := range files {
 		diffed := files[i].Name == diffName
-		lines[i] = getFileDisplayStrings(files[i], diffed)
+		lines[i] = getFileDisplayStrings(files[i], diffed, submoduleConfigs)
 	}
 
 	return lines
 }
 
 // getFileDisplayStrings returns the display string of branch
-func getFileDisplayStrings(f *commands.File, diffed bool) []string {
+func getFileDisplayStrings(f *commands.File, diffed bool, submoduleConfigs []*commands.SubmoduleConfig) []string {
 	// potentially inefficient to be instantiating these color
 	// objects with each render
 	red := color.New(color.FgRed)
@@ -55,7 +55,7 @@ func getFileDisplayStrings(f *commands.File, diffed bool) []string {
 	output += secondCharCl.Sprint(secondChar)
 	output += restColor.Sprintf(" %s", f.Name)
 
-	if f.IsSubmodule {
+	if f.IsSubmodule(submoduleConfigs) {
 		output += utils.ColoredString(" (submodule)", theme.DefaultTextColor)
 	}
 

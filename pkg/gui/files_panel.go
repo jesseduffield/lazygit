@@ -93,6 +93,9 @@ func (gui *Gui) refreshFiles() error {
 		// if the filesView hasn't been instantiated yet we just return
 		return nil
 	}
+	if err := gui.refreshStateSubmoduleConfigs(); err != nil {
+		return err
+	}
 	if err := gui.refreshStateFiles(); err != nil {
 		return err
 	}
@@ -423,6 +426,17 @@ func (gui *Gui) refreshStateFiles() error {
 	}
 
 	gui.refreshSelectedLine(gui.State.Panels.Files, len(gui.State.Files))
+	return nil
+}
+
+func (gui *Gui) refreshStateSubmoduleConfigs() error {
+	configs, err := gui.GitCommand.GetSubmoduleConfigs()
+	if err != nil {
+		return err
+	}
+
+	gui.State.SubmoduleConfigs = configs
+
 	return nil
 }
 

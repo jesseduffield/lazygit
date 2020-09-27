@@ -271,11 +271,12 @@ type Modes struct {
 }
 
 type guiState struct {
-	Files        []*commands.File
-	Branches     []*commands.Branch
-	Commits      []*commands.Commit
-	StashEntries []*commands.StashEntry
-	CommitFiles  []*commands.CommitFile
+	Files            []*commands.File
+	SubmoduleConfigs []*commands.SubmoduleConfig
+	Branches         []*commands.Branch
+	Commits          []*commands.Commit
+	StashEntries     []*commands.StashEntry
+	CommitFiles      []*commands.CommitFile
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*commands.Commit

@@ -19,7 +19,6 @@ type File struct {
 	DisplayString           string
 	Type                    string // one of 'file', 'directory', and 'other'
 	ShortStatus             string // e.g. 'AD', ' A', 'M ', '??'
-	IsSubmodule             bool
 }
 
 const RENAME_SEPARATOR = " -> "
@@ -44,4 +43,18 @@ func (f *File) ID() string {
 
 func (f *File) Description() string {
 	return f.Name
+}
+
+func (f *File) IsSubmodule(configs []*SubmoduleConfig) bool {
+	return f.SubmoduleConfig(configs) != nil
+}
+
+func (f *File) SubmoduleConfig(configs []*SubmoduleConfig) *SubmoduleConfig {
+	for _, config := range configs {
+		if f.Name == config.Name {
+			return config
+		}
+	}
+
+	return nil
 }
