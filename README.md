@@ -13,7 +13,7 @@ Rant time: You've heard it before, git is _powerful_, but what good is that powe
 
 If you're a mere mortal like me and you're tired of hearing how powerful git is when in your daily life it's a powerful pain in your ass, lazygit might be for you.
 
-![Gif](/docs/resources/staging.gif)
+![Gif](../assets/staging.gif)
 
 ## Table of contents
 
@@ -238,18 +238,18 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 
 ### Resolving merge conflicts
 
-![Gif](/docs/resources/resolving-merge-conflicts.gif)
+![Gif](../assets/resolving-merge-conflicts.gif)
 
 ### Interactive Rebasing
 
-![Interactive Rebasing](/docs/resources/rebase.gif)
+![Interactive Rebasing](../assets/rebase.gif)
 
 ## Contributing
 
 We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
 For contributor discussion about things not better discussed here in the repo, join the slack channel
 
-[![Slack](/docs/resources/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/zt-5bo2clzo-hB8ZTVN5dWUCqj5QFiQVLA)
+[![Slack](../assets/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/zt-5bo2clzo-hB8ZTVN5dWUCqj5QFiQVLA)
 
 ### Debugging Locally
 Run `lazygit --debug` in one terminal tab and `lazygit --logs` in another to view the program and its log output side by side
