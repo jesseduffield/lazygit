@@ -318,3 +318,16 @@ Example:
         pattern: "^\\w+\\/(\\w+-\\w+)"
         replace: "[$1] "
 ```
+
+## Custom git log command
+
+You can override the `git log` command that's used to render the log of the selected branch like so:
+
+```
+git:
+  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium --oneline {{branchName}} --"
+```
+
+Result:
+
+![](https://i.imgur.com/Nibq35B.png)
