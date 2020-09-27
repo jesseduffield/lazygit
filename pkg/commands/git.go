@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -271,6 +272,32 @@ func (c *GitCommand) GetConfigValue(key string) string {
 	return strings.TrimSpace(output)
 }
 
+func (c *GitCommand) GetSubmoduleNames() ([]string, error) {
+	file, err := os.Open(".gitmodules")
+	if err != nil {
+		if err == os.ErrNotExist {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	submoduleNames := []string{}
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		line := scanner.Text()
+		re := regexp.MustCompile(`\[submodule "(.*)"\]`)
+		matches := re.FindStringSubmatch(line)
+
+		if len(matches) > 0 {
+			submoduleNames = append(submoduleNames, matches[1])
+		}
+	}
+
+	return submoduleNames, nil
+}
+
 func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 	// check if config wants us ignoring untracked files
 	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
@@ -287,6 +314,11 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 	statusStrings := utils.SplitLines(statusOutput)
 	files := []*File{}
 
+	submoduleNames, err := c.GetSubmoduleNames()
+	if err != nil {
+		c.Log.Error(err)
+	}
+
 	for _, statusString := range statusStrings {
 		if strings.HasPrefix(statusString, "warning") {
 			c.Log.Warningf("warning when calling git status: %s", statusString)
@@ -300,6 +332,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
 		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
 		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
+		isSubmodule := utils.IncludesString(submoduleNames, filename)
 
 		file := &File{
 			Name:                    filename,
@@ -312,6 +345,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
 			Type:                    c.OSCommand.FileType(filename),
 			ShortStatus:             change,
+			IsSubmodule:             isSubmodule,
 		}
 		files = append(files, file)
 	}
@@ -718,7 +752,11 @@ func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 
 	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
-	if file.HasStagedChanges || file.HasMergeConflicts {
+	if file.IsSubmodule {
+		if err := c.OSCommand.RunCommand(fmt.Sprintf("git submodule update --checkout --force --init %s", quotedFileName)); err != nil {
+			return err
+		}
+	} else if file.HasStagedChanges || file.HasMergeConflicts {
 		if err := c.OSCommand.RunCommand("git reset -- %s", quotedFileName); err != nil {
 			return err
 		}
@@ -828,7 +866,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(file *File, plain bool, cached bool)
 		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git diff --no-ext-diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
@@ -1108,7 +1146,7 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchM
 		reverseFlag = " -R "
 	}
 
-	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --no-ext-diff --name-status %s %s %s", reverseFlag, from, to)
+	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --submodule --no-ext-diff --name-status %s %s %s", reverseFlag, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -1161,7 +1199,7 @@ func (c *GitCommand) ShowFileDiffCmdStr(from string, to string, reverse bool, fi
 		reverseFlag = " -R "
 	}
 
-	return fmt.Sprintf("git diff --no-ext-diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, fileName)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, fileName)
 }
 
 // CheckoutFile checks out the file for the given commit
