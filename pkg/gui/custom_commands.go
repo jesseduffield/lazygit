@@ -212,6 +212,7 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 
 	for _, customCommand := range customCommands {
 		var viewName string
+		var contexts []string
 		switch customCommand.Context {
 		case "global":
 			viewName = ""
@@ -226,11 +227,12 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 			// Currently this is a safe bet but it's by no means guaranteed in the long term
 			// and we might need to make some changes in the future to support it.
 			viewName = context.GetViewName()
+			contexts = []string{customCommand.Context}
 		}
 
 		bindings = append(bindings, &Binding{
 			ViewName:    viewName,
-			Contexts:    []string{customCommand.Context},
+			Contexts:    contexts,
 			Key:         gui.getKey(customCommand.Key),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.wrappedHandler(gui.handleCustomCommandKeybinding(customCommand)),
