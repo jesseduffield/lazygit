@@ -23,6 +23,8 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 				yellow.Sprint(innerPath),
 			},
 			onPress: func() error {
+				os.Unsetenv("GIT_WORK_TREE")
+				os.Unsetenv("GIT_DIR")
 				if err := os.Chdir(innerPath); err != nil {
 					return err
 				}
