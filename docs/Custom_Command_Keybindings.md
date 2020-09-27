@@ -126,3 +126,7 @@ To see what fields are available on e.g. the `SelectedFile`, see [here](https://
 ### Keybinding collisions
 
 If your custom keybinding collides with an inbuilt keybinding that is defined for the same context, only the custom keybinding will be executed. This also applies to the global context. However, one caveat is that if you have a custom keybinding defined on the global context for some key, and there is an in-built keybinding defined for the same key and for a specific context (say the 'files' context), then the in-built keybinding will take precedence. See how to change in-built keybindings [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#keybindings)
+
+### Debugging
+
+If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `subprocess: true` so that it doesn't actually execute the command but you can see how the placeholders were resolved. Alternatively you can run lazygit in debug mode with `lazygit --debug` and in another terminal window run `lazygit --logs` to see which commands are actually run
