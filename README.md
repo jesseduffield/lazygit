@@ -36,7 +36,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Undo/Redo](#undoredo)
 - [Configuration](#configuration)
   - [Custom pagers](#configuration)
-  - [Custom Commands](#configuration)
+  - [Custom commands](#configuration)
 - [Tutorials](#tutorials)
 - [Cool Features](#cool-features)
 - [Contributing](#contributing)
