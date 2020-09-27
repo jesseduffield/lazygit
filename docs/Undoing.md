@@ -1,6 +1,6 @@
 # Undo/Redo in lazygit
 
-![Gif](/docs/resources/undo2.gif)
+![Gif](../../assets/undo2.gif)
 
 ## Keybindings:
 'z' to undo, 'ctrl+z' to redo
