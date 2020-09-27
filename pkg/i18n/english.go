@@ -1191,6 +1191,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "runningCustomCommandStatus",
 			Other: "running custom command",
+		}, &i18n.Message{
+			ID:    "submoduleStashAndReset",
+			Other: "stash uncommitted submodule changes and reset",
 		},
 	)
 }

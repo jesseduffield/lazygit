@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -272,32 +271,6 @@ func (c *GitCommand) GetConfigValue(key string) string {
 	return strings.TrimSpace(output)
 }
 
-func (c *GitCommand) GetSubmoduleNames() ([]string, error) {
-	file, err := os.Open(".gitmodules")
-	if err != nil {
-		if err == os.ErrNotExist {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	submoduleNames := []string{}
-
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanLines)
-	for scanner.Scan() {
-		line := scanner.Text()
-		re := regexp.MustCompile(`\[submodule "(.*)"\]`)
-		matches := re.FindStringSubmatch(line)
-
-		if len(matches) > 0 {
-			submoduleNames = append(submoduleNames, matches[1])
-		}
-	}
-
-	return submoduleNames, nil
-}
-
 func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 	// check if config wants us ignoring untracked files
 	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
@@ -314,11 +287,6 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 	statusStrings := utils.SplitLines(statusOutput)
 	files := []*File{}
 
-	submoduleNames, err := c.GetSubmoduleNames()
-	if err != nil {
-		c.Log.Error(err)
-	}
-
 	for _, statusString := range statusStrings {
 		if strings.HasPrefix(statusString, "warning") {
 			c.Log.Warningf("warning when calling git status: %s", statusString)
@@ -332,7 +300,6 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
 		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
 		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
-		isSubmodule := utils.IncludesString(submoduleNames, filename)
 
 		file := &File{
 			Name:                    filename,
@@ -345,7 +312,6 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
 			Type:                    c.OSCommand.FileType(filename),
 			ShortStatus:             change,
-			IsSubmodule:             isSubmodule,
 		}
 		files = append(files, file)
 	}
@@ -752,11 +718,7 @@ func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 
 	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
-	if file.IsSubmodule {
-		if err := c.OSCommand.RunCommand(fmt.Sprintf("git submodule update --checkout --force --init %s", quotedFileName)); err != nil {
-			return err
-		}
-	} else if file.HasStagedChanges || file.HasMergeConflicts {
+	if file.HasStagedChanges || file.HasMergeConflicts {
 		if err := c.OSCommand.RunCommand("git reset -- %s", quotedFileName); err != nil {
 			return err
 		}
@@ -816,7 +778,7 @@ func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {
 	if filterPath != "" {
 		filterPathArg = fmt.Sprintf(" -- %s", c.OSCommand.Quote(filterPath))
 	}
-	return fmt.Sprintf("git show --color=%s --no-renames --stat -p %s %s", c.colorArg(), sha, filterPathArg)
+	return fmt.Sprintf("git show --submodule --color=%s --no-renames --stat -p %s %s", c.colorArg(), sha, filterPathArg)
 }
 
 func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
