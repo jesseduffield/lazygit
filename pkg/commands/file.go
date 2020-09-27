@@ -19,6 +19,7 @@ type File struct {
 	DisplayString           string
 	Type                    string // one of 'file', 'directory', and 'other'
 	ShortStatus             string // e.g. 'AD', ' A', 'M ', '??'
+	IsSubmodule             bool
 }
 
 const RENAME_SEPARATOR = " -> "

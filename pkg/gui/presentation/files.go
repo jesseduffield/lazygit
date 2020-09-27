@@ -4,6 +4,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetFileListDisplayStrings(files []*commands.File, diffName string) [][]string {
@@ -53,5 +54,10 @@ func getFileDisplayStrings(f *commands.File, diffed bool) []string {
 	output := firstCharCl.Sprint(firstChar)
 	output += secondCharCl.Sprint(secondChar)
 	output += restColor.Sprintf(" %s", f.Name)
+
+	if f.IsSubmodule {
+		output += utils.ColoredString(" (submodule)", theme.DefaultTextColor)
+	}
+
 	return []string{output}
 }

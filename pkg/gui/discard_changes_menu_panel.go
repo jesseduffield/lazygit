@@ -10,6 +10,11 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	if file.IsSubmodule {
+		// git submodule foreach '[[ "$name" == "renderers/chartify" ]] && git stash --include-untracked'
+		// git submodule update --force renderers/chartify
+	}
+
 	menuItems := []*menuItem{
 		{
 			displayString: gui.Tr.SLocalize("discardAllChanges"),
