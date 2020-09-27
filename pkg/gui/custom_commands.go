@@ -199,6 +199,7 @@ type CustomCommand struct {
 	Subprocess  bool                  `yaml:"subprocess"`
 	Prompts     []CustomCommandPrompt `yaml:"prompts"`
 	LoadingText string                `yaml:"loadingText"`
+	Description string                `yaml:"description"`
 }
 
 func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
@@ -230,13 +231,18 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 			contexts = []string{customCommand.Context}
 		}
 
+		description := customCommand.Description
+		if description == "" {
+			description = customCommand.Command
+		}
+
 		bindings = append(bindings, &Binding{
 			ViewName:    viewName,
 			Contexts:    contexts,
 			Key:         gui.getKey(customCommand.Key),
 			Modifier:    gocui.ModNone,
 			Handler:     gui.wrappedHandler(gui.handleCustomCommandKeybinding(customCommand)),
-			Description: customCommand.Command,
+			Description: description,
 		})
 	}
 
