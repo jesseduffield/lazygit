@@ -105,7 +105,6 @@ type GitCommand struct {
 
 // NewGitCommand it runs git commands
 func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*GitCommand, error) {
-	// var worktree *gogit.Worktree
 	var repo *gogit.Repository
 
 	// see what our default push behaviour is
