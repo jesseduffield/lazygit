@@ -8,6 +8,7 @@ import (
 	// "strings"
 
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -157,6 +158,17 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	file := gui.getSelectedFile()
 	if file == nil {
 		return nil
+	}
+
+	submoduleConfigs := gui.State.SubmoduleConfigs
+	if file.IsSubmodule(submoduleConfigs) {
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		gui.State.RepoPathStack = append(gui.State.RepoPathStack, wd)
+		submoduleConfig := file.SubmoduleConfig(submoduleConfigs)
+		return gui.dispatchSwitchToRepo(submoduleConfig.Path)
 	}
 
 	if file.HasInlineMergeConflicts {
