@@ -375,6 +375,23 @@ func includesInt(list []int, a int) bool {
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
 func (c *GitCommand) ResetAndClean() error {
+	submoduleConfigs, err := c.GetSubmoduleConfigs()
+	if err != nil {
+		return err
+	}
+
+	if len(submoduleConfigs) > 0 {
+		for _, config := range submoduleConfigs {
+			if err := c.SubmoduleStash(config); err != nil {
+				return err
+			}
+		}
+
+		if err := c.SubmoduleUpdateAll(); err != nil {
+			return err
+		}
+	}
+
 	if err := c.ResetHard("HEAD"); err != nil {
 		return err
 	}
