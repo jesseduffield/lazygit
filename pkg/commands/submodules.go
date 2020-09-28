@@ -58,9 +58,20 @@ func (c *GitCommand) GetSubmoduleConfigs() ([]*SubmoduleConfig, error) {
 }
 
 func (c *GitCommand) SubmoduleStash(config *SubmoduleConfig) error {
+	// if the path does not exist then it hasn't yet been initialized so we'll swallow the error
+	// because the intention here is to have no dirty worktree state
+	if _, err := os.Stat(config.Path); os.IsNotExist(err) {
+		c.Log.Infof("submodule path %s does not exist, returning", config.Path)
+		return nil
+	}
+
 	return c.OSCommand.RunCommand("git -C %s stash --include-untracked", config.Path)
 }
 
 func (c *GitCommand) SubmoduleReset(config *SubmoduleConfig) error {
 	return c.OSCommand.RunCommand("git submodule update --force %s", config.Name)
+}
+
+func (c *GitCommand) SubmoduleUpdateAll() error {
+	return c.OSCommand.RunCommand("git submodule update --force")
 }
