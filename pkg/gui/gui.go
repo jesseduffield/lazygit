@@ -317,6 +317,10 @@ type guiState struct {
 	// Some views move between windows for example the commitFiles view and when cycling through
 	// side windows we need to know which view to give focus to for a given window
 	WindowViewNameMap map[string]string
+
+	// when you enter into a submodule we'll append the superproject's path to this array
+	// so that you can return to the superproject
+	RepoPathStack []string
 }
 
 func (gui *Gui) resetState() {
@@ -329,10 +333,12 @@ func (gui *Gui) resetState() {
 		CherryPickedCommits: make([]*commands.Commit, 0),
 		ContextKey:          "",
 	}
+	prevRepoPathStack := []string{}
 	if gui.State != nil {
 		prevFiltering = gui.State.Modes.Filtering
 		prevDiff = gui.State.Modes.Diffing
 		prevCherryPicking = gui.State.Modes.CherryPicking
+		prevRepoPathStack = gui.State.RepoPathStack
 	}
 
 	modes := Modes{
@@ -371,6 +377,7 @@ func (gui *Gui) resetState() {
 		Ptmx:           nil,
 		Modes:          modes,
 		ViewContextMap: gui.initialViewContextMap(),
+		RepoPathStack:  prevRepoPathStack,
 	}
 }
 

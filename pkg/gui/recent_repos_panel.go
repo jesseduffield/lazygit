@@ -17,29 +17,33 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 	// we won't show the current repo hence the -1
 	menuItems := make([]*menuItem, reposCount-1)
 	for i, path := range recentRepoPaths[1:reposCount] {
-		innerPath := path
+		path := path // cos we're closing over the loop variable
 		menuItems[i] = &menuItem{
 			displayStrings: []string{
-				filepath.Base(innerPath),
-				yellow.Sprint(innerPath),
+				filepath.Base(path),
+				yellow.Sprint(path),
 			},
 			onPress: func() error {
-				env.UnsetGitDirEnvs()
-				if err := os.Chdir(innerPath); err != nil {
-					return err
-				}
-				newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
-				if err != nil {
-					return err
-				}
-				gui.GitCommand = newGitCommand
-				gui.State.Modes.Filtering.Path = ""
-				return gui.Errors.ErrSwitchRepo
+				return gui.dispatchSwitchToRepo(path)
 			},
 		}
 	}
 
 	return gui.createMenu(gui.Tr.SLocalize("RecentRepos"), menuItems, createMenuOptions{showCancel: true})
+}
+
+func (gui *Gui) dispatchSwitchToRepo(path string) error {
+	env.UnsetGitDirEnvs()
+	if err := os.Chdir(path); err != nil {
+		return err
+	}
+	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
+	if err != nil {
+		return err
+	}
+	gui.GitCommand = newGitCommand
+	gui.State.Modes.Filtering.Path = ""
+	return gui.Errors.ErrSwitchRepo
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,

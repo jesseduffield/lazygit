@@ -49,6 +49,18 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
+
+	repoPathStack := gui.State.RepoPathStack
+	if len(repoPathStack) > 0 {
+		n := len(repoPathStack) - 1
+
+		path := repoPathStack[n]
+
+		gui.State.RepoPathStack = repoPathStack[:n]
+
+		return gui.dispatchSwitchToRepo(path)
+	}
+
 	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {
 		return gui.handleQuit()
 	}
