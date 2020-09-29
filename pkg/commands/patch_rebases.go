@@ -5,10 +5,11 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // DeletePatchesFromCommit applies a patch in reverse for a commit
-func (c *GitCommand) DeletePatchesFromCommit(commits []*Commit, commitIndex int, p *patch.PatchManager) error {
+func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int, p *patch.PatchManager) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
 		return err
 	}
@@ -35,7 +36,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*Commit, commitIndex int,
 	return c.GenericMerge("rebase", "continue")
 }
 
-func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error {
+func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error {
 	if sourceCommitIdx < destinationCommitIdx {
 		if err := c.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx); err != nil {
 			return err
@@ -136,7 +137,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*Commit, sourceCommitId
 	return c.GenericMerge("rebase", "continue")
 }
 
-func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
+func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
 	if stash {
 		if err := c.StashSave(c.Tr.SLocalize("StashPrefix") + commits[commitIdx].Sha); err != nil {
 			return err
@@ -189,7 +190,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*Commit, commitIdx int, p *pat
 	return c.GenericMerge("rebase", "continue")
 }
 
-func (c *GitCommand) PullPatchIntoNewCommit(commits []*Commit, commitIdx int, p *patch.PatchManager) error {
+func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p *patch.PatchManager) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
 		return err
 	}

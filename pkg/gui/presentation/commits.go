@@ -4,15 +4,15 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string) [][]string {
+func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string) [][]string {
 	lines := make([][]string, len(commits))
 
-	var displayFunc func(*commands.Commit, map[string]bool, bool) []string
+	var displayFunc func(*models.Commit, map[string]bool, bool) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForCommit
 	} else {
@@ -27,7 +27,7 @@ func GetCommitListDisplayStrings(commits []*commands.Commit, fullDescription boo
 	return lines
 }
 
-func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
+func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -76,7 +76,7 @@ func getFullDescriptionDisplayStringsForCommit(c *commands.Commit, cherryPickedC
 	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(c.Name)}
 }
 
-func getDisplayStringsForCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
+func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)

@@ -3,11 +3,12 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedSubCommit() *commands.Commit {
+func (gui *Gui) getSelectedSubCommit() *models.Commit {
 	selectedLine := gui.State.Panels.SubCommits.SelectedLineIdx
 	commits := gui.State.SubCommits
 	if selectedLine == -1 || len(commits) == 0 {

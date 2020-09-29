@@ -1,8 +1,6 @@
 package gui
 
-import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
-)
+import "github.com/jesseduffield/lazygit/pkg/models"
 
 // you can only copy from one context at a time, because the order and position of commits matter
 
@@ -12,7 +10,7 @@ func (gui *Gui) resetCherryPickingIfNecessary(context Context) error {
 	if oldContextKey != context.GetKey() {
 		// need to reset the cherry picking mode
 		gui.State.Modes.CherryPicking.ContextKey = context.GetKey()
-		gui.State.Modes.CherryPicking.CherryPickedCommits = make([]*commands.Commit, 0)
+		gui.State.Modes.CherryPicking.CherryPickedCommits = make([]*models.Commit, 0)
 
 		return gui.rerenderContextViewIfPresent(oldContextKey)
 	}
@@ -39,7 +37,7 @@ func (gui *Gui) handleCopyCommit() error {
 	if !ok {
 		return nil
 	}
-	commit, ok := item.(*commands.Commit)
+	commit, ok := item.(*models.Commit)
 	if !ok {
 		return nil
 	}
@@ -64,7 +62,7 @@ func (gui *Gui) cherryPickedCommitShaMap() map[string]bool {
 	return commitShaMap
 }
 
-func (gui *Gui) commitsListForContext() []*commands.Commit {
+func (gui *Gui) commitsListForContext() []*models.Commit {
 	context := gui.currentSideContext()
 	if context == nil {
 		return nil
@@ -89,11 +87,11 @@ func (gui *Gui) addCommitToCherryPickedCommits(index int) {
 	commitsList := gui.commitsListForContext()
 	commitShaMap[commitsList[index].Sha] = true
 
-	newCommits := []*commands.Commit{}
+	newCommits := []*models.Commit{}
 	for _, commit := range commitsList {
 		if commitShaMap[commit.Sha] {
 			// duplicating just the things we need to put in the rebase TODO list
-			newCommits = append(newCommits, &commands.Commit{Name: commit.Name, Sha: commit.Sha})
+			newCommits = append(newCommits, &models.Commit{Name: commit.Name, Sha: commit.Sha})
 		}
 	}
 

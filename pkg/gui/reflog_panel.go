@@ -2,12 +2,12 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedReflogCommit() *commands.Commit {
+func (gui *Gui) getSelectedReflogCommit() *models.Commit {
 	selectedLine := gui.State.Panels.ReflogCommits.SelectedLineIdx
 	reflogComits := gui.State.FilteredReflogCommits
 	if selectedLine == -1 || len(reflogComits) == 0 {
@@ -49,12 +49,12 @@ func (gui *Gui) refreshReflogCommits() error {
 	// pulling state into its own variable incase it gets swapped out for another state
 	// and we get an out of bounds exception
 	state := gui.State
-	var lastReflogCommit *commands.Commit
+	var lastReflogCommit *models.Commit
 	if len(state.ReflogCommits) > 0 {
 		lastReflogCommit = state.ReflogCommits[0]
 	}
 
-	refresh := func(stateCommits *[]*commands.Commit, filterPath string) error {
+	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
 		commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, filterPath)
 		if err != nil {
 			return gui.surfaceError(err)

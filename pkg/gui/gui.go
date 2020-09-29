@@ -255,7 +255,7 @@ func (m *Filtering) Active() bool {
 }
 
 type CherryPicking struct {
-	CherryPickedCommits []*commands.Commit
+	CherryPickedCommits []*models.Commit
 
 	// we only allow cherry picking from one context at a time, so you can't copy a commit from the local commits context and then also copy a commit in the reflog context
 	ContextKey string
@@ -275,17 +275,17 @@ type guiState struct {
 	Files            []*commands.File
 	SubmoduleConfigs []*commands.SubmoduleConfig
 	Branches         []*models.Branch
-	Commits          []*commands.Commit
+	Commits          []*models.Commit
 	StashEntries     []*commands.StashEntry
 	CommitFiles      []*commands.CommitFile
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
-	FilteredReflogCommits []*commands.Commit
+	FilteredReflogCommits []*models.Commit
 	// ReflogCommits are the ones used by the branches panel to obtain recency values
 	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
-	ReflogCommits         []*commands.Commit
-	SubCommits            []*commands.Commit
+	ReflogCommits         []*models.Commit
+	SubCommits            []*models.Commit
 	Remotes               []*commands.Remote
 	RemoteBranches        []*commands.RemoteBranch
 	Tags                  []*commands.Tag
@@ -331,7 +331,7 @@ func (gui *Gui) resetState() {
 	}
 	prevDiff := Diffing{}
 	prevCherryPicking := CherryPicking{
-		CherryPickedCommits: make([]*commands.Commit, 0),
+		CherryPickedCommits: make([]*models.Commit, 0),
 		ContextKey:          "",
 	}
 	prevRepoPathStack := []string{}
@@ -350,9 +350,9 @@ func (gui *Gui) resetState() {
 
 	gui.State = &guiState{
 		Files:                 make([]*commands.File, 0),
-		Commits:               make([]*commands.Commit, 0),
-		FilteredReflogCommits: make([]*commands.Commit, 0),
-		ReflogCommits:         make([]*commands.Commit, 0),
+		Commits:               make([]*models.Commit, 0),
+		FilteredReflogCommits: make([]*models.Commit, 0),
+		ReflogCommits:         make([]*models.Commit, 0),
 		StashEntries:          make([]*commands.StashEntry, 0),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now

@@ -12,6 +12,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -48,7 +49,7 @@ func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *
 // then puts them into a commit object
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
-func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
+func (c *CommitListBuilder) extractCommitFromLine(line string) *models.Commit {
 	split := strings.Split(line, SEPARATION_CHAR)
 
 	sha := split[0]
@@ -74,7 +75,7 @@ func (c *CommitListBuilder) extractCommitFromLine(line string) *Commit {
 	// If there's a space then it means there must be more than one parent hash
 	isMerge := strings.Contains(parentHashes, " ")
 
-	return &Commit{
+	return &models.Commit{
 		Sha:           sha,
 		Name:          message,
 		Tags:          tags,
@@ -92,9 +93,9 @@ type GetCommitsOptions struct {
 	RefName              string // e.g. "HEAD" or "my_branch"
 }
 
-func (c *CommitListBuilder) MergeRebasingCommits(commits []*Commit) ([]*Commit, error) {
+func (c *CommitListBuilder) MergeRebasingCommits(commits []*models.Commit) ([]*models.Commit, error) {
 	// chances are we have as many commits as last time so we'll set the capacity to be the old length
-	result := make([]*Commit, 0, len(commits))
+	result := make([]*models.Commit, 0, len(commits))
 	for i, commit := range commits {
 		if commit.Status != "rebasing" { // removing the existing rebase commits so we can add the refreshed ones
 			result = append(result, commits[i:]...)
@@ -124,9 +125,9 @@ func (c *CommitListBuilder) MergeRebasingCommits(commits []*Commit) ([]*Commit, 
 }
 
 // GetCommits obtains the commits of the current branch
-func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*Commit, error) {
-	commits := []*Commit{}
-	var rebasingCommits []*Commit
+func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit, error) {
+	commits := []*models.Commit{}
+	var rebasingCommits []*models.Commit
 	rebaseMode, err := c.GitCommand.RebaseMode()
 	if err != nil {
 		return nil, err
@@ -181,7 +182,7 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*Commit, error
 }
 
 // getRebasingCommits obtains the commits that we're in the process of rebasing
-func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*Commit, error) {
+func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*models.Commit, error) {
 	switch rebaseMode {
 	case "normal":
 		return c.getNormalRebasingCommits()
@@ -192,7 +193,7 @@ func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*Commit, er
 	}
 }
 
-func (c *CommitListBuilder) getNormalRebasingCommits() ([]*Commit, error) {
+func (c *CommitListBuilder) getNormalRebasingCommits() ([]*models.Commit, error) {
 	rewrittenCount := 0
 	bytesContent, err := ioutil.ReadFile(filepath.Join(c.GitCommand.DotGitDir, "rebase-apply/rewritten"))
 	if err == nil {
@@ -201,7 +202,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*Commit, error) {
 	}
 
 	// we know we're rebasing, so lets get all the files whose names have numbers
-	commits := []*Commit{}
+	commits := []*models.Commit{}
 	err = filepath.Walk(filepath.Join(c.GitCommand.DotGitDir, "rebase-apply"), func(path string, f os.FileInfo, err error) error {
 		if rewrittenCount > 0 {
 			rewrittenCount--
@@ -223,7 +224,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*Commit, error) {
 		if err != nil {
 			return err
 		}
-		commits = append([]*Commit{commit}, commits...)
+		commits = append([]*models.Commit{commit}, commits...)
 		return nil
 	})
 	if err != nil {
@@ -245,7 +246,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*Commit, error) {
 // getInteractiveRebasingCommits takes our git-rebase-todo and our git-rebase-todo.backup files
 // and extracts out the sha and names of commits that we still have to go
 // in the rebase:
-func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*Commit, error) {
+func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*models.Commit, error) {
 	bytesContent, err := ioutil.ReadFile(filepath.Join(c.GitCommand.DotGitDir, "rebase-merge/git-rebase-todo"))
 	if err != nil {
 		c.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
@@ -253,7 +254,7 @@ func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*Commit, error) {
 		return nil, nil
 	}
 
-	commits := []*Commit{}
+	commits := []*models.Commit{}
 	lines := strings.Split(string(bytesContent), "\n")
 	for _, line := range lines {
 		if line == "" || line == "noop" {
@@ -263,7 +264,7 @@ func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*Commit, error) {
 			continue
 		}
 		splitLine := strings.Split(line, " ")
-		commits = append([]*Commit{{
+		commits = append([]*models.Commit{{
 			Sha:    splitLine[1],
 			Name:   strings.Join(splitLine[2:], " "),
 			Status: "rebasing",
@@ -279,18 +280,18 @@ func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*Commit, error) {
 // From: Lazygit Tester <test@example.com>
 // Date: Wed, 5 Dec 2018 21:03:23 +1100
 // Subject: second commit on master
-func (c *CommitListBuilder) commitFromPatch(content string) (*Commit, error) {
+func (c *CommitListBuilder) commitFromPatch(content string) (*models.Commit, error) {
 	lines := strings.Split(content, "\n")
 	sha := strings.Split(lines[0], " ")[1]
 	name := strings.TrimPrefix(lines[3], "Subject: ")
-	return &Commit{
+	return &models.Commit{
 		Sha:    sha,
 		Name:   name,
 		Status: "rebasing",
 	}, nil
 }
 
-func (c *CommitListBuilder) setCommitMergedStatuses(refName string, commits []*Commit) ([]*Commit, error) {
+func (c *CommitListBuilder) setCommitMergedStatuses(refName string, commits []*models.Commit) ([]*models.Commit, error) {
 	ancestor, err := c.getMergeBase(refName)
 	if err != nil {
 		return nil, err
