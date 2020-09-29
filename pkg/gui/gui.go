@@ -288,7 +288,7 @@ type guiState struct {
 	SubCommits            []*models.Commit
 	Remotes               []*commands.Remote
 	RemoteBranches        []*commands.RemoteBranch
-	Tags                  []*commands.Tag
+	Tags                  []*models.Tag
 	MenuItems             []*menuItem
 	Updating              bool
 	Panels                *panelStates

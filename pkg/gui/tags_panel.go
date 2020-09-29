@@ -2,12 +2,12 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedTag() *commands.Tag {
+func (gui *Gui) getSelectedTag() *models.Tag {
 	selectedLine := gui.State.Panels.Tags.SelectedLineIdx
 	if selectedLine == -1 || len(gui.State.Tags) == 0 {
 		return nil

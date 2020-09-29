@@ -1,4 +1,4 @@
-package commands
+package models
 
 // Tag : A git tag
 type Tag struct {

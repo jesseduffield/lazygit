@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -19,7 +20,7 @@ func convertToInt(s string) int {
 	return i
 }
 
-func (c *GitCommand) GetTags() ([]*Tag, error) {
+func (c *GitCommand) GetTags() ([]*models.Tag, error) {
 	// get remote branches
 	remoteBranchesStr, err := c.OSCommand.RunCommandWithOutput(`git tag --list`)
 	if err != nil {
@@ -34,10 +35,10 @@ func (c *GitCommand) GetTags() ([]*Tag, error) {
 	split := strings.Split(content, "\n")
 
 	// first step is to get our remotes from go-git
-	tags := make([]*Tag, len(split))
+	tags := make([]*models.Tag, len(split))
 	for i, tagName := range split {
 
-		tags[i] = &Tag{
+		tags[i] = &models.Tag{
 			Name: tagName,
 		}
 	}
