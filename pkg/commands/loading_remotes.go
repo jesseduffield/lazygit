@@ -5,9 +5,11 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
-func (c *GitCommand) GetRemotes() ([]*Remote, error) {
+func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {
 	// get remote branches
 	unescaped := "git branch -r"
 	remoteBranchesStr, err := c.OSCommand.RunCommandWithOutput(unescaped)
@@ -21,21 +23,21 @@ func (c *GitCommand) GetRemotes() ([]*Remote, error) {
 	}
 
 	// first step is to get our remotes from go-git
-	remotes := make([]*Remote, len(goGitRemotes))
+	remotes := make([]*models.Remote, len(goGitRemotes))
 	for i, goGitRemote := range goGitRemotes {
 		remoteName := goGitRemote.Config().Name
 
 		re := regexp.MustCompile(fmt.Sprintf(`%s\/([\S]+)`, remoteName))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
-		branches := make([]*RemoteBranch, len(matches))
+		branches := make([]*models.RemoteBranch, len(matches))
 		for j, match := range matches {
-			branches[j] = &RemoteBranch{
+			branches[j] = &models.RemoteBranch{
 				Name:       match[1],
 				RemoteName: remoteName,
 			}
 		}
 
-		remotes[i] = &Remote{
+		remotes[i] = &models.Remote{
 			Name:     goGitRemote.Config().Name,
 			Urls:     goGitRemote.Config().URLs,
 			Branches: branches,

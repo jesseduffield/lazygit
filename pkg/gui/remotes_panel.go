@@ -6,13 +6,13 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedRemote() *commands.Remote {
+func (gui *Gui) getSelectedRemote() *models.Remote {
 	selectedLine := gui.State.Panels.Remotes.SelectedLineIdx
 	if selectedLine == -1 || len(gui.State.Remotes) == 0 {
 		return nil

@@ -286,8 +286,8 @@ type guiState struct {
 	// one and the same
 	ReflogCommits         []*models.Commit
 	SubCommits            []*models.Commit
-	Remotes               []*commands.Remote
-	RemoteBranches        []*commands.RemoteBranch
+	Remotes               []*models.Remote
+	RemoteBranches        []*models.RemoteBranch
 	Tags                  []*models.Tag
 	MenuItems             []*menuItem
 	Updating              bool

@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetRemoteListDisplayStrings(remotes []*commands.Remote, diffName string) [][]string {
+func GetRemoteListDisplayStrings(remotes []*models.Remote, diffName string) [][]string {
 	lines := make([][]string, len(remotes))
 
 	for i := range remotes {
@@ -21,7 +21,7 @@ func GetRemoteListDisplayStrings(remotes []*commands.Remote, diffName string) []
 }
 
 // getRemoteDisplayStrings returns the display string of branch
-func getRemoteDisplayStrings(r *commands.Remote, diffed bool) []string {
+func getRemoteDisplayStrings(r *models.Remote, diffed bool) []string {
 	branchCount := len(r.Branches)
 
 	nameColorAttr := theme.DefaultTextColor

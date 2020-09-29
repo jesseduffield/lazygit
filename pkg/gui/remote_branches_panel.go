@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedRemoteBranch() *commands.RemoteBranch {
+func (gui *Gui) getSelectedRemoteBranch() *models.RemoteBranch {
 	selectedLine := gui.State.Panels.RemoteBranches.SelectedLineIdx
 	if selectedLine == -1 || len(gui.State.RemoteBranches) == 0 {
 		return nil
