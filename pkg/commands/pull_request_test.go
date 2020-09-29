@@ -146,7 +146,7 @@ func TestCreatePullRequest(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCommand := NewDummyGitCommand()
-			gitCommand.OSCommand.command = s.command
+			gitCommand.OSCommand.Command = s.command
 			gitCommand.OSCommand.Config.GetUserConfig().Set("os.openLinkCommand", "open {{link}}")
 			gitCommand.Config.GetUserConfig().Set("services", map[string]string{
 				// valid configuration for a custom service URL

@@ -303,7 +303,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 
 			s.test(gitCmd.GetStashEntries(""))
 		})
@@ -410,7 +410,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 
 			s.test(gitCmd.GetStatusFiles(GetStatusFileOptions{}))
 		})
@@ -420,7 +420,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 // TestGitCommandStashDo is a function.
 func TestGitCommandStashDo(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"stash", "drop", "stash@{1}"}, args)
 
@@ -433,7 +433,7 @@ func TestGitCommandStashDo(t *testing.T) {
 // TestGitCommandStashSave is a function.
 func TestGitCommandStashSave(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"stash", "save", "A stash message"}, args)
 
@@ -446,7 +446,7 @@ func TestGitCommandStashSave(t *testing.T) {
 // TestGitCommandCommitAmend is a function.
 func TestGitCommandCommitAmend(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"commit", "--amend", "--allow-empty"}, args)
 
@@ -590,7 +590,7 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.GetCommitDifferences("HEAD", "@{u}"))
 		})
 	}
@@ -599,7 +599,7 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 // TestGitCommandRenameCommit is a function.
 func TestGitCommandRenameCommit(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"commit", "--allow-empty", "--amend", "-m", "test"}, args)
 
@@ -612,20 +612,20 @@ func TestGitCommandRenameCommit(t *testing.T) {
 // TestGitCommandResetToCommit is a function.
 func TestGitCommandResetToCommit(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"reset", "--hard", "78976bc"}, args)
 
 		return exec.Command("echo")
 	}
 
-	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", RunCommandOptions{}))
+	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", oscommands.RunCommandOptions{}))
 }
 
 // TestGitCommandNewBranch is a function.
 func TestGitCommandNewBranch(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"checkout", "-b", "test", "master"}, args)
 
@@ -679,7 +679,7 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.DeleteBranch(s.branch, s.force))
 		})
 	}
@@ -688,7 +688,7 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 // TestGitCommandMerge is a function.
 func TestGitCommandMerge(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"merge", "--no-edit", "test"}, args)
 
@@ -877,7 +877,7 @@ func TestGitCommandCommit(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.Commit("test", s.flags))
 		})
 	}
@@ -947,7 +947,7 @@ func TestGitCommandAmendHead(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.AmendHead())
 		})
 	}
@@ -1006,7 +1006,7 @@ func TestGitCommandPush(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			err := gitCmd.Push("test", s.forcePush, "", "", func(passOrUname string) string {
 				return "\n"
 			})
@@ -1025,7 +1025,7 @@ func TestGitCommandCatFile(t *testing.T) {
 		osCmd = "cat"
 	}
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, osCmd, cmd)
 		assert.EqualValues(t, []string{"test.txt"}, args)
 
@@ -1040,7 +1040,7 @@ func TestGitCommandCatFile(t *testing.T) {
 // TestGitCommandStageFile is a function.
 func TestGitCommandStageFile(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"add", "test.txt"}, args)
 
@@ -1091,7 +1091,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.UnStageFile("test.txt", s.tracked))
 		})
 	}
@@ -1319,7 +1319,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			var cmdsCalled *[][]string
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command, cmdsCalled = s.command()
+			gitCmd.OSCommand.Command, cmdsCalled = s.command()
 			gitCmd.removeFile = s.removeFile
 			s.test(cmdsCalled, gitCmd.DiscardAllFileChanges(s.file))
 		})
@@ -1367,7 +1367,7 @@ func TestGitCommandCheckout(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.Checkout("test", CheckoutOptions{Force: s.force}))
 		})
 	}
@@ -1376,7 +1376,7 @@ func TestGitCommandCheckout(t *testing.T) {
 // TestGitCommandGetBranchGraph is a function.
 func TestGitCommandGetBranchGraph(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--"}, args)
 		return exec.Command("echo")
@@ -1465,7 +1465,7 @@ func TestGitCommandDiff(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached)
 		})
 	}
@@ -1553,7 +1553,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.CurrentBranchName())
 		})
 	}
@@ -1610,7 +1610,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.ApplyPatch("test", "cached"))
 		})
 	}
@@ -1658,7 +1658,7 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.RebaseBranch(s.arg))
 		})
 	}
@@ -1709,7 +1709,7 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.CheckoutFile(s.commitSha, s.fileName))
 		})
 	}
@@ -1799,7 +1799,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			gitCmd.getLocalGitConfig = s.getLocalGitConfig
 			s.test(gitCmd.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
 		})
@@ -1835,7 +1835,7 @@ func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.DiscardUnstagedFileChanges(s.file))
 		})
 	}
@@ -1868,7 +1868,7 @@ func TestGitCommandDiscardAnyUnstagedFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.DiscardAnyUnstagedFileChanges())
 		})
 	}
@@ -1901,7 +1901,7 @@ func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.RemoveUntrackedFiles())
 		})
 	}
@@ -1936,7 +1936,7 @@ func TestGitCommandResetHard(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.ResetHard(s.ref))
 		})
 	}
@@ -1971,7 +1971,7 @@ func TestGitCommandCreateFixupCommit(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.command = s.command
+			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.CreateFixupCommit(s.sha))
 		})
 	}

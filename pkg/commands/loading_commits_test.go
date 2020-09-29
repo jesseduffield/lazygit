@@ -4,6 +4,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
@@ -11,7 +12,7 @@ import (
 
 // NewDummyCommitListBuilder creates a new dummy CommitListBuilder for testing
 func NewDummyCommitListBuilder() *CommitListBuilder {
-	osCommand := NewDummyOSCommand()
+	osCommand := oscommands.NewDummyOSCommand()
 
 	return &CommitListBuilder{
 		Log:        utils.NewDummyLog(),
