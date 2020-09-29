@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // Service is a service that repository is on (Github, Bitbucket, ...)

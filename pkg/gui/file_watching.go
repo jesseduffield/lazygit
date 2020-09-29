@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/jesseduffield/lazygit/pkg/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/sirupsen/logrus"
 )
 

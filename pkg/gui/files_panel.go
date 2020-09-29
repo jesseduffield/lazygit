@@ -14,7 +14,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 )

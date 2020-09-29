@@ -3,8 +3,8 @@ package commands
 import (
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // GetFilesInDiff get the specified commit files

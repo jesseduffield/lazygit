@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit

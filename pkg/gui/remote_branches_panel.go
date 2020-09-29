@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 // list panel functions
