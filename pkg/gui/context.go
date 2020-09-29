@@ -664,6 +664,10 @@ func (gui *Gui) changeMainViewsContext(contextKey string) {
 func (gui *Gui) viewTabNames(viewName string) []string {
 	tabContexts := gui.ViewTabContextMap[viewName]
 
+	if len(tabContexts) == 0 {
+		return nil
+	}
+
 	result := make([]string, len(tabContexts))
 	for i, tabContext := range tabContexts {
 		result[i] = tabContext.tab

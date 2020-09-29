@@ -1574,13 +1574,10 @@ func (gui *Gui) keybindings() error {
 		}
 	}
 
-	tabClickBindings := map[string]func(int) error{
-		"branches": func(tabIndex int) error { return gui.onViewTabClick("branches", tabIndex) },
-		"commits":  func(tabIndex int) error { return gui.onViewTabClick("commits", tabIndex) },
-	}
+	for viewName := range gui.viewTabContextMap() {
+		tabClickCallback := func(tabIndex int) error { return gui.onViewTabClick(viewName, tabIndex) }
 
-	for viewName, binding := range tabClickBindings {
-		if err := gui.g.SetTabClickBinding(viewName, binding); err != nil {
+		if err := gui.g.SetTabClickBinding(viewName, tabClickCallback); err != nil {
 			return err
 		}
 	}
