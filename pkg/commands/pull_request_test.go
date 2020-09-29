@@ -46,7 +46,7 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 func TestCreatePullRequest(t *testing.T) {
 	type scenario struct {
 		testName string
-		branch   *Branch
+		branch   *models.Branch
 		command  func(string, ...string) *exec.Cmd
 		test     func(err error)
 	}
@@ -54,7 +54,7 @@ func TestCreatePullRequest(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"Opens a link to new pull request on bitbucket",
-			&Branch{
+			&models.Branch{
 				Name: "feature/profile-page",
 			},
 			func(cmd string, args ...string) *exec.Cmd {
@@ -73,7 +73,7 @@ func TestCreatePullRequest(t *testing.T) {
 		},
 		{
 			"Opens a link to new pull request on bitbucket with http remote url",
-			&Branch{
+			&models.Branch{
 				Name: "feature/events",
 			},
 			func(cmd string, args ...string) *exec.Cmd {
@@ -92,7 +92,7 @@ func TestCreatePullRequest(t *testing.T) {
 		},
 		{
 			"Opens a link to new pull request on github",
-			&Branch{
+			&models.Branch{
 				Name: "feature/sum-operation",
 			},
 			func(cmd string, args ...string) *exec.Cmd {
@@ -111,7 +111,7 @@ func TestCreatePullRequest(t *testing.T) {
 		},
 		{
 			"Opens a link to new pull request on gitlab",
-			&Branch{
+			&models.Branch{
 				Name: "feature/ui",
 			},
 			func(cmd string, args ...string) *exec.Cmd {
@@ -130,7 +130,7 @@ func TestCreatePullRequest(t *testing.T) {
 		},
 		{
 			"Throws an error if git service is unsupported",
-			&Branch{
+			&models.Branch{
 				Name: "feature/divide-operation",
 			},
 			func(cmd string, args ...string) *exec.Cmd {

@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetBranchListDisplayStrings(branches []*commands.Branch, fullDescription bool, diffName string) [][]string {
+func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string) [][]string {
 	lines := make([][]string, len(branches))
 
 	for i := range branches {
@@ -22,7 +22,7 @@ func GetBranchListDisplayStrings(branches []*commands.Branch, fullDescription bo
 }
 
 // getBranchDisplayStrings returns the display string of branch
-func getBranchDisplayStrings(b *commands.Branch, fullDescription bool, diffed bool) []string {
+func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName

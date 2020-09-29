@@ -20,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 	gitconfig "github.com/tcnksm/go-gitconfig"
@@ -813,7 +814,7 @@ func (c *GitCommand) GetRemoteURL() string {
 }
 
 // CheckRemoteBranchExists Returns remote branch
-func (c *GitCommand) CheckRemoteBranchExists(branch *Branch) bool {
+func (c *GitCommand) CheckRemoteBranchExists(branch *models.Branch) bool {
 	_, err := c.OSCommand.RunCommandWithOutput(
 		"git show-ref --verify -- refs/remotes/origin/%s",
 		branch.Name,

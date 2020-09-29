@@ -1,4 +1,4 @@
-package commands
+package models
 
 // Branch : A git branch
 // duplicating this for now
