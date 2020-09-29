@@ -2,11 +2,11 @@ package oscommands
 
 func getPlatform() *Platform {
 	return &Platform{
-		os:                   "windows",
-		catCmd:               "type",
-		shell:                "cmd",
-		shellArg:             "/c",
-		escapedQuote:         `\"`,
+		OS:                   "windows",
+		CatCmd:               "type",
+		Shell:                "cmd",
+		ShellArg:             "/c",
+		EscapedQuote:         `\"`,
 		FallbackEscapedQuote: "\\'",
 	}
 }
