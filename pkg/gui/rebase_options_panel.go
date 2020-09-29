@@ -53,7 +53,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 		}
 		return nil
 	}
-	result := gui.GitCommand.GenericMerge(commandType, command)
+	result := gui.GitCommand.GenericMergeOrRebaseAction(commandType, command)
 	if err := gui.handleGenericMergeCommandResult(result); err != nil {
 		return err
 	}

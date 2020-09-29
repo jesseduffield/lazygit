@@ -1,0 +1,52 @@
+package commands
+
+import (
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/utils"
+)
+
+func (c *GitCommand) ConfiguredPager() string {
+	if os.Getenv("GIT_PAGER") != "" {
+		return os.Getenv("GIT_PAGER")
+	}
+	if os.Getenv("PAGER") != "" {
+		return os.Getenv("PAGER")
+	}
+	output, err := c.OSCommand.RunCommandWithOutput("git config --get-all core.pager")
+	if err != nil {
+		return ""
+	}
+	trimmedOutput := strings.TrimSpace(output)
+	return strings.Split(trimmedOutput, "\n")[0]
+}
+
+func (c *GitCommand) GetPager(width int) string {
+	useConfig := c.Config.GetUserConfig().GetBool("git.paging.useConfig")
+	if useConfig {
+		pager := c.ConfiguredPager()
+		return strings.Split(pager, "| less")[0]
+	}
+
+	templateValues := map[string]string{
+		"columnWidth": strconv.Itoa(width/2 - 6),
+	}
+
+	pagerTemplate := c.Config.GetUserConfig().GetString("git.paging.pager")
+	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
+}
+
+func (c *GitCommand) colorArg() string {
+	return c.Config.GetUserConfig().GetString("git.paging.colorArg")
+}
+
+func (c *GitCommand) GetConfigValue(key string) string {
+	output, err := c.OSCommand.RunCommandWithOutput("git config --get %s", key)
+	if err != nil {
+		// looks like this returns an error if there is no matching value which we're okay with
+		return ""
+	}
+	return strings.TrimSpace(output)
+}
