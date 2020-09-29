@@ -6,11 +6,12 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedBranch() *commands.Branch {
+func (gui *Gui) getSelectedBranch() *models.Branch {
 	if len(gui.State.Branches) == 0 {
 		return nil
 	}
@@ -209,7 +210,7 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) getCheckedOutBranch() *commands.Branch {
+func (gui *Gui) getCheckedOutBranch() *models.Branch {
 	if len(gui.State.Branches) == 0 {
 		return nil
 	}
@@ -247,7 +248,7 @@ func (gui *Gui) deleteBranch(force bool) error {
 	return gui.deleteNamedBranch(selectedBranch, force)
 }
 
-func (gui *Gui) deleteNamedBranch(selectedBranch *commands.Branch, force bool) error {
+func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) error {
 	title := gui.Tr.SLocalize("DeleteBranch")
 	var messageID string
 	if force {
@@ -446,7 +447,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) currentBranch() *commands.Branch {
+func (gui *Gui) currentBranch() *models.Branch {
 	if len(gui.State.Branches) == 0 {
 		return nil
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -273,7 +274,7 @@ type Modes struct {
 type guiState struct {
 	Files            []*commands.File
 	SubmoduleConfigs []*commands.SubmoduleConfig
-	Branches         []*commands.Branch
+	Branches         []*models.Branch
 	Commits          []*commands.Commit
 	StashEntries     []*commands.StashEntry
 	CommitFiles      []*commands.CommitFile

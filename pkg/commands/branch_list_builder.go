@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -35,7 +36,7 @@ func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, reflogCommi
 	}, nil
 }
 
-func (b *BranchListBuilder) obtainBranches() []*Branch {
+func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 	cmdStr := `git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`
 	output, err := b.GitCommand.OSCommand.RunCommandWithOutput(cmdStr)
 	if err != nil {
@@ -44,7 +45,7 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
-	branches := make([]*Branch, 0, len(outputLines))
+	branches := make([]*models.Branch, 0, len(outputLines))
 	for _, line := range outputLines {
 		if line == "" {
 			continue
@@ -53,7 +54,7 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 		split := strings.Split(line, SEPARATION_CHAR)
 
 		name := strings.TrimPrefix(split[1], "heads/")
-		branch := &Branch{
+		branch := &models.Branch{
 			Name:      name,
 			Pullables: "?",
 			Pushables: "?",
@@ -92,13 +93,13 @@ func (b *BranchListBuilder) obtainBranches() []*Branch {
 }
 
 // Build the list of branches for the current repo
-func (b *BranchListBuilder) Build() []*Branch {
+func (b *BranchListBuilder) Build() []*models.Branch {
 	branches := b.obtainBranches()
 
 	reflogBranches := b.obtainReflogBranches()
 
 	// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
-	branchesWithRecency := make([]*Branch, 0)
+	branchesWithRecency := make([]*models.Branch, 0)
 outer:
 	for _, reflogBranch := range reflogBranches {
 		for j, branch := range branches {
@@ -122,7 +123,7 @@ outer:
 			foundHead = true
 			branch.Recency = "  *"
 			branches = append(branches[0:i], branches[i+1:]...)
-			branches = append([]*Branch{branch}, branches...)
+			branches = append([]*models.Branch{branch}, branches...)
 			break
 		}
 	}
@@ -131,24 +132,24 @@ outer:
 		if err != nil {
 			panic(err)
 		}
-		branches = append([]*Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
+		branches = append([]*models.Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
 	}
 	return branches
 }
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
 // int form against the branch to recalculate the time ago
-func (b *BranchListBuilder) obtainReflogBranches() []*Branch {
+func (b *BranchListBuilder) obtainReflogBranches() []*models.Branch {
 	foundBranchesMap := map[string]bool{}
 	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
-	reflogBranches := make([]*Branch, 0, len(b.ReflogCommits))
+	reflogBranches := make([]*models.Branch, 0, len(b.ReflogCommits))
 	for _, commit := range b.ReflogCommits {
 		if match := re.FindStringSubmatch(commit.Name); len(match) == 3 {
 			recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
 			for _, branchName := range match[1:] {
 				if !foundBranchesMap[branchName] {
 					foundBranchesMap[branchName] = true
-					reflogBranches = append(reflogBranches, &Branch{
+					reflogBranches = append(reflogBranches, &models.Branch{
 						Recency: recency,
 						Name:    branchName,
 					})

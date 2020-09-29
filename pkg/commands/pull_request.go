@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // Service is a service that repository is on (Github, Bitbucket, ...)
@@ -89,7 +90,7 @@ func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 }
 
 // Create opens link to new pull request in browser
-func (pr *PullRequest) Create(branch *Branch) error {
+func (pr *PullRequest) Create(branch *models.Branch) error {
 	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(branch)
 
 	if !branchExistsOnRemote {

@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -17,13 +18,13 @@ type CustomCommandObjects struct {
 	SelectedReflogCommit *commands.Commit
 	SelectedSubCommit    *commands.Commit
 	SelectedFile         *commands.File
-	SelectedLocalBranch  *commands.Branch
+	SelectedLocalBranch  *models.Branch
 	SelectedRemoteBranch *commands.RemoteBranch
 	SelectedRemote       *commands.Remote
 	SelectedTag          *commands.Tag
 	SelectedStashEntry   *commands.StashEntry
 	SelectedCommitFile   *commands.CommitFile
-	CheckedOutBranch     *commands.Branch
+	CheckedOutBranch     *models.Branch
 	PromptResponses      []string
 }
 
