@@ -2,15 +2,15 @@ package presentation
 
 import (
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetReflogCommitListDisplayStrings(commits []*commands.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string) [][]string {
+func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string) [][]string {
 	lines := make([][]string, len(commits))
 
-	var displayFunc func(*commands.Commit, map[string]bool, bool) []string
+	var displayFunc func(*models.Commit, map[string]bool, bool) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForReflogCommit
 	} else {
@@ -25,7 +25,7 @@ func GetReflogCommitListDisplayStrings(commits []*commands.Commit, fullDescripti
 	return lines
 }
 
-func coloredReflogSha(c *commands.Commit, cherryPickedCommitShaMap map[string]bool) string {
+func coloredReflogSha(c *models.Commit, cherryPickedCommitShaMap map[string]bool) string {
 	var shaColor *color.Color
 	if cherryPickedCommitShaMap[c.Sha] {
 		shaColor = color.New(color.FgCyan, color.BgBlue)
@@ -36,7 +36,7 @@ func coloredReflogSha(c *commands.Commit, cherryPickedCommitShaMap map[string]bo
 	return shaColor.Sprint(c.ShortSha())
 }
 
-func getFullDescriptionDisplayStringsForReflogCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
+func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
 	colorAttr := theme.DefaultTextColor
 	if diffed {
 		colorAttr = theme.DiffTerminalColor
@@ -49,7 +49,7 @@ func getFullDescriptionDisplayStringsForReflogCommit(c *commands.Commit, cherryP
 	}
 }
 
-func getDisplayStringsForReflogCommit(c *commands.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
+func getDisplayStringsForReflogCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
 	defaultColor := color.New(theme.DefaultTextColor)
 
 	return []string{

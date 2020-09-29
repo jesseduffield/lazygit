@@ -1716,7 +1716,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 	type scenario struct {
 		testName          string
 		getLocalGitConfig func(string) (string, error)
-		commits           []*Commit
+		commits           []*models.Commit
 		commitIndex       int
 		fileName          string
 		command           func(string, ...string) *exec.Cmd
@@ -1729,7 +1729,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 			func(string) (string, error) {
 				return "", nil
 			},
-			[]*Commit{},
+			[]*models.Commit{},
 			0,
 			"test999.txt",
 			nil,
@@ -1742,7 +1742,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 			func(string) (string, error) {
 				return "true", nil
 			},
-			[]*Commit{{Name: "commit", Sha: "123456"}},
+			[]*models.Commit{{Name: "commit", Sha: "123456"}},
 			0,
 			"test999.txt",
 			nil,
@@ -1755,7 +1755,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 			func(string) (string, error) {
 				return "", nil
 			},
-			[]*Commit{
+			[]*models.Commit{
 				{Name: "commit", Sha: "123456"},
 				{Name: "commit2", Sha: "abcdef"},
 			},

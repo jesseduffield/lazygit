@@ -24,11 +24,11 @@ import (
 type BranchListBuilder struct {
 	Log           *logrus.Entry
 	GitCommand    *GitCommand
-	ReflogCommits []*Commit
+	ReflogCommits []*models.Commit
 }
 
 // NewBranchListBuilder builds a new branch list builder
-func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, reflogCommits []*Commit) (*BranchListBuilder, error) {
+func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, reflogCommits []*models.Commit) (*BranchListBuilder, error) {
 	return &BranchListBuilder{
 		Log:           log,
 		GitCommand:    gitCommand,

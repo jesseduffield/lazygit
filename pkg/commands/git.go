@@ -913,7 +913,7 @@ func (c *GitCommand) GenericMerge(commandType string, command string) error {
 	return nil
 }
 
-func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, error) {
+func (c *GitCommand) RewordCommit(commits []*models.Commit, index int) (*exec.Cmd, error) {
 	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, "reword")
 	if err != nil {
 		return nil, err
@@ -922,7 +922,7 @@ func (c *GitCommand) RewordCommit(commits []*Commit, index int) (*exec.Cmd, erro
 	return c.PrepareInteractiveRebaseCommand(sha, todo, false)
 }
 
-func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
+func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
 	// we must ensure that we have at least two commits after the selected one
 	if len(commits) <= index+2 {
 		// assuming they aren't picking the bottom commit
@@ -943,7 +943,7 @@ func (c *GitCommand) MoveCommitDown(commits []*Commit, index int) error {
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
-func (c *GitCommand) InteractiveRebase(commits []*Commit, index int, action string) error {
+func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, action string) error {
 	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, action)
 	if err != nil {
 		return err
@@ -1005,7 +1005,7 @@ func (c *GitCommand) SoftReset(baseSha string) error {
 	return c.OSCommand.RunCommand("git reset --soft " + baseSha)
 }
 
-func (c *GitCommand) GenerateGenericRebaseTodo(commits []*Commit, actionIndex int, action string) (string, string, error) {
+func (c *GitCommand) GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex int, action string) (string, string, error) {
 	baseIndex := actionIndex + 1
 
 	if len(commits) <= baseIndex {
@@ -1105,7 +1105,7 @@ func (c *GitCommand) Revert(sha string) error {
 }
 
 // CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
-func (c *GitCommand) CherryPickCommits(commits []*Commit) error {
+func (c *GitCommand) CherryPickCommits(commits []*models.Commit) error {
 	todo := ""
 	for _, commit := range commits {
 		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
@@ -1188,7 +1188,7 @@ func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
-func (c *GitCommand) DiscardOldFileChanges(commits []*Commit, commitIndex int, fileName string) error {
+func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
 		return err
 	}
@@ -1299,7 +1299,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
 // commit and pick all others. After this you'll want to call `c.GenericMerge("rebase", "continue")`
-func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*Commit, commitIndex int) error {
+func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIndex int) error {
 	if len(commits)-1 < commitIndex {
 		return errors.New("index outside of range of commits")
 	}
@@ -1380,8 +1380,8 @@ func (c *GitCommand) FetchRemote(remoteName string) error {
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
 
-func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit, filterPath string) ([]*Commit, bool, error) {
-	commits := make([]*Commit, 0)
+func (c *GitCommand) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
+	commits := make([]*models.Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 
 	filterPathArg := ""
@@ -1399,7 +1399,7 @@ func (c *GitCommand) GetReflogCommits(lastReflogCommit *Commit, filterPath strin
 
 		unixTimestamp, _ := strconv.Atoi(match[2])
 
-		commit := &Commit{
+		commit := &models.Commit{
 			Sha:           match[1],
 			Name:          match[3],
 			UnixTimestamp: int64(unixTimestamp),

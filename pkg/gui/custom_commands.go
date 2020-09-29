@@ -14,9 +14,9 @@ import (
 )
 
 type CustomCommandObjects struct {
-	SelectedLocalCommit  *commands.Commit
-	SelectedReflogCommit *commands.Commit
-	SelectedSubCommit    *commands.Commit
+	SelectedLocalCommit  *models.Commit
+	SelectedReflogCommit *models.Commit
+	SelectedSubCommit    *models.Commit
 	SelectedFile         *commands.File
 	SelectedLocalBranch  *models.Branch
 	SelectedRemoteBranch *commands.RemoteBranch

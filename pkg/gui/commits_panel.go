@@ -5,11 +5,12 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedLocalCommit() *commands.Commit {
+func (gui *Gui) getSelectedLocalCommit() *models.Commit {
 	selectedLine := gui.State.Panels.Commits.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
@@ -443,7 +444,7 @@ func (gui *Gui) handleViewCommitFiles() error {
 	return gui.switchToCommitFilesContext(commit.Sha, true, gui.Contexts.BranchCommits.Context, "commits")
 }
 
-func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool) {
+func (gui *Gui) hasCommit(commits []*models.Commit, target string) (int, bool) {
 	for idx, commit := range commits {
 		if commit.Sha == target {
 			return idx, true
@@ -452,7 +453,7 @@ func (gui *Gui) hasCommit(commits []*commands.Commit, target string) (int, bool)
 	return -1, false
 }
 
-func (gui *Gui) unchooseCommit(commits []*commands.Commit, i int) []*commands.Commit {
+func (gui *Gui) unchooseCommit(commits []*models.Commit, i int) []*models.Commit {
 	return append(commits[:i], commits[i+1:]...)
 }
 
