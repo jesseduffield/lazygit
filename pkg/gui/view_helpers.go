@@ -25,18 +25,20 @@ const (
 	TAGS
 	REMOTES
 	STATUS
+	SUBMODULES
 )
 
 func getScopeNames(scopes []int) []string {
 	scopeNameMap := map[int]string{
-		COMMITS:  "commits",
-		BRANCHES: "branches",
-		FILES:    "files",
-		STASH:    "stash",
-		REFLOG:   "reflog",
-		TAGS:     "tags",
-		REMOTES:  "remotes",
-		STATUS:   "status",
+		COMMITS:    "commits",
+		BRANCHES:   "branches",
+		FILES:      "files",
+		SUBMODULES: "submodules",
+		STASH:      "stash",
+		REFLOG:     "reflog",
+		TAGS:       "tags",
+		REMOTES:    "remotes",
+		STATUS:     "status",
 	}
 
 	scopeNames := make([]string, len(scopes))
@@ -116,13 +118,13 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			}()
 		}
 
-		if scopeMap[FILES] {
+		if scopeMap[FILES] || scopeMap[SUBMODULES] {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go gui.refreshFiles()
+					go gui.refreshFilesAndSubmodules()
 				} else {
-					gui.refreshFiles()
+					gui.refreshFilesAndSubmodules()
 				}
 				wg.Done()
 			}()

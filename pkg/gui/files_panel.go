@@ -8,7 +8,6 @@ import (
 	// "strings"
 
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -80,7 +79,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	return gui.refreshMainViews(refreshOpts)
 }
 
-func (gui *Gui) refreshFiles() error {
+func (gui *Gui) refreshFilesAndSubmodules() error {
 	gui.State.RefreshingFilesMutex.Lock()
 	gui.State.IsRefreshingFiles = true
 	defer func() {
@@ -103,15 +102,25 @@ func (gui *Gui) refreshFiles() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if err := gui.Contexts.Files.Context.HandleRender(); err != nil {
-			return err
+		if err := gui.postRefreshUpdate(gui.Contexts.Submodules.Context); err != nil {
+			gui.Log.Error(err)
 		}
 
-		if g.CurrentView() == filesView || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
+		if gui.getFilesView().Context == FILES_CONTEXT_KEY {
+			// doing this a little custom (as opposed to using gui.postRefreshUpdate) because we handle selecting the file explicitly below
+			if err := gui.Contexts.Files.Context.HandleRender(); err != nil {
+				return err
+			}
+		}
+
+		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
 			newSelectedFile := gui.getSelectedFile()
 			alreadySelected := selectedFile != nil && newSelectedFile != nil && newSelectedFile.Name == selectedFile.Name
-			return gui.selectFile(alreadySelected)
+			if err := gui.selectFile(alreadySelected); err != nil {
+				return err
+			}
 		}
+
 		return nil
 	})
 
@@ -161,15 +170,10 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 		return nil
 	}
 
-	submoduleConfigs := gui.State.SubmoduleConfigs
+	submoduleConfigs := gui.State.Submodules
 	if file.IsSubmodule(submoduleConfigs) {
-		wd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		gui.State.RepoPathStack = append(gui.State.RepoPathStack, wd)
 		submoduleConfig := file.SubmoduleConfig(submoduleConfigs)
-		return gui.dispatchSwitchToRepo(submoduleConfig.Path)
+		return gui.enterSubmodule(submoduleConfig)
 	}
 
 	if file.HasInlineMergeConflicts {
@@ -325,7 +329,7 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 			if err := gui.GitCommand.StageAll(); err != nil {
 				return gui.surfaceError(err)
 			}
-			if err := gui.refreshFiles(); err != nil {
+			if err := gui.refreshFilesAndSubmodules(); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -448,7 +452,7 @@ func (gui *Gui) refreshStateSubmoduleConfigs() error {
 		return err
 	}
 
-	gui.State.SubmoduleConfigs = configs
+	gui.State.Submodules = configs
 
 	return nil
 }

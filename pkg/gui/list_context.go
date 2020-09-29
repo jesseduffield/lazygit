@@ -270,7 +270,7 @@ func (gui *Gui) filesListContext() *ListContext {
 		ResetMainViewOriginOnFocus: false,
 		Kind:                       SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Modes.Diffing.Ref, gui.State.SubmoduleConfigs)
+			return presentation.GetFileListDisplayStrings(gui.State.Files, gui.State.Modes.Diffing.Ref, gui.State.Submodules)
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item := gui.getSelectedFile()
@@ -462,6 +462,27 @@ func (gui *Gui) commitFilesListContext() *ListContext {
 	}
 }
 
+func (gui *Gui) submodulesListContext() *ListContext {
+	return &ListContext{
+		ViewName:                   "files",
+		WindowName:                 "files",
+		ContextKey:                 SUBMODULES_CONTEXT_KEY,
+		GetItemsLength:             func() int { return len(gui.State.Submodules) },
+		GetPanelState:              func() IListPanelState { return gui.State.Panels.Submodules },
+		OnFocus:                    gui.handleSubmoduleSelect,
+		Gui:                        gui,
+		ResetMainViewOriginOnFocus: true,
+		Kind:                       SIDE_CONTEXT,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetSubmoduleListDisplayStrings(gui.State.Submodules)
+		},
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedSubmodule()
+			return item, item != nil
+		},
+	}
+}
+
 func (gui *Gui) getListContexts() []*ListContext {
 	return []*ListContext{
 		gui.menuListContext(),
@@ -475,6 +496,7 @@ func (gui *Gui) getListContexts() []*ListContext {
 		gui.subCommitsListContext(),
 		gui.stashListContext(),
 		gui.commitFilesListContext(),
+		gui.submodulesListContext(),
 	}
 }
 

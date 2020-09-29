@@ -34,6 +34,7 @@ const (
 	CONFIRMATION_CONTEXT_KEY        = "confirmation"
 	SEARCH_CONTEXT_KEY              = "search"
 	COMMIT_MESSAGE_CONTEXT_KEY      = "commitMessage"
+	SUBMODULES_CONTEXT_KEY          = "submodules"
 )
 
 var allContextKeys = []string{
@@ -57,6 +58,64 @@ var allContextKeys = []string{
 	CONFIRMATION_CONTEXT_KEY,
 	SEARCH_CONTEXT_KEY,
 	COMMIT_MESSAGE_CONTEXT_KEY,
+	SUBMODULES_CONTEXT_KEY,
+}
+
+type SimpleContextNode struct {
+	Context Context
+}
+
+type RemotesContextNode struct {
+	Context  Context
+	Branches SimpleContextNode
+}
+
+type ContextTree struct {
+	Status        SimpleContextNode
+	Files         SimpleContextNode
+	Submodules    SimpleContextNode
+	Menu          SimpleContextNode
+	Branches      SimpleContextNode
+	Remotes       RemotesContextNode
+	Tags          SimpleContextNode
+	BranchCommits SimpleContextNode
+	CommitFiles   SimpleContextNode
+	ReflogCommits SimpleContextNode
+	SubCommits    SimpleContextNode
+	Stash         SimpleContextNode
+	Normal        SimpleContextNode
+	Staging       SimpleContextNode
+	PatchBuilding SimpleContextNode
+	Merging       SimpleContextNode
+	Credentials   SimpleContextNode
+	Confirmation  SimpleContextNode
+	CommitMessage SimpleContextNode
+	Search        SimpleContextNode
+}
+
+func (gui *Gui) allContexts() []Context {
+	return []Context{
+		gui.Contexts.Status.Context,
+		gui.Contexts.Files.Context,
+		gui.Contexts.Submodules.Context,
+		gui.Contexts.Branches.Context,
+		gui.Contexts.Remotes.Context,
+		gui.Contexts.Remotes.Branches.Context,
+		gui.Contexts.Tags.Context,
+		gui.Contexts.BranchCommits.Context,
+		gui.Contexts.CommitFiles.Context,
+		gui.Contexts.ReflogCommits.Context,
+		gui.Contexts.Stash.Context,
+		gui.Contexts.Menu.Context,
+		gui.Contexts.Confirmation.Context,
+		gui.Contexts.Credentials.Context,
+		gui.Contexts.CommitMessage.Context,
+		gui.Contexts.Normal.Context,
+		gui.Contexts.Staging.Context,
+		gui.Contexts.Merging.Context,
+		gui.Contexts.PatchBuilding.Context,
+		gui.Contexts.SubCommits.Context,
+	}
 }
 
 type Context interface {
@@ -139,61 +198,6 @@ func (c BasicContext) GetKey() string {
 	return c.Key
 }
 
-type SimpleContextNode struct {
-	Context Context
-}
-
-type RemotesContextNode struct {
-	Context  Context
-	Branches SimpleContextNode
-}
-
-type ContextTree struct {
-	Status        SimpleContextNode
-	Files         SimpleContextNode
-	Menu          SimpleContextNode
-	Branches      SimpleContextNode
-	Remotes       RemotesContextNode
-	Tags          SimpleContextNode
-	BranchCommits SimpleContextNode
-	CommitFiles   SimpleContextNode
-	ReflogCommits SimpleContextNode
-	SubCommits    SimpleContextNode
-	Stash         SimpleContextNode
-	Normal        SimpleContextNode
-	Staging       SimpleContextNode
-	PatchBuilding SimpleContextNode
-	Merging       SimpleContextNode
-	Credentials   SimpleContextNode
-	Confirmation  SimpleContextNode
-	CommitMessage SimpleContextNode
-	Search        SimpleContextNode
-}
-
-func (gui *Gui) allContexts() []Context {
-	return []Context{
-		gui.Contexts.Status.Context,
-		gui.Contexts.Files.Context,
-		gui.Contexts.Branches.Context,
-		gui.Contexts.Remotes.Context,
-		gui.Contexts.Remotes.Branches.Context,
-		gui.Contexts.Tags.Context,
-		gui.Contexts.BranchCommits.Context,
-		gui.Contexts.CommitFiles.Context,
-		gui.Contexts.ReflogCommits.Context,
-		gui.Contexts.Stash.Context,
-		gui.Contexts.Menu.Context,
-		gui.Contexts.Confirmation.Context,
-		gui.Contexts.Credentials.Context,
-		gui.Contexts.CommitMessage.Context,
-		gui.Contexts.Normal.Context,
-		gui.Contexts.Staging.Context,
-		gui.Contexts.Merging.Context,
-		gui.Contexts.PatchBuilding.Context,
-		gui.Contexts.SubCommits.Context,
-	}
-}
-
 func (gui *Gui) contextTree() ContextTree {
 	return ContextTree{
 		Status: SimpleContextNode{
@@ -206,6 +210,9 @@ func (gui *Gui) contextTree() ContextTree {
 		},
 		Files: SimpleContextNode{
 			Context: gui.filesListContext(),
+		},
+		Submodules: SimpleContextNode{
+			Context: gui.submodulesListContext(),
 		},
 		Menu: SimpleContextNode{
 			Context: gui.menuListContext(),
@@ -362,6 +369,18 @@ func (gui *Gui) viewTabContextMap() map[string][]tabContext {
 				tab: "Reflog",
 				contexts: []Context{
 					gui.Contexts.ReflogCommits.Context,
+				},
+			},
+		},
+		"files": {
+			{
+				tab:      "Files",
+				contexts: []Context{gui.Contexts.Files.Context},
+			},
+			{
+				tab: "Submodules",
+				contexts: []Context{
+					gui.Contexts.Submodules.Context,
 				},
 			},
 		},

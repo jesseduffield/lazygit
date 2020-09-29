@@ -34,7 +34,8 @@ func (gui *Gui) currentDiffTerminals() []string {
 	switch gui.currentContext().GetKey() {
 	case "":
 		return nil
-	case FILES_CONTEXT_KEY:
+	case FILES_CONTEXT_KEY, SUBMODULES_CONTEXT_KEY:
+		// TODO: should we just return nil here?
 		return []string{""}
 	case COMMIT_FILES_CONTEXT_KEY:
 		return []string{gui.State.Panels.CommitFiles.refName}
