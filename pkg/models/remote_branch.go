@@ -1,4 +1,4 @@
-package commands
+package models
 
 // Remote Branch : A git remote branch
 type RemoteBranch struct {

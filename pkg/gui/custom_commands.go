@@ -19,8 +19,8 @@ type CustomCommandObjects struct {
 	SelectedSubCommit    *models.Commit
 	SelectedFile         *commands.File
 	SelectedLocalBranch  *models.Branch
-	SelectedRemoteBranch *commands.RemoteBranch
-	SelectedRemote       *commands.Remote
+	SelectedRemoteBranch *models.RemoteBranch
+	SelectedRemote       *models.Remote
 	SelectedTag          *models.Tag
 	SelectedStashEntry   *commands.StashEntry
 	SelectedCommitFile   *commands.CommitFile
