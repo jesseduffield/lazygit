@@ -1,12 +1,12 @@
 package presentation
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetTagListDisplayStrings(tags []*commands.Tag, diffName string) [][]string {
+func GetTagListDisplayStrings(tags []*models.Tag, diffName string) [][]string {
 	lines := make([][]string, len(tags))
 
 	for i := range tags {
@@ -18,7 +18,7 @@ func GetTagListDisplayStrings(tags []*commands.Tag, diffName string) [][]string 
 }
 
 // getTagDisplayStrings returns the display string of branch
-func getTagDisplayStrings(t *commands.Tag, diffed bool) []string {
+func getTagDisplayStrings(t *models.Tag, diffed bool) []string {
 	attr := theme.DefaultTextColor
 	if diffed {
 		attr = theme.DiffTerminalColor
