@@ -1,6 +1,6 @@
 package gui
 
-import "github.com/jesseduffield/lazygit/pkg/models"
+import "github.com/jesseduffield/lazygit/pkg/commands/models"
 
 // you can only copy from one context at a time, because the order and position of commits matter
 

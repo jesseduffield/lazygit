@@ -2,7 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 func (gui *Gui) getSelectedCommitFile() *models.CommitFile {

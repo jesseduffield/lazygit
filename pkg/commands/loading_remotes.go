@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {

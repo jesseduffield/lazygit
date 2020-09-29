@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 func (c *GitCommand) AddRemote(name string, url string) error {

@@ -5,7 +5,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/jesseduffield/lazygit/pkg/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 // .gitmodules looks like this:

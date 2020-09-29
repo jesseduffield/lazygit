@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/sirupsen/logrus"
 )
 

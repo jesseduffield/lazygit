@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // DeletePatchesFromCommit applies a patch in reverse for a commit
