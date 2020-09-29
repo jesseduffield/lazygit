@@ -2,12 +2,12 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedStashEntry() *commands.StashEntry {
+func (gui *Gui) getSelectedStashEntry() *models.StashEntry {
 	selectedLine := gui.State.Panels.Stash.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil

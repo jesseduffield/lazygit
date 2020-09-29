@@ -13,6 +13,7 @@ import (
 	"github.com/go-errors/errors"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -260,7 +261,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]*StashEntry)
+		test     func([]*models.StashEntry)
 	}
 
 	scenarios := []scenario{
@@ -269,7 +270,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 			func(string, ...string) *exec.Cmd {
 				return exec.Command("echo")
 			},
-			func(entries []*StashEntry) {
+			func(entries []*models.StashEntry) {
 				assert.Len(t, entries, 0)
 			},
 		},
@@ -278,8 +279,8 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 			func(string, ...string) *exec.Cmd {
 				return exec.Command("echo", "WIP on add-pkg-commands-test: 55c6af2 increase parallel build\nWIP on master: bb86a3f update github template")
 			},
-			func(entries []*StashEntry) {
-				expected := []*StashEntry{
+			func(entries []*models.StashEntry) {
+				expected := []*models.StashEntry{
 					{
 						0,
 						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
