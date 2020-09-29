@@ -311,7 +311,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		test     func([]*File)
+		test     func([]*models.File)
 	}
 
 	scenarios := []scenario{
@@ -320,7 +320,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 			func(cmd string, args ...string) *exec.Cmd {
 				return exec.Command("echo")
 			},
-			func(files []*File) {
+			func(files []*models.File) {
 				assert.Len(t, files, 0)
 			},
 		},
@@ -332,10 +332,10 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 					"MM file1.txt\nA  file3.txt\nAM file2.txt\n?? file4.txt\nUU file5.txt",
 				)
 			},
-			func(files []*File) {
+			func(files []*models.File) {
 				assert.Len(t, files, 5)
 
-				expected := []*File{
+				expected := []*models.File{
 					{
 						Name:                    "file1.txt",
 						HasStagedChanges:        true,
@@ -457,22 +457,22 @@ func TestGitCommandCommitAmend(t *testing.T) {
 func TestGitCommandMergeStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName string
-		oldFiles []*File
-		newFiles []*File
-		test     func([]*File)
+		oldFiles []*models.File
+		newFiles []*models.File
+		test     func([]*models.File)
 	}
 
 	scenarios := []scenario{
 		{
 			"Old file and new file are the same",
-			[]*File{},
-			[]*File{
+			[]*models.File{},
+			[]*models.File{
 				{
 					Name: "new_file.txt",
 				},
 			},
-			func(files []*File) {
-				expected := []*File{
+			func(files []*models.File) {
+				expected := []*models.File{
 					{
 						Name: "new_file.txt",
 					},
@@ -484,7 +484,7 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 		},
 		{
 			"Several files to merge, with some identical",
-			[]*File{
+			[]*models.File{
 				{
 					Name: "new_file1.txt",
 				},
@@ -495,7 +495,7 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 					Name: "new_file3.txt",
 				},
 			},
-			[]*File{
+			[]*models.File{
 				{
 					Name: "new_file4.txt",
 				},
@@ -506,8 +506,8 @@ func TestGitCommandMergeStatusFiles(t *testing.T) {
 					Name: "new_file1.txt",
 				},
 			},
-			func(files []*File) {
-				expected := []*File{
+			func(files []*models.File) {
+				expected := []*models.File{
 					{
 						Name: "new_file1.txt",
 					},
@@ -1099,7 +1099,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 		testName   string
 		command    func() (func(string, ...string) *exec.Cmd, *[][]string)
 		test       func(*[][]string, error)
-		file       *File
+		file       *models.File
 		removeFile func(string) error
 	}
 
@@ -1121,7 +1121,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 					{"reset", "--", "test"},
 				})
 			},
-			&File{
+			&models.File{
 				Name:             "test",
 				HasStagedChanges: true,
 			},
@@ -1144,7 +1144,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				assert.EqualError(t, err, "an error occurred when removing file")
 				assert.Len(t, *cmdsCalled, 0)
 			},
-			&File{
+			&models.File{
 				Name:    "test",
 				Tracked: false,
 			},
@@ -1169,7 +1169,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			&File{
+			&models.File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
@@ -1195,7 +1195,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			&File{
+			&models.File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
@@ -1222,7 +1222,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			&File{
+			&models.File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: true,
@@ -1249,7 +1249,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 					{"checkout", "--", "test"},
 				})
 			},
-			&File{
+			&models.File{
 				Name:              "test",
 				Tracked:           true,
 				HasMergeConflicts: true,
@@ -1275,7 +1275,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 					{"reset", "--", "test"},
 				})
 			},
-			&File{
+			&models.File{
 				Name:             "test",
 				Tracked:          false,
 				HasStagedChanges: true,
@@ -1299,7 +1299,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Len(t, *cmdsCalled, 0)
 			},
-			&File{
+			&models.File{
 				Name:             "test",
 				Tracked:          false,
 				HasStagedChanges: false,
@@ -1386,7 +1386,7 @@ func TestGitCommandDiff(t *testing.T) {
 	type scenario struct {
 		testName string
 		command  func(string, ...string) *exec.Cmd
-		file     *File
+		file     *models.File
 		plain    bool
 		cached   bool
 	}
@@ -1400,7 +1400,7 @@ func TestGitCommandDiff(t *testing.T) {
 
 				return exec.Command("echo")
 			},
-			&File{
+			&models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
@@ -1416,7 +1416,7 @@ func TestGitCommandDiff(t *testing.T) {
 
 				return exec.Command("echo")
 			},
-			&File{
+			&models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
@@ -1432,7 +1432,7 @@ func TestGitCommandDiff(t *testing.T) {
 
 				return exec.Command("echo")
 			},
-			&File{
+			&models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
@@ -1448,7 +1448,7 @@ func TestGitCommandDiff(t *testing.T) {
 
 				return exec.Command("echo")
 			},
-			&File{
+			&models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          false,
@@ -1806,7 +1806,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 	type scenario struct {
 		testName string
-		file     *File
+		file     *models.File
 		command  func(string, ...string) *exec.Cmd
 		test     func(error)
 	}
@@ -1814,7 +1814,7 @@ func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"valid case",
-			&File{Name: "test.txt"},
+			&models.File{Name: "test.txt"},
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
 					Expect:  `git checkout -- "test.txt"`,

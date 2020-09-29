@@ -272,7 +272,7 @@ func (c *GitCommand) GetConfigValue(key string) string {
 	return strings.TrimSpace(output)
 }
 
-func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
+func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	// check if config wants us ignoring untracked files
 	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
 
@@ -286,7 +286,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 		c.Log.Error(err)
 	}
 	statusStrings := utils.SplitLines(statusOutput)
-	files := []*File{}
+	files := []*models.File{}
 
 	for _, statusString := range statusStrings {
 		if strings.HasPrefix(statusString, "warning") {
@@ -302,7 +302,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*File {
 		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
 		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
 
-		file := &File{
+		file := &models.File{
 			Name:                    filename,
 			DisplayString:           statusString,
 			HasStagedChanges:        !hasNoStagedChanges,
@@ -331,7 +331,7 @@ func (c *GitCommand) StashSave(message string) error {
 }
 
 // MergeStatusFiles merge status files
-func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*File, selectedFile *File) []*File {
+func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*models.File, selectedFile *models.File) []*models.File {
 	if len(oldFiles) == 0 {
 		return newFiles
 	}
@@ -339,7 +339,7 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*File, selectedFile *
 	appendedIndexes := []int{}
 
 	// retain position of files we already could see
-	result := []*File{}
+	result := []*models.File{}
 	for _, oldFile := range oldFiles {
 		for newIndex, newFile := range newFiles {
 			if includesInt(appendedIndexes, newIndex) {
@@ -679,7 +679,7 @@ func (c *GitCommand) RebaseMode() (string, error) {
 	}
 }
 
-func (c *GitCommand) BeforeAndAfterFileForRename(file *File) (*File, *File, error) {
+func (c *GitCommand) BeforeAndAfterFileForRename(file *models.File) (*models.File, *models.File, error) {
 
 	if !file.IsRename() {
 		return nil, nil, errors.New("Expected renamed file")
@@ -692,8 +692,8 @@ func (c *GitCommand) BeforeAndAfterFileForRename(file *File) (*File, *File, erro
 
 	split := strings.Split(file.Name, " -> ")
 	filesWithoutRenames := c.GetStatusFiles(GetStatusFileOptions{NoRenames: true})
-	var beforeFile *File
-	var afterFile *File
+	var beforeFile *models.File
+	var afterFile *models.File
 	for _, f := range filesWithoutRenames {
 		if f.Name == split[0] {
 			beforeFile = f
@@ -716,7 +716,7 @@ func (c *GitCommand) BeforeAndAfterFileForRename(file *File) (*File, *File, erro
 }
 
 // DiscardAllFileChanges directly
-func (c *GitCommand) DiscardAllFileChanges(file *File) error {
+func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 	if file.IsRename() {
 		beforeFile, afterFile, err := c.BeforeAndAfterFileForRename(file)
 		if err != nil {
@@ -749,7 +749,7 @@ func (c *GitCommand) DiscardAllFileChanges(file *File) error {
 }
 
 // DiscardUnstagedFileChanges directly
-func (c *GitCommand) DiscardUnstagedFileChanges(file *File) error {
+func (c *GitCommand) DiscardUnstagedFileChanges(file *models.File) error {
 	quotedFileName := c.OSCommand.Quote(file.Name)
 	return c.OSCommand.RunCommand("git checkout -- %s", quotedFileName)
 }
@@ -824,13 +824,13 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *models.Branch) bool {
 }
 
 // WorktreeFileDiff returns the diff of a file
-func (c *GitCommand) WorktreeFileDiff(file *File, plain bool, cached bool) string {
+func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
 	s, _ := c.OSCommand.RunCommandWithOutput(c.WorktreeFileDiffCmdStr(file, plain, cached))
 	return s
 }
 
-func (c *GitCommand) WorktreeFileDiffCmdStr(file *File, plain bool, cached bool) string {
+func (c *GitCommand) WorktreeFileDiffCmdStr(file *models.File, plain bool, cached bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()

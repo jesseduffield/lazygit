@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -73,7 +73,7 @@ func (w *fileWatcher) watchFilename(filename string) {
 	w.WatchedFilenames = append(w.WatchedFilenames, filename)
 }
 
-func (w *fileWatcher) addFilesToFileWatcher(files []*commands.File) error {
+func (w *fileWatcher) addFilesToFileWatcher(files []*models.File) error {
 	if w.Disabled {
 		return nil
 	}

@@ -272,8 +272,8 @@ type Modes struct {
 }
 
 type guiState struct {
-	Files            []*commands.File
-	SubmoduleConfigs []*commands.SubmoduleConfig
+	Files            []*models.File
+	SubmoduleConfigs []*models.SubmoduleConfig
 	Branches         []*models.Branch
 	Commits          []*models.Commit
 	StashEntries     []*commands.StashEntry
@@ -349,7 +349,7 @@ func (gui *Gui) resetState() {
 	}
 
 	gui.State = &guiState{
-		Files:                 make([]*commands.File, 0),
+		Files:                 make([]*models.File, 0),
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),
 		ReflogCommits:         make([]*models.Commit, 0),
