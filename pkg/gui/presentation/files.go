@@ -2,12 +2,12 @@ package presentation
 
 import (
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetFileListDisplayStrings(files []*commands.File, diffName string, submoduleConfigs []*commands.SubmoduleConfig) [][]string {
+func GetFileListDisplayStrings(files []*models.File, diffName string, submoduleConfigs []*models.SubmoduleConfig) [][]string {
 	lines := make([][]string, len(files))
 
 	for i := range files {
@@ -19,7 +19,7 @@ func GetFileListDisplayStrings(files []*commands.File, diffName string, submodul
 }
 
 // getFileDisplayStrings returns the display string of branch
-func getFileDisplayStrings(f *commands.File, diffed bool, submoduleConfigs []*commands.SubmoduleConfig) []string {
+func getFileDisplayStrings(f *models.File, diffed bool, submoduleConfigs []*models.SubmoduleConfig) []string {
 	// potentially inefficient to be instantiating these color
 	// objects with each render
 	red := color.New(color.FgRed)

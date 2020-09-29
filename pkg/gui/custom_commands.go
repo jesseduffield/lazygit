@@ -17,7 +17,7 @@ type CustomCommandObjects struct {
 	SelectedLocalCommit  *models.Commit
 	SelectedReflogCommit *models.Commit
 	SelectedSubCommit    *models.Commit
-	SelectedFile         *commands.File
+	SelectedFile         *models.File
 	SelectedLocalBranch  *models.Branch
 	SelectedRemoteBranch *models.RemoteBranch
 	SelectedRemote       *models.Remote

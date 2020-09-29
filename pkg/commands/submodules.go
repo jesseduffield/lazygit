@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"os"
 	"regexp"
+
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
 // .gitmodules looks like this:
@@ -11,7 +13,7 @@ import (
 //   path = blah/mysubmodule
 //   url = git@github.com:subbo.git
 
-func (c *GitCommand) GetSubmoduleConfigs() ([]*SubmoduleConfig, error) {
+func (c *GitCommand) GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error) {
 	file, err := os.Open(".gitmodules")
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -34,12 +36,12 @@ func (c *GitCommand) GetSubmoduleConfigs() ([]*SubmoduleConfig, error) {
 		}
 	}
 
-	configs := []*SubmoduleConfig{}
+	configs := []*models.SubmoduleConfig{}
 	for scanner.Scan() {
 		line := scanner.Text()
 
 		if name, ok := firstMatch(line, `\[submodule "(.*)"\]`); ok {
-			configs = append(configs, &SubmoduleConfig{Name: name})
+			configs = append(configs, &models.SubmoduleConfig{Name: name})
 			continue
 		}
 
@@ -57,7 +59,7 @@ func (c *GitCommand) GetSubmoduleConfigs() ([]*SubmoduleConfig, error) {
 	return configs, nil
 }
 
-func (c *GitCommand) SubmoduleStash(config *SubmoduleConfig) error {
+func (c *GitCommand) SubmoduleStash(config *models.SubmoduleConfig) error {
 	// if the path does not exist then it hasn't yet been initialized so we'll swallow the error
 	// because the intention here is to have no dirty worktree state
 	if _, err := os.Stat(config.Path); os.IsNotExist(err) {
@@ -68,7 +70,7 @@ func (c *GitCommand) SubmoduleStash(config *SubmoduleConfig) error {
 	return c.OSCommand.RunCommand("git -C %s stash --include-untracked", config.Path)
 }
 
-func (c *GitCommand) SubmoduleReset(config *SubmoduleConfig) error {
+func (c *GitCommand) SubmoduleReset(config *models.SubmoduleConfig) error {
 	return c.OSCommand.RunCommand("git submodule update --force %s", config.Name)
 }
 

@@ -14,13 +14,14 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedFile() *commands.File {
+func (gui *Gui) getSelectedFile() *models.File {
 	selectedLine := gui.State.Panels.Files.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
@@ -119,9 +120,9 @@ func (gui *Gui) refreshFiles() error {
 
 // specific functions
 
-func (gui *Gui) stagedFiles() []*commands.File {
+func (gui *Gui) stagedFiles() []*models.File {
 	files := gui.State.Files
-	result := make([]*commands.File, 0)
+	result := make([]*models.File, 0)
 	for _, file := range files {
 		if file.HasStagedChanges {
 			result = append(result, file)
@@ -130,9 +131,9 @@ func (gui *Gui) stagedFiles() []*commands.File {
 	return result
 }
 
-func (gui *Gui) trackedFiles() []*commands.File {
+func (gui *Gui) trackedFiles() []*models.File {
 	files := gui.State.Files
-	result := make([]*commands.File, 0, len(files))
+	result := make([]*models.File, 0, len(files))
 	for _, file := range files {
 		if file.Tracked {
 			result = append(result, file)

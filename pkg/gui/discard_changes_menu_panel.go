@@ -2,10 +2,10 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
-func (gui *Gui) submoduleFromFile(file *commands.File) *commands.SubmoduleConfig {
+func (gui *Gui) submoduleFromFile(file *models.File) *models.SubmoduleConfig {
 	for _, config := range gui.State.SubmoduleConfigs {
 		if config.Name == file.Name {
 			return config
