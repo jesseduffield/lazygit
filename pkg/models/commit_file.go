@@ -1,4 +1,4 @@
-package commands
+package models
 
 // CommitFile : A git commit file
 type CommitFile struct {

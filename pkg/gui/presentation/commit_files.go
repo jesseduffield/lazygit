@@ -2,13 +2,13 @@ package presentation
 
 import (
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetCommitFileListDisplayStrings(commitFiles []*commands.CommitFile, diffName string) [][]string {
+func GetCommitFileListDisplayStrings(commitFiles []*models.CommitFile, diffName string) [][]string {
 	if len(commitFiles) == 0 {
 		return [][]string{{utils.ColoredString("(none)", color.FgRed)}}
 	}
@@ -24,7 +24,7 @@ func GetCommitFileListDisplayStrings(commitFiles []*commands.CommitFile, diffNam
 }
 
 // getCommitFileDisplayStrings returns the display string of branch
-func getCommitFileDisplayStrings(f *commands.CommitFile, diffed bool) []string {
+func getCommitFileDisplayStrings(f *models.CommitFile, diffed bool) []string {
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
 	defaultColor := color.New(theme.DefaultTextColor)

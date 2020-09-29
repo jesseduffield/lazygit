@@ -1120,7 +1120,7 @@ func (c *GitCommand) CherryPickCommits(commits []*models.Commit) error {
 }
 
 // GetFilesInDiff get the specified commit files
-func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchManager *patch.PatchManager) ([]*CommitFile, error) {
+func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchManager *patch.PatchManager) ([]*models.CommitFile, error) {
 	reverseFlag := ""
 	if reverse {
 		reverseFlag = " -R "
@@ -1135,8 +1135,8 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchM
 }
 
 // filenames string is something like "file1\nfile2\nfile3"
-func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string, patchManager *patch.PatchManager) []*CommitFile {
-	commitFiles := make([]*CommitFile, 0)
+func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string, patchManager *patch.PatchManager) []*models.CommitFile {
+	commitFiles := make([]*models.CommitFile, 0)
 
 	for _, line := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
 		// typical result looks like 'A my_file' meaning my_file was added
@@ -1150,7 +1150,7 @@ func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string
 			status = patchManager.GetFileStatus(name)
 		}
 
-		commitFiles = append(commitFiles, &CommitFile{
+		commitFiles = append(commitFiles, &models.CommitFile{
 			Parent:       parent,
 			Name:         name,
 			ChangeStatus: changeStatus,

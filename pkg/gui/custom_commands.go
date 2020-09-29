@@ -8,7 +8,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -23,7 +22,7 @@ type CustomCommandObjects struct {
 	SelectedRemote       *models.Remote
 	SelectedTag          *models.Tag
 	SelectedStashEntry   *models.StashEntry
-	SelectedCommitFile   *commands.CommitFile
+	SelectedCommitFile   *models.CommitFile
 	CheckedOutBranch     *models.Branch
 	PromptResponses      []string
 }

@@ -2,10 +2,10 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/models"
 )
 
-func (gui *Gui) getSelectedCommitFile() *commands.CommitFile {
+func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
 	selectedLine := gui.State.Panels.CommitFiles.SelectedLineIdx
 	if selectedLine == -1 || selectedLine > len(gui.State.CommitFiles)-1 {
 		return nil
