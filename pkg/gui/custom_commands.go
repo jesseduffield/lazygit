@@ -22,7 +22,7 @@ type CustomCommandObjects struct {
 	SelectedRemoteBranch *models.RemoteBranch
 	SelectedRemote       *models.Remote
 	SelectedTag          *models.Tag
-	SelectedStashEntry   *commands.StashEntry
+	SelectedStashEntry   *models.StashEntry
 	SelectedCommitFile   *commands.CommitFile
 	CheckedOutBranch     *models.Branch
 	PromptResponses      []string

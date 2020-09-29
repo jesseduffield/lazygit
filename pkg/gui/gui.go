@@ -276,7 +276,7 @@ type guiState struct {
 	SubmoduleConfigs []*models.SubmoduleConfig
 	Branches         []*models.Branch
 	Commits          []*models.Commit
-	StashEntries     []*commands.StashEntry
+	StashEntries     []*models.StashEntry
 	CommitFiles      []*commands.CommitFile
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
@@ -353,7 +353,7 @@ func (gui *Gui) resetState() {
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),
 		ReflogCommits:         make([]*models.Commit, 0),
-		StashEntries:          make([]*commands.StashEntry, 0),
+		StashEntries:          make([]*models.StashEntry, 0),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},

@@ -200,10 +200,10 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 	return strings.TrimSpace(strings.TrimPrefix(fileContent, "gitdir: ")), nil
 }
 
-func (c *GitCommand) getUnfilteredStashEntries() []*StashEntry {
+func (c *GitCommand) getUnfilteredStashEntries() []*models.StashEntry {
 	unescaped := "git stash list --pretty='%gs'"
 	rawString, _ := c.OSCommand.RunCommandWithOutput(unescaped)
-	stashEntries := []*StashEntry{}
+	stashEntries := []*models.StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
 	}
@@ -211,7 +211,7 @@ func (c *GitCommand) getUnfilteredStashEntries() []*StashEntry {
 }
 
 // GetStashEntries stash entries
-func (c *GitCommand) GetStashEntries(filterPath string) []*StashEntry {
+func (c *GitCommand) GetStashEntries(filterPath string) []*models.StashEntry {
 	if filterPath == "" {
 		return c.getUnfilteredStashEntries()
 	}
@@ -221,8 +221,8 @@ func (c *GitCommand) GetStashEntries(filterPath string) []*StashEntry {
 	if err != nil {
 		return c.getUnfilteredStashEntries()
 	}
-	stashEntries := []*StashEntry{}
-	var currentStashEntry *StashEntry
+	stashEntries := []*models.StashEntry{}
+	var currentStashEntry *models.StashEntry
 	lines := utils.SplitLines(rawString)
 	isAStash := func(line string) bool { return strings.HasPrefix(line, "stash@{") }
 	re := regexp.MustCompile(`stash@\{(\d+)\}`)
@@ -249,8 +249,8 @@ outer:
 	return stashEntries
 }
 
-func stashEntryFromLine(line string, index int) *StashEntry {
-	return &StashEntry{
+func stashEntryFromLine(line string, index int) *models.StashEntry {
+	return &models.StashEntry{
 		Name:  line,
 		Index: index,
 	}
