@@ -11,7 +11,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 	red := color.New(color.FgRed)
 
 	nukeStr := "reset --hard HEAD && git clean -fd"
-	if len(gui.State.SubmoduleConfigs) > 0 {
+	if len(gui.State.Submodules) > 0 {
 		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.Tr.SLocalize("andResetSubmodules"))
 	}
 

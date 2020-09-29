@@ -1197,6 +1197,12 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "andResetSubmodules",
 			Other: "and reset submodules",
+		}, &i18n.Message{
+			ID:    "enterSubmodule",
+			Other: "enter submodule",
+		}, &i18n.Message{
+			ID:    "copySubmoduleNameToClipboard",
+			Other: "copy submodule name to clipboard",
 		},
 	)
 }

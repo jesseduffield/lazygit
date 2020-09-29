@@ -6,7 +6,7 @@ import (
 )
 
 func (gui *Gui) submoduleFromFile(file *models.File) *models.SubmoduleConfig {
-	for _, config := range gui.State.SubmoduleConfigs {
+	for _, config := range gui.State.Submodules {
 		if config.Name == file.Name {
 			return config
 		}
@@ -23,7 +23,7 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 
 	var menuItems []*menuItem
 
-	submoduleConfigs := gui.State.SubmoduleConfigs
+	submoduleConfigs := gui.State.Submodules
 	if file.IsSubmodule(submoduleConfigs) {
 		submoduleConfig := file.SubmoduleConfig(submoduleConfigs)
 

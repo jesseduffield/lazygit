@@ -209,6 +209,10 @@ type commitFilesPanelState struct {
 	canRebase bool
 }
 
+type submodulePanelState struct {
+	listPanelState
+}
+
 type panelStates struct {
 	Files          *filePanelState
 	Branches       *branchPanelState
@@ -223,6 +227,7 @@ type panelStates struct {
 	LineByLine     *lineByLinePanelState
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
+	Submodules     *submodulePanelState
 }
 
 type searchingState struct {
@@ -273,12 +278,12 @@ type Modes struct {
 }
 
 type guiState struct {
-	Files            []*models.File
-	SubmoduleConfigs []*models.SubmoduleConfig
-	Branches         []*models.Branch
-	Commits          []*models.Commit
-	StashEntries     []*models.StashEntry
-	CommitFiles      []*models.CommitFile
+	Files        []*models.File
+	Submodules   []*models.SubmoduleConfig
+	Branches     []*models.Branch
+	Commits      []*models.Commit
+	StashEntries []*models.StashEntry
+	CommitFiles  []*models.CommitFile
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*models.Commit
@@ -358,6 +363,7 @@ func (gui *Gui) resetState() {
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
+			Submodules:     &submodulePanelState{listPanelState{SelectedLineIdx: -1}},
 			Branches:       &branchPanelState{listPanelState{SelectedLineIdx: 0}},
 			Remotes:        &remotePanelState{listPanelState{SelectedLineIdx: 0}},
 			RemoteBranches: &remoteBranchesState{listPanelState{SelectedLineIdx: -1}},
@@ -456,7 +462,7 @@ func (gui *Gui) Run() error {
 		go gui.startBackgroundFetch()
 	}
 
-	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFiles)
+	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFilesAndSubmodules)
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 

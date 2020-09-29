@@ -285,8 +285,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		listContext *ListContext
 	}
 
+	// TODO: don't we already have the view included in the context object itself? Or might that change in a way we don't want reflected here?
 	listContextStates := []listContextState{
 		{view: filesView, listContext: gui.filesListContext()},
+		{view: filesView, listContext: gui.submodulesListContext()},
 		{view: branchesView, listContext: gui.branchesListContext()},
 		{view: branchesView, listContext: gui.remotesListContext()},
 		{view: branchesView, listContext: gui.remoteBranchesListContext()},
