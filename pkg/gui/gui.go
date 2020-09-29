@@ -277,7 +277,7 @@ type guiState struct {
 	Branches         []*models.Branch
 	Commits          []*models.Commit
 	StashEntries     []*models.StashEntry
-	CommitFiles      []*commands.CommitFile
+	CommitFiles      []*models.CommitFile
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*models.Commit
