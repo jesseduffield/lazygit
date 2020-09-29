@@ -25,6 +25,7 @@ func (gui *Gui) handleSubmoduleSelect() error {
 		task = gui.createRenderStringTask("No submodules")
 	} else {
 		// TODO: we want to display the path, name, url, and a diff. We really need to be able to pipe commands together. We can always pipe commands together and just not do it asynchronously, but what if it's an expensive diff to obtain? I think that makes the most sense now though.
+
 		task = gui.createRenderStringTask(
 			fmt.Sprintf(
 				"Name: %s\nPath: %s\nUrl:  %s\n",
@@ -62,74 +63,113 @@ func (gui *Gui) enterSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.dispatchSwitchToRepo(submodule.Path)
 }
 
-// func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
-// 	return gui.prompt(gui.Tr.SLocalize("newRemoteName"), "", func(remoteName string) error {
-// 		return gui.prompt(gui.Tr.SLocalize("newRemoteUrl"), "", func(remoteUrl string) error {
-// 			if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
+func (gui *Gui) handleRemoveSubmodule() error {
+	submodule := gui.getSelectedSubmodule()
+	if submodule == nil {
+		return nil
+	}
+
+	return gui.ask(askOpts{
+		title:  gui.Tr.SLocalize("RemoveSubmodule"),
+		prompt: gui.Tr.SLocalize("RemoveSubmodulePrompt") + " '" + submodule.Name + "'?",
+		handleConfirm: func() error {
+			if err := gui.GitCommand.SubmoduleDelete(submodule); err != nil {
+				return err
+			}
+
+			return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES, FILES}})
+		},
+	})
+}
+
+func (gui *Gui) handleResetSubmodule() error {
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("resettingSubmoduleStatus"), func() error {
+		submodule := gui.getSelectedSubmodule()
+		if submodule == nil {
+			return nil
+		}
+
+		return gui.resetSubmodule(submodule)
+	})
+}
+
+func (gui *Gui) fileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
+	for _, file := range gui.State.Files {
+		if file.IsSubmodule([]*models.SubmoduleConfig{submodule}) {
+			return file
+		}
+	}
+
+	return nil
+}
+
+func (gui *Gui) resetSubmodule(submodule *models.SubmoduleConfig) error {
+	file := gui.fileForSubmodule(submodule)
+	if file != nil {
+		if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
+			return gui.surfaceError(err)
+		}
+	}
+
+	if err := gui.GitCommand.SubmoduleStash(submodule); err != nil {
+		return gui.surfaceError(err)
+	}
+	if err := gui.GitCommand.SubmoduleReset(submodule); err != nil {
+		return gui.surfaceError(err)
+	}
+
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES, SUBMODULES}})
+}
+
+// func (gui *Gui) handleAddsubmodule(g *gocui.Gui, v *gocui.View) error {
+// 	return gui.prompt(gui.Tr.SLocalize("newsubmoduleName"), "", func(submoduleName string) error {
+// 		return gui.prompt(gui.Tr.SLocalize("newsubmoduleUrl"), "", func(submoduleUrl string) error {
+// 			if err := gui.GitCommand.Addsubmodule(submoduleName, submoduleUrl); err != nil {
 // 				return err
 // 			}
-// 			return gui.refreshSidePanels(refreshOptions{scope: []int{REMOTES}})
+// 			return gui.refreshSidePanels(refreshOptions{scope: []int{submoduleS}})
 // 		})
 // 	})
 // }
 
-// func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
-// 	remote := gui.getSelectedSubmodule()
-// 	if remote == nil {
-// 		return nil
-// 	}
-
-// 	return gui.ask(askOpts{
-// 		title:  gui.Tr.SLocalize("removeRemote"),
-// 		prompt: gui.Tr.SLocalize("removeRemotePrompt") + " '" + remote.Name + "'?",
-// 		handleConfirm: func() error {
-// 			if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
-// 				return err
-// 			}
-
-// 			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
-// 		},
-// 	})
-// }
-
-// func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
-// 	remote := gui.getSelectedSubmodule()
-// 	if remote == nil {
+// func (gui *Gui) handleEditsubmodule(g *gocui.Gui, v *gocui.View) error {
+// 	submodule := gui.getSelectedSubmodule()
+// 	if submodule == nil {
 // 		return nil
 // 	}
 
 // 	editNameMessage := gui.Tr.TemplateLocalize(
-// 		"editRemoteName",
+// 		"editsubmoduleName",
 // 		Teml{
-// 			"remoteName": remote.Name,
+// 			"submoduleName": submodule.Name,
 // 		},
 // 	)
 
-// 	return gui.prompt(editNameMessage, remote.Name, func(updatedRemoteName string) error {
-// 		if updatedRemoteName != remote.Name {
-// 			if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
+// 	return gui.prompt(editNameMessage, submodule.Name, func(updatedsubmoduleName string) error {
+// 		if updatedsubmoduleName != submodule.Name {
+// 			if err := gui.GitCommand.Renamesubmodule(submodule.Name, updatedsubmoduleName); err != nil {
 // 				return gui.surfaceError(err)
 // 			}
 // 		}
 
 // 		editUrlMessage := gui.Tr.TemplateLocalize(
-// 			"editRemoteUrl",
+// 			"editsubmoduleUrl",
 // 			Teml{
-// 				"remoteName": updatedRemoteName,
+// 				"submoduleName": updatedsubmoduleName,
 // 			},
 // 		)
 
-// 		urls := remote.Urls
+// 		urls := submodule.Urls
 // 		url := ""
 // 		if len(urls) > 0 {
 // 			url = urls[0]
 // 		}
 
-// 		return gui.prompt(editUrlMessage, url, func(updatedRemoteUrl string) error {
-// 			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
+// 		return gui.prompt(editUrlMessage, url, func(updatedsubmoduleUrl string) error {
+// 			if err := gui.GitCommand.UpdatesubmoduleUrl(updatedsubmoduleName, updatedsubmoduleUrl); err != nil {
 // 				return gui.surfaceError(err)
 // 			}
-// 			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+// 			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, submoduleS}})
 // 		})
 // 	})
 // }

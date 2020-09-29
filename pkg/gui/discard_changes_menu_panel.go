@@ -23,24 +23,15 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 
 	var menuItems []*menuItem
 
-	submoduleConfigs := gui.State.Submodules
-	if file.IsSubmodule(submoduleConfigs) {
-		submoduleConfig := file.SubmoduleConfig(submoduleConfigs)
+	submodules := gui.State.Submodules
+	if file.IsSubmodule(submodules) {
+		submodule := file.SubmoduleConfig(submodules)
 
 		menuItems = []*menuItem{
 			{
 				displayString: gui.Tr.SLocalize("submoduleStashAndReset"),
 				onPress: func() error {
-					if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
-						return gui.surfaceError(err)
-					}
-					if err := gui.GitCommand.SubmoduleStash(submoduleConfig); err != nil {
-						return gui.surfaceError(err)
-					}
-					if err := gui.GitCommand.SubmoduleReset(submoduleConfig); err != nil {
-						return gui.surfaceError(err)
-					}
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					return gui.resetSubmodule(submodule)
 				},
 			},
 		}

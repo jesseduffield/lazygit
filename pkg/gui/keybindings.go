@@ -1586,6 +1586,21 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
 			Description: gui.Tr.SLocalize("copySubmoduleNameToClipboard"),
 		},
+		{
+			ViewName: "files",
+			Contexts: []string{SUBMODULES_CONTEXT_KEY},
+			Key:      gui.getKey("universal.remove"),
+
+			Handler:     gui.wrappedHandler(gui.handleRemoveSubmodule),
+			Description: gui.Tr.SLocalize("removeSubmodule"),
+		},
+		{
+			ViewName:    "files",
+			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
+			Key:         gui.getKey("u"),
+			Handler:     gui.wrappedHandler(gui.handleResetSubmodule),
+			Description: gui.Tr.SLocalize("submoduleStashAndReset"),
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {

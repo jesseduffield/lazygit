@@ -3,6 +3,7 @@ package commands
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -59,21 +60,36 @@ func (c *GitCommand) GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error) {
 	return configs, nil
 }
 
-func (c *GitCommand) SubmoduleStash(config *models.SubmoduleConfig) error {
+func (c *GitCommand) SubmoduleStash(submodule *models.SubmoduleConfig) error {
 	// if the path does not exist then it hasn't yet been initialized so we'll swallow the error
 	// because the intention here is to have no dirty worktree state
-	if _, err := os.Stat(config.Path); os.IsNotExist(err) {
-		c.Log.Infof("submodule path %s does not exist, returning", config.Path)
+	if _, err := os.Stat(submodule.Path); os.IsNotExist(err) {
+		c.Log.Infof("submodule path %s does not exist, returning", submodule.Path)
 		return nil
 	}
 
-	return c.OSCommand.RunCommand("git -C %s stash --include-untracked", config.Path)
+	return c.OSCommand.RunCommand("git -C %s stash --include-untracked", submodule.Path)
 }
 
-func (c *GitCommand) SubmoduleReset(config *models.SubmoduleConfig) error {
-	return c.OSCommand.RunCommand("git submodule update --force %s", config.Name)
+func (c *GitCommand) SubmoduleReset(submodule *models.SubmoduleConfig) error {
+	return c.OSCommand.RunCommand("git submodule update --init --force %s", submodule.Name)
 }
 
 func (c *GitCommand) SubmoduleUpdateAll() error {
+	// not doing an --init here because the user probably doesn't want that
 	return c.OSCommand.RunCommand("git submodule update --force")
+}
+
+func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
+	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
+
+	if err := c.OSCommand.RunCommand("git submodule deinit %s", submodule.Name); err != nil {
+		return err
+	}
+
+	if err := c.OSCommand.RunCommand("git rm %s", submodule.Path); err != nil {
+		return err
+	}
+
+	return os.RemoveAll(filepath.Join(c.DotGitDir, "modules", submodule.Name))
 }

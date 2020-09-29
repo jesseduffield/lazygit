@@ -1203,6 +1203,18 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "copySubmoduleNameToClipboard",
 			Other: "copy submodule name to clipboard",
+		}, &i18n.Message{
+			ID:    "RemoveSubmodule",
+			Other: "Remove submodule",
+		}, &i18n.Message{
+			ID:    "removeSubmodule",
+			Other: "remove submodule",
+		}, &i18n.Message{
+			ID:    "RemoveSubmodulePrompt",
+			Other: "Are you sure you want to remove submodule",
+		}, &i18n.Message{
+			ID:    "resettingSubmoduleStatus",
+			Other: "resetting submodule",
 		},
 	)
 }
