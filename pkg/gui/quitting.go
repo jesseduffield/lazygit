@@ -49,7 +49,6 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-
 	repoPathStack := gui.State.RepoPathStack
 	if len(repoPathStack) > 0 {
 		n := len(repoPathStack) - 1
