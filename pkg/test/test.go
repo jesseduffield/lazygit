@@ -1,10 +1,11 @@
 package test
 
 import (
-	"github.com/go-errors/errors"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )

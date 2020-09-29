@@ -22,6 +22,7 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -90,7 +91,7 @@ type Gui struct {
 	g                    *gocui.Gui
 	Log                  *logrus.Entry
 	GitCommand           *commands.GitCommand
-	OSCommand            *commands.OSCommand
+	OSCommand            *oscommands.OSCommand
 	SubProcess           *exec.Cmd
 	State                *guiState
 	Config               config.AppConfigurer
@@ -384,7 +385,7 @@ func (gui *Gui) resetState() {
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *commands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
 	gui := &Gui{
 		Log:                  log,
 		GitCommand:           gitCommand,

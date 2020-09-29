@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,7 +50,7 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, linesToRead i
 	return func(stop chan struct{}) error {
 		go func() {
 			<-stop
-			if err := commands.Kill(cmd); err != nil {
+			if err := oscommands.Kill(cmd); err != nil {
 				if !strings.Contains(err.Error(), "process already finished") {
 					m.Log.Errorf("error when running cmd task: %v", err)
 				}

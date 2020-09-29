@@ -2,7 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -156,7 +156,7 @@ type handleHardResetWithAutoStashOptions struct {
 // only to be used in the undo flow for now
 func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHardResetWithAutoStashOptions) error {
 	reset := func() error {
-		if err := gui.resetToRef(commitSha, "hard", commands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
+		if err := gui.resetToRef(commitSha, "hard", oscommands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
 			return gui.surfaceError(err)
 		}
 		return nil

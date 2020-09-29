@@ -1,6 +1,6 @@
 // +build !windows
 
-package commands
+package oscommands
 
 import (
 	"bufio"

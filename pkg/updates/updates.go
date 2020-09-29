@@ -15,7 +15,7 @@ import (
 
 	"github.com/kardianos/osext"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/sirupsen/logrus"
@@ -25,7 +25,7 @@ import (
 type Updater struct {
 	Log       *logrus.Entry
 	Config    config.AppConfigurer
-	OSCommand *commands.OSCommand
+	OSCommand *oscommands.OSCommand
 	Tr        *i18n.Localizer
 }
 
@@ -40,7 +40,7 @@ const (
 )
 
 // NewUpdater creates a new updater
-func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *commands.OSCommand, tr *i18n.Localizer) (*Updater, error) {
+func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.Localizer) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
 
 	return &Updater{

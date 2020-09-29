@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
-func (gui *Gui) resetToRef(ref string, strength string, options commands.RunCommandOptions) error {
+func (gui *Gui) resetToRef(ref string, strength string, options oscommands.RunCommandOptions) error {
 	if err := gui.GitCommand.ResetToCommit(ref, strength, options); err != nil {
 		return gui.surfaceError(err)
 	}
@@ -41,7 +41,7 @@ func (gui *Gui) createResetMenu(ref string) error {
 				),
 			},
 			onPress: func() error {
-				return gui.resetToRef(ref, strength, commands.RunCommandOptions{})
+				return gui.resetToRef(ref, strength, oscommands.RunCommandOptions{})
 			},
 		}
 	}
