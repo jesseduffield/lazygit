@@ -201,62 +201,6 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 	return strings.TrimSpace(strings.TrimPrefix(fileContent, "gitdir: ")), nil
 }
 
-func (c *GitCommand) getUnfilteredStashEntries() []*models.StashEntry {
-	unescaped := "git stash list --pretty='%gs'"
-	rawString, _ := c.OSCommand.RunCommandWithOutput(unescaped)
-	stashEntries := []*models.StashEntry{}
-	for i, line := range utils.SplitLines(rawString) {
-		stashEntries = append(stashEntries, stashEntryFromLine(line, i))
-	}
-	return stashEntries
-}
-
-// GetStashEntries stash entries
-func (c *GitCommand) GetStashEntries(filterPath string) []*models.StashEntry {
-	if filterPath == "" {
-		return c.getUnfilteredStashEntries()
-	}
-
-	unescaped := fmt.Sprintf("git stash list --name-only")
-	rawString, err := c.OSCommand.RunCommandWithOutput(unescaped)
-	if err != nil {
-		return c.getUnfilteredStashEntries()
-	}
-	stashEntries := []*models.StashEntry{}
-	var currentStashEntry *models.StashEntry
-	lines := utils.SplitLines(rawString)
-	isAStash := func(line string) bool { return strings.HasPrefix(line, "stash@{") }
-	re := regexp.MustCompile(`stash@\{(\d+)\}`)
-
-outer:
-	for i := 0; i < len(lines); i++ {
-		if !isAStash(lines[i]) {
-			continue
-		}
-		match := re.FindStringSubmatch(lines[i])
-		idx, err := strconv.Atoi(match[1])
-		if err != nil {
-			return c.getUnfilteredStashEntries()
-		}
-		currentStashEntry = stashEntryFromLine(lines[i], idx)
-		for i+1 < len(lines) && !isAStash(lines[i+1]) {
-			i++
-			if lines[i] == filterPath {
-				stashEntries = append(stashEntries, currentStashEntry)
-				continue outer
-			}
-		}
-	}
-	return stashEntries
-}
-
-func stashEntryFromLine(line string, index int) *models.StashEntry {
-	return &models.StashEntry{
-		Name:  line,
-		Index: index,
-	}
-}
-
 // GetStashEntryDiff stash diff
 func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
 	return fmt.Sprintf("git stash show -p --stat --color=%s stash@{%d}", c.colorArg(), index)
@@ -273,53 +217,6 @@ func (c *GitCommand) GetConfigValue(key string) string {
 	return strings.TrimSpace(output)
 }
 
-func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
-	// check if config wants us ignoring untracked files
-	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
-
-	if untrackedFilesSetting == "" {
-		untrackedFilesSetting = "all"
-	}
-	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
-
-	statusOutput, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
-	if err != nil {
-		c.Log.Error(err)
-	}
-	statusStrings := utils.SplitLines(statusOutput)
-	files := []*models.File{}
-
-	for _, statusString := range statusStrings {
-		if strings.HasPrefix(statusString, "warning") {
-			c.Log.Warningf("warning when calling git status: %s", statusString)
-			continue
-		}
-		change := statusString[0:2]
-		stagedChange := change[0:1]
-		unstagedChange := statusString[1:2]
-		filename := c.OSCommand.Unquote(statusString[3:])
-		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
-		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
-		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
-		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
-
-		file := &models.File{
-			Name:                    filename,
-			DisplayString:           statusString,
-			HasStagedChanges:        !hasNoStagedChanges,
-			HasUnstagedChanges:      unstagedChange != " ",
-			Tracked:                 !untracked,
-			Deleted:                 unstagedChange == "D" || stagedChange == "D",
-			HasMergeConflicts:       hasMergeConflicts,
-			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			Type:                    c.OSCommand.FileType(filename),
-			ShortStatus:             change,
-		}
-		files = append(files, file)
-	}
-	return files
-}
-
 // StashDo modify stash
 func (c *GitCommand) StashDo(index int, method string) error {
 	return c.OSCommand.RunCommand("git stash %s stash@{%d}", method, index)
@@ -329,41 +226,6 @@ func (c *GitCommand) StashDo(index int, method string) error {
 // TODO: before calling this, check if there is anything to save
 func (c *GitCommand) StashSave(message string) error {
 	return c.OSCommand.RunCommand("git stash save %s", c.OSCommand.Quote(message))
-}
-
-// MergeStatusFiles merge status files
-func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*models.File, selectedFile *models.File) []*models.File {
-	if len(oldFiles) == 0 {
-		return newFiles
-	}
-
-	appendedIndexes := []int{}
-
-	// retain position of files we already could see
-	result := []*models.File{}
-	for _, oldFile := range oldFiles {
-		for newIndex, newFile := range newFiles {
-			if includesInt(appendedIndexes, newIndex) {
-				continue
-			}
-			// if we just staged B and in doing so created 'A -> B' and we are currently have oldFile: A and newFile: 'A -> B', we want to wait until we come across B so the our cursor isn't jumping anywhere
-			waitForMatchingFile := selectedFile != nil && newFile.IsRename() && !selectedFile.IsRename() && newFile.Matches(selectedFile) && !oldFile.Matches(selectedFile)
-
-			if oldFile.Matches(newFile) && !waitForMatchingFile {
-				result = append(result, newFile)
-				appendedIndexes = append(appendedIndexes, newIndex)
-			}
-		}
-	}
-
-	// append any new files to the end
-	for index, newFile := range newFiles {
-		if !includesInt(appendedIndexes, index) {
-			result = append(result, newFile)
-		}
-	}
-
-	return result
 }
 
 func includesInt(list []int, a int) bool {
@@ -510,11 +372,6 @@ func (c *GitCommand) DeleteBranch(branch string, force bool) error {
 	return c.OSCommand.RunCommand("%s %s", command, branch)
 }
 
-// ListStash list stash
-func (c *GitCommand) ListStash() (string, error) {
-	return c.OSCommand.RunCommandWithOutput("git stash list")
-}
-
 type MergeOpts struct {
 	FastForwardOnly bool
 }
@@ -640,21 +497,6 @@ func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 		}
 	}
 	return nil
-}
-
-// GitStatus returns the plaintext short status of the repo
-type GitStatusOptions struct {
-	NoRenames         bool
-	UntrackedFilesArg string
-}
-
-func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
-	noRenamesFlag := ""
-	if opts.NoRenames {
-		noRenamesFlag = "--no-renames"
-	}
-
-	return c.OSCommand.RunCommandWithOutput("git status %s --porcelain %s", opts.UntrackedFilesArg, noRenamesFlag)
 }
 
 // IsInMergeState states whether we are still mid-merge
@@ -1120,48 +962,6 @@ func (c *GitCommand) CherryPickCommits(commits []*models.Commit) error {
 	return c.OSCommand.RunPreparedCommand(cmd)
 }
 
-// GetFilesInDiff get the specified commit files
-func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchManager *patch.PatchManager) ([]*models.CommitFile, error) {
-	reverseFlag := ""
-	if reverse {
-		reverseFlag = " -R "
-	}
-
-	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --submodule --no-ext-diff --name-status %s %s %s", reverseFlag, from, to)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.GetCommitFilesFromFilenames(filenames, to, patchManager), nil
-}
-
-// filenames string is something like "file1\nfile2\nfile3"
-func (c *GitCommand) GetCommitFilesFromFilenames(filenames string, parent string, patchManager *patch.PatchManager) []*models.CommitFile {
-	commitFiles := make([]*models.CommitFile, 0)
-
-	for _, line := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
-		// typical result looks like 'A my_file' meaning my_file was added
-		if line == "" {
-			continue
-		}
-		changeStatus := line[0:1]
-		name := line[2:]
-		status := patch.UNSELECTED
-		if patchManager != nil && patchManager.To == parent {
-			status = patchManager.GetFileStatus(name)
-		}
-
-		commitFiles = append(commitFiles, &models.CommitFile{
-			Parent:       parent,
-			Name:         name,
-			ChangeStatus: changeStatus,
-			PatchStatus:  status,
-		})
-	}
-
-	return commitFiles
-}
-
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
 func (c *GitCommand) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
@@ -1376,51 +1176,6 @@ func (c *GitCommand) PushTag(remoteName string, tagName string) error {
 
 func (c *GitCommand) FetchRemote(remoteName string) error {
 	return c.OSCommand.RunCommand("git fetch %s", remoteName)
-}
-
-// GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
-// if none is passed (i.e. it's value is nil) then we get all the reflog commits
-
-func (c *GitCommand) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
-	commits := make([]*models.Commit, 0)
-	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
-
-	filterPathArg := ""
-	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(filterPath))
-	}
-
-	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf("git reflog --abbrev=20 --date=unix %s", filterPathArg))
-	onlyObtainedNewReflogCommits := false
-	err := oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
-		match := re.FindStringSubmatch(line)
-		if len(match) <= 1 {
-			return false, nil
-		}
-
-		unixTimestamp, _ := strconv.Atoi(match[2])
-
-		commit := &models.Commit{
-			Sha:           match[1],
-			Name:          match[3],
-			UnixTimestamp: int64(unixTimestamp),
-			Status:        "reflog",
-		}
-
-		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp {
-			onlyObtainedNewReflogCommits = true
-			// after this point we already have these reflogs loaded so we'll simply return the new ones
-			return true, nil
-		}
-
-		commits = append(commits, commit)
-		return false, nil
-	})
-	if err != nil {
-		return nil, false, err
-	}
-
-	return commits, onlyObtainedNewReflogCommits, nil
 }
 
 func (c *GitCommand) ConfiguredPager() string {
