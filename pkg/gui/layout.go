@@ -147,7 +147,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
-		branchesView.Tabs = gui.viewTabNames("branches")
 		branchesView.FgColor = textColor
 		branchesView.ContainsList = true
 	}
@@ -168,7 +167,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		commitsView.Title = gui.Tr.SLocalize("CommitsTitle")
-		commitsView.Tabs = gui.viewTabNames("commits")
 		commitsView.FgColor = textColor
 		commitsView.ContainsList = true
 	}
@@ -335,6 +333,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 func (gui *Gui) onInitialViewsCreation() error {
 	gui.setInitialViewContexts()
+
+	// add tabs to views
+	for _, view := range gui.g.Views() {
+		tabs := gui.viewTabNames(view.Name())
+		if len(tabs) == 0 {
+			continue
+		}
+		view.Tabs = tabs
+	}
 
 	if err := gui.switchContext(gui.defaultSideContext()); err != nil {
 		return err
