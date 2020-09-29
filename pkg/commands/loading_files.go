@@ -8,6 +8,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// GetStatusFiles git status files
+type GetStatusFileOptions struct {
+	NoRenames bool
+}
+
 func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	// check if config wants us ignoring untracked files
 	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
@@ -82,7 +87,7 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*models.File, selecte
 	result := []*models.File{}
 	for _, oldFile := range oldFiles {
 		for newIndex, newFile := range newFiles {
-			if includesInt(appendedIndexes, newIndex) {
+			if utils.IncludesInt(appendedIndexes, newIndex) {
 				continue
 			}
 			// if we just staged B and in doing so created 'A -> B' and we are currently have oldFile: A and newFile: 'A -> B', we want to wait until we come across B so the our cursor isn't jumping anywhere
@@ -97,7 +102,7 @@ func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*models.File, selecte
 
 	// append any new files to the end
 	for index, newFile := range newFiles {
-		if !includesInt(appendedIndexes, index) {
+		if !utils.IncludesInt(appendedIndexes, index) {
 			result = append(result, newFile)
 		}
 	}

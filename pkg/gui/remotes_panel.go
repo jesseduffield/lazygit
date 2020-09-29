@@ -161,9 +161,9 @@ func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
 		gui.State.FetchMutex.Lock()
 		defer gui.State.FetchMutex.Unlock()
 
-		if err := gui.GitCommand.FetchRemote(remote.Name); err != nil {
-			return err
-		}
+		// TODO: test this
+		err := gui.GitCommand.FetchRemote(remote.Name, gui.promptUserForCredential)
+		gui.handleCredentialsPopup(err)
 
 		return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
 	})
