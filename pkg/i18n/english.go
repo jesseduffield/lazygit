@@ -1194,6 +1194,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "submoduleStashAndReset",
 			Other: "stash uncommitted submodule changes and reset",
+		}, &i18n.Message{
+			ID:    "andResetSubmodules",
+			Other: "and reset submodules",
 		},
 	)
 }

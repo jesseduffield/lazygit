@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"fmt"
+
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 )
@@ -8,11 +10,16 @@ import (
 func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 	red := color.New(color.FgRed)
 
+	nukeStr := "reset --hard HEAD && git clean -fd"
+	if len(gui.State.SubmoduleConfigs) > 0 {
+		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.Tr.SLocalize("andResetSubmodules"))
+	}
+
 	menuItems := []*menuItem{
 		{
 			displayStrings: []string{
 				gui.Tr.SLocalize("discardAllChangesToAllFiles"),
-				red.Sprint("reset --hard HEAD && git clean -fd"),
+				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
 				if err := gui.GitCommand.ResetAndClean(); err != nil {
