@@ -1,4 +1,4 @@
-package commands
+package oscommands
 
 import (
 	"io/ioutil"
@@ -102,7 +102,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		OSCmd := NewDummyOSCommand()
-		OSCmd.command = s.command
+		OSCmd.Command = s.command
 		OSCmd.Config.GetUserConfig().Set("os.openCommand", "open {{filename}}")
 
 		s.test(OSCmd.OpenFile(s.filename))
@@ -231,9 +231,9 @@ func TestOSCommandEditFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		OSCmd := NewDummyOSCommand()
-		OSCmd.command = s.command
-		OSCmd.getGlobalGitConfig = s.getGlobalGitConfig
-		OSCmd.getenv = s.getenv
+		OSCmd.Command = s.command
+		OSCmd.GetGlobalGitConfig = s.getGlobalGitConfig
+		OSCmd.Getenv = s.getenv
 
 		s.test(OSCmd.EditFile(s.filename))
 	}
@@ -245,7 +245,7 @@ func TestOSCommandQuote(t *testing.T) {
 
 	actual := osCommand.Quote("hello `test`")
 
-	expected := osCommand.Platform.escapedQuote + "hello \\`test\\`" + osCommand.Platform.escapedQuote
+	expected := osCommand.Platform.EscapedQuote + "hello \\`test\\`" + osCommand.Platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -254,11 +254,11 @@ func TestOSCommandQuote(t *testing.T) {
 func TestOSCommandQuoteSingleQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
-	osCommand.Platform.os = "linux"
+	osCommand.Platform.OS = "linux"
 
 	actual := osCommand.Quote("hello 'test'")
 
-	expected := osCommand.Platform.fallbackEscapedQuote + "hello 'test'" + osCommand.Platform.fallbackEscapedQuote
+	expected := osCommand.Platform.FallbackEscapedQuote + "hello 'test'" + osCommand.Platform.FallbackEscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -267,11 +267,11 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
-	osCommand.Platform.os = "linux"
+	osCommand.Platform.OS = "linux"
 
 	actual := osCommand.Quote(`hello "test"`)
 
-	expected := osCommand.Platform.escapedQuote + "hello \"test\"" + osCommand.Platform.escapedQuote
+	expected := osCommand.Platform.EscapedQuote + "hello \"test\"" + osCommand.Platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }

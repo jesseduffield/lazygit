@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -31,12 +32,12 @@ const SEPARATION_CHAR = "|"
 type CommitListBuilder struct {
 	Log        *logrus.Entry
 	GitCommand *GitCommand
-	OSCommand  *OSCommand
+	OSCommand  *oscommands.OSCommand
 	Tr         *i18n.Localizer
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *OSCommand, tr *i18n.Localizer) *CommitListBuilder {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *oscommands.OSCommand, tr *i18n.Localizer) *CommitListBuilder {
 	return &CommitListBuilder{
 		Log:        log,
 		GitCommand: gitCommand,
@@ -151,7 +152,7 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit
 
 	cmd := c.getLogCmd(opts)
 
-	err = RunLineOutputCmd(cmd, func(line string) (bool, error) {
+	err = oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		if strings.Split(line, " ")[0] != "gpg:" {
 			commit := c.extractCommitFromLine(line)
 			if commit.Sha == firstPushedCommit {

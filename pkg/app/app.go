@@ -16,6 +16,7 @@ import (
 
 	"github.com/aybabtme/humanlog"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
@@ -30,7 +31,7 @@ type App struct {
 
 	Config        config.AppConfigurer
 	Log           *logrus.Entry
-	OSCommand     *commands.OSCommand
+	OSCommand     *oscommands.OSCommand
 	GitCommand    *commands.GitCommand
 	Gui           *gui.Gui
 	Tr            *i18n.Localizer
@@ -106,7 +107,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, nil
 	}
 
-	app.OSCommand = commands.NewOSCommand(app.Log, config)
+	app.OSCommand = oscommands.NewOSCommand(app.Log, config)
 
 	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand, app.Tr)
 	if err != nil {

@@ -1,4 +1,4 @@
-package commands
+package oscommands
 
 func getPlatform() *Platform {
 	return &Platform{
@@ -7,6 +7,6 @@ func getPlatform() *Platform {
 		shell:                "cmd",
 		shellArg:             "/c",
 		escapedQuote:         `\"`,
-		fallbackEscapedQuote: "\\'",
+		FallbackEscapedQuote: "\\'",
 	}
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/go-errors/errors"
 
 	gogit "github.com/go-git/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
@@ -42,7 +43,7 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 		// we've been given the git directory explicitly so no need to navigate to it
 		_, err := stat(gitDir)
 		if err != nil {
-			return WrapError(err)
+			return utils.WrapError(err)
 		}
 
 		return nil
@@ -58,11 +59,11 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 		}
 
 		if !os.IsNotExist(err) {
-			return WrapError(err)
+			return utils.WrapError(err)
 		}
 
 		if err = chdir(".."); err != nil {
-			return WrapError(err)
+			return utils.WrapError(err)
 		}
 	}
 }
@@ -112,7 +113,7 @@ func setupRepository(openGitRepository func(string) (*gogit.Repository, error), 
 // GitCommand is our main git interface
 type GitCommand struct {
 	Log                  *logrus.Entry
-	OSCommand            *OSCommand
+	OSCommand            *oscommands.OSCommand
 	Repo                 *gogit.Repository
 	Tr                   *i18n.Localizer
 	Config               config.AppConfigurer
@@ -128,7 +129,7 @@ type GitCommand struct {
 }
 
 // NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*GitCommand, error) {
+func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*GitCommand, error) {
 	var repo *gogit.Repository
 
 	// see what our default push behaviour is
@@ -464,7 +465,7 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 }
 
 // ResetToCommit reset to commit
-func (c *GitCommand) ResetToCommit(sha string, strength string, options RunCommandOptions) error {
+func (c *GitCommand) ResetToCommit(sha string, strength string, options oscommands.RunCommandOptions) error {
 	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git reset --%s %s", strength, sha), options)
 }
 
@@ -604,7 +605,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.OSCommand.RunCommandWithOutput("%s %s", c.OSCommand.Platform.catCmd, c.OSCommand.Quote(fileName))
+	return c.OSCommand.RunCommandWithOutput("%s %s", c.OSCommand.Platform.CatCmd, c.OSCommand.Quote(fileName))
 }
 
 // StageFile stages a file
@@ -765,7 +766,7 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 	if options.Force {
 		forceArg = "--force "
 	}
-	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git checkout %s %s", forceArg, branch), RunCommandOptions{EnvVars: options.EnvVars})
+	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git checkout %s %s", forceArg, branch), oscommands.RunCommandOptions{EnvVars: options.EnvVars})
 }
 
 // PrepareCommitAmendSubProcess prepares a subprocess for `git commit --amend --allow-empty`
@@ -972,7 +973,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	c.Log.WithField("command", cmdStr).Info("RunCommand")
 	splitCmd := str.ToArgv(cmdStr)
 
-	cmd := c.OSCommand.command(splitCmd[0], splitCmd[1:]...)
+	cmd := c.OSCommand.Command(splitCmd[0], splitCmd[1:]...)
 
 	gitSequenceEditor := ex
 	if todo == "" {
@@ -1391,7 +1392,7 @@ func (c *GitCommand) GetReflogCommits(lastReflogCommit *models.Commit, filterPat
 
 	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf("git reflog --abbrev=20 --date=unix %s", filterPathArg))
 	onlyObtainedNewReflogCommits := false
-	err := RunLineOutputCmd(cmd, func(line string) (bool, error) {
+	err := oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {
 			return false, nil

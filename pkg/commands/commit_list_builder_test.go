@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,10 +14,10 @@ func NewDummyCommitListBuilder() *CommitListBuilder {
 	osCommand := NewDummyOSCommand()
 
 	return &CommitListBuilder{
-		Log:        NewDummyLog(),
+		Log:        utils.NewDummyLog(),
 		GitCommand: NewDummyGitCommandWithOSCommand(osCommand),
 		OSCommand:  osCommand,
-		Tr:         i18n.NewLocalizer(NewDummyLog()),
+		Tr:         i18n.NewLocalizer(utils.NewDummyLog()),
 	}
 }
 
