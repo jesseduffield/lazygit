@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -26,16 +27,21 @@ func (gui *Gui) handleSubmoduleSelect() error {
 	if submodule == nil {
 		task = gui.createRenderStringTask("No submodules")
 	} else {
-		// TODO: we want to display the path, name, url, and a diff. We really need to be able to pipe commands together. We can always pipe commands together and just not do it asynchronously, but what if it's an expensive diff to obtain? I think that makes the most sense now though.
-
-		task = gui.createRenderStringTask(
-			fmt.Sprintf(
-				"Name: %s\nPath: %s\nUrl:  %s\n",
-				utils.ColoredString(submodule.Name, color.FgGreen),
-				utils.ColoredString(submodule.Path, color.FgYellow),
-				utils.ColoredString(submodule.Url, color.FgCyan),
-			),
+		prefix := fmt.Sprintf(
+			"Name: %s\nPath: %s\nUrl:  %s\n\n",
+			utils.ColoredString(submodule.Name, color.FgGreen),
+			utils.ColoredString(submodule.Path, color.FgYellow),
+			utils.ColoredString(submodule.Url, color.FgCyan),
 		)
+
+		file := gui.fileForSubmodule(submodule)
+		if file == nil {
+			task = gui.createRenderStringTask(prefix)
+		} else {
+			cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+			cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+			task = gui.createRunCommandTaskWithPrefix(cmd, prefix)
+		}
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -46,12 +52,18 @@ func (gui *Gui) handleSubmoduleSelect() error {
 	})
 }
 
-func (gui *Gui) handleSubmoduleEnter() error {
-	submodule := gui.getSelectedSubmodule()
-	if submodule == nil {
-		return nil
+func (gui *Gui) refreshStateSubmoduleConfigs() error {
+	configs, err := gui.GitCommand.GetSubmoduleConfigs()
+	if err != nil {
+		return err
 	}
 
+	gui.State.Submodules = configs
+
+	return nil
+}
+
+func (gui *Gui) handleSubmoduleEnter(submodule *models.SubmoduleConfig) error {
 	return gui.enterSubmodule(submodule)
 }
 
@@ -65,12 +77,7 @@ func (gui *Gui) enterSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.dispatchSwitchToRepo(submodule.Path)
 }
 
-func (gui *Gui) handleRemoveSubmodule() error {
-	submodule := gui.getSelectedSubmodule()
-	if submodule == nil {
-		return nil
-	}
-
+func (gui *Gui) handleRemoveSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.ask(askOpts{
 		title:  gui.Tr.SLocalize("RemoveSubmodule"),
 		prompt: gui.Tr.SLocalizef("RemoveSubmodulePrompt", submodule.Name),
@@ -84,13 +91,8 @@ func (gui *Gui) handleRemoveSubmodule() error {
 	})
 }
 
-func (gui *Gui) handleResetSubmodule() error {
+func (gui *Gui) handleResetSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("resettingSubmoduleStatus"), func() error {
-		submodule := gui.getSelectedSubmodule()
-		if submodule == nil {
-			return nil
-		}
-
 		return gui.resetSubmodule(submodule)
 	})
 }
@@ -140,12 +142,7 @@ func (gui *Gui) handleAddSubmodule() error {
 	})
 }
 
-func (gui *Gui) handleEditSubmoduleUrl() error {
-	submodule := gui.getSelectedSubmodule()
-	if submodule == nil {
-		return nil
-	}
-
+func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error {
 	return gui.prompt(gui.Tr.SLocalizef("updateSubmoduleUrl", submodule.Name), submodule.Url, func(newUrl string) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("updatingSubmoduleUrlStatus"), func() error {
 			err := gui.GitCommand.SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
@@ -156,44 +153,24 @@ func (gui *Gui) handleEditSubmoduleUrl() error {
 	})
 }
 
-// func (gui *Gui) handleEditsubmodule(g *gocui.Gui, v *gocui.View) error {
-// 	submodule := gui.getSelectedSubmodule()
-// 	if submodule == nil {
-// 		return nil
-// 	}
+func (gui *Gui) handleSubmoduleInit(submodule *models.SubmoduleConfig) error {
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("initializingSubmoduleStatus"), func() error {
+		err := gui.GitCommand.SubmoduleInit(submodule.Path)
+		gui.handleCredentialsPopup(err)
 
-// 	editNameMessage := gui.Tr.TemplateLocalize(
-// 		"editsubmoduleName",
-// 		Teml{
-// 			"submoduleName": submodule.Name,
-// 		},
-// 	)
+		return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+	})
+}
 
-// 	return gui.prompt(editNameMessage, submodule.Name, func(updatedsubmoduleName string) error {
-// 		if updatedsubmoduleName != submodule.Name {
-// 			if err := gui.GitCommand.Renamesubmodule(submodule.Name, updatedsubmoduleName); err != nil {
-// 				return gui.surfaceError(err)
-// 			}
-// 		}
+func (gui *Gui) forSubmodule(callback func(*models.SubmoduleConfig) error) func(g *gocui.Gui, v *gocui.View) error {
+	return gui.wrappedHandler(
+		func() error {
+			submodule := gui.getSelectedSubmodule()
+			if submodule == nil {
+				return nil
+			}
 
-// 		editUrlMessage := gui.Tr.TemplateLocalize(
-// 			"editsubmoduleUrl",
-// 			Teml{
-// 				"submoduleName": updatedsubmoduleName,
-// 			},
-// 		)
-
-// 		urls := submodule.Urls
-// 		url := ""
-// 		if len(urls) > 0 {
-// 			url = urls[0]
-// 		}
-
-// 		return gui.prompt(editUrlMessage, url, func(updatedsubmoduleUrl string) error {
-// 			if err := gui.GitCommand.UpdatesubmoduleUrl(updatedsubmoduleName, updatedsubmoduleUrl); err != nil {
-// 				return gui.surfaceError(err)
-// 			}
-// 			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, submoduleS}})
-// 		})
-// 	})
-// }
+			return callback(submodule)
+		},
+	)
+}

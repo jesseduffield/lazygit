@@ -1562,13 +1562,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
-			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
-			Key:         gui.getKey("universal.goInto"),
-			Handler:     gui.wrappedHandler(gui.handleSubmoduleEnter),
-			Description: gui.Tr.SLocalize("enterSubmodule"),
-		},
-		{
-			ViewName:    "files",
 			Key:         gui.getKey("universal.nextTab"),
 			Handler:     gui.handleNextTab,
 			Description: gui.Tr.SLocalize("nextTab"),
@@ -1587,18 +1580,25 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("copySubmoduleNameToClipboard"),
 		},
 		{
+			ViewName:    "files",
+			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
+			Key:         gui.getKey("universal.goInto"),
+			Handler:     gui.forSubmodule(gui.handleSubmoduleEnter),
+			Description: gui.Tr.SLocalize("enterSubmodule"),
+		},
+		{
 			ViewName: "files",
 			Contexts: []string{SUBMODULES_CONTEXT_KEY},
 			Key:      gui.getKey("universal.remove"),
 
-			Handler:     gui.wrappedHandler(gui.handleRemoveSubmodule),
+			Handler:     gui.forSubmodule(gui.handleRemoveSubmodule),
 			Description: gui.Tr.SLocalize("removeSubmodule"),
 		},
 		{
 			ViewName:    "files",
 			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
 			Key:         gui.getKey("u"),
-			Handler:     gui.wrappedHandler(gui.handleResetSubmodule),
+			Handler:     gui.forSubmodule(gui.handleResetSubmodule),
 			Description: gui.Tr.SLocalize("submoduleStashAndReset"),
 		},
 		{
@@ -1612,8 +1612,15 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "files",
 			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
 			Key:         gui.getKey("universal.edit"),
-			Handler:     gui.wrappedHandler(gui.handleEditSubmoduleUrl),
+			Handler:     gui.forSubmodule(gui.handleEditSubmoduleUrl),
 			Description: gui.Tr.SLocalize("editSubmoduleUrl"),
+		},
+		{
+			ViewName:    "files",
+			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
+			Key:         gui.getKey("submodules.init"),
+			Handler:     gui.forSubmodule(gui.handleSubmoduleInit),
+			Description: gui.Tr.SLocalize("initSubmodule"),
 		},
 	}
 

@@ -30,13 +30,13 @@ func (gui *Gui) onResize() error {
 // which is just an io.Reader. the pty package lets us wrap a command in a
 // pseudo-terminal meaning we'll get the behaviour we want from the underlying
 // command.
-func (gui *Gui) newPtyTask(viewName string, cmd *exec.Cmd) error {
+func (gui *Gui) newPtyTask(viewName string, cmd *exec.Cmd, prefix string) error {
 	width, _ := gui.getMainView().Size()
 	pager := gui.GitCommand.GetPager(width)
 
 	if pager == "" {
 		// if we're not using a custom pager we don't need to use a pty
-		return gui.newCmdTask(viewName, cmd)
+		return gui.newCmdTask(viewName, cmd, prefix)
 	}
 
 	cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
@@ -66,7 +66,7 @@ func (gui *Gui) newPtyTask(viewName string, cmd *exec.Cmd) error {
 		return err
 	}
 
-	if err := manager.NewTask(manager.NewCmdTask(ptmx, cmd, height+oy+10, onClose)); err != nil {
+	if err := manager.NewTask(manager.NewCmdTask(ptmx, cmd, prefix, height+oy+10, onClose)); err != nil {
 		return err
 	}
 

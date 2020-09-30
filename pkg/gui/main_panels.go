@@ -62,7 +62,8 @@ func (gui *Gui) createRenderStringWithoutScrollTask(str string) *renderStringWit
 }
 
 type runCommandTask struct {
-	cmd *exec.Cmd
+	cmd    *exec.Cmd
+	prefix string
 }
 
 func (t *runCommandTask) GetKind() int {
@@ -73,8 +74,13 @@ func (gui *Gui) createRunCommandTask(cmd *exec.Cmd) *runCommandTask {
 	return &runCommandTask{cmd: cmd}
 }
 
+func (gui *Gui) createRunCommandTaskWithPrefix(cmd *exec.Cmd, prefix string) *runCommandTask {
+	return &runCommandTask{cmd: cmd, prefix: prefix}
+}
+
 type runPtyTask struct {
-	cmd *exec.Cmd
+	cmd    *exec.Cmd
+	prefix string
 }
 
 func (t *runPtyTask) GetKind() int {
@@ -83,6 +89,10 @@ func (t *runPtyTask) GetKind() int {
 
 func (gui *Gui) createRunPtyTask(cmd *exec.Cmd) *runPtyTask {
 	return &runPtyTask{cmd: cmd}
+}
+
+func (gui *Gui) createRunPtyTaskWithPrefix(cmd *exec.Cmd, prefix string) *runPtyTask {
+	return &runPtyTask{cmd: cmd, prefix: prefix}
 }
 
 type runFunctionTask struct {
@@ -113,11 +123,11 @@ func (gui *Gui) runTaskForView(viewName string, task updateTask) error {
 
 	case RUN_COMMAND:
 		specificTask := task.(*runCommandTask)
-		return gui.newCmdTask(viewName, specificTask.cmd)
+		return gui.newCmdTask(viewName, specificTask.cmd, specificTask.prefix)
 
 	case RUN_PTY:
 		specificTask := task.(*runPtyTask)
-		return gui.newPtyTask(viewName, specificTask.cmd)
+		return gui.newPtyTask(viewName, specificTask.cmd, specificTask.prefix)
 	}
 
 	return nil

@@ -46,7 +46,7 @@ func (m *ViewBufferManager) ReadLines(n int) {
 	}()
 }
 
-func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, linesToRead int, onDone func()) func(chan struct{}) error {
+func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
 	return func(stop chan struct{}) error {
 		go func() {
 			<-stop
@@ -99,6 +99,9 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, linesToRead i
 						loadingMutex.Lock()
 						if !loaded {
 							m.beforeStart()
+							if prefix != "" {
+								_, _ = m.writer.Write([]byte(prefix))
+							}
 							loaded = true
 						}
 						loadingMutex.Unlock()

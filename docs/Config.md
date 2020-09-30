@@ -164,6 +164,8 @@ Default path for the config file:
       toggleDragSelect-alt: 'V'
       toggleSelectHunk: 'a'
       pickBothHunks: 'b'
+    submodules:
+      init: 'i'
 ```
 
 ## Platform Defaults
