@@ -148,7 +148,7 @@ func (gui *Gui) handleEditSubmoduleUrl() error {
 
 	return gui.prompt(gui.Tr.SLocalizef("updateSubmoduleUrl", submodule.Name), submodule.Url, func(newUrl string) error {
 		return gui.WithWaitingStatus(gui.Tr.SLocalize("updatingSubmoduleUrlStatus"), func() error {
-			err := gui.GitCommand.SubmoduleUpdateUrl(submodule.Name, newUrl)
+			err := gui.GitCommand.SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
 			gui.handleCredentialsPopup(err)
 
 			return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
