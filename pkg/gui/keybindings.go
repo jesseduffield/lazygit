@@ -1587,19 +1587,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SLocalize("enterSubmodule"),
 		},
 		{
-			ViewName: "files",
-			Contexts: []string{SUBMODULES_CONTEXT_KEY},
-			Key:      gui.getKey("universal.remove"),
-
-			Handler:     gui.forSubmodule(gui.handleRemoveSubmodule),
-			Description: gui.Tr.SLocalize("removeSubmodule"),
+			ViewName:    "files",
+			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
+			Key:         gui.getKey("universal.remove"),
+			Handler:     gui.forSubmodule(gui.handleResetRemoveSubmodule),
+			Description: gui.Tr.SLocalize("viewResetAndRemoveOptions"),
 		},
 		{
 			ViewName:    "files",
 			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
-			Key:         gui.getKey("u"),
-			Handler:     gui.forSubmodule(gui.handleResetSubmodule),
-			Description: gui.Tr.SLocalize("submoduleStashAndReset"),
+			Key:         gui.getKey("submodules.update"),
+			Handler:     gui.forSubmodule(gui.handleUpdateSubmodule),
+			Description: gui.Tr.SLocalize("submoduleUpdate"),
 		},
 		{
 			ViewName:    "files",

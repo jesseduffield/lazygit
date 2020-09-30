@@ -77,7 +77,7 @@ func (gui *Gui) enterSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.dispatchSwitchToRepo(submodule.Path)
 }
 
-func (gui *Gui) handleRemoveSubmodule(submodule *models.SubmoduleConfig) error {
+func (gui *Gui) removeSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.ask(askOpts{
 		title:  gui.Tr.SLocalize("RemoveSubmodule"),
 		prompt: gui.Tr.SLocalizef("RemoveSubmodulePrompt", submodule.Name),
@@ -173,4 +173,32 @@ func (gui *Gui) forSubmodule(callback func(*models.SubmoduleConfig) error) func(
 			return callback(submodule)
 		},
 	)
+}
+
+func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) error {
+	menuItems := []*menuItem{
+		{
+			displayString: gui.Tr.SLocalize("submoduleStashAndReset"),
+			onPress: func() error {
+				return gui.resetSubmodule(submodule)
+			},
+		},
+		{
+			displayString: gui.Tr.SLocalize("removeSubmodule"),
+			onPress: func() error {
+				return gui.removeSubmodule(submodule)
+			},
+		},
+	}
+
+	return gui.createMenu(submodule.Name, menuItems, createMenuOptions{showCancel: true})
+}
+
+func (gui *Gui) handleUpdateSubmodule(submodule *models.SubmoduleConfig) error {
+	return gui.WithWaitingStatus(gui.Tr.SLocalize("updatingSubmoduleStatus"), func() error {
+		err := gui.GitCommand.SubmoduleUpdate(submodule.Path)
+		gui.handleCredentialsPopup(err)
+
+		return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+	})
 }
