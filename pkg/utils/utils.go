@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/fatih/color"
@@ -342,4 +344,18 @@ func MustConvertToInt(s string) int {
 		panic(err)
 	}
 	return i
+}
+
+func ResolveTemplate(templateStr string, object interface{}) (string, error) {
+	tmpl, err := template.New("template").Parse(templateStr)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, object); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

@@ -1,6 +1,8 @@
 package i18n
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
@@ -52,6 +54,16 @@ func (l *Localizer) TemplateLocalize(ID string, TemplateData map[string]interfac
 		},
 		TemplateData: TemplateData,
 	})
+}
+
+func (l *Localizer) SLocalizef(ID string, args ...interface{}) string {
+	str := l.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID: ID,
+		},
+	})
+
+	return fmt.Sprintf(str, args...)
 }
 
 // GetLanguage returns the currently selected language, e.g 'en'

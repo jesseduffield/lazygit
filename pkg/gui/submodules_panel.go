@@ -3,6 +3,8 @@ package gui
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -71,10 +73,10 @@ func (gui *Gui) handleRemoveSubmodule() error {
 
 	return gui.ask(askOpts{
 		title:  gui.Tr.SLocalize("RemoveSubmodule"),
-		prompt: gui.Tr.SLocalize("RemoveSubmodulePrompt") + " '" + submodule.Name + "'?",
+		prompt: gui.Tr.SLocalizef("RemoveSubmodulePrompt", submodule.Name),
 		handleConfirm: func() error {
 			if err := gui.GitCommand.SubmoduleDelete(submodule); err != nil {
-				return err
+				return gui.surfaceError(err)
 			}
 
 			return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES, FILES}})
@@ -121,16 +123,30 @@ func (gui *Gui) resetSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES, SUBMODULES}})
 }
 
-// func (gui *Gui) handleAddsubmodule(g *gocui.Gui, v *gocui.View) error {
-// 	return gui.prompt(gui.Tr.SLocalize("newsubmoduleName"), "", func(submoduleName string) error {
-// 		return gui.prompt(gui.Tr.SLocalize("newsubmoduleUrl"), "", func(submoduleUrl string) error {
-// 			if err := gui.GitCommand.Addsubmodule(submoduleName, submoduleUrl); err != nil {
-// 				return err
-// 			}
-// 			return gui.refreshSidePanels(refreshOptions{scope: []int{submoduleS}})
-// 		})
-// 	})
-// }
+func (gui *Gui) handleAddSubmodule() error {
+	return gui.prompt(gui.Tr.SLocalize("newSubmoduleUrl"), "", func(submoduleUrl string) error {
+		nameSuggestion := filepath.Base(strings.TrimSuffix(submoduleUrl, filepath.Ext(submoduleUrl)))
+
+		return gui.prompt(gui.Tr.SLocalize("newSubmoduleName"), nameSuggestion, func(submoduleName string) error {
+			return gui.prompt(gui.Tr.SLocalize("newSubmodulePath"), submoduleName, func(submodulePath string) error {
+				return gui.WithWaitingStatus(gui.Tr.SLocalize("addingSubmoduleStatus"), func() error {
+					err := gui.GitCommand.AddSubmodule(submoduleName, submodulePath, submoduleUrl)
+					gui.handleCredentialsPopup(err)
+
+					return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+				})
+
+				// go func() {
+				// 	err := gui.GitCommand.AddSubmodule(submoduleName, submodulePath, submoduleUrl)
+				// 	gui.handleCredentialsPopup(err)
+
+				// 	_ = gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+				// }()
+				return nil
+			})
+		})
+	})
+}
 
 // func (gui *Gui) handleEditsubmodule(g *gocui.Gui, v *gocui.View) error {
 // 	submodule := gui.getSelectedSubmodule()
