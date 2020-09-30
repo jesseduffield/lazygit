@@ -393,6 +393,8 @@ keybinding:
     toggleDragSelect-alt: 'V'
     toggleSelectHunk: 'a'
     pickBothHunks: 'b'
+  submodules:
+    init: 'i'
 `)
 }
 

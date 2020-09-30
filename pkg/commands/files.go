@@ -35,7 +35,7 @@ func (c *GitCommand) UnstageAll() error {
 
 // UnStageFile unstages a file
 func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
-	command := "git rm --cached %s"
+	command := "git rm --cached --force %s"
 	if tracked {
 		command = "git reset HEAD %s"
 	}

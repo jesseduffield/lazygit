@@ -123,5 +123,8 @@ func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string)
 	}
 
 	return c.OSCommand.RunCommand("git submodule sync %s", path)
+}
 
+func (c *GitCommand) SubmoduleInit(path string) error {
+	return c.OSCommand.RunCommand("git submodule init %s", path)
 }

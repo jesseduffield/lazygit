@@ -446,17 +446,6 @@ func (gui *Gui) refreshStateFiles() error {
 	return nil
 }
 
-func (gui *Gui) refreshStateSubmoduleConfigs() error {
-	configs, err := gui.GitCommand.GetSubmoduleConfigs()
-	if err != nil {
-		return err
-	}
-
-	gui.State.Submodules = configs
-
-	return nil
-}
-
 func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 	if gui.popupPanelFocused() {
 		return nil
