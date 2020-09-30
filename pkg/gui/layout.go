@@ -337,6 +337,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 	gui.setInitialViewContexts()
 
 	// add tabs to views
+	gui.g.Mutexes.ViewsMutex.Lock()
 	for _, view := range gui.g.Views() {
 		tabs := gui.viewTabNames(view.Name())
 		if len(tabs) == 0 {
@@ -344,6 +345,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 		}
 		view.Tabs = tabs
 	}
+	gui.g.Mutexes.ViewsMutex.Unlock()
 
 	if err := gui.switchContext(gui.defaultSideContext()); err != nil {
 		return err
