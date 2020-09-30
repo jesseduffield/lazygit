@@ -130,20 +130,28 @@ func (gui *Gui) handleAddSubmodule() error {
 		return gui.prompt(gui.Tr.SLocalize("newSubmoduleName"), nameSuggestion, func(submoduleName string) error {
 			return gui.prompt(gui.Tr.SLocalize("newSubmodulePath"), submoduleName, func(submodulePath string) error {
 				return gui.WithWaitingStatus(gui.Tr.SLocalize("addingSubmoduleStatus"), func() error {
-					err := gui.GitCommand.AddSubmodule(submoduleName, submodulePath, submoduleUrl)
+					err := gui.GitCommand.SubmoduleAdd(submoduleName, submodulePath, submoduleUrl)
 					gui.handleCredentialsPopup(err)
 
 					return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
 				})
-
-				// go func() {
-				// 	err := gui.GitCommand.AddSubmodule(submoduleName, submodulePath, submoduleUrl)
-				// 	gui.handleCredentialsPopup(err)
-
-				// 	_ = gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
-				// }()
-				return nil
 			})
+		})
+	})
+}
+
+func (gui *Gui) handleEditSubmoduleUrl() error {
+	submodule := gui.getSelectedSubmodule()
+	if submodule == nil {
+		return nil
+	}
+
+	return gui.prompt(gui.Tr.SLocalizef("updateSubmoduleUrl", submodule.Name), submodule.Url, func(newUrl string) error {
+		return gui.WithWaitingStatus(gui.Tr.SLocalize("updatingSubmoduleUrlStatus"), func() error {
+			err := gui.GitCommand.SubmoduleUpdateUrl(submodule.Name, newUrl)
+			gui.handleCredentialsPopup(err)
+
+			return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
 		})
 	})
 }

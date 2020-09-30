@@ -1230,6 +1230,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "addingSubmoduleStatus",
 			Other: "adding submodule",
+		}, &i18n.Message{
+			ID:    "updateSubmoduleUrl",
+			Other: "update URL for submodule '%s'",
+		}, &i18n.Message{
+			ID:    "updatingSubmoduleUrlStatus",
+			Other: "updating URL",
+		}, &i18n.Message{
+			ID:    "editSubmoduleUrl",
+			Other: "update submodule URL",
 		},
 	)
 }

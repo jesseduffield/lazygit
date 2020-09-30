@@ -94,11 +94,15 @@ func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 	return os.RemoveAll(filepath.Join(c.DotGitDir, "modules", submodule.Path))
 }
 
-func (c *GitCommand) AddSubmodule(name string, path string, url string) error {
+func (c *GitCommand) SubmoduleAdd(name string, path string, url string) error {
 	return c.OSCommand.RunCommand(
 		"git submodule add --force --name %s -- %s %s ",
 		c.OSCommand.Quote(name),
 		c.OSCommand.Quote(url),
 		c.OSCommand.Quote(path),
 	)
+}
+
+func (c *GitCommand) SubmoduleUpdateUrl(path string, newUrl string) error {
+	return c.OSCommand.RunCommand("git submodule set-url -- %s %s", path, newUrl)
 }
