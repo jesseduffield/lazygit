@@ -48,6 +48,14 @@ type tabClickBinding struct {
 	handler  tabClickHandler
 }
 
+type GuiMutexes struct {
+	// tickingMutex ensures we don't have two loops ticking. The point of 'ticking'
+	// is to refresh the gui rapidly so that loader characters can be animated.
+	tickingMutex sync.Mutex
+
+	ViewsMutex sync.Mutex
+}
+
 // Gui represents the whole User Interface, including the views, layouts
 // and keybindings.
 type Gui struct {
@@ -92,9 +100,7 @@ type Gui struct {
 	// view edges
 	SupportOverlaps bool
 
-	// tickingMutex ensures we don't have two loops ticking. The point of 'ticking'
-	// is to refresh the gui rapidly so that loader characters can be animated.
-	tickingMutex sync.Mutex
+	Mutexes GuiMutexes
 
 	OnSearchEscape func() error
 	// these keys must either be of type Key of rune
@@ -192,11 +198,16 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 		return v, nil
 	}
 
+	g.Mutexes.ViewsMutex.Lock()
+
 	v := newView(name, x0, y0, x1, y1, g.outputMode)
 	v.BgColor, v.FgColor = g.BgColor, g.FgColor
 	v.SelBgColor, v.SelFgColor = g.SelBgColor, g.SelFgColor
 	v.Overlaps = overlaps
 	g.views = append(g.views, v)
+
+	g.Mutexes.ViewsMutex.Unlock()
+
 	return v, errors.Wrap(ErrUnknownView, 0)
 }
 
@@ -213,6 +224,9 @@ func (g *Gui) SetViewBeneath(name string, aboveViewName string, height int) (*Vi
 
 // SetViewOnTop sets the given view on top of the existing ones.
 func (g *Gui) SetViewOnTop(name string) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
 	for i, v := range g.views {
 		if v.name == name {
 			s := append(g.views[:i], g.views[i+1:]...)
@@ -225,6 +239,9 @@ func (g *Gui) SetViewOnTop(name string) (*View, error) {
 
 // SetViewOnBottom sets the given view on bottom of the existing ones.
 func (g *Gui) SetViewOnBottom(name string) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
 	for i, v := range g.views {
 		if v.name == name {
 			s := append(g.views[:i], g.views[i+1:]...)
@@ -243,6 +260,9 @@ func (g *Gui) Views() []*View {
 // View returns a pointer to the view with the given name, or error
 // ErrUnknownView if a view with that name does not exist.
 func (g *Gui) View(name string) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
 	for _, v := range g.views {
 		if v.name == name {
 			return v, nil
@@ -254,6 +274,9 @@ func (g *Gui) View(name string) (*View, error) {
 // ViewByPosition returns a pointer to a view matching the given position, or
 // error ErrUnknownView if a view in that position does not exist.
 func (g *Gui) ViewByPosition(x, y int) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
 	// traverse views in reverse order checking top views first
 	for i := len(g.views); i > 0; i-- {
 		v := g.views[i-1]
@@ -271,6 +294,9 @@ func (g *Gui) ViewByPosition(x, y int) (*View, error) {
 // ViewPosition returns the coordinates of the view with the given name, or
 // error ErrUnknownView if a view with that name does not exist.
 func (g *Gui) ViewPosition(name string) (x0, y0, x1, y1 int, err error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
 	for _, v := range g.views {
 		if v.name == name {
 			return v.x0, v.y0, v.x1, v.y1, nil
@@ -281,6 +307,9 @@ func (g *Gui) ViewPosition(name string) (x0, y0, x1, y1 int, err error) {
 
 // DeleteView deletes a view by name.
 func (g *Gui) DeleteView(name string) error {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
 	for i, v := range g.views {
 		if v.name == name {
 			g.views = append(g.views[:i], g.views[i+1:]...)
@@ -292,6 +321,9 @@ func (g *Gui) DeleteView(name string) error {
 
 // SetCurrentView gives the focus to a given view.
 func (g *Gui) SetCurrentView(name string) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
 	for _, v := range g.views {
 		if v.name == name {
 			g.currentView = v
@@ -914,8 +946,8 @@ func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
 
 func (g *Gui) StartTicking() {
 	go func() {
-		g.tickingMutex.Lock()
-		defer g.tickingMutex.Unlock()
+		g.Mutexes.tickingMutex.Lock()
+		defer g.Mutexes.tickingMutex.Unlock()
 		ticker := time.NewTicker(time.Millisecond * 50)
 		defer ticker.Stop()
 	outer:

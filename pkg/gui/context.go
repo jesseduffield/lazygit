@@ -617,6 +617,9 @@ func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 }
 
 func (gui *Gui) onViewFocusChange() error {
+	gui.g.Mutexes.ViewsMutex.Lock()
+	defer gui.g.Mutexes.ViewsMutex.Unlock()
+
 	currentView := gui.g.CurrentView()
 	for _, view := range gui.g.Views() {
 		view.Highlight = view.Name() != "main" && view == currentView
