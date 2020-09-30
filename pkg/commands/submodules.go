@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
@@ -84,10 +85,22 @@ func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 	if err := c.OSCommand.RunCommand("git submodule deinit --force %s", submodule.Path); err != nil {
-		return err
+		if strings.Contains(err.Error(), "did not match any file(s) known to git") {
+			if err := c.OSCommand.RunCommand("git config --file .gitmodules --remove-section submodule.%s", submodule.Name); err != nil {
+				return err
+			}
+
+			if err := c.OSCommand.RunCommand("git config --remove-section submodule.%s", submodule.Name); err != nil {
+				return err
+			}
+
+			// if there's an error here about it not existing then we'll just continue to do `git rm`
+		} else {
+			return err
+		}
 	}
 
-	if err := c.OSCommand.RunCommand("git rm --force %s", submodule.Path); err != nil {
+	if err := c.OSCommand.RunCommand("git rm --force -r %s", submodule.Path); err != nil {
 		return err
 	}
 
@@ -109,6 +122,6 @@ func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string)
 		return err
 	}
 
-	return c.OSCommand.RunCommand("git submodule sync -- %s", path)
+	return c.OSCommand.RunCommand("git submodule sync %s", path)
 
 }

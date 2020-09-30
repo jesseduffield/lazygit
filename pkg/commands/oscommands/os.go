@@ -97,7 +97,11 @@ func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...inte
 	}
 	c.Log.WithField("command", command).Info("RunCommand")
 	cmd := c.ExecutableFromString(command)
-	return sanitisedCommandOutput(cmd.CombinedOutput())
+	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
+	if err != nil {
+		c.Log.WithField("command", command).Error(err)
+	}
+	return output, err
 }
 
 // RunExecutableWithOutput runs an executable file and returns its output
