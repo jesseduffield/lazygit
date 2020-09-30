@@ -1601,6 +1601,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:     gui.wrappedHandler(gui.handleResetSubmodule),
 			Description: gui.Tr.SLocalize("submoduleStashAndReset"),
 		},
+		{
+			ViewName:    "files",
+			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
+			Key:         gui.getKey("universal.new"),
+			Handler:     gui.wrappedHandler(gui.handleAddSubmodule),
+			Description: gui.Tr.SLocalize("addSubmodule"),
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {

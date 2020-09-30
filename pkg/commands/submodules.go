@@ -83,13 +83,22 @@ func (c *GitCommand) SubmoduleUpdateAll() error {
 func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
 
-	if err := c.OSCommand.RunCommand("git submodule deinit %s", submodule.Name); err != nil {
+	if err := c.OSCommand.RunCommand("git submodule deinit --force %s", submodule.Path); err != nil {
 		return err
 	}
 
-	if err := c.OSCommand.RunCommand("git rm %s", submodule.Path); err != nil {
+	if err := c.OSCommand.RunCommand("git rm --force %s", submodule.Path); err != nil {
 		return err
 	}
 
-	return os.RemoveAll(filepath.Join(c.DotGitDir, "modules", submodule.Name))
+	return os.RemoveAll(filepath.Join(c.DotGitDir, "modules", submodule.Path))
+}
+
+func (c *GitCommand) AddSubmodule(name string, path string, url string) error {
+	return c.OSCommand.RunCommand(
+		"git submodule add --force --name %s -- %s %s ",
+		c.OSCommand.Quote(name),
+		c.OSCommand.Quote(url),
+		c.OSCommand.Quote(path),
+	)
 }

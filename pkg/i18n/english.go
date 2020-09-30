@@ -1211,10 +1211,25 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "remove submodule",
 		}, &i18n.Message{
 			ID:    "RemoveSubmodulePrompt",
-			Other: "Are you sure you want to remove submodule",
+			Other: "Are you sure you want to remove submodule '%s' and its corresponding directory? This is irreversible.",
 		}, &i18n.Message{
 			ID:    "resettingSubmoduleStatus",
 			Other: "resetting submodule",
+		}, &i18n.Message{
+			ID:    "newSubmoduleName",
+			Other: "new submodule name:",
+		}, &i18n.Message{
+			ID:    "newSubmoduleUrl",
+			Other: "new submodule URL:",
+		}, &i18n.Message{
+			ID:    "newSubmodulePath",
+			Other: "new submodule path:",
+		}, &i18n.Message{
+			ID:    "addSubmodule",
+			Other: "add new submodule",
+		}, &i18n.Message{
+			ID:    "addingSubmoduleStatus",
+			Other: "adding submodule",
 		},
 	)
 }

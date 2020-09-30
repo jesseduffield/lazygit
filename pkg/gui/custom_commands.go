@@ -1,10 +1,8 @@
 package gui
 
 import (
-	"bytes"
 	"log"
 	"strings"
-	"text/template"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -43,19 +41,7 @@ func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (s
 		PromptResponses:      promptResponses,
 	}
 
-	tmpl, err := template.New("template").Parse(templateStr)
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, objects); err != nil {
-		return "", err
-	}
-
-	cmdStr := buf.String()
-
-	return cmdStr, nil
+	return utils.ResolveTemplate(templateStr, objects)
 }
 
 func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func() error {
