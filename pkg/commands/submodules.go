@@ -101,7 +101,8 @@ func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 	}
 
 	if err := c.OSCommand.RunCommand("git rm --force -r %s", submodule.Path); err != nil {
-		return err
+		// if the directory isn't there then that's fine
+		c.Log.Error(err)
 	}
 
 	return os.RemoveAll(filepath.Join(c.DotGitDir, "modules", submodule.Path))
@@ -127,4 +128,8 @@ func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string)
 
 func (c *GitCommand) SubmoduleInit(path string) error {
 	return c.OSCommand.RunCommand("git submodule init %s", path)
+}
+
+func (c *GitCommand) SubmoduleUpdate(path string) error {
+	return c.OSCommand.RunCommand("git submodule update --init %s", path)
 }

@@ -166,6 +166,7 @@ Default path for the config file:
       pickBothHunks: 'b'
     submodules:
       init: 'i'
+      update: 'u'
 ```
 
 ## Platform Defaults

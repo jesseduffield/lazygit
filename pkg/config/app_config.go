@@ -395,6 +395,7 @@ keybinding:
     pickBothHunks: 'b'
   submodules:
     init: 'i'
+    update: 'u'
 `)
 }
 

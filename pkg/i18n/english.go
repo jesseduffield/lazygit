@@ -1245,6 +1245,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "initSubmodule",
 			Other: "initialize submodule",
+		}, &i18n.Message{
+			ID:    "viewResetAndRemoveOptions",
+			Other: "view reset and remove submodule options",
+		}, &i18n.Message{
+			ID:    "submoduleUpdate",
+			Other: "update submodule",
+		}, &i18n.Message{
+			ID:    "updatingSubmoduleStatus",
+			Other: "updating submodule",
 		},
 	)
 }
