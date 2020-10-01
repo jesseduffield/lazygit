@@ -161,6 +161,11 @@ func (lc *ListContext) handleLineChange(change int) error {
 		return err
 	}
 
+	selectedLineIdx := lc.GetPanelState().GetSelectedLineIdx()
+	if (change < 0 && selectedLineIdx == 0) || (change > 0 && selectedLineIdx == lc.GetItemsLength()-1) {
+		return nil
+	}
+
 	lc.Gui.changeSelectedLine(lc.GetPanelState(), lc.GetItemsLength(), change)
 	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
 
