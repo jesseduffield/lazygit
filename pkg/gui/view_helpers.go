@@ -433,3 +433,15 @@ func (gui *Gui) handlePrevTab(g *gocui.Gui, v *gocui.View) error {
 		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
 	)
 }
+
+// this is the distance we will move the cursor when paging up or down in a view
+func (gui *Gui) pageDelta(view *gocui.View) int {
+	_, height := view.Size()
+
+	delta := height - 1
+	if delta == 0 {
+		return 1
+	}
+
+	return delta
+}

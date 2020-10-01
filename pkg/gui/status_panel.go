@@ -12,8 +12,8 @@ import (
 
 // never call this on its own, it should only be called from within refreshCommits()
 func (gui *Gui) refreshStatus() {
-	gui.State.RefreshingStatusMutex.Lock()
-	defer gui.State.RefreshingStatusMutex.Unlock()
+	gui.State.Mutexes.RefreshingStatusMutex.Lock()
+	defer gui.State.Mutexes.RefreshingStatusMutex.Unlock()
 
 	currentBranch := gui.currentBranch()
 	if currentBranch == nil {

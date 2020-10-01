@@ -186,11 +186,8 @@ func (lc *ListContext) handleNextPage(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return nil
 	}
-	_, height := view.Size()
-	delta := height - 1
-	if delta == 0 {
-		delta = 1
-	}
+	delta := lc.Gui.pageDelta(view)
+
 	return lc.handleLineChange(delta)
 }
 
@@ -207,11 +204,9 @@ func (lc *ListContext) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		return nil
 	}
-	_, height := view.Size()
-	delta := height - 1
-	if delta == 0 {
-		delta = 1
-	}
+
+	delta := lc.Gui.pageDelta(view)
+
 	return lc.handleLineChange(-delta)
 }
 

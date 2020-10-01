@@ -84,7 +84,7 @@ func (gui *Gui) handleTogglePanel(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStagingEscape() error {
-	gui.handleEscapeLineByLinePanel()
+	gui.escapeLineByLinePanel()
 
 	return gui.switchContext(gui.Contexts.Files.Context)
 }
