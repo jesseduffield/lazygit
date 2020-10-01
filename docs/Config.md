@@ -167,6 +167,7 @@ Default path for the config file:
     submodules:
       init: 'i'
       update: 'u'
+      bulkMenu: 'b'
 ```
 
 ## Platform Defaults

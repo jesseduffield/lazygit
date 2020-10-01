@@ -396,6 +396,7 @@ keybinding:
   submodules:
     init: 'i'
     update: 'u'
+    bulkMenu: 'b'
 `)
 }
 
