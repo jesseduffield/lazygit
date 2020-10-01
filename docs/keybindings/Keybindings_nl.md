@@ -17,14 +17,20 @@
   <kbd>_</kbd>: vorige schermmode
   <kbd>:</kbd>: voor aangepast commando uit
   <kbd>|</kbd>: bekijk scoping opties
-  <kbd>∂</kbd>: open diff menu
+  <kbd>W</kbd>: open diff menu
+  <kbd>ctrl+e</kbd>: open diff menu
 </pre>
 
-## Branches Paneel
+## List Panel Navigation
 
 <pre>
   <kbd>]</kbd>: volgende tab
   <kbd>[</kbd>: vorige tab
+  <kbd>,</kbd>: vorige pagina
+  <kbd>.</kbd>: volgende pagina
+  <kbd><</kbd>: scroll naar boven
+  <kbd>/</kbd>: start met zoekken
+  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Branches Paneel (Branches Tab)
@@ -43,11 +49,7 @@
   <kbd>g</kbd>: bekijk reset opties
   <kbd>R</kbd>: hernoem branch
   <kbd>ctrl+o</kbd>: copieer branch name naar clipboard
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
+  <kbd>enter</kbd>: view commits
 </pre>
 
 ## Branches Paneel (Remote Branches (in Remotes tab))
@@ -55,17 +57,13 @@
 <pre>
   <kbd>esc</kbd>: Ga terug naar remotes lijst
   <kbd>g</kbd>: bekijk reset opties
+  <kbd>enter</kbd>: view commits
   <kbd>space</kbd>: uitchecken
   <kbd>n</kbd>: nieuwe branch
   <kbd>M</kbd>: merge in met huidige checked out branch
   <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
   <kbd>u</kbd>: stel in als upstream van uitgecheckte branch
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Branches Paneel (Remotes Tab)
@@ -75,11 +73,19 @@
   <kbd>n</kbd>: voeg een nieuwe remote toe
   <kbd>d</kbd>: verwijder remote
   <kbd>e</kbd>: wijzig remote
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
+</pre>
+
+## Branches Paneel (Sub-commits)
+
+<pre>
+  <kbd>enter</kbd>: bekijk gecommite bestanden
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: bekijk reset opties
+  <kbd>n</kbd>: nieuwe branch
+  <kbd>c</kbd>: kopiëer commit (cherry-pick)
+  <kbd>C</kbd>: kopiëer commit reeks (cherry-pick)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (gecopieerde) commits selectie
+  <kbd>ctrl+o</kbd>: copieer commit SHA naar clipboard
 </pre>
 
 ## Branches Paneel (Tags Tab)
@@ -90,38 +96,22 @@
   <kbd>P</kbd>: push tag
   <kbd>n</kbd>: creëer tag
   <kbd>g</kbd>: bekijk reset opties
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
+  <kbd>enter</kbd>: view commits
 </pre>
 
 ## Commit bestanden Paneel
 
 <pre>
-  <kbd>esc</kbd>: ga terug
+  <kbd>ctrl+o</kbd>: kopieer de vastgelegde bestandsnaam naar het klembord
   <kbd>c</kbd>: bestand uitchecken
   <kbd>d</kbd>: uitsluit deze commit zijn veranderingen aan dit bestand
   <kbd>o</kbd>: open bestand
   <kbd>e</kbd>: verander bestand
   <kbd>space</kbd>: toggle bestand inbegrepen in patch
   <kbd>enter</kbd>: enter bestand to add selecteered lines to the patch
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
 </pre>
 
-## Commits Paneel
-
-<pre>
-  <kbd>]</kbd>: volgende tab
-  <kbd>[</kbd>: vorige tab
-</pre>
-
-## Commits Paneel (Commits Tab)
+## Commits Paneel (Commits)
 
 <pre>
   <kbd>s</kbd>: squash beneden
@@ -147,26 +137,21 @@
   <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (gecopieerde) commits selectie
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Commits Paneel (Reflog Tab)
 
 <pre>
+  <kbd>enter</kbd>: bekijk gecommite bestanden
   <kbd>space</kbd>: checkout commit
   <kbd>g</kbd>: bekijk reset opties
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
+  <kbd>c</kbd>: kopiëer commit (cherry-pick)
+  <kbd>C</kbd>: kopiëer commit reeks (cherry-pick)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (gecopieerde) commits selectie
+  <kbd>ctrl+o</kbd>: copieer commit SHA naar clipboard
 </pre>
 
-## Bestanden Paneel
+## Bestanden Paneel (Bestanden)
 
 <pre>
   <kbd>c</kbd>: Commit veranderingen
@@ -185,12 +170,21 @@
   <kbd>D</kbd>: bekijk reset opties
   <kbd>enter</kbd>: stage individuele hunks/lijnen
   <kbd>f</kbd>: fetch
+  <kbd>ctrl+o</kbd>: kopieer de bestandsnaam naar het klembord
   <kbd>g</kbd>: bekijk upstream reset opties
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
+</pre>
+
+## Bestanden Paneel (Submodules)
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy submodule name to clipboard
+  <kbd>enter</kbd>: enter submodule
+  <kbd>d</kbd>: view reset and remove submodule options
+  <kbd>u</kbd>: update submodule
+  <kbd>n</kbd>: add new submodule
+  <kbd>e</kbd>: update submodule URL
+  <kbd>i</kbd>: initialize submodule
+  <kbd>b</kbd>: view bulk submodule options
 </pre>
 
 ## Hooft Paneel (Merggen)
@@ -254,24 +248,16 @@
 
 <pre>
   <kbd>esc</kbd>: sluit menu
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Stash Paneel
 
 <pre>
+  <kbd>enter</kbd>: view stash entry's files
   <kbd>space</kbd>: toepassen
   <kbd>g</kbd>: pop
   <kbd>d</kbd>: laten vallen
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
+  <kbd>n</kbd>: nieuwe branch
 </pre>
 
 ## Status Paneel

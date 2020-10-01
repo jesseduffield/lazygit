@@ -572,7 +572,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessageTitle",
 			Other: "Commit Bericht",
 		}, &i18n.Message{
-			ID:    "Local-BranchesTitle",
+			ID:    "LocalBranchesTitle",
 			Other: "Branches Tab",
 		}, &i18n.Message{
 			ID:    "SearchTitle",
@@ -581,7 +581,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "TagsTitle",
 			Other: "Tags Tab",
 		}, &i18n.Message{
-			ID:    "Branch-CommitsTitle",
+			ID:    "BranchCommitsTitle",
 			Other: "Commits Tab",
 		}, &i18n.Message{
 			ID:    "MenuTitle",
@@ -593,10 +593,10 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "CredentialsTitle",
 			Other: "Credentials",
 		}, &i18n.Message{
-			ID:    "Remote-BranchesTitle",
+			ID:    "RemoteBranchesTitle",
 			Other: "Remote Branches (in Remotes tab)",
 		}, &i18n.Message{
-			ID:    "Patch-BuildingTitle",
+			ID:    "PatchBuildingTitle",
 			Other: "Patch Bouwen",
 		}, &i18n.Message{
 			ID:    "InformationTitle",
@@ -605,7 +605,7 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "SecondaryTitle",
 			Other: "Secondary",
 		}, &i18n.Message{
-			ID:    "Reflog-CommitsTitle",
+			ID:    "ReflogCommitsTitle",
 			Other: "Reflog Tab",
 		}, &i18n.Message{
 			ID:    "Title",
