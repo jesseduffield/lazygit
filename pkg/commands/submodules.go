@@ -73,7 +73,7 @@ func (c *GitCommand) SubmoduleStash(submodule *models.SubmoduleConfig) error {
 }
 
 func (c *GitCommand) SubmoduleReset(submodule *models.SubmoduleConfig) error {
-	return c.OSCommand.RunCommand("git submodule update --init --force %s", submodule.Name)
+	return c.OSCommand.RunCommand("git submodule update --init --force %s", submodule.Path)
 }
 
 func (c *GitCommand) SubmoduleUpdateAll() error {
