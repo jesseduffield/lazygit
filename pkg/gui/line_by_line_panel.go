@@ -25,6 +25,9 @@ const (
 // returns whether the patch is empty so caller can escape if necessary
 // both diffs should be non-coloured because we'll parse them and colour them here
 func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, secondaryFocused bool, selectedLineIdx int) (bool, error) {
+	gui.State.Mutexes.LineByLinePanelMutex.Lock()
+	defer gui.State.Mutexes.LineByLinePanelMutex.Unlock()
+
 	state := gui.State.Panels.LineByLine
 
 	patchParser, err := patch.NewPatchParser(gui.Log, diff)
@@ -98,26 +101,32 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 	return false, nil
 }
 
-func (gui *Gui) handleSelectPrevLine(g *gocui.Gui, v *gocui.View) error {
-	return gui.handleCycleLine(-1)
+func (gui *Gui) handleSelectPrevLine() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		return gui.LBLCycleLine(-1)
+	})
 }
 
-func (gui *Gui) handleSelectNextLine(g *gocui.Gui, v *gocui.View) error {
-	return gui.handleCycleLine(+1)
+func (gui *Gui) handleSelectNextLine() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		return gui.LBLCycleLine(+1)
+	})
 }
 
-func (gui *Gui) handleSelectPrevHunk(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
-	newHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, -1)
+func (gui *Gui) handleSelectPrevHunk() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		newHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, -1)
 
-	return gui.selectNewHunk(newHunk)
+		return gui.selectNewHunk(newHunk)
+	})
 }
 
-func (gui *Gui) handleSelectNextHunk(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
-	newHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 1)
+func (gui *Gui) handleSelectNextHunk() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		newHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 1)
 
-	return gui.selectNewHunk(newHunk)
+		return gui.selectNewHunk(newHunk)
+	})
 }
 
 func (gui *Gui) selectNewHunk(newHunk *patch.PatchHunk) error {
@@ -136,7 +145,7 @@ func (gui *Gui) selectNewHunk(newHunk *patch.PatchHunk) error {
 	return gui.focusSelection(true)
 }
 
-func (gui *Gui) handleCycleLine(change int) error {
+func (gui *Gui) LBLCycleLine(change int) error {
 	state := gui.State.Panels.LineByLine
 
 	if state.SelectMode == HUNK {
@@ -144,10 +153,10 @@ func (gui *Gui) handleCycleLine(change int) error {
 		return gui.selectNewHunk(newHunk)
 	}
 
-	return gui.handleSelectNewLine(state.SelectedLineIdx + change)
+	return gui.LBLSelectLine(state.SelectedLineIdx + change)
 }
 
-func (gui *Gui) handleSelectNewLine(newSelectedLineIdx int) error {
+func (gui *Gui) LBLSelectLine(newSelectedLineIdx int) error {
 	state := gui.State.Panels.LineByLine
 
 	if newSelectedLineIdx < 0 {
@@ -176,52 +185,54 @@ func (gui *Gui) handleSelectNewLine(newSelectedLineIdx int) error {
 	return gui.focusSelection(false)
 }
 
-func (gui *Gui) handleMouseDown(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
+func (gui *Gui) handleLBLMouseDown(g *gocui.Gui, v *gocui.View) error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		if gui.popupPanelFocused() {
+			return nil
+		}
 
-	if gui.popupPanelFocused() {
-		return nil
-	}
+		newSelectedLineIdx := v.SelectedLineIdx()
+		state.FirstLineIdx = newSelectedLineIdx
+		state.LastLineIdx = newSelectedLineIdx
 
-	newSelectedLineIdx := v.SelectedLineIdx()
-	state.FirstLineIdx = newSelectedLineIdx
-	state.LastLineIdx = newSelectedLineIdx
+		state.SelectMode = RANGE
 
-	state.SelectMode = RANGE
-
-	return gui.handleSelectNewLine(newSelectedLineIdx)
+		return gui.LBLSelectLine(newSelectedLineIdx)
+	})
 }
 
 func (gui *Gui) handleMouseDrag(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
+	return gui.withLBLActiveCheck(func(*lineByLinePanelState) error {
+		if gui.popupPanelFocused() {
+			return nil
+		}
 
-	return gui.handleSelectNewLine(v.SelectedLineIdx())
+		return gui.LBLSelectLine(v.SelectedLineIdx())
+	})
 }
 
 func (gui *Gui) handleMouseScrollUp(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		if gui.popupPanelFocused() {
+			return nil
+		}
 
-	if gui.popupPanelFocused() {
-		return nil
-	}
+		state.SelectMode = LINE
 
-	state.SelectMode = LINE
-
-	return gui.handleCycleLine(-1)
+		return gui.LBLCycleLine(-1)
+	})
 }
 
 func (gui *Gui) handleMouseScrollDown(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		if gui.popupPanelFocused() {
+			return nil
+		}
 
-	if gui.popupPanelFocused() {
-		return nil
-	}
+		state.SelectMode = LINE
 
-	state.SelectMode = LINE
-
-	return gui.handleCycleLine(1)
+		return gui.LBLCycleLine(1)
+	})
 }
 
 func (gui *Gui) getSelectedCommitFileName() string {
@@ -297,65 +308,123 @@ func (gui *Gui) focusSelection(includeCurrentHunk bool) error {
 	return nil
 }
 
-func (gui *Gui) handleToggleSelectRange(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
-	if state.SelectMode == RANGE {
-		state.SelectMode = LINE
-	} else {
-		state.SelectMode = RANGE
-	}
-	state.FirstLineIdx, state.LastLineIdx = state.SelectedLineIdx, state.SelectedLineIdx
-
-	return gui.refreshMainViewForLineByLine()
-}
-
-func (gui *Gui) handleToggleSelectHunk(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
-
-	if state.SelectMode == HUNK {
-		state.SelectMode = LINE
+func (gui *Gui) handleToggleSelectRange() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		if state.SelectMode == RANGE {
+			state.SelectMode = LINE
+		} else {
+			state.SelectMode = RANGE
+		}
 		state.FirstLineIdx, state.LastLineIdx = state.SelectedLineIdx, state.SelectedLineIdx
-	} else {
-		state.SelectMode = HUNK
-		selectedHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
-		state.FirstLineIdx, state.LastLineIdx = selectedHunk.FirstLineIdx, selectedHunk.LastLineIdx()
-	}
 
-	if err := gui.refreshMainViewForLineByLine(); err != nil {
-		return err
-	}
-
-	return gui.focusSelection(state.SelectMode == HUNK)
+		return gui.refreshMainViewForLineByLine()
+	})
 }
 
-func (gui *Gui) handleEscapeLineByLinePanel() {
-	gui.State.Panels.LineByLine = nil
+func (gui *Gui) handleToggleSelectHunk() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		if state.SelectMode == HUNK {
+			state.SelectMode = LINE
+			state.FirstLineIdx, state.LastLineIdx = state.SelectedLineIdx, state.SelectedLineIdx
+		} else {
+			state.SelectMode = HUNK
+			selectedHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
+			state.FirstLineIdx, state.LastLineIdx = selectedHunk.FirstLineIdx, selectedHunk.LastLineIdx()
+		}
+
+		if err := gui.refreshMainViewForLineByLine(); err != nil {
+			return err
+		}
+
+		return gui.focusSelection(state.SelectMode == HUNK)
+	})
+}
+
+func (gui *Gui) escapeLineByLinePanel() {
+	gui.withLBLActiveCheck(func(*lineByLinePanelState) error {
+		gui.State.Panels.LineByLine = nil
+		return nil
+	})
 }
 
 func (gui *Gui) handleOpenFileAtLine() error {
-	// again, would be good to use inheritance here (or maybe even composition)
-	var filename string
-	switch gui.State.MainContext {
-	case gui.Contexts.PatchBuilding.Context.GetKey():
-		filename = gui.getSelectedCommitFileName()
-	case gui.Contexts.Staging.Context.GetKey():
-		file := gui.getSelectedFile()
-		if file == nil {
-			return nil
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		// again, would be good to use inheritance here (or maybe even composition)
+		var filename string
+		switch gui.State.MainContext {
+		case gui.Contexts.PatchBuilding.Context.GetKey():
+			filename = gui.getSelectedCommitFileName()
+		case gui.Contexts.Staging.Context.GetKey():
+			file := gui.getSelectedFile()
+			if file == nil {
+				return nil
+			}
+			filename = file.Name
+		default:
+			return errors.Errorf("unknown main context: %s", gui.State.MainContext)
 		}
-		filename = file.Name
-	default:
-		return errors.Errorf("unknown main context: %s", gui.State.MainContext)
-	}
+
+		// need to look at current index, then work out what my hunk's header information is, and see how far my line is away from the hunk header
+		selectedHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
+		lineNumber := selectedHunk.LineNumberOfLine(state.SelectedLineIdx)
+		filenameWithLineNum := fmt.Sprintf("%s:%d", filename, lineNumber)
+		if err := gui.OSCommand.OpenFile(filenameWithLineNum); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (gui *Gui) handleLineByLineNextPage() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		newSelectedLineIdx := state.SelectedLineIdx + gui.pageDelta(gui.getMainView())
+
+		return gui.lineByLineNavigateTo(newSelectedLineIdx)
+	})
+}
+
+func (gui *Gui) handleLineByLinePrevPage() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		newSelectedLineIdx := state.SelectedLineIdx - gui.pageDelta(gui.getMainView())
+
+		return gui.lineByLineNavigateTo(newSelectedLineIdx)
+	})
+}
+
+func (gui *Gui) handleLineByLineGotoBottom() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		newSelectedLineIdx := len(state.PatchParser.PatchLines) - 1
+
+		return gui.lineByLineNavigateTo(newSelectedLineIdx)
+	})
+}
+
+func (gui *Gui) handleLineByLineGotoTop() error {
+	return gui.lineByLineNavigateTo(0)
+}
+
+func (gui *Gui) handlelineByLineNavigateTo(selectedLineIdx int) error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		return gui.lineByLineNavigateTo(selectedLineIdx)
+	})
+}
+
+func (gui *Gui) lineByLineNavigateTo(selectedLineIdx int) error {
+	state := gui.State.Panels.LineByLine
+	state.SelectMode = LINE
+
+	return gui.LBLSelectLine(selectedLineIdx)
+}
+
+func (gui *Gui) withLBLActiveCheck(f func(*lineByLinePanelState) error) error {
+	gui.State.Mutexes.LineByLinePanelMutex.Lock()
+	defer gui.State.Mutexes.LineByLinePanelMutex.Unlock()
 
 	state := gui.State.Panels.LineByLine
-	// need to look at current index, then work out what my hunk's header information is, and see how far my line is away from the hunk header
-	selectedHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
-	lineNumber := selectedHunk.LineNumberOfLine(state.SelectedLineIdx)
-	filenameWithLineNum := fmt.Sprintf("%s:%d", filename, lineNumber)
-	if err := gui.OSCommand.OpenFile(filenameWithLineNum); err != nil {
-		return err
+	if state == nil {
+		return nil
 	}
 
-	return nil
+	return f(state)
 }

@@ -92,7 +92,7 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 }
 
 func (gui *Gui) handleEscapePatchBuildingPanel() error {
-	gui.handleEscapeLineByLinePanel()
+	gui.escapeLineByLinePanel()
 
 	if gui.GitCommand.PatchManager.IsEmpty() {
 		gui.GitCommand.PatchManager.Reset()

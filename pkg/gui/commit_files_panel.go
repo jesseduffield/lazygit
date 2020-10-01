@@ -15,7 +15,7 @@ func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
 }
 
 func (gui *Gui) handleCommitFileSelect() error {
-	gui.handleEscapeLineByLinePanel()
+	gui.escapeLineByLinePanel()
 
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {

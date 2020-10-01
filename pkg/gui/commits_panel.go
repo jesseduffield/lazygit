@@ -31,7 +31,7 @@ func (gui *Gui) handleCommitSelect() error {
 		}()
 	}
 
-	gui.handleEscapeLineByLinePanel()
+	gui.escapeLineByLinePanel()
 
 	var task updateTask
 	commit := gui.getSelectedLocalCommit()
@@ -110,8 +110,8 @@ func (gui *Gui) refreshCommits() error {
 }
 
 func (gui *Gui) refreshCommitsWithLimit() error {
-	gui.State.BranchCommitsMutex.Lock()
-	defer gui.State.BranchCommitsMutex.Unlock()
+	gui.State.Mutexes.BranchCommitsMutex.Lock()
+	defer gui.State.Mutexes.BranchCommitsMutex.Unlock()
 
 	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr)
 
@@ -132,8 +132,8 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 }
 
 func (gui *Gui) refreshRebaseCommits() error {
-	gui.State.BranchCommitsMutex.Lock()
-	defer gui.State.BranchCommitsMutex.Unlock()
+	gui.State.Mutexes.BranchCommitsMutex.Lock()
+	defer gui.State.Mutexes.BranchCommitsMutex.Unlock()
 
 	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr)
 

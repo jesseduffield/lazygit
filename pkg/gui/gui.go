@@ -285,6 +285,14 @@ type Modes struct {
 	Diffing       Diffing
 }
 
+type guiStateMutexes struct {
+	RefreshingFilesMutex  sync.Mutex
+	RefreshingStatusMutex sync.Mutex
+	FetchMutex            sync.Mutex
+	BranchCommitsMutex    sync.Mutex
+	LineByLinePanelMutex  sync.Mutex
+}
+
 type guiState struct {
 	Files        []*models.File
 	Submodules   []*models.SubmoduleConfig
@@ -298,30 +306,27 @@ type guiState struct {
 	// ReflogCommits are the ones used by the branches panel to obtain recency values
 	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
-	ReflogCommits         []*models.Commit
-	SubCommits            []*models.Commit
-	Remotes               []*models.Remote
-	RemoteBranches        []*models.RemoteBranch
-	Tags                  []*models.Tag
-	MenuItems             []*menuItem
-	Updating              bool
-	Panels                *panelStates
-	MainContext           string // used to keep the main and secondary views' contexts in sync
-	SplitMainPanel        bool
-	RetainOriginalDir     bool
-	IsRefreshingFiles     bool
-	RefreshingFilesMutex  sync.Mutex
-	RefreshingStatusMutex sync.Mutex
-	FetchMutex            sync.Mutex
-	BranchCommitsMutex    sync.Mutex
-	Searching             searchingState
-	ScreenMode            int
-	SideView              *gocui.View
-	Ptmx                  *os.File
-	PrevMainWidth         int
-	PrevMainHeight        int
-	OldInformation        string
-	StartupStage          int // one of INITIAL and COMPLETE. Allows us to not load everything at once
+	ReflogCommits     []*models.Commit
+	SubCommits        []*models.Commit
+	Remotes           []*models.Remote
+	RemoteBranches    []*models.RemoteBranch
+	Tags              []*models.Tag
+	MenuItems         []*menuItem
+	Updating          bool
+	Panels            *panelStates
+	MainContext       string // used to keep the main and secondary views' contexts in sync
+	SplitMainPanel    bool
+	RetainOriginalDir bool
+	IsRefreshingFiles bool
+	Mutexes           guiStateMutexes
+	Searching         searchingState
+	ScreenMode        int
+	SideView          *gocui.View
+	Ptmx              *os.File
+	PrevMainWidth     int
+	PrevMainHeight    int
+	OldInformation    string
+	StartupStage      int // one of INITIAL and COMPLETE. Allows us to not load everything at once
 
 	Modes Modes
 
