@@ -244,6 +244,10 @@ func (gui *Gui) createErrorPanel(message string) error {
 }
 
 func (gui *Gui) surfaceError(err error) error {
+	if err == nil {
+		return nil
+	}
+
 	for _, sentinelError := range gui.sentinelErrorsArr() {
 		if err == sentinelError {
 			return err

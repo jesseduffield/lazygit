@@ -123,7 +123,15 @@ func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string)
 		return err
 	}
 
-	return c.OSCommand.RunCommand("git submodule sync %s", path)
+	if err := c.OSCommand.RunCommand("git submodule sync %s", path); err != nil {
+		return err
+	}
+
+	if err := c.OSCommand.RunCommand("git submodule update --init %s", path); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *GitCommand) SubmoduleInit(path string) error {
@@ -132,4 +140,30 @@ func (c *GitCommand) SubmoduleInit(path string) error {
 
 func (c *GitCommand) SubmoduleUpdate(path string) error {
 	return c.OSCommand.RunCommand("git submodule update --init %s", path)
+}
+
+func (c *GitCommand) SubmoduleBulkInitCmdStr() string {
+	return "git submodule init"
+}
+
+func (c *GitCommand) SubmoduleBulkUpdateCmdStr() string {
+	return "git submodule update"
+}
+
+func (c *GitCommand) SubmoduleForceBulkUpdateCmdStr() string {
+	return "git submodule update --force"
+}
+
+func (c *GitCommand) SubmoduleBulkDeinitCmdStr() string {
+	return "git submodule deinit --all --force"
+}
+
+func (c *GitCommand) ResetSubmodules(submodules []*models.SubmoduleConfig) error {
+	for _, submodule := range submodules {
+		if err := c.SubmoduleStash(submodule); err != nil {
+			return err
+		}
+	}
+
+	return c.SubmoduleUpdateAll()
 }

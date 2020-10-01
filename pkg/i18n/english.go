@@ -1193,7 +1193,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			Other: "running custom command",
 		}, &i18n.Message{
 			ID:    "submoduleStashAndReset",
-			Other: "stash uncommitted submodule changes and reset",
+			Other: "stash uncommitted submodule changes and update",
 		}, &i18n.Message{
 			ID:    "andResetSubmodules",
 			Other: "and reset submodules",
@@ -1254,6 +1254,24 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "updatingSubmoduleStatus",
 			Other: "updating submodule",
+		}, &i18n.Message{
+			ID:    "bulkInitSubmodules",
+			Other: "bulk init submodules",
+		}, &i18n.Message{
+			ID:    "bulkUpdateSubmodules",
+			Other: "bulk update submodules",
+		}, &i18n.Message{
+			ID:    "bulkDeinitSubmodules",
+			Other: "bulk deinit submodules",
+		}, &i18n.Message{
+			ID:    "viewBulkSubmoduleOptions",
+			Other: "view bulk submodule options",
+		}, &i18n.Message{
+			ID:    "bulkSubmoduleOptions",
+			Other: "bulk submodule options",
+		}, &i18n.Message{
+			ID:    "runningCommand",
+			Other: "running command",
 		},
 	)
 }

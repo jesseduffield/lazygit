@@ -194,6 +194,61 @@ func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) er
 	return gui.createMenu(submodule.Name, menuItems, createMenuOptions{showCancel: true})
 }
 
+func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
+	menuItems := []*menuItem{
+		{
+			displayStrings: []string{gui.Tr.SLocalize("bulkInitSubmodules"), utils.ColoredString(gui.GitCommand.SubmoduleBulkInitCmdStr(), color.FgGreen)},
+			onPress: func() error {
+				return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCommand"), func() error {
+					if err := gui.OSCommand.RunCommand(gui.GitCommand.SubmoduleBulkInitCmdStr()); err != nil {
+						return gui.surfaceError(err)
+					}
+
+					return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+				})
+			},
+		},
+		{
+			displayStrings: []string{gui.Tr.SLocalize("bulkUpdateSubmodules"), utils.ColoredString(gui.GitCommand.SubmoduleBulkUpdateCmdStr(), color.FgYellow)},
+			onPress: func() error {
+				return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCommand"), func() error {
+					if err := gui.OSCommand.RunCommand(gui.GitCommand.SubmoduleBulkUpdateCmdStr()); err != nil {
+						return gui.surfaceError(err)
+					}
+
+					return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+				})
+			},
+		},
+		{
+			displayStrings: []string{gui.Tr.SLocalize("submoduleStashAndReset"), utils.ColoredString(fmt.Sprintf("git stash in each submodule && %s", gui.GitCommand.SubmoduleForceBulkUpdateCmdStr()), color.FgRed)},
+			onPress: func() error {
+				return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCommand"), func() error {
+					if err := gui.GitCommand.ResetSubmodules(gui.State.Submodules); err != nil {
+						return gui.surfaceError(err)
+					}
+
+					return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+				})
+			},
+		},
+		{
+			displayStrings: []string{gui.Tr.SLocalize("bulkDeinitSubmodules"), utils.ColoredString(gui.GitCommand.SubmoduleBulkDeinitCmdStr(), color.FgRed)},
+			onPress: func() error {
+				return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCommand"), func() error {
+					if err := gui.OSCommand.RunCommand(gui.GitCommand.SubmoduleBulkDeinitCmdStr()); err != nil {
+						return gui.surfaceError(err)
+					}
+
+					return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+				})
+			},
+		},
+	}
+
+	return gui.createMenu(gui.Tr.SLocalize("bulkSubmoduleOptions"), menuItems, createMenuOptions{showCancel: true})
+}
+
 func (gui *Gui) handleUpdateSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.WithWaitingStatus(gui.Tr.SLocalize("updatingSubmoduleStatus"), func() error {
 		err := gui.GitCommand.SubmoduleUpdate(submodule.Path)

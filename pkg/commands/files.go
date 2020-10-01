@@ -251,13 +251,7 @@ func (c *GitCommand) ResetAndClean() error {
 	}
 
 	if len(submoduleConfigs) > 0 {
-		for _, config := range submoduleConfigs {
-			if err := c.SubmoduleStash(config); err != nil {
-				return err
-			}
-		}
-
-		if err := c.SubmoduleUpdateAll(); err != nil {
+		if err := c.ResetSubmodules(submoduleConfigs); err != nil {
 			return err
 		}
 	}
