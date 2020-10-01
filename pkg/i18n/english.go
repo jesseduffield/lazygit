@@ -580,7 +580,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CommitMessageTitle",
 			Other: "Commit Message",
 		}, &i18n.Message{
-			ID:    "Local-BranchesTitle",
+			ID:    "LocalBranchesTitle",
 			Other: "Branches Tab",
 		}, &i18n.Message{
 			ID:    "SearchTitle",
@@ -589,7 +589,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "TagsTitle",
 			Other: "Tags Tab",
 		}, &i18n.Message{
-			ID:    "Branch-CommitsTitle",
+			ID:    "BranchCommitsTitle",
 			Other: "Commits Tab",
 		}, &i18n.Message{
 			ID:    "MenuTitle",
@@ -601,10 +601,10 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "CredentialsTitle",
 			Other: "Credentials",
 		}, &i18n.Message{
-			ID:    "Remote-BranchesTitle",
+			ID:    "RemoteBranchesTitle",
 			Other: "Remote Branches (in Remotes tab)",
 		}, &i18n.Message{
-			ID:    "Patch-BuildingTitle",
+			ID:    "PatchBuildingTitle",
 			Other: "Patch Building",
 		}, &i18n.Message{
 			ID:    "InformationTitle",
@@ -613,7 +613,7 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "SecondaryTitle",
 			Other: "Secondary",
 		}, &i18n.Message{
-			ID:    "Reflog-CommitsTitle",
+			ID:    "ReflogCommitsTitle",
 			Other: "Reflog Tab",
 		}, &i18n.Message{
 			ID:    "Title",
@@ -1272,6 +1272,15 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 		}, &i18n.Message{
 			ID:    "runningCommand",
 			Other: "running command",
+		}, &i18n.Message{
+			ID:    "SubCommitsTitle",
+			Other: "Sub-commits",
+		}, &i18n.Message{
+			ID:    "SubmodulesTitle",
+			Other: "Submodules",
+		}, &i18n.Message{
+			ID:    "NavigationTitle",
+			Other: "List Panel Navigation",
 		},
 	)
 }

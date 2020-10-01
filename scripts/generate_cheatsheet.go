@@ -72,13 +72,31 @@ func getBindingSections(mApp *app.App) []*bindingSection {
 	bindings := mApp.Gui.GetInitialKeybindings()
 
 	type contextAndViewType struct {
-		context  string
-		viewName string
+		subtitle string
+		title    string
 	}
 
 	contextAndViewBindingMap := map[contextAndViewType][]*gui.Binding{}
 
+outer:
 	for _, binding := range bindings {
+		if binding.Tag == "navigation" {
+			key := contextAndViewType{subtitle: "", title: "navigation"}
+			existing := contextAndViewBindingMap[key]
+			if existing == nil {
+				contextAndViewBindingMap[key] = []*gui.Binding{binding}
+			} else {
+				for _, navBinding := range contextAndViewBindingMap[key] {
+					if navBinding.Description == binding.Description {
+						continue outer
+					}
+				}
+				contextAndViewBindingMap[key] = append(contextAndViewBindingMap[key], binding)
+			}
+
+			continue outer
+		}
+
 		contexts := []string{}
 		if len(binding.Contexts) == 0 {
 			contexts = append(contexts, "")
@@ -87,7 +105,7 @@ func getBindingSections(mApp *app.App) []*bindingSection {
 		}
 
 		for _, context := range contexts {
-			key := contextAndViewType{context: context, viewName: binding.ViewName}
+			key := contextAndViewType{subtitle: context, title: binding.ViewName}
 			existing := contextAndViewBindingMap[key]
 			if existing == nil {
 				contextAndViewBindingMap[key] = []*gui.Binding{binding}
@@ -111,33 +129,39 @@ func getBindingSections(mApp *app.App) []*bindingSection {
 	sort.Slice(groupedBindings, func(i, j int) bool {
 		first := groupedBindings[i].contextAndView
 		second := groupedBindings[j].contextAndView
-		if first.viewName == "" {
+		if first.title == "" {
 			return true
 		}
-		if second.viewName == "" {
+		if second.title == "" {
 			return false
 		}
-		return first.viewName < second.viewName || (first.viewName == second.viewName && first.context < second.context)
+		if first.title == "navigation" {
+			return true
+		}
+		if second.title == "navigation" {
+			return false
+		}
+		return first.title < second.title || (first.title == second.title && first.subtitle < second.subtitle)
 	})
 
 	for _, group := range groupedBindings {
 		contextAndView := group.contextAndView
 		contextBindings := group.bindings
-		mApp.Log.Info("viewname: " + contextAndView.viewName + ", context: " + contextAndView.context)
-		viewName := contextAndView.viewName
+		mApp.Log.Info("viewname: " + contextAndView.title + ", context: " + contextAndView.subtitle)
+		viewName := contextAndView.title
 		if viewName == "" {
 			viewName = "global"
 		}
 		translatedView := localisedTitle(mApp, viewName)
 		var title string
-		if contextAndView.context == "" {
+		if contextAndView.subtitle == "" {
 			addendum := " " + mApp.Tr.SLocalize("Panel")
-			if viewName == "global" {
+			if viewName == "global" || viewName == "navigation" {
 				addendum = ""
 			}
 			title = fmt.Sprintf("%s%s", translatedView, addendum)
 		} else {
-			translatedContextName := localisedTitle(mApp, contextAndView.context)
+			translatedContextName := localisedTitle(mApp, contextAndView.subtitle)
 			title = fmt.Sprintf("%s %s (%s)", translatedView, mApp.Tr.SLocalize("Panel"), translatedContextName)
 		}
 

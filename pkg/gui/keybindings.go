@@ -21,6 +21,7 @@ type Binding struct {
 	Modifier    gocui.Modifier
 	Description string
 	Alternative string
+	Tag         string // e.g. 'navigation'. Used for grouping things in the cheatsheet
 }
 
 // GetDisplayStrings returns the display string of a file
@@ -635,18 +636,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "branches",
-			Key:         gui.getKey("universal.nextTab"),
-			Handler:     gui.handleNextTab,
-			Description: gui.Tr.SLocalize("nextTab"),
-		},
-		{
-			ViewName:    "branches",
-			Key:         gui.getKey("universal.prevTab"),
-			Handler:     gui.handlePrevTab,
-			Description: gui.Tr.SLocalize("prevTab"),
-		},
-		{
-			ViewName:    "branches",
 			Contexts:    []string{REMOTE_BRANCHES_CONTEXT_KEY},
 			Key:         gui.getKey("universal.return"),
 			Handler:     gui.handleRemoteBranchesEscape,
@@ -672,18 +661,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey("branches.fetchRemote"),
 			Handler:     gui.handleFetchRemote,
 			Description: gui.Tr.SLocalize("fetchRemote"),
-		},
-		{
-			ViewName:    "commits",
-			Key:         gui.getKey("universal.nextTab"),
-			Handler:     gui.handleNextTab,
-			Description: gui.Tr.SLocalize("nextTab"),
-		},
-		{
-			ViewName:    "commits",
-			Key:         gui.getKey("universal.prevTab"),
-			Handler:     gui.handlePrevTab,
-			Description: gui.Tr.SLocalize("prevTab"),
 		},
 		{
 			ViewName:    "commits",
@@ -1562,18 +1539,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
-			Key:         gui.getKey("universal.nextTab"),
-			Handler:     gui.handleNextTab,
-			Description: gui.Tr.SLocalize("nextTab"),
-		},
-		{
-			ViewName:    "files",
-			Key:         gui.getKey("universal.prevTab"),
-			Handler:     gui.handlePrevTab,
-			Description: gui.Tr.SLocalize("prevTab"),
-		},
-		{
-			ViewName:    "files",
 			Contexts:    []string{SUBMODULES_CONTEXT_KEY},
 			Key:         gui.getKey("universal.copyToClipboard"),
 			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
@@ -1642,6 +1607,25 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	// Appends keybindings to jump to a particular sideView using numbers
 	for i, window := range []string{"status", "files", "branches", "commits", "stash"} {
 		bindings = append(bindings, &Binding{ViewName: "", Key: rune(i+1) + '0', Modifier: gocui.ModNone, Handler: gui.goToSideWindow(window)})
+	}
+
+	for viewName := range gui.viewTabContextMap() {
+		bindings = append(bindings, []*Binding{
+			{
+				ViewName:    viewName,
+				Key:         gui.getKey("universal.nextTab"),
+				Handler:     gui.handleNextTab,
+				Description: gui.Tr.SLocalize("nextTab"),
+				Tag:         "navigation",
+			},
+			{
+				ViewName:    viewName,
+				Key:         gui.getKey("universal.prevTab"),
+				Handler:     gui.handlePrevTab,
+				Description: gui.Tr.SLocalize("prevTab"),
+				Tag:         "navigation",
+			},
+		}...)
 	}
 
 	bindings = append(bindings, gui.getListContextKeyBindings()...)
