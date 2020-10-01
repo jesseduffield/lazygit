@@ -282,6 +282,7 @@ type guiStateMutexes struct {
 	RefreshingStatusMutex sync.Mutex
 	FetchMutex            sync.Mutex
 	BranchCommitsMutex    sync.Mutex
+	LineByLinePanelMutex  sync.Mutex
 }
 
 type guiState struct {
