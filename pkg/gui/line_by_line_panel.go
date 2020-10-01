@@ -362,34 +362,35 @@ func (gui *Gui) handleOpenFileAtLine() error {
 
 func (gui *Gui) handleLineByLineNextPage() error {
 	state := gui.State.Panels.LineByLine
-	state.SelectMode = LINE
 
 	newSelectedLineIdx := state.SelectedLineIdx + gui.pageDelta(gui.getMainView())
 
-	return gui.handleSelectNewLine(newSelectedLineIdx)
+	return gui.lineByLineNavigateTo(newSelectedLineIdx)
 }
 
 func (gui *Gui) handleLineByLinePrevPage() error {
 	state := gui.State.Panels.LineByLine
-	state.SelectMode = LINE
 
 	newSelectedLineIdx := state.SelectedLineIdx - gui.pageDelta(gui.getMainView())
 
-	return gui.handleSelectNewLine(newSelectedLineIdx)
+	return gui.lineByLineNavigateTo(newSelectedLineIdx)
 }
 
 func (gui *Gui) handleLineByLineGotoBottom() error {
 	state := gui.State.Panels.LineByLine
-	state.SelectMode = LINE
 
 	newSelectedLineIdx := len(state.PatchParser.PatchLines) - 1
 
-	return gui.handleSelectNewLine(newSelectedLineIdx)
+	return gui.lineByLineNavigateTo(newSelectedLineIdx)
 }
 
 func (gui *Gui) handleLineByLineGotoTop() error {
+	return gui.lineByLineNavigateTo(0)
+}
+
+func (gui *Gui) lineByLineNavigateTo(selectedLineIdx int) error {
 	state := gui.State.Panels.LineByLine
 	state.SelectMode = LINE
 
-	return gui.handleSelectNewLine(0)
+	return gui.handleSelectNewLine(selectedLineIdx)
 }

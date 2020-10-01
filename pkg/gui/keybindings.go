@@ -1268,6 +1268,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "main",
+			Contexts:    []string{MAIN_PATCH_BUILDING_CONTEXT_KEY, MAIN_STAGING_CONTEXT_KEY},
+			Key:         gui.getKey("universal.startSearch"),
+			Handler:     gui.handleOpenSearch,
+			Description: gui.Tr.SLocalize("startSearch"),
+			Tag:         "navigation",
+		},
+		{
+			ViewName:    "main",
 			Contexts:    []string{MAIN_PATCH_BUILDING_CONTEXT_KEY},
 			Key:         gui.getKey("universal.select"),
 			Handler:     gui.handleToggleSelectionForPatch,
