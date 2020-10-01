@@ -30,7 +30,7 @@ func (gui *Gui) handleCommitSelect() error {
 		}()
 	}
 
-	gui.handleEscapeLineByLinePanel()
+	gui.escapeLineByLinePanel()
 
 	var task updateTask
 	commit := gui.getSelectedLocalCommit()

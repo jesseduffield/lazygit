@@ -317,7 +317,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		listContextState.view.SetOnSelectItem(gui.onSelectItemWrapper(listContextState.listContext.onSearchSelect))
 	}
 
-	gui.getMainView().SetOnSelectItem(gui.onSelectItemWrapper(gui.lineByLineNavigateTo))
+	gui.getMainView().SetOnSelectItem(gui.onSelectItemWrapper(gui.handlelineByLineNavigateTo))
 
 	mainViewWidth, mainViewHeight := gui.getMainView().Size()
 	if mainViewWidth != gui.State.PrevMainWidth || mainViewHeight != gui.State.PrevMainHeight {
