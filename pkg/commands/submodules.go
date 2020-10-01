@@ -127,10 +127,6 @@ func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string)
 		return err
 	}
 
-	if err := c.OSCommand.RunCommand("git submodule update --init %s", path); err != nil {
-		return err
-	}
-
 	return nil
 }
 
