@@ -267,6 +267,8 @@ git:
   paging:
     colorArg: always
     useConfig: false
+  commit:
+    signOff: false
   merging:
     manualCommit: false
     args: ""

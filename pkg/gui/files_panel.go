@@ -373,7 +373,12 @@ func (gui *Gui) handleCommitEditorPress() error {
 		})
 	}
 
-	gui.PrepareSubProcess("git commit")
+	command := []string{"git", "commit"}
+	signOff := gui.Config.GetUserConfig().GetBool("git.commit.signOff")
+	if signOff {
+		command = append(command, "--signoff")
+	}
+	gui.PrepareSubProcess(strings.Join(command, " "))
 	return nil
 }
 
