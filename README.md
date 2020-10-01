@@ -30,6 +30,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [FreeBSD](#freebsd)
   - [Conda](#conda)
   - [Go](#go)
+  - [Manual](#manual)
 - [Usage](#usage)
   - [Keybindings](#keybindings)
   - [Changing directory on exit](#changing-directory-on-exit)
@@ -165,6 +166,17 @@ may need to add `~/go/bin` to your \$PATH (MacOS/Linux), or `%HOME%\go\bin`
 (Windows). Not to be mistaked for `C:\Go\bin` (which is for Go's own binaries,
 not apps like Lazygit).
 
+### Manual
+
+You'll need to [install Go](https://golang.org/doc/install)
+
+```
+git clone https://github.com/jesseduffield/lazygit.git
+cd lazygit
+go install
+```
+
+You can also use `go run main.go` to compile and run in one go (pun definitely intended)
 
 ## Usage
 
