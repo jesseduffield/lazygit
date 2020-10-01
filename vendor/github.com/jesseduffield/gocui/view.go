@@ -153,10 +153,18 @@ func (v *View) gotoPreviousMatch() error {
 }
 
 func (v *View) SelectSearchResult(index int) error {
+	itemCount := len(v.searcher.searchPositions)
+	if itemCount == 0 {
+		return nil
+	}
+	if index > itemCount-1 {
+		index = itemCount - 1
+	}
+
 	y := v.searcher.searchPositions[index].y
 	v.FocusPoint(0, y)
 	if v.searcher.onSelectItem != nil {
-		return v.searcher.onSelectItem(y, index, len(v.searcher.searchPositions))
+		return v.searcher.onSelectItem(y, index, itemCount)
 	}
 	return nil
 }
@@ -183,7 +191,6 @@ func (v *View) Search(str string) error {
 	} else {
 		return v.searcher.onSelectItem(-1, -1, 0)
 	}
-	return nil
 }
 
 func (v *View) ClearSearch() {
