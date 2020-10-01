@@ -1064,7 +1064,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 			"Remove an untracked file from staging",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"rm", "--cached", "test.txt"}, args)
+				assert.EqualValues(t, []string{"rm", "--cached", "--force", "test.txt"}, args)
 
 				return exec.Command("echo")
 			},
