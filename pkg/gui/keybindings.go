@@ -1645,6 +1645,7 @@ func (gui *Gui) keybindings() error {
 	}
 
 	for viewName := range gui.viewTabContextMap() {
+		viewName := viewName
 		tabClickCallback := func(tabIndex int) error { return gui.onViewTabClick(viewName, tabIndex) }
 
 		if err := gui.g.SetTabClickBinding(viewName, tabClickCallback); err != nil {
