@@ -44,7 +44,7 @@ type AppConfigurer interface {
 
 // NewAppConfig makes a new app config
 func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
-	configDir, err := findOrCreateConfigDir(name)
+	configDir, err := findOrCreateConfigDir()
 	if err != nil {
 		return nil, err
 	}
@@ -80,11 +80,15 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	return appConfig, nil
 }
 
-func findOrCreateConfigDir(projectName string) (string, error) {
+func ConfigDir() string {
 	// chucking my name there is not for vanity purposes, the xdg spec (and that
 	// function) requires a vendor name. May as well line up with github
-	configDirs := xdg.New("jesseduffield", projectName)
-	folder := configDirs.ConfigHome()
+	configDirs := xdg.New("jesseduffield", "lazygit")
+	return configDirs.ConfigHome()
+}
+
+func findOrCreateConfigDir() (string, error) {
+	folder := ConfigDir()
 
 	err := os.MkdirAll(folder, 0755)
 	if err != nil {
@@ -186,7 +190,7 @@ func (c *AppConfig) GetUserConfigDir() string {
 }
 
 func configFilePath(filename string) (string, error) {
-	folder, err := findOrCreateConfigDir("lazygit")
+	folder, err := findOrCreateConfigDir()
 	if err != nil {
 		return "", err
 	}
@@ -237,184 +241,6 @@ func loadAppState() (*AppState, error) {
 	}
 
 	return appState, nil
-}
-
-func GetDefaultConfig() *UserConfig {
-	userConfig := &UserConfig{}
-
-	if err := yaml.Unmarshal(GetDefaultConfigBytes(), userConfig); err != nil {
-		panic(err)
-	}
-
-	userConfig.OS = GetPlatformDefaultConfig()
-
-	return userConfig
-}
-
-// GetDefaultConfigBytes returns the application default configuration
-func GetDefaultConfigBytes() []byte {
-	return []byte(
-		`gui:
-  ## stuff relating to the UI
-  scrollHeight: 2
-  scrollPastBottom: true
-  mouseEvents: true
-  skipUnstageLineWarning: false
-  skipStashWarning: true
-  sidePanelWidth: 0.3333
-  expandFocusedSidePanel: false
-  mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
-  theme:
-    lightTheme: false
-    activeBorderColor:
-      - green
-      - bold
-    inactiveBorderColor:
-      - white
-    optionsTextColor:
-      - blue
-    selectedLineBgColor:
-      - default
-    selectedRangeBgColor:
-      - blue
-  commitLength:
-    show: true
-git:
-  paging:
-    colorArg: always
-    useConfig: false
-  merging:
-    manualCommit: false
-    args: ""
-  pull:
-    mode: 'merge' # one of 'merge' | 'rebase' | 'ff-only'
-  skipHookPrefix: 'WIP'
-  autoFetch: true
-  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
-  overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
-  disableForcePushing: false
-update:
-  method: prompt # can be: prompt | background | never
-  days: 14 # how often a update is checked for
-reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
-splashUpdatesIndex: 0
-confirmOnQuit: false
-quitOnTopLevelReturn: true
-disableStartupPopups: false
-keybinding:
-  universal:
-    quit: 'q'
-    quit-alt1: '<c-c>'
-    return: '<esc>'
-    quitWithoutChangingDirectory: 'Q'
-    togglePanel: '<tab>'
-    prevItem: '<up>'
-    nextItem: '<down>'
-    prevItem-alt: 'k'
-    nextItem-alt: 'j'
-    prevPage: ','
-    nextPage: '.'
-    gotoTop: '<'
-    gotoBottom: '>'
-    prevBlock: '<left>'
-    nextBlock: '<right>'
-    prevBlock-alt: 'h'
-    nextBlock-alt: 'l'
-    nextMatch: 'n'
-    prevMatch: 'N'
-    startSearch: '/'
-    optionMenu: 'x'
-    optionMenu-alt1: '?'
-    select: '<space>'
-    goInto: '<enter>'
-    confirm: '<enter>'
-    confirm-alt1: 'y'
-    remove: 'd'
-    new: 'n'
-    edit: 'e'
-    openFile: 'o'
-    scrollUpMain: '<pgup>'
-    scrollDownMain: '<pgdown>'
-    scrollUpMain-alt1: 'K'
-    scrollDownMain-alt1: 'J'
-    scrollUpMain-alt2: '<c-u>'
-    scrollDownMain-alt2: '<c-d>'
-    executeCustomCommand: ':'
-    createRebaseOptionsMenu: 'm'
-    pushFiles: 'P'
-    pullFiles: 'p'
-    refresh: 'R'
-    createPatchOptionsMenu: '<c-p>'
-    nextTab: ']'
-    prevTab: '['
-    nextScreenMode: '+'
-    prevScreenMode: '_'
-    undo: 'z'
-    redo: '<c-z>'
-    filteringMenu: <c-s>
-    diffingMenu: 'W'
-    diffingMenu-alt: '<c-e>'
-    copyToClipboard: '<c-o>'
-  status:
-    checkForUpdate: 'u'
-    recentRepos: '<enter>'
-  files:
-    commitChanges: 'c'
-    commitChangesWithoutHook: 'w'
-    amendLastCommit: 'A'
-    commitChangesWithEditor: 'C'
-    ignoreFile: 'i'
-    refreshFiles: 'r'
-    stashAllChanges: 's'
-    viewStashOptions: 'S'
-    toggleStagedAll: 'a'
-    viewResetOptions: 'D'
-    fetch: 'f'
-  branches:
-    createPullRequest: 'o'
-    checkoutBranchByName: 'c'
-    forceCheckoutBranch: 'F'
-    rebaseBranch: 'r'
-    renameBranch: 'R'
-    mergeIntoCurrentBranch: 'M'
-    viewGitFlowOptions: 'i'
-    fastForward: 'f'
-    pushTag: 'P'
-    setUpstream: 'u'
-    fetchRemote: 'f'
-  commits:
-    squashDown: 's'
-    renameCommit: 'r'
-    renameCommitWithEditor: 'R'
-    viewResetOptions: 'g'
-    markCommitAsFixup: 'f'
-    createFixupCommit: 'F'
-    squashAboveCommits: 'S'
-    moveDownCommit: '<c-j>'
-    moveUpCommit: '<c-k>'
-    amendToCommit: 'A'
-    pickCommit: 'p'
-    revertCommit: 't'
-    cherryPickCopy: 'c'
-    cherryPickCopyRange: 'C'
-    pasteCommits: 'v'
-    tagCommit: 'T'
-    checkoutCommit: '<space>'
-    resetCherryPick: '<c-R>'
-  stash:
-    popStash: 'g'
-  commitFiles:
-    checkoutCommitFile: 'c'
-  main:
-    toggleDragSelect: 'v'
-    toggleDragSelect-alt: 'V'
-    toggleSelectHunk: 'a'
-    pickBothHunks: 'b'
-  submodules:
-    init: 'i'
-    update: 'u'
-    bulkMenu: 'b'
-`)
 }
 
 // AppState stores data between runs of the app like when the last update check
