@@ -39,7 +39,7 @@ func (gui *Gui) scrollUpView(viewName string) error {
 		return nil
 	}
 	ox, oy := mainView.Origin()
-	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))))
+	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().Gui.ScrollHeight)))
 	return mainView.SetOrigin(ox, newOy)
 }
 
@@ -50,11 +50,11 @@ func (gui *Gui) scrollDownView(viewName string) error {
 	}
 	ox, oy := mainView.Origin()
 	y := oy
-	if !gui.Config.GetUserConfig().GetBool("gui.scrollPastBottom") {
+	if !gui.Config.GetUserConfig().Gui.ScrollPastBottom {
 		_, sy := mainView.Size()
 		y += sy
 	}
-	scrollHeight := gui.Config.GetUserConfig().GetInt("gui.scrollHeight")
+	scrollHeight := gui.Config.GetUserConfig().Gui.ScrollHeight
 	if y < mainView.LinesHeight() {
 		if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
 			return err

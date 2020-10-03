@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	yaml "github.com/jesseduffield/yaml"
 )
 
 var (
@@ -77,7 +79,13 @@ func main() {
 	}
 
 	if configFlag {
-		fmt.Printf("%s\n", config.GetDefaultConfig())
+		var buf bytes.Buffer
+		encoder := yaml.NewEncoder(&buf)
+		err := encoder.Encode(config.GetDefaultConfig())
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Printf("%v\n", buf.String())
 		os.Exit(0)
 	}
 

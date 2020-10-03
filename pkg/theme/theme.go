@@ -3,7 +3,7 @@ package theme
 import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
-	"github.com/spf13/viper"
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 var (
@@ -38,16 +38,16 @@ var (
 )
 
 // UpdateTheme updates all theme variables
-func UpdateTheme(userConfig *viper.Viper) {
-	ActiveBorderColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.activeBorderColor"))
-	InactiveBorderColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.inactiveBorderColor"))
-	SelectedLineBgColor = GetBgColor(userConfig.GetStringSlice("gui.theme.selectedLineBgColor"))
-	SelectedRangeBgColor = GetBgColor(userConfig.GetStringSlice("gui.theme.selectedRangeBgColor"))
-	GocuiSelectedLineBgColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.selectedLineBgColor"))
-	OptionsColor = GetGocuiColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
-	OptionsFgColor = GetFgColor(userConfig.GetStringSlice("gui.theme.optionsTextColor"))
+func UpdateTheme(themeConfig config.ThemeConfig) {
+	ActiveBorderColor = GetGocuiColor(themeConfig.ActiveBorderColor)
+	InactiveBorderColor = GetGocuiColor(themeConfig.InactiveBorderColor)
+	SelectedLineBgColor = GetBgColor(themeConfig.SelectedLineBgColor)
+	SelectedRangeBgColor = GetBgColor(themeConfig.SelectedRangeBgColor)
+	GocuiSelectedLineBgColor = GetGocuiColor(themeConfig.SelectedLineBgColor)
+	OptionsColor = GetGocuiColor(themeConfig.OptionsTextColor)
+	OptionsFgColor = GetFgColor(themeConfig.OptionsTextColor)
 
-	isLightTheme := userConfig.GetBool("gui.theme.lightTheme")
+	isLightTheme := themeConfig.LightTheme
 	if isLightTheme {
 		DefaultTextColor = color.FgBlack
 		DefaultHiTextColor = color.FgHiBlack

@@ -51,11 +51,13 @@ func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCredentialsViewFocused() error {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+
 	message := gui.Tr.TemplateLocalize(
 		"CloseConfirm",
 		Teml{
-			"keyBindClose":   gui.getKeyDisplay("universal.return"),
-			"keyBindConfirm": gui.getKeyDisplay("universal.confirm"),
+			"keyBindClose":   gui.getKeyDisplay(keybindingConfig.Universal.Return),
+			"keyBindConfirm": gui.getKeyDisplay(keybindingConfig.Universal.Confirm),
 		},
 	)
 	gui.renderString("options", message)

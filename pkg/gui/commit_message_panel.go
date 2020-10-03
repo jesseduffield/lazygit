@@ -31,7 +31,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		return gui.createErrorPanel(gui.Tr.SLocalize("CommitWithoutMessageErr"))
 	}
 	flags := ""
-	skipHookPrefix := gui.Config.GetUserConfig().GetString("git.skipHookPrefix")
+	skipHookPrefix := gui.Config.GetUserConfig().Git.SkipHookPrefix
 	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
 		flags = "--no-verify"
 	}
@@ -71,7 +71,7 @@ func (gui *Gui) getBufferLength(view *gocui.View) string {
 
 // RenderCommitLength is a function.
 func (gui *Gui) RenderCommitLength() {
-	if !gui.Config.GetUserConfig().GetBool("gui.commitLength.show") {
+	if !gui.Config.GetUserConfig().Gui.CommitLength.Show {
 		return
 	}
 	v := gui.getCommitMessageView()

@@ -103,7 +103,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 	for _, s := range scenarios {
 		OSCmd := NewDummyOSCommand()
 		OSCmd.Command = s.command
-		OSCmd.Config.GetUserConfig().Set("os.openCommand", "open {{filename}}")
+		OSCmd.Config.GetUserConfig().OS.OpenCommand = "open {{filename}}"
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}

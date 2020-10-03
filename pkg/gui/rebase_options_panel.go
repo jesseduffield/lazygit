@@ -45,7 +45,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	if status == "merging" && command != "abort" && gui.Config.GetUserConfig().GetBool("git.merging.manualCommit") {
+	if status == "merging" && command != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
 		sub := gui.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
 		if sub != nil {
 			gui.SubProcess = sub

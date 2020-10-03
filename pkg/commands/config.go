@@ -24,7 +24,7 @@ func (c *GitCommand) ConfiguredPager() string {
 }
 
 func (c *GitCommand) GetPager(width int) string {
-	useConfig := c.Config.GetUserConfig().GetBool("git.paging.useConfig")
+	useConfig := c.Config.GetUserConfig().Git.Paging.UseConfig
 	if useConfig {
 		pager := c.ConfiguredPager()
 		return strings.Split(pager, "| less")[0]
@@ -34,12 +34,12 @@ func (c *GitCommand) GetPager(width int) string {
 		"columnWidth": strconv.Itoa(width/2 - 6),
 	}
 
-	pagerTemplate := c.Config.GetUserConfig().GetString("git.paging.pager")
+	pagerTemplate := c.Config.GetUserConfig().Git.Paging.Pager
 	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
 }
 
 func (c *GitCommand) colorArg() string {
-	return c.Config.GetUserConfig().GetString("git.paging.colorArg")
+	return c.Config.GetUserConfig().Git.Paging.ColorArg
 }
 
 func (c *GitCommand) GetConfigValue(key string) string {

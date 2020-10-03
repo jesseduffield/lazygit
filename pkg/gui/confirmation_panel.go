@@ -95,9 +95,10 @@ func (gui *Gui) wrappedPromptConfirmationFunction(handlersManageFocus bool, func
 }
 
 func (gui *Gui) deleteConfirmationView() {
-	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.confirm"), gocui.ModNone)
-	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.confirm-alt1"), gocui.ModNone)
-	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.return"), gocui.ModNone)
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)
 
 	_ = gui.g.DeleteView("confirmation")
 }
@@ -220,14 +221,15 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		onConfirm = gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleConfirm)
 	}
 
-	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.confirm"), gocui.ModNone, onConfirm); err != nil {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone, onConfirm); err != nil {
 		return err
 	}
-	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.confirm-alt1"), gocui.ModNone, onConfirm); err != nil {
+	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone, onConfirm); err != nil {
 		return err
 	}
 
-	return gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.return"), gocui.ModNone, gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleClose))
+	return gui.g.SetKeybinding("confirmation", nil, gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone, gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleClose))
 }
 
 func (gui *Gui) createErrorPanel(message string) error {

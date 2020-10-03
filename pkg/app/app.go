@@ -61,14 +61,18 @@ func getLogLevel() logrus.Level {
 }
 
 func newDevelopmentLogger(configurer config.AppConfigurer) *logrus.Logger {
-	log := logrus.New()
-	log.SetLevel(getLogLevel())
-	file, err := os.OpenFile(config.LogPath(), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logger := logrus.New()
+	logger.SetLevel(getLogLevel())
+	logPath, err := config.LogPath()
+	if err != nil {
+		log.Fatal(err)
+	}
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
 	}
-	log.SetOutput(file)
-	return log
+	logger.SetOutput(file)
+	return logger
 }
 
 func newLogger(config config.AppConfigurer) *logrus.Entry {
@@ -295,11 +299,14 @@ func (app *App) KnownError(err error) (string, bool) {
 }
 
 func TailLogs() {
-	logFilePath := config.LogPath()
+	logFilePath, err := config.LogPath()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Printf("Tailing log file %s\n\n", logFilePath)
 
-	_, err := os.Stat(logFilePath)
+	_, err = os.Stat(logFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Fatal("Log file does not exist. Run `lazygit --debug` first to create the log file")

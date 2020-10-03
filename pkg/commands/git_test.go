@@ -285,12 +285,12 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 			func(entries []*models.StashEntry) {
 				expected := []*models.StashEntry{
 					{
-						0,
-						"WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
+						Index: 0,
+						Name:  "WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
 					},
 					{
-						1,
-						"WIP on master: bb86a3f update github template",
+						Index: 1,
+						Name:  "WIP on master: bb86a3f update github template",
 					},
 				}
 

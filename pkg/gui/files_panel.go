@@ -14,6 +14,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 )
@@ -278,7 +279,7 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-	skipHookPreifx := gui.Config.GetUserConfig().GetString("git.skipHookPrefix")
+	skipHookPreifx := gui.Config.GetUserConfig().Git.SkipHookPrefix
 	if skipHookPreifx == "" {
 		return gui.createErrorPanel(gui.Tr.SLocalize("SkipHookPrefixNotConfigured"))
 	}
@@ -291,6 +292,15 @@ func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error 
 	return gui.handleCommitPress()
 }
 
+func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
+	cfg, ok := gui.Config.GetUserConfig().Git.CommitPrefixes[utils.GetCurrentRepoName()]
+	if !ok {
+		return nil
+	}
+
+	return &cfg
+}
+
 func (gui *Gui) handleCommitPress() error {
 	if len(gui.stagedFiles()) == 0 {
 		return gui.promptToStageAllAndRetry(func() error {
@@ -299,9 +309,10 @@ func (gui *Gui) handleCommitPress() error {
 	}
 
 	commitMessageView := gui.getCommitMessageView()
-	prefixPattern := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".pattern")
-	prefixReplace := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".replace")
-	if len(prefixPattern) > 0 && len(prefixReplace) > 0 {
+	commitPrefixConfig := gui.commitPrefixConfigForRepo()
+	if commitPrefixConfig != nil {
+		prefixPattern := commitPrefixConfig.Pattern
+		prefixReplace := commitPrefixConfig.Replace
 		rgx, err := regexp.Compile(prefixPattern)
 		if err != nil {
 			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.SLocalize("commitPrefixPatternError"), err.Error()))
@@ -498,7 +509,7 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 		return err
 	}
 
-	mode := gui.Config.GetUserConfig().GetString("git.pull.mode")
+	mode := gui.Config.GetUserConfig().Git.Pull.Mode
 
 	go gui.pullWithMode(mode, opts)
 
@@ -544,7 +555,7 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
-			forcePushDisabled := gui.Config.GetUserConfig().GetBool("git.disableForcePushing")
+			forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 			if forcePushDisabled {
 				gui.createErrorPanel(gui.Tr.SLocalize("UpdatesRejectedAndForcePushDisabled"))
 				return
@@ -595,7 +606,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		return gui.pushWithForceFlag(v, false, "", "")
 	}
 
-	forcePushDisabled := gui.Config.GetUserConfig().GetBool("git.disableForcePushing")
+	forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 	if forcePushDisabled {
 		return gui.createErrorPanel(gui.Tr.SLocalize("ForcePushDisabled"))
 	}

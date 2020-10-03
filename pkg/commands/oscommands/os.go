@@ -212,7 +212,7 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
-	commandTemplate := c.Config.GetUserConfig().GetString("os.openCommand")
+	commandTemplate := c.Config.GetUserConfig().OS.OpenCommand
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
 	}
@@ -224,7 +224,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 
 // OpenLink opens a file with the given
 func (c *OSCommand) OpenLink(link string) error {
-	commandTemplate := c.Config.GetUserConfig().GetString("os.openLinkCommand")
+	commandTemplate := c.Config.GetUserConfig().OS.OpenLinkCommand
 	templateValues := map[string]string{
 		"link": c.Quote(link),
 	}
