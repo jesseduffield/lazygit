@@ -48,6 +48,9 @@ func main() {
 	configFlag := false
 	flaggy.Bool(&configFlag, "c", "config", "Print the default config")
 
+	configDirFlag := false
+	flaggy.Bool(&configDirFlag, "cd", "config-dir", "Print the config directory")
+
 	workTree := ""
 	flaggy.String(&workTree, "w", "work-tree", "equivalent of the --work-tree git argument")
 
@@ -85,7 +88,12 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		fmt.Printf("%v\n", buf.String())
+		fmt.Printf("%s\n", buf.String())
+		os.Exit(0)
+	}
+
+	if configDirFlag {
+		fmt.Printf("%s\n", config.ConfigDir())
 		os.Exit(0)
 	}
 
