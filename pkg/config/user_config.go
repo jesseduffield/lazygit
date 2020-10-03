@@ -208,8 +208,8 @@ type UserConfig struct {
 		} `yaml:"submodules"`
 	} `yaml:"keybinding"`
 	// OS determines what defaults are set for opening files and links
-	OS                  OSConfig          `yaml:"os,omitempty"`
-	StartupPopupVersion int               `yaml:"startupPopupVersion"`
-	CustomCommands      []CustomCommand   `yaml:"customCommands"`
-	Services            map[string]string `yaml:"services"`
+	OS                   OSConfig          `yaml:"os,omitempty"`
+	DisableStartupPopups bool              `yaml:"disableStartupPopups"`
+	CustomCommands       []CustomCommand   `yaml:"customCommands"`
+	Services             map[string]string `yaml:"services"`
 }

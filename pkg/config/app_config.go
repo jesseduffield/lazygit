@@ -37,9 +37,7 @@ type AppConfigurer interface {
 	GetUserConfigDir() string
 	GetUserConfigPath() string
 	GetAppState() *AppState
-	WriteToUserConfig(func(*UserConfig) error) error
 	SaveAppState() error
-	LoadAppState() error
 	SetIsNewRepo(bool)
 	GetIsNewRepo() bool
 }
@@ -60,6 +58,11 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		debuggingFlag = true
 	}
 
+	appState, err := loadAppState()
+	if err != nil {
+		return nil, err
+	}
+
 	appConfig := &AppConfig{
 		Name:           "lazygit",
 		Version:        version,
@@ -70,12 +73,8 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		UserConfig:     userConfig,
 		UserConfigDir:  configDir,
 		UserConfigPath: filepath.Join(configDir, "config.yml"),
-		AppState:       &AppState{},
+		AppState:       appState,
 		IsNewRepo:      false,
-	}
-
-	if err := appConfig.LoadAppState(); err != nil {
-		return nil, err
 	}
 
 	return appConfig, nil
@@ -195,28 +194,6 @@ func configFilePath(filename string) (string, error) {
 	return filepath.Join(folder, filename), nil
 }
 
-// WriteToUserConfig allows you to set a value on the user config to be saved
-// note that if you set a zero-value, it may be ignored e.g. a false or 0 or
-// empty string this is because we are using the omitempty yaml directive so
-// that we don't write a heap of zero values to the user's config.yml
-func (c *AppConfig) WriteToUserConfig(updateConfig func(*UserConfig) error) error {
-	userConfig, err := loadUserConfig(c.UserConfigDir, &UserConfig{})
-	if err != nil {
-		return err
-	}
-
-	if err := updateConfig(userConfig); err != nil {
-		return err
-	}
-
-	file, err := os.OpenFile(c.ConfigFilename(), os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return err
-	}
-
-	return yaml.NewEncoder(file).Encode(userConfig)
-}
-
 // ConfigFilename returns the filename of the current config file
 func (c *AppConfig) ConfigFilename() string {
 	return filepath.Join(c.UserConfigDir, "config.yml")
@@ -237,20 +214,29 @@ func (c *AppConfig) SaveAppState() error {
 	return ioutil.WriteFile(filepath, marshalledAppState, 0644)
 }
 
-// LoadAppState loads recorded AppState from file
-func (c *AppConfig) LoadAppState() error {
+// loadAppState loads recorded AppState from file
+func loadAppState() (*AppState, error) {
 	filepath, err := configFilePath("state.yml")
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	appStateBytes, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	if len(appStateBytes) == 0 {
-		return yaml.Unmarshal(getDefaultAppState(), c.AppState)
+		return getDefaultAppState(), nil
 	}
-	return yaml.Unmarshal(appStateBytes, c.AppState)
+
+	appState := &AppState{}
+	err = yaml.Unmarshal(appStateBytes, appState)
+	if err != nil {
+		return nil, err
+	}
+
+	return appState, nil
 }
 
 func GetDefaultConfig() *UserConfig {
@@ -314,6 +300,7 @@ reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
 splashUpdatesIndex: 0
 confirmOnQuit: false
 quitOnTopLevelReturn: true
+disableStartupPopups: false
 keybinding:
   universal:
     quit: 'q'
@@ -433,15 +420,17 @@ keybinding:
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
-	LastUpdateCheck int64
-	RecentRepos     []string
+	LastUpdateCheck     int64
+	RecentRepos         []string
+	StartupPopupVersion int
 }
 
-func getDefaultAppState() []byte {
-	return []byte(`
-    lastUpdateCheck: 0
-    recentRepos: []
-  `)
+func getDefaultAppState() *AppState {
+	return &AppState{
+		LastUpdateCheck:     0,
+		RecentRepos:         []string{},
+		StartupPopupVersion: 0,
+	}
 }
 
 func LogPath() (string, error) {
