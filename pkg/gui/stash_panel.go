@@ -45,7 +45,7 @@ func (gui *Gui) refreshStashEntries() error {
 // specific functions
 
 func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
-	skipStashWarning := gui.Config.GetUserConfig().GetBool("gui.skipStashWarning")
+	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
 
 	apply := func() error {
 		return gui.stashDo("apply")
@@ -65,7 +65,7 @@ func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
-	skipStashWarning := gui.Config.GetUserConfig().GetBool("gui.skipStashWarning")
+	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
 
 	pop := func() error {
 		return gui.stashDo("pop")

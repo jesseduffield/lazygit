@@ -60,7 +60,7 @@ func getServices(config config.AppConfigurer) []*Service {
 		NewService("gitlab", "gitlab.com", "gitlab.com"),
 	}
 
-	configServices := config.GetUserConfig().GetStringMapString("services")
+	configServices := config.GetUserConfig().Services
 
 	for repoDomain, typeAndDomain := range configServices {
 		splitData := strings.Split(typeAndDomain, ":")

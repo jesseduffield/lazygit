@@ -125,11 +125,11 @@ func (gui *Gui) handleStatusSelect() error {
 }
 
 func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
-	return gui.openFile(gui.Config.GetUserConfig().ConfigFileUsed())
+	return gui.openFile(gui.Config.GetUserConfigPath())
 }
 
 func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {
-	filename := gui.Config.GetUserConfig().ConfigFileUsed()
+	filename := gui.Config.GetUserConfigPath()
 	return gui.editFile(filename)
 }
 

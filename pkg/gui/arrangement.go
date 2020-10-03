@@ -42,7 +42,7 @@ func (gui *Gui) getMidSectionWeights() (int, int) {
 	currentWindow := gui.currentWindow()
 
 	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
-	sidePanelWidthRatio := gui.Config.GetUserConfig().GetFloat64("gui.sidePanelWidth")
+	sidePanelWidthRatio := gui.Config.GetUserConfig().Gui.SidePanelWidth
 	// we could make this better by creating ratios like 2:3 rather than always 1:something
 	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
 	sideSectionWeight := 1
@@ -133,7 +133,7 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 					},
 					{
 						ConditionalDirection: func(width int, height int) int {
-							mainPanelSplitMode := gui.Config.GetUserConfig().GetString("gui.mainPanelSplitMode")
+							mainPanelSplitMode := gui.Config.GetUserConfig().Gui.MainPanelSplitMode
 
 							switch mainPanelSplitMode {
 							case "vertical":
@@ -213,7 +213,7 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			fullHeightBox("stash"),
 		}
 	} else if height >= 28 {
-		accordianMode := gui.Config.GetUserConfig().GetBool("gui.expandFocusedSidePanel")
+		accordianMode := gui.Config.GetUserConfig().Gui.ExpandFocusedSidePanel
 		accordianBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
 			if accordianMode && defaultBox.Window == currentWindow {
 				return &boxlayout.Box{

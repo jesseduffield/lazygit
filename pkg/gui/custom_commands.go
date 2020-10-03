@@ -7,6 +7,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -44,7 +45,7 @@ func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (s
 	return utils.ResolveTemplate(templateStr, objects)
 }
 
-func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func() error {
+func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand) func() error {
 	return func() error {
 		promptResponses := make([]string, len(customCommand.Prompts))
 
@@ -161,41 +162,9 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand CustomCommand) func(
 	}
 }
 
-type CustomCommandMenuOption struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Value       string `yaml:"value"`
-}
-
-type CustomCommandPrompt struct {
-	Type  string `yaml:"type"` // one of 'input' and 'menu'
-	Title string `yaml:"title"`
-
-	// this only apply to prompts
-	InitialValue string `yaml:"initialValue"`
-
-	// this only applies to menus
-	Options []CustomCommandMenuOption
-}
-
-type CustomCommand struct {
-	Key         string                `yaml:"key"`
-	Context     string                `yaml:"context"`
-	Command     string                `yaml:"command"`
-	Subprocess  bool                  `yaml:"subprocess"`
-	Prompts     []CustomCommandPrompt `yaml:"prompts"`
-	LoadingText string                `yaml:"loadingText"`
-	Description string                `yaml:"description"`
-}
-
 func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 	bindings := []*Binding{}
-
-	var customCommands []CustomCommand
-
-	if err := gui.Config.GetUserConfig().UnmarshalKey("customCommands", &customCommands); err != nil {
-		log.Fatalf("Error parsing custom command keybindings: %v", err)
-	}
+	customCommands := gui.Config.GetUserConfig().CustomCommands
 
 	for _, customCommand := range customCommands {
 		var viewName string

@@ -32,7 +32,7 @@ func (gui *Gui) onBackgroundUpdateCheckFinish(newVersion string, err error) erro
 	if newVersion == "" {
 		return nil
 	}
-	if gui.Config.GetUserConfig().Get("update.method") == "background" {
+	if gui.Config.GetUserConfig().Update.Method == "background" {
 		gui.startUpdating(newVersion)
 		return nil
 	}

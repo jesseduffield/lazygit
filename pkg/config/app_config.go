@@ -1,28 +1,27 @@
 package config
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/shibukawa/configdir"
-	"github.com/spf13/viper"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/OpenPeeDeeP/xdg"
+	yaml "github.com/jesseduffield/yaml"
 )
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug         bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version       string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit        string `long:"commit" env:"COMMIT"`
-	BuildDate     string `long:"build-date" env:"BUILD_DATE"`
-	Name          string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource   string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig    *viper.Viper
-	UserConfigDir string
-	AppState      *AppState
-	IsNewRepo     bool
+	Debug          bool   `long:"debug" env:"DEBUG" default:"false"`
+	Version        string `long:"version" env:"VERSION" default:"unversioned"`
+	Commit         string `long:"commit" env:"COMMIT"`
+	BuildDate      string `long:"build-date" env:"BUILD_DATE"`
+	Name           string `long:"name" env:"NAME" default:"lazygit"`
+	BuildSource    string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	UserConfig     *UserConfig
+	UserConfigDir  string
+	UserConfigPath string
+	AppState       *AppState
+	IsNewRepo      bool
 }
 
 // AppConfigurer interface allows individual app config structs to inherit Fields
@@ -34,10 +33,11 @@ type AppConfigurer interface {
 	GetBuildDate() string
 	GetName() string
 	GetBuildSource() string
-	GetUserConfig() *viper.Viper
+	GetUserConfig() *UserConfig
 	GetUserConfigDir() string
+	GetUserConfigPath() string
 	GetAppState() *AppState
-	WriteToUserConfig(string, interface{}) error
+	WriteToUserConfig(func(*UserConfig) error) error
 	SaveAppState() error
 	LoadAppState() error
 	SetIsNewRepo(bool)
@@ -46,7 +46,12 @@ type AppConfigurer interface {
 
 // NewAppConfig makes a new app config
 func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
-	userConfig, userConfigPath, err := LoadConfig("config", true)
+	configDir, err := findOrCreateConfigDir(name)
+	if err != nil {
+		return nil, err
+	}
+
+	userConfig, err := loadUserConfigWithDefaults(configDir)
 	if err != nil {
 		return nil, err
 	}
@@ -56,16 +61,17 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	appConfig := &AppConfig{
-		Name:          "lazygit",
-		Version:       version,
-		Commit:        commit,
-		BuildDate:     date,
-		Debug:         debuggingFlag,
-		BuildSource:   buildSource,
-		UserConfig:    userConfig,
-		UserConfigDir: filepath.Dir(userConfigPath),
-		AppState:      &AppState{},
-		IsNewRepo:     false,
+		Name:           "lazygit",
+		Version:        version,
+		Commit:         commit,
+		BuildDate:      date,
+		Debug:          debuggingFlag,
+		BuildSource:    buildSource,
+		UserConfig:     userConfig,
+		UserConfigDir:  configDir,
+		UserConfigPath: filepath.Join(configDir, "config.yml"),
+		AppState:       &AppState{},
+		IsNewRepo:      false,
 	}
 
 	if err := appConfig.LoadAppState(); err != nil {
@@ -73,6 +79,51 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	return appConfig, nil
+}
+
+func findOrCreateConfigDir(projectName string) (string, error) {
+	// chucking my name there is not for vanity purposes, the xdg spec (and that
+	// function) requires a vendor name. May as well line up with github
+	configDirs := xdg.New("jesseduffield", projectName)
+	folder := configDirs.ConfigHome()
+
+	err := os.MkdirAll(folder, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	return folder, nil
+}
+
+func loadUserConfigWithDefaults(configDir string) (*UserConfig, error) {
+	return loadUserConfig(configDir, GetDefaultConfig())
+}
+
+func loadUserConfig(configDir string, base *UserConfig) (*UserConfig, error) {
+	fileName := filepath.Join(configDir, "config.yml")
+
+	if _, err := os.Stat(fileName); err != nil {
+		if os.IsNotExist(err) {
+			file, err := os.Create(fileName)
+			if err != nil {
+				return nil, err
+			}
+			file.Close()
+		} else {
+			return nil, err
+		}
+	}
+
+	content, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := yaml.Unmarshal(content, base); err != nil {
+		return nil, err
+	}
+
+	return base, nil
 }
 
 // GetIsNewRepo returns known repo boolean
@@ -117,8 +168,13 @@ func (c *AppConfig) GetBuildSource() string {
 }
 
 // GetUserConfig returns the user config
-func (c *AppConfig) GetUserConfig() *viper.Viper {
+func (c *AppConfig) GetUserConfig() *UserConfig {
 	return c.UserConfig
+}
+
+// GetUserConfig returns the user config
+func (c *AppConfig) GetUserConfigPath() string {
+	return c.UserConfigPath
 }
 
 // GetAppState returns the app state
@@ -130,78 +186,40 @@ func (c *AppConfig) GetUserConfigDir() string {
 	return c.UserConfigDir
 }
 
-func newViper(filename string) (*viper.Viper, error) {
-	v := viper.New()
-	v.SetConfigType("yaml")
-	v.SetConfigName(filename)
-	return v, nil
-}
-
-// LoadConfig gets the user's config
-func LoadConfig(filename string, withDefaults bool) (*viper.Viper, string, error) {
-	v, err := newViper(filename)
-	if err != nil {
-		return nil, "", err
-	}
-	if withDefaults {
-		if err = LoadDefaults(v, GetDefaultConfig()); err != nil {
-			return nil, "", err
-		}
-		if err = LoadDefaults(v, GetPlatformDefaultConfig()); err != nil {
-			return nil, "", err
-		}
-	}
-	configPath, err := LoadAndMergeFile(v, filename+".yml")
-	if err != nil {
-		return nil, "", err
-	}
-	return v, configPath, nil
-}
-
-// LoadDefaults loads in the defaults defined in this file
-func LoadDefaults(v *viper.Viper, defaults []byte) error {
-	return v.MergeConfig(bytes.NewBuffer(defaults))
-}
-
-func prepareConfigFile(filename string) (string, error) {
-	// chucking my name there is not for vanity purposes, the xdg spec (and that
-	// function) requires a vendor name. May as well line up with github
-	configDirs := configdir.New("jesseduffield", "lazygit")
-	folder := configDirs.QueryFolderContainsFile(filename)
-	if folder == nil {
-		// create the file as empty
-		folders := configDirs.QueryFolders(configdir.Global)
-		if err := folders[0].WriteFile(filename, []byte{}); err != nil {
-			return "", err
-		}
-		folder = configDirs.QueryFolderContainsFile(filename)
-	}
-	return filepath.Join(folder.Path, filename), nil
-}
-
-// LoadAndMergeFile Loads the config/state file, creating
-// the file has an empty one if it does not exist
-func LoadAndMergeFile(v *viper.Viper, filename string) (string, error) {
-	configPath, err := prepareConfigFile(filename)
+func configFilePath(filename string) (string, error) {
+	folder, err := findOrCreateConfigDir("lazygit")
 	if err != nil {
 		return "", err
 	}
 
-	v.AddConfigPath(filepath.Dir(configPath))
-	return configPath, v.MergeInConfig()
+	return filepath.Join(folder, filename), nil
 }
 
-// WriteToUserConfig adds a key/value pair to the user's config and saves it
-func (c *AppConfig) WriteToUserConfig(key string, value interface{}) error {
-	// reloading the user config directly (without defaults) so that we're not
-	// writing any defaults back to the user's config
-	v, _, err := LoadConfig("config", false)
+// WriteToUserConfig allows you to set a value on the user config to be saved
+// note that if you set a zero-value, it may be ignored e.g. a false or 0 or
+// empty string this is because we are using the omitempty yaml directive so
+// that we don't write a heap of zero values to the user's config.yml
+func (c *AppConfig) WriteToUserConfig(updateConfig func(*UserConfig) error) error {
+	userConfig, err := loadUserConfig(c.UserConfigDir, &UserConfig{})
 	if err != nil {
 		return err
 	}
 
-	v.Set(key, value)
-	return v.WriteConfig()
+	if err := updateConfig(userConfig); err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(c.ConfigFilename(), os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+
+	return yaml.NewEncoder(file).Encode(userConfig)
+}
+
+// ConfigFilename returns the filename of the current config file
+func (c *AppConfig) ConfigFilename() string {
+	return filepath.Join(c.UserConfigDir, "config.yml")
 }
 
 // SaveAppState marshalls the AppState struct and writes it to the disk
@@ -211,7 +229,7 @@ func (c *AppConfig) SaveAppState() error {
 		return err
 	}
 
-	filepath, err := prepareConfigFile("state.yml")
+	filepath, err := configFilePath("state.yml")
 	if err != nil {
 		return err
 	}
@@ -221,7 +239,7 @@ func (c *AppConfig) SaveAppState() error {
 
 // LoadAppState loads recorded AppState from file
 func (c *AppConfig) LoadAppState() error {
-	filepath, err := prepareConfigFile("state.yml")
+	filepath, err := configFilePath("state.yml")
 	if err != nil {
 		return err
 	}
@@ -235,8 +253,20 @@ func (c *AppConfig) LoadAppState() error {
 	return yaml.Unmarshal(appStateBytes, c.AppState)
 }
 
-// GetDefaultConfig returns the application default configuration
-func GetDefaultConfig() []byte {
+func GetDefaultConfig() *UserConfig {
+	userConfig := &UserConfig{}
+
+	if err := yaml.Unmarshal(GetDefaultConfigBytes(), userConfig); err != nil {
+		panic(err)
+	}
+
+	userConfig.OS = GetPlatformDefaultConfig()
+
+	return userConfig
+}
+
+// GetDefaultConfigBytes returns the application default configuration
+func GetDefaultConfigBytes() []byte {
 	return []byte(
 		`gui:
   ## stuff relating to the UI
@@ -414,12 +444,6 @@ func getDefaultAppState() []byte {
   `)
 }
 
-func globalConfigDir() string {
-	configDirs := configdir.New("jesseduffield", "lazygit")
-	configDir := configDirs.QueryFolders(configdir.Global)[0]
-	return configDir.Path
-}
-
-func LogPath() string {
-	return filepath.Join(globalConfigDir(), "development.log")
+func LogPath() (string, error) {
+	return configFilePath("development.log")
 }

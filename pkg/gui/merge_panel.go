@@ -291,12 +291,14 @@ func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
 }
 
 func (gui *Gui) getMergingOptions() map[string]string {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+
 	return map[string]string{
-		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")):   gui.Tr.SLocalize("selectHunk"),
-		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock")): gui.Tr.SLocalize("navigateConflicts"),
-		gui.getKeyDisplay("universal.select"):   gui.Tr.SLocalize("pickHunk"),
-		gui.getKeyDisplay("main.pickBothHunks"): gui.Tr.SLocalize("pickBothHunks"),
-		gui.getKeyDisplay("universal.undo"):     gui.Tr.SLocalize("undo"),
+		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)):   gui.Tr.SLocalize("selectHunk"),
+		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock)): gui.Tr.SLocalize("navigateConflicts"),
+		gui.getKeyDisplay(keybindingConfig.Universal.Select):   gui.Tr.SLocalize("pickHunk"),
+		gui.getKeyDisplay(keybindingConfig.Main.PickBothHunks): gui.Tr.SLocalize("pickBothHunks"),
+		gui.getKeyDisplay(keybindingConfig.Universal.Undo):     gui.Tr.SLocalize("undo"),
 	}
 }
 

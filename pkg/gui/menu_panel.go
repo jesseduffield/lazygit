@@ -33,10 +33,12 @@ func (gui *Gui) handleMenuSelect() error {
 // specific functions
 
 func (gui *Gui) getMenuOptions() map[string]string {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+
 	return map[string]string{
-		gui.getKeyDisplay("universal.return"): gui.Tr.SLocalize("close"),
-		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")): gui.Tr.SLocalize("navigate"),
-		gui.getKeyDisplay("universal.select"): gui.Tr.SLocalize("execute"),
+		gui.getKeyDisplay(keybindingConfig.Universal.Return): gui.Tr.SLocalize("close"),
+		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.Tr.SLocalize("navigate"),
+		gui.getKeyDisplay(keybindingConfig.Universal.Select): gui.Tr.SLocalize("execute"),
 	}
 }
 

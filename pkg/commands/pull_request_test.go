@@ -147,14 +147,14 @@ func TestCreatePullRequest(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCommand := NewDummyGitCommand()
 			gitCommand.OSCommand.Command = s.command
-			gitCommand.OSCommand.Config.GetUserConfig().Set("os.openLinkCommand", "open {{link}}")
-			gitCommand.Config.GetUserConfig().Set("services", map[string]string{
+			gitCommand.OSCommand.Config.GetUserConfig().OS.OpenLinkCommand = "open {{link}}"
+			gitCommand.OSCommand.Config.GetUserConfig().Services = map[string]string{
 				// valid configuration for a custom service URL
 				"git.work.com": "gitlab:code.work.com",
 				// invalid configurations for a custom service URL
 				"invalid.work.com":   "noservice:invalid.work.com",
 				"noservice.work.com": "noservice.work.com",
-			})
+			}
 			dummyPullRequest := NewPullRequest(gitCommand)
 			s.test(dummyPullRequest.Create(s.branch))
 		})

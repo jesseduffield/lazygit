@@ -103,7 +103,7 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 		return gui.applySelection(true)
 	}
 
-	if !gui.Config.GetUserConfig().GetBool("gui.skipUnstageLineWarning") {
+	if !gui.Config.GetUserConfig().Gui.SkipUnstageLineWarning {
 		return gui.ask(askOpts{
 			title:               gui.Tr.SLocalize("UnstageLinesTitle"),
 			prompt:              gui.Tr.SLocalize("UnstageLinesPrompt"),

@@ -433,13 +433,14 @@ func (gui *Gui) Run() error {
 	}
 
 	g.OnSearchEscape = gui.onSearchEscape
-	g.SearchEscapeKey = gui.getKey("universal.return")
-	g.NextSearchMatchKey = gui.getKey("universal.nextMatch")
-	g.PrevSearchMatchKey = gui.getKey("universal.prevMatch")
+	userConfig := gui.Config.GetUserConfig()
+	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
+	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
+	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
 
 	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
-	if gui.Config.GetUserConfig().GetBool("gui.mouseEvents") {
+	if userConfig.Gui.MouseEvents {
 		g.Mouse = true
 	}
 
@@ -450,7 +451,7 @@ func (gui *Gui) Run() error {
 	}
 
 	popupTasks := []func(chan struct{}) error{}
-	configPopupVersion := gui.Config.GetUserConfig().GetInt("StartupPopupVersion")
+	configPopupVersion := gui.Config.GetUserConfig().StartupPopupVersion
 	// -1 means we've disabled these popups
 	if configPopupVersion != -1 && configPopupVersion < StartupPopupVersion {
 		popupTasks = append(popupTasks, gui.showIntroPopupMessage)
@@ -458,7 +459,7 @@ func (gui *Gui) Run() error {
 	gui.showInitialPopups(popupTasks)
 
 	gui.waitForIntro.Add(1)
-	if gui.Config.GetUserConfig().GetBool("git.autoFetch") {
+	if gui.Config.GetUserConfig().Git.AutoFetch {
 		go gui.startBackgroundFetch()
 	}
 
@@ -572,7 +573,10 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	onConfirm := func() error {
 		done <- struct{}{}
-		return gui.Config.WriteToUserConfig("startupPopupVersion", StartupPopupVersion)
+		return gui.Config.WriteToUserConfig(func(userConfig *config.UserConfig) error {
+			userConfig.StartupPopupVersion = StartupPopupVersion
+			return nil
+		})
 	}
 
 	return gui.ask(askOpts{
@@ -621,7 +625,7 @@ func (gui *Gui) startBackgroundFetch() {
 // setColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) setColorScheme() error {
 	userConfig := gui.Config.GetUserConfig()
-	theme.UpdateTheme(userConfig)
+	theme.UpdateTheme(userConfig.Gui.Theme)
 
 	gui.g.FgColor = theme.InactiveBorderColor
 	gui.g.SelFgColor = theme.ActiveBorderColor

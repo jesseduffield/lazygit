@@ -172,14 +172,14 @@ func (u *Updater) skipUpdateCheck() bool {
 	}
 
 	userConfig := u.Config.GetUserConfig()
-	if userConfig.Get("update.method") == "never" {
+	if userConfig.Update.Method == "never" {
 		u.Log.Info("Update method is set to never so we won't check for an update")
 		return true
 	}
 
 	currentTimestamp := time.Now().Unix()
 	lastUpdateCheck := u.Config.GetAppState().LastUpdateCheck
-	days := userConfig.GetInt64("update.days")
+	days := userConfig.Update.Days
 
 	if (currentTimestamp-lastUpdateCheck)/(60*60*24) < days {
 		u.Log.Info("Last update was too recent so we won't check for an update")
