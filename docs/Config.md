@@ -57,6 +57,7 @@ Default path for the config file:
   confirmOnQuit: false
   # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
   quitOnTopLevelReturn: true
+  disableStartupPopups: false
   keybinding:
     universal:
       quit: 'q'

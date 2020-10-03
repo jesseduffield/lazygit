@@ -41,7 +41,7 @@ const (
 	SCREEN_FULL
 )
 
-const StartupPopupVersion = 1
+const StartupPopupVersion = 2
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
@@ -450,13 +450,14 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
-	popupTasks := []func(chan struct{}) error{}
-	configPopupVersion := gui.Config.GetUserConfig().StartupPopupVersion
-	// -1 means we've disabled these popups
-	if configPopupVersion != -1 && configPopupVersion < StartupPopupVersion {
-		popupTasks = append(popupTasks, gui.showIntroPopupMessage)
+	if !gui.Config.GetUserConfig().DisableStartupPopups {
+		popupTasks := []func(chan struct{}) error{}
+		storedPopupVersion := gui.Config.GetAppState().StartupPopupVersion
+		if storedPopupVersion < StartupPopupVersion {
+			popupTasks = append(popupTasks, gui.showIntroPopupMessage)
+		}
+		gui.showInitialPopups(popupTasks)
 	}
-	gui.showInitialPopups(popupTasks)
 
 	gui.waitForIntro.Add(1)
 	if gui.Config.GetUserConfig().Git.AutoFetch {
@@ -573,10 +574,8 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	onConfirm := func() error {
 		done <- struct{}{}
-		return gui.Config.WriteToUserConfig(func(userConfig *config.UserConfig) error {
-			userConfig.StartupPopupVersion = StartupPopupVersion
-			return nil
-		})
+		gui.Config.GetAppState().StartupPopupVersion = StartupPopupVersion
+		return gui.Config.SaveAppState()
 	}
 
 	return gui.ask(askOpts{
