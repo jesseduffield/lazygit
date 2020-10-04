@@ -1,0 +1,226 @@
+[
+  {
+    "Timestamp": 41,
+    "Event": {
+      "Type": 1,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 0,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 0,
+      "Bytes": null
+    }
+  },
+  {
+    "Timestamp": 1042,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 32,
+      "Ch": 0,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "IA=="
+    }
+  },
+  {
+    "Timestamp": 1602,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 99,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "Yw=="
+    }
+  },
+  {
+    "Timestamp": 2010,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 109,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "bQ=="
+    }
+  },
+  {
+    "Timestamp": 2170,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 121,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "eQ=="
+    }
+  },
+  {
+    "Timestamp": 2234,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 32,
+      "Ch": 0,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "IA=="
+    }
+  },
+  {
+    "Timestamp": 2354,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 99,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "Yw=="
+    }
+  },
+  {
+    "Timestamp": 2410,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 111,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "bw=="
+    }
+  },
+  {
+    "Timestamp": 2578,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 109,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "bQ=="
+    }
+  },
+  {
+    "Timestamp": 2690,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 109,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "bQ=="
+    }
+  },
+  {
+    "Timestamp": 2730,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 105,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "aQ=="
+    }
+  },
+  {
+    "Timestamp": 2850,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 116,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "dA=="
+    }
+  },
+  {
+    "Timestamp": 2954,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 13,
+      "Ch": 0,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "DQ=="
+    }
+  },
+  {
+    "Timestamp": 3625,
+    "Event": {
+      "Type": 0,
+      "Mod": 0,
+      "Key": 0,
+      "Ch": 113,
+      "Width": 0,
+      "Height": 0,
+      "Err": null,
+      "MouseX": 0,
+      "MouseY": 0,
+      "N": 1,
+      "Bytes": "cQ=="
+    }
+  }
+]

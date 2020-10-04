@@ -9,7 +9,11 @@ import (
 )
 
 func recordingEvents() bool {
-	return os.Getenv("RECORD_EVENTS") == "true"
+	return recordEventsTo() != ""
+}
+
+func recordEventsTo() string {
+	return os.Getenv("RECORD_EVENTS_TO")
 }
 
 func (gui *Gui) timeSinceStart() int64 {
@@ -29,11 +33,14 @@ func (gui *Gui) replayRecordedEvents() {
 	ticker := time.NewTicker(time.Millisecond)
 	defer ticker.Stop()
 
-	var leeway int64 = 1000
+	// might need to add leeway if this ends up flakey
+	var leeway int64 = 0
+	// humans are slow so this speeds things up.
+	var speed int64 = 5
 
 	for _, event := range events {
 		for range ticker.C {
-			now := gui.timeSinceStart() - leeway
+			now := gui.timeSinceStart()*speed - leeway
 			if gui.g != nil && now >= event.Timestamp {
 				gui.g.ReplayedEvents <- *event.Event
 				break
@@ -70,7 +77,9 @@ func (gui *Gui) saveRecordedEvents() error {
 		return err
 	}
 
-	return ioutil.WriteFile("recorded_events.json", jsonEvents, 0600)
+	path := recordEventsTo()
+
+	return ioutil.WriteFile(path, jsonEvents, 0600)
 }
 
 func (gui *Gui) recordEvents() {
