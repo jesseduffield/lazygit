@@ -3,7 +3,6 @@ module github.com/jesseduffield/lazygit
 go 1.14
 
 require (
-	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/OpenPeeDeeP/xdg v1.0.0
 	github.com/atotto/clipboard v0.1.2
 	github.com/aybabtme/humanlog v0.4.1
@@ -27,7 +26,6 @@ require (
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mattn/go-runewidth v0.0.9
 	github.com/mgutz/str v1.2.0
-	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/sirupsen/logrus v1.4.2

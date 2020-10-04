@@ -33,11 +33,11 @@ type CommitListBuilder struct {
 	Log        *logrus.Entry
 	GitCommand *GitCommand
 	OSCommand  *oscommands.OSCommand
-	Tr         *i18n.Localizer
+	Tr         *i18n.TranslationSet
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *oscommands.OSCommand, tr *i18n.Localizer) *CommitListBuilder {
+func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet) *CommitListBuilder {
 	return &CommitListBuilder{
 		Log:        log,
 		GitCommand: gitCommand,
@@ -170,7 +170,7 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit
 	if rebaseMode != "" {
 		currentCommit := commits[len(rebasingCommits)]
 		blue := color.New(color.FgYellow)
-		youAreHere := blue.Sprintf("<-- %s ---", c.Tr.SLocalize("YouAreHere"))
+		youAreHere := blue.Sprintf("<-- %s ---", c.Tr.YouAreHere)
 		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
 

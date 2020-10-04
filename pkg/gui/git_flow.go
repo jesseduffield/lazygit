@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) error {
@@ -28,7 +29,7 @@ func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) err
 	}
 
 	if branchType == "" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("NotAGitFlowBranch"))
+		return gui.createErrorPanel(gui.Tr.NotAGitFlowBranch)
 	}
 
 	subProcess := gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "finish", suffix)
@@ -50,7 +51,7 @@ func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
 
 	startHandler := func(branchType string) func() error {
 		return func() error {
-			title := gui.Tr.TemplateLocalize("NewBranchNamePrompt", map[string]interface{}{"branchType": branchType})
+			title := utils.ResolvePlaceholderString(gui.Tr.NewGitFlowBranchPrompt, map[string]string{"branchType": branchType})
 			return gui.prompt(title, "", func(name string) error {
 				subProcess := gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "start", name)
 				gui.SubProcess = subProcess

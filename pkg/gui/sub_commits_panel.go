@@ -46,8 +46,8 @@ func (gui *Gui) handleCheckoutSubCommit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	err := gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("checkoutCommit"),
-		prompt: gui.Tr.SLocalize("SureCheckoutThisCommit"),
+		title:  gui.Tr.LcCheckoutCommit,
+		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
 			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 		},

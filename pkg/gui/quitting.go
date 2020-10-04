@@ -75,7 +75,7 @@ func (gui *Gui) quit() error {
 	if gui.Config.GetUserConfig().ConfirmOnQuit {
 		return gui.ask(askOpts{
 			title:  "",
-			prompt: gui.Tr.SLocalize("ConfirmQuit"),
+			prompt: gui.Tr.ConfirmQuit,
 			handleConfirm: func() error {
 				return gocui.ErrQuit
 			},

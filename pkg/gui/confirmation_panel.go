@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type createPopupPanelOpts struct {
@@ -205,9 +206,9 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 }
 
 func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
-	actions := gui.Tr.TemplateLocalize(
-		"CloseConfirm",
-		Teml{
+	actions := utils.ResolvePlaceholderString(
+		gui.Tr.CloseConfirm,
+		map[string]string{
 			"keyBindClose":   "esc",
 			"keyBindConfirm": "enter",
 		},
@@ -240,7 +241,7 @@ func (gui *Gui) createErrorPanel(message string) error {
 	}
 
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("Error"),
+		title:  gui.Tr.Error,
 		prompt: coloredMessage,
 	})
 }

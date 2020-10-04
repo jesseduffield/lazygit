@@ -18,6 +18,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,7 +27,7 @@ type Updater struct {
 	Log       *logrus.Entry
 	Config    config.AppConfigurer
 	OSCommand *oscommands.OSCommand
-	Tr        *i18n.Localizer
+	Tr        *i18n.TranslationSet
 }
 
 // Updaterer implements the check and update methods
@@ -40,7 +41,7 @@ const (
 )
 
 // NewUpdater creates a new updater
-func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.Localizer) (*Updater, error) {
+func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
 
 	return &Updater{
@@ -106,13 +107,12 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("New version is " + newVersion)
 
 	if newVersion == currentVersion {
-		return "", errors.New(u.Tr.SLocalize("OnLatestVersionErr"))
+		return "", errors.New(u.Tr.OnLatestVersionErr)
 	}
 
 	if u.majorVersionDiffers(currentVersion, newVersion) {
-		errMessage := u.Tr.TemplateLocalize(
-			"MajorVersionErr",
-			i18n.Teml{
+		errMessage := utils.ResolvePlaceholderString(
+			u.Tr.MajorVersionErr, map[string]string{
 				"newVersion":     newVersion,
 				"currentVersion": currentVersion,
 			},
@@ -126,12 +126,12 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	}
 	u.Log.Info("Checking for resource at url " + rawUrl)
 	if !u.verifyResourceFound(rawUrl) {
-		errMessage := u.Tr.TemplateLocalize(
-			"CouldNotFindBinaryErr",
-			i18n.Teml{
+		errMessage := utils.ResolvePlaceholderString(
+			u.Tr.CouldNotFindBinaryErr, map[string]string{
 				"url": rawUrl,
 			},
 		)
+
 		return "", errors.New(errMessage)
 	}
 	u.Log.Info("Verified resource is available, ready to update")

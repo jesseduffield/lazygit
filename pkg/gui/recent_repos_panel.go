@@ -29,7 +29,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 		}
 	}
 
-	return gui.createMenu(gui.Tr.SLocalize("RecentRepos"), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.RecentRepos, menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) dispatchSwitchToRepo(path string) error {

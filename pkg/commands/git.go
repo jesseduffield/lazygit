@@ -30,7 +30,7 @@ type GitCommand struct {
 	Log                  *logrus.Entry
 	OSCommand            *oscommands.OSCommand
 	Repo                 *gogit.Repository
-	Tr                   *i18n.Localizer
+	Tr                   *i18n.TranslationSet
 	Config               config.AppConfigurer
 	getGlobalGitConfig   func(string) (string, error)
 	getLocalGitConfig    func(string) (string, error)
@@ -44,7 +44,7 @@ type GitCommand struct {
 }
 
 // NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer) (*GitCommand, error) {
+func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer) (*GitCommand, error) {
 	var repo *gogit.Repository
 
 	// see what our default push behaviour is
@@ -64,7 +64,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 		return nil, err
 	}
 
-	if repo, err = setupRepository(gogit.PlainOpen, tr.SLocalize); err != nil {
+	if repo, err = setupRepository(gogit.PlainOpen, tr.GitconfigParseErr); err != nil {
 		return nil, err
 	}
 
@@ -140,7 +140,7 @@ func resolvePath(path string) (string, error) {
 	return filepath.EvalSymlinks(path)
 }
 
-func setupRepository(openGitRepository func(string) (*gogit.Repository, error), sLocalize func(string) string) (*gogit.Repository, error) {
+func setupRepository(openGitRepository func(string) (*gogit.Repository, error), gitConfigParseErrorStr string) (*gogit.Repository, error) {
 	unresolvedPath := env.GetGitDirEnv()
 	if unresolvedPath == "" {
 		var err error
@@ -159,7 +159,7 @@ func setupRepository(openGitRepository func(string) (*gogit.Repository, error), 
 
 	if err != nil {
 		if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
-			return nil, errors.New(sLocalize("GitconfigParseErr"))
+			return nil, errors.New(gitConfigParseErrorStr)
 		}
 
 		return nil, err

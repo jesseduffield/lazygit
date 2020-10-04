@@ -79,8 +79,8 @@ func (gui *Gui) enterSubmodule(submodule *models.SubmoduleConfig) error {
 
 func (gui *Gui) removeSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("RemoveSubmodule"),
-		prompt: gui.Tr.SLocalizef("RemoveSubmodulePrompt", submodule.Name),
+		title:  gui.Tr.RemoveSubmodule,
+		prompt: fmt.Sprintf(gui.Tr.RemoveSubmodulePrompt, submodule.Name),
 		handleConfirm: func() error {
 			if err := gui.GitCommand.SubmoduleDelete(submodule); err != nil {
 				return gui.surfaceError(err)
@@ -92,7 +92,7 @@ func (gui *Gui) removeSubmodule(submodule *models.SubmoduleConfig) error {
 }
 
 func (gui *Gui) handleResetSubmodule(submodule *models.SubmoduleConfig) error {
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("resettingSubmoduleStatus"), func() error {
+	return gui.WithWaitingStatus(gui.Tr.LcResettingSubmoduleStatus, func() error {
 		return gui.resetSubmodule(submodule)
 	})
 }
@@ -126,12 +126,12 @@ func (gui *Gui) resetSubmodule(submodule *models.SubmoduleConfig) error {
 }
 
 func (gui *Gui) handleAddSubmodule() error {
-	return gui.prompt(gui.Tr.SLocalize("newSubmoduleUrl"), "", func(submoduleUrl string) error {
+	return gui.prompt(gui.Tr.LcNewSubmoduleUrl, "", func(submoduleUrl string) error {
 		nameSuggestion := filepath.Base(strings.TrimSuffix(submoduleUrl, filepath.Ext(submoduleUrl)))
 
-		return gui.prompt(gui.Tr.SLocalize("newSubmoduleName"), nameSuggestion, func(submoduleName string) error {
-			return gui.prompt(gui.Tr.SLocalize("newSubmodulePath"), submoduleName, func(submodulePath string) error {
-				return gui.WithWaitingStatus(gui.Tr.SLocalize("addingSubmoduleStatus"), func() error {
+		return gui.prompt(gui.Tr.LcNewSubmoduleName, nameSuggestion, func(submoduleName string) error {
+			return gui.prompt(gui.Tr.LcNewSubmodulePath, submoduleName, func(submodulePath string) error {
+				return gui.WithWaitingStatus(gui.Tr.LcAddingSubmoduleStatus, func() error {
 					err := gui.GitCommand.SubmoduleAdd(submoduleName, submodulePath, submoduleUrl)
 					gui.handleCredentialsPopup(err)
 
@@ -143,8 +143,8 @@ func (gui *Gui) handleAddSubmodule() error {
 }
 
 func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error {
-	return gui.prompt(gui.Tr.SLocalizef("updateSubmoduleUrl", submodule.Name), submodule.Url, func(newUrl string) error {
-		return gui.WithWaitingStatus(gui.Tr.SLocalize("updatingSubmoduleUrlStatus"), func() error {
+	return gui.prompt(fmt.Sprintf(gui.Tr.LcUpdateSubmoduleUrl, submodule.Name), submodule.Url, func(newUrl string) error {
+		return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleUrlStatus, func() error {
 			err := gui.GitCommand.SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
 			gui.handleCredentialsPopup(err)
 
@@ -154,7 +154,7 @@ func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error 
 }
 
 func (gui *Gui) handleSubmoduleInit(submodule *models.SubmoduleConfig) error {
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("initializingSubmoduleStatus"), func() error {
+	return gui.WithWaitingStatus(gui.Tr.LcInitializingSubmoduleStatus, func() error {
 		err := gui.GitCommand.SubmoduleInit(submodule.Path)
 		gui.handleCredentialsPopup(err)
 
@@ -178,13 +178,13 @@ func (gui *Gui) forSubmodule(callback func(*models.SubmoduleConfig) error) func(
 func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) error {
 	menuItems := []*menuItem{
 		{
-			displayString: gui.Tr.SLocalize("submoduleStashAndReset"),
+			displayString: gui.Tr.LcSubmoduleStashAndReset,
 			onPress: func() error {
 				return gui.resetSubmodule(submodule)
 			},
 		},
 		{
-			displayString: gui.Tr.SLocalize("removeSubmodule"),
+			displayString: gui.Tr.LcRemoveSubmodule,
 			onPress: func() error {
 				return gui.removeSubmodule(submodule)
 			},
@@ -197,9 +197,9 @@ func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) er
 func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 	menuItems := []*menuItem{
 		{
-			displayStrings: []string{gui.Tr.SLocalize("bulkInitSubmodules"), utils.ColoredString(gui.GitCommand.SubmoduleBulkInitCmdStr(), color.FgGreen)},
+			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, utils.ColoredString(gui.GitCommand.SubmoduleBulkInitCmdStr(), color.FgGreen)},
 			onPress: func() error {
-				return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCommand"), func() error {
+				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
 					if err := gui.OSCommand.RunCommand(gui.GitCommand.SubmoduleBulkInitCmdStr()); err != nil {
 						return gui.surfaceError(err)
 					}
@@ -209,9 +209,9 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.SLocalize("bulkUpdateSubmodules"), utils.ColoredString(gui.GitCommand.SubmoduleBulkUpdateCmdStr(), color.FgYellow)},
+			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, utils.ColoredString(gui.GitCommand.SubmoduleBulkUpdateCmdStr(), color.FgYellow)},
 			onPress: func() error {
-				return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCommand"), func() error {
+				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
 					if err := gui.OSCommand.RunCommand(gui.GitCommand.SubmoduleBulkUpdateCmdStr()); err != nil {
 						return gui.surfaceError(err)
 					}
@@ -221,9 +221,9 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.SLocalize("submoduleStashAndReset"), utils.ColoredString(fmt.Sprintf("git stash in each submodule && %s", gui.GitCommand.SubmoduleForceBulkUpdateCmdStr()), color.FgRed)},
+			displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, utils.ColoredString(fmt.Sprintf("git stash in each submodule && %s", gui.GitCommand.SubmoduleForceBulkUpdateCmdStr()), color.FgRed)},
 			onPress: func() error {
-				return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCommand"), func() error {
+				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
 					if err := gui.GitCommand.ResetSubmodules(gui.State.Submodules); err != nil {
 						return gui.surfaceError(err)
 					}
@@ -233,9 +233,9 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.SLocalize("bulkDeinitSubmodules"), utils.ColoredString(gui.GitCommand.SubmoduleBulkDeinitCmdStr(), color.FgRed)},
+			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, utils.ColoredString(gui.GitCommand.SubmoduleBulkDeinitCmdStr(), color.FgRed)},
 			onPress: func() error {
-				return gui.WithWaitingStatus(gui.Tr.SLocalize("runningCommand"), func() error {
+				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
 					if err := gui.OSCommand.RunCommand(gui.GitCommand.SubmoduleBulkDeinitCmdStr()); err != nil {
 						return gui.surfaceError(err)
 					}
@@ -246,11 +246,11 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 		},
 	}
 
-	return gui.createMenu(gui.Tr.SLocalize("bulkSubmoduleOptions"), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.LcBulkSubmoduleOptions, menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) handleUpdateSubmodule(submodule *models.SubmoduleConfig) error {
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("updatingSubmoduleStatus"), func() error {
+	return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleStatus, func() error {
 		err := gui.GitCommand.SubmoduleUpdate(submodule.Path)
 		gui.handleCredentialsPopup(err)
 

@@ -12,13 +12,13 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 
 	nukeStr := "reset --hard HEAD && git clean -fd"
 	if len(gui.State.Submodules) > 0 {
-		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.Tr.SLocalize("andResetSubmodules"))
+		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.Tr.LcAndResetSubmodules)
 	}
 
 	menuItems := []*menuItem{
 		{
 			displayStrings: []string{
-				gui.Tr.SLocalize("discardAllChangesToAllFiles"),
+				gui.Tr.LcDiscardAllChangesToAllFiles,
 				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
@@ -31,7 +31,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 		},
 		{
 			displayStrings: []string{
-				gui.Tr.SLocalize("discardAnyUnstagedChanges"),
+				gui.Tr.LcDiscardAnyUnstagedChanges,
 				red.Sprint("git checkout -- ."),
 			},
 			onPress: func() error {
@@ -44,7 +44,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 		},
 		{
 			displayStrings: []string{
-				gui.Tr.SLocalize("discardUntrackedFiles"),
+				gui.Tr.LcDiscardUntrackedFiles,
 				red.Sprint("git clean -fd"),
 			},
 			onPress: func() error {
@@ -57,7 +57,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 		},
 		{
 			displayStrings: []string{
-				gui.Tr.SLocalize("softReset"),
+				gui.Tr.LcSoftReset,
 				red.Sprint("git reset --soft HEAD"),
 			},
 			onPress: func() error {
@@ -83,7 +83,7 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 		},
 		{
 			displayStrings: []string{
-				gui.Tr.SLocalize("hardReset"),
+				gui.Tr.LcHardReset,
 				red.Sprint("git reset --hard HEAD"),
 			},
 			onPress: func() error {

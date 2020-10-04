@@ -159,7 +159,7 @@ func TestSetupRepository(t *testing.T) {
 	type scenario struct {
 		testName          string
 		openGitRepository func(string) (*gogit.Repository, error)
-		sLocalize         func(string) string
+		errorStr          string
 		test              func(*gogit.Repository, error)
 	}
 
@@ -169,9 +169,7 @@ func TestSetupRepository(t *testing.T) {
 			func(string) (*gogit.Repository, error) {
 				return nil, fmt.Errorf(`unquoted '\' must be followed by new line`)
 			},
-			func(string) string {
-				return "error translated"
-			},
+			"error translated",
 			func(r *gogit.Repository, err error) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, "error translated")
@@ -182,7 +180,7 @@ func TestSetupRepository(t *testing.T) {
 			func(string) (*gogit.Repository, error) {
 				return nil, fmt.Errorf("Error from inside gogit")
 			},
-			func(string) string { return "" },
+			"",
 			func(r *gogit.Repository, err error) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, "Error from inside gogit")
@@ -196,7 +194,7 @@ func TestSetupRepository(t *testing.T) {
 				assert.NoError(t, err)
 				return r, nil
 			},
-			func(string) string { return "" },
+			"",
 			func(r *gogit.Repository, err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, r)
@@ -206,7 +204,7 @@ func TestSetupRepository(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(setupRepository(s.openGitRepository, s.sLocalize))
+			s.test(setupRepository(s.openGitRepository, s.errorStr))
 		})
 	}
 }
@@ -254,7 +252,7 @@ func TestNewGitCommand(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			s.setup()
-			s.test(NewGitCommand(utils.NewDummyLog(), oscommands.NewDummyOSCommand(), i18n.NewLocalizer(utils.NewDummyLog()), config.NewDummyAppConfig()))
+			s.test(NewGitCommand(utils.NewDummyLog(), oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog()), config.NewDummyAppConfig()))
 		})
 	}
 }
