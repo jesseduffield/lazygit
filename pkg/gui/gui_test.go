@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,7 +31,7 @@ import (
 
 type integrationTest struct {
 	name    string
-	prepare func(rootDir string) error
+	fixture string
 }
 
 func generateSnapshot(t *testing.T) string {
@@ -61,17 +60,17 @@ func findOrCreateDir(path string) {
 
 func Test(t *testing.T) {
 	tests := []integrationTest{
-		// {
-		// 	name:    "commit",
-		// 	prepare: createFixture1,
-		// },
-		// {
-		// 	name:    "squash",
-		// 	prepare: createFixture2,
-		// },
+		{
+			name:    "commit",
+			fixture: "newFile",
+		},
+		{
+			name:    "squash",
+			fixture: "manyCommits",
+		},
 		{
 			name:    "patchBuilding",
-			prepare: createFixture3,
+			fixture: "updatedFile",
 		},
 	}
 
@@ -96,7 +95,7 @@ func Test(t *testing.T) {
 
 			prepareIntegrationTestDir()
 
-			err = test.prepare(rootDir)
+			err = createFixture(rootDir, test.fixture)
 			assert.NoError(t, err)
 
 			record := os.Getenv("RECORD_EVENTS") != ""
@@ -120,56 +119,12 @@ func Test(t *testing.T) {
 	}
 }
 
-func createFixture1() error {
-	cmds := []string{
-		"git init",
-		`sh -c "echo test > myfile"`,
-	}
-
-	return runCommands(cmds)
-}
-
-func createFixture2() error {
-	cmds := []string{
-		"git init",
-		`sh -c "echo test1 > myfile1"`,
-		`git add .`,
-		`git commit -am "myfile1"`,
-		`sh -c "echo test2 > myfile2"`,
-		`git add .`,
-		`git commit -am "myfile2"`,
-		`sh -c "echo test3 > myfile3"`,
-		`git add .`,
-		`git commit -am "myfile3"`,
-		`sh -c "echo test4 > myfile4"`,
-		`git add .`,
-		`git commit -am "myfile4"`,
-		`sh -c "echo test5 > myfile5"`,
-		`git add .`,
-		`git commit -am "myfile5"`,
-	}
-
-	return runCommands(cmds)
-}
-
-func createFixture3(rootDir string) error {
+func createFixture(rootDir string, name string) error {
 	osCommand := oscommands.NewDummyOSCommand()
-	cmd := exec.Command("sh", filepath.Join(rootDir, "test", "fixtures", "1.sh"))
+	cmd := exec.Command("sh", filepath.Join(rootDir, "test", "fixtures", fmt.Sprintf("%s.sh", name)))
 
 	if err := osCommand.RunExecutable(cmd); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func runCommands(cmds []string) error {
-	osCommand := oscommands.NewDummyOSCommand()
-
-	for _, cmd := range cmds {
-		if err := osCommand.RunCommand(cmd); err != nil {
-			return errors.New(fmt.Sprintf("error running command `%s`: %v", cmd, err))
-		}
 	}
 
 	return nil
