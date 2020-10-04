@@ -59,8 +59,14 @@ type GuiMutexes struct {
 // Gui represents the whole User Interface, including the views, layouts
 // and keybindings.
 type Gui struct {
-	tbEvents         chan termbox.Event
-	userEvents       chan userEvent
+	tbEvents   chan termbox.Event
+	userEvents chan userEvent
+
+	// ReplayedEvents is a channel for passing pre-recorded input events, for the purposes of testing
+	ReplayedEvents chan termbox.Event
+	RecordEvents   bool
+	RecordedEvents chan *termbox.Event
+
 	views            []*View
 	currentView      *View
 	managers         []Manager
@@ -110,7 +116,7 @@ type Gui struct {
 }
 
 // NewGui returns a new Gui object with a given output mode.
-func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
+func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, error) {
 	g := &Gui{}
 
 	var err error
@@ -128,7 +134,9 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 	g.stop = make(chan struct{}, 0)
 
 	g.tbEvents = make(chan termbox.Event, 20)
+	g.ReplayedEvents = make(chan termbox.Event)
 	g.userEvents = make(chan userEvent, 20)
+	g.RecordedEvents = make(chan *termbox.Event)
 
 	g.BgColor, g.FgColor = ColorDefault, ColorDefault
 	g.SelBgColor, g.SelFgColor = ColorDefault, ColorDefault
@@ -141,6 +149,8 @@ func NewGui(mode OutputMode, supportOverlaps bool) (*Gui, error) {
 	g.SearchEscapeKey = KeyEsc
 	g.NextSearchMatchKey = 'n'
 	g.PrevSearchMatchKey = 'N'
+
+	g.RecordEvents = recordEvents
 
 	return g, nil
 }
@@ -489,6 +499,10 @@ func (g *Gui) MainLoop() error {
 			if err := g.handleEvent(&ev); err != nil {
 				return err
 			}
+		case ev := <-g.ReplayedEvents:
+			if err := g.handleEvent(&ev); err != nil {
+				return err
+			}
 		case ev := <-g.userEvents:
 			if err := ev.f(g); err != nil {
 				return err
@@ -511,6 +525,10 @@ func (g *Gui) consumeevents() error {
 			if err := g.handleEvent(&ev); err != nil {
 				return err
 			}
+		case ev := <-g.ReplayedEvents:
+			if err := g.handleEvent(&ev); err != nil {
+				return err
+			}
 		case ev := <-g.userEvents:
 			if err := ev.f(g); err != nil {
 				return err
@@ -524,6 +542,10 @@ func (g *Gui) consumeevents() error {
 // handleEvent handles an event, based on its type (key-press, error,
 // etc.)
 func (g *Gui) handleEvent(ev *termbox.Event) error {
+	if g.RecordEvents {
+		g.RecordedEvents <- ev
+	}
+
 	switch ev.Type {
 	case termbox.EventKey, termbox.EventMouse:
 		return g.onKey(ev)
