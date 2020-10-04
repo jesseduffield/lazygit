@@ -31,6 +31,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/termbox-go"
 	"github.com/mattn/go-runewidth"
 	"github.com/sirupsen/logrus"
 )
@@ -107,6 +108,16 @@ type Gui struct {
 	showRecentRepos   bool
 	Contexts          ContextTree
 	ViewTabContextMap map[string][]tabContext
+
+	// this array either includes the events that we're recording in this session
+	// or the events we've recorded in a prior session
+	RecordedEvents []RecordedEvent
+	StartTime      time.Time
+}
+
+type RecordedEvent struct {
+	Timestamp int64
+	Event     *termbox.Event
 }
 
 type listPanelState struct {
@@ -399,6 +410,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		statusManager:        &statusManager{},
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 		showRecentRepos:      showRecentRepos,
+		RecordedEvents:       []RecordedEvent{},
 	}
 
 	gui.resetState()
@@ -417,11 +429,17 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 func (gui *Gui) Run() error {
 	gui.resetState()
 
-	g, err := gocui.NewGui(gocui.Output256, OverlappingEdges)
+	recordEvents := recordingEvents()
+
+	g, err := gocui.NewGui(gocui.Output256, OverlappingEdges, recordEvents)
 	if err != nil {
 		return err
 	}
 	defer g.Close()
+
+	if recordEvents {
+		go gui.recordEvents()
+	}
 
 	if gui.State.Modes.Filtering.Active() {
 		gui.State.ScreenMode = SCREEN_HALF
@@ -475,6 +493,9 @@ func (gui *Gui) Run() error {
 // if the error returned from a run is a ErrSubProcess, it runs the subprocess
 // otherwise it handles the error, possibly by quitting the application
 func (gui *Gui) RunWithSubprocesses() error {
+	gui.StartTime = time.Now()
+	go gui.replayRecordedEvents()
+
 	for {
 		gui.stopChan = make(chan struct{})
 		if err := gui.Run(); err != nil {
@@ -495,6 +516,10 @@ func (gui *Gui) RunWithSubprocesses() error {
 					if err := gui.recordCurrentDirectory(); err != nil {
 						return err
 					}
+				}
+
+				if err := gui.saveRecordedEvents(); err != nil {
+					return err
 				}
 
 				return nil
