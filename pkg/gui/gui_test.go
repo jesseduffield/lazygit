@@ -32,7 +32,7 @@ import (
 
 type integrationTest struct {
 	name    string
-	prepare func() error
+	prepare func(rootDir string) error
 }
 
 func generateSnapshot(t *testing.T) string {
@@ -61,13 +61,17 @@ func findOrCreateDir(path string) {
 
 func Test(t *testing.T) {
 	tests := []integrationTest{
+		// {
+		// 	name:    "commit",
+		// 	prepare: createFixture1,
+		// },
+		// {
+		// 	name:    "squash",
+		// 	prepare: createFixture2,
+		// },
 		{
-			name:    "commit",
-			prepare: createFixture1,
-		},
-		{
-			name:    "squash",
-			prepare: createFixture2,
+			name:    "patchBuilding",
+			prepare: createFixture3,
 		},
 	}
 
@@ -92,13 +96,13 @@ func Test(t *testing.T) {
 
 			prepareIntegrationTestDir()
 
-			err = test.prepare()
+			err = test.prepare(rootDir)
 			assert.NoError(t, err)
 
 			record := os.Getenv("RECORD_EVENTS") != ""
 			runLazygit(t, replayPath, record)
 
-			updateSnapshot := os.Getenv("UPDATE_SNAPSHOT") != ""
+			updateSnapshot := record || os.Getenv("UPDATE_SNAPSHOT") != ""
 
 			actual := generateSnapshot(t)
 
@@ -146,6 +150,17 @@ func createFixture2() error {
 	}
 
 	return runCommands(cmds)
+}
+
+func createFixture3(rootDir string) error {
+	osCommand := oscommands.NewDummyOSCommand()
+	cmd := exec.Command("sh", filepath.Join(rootDir, "test", "fixtures", "1.sh"))
+
+	if err := osCommand.RunExecutable(cmd); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func runCommands(cmds []string) error {
