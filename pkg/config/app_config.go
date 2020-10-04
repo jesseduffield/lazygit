@@ -81,6 +81,11 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 }
 
 func ConfigDir() string {
+	envConfigDir := os.Getenv("CONFIG_DIR")
+	if envConfigDir != "" {
+		return envConfigDir
+	}
+
 	// chucking my name there is not for vanity purposes, the xdg spec (and that
 	// function) requires a vendor name. May as well line up with github
 	configDirs := xdg.New("jesseduffield", "lazygit")
@@ -226,7 +231,7 @@ func loadAppState() (*AppState, error) {
 	}
 
 	appStateBytes, err := ioutil.ReadFile(filepath)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 

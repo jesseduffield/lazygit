@@ -2,12 +2,14 @@ package gui
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 
+	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,6 +34,23 @@ import (
 type integrationTest struct {
 	name    string
 	fixture string
+}
+
+func tests() []integrationTest {
+	return []integrationTest{
+		{
+			name:    "commit",
+			fixture: "newFile",
+		},
+		{
+			name:    "squash",
+			fixture: "manyCommits",
+		},
+		{
+			name:    "patchBuilding",
+			fixture: "updatedFile",
+		},
+	}
 }
 
 func generateSnapshot(t *testing.T) string {
@@ -59,20 +78,7 @@ func findOrCreateDir(path string) {
 }
 
 func Test(t *testing.T) {
-	tests := []integrationTest{
-		{
-			name:    "commit",
-			fixture: "newFile",
-		},
-		{
-			name:    "squash",
-			fixture: "manyCommits",
-		},
-		{
-			name:    "patchBuilding",
-			fixture: "updatedFile",
-		},
-	}
+	tests := tests()
 
 	gotoRootDirectory()
 
@@ -87,7 +93,6 @@ func Test(t *testing.T) {
 			testPath := filepath.Join(rootDir, "test", "integration", test.name)
 			findOrCreateDir(testPath)
 
-			replayPath := filepath.Join(testPath, "recording.json")
 			snapshotPath := filepath.Join(testPath, "snapshot.txt")
 
 			err := os.Chdir(rootDir)
@@ -99,7 +104,7 @@ func Test(t *testing.T) {
 			assert.NoError(t, err)
 
 			record := os.Getenv("RECORD_EVENTS") != ""
-			runLazygit(t, replayPath, record)
+			runLazygit(t, testPath, rootDir, record)
 
 			updateSnapshot := record || os.Getenv("UPDATE_SNAPSHOT") != ""
 
@@ -148,25 +153,55 @@ func gotoRootDirectory() {
 	}
 }
 
-func runLazygit(t *testing.T, replayPath string, record bool) {
+func runLazygit(t *testing.T, testPath string, rootDir string, record bool) {
 	osCommand := oscommands.NewDummyOSCommand()
 
-	var cmd *exec.Cmd
+	replayPath := filepath.Join(testPath, "recording.json")
+	cmdStr := fmt.Sprintf("go run %s", filepath.Join(rootDir, "main.go"))
+	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
+
+	exists, err := osCommand.FileExists(filepath.Join(testPath, "config"))
+	assert.NoError(t, err)
+
+	if exists {
+		templateConfigDir = filepath.Join(testPath, "config")
+	}
+
+	configDir := filepath.Join(rootDir, "test", "integration_test_config")
+
+	err = os.RemoveAll(configDir)
+	assert.NoError(t, err)
+	err = oscommands.CopyDir(templateConfigDir, configDir)
+	assert.NoError(t, err)
+
+	cmdStr = fmt.Sprintf("%s --use-config-dir=%s", cmdStr, configDir)
+
+	cmd := osCommand.ExecutableFromString(cmdStr)
 	if record {
-		cmd = osCommand.ExecutableFromString("lazygit")
 		cmd.Env = append(
 			cmd.Env,
 			fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath),
 		)
 	} else {
-		cmd = osCommand.ExecutableFromString("lazygit")
 		cmd.Env = append(
 			cmd.Env,
 			fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
 		)
 	}
-	err := osCommand.RunExecutable(cmd)
-	assert.NoError(t, err)
+
+	// if we're on CI we'll need to use a PTY. We can work that out by seeing if the 'TERM' env is defined.
+	if os.Getenv("TERM") == "" {
+		cmd.Env = append(cmd.Env, "TERM=xterm")
+
+		f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
+		assert.NoError(t, err)
+
+		_, err = io.Copy(os.Stdout, f)
+		assert.NoError(t, err)
+	} else {
+		err := osCommand.RunExecutable(cmd)
+		assert.NoError(t, err)
+	}
 }
 
 func prepareIntegrationTestDir() {
