@@ -50,6 +50,10 @@ func tests() []integrationTest {
 			name:    "patchBuilding",
 			fixture: "updatedFile",
 		},
+		{
+			name:    "patchBuilding2",
+			fixture: "updatedFile",
+		},
 	}
 }
 
