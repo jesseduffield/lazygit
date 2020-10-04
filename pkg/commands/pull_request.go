@@ -94,7 +94,7 @@ func (pr *PullRequest) Create(branch *models.Branch) error {
 	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(branch)
 
 	if !branchExistsOnRemote {
-		return errors.New(pr.GitCommand.Tr.SLocalize("NoBranchOnRemote"))
+		return errors.New(pr.GitCommand.Tr.NoBranchOnRemote)
 	}
 
 	repoURL := pr.GitCommand.GetRemoteURL()
@@ -108,7 +108,7 @@ func (pr *PullRequest) Create(branch *models.Branch) error {
 	}
 
 	if gitService == nil {
-		return errors.New(pr.GitCommand.Tr.SLocalize("UnsupportedGitService"))
+		return errors.New(pr.GitCommand.Tr.UnsupportedGitService)
 	}
 
 	repoInfo := getRepoInfoFromURL(repoURL)

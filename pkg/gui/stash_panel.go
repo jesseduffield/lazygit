@@ -3,6 +3,7 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -20,7 +21,7 @@ func (gui *Gui) handleStashEntrySelect() error {
 	var task updateTask
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
-		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoStashEntries"))
+		task = gui.createRenderStringTask(gui.Tr.NoStashEntries)
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
@@ -56,8 +57,8 @@ func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("StashApply"),
-		prompt: gui.Tr.SLocalize("SureApplyStashEntry"),
+		title:  gui.Tr.StashApply,
+		prompt: gui.Tr.SureApplyStashEntry,
 		handleConfirm: func() error {
 			return apply()
 		},
@@ -76,8 +77,8 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("StashPop"),
-		prompt: gui.Tr.SLocalize("SurePopStashEntry"),
+		title:  gui.Tr.StashPop,
+		prompt: gui.Tr.SurePopStashEntry,
 		handleConfirm: func() error {
 			return pop()
 		},
@@ -86,8 +87,8 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("StashDrop"),
-		prompt: gui.Tr.SLocalize("SureDropStashEntry"),
+		title:  gui.Tr.StashDrop,
+		prompt: gui.Tr.SureDropStashEntry,
 		handleConfirm: func() error {
 			return gui.stashDo("drop")
 		},
@@ -97,12 +98,13 @@ func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) stashDo(method string) error {
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
-		errorMessage := gui.Tr.TemplateLocalize(
-			"NoStashTo",
-			Teml{
+		errorMessage := utils.ResolvePlaceholderString(
+			gui.Tr.NoStashTo,
+			map[string]string{
 				"method": method,
 			},
 		)
+
 		return gui.createErrorPanel(errorMessage)
 	}
 	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
@@ -113,9 +115,9 @@ func (gui *Gui) stashDo(method string) error {
 
 func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
-		return gui.createErrorPanel(gui.Tr.SLocalize("NoTrackedStagedFilesStash"))
+		return gui.createErrorPanel(gui.Tr.NoTrackedStagedFilesStash)
 	}
-	return gui.prompt(gui.Tr.SLocalize("StashChanges"), "", func(stashComment string) error {
+	return gui.prompt(gui.Tr.StashChanges, "", func(stashComment string) error {
 		if err := stashFunc(stashComment); err != nil {
 			return gui.surfaceError(err)
 		}

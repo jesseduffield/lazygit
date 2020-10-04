@@ -377,12 +377,12 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 	keybindingConfig := gui.Config.GetUserConfig().Keybinding
 
 	return map[string]string{
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.Tr.SLocalize("scroll"),
-		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock), gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.Tr.SLocalize("navigate"),
-		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.Tr.SLocalize("cancel"),
-		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.Tr.SLocalize("quit"),
-		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.Tr.SLocalize("menu"),
-		"1-5": gui.Tr.SLocalize("jump"),
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.Tr.LcScroll,
+		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock), gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.Tr.LcNavigate,
+		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.Tr.LcCancel,
+		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.Tr.LcQuit,
+		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.Tr.LcMenu,
+		"1-5": gui.Tr.LcJump,
 	}
 }
 

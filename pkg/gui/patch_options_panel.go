@@ -8,7 +8,7 @@ import (
 
 func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 	if !gui.GitCommand.PatchManager.Active() {
-		return gui.createErrorPanel(gui.Tr.SLocalize("NoPatchError"))
+		return gui.createErrorPanel(gui.Tr.NoPatchError)
 	}
 
 	menuItems := []*menuItem{
@@ -61,7 +61,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		}
 	}
 
-	return gui.createMenu(gui.Tr.SLocalize("PatchOptionsTitle"), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.PatchOptionsTitle, menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) getPatchCommitIndex() int {
@@ -75,7 +75,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
 	if gui.GitCommand.WorkingTreeState() != "normal" {
-		return false, gui.createErrorPanel(gui.Tr.SLocalize("CantPatchWhileRebasingError"))
+		return false, gui.createErrorPanel(gui.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
 }
@@ -96,7 +96,7 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 		return err
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
+	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		err := gui.GitCommand.DeletePatchesFromCommit(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
@@ -112,7 +112,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 		return err
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
+	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		err := gui.GitCommand.MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
@@ -129,7 +129,7 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 	}
 
 	pull := func(stash bool) error {
-		return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
+		return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 			commitIndex := gui.getPatchCommitIndex()
 			err := gui.GitCommand.PullPatchIntoIndex(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager, stash)
 			return gui.handleGenericMergeCommandResult(err)
@@ -138,8 +138,8 @@ func (gui *Gui) handlePullPatchIntoWorkingTree() error {
 
 	if len(gui.trackedFiles()) > 0 {
 		return gui.ask(askOpts{
-			title:  gui.Tr.SLocalize("MustStashTitle"),
-			prompt: gui.Tr.SLocalize("MustStashWarning"),
+			title:  gui.Tr.MustStashTitle,
+			prompt: gui.Tr.MustStashWarning,
 			handleConfirm: func() error {
 				return pull(true)
 			},
@@ -158,7 +158,7 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 		return err
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
+	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		err := gui.GitCommand.PullPatchIntoNewCommit(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)

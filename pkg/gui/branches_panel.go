@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -28,7 +29,7 @@ func (gui *Gui) handleBranchSelect() error {
 	var task updateTask
 	branch := gui.getSelectedBranch()
 	if branch == nil {
-		task = gui.createRenderStringTask(gui.Tr.SLocalize("NoBranchesThisRepo"))
+		task = gui.createRenderStringTask(gui.Tr.NoBranchesThisRepo)
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
@@ -81,7 +82,7 @@ func (gui *Gui) handleBranchPress(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if gui.State.Panels.Branches.SelectedLineIdx == 0 {
-		return gui.createErrorPanel(gui.Tr.SLocalize("AlreadyCheckedOutBranch"))
+		return gui.createErrorPanel(gui.Tr.AlreadyCheckedOutBranch)
 	}
 	branch := gui.getSelectedBranch()
 	return gui.handleCheckoutRef(branch.Name, handleCheckoutRefOptions{})
@@ -99,7 +100,7 @@ func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error 
 }
 
 func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.createLoaderPanel(v, gui.Tr.SLocalize("FetchWait")); err != nil {
+	if err := gui.createLoaderPanel(v, gui.Tr.FetchWait); err != nil {
 		return err
 	}
 	go func() {
@@ -112,8 +113,8 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleForceCheckout(g *gocui.Gui, v *gocui.View) error {
 	branch := gui.getSelectedBranch()
-	message := gui.Tr.SLocalize("SureForceCheckout")
-	title := gui.Tr.SLocalize("ForceCheckoutBranch")
+	message := gui.Tr.SureForceCheckout
+	title := gui.Tr.ForceCheckoutBranch
 
 	return gui.ask(askOpts{
 		title:  title,
@@ -136,7 +137,7 @@ type handleCheckoutRefOptions struct {
 func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) error {
 	waitingStatus := options.WaitingStatus
 	if waitingStatus == "" {
-		waitingStatus = gui.Tr.SLocalize("CheckingOutStatus")
+		waitingStatus = gui.Tr.CheckingOutStatus
 	}
 
 	cmdOptions := commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
@@ -160,10 +161,10 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 				// offer to autostash changes
 				return gui.ask(askOpts{
 
-					title:  gui.Tr.SLocalize("AutoStashTitle"),
-					prompt: gui.Tr.SLocalize("AutoStashPrompt"),
+					title:  gui.Tr.AutoStashTitle,
+					prompt: gui.Tr.AutoStashPrompt,
 					handleConfirm: func() error {
-						if err := gui.GitCommand.StashSave(gui.Tr.SLocalize("StashPrefix") + ref); err != nil {
+						if err := gui.GitCommand.StashSave(gui.Tr.StashPrefix + ref); err != nil {
 							return gui.surfaceError(err)
 						}
 						if err := gui.GitCommand.Checkout(ref, cmdOptions); err != nil {
@@ -193,14 +194,14 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 }
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(gui.Tr.SLocalize("BranchName")+":", "", func(response string) error {
+	return gui.prompt(gui.Tr.BranchName+":", "", func(response string) error {
 		return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
 			onRefNotFound: func(ref string) error {
 
 				return gui.ask(askOpts{
 
-					title:  gui.Tr.SLocalize("BranchNotFoundTitle"),
-					prompt: fmt.Sprintf("%s %s%s", gui.Tr.SLocalize("BranchNotFoundPrompt"), ref, "?"),
+					title:  gui.Tr.BranchNotFoundTitle,
+					prompt: fmt.Sprintf("%s %s%s", gui.Tr.BranchNotFoundPrompt, ref, "?"),
 					handleConfirm: func() error {
 						return gui.createNewBranchWithName(ref)
 					},
@@ -243,22 +244,22 @@ func (gui *Gui) deleteBranch(force bool) error {
 	}
 	checkedOutBranch := gui.getCheckedOutBranch()
 	if checkedOutBranch.Name == selectedBranch.Name {
-		return gui.createErrorPanel(gui.Tr.SLocalize("CantDeleteCheckOutBranch"))
+		return gui.createErrorPanel(gui.Tr.CantDeleteCheckOutBranch)
 	}
 	return gui.deleteNamedBranch(selectedBranch, force)
 }
 
 func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) error {
-	title := gui.Tr.SLocalize("DeleteBranch")
-	var messageID string
+	title := gui.Tr.DeleteBranch
+	var templateStr string
 	if force {
-		messageID = "ForceDeleteBranchMessage"
+		templateStr = gui.Tr.ForceDeleteBranchMessage
 	} else {
-		messageID = "DeleteBranchMessage"
+		templateStr = gui.Tr.DeleteBranchMessage
 	}
-	message := gui.Tr.TemplateLocalize(
-		messageID,
-		Teml{
+	message := utils.ResolvePlaceholderString(
+		templateStr,
+		map[string]string{
 			"selectedBranchName": selectedBranch.Name,
 		},
 	)
@@ -290,11 +291,11 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 	}
 	checkedOutBranchName := gui.getCheckedOutBranch().Name
 	if checkedOutBranchName == branchName {
-		return gui.createErrorPanel(gui.Tr.SLocalize("CantMergeBranchIntoItself"))
+		return gui.createErrorPanel(gui.Tr.CantMergeBranchIntoItself)
 	}
-	prompt := gui.Tr.TemplateLocalize(
-		"ConfirmMerge",
-		Teml{
+	prompt := utils.ResolvePlaceholderString(
+		gui.Tr.ConfirmMerge,
+		map[string]string{
 			"checkedOutBranch": checkedOutBranchName,
 			"selectedBranch":   branchName,
 		},
@@ -302,7 +303,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 
 	return gui.ask(askOpts{
 
-		title:  gui.Tr.SLocalize("MergingTitle"),
+		title:  gui.Tr.MergingTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
 			err := gui.GitCommand.Merge(branchName, commands.MergeOpts{})
@@ -332,11 +333,11 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 
 	checkedOutBranch := gui.getCheckedOutBranch().Name
 	if selectedBranchName == checkedOutBranch {
-		return gui.createErrorPanel(gui.Tr.SLocalize("CantRebaseOntoSelf"))
+		return gui.createErrorPanel(gui.Tr.CantRebaseOntoSelf)
 	}
-	prompt := gui.Tr.TemplateLocalize(
-		"ConfirmRebase",
-		Teml{
+	prompt := utils.ResolvePlaceholderString(
+		gui.Tr.ConfirmRebase,
+		map[string]string{
 			"checkedOutBranch": checkedOutBranch,
 			"selectedBranch":   selectedBranchName,
 		},
@@ -344,7 +345,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 
 	return gui.ask(askOpts{
 
-		title:  gui.Tr.SLocalize("RebasingTitle"),
+		title:  gui.Tr.RebasingTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
 			err := gui.GitCommand.RebaseBranch(selectedBranchName)
@@ -362,10 +363,10 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 	if branch.Pushables == "?" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("FwdNoUpstream"))
+		return gui.createErrorPanel(gui.Tr.FwdNoUpstream)
 	}
 	if branch.Pushables != "0" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("FwdCommitsToPush"))
+		return gui.createErrorPanel(gui.Tr.FwdCommitsToPush)
 	}
 
 	upstream, err := gui.GitCommand.GetUpstreamForBranch(branch.Name)
@@ -377,9 +378,9 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 	remoteName := split[0]
 	remoteBranchName := strings.Join(split[1:], "/")
 
-	message := gui.Tr.TemplateLocalize(
-		"Fetching",
-		Teml{
+	message := utils.ResolvePlaceholderString(
+		gui.Tr.Fetching,
+		map[string]string{
 			"from": fmt.Sprintf("%s/%s", remoteName, remoteBranchName),
 			"to":   branch.Name,
 		},
@@ -417,7 +418,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 	// way to get it to show up in the reflog)
 
 	promptForNewName := func() error {
-		return gui.prompt(gui.Tr.SLocalize("NewBranchNamePrompt")+" "+branch.Name+":", "", func(newBranchName string) error {
+		return gui.prompt(gui.Tr.NewBranchNamePrompt+" "+branch.Name+":", "", func(newBranchName string) error {
 			if err := gui.GitCommand.RenameBranch(branch.Name, newBranchName); err != nil {
 				return gui.surfaceError(err)
 			}
@@ -441,8 +442,8 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 
 	return gui.ask(askOpts{
 
-		title:         gui.Tr.SLocalize("renameBranch"),
-		prompt:        gui.Tr.SLocalize("RenameBranchWarning"),
+		title:         gui.Tr.LcRenameBranch,
+		prompt:        gui.Tr.RenameBranchWarning,
 		handleConfirm: promptForNewName,
 	})
 }
@@ -462,9 +463,9 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		return nil
 	}
 
-	message := gui.Tr.TemplateLocalize(
-		"NewBranchNameBranchOff",
-		Teml{
+	message := utils.ResolvePlaceholderString(
+		gui.Tr.NewBranchNameBranchOff,
+		map[string]string{
 			"branchName": item.Description(),
 		},
 	)

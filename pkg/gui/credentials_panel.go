@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type credentials chan string
@@ -14,10 +15,10 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView, _ := g.View("credentials")
 		if passOrUname == "username" {
-			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
+			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.Mask = 0
 		} else {
-			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
+			credentialsView.Title = gui.Tr.CredentialsPassword
 			credentialsView.Mask = '*'
 		}
 
@@ -53,13 +54,14 @@ func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleCredentialsViewFocused() error {
 	keybindingConfig := gui.Config.GetUserConfig().Keybinding
 
-	message := gui.Tr.TemplateLocalize(
-		"CloseConfirm",
-		Teml{
+	message := utils.ResolvePlaceholderString(
+		gui.Tr.CloseConfirm,
+		map[string]string{
 			"keyBindClose":   gui.getKeyDisplay(keybindingConfig.Universal.Return),
 			"keyBindConfirm": gui.getKeyDisplay(keybindingConfig.Universal.Confirm),
 		},
 	)
+
 	gui.renderString("options", message)
 	return nil
 }
@@ -69,7 +71,7 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
 		if strings.Contains(errMessage, "Invalid username or password") {
-			errMessage = gui.Tr.SLocalize("PassUnameWrong")
+			errMessage = gui.Tr.PassUnameWrong
 		}
 		// we are not logging this error because it may contain a password
 		gui.createErrorPanel(errMessage)

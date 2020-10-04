@@ -17,7 +17,7 @@ func (gui *Gui) informationStr() string {
 	}
 
 	if gui.g.Mouse {
-		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.SLocalize("Donate"))
+		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.Donate)
 		return donate + " " + gui.Config.GetVersion()
 	} else {
 		return gui.Config.GetVersion()
@@ -37,7 +37,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if err.Error() != "unknown view" {
 				return err
 			}
-			v.Title = gui.Tr.SLocalize("NotEnoughSpace")
+			v.Title = gui.Tr.NotEnoughSpace
 			v.Wrap = true
 			_, _ = g.SetViewOnTop("limit")
 		}
@@ -104,7 +104,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("DiffTitle")
+		v.Title = gui.Tr.DiffTitle
 		v.Wrap = true
 		v.FgColor = textColor
 		v.IgnoreCarriageReturns = true
@@ -115,7 +115,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		secondaryView.Title = gui.Tr.SLocalize("DiffTitle")
+		secondaryView.Title = gui.Tr.DiffTitle
 		secondaryView.Wrap = true
 		secondaryView.FgColor = textColor
 		secondaryView.IgnoreCarriageReturns = true
@@ -127,7 +127,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		v.Title = gui.Tr.SLocalize("StatusTitle")
+		v.Title = gui.Tr.StatusTitle
 		v.FgColor = textColor
 	}
 
@@ -137,7 +137,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 		filesView.Highlight = true
-		filesView.Title = gui.Tr.SLocalize("FilesTitle")
+		filesView.Title = gui.Tr.FilesTitle
 		filesView.ContainsList = true
 	}
 
@@ -146,7 +146,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		branchesView.Title = gui.Tr.SLocalize("BranchesTitle")
+		branchesView.Title = gui.Tr.BranchesTitle
 		branchesView.FgColor = textColor
 		branchesView.ContainsList = true
 	}
@@ -156,7 +156,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		commitFilesView.Title = gui.Tr.SLocalize("CommitFiles")
+		commitFilesView.Title = gui.Tr.CommitFiles
 		commitFilesView.FgColor = textColor
 		commitFilesView.ContainsList = true
 	}
@@ -166,7 +166,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		commitsView.Title = gui.Tr.SLocalize("CommitsTitle")
+		commitsView.Title = gui.Tr.CommitsTitle
 		commitsView.FgColor = textColor
 		commitsView.ContainsList = true
 	}
@@ -176,7 +176,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		stashView.Title = gui.Tr.SLocalize("StashTitle")
+		stashView.Title = gui.Tr.StashTitle
 		stashView.FgColor = textColor
 		stashView.ContainsList = true
 	}
@@ -188,7 +188,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 				return err
 			}
 			_, _ = g.SetViewOnBottom("commitMessage")
-			commitMessageView.Title = gui.Tr.SLocalize("CommitMessage")
+			commitMessageView.Title = gui.Tr.CommitMessage
 			commitMessageView.FgColor = textColor
 			commitMessageView.Editable = true
 			commitMessageView.Editor = gocui.EditorFunc(gui.commitMessageEditor)
@@ -202,7 +202,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 				return err
 			}
 			_, _ = g.SetViewOnBottom("credentials")
-			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
+			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.FgColor = textColor
 			credentialsView.Editable = true
 		}

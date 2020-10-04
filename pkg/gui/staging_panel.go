@@ -35,11 +35,11 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	}
 
 	if secondaryFocused {
-		gui.getMainView().Title = gui.Tr.SLocalize("StagedChanges")
-		gui.getSecondaryView().Title = gui.Tr.SLocalize("UnstagedChanges")
+		gui.getMainView().Title = gui.Tr.StagedChanges
+		gui.getSecondaryView().Title = gui.Tr.UnstagedChanges
 	} else {
-		gui.getMainView().Title = gui.Tr.SLocalize("UnstagedChanges")
-		gui.getSecondaryView().Title = gui.Tr.SLocalize("StagedChanges")
+		gui.getMainView().Title = gui.Tr.UnstagedChanges
+		gui.getSecondaryView().Title = gui.Tr.StagedChanges
 	}
 
 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
@@ -105,8 +105,8 @@ func (gui *Gui) handleResetSelection(g *gocui.Gui, v *gocui.View) error {
 
 	if !gui.Config.GetUserConfig().Gui.SkipUnstageLineWarning {
 		return gui.ask(askOpts{
-			title:               gui.Tr.SLocalize("UnstageLinesTitle"),
-			prompt:              gui.Tr.SLocalize("UnstageLinesPrompt"),
+			title:               gui.Tr.UnstageLinesTitle,
+			prompt:              gui.Tr.UnstageLinesPrompt,
 			handlersManageFocus: true,
 			handleConfirm: func() error {
 				if err := gui.switchContext(gui.Contexts.Staging.Context); err != nil {

@@ -62,7 +62,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 
 			loadingText := customCommand.LoadingText
 			if loadingText == "" {
-				loadingText = gui.Tr.SLocalize("runningCustomCommandStatus")
+				loadingText = gui.Tr.LcRunningCustomCommandStatus
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
 				gui.OSCommand.PrepareSubProcess(cmdStr)

@@ -67,8 +67,8 @@ type SentinelErrors struct {
 // localising things in the code.
 func (gui *Gui) GenerateSentinelErrors() {
 	gui.Errors = SentinelErrors{
-		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess")),
-		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles")),
+		ErrSubProcess: errors.New(gui.Tr.RunningSubprocess),
+		ErrNoFiles:    errors.New(gui.Tr.NoChangedFiles),
 		ErrSwitchRepo: errors.New("switching repo"),
 		ErrRestart:    errors.New("restarting"),
 	}
@@ -83,9 +83,6 @@ func (gui *Gui) sentinelErrorsArr() []error {
 	}
 }
 
-// Teml is short for template used to make the required map[string]interface{} shorter when using gui.Tr.SLocalize and gui.Tr.TemplateLocalize
-type Teml i18n.Teml
-
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	g                    *gocui.Gui
@@ -95,7 +92,7 @@ type Gui struct {
 	SubProcess           *exec.Cmd
 	State                *guiState
 	Config               config.AppConfigurer
-	Tr                   *i18n.Localizer
+	Tr                   *i18n.TranslationSet
 	Errors               SentinelErrors
 	Updater              *updates.Updater
 	statusManager        *statusManager
@@ -391,7 +388,7 @@ func (gui *Gui) resetState() {
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
 	gui := &Gui{
 		Log:                  log,
 		GitCommand:           gitCommand,
@@ -533,7 +530,7 @@ func (gui *Gui) runCommand() error {
 	gui.SubProcess.Stdin = nil
 	gui.SubProcess = nil
 
-	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.SLocalize("pressEnterToReturn"), color.FgGreen))
+	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.PressEnterToReturn, color.FgGreen))
 	fmt.Scanln() // wait for enter press
 
 	return nil
@@ -580,7 +577,7 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 
 	return gui.ask(askOpts{
 		title:         "",
-		prompt:        gui.Tr.SLocalize("IntroPopupMessage"),
+		prompt:        gui.Tr.IntroPopupMessage,
 		handleConfirm: onConfirm,
 		handleClose:   onConfirm,
 	})
@@ -610,8 +607,8 @@ func (gui *Gui) startBackgroundFetch() {
 	err := gui.fetch(false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = gui.ask(askOpts{
-			title:  gui.Tr.SLocalize("NoAutomaticGitFetchTitle"),
-			prompt: gui.Tr.SLocalize("NoAutomaticGitFetchBody"),
+			title:  gui.Tr.NoAutomaticGitFetchTitle,
+			prompt: gui.Tr.NoAutomaticGitFetchBody,
 		})
 	} else {
 		gui.goEvery(time.Second*60, gui.stopChan, func() error {

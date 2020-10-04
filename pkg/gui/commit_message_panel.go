@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // runSyncOrAsyncCommand takes the output of a command that may have returned
@@ -28,7 +29,7 @@ func (gui *Gui) runSyncOrAsyncCommand(sub *exec.Cmd, err error) (bool, error) {
 func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 	message := gui.trimmedContent(v)
 	if message == "" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("CommitWithoutMessageErr"))
+		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
 	flags := ""
 	skipHookPrefix := gui.Config.GetUserConfig().Git.SkipHookPrefix
@@ -53,14 +54,15 @@ func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCommitMessageFocused() error {
-	message := gui.Tr.TemplateLocalize(
-		"CommitMessageConfirm",
-		Teml{
+	message := utils.ResolvePlaceholderString(
+		gui.Tr.CommitMessageConfirm,
+		map[string]string{
 			"keyBindClose":   "esc",
 			"keyBindConfirm": "enter",
 			"keyBindNewLine": "tab",
 		},
 	)
+
 	gui.renderString("options", message)
 	return nil
 }

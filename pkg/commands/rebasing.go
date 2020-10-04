@@ -26,7 +26,7 @@ func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
 	// we must ensure that we have at least two commits after the selected one
 	if len(commits) <= index+2 {
 		// assuming they aren't picking the bottom commit
-		return errors.New(c.Tr.SLocalize("NoRoom"))
+		return errors.New(c.Tr.NoRoom)
 	}
 
 	todo := ""
@@ -101,14 +101,14 @@ func (c *GitCommand) GenerateGenericRebaseTodo(commits []*models.Commit, actionI
 	baseIndex := actionIndex + 1
 
 	if len(commits) <= baseIndex {
-		return "", "", errors.New(c.Tr.SLocalize("CannotRebaseOntoFirstCommit"))
+		return "", "", errors.New(c.Tr.CannotRebaseOntoFirstCommit)
 	}
 
 	if action == "squash" || action == "fixup" {
 		baseIndex++
 
 		if len(commits) <= baseIndex {
-			return "", "", errors.New(c.Tr.SLocalize("CannotSquashOntoSecondCommit"))
+			return "", "", errors.New(c.Tr.CannotSquashOntoSecondCommit)
 		}
 	}
 
@@ -212,7 +212,7 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
 	if c.usingGpg() {
-		return errors.New(c.Tr.SLocalize("DisabledForGPG"))
+		return errors.New(c.Tr.DisabledForGPG)
 	}
 
 	todo, sha, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")

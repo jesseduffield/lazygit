@@ -3,6 +3,7 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -64,15 +65,15 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	prompt := gui.Tr.TemplateLocalize(
-		"DeleteTagPrompt",
-		Teml{
+	prompt := utils.ResolvePlaceholderString(
+		gui.Tr.DeleteTagPrompt,
+		map[string]string{
 			"tagName": tag.Name,
 		},
 	)
 
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("DeleteTagTitle"),
+		title:  gui.Tr.DeleteTagTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
 			if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
@@ -89,9 +90,9 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	title := gui.Tr.TemplateLocalize(
-		"PushTagTitle",
-		Teml{
+	title := utils.ResolvePlaceholderString(
+		gui.Tr.PushTagTitle,
+		map[string]string{
 			"tagName": tag.Name,
 		},
 	)
@@ -105,7 +106,7 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(gui.Tr.SLocalize("CreateTagTitle"), "", func(tagName string) error {
+	return gui.prompt(gui.Tr.CreateTagTitle, "", func(tagName string) error {
 		// leaving commit SHA blank so that we're just creating the tag for the current commit
 		if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
 			return gui.surfaceError(err)

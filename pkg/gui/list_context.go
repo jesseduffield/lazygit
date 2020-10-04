@@ -517,9 +517,9 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
 			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.NextItemAlt), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
 			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.NextItem), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.PrevPage), Modifier: gocui.ModNone, Handler: listContext.handlePrevPage, Description: gui.Tr.SLocalize("prevPage")},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.NextPage), Modifier: gocui.ModNone, Handler: listContext.handleNextPage, Description: gui.Tr.SLocalize("nextPage")},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.GotoTop), Modifier: gocui.ModNone, Handler: listContext.handleGotoTop, Description: gui.Tr.SLocalize("gotoTop")},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.PrevPage), Modifier: gocui.ModNone, Handler: listContext.handlePrevPage, Description: gui.Tr.LcPrevPage},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.NextPage), Modifier: gocui.ModNone, Handler: listContext.handleNextPage, Description: gui.Tr.LcNextPage},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.GotoTop), Modifier: gocui.ModNone, Handler: listContext.handleGotoTop, Description: gui.Tr.LcGotoTop},
 			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
 			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listContext.handleClick},
 		}...)
@@ -538,7 +538,7 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 				Contexts:    []string{listContext.ContextKey},
 				Key:         gui.getKey(keybindingConfig.Universal.StartSearch),
 				Handler:     openSearchHandler,
-				Description: gui.Tr.SLocalize("startSearch"),
+				Description: gui.Tr.LcStartSearch,
 				Tag:         "navigation",
 			},
 			{
@@ -546,7 +546,7 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 				Contexts:    []string{listContext.ContextKey},
 				Key:         gui.getKey(keybindingConfig.Universal.GotoBottom),
 				Handler:     gotoBottomHandler,
-				Description: gui.Tr.SLocalize("gotoBottom"),
+				Description: gui.Tr.LcGotoBottom,
 				Tag:         "navigation",
 			},
 		}...)

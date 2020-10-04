@@ -1,5 +1,3 @@
-# github.com/BurntSushi/toml v0.3.1
-## explicit
 # github.com/OpenPeeDeeP/xdg v1.0.0
 ## explicit
 github.com/OpenPeeDeeP/xdg
@@ -149,11 +147,6 @@ github.com/mattn/go-runewidth
 github.com/mgutz/str
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
-# github.com/nicksnyder/go-i18n/v2 v2.0.3
-## explicit
-github.com/nicksnyder/go-i18n/v2/i18n
-github.com/nicksnyder/go-i18n/v2/internal
-github.com/nicksnyder/go-i18n/v2/internal/plural
 # github.com/onsi/ginkgo v1.10.3
 ## explicit
 # github.com/onsi/gomega v1.7.1
@@ -162,8 +155,6 @@ github.com/nicksnyder/go-i18n/v2/internal/plural
 github.com/pmezard/go-difflib/difflib
 # github.com/sergi/go-diff v1.1.0
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/shibukawa/configdir v0.0.0-20170330084843-e180dbdc8da0
-## explicit
 # github.com/sirupsen/logrus v1.4.2
 ## explicit
 github.com/sirupsen/logrus
@@ -209,12 +200,6 @@ golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.2
-## explicit
-golang.org/x/text/internal/language
-golang.org/x/text/internal/language/compact
-golang.org/x/text/internal/tag
-golang.org/x/text/language
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.3.0

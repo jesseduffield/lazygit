@@ -127,6 +127,6 @@ func main() {
 		stackTrace := newErr.ErrorStack()
 		app.Log.Error(stackTrace)
 
-		log.Fatal(fmt.Sprintf("%s\n\n%s", app.Tr.SLocalize("ErrorOccurred"), stackTrace))
+		log.Fatal(fmt.Sprintf("%s\n\n%s", app.Tr.ErrorOccurred, stackTrace))
 	}
 }

@@ -10,1277 +10,838 @@ Todo list when making a new translation
 
 package i18n
 
-import (
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
-)
+type TranslationSet struct {
+	NotEnoughSpace                      string
+	DiffTitle                           string
+	LogTitle                            string
+	FilesTitle                          string
+	BranchesTitle                       string
+	CommitsTitle                        string
+	StashTitle                          string
+	UnstagedChanges                     string
+	StagedChanges                       string
+	PatchBuildingMainTitle              string
+	MergingMainTitle                    string
+	MainTitle                           string
+	StagingTitle                        string
+	MergingTitle                        string
+	NormalTitle                         string
+	CommitMessage                       string
+	CredentialsUsername                 string
+	CredentialsPassword                 string
+	PassUnameWrong                      string
+	CommitChanges                       string
+	AmendLastCommit                     string
+	SureToAmend                         string
+	NoCommitToAmend                     string
+	CommitChangesWithEditor             string
+	StatusTitle                         string
+	GlobalTitle                         string
+	LcNavigate                          string
+	LcMenu                              string
+	LcExecute                           string
+	LcOpen                              string
+	LcIgnore                            string
+	LcDelete                            string
+	LcToggleStaged                      string
+	LcToggleStagedAll                   string
+	LcRefresh                           string
+	LcPush                              string
+	LcPull                              string
+	LcEdit                              string
+	LcScroll                            string
+	LcAbortMerge                        string
+	LcResolveMergeConflicts             string
+	MergeConflictsTitle                 string
+	LcCheckout                          string
+	NoChangedFiles                      string
+	FileHasNoUnstagedChanges            string
+	CannotGitAdd                        string
+	NoFilesDisplay                      string
+	NotAFile                            string
+	PullWait                            string
+	PushWait                            string
+	FetchWait                           string
+	FileNoMergeCons                     string
+	LcSoftReset                         string
+	SureTo                              string
+	AlreadyCheckedOutBranch             string
+	SureForceCheckout                   string
+	ForceCheckoutBranch                 string
+	BranchName                          string
+	NewBranchNameBranchOff              string
+	CantDeleteCheckOutBranch            string
+	DeleteBranch                        string
+	DeleteBranchMessage                 string
+	ForceDeleteBranchMessage            string
+	LcRebaseBranch                      string
+	CantRebaseOntoSelf                  string
+	CantMergeBranchIntoItself           string
+	LcForceCheckout                     string
+	LcMerge                             string
+	LcCheckoutByName                    string
+	LcNewBranch                         string
+	LcDeleteBranch                      string
+	LcForceDeleteBranch                 string
+	NoBranchesThisRepo                  string
+	NoTrackingThisBranch                string
+	CommitMessageConfirm                string
+	CommitWithoutMessageErr             string
+	CloseConfirm                        string
+	LcClose                             string
+	LcQuit                              string
+	SureResetThisCommit                 string
+	ResetToCommit                       string
+	LcSquashDown                        string
+	LcRename                            string
+	LcResetToThisCommit                 string
+	LcFixupCommit                       string
+	OnlySquashTopmostCommit             string
+	YouNoCommitsToSquash                string
+	CantFixupWhileUnstagedChanges       string
+	Fixup                               string
+	SureFixupThisCommit                 string
+	SureSquashThisCommit                string
+	Squash                              string
+	LcPickCommit                        string
+	LcRevertCommit                      string
+	OnlyRenameTopCommit                 string
+	LcRenameCommit                      string
+	LcDeleteCommit                      string
+	LcMoveDownCommit                    string
+	LcMoveUpCommit                      string
+	LcEditCommit                        string
+	LcAmendToCommit                     string
+	LcRenameCommitEditor                string
+	PotentialErrInGetselectedCommit     string
+	NoCommitsThisBranch                 string
+	Error                               string
+	RunningSubprocess                   string
+	LcSelectHunk                        string
+	LcNavigateConflicts                 string
+	LcPickHunk                          string
+	LcPickBothHunks                     string
+	LcUndo                              string
+	LcUndoReflog                        string
+	LcRedoReflog                        string
+	LcPop                               string
+	LcDrop                              string
+	LcApply                             string
+	NoStashEntries                      string
+	StashDrop                           string
+	SureDropStashEntry                  string
+	StashPop                            string
+	SurePopStashEntry                   string
+	StashApply                          string
+	SureApplyStashEntry                 string
+	NoStashTo                           string
+	NoTrackedStagedFilesStash           string
+	StashChanges                        string
+	IssntListOfViews                    string
+	LcNewFocusedViewIs                  string
+	MergeAborted                        string
+	OpenConfig                          string
+	EditConfig                          string
+	ForcePush                           string
+	ForcePushPrompt                     string
+	ForcePushDisabled                   string
+	UpdatesRejectedAndForcePushDisabled string
+	LcCheckForUpdate                    string
+	CheckingForUpdates                  string
+	OnLatestVersionErr                  string
+	MajorVersionErr                     string
+	CouldNotFindBinaryErr               string
+	AnonymousReportingTitle             string
+	AnonymousReportingPrompt            string
+	IntroPopupMessage                   string
+	GitconfigParseErr                   string
+	LcEditFile                          string
+	LcOpenFile                          string
+	LcIgnoreFile                        string
+	LcRefreshFiles                      string
+	LcMergeIntoCurrentBranch            string
+	ConfirmQuit                         string
+	SwitchRepo                          string
+	UnsupportedGitService               string
+	LcCreatePullRequest                 string
+	NoBranchOnRemote                    string
+	LcFetch                             string
+	NoAutomaticGitFetchTitle            string
+	NoAutomaticGitFetchBody             string
+	StageLines                          string
+	FileStagingRequirements             string
+	SelectHunk                          string
+	StageSelection                      string
+	ResetSelection                      string
+	ToggleDragSelect                    string
+	ToggleSelectHunk                    string
+	ToggleSelectionForPatch             string
+	TogglePanel                         string
+	CantStageStaged                     string
+	ReturnToFilesPanel                  string
+	CantFindHunks                       string
+	CantFindHunk                        string
+	FastForward                         string
+	Fetching                            string
+	FoundConflicts                      string
+	FoundConflictsTitle                 string
+	Undo                                string
+	PickHunk                            string
+	PickBothHunks                       string
+	ViewMergeRebaseOptions              string
+	NotMergingOrRebasing                string
+	RecentRepos                         string
+	MergeOptionsTitle                   string
+	RebaseOptionsTitle                  string
+	CommitMessageTitle                  string
+	LocalBranchesTitle                  string
+	SearchTitle                         string
+	TagsTitle                           string
+	BranchCommitsTitle                  string
+	MenuTitle                           string
+	RemotesTitle                        string
+	CredentialsTitle                    string
+	RemoteBranchesTitle                 string
+	PatchBuildingTitle                  string
+	InformationTitle                    string
+	SecondaryTitle                      string
+	ReflogCommitsTitle                  string
+	Title                               string
+	ConflictsResolved                   string
+	RebasingTitle                       string
+	ConfirmRebase                       string
+	ConfirmMerge                        string
+	FwdNoUpstream                       string
+	FwdCommitsToPush                    string
+	ErrorOccurred                       string
+	NoRoom                              string
+	YouAreHere                          string
+	LcRewordNotSupported                string
+	LcCherryPickCopy                    string
+	LcCherryPickCopyRange               string
+	LcPasteCommits                      string
+	SureCherryPick                      string
+	CherryPick                          string
+	CannotRebaseOntoFirstCommit         string
+	CannotSquashOntoSecondCommit        string
+	Donate                              string
+	PrevLine                            string
+	NextLine                            string
+	PrevHunk                            string
+	NextHunk                            string
+	PrevConflict                        string
+	NextConflict                        string
+	SelectTop                           string
+	SelectBottom                        string
+	ScrollDown                          string
+	ScrollUp                            string
+	LcScrollUpMainPanel                 string
+	LcScrollDownMainPanel               string
+	AmendCommitTitle                    string
+	AmendCommitPrompt                   string
+	DeleteCommitTitle                   string
+	DeleteCommitPrompt                  string
+	SquashingStatus                     string
+	FixingStatus                        string
+	DeletingStatus                      string
+	MovingStatus                        string
+	RebasingStatus                      string
+	AmendingStatus                      string
+	CherryPickingStatus                 string
+	UndoingStatus                       string
+	RedoingStatus                       string
+	CheckingOutStatus                   string
+	CommitFiles                         string
+	LcViewCommitFiles                   string
+	CommitFilesTitle                    string
+	LcGoBack                            string
+	NoCommiteFiles                      string
+	LcCheckoutCommitFile                string
+	LcDiscardOldFileChange              string
+	DiscardFileChangesTitle             string
+	DiscardFileChangesPrompt            string
+	DisabledForGPG                      string
+	CreateRepo                          string
+	AutoStashTitle                      string
+	AutoStashPrompt                     string
+	StashPrefix                         string
+	LcViewDiscardOptions                string
+	LcCancel                            string
+	LcDiscardAllChanges                 string
+	LcDiscardUnstagedChanges            string
+	LcDiscardAllChangesToAllFiles       string
+	LcDiscardAnyUnstagedChanges         string
+	LcDiscardUntrackedFiles             string
+	LcHardReset                         string
+	LcHardResetUpstream                 string
+	LcViewResetOptions                  string
+	LcCreateFixupCommit                 string
+	LcSquashAboveCommits                string
+	SquashAboveCommits                  string
+	SureSquashAboveCommits              string
+	CreateFixupCommit                   string
+	SureCreateFixupCommit               string
+	LcExecuteCustomCommand              string
+	CustomCommand                       string
+	LcCommitChangesWithoutHook          string
+	SkipHookPrefixNotConfigured         string
+	LcResetTo                           string
+	PressEnterToReturn                  string
+	LcViewStashOptions                  string
+	LcStashAllChanges                   string
+	LcStashStagedChanges                string
+	LcStashOptions                      string
+	NotARepository                      string
+	LcJump                              string
+	DiscardPatch                        string
+	DiscardPatchConfirm                 string
+	CantPatchWhileRebasingError         string
+	LcToggleAddToPatch                  string
+	ViewPatchOptions                    string
+	PatchOptionsTitle                   string
+	NoPatchError                        string
+	LcEnterFile                         string
+	ExitLineByLineMode                  string
+	EnterUpstream                       string
+	EnterUpstreamWithSlash              string
+	LcNotTrackingRemote                 string
+	ReturnToRemotesList                 string
+	LcAddNewRemote                      string
+	LcNewRemoteName                     string
+	LcNewRemoteUrl                      string
+	LcEditRemoteName                    string
+	LcEditRemoteUrl                     string
+	LcRemoveRemote                      string
+	LcRemoveRemotePrompt                string
+	DeleteRemoteBranch                  string
+	DeleteRemoteBranchMessage           string
+	LcSetUpstream                       string
+	SetUpstreamTitle                    string
+	SetUpstreamMessage                  string
+	LcEditRemote                        string
+	LcTagCommit                         string
+	TagNameTitle                        string
+	LcDeleteTag                         string
+	DeleteTagTitle                      string
+	DeleteTagPrompt                     string
+	PushTagTitle                        string
+	LcPushTag                           string
+	LcCreateTag                         string
+	CreateTagTitle                      string
+	LcFetchRemote                       string
+	FetchingRemoteStatus                string
+	LcCheckoutCommit                    string
+	SureCheckoutThisCommit              string
+	LcGitFlowOptions                    string
+	NotAGitFlowBranch                   string
+	NewBranchNamePrompt                 string
+	IgnoreTracked                       string
+	IgnoreTrackedPrompt                 string
+	LcViewResetToUpstreamOptions        string
+	LcNextScreenMode                    string
+	LcPrevScreenMode                    string
+	LcStartSearch                       string
+	Panel                               string
+	Keybindings                         string
+	LcRenameBranch                      string
+	NewGitFlowBranchPrompt              string
+	RenameBranchWarning                 string
+	LcOpenMenu                          string
+	LcCloseMenu                         string
+	LcResetCherryPick                   string
+	LcNextTab                           string
+	LcPrevTab                           string
+	LcCantUndoWhileRebasing             string
+	LcCantRedoWhileRebasing             string
+	MustStashWarning                    string
+	MustStashTitle                      string
+	ConfirmationTitle                   string
+	LcPrevPage                          string
+	LcNextPage                          string
+	LcGotoTop                           string
+	LcGotoBottom                        string
+	LcFilteringBy                       string
+	ResetInParentheses                  string
+	LcOpenScopingMenu                   string
+	LcFilterBy                          string
+	LcExitFilterMode                    string
+	LcFilterPathOption                  string
+	LcEnterFileName                     string
+	FilteringMenuTitle                  string
+	MustExitFilterModeTitle             string
+	MustExitFilterModePrompt            string
+	LcDiff                              string
+	LcEnterRefToDiff                    string
+	LcEnteRefName                       string
+	LcExitDiffMode                      string
+	DiffingMenuTitle                    string
+	LcSwapDiff                          string
+	LcOpenDiffingMenu                   string
+	LcShowingGitDiff                    string
+	LcCopyCommitShaToClipboard          string
+	LcCopyBranchNameToClipboard         string
+	LcCopyFileNameToClipboard           string
+	LcCopyCommitFileNameToClipboard     string
+	LcCommitPrefixPatternError          string
+	NoFilesStagedTitle                  string
+	NoFilesStagedPrompt                 string
+	BranchNotFoundTitle                 string
+	BranchNotFoundPrompt                string
+	UnstageLinesTitle                   string
+	UnstageLinesPrompt                  string
+	LcCreateNewBranchFromCommit         string
+	LcViewStashFiles                    string
+	LcBuildingPatch                     string
+	LcViewCommits                       string
+	MinGitVersionError                  string
+	LcRunningCustomCommandStatus        string
+	LcSubmoduleStashAndReset            string
+	LcAndResetSubmodules                string
+	LcEnterSubmodule                    string
+	LcCopySubmoduleNameToClipboard      string
+	RemoveSubmodule                     string
+	LcRemoveSubmodule                   string
+	RemoveSubmodulePrompt               string
+	LcResettingSubmoduleStatus          string
+	LcNewSubmoduleName                  string
+	LcNewSubmoduleUrl                   string
+	LcNewSubmodulePath                  string
+	LcAddSubmodule                      string
+	LcAddingSubmoduleStatus             string
+	LcUpdateSubmoduleUrl                string
+	LcUpdatingSubmoduleUrlStatus        string
+	LcEditSubmoduleUrl                  string
+	LcInitializingSubmoduleStatus       string
+	LcInitSubmodule                     string
+	LcViewResetAndRemoveOptions         string
+	LcSubmoduleUpdate                   string
+	LcUpdatingSubmoduleStatus           string
+	LcBulkInitSubmodules                string
+	LcBulkUpdateSubmodules              string
+	LcBulkDeinitSubmodules              string
+	LcViewBulkSubmoduleOptions          string
+	LcBulkSubmoduleOptions              string
+	LcRunningCommand                    string
+	SubCommitsTitle                     string
+	SubmodulesTitle                     string
+	NavigationTitle                     string
+}
 
-func addEnglish(i18nObject *i18n.Bundle) error {
-
-	return i18nObject.AddMessages(language.English,
-		&i18n.Message{
-			ID:    "NotEnoughSpace",
-			Other: "Not enough space to render panels",
-		}, &i18n.Message{
-			ID:    "DiffTitle",
-			Other: "Diff",
-		}, &i18n.Message{
-			ID:    "LogTitle",
-			Other: "Log",
-		}, &i18n.Message{
-			ID:    "FilesTitle",
-			Other: "Files",
-		}, &i18n.Message{
-			ID:    "BranchesTitle",
-			Other: "Branches",
-		}, &i18n.Message{
-			ID:    "CommitsTitle",
-			Other: "Commits",
-		}, &i18n.Message{
-			ID:    "StashTitle",
-			Other: "Stash",
-		}, &i18n.Message{
-			ID:    "UnstagedChanges",
-			Other: `Unstaged Changes`,
-		}, &i18n.Message{
-			ID:    "StagedChanges",
-			Other: `Staged Changes`,
-		}, &i18n.Message{
-			ID:    "PatchBuildingMainTitle",
-			Other: `Add Lines/Hunks To Patch`,
-		}, &i18n.Message{
-			ID:    "MergingMainTitle",
-			Other: "Resolve merge conflicts",
-		}, &i18n.Message{
-			ID:    "MainTitle",
-			Other: "Main",
-		}, &i18n.Message{
-			ID:    "StagingTitle",
-			Other: "Staging",
-		}, &i18n.Message{
-			ID:    "MergingTitle",
-			Other: "Merging",
-		}, &i18n.Message{
-			ID:    "NormalTitle",
-			Other: "Normal",
-		}, &i18n.Message{
-			ID:    "CommitMessage",
-			Other: "Commit message",
-		}, &i18n.Message{
-			ID:    "CredentialsUsername",
-			Other: "Username",
-		}, &i18n.Message{
-			ID:    "CredentialsPassword",
-			Other: "Password",
-		}, &i18n.Message{
-			ID:    "PassUnameWrong",
-			Other: "Password and/or username wrong",
-		}, &i18n.Message{
-			ID:    "CommitChanges",
-			Other: "commit changes",
-		}, &i18n.Message{
-			ID:    "AmendLastCommit",
-			Other: "amend last commit",
-		}, &i18n.Message{
-			ID:    "SureToAmend",
-			Other: "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",
-		}, &i18n.Message{
-			ID:    "NoCommitToAmend",
-			Other: "There's no commit to amend.",
-		}, &i18n.Message{
-			ID:    "CommitChangesWithEditor",
-			Other: "commit changes using git editor",
-		}, &i18n.Message{
-			ID:    "StatusTitle",
-			Other: "Status",
-		}, &i18n.Message{
-			ID:    "GlobalTitle",
-			Other: "Global",
-		}, &i18n.Message{
-			ID:    "navigate",
-			Other: "navigate",
-		}, &i18n.Message{
-			ID:    "menu",
-			Other: "menu",
-		}, &i18n.Message{
-			ID:    "execute",
-			Other: "execute",
-		}, &i18n.Message{
-			ID:    "open",
-			Other: "open",
-		}, &i18n.Message{
-			ID:    "ignore",
-			Other: "ignore",
-		}, &i18n.Message{
-			ID:    "delete",
-			Other: "delete",
-		}, &i18n.Message{
-			ID:    "toggleStaged",
-			Other: "toggle staged",
-		}, &i18n.Message{
-			ID:    "toggleStagedAll",
-			Other: "stage/unstage all",
-		}, &i18n.Message{
-			ID:    "refresh",
-			Other: "refresh",
-		}, &i18n.Message{
-			ID:    "push",
-			Other: "push",
-		}, &i18n.Message{
-			ID:    "pull",
-			Other: "pull",
-		}, &i18n.Message{
-			ID:    "edit",
-			Other: "edit",
-		}, &i18n.Message{
-			ID:    "scroll",
-			Other: "scroll",
-		}, &i18n.Message{
-			ID:    "abortMerge",
-			Other: "abort merge",
-		}, &i18n.Message{
-			ID:    "resolveMergeConflicts",
-			Other: "resolve merge conflicts",
-		}, &i18n.Message{
-			ID:    "MergeConflictsTitle",
-			Other: "Merge Conflicts",
-		}, &i18n.Message{
-			ID:    "checkout",
-			Other: "checkout",
-		}, &i18n.Message{
-			ID:    "NoChangedFiles",
-			Other: "No changed files",
-		}, &i18n.Message{
-			ID:    "FileHasNoUnstagedChanges",
-			Other: "File has no unstaged changes to add",
-		}, &i18n.Message{
-			ID:    "CannotGitAdd",
-			Other: "Cannot git add --patch untracked files",
-		}, &i18n.Message{
-			ID:    "NoFilesDisplay",
-			Other: "No file to display",
-		}, &i18n.Message{
-			ID:    "NotAFile",
-			Other: "Not a file",
-		}, &i18n.Message{
-			ID:    "PullWait",
-			Other: "Pulling...",
-		}, &i18n.Message{
-			ID:    "PushWait",
-			Other: "Pushing...",
-		}, &i18n.Message{
-			ID:    "FetchWait",
-			Other: "Fetching...",
-		}, &i18n.Message{
-			ID:    "FileNoMergeCons",
-			Other: "This file has no inline merge conflicts",
-		}, &i18n.Message{
-			ID:    "softReset",
-			Other: "soft reset",
-		}, &i18n.Message{
-			ID:    "SureTo",
-			Other: "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
-		}, &i18n.Message{
-			ID:    "AlreadyCheckedOutBranch",
-			Other: "You have already checked out this branch",
-		}, &i18n.Message{
-			ID:    "SureForceCheckout",
-			Other: "Are you sure you want force checkout? You will lose all local changes",
-		}, &i18n.Message{
-			ID:    "ForceCheckoutBranch",
-			Other: "Force Checkout Branch",
-		}, &i18n.Message{
-			ID:    "BranchName",
-			Other: "Branch name",
-		}, &i18n.Message{
-			ID:    "NewBranchNameBranchOff",
-			Other: "New Branch Name (Branch is off of {{.branchName}})",
-		}, &i18n.Message{
-			ID:    "CantDeleteCheckOutBranch",
-			Other: "You cannot delete the checked out branch!",
-		}, &i18n.Message{
-			ID:    "DeleteBranch",
-			Other: "Delete Branch",
-		}, &i18n.Message{
-			ID:    "DeleteBranchMessage",
-			Other: "Are you sure you want to delete the branch {{.selectedBranchName}}?",
-		}, &i18n.Message{
-			ID:    "ForceDeleteBranchMessage",
-			Other: "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
-		}, &i18n.Message{
-			ID:    "rebaseBranch",
-			Other: "rebase checked-out branch onto this branch",
-		}, &i18n.Message{
-			ID:    "CantRebaseOntoSelf",
-			Other: "You cannot rebase a branch onto itself",
-		}, &i18n.Message{
-			ID:    "CantMergeBranchIntoItself",
-			Other: "You cannot merge a branch into itself",
-		}, &i18n.Message{
-			ID:    "forceCheckout",
-			Other: "force checkout",
-		}, &i18n.Message{
-			ID:    "merge",
-			Other: "merge",
-		}, &i18n.Message{
-			ID:    "checkoutByName",
-			Other: "checkout by name",
-		}, &i18n.Message{
-			ID:    "newBranch",
-			Other: "new branch",
-		}, &i18n.Message{
-			ID:    "deleteBranch",
-			Other: "delete branch",
-		}, &i18n.Message{
-			ID:    "forceDeleteBranch",
-			Other: "delete branch (force)",
-		}, &i18n.Message{
-			ID:    "NoBranchesThisRepo",
-			Other: "No branches for this repo",
-		}, &i18n.Message{
-			ID:    "NoTrackingThisBranch",
-			Other: "There is no tracking for this branch",
-		}, &i18n.Message{
-			ID:    "CommitMessageConfirm",
-			Other: "{{.keyBindClose}}: close, {{.keyBindNewLine}}: new line, {{.keyBindConfirm}}: confirm",
-		}, &i18n.Message{
-			ID:    "CommitWithoutMessageErr",
-			Other: "You cannot commit without a commit message",
-		}, &i18n.Message{
-			ID:    "CloseConfirm",
-			Other: "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
-		}, &i18n.Message{
-			ID:    "close",
-			Other: "close",
-		}, &i18n.Message{
-			ID:    "quit",
-			Other: "quit",
-		}, &i18n.Message{
-			ID:    "SureResetThisCommit",
-			Other: "Are you sure you want to reset to this commit?",
-		}, &i18n.Message{
-			ID:    "ResetToCommit",
-			Other: "Reset To Commit",
-		}, &i18n.Message{
-			ID:    "squashDown",
-			Other: "squash down",
-		}, &i18n.Message{
-			ID:    "rename",
-			Other: "rename",
-		}, &i18n.Message{
-			ID:    "resetToThisCommit",
-			Other: "reset to this commit",
-		}, &i18n.Message{
-			ID:    "fixupCommit",
-			Other: "fixup commit",
-		}, &i18n.Message{
-			ID:    "NoCommitsThisBranch",
-			Other: "No commits for this branch",
-		}, &i18n.Message{
-			ID:    "OnlySquashTopmostCommit",
-			Other: "Can only squash topmost commit",
-		}, &i18n.Message{
-			ID:    "YouNoCommitsToSquash",
-			Other: "You have no commits to squash with",
-		}, &i18n.Message{
-			ID:    "CantFixupWhileUnstagedChanges",
-			Other: "Can't fixup while there are unstaged changes",
-		}, &i18n.Message{
-			ID:    "Fixup",
-			Other: "Fixup",
-		}, &i18n.Message{
-			ID:    "SureFixupThisCommit",
-			Other: "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
-		}, &i18n.Message{
-			ID:    "SureSquashThisCommit",
-			Other: "Are you sure you want to squash this commit into the commit below?",
-		}, &i18n.Message{
-			ID:    "Squash",
-			Other: "Squash",
-		}, &i18n.Message{
-			ID:    "pickCommit",
-			Other: "pick commit (when mid-rebase)",
-		}, &i18n.Message{
-			ID:    "revertCommit",
-			Other: "revert commit",
-		}, &i18n.Message{
-			ID:    "OnlyRenameTopCommit",
-			Other: "Can only reword topmost commit from within lazygit. Use shift+R instead",
-		}, &i18n.Message{
-			ID:    "renameCommit",
-			Other: "reword commit",
-		}, &i18n.Message{
-			ID:    "deleteCommit",
-			Other: "delete commit",
-		}, &i18n.Message{
-			ID:    "moveDownCommit",
-			Other: "move commit down one",
-		}, &i18n.Message{
-			ID:    "moveUpCommit",
-			Other: "move commit up one",
-		}, &i18n.Message{
-			ID:    "editCommit",
-			Other: "edit commit",
-		}, &i18n.Message{
-			ID:    "amendToCommit",
-			Other: "amend commit with staged changes",
-		}, &i18n.Message{
-			ID:    "renameCommitEditor",
-			Other: "rename commit with editor",
-		}, &i18n.Message{
-			ID:    "PotentialErrInGetselectedCommit",
-			Other: "potential error in getSelected Commit (mismatched ui and state)",
-		}, &i18n.Message{
-			ID:    "NoCommitsThisBranch",
-			Other: "No commits for this branch",
-		}, &i18n.Message{
-			ID:    "Error",
-			Other: "Error",
-		}, &i18n.Message{
-			ID:    "RunningSubprocess",
-			Other: "running subprocess",
-		}, &i18n.Message{
-			ID:    "selectHunk",
-			Other: "select hunk",
-		}, &i18n.Message{
-			ID:    "navigateConflicts",
-			Other: "navigate conflicts",
-		}, &i18n.Message{
-			ID:    "pickHunk",
-			Other: "pick hunk",
-		}, &i18n.Message{
-			ID:    "pickBothHunks",
-			Other: "pick both hunks",
-		}, &i18n.Message{
-			ID:    "undo",
-			Other: "undo",
-		}, &i18n.Message{
-			ID:    "undoReflog",
-			Other: "undo (via reflog) (experimental)",
-		}, &i18n.Message{
-			ID:    "redoReflog",
-			Other: "redo (via reflog) (experimental)",
-		}, &i18n.Message{
-			ID:    "pop",
-			Other: "pop",
-		}, &i18n.Message{
-			ID:    "drop",
-			Other: "drop",
-		}, &i18n.Message{
-			ID:    "apply",
-			Other: "apply",
-		}, &i18n.Message{
-			ID:    "NoStashEntries",
-			Other: "No stash entries",
-		}, &i18n.Message{
-			ID:    "StashDrop",
-			Other: "Stash drop",
-		}, &i18n.Message{
-			ID:    "SureDropStashEntry",
-			Other: "Are you sure you want to drop this stash entry?",
-		}, &i18n.Message{
-			ID:    "StashPop",
-			Other: "Stash pop",
-		}, &i18n.Message{
-			ID:    "SurePopStashEntry",
-			Other: "Are you sure you want to pop this stash entry?",
-		}, &i18n.Message{
-			ID:    "StashApply",
-			Other: "Stash apply",
-		}, &i18n.Message{
-			ID:    "SureApplyStashEntry",
-			Other: "Are you sure you want to apply this stash entry?",
-		}, &i18n.Message{
-			ID:    "NoStashTo",
-			Other: "No stash to {{.method}}",
-		}, &i18n.Message{
-			ID:    "NoTrackedStagedFilesStash",
-			Other: "You have no tracked/staged files to stash",
-		}, &i18n.Message{
-			ID:    "StashChanges",
-			Other: "Stash changes",
-		}, &i18n.Message{
-			ID:    "IssntListOfViews",
-			Other: "{{.name}} is not in the list of views",
-		}, &i18n.Message{
-			ID:    "newFocusedViewIs",
-			Other: "new focused view is {{.newFocusedView}}",
-		}, &i18n.Message{
-			ID:    "NoChangedFiles",
-			Other: "No changed files",
-		}, &i18n.Message{
-			ID:    "MergeAborted",
-			Other: "Merge aborted",
-		}, &i18n.Message{
-			ID:    "OpenConfig",
-			Other: "open config file",
-		}, &i18n.Message{
-			ID:    "EditConfig",
-			Other: "edit config file",
-		}, &i18n.Message{
-			ID:    "ForcePush",
-			Other: "Force push",
-		}, &i18n.Message{
-			ID:    "ForcePushPrompt",
-			Other: "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
-		}, &i18n.Message{
-			ID:    "ForcePushDisabled",
-			Other: "Your branch has diverged from the remote branch and you've disabled force pushing",
-		}, &i18n.Message{
-			ID:    "UpdatesRejectedAndForcePushDisabled",
-			Other: "Updates were rejected and you have disabled force pushing",
-		}, &i18n.Message{
-			ID:    "checkForUpdate",
-			Other: "check for update",
-		}, &i18n.Message{
-			ID:    "CheckingForUpdates",
-			Other: "Checking for updates...",
-		}, &i18n.Message{
-			ID:    "OnLatestVersionErr",
-			Other: "You already have the latest version",
-		}, &i18n.Message{
-			ID:    "MajorVersionErr",
-			Other: "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
-		}, &i18n.Message{
-			ID:    "CouldNotFindBinaryErr",
-			Other: "Could not find any binary at {{.url}}",
-		}, &i18n.Message{
-			ID:    "AnonymousReportingTitle",
-			Other: "Help make lazygit better",
-		}, &i18n.Message{
-			ID:    "AnonymousReportingPrompt",
-			Other: "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
-		}, &i18n.Message{
-			ID: "IntroPopupMessage",
-			Other: `Thanks for using lazygit! Two things to share with you:
-
-1) If you want to learn about lazygit's features, watch this vid:
-   https://youtu.be/CPLdltN7wgE
-
-2) If you're using git, that makes you a programmer! With your help we can make lazygit better, so consider becoming a contributor and joining the fun at
-   https://github.com/jesseduffield/lazygit`,
-		}, &i18n.Message{
-			ID:    "GitconfigParseErr",
-			Other: `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
-		}, &i18n.Message{
-			ID:    "editFile",
-			Other: `edit file`,
-		}, &i18n.Message{
-			ID:    "openFile",
-			Other: `open file`,
-		}, &i18n.Message{
-			ID:    "ignoreFile",
-			Other: `add to .gitignore`,
-		}, &i18n.Message{
-			ID:    "refreshFiles",
-			Other: `refresh files`,
-		}, &i18n.Message{
-			ID:    "mergeIntoCurrentBranch",
-			Other: `merge into currently checked out branch`,
-		}, &i18n.Message{
-			ID:    "ConfirmQuit",
-			Other: `Are you sure you want to quit?`,
-		}, &i18n.Message{
-			ID:    "SwitchRepo",
-			Other: `switch to a recent repo`,
-		}, &i18n.Message{
-			ID:    "UnsupportedGitService",
-			Other: `Unsupported git service`,
-		}, &i18n.Message{
-			ID:    "createPullRequest",
-			Other: `create pull request`,
-		}, &i18n.Message{
-			ID:    "NoBranchOnRemote",
-			Other: `This branch doesn't exist on remote. You need to push it to remote first.`,
-		}, &i18n.Message{
-			ID:    "fetch",
-			Other: `fetch`,
-		}, &i18n.Message{
-			ID:    "NoAutomaticGitFetchTitle",
-			Other: `No automatic git fetch`,
-		}, &i18n.Message{
-			ID:    "NoAutomaticGitFetchBody",
-			Other: `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
-		}, &i18n.Message{
-			ID:    "StageLines",
-			Other: `stage individual hunks/lines`,
-		}, &i18n.Message{
-			ID:    "FileStagingRequirements",
-			Other: `Can only stage individual lines for tracked files`,
-		}, &i18n.Message{
-			ID:    "SelectHunk",
-			Other: `select hunk`,
-		}, &i18n.Message{
-			ID:    "StageSelection",
-			Other: `toggle line staged / unstaged`,
-		}, &i18n.Message{
-			ID:    "ResetSelection",
-			Other: `delete change (git reset)`,
-		}, &i18n.Message{
-			ID:    "ToggleDragSelect",
-			Other: `toggle drag select`,
-		}, &i18n.Message{
-			ID:    "ToggleSelectHunk",
-			Other: `toggle select hunk`,
-		}, &i18n.Message{
-			ID:    "ToggleSelectionForPatch",
-			Other: `add/remove line(s) to patch`,
-		}, &i18n.Message{
-			ID:    "TogglePanel",
-			Other: `switch to other panel`,
-		}, &i18n.Message{
-			ID:    "CantStageStaged",
-			Other: `You can't stage an already staged change!`,
-		}, &i18n.Message{
-			ID:    "ReturnToFilesPanel",
-			Other: `return to files panel`,
-		}, &i18n.Message{
-			ID:    "CantFindHunks",
-			Other: `Could not find any hunks in this patch`,
-		}, &i18n.Message{
-			ID:    "CantFindHunk",
-			Other: `Could not find hunk`,
-		}, &i18n.Message{
-			ID:    "FastForward",
-			Other: `fast-forward this branch from its upstream`,
-		}, &i18n.Message{
-			ID:    "Fetching",
-			Other: "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
-		}, &i18n.Message{
-			ID:    "FoundConflicts",
-			Other: "Conflicts! To abort press 'esc', otherwise press 'enter'",
-		}, &i18n.Message{
-			ID:    "FoundConflictsTitle",
-			Other: "Auto-merge failed",
-		}, &i18n.Message{
-			ID:    "Undo",
-			Other: "undo",
-		}, &i18n.Message{
-			ID:    "PickHunk",
-			Other: "pick hunk",
-		}, &i18n.Message{
-			ID:    "PickBothHunks",
-			Other: "pick both hunks",
-		}, &i18n.Message{
-			ID:    "ViewMergeRebaseOptions",
-			Other: "view merge/rebase options",
-		}, &i18n.Message{
-			ID:    "NotMergingOrRebasing",
-			Other: "You are currently neither rebasing nor merging",
-		}, &i18n.Message{
-			ID:    "RecentRepos",
-			Other: "recent repositories",
-		}, &i18n.Message{
-			ID:    "MergeOptionsTitle",
-			Other: "Merge Options",
-		}, &i18n.Message{
-			ID:    "RebaseOptionsTitle",
-			Other: "Rebase Options",
-		}, &i18n.Message{
-			ID:    "CommitMessageTitle",
-			Other: "Commit Message",
-		}, &i18n.Message{
-			ID:    "LocalBranchesTitle",
-			Other: "Branches Tab",
-		}, &i18n.Message{
-			ID:    "SearchTitle",
-			Other: "Search",
-		}, &i18n.Message{
-			ID:    "TagsTitle",
-			Other: "Tags Tab",
-		}, &i18n.Message{
-			ID:    "BranchCommitsTitle",
-			Other: "Commits Tab",
-		}, &i18n.Message{
-			ID:    "MenuTitle",
-			Other: "Menu",
-		}, &i18n.Message{
-			ID:    "RemotesTitle",
-			Other: "Remotes Tab",
-		}, &i18n.Message{
-			ID:    "CredentialsTitle",
-			Other: "Credentials",
-		}, &i18n.Message{
-			ID:    "RemoteBranchesTitle",
-			Other: "Remote Branches (in Remotes tab)",
-		}, &i18n.Message{
-			ID:    "PatchBuildingTitle",
-			Other: "Patch Building",
-		}, &i18n.Message{
-			ID:    "InformationTitle",
-			Other: "Information",
-		}, &i18n.Message{
-			ID:    "SecondaryTitle",
-			Other: "Secondary",
-		}, &i18n.Message{
-			ID:    "ReflogCommitsTitle",
-			Other: "Reflog Tab",
-		}, &i18n.Message{
-			ID:    "Title",
-			Other: "Title",
-		}, &i18n.Message{
-			ID:    "GlobalTitle",
-			Other: "Global Keybindings",
-		}, &i18n.Message{
-			ID:    "MerginTitle",
-			Other: "Mergin",
-		}, &i18n.Message{
-			ID:    "ConflictsResolved",
-			Other: "all merge conflicts resolved. Continue?",
-		}, &i18n.Message{
-			ID:    "RebasingTitle",
-			Other: "Rebasing",
-		}, &i18n.Message{
-			ID:    "MergingTitle",
-			Other: "Merging",
-		}, &i18n.Message{
-			ID:    "ConfirmRebase",
-			Other: "Are you sure you want to rebase {{.checkedOutBranch}} onto {{.selectedBranch}}?",
-		}, &i18n.Message{
-			ID:    "ConfirmMerge",
-			Other: "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
-		}, &i18n.Message{}, &i18n.Message{
-			ID:    "FwdNoUpstream",
-			Other: "Cannot fast-forward a branch with no upstream",
-		}, &i18n.Message{
-			ID:    "FwdCommitsToPush",
-			Other: "Cannot fast-forward a branch with commits to push",
-		}, &i18n.Message{
-			ID:    "ErrorOccurred",
-			Other: "An error occurred! Please create an issue at https://github.com/jesseduffield/lazygit/issues",
-		}, &i18n.Message{
-			ID:    "NoRoom",
-			Other: "Not enough room",
-		}, &i18n.Message{
-			ID:    "YouAreHere",
-			Other: "YOU ARE HERE",
-		}, &i18n.Message{
-			ID:    "rewordNotSupported",
-			Other: "rewording commits while interactively rebasing is not currently supported",
-		}, &i18n.Message{
-			ID:    "cherryPickCopy",
-			Other: "copy commit (cherry-pick)",
-		}, &i18n.Message{
-			ID:    "cherryPickCopyRange",
-			Other: "copy commit range (cherry-pick)",
-		}, &i18n.Message{
-			ID:    "pasteCommits",
-			Other: "paste commits (cherry-pick)",
-		}, &i18n.Message{
-			ID:    "SureCherryPick",
-			Other: "Are you sure you want to cherry-pick the copied commits onto this branch?",
-		}, &i18n.Message{
-			ID:    "CherryPick",
-			Other: "Cherry-Pick",
-		}, &i18n.Message{
-			ID:    "CannotRebaseOntoFirstCommit",
-			Other: "You cannot interactive rebase onto the first commit",
-		}, &i18n.Message{
-			ID:    "CannotSquashOntoSecondCommit",
-			Other: "You cannot squash/fixup onto the second commit",
-		}, &i18n.Message{
-			ID:    "Donate",
-			Other: "Donate",
-		}, &i18n.Message{
-			ID:    "PrevLine",
-			Other: "select previous line",
-		}, &i18n.Message{
-			ID:    "NextLine",
-			Other: "select next line",
-		}, &i18n.Message{
-			ID:    "PrevHunk",
-			Other: "select previous hunk",
-		}, &i18n.Message{
-			ID:    "NextHunk",
-			Other: "select next hunk",
-		}, &i18n.Message{
-			ID:    "PrevConflict",
-			Other: "select previous conflict",
-		}, &i18n.Message{
-			ID:    "NextConflict",
-			Other: "select next conflict",
-		}, &i18n.Message{
-			ID:    "SelectTop",
-			Other: "select top hunk",
-		}, &i18n.Message{
-			ID:    "SelectBottom",
-			Other: "select bottom hunk",
-		}, &i18n.Message{
-			ID:    "ScrollDown",
-			Other: "scroll down",
-		}, &i18n.Message{
-			ID:    "ScrollUp",
-			Other: "scroll up",
-		}, &i18n.Message{
-			ID:    "scrollUpMainPanel",
-			Other: "scroll up main panel",
-		}, &i18n.Message{
-			ID:    "scrollDownMainPanel",
-			Other: "scroll down main panel",
-		}, &i18n.Message{
-			ID:    "AmendCommitTitle",
-			Other: "Amend Commit",
-		}, &i18n.Message{
-			ID:    "AmendCommitPrompt",
-			Other: "Are you sure you want to amend this commit with your staged files?",
-		}, &i18n.Message{
-			ID:    "DeleteCommitTitle",
-			Other: "Delete Commit",
-		}, &i18n.Message{
-			ID:    "DeleteCommitPrompt",
-			Other: "Are you sure you want to delete this commit?",
-		}, &i18n.Message{
-			ID:    "SquashingStatus",
-			Other: "squashing",
-		}, &i18n.Message{
-			ID:    "FixingStatus",
-			Other: "fixing up",
-		}, &i18n.Message{
-			ID:    "DeletingStatus",
-			Other: "deleting",
-		}, &i18n.Message{
-			ID:    "MovingStatus",
-			Other: "moving",
-		}, &i18n.Message{
-			ID:    "RebasingStatus",
-			Other: "rebasing",
-		}, &i18n.Message{
-			ID:    "AmendingStatus",
-			Other: "amending",
-		}, &i18n.Message{
-			ID:    "CherryPickingStatus",
-			Other: "cherry-picking",
-		}, &i18n.Message{
-			ID:    "UndoingStatus",
-			Other: "undoing",
-		}, &i18n.Message{
-			ID:    "RedoingStatus",
-			Other: "redoing",
-		}, &i18n.Message{
-			ID:    "CheckingOutStatus",
-			Other: "checking out",
-		}, &i18n.Message{
-			ID:    "CommitFiles",
-			Other: "Commit files",
-		}, &i18n.Message{
-			ID:    "viewCommitFiles",
-			Other: "view commit's files",
-		}, &i18n.Message{
-			ID:    "CommitFilesTitle",
-			Other: "Commit Files",
-		}, &i18n.Message{
-			ID:    "goBack",
-			Other: "go back",
-		}, &i18n.Message{
-			ID:    "NoCommiteFiles",
-			Other: "No files for this commit",
-		}, &i18n.Message{
-			ID:    "checkoutCommitFile",
-			Other: "checkout file",
-		}, &i18n.Message{
-			ID:    "discardOldFileChange",
-			Other: "discard this commit's changes to this file",
-		}, &i18n.Message{
-			ID:    "DiscardFileChangesTitle",
-			Other: "Discard file changes",
-		}, &i18n.Message{
-			ID:    "DiscardFileChangesPrompt",
-			Other: "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
-		}, &i18n.Message{
-			ID:    "DisabledForGPG",
-			Other: "Feature not available for users using GPG",
-		}, &i18n.Message{
-			ID:    "CreateRepo",
-			Other: "Not in a git repository. Create a new git repository? (y/n): ",
-		}, &i18n.Message{
-			ID:    "AutoStashTitle",
-			Other: "Autostash?",
-		}, &i18n.Message{
-			ID:    "AutoStashPrompt",
-			Other: "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
-		}, &i18n.Message{
-			ID:    "StashPrefix",
-			Other: "Auto-stashing changes for ",
-		}, &i18n.Message{
-			ID:    "viewDiscardOptions",
-			Other: "view 'discard changes' options",
-		}, &i18n.Message{
-			ID:    "cancel",
-			Other: "cancel",
-		}, &i18n.Message{
-			ID:    "discardAllChanges",
-			Other: "discard all changes",
-		}, &i18n.Message{
-			ID:    "discardUnstagedChanges",
-			Other: "discard unstaged changes",
-		}, &i18n.Message{
-			ID:    "discardAllChangesToAllFiles",
-			Other: "nuke working tree",
-		}, &i18n.Message{
-			ID:    "discardAnyUnstagedChanges",
-			Other: "discard unstaged changes",
-		}, &i18n.Message{
-			ID:    "discardUntrackedFiles",
-			Other: "discard untracked files",
-		}, &i18n.Message{
-			ID:    "hardReset",
-			Other: "hard reset",
-		}, &i18n.Message{
-			ID:    "hardResetUpstream",
-			Other: "hard reset to upstream branch",
-		}, &i18n.Message{
-			ID:    "viewResetOptions",
-			Other: `view reset options`,
-		}, &i18n.Message{
-			ID:    "createFixupCommit",
-			Other: `create fixup commit for this commit`,
-		}, &i18n.Message{
-			ID:    "squashAboveCommits",
-			Other: `squash above commits`,
-		}, &i18n.Message{
-			ID:    "SquashAboveCommits",
-			Other: `Squash above commits`,
-		}, &i18n.Message{
-			ID:    "SureSquashAboveCommits",
-			Other: `Are you sure you want to squash all fixup! commits above {{.commit}}?`,
-		}, &i18n.Message{
-			ID:    "CreateFixupCommit",
-			Other: `Create fixup commit`,
-		}, &i18n.Message{
-			ID:    "SureCreateFixupCommit",
-			Other: `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
-		}, &i18n.Message{
-			ID:    "executeCustomCommand",
-			Other: "execute custom command",
-		}, &i18n.Message{
-			ID:    "CustomCommand",
-			Other: "Custom Command:",
-		}, &i18n.Message{
-			ID:    "commitChangesWithoutHook",
-			Other: "commit changes without pre-commit hook",
-		}, &i18n.Message{
-			ID:    "SkipHookPrefixNotConfigured",
-			Other: "You have not configured a commit message prefix for skipping hooks. Set `git.skipHookPrefix = 'WIP'` in your config",
-		}, &i18n.Message{
-			ID:    "resetTo",
-			Other: `reset to`,
-		}, &i18n.Message{
-			ID:    "pressEnterToReturn",
-			Other: "Press enter to return to lazygit",
-		}, &i18n.Message{
-			ID:    "viewStashOptions",
-			Other: "view stash options",
-		}, &i18n.Message{
-			ID:    "stashAllChanges",
-			Other: "stash changes",
-		}, &i18n.Message{
-			ID:    "stashStagedChanges",
-			Other: "stash staged changes",
-		}, &i18n.Message{
-			ID:    "stashOptions",
-			Other: "Stash options",
-		}, &i18n.Message{
-			ID:    "notARepository",
-			Other: "Error: must be run inside a git repository",
-		}, &i18n.Message{
-			ID:    "jump",
-			Other: "jump to panel",
-		}, &i18n.Message{
-			ID:    "DiscardPatch",
-			Other: "Discard Patch",
-		}, &i18n.Message{
-			ID:    "DiscardPatchConfirm",
-			Other: "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
-		}, &i18n.Message{
-			ID:    "CantPatchWhileRebasingError",
-			Other: "You cannot build a patch or run patch commands while in a merging or rebasing state",
-		}, &i18n.Message{
-			ID:    "toggleAddToPatch",
-			Other: "toggle file included in patch",
-		}, &i18n.Message{
-			ID:    "ViewPatchOptions",
-			Other: "view custom patch options",
-		}, &i18n.Message{
-			ID:    "PatchOptionsTitle",
-			Other: "Patch Options",
-		}, &i18n.Message{
-			ID:    "NoPatchError",
-			Other: "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
-		}, &i18n.Message{
-			ID:    "enterFile",
-			Other: "enter file to add selected lines to the patch",
-		}, &i18n.Message{
-			ID:    "ExitLineByLineMode",
-			Other: `exit line-by-line mode`,
-		}, &i18n.Message{
-			ID:    "EnterUpstream",
-			Other: `Enter upstream as '<remote> <branchname>'`,
-		}, &i18n.Message{
-			ID:    "EnterUpstreamWithSlash",
-			Other: `Enter upstream as '<remote>/<branchname>'`,
-		}, &i18n.Message{
-			ID:    "notTrackingRemote",
-			Other: "(not tracking any remote)",
-		}, &i18n.Message{
-			ID:    "ReturnToRemotesList",
-			Other: `Return to remotes list`,
-		}, &i18n.Message{
-			ID:    "addNewRemote",
-			Other: `add new remote`,
-		}, &i18n.Message{
-			ID:    "newRemoteName",
-			Other: `New remote name:`,
-		}, &i18n.Message{
-			ID:    "newRemoteUrl",
-			Other: `New remote url:`,
-		}, &i18n.Message{
-			ID:    "editRemoteName",
-			Other: `Enter updated remote name for {{ .remoteName }}:`,
-		}, &i18n.Message{
-			ID:    "editRemoteUrl",
-			Other: `Enter updated remote url for {{ .remoteName }}:`,
-		}, &i18n.Message{
-			ID:    "removeRemote",
-			Other: `remove remote`,
-		}, &i18n.Message{
-			ID:    "removeRemotePrompt",
-			Other: "Are you sure you want to remove remote",
-		}, &i18n.Message{
-			ID:    "DeleteRemoteBranch",
-			Other: "Delete Remote Branch",
-		}, &i18n.Message{
-			ID:    "DeleteRemoteBranchMessage",
-			Other: "Are you sure you want to delete remote branch",
-		}, &i18n.Message{
-			ID:    "setUpstream",
-			Other: "set as upstream of checked-out branch",
-		}, &i18n.Message{
-			ID:    "SetUpstreamTitle",
-			Other: "Set upstream branch",
-		}, &i18n.Message{
-			ID:    "SetUpstreamMessage",
-			Other: "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
-		}, &i18n.Message{
-			ID:    "editRemote",
-			Other: "edit remote",
-		}, &i18n.Message{
-			ID:    "tagCommit",
-			Other: "tag commit",
-		}, &i18n.Message{
-			ID:    "TagNameTitle",
-			Other: "Tag name:",
-		}, &i18n.Message{
-			ID:    "deleteTag",
-			Other: "delete tag",
-		}, &i18n.Message{
-			ID:    "DeleteTagTitle",
-			Other: "Delete tag",
-		}, &i18n.Message{
-			ID:    "DeleteTagPrompt",
-			Other: "Are you sure you want to delete tag '{{.tagName}}'?",
-		}, &i18n.Message{
-			ID:    "PushTagTitle",
-			Other: "remote to push tag '{{.tagName}}' to:",
-		}, &i18n.Message{
-			ID:    "pushTag",
-			Other: "push tag",
-		}, &i18n.Message{
-			ID:    "createTag",
-			Other: "create tag",
-		}, &i18n.Message{
-			ID:    "CreateTagTitle",
-			Other: "Tag name:",
-		}, &i18n.Message{
-			ID:    "fetchRemote",
-			Other: "fetch remote",
-		}, &i18n.Message{
-			ID:    "FetchingRemoteStatus",
-			Other: "fetching remote",
-		}, &i18n.Message{
-			ID:    "checkoutCommit",
-			Other: "checkout commit",
-		}, &i18n.Message{
-			ID:    "SureCheckoutThisCommit",
-			Other: "Are you sure you want to checkout this commit?",
-		}, &i18n.Message{
-			ID:    "gitFlowOptions",
-			Other: "show git-flow options",
-		}, &i18n.Message{
-			ID:    "NotAGitFlowBranch",
-			Other: "This does not seem to be a git flow branch",
-		}, &i18n.Message{
-			ID:    "NewBranchNamePrompt",
-			Other: "new {{.branchType}} name:",
-		}, &i18n.Message{
-			ID:    "IgnoreTracked",
-			Other: "Ignore tracked file",
-		}, &i18n.Message{
-			ID:    "IgnoreTrackedPrompt",
-			Other: "Are you sure you want to ignore a tracked file?",
-		}, &i18n.Message{
-			ID:    "viewResetToUpstreamOptions",
-			Other: "view upstream reset options",
-		}, &i18n.Message{
-			ID:    "nextScreenMode",
-			Other: "next screen mode (normal/half/fullscreen)",
-		}, &i18n.Message{
-			ID:    "prevScreenMode",
-			Other: "prev screen mode",
-		}, &i18n.Message{
-			ID:    "startSearch",
-			Other: "start search",
-		}, &i18n.Message{
-			ID:    "Panel",
-			Other: "Panel",
-		}, &i18n.Message{
-			ID:    "Keybindings",
-			Other: "Keybindings",
-		}, &i18n.Message{
-			ID:    "renameBranch",
-			Other: "rename branch",
-		}, &i18n.Message{
-			ID:    "NewBranchNamePrompt",
-			Other: "Enter new branch name for branch",
-		}, &i18n.Message{
-			ID:    "RenameBranchWarning",
-			Other: "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
-		}, &i18n.Message{
-			ID:    "openMenu",
-			Other: "open menu",
-		}, &i18n.Message{
-			ID:    "closeMenu",
-			Other: "close menu",
-		}, &i18n.Message{
-			ID:    "resetCherryPick",
-			Other: "reset cherry-picked (copied) commits selection",
-		}, &i18n.Message{
-			ID:    "nextTab",
-			Other: "next tab",
-		}, &i18n.Message{
-			ID:    "prevTab",
-			Other: "previous tab",
-		}, &i18n.Message{
-			ID:    "cantUndoWhileRebasing",
-			Other: "Can't undo while rebasing",
-		}, &i18n.Message{
-			ID:    "cantRedoWhileRebasing",
-			Other: "Can't redo while rebasing",
-		}, &i18n.Message{
-			ID:    "MustStashWarning",
-			Other: "Pulling a patch out into the index requires stashing and unstashing your changes. If something goes wrong, you'll be able to access your files from the stash. Continue?",
-		}, &i18n.Message{
-			ID:    "MustStashTitle",
-			Other: "Must stash",
-		}, &i18n.Message{
-			ID:    "ConfirmationTitle",
-			Other: "Confirmation Panel",
-		}, &i18n.Message{
-			ID:    "prevPage",
-			Other: "previous page",
-		}, &i18n.Message{
-			ID:    "nextPage",
-			Other: "next page",
-		}, &i18n.Message{
-			ID:    "gotoTop",
-			Other: "scroll to top",
-		}, &i18n.Message{
-			ID:    "gotoBottom",
-			Other: "scroll to bottom",
-		}, &i18n.Message{
-			ID:    "filteringBy",
-			Other: "filtering by",
-		}, &i18n.Message{
-			ID:    "(reset)",
-			Other: "(reset)",
-		}, &i18n.Message{
-			ID:    "openScopingMenu",
-			Other: "view scoping options",
-		}, &i18n.Message{
-			ID:    "filterBy",
-			Other: "filter by",
-		}, &i18n.Message{
-			ID:    "exitFilterMode",
-			Other: "stop filtering by path",
-		}, &i18n.Message{
-			ID:    "filterPathOption",
-			Other: "enter path to filter by",
-		}, &i18n.Message{
-			ID:    "enterFileName",
-			Other: "enter path:",
-		}, &i18n.Message{
-			ID:    "FilteringMenuTitle",
-			Other: "Filtering",
-		}, &i18n.Message{
-			ID:    "MustExitFilterModeTitle",
-			Other: "Command not available",
-		}, &i18n.Message{
-			ID:    "MustExitFilterModePrompt",
-			Other: "Command not available in filtered mode. Exit filtered mode?",
-		}, &i18n.Message{
-			ID:    "diff",
-			Other: "diff",
-		}, &i18n.Message{
-			ID:    "enterRefToDiff",
-			Other: "enter ref to diff",
-		}, &i18n.Message{
-			ID:    "enteRefName",
-			Other: "enter ref:",
-		}, &i18n.Message{
-			ID:    "exitDiffMode",
-			Other: "exit diff mode",
-		}, &i18n.Message{
-			ID:    "DiffingMenuTitle",
-			Other: "Diffing",
-		}, &i18n.Message{
-			ID:    "swapDiff",
-			Other: "reverse diff direction",
-		}, &i18n.Message{
-			ID:    "openDiffingMenu",
-			Other: "open diff menu",
-		}, &i18n.Message{
-			ID:    "showingGitDiff",
-			Other: "showing output for:",
-		}, &i18n.Message{
-			ID:    "copyCommitShaToClipboard",
-			Other: "copy commit SHA to clipboard",
-		}, &i18n.Message{
-			ID:    "copyBranchNameToClipboard",
-			Other: "copy branch name to clipboard",
-		}, &i18n.Message{
-			ID:    "copyFileNameToClipboard",
-			Other: "copy the file name to the clipboard",
-		}, &i18n.Message{
-			ID:    "copyCommitFileNameToClipboard",
-			Other: "copy the committed file name to the clipboard",
-		}, &i18n.Message{
-			ID:    "commitPrefixPatternError",
-			Other: "Error in commitPrefix pattern",
-		}, &i18n.Message{
-			ID:    "NoFilesStagedTitle",
-			Other: "No files staged",
-		}, &i18n.Message{
-			ID:    "NoFilesStagedPrompt",
-			Other: "You have not staged any files. Commit all files?",
-		}, &i18n.Message{
-			ID:    "BranchNotFoundTitle",
-			Other: "Branch not found",
-		}, &i18n.Message{
-			ID:    "BranchNotFoundPrompt",
-			Other: "Branch not found. Create a new branch named",
-		}, &i18n.Message{
-			ID:    "UnstageLinesTitle",
-			Other: "Unstage lines",
-		}, &i18n.Message{
-			ID:    "UnstageLinesPrompt",
-			Other: "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true",
-		}, &i18n.Message{
-			ID:    "createNewBranchFromCommit",
-			Other: "create new branch off of commit",
-		}, &i18n.Message{
-			ID:    "viewStashFiles",
-			Other: "view stash entry's files",
-		}, &i18n.Message{
-			ID:    "buildingPatch",
-			Other: "building patch",
-		}, &i18n.Message{
-			ID:    "viewCommits",
-			Other: "view commits",
-		}, &i18n.Message{
-			ID:    "minGitVersionError",
-			Other: "Git version must be at least 2.0 (i.e. from 2014 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
-		}, &i18n.Message{
-			ID:    "runningCustomCommandStatus",
-			Other: "running custom command",
-		}, &i18n.Message{
-			ID:    "submoduleStashAndReset",
-			Other: "stash uncommitted submodule changes and update",
-		}, &i18n.Message{
-			ID:    "andResetSubmodules",
-			Other: "and reset submodules",
-		}, &i18n.Message{
-			ID:    "enterSubmodule",
-			Other: "enter submodule",
-		}, &i18n.Message{
-			ID:    "copySubmoduleNameToClipboard",
-			Other: "copy submodule name to clipboard",
-		}, &i18n.Message{
-			ID:    "RemoveSubmodule",
-			Other: "Remove submodule",
-		}, &i18n.Message{
-			ID:    "removeSubmodule",
-			Other: "remove submodule",
-		}, &i18n.Message{
-			ID:    "RemoveSubmodulePrompt",
-			Other: "Are you sure you want to remove submodule '%s' and its corresponding directory? This is irreversible.",
-		}, &i18n.Message{
-			ID:    "resettingSubmoduleStatus",
-			Other: "resetting submodule",
-		}, &i18n.Message{
-			ID:    "newSubmoduleName",
-			Other: "new submodule name:",
-		}, &i18n.Message{
-			ID:    "newSubmoduleUrl",
-			Other: "new submodule URL:",
-		}, &i18n.Message{
-			ID:    "newSubmodulePath",
-			Other: "new submodule path:",
-		}, &i18n.Message{
-			ID:    "addSubmodule",
-			Other: "add new submodule",
-		}, &i18n.Message{
-			ID:    "addingSubmoduleStatus",
-			Other: "adding submodule",
-		}, &i18n.Message{
-			ID:    "updateSubmoduleUrl",
-			Other: "update URL for submodule '%s'",
-		}, &i18n.Message{
-			ID:    "updatingSubmoduleUrlStatus",
-			Other: "updating URL",
-		}, &i18n.Message{
-			ID:    "editSubmoduleUrl",
-			Other: "update submodule URL",
-		}, &i18n.Message{
-			ID:    "initializingSubmoduleStatus",
-			Other: "initializing submodule",
-		}, &i18n.Message{
-			ID:    "initSubmodule",
-			Other: "initialize submodule",
-		}, &i18n.Message{
-			ID:    "viewResetAndRemoveOptions",
-			Other: "view reset and remove submodule options",
-		}, &i18n.Message{
-			ID:    "submoduleUpdate",
-			Other: "update submodule",
-		}, &i18n.Message{
-			ID:    "updatingSubmoduleStatus",
-			Other: "updating submodule",
-		}, &i18n.Message{
-			ID:    "bulkInitSubmodules",
-			Other: "bulk init submodules",
-		}, &i18n.Message{
-			ID:    "bulkUpdateSubmodules",
-			Other: "bulk update submodules",
-		}, &i18n.Message{
-			ID:    "bulkDeinitSubmodules",
-			Other: "bulk deinit submodules",
-		}, &i18n.Message{
-			ID:    "viewBulkSubmoduleOptions",
-			Other: "view bulk submodule options",
-		}, &i18n.Message{
-			ID:    "bulkSubmoduleOptions",
-			Other: "bulk submodule options",
-		}, &i18n.Message{
-			ID:    "runningCommand",
-			Other: "running command",
-		}, &i18n.Message{
-			ID:    "SubCommitsTitle",
-			Other: "Sub-commits",
-		}, &i18n.Message{
-			ID:    "SubmodulesTitle",
-			Other: "Submodules",
-		}, &i18n.Message{
-			ID:    "NavigationTitle",
-			Other: "List Panel Navigation",
-		},
-	)
+func englishTranslationSet() TranslationSet {
+	return TranslationSet{
+		NotEnoughSpace:                      "Not enough space to render panels",
+		DiffTitle:                           "Diff",
+		LogTitle:                            "Log",
+		FilesTitle:                          "Files",
+		BranchesTitle:                       "Branches",
+		CommitsTitle:                        "Commits",
+		StashTitle:                          "Stash",
+		UnstagedChanges:                     `Unstaged Changes`,
+		StagedChanges:                       `Staged Changes`,
+		PatchBuildingMainTitle:              `Add Lines/Hunks To Patch`,
+		MergingMainTitle:                    "Resolve merge conflicts",
+		MainTitle:                           "Main",
+		StagingTitle:                        "Staging",
+		MergingTitle:                        "Merging",
+		NormalTitle:                         "Normal",
+		CommitMessage:                       "Commit message",
+		CredentialsUsername:                 "Username",
+		CredentialsPassword:                 "Password",
+		PassUnameWrong:                      "Password and/or username wrong",
+		CommitChanges:                       "commit changes",
+		AmendLastCommit:                     "amend last commit",
+		SureToAmend:                         "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",
+		NoCommitToAmend:                     "There's no commit to amend.",
+		CommitChangesWithEditor:             "commit changes using git editor",
+		StatusTitle:                         "Status",
+		LcNavigate:                          "navigate",
+		LcMenu:                              "menu",
+		LcExecute:                           "execute",
+		LcOpen:                              "open",
+		LcIgnore:                            "ignore",
+		LcDelete:                            "delete",
+		LcToggleStaged:                      "toggle staged",
+		LcToggleStagedAll:                   "stage/unstage all",
+		LcRefresh:                           "refresh",
+		LcPush:                              "push",
+		LcPull:                              "pull",
+		LcEdit:                              "edit",
+		LcScroll:                            "scroll",
+		LcAbortMerge:                        "abort merge",
+		LcResolveMergeConflicts:             "resolve merge conflicts",
+		MergeConflictsTitle:                 "Merge Conflicts",
+		LcCheckout:                          "checkout",
+		NoChangedFiles:                      "No changed files",
+		FileHasNoUnstagedChanges:            "File has no unstaged changes to add",
+		CannotGitAdd:                        "Cannot git add --patch untracked files",
+		NoFilesDisplay:                      "No file to display",
+		NotAFile:                            "Not a file",
+		PullWait:                            "Pulling...",
+		PushWait:                            "Pushing...",
+		FetchWait:                           "Fetching...",
+		FileNoMergeCons:                     "This file has no inline merge conflicts",
+		LcSoftReset:                         "soft reset",
+		SureTo:                              "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
+		AlreadyCheckedOutBranch:             "You have already checked out this branch",
+		SureForceCheckout:                   "Are you sure you want force checkout? You will lose all local changes",
+		ForceCheckoutBranch:                 "Force Checkout Branch",
+		BranchName:                          "Branch name",
+		NewBranchNameBranchOff:              "New Branch Name (Branch is off of {{.branchName}})",
+		CantDeleteCheckOutBranch:            "You cannot delete the checked out branch!",
+		DeleteBranch:                        "Delete Branch",
+		DeleteBranchMessage:                 "Are you sure you want to delete the branch {{.selectedBranchName}}?",
+		ForceDeleteBranchMessage:            "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
+		LcRebaseBranch:                      "rebase checked-out branch onto this branch",
+		CantRebaseOntoSelf:                  "You cannot rebase a branch onto itself",
+		CantMergeBranchIntoItself:           "You cannot merge a branch into itself",
+		LcForceCheckout:                     "force checkout",
+		LcMerge:                             "merge",
+		LcCheckoutByName:                    "checkout by name",
+		LcNewBranch:                         "new branch",
+		LcDeleteBranch:                      "delete branch",
+		LcForceDeleteBranch:                 "delete branch (force)",
+		NoBranchesThisRepo:                  "No branches for this repo",
+		NoTrackingThisBranch:                "There is no tracking for this branch",
+		CommitMessageConfirm:                "{{.keyBindClose}}: close, {{.keyBindNewLine}}: new line, {{.keyBindConfirm}}: confirm",
+		CommitWithoutMessageErr:             "You cannot commit without a commit message",
+		CloseConfirm:                        "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
+		LcClose:                             "close",
+		LcQuit:                              "quit",
+		SureResetThisCommit:                 "Are you sure you want to reset to this commit?",
+		ResetToCommit:                       "Reset To Commit",
+		LcSquashDown:                        "squash down",
+		LcRename:                            "rename",
+		LcResetToThisCommit:                 "reset to this commit",
+		LcFixupCommit:                       "fixup commit",
+		NoCommitsThisBranch:                 "No commits for this branch",
+		OnlySquashTopmostCommit:             "Can only squash topmost commit",
+		YouNoCommitsToSquash:                "You have no commits to squash with",
+		CantFixupWhileUnstagedChanges:       "Can't fixup while there are unstaged changes",
+		Fixup:                               "Fixup",
+		SureFixupThisCommit:                 "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
+		SureSquashThisCommit:                "Are you sure you want to squash this commit into the commit below?",
+		Squash:                              "Squash",
+		LcPickCommit:                        "pick commit (when mid-rebase)",
+		LcRevertCommit:                      "revert commit",
+		OnlyRenameTopCommit:                 "Can only reword topmost commit from within lazygit. Use shift+R instead",
+		LcRenameCommit:                      "reword commit",
+		LcDeleteCommit:                      "delete commit",
+		LcMoveDownCommit:                    "move commit down one",
+		LcMoveUpCommit:                      "move commit up one",
+		LcEditCommit:                        "edit commit",
+		LcAmendToCommit:                     "amend commit with staged changes",
+		LcRenameCommitEditor:                "rename commit with editor",
+		PotentialErrInGetselectedCommit:     "potential error in getSelected Commit (mismatched ui and state)",
+		Error:                               "Error",
+		RunningSubprocess:                   "running subprocess",
+		LcSelectHunk:                        "select hunk",
+		LcNavigateConflicts:                 "navigate conflicts",
+		LcPickHunk:                          "pick hunk",
+		LcPickBothHunks:                     "pick both hunks",
+		LcUndo:                              "undo",
+		LcUndoReflog:                        "undo (via reflog) (experimental)",
+		LcRedoReflog:                        "redo (via reflog) (experimental)",
+		LcPop:                               "pop",
+		LcDrop:                              "drop",
+		LcApply:                             "apply",
+		NoStashEntries:                      "No stash entries",
+		StashDrop:                           "Stash drop",
+		SureDropStashEntry:                  "Are you sure you want to drop this stash entry?",
+		StashPop:                            "Stash pop",
+		SurePopStashEntry:                   "Are you sure you want to pop this stash entry?",
+		StashApply:                          "Stash apply",
+		SureApplyStashEntry:                 "Are you sure you want to apply this stash entry?",
+		NoStashTo:                           "No stash to {{.method}}",
+		NoTrackedStagedFilesStash:           "You have no tracked/staged files to stash",
+		StashChanges:                        "Stash changes",
+		IssntListOfViews:                    "{{.name}} is not in the list of views",
+		LcNewFocusedViewIs:                  "new focused view is {{.newFocusedView}}",
+		MergeAborted:                        "Merge aborted",
+		OpenConfig:                          "open config file",
+		EditConfig:                          "edit config file",
+		ForcePush:                           "Force push",
+		ForcePushPrompt:                     "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
+		ForcePushDisabled:                   "Your branch has diverged from the remote branch and you've disabled force pushing",
+		UpdatesRejectedAndForcePushDisabled: "Updates were rejected and you have disabled force pushing",
+		LcCheckForUpdate:                    "check for update",
+		CheckingForUpdates:                  "Checking for updates...",
+		OnLatestVersionErr:                  "You already have the latest version",
+		MajorVersionErr:                     "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
+		CouldNotFindBinaryErr:               "Could not find any binary at {{.url}}",
+		AnonymousReportingTitle:             "Help make lazygit better",
+		AnonymousReportingPrompt:            "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
+		IntroPopupMessage:                   "Thanks for using lazygit! Two things to share with you:\n\n1) If you want to learn about lazygit's features, watch this vid:\n   https://youtu.be/CPLdltN7wgE\n\n2) If you're using git, that makes you a programmer! With your help we can make lazygit better, so consider becoming a contributor and joining the fun at\n   https://github.com/jesseduffield/lazygit",
+		GitconfigParseErr:                   `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
+		LcEditFile:                          `edit file`,
+		LcOpenFile:                          `open file`,
+		LcIgnoreFile:                        `add to .gitignore`,
+		LcRefreshFiles:                      `refresh files`,
+		LcMergeIntoCurrentBranch:            `merge into currently checked out branch`,
+		ConfirmQuit:                         `Are you sure you want to quit?`,
+		SwitchRepo:                          `switch to a recent repo`,
+		UnsupportedGitService:               `Unsupported git service`,
+		LcCreatePullRequest:                 `create pull request`,
+		NoBranchOnRemote:                    `This branch doesn't exist on remote. You need to push it to remote first.`,
+		LcFetch:                             `fetch`,
+		NoAutomaticGitFetchTitle:            `No automatic git fetch`,
+		NoAutomaticGitFetchBody:             `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
+		StageLines:                          `stage individual hunks/lines`,
+		FileStagingRequirements:             `Can only stage individual lines for tracked files`,
+		SelectHunk:                          `select hunk`,
+		StageSelection:                      `toggle line staged / unstaged`,
+		ResetSelection:                      `delete change (git reset)`,
+		ToggleDragSelect:                    `toggle drag select`,
+		ToggleSelectHunk:                    `toggle select hunk`,
+		ToggleSelectionForPatch:             `add/remove line(s) to patch`,
+		TogglePanel:                         `switch to other panel`,
+		CantStageStaged:                     `You can't stage an already staged change!`,
+		ReturnToFilesPanel:                  `return to files panel`,
+		CantFindHunks:                       `Could not find any hunks in this patch`,
+		CantFindHunk:                        `Could not find hunk`,
+		FastForward:                         `fast-forward this branch from its upstream`,
+		Fetching:                            "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
+		FoundConflicts:                      "Conflicts! To abort press 'esc', otherwise press 'enter'",
+		FoundConflictsTitle:                 "Auto-merge failed",
+		Undo:                                "undo",
+		PickHunk:                            "pick hunk",
+		PickBothHunks:                       "pick both hunks",
+		ViewMergeRebaseOptions:              "view merge/rebase options",
+		NotMergingOrRebasing:                "You are currently neither rebasing nor merging",
+		RecentRepos:                         "recent repositories",
+		MergeOptionsTitle:                   "Merge Options",
+		RebaseOptionsTitle:                  "Rebase Options",
+		CommitMessageTitle:                  "Commit Message",
+		LocalBranchesTitle:                  "Branches Tab",
+		SearchTitle:                         "Search",
+		TagsTitle:                           "Tags Tab",
+		BranchCommitsTitle:                  "Commits Tab",
+		MenuTitle:                           "Menu",
+		RemotesTitle:                        "Remotes Tab",
+		CredentialsTitle:                    "Credentials",
+		RemoteBranchesTitle:                 "Remote Branches (in Remotes tab)",
+		PatchBuildingTitle:                  "Patch Building",
+		InformationTitle:                    "Information",
+		SecondaryTitle:                      "Secondary",
+		ReflogCommitsTitle:                  "Reflog Tab",
+		Title:                               "Title",
+		GlobalTitle:                         "Global Keybindings",
+		ConflictsResolved:                   "all merge conflicts resolved. Continue?",
+		RebasingTitle:                       "Rebasing",
+		ConfirmRebase:                       "Are you sure you want to rebase {{.checkedOutBranch}} onto {{.selectedBranch}}?",
+		ConfirmMerge:                        "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
+		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
+		FwdCommitsToPush:                    "Cannot fast-forward a branch with commits to push",
+		ErrorOccurred:                       "An error occurred! Please create an issue at https://github.com/jesseduffield/lazygit/issues",
+		NoRoom:                              "Not enough room",
+		YouAreHere:                          "YOU ARE HERE",
+		LcRewordNotSupported:                "rewording commits while interactively rebasing is not currently supported",
+		LcCherryPickCopy:                    "copy commit (cherry-pick)",
+		LcCherryPickCopyRange:               "copy commit range (cherry-pick)",
+		LcPasteCommits:                      "paste commits (cherry-pick)",
+		SureCherryPick:                      "Are you sure you want to cherry-pick the copied commits onto this branch?",
+		CherryPick:                          "Cherry-Pick",
+		CannotRebaseOntoFirstCommit:         "You cannot interactive rebase onto the first commit",
+		CannotSquashOntoSecondCommit:        "You cannot squash/fixup onto the second commit",
+		Donate:                              "Donate",
+		PrevLine:                            "select previous line",
+		NextLine:                            "select next line",
+		PrevHunk:                            "select previous hunk",
+		NextHunk:                            "select next hunk",
+		PrevConflict:                        "select previous conflict",
+		NextConflict:                        "select next conflict",
+		SelectTop:                           "select top hunk",
+		SelectBottom:                        "select bottom hunk",
+		ScrollDown:                          "scroll down",
+		ScrollUp:                            "scroll up",
+		LcScrollUpMainPanel:                 "scroll up main panel",
+		LcScrollDownMainPanel:               "scroll down main panel",
+		AmendCommitTitle:                    "Amend Commit",
+		AmendCommitPrompt:                   "Are you sure you want to amend this commit with your staged files?",
+		DeleteCommitTitle:                   "Delete Commit",
+		DeleteCommitPrompt:                  "Are you sure you want to delete this commit?",
+		SquashingStatus:                     "squashing",
+		FixingStatus:                        "fixing up",
+		DeletingStatus:                      "deleting",
+		MovingStatus:                        "moving",
+		RebasingStatus:                      "rebasing",
+		AmendingStatus:                      "amending",
+		CherryPickingStatus:                 "cherry-picking",
+		UndoingStatus:                       "undoing",
+		RedoingStatus:                       "redoing",
+		CheckingOutStatus:                   "checking out",
+		CommitFiles:                         "Commit files",
+		LcViewCommitFiles:                   "view commit's files",
+		CommitFilesTitle:                    "Commit Files",
+		LcGoBack:                            "go back",
+		NoCommiteFiles:                      "No files for this commit",
+		LcCheckoutCommitFile:                "checkout file",
+		LcDiscardOldFileChange:              "discard this commit's changes to this file",
+		DiscardFileChangesTitle:             "Discard file changes",
+		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
+		DisabledForGPG:                      "Feature not available for users using GPG",
+		CreateRepo:                          "Not in a git repository. Create a new git repository? (y/n): ",
+		AutoStashTitle:                      "Autostash?",
+		AutoStashPrompt:                     "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
+		StashPrefix:                         "Auto-stashing changes for ",
+		LcViewDiscardOptions:                "view 'discard changes' options",
+		LcCancel:                            "cancel",
+		LcDiscardAllChanges:                 "discard all changes",
+		LcDiscardUnstagedChanges:            "discard unstaged changes",
+		LcDiscardAllChangesToAllFiles:       "nuke working tree",
+		LcDiscardAnyUnstagedChanges:         "discard unstaged changes",
+		LcDiscardUntrackedFiles:             "discard untracked files",
+		LcHardReset:                         "hard reset",
+		LcHardResetUpstream:                 "hard reset to upstream branch",
+		LcViewResetOptions:                  `view reset options`,
+		LcCreateFixupCommit:                 `create fixup commit for this commit`,
+		LcSquashAboveCommits:                `squash above commits`,
+		SquashAboveCommits:                  `Squash above commits`,
+		SureSquashAboveCommits:              `Are you sure you want to squash all fixup! commits above {{.commit}}?`,
+		CreateFixupCommit:                   `Create fixup commit`,
+		SureCreateFixupCommit:               `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
+		LcExecuteCustomCommand:              "execute custom command",
+		CustomCommand:                       "Custom Command:",
+		LcCommitChangesWithoutHook:          "commit changes without pre-commit hook",
+		SkipHookPrefixNotConfigured:         "You have not configured a commit message prefix for skipping hooks. Set `git.skipHookPrefix = 'WIP'` in your config",
+		LcResetTo:                           `reset to`,
+		PressEnterToReturn:                  "Press enter to return to lazygit",
+		LcViewStashOptions:                  "view stash options",
+		LcStashAllChanges:                   "stash changes",
+		LcStashStagedChanges:                "stash staged changes",
+		LcStashOptions:                      "Stash options",
+		NotARepository:                      "Error: must be run inside a git repository",
+		LcJump:                              "jump to panel",
+		DiscardPatch:                        "Discard Patch",
+		DiscardPatchConfirm:                 "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
+		CantPatchWhileRebasingError:         "You cannot build a patch or run patch commands while in a merging or rebasing state",
+		LcToggleAddToPatch:                  "toggle file included in patch",
+		ViewPatchOptions:                    "view custom patch options",
+		PatchOptionsTitle:                   "Patch Options",
+		NoPatchError:                        "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
+		LcEnterFile:                         "enter file to add selected lines to the patch",
+		ExitLineByLineMode:                  `exit line-by-line mode`,
+		EnterUpstream:                       `Enter upstream as '<remote> <branchname>'`,
+		EnterUpstreamWithSlash:              `Enter upstream as '<remote>/<branchname>'`,
+		LcNotTrackingRemote:                 "(not tracking any remote)",
+		ReturnToRemotesList:                 `Return to remotes list`,
+		LcAddNewRemote:                      `add new remote`,
+		LcNewRemoteName:                     `New remote name:`,
+		LcNewRemoteUrl:                      `New remote url:`,
+		LcEditRemoteName:                    `Enter updated remote name for {{ .remoteName }}:`,
+		LcEditRemoteUrl:                     `Enter updated remote url for {{ .remoteName }}:`,
+		LcRemoveRemote:                      `remove remote`,
+		LcRemoveRemotePrompt:                "Are you sure you want to remove remote",
+		DeleteRemoteBranch:                  "Delete Remote Branch",
+		DeleteRemoteBranchMessage:           "Are you sure you want to delete remote branch",
+		LcSetUpstream:                       "set as upstream of checked-out branch",
+		SetUpstreamTitle:                    "Set upstream branch",
+		SetUpstreamMessage:                  "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
+		LcEditRemote:                        "edit remote",
+		LcTagCommit:                         "tag commit",
+		TagNameTitle:                        "Tag name:",
+		LcDeleteTag:                         "delete tag",
+		DeleteTagTitle:                      "Delete tag",
+		DeleteTagPrompt:                     "Are you sure you want to delete tag '{{.tagName}}'?",
+		PushTagTitle:                        "remote to push tag '{{.tagName}}' to:",
+		LcPushTag:                           "push tag",
+		LcCreateTag:                         "create tag",
+		CreateTagTitle:                      "Tag name:",
+		LcFetchRemote:                       "fetch remote",
+		FetchingRemoteStatus:                "fetching remote",
+		LcCheckoutCommit:                    "checkout commit",
+		SureCheckoutThisCommit:              "Are you sure you want to checkout this commit?",
+		LcGitFlowOptions:                    "show git-flow options",
+		NotAGitFlowBranch:                   "This does not seem to be a git flow branch",
+		NewGitFlowBranchPrompt:              "new {{.branchType}} name:",
+		IgnoreTracked:                       "Ignore tracked file",
+		IgnoreTrackedPrompt:                 "Are you sure you want to ignore a tracked file?",
+		LcViewResetToUpstreamOptions:        "view upstream reset options",
+		LcNextScreenMode:                    "next screen mode (normal/half/fullscreen)",
+		LcPrevScreenMode:                    "prev screen mode",
+		LcStartSearch:                       "start search",
+		Panel:                               "Panel",
+		Keybindings:                         "Keybindings",
+		LcRenameBranch:                      "rename branch",
+		NewBranchNamePrompt:                 "Enter new branch name for branch",
+		RenameBranchWarning:                 "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
+		LcOpenMenu:                          "open menu",
+		LcCloseMenu:                         "close menu",
+		LcResetCherryPick:                   "reset cherry-picked (copied) commits selection",
+		LcNextTab:                           "next tab",
+		LcPrevTab:                           "previous tab",
+		LcCantUndoWhileRebasing:             "Can't undo while rebasing",
+		LcCantRedoWhileRebasing:             "Can't redo while rebasing",
+		MustStashWarning:                    "Pulling a patch out into the index requires stashing and unstashing your changes. If something goes wrong, you'll be able to access your files from the stash. Continue?",
+		MustStashTitle:                      "Must stash",
+		ConfirmationTitle:                   "Confirmation Panel",
+		LcPrevPage:                          "previous page",
+		LcNextPage:                          "next page",
+		LcGotoTop:                           "scroll to top",
+		LcGotoBottom:                        "scroll to bottom",
+		LcFilteringBy:                       "filtering by",
+		ResetInParentheses:                  "(reset)",
+		LcOpenScopingMenu:                   "view scoping options",
+		LcFilterBy:                          "filter by",
+		LcExitFilterMode:                    "stop filtering by path",
+		LcFilterPathOption:                  "enter path to filter by",
+		LcEnterFileName:                     "enter path:",
+		FilteringMenuTitle:                  "Filtering",
+		MustExitFilterModeTitle:             "Command not available",
+		MustExitFilterModePrompt:            "Command not available in filtered mode. Exit filtered mode?",
+		LcDiff:                              "diff",
+		LcEnterRefToDiff:                    "enter ref to diff",
+		LcEnteRefName:                       "enter ref:",
+		LcExitDiffMode:                      "exit diff mode",
+		DiffingMenuTitle:                    "Diffing",
+		LcSwapDiff:                          "reverse diff direction",
+		LcOpenDiffingMenu:                   "open diff menu",
+		LcShowingGitDiff:                    "showing output for:",
+		LcCopyCommitShaToClipboard:          "copy commit SHA to clipboard",
+		LcCopyBranchNameToClipboard:         "copy branch name to clipboard",
+		LcCopyFileNameToClipboard:           "copy the file name to the clipboard",
+		LcCopyCommitFileNameToClipboard:     "copy the committed file name to the clipboard",
+		LcCommitPrefixPatternError:          "Error in commitPrefix pattern",
+		NoFilesStagedTitle:                  "No files staged",
+		NoFilesStagedPrompt:                 "You have not staged any files. Commit all files?",
+		BranchNotFoundTitle:                 "Branch not found",
+		BranchNotFoundPrompt:                "Branch not found. Create a new branch named",
+		UnstageLinesTitle:                   "Unstage lines",
+		UnstageLinesPrompt:                  "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true",
+		LcCreateNewBranchFromCommit:         "create new branch off of commit",
+		LcViewStashFiles:                    "view stash entry's files",
+		LcBuildingPatch:                     "building patch",
+		LcViewCommits:                       "view commits",
+		MinGitVersionError:                  "Git version must be at least 2.0 (i.e. from 2014 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		LcRunningCustomCommandStatus:        "running custom command",
+		LcSubmoduleStashAndReset:            "stash uncommitted submodule changes and update",
+		LcAndResetSubmodules:                "and reset submodules",
+		LcEnterSubmodule:                    "enter submodule",
+		LcCopySubmoduleNameToClipboard:      "copy submodule name to clipboard",
+		RemoveSubmodule:                     "Remove submodule",
+		LcRemoveSubmodule:                   "remove submodule",
+		RemoveSubmodulePrompt:               "Are you sure you want to remove submodule '%s' and its corresponding directory? This is irreversible.",
+		LcResettingSubmoduleStatus:          "resetting submodule",
+		LcNewSubmoduleName:                  "new submodule name:",
+		LcNewSubmoduleUrl:                   "new submodule URL:",
+		LcNewSubmodulePath:                  "new submodule path:",
+		LcAddSubmodule:                      "add new submodule",
+		LcAddingSubmoduleStatus:             "adding submodule",
+		LcUpdateSubmoduleUrl:                "update URL for submodule '%s'",
+		LcUpdatingSubmoduleUrlStatus:        "updating URL",
+		LcEditSubmoduleUrl:                  "update submodule URL",
+		LcInitializingSubmoduleStatus:       "initializing submodule",
+		LcInitSubmodule:                     "initialize submodule",
+		LcViewResetAndRemoveOptions:         "view reset and remove submodule options",
+		LcSubmoduleUpdate:                   "update submodule",
+		LcUpdatingSubmoduleStatus:           "updating submodule",
+		LcBulkInitSubmodules:                "bulk init submodules",
+		LcBulkUpdateSubmodules:              "bulk update submodules",
+		LcBulkDeinitSubmodules:              "bulk deinit submodules",
+		LcViewBulkSubmoduleOptions:          "view bulk submodule options",
+		LcBulkSubmoduleOptions:              "bulk submodule options",
+		LcRunningCommand:                    "running command",
+		SubCommitsTitle:                     "Sub-commits",
+		SubmodulesTitle:                     "Submodules",
+		NavigationTitle:                     "List Panel Navigation",
+	}
 }

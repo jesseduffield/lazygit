@@ -114,7 +114,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 		name := name
 		menuItems = append(menuItems, []*menuItem{
 			{
-				displayString: fmt.Sprintf("%s %s", gui.Tr.SLocalize("diff"), name),
+				displayString: fmt.Sprintf("%s %s", gui.Tr.LcDiff, name),
 				onPress: func() error {
 					gui.State.Modes.Diffing.Ref = name
 					// can scope this down based on current view but too lazy right now
@@ -126,9 +126,9 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 
 	menuItems = append(menuItems, []*menuItem{
 		{
-			displayString: gui.Tr.SLocalize("enterRefToDiff"),
+			displayString: gui.Tr.LcEnterRefToDiff,
 			onPress: func() error {
-				return gui.prompt(gui.Tr.SLocalize("enteRefName"), "", func(response string) error {
+				return gui.prompt(gui.Tr.LcEnteRefName, "", func(response string) error {
 					gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				})
@@ -139,14 +139,14 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 	if gui.State.Modes.Diffing.Active() {
 		menuItems = append(menuItems, []*menuItem{
 			{
-				displayString: gui.Tr.SLocalize("swapDiff"),
+				displayString: gui.Tr.LcSwapDiff,
 				onPress: func() error {
 					gui.State.Modes.Diffing.Reverse = !gui.State.Modes.Diffing.Reverse
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				},
 			},
 			{
-				displayString: gui.Tr.SLocalize("exitDiffMode"),
+				displayString: gui.Tr.LcExitDiffMode,
 				onPress: func() error {
 					gui.State.Modes.Diffing = Diffing{}
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -155,5 +155,5 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 		}...)
 	}
 
-	return gui.createMenu(gui.Tr.SLocalize("DiffingMenuTitle"), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.DiffingMenuTitle, menuItems, createMenuOptions{showCancel: true})
 }

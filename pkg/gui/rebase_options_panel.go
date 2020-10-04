@@ -26,9 +26,9 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 
 	var title string
 	if gui.GitCommand.WorkingTreeState() == "merging" {
-		title = gui.Tr.SLocalize("MergeOptionsTitle")
+		title = gui.Tr.MergeOptionsTitle
 	} else {
-		title = gui.Tr.SLocalize("RebaseOptionsTitle")
+		title = gui.Tr.RebaseOptionsTitle
 	}
 
 	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
@@ -38,7 +38,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	status := gui.GitCommand.WorkingTreeState()
 
 	if status != "merging" && status != "rebasing" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("NotMergingOrRebasing"))
+		return gui.createErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
 	commandType := strings.Replace(status, "ing", "e", 1)
@@ -77,8 +77,8 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		return nil
 	} else if strings.Contains(result.Error(), "When you have resolved this problem") || strings.Contains(result.Error(), "fix conflicts") || strings.Contains(result.Error(), "Resolve all conflicts manually") {
 		return gui.ask(askOpts{
-			title:               gui.Tr.SLocalize("FoundConflictsTitle"),
-			prompt:              gui.Tr.SLocalize("FoundConflicts"),
+			title:               gui.Tr.FoundConflictsTitle,
+			prompt:              gui.Tr.FoundConflicts,
 			handlersManageFocus: true,
 			handleConfirm: func() error {
 				return gui.switchContext(gui.Contexts.Files.Context)
