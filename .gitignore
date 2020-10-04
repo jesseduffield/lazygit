@@ -26,3 +26,4 @@ lazygit
 !.github/
 
 test/git_server/data
+test/integration_test/

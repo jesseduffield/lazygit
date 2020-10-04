@@ -1,0 +1,13 @@
+On branch master
+nothing to commit, working tree clean
+test
+my commit
+
+
+diff --git a/myfile b/myfile
+new file mode 100644
+index 0000000..9daeafb
+--- /dev/null
++++ b/myfile
+@@ -0,0 +1 @@
++test
