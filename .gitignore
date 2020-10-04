@@ -27,3 +27,4 @@ lazygit
 
 test/git_server/data
 test/integration_test/
+test/integration_test_config/

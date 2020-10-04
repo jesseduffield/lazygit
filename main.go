@@ -49,7 +49,10 @@ func main() {
 	flaggy.Bool(&configFlag, "c", "config", "Print the default config")
 
 	configDirFlag := false
-	flaggy.Bool(&configDirFlag, "cd", "config-dir", "Print the config directory")
+	flaggy.Bool(&configDirFlag, "cd", "print-config-dir", "Print the config directory")
+
+	useConfigDir := ""
+	flaggy.String(&useConfigDir, "ucd", "use-config-dir", "override default config directory with provided directory")
 
 	workTree := ""
 	flaggy.String(&workTree, "w", "work-tree", "equivalent of the --work-tree git argument")
@@ -66,6 +69,10 @@ func main() {
 
 		workTree = repoPath
 		gitDir = filepath.Join(repoPath, ".git")
+	}
+
+	if useConfigDir != "" {
+		os.Setenv("CONFIG_DIR", useConfigDir)
 	}
 
 	if workTree != "" {
