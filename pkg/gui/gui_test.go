@@ -130,9 +130,8 @@ func Test(t *testing.T) {
 
 				testPath := filepath.Join(rootDir, "test", "integration", test.name)
 				actualDir := filepath.Join(testPath, "actual")
+				expectedDir := filepath.Join(testPath, "expected")
 				findOrCreateDir(testPath)
-
-				snapshotPath := filepath.Join(testPath, "snapshot.txt")
 
 				prepareIntegrationTestDir(testPath)
 
@@ -144,13 +143,11 @@ func Test(t *testing.T) {
 				actual := generateSnapshot(t, actualDir)
 
 				if updateSnapshots {
-					err := ioutil.WriteFile(snapshotPath, []byte(actual), 0600)
+					err = oscommands.CopyDir(actualDir, expectedDir)
 					assert.NoError(t, err)
 				}
 
-				expectedBytes, err := ioutil.ReadFile(snapshotPath)
-				assert.NoError(t, err)
-				expected := string(expectedBytes)
+				expected := generateSnapshot(t, expectedDir)
 
 				if expected == actual {
 					t.Logf("%s: success at speed %d\n", test.name, speed)
