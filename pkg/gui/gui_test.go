@@ -32,27 +32,31 @@ import (
 // TODO: support passing an env var for playback speed, given it's currently pretty fast
 
 type integrationTest struct {
-	name    string
-	fixture string
+	name       string
+	fixture    string
+	startSpeed int
 }
 
 func tests() []integrationTest {
 	return []integrationTest{
 		{
-			name:    "commit",
-			fixture: "newFile",
+			name:       "commit",
+			fixture:    "newFile",
+			startSpeed: 10,
 		},
 		{
 			name:    "squash",
 			fixture: "manyCommits",
 		},
 		{
-			name:    "patchBuilding",
-			fixture: "updatedFile",
+			name:       "patchBuilding",
+			fixture:    "updatedFile",
+			startSpeed: 3,
 		},
 		{
-			name:    "patchBuilding2",
-			fixture: "updatedFile",
+			name:       "patchBuilding2",
+			fixture:    "updatedFile",
+			startSpeed: 3,
 		},
 		{
 			name:    "mergeConflicts",
@@ -69,9 +73,11 @@ func tests() []integrationTest {
 	}
 }
 
-func generateSnapshot(t *testing.T) string {
+func generateSnapshot(t *testing.T, actualDir string) string {
 	osCommand := oscommands.NewDummyOSCommand()
-	cmd := `bash -c "git status; cat ./*; git log --pretty=%B -p"`
+	cmd := fmt.Sprintf(`bash -c "cd %s && git status; cat ./*; git log --pretty=%%B -p"`, actualDir)
+
+	// need to copy from current directory to
 
 	snapshot, err := osCommand.RunCommandWithOutput(cmd)
 	assert.NoError(t, err)
@@ -96,12 +102,7 @@ func findOrCreateDir(path string) {
 func Test(t *testing.T) {
 	tests := tests()
 
-	gotoRootDirectory()
-
-	rootDir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
+	rootDir := getRootDirectory()
 
 	record := os.Getenv("RECORD_EVENTS") != ""
 	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
@@ -110,7 +111,15 @@ func Test(t *testing.T) {
 		test := test
 
 		t.Run(test.name, func(t *testing.T) {
-			speeds := []int{10, 5, 1}
+			if usePty() {
+				t.Parallel()
+			}
+
+			startSpeed := 10
+			if test.startSpeed != 0 {
+				startSpeed = test.startSpeed
+			}
+			speeds := []int{startSpeed, 5, 1}
 			if updateSnapshots {
 				// have to go at original speed if updating snapshots in case we go to fast and create a junk snapshot
 				speeds = []int{1}
@@ -120,21 +129,19 @@ func Test(t *testing.T) {
 				t.Logf("%s: attempting test at speed %d\n", test.name, speed)
 
 				testPath := filepath.Join(rootDir, "test", "integration", test.name)
+				actualDir := filepath.Join(testPath, "actual")
 				findOrCreateDir(testPath)
 
 				snapshotPath := filepath.Join(testPath, "snapshot.txt")
 
-				err := os.Chdir(rootDir)
-				assert.NoError(t, err)
+				prepareIntegrationTestDir(testPath)
 
-				prepareIntegrationTestDir()
-
-				err = createFixture(rootDir, test.fixture)
+				err := createFixture(rootDir, test.fixture, actualDir)
 				assert.NoError(t, err)
 
 				runLazygit(t, testPath, rootDir, record, speed)
 
-				actual := generateSnapshot(t)
+				actual := generateSnapshot(t, actualDir)
 
 				if updateSnapshots {
 					err := ioutil.WriteFile(snapshotPath, []byte(actual), 0600)
@@ -146,6 +153,7 @@ func Test(t *testing.T) {
 				expected := string(expectedBytes)
 
 				if expected == actual {
+					t.Logf("%s: success at speed %d\n", test.name, speed)
 					break
 				}
 
@@ -158,9 +166,9 @@ func Test(t *testing.T) {
 	}
 }
 
-func createFixture(rootDir string, name string) error {
+func createFixture(rootDir string, name string, actualDir string) error {
 	osCommand := oscommands.NewDummyOSCommand()
-	cmd := exec.Command("bash", filepath.Join(rootDir, "test", "fixtures", fmt.Sprintf("%s.sh", name)))
+	cmd := exec.Command("bash", filepath.Join(rootDir, "test", "fixtures", fmt.Sprintf("%s.sh", name)), actualDir)
 
 	if err := osCommand.RunExecutable(cmd); err != nil {
 		return err
@@ -169,20 +177,27 @@ func createFixture(rootDir string, name string) error {
 	return nil
 }
 
-func gotoRootDirectory() {
+func getRootDirectory() string {
+	path, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
 	for {
-		_, err := os.Stat(".git")
+		_, err := os.Stat(filepath.Join(path, ".git"))
 
 		if err == nil {
-			return
+			return path
 		}
 
 		if !os.IsNotExist(err) {
 			panic(err)
 		}
 
-		if err = os.Chdir(".."); err != nil {
-			panic(err)
+		path = filepath.Dir(path)
+
+		if path == "/" {
+			panic("must run in lazygit folder or child folder")
 		}
 	}
 }
@@ -193,6 +208,7 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	replayPath := filepath.Join(testPath, "recording.json")
 	cmdStr := fmt.Sprintf("go run %s", filepath.Join(rootDir, "main.go"))
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
+	actualDir := filepath.Join(testPath, "actual")
 
 	exists, err := osCommand.FileExists(filepath.Join(testPath, "config"))
 	assert.NoError(t, err)
@@ -201,14 +217,14 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 		templateConfigDir = filepath.Join(testPath, "config")
 	}
 
-	configDir := filepath.Join(rootDir, "test", "integration_test_config")
+	configDir := filepath.Join(testPath, "used_config")
 
 	err = os.RemoveAll(configDir)
 	assert.NoError(t, err)
 	err = oscommands.CopyDir(templateConfigDir, configDir)
 	assert.NoError(t, err)
 
-	cmdStr = fmt.Sprintf("%s --use-config-dir=%s", cmdStr, configDir)
+	cmdStr = fmt.Sprintf("%s --use-config-dir=%s --path=%s", cmdStr, configDir, actualDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
@@ -226,7 +242,7 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	}
 
 	// if we're on CI we'll need to use a PTY. We can work that out by seeing if the 'TERM' env is defined.
-	if os.Getenv("TERM") == "" {
+	if usePty() {
 		cmd.Env = append(cmd.Env, "TERM=xterm")
 
 		f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
@@ -243,8 +259,13 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	}
 }
 
-func prepareIntegrationTestDir() {
-	path := filepath.Join("test", "integration_test")
+func usePty() bool {
+	return true
+	return os.Getenv("TERM") == ""
+}
+
+func prepareIntegrationTestDir(testPath string) {
+	path := filepath.Join(testPath, "actual")
 
 	// remove contents of integration test directory
 	dir, err := ioutil.ReadDir(path)
@@ -260,9 +281,5 @@ func prepareIntegrationTestDir() {
 	}
 	for _, d := range dir {
 		os.RemoveAll(filepath.Join(path, d.Name()))
-	}
-
-	if err := os.Chdir(path); err != nil {
-		panic(err)
 	}
 }

@@ -28,6 +28,11 @@ func (gui *Gui) replayRecordedEvents() {
 		return
 	}
 
+	go func() {
+		time.Sleep(time.Second * 20)
+		log.Fatal("20 seconds is up, lazygit recording took too long to complete")
+	}()
+
 	events, err := gui.loadRecordedEvents()
 	if err != nil {
 		log.Fatal(err)
@@ -49,13 +54,26 @@ func (gui *Gui) replayRecordedEvents() {
 		}
 	}
 
-	for _, event := range events {
+	// The playback could be paused at any time because integration tests run concurrently.
+	// Therefore we can't just check for a given event whether we've passed its timestamp,
+	// or else we'll have an explosion of keypresses after the test is resumed.
+	// We need to check if we've waited long enough since the last event was replayed.
+	for i, event := range events {
+		var prevEventTimestamp int64 = 0
+		if i > 0 {
+			prevEventTimestamp = events[i-1].Timestamp
+		}
+		timeToWait := (event.Timestamp - prevEventTimestamp) / int64(speed)
+		if i == 0 {
+			timeToWait += leeway
+		}
+		var timeWaited int64 = 0
 	middle:
 		for {
 			select {
 			case <-ticker.C:
-				now := gui.timeSinceStart()*int64(speed) - leeway
-				if gui.g != nil && now >= event.Timestamp {
+				timeWaited += 1
+				if gui.g != nil && timeWaited >= timeToWait {
 					gui.g.ReplayedEvents <- *event.Event
 					break middle
 				}
