@@ -247,7 +247,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	file := gui.getSelectedFile()
-	if file == nil {
+	if file == nil || file.Name == ".gitignore" {
 		return nil
 	}
 
