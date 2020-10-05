@@ -81,13 +81,45 @@ func tests() []integrationTest {
 	}
 }
 
-func generateSnapshot(t *testing.T, actualDir string) string {
+func generateSnapshot(t *testing.T, dir string) string {
 	osCommand := oscommands.NewDummyOSCommand()
-	cmd := fmt.Sprintf(`bash -c "cd %s && git status; cat ./*; git log --pretty=%%B -p"`, actualDir)
 
-	// need to copy from current directory to
+	_, err := os.Stat(filepath.Join(dir, ".git"))
+	if err != nil {
+		return "git directory not found"
+	}
 
-	snapshot, err := osCommand.RunCommandWithOutput(cmd)
+	snapshot := ""
+
+	statusCmd := fmt.Sprintf(`git -C %s status`, dir)
+	statusCmdOutput, err := osCommand.RunCommandWithOutput(statusCmd)
+	assert.NoError(t, err)
+
+	snapshot += statusCmdOutput + "\n"
+
+	logCmd := fmt.Sprintf(`git -C %s log --pretty=%%B -p -1`, dir)
+	logCmdOutput, err := osCommand.RunCommandWithOutput(logCmd)
+	assert.NoError(t, err)
+
+	snapshot += logCmdOutput + "\n"
+
+	err = filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		assert.NoError(t, err)
+
+		if f.IsDir() {
+			if f.Name() == ".git" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		bytes, err := ioutil.ReadFile(path)
+		assert.NoError(t, err)
+		snapshot += string(bytes) + "\n"
+
+		return nil
+	})
+
 	assert.NoError(t, err)
 
 	return snapshot
@@ -160,23 +192,46 @@ func Test(t *testing.T) {
 				testPath := filepath.Join(rootDir, "test", "integration", test.name)
 				actualDir := filepath.Join(testPath, "actual")
 				expectedDir := filepath.Join(testPath, "expected")
+				t.Logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
 				findOrCreateDir(testPath)
 
-				prepareIntegrationTestDir(testPath)
+				prepareIntegrationTestDir(actualDir)
 
 				err := createFixture(rootDir, test.fixture, actualDir)
 				assert.NoError(t, err)
 
 				runLazygit(t, testPath, rootDir, record, speed)
 
-				actual := generateSnapshot(t, actualDir)
-
 				if updateSnapshots {
 					err = oscommands.CopyDir(actualDir, expectedDir)
 					assert.NoError(t, err)
 				}
 
-				expected := generateSnapshot(t, expectedDir)
+				actual := generateSnapshot(t, actualDir)
+
+				expected := ""
+
+				func() {
+					// git refuses to track .git folders in subdirectories so we need to rename it
+					// to git_keep after running a test
+
+					defer func() {
+						err = os.Rename(
+							filepath.Join(expectedDir, ".git"),
+							filepath.Join(expectedDir, ".git_keep"),
+						)
+
+						assert.NoError(t, err)
+					}()
+
+					// ignoring this error because we might not have a .git_keep file here yet.
+					_ = os.Rename(
+						filepath.Join(expectedDir, ".git_keep"),
+						filepath.Join(expectedDir, ".git"),
+					)
+
+					expected = generateSnapshot(t, expectedDir)
+				}()
 
 				if expected == actual {
 					t.Logf("%s: success at speed %d\n", test.name, speed)
@@ -268,7 +323,7 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	}
 
 	// if we're on CI we'll need to use a PTY. We can work that out by seeing if the 'TERM' env is defined.
-	if runInParallel() {
+	if runInPTY() {
 		cmd.Env = append(cmd.Env, "TERM=xterm")
 
 		f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
@@ -286,17 +341,19 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 }
 
 func runInParallel() bool {
-	return os.Getenv("PARALLEL") != "" || os.Getenv("TERM") == ""
+	return os.Getenv("PARALLEL") != ""
 }
 
-func prepareIntegrationTestDir(testPath string) {
-	path := filepath.Join(testPath, "actual")
+func runInPTY() bool {
+	return runInParallel() || os.Getenv("TERM") == ""
+}
 
+func prepareIntegrationTestDir(actualDir string) {
 	// remove contents of integration test directory
-	dir, err := ioutil.ReadDir(path)
+	dir, err := ioutil.ReadDir(actualDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = os.Mkdir(path, 0777)
+			err = os.Mkdir(actualDir, 0777)
 			if err != nil {
 				panic(err)
 			}
@@ -305,6 +362,6 @@ func prepareIntegrationTestDir(testPath string) {
 		}
 	}
 	for _, d := range dir {
-		os.RemoveAll(filepath.Join(path, d.Name()))
+		os.RemoveAll(filepath.Join(actualDir, d.Name()))
 	}
 }
