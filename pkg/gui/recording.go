@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/jesseduffield/gocui"
 )
 
 func recordingEvents() bool {
@@ -47,6 +49,16 @@ func (gui *Gui) replayRecordedEvents() {
 			}
 		}
 	}
+
+	time.Sleep(time.Second * 1)
+
+	gui.g.Update(func(*gocui.Gui) error {
+		return gocui.ErrQuit
+	})
+
+	time.Sleep(time.Second * 1)
+
+	log.Fatal("lazygit should have already exited")
 }
 
 func (gui *Gui) loadRecordedEvents() ([]RecordedEvent, error) {
