@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/creack/pty"
@@ -29,7 +30,13 @@ import (
 // not clean up that directory so you can cd into it to see for yourself what
 // happened when a test failed.
 //
-// TODO: support passing an env var for playback speed, given it's currently pretty fast
+// To run tests in parallel pass `PARALLEL=true` as an env var. Tests are run in parallel
+// on CI, and are run in a pty so you won't be able to see the stdout of the program
+//
+// To override speed, pass e.g. `SPEED=1` as an env var. Otherwise we start each test
+// at a high speed and then drop down to lower speeds upon each failure until finally
+// trying at the original playback speed (speed 1). A speed of 2 represents twice the
+// original playback speed. Speed must be an integer.
 
 type integrationTest struct {
 	name       string
@@ -42,11 +49,12 @@ func tests() []integrationTest {
 		{
 			name:       "commit",
 			fixture:    "newFile",
-			startSpeed: 10,
+			startSpeed: 20,
 		},
 		{
-			name:    "squash",
-			fixture: "manyCommits",
+			name:       "squash",
+			fixture:    "manyCommits",
+			startSpeed: 6,
 		},
 		{
 			name:       "patchBuilding",
@@ -99,6 +107,35 @@ func findOrCreateDir(path string) {
 	}
 }
 
+func getTestSpeeds(testStartSpeed int, updateSnapshots bool) []int {
+	if updateSnapshots {
+		// have to go at original speed if updating snapshots in case we go to fast and create a junk snapshot
+		return []int{1}
+	}
+
+	speedEnv := os.Getenv("SPEED")
+	if speedEnv != "" {
+		speed, err := strconv.Atoi(speedEnv)
+		if err != nil {
+			panic(err)
+		}
+		return []int{speed}
+	}
+
+	// default is 10, 5, 1
+	startSpeed := 10
+	if testStartSpeed != 0 {
+		startSpeed = testStartSpeed
+	}
+	speeds := []int{startSpeed}
+	if startSpeed > 5 {
+		speeds = append(speeds, 5)
+	}
+	speeds = append(speeds, 1)
+
+	return speeds
+}
+
 func Test(t *testing.T) {
 	tests := tests()
 
@@ -111,19 +148,11 @@ func Test(t *testing.T) {
 		test := test
 
 		t.Run(test.name, func(t *testing.T) {
-			if usePty() {
+			if runInParallel() {
 				t.Parallel()
 			}
 
-			startSpeed := 10
-			if test.startSpeed != 0 {
-				startSpeed = test.startSpeed
-			}
-			speeds := []int{startSpeed, 5, 1}
-			if updateSnapshots {
-				// have to go at original speed if updating snapshots in case we go to fast and create a junk snapshot
-				speeds = []int{1}
-			}
+			speeds := getTestSpeeds(test.startSpeed, updateSnapshots)
 
 			for i, speed := range speeds {
 				t.Logf("%s: attempting test at speed %d\n", test.name, speed)
@@ -239,7 +268,7 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	}
 
 	// if we're on CI we'll need to use a PTY. We can work that out by seeing if the 'TERM' env is defined.
-	if usePty() {
+	if runInParallel() {
 		cmd.Env = append(cmd.Env, "TERM=xterm")
 
 		f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
@@ -256,9 +285,8 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	}
 }
 
-func usePty() bool {
-	return true
-	return os.Getenv("TERM") == ""
+func runInParallel() bool {
+	return os.Getenv("PARALLEL") != "" || os.Getenv("TERM") == ""
 }
 
 func prepareIntegrationTestDir(testPath string) {
