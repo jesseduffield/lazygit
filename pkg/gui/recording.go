@@ -41,13 +41,14 @@ func (gui *Gui) replayRecordedEvents() {
 	var speed int64 = 5
 
 	for _, event := range events {
+	middle:
 		for {
 			select {
 			case <-ticker.C:
 				now := gui.timeSinceStart()*speed - leeway
 				if gui.g != nil && now >= event.Timestamp {
 					gui.g.ReplayedEvents <- *event.Event
-					break
+					break middle
 				}
 			case <-gui.stopChan:
 				return
