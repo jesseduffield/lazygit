@@ -58,6 +58,14 @@ func tests() []integrationTest {
 			name:    "mergeConflicts",
 			fixture: "mergeConflicts",
 		},
+		{
+			name:    "searching",
+			fixture: "newFile",
+		},
+		{
+			name:    "searchingInStagingPanel",
+			fixture: "newFile2",
+		},
 	}
 }
 
