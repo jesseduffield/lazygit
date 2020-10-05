@@ -1,9 +1,7 @@
 On branch other_branch
 nothing to commit, working tree clean
 cat: ./directory: Is a directory
-new1
-original2
-original3
+new1\noriginal2\noriginal3
 Here is a story that has been told throuhg the ages
 once upon a time there was a cat
 ...
@@ -76,38 +74,32 @@ asd
 
 
 diff --git a/file b/file
-index 37ec558..51c0b8a 100644
+index 5da4d92..2410ee1 100644
 --- a/file
 +++ b/file
-@@ -1,3 +1,3 @@
--original1
-+new2
- original2
- original3
+@@ -1 +1 @@
+-original1\noriginal2\noriginal3
++new2\noriginal2\noriginal3
 file changed
 
 
 diff --git a/file b/file
-index 37ec558..fa90625 100644
+index 5da4d92..173a40e 100644
 --- a/file
 +++ b/file
-@@ -1,3 +1,3 @@
--original1
-+new1
- original2
- original3
+@@ -1 +1 @@
+-original1\noriginal2\noriginal3
++new1\noriginal2\noriginal3
 file
 
 
 diff --git a/file b/file
 new file mode 100644
-index 0000000..37ec558
+index 0000000..5da4d92
 --- /dev/null
 +++ b/file
-@@ -0,0 +1,3 @@
-+original1
-+original2
-+original3
+@@ -0,0 +1 @@
++original1\noriginal2\noriginal3
 fourth commit on master
 
 
