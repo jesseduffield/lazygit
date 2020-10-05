@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jesseduffield/gocui"
@@ -38,14 +39,22 @@ func (gui *Gui) replayRecordedEvents() {
 	// might need to add leeway if this ends up flakey
 	var leeway int64 = 0
 	// humans are slow so this speeds things up.
-	var speed int64 = 5
+	speed := 1
+	envReplaySpeed := os.Getenv("REPLAY_SPEED")
+	if envReplaySpeed != "" {
+		var err error
+		speed, err = strconv.Atoi(envReplaySpeed)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	for _, event := range events {
 	middle:
 		for {
 			select {
 			case <-ticker.C:
-				now := gui.timeSinceStart()*speed - leeway
+				now := gui.timeSinceStart()*int64(speed) - leeway
 				if gui.g != nil && now >= event.Timestamp {
 					gui.g.ReplayedEvents <- *event.Event
 					break middle

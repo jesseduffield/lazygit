@@ -106,36 +106,48 @@ func Test(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			testPath := filepath.Join(rootDir, "test", "integration", test.name)
-			findOrCreateDir(testPath)
+			speeds := []int{10, 5, 1}
+			for i, speed := range speeds {
+				fmt.Printf("%s: trying again at speed %d\n", test.name, speed)
 
-			snapshotPath := filepath.Join(testPath, "snapshot.txt")
+				testPath := filepath.Join(rootDir, "test", "integration", test.name)
+				findOrCreateDir(testPath)
 
-			err := os.Chdir(rootDir)
-			assert.NoError(t, err)
+				snapshotPath := filepath.Join(testPath, "snapshot.txt")
 
-			prepareIntegrationTestDir()
-
-			err = createFixture(rootDir, test.fixture)
-			assert.NoError(t, err)
-
-			record := os.Getenv("RECORD_EVENTS") != ""
-			runLazygit(t, testPath, rootDir, record)
-
-			updateSnapshot := record || os.Getenv("UPDATE_SNAPSHOT") != ""
-
-			actual := generateSnapshot(t)
-
-			if updateSnapshot {
-				err := ioutil.WriteFile(snapshotPath, []byte(actual), 0600)
+				err := os.Chdir(rootDir)
 				assert.NoError(t, err)
+
+				prepareIntegrationTestDir()
+
+				err = createFixture(rootDir, test.fixture)
+				assert.NoError(t, err)
+
+				record := os.Getenv("RECORD_EVENTS") != ""
+				runLazygit(t, testPath, rootDir, record, speed)
+
+				updateSnapshot := record || os.Getenv("UPDATE_SNAPSHOT") != ""
+
+				actual := generateSnapshot(t)
+
+				if updateSnapshot {
+					err := ioutil.WriteFile(snapshotPath, []byte(actual), 0600)
+					assert.NoError(t, err)
+				}
+
+				expectedBytes, err := ioutil.ReadFile(snapshotPath)
+				assert.NoError(t, err)
+				expected := string(expectedBytes)
+
+				if expected == actual {
+					break
+				}
+
+				// if the snapshots and we haven't tried all playback speeds different we'll retry at a slower speed
+				if i == len(speeds)-1 {
+					assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
+				}
 			}
-
-			expectedBytes, err := ioutil.ReadFile(snapshotPath)
-			assert.NoError(t, err)
-			expected := string(expectedBytes)
-
-			assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
 		})
 	}
 }
@@ -169,7 +181,7 @@ func gotoRootDirectory() {
 	}
 }
 
-func runLazygit(t *testing.T, testPath string, rootDir string, record bool) {
+func runLazygit(t *testing.T, testPath string, rootDir string, record bool, speed int) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	replayPath := filepath.Join(testPath, "recording.json")
@@ -193,6 +205,8 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool) {
 	cmdStr = fmt.Sprintf("%s --use-config-dir=%s", cmdStr, configDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
+	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
+
 	if record {
 		cmd.Env = append(
 			cmd.Env,
