@@ -247,8 +247,11 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 	file := gui.getSelectedFile()
-	if file == nil || file.Name == ".gitignore" {
+	if file == nil {
 		return nil
+	}
+	if file.Name == ".gitignore" {
+		return gui.createErrorPanel("Cannot ignore .gitignore")
 	}
 
 	if file.Tracked {
