@@ -777,6 +777,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "commits",
 			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey("universal.copyCommitMessageToClipboard"),
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedCommitMessageToClipboard),
+			Description: gui.Tr.SLocalize("copyCommitMessageToClipboard"),
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey("commits.cherryPickCopyRange"),
 			Handler:     gui.wrappedHandler(gui.handleCopyCommitRange),
 			Description: gui.Tr.SLocalize("cherryPickCopyRange"),

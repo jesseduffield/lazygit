@@ -338,6 +338,7 @@ keybinding:
     diffingMenu: 'W'
     diffingMenu-alt: '<c-e>'
     copyToClipboard: '<c-o>'
+    copyCommitMessageToClipboard: '<c-y>'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'

@@ -1139,6 +1139,9 @@ func addDutch(i18nObject *i18n.Bundle) error {
 			ID:    "copyCommitShaToClipboard",
 			Other: "copieer commit SHA naar clipboard",
 		}, &i18n.Message{
+			ID:    "copyCommitMessageToClipboard",
+			Other: "copieer commit bericht naar clipboard",
+		}, &i18n.Message{
 			ID:    "copyBranchNameToClipboard",
 			Other: "copieer branch name naar clipboard",
 		}, &i18n.Message{

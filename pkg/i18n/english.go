@@ -1144,6 +1144,9 @@ func addEnglish(i18nObject *i18n.Bundle) error {
 			ID:    "copyCommitShaToClipboard",
 			Other: "copy commit SHA to clipboard",
 		}, &i18n.Message{
+			ID:    "copyCommitMessageToClipboard",
+			Other: "copy commit message to clipboard",
+		}, &i18n.Message{
 			ID:    "copyBranchNameToClipboard",
 			Other: "copy branch name to clipboard",
 		}, &i18n.Message{
