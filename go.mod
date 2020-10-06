@@ -10,12 +10,12 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-errors/errors v1.1.1
-	github.com/go-git/go-git/v5 v5.0.0
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/integrii/flaggy v1.4.0
+	github.com/jesseduffield/go-git/v5 v5.1.1
 	github.com/jesseduffield/gocui v0.3.1-0.20200930205305-1b445b9bd5da
 	github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
@@ -40,3 +40,5 @@ require (
 	golang.org/x/text v0.3.2
 	gopkg.in/yaml.v2 v2.2.7
 )
+
+replace github.com/go-git/go-git/v5 => github.com/jesseduffield/go-git/v5 v5.1.1

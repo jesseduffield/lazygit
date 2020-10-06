@@ -3,7 +3,7 @@ package commands
 import (
 	"path/filepath"
 
-	gogit "github.com/go-git/go-git/v5"
+	gogit "github.com/jesseduffield/go-git/v5"
 )
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
