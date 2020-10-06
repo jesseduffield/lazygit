@@ -78,13 +78,11 @@ func (b *Branch) marshal() *format.Subsection {
 	return b.raw
 }
 
-func (b *Branch) unmarshal(s *format.Subsection) error {
+func (b *Branch) unmarshal(s *format.Subsection) {
 	b.raw = s
 
 	b.Name = b.raw.Name
 	b.Remote = b.raw.Options.Get(remoteSection)
 	b.Merge = plumbing.ReferenceName(b.raw.Options.Get(mergeKey))
 	b.Rebase = b.raw.Options.Get(rebaseKey)
-
-	return b.Validate()
 }

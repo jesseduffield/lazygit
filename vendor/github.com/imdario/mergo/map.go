@@ -99,11 +99,11 @@ func deepMap(dst, src reflect.Value, visited map[uintptr]*visit, depth int, conf
 				continue
 			}
 			if srcKind == dstKind {
-				if _, err = deepMerge(dstElement, srcElement, visited, depth+1, config); err != nil {
+				if err = deepMerge(dstElement, srcElement, visited, depth+1, config); err != nil {
 					return
 				}
 			} else if dstKind == reflect.Interface && dstElement.Kind() == reflect.Interface {
-				if _, err = deepMerge(dstElement, srcElement, visited, depth+1, config); err != nil {
+				if err = deepMerge(dstElement, srcElement, visited, depth+1, config); err != nil {
 					return
 				}
 			} else if srcKind == reflect.Map {
@@ -141,6 +141,9 @@ func MapWithOverwrite(dst, src interface{}, opts ...func(*Config)) error {
 }
 
 func _map(dst, src interface{}, opts ...func(*Config)) error {
+	if dst != nil && reflect.ValueOf(dst).Kind() != reflect.Ptr {
+		return ErrNonPointerAgument
+	}
 	var (
 		vDst, vSrc reflect.Value
 		err        error
@@ -157,8 +160,7 @@ func _map(dst, src interface{}, opts ...func(*Config)) error {
 	// To be friction-less, we redirect equal-type arguments
 	// to deepMerge. Only because arguments can be anything.
 	if vSrc.Kind() == vDst.Kind() {
-		_, err := deepMerge(vDst, vSrc, make(map[uintptr]*visit), 0, config)
-		return err
+		return deepMerge(vDst, vSrc, make(map[uintptr]*visit), 0, config)
 	}
 	switch vSrc.Kind() {
 	case reflect.Struct:
