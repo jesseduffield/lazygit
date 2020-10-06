@@ -60,14 +60,15 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/imdario/mergo v0.3.9
+# github.com/imdario/mergo v0.3.11
+## explicit
 github.com/imdario/mergo
 # github.com/integrii/flaggy v1.4.0
 ## explicit
 github.com/integrii/flaggy
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 github.com/jbenet/go-context/io
-# github.com/jesseduffield/go-git/v5 v5.1.1
+# github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
 ## explicit
 github.com/jesseduffield/go-git/v5
 github.com/jesseduffield/go-git/v5/config
@@ -194,7 +195,8 @@ github.com/subosito/gotenv
 github.com/tcnksm/go-gitconfig
 # github.com/xanzy/ssh-agent v0.2.1
 github.com/xanzy/ssh-agent
-# golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+# golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
+## explicit
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
 golang.org/x/crypto/chacha20
@@ -213,11 +215,12 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/knownhosts
-# golang.org/x/net v0.0.0-20200301022130-244492dfa37a
+# golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c
+## explicit
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20200923182605-d9f96fdee20d
+# golang.org/x/sys v0.0.0-20201005172224-997123666555
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
@@ -235,7 +238,7 @@ golang.org/x/text/unicode/norm
 gopkg.in/ini.v1
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v2 v2.2.7
+# gopkg.in/yaml.v2 v2.3.0
 ## explicit
 gopkg.in/yaml.v2
 # github.com/go-git/go-git/v5 => github.com/jesseduffield/go-git/v5 v5.1.1

@@ -102,8 +102,9 @@ type ConstraintExtension struct {
 
 // AddedKey describes an SSH key to be added to an Agent.
 type AddedKey struct {
-	// PrivateKey must be a *rsa.PrivateKey, *dsa.PrivateKey or
-	// *ecdsa.PrivateKey, which will be inserted into the agent.
+	// PrivateKey must be a *rsa.PrivateKey, *dsa.PrivateKey,
+	// ed25519.PrivateKey or *ecdsa.PrivateKey, which will be inserted into the
+	// agent.
 	PrivateKey interface{}
 	// Certificate, if not nil, is communicated to the agent and will be
 	// stored with the key.
@@ -566,6 +567,17 @@ func (c *client) insertKey(s interface{}, comment string, constraints []byte) er
 			Comments:    comment,
 			Constraints: constraints,
 		})
+	case ed25519.PrivateKey:
+		req = ssh.Marshal(ed25519KeyMsg{
+			Type:        ssh.KeyAlgoED25519,
+			Pub:         []byte(k)[32:],
+			Priv:        []byte(k),
+			Comments:    comment,
+			Constraints: constraints,
+		})
+	// This function originally supported only *ed25519.PrivateKey, however the
+	// general idiom is to pass ed25519.PrivateKey by value, not by pointer.
+	// We still support the pointer variant for backwards compatibility.
 	case *ed25519.PrivateKey:
 		req = ssh.Marshal(ed25519KeyMsg{
 			Type:        ssh.KeyAlgoED25519,
@@ -683,6 +695,18 @@ func (c *client) insertCert(s interface{}, cert *ssh.Certificate, comment string
 			Comments:    comment,
 			Constraints: constraints,
 		})
+	case ed25519.PrivateKey:
+		req = ssh.Marshal(ed25519CertMsg{
+			Type:        cert.Type(),
+			CertBytes:   cert.Marshal(),
+			Pub:         []byte(k)[32:],
+			Priv:        []byte(k),
+			Comments:    comment,
+			Constraints: constraints,
+		})
+	// This function originally supported only *ed25519.PrivateKey, however the
+	// general idiom is to pass ed25519.PrivateKey by value, not by pointer.
+	// We still support the pointer variant for backwards compatibility.
 	case *ed25519.PrivateKey:
 		req = ssh.Marshal(ed25519CertMsg{
 			Type:        cert.Type(),
