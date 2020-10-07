@@ -110,8 +110,8 @@ func (gui *Gui) refreshCommits() error {
 }
 
 func (gui *Gui) refreshCommitsWithLimit() error {
-	gui.State.Mutexes.BranchCommitsMutex.Lock()
-	defer gui.State.Mutexes.BranchCommitsMutex.Unlock()
+	gui.Mutexes.BranchCommitsMutex.Lock()
+	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
 	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr)
 
@@ -132,8 +132,8 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 }
 
 func (gui *Gui) refreshRebaseCommits() error {
-	gui.State.Mutexes.BranchCommitsMutex.Lock()
-	defer gui.State.Mutexes.BranchCommitsMutex.Unlock()
+	gui.Mutexes.BranchCommitsMutex.Lock()
+	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
 	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr)
 

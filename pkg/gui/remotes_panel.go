@@ -158,8 +158,8 @@ func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.FetchingRemoteStatus, func() error {
-		gui.State.Mutexes.FetchMutex.Lock()
-		defer gui.State.Mutexes.FetchMutex.Unlock()
+		gui.Mutexes.FetchMutex.Lock()
+		defer gui.Mutexes.FetchMutex.Unlock()
 
 		// TODO: test this
 		err := gui.GitCommand.FetchRemote(remote.Name, gui.promptUserForCredential)
