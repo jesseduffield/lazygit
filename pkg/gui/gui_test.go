@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -8,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/creack/pty"
@@ -39,46 +41,32 @@ import (
 // original playback speed. Speed must be an integer.
 
 type integrationTest struct {
-	name       string
-	fixture    string
-	startSpeed int
+	Name        string `json:"name"`
+	Speed       int    `json:"speed"`
+	Description string `json:"description"`
 }
 
-func tests() []integrationTest {
-	return []integrationTest{
-		{
-			name:       "commit",
-			fixture:    "newFile",
-			startSpeed: 20,
-		},
-		{
-			name:       "squash",
-			fixture:    "manyCommits",
-			startSpeed: 6,
-		},
-		{
-			name:       "patchBuilding",
-			fixture:    "updatedFile",
-			startSpeed: 3,
-		},
-		{
-			name:       "patchBuilding2",
-			fixture:    "updatedFile",
-			startSpeed: 3,
-		},
-		{
-			name:    "mergeConflicts",
-			fixture: "mergeConflicts",
-		},
-		{
-			name:    "searching",
-			fixture: "newFile",
-		},
-		{
-			name:    "searchingInStagingPanel",
-			fixture: "newFile2",
-		},
+func loadTests(t *testing.T, testDir string) []*integrationTest {
+	paths, err := filepath.Glob(filepath.Join(testDir, "/*/test.json"))
+	assert.NoError(t, err)
+
+	tests := make([]*integrationTest, len(paths))
+
+	for i, path := range paths {
+		data, err := ioutil.ReadFile(path)
+		assert.NoError(t, err)
+
+		test := &integrationTest{}
+
+		err = json.Unmarshal(data, test)
+		assert.NoError(t, err)
+
+		test.Name = strings.TrimPrefix(filepath.Dir(path), testDir+"/")
+
+		tests[i] = test
 	}
+
+	return tests
 }
 
 func generateSnapshot(t *testing.T, dir string) string {
@@ -169,9 +157,10 @@ func getTestSpeeds(testStartSpeed int, updateSnapshots bool) []int {
 }
 
 func Test(t *testing.T) {
-	tests := tests()
-
 	rootDir := getRootDirectory()
+	testDir := filepath.Join(rootDir, "test", "integration")
+
+	tests := loadTests(t, testDir)
 
 	record := os.Getenv("RECORD_EVENTS") != ""
 	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
@@ -179,17 +168,17 @@ func Test(t *testing.T) {
 	for _, test := range tests {
 		test := test
 
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
 			if runInParallel() {
 				t.Parallel()
 			}
 
-			speeds := getTestSpeeds(test.startSpeed, updateSnapshots)
+			speeds := getTestSpeeds(test.Speed, updateSnapshots)
 
 			for i, speed := range speeds {
-				t.Logf("%s: attempting test at speed %d\n", test.name, speed)
+				t.Logf("%s: attempting test at speed %d\n", test.Name, speed)
 
-				testPath := filepath.Join(rootDir, "test", "integration", test.name)
+				testPath := filepath.Join(testDir, test.Name)
 				actualDir := filepath.Join(testPath, "actual")
 				expectedDir := filepath.Join(testPath, "expected")
 				t.Logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
@@ -197,7 +186,7 @@ func Test(t *testing.T) {
 
 				prepareIntegrationTestDir(actualDir)
 
-				err := createFixture(rootDir, test.fixture, actualDir)
+				err := createFixture(testPath, actualDir)
 				assert.NoError(t, err)
 
 				runLazygit(t, testPath, rootDir, record, speed)
@@ -234,7 +223,7 @@ func Test(t *testing.T) {
 				}()
 
 				if expected == actual {
-					t.Logf("%s: success at speed %d\n", test.name, speed)
+					t.Logf("%s: success at speed %d\n", test.Name, speed)
 					break
 				}
 
@@ -247,9 +236,10 @@ func Test(t *testing.T) {
 	}
 }
 
-func createFixture(rootDir string, name string, actualDir string) error {
+func createFixture(testPath, actualDir string) error {
 	osCommand := oscommands.NewDummyOSCommand()
-	cmd := exec.Command("bash", filepath.Join(rootDir, "test", "fixtures", fmt.Sprintf("%s.sh", name)), actualDir)
+	bashScriptPath := filepath.Join(testPath, "setup.sh")
+	cmd := exec.Command("bash", bashScriptPath, actualDir)
 
 	if err := osCommand.RunExecutable(cmd); err != nil {
 		return err
@@ -311,6 +301,9 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
 
 	if record {
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
 		cmd.Env = append(
 			cmd.Env,
 			fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath),
