@@ -159,6 +159,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		commitFilesView.Title = gui.Tr.CommitFiles
 		commitFilesView.FgColor = textColor
 		commitFilesView.ContainsList = true
+		_, _ = gui.g.SetViewOnBottom("commitFiles")
 	}
 
 	commitsView, err := setViewFromDimensions("commits", "commits", true)
