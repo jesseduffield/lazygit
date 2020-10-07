@@ -328,7 +328,7 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 
 		_ = f.Close()
 	} else {
-		err := osCommand.RunExecutable(cmd)
+		err := cmd.Run()
 		assert.NoError(t, err)
 	}
 }
