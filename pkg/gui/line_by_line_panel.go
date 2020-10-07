@@ -341,7 +341,7 @@ func (gui *Gui) handleToggleSelectHunk() error {
 }
 
 func (gui *Gui) escapeLineByLinePanel() {
-	gui.withLBLActiveCheck(func(*lineByLinePanelState) error {
+	_ = gui.withLBLActiveCheck(func(*lineByLinePanelState) error {
 		gui.State.Panels.LineByLine = nil
 		return nil
 	})

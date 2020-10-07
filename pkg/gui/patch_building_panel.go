@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -58,37 +57,40 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	return nil
 }
 
-func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
+func (gui *Gui) handleToggleSelectionForPatch() error {
+	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+		toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
+		filename := gui.getSelectedCommitFileName()
+		includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+		if err != nil {
+			return err
+		}
+		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
+		if currentLineIsStaged {
+			toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
+		}
 
-	toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
-	filename := gui.getSelectedCommitFileName()
-	includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
-	if err != nil {
-		return err
-	}
-	currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
-	if currentLineIsStaged {
-		toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
-	}
+		// add range of lines to those set for the file
+		commitFile := gui.getSelectedCommitFile()
+		if commitFile == nil {
+			return nil
+		}
 
-	// add range of lines to those set for the file
-	commitFile := gui.getSelectedCommitFile()
-	if commitFile == nil {
+		if err := toggleFunc(commitFile.Name, state.FirstLineIdx, state.LastLineIdx); err != nil {
+			// might actually want to return an error here
+			gui.Log.Error(err)
+		}
+
+		if err := gui.refreshCommitFilesView(); err != nil {
+			return err
+		}
+
+		if err := gui.refreshPatchBuildingPanel(-1); err != nil {
+			return err
+		}
+
 		return nil
-	}
-
-	toggleFunc(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
-
-	if err := gui.refreshCommitFilesView(); err != nil {
-		return err
-	}
-
-	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
-		return err
-	}
-
-	return nil
+	})
 }
 
 func (gui *Gui) handleEscapePatchBuildingPanel() error {
