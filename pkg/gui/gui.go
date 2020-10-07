@@ -142,7 +142,7 @@ type IListPanelState interface {
 // for now the staging panel state, unlike the other panel states, is going to be
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
-type lineByLinePanelState struct {
+type lBlPanelState struct {
 	SelectedLineIdx  int
 	FirstLineIdx     int
 	LastLineIdx      int
@@ -234,7 +234,7 @@ type panelStates struct {
 	SubCommits     *subCommitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
-	LineByLine     *lineByLinePanelState
+	LineByLine     *lBlPanelState
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
 	Submodules     *submodulePanelState

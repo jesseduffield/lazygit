@@ -17,7 +17,7 @@ func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
 	return from, reverse
 }
 
-func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
+func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *lBlPanelState) error {
 	if !gui.GitCommand.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
@@ -45,7 +45,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 		return err
 	}
 
-	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx)
+	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx, state)
 	if err != nil {
 		return err
 	}
@@ -57,8 +57,15 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	return nil
 }
 
+func (gui *Gui) handleRefreshPatchBuildingPanel(selectedLineIdx int) error {
+	gui.Mutexes.LineByLinePanelMutex.Lock()
+	defer gui.Mutexes.LineByLinePanelMutex.Unlock()
+
+	return gui.refreshPatchBuildingPanel(selectedLineIdx, gui.State.Panels.LineByLine)
+}
+
 func (gui *Gui) handleToggleSelectionForPatch() error {
-	return gui.withLBLActiveCheck(func(state *lineByLinePanelState) error {
+	err := gui.withLBLActiveCheck(func(state *lBlPanelState) error {
 		toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
 		filename := gui.getSelectedCommitFileName()
 		includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
@@ -81,16 +88,18 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 			gui.Log.Error(err)
 		}
 
-		if err := gui.refreshCommitFilesView(); err != nil {
-			return err
-		}
-
-		if err := gui.refreshPatchBuildingPanel(-1); err != nil {
-			return err
-		}
-
 		return nil
 	})
+
+	if err != nil {
+		return err
+	}
+
+	if err := gui.refreshCommitFilesView(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleEscapePatchBuildingPanel() error {

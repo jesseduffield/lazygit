@@ -77,7 +77,7 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshCommitFilesView() error {
-	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
+	if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
 		return err
 	}
 
@@ -179,7 +179,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		if err := gui.switchContext(gui.Contexts.PatchBuilding.Context); err != nil {
 			return err
 		}
-		return gui.refreshPatchBuildingPanel(selectedLineIdx)
+		return gui.handleRefreshPatchBuildingPanel(selectedLineIdx)
 	}
 
 	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != commitFile.Parent {
