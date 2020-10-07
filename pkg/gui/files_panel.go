@@ -185,7 +185,7 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	}
 	gui.switchContext(gui.Contexts.Staging.Context)
 
-	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
+	return gui.handleRefreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
 }
 
 func (gui *Gui) handleFilePress() error {
