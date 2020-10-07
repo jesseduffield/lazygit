@@ -58,7 +58,12 @@ func (gui *Gui) refreshRemotes() error {
 		}
 	}
 
-	return gui.postRefreshUpdate(gui.mustContextForContextKey(gui.getBranchesView().Context))
+	branchesView := gui.getBranchesView()
+	if branchesView != nil {
+		return gui.postRefreshUpdate(gui.mustContextForContextKey(branchesView.Context))
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleRemoteEnter() error {
