@@ -411,7 +411,7 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 
 	for _, cmd := range cmds {
 		currentCmd := cmd
-		go func() {
+		go utils.Safe(func() {
 			stderr, err := currentCmd.StderrPipe()
 			if err != nil {
 				c.Log.Error(err)
@@ -432,7 +432,7 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 			}
 
 			wg.Done()
-		}()
+		})
 	}
 
 	wg.Wait()

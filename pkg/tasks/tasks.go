@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,14 +42,14 @@ func NewViewBufferManager(log *logrus.Entry, writer io.Writer, beforeStart func(
 }
 
 func (m *ViewBufferManager) ReadLines(n int) {
-	go func() {
+	go utils.Safe(func() {
 		m.readLines <- n
-	}()
+	})
 }
 
 func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
 	return func(stop chan struct{}) error {
-		go func() {
+		go utils.Safe(func() {
 			<-stop
 			if err := oscommands.Kill(cmd); err != nil {
 				if !strings.Contains(err.Error(), "process already finished") {
@@ -58,7 +59,7 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 			if onDone != nil {
 				onDone()
 			}
-		}()
+		})
 
 		loadingMutex := sync.Mutex{}
 
@@ -67,13 +68,13 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 
 		done := make(chan struct{})
 
-		go func() {
+		go utils.Safe(func() {
 			scanner := bufio.NewScanner(r)
 			scanner.Split(bufio.ScanLines)
 
 			loaded := false
 
-			go func() {
+			go utils.Safe(func() {
 				ticker := time.NewTicker(time.Millisecond * 100)
 				defer ticker.Stop()
 				select {
@@ -88,7 +89,7 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 				case <-stop:
 					return
 				}
-			}()
+			})
 
 		outer:
 			for {
@@ -139,7 +140,7 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 			}
 
 			close(done)
-		}()
+		})
 
 		m.readLines <- linesToRead
 
@@ -157,10 +158,10 @@ func (t *ViewBufferManager) Close() {
 
 	c := make(chan struct{})
 
-	go func() {
+	go utils.Safe(func() {
 		t.currentTask.Stop()
 		c <- struct{}{}
-	}()
+	})
 
 	select {
 	case <-c:
@@ -175,7 +176,7 @@ func (t *ViewBufferManager) Close() {
 // 2) string based, where the manager can also be asked to read more lines
 
 func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error) error {
-	go func() {
+	go utils.Safe(func() {
 		m.taskIDMutex.Lock()
 		m.newTaskId++
 		taskID := m.newTaskId
@@ -202,14 +203,14 @@ func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error) error {
 			f:             f,
 		}
 
-		go func() {
+		go utils.Safe(func() {
 			if err := f(stop); err != nil {
 				m.Log.Error(err) // might need an onError callback
 			}
 
 			close(notifyStopped)
-		}()
-	}()
+		})
+	})
 
 	return nil
 }

@@ -103,11 +103,11 @@ func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.createLoaderPanel(v, gui.Tr.FetchWait); err != nil {
 		return err
 	}
-	go func() {
+	go utils.Safe(func() {
 		err := gui.fetch(true)
 		gui.handleCredentialsPopup(err)
 		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-	}()
+	})
 	return nil
 }
 
@@ -385,7 +385,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 			"to":   branch.Name,
 		},
 	)
-	go func() {
+	go utils.Safe(func() {
 		_ = gui.createLoaderPanel(v, message)
 
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
@@ -395,7 +395,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 			gui.handleCredentialsPopup(err)
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{BRANCHES}})
 		}
-	}()
+	})
 	return nil
 }
 
