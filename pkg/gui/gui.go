@@ -485,7 +485,7 @@ func (gui *Gui) Run() error {
 		go utils.Safe(gui.startBackgroundFetch)
 	}
 
-	gui.goEvery(time.Millisecond*50, gui.stopChan, gui.refreshFilesAndSubmodules)
+	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFilesAndSubmodules)
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
@@ -642,7 +642,7 @@ func (gui *Gui) startBackgroundFetch() {
 			prompt: gui.Tr.NoAutomaticGitFetchBody,
 		})
 	} else {
-		gui.goEvery(time.Millisecond*50, gui.stopChan, func() error {
+		gui.goEvery(time.Second*60, gui.stopChan, func() error {
 			err := gui.fetch(false)
 			return err
 		})
