@@ -156,9 +156,20 @@ func getTestSpeeds(testStartSpeed int, updateSnapshots bool) []int {
 	return speeds
 }
 
+func tempLazygitPath() string {
+	return filepath.Join("/tmp", "lazygit", "test_lazygit")
+}
+
 func Test(t *testing.T) {
 	rootDir := getRootDirectory()
+	err := os.Chdir(rootDir)
+	assert.NoError(t, err)
+
 	testDir := filepath.Join(rootDir, "test", "integration")
+
+	osCommand := oscommands.NewDummyOSCommand()
+	err = osCommand.RunCommand("go build -o %s", tempLazygitPath())
+	assert.NoError(t, err)
 
 	tests := loadTests(t, testDir)
 
@@ -277,7 +288,6 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	osCommand := oscommands.NewDummyOSCommand()
 
 	replayPath := filepath.Join(testPath, "recording.json")
-	cmdStr := fmt.Sprintf("go run %s", filepath.Join(rootDir, "main.go"))
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
 	actualDir := filepath.Join(testPath, "actual")
 
@@ -295,7 +305,7 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	err = oscommands.CopyDir(templateConfigDir, configDir)
 	assert.NoError(t, err)
 
-	cmdStr = fmt.Sprintf("%s --use-config-dir=%s --path=%s", cmdStr, configDir, actualDir)
+	cmdStr := fmt.Sprintf("%s --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
