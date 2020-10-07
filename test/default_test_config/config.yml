@@ -4,9 +4,5 @@ gui:
     activeBorderColor:
     - green
     - bold
-    inactiveBorderColor:
-    - cyan
-    selectedLineBgColor:
-    - reverse
     SelectedRangeBgcolor:
     - reverse
