@@ -1275,7 +1275,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{MAIN_PATCH_BUILDING_CONTEXT_KEY},
 			Key:         gui.getKey(config.Universal.Select),
-			Handler:     gui.handleToggleSelectionForPatch,
+			Handler:     gui.wrappedHandler(gui.handleToggleSelectionForPatch),
 			Description: gui.Tr.ToggleSelectionForPatch,
 		},
 		{
