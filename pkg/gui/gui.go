@@ -113,6 +113,8 @@ type Gui struct {
 	// or the events we've recorded in a prior session
 	RecordedEvents []RecordedEvent
 	StartTime      time.Time
+
+	Mutexes guiStateMutexes
 }
 
 type RecordedEvent struct {
@@ -318,7 +320,6 @@ type guiState struct {
 	SplitMainPanel    bool
 	RetainOriginalDir bool
 	IsRefreshingFiles bool
-	Mutexes           guiStateMutexes
 	Searching         searchingState
 	ScreenMode        int
 	SideView          *gocui.View

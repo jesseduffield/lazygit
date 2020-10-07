@@ -81,11 +81,11 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 }
 
 func (gui *Gui) refreshFilesAndSubmodules() error {
-	gui.State.Mutexes.RefreshingFilesMutex.Lock()
+	gui.Mutexes.RefreshingFilesMutex.Lock()
 	gui.State.IsRefreshingFiles = true
 	defer func() {
 		gui.State.IsRefreshingFiles = false
-		gui.State.Mutexes.RefreshingFilesMutex.Unlock()
+		gui.Mutexes.RefreshingFilesMutex.Unlock()
 	}()
 
 	selectedFile := gui.getSelectedFile()
@@ -517,8 +517,8 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 }
 
 func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
-	gui.State.Mutexes.FetchMutex.Lock()
-	defer gui.State.Mutexes.FetchMutex.Unlock()
+	gui.Mutexes.FetchMutex.Lock()
+	defer gui.Mutexes.FetchMutex.Unlock()
 
 	err := gui.GitCommand.Fetch(
 		commands.FetchOptions{
