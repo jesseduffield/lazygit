@@ -511,7 +511,7 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 
 	mode := gui.Config.GetUserConfig().Git.Pull.Mode
 
-	go gui.pullWithMode(mode, opts)
+	go utils.Safe(func() { gui.pullWithMode(mode, opts) })
 
 	return nil
 }
@@ -551,7 +551,7 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 	if err := gui.createLoaderPanel(v, gui.Tr.PushWait); err != nil {
 		return err
 	}
-	go func() {
+	go utils.Safe(func() {
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
@@ -571,7 +571,7 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 		}
 		gui.handleCredentialsPopup(err)
 		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-	}()
+	})
 	return nil
 }
 

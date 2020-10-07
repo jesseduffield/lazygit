@@ -145,12 +145,12 @@ func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error, userRequ
 		return
 	}
 
-	go func() {
+	go utils.Safe(func() {
 		newVersion, err := u.checkForNewUpdate()
 		if err = onFinish(newVersion, err); err != nil {
 			u.Log.Error(err)
 		}
-	}()
+	})
 }
 
 func (u *Updater) skipUpdateCheck() bool {
@@ -235,12 +235,12 @@ func (u *Updater) getBinaryUrl(newVersion string) (string, error) {
 
 // Update downloads the latest binary and replaces the current binary with it
 func (u *Updater) Update(newVersion string, onFinish func(error) error) {
-	go func() {
+	go utils.Safe(func() {
 		err := u.update(newVersion)
 		if err = onFinish(err); err != nil {
 			u.Log.Error(err)
 		}
-	}()
+	})
 }
 
 func (u *Updater) update(newVersion string) error {

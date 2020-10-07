@@ -443,7 +443,7 @@ func (gui *Gui) Run() error {
 	defer g.Close()
 
 	if recordEvents {
-		go gui.recordEvents()
+		go utils.Safe(gui.recordEvents)
 	}
 
 	if gui.State.Modes.Filtering.Active() {
@@ -481,10 +481,10 @@ func (gui *Gui) Run() error {
 
 	gui.waitForIntro.Add(1)
 	if gui.Config.GetUserConfig().Git.AutoFetch {
-		go gui.startBackgroundFetch()
+		go utils.Safe(gui.startBackgroundFetch)
 	}
 
-	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFilesAndSubmodules)
+	gui.goEvery(time.Millisecond*50, gui.stopChan, gui.refreshFilesAndSubmodules)
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
@@ -499,7 +499,7 @@ func (gui *Gui) Run() error {
 // otherwise it handles the error, possibly by quitting the application
 func (gui *Gui) RunWithSubprocesses() error {
 	gui.StartTime = time.Now()
-	go gui.replayRecordedEvents()
+	go utils.Safe(gui.replayRecordedEvents)
 
 	for {
 		gui.stopChan = make(chan struct{})
@@ -584,18 +584,18 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 	gui.waitForIntro.Add(len(tasks))
 	done := make(chan struct{})
 
-	go func() {
+	go utils.Safe(func() {
 		for _, task := range tasks {
-			go func() {
+			go utils.Safe(func() {
 				if err := task(done); err != nil {
 					_ = gui.surfaceError(err)
 				}
-			}()
+			})
 
 			<-done
 			gui.waitForIntro.Done()
 		}
-	}()
+	})
 }
 
 func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
@@ -614,7 +614,7 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 }
 
 func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
-	go func() {
+	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 		for {
@@ -625,7 +625,7 @@ func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function fun
 				return
 			}
 		}
-	}()
+	})
 }
 
 func (gui *Gui) startBackgroundFetch() {
@@ -641,7 +641,7 @@ func (gui *Gui) startBackgroundFetch() {
 			prompt: gui.Tr.NoAutomaticGitFetchBody,
 		})
 	} else {
-		gui.goEvery(time.Second*60, gui.stopChan, func() error {
+		gui.goEvery(time.Millisecond*50, gui.stopChan, func() error {
 			err := gui.fetch(false)
 			return err
 		})

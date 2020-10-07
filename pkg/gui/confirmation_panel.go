@@ -189,14 +189,14 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 		}
 		confirmationView.Editable = opts.editable
 		if opts.editable {
-			go func() {
+			go utils.Safe(func() {
 				// TODO: remove this wait (right now if you remove it the EditGotoToEndOfLine method doesn't seem to work)
 				time.Sleep(time.Millisecond)
 				gui.g.Update(func(g *gocui.Gui) error {
 					confirmationView.EditGotoToEndOfLine()
 					return nil
 				})
-			}()
+			})
 		}
 
 		gui.renderString("confirmation", opts.prompt)

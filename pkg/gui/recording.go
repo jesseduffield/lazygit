@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func recordingEvents() bool {
@@ -28,10 +29,10 @@ func (gui *Gui) replayRecordedEvents() {
 		return
 	}
 
-	go func() {
+	go utils.Safe(func() {
 		time.Sleep(time.Second * 20)
 		log.Fatal("20 seconds is up, lazygit recording took too long to complete")
-	}()
+	})
 
 	events, err := gui.loadRecordedEvents()
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 
 	"github.com/creack/pty"
 )
@@ -31,14 +32,14 @@ func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(s
 		return err
 	}
 
-	go func() {
+	go utils.Safe(func() {
 		scanner := bufio.NewScanner(ptmx)
 		scanner.Split(scanWordsWithNewLines)
 		for scanner.Scan() {
 			toOutput := strings.Trim(scanner.Text(), " ")
 			_, _ = ptmx.WriteString(output(toOutput))
 		}
-	}()
+	})
 
 	err = cmd.Wait()
 	ptmx.Close()

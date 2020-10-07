@@ -6,6 +6,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -120,7 +121,7 @@ func (gui *Gui) watchFilesForChanges() {
 	if gui.fileWatcher.Disabled {
 		return
 	}
-	go func() {
+	go utils.Safe(func() {
 		for {
 			select {
 			// watch for events
@@ -141,5 +142,5 @@ func (gui *Gui) watchFilesForChanges() {
 				}
 			}
 		}
-	}()
+	})
 }

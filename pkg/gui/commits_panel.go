@@ -24,11 +24,11 @@ func (gui *Gui) handleCommitSelect() error {
 	state := gui.State.Panels.Commits
 	if state.SelectedLineIdx > 290 && state.LimitCommits {
 		state.LimitCommits = false
-		go func() {
+		go utils.Safe(func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {
 				_ = gui.surfaceError(err)
 			}
-		}()
+		})
 	}
 
 	gui.escapeLineByLinePanel()
@@ -60,11 +60,11 @@ func (gui *Gui) handleCommitSelect() error {
 func (gui *Gui) refreshReflogCommitsConsideringStartup() {
 	switch gui.State.StartupStage {
 	case INITIAL:
-		go func() {
+		go utils.Safe(func() {
 			_ = gui.refreshReflogCommits()
 			gui.refreshBranches()
 			gui.State.StartupStage = COMPLETE
-		}()
+		})
 
 	case COMPLETE:
 		_ = gui.refreshReflogCommits()
@@ -78,14 +78,14 @@ func (gui *Gui) refreshCommits() error {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
-	go func() {
+	go utils.Safe(func() {
 		gui.refreshReflogCommitsConsideringStartup()
 
 		gui.refreshBranches()
 		wg.Done()
-	}()
+	})
 
-	go func() {
+	go utils.Safe(func() {
 		_ = gui.refreshCommitsWithLimit()
 		context, ok := gui.Contexts.CommitFiles.Context.GetParentContext()
 		if ok && context.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
@@ -102,7 +102,7 @@ func (gui *Gui) refreshCommits() error {
 			}
 		}
 		wg.Done()
-	}()
+	})
 
 	wg.Wait()
 

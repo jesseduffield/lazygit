@@ -727,7 +727,7 @@ func (gui *Gui) mustContextForContextKey(contextKey string) Context {
 	context, ok := gui.contextForContextKey(contextKey)
 
 	if !ok {
-		panic(fmt.Sprintf("context now found for key %s", contextKey))
+		panic(fmt.Sprintf("context not found for key %s", contextKey))
 	}
 
 	return context
