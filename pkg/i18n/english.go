@@ -453,7 +453,7 @@ More clipboard stuff:
 - More text copying. Pressing ` + "`" + `ctrl+o` + "`" + ` on a commit to copy
   its SHA, or a file to copy its name, etc.
 
-Easily view logs:
+Easily view lazygit logs:
 - View lazygit logs with ` + "`" + `lazygit --logs` + "`" + ` (in another
   terminal tab run ` + "`" + `lazygit --debug` + "`" + ` to write to logs)
 
@@ -489,9 +489,9 @@ Thanks for using lazygit! Three things to share with you:
  2) If you're using git, that makes you a programmer! With your help we can make
     lazygit better, so consider becoming a contributor and joining the fun at
       https://github.com/jesseduffield/lazygit
-    You can also sponsor me at
-      https://github.com/sponsors/jesseduffield
-    For more features and bugfixes (or even just star the repo cos we're not far from 20k!)
+    You can also sponsor me and tell me what to work on by clicking the donate
+    button at the bottom right (github is still matching donations dollar-for-dollar.)
+    Or even just star the repo cos we're not far from 20k stars!
 
  3) You can now read through the release notes by navigating to the status panel.
     Version 0.23 has a LOT of new stuff so check it out. Also configs are now
