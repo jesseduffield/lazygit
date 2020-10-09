@@ -138,6 +138,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		filesView.Highlight = true
 		filesView.Title = gui.Tr.FilesTitle
+		filesView.FgColor = textColor
 		filesView.ContainsList = true
 	}
 
