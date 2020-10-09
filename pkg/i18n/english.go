@@ -11,6 +11,7 @@ Todo list when making a new translation
 package i18n
 
 type TranslationSet struct {
+	ReleaseNotes                        string
 	NotEnoughSpace                      string
 	DiffTitle                           string
 	LogTitle                            string
@@ -427,8 +428,76 @@ type TranslationSet struct {
 	NavigationTitle                     string
 }
 
+const englishReleaseNotes = `## lazygit 0.23 Release Notes
+
+Custom Commands:
+- You can now create your own custom commands complete with menus and prompts
+  to tailor lazygit to your workflow
+
+  See https://github.com/jesseduffield/lazygit/wiki/Custom-Commands-Compendium
+  and https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md
+
+Submodules:
+- Add, update, and sync submodules with the new submodules tab. To enter a
+  submodule hit enter on it and then hit escape to return to the superproject
+
+Bare repos:
+- Bare repos are now supported with the --git-dir and --work-tree args, so you
+  can use lazygit to manage your dotfiles!
+
+Staging panel navigation:
+- Ability to search with '/' and jump page by page with ',', '.', '<', '>' in
+  the staging and patch-building contexts
+
+More clipboard stuff:
+- More text copying. Pressing ` + "`" + `ctrl+o` + "`" + ` on a commit to copy
+  its SHA, or a file to copy its name, or use the keybinding while typing a commit
+  message to copy that message (special thanks to @nullawhale and @Yuuki77).
+
+Easily view logs:
+- View lazygit logs with ` + "`" + `lazygit --logs` + "`" + ` (in another
+  terminal tab run ` + "`" + `lazygit --debug` + "`" + ` to write to logs)
+
+Other:
+- For the butterfingers of the world, you are now protected from accidentally
+  deleting the .gitignore file (thanks @kobutomo!)
+
+- Fewer panics
+
+- No more 'invalid merge' errors on startup
+
+- Smaller binary after ditching the Viper and i18n package. Beware! This means
+  configs are now case-sensitive so if your config stops working check the case
+  sensitivity of the keys against what you get from ` + "`" + `lazygit --config` + "`" + `
+
+- Code refactor for better dev experience including more type safety
+
+- Integration tests have finally been added and there are many more to come.
+  These will assist in ensuring no regressions have been introduced in future
+  releases. Making an integration test is actually pretty fun you basically just
+  record yourself using lazygit and that's it. See the guide to integration tests at
+  https://github.com/jesseduffield/lazygit/blob/master/docs/Integration_Tests.md
+
+- Showing release notes from within lazygit`
+
+const englishIntroPopupMessage = `
+Thanks for using lazygit! Three things to share with you:
+
+ 1) If you want to learn about lazygit's features, watch this vid:
+   https://youtu.be/CPLdltN7wgE
+
+ 2) If you're using git, that makes you a programmer! With your help we can make lazygit better, so consider becoming a contributor and joining the fun at
+   https://github.com/jesseduffield/lazygit
+   You can also sponsor me at
+   https://github.com/sponsors/jesseduffield
+   For more features and bugfixes (or even just star the repo cos we're not far from 20k!)
+
+ 3) You can now read through the release notes by navigating to the status panel. Version 0.23 has a LOT of new stuff so check it out.
+`
+
 func englishTranslationSet() TranslationSet {
 	return TranslationSet{
+		ReleaseNotes:                        englishReleaseNotes,
 		NotEnoughSpace:                      "Not enough space to render panels",
 		DiffTitle:                           "Diff",
 		LogTitle:                            "Log",
@@ -570,7 +639,7 @@ func englishTranslationSet() TranslationSet {
 		CouldNotFindBinaryErr:               "Could not find any binary at {{.url}}",
 		AnonymousReportingTitle:             "Help make lazygit better",
 		AnonymousReportingPrompt:            "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
-		IntroPopupMessage:                   "Thanks for using lazygit! Two things to share with you:\n\n1) If you want to learn about lazygit's features, watch this vid:\n   https://youtu.be/CPLdltN7wgE\n\n2) If you're using git, that makes you a programmer! With your help we can make lazygit better, so consider becoming a contributor and joining the fun at\n   https://github.com/jesseduffield/lazygit",
+		IntroPopupMessage:                   englishIntroPopupMessage,
 		GitconfigParseErr:                   `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		LcEditFile:                          `edit file`,
 		LcOpenFile:                          `open file`,
