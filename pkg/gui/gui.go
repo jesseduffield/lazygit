@@ -7,16 +7,11 @@ import (
 	"runtime"
 	"sync"
 
-	// "io"
-	// "io/ioutil"
-
 	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
-
-	// "strings"
 
 	"github.com/fatih/color"
 	"github.com/golang-collections/collections/stack"
@@ -42,7 +37,7 @@ const (
 	SCREEN_FULL
 )
 
-const StartupPopupVersion = 2
+const StartupPopupVersion = 3
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false

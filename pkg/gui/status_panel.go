@@ -114,6 +114,7 @@ func (gui *Gui) handleStatusSelect() error {
 			"Tutorial: https://youtu.be/VDXvbHZYeKY",
 			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
 			magenta.Sprint("Become a sponsor (github is matching all donations for 12 months): https://github.com/sponsors/jesseduffield"), // caffeine ain't free
+			gui.Tr.ReleaseNotes,
 		}, "\n\n")
 
 	return gui.refreshMainViews(refreshMainOpts{
