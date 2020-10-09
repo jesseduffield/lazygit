@@ -451,8 +451,7 @@ Staging panel navigation:
 
 More clipboard stuff:
 - More text copying. Pressing ` + "`" + `ctrl+o` + "`" + ` on a commit to copy
-  its SHA, or a file to copy its name, or use the keybinding while typing a commit
-  message to copy that message (special thanks to @nullawhale and @Yuuki77).
+  its SHA, or a file to copy its name, etc.
 
 Easily view logs:
 - View lazygit logs with ` + "`" + `lazygit --logs` + "`" + ` (in another
@@ -478,21 +477,25 @@ Other:
   record yourself using lazygit and that's it. See the guide to integration tests at
   https://github.com/jesseduffield/lazygit/blob/master/docs/Integration_Tests.md
 
-- Showing release notes from within lazygit`
+- Showing release notes from within lazygit, as you no doubt have realised. I'm
+  too lazy to include retrospective release notes but better late than never.`
 
 const englishIntroPopupMessage = `
 Thanks for using lazygit! Three things to share with you:
 
  1) If you want to learn about lazygit's features, watch this vid:
-   https://youtu.be/CPLdltN7wgE
+      https://youtu.be/CPLdltN7wgE
 
- 2) If you're using git, that makes you a programmer! With your help we can make lazygit better, so consider becoming a contributor and joining the fun at
-   https://github.com/jesseduffield/lazygit
-   You can also sponsor me at
-   https://github.com/sponsors/jesseduffield
-   For more features and bugfixes (or even just star the repo cos we're not far from 20k!)
+ 2) If you're using git, that makes you a programmer! With your help we can make
+    lazygit better, so consider becoming a contributor and joining the fun at
+      https://github.com/jesseduffield/lazygit
+    You can also sponsor me at
+      https://github.com/sponsors/jesseduffield
+    For more features and bugfixes (or even just star the repo cos we're not far from 20k!)
 
- 3) You can now read through the release notes by navigating to the status panel. Version 0.23 has a LOT of new stuff so check it out.
+ 3) You can now read through the release notes by navigating to the status panel.
+    Version 0.23 has a LOT of new stuff so check it out. Also configs are now
+    case-sensitive so run ` + "`" + `lazygit --config` + "`" + ` for comparison.
 `
 
 func englishTranslationSet() TranslationSet {
