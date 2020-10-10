@@ -9,7 +9,7 @@ import (
 
 type credentials chan string
 
-// promptUserForCredential wait for a username or password input from the credentials popup
+// promptUserForCredential wait for a username, password or passphrase input from the credentials popup
 func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
@@ -17,8 +17,11 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 		if passOrUname == "username" {
 			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.Mask = 0
-		} else {
+		} else if passOrUname == "password" {
 			credentialsView.Title = gui.Tr.CredentialsPassword
+			credentialsView.Mask = '*'
+		} else {
+			credentialsView.Title = gui.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
 		}
 
@@ -30,7 +33,7 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 		return nil
 	})
 
-	// wait for username/passwords input
+	// wait for username/passwords/passphrase input
 	userInput := <-gui.credentials
 	return userInput + "\n"
 }
@@ -70,10 +73,10 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
-		if strings.Contains(errMessage, "Invalid username or password") {
+		if strings.Contains(errMessage, "Invalid username, password or passphrase") {
 			errMessage = gui.Tr.PassUnameWrong
 		}
-		// we are not logging this error because it may contain a password
+		// we are not logging this error because it may contain a password or a passphrase
 		gui.createErrorPanel(errMessage)
 	} else {
 		_ = gui.closeConfirmationPrompt(false)
