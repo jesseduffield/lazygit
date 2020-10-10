@@ -30,6 +30,7 @@ type TranslationSet struct {
 	CommitMessage                       string
 	CredentialsUsername                 string
 	CredentialsPassword                 string
+	CredentialsPassphrase               string
 	PassUnameWrong                      string
 	CommitChanges                       string
 	AmendLastCommit                     string
@@ -519,7 +520,8 @@ func englishTranslationSet() TranslationSet {
 		CommitMessage:                       "Commit message",
 		CredentialsUsername:                 "Username",
 		CredentialsPassword:                 "Password",
-		PassUnameWrong:                      "Password and/or username wrong",
+		CredentialsPassphrase:               "Enter passphrase for SSH key",
+		PassUnameWrong:                      "Password, passphrase and/or username wrong",
 		CommitChanges:                       "commit changes",
 		AmendLastCommit:                     "amend last commit",
 		SureToAmend:                         "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",

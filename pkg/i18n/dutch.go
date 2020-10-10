@@ -19,6 +19,7 @@ func dutchTranslationSet() TranslationSet {
 		CommitMessage:                       "Commit bericht",
 		CredentialsUsername:                 "Gebruikersnaam",
 		CredentialsPassword:                 "Wachtwoord",
+		CredentialsPassphrase:               "Voer een wachtwoordzin in voor de SSH-sleutel",
 		PassUnameWrong:                      "Wachtwoord en/of gebruikersnaam verkeert",
 		CommitChanges:                       "Commit veranderingen",
 		AmendLastCommit:                     "wijzig laatste commit",

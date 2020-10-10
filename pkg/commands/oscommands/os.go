@@ -143,18 +143,19 @@ func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string)
 	return RunCommandWithOutputLiveWrapper(c, command, output)
 }
 
-// DetectUnamePass detect a username / password question in a command
-// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password
-// The promptUserForCredential argument will be "username" or "password" and expects the user's password or username back
+// DetectUnamePass detect a username / password / passphrase question in a command
+// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
+// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
 func (c *OSCommand) DetectUnamePass(command string, promptUserForCredential func(string) string) error {
 	ttyText := ""
 	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]string{
-			`.+'s password:`:         "password",
-			`Password\s*for\s*'.+':`: "password",
-			`Username\s*for\s*'.+':`: "username",
+			`.+'s password:`:                         "password",
+			`Password\s*for\s*'.+':`:                 "password",
+			`Username\s*for\s*'.+':`:                 "username",
+			`Enter\s*passphrase\s*for\s*key\s*'.+':`: "passphrase",
 		}
 
 		for pattern, askFor := range prompts {
