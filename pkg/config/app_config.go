@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/OpenPeeDeeP/xdg"
 	yaml "github.com/jesseduffield/yaml"
@@ -114,6 +115,9 @@ func loadUserConfig(configDir string, base *UserConfig) (*UserConfig, error) {
 		if os.IsNotExist(err) {
 			file, err := os.Create(fileName)
 			if err != nil {
+				if strings.Contains(err.Error(), "read-only file system") {
+					return base, nil
+				}
 				return nil, err
 			}
 			file.Close()
