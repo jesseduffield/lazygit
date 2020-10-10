@@ -400,6 +400,15 @@ func (v *View) Write(p []byte) (n int, err error) {
 			}
 		default:
 			cells := v.parseInput(ch)
+			if v.ei.instruction.kind != NONE {
+				switch v.ei.instruction.kind {
+				case ERASE_IN_LINE:
+					v.eraseInLine()
+				}
+				v.ei.instructionRead()
+				continue
+			}
+
 			if cells == nil {
 				continue
 			}
@@ -414,6 +423,31 @@ func (v *View) Write(p []byte) (n int, err error) {
 	}
 
 	return len(p), nil
+}
+
+func (v *View) eraseInLine() {
+	code := v.ei.instruction.param1
+	switch code {
+	case 0:
+		// need to write till end of the line with cells containing the same bg colour as we currently have.
+
+		if len(v.lines) == 0 {
+			v.lines = append(v.lines, []cell{})
+		}
+		nl := len(v.lines)
+		width, _ := v.Size()
+		cellCount := width - len(v.lines[nl-1])
+		c := cell{
+			fgColor: v.ei.curFgColor,
+			bgColor: v.ei.curBgColor,
+			chr:     ' ',
+		}
+		for i := 0; i < cellCount; i++ {
+			v.lines[nl-1] = append(v.lines[nl-1], c)
+		}
+	default:
+		// don't recognise sequence. Until we merge the gocui master branch we can't handle going backwards.
+	}
 }
 
 // parseInput parses char by char the input written to the View. It returns nil

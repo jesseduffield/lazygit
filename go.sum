@@ -63,8 +63,8 @@ github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOl
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4 h1:GOQrmaE8i+KEdB8NzAegKYd4tPn/inM0I1uo0NXFerg=
 github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4/go.mod h1:nGNEErzf+NRznT+N2SWqmHnDnF9aLgANB1CUNEan09o=
-github.com/jesseduffield/gocui v0.3.1-0.20201007110350-cc51e317126e h1:FYXSJfL6JKWB+1NjGqT5/kYJbMI9oMx+JAI3CcrtLsM=
-github.com/jesseduffield/gocui v0.3.1-0.20201007110350-cc51e317126e/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
+github.com/jesseduffield/gocui v0.3.1-0.20201010224802-8a6768078fd7 h1:K3MGrjmpPtIhfXmKh/zsIF0CdmNKOkjpIwcUfAa/J2A=
+github.com/jesseduffield/gocui v0.3.1-0.20201010224802-8a6768078fd7/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe h1:qsVhCf2RFyyKIUe/+gJblbCpXMUki9rZrHuEctg6M/E=
 github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe/go.mod h1:anMibpZtqNxjDbxrcDEAwSdaJ37vyUeM1f/M4uekib4=
 github.com/jesseduffield/yaml v2.1.0+incompatible h1:HWQJ1gIv2zHKbDYNp0Jwjlj24K8aqpFHnMCynY1EpmE=

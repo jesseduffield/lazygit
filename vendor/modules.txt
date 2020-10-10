@@ -104,7 +104,7 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20201007110350-cc51e317126e
+# github.com/jesseduffield/gocui v0.3.1-0.20201010224802-8a6768078fd7
 ## explicit
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe

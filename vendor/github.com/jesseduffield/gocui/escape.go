@@ -16,6 +16,19 @@ type escapeInterpreter struct {
 	csiParam               []string
 	curFgColor, curBgColor Attribute
 	mode                   OutputMode
+	instruction            instruction
+}
+
+const (
+	NONE = 1 << iota
+	ERASE_IN_LINE
+)
+
+type instruction struct {
+	kind    int
+	param1  int
+	param2  int
+	toWrite []rune
 }
 
 type escapeState int
@@ -57,10 +70,11 @@ func (ei *escapeInterpreter) runes() []rune {
 // terminal escape sequences.
 func newEscapeInterpreter(mode OutputMode) *escapeInterpreter {
 	ei := &escapeInterpreter{
-		state:      stateNone,
-		curFgColor: ColorDefault,
-		curBgColor: ColorDefault,
-		mode:       mode,
+		state:       stateNone,
+		curFgColor:  ColorDefault,
+		curBgColor:  ColorDefault,
+		mode:        mode,
+		instruction: instruction{kind: NONE},
 	}
 	return ei
 }
@@ -71,6 +85,10 @@ func (ei *escapeInterpreter) reset() {
 	ei.curFgColor = ColorDefault
 	ei.curBgColor = ColorDefault
 	ei.csiParam = nil
+}
+
+func (ei *escapeInterpreter) instructionRead() {
+	ei.instruction.kind = NONE
 }
 
 // parseOne parses a rune. If isEscape is true, it means that the rune is part
@@ -130,6 +148,17 @@ func (ei *escapeInterpreter) parseOne(ch rune) (isEscape bool, err error) {
 			if err != nil {
 				return false, errCSIParseError
 			}
+
+			ei.state = stateNone
+			ei.csiParam = nil
+			return true, nil
+		case ch == 'K':
+			p, err := strconv.Atoi(ei.csiParam[0])
+			if err != nil {
+				return false, errCSIParseError
+			}
+			ei.instruction.kind = ERASE_IN_LINE
+			ei.instruction.param1 = p
 
 			ei.state = stateNone
 			ei.csiParam = nil
