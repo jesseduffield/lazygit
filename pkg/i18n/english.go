@@ -429,7 +429,14 @@ type TranslationSet struct {
 	NavigationTitle                     string
 }
 
-const englishReleaseNotes = `## lazygit 0.23 Release Notes
+const englishReleaseNotes = `## lazygit 0.23.2 Release Notes
+
+- Fixed bug where editing a file with spaces did not work
+- Fixed formatting issue with delta that rendered '[0;K' to the screen
+- Fixed bug where lazygit failed upon attempting to create a config file in a
+  read-only filesystem
+
+## lazygit 0.23 Release Notes
 
 Custom Commands:
 - You can now create your own custom commands complete with menus and prompts
