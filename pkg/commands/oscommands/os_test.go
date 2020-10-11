@@ -227,6 +227,28 @@ func TestOSCommandEditFile(t *testing.T) {
 				assert.NoError(t, err)
 			},
 		},
+		{
+			"file/with space",
+			func(name string, args ...string) *exec.Cmd {
+				if name == "which" {
+					return exec.Command("echo")
+				}
+
+				assert.EqualValues(t, "vi", name)
+				assert.EqualValues(t, "file/with space", args[0])
+
+				return nil
+			},
+			func(env string) string {
+				return ""
+			},
+			func(cf string) (string, error) {
+				return "", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.NoError(t, err)
+			},
+		},
 	}
 
 	for _, s := range scenarios {

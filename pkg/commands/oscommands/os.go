@@ -255,7 +255,7 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 	}
 
-	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, filename))
+	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, c.Quote(filename)))
 
 	return c.PrepareSubProcess(splitCmd[0], splitCmd[1:]...), nil
 }
