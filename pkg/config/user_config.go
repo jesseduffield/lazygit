@@ -180,24 +180,25 @@ type KeybindingBranchesConfig struct {
 }
 
 type KeybindingCommitsConfig struct {
-	SquashDown             string `yaml:"squashDown"`
-	RenameCommit           string `yaml:"renameCommit"`
-	RenameCommitWithEditor string `yaml:"renameCommitWithEditor"`
-	ViewResetOptions       string `yaml:"viewResetOptions"`
-	MarkCommitAsFixup      string `yaml:"markCommitAsFixup"`
-	CreateFixupCommit      string `yaml:"createFixupCommit"`
-	SquashAboveCommits     string `yaml:"squashAboveCommits"`
-	MoveDownCommit         string `yaml:"moveDownCommit"`
-	MoveUpCommit           string `yaml:"moveUpCommit"`
-	AmendToCommit          string `yaml:"amendToCommit"`
-	PickCommit             string `yaml:"pickCommit"`
-	RevertCommit           string `yaml:"revertCommit"`
-	CherryPickCopy         string `yaml:"cherryPickCopy"`
-	CherryPickCopyRange    string `yaml:"cherryPickCopyRange"`
-	PasteCommits           string `yaml:"pasteCommits"`
-	TagCommit              string `yaml:"tagCommit"`
-	CheckoutCommit         string `yaml:"checkoutCommit"`
-	ResetCherryPick        string `yaml:"resetCherryPick"`
+	SquashDown                   string `yaml:"squashDown"`
+	RenameCommit                 string `yaml:"renameCommit"`
+	RenameCommitWithEditor       string `yaml:"renameCommitWithEditor"`
+	ViewResetOptions             string `yaml:"viewResetOptions"`
+	MarkCommitAsFixup            string `yaml:"markCommitAsFixup"`
+	CreateFixupCommit            string `yaml:"createFixupCommit"`
+	SquashAboveCommits           string `yaml:"squashAboveCommits"`
+	MoveDownCommit               string `yaml:"moveDownCommit"`
+	MoveUpCommit                 string `yaml:"moveUpCommit"`
+	AmendToCommit                string `yaml:"amendToCommit"`
+	PickCommit                   string `yaml:"pickCommit"`
+	RevertCommit                 string `yaml:"revertCommit"`
+	CherryPickCopy               string `yaml:"cherryPickCopy"`
+	CherryPickCopyRange          string `yaml:"cherryPickCopyRange"`
+	PasteCommits                 string `yaml:"pasteCommits"`
+	TagCommit                    string `yaml:"tagCommit"`
+	CheckoutCommit               string `yaml:"checkoutCommit"`
+	ResetCherryPick              string `yaml:"resetCherryPick"`
+	CopyCommitMessageToClipboard string `yaml:"copyCommitMessageToClipboard"`
 }
 
 type KeybindingStashConfig struct {
@@ -390,24 +391,26 @@ func GetDefaultConfig() *UserConfig {
 				SetUpstream:            "u",
 				FetchRemote:            "f",
 			},
-			Commits: KeybindingCommitsConfig{SquashDown: "s",
-				RenameCommit:           "r",
-				RenameCommitWithEditor: "R",
-				ViewResetOptions:       "g",
-				MarkCommitAsFixup:      "f",
-				CreateFixupCommit:      "F",
-				SquashAboveCommits:     "S",
-				MoveDownCommit:         "<c-j>",
-				MoveUpCommit:           "<c-k>",
-				AmendToCommit:          "A",
-				PickCommit:             "p",
-				RevertCommit:           "t",
-				CherryPickCopy:         "c",
-				CherryPickCopyRange:    "C",
-				PasteCommits:           "v",
-				TagCommit:              "T",
-				CheckoutCommit:         "<space>",
-				ResetCherryPick:        "<c-R>",
+			Commits: KeybindingCommitsConfig{
+				SquashDown:                   "s",
+				RenameCommit:                 "r",
+				RenameCommitWithEditor:       "R",
+				ViewResetOptions:             "g",
+				MarkCommitAsFixup:            "f",
+				CreateFixupCommit:            "F",
+				SquashAboveCommits:           "S",
+				MoveDownCommit:               "<c-j>",
+				MoveUpCommit:                 "<c-k>",
+				AmendToCommit:                "A",
+				PickCommit:                   "p",
+				RevertCommit:                 "t",
+				CherryPickCopy:               "c",
+				CherryPickCopyRange:          "C",
+				PasteCommits:                 "v",
+				TagCommit:                    "T",
+				CheckoutCommit:               "<space>",
+				ResetCherryPick:              "<c-R>",
+				CopyCommitMessageToClipboard: "<c-y>",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash: "g",

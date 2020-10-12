@@ -591,3 +591,16 @@ func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 
 	return nil
 }
+
+func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
+	commit := gui.getSelectedLocalCommit()
+	if commit == nil {
+		return nil
+	}
+
+	message, err := gui.GitCommand.GetCommitMessage(commit.Sha)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+	return gui.OSCommand.CopyToClipboard(message)
+}

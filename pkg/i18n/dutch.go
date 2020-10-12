@@ -371,6 +371,7 @@ func dutchTranslationSet() TranslationSet {
 		LcOpenDiffingMenu:                   "open diff menu",
 		LcShowingGitDiff:                    "laat output zien voor:",
 		LcCopyCommitShaToClipboard:          "copieer commit SHA naar clipboard",
+		LcCopyCommitMessageToClipboard:      "copieer commit bericht naar clipboard",
 		LcCopyBranchNameToClipboard:         "copieer branch name naar clipboard",
 		LcCopyFileNameToClipboard:           "kopieer de bestandsnaam naar het klembord",
 		LcCopyCommitFileNameToClipboard:     "kopieer de vastgelegde bestandsnaam naar het klembord",

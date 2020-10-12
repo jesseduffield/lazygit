@@ -823,6 +823,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{BRANCH_COMMITS_CONTEXT_KEY},
+			Key:         gui.getKey(config.Commits.CopyCommitMessageToClipboard),
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedCommitMessageToClipboard),
+			Description: gui.Tr.LcCopyCommitMessageToClipboard,
+		},
+		{
+			ViewName:    "commits",
 			Contexts:    []string{REFLOG_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey(config.Universal.GoInto),
 			Handler:     gui.wrappedHandler(gui.handleViewReflogCommitFiles),
