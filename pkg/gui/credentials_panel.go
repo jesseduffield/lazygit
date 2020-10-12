@@ -4,20 +4,24 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type credentials chan string
 
-// promptUserForCredential wait for a username or password input from the credentials popup
+// promptUserForCredential wait for a username, password or passphrase input from the credentials popup
 func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView, _ := g.View("credentials")
 		if passOrUname == "username" {
-			credentialsView.Title = gui.Tr.SLocalize("CredentialsUsername")
+			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.Mask = 0
+		} else if passOrUname == "password" {
+			credentialsView.Title = gui.Tr.CredentialsPassword
+			credentialsView.Mask = '*'
 		} else {
-			credentialsView.Title = gui.Tr.SLocalize("CredentialsPassword")
+			credentialsView.Title = gui.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
 		}
 
@@ -29,7 +33,7 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 		return nil
 	})
 
-	// wait for username/passwords input
+	// wait for username/passwords/passphrase input
 	userInput := <-gui.credentials
 	return userInput + "\n"
 }
@@ -51,13 +55,16 @@ func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCredentialsViewFocused() error {
-	message := gui.Tr.TemplateLocalize(
-		"CloseConfirm",
-		Teml{
-			"keyBindClose":   gui.getKeyDisplay("universal.return"),
-			"keyBindConfirm": gui.getKeyDisplay("universal.confirm"),
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+
+	message := utils.ResolvePlaceholderString(
+		gui.Tr.CloseConfirm,
+		map[string]string{
+			"keyBindClose":   gui.getKeyDisplay(keybindingConfig.Universal.Return),
+			"keyBindConfirm": gui.getKeyDisplay(keybindingConfig.Universal.Confirm),
 		},
 	)
+
 	gui.renderString("options", message)
 	return nil
 }
@@ -66,10 +73,10 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
-		if strings.Contains(errMessage, "Invalid username or password") {
-			errMessage = gui.Tr.SLocalize("PassUnameWrong")
+		if strings.Contains(errMessage, "Invalid username, password or passphrase") {
+			errMessage = gui.Tr.PassUnameWrong
 		}
-		// we are not logging this error because it may contain a password
+		// we are not logging this error because it may contain a password or a passphrase
 		gui.createErrorPanel(errMessage)
 	} else {
 		_ = gui.closeConfirmationPrompt(false)

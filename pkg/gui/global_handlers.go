@@ -39,7 +39,7 @@ func (gui *Gui) scrollUpView(viewName string) error {
 		return nil
 	}
 	ox, oy := mainView.Origin()
-	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().GetInt("gui.scrollHeight"))))
+	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().Gui.ScrollHeight)))
 	return mainView.SetOrigin(ox, newOy)
 }
 
@@ -50,11 +50,11 @@ func (gui *Gui) scrollDownView(viewName string) error {
 	}
 	ox, oy := mainView.Origin()
 	y := oy
-	if !gui.Config.GetUserConfig().GetBool("gui.scrollPastBottom") {
+	if !gui.Config.GetUserConfig().Gui.ScrollPastBottom {
 		_, sy := mainView.Size()
 		y += sy
 	}
-	scrollHeight := gui.Config.GetUserConfig().GetInt("gui.scrollHeight")
+	scrollHeight := gui.Config.GetUserConfig().Gui.ScrollHeight
 	if y < mainView.LinesHeight() {
 		if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
 			return err
@@ -149,7 +149,7 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 
 	for _, mode := range gui.modeStatuses() {
 		if mode.isActive() {
-			if width-cx > len(gui.Tr.SLocalize("(reset)")) {
+			if width-cx > len(gui.Tr.ResetInParentheses) {
 				return nil
 			}
 			return mode.reset()
@@ -157,15 +157,15 @@ func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	// if we're not in an active mode we show the donate button
-	if cx <= len(gui.Tr.SLocalize("Donate"))+len(INFO_SECTION_PADDING) {
+	if cx <= len(gui.Tr.Donate)+len(INFO_SECTION_PADDING) {
 		return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
 	}
 	return nil
 }
 
 func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
-	gui.State.FetchMutex.Lock()
-	defer gui.State.FetchMutex.Unlock()
+	gui.Mutexes.FetchMutex.Lock()
+	defer gui.Mutexes.FetchMutex.Unlock()
 
 	fetchOpts := commands.FetchOptions{}
 	if canPromptForCredentials {
@@ -175,7 +175,7 @@ func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
 	err = gui.GitCommand.Fetch(fetchOpts)
 
 	if canPromptForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
-		gui.createErrorPanel(gui.Tr.SLocalize("PassUnameWrong"))
+		gui.createErrorPanel(gui.Tr.PassUnameWrong)
 	}
 
 	gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})

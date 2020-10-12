@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/termbox-go"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
@@ -101,7 +102,8 @@ func Loader() string {
 // ResolvePlaceholderString populates a template with values
 func ResolvePlaceholderString(str string, arguments map[string]string) string {
 	for key, value := range arguments {
-		str = strings.Replace(str, "{{"+key+"}}", value, -1)
+		str = strings.ReplaceAll(str, "{{"+key+"}}", value)
+		str = strings.ReplaceAll(str, "{{."+key+"}}", value)
 	}
 	return str
 }
@@ -358,4 +360,19 @@ func ResolveTemplate(templateStr string, object interface{}) (string, error) {
 	}
 
 	return buf.String(), nil
+}
+
+// Safe will close termbox if a panic occurs so that we don't end up in a malformed
+// terminal state
+func Safe(f func()) {
+	panicking := true
+	defer func() {
+		if panicking {
+			termbox.Close()
+		}
+	}()
+
+	f()
+
+	panicking = false
 }

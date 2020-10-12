@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type createPopupPanelOpts struct {
@@ -95,9 +96,10 @@ func (gui *Gui) wrappedPromptConfirmationFunction(handlersManageFocus bool, func
 }
 
 func (gui *Gui) deleteConfirmationView() {
-	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.confirm"), gocui.ModNone)
-	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.confirm-alt1"), gocui.ModNone)
-	gui.g.DeleteKeybinding("confirmation", gui.getKey("universal.return"), gocui.ModNone)
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)
 
 	_ = gui.g.DeleteView("confirmation")
 }
@@ -187,14 +189,14 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 		}
 		confirmationView.Editable = opts.editable
 		if opts.editable {
-			go func() {
+			go utils.Safe(func() {
 				// TODO: remove this wait (right now if you remove it the EditGotoToEndOfLine method doesn't seem to work)
 				time.Sleep(time.Millisecond)
 				gui.g.Update(func(g *gocui.Gui) error {
 					confirmationView.EditGotoToEndOfLine()
 					return nil
 				})
-			}()
+			})
 		}
 
 		gui.renderString("confirmation", opts.prompt)
@@ -204,9 +206,9 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 }
 
 func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
-	actions := gui.Tr.TemplateLocalize(
-		"CloseConfirm",
-		Teml{
+	actions := utils.ResolvePlaceholderString(
+		gui.Tr.CloseConfirm,
+		map[string]string{
 			"keyBindClose":   "esc",
 			"keyBindConfirm": "enter",
 		},
@@ -220,14 +222,15 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		onConfirm = gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleConfirm)
 	}
 
-	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.confirm"), gocui.ModNone, onConfirm); err != nil {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone, onConfirm); err != nil {
 		return err
 	}
-	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.confirm-alt1"), gocui.ModNone, onConfirm); err != nil {
+	if err := gui.g.SetKeybinding("confirmation", nil, gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone, onConfirm); err != nil {
 		return err
 	}
 
-	return gui.g.SetKeybinding("confirmation", nil, gui.getKey("universal.return"), gocui.ModNone, gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleClose))
+	return gui.g.SetKeybinding("confirmation", nil, gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone, gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleClose))
 }
 
 func (gui *Gui) createErrorPanel(message string) error {
@@ -238,7 +241,7 @@ func (gui *Gui) createErrorPanel(message string) error {
 	}
 
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("Error"),
+		title:  gui.Tr.Error,
 		prompt: coloredMessage,
 	})
 }

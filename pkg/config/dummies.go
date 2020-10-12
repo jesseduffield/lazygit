@@ -1,17 +1,11 @@
 package config
 
 import (
-	"github.com/spf13/viper"
-	yaml "gopkg.in/yaml.v2"
+	yaml "github.com/jesseduffield/yaml"
 )
 
 // NewDummyAppConfig creates a new dummy AppConfig for testing
 func NewDummyAppConfig() *AppConfig {
-	userConfig := viper.New()
-	userConfig.SetConfigType("yaml")
-	if err := LoadDefaults(userConfig, GetDefaultConfig()); err != nil {
-		panic(err)
-	}
 	appConfig := &AppConfig{
 		Name:        "lazygit",
 		Version:     "unversioned",
@@ -19,7 +13,7 @@ func NewDummyAppConfig() *AppConfig {
 		BuildDate:   "",
 		Debug:       false,
 		BuildSource: "",
-		UserConfig:  userConfig,
+		UserConfig:  GetDefaultConfig(),
 	}
 	_ = yaml.Unmarshal([]byte{}, appConfig.AppState)
 	return appConfig

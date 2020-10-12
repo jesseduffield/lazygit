@@ -103,7 +103,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 	for _, s := range scenarios {
 		OSCmd := NewDummyOSCommand()
 		OSCmd.Command = s.command
-		OSCmd.Config.GetUserConfig().Set("os.openCommand", "open {{filename}}")
+		OSCmd.Config.GetUserConfig().OS.OpenCommand = "open {{filename}}"
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}
@@ -214,6 +214,28 @@ func TestOSCommandEditFile(t *testing.T) {
 				}
 
 				assert.EqualValues(t, "vi", name)
+
+				return nil
+			},
+			func(env string) string {
+				return ""
+			},
+			func(cf string) (string, error) {
+				return "", nil
+			},
+			func(cmd *exec.Cmd, err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"file/with space",
+			func(name string, args ...string) *exec.Cmd {
+				if name == "which" {
+					return exec.Command("echo")
+				}
+
+				assert.EqualValues(t, "vi", name)
+				assert.EqualValues(t, "file/with space", args[0])
 
 				return nil
 			},

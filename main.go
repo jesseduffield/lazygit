@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	yaml "github.com/jesseduffield/yaml"
 )
 
 var (
@@ -46,6 +48,12 @@ func main() {
 	configFlag := false
 	flaggy.Bool(&configFlag, "c", "config", "Print the default config")
 
+	configDirFlag := false
+	flaggy.Bool(&configDirFlag, "cd", "print-config-dir", "Print the config directory")
+
+	useConfigDir := ""
+	flaggy.String(&useConfigDir, "ucd", "use-config-dir", "override default config directory with provided directory")
+
 	workTree := ""
 	flaggy.String(&workTree, "w", "work-tree", "equivalent of the --work-tree git argument")
 
@@ -63,6 +71,10 @@ func main() {
 		gitDir = filepath.Join(repoPath, ".git")
 	}
 
+	if useConfigDir != "" {
+		os.Setenv("CONFIG_DIR", useConfigDir)
+	}
+
 	if workTree != "" {
 		env.SetGitWorkTreeEnv(workTree)
 	}
@@ -77,7 +89,18 @@ func main() {
 	}
 
 	if configFlag {
-		fmt.Printf("%s\n", config.GetDefaultConfig())
+		var buf bytes.Buffer
+		encoder := yaml.NewEncoder(&buf)
+		err := encoder.Encode(config.GetDefaultConfig())
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Printf("%s\n", buf.String())
+		os.Exit(0)
+	}
+
+	if configDirFlag {
+		fmt.Printf("%s\n", config.ConfigDir())
 		os.Exit(0)
 	}
 
@@ -111,6 +134,6 @@ func main() {
 		stackTrace := newErr.ErrorStack()
 		app.Log.Error(stackTrace)
 
-		log.Fatal(fmt.Sprintf("%s\n\n%s", app.Tr.SLocalize("ErrorOccurred"), stackTrace))
+		log.Fatal(fmt.Sprintf("%s\n\n%s", app.Tr.ErrorOccurred, stackTrace))
 	}
 }

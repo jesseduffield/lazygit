@@ -40,6 +40,8 @@ func (gui *Gui) handleSearch(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, int) error {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+
 	return func(y int, index int, total int) error {
 		if total == 0 {
 			gui.renderString(
@@ -48,7 +50,7 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 					"no matches for '%s' %s",
 					gui.State.Searching.searchString,
 					utils.ColoredString(
-						fmt.Sprintf("%s: exit search mode", gui.getKeyDisplay("universal.return")),
+						fmt.Sprintf("%s: exit search mode", gui.getKeyDisplay(keybindingConfig.Universal.Return)),
 						theme.OptionsFgColor,
 					),
 				),
@@ -65,9 +67,9 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 				utils.ColoredString(
 					fmt.Sprintf(
 						"%s: next match, %s: previous match, %s: exit search mode",
-						gui.getKeyDisplay("universal.nextMatch"),
-						gui.getKeyDisplay("universal.prevMatch"),
-						gui.getKeyDisplay("universal.return"),
+						gui.getKeyDisplay(keybindingConfig.Universal.NextMatch),
+						gui.getKeyDisplay(keybindingConfig.Universal.PrevMatch),
+						gui.getKeyDisplay(keybindingConfig.Universal.Return),
 					),
 					theme.OptionsFgColor,
 				),

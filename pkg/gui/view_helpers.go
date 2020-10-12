@@ -110,7 +110,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go gui.refreshCommits()
+					go utils.Safe(func() { gui.refreshCommits() })
 				} else {
 					gui.refreshCommits()
 				}
@@ -122,7 +122,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go gui.refreshFilesAndSubmodules()
+					go utils.Safe(func() { gui.refreshFilesAndSubmodules() })
 				} else {
 					gui.refreshFilesAndSubmodules()
 				}
@@ -134,7 +134,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go gui.refreshStashEntries()
+					go utils.Safe(func() { gui.refreshStashEntries() })
 				} else {
 					gui.refreshStashEntries()
 				}
@@ -146,7 +146,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go gui.refreshTags()
+					go utils.Safe(func() { gui.refreshTags() })
 				} else {
 					gui.refreshTags()
 				}
@@ -158,7 +158,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go gui.refreshRemotes()
+					go utils.Safe(func() { gui.refreshRemotes() })
 				} else {
 					gui.refreshRemotes()
 				}
@@ -374,13 +374,15 @@ func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
 }
 
 func (gui *Gui) globalOptionsMap() map[string]string {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+
 	return map[string]string{
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay("universal.scrollUpMain"), gui.getKeyDisplay("universal.scrollDownMain")):                                                                                 gui.Tr.SLocalize("scroll"),
-		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock"), gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")): gui.Tr.SLocalize("navigate"),
-		gui.getKeyDisplay("universal.return"):     gui.Tr.SLocalize("cancel"),
-		gui.getKeyDisplay("universal.quit"):       gui.Tr.SLocalize("quit"),
-		gui.getKeyDisplay("universal.optionMenu"): gui.Tr.SLocalize("menu"),
-		"1-5": gui.Tr.SLocalize("jump"),
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.Tr.LcScroll,
+		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock), gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.Tr.LcNavigate,
+		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.Tr.LcCancel,
+		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.Tr.LcQuit,
+		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.Tr.LcMenu,
+		"1-5": gui.Tr.LcJump,
 	}
 }
 
@@ -403,7 +405,8 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 
 // secondaryViewFocused tells us whether it appears that the secondary view is focused. The view is actually never focused for real: we just swap the main and secondary views and then you're still focused on the main view so that we can give you access to all its keybindings for free. I will probably regret this design decision soon enough.
 func (gui *Gui) secondaryViewFocused() bool {
-	return gui.State.Panels.LineByLine != nil && gui.State.Panels.LineByLine.SecondaryFocused
+	state := gui.State.Panels.LineByLine
+	return state != nil && state.SecondaryFocused
 }
 
 func (gui *Gui) clearEditorView(v *gocui.View) {
@@ -430,4 +433,16 @@ func (gui *Gui) handlePrevTab(g *gocui.Gui, v *gocui.View) error {
 		v.Name(),
 		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
 	)
+}
+
+// this is the distance we will move the cursor when paging up or down in a view
+func (gui *Gui) pageDelta(view *gocui.View) int {
+	_, height := view.Size()
+
+	delta := height - 1
+	if delta == 0 {
+		return 1
+	}
+
+	return delta
 }

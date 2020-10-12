@@ -60,7 +60,7 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 		return gui.dispatchSwitchToRepo(path)
 	}
 
-	if gui.Config.GetUserConfig().GetBool("quitOnTopLevelReturn") {
+	if gui.Config.GetUserConfig().QuitOnTopLevelReturn {
 		return gui.handleQuit()
 	}
 
@@ -72,10 +72,10 @@ func (gui *Gui) quit() error {
 		return gui.createUpdateQuitConfirmation()
 	}
 
-	if gui.Config.GetUserConfig().GetBool("confirmOnQuit") {
+	if gui.Config.GetUserConfig().ConfirmOnQuit {
 		return gui.ask(askOpts{
 			title:  "",
-			prompt: gui.Tr.SLocalize("ConfirmQuit"),
+			prompt: gui.Tr.ConfirmQuit,
 			handleConfirm: func() error {
 				return gocui.ErrQuit
 			},

@@ -51,8 +51,44 @@ func writeString(file *os.File, str string) {
 }
 
 func localisedTitle(mApp *app.App, str string) string {
-	viewTitle := strings.Title(str) + "Title"
-	return mApp.Tr.SLocalize(viewTitle)
+	tr := mApp.Tr
+
+	contextTitleMap := map[string]string{
+		"global":         tr.GlobalTitle,
+		"navigation":     tr.NavigationTitle,
+		"branches":       tr.BranchesTitle,
+		"localBranches":  tr.LocalBranchesTitle,
+		"files":          tr.FilesTitle,
+		"status":         tr.StatusTitle,
+		"submodules":     tr.SubmodulesTitle,
+		"subCommits":     tr.SubCommitsTitle,
+		"remoteBranches": tr.RemoteBranchesTitle,
+		"remotes":        tr.RemotesTitle,
+		"reflogCommits":  tr.ReflogCommitsTitle,
+		"tags":           tr.TagsTitle,
+		"commitFiles":    tr.CommitFilesTitle,
+		"commitMessage":  tr.CommitMessageTitle,
+		"commits":        tr.CommitsTitle,
+		"confirmation":   tr.ConfirmationTitle,
+		"credentials":    tr.CredentialsTitle,
+		"information":    tr.InformationTitle,
+		"main":           tr.MainTitle,
+		"patchBuilding":  tr.PatchBuildingTitle,
+		"merging":        tr.MergingTitle,
+		"normal":         tr.NormalTitle,
+		"staging":        tr.StagingTitle,
+		"menu":           tr.MenuTitle,
+		"search":         tr.SearchTitle,
+		"secondary":      tr.SecondaryTitle,
+		"stash":          tr.StashTitle,
+	}
+
+	title, ok := contextTitleMap[str]
+	if !ok {
+		panic(fmt.Sprintf("title not found for %s", str))
+	}
+
+	return title
 }
 
 func formatTitle(title string) string {
@@ -155,14 +191,14 @@ outer:
 		translatedView := localisedTitle(mApp, viewName)
 		var title string
 		if contextAndView.subtitle == "" {
-			addendum := " " + mApp.Tr.SLocalize("Panel")
+			addendum := " " + mApp.Tr.Panel
 			if viewName == "global" || viewName == "navigation" {
 				addendum = ""
 			}
 			title = fmt.Sprintf("%s%s", translatedView, addendum)
 		} else {
 			translatedContextName := localisedTitle(mApp, contextAndView.subtitle)
-			title = fmt.Sprintf("%s %s (%s)", translatedView, mApp.Tr.SLocalize("Panel"), translatedContextName)
+			title = fmt.Sprintf("%s %s (%s)", translatedView, mApp.Tr.Panel, translatedContextName)
 		}
 
 		for _, binding := range contextBindings {
@@ -194,7 +230,7 @@ func addBinding(title string, bindingSections []*bindingSection, binding *gui.Bi
 }
 
 func formatSections(mApp *app.App, bindingSections []*bindingSection) string {
-	content := fmt.Sprintf("# Lazygit %s\n", mApp.Tr.SLocalize("Keybindings"))
+	content := fmt.Sprintf("# Lazygit %s\n", mApp.Tr.Keybindings)
 
 	for _, section := range bindingSections {
 		content += formatTitle(section.title)

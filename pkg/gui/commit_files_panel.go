@@ -15,7 +15,7 @@ func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
 }
 
 func (gui *Gui) handleCommitFileSelect() error {
-	gui.handleEscapeLineByLinePanel()
+	gui.escapeLineByLinePanel()
 
 	commitFile := gui.getSelectedCommitFile()
 	if commitFile == nil {
@@ -60,10 +60,10 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 	fileName := gui.State.CommitFiles[gui.State.Panels.CommitFiles.SelectedLineIdx].Name
 
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("DiscardFileChangesTitle"),
-		prompt: gui.Tr.SLocalize("DiscardFileChangesPrompt"),
+		title:  gui.Tr.DiscardFileChangesTitle,
+		prompt: gui.Tr.DiscardFileChangesPrompt,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.SLocalize("RebasingStatus"), func() error {
+			return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 				if err := gui.GitCommand.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
 					if err := gui.handleGenericMergeCommandResult(err); err != nil {
 						return err
@@ -77,7 +77,7 @@ func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) refreshCommitFilesView() error {
-	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
+	if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
 		return err
 	}
 
@@ -137,8 +137,8 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 
 	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != commitFile.Parent {
 		return gui.ask(askOpts{
-			title:  gui.Tr.SLocalize("DiscardPatch"),
-			prompt: gui.Tr.SLocalize("DiscardPatchConfirm"),
+			title:  gui.Tr.DiscardPatch,
+			prompt: gui.Tr.DiscardPatchConfirm,
 			handleConfirm: func() error {
 				gui.GitCommand.PatchManager.Reset()
 				return toggleTheFile()
@@ -179,13 +179,13 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		if err := gui.switchContext(gui.Contexts.PatchBuilding.Context); err != nil {
 			return err
 		}
-		return gui.refreshPatchBuildingPanel(selectedLineIdx)
+		return gui.handleRefreshPatchBuildingPanel(selectedLineIdx)
 	}
 
 	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != commitFile.Parent {
 		return gui.ask(askOpts{
-			title:               gui.Tr.SLocalize("DiscardPatch"),
-			prompt:              gui.Tr.SLocalize("DiscardPatchConfirm"),
+			title:               gui.Tr.DiscardPatch,
+			prompt:              gui.Tr.DiscardPatchConfirm,
 			handlersManageFocus: true,
 			handleConfirm: func() error {
 				gui.GitCommand.PatchManager.Reset()

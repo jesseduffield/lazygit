@@ -14,6 +14,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 )
@@ -37,7 +38,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
 				title: "",
-				task:  gui.createRenderStringTask(gui.Tr.SLocalize("NoChangedFiles")),
+				task:  gui.createRenderStringTask(gui.Tr.NoChangedFiles),
 			},
 		})
 	}
@@ -60,7 +61,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
 
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
-		title: gui.Tr.SLocalize("UnstagedChanges"),
+		title: gui.Tr.UnstagedChanges,
 		task:  gui.createRunPtyTask(cmd),
 	}}
 
@@ -69,22 +70,22 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
 
 		refreshOpts.secondary = &viewUpdateOpts{
-			title: gui.Tr.SLocalize("StagedChanges"),
+			title: gui.Tr.StagedChanges,
 			task:  gui.createRunPtyTask(cmd),
 		}
 	} else if !file.HasUnstagedChanges {
-		refreshOpts.main.title = gui.Tr.SLocalize("StagedChanges")
+		refreshOpts.main.title = gui.Tr.StagedChanges
 	}
 
 	return gui.refreshMainViews(refreshOpts)
 }
 
 func (gui *Gui) refreshFilesAndSubmodules() error {
-	gui.State.RefreshingFilesMutex.Lock()
+	gui.Mutexes.RefreshingFilesMutex.Lock()
 	gui.State.IsRefreshingFiles = true
 	defer func() {
 		gui.State.IsRefreshingFiles = false
-		gui.State.RefreshingFilesMutex.Unlock()
+		gui.Mutexes.RefreshingFilesMutex.Unlock()
 	}()
 
 	selectedFile := gui.getSelectedFile()
@@ -180,11 +181,11 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 		return gui.handleSwitchToMerge()
 	}
 	if file.HasMergeConflicts {
-		return gui.createErrorPanel(gui.Tr.SLocalize("FileStagingRequirements"))
+		return gui.createErrorPanel(gui.Tr.FileStagingRequirements)
 	}
 	gui.switchContext(gui.Contexts.Staging.Context)
 
-	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
+	return gui.handleRefreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
 }
 
 func (gui *Gui) handleFilePress() error {
@@ -256,8 +257,8 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 
 	if file.Tracked {
 		return gui.ask(askOpts{
-			title:  gui.Tr.SLocalize("IgnoreTracked"),
-			prompt: gui.Tr.SLocalize("IgnoreTrackedPrompt"),
+			title:  gui.Tr.IgnoreTracked,
+			prompt: gui.Tr.IgnoreTrackedPrompt,
 			handleConfirm: func() error {
 				if err := gui.GitCommand.Ignore(file.Name); err != nil {
 					return err
@@ -278,9 +279,9 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error {
-	skipHookPreifx := gui.Config.GetUserConfig().GetString("git.skipHookPrefix")
+	skipHookPreifx := gui.Config.GetUserConfig().Git.SkipHookPrefix
 	if skipHookPreifx == "" {
-		return gui.createErrorPanel(gui.Tr.SLocalize("SkipHookPrefixNotConfigured"))
+		return gui.createErrorPanel(gui.Tr.SkipHookPrefixNotConfigured)
 	}
 
 	gui.renderStringSync("commitMessage", skipHookPreifx)
@@ -291,6 +292,15 @@ func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error 
 	return gui.handleCommitPress()
 }
 
+func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
+	cfg, ok := gui.Config.GetUserConfig().Git.CommitPrefixes[utils.GetCurrentRepoName()]
+	if !ok {
+		return nil
+	}
+
+	return &cfg
+}
+
 func (gui *Gui) handleCommitPress() error {
 	if len(gui.stagedFiles()) == 0 {
 		return gui.promptToStageAllAndRetry(func() error {
@@ -299,12 +309,13 @@ func (gui *Gui) handleCommitPress() error {
 	}
 
 	commitMessageView := gui.getCommitMessageView()
-	prefixPattern := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".pattern")
-	prefixReplace := gui.Config.GetUserConfig().GetString("git.commitPrefixes." + utils.GetCurrentRepoName() + ".replace")
-	if len(prefixPattern) > 0 && len(prefixReplace) > 0 {
+	commitPrefixConfig := gui.commitPrefixConfigForRepo()
+	if commitPrefixConfig != nil {
+		prefixPattern := commitPrefixConfig.Pattern
+		prefixReplace := commitPrefixConfig.Replace
 		rgx, err := regexp.Compile(prefixPattern)
 		if err != nil {
-			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.SLocalize("commitPrefixPatternError"), err.Error()))
+			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.LcCommitPrefixPatternError, err.Error()))
 		}
 		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
 		gui.renderString("commitMessage", prefix)
@@ -326,8 +337,8 @@ func (gui *Gui) handleCommitPress() error {
 
 func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("NoFilesStagedTitle"),
-		prompt: gui.Tr.SLocalize("NoFilesStagedPrompt"),
+		title:  gui.Tr.NoFilesStagedTitle,
+		prompt: gui.Tr.NoFilesStagedPrompt,
 		handleConfirm: func() error {
 			if err := gui.GitCommand.StageAll(); err != nil {
 				return gui.surfaceError(err)
@@ -349,14 +360,14 @@ func (gui *Gui) handleAmendCommitPress() error {
 	}
 
 	if len(gui.State.Commits) == 0 {
-		return gui.createErrorPanel(gui.Tr.SLocalize("NoCommitToAmend"))
+		return gui.createErrorPanel(gui.Tr.NoCommitToAmend)
 	}
 
 	return gui.ask(askOpts{
-		title:  strings.Title(gui.Tr.SLocalize("AmendLastCommit")),
-		prompt: gui.Tr.SLocalize("SureToAmend"),
+		title:  strings.Title(gui.Tr.AmendLastCommit),
+		prompt: gui.Tr.SureToAmend,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.SLocalize("AmendingStatus"), func() error {
+			return gui.WithWaitingStatus(gui.Tr.AmendingStatus, func() error {
 				ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
 				if err != nil {
 					return err
@@ -473,7 +484,7 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		return gui.prompt(gui.Tr.SLocalize("EnterUpstream"), "origin/"+currentBranch.Name, func(upstream string) error {
+		return gui.prompt(gui.Tr.EnterUpstream, "origin/"+currentBranch.Name, func(upstream string) error {
 			if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
 				errorMessage := err.Error()
 				if strings.Contains(errorMessage, "does not exist") {
@@ -494,20 +505,20 @@ type PullFilesOptions struct {
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
-	if err := gui.createLoaderPanel(gui.g.CurrentView(), gui.Tr.SLocalize("PullWait")); err != nil {
+	if err := gui.createLoaderPanel(gui.g.CurrentView(), gui.Tr.PullWait); err != nil {
 		return err
 	}
 
-	mode := gui.Config.GetUserConfig().GetString("git.pull.mode")
+	mode := gui.Config.GetUserConfig().Git.Pull.Mode
 
-	go gui.pullWithMode(mode, opts)
+	go utils.Safe(func() { gui.pullWithMode(mode, opts) })
 
 	return nil
 }
 
 func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
-	gui.State.FetchMutex.Lock()
-	defer gui.State.FetchMutex.Unlock()
+	gui.Mutexes.FetchMutex.Lock()
+	defer gui.Mutexes.FetchMutex.Unlock()
 
 	err := gui.GitCommand.Fetch(
 		commands.FetchOptions{
@@ -537,21 +548,21 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 }
 
 func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, args string) error {
-	if err := gui.createLoaderPanel(v, gui.Tr.SLocalize("PushWait")); err != nil {
+	if err := gui.createLoaderPanel(v, gui.Tr.PushWait); err != nil {
 		return err
 	}
-	go func() {
+	go utils.Safe(func() {
 		branchName := gui.getCheckedOutBranch().Name
 		err := gui.GitCommand.Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
-			forcePushDisabled := gui.Config.GetUserConfig().GetBool("git.disableForcePushing")
+			forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 			if forcePushDisabled {
-				gui.createErrorPanel(gui.Tr.SLocalize("UpdatesRejectedAndForcePushDisabled"))
+				gui.createErrorPanel(gui.Tr.UpdatesRejectedAndForcePushDisabled)
 				return
 			}
 			gui.ask(askOpts{
-				title:  gui.Tr.SLocalize("ForcePush"),
-				prompt: gui.Tr.SLocalize("ForcePushPrompt"),
+				title:  gui.Tr.ForcePush,
+				prompt: gui.Tr.ForcePushPrompt,
 				handleConfirm: func() error {
 					return gui.pushWithForceFlag(v, true, upstream, args)
 				},
@@ -560,7 +571,7 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 		}
 		gui.handleCredentialsPopup(err)
 		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-	}()
+	})
 	return nil
 }
 
@@ -587,7 +598,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		if gui.GitCommand.PushToCurrent {
 			return gui.pushWithForceFlag(v, false, "", "--set-upstream")
 		} else {
-			return gui.prompt(gui.Tr.SLocalize("EnterUpstream"), "origin "+currentBranch.Name, func(response string) error {
+			return gui.prompt(gui.Tr.EnterUpstream, "origin "+currentBranch.Name, func(response string) error {
 				return gui.pushWithForceFlag(v, false, response, "")
 			})
 		}
@@ -595,14 +606,14 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		return gui.pushWithForceFlag(v, false, "", "")
 	}
 
-	forcePushDisabled := gui.Config.GetUserConfig().GetBool("git.disableForcePushing")
+	forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 	if forcePushDisabled {
-		return gui.createErrorPanel(gui.Tr.SLocalize("ForcePushDisabled"))
+		return gui.createErrorPanel(gui.Tr.ForcePushDisabled)
 	}
 
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("ForcePush"),
-		prompt: gui.Tr.SLocalize("ForcePushPrompt"),
+		title:  gui.Tr.ForcePush,
+		prompt: gui.Tr.ForcePushPrompt,
 		handleConfirm: func() error {
 			return gui.pushWithForceFlag(v, true, "", "")
 		},
@@ -616,7 +627,7 @@ func (gui *Gui) handleSwitchToMerge() error {
 	}
 
 	if !file.HasInlineMergeConflicts {
-		return gui.createErrorPanel(gui.Tr.SLocalize("FileNoMergeCons"))
+		return gui.createErrorPanel(gui.Tr.FileNoMergeCons)
 	}
 
 	return gui.switchContext(gui.Contexts.Merging.Context)
@@ -639,7 +650,7 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(gui.Tr.SLocalize("CustomCommand"), "", func(command string) error {
+	return gui.prompt(gui.Tr.CustomCommand, "", func(command string) error {
 		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
 		return gui.Errors.ErrSubProcess
 	})
@@ -648,20 +659,20 @@ func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) handleCreateStashMenu(g *gocui.Gui, v *gocui.View) error {
 	menuItems := []*menuItem{
 		{
-			displayString: gui.Tr.SLocalize("stashAllChanges"),
+			displayString: gui.Tr.LcStashAllChanges,
 			onPress: func() error {
 				return gui.handleStashSave(gui.GitCommand.StashSave)
 			},
 		},
 		{
-			displayString: gui.Tr.SLocalize("stashStagedChanges"),
+			displayString: gui.Tr.LcStashStagedChanges,
 			onPress: func() error {
 				return gui.handleStashSave(gui.GitCommand.StashSaveStagedChanges)
 			},
 		},
 	}
 
-	return gui.createMenu(gui.Tr.SLocalize("stashOptions"), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.LcStashOptions, menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) handleStashChanges(g *gocui.Gui, v *gocui.View) error {

@@ -72,7 +72,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
 	if c.usingGpg() {
-		return errors.New(c.Tr.SLocalize("DisabledForGPG"))
+		return errors.New(c.Tr.DisabledForGPG)
 	}
 
 	baseIndex := sourceCommitIdx + 1
@@ -139,7 +139,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 
 func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
 	if stash {
-		if err := c.StashSave(c.Tr.SLocalize("StashPrefix") + commits[commitIdx].Sha); err != nil {
+		if err := c.StashSave(c.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
 			return err
 		}
 	}

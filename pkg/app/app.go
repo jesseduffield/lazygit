@@ -34,7 +34,7 @@ type App struct {
 	OSCommand     *oscommands.OSCommand
 	GitCommand    *commands.GitCommand
 	Gui           *gui.Gui
-	Tr            *i18n.Localizer
+	Tr            *i18n.TranslationSet
 	Updater       *updates.Updater // may only need this on the Gui
 	ClientContext string
 }
@@ -61,14 +61,18 @@ func getLogLevel() logrus.Level {
 }
 
 func newDevelopmentLogger(configurer config.AppConfigurer) *logrus.Logger {
-	log := logrus.New()
-	log.SetLevel(getLogLevel())
-	file, err := os.OpenFile(config.LogPath(), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logger := logrus.New()
+	logger.SetLevel(getLogLevel())
+	logPath, err := config.LogPath()
+	if err != nil {
+		log.Fatal(err)
+	}
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
 	}
-	log.SetOutput(file)
-	return log
+	logger.SetOutput(file)
+	return logger
 }
 
 func newLogger(config config.AppConfigurer) *logrus.Entry {
@@ -99,7 +103,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	}
 	var err error
 	app.Log = newLogger(config)
-	app.Tr = i18n.NewLocalizer(app.Log)
+	app.Tr = i18n.NewTranslationSet(app.Log)
 
 	// if we are being called in 'demon' mode, we can just return here
 	app.ClientContext = os.Getenv("LAZYGIT_CLIENT_COMMAND")
@@ -134,7 +138,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 func (app *App) validateGitVersion() error {
 	output, err := app.OSCommand.RunCommandWithOutput("git --version")
 	// if we get an error anywhere here we'll show the same status
-	minVersionError := errors.New(app.Tr.SLocalize("minGitVersionError"))
+	minVersionError := errors.New(app.Tr.MinGitVersionError)
 	if err != nil {
 		return minVersionError
 	}
@@ -189,7 +193,7 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		// Offer to initialize a new repository in current directory.
-		fmt.Print(app.Tr.SLocalize("CreateRepo"))
+		fmt.Print(app.Tr.CreateRepo)
 		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 		if strings.Trim(response, " \n") != "y" {
 			// check if we have a recent repo we can open
@@ -271,7 +275,7 @@ func (app *App) Close() error {
 func (app *App) KnownError(err error) (string, bool) {
 	errorMessage := err.Error()
 
-	knownErrorMessages := []string{app.Tr.SLocalize("minGitVersionError")}
+	knownErrorMessages := []string{app.Tr.MinGitVersionError}
 
 	for _, message := range knownErrorMessages {
 		if errorMessage == message {
@@ -282,7 +286,7 @@ func (app *App) KnownError(err error) (string, bool) {
 	mappings := []errorMapping{
 		{
 			originalError: "fatal: not a git repository",
-			newError:      app.Tr.SLocalize("notARepository"),
+			newError:      app.Tr.NotARepository,
 		},
 	}
 
@@ -295,11 +299,14 @@ func (app *App) KnownError(err error) (string, bool) {
 }
 
 func TailLogs() {
-	logFilePath := config.LogPath()
+	logFilePath, err := config.LogPath()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Printf("Tailing log file %s\n\n", logFilePath)
 
-	_, err := os.Stat(logFilePath)
+	_, err = os.Stat(logFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Fatal("Log file does not exist. Run `lazygit --debug` first to create the log file")

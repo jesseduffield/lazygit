@@ -244,7 +244,7 @@ func (gui *Gui) refreshMergePanel() error {
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
-			title:  gui.Tr.SLocalize("MergeConflictsTitle"),
+			title:  gui.Tr.MergeConflictsTitle,
 			task:   gui.createRenderStringWithoutScrollTask(content),
 			noWrap: true,
 		},
@@ -254,11 +254,11 @@ func (gui *Gui) refreshMergePanel() error {
 func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 	item := gui.getSelectedFile()
 	if item == nil {
-		return "", errors.New(gui.Tr.SLocalize("NoFilesDisplay"))
+		return "", errors.New(gui.Tr.NoFilesDisplay)
 	}
 
 	if item.Type != "file" {
-		return "", errors.New(gui.Tr.SLocalize("NotAFile"))
+		return "", errors.New(gui.Tr.NotAFile)
 	}
 
 	cat, err := gui.GitCommand.CatFile(item.Name)
@@ -291,12 +291,14 @@ func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
 }
 
 func (gui *Gui) getMergingOptions() map[string]string {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+
 	return map[string]string{
-		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevItem"), gui.getKeyDisplay("universal.nextItem")):   gui.Tr.SLocalize("selectHunk"),
-		fmt.Sprintf("%s %s", gui.getKeyDisplay("universal.prevBlock"), gui.getKeyDisplay("universal.nextBlock")): gui.Tr.SLocalize("navigateConflicts"),
-		gui.getKeyDisplay("universal.select"):   gui.Tr.SLocalize("pickHunk"),
-		gui.getKeyDisplay("main.pickBothHunks"): gui.Tr.SLocalize("pickBothHunks"),
-		gui.getKeyDisplay("universal.undo"):     gui.Tr.SLocalize("undo"),
+		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)):   gui.Tr.LcSelectHunk,
+		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock)): gui.Tr.LcNavigateConflicts,
+		gui.getKeyDisplay(keybindingConfig.Universal.Select):   gui.Tr.LcPickHunk,
+		gui.getKeyDisplay(keybindingConfig.Main.PickBothHunks): gui.Tr.LcPickBothHunks,
+		gui.getKeyDisplay(keybindingConfig.Universal.Undo):     gui.Tr.LcUndo,
 	}
 }
 
@@ -340,7 +342,7 @@ func (gui *Gui) promptToContinue() error {
 
 	return gui.ask(askOpts{
 		title:               "continue",
-		prompt:              gui.Tr.SLocalize("ConflictsResolved"),
+		prompt:              gui.Tr.ConflictsResolved,
 		handlersManageFocus: true,
 		handleConfirm: func() error {
 			if err := gui.switchContext(gui.Contexts.Files.Context); err != nil {

@@ -58,7 +58,12 @@ func (gui *Gui) refreshRemotes() error {
 		}
 	}
 
-	return gui.postRefreshUpdate(gui.mustContextForContextKey(gui.getBranchesView().Context))
+	branchesView := gui.getBranchesView()
+	if branchesView != nil {
+		return gui.postRefreshUpdate(gui.mustContextForContextKey(branchesView.Context))
+	}
+
+	return nil
 }
 
 func (gui *Gui) handleRemoteEnter() error {
@@ -80,8 +85,8 @@ func (gui *Gui) handleRemoteEnter() error {
 }
 
 func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(gui.Tr.SLocalize("newRemoteName"), "", func(remoteName string) error {
-		return gui.prompt(gui.Tr.SLocalize("newRemoteUrl"), "", func(remoteUrl string) error {
+	return gui.prompt(gui.Tr.LcNewRemoteName, "", func(remoteName string) error {
+		return gui.prompt(gui.Tr.LcNewRemoteUrl, "", func(remoteUrl string) error {
 			if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
 				return err
 			}
@@ -97,8 +102,8 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-		title:  gui.Tr.SLocalize("removeRemote"),
-		prompt: gui.Tr.SLocalize("removeRemotePrompt") + " '" + remote.Name + "'?",
+		title:  gui.Tr.LcRemoveRemote,
+		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		handleConfirm: func() error {
 			if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
 				return err
@@ -115,9 +120,9 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	editNameMessage := gui.Tr.TemplateLocalize(
-		"editRemoteName",
-		Teml{
+	editNameMessage := utils.ResolvePlaceholderString(
+		gui.Tr.LcEditRemoteName,
+		map[string]string{
 			"remoteName": remote.Name,
 		},
 	)
@@ -129,9 +134,9 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		editUrlMessage := gui.Tr.TemplateLocalize(
-			"editRemoteUrl",
-			Teml{
+		editUrlMessage := utils.ResolvePlaceholderString(
+			gui.Tr.LcEditRemoteUrl,
+			map[string]string{
 				"remoteName": updatedRemoteName,
 			},
 		)
@@ -157,9 +162,9 @@ func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.SLocalize("FetchingRemoteStatus"), func() error {
-		gui.State.FetchMutex.Lock()
-		defer gui.State.FetchMutex.Unlock()
+	return gui.WithWaitingStatus(gui.Tr.FetchingRemoteStatus, func() error {
+		gui.Mutexes.FetchMutex.Lock()
+		defer gui.Mutexes.FetchMutex.Unlock()
 
 		// TODO: test this
 		err := gui.GitCommand.FetchRemote(remote.Name, gui.promptUserForCredential)

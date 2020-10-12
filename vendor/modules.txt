@@ -1,3 +1,6 @@
+# github.com/OpenPeeDeeP/xdg v1.0.0
+## explicit
+github.com/OpenPeeDeeP/xdg
 # github.com/atotto/clipboard v0.1.2
 ## explicit
 github.com/atotto/clipboard
@@ -49,17 +52,6 @@ github.com/golang-collections/collections/stack
 ## explicit
 # github.com/google/go-cmp v0.3.1
 ## explicit
-# github.com/hashicorp/hcl v1.0.0
-github.com/hashicorp/hcl
-github.com/hashicorp/hcl/hcl/ast
-github.com/hashicorp/hcl/hcl/parser
-github.com/hashicorp/hcl/hcl/printer
-github.com/hashicorp/hcl/hcl/scanner
-github.com/hashicorp/hcl/hcl/strconv
-github.com/hashicorp/hcl/hcl/token
-github.com/hashicorp/hcl/json/parser
-github.com/hashicorp/hcl/json/scanner
-github.com/hashicorp/hcl/json/token
 # github.com/imdario/mergo v0.3.11
 ## explicit
 github.com/imdario/mergo
@@ -112,12 +104,15 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20200930205305-1b445b9bd5da
+# github.com/jesseduffield/gocui v0.3.1-0.20201010224802-8a6768078fd7
 ## explicit
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe
 ## explicit
 github.com/jesseduffield/termbox-go
+# github.com/jesseduffield/yaml v2.1.0+incompatible
+## explicit
+github.com/jesseduffield/yaml
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 ## explicit
 github.com/kardianos/osext
@@ -128,8 +123,6 @@ github.com/kevinburke/ssh_config
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 github.com/kr/logfmt
-# github.com/magiconair/properties v1.8.1
-github.com/magiconair/properties
 # github.com/mattn/go-colorable v0.1.7
 ## explicit
 github.com/mattn/go-colorable
@@ -143,53 +136,23 @@ github.com/mattn/go-runewidth
 github.com/mgutz/str
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
-# github.com/mitchellh/mapstructure v1.1.2
-github.com/mitchellh/mapstructure
-# github.com/nicksnyder/go-i18n/v2 v2.0.3
-## explicit
-github.com/nicksnyder/go-i18n/v2/i18n
-github.com/nicksnyder/go-i18n/v2/internal
-github.com/nicksnyder/go-i18n/v2/internal/plural
 # github.com/onsi/ginkgo v1.10.3
 ## explicit
 # github.com/onsi/gomega v1.7.1
 ## explicit
-# github.com/pelletier/go-toml v1.6.0
-## explicit
-github.com/pelletier/go-toml
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/sergi/go-diff v1.1.0
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/shibukawa/configdir v0.0.0-20170330084843-e180dbdc8da0
-## explicit
-github.com/shibukawa/configdir
 # github.com/sirupsen/logrus v1.4.2
 ## explicit
 github.com/sirupsen/logrus
-# github.com/spf13/afero v1.2.2
-## explicit
-github.com/spf13/afero
-github.com/spf13/afero/mem
-# github.com/spf13/cast v1.3.0
-github.com/spf13/cast
-# github.com/spf13/jwalterweatherman v1.1.0
-## explicit
-github.com/spf13/jwalterweatherman
-# github.com/spf13/pflag v1.0.5
-## explicit
-github.com/spf13/pflag
-# github.com/spf13/viper v1.6.1
-## explicit
-github.com/spf13/viper
 # github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 ## explicit
 github.com/spkg/bom
 # github.com/stretchr/testify v1.4.0
 ## explicit
 github.com/stretchr/testify/assert
-# github.com/subosito/gotenv v1.2.0
-github.com/subosito/gotenv
 # github.com/tcnksm/go-gitconfig v0.1.2
 ## explicit
 github.com/tcnksm/go-gitconfig
@@ -226,19 +189,8 @@ golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.2
-## explicit
-golang.org/x/text/internal/language
-golang.org/x/text/internal/language/compact
-golang.org/x/text/internal/tag
-golang.org/x/text/language
-golang.org/x/text/transform
-golang.org/x/text/unicode/norm
-# gopkg.in/ini.v1 v1.51.0
-gopkg.in/ini.v1
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.3.0
-## explicit
 gopkg.in/yaml.v2
 # github.com/go-git/go-git/v5 => github.com/jesseduffield/go-git/v5 v5.1.1

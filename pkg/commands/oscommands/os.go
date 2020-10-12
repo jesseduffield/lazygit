@@ -143,18 +143,19 @@ func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string)
 	return RunCommandWithOutputLiveWrapper(c, command, output)
 }
 
-// DetectUnamePass detect a username / password question in a command
-// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password
-// The promptUserForCredential argument will be "username" or "password" and expects the user's password or username back
+// DetectUnamePass detect a username / password / passphrase question in a command
+// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
+// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
 func (c *OSCommand) DetectUnamePass(command string, promptUserForCredential func(string) string) error {
 	ttyText := ""
 	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]string{
-			`.+'s password:`:         "password",
-			`Password\s*for\s*'.+':`: "password",
-			`Username\s*for\s*'.+':`: "username",
+			`.+'s password:`:                         "password",
+			`Password\s*for\s*'.+':`:                 "password",
+			`Username\s*for\s*'.+':`:                 "username",
+			`Enter\s*passphrase\s*for\s*key\s*'.+':`: "passphrase",
 		}
 
 		for pattern, askFor := range prompts {
@@ -212,7 +213,7 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
-	commandTemplate := c.Config.GetUserConfig().GetString("os.openCommand")
+	commandTemplate := c.Config.GetUserConfig().OS.OpenCommand
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
 	}
@@ -224,7 +225,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 
 // OpenLink opens a file with the given
 func (c *OSCommand) OpenLink(link string) error {
-	commandTemplate := c.Config.GetUserConfig().GetString("os.openLinkCommand")
+	commandTemplate := c.Config.GetUserConfig().OS.OpenLinkCommand
 	templateValues := map[string]string{
 		"link": c.Quote(link),
 	}
@@ -254,7 +255,7 @@ func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
 		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
 	}
 
-	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, filename))
+	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, c.Quote(filename)))
 
 	return c.PrepareSubProcess(splitCmd[0], splitCmd[1:]...), nil
 }
@@ -411,7 +412,7 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 
 	for _, cmd := range cmds {
 		currentCmd := cmd
-		go func() {
+		go utils.Safe(func() {
 			stderr, err := currentCmd.StderrPipe()
 			if err != nil {
 				c.Log.Error(err)
@@ -432,7 +433,7 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 			}
 
 			wg.Done()
-		}()
+		})
 	}
 
 	wg.Wait()

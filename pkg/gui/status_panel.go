@@ -12,8 +12,8 @@ import (
 
 // never call this on its own, it should only be called from within refreshCommits()
 func (gui *Gui) refreshStatus() {
-	gui.State.RefreshingStatusMutex.Lock()
-	defer gui.State.RefreshingStatusMutex.Unlock()
+	gui.Mutexes.RefreshingStatusMutex.Lock()
+	defer gui.Mutexes.RefreshingStatusMutex.Unlock()
 
 	currentBranch := gui.currentBranch()
 	if currentBranch == nil {
@@ -57,7 +57,7 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 
 func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.createLoaderPanel(v, gui.Tr.SLocalize("CheckingForUpdates"))
+	return gui.createLoaderPanel(v, gui.Tr.CheckingForUpdates)
 }
 
 func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
@@ -114,6 +114,7 @@ func (gui *Gui) handleStatusSelect() error {
 			"Tutorial: https://youtu.be/VDXvbHZYeKY",
 			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
 			magenta.Sprint("Become a sponsor (github is matching all donations for 12 months): https://github.com/sponsors/jesseduffield"), // caffeine ain't free
+			gui.Tr.ReleaseNotes,
 		}, "\n\n")
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -125,11 +126,11 @@ func (gui *Gui) handleStatusSelect() error {
 }
 
 func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
-	return gui.openFile(gui.Config.GetUserConfig().ConfigFileUsed())
+	return gui.openFile(gui.Config.GetUserConfigPath())
 }
 
 func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {
-	filename := gui.Config.GetUserConfig().ConfigFileUsed()
+	filename := gui.Config.GetUserConfigPath()
 	return gui.editFile(filename)
 }
 

@@ -1,28 +1,28 @@
 package config
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/shibukawa/configdir"
-	"github.com/spf13/viper"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/OpenPeeDeeP/xdg"
+	yaml "github.com/jesseduffield/yaml"
 )
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug         bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version       string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit        string `long:"commit" env:"COMMIT"`
-	BuildDate     string `long:"build-date" env:"BUILD_DATE"`
-	Name          string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource   string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig    *viper.Viper
-	UserConfigDir string
-	AppState      *AppState
-	IsNewRepo     bool
+	Debug          bool   `long:"debug" env:"DEBUG" default:"false"`
+	Version        string `long:"version" env:"VERSION" default:"unversioned"`
+	Commit         string `long:"commit" env:"COMMIT"`
+	BuildDate      string `long:"build-date" env:"BUILD_DATE"`
+	Name           string `long:"name" env:"NAME" default:"lazygit"`
+	BuildSource    string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	UserConfig     *UserConfig
+	UserConfigDir  string
+	UserConfigPath string
+	AppState       *AppState
+	IsNewRepo      bool
 }
 
 // AppConfigurer interface allows individual app config structs to inherit Fields
@@ -34,19 +34,23 @@ type AppConfigurer interface {
 	GetBuildDate() string
 	GetName() string
 	GetBuildSource() string
-	GetUserConfig() *viper.Viper
+	GetUserConfig() *UserConfig
 	GetUserConfigDir() string
+	GetUserConfigPath() string
 	GetAppState() *AppState
-	WriteToUserConfig(string, interface{}) error
 	SaveAppState() error
-	LoadAppState() error
 	SetIsNewRepo(bool)
 	GetIsNewRepo() bool
 }
 
 // NewAppConfig makes a new app config
 func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
-	userConfig, userConfigPath, err := LoadConfig("config", true)
+	configDir, err := findOrCreateConfigDir()
+	if err != nil {
+		return nil, err
+	}
+
+	userConfig, err := loadUserConfigWithDefaults(configDir)
 	if err != nil {
 		return nil, err
 	}
@@ -55,24 +59,83 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		debuggingFlag = true
 	}
 
-	appConfig := &AppConfig{
-		Name:          "lazygit",
-		Version:       version,
-		Commit:        commit,
-		BuildDate:     date,
-		Debug:         debuggingFlag,
-		BuildSource:   buildSource,
-		UserConfig:    userConfig,
-		UserConfigDir: filepath.Dir(userConfigPath),
-		AppState:      &AppState{},
-		IsNewRepo:     false,
-	}
-
-	if err := appConfig.LoadAppState(); err != nil {
+	appState, err := loadAppState()
+	if err != nil {
 		return nil, err
 	}
 
+	appConfig := &AppConfig{
+		Name:           "lazygit",
+		Version:        version,
+		Commit:         commit,
+		BuildDate:      date,
+		Debug:          debuggingFlag,
+		BuildSource:    buildSource,
+		UserConfig:     userConfig,
+		UserConfigDir:  configDir,
+		UserConfigPath: filepath.Join(configDir, "config.yml"),
+		AppState:       appState,
+		IsNewRepo:      false,
+	}
+
 	return appConfig, nil
+}
+
+func ConfigDir() string {
+	envConfigDir := os.Getenv("CONFIG_DIR")
+	if envConfigDir != "" {
+		return envConfigDir
+	}
+
+	// chucking my name there is not for vanity purposes, the xdg spec (and that
+	// function) requires a vendor name. May as well line up with github
+	configDirs := xdg.New("jesseduffield", "lazygit")
+	return configDirs.ConfigHome()
+}
+
+func findOrCreateConfigDir() (string, error) {
+	folder := ConfigDir()
+
+	err := os.MkdirAll(folder, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	return folder, nil
+}
+
+func loadUserConfigWithDefaults(configDir string) (*UserConfig, error) {
+	return loadUserConfig(configDir, GetDefaultConfig())
+}
+
+func loadUserConfig(configDir string, base *UserConfig) (*UserConfig, error) {
+	fileName := filepath.Join(configDir, "config.yml")
+
+	if _, err := os.Stat(fileName); err != nil {
+		if os.IsNotExist(err) {
+			file, err := os.Create(fileName)
+			if err != nil {
+				if strings.Contains(err.Error(), "read-only file system") {
+					return base, nil
+				}
+				return nil, err
+			}
+			file.Close()
+		} else {
+			return nil, err
+		}
+	}
+
+	content, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := yaml.Unmarshal(content, base); err != nil {
+		return nil, err
+	}
+
+	return base, nil
 }
 
 // GetIsNewRepo returns known repo boolean
@@ -117,8 +180,13 @@ func (c *AppConfig) GetBuildSource() string {
 }
 
 // GetUserConfig returns the user config
-func (c *AppConfig) GetUserConfig() *viper.Viper {
+func (c *AppConfig) GetUserConfig() *UserConfig {
 	return c.UserConfig
+}
+
+// GetUserConfig returns the user config
+func (c *AppConfig) GetUserConfigPath() string {
+	return c.UserConfigPath
 }
 
 // GetAppState returns the app state
@@ -130,78 +198,18 @@ func (c *AppConfig) GetUserConfigDir() string {
 	return c.UserConfigDir
 }
 
-func newViper(filename string) (*viper.Viper, error) {
-	v := viper.New()
-	v.SetConfigType("yaml")
-	v.SetConfigName(filename)
-	return v, nil
-}
-
-// LoadConfig gets the user's config
-func LoadConfig(filename string, withDefaults bool) (*viper.Viper, string, error) {
-	v, err := newViper(filename)
-	if err != nil {
-		return nil, "", err
-	}
-	if withDefaults {
-		if err = LoadDefaults(v, GetDefaultConfig()); err != nil {
-			return nil, "", err
-		}
-		if err = LoadDefaults(v, GetPlatformDefaultConfig()); err != nil {
-			return nil, "", err
-		}
-	}
-	configPath, err := LoadAndMergeFile(v, filename+".yml")
-	if err != nil {
-		return nil, "", err
-	}
-	return v, configPath, nil
-}
-
-// LoadDefaults loads in the defaults defined in this file
-func LoadDefaults(v *viper.Viper, defaults []byte) error {
-	return v.MergeConfig(bytes.NewBuffer(defaults))
-}
-
-func prepareConfigFile(filename string) (string, error) {
-	// chucking my name there is not for vanity purposes, the xdg spec (and that
-	// function) requires a vendor name. May as well line up with github
-	configDirs := configdir.New("jesseduffield", "lazygit")
-	folder := configDirs.QueryFolderContainsFile(filename)
-	if folder == nil {
-		// create the file as empty
-		folders := configDirs.QueryFolders(configdir.Global)
-		if err := folders[0].WriteFile(filename, []byte{}); err != nil {
-			return "", err
-		}
-		folder = configDirs.QueryFolderContainsFile(filename)
-	}
-	return filepath.Join(folder.Path, filename), nil
-}
-
-// LoadAndMergeFile Loads the config/state file, creating
-// the file has an empty one if it does not exist
-func LoadAndMergeFile(v *viper.Viper, filename string) (string, error) {
-	configPath, err := prepareConfigFile(filename)
+func configFilePath(filename string) (string, error) {
+	folder, err := findOrCreateConfigDir()
 	if err != nil {
 		return "", err
 	}
 
-	v.AddConfigPath(filepath.Dir(configPath))
-	return configPath, v.MergeInConfig()
+	return filepath.Join(folder, filename), nil
 }
 
-// WriteToUserConfig adds a key/value pair to the user's config and saves it
-func (c *AppConfig) WriteToUserConfig(key string, value interface{}) error {
-	// reloading the user config directly (without defaults) so that we're not
-	// writing any defaults back to the user's config
-	v, _, err := LoadConfig("config", false)
-	if err != nil {
-		return err
-	}
-
-	v.Set(key, value)
-	return v.WriteConfig()
+// ConfigFilename returns the filename of the current config file
+func (c *AppConfig) ConfigFilename() string {
+	return filepath.Join(c.UserConfigDir, "config.yml")
 }
 
 // SaveAppState marshalls the AppState struct and writes it to the disk
@@ -211,7 +219,7 @@ func (c *AppConfig) SaveAppState() error {
 		return err
 	}
 
-	filepath, err := prepareConfigFile("state.yml")
+	filepath, err := configFilePath("state.yml")
 	if err != nil {
 		return err
 	}
@@ -219,208 +227,47 @@ func (c *AppConfig) SaveAppState() error {
 	return ioutil.WriteFile(filepath, marshalledAppState, 0644)
 }
 
-// LoadAppState loads recorded AppState from file
-func (c *AppConfig) LoadAppState() error {
-	filepath, err := prepareConfigFile("state.yml")
+// loadAppState loads recorded AppState from file
+func loadAppState() (*AppState, error) {
+	filepath, err := configFilePath("state.yml")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	appStateBytes, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return err
-	}
-	if len(appStateBytes) == 0 {
-		return yaml.Unmarshal(getDefaultAppState(), c.AppState)
-	}
-	return yaml.Unmarshal(appStateBytes, c.AppState)
-}
 
-// GetDefaultConfig returns the application default configuration
-func GetDefaultConfig() []byte {
-	return []byte(
-		`gui:
-  ## stuff relating to the UI
-  scrollHeight: 2
-  scrollPastBottom: true
-  mouseEvents: true
-  skipUnstageLineWarning: false
-  skipStashWarning: true
-  sidePanelWidth: 0.3333
-  expandFocusedSidePanel: false
-  mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
-  theme:
-    lightTheme: false
-    activeBorderColor:
-      - green
-      - bold
-    inactiveBorderColor:
-      - white
-    optionsTextColor:
-      - blue
-    selectedLineBgColor:
-      - default
-    selectedRangeBgColor:
-      - blue
-  commitLength:
-    show: true
-git:
-  paging:
-    colorArg: always
-    useConfig: false
-  merging:
-    manualCommit: false
-    args: ""
-  pull:
-    mode: 'merge' # one of 'merge' | 'rebase' | 'ff-only'
-  skipHookPrefix: 'WIP'
-  autoFetch: true
-  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
-  overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
-  disableForcePushing: false
-update:
-  method: prompt # can be: prompt | background | never
-  days: 14 # how often a update is checked for
-reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
-splashUpdatesIndex: 0
-confirmOnQuit: false
-quitOnTopLevelReturn: true
-keybinding:
-  universal:
-    quit: 'q'
-    quit-alt1: '<c-c>'
-    return: '<esc>'
-    quitWithoutChangingDirectory: 'Q'
-    togglePanel: '<tab>'
-    prevItem: '<up>'
-    nextItem: '<down>'
-    prevItem-alt: 'k'
-    nextItem-alt: 'j'
-    prevPage: ','
-    nextPage: '.'
-    gotoTop: '<'
-    gotoBottom: '>'
-    prevBlock: '<left>'
-    nextBlock: '<right>'
-    prevBlock-alt: 'h'
-    nextBlock-alt: 'l'
-    nextMatch: 'n'
-    prevMatch: 'N'
-    startSearch: '/'
-    optionMenu: 'x'
-    optionMenu-alt1: '?'
-    select: '<space>'
-    goInto: '<enter>'
-    confirm: '<enter>'
-    confirm-alt1: 'y'
-    remove: 'd'
-    new: 'n'
-    edit: 'e'
-    openFile: 'o'
-    scrollUpMain: '<pgup>'
-    scrollDownMain: '<pgdown>'
-    scrollUpMain-alt1: 'K'
-    scrollDownMain-alt1: 'J'
-    scrollUpMain-alt2: '<c-u>'
-    scrollDownMain-alt2: '<c-d>'
-    executeCustomCommand: ':'
-    createRebaseOptionsMenu: 'm'
-    pushFiles: 'P'
-    pullFiles: 'p'
-    refresh: 'R'
-    createPatchOptionsMenu: '<c-p>'
-    nextTab: ']'
-    prevTab: '['
-    nextScreenMode: '+'
-    prevScreenMode: '_'
-    undo: 'z'
-    redo: '<c-z>'
-    filteringMenu: <c-s>
-    diffingMenu: 'W'
-    diffingMenu-alt: '<c-e>'
-    copyToClipboard: '<c-o>'
-    copyCommitMessageToClipboard: '<c-y>'
-  status:
-    checkForUpdate: 'u'
-    recentRepos: '<enter>'
-  files:
-    commitChanges: 'c'
-    commitChangesWithoutHook: 'w'
-    amendLastCommit: 'A'
-    commitChangesWithEditor: 'C'
-    ignoreFile: 'i'
-    refreshFiles: 'r'
-    stashAllChanges: 's'
-    viewStashOptions: 'S'
-    toggleStagedAll: 'a'
-    viewResetOptions: 'D'
-    fetch: 'f'
-  branches:
-    createPullRequest: 'o'
-    checkoutBranchByName: 'c'
-    forceCheckoutBranch: 'F'
-    rebaseBranch: 'r'
-    renameBranch: 'R'
-    mergeIntoCurrentBranch: 'M'
-    viewGitFlowOptions: 'i'
-    fastForward: 'f'
-    pushTag: 'P'
-    setUpstream: 'u'
-    fetchRemote: 'f'
-  commits:
-    squashDown: 's'
-    renameCommit: 'r'
-    renameCommitWithEditor: 'R'
-    viewResetOptions: 'g'
-    markCommitAsFixup: 'f'
-    createFixupCommit: 'F'
-    squashAboveCommits: 'S'
-    moveDownCommit: '<c-j>'
-    moveUpCommit: '<c-k>'
-    amendToCommit: 'A'
-    pickCommit: 'p'
-    revertCommit: 't'
-    cherryPickCopy: 'c'
-    cherryPickCopyRange: 'C'
-    pasteCommits: 'v'
-    tagCommit: 'T'
-    checkoutCommit: '<space>'
-    resetCherryPick: '<c-R>'
-  stash:
-    popStash: 'g'
-  commitFiles:
-    checkoutCommitFile: 'c'
-  main:
-    toggleDragSelect: 'v'
-    toggleDragSelect-alt: 'V'
-    toggleSelectHunk: 'a'
-    pickBothHunks: 'b'
-  submodules:
-    init: 'i'
-    update: 'u'
-    bulkMenu: 'b'
-`)
+	appStateBytes, err := ioutil.ReadFile(filepath)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	if len(appStateBytes) == 0 {
+		return getDefaultAppState(), nil
+	}
+
+	appState := &AppState{}
+	err = yaml.Unmarshal(appStateBytes, appState)
+	if err != nil {
+		return nil, err
+	}
+
+	return appState, nil
 }
 
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
-	LastUpdateCheck int64
-	RecentRepos     []string
+	LastUpdateCheck     int64
+	RecentRepos         []string
+	StartupPopupVersion int
 }
 
-func getDefaultAppState() []byte {
-	return []byte(`
-    lastUpdateCheck: 0
-    recentRepos: []
-  `)
+func getDefaultAppState() *AppState {
+	return &AppState{
+		LastUpdateCheck:     0,
+		RecentRepos:         []string{},
+		StartupPopupVersion: 0,
+	}
 }
 
-func globalConfigDir() string {
-	configDirs := configdir.New("jesseduffield", "lazygit")
-	configDir := configDirs.QueryFolders(configdir.Global)[0]
-	return configDir.Path
-}
-
-func LogPath() string {
-	return filepath.Join(globalConfigDir(), "development.log")
+func LogPath() (string, error) {
+	return configFilePath("development.log")
 }

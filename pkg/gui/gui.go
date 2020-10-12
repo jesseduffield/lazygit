@@ -7,16 +7,11 @@ import (
 	"runtime"
 	"sync"
 
-	// "io"
-	// "io/ioutil"
-
 	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
-
-	// "strings"
 
 	"github.com/fatih/color"
 	"github.com/golang-collections/collections/stack"
@@ -31,6 +26,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/termbox-go"
 	"github.com/mattn/go-runewidth"
 	"github.com/sirupsen/logrus"
 )
@@ -41,7 +37,7 @@ const (
 	SCREEN_FULL
 )
 
-const StartupPopupVersion = 1
+const StartupPopupVersion = 3
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
@@ -67,8 +63,8 @@ type SentinelErrors struct {
 // localising things in the code.
 func (gui *Gui) GenerateSentinelErrors() {
 	gui.Errors = SentinelErrors{
-		ErrSubProcess: errors.New(gui.Tr.SLocalize("RunningSubprocess")),
-		ErrNoFiles:    errors.New(gui.Tr.SLocalize("NoChangedFiles")),
+		ErrSubProcess: errors.New(gui.Tr.RunningSubprocess),
+		ErrNoFiles:    errors.New(gui.Tr.NoChangedFiles),
 		ErrSwitchRepo: errors.New("switching repo"),
 		ErrRestart:    errors.New("restarting"),
 	}
@@ -83,9 +79,6 @@ func (gui *Gui) sentinelErrorsArr() []error {
 	}
 }
 
-// Teml is short for template used to make the required map[string]interface{} shorter when using gui.Tr.SLocalize and gui.Tr.TemplateLocalize
-type Teml i18n.Teml
-
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	g                    *gocui.Gui
@@ -95,7 +88,7 @@ type Gui struct {
 	SubProcess           *exec.Cmd
 	State                *guiState
 	Config               config.AppConfigurer
-	Tr                   *i18n.Localizer
+	Tr                   *i18n.TranslationSet
 	Errors               SentinelErrors
 	Updater              *updates.Updater
 	statusManager        *statusManager
@@ -110,6 +103,18 @@ type Gui struct {
 	showRecentRepos   bool
 	Contexts          ContextTree
 	ViewTabContextMap map[string][]tabContext
+
+	// this array either includes the events that we're recording in this session
+	// or the events we've recorded in a prior session
+	RecordedEvents []RecordedEvent
+	StartTime      time.Time
+
+	Mutexes guiStateMutexes
+}
+
+type RecordedEvent struct {
+	Timestamp int64
+	Event     *termbox.Event
 }
 
 type listPanelState struct {
@@ -132,7 +137,7 @@ type IListPanelState interface {
 // for now the staging panel state, unlike the other panel states, is going to be
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
-type lineByLinePanelState struct {
+type lBlPanelState struct {
 	SelectedLineIdx  int
 	FirstLineIdx     int
 	LastLineIdx      int
@@ -224,7 +229,7 @@ type panelStates struct {
 	SubCommits     *subCommitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
-	LineByLine     *lineByLinePanelState
+	LineByLine     *lBlPanelState
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
 	Submodules     *submodulePanelState
@@ -277,6 +282,14 @@ type Modes struct {
 	Diffing       Diffing
 }
 
+type guiStateMutexes struct {
+	RefreshingFilesMutex  sync.Mutex
+	RefreshingStatusMutex sync.Mutex
+	FetchMutex            sync.Mutex
+	BranchCommitsMutex    sync.Mutex
+	LineByLinePanelMutex  sync.Mutex
+}
+
 type guiState struct {
 	Files        []*models.File
 	Submodules   []*models.SubmoduleConfig
@@ -290,30 +303,26 @@ type guiState struct {
 	// ReflogCommits are the ones used by the branches panel to obtain recency values
 	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
-	ReflogCommits         []*models.Commit
-	SubCommits            []*models.Commit
-	Remotes               []*models.Remote
-	RemoteBranches        []*models.RemoteBranch
-	Tags                  []*models.Tag
-	MenuItems             []*menuItem
-	Updating              bool
-	Panels                *panelStates
-	MainContext           string // used to keep the main and secondary views' contexts in sync
-	SplitMainPanel        bool
-	RetainOriginalDir     bool
-	IsRefreshingFiles     bool
-	RefreshingFilesMutex  sync.Mutex
-	RefreshingStatusMutex sync.Mutex
-	FetchMutex            sync.Mutex
-	BranchCommitsMutex    sync.Mutex
-	Searching             searchingState
-	ScreenMode            int
-	SideView              *gocui.View
-	Ptmx                  *os.File
-	PrevMainWidth         int
-	PrevMainHeight        int
-	OldInformation        string
-	StartupStage          int // one of INITIAL and COMPLETE. Allows us to not load everything at once
+	ReflogCommits     []*models.Commit
+	SubCommits        []*models.Commit
+	Remotes           []*models.Remote
+	RemoteBranches    []*models.RemoteBranch
+	Tags              []*models.Tag
+	MenuItems         []*menuItem
+	Updating          bool
+	Panels            *panelStates
+	MainContext       string // used to keep the main and secondary views' contexts in sync
+	SplitMainPanel    bool
+	RetainOriginalDir bool
+	IsRefreshingFiles bool
+	Searching         searchingState
+	ScreenMode        int
+	SideView          *gocui.View
+	Ptmx              *os.File
+	PrevMainWidth     int
+	PrevMainHeight    int
+	OldInformation    string
+	StartupStage      int // one of INITIAL and COMPLETE. Allows us to not load everything at once
 
 	Modes Modes
 
@@ -391,7 +400,7 @@ func (gui *Gui) resetState() {
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.Localizer, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
 	gui := &Gui{
 		Log:                  log,
 		GitCommand:           gitCommand,
@@ -402,6 +411,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		statusManager:        &statusManager{},
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 		showRecentRepos:      showRecentRepos,
+		RecordedEvents:       []RecordedEvent{},
 	}
 
 	gui.resetState()
@@ -420,11 +430,17 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 func (gui *Gui) Run() error {
 	gui.resetState()
 
-	g, err := gocui.NewGui(gocui.Output256, OverlappingEdges)
+	recordEvents := recordingEvents()
+
+	g, err := gocui.NewGui(gocui.Output256, OverlappingEdges, recordEvents)
 	if err != nil {
 		return err
 	}
 	defer g.Close()
+
+	if recordEvents {
+		go utils.Safe(gui.recordEvents)
+	}
 
 	if gui.State.Modes.Filtering.Active() {
 		gui.State.ScreenMode = SCREEN_HALF
@@ -433,13 +449,14 @@ func (gui *Gui) Run() error {
 	}
 
 	g.OnSearchEscape = gui.onSearchEscape
-	g.SearchEscapeKey = gui.getKey("universal.return")
-	g.NextSearchMatchKey = gui.getKey("universal.nextMatch")
-	g.PrevSearchMatchKey = gui.getKey("universal.prevMatch")
+	userConfig := gui.Config.GetUserConfig()
+	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
+	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
+	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
 
 	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
-	if gui.Config.GetUserConfig().GetBool("gui.mouseEvents") {
+	if userConfig.Gui.MouseEvents {
 		g.Mouse = true
 	}
 
@@ -449,17 +466,18 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
-	popupTasks := []func(chan struct{}) error{}
-	configPopupVersion := gui.Config.GetUserConfig().GetInt("StartupPopupVersion")
-	// -1 means we've disabled these popups
-	if configPopupVersion != -1 && configPopupVersion < StartupPopupVersion {
-		popupTasks = append(popupTasks, gui.showIntroPopupMessage)
+	if !gui.Config.GetUserConfig().DisableStartupPopups {
+		popupTasks := []func(chan struct{}) error{}
+		storedPopupVersion := gui.Config.GetAppState().StartupPopupVersion
+		if storedPopupVersion < StartupPopupVersion {
+			popupTasks = append(popupTasks, gui.showIntroPopupMessage)
+		}
+		gui.showInitialPopups(popupTasks)
 	}
-	gui.showInitialPopups(popupTasks)
 
 	gui.waitForIntro.Add(1)
-	if gui.Config.GetUserConfig().GetBool("git.autoFetch") {
-		go gui.startBackgroundFetch()
+	if gui.Config.GetUserConfig().Git.AutoFetch {
+		go utils.Safe(gui.startBackgroundFetch)
 	}
 
 	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFilesAndSubmodules)
@@ -476,6 +494,9 @@ func (gui *Gui) Run() error {
 // if the error returned from a run is a ErrSubProcess, it runs the subprocess
 // otherwise it handles the error, possibly by quitting the application
 func (gui *Gui) RunWithSubprocesses() error {
+	gui.StartTime = time.Now()
+	go utils.Safe(gui.replayRecordedEvents)
+
 	for {
 		gui.stopChan = make(chan struct{})
 		if err := gui.Run(); err != nil {
@@ -496,6 +517,10 @@ func (gui *Gui) RunWithSubprocesses() error {
 					if err := gui.recordCurrentDirectory(); err != nil {
 						return err
 					}
+				}
+
+				if err := gui.saveRecordedEvents(); err != nil {
+					return err
 				}
 
 				return nil
@@ -531,7 +556,7 @@ func (gui *Gui) runCommand() error {
 	gui.SubProcess.Stdin = nil
 	gui.SubProcess = nil
 
-	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.SLocalize("pressEnterToReturn"), color.FgGreen))
+	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.PressEnterToReturn, color.FgGreen))
 	fmt.Scanln() // wait for enter press
 
 	return nil
@@ -555,36 +580,37 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 	gui.waitForIntro.Add(len(tasks))
 	done := make(chan struct{})
 
-	go func() {
+	go utils.Safe(func() {
 		for _, task := range tasks {
-			go func() {
+			go utils.Safe(func() {
 				if err := task(done); err != nil {
 					_ = gui.surfaceError(err)
 				}
-			}()
+			})
 
 			<-done
 			gui.waitForIntro.Done()
 		}
-	}()
+	})
 }
 
 func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	onConfirm := func() error {
 		done <- struct{}{}
-		return gui.Config.WriteToUserConfig("startupPopupVersion", StartupPopupVersion)
+		gui.Config.GetAppState().StartupPopupVersion = StartupPopupVersion
+		return gui.Config.SaveAppState()
 	}
 
 	return gui.ask(askOpts{
 		title:         "",
-		prompt:        gui.Tr.SLocalize("IntroPopupMessage"),
+		prompt:        gui.Tr.IntroPopupMessage,
 		handleConfirm: onConfirm,
 		handleClose:   onConfirm,
 	})
 }
 
 func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
-	go func() {
+	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 		for {
@@ -595,7 +621,7 @@ func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function fun
 				return
 			}
 		}
-	}()
+	})
 }
 
 func (gui *Gui) startBackgroundFetch() {
@@ -607,8 +633,8 @@ func (gui *Gui) startBackgroundFetch() {
 	err := gui.fetch(false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = gui.ask(askOpts{
-			title:  gui.Tr.SLocalize("NoAutomaticGitFetchTitle"),
-			prompt: gui.Tr.SLocalize("NoAutomaticGitFetchBody"),
+			title:  gui.Tr.NoAutomaticGitFetchTitle,
+			prompt: gui.Tr.NoAutomaticGitFetchBody,
 		})
 	} else {
 		gui.goEvery(time.Second*60, gui.stopChan, func() error {
@@ -621,7 +647,7 @@ func (gui *Gui) startBackgroundFetch() {
 // setColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) setColorScheme() error {
 	userConfig := gui.Config.GetUserConfig()
-	theme.UpdateTheme(userConfig)
+	theme.UpdateTheme(userConfig.Gui.Theme)
 
 	gui.g.FgColor = theme.InactiveBorderColor
 	gui.g.SelFgColor = theme.ActiveBorderColor

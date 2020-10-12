@@ -18,6 +18,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,7 +27,7 @@ type Updater struct {
 	Log       *logrus.Entry
 	Config    config.AppConfigurer
 	OSCommand *oscommands.OSCommand
-	Tr        *i18n.Localizer
+	Tr        *i18n.TranslationSet
 }
 
 // Updaterer implements the check and update methods
@@ -40,7 +41,7 @@ const (
 )
 
 // NewUpdater creates a new updater
-func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.Localizer) (*Updater, error) {
+func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
 
 	return &Updater{
@@ -106,13 +107,12 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("New version is " + newVersion)
 
 	if newVersion == currentVersion {
-		return "", errors.New(u.Tr.SLocalize("OnLatestVersionErr"))
+		return "", errors.New(u.Tr.OnLatestVersionErr)
 	}
 
 	if u.majorVersionDiffers(currentVersion, newVersion) {
-		errMessage := u.Tr.TemplateLocalize(
-			"MajorVersionErr",
-			i18n.Teml{
+		errMessage := utils.ResolvePlaceholderString(
+			u.Tr.MajorVersionErr, map[string]string{
 				"newVersion":     newVersion,
 				"currentVersion": currentVersion,
 			},
@@ -126,12 +126,12 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	}
 	u.Log.Info("Checking for resource at url " + rawUrl)
 	if !u.verifyResourceFound(rawUrl) {
-		errMessage := u.Tr.TemplateLocalize(
-			"CouldNotFindBinaryErr",
-			i18n.Teml{
+		errMessage := utils.ResolvePlaceholderString(
+			u.Tr.CouldNotFindBinaryErr, map[string]string{
 				"url": rawUrl,
 			},
 		)
+
 		return "", errors.New(errMessage)
 	}
 	u.Log.Info("Verified resource is available, ready to update")
@@ -145,12 +145,12 @@ func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error, userRequ
 		return
 	}
 
-	go func() {
+	go utils.Safe(func() {
 		newVersion, err := u.checkForNewUpdate()
 		if err = onFinish(newVersion, err); err != nil {
 			u.Log.Error(err)
 		}
-	}()
+	})
 }
 
 func (u *Updater) skipUpdateCheck() bool {
@@ -172,14 +172,14 @@ func (u *Updater) skipUpdateCheck() bool {
 	}
 
 	userConfig := u.Config.GetUserConfig()
-	if userConfig.Get("update.method") == "never" {
+	if userConfig.Update.Method == "never" {
 		u.Log.Info("Update method is set to never so we won't check for an update")
 		return true
 	}
 
 	currentTimestamp := time.Now().Unix()
 	lastUpdateCheck := u.Config.GetAppState().LastUpdateCheck
-	days := userConfig.GetInt64("update.days")
+	days := userConfig.Update.Days
 
 	if (currentTimestamp-lastUpdateCheck)/(60*60*24) < days {
 		u.Log.Info("Last update was too recent so we won't check for an update")
@@ -235,12 +235,12 @@ func (u *Updater) getBinaryUrl(newVersion string) (string, error) {
 
 // Update downloads the latest binary and replaces the current binary with it
 func (u *Updater) Update(newVersion string, onFinish func(error) error) {
-	go func() {
+	go utils.Safe(func() {
 		err := u.update(newVersion)
 		if err = onFinish(err); err != nil {
 			u.Log.Error(err)
 		}
-	}()
+	})
 }
 
 func (u *Updater) update(newVersion string) error {

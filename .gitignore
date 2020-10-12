@@ -26,3 +26,8 @@ lazygit
 !.github/
 
 test/git_server/data
+test/integration/*/actual/
+test/integration/*/used_config/
+# these sample hooks waste too space space
+test/integration/*/expected/.git_keep/hooks/
+!.git_keep/

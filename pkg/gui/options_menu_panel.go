@@ -54,5 +54,5 @@ func (gui *Gui) handleCreateOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	return gui.createMenu(strings.Title(gui.Tr.SLocalize("menu")), menuItems, createMenuOptions{})
+	return gui.createMenu(strings.Title(gui.Tr.LcMenu), menuItems, createMenuOptions{})
 }

@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -18,7 +17,7 @@ func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
 	return from, reverse
 }
 
-func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
+func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *lBlPanelState) error {
 	if !gui.GitCommand.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
@@ -46,7 +45,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 		return err
 	}
 
-	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx)
+	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx, state)
 	if err != nil {
 		return err
 	}
@@ -58,33 +57,45 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	return nil
 }
 
-func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error {
-	state := gui.State.Panels.LineByLine
+func (gui *Gui) handleRefreshPatchBuildingPanel(selectedLineIdx int) error {
+	gui.Mutexes.LineByLinePanelMutex.Lock()
+	defer gui.Mutexes.LineByLinePanelMutex.Unlock()
 
-	toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
-	filename := gui.getSelectedCommitFileName()
-	includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+	return gui.refreshPatchBuildingPanel(selectedLineIdx, gui.State.Panels.LineByLine)
+}
+
+func (gui *Gui) handleToggleSelectionForPatch() error {
+	err := gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+		toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
+		filename := gui.getSelectedCommitFileName()
+		includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+		if err != nil {
+			return err
+		}
+		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
+		if currentLineIsStaged {
+			toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
+		}
+
+		// add range of lines to those set for the file
+		commitFile := gui.getSelectedCommitFile()
+		if commitFile == nil {
+			return nil
+		}
+
+		if err := toggleFunc(commitFile.Name, state.FirstLineIdx, state.LastLineIdx); err != nil {
+			// might actually want to return an error here
+			gui.Log.Error(err)
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return err
 	}
-	currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
-	if currentLineIsStaged {
-		toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
-	}
-
-	// add range of lines to those set for the file
-	commitFile := gui.getSelectedCommitFile()
-	if commitFile == nil {
-		return nil
-	}
-
-	toggleFunc(commitFile.Name, state.FirstLineIdx, state.LastLineIdx)
 
 	if err := gui.refreshCommitFilesView(); err != nil {
-		return err
-	}
-
-	if err := gui.refreshPatchBuildingPanel(-1); err != nil {
 		return err
 	}
 
@@ -92,7 +103,7 @@ func (gui *Gui) handleToggleSelectionForPatch(g *gocui.Gui, v *gocui.View) error
 }
 
 func (gui *Gui) handleEscapePatchBuildingPanel() error {
-	gui.handleEscapeLineByLinePanel()
+	gui.escapeLineByLinePanel()
 
 	if gui.GitCommand.PatchManager.IsEmpty() {
 		gui.GitCommand.PatchManager.Reset()
