@@ -166,7 +166,6 @@ func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
 		gui.Mutexes.FetchMutex.Lock()
 		defer gui.Mutexes.FetchMutex.Unlock()
 
-		// TODO: test this
 		err := gui.GitCommand.FetchRemote(remote.Name, gui.promptUserForCredential)
 		gui.handleCredentialsPopup(err)
 
