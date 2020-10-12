@@ -156,6 +156,7 @@ Default path for the config file:
       tagCommit: 'T'
       checkoutCommit: '<space>'
       resetCherryPick: '<c-R>'
+      copyCommitMessageToClipboard: '<c-y>'
     stash:
       popStash: 'g'
     commitFiles:

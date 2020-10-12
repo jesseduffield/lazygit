@@ -381,6 +381,7 @@ type TranslationSet struct {
 	LcOpenDiffingMenu                   string
 	LcShowingGitDiff                    string
 	LcCopyCommitShaToClipboard          string
+	LcCopyCommitMessageToClipboard      string
 	LcCopyBranchNameToClipboard         string
 	LcCopyFileNameToClipboard           string
 	LcCopyCommitFileNameToClipboard     string
@@ -878,6 +879,7 @@ func englishTranslationSet() TranslationSet {
 		LcOpenDiffingMenu:                   "open diff menu",
 		LcShowingGitDiff:                    "showing output for:",
 		LcCopyCommitShaToClipboard:          "copy commit SHA to clipboard",
+		LcCopyCommitMessageToClipboard:      "copy commit message to clipboard",
 		LcCopyBranchNameToClipboard:         "copy branch name to clipboard",
 		LcCopyFileNameToClipboard:           "copy the file name to the clipboard",
 		LcCopyCommitFileNameToClipboard:     "copy the committed file name to the clipboard",

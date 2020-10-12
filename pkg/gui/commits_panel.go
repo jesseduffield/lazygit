@@ -596,7 +596,11 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
-	} else {
-		return gui.OSCommand.CopyToClipboard(commit.Name)
 	}
+
+	message, err := gui.GitCommand.GetCommitMessage(commit.Sha)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+	return gui.OSCommand.CopyToClipboard(message)
 }
