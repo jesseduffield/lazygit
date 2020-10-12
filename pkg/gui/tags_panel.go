@@ -98,10 +98,12 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 	)
 
 	return gui.prompt(title, "origin", func(response string) error {
-		if err := gui.GitCommand.PushTag(response, tag.Name); err != nil {
-			return gui.surfaceError(err)
-		}
-		return nil
+		return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
+			err := gui.GitCommand.PushTag(response, tag.Name, gui.promptUserForCredential)
+			gui.handleCredentialsPopup(err)
+
+			return nil
+		})
 	})
 }
 

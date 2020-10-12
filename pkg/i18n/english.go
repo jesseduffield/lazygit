@@ -427,6 +427,7 @@ type TranslationSet struct {
 	SubCommitsTitle                     string
 	SubmodulesTitle                     string
 	NavigationTitle                     string
+	PushingTagStatus                    string
 }
 
 const englishReleaseNotes = `## lazygit 0.23.2 Release Notes
@@ -924,5 +925,6 @@ func englishTranslationSet() TranslationSet {
 		SubCommitsTitle:                     "Sub-commits",
 		SubmodulesTitle:                     "Submodules",
 		NavigationTitle:                     "List Panel Navigation",
+		PushingTagStatus:                    "pushing tag",
 	}
 }
