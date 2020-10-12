@@ -60,9 +60,8 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 		prompt: message,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				if err := gui.GitCommand.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name); err != nil {
-					return err
-				}
+				err := gui.GitCommand.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.promptUserForCredential)
+				gui.handleCredentialsPopup(err)
 
 				return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
 			})

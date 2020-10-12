@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -20,8 +22,9 @@ func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error
 	return c.OSCommand.RunCommand("git remote set-url %s %s", remoteName, updatedUrl)
 }
 
-func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string) error {
-	return c.OSCommand.RunCommand("git push %s --delete %s", remoteName, branchName)
+func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {
+	command := fmt.Sprintf("git push %s --delete %s", remoteName, branchName)
+	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
 }
 
 // CheckRemoteBranchExists Returns remote branch
