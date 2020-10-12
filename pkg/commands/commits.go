@@ -22,7 +22,13 @@ func (c *GitCommand) ResetToCommit(sha string, strength string, options oscomman
 
 // Commit commits to git
 func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
-	command := fmt.Sprintf("git commit %s -m %s", flags, strconv.Quote(message))
+	splitMessage := strings.Split(message, "\n")
+	lineArgs := ""
+	for _, line := range splitMessage {
+		lineArgs += fmt.Sprintf(" -m %s", strconv.Quote(line))
+	}
+
+	command := fmt.Sprintf("git commit %s%s", flags, lineArgs)
 	if c.usingGpg() {
 		return c.OSCommand.ShellCommandFromString(command), nil
 	}

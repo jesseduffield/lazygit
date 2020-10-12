@@ -971,7 +971,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "commitMessage",
-			Key:      gui.getKey(config.Universal.Confirm),
+			Key:      gui.getKey(config.Universal.SubmitEditorText),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCommitConfirm,
 		},

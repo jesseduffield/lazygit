@@ -144,6 +144,8 @@ type KeybindingUniversalConfig struct {
 	DiffingMenu                  string `yaml:"diffingMenu"`
 	DiffingMenuAlt               string `yaml:"diffingMenu-alt"`
 	CopyToClipboard              string `yaml:"copyToClipboard"`
+	SubmitEditorText             string `yaml:"submitEditorText"`
+	AppendNewline                string `yaml:"appendNewline"`
 }
 
 type KeybindingStatusConfig struct {
@@ -360,6 +362,8 @@ func GetDefaultConfig() *UserConfig {
 				DiffingMenu:                  "W",
 				DiffingMenuAlt:               "<c-e>",
 				CopyToClipboard:              "<c-o>",
+				SubmitEditorText:             "<enter>",
+				AppendNewline:                "<tab>",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate: "u",

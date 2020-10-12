@@ -83,6 +83,11 @@ func (gui *Gui) RenderCommitLength() {
 // we've just copy+pasted the editor from gocui to here so that we can also re-
 // render the commit message length on each keypress
 func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	newlineKey, ok := gui.getKey(gui.Config.GetUserConfig().Keybinding.Universal.AppendNewline).(gocui.Key)
+	if !ok {
+		newlineKey = gocui.KeyTab
+	}
+
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
@@ -96,7 +101,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		v.MoveCursor(-1, 0, false)
 	case key == gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
-	case key == gocui.KeyTab:
+	case key == newlineKey:
 		v.EditNewLine()
 	case key == gocui.KeySpace:
 		v.EditWrite(' ')
