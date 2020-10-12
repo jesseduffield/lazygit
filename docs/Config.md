@@ -111,6 +111,8 @@ Default path for the config file:
       diffingMenu: 'W'
       diffingMenu-alt: '<c-e>' # deprecated
       copyToClipboard: '<c-o>'
+      submitEditorText: '<enter>'
+      appendNewline: '<tab>'
     status:
       checkForUpdate: 'u'
       recentRepos: '<enter>'
