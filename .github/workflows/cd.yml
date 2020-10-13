@@ -40,6 +40,6 @@ jobs:
           gbp import-ref -u "$version"
           gbp dch -D xenial -N "$version"-1
           git add debian/changelog
-          git commit -S -m "d/changelog: dch $version"
+          git commit -m "d/changelog: dch $version"
           gbp tag
           git push --tags origin master
