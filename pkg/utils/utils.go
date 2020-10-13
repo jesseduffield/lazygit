@@ -102,8 +102,8 @@ func Loader() string {
 // ResolvePlaceholderString populates a template with values
 func ResolvePlaceholderString(str string, arguments map[string]string) string {
 	for key, value := range arguments {
-		str = strings.ReplaceAll(str, "{{"+key+"}}", value)
-		str = strings.ReplaceAll(str, "{{."+key+"}}", value)
+		str = strings.Replace(str, "{{"+key+"}}", value, -1)
+		str = strings.Replace(str, "{{."+key+"}}", value, -1)
 	}
 	return str
 }
