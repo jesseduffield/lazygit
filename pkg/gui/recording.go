@@ -21,7 +21,7 @@ func recordEventsTo() string {
 }
 
 func (gui *Gui) timeSinceStart() int64 {
-	return time.Since(gui.StartTime).Milliseconds()
+	return time.Since(gui.StartTime).Nanoseconds() / 1e6
 }
 
 func (gui *Gui) replayRecordedEvents() {
