@@ -106,7 +106,7 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		handleConfirm: func() error {
 			if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
-				return err
+				return gui.surfaceError(err)
 			}
 
 			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
