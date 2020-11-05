@@ -320,11 +320,10 @@ func (c *CommitListBuilder) setCommitMergedStatuses(refName string, commits []*m
 // configuration file. Ignoring file not found errors and default to baseBranch = "master".
 func getBaseBranch(c *CommitListBuilder) (string, error) {
 	baseBranch := ""
-	merge, _ := c.GitCommand.getLocalGitConfig("branch.master.merge")
-	merge, _ = c.GitCommand.getLocalGitConfig("branch.main.merge")
 
-	if merge != "" {
-		split := strings.Split(merge, "/")
+	output, _ := c.GitCommand.RevParseAbbrevRef("origin/HEAD")
+	if output != "" {
+		split := strings.Split(output, "/")
 		return split[len(split)-1], nil
 	}
 
