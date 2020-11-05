@@ -35,6 +35,7 @@ jobs:
       - name: Update PPA repo
         run: |
           version="$(echo "$GITHUB_REF" | sed 's@refs/tags/v@@')"
+          sudo apt update
           sudo apt install -y git-buildpackage
           git fetch --tags https://github.com/$GITHUB_REPOSITORY
           gbp import-ref -u "$version"
