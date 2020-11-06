@@ -77,11 +77,6 @@ func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
 	return strings.TrimSpace(output), err
 }
 
-func (c *GitCommand) RevParseAbbrevRef(branchName string) (string, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git rev-parse --abbrev-ref %s", branchName)
-	return strings.TrimSpace(output), err
-}
-
 func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
 	branchLogCmdTemplate := c.Config.GetUserConfig().Git.BranchLogCmd
 	templateValues := map[string]string{

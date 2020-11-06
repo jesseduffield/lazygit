@@ -315,17 +315,8 @@ func (c *CommitListBuilder) setCommitMergedStatuses(refName string, commits []*m
 	return commits, nil
 }
 
-// Check if [branch "master"] or [branch "main"] has merge in .git/config. If there are no
-// merge paths available in the local config, use the init.defaultBranch from the global
-// configuration file. Ignoring file not found errors and default to baseBranch = "master".
 func getBaseBranch(c *CommitListBuilder) (string, error) {
 	baseBranch := ""
-
-	output, _ := c.GitCommand.RevParseAbbrevRef("origin/HEAD")
-	if output != "" {
-		split := strings.Split(output, "/")
-		return split[len(split)-1], nil
-	}
 
 	baseBranch, _ = c.GitCommand.getLocalGitConfig("init.defaultBranch")
 	if baseBranch != "" {
