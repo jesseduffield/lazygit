@@ -100,7 +100,7 @@ func main() {
 	}
 
 	if configDirFlag {
-		fmt.Printf("%s\n", config.ConfigDir())
+		fmt.Printf("%s\n", config.ConfigDir("jesseduffield"))
 		os.Exit(0)
 	}
 
