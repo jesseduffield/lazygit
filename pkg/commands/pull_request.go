@@ -91,10 +91,29 @@ func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 
 // Create opens link to new pull request in browser
 func (pr *PullRequest) Create(branch *models.Branch) error {
+	pullRequestURL, err := pr.getPullRequestURL(branch)
+	if err != nil {
+		return err
+	}
+
+	return pr.GitCommand.OSCommand.OpenLink(pullRequestURL)
+}
+
+// CopyURL copies the pull request URL to the clipboard
+func (pr *PullRequest) CopyURL(branch *models.Branch) error {
+	pullRequestURL, err := pr.getPullRequestURL(branch)
+	if err != nil {
+		return err
+	}
+
+	return pr.GitCommand.OSCommand.CopyToClipboard(pullRequestURL)
+}
+
+func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) {
 	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(branch)
 
 	if !branchExistsOnRemote {
-		return errors.New(pr.GitCommand.Tr.NoBranchOnRemote)
+		return "", errors.New(pr.GitCommand.Tr.NoBranchOnRemote)
 	}
 
 	repoURL := pr.GitCommand.GetRemoteURL()
@@ -108,14 +127,15 @@ func (pr *PullRequest) Create(branch *models.Branch) error {
 	}
 
 	if gitService == nil {
-		return errors.New(pr.GitCommand.Tr.UnsupportedGitService)
+		return "", errors.New(pr.GitCommand.Tr.UnsupportedGitService)
 	}
 
 	repoInfo := getRepoInfoFromURL(repoURL)
-
-	return pr.GitCommand.OSCommand.OpenLink(fmt.Sprintf(
+	pullRequestURL := fmt.Sprintf(
 		gitService.PullRequestURL, repoInfo.Owner, repoInfo.Repository, branch.Name,
-	))
+	)
+
+	return pullRequestURL, nil
 }
 
 func getRepoInfoFromURL(url string) *RepoInformation {
