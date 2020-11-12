@@ -303,13 +303,22 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 	return &cfg
 }
 
+func (gui *Gui) canCommitNow() bool {
+	if gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
+		gui.GitCommand.StageAll()
+		return true
+	}
+	if len(gui.stagedFiles()) > 0 {
+		return true
+	}
+	return false
+}
+
 func (gui *Gui) handleCommitPress() error {
-	if !gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
-		if len(gui.stagedFiles()) == 0 {
-			return gui.promptToStageAllAndRetry(func() error {
-				return gui.handleCommitPress()
-			})
-		}
+	if !gui.canCommitNow() {
+		return gui.promptToStageAllAndRetry(func() error {
+			return gui.handleCommitPress()
+		})
 	}
 
 	commitMessageView := gui.getCommitMessageView()
