@@ -27,6 +27,7 @@ type GuiConfig struct {
 	MainPanelSplitMode     string             `yaml:"mainPanelSplitMode"`
 	Theme                  ThemeConfig        `yaml:"theme"`
 	CommitLength           CommitLengthConfig `yaml:"commitLength"`
+	SkipNoStagedFilesWarning bool			  `yaml:"skipNoStagedFilesWarning"`
 }
 
 type ThemeConfig struct {
@@ -280,6 +281,7 @@ func GetDefaultConfig() *UserConfig {
 				SelectedRangeBgColor: []string{"blue"},
 			},
 			CommitLength: CommitLengthConfig{Show: true},
+			SkipNoStagedFilesWarning: false,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

@@ -77,6 +77,8 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		refreshOpts.main.title = gui.Tr.StagedChanges
 	}
 
+
+
 	return gui.refreshMainViews(refreshOpts)
 }
 
@@ -302,10 +304,12 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 }
 
 func (gui *Gui) handleCommitPress() error {
-	if len(gui.stagedFiles()) == 0 {
-		return gui.promptToStageAllAndRetry(func() error {
-			return gui.handleCommitPress()
-		})
+	if !gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
+		if len(gui.stagedFiles()) == 0 {
+			return gui.promptToStageAllAndRetry(func() error {
+				return gui.handleCommitPress()
+			})
+		}
 	}
 
 	commitMessageView := gui.getCommitMessageView()
