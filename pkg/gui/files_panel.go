@@ -77,8 +77,6 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		refreshOpts.main.title = gui.Tr.StagedChanges
 	}
 
-
-
 	return gui.refreshMainViews(refreshOpts)
 }
 
