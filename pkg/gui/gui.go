@@ -303,12 +303,12 @@ type guiStateMutexes struct {
 }
 
 type guiState struct {
-	Files        []*models.File
-	Submodules   []*models.SubmoduleConfig
-	Branches     []*models.Branch
-	Commits      []*models.Commit
-	StashEntries []*models.StashEntry
-	CommitFiles  []*models.CommitFile
+	StatusLineManager *StatusLineManager
+	Submodules        []*models.SubmoduleConfig
+	Branches          []*models.Branch
+	Commits           []*models.Commit
+	StashEntries      []*models.StashEntry
+	CommitFiles       []*models.CommitFile
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
@@ -378,7 +378,7 @@ func (gui *Gui) resetState() {
 	}
 
 	gui.State = &guiState{
-		Files:                 make([]*models.File, 0),
+		StatusLineManager:     &StatusLineManager{Files: make([]*models.File, 0), Log: gui.Log, TreeMode: true},
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),
 		ReflogCommits:         make([]*models.Commit, 0),

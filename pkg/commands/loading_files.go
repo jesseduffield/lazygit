@@ -58,6 +58,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 		}
 		files = append(files, file)
 	}
+
 	return files
 }
 
