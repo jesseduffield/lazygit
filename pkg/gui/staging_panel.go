@@ -18,10 +18,8 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	secondaryFocused := false
 	if forceSecondaryFocused {
 		secondaryFocused = true
-	} else {
-		if state != nil {
-			secondaryFocused = state.SecondaryFocused
-		}
+	} else if state != nil {
+		secondaryFocused = state.SecondaryFocused
 	}
 
 	if (secondaryFocused && !file.HasStagedChanges) || (!secondaryFocused && !file.HasUnstagedChanges) {

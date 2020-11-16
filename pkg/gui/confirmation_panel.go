@@ -37,7 +37,7 @@ type askOpts struct {
 	handlersManageFocus bool
 }
 
-func (gui *Gui) createLoaderPanel(currentView *gocui.View, prompt string) error {
+func (gui *Gui) createLoaderPanel(prompt string) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
 		prompt:    prompt,
 		hasLoader: true,
@@ -160,7 +160,7 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool) (
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
 	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return nil, err
 		}
 		confirmationView.HasLoader = hasLoader

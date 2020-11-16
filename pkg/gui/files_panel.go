@@ -152,7 +152,7 @@ func (gui *Gui) trackedFiles() []*models.File {
 	return result
 }
 
-func (gui *Gui) stageSelectedFile(g *gocui.Gui) error {
+func (gui *Gui) stageSelectedFile() error {
 	file := gui.getSelectedFile()
 	if file == nil {
 		return nil
@@ -183,7 +183,7 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.FileStagingRequirements)
 	}
-	gui.switchContext(gui.Contexts.Staging.Context)
+	_ = gui.switchContext(gui.Contexts.Staging.Context)
 
 	return gui.handleRefreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
 }
@@ -284,7 +284,7 @@ func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error 
 		return gui.createErrorPanel(gui.Tr.SkipHookPrefixNotConfigured)
 	}
 
-	gui.renderStringSync("commitMessage", skipHookPreifx)
+	_ = gui.renderStringSync("commitMessage", skipHookPreifx)
 	if err := gui.getCommitMessageView().SetCursor(len(skipHookPreifx), 0); err != nil {
 		return err
 	}
@@ -303,9 +303,7 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 
 func (gui *Gui) handleCommitPress() error {
 	if len(gui.stagedFiles()) == 0 {
-		return gui.promptToStageAllAndRetry(func() error {
-			return gui.handleCommitPress()
-		})
+		return gui.promptToStageAllAndRetry(gui.handleCommitPress)
 	}
 
 	commitMessageView := gui.getCommitMessageView()
@@ -354,9 +352,7 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 
 func (gui *Gui) handleAmendCommitPress() error {
 	if len(gui.stagedFiles()) == 0 {
-		return gui.promptToStageAllAndRetry(func() error {
-			return gui.handleAmendCommitPress()
-		})
+		return gui.promptToStageAllAndRetry(gui.handleAmendCommitPress)
 	}
 
 	if len(gui.State.Commits) == 0 {
@@ -386,9 +382,7 @@ func (gui *Gui) handleAmendCommitPress() error {
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress() error {
 	if len(gui.stagedFiles()) == 0 {
-		return gui.promptToStageAllAndRetry(func() error {
-			return gui.handleCommitEditorPress()
-		})
+		return gui.promptToStageAllAndRetry(gui.handleCommitEditorPress)
 	}
 
 	gui.PrepareSubProcess("git commit")
@@ -505,13 +499,13 @@ type PullFilesOptions struct {
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
-	if err := gui.createLoaderPanel(gui.g.CurrentView(), gui.Tr.PullWait); err != nil {
+	if err := gui.createLoaderPanel(gui.Tr.PullWait); err != nil {
 		return err
 	}
 
 	mode := gui.Config.GetUserConfig().Git.Pull.Mode
 
-	go utils.Safe(func() { gui.pullWithMode(mode, opts) })
+	go utils.Safe(func() { _ = gui.pullWithMode(mode, opts) })
 
 	return nil
 }
@@ -548,7 +542,7 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 }
 
 func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, args string) error {
-	if err := gui.createLoaderPanel(v, gui.Tr.PushWait); err != nil {
+	if err := gui.createLoaderPanel(gui.Tr.PushWait); err != nil {
 		return err
 	}
 	go utils.Safe(func() {
@@ -557,10 +551,10 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
 			forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 			if forcePushDisabled {
-				gui.createErrorPanel(gui.Tr.UpdatesRejectedAndForcePushDisabled)
+				_ = gui.createErrorPanel(gui.Tr.UpdatesRejectedAndForcePushDisabled)
 				return
 			}
-			gui.ask(askOpts{
+			_ = gui.ask(askOpts{
 				title:  gui.Tr.ForcePush,
 				prompt: gui.Tr.ForcePushPrompt,
 				handleConfirm: func() error {

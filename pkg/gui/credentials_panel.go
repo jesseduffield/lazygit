@@ -14,13 +14,14 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView, _ := g.View("credentials")
-		if passOrUname == "username" {
+		switch passOrUname {
+		case "username":
 			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.Mask = 0
-		} else if passOrUname == "password" {
+		case "password":
 			credentialsView.Title = gui.Tr.CredentialsPassword
 			credentialsView.Mask = '*'
-		} else {
+		default:
 			credentialsView.Title = gui.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
 		}
@@ -77,7 +78,7 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 			errMessage = gui.Tr.PassUnameWrong
 		}
 		// we are not logging this error because it may contain a password or a passphrase
-		gui.createErrorPanel(errMessage)
+		_ = gui.createErrorPanel(errMessage)
 	} else {
 		_ = gui.closeConfirmationPrompt(false)
 	}

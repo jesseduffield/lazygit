@@ -445,19 +445,6 @@ func (gui *Gui) handleViewCommitFiles() error {
 	return gui.switchToCommitFilesContext(commit.Sha, true, gui.Contexts.BranchCommits.Context, "commits")
 }
 
-func (gui *Gui) hasCommit(commits []*models.Commit, target string) (int, bool) {
-	for idx, commit := range commits {
-		if commit.Sha == target {
-			return idx, true
-		}
-	}
-	return -1, false
-}
-
-func (gui *Gui) unchooseCommit(commits []*models.Commit, i int) []*models.Commit {
-	return append(commits[:i], commits[i+1:]...)
-}
-
 func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err

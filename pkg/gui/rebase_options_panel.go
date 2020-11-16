@@ -3,12 +3,14 @@ package gui
 import (
 	"fmt"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
 func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	options := []string{"continue", "abort"}
 
-	if gui.GitCommand.WorkingTreeState() == "rebasing" {
+	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
 		options = append(options, "skip")
 	}
 
@@ -25,7 +27,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	}
 
 	var title string
-	if gui.GitCommand.WorkingTreeState() == "merging" {
+	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_MERGING {
 		title = gui.Tr.MergeOptionsTitle
 	} else {
 		title = gui.Tr.RebaseOptionsTitle
@@ -37,7 +39,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 func (gui *Gui) genericMergeCommand(command string) error {
 	status := gui.GitCommand.WorkingTreeState()
 
-	if status != "merging" && status != "rebasing" {
+	if status != commands.REBASE_MODE_MERGING && status != commands.REBASE_MODE_REBASING {
 		return gui.createErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
@@ -45,7 +47,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	if status == "merging" && command != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
+	if status == commands.REBASE_MODE_MERGING && command != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
 		sub := gui.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
 		if sub != nil {
 			gui.SubProcess = sub

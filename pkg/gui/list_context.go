@@ -248,7 +248,7 @@ func (gui *Gui) menuListContext() *ListContext {
 		GetItemsLength:             func() int { return gui.getMenuView().LinesHeight() },
 		GetPanelState:              func() IListPanelState { return gui.State.Panels.Menu },
 		OnFocus:                    gui.handleMenuSelect,
-		OnClickSelectedItem:        func() error { return gui.onMenuPress() },
+		OnClickSelectedItem:        gui.onMenuPress,
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: false,
 		Kind:                       PERSISTENT_POPUP,

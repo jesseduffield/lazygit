@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -26,8 +25,7 @@ func (c *GitCommand) GetStashEntries(filterPath string) []*models.StashEntry {
 		return c.getUnfilteredStashEntries()
 	}
 
-	unescaped := fmt.Sprintf("git stash list --name-only")
-	rawString, err := c.OSCommand.RunCommandWithOutput(unescaped)
+	rawString, err := c.OSCommand.RunCommandWithOutput("git stash list --name-only")
 	if err != nil {
 		return c.getUnfilteredStashEntries()
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
 func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
@@ -26,7 +27,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error 
 		},
 	}
 
-	if gui.GitCommand.PatchManager.CanRebase && gui.workingTreeState() == "normal" {
+	if gui.GitCommand.PatchManager.CanRebase && gui.workingTreeState() == commands.REBASE_MODE_NORMAL {
 		menuItems = append(menuItems, []*menuItem{
 			{
 				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.To),
@@ -74,7 +75,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 }
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
-	if gui.GitCommand.WorkingTreeState() != "normal" {
+	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
 		return false, gui.createErrorPanel(gui.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
