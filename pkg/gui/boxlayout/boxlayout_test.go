@@ -182,6 +182,7 @@ func TestArrangeWindows(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(ArrangeWindows(s.root, s.x0, s.y0, s.width, s.height))
 		})

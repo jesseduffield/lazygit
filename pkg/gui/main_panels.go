@@ -14,11 +14,6 @@ type viewUpdateOpts struct {
 	task updateTask
 }
 
-type coordinates struct {
-	x int
-	y int
-}
-
 type refreshMainOpts struct {
 	main      *viewUpdateOpts
 	secondary *viewUpdateOpts
@@ -91,9 +86,10 @@ func (gui *Gui) createRunPtyTask(cmd *exec.Cmd) *runPtyTask {
 	return &runPtyTask{cmd: cmd}
 }
 
-func (gui *Gui) createRunPtyTaskWithPrefix(cmd *exec.Cmd, prefix string) *runPtyTask {
-	return &runPtyTask{cmd: cmd, prefix: prefix}
-}
+// currently unused
+// func (gui *Gui) createRunPtyTaskWithPrefix(cmd *exec.Cmd, prefix string) *runPtyTask {
+// 	return &runPtyTask{cmd: cmd, prefix: prefix}
+// }
 
 type runFunctionTask struct {
 	f func(chan struct{}) error
@@ -103,9 +99,10 @@ func (t *runFunctionTask) GetKind() int {
 	return RUN_FUNCTION
 }
 
-func (gui *Gui) createRunFunctionTask(f func(chan struct{}) error) *runFunctionTask {
-	return &runFunctionTask{f: f}
-}
+// currently unused
+// func (gui *Gui) createRunFunctionTask(f func(chan struct{}) error) *runFunctionTask {
+// 	return &runFunctionTask{f: f}
+// }
 
 func (gui *Gui) runTaskForView(viewName string, task updateTask) error {
 	switch task.GetKind() {

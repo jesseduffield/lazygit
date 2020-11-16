@@ -50,9 +50,9 @@ func (gui *Gui) shouldHighlightLine(index int, conflict commands.Conflict, top b
 	return (index >= conflict.Start && index <= conflict.Middle && top) || (index >= conflict.Middle && index <= conflict.End && !top)
 }
 
-func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflict, conflictIndex int, conflictTop, hasFocus bool) (string, error) {
+func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflict, conflictIndex int, conflictTop, hasFocus bool) string {
 	if len(conflicts) == 0 {
-		return content, nil
+		return content
 	}
 	conflict, remainingConflicts := gui.shiftConflict(conflicts)
 	var outputBuffer bytes.Buffer
@@ -71,7 +71,7 @@ func (gui *Gui) coloredConflictFile(content string, conflicts []commands.Conflic
 		}
 		outputBuffer.WriteString(utils.ColoredStringDirect(line, colour) + "\n")
 	}
-	return outputBuffer.String(), nil
+	return outputBuffer.String()
 }
 
 func (gui *Gui) takeOverScrolling() {
@@ -142,7 +142,7 @@ func (gui *Gui) resolveConflict(conflict commands.Conflict, pick string) error {
 	return ioutil.WriteFile(gitFile.Name, []byte(output), 0644)
 }
 
-func (gui *Gui) pushFileSnapshot(g *gocui.Gui) error {
+func (gui *Gui) pushFileSnapshot() error {
 	gitFile := gui.getSelectedFile()
 	if gitFile == nil {
 		return nil
@@ -175,7 +175,7 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 	gui.takeOverScrolling()
 
 	conflict := gui.State.Panels.Merging.Conflicts[gui.State.Panels.Merging.ConflictIndex]
-	if err := gui.pushFileSnapshot(g); err != nil {
+	if err := gui.pushFileSnapshot(); err != nil {
 		return err
 	}
 
@@ -201,7 +201,7 @@ func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
 	gui.takeOverScrolling()
 
 	conflict := gui.State.Panels.Merging.Conflicts[gui.State.Panels.Merging.ConflictIndex]
-	if err := gui.pushFileSnapshot(g); err != nil {
+	if err := gui.pushFileSnapshot(); err != nil {
 		return err
 	}
 	err := gui.resolveConflict(conflict, "both")
@@ -213,7 +213,7 @@ func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) refreshMergePanel() error {
 	panelState := gui.State.Panels.Merging
-	cat, err := gui.catSelectedFile(gui.g)
+	cat, err := gui.catSelectedFile()
 	if err != nil {
 		return gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
@@ -233,12 +233,9 @@ func (gui *Gui) refreshMergePanel() error {
 	}
 
 	hasFocus := gui.currentViewName() == "main"
-	content, err := gui.coloredConflictFile(cat, panelState.Conflicts, panelState.ConflictIndex, panelState.ConflictTop, hasFocus)
-	if err != nil {
-		return err
-	}
+	content := gui.coloredConflictFile(cat, panelState.Conflicts, panelState.ConflictIndex, panelState.ConflictTop, hasFocus)
 
-	if err := gui.scrollToConflict(gui.g); err != nil {
+	if err := gui.scrollToConflict(); err != nil {
 		return err
 	}
 
@@ -251,7 +248,7 @@ func (gui *Gui) refreshMergePanel() error {
 	})
 }
 
-func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
+func (gui *Gui) catSelectedFile() (string, error) {
 	item := gui.getSelectedFile()
 	if item == nil {
 		return "", errors.New(gui.Tr.NoFilesDisplay)
@@ -269,7 +266,7 @@ func (gui *Gui) catSelectedFile(g *gocui.Gui) (string, error) {
 	return cat, nil
 }
 
-func (gui *Gui) scrollToConflict(g *gocui.Gui) error {
+func (gui *Gui) scrollToConflict() error {
 	if gui.State.Panels.Merging.UserScrolling {
 		return nil
 	}
@@ -318,7 +315,7 @@ func (gui *Gui) handleEscapeMerge() error {
 }
 
 func (gui *Gui) handleCompleteMerge() error {
-	if err := gui.stageSelectedFile(gui.g); err != nil {
+	if err := gui.stageSelectedFile(); err != nil {
 		return err
 	}
 	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
@@ -326,7 +323,7 @@ func (gui *Gui) handleCompleteMerge() error {
 	}
 	// if we got conflicts after unstashing, we don't want to call any git
 	// commands to continue rebasing/merging here
-	if gui.GitCommand.WorkingTreeState() == "normal" {
+	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_NORMAL {
 		return gui.handleEscapeMerge()
 	}
 	// if there are no more files with merge conflicts, we should ask whether the user wants to continue

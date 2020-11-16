@@ -185,9 +185,9 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit
 // getRebasingCommits obtains the commits that we're in the process of rebasing
 func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*models.Commit, error) {
 	switch rebaseMode {
-	case "normal":
+	case REBASE_MODE_MERGING:
 		return c.getNormalRebasingCommits()
-	case "interactive":
+	case REBASE_MODE_INTERACTIVE:
 		return c.getInteractiveRebasingCommits()
 	default:
 		return nil, nil

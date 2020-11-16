@@ -100,7 +100,7 @@ func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error 
 }
 
 func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
-	if err := gui.createLoaderPanel(v, gui.Tr.FetchWait); err != nil {
+	if err := gui.createLoaderPanel(gui.Tr.FetchWait); err != nil {
 		return err
 	}
 	go utils.Safe(func() {
@@ -386,7 +386,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 	go utils.Safe(func() {
-		_ = gui.createLoaderPanel(v, message)
+		_ = gui.createLoaderPanel(message)
 
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{})

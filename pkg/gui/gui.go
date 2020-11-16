@@ -51,6 +51,8 @@ type SentinelErrors struct {
 	ErrRestart    error
 }
 
+const UNKNOWN_VIEW_ERROR_MSG = "unknown view"
+
 // GenerateSentinelErrors makes the sentinel errors for the gui. We're defining it here
 // because we can't do package-scoped errors with localization, and also because
 // it seems like package-scoped variables are bad in general
@@ -582,6 +584,7 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 
 	go utils.Safe(func() {
 		for _, task := range tasks {
+			task := task
 			go utils.Safe(func() {
 				if err := task(done); err != nil {
 					_ = gui.surfaceError(err)
