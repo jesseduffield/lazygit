@@ -250,5 +250,12 @@ func polishTranslationSet() TranslationSet {
 		NoFilesStagedPrompt:                 "You have not staged any files. Commit all files?",
 		BranchNotFoundTitle:                 "Branch not found",
 		BranchNotFoundPrompt:                "Branch not found. Create a new branch named",
+		DiscardAllChangesPrompt:             "Czy na pewno chcesz odrzucić wszystkie zmiany?",
+		DiscardUnstagedChangesPrompt:        "Czy na pewno chcesz odrzucić zmiany niestacjonarne?",
+		DiscardAllChangesToAllFilesPrompt:   "Czy na pewno chcesz zniszczyć drzewo robocze?",
+		DiscardUntrackedPrompt:              "Czy na pewno chcesz odrzucić nieśledzone pliki?",
+		SoftResetPrompt:                     "Czy na pewno chcesz wykonać miękki reset?",
+		MixedResetPrompt:                    "Czy na pewno chcesz mieszać resetowanie?",
+		HardResetPrompt:                     "Czy na pewno chcesz wykonać twardy reset?",
 	}
 }

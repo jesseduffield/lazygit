@@ -40,10 +40,16 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 			{
 				displayString: gui.Tr.LcDiscardAllChanges,
 				onPress: func() error {
-					if err := gui.GitCommand.DiscardAllFileChanges(file); err != nil {
-						return gui.surfaceError(err)
-					}
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					return gui.ask(askOpts{
+						title:  gui.Tr.ConfirmationTitle,
+						prompt: gui.Tr.DiscardAllChangesPrompt,
+						handleConfirm: func() error {
+							if err := gui.GitCommand.DiscardAllFileChanges(file); err != nil {
+								return gui.surfaceError(err)
+							}
+							return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						},
+					})
 				},
 			},
 		}
@@ -52,11 +58,17 @@ func (gui *Gui) handleCreateDiscardMenu(g *gocui.Gui, v *gocui.View) error {
 			menuItems = append(menuItems, &menuItem{
 				displayString: gui.Tr.LcDiscardUnstagedChanges,
 				onPress: func() error {
-					if err := gui.GitCommand.DiscardUnstagedFileChanges(file); err != nil {
-						return gui.surfaceError(err)
-					}
+					return gui.ask(askOpts{
+						title:  gui.Tr.ConfirmationTitle,
+						prompt: gui.Tr.DiscardUnstagedChangesPrompt,
+						handleConfirm: func() error {
+							if err := gui.GitCommand.DiscardUnstagedFileChanges(file); err != nil {
+								return gui.surfaceError(err)
+							}
 
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+							return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						},
+					})
 				},
 			})
 		}

@@ -380,5 +380,12 @@ func dutchTranslationSet() TranslationSet {
 		NoFilesStagedPrompt:                 "Je hebt geen bestanden gestaged. Commit alle bestanden?",
 		BranchNotFoundTitle:                 "Branch niet gevonden",
 		BranchNotFoundPrompt:                "Branch niet gevonden. Creëer een nieuwe branch genaamd",
+		DiscardAllChangesPrompt:             "Weet u zeker dat u alle wijzigingen wilt annuleren?",
+		DiscardUnstagedChangesPrompt:        "Weet u zeker dat u niet-gestageerde wijzigingen wilt verwijderen?",
+		DiscardAllChangesToAllFilesPrompt:   "Weet je zeker dat je de werkende boom wilt vernietigen?",
+		DiscardUntrackedPrompt:              "Weet u zeker dat u niet-bijgehouden bestanden wilt verwijderen?",
+		SoftResetPrompt:                     "Weet u zeker dat u een zachte reset wilt uitvoeren?",
+		MixedResetPrompt:                    "Weet je zeker dat je een gemengde reset wilt?",
+		HardResetPrompt:                     "Weet u zeker dat u een harde reset wilt uitvoeren?",
 	}
 }

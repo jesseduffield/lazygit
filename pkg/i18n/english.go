@@ -429,6 +429,13 @@ type TranslationSet struct {
 	SubmodulesTitle                     string
 	NavigationTitle                     string
 	PushingTagStatus                    string
+	DiscardAllChangesPrompt             string
+	DiscardUnstagedChangesPrompt        string
+	DiscardAllChangesToAllFilesPrompt   string
+	DiscardUntrackedPrompt              string
+	SoftResetPrompt                     string
+	MixedResetPrompt                    string
+	HardResetPrompt                     string
 }
 
 const englishReleaseNotes = `## lazygit 0.23.2 Release Notes
@@ -928,5 +935,12 @@ func englishTranslationSet() TranslationSet {
 		SubmodulesTitle:                     "Submodules",
 		NavigationTitle:                     "List Panel Navigation",
 		PushingTagStatus:                    "pushing tag",
+		DiscardAllChangesPrompt:             "Are you sure you want to discard all changes?",
+		DiscardUnstagedChangesPrompt:        "Are you sure you want to discard unstaged changes?",
+		DiscardAllChangesToAllFilesPrompt:   "Are you sure you want to nuke the working tree?",
+		DiscardUntrackedPrompt:              "Are you sure you want to discard untracked files?",
+		SoftResetPrompt:                     "Are you sure you want to soft reset?",
+		MixedResetPrompt:                    "Are you sure you want to mixed reset?",
+		HardResetPrompt:                     "Are you sure you want to hard reset?",
 	}
 }

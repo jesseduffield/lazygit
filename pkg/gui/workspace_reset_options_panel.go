@@ -22,11 +22,17 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetAndClean(); err != nil {
-					return gui.surfaceError(err)
-				}
+				return gui.ask(askOpts{
+					title:  gui.Tr.ConfirmationTitle,
+					prompt: gui.Tr.DiscardAllChangesToAllFilesPrompt,
+					handleConfirm: func() error {
+						if err := gui.GitCommand.ResetAndClean(); err != nil {
+							return gui.surfaceError(err)
+						}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					},
+				})
 			},
 		},
 		{
@@ -35,11 +41,17 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git checkout -- ."),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.DiscardAnyUnstagedFileChanges(); err != nil {
-					return gui.surfaceError(err)
-				}
+				return gui.ask(askOpts{
+					title:  gui.Tr.ConfirmationTitle,
+					prompt: gui.Tr.DiscardUnstagedChangesPrompt,
+					handleConfirm: func() error {
+						if err := gui.GitCommand.DiscardAnyUnstagedFileChanges(); err != nil {
+							return gui.surfaceError(err)
+						}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					},
+				})
 			},
 		},
 		{
@@ -48,11 +60,17 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git clean -fd"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.RemoveUntrackedFiles(); err != nil {
-					return gui.surfaceError(err)
-				}
+				return gui.ask(askOpts{
+					title:  gui.Tr.ConfirmationTitle,
+					prompt: gui.Tr.DiscardUntrackedPrompt,
+					handleConfirm: func() error {
+						if err := gui.GitCommand.RemoveUntrackedFiles(); err != nil {
+							return gui.surfaceError(err)
+						}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					},
+				})
 			},
 		},
 		{
@@ -61,11 +79,17 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git reset --soft HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
-					return gui.surfaceError(err)
-				}
+				return gui.ask(askOpts{
+					title:  gui.Tr.ConfirmationTitle,
+					prompt: gui.Tr.SoftResetPrompt,
+					handleConfirm: func() error {
+						if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
+							return gui.surfaceError(err)
+						}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					},
+				})
 			},
 		},
 		{
@@ -74,11 +98,17 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git reset --mixed HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
-					return gui.surfaceError(err)
-				}
+				return gui.ask(askOpts{
+					title:  gui.Tr.ConfirmationTitle,
+					prompt: gui.Tr.MixedResetPrompt,
+					handleConfirm: func() error {
+						if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
+							return gui.surfaceError(err)
+						}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					},
+				})
 			},
 		},
 		{
@@ -87,11 +117,17 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetHard("HEAD"); err != nil {
-					return gui.surfaceError(err)
-				}
+				return gui.ask(askOpts{
+					title:  gui.Tr.ConfirmationTitle,
+					prompt: gui.Tr.HardResetPrompt,
+					handleConfirm: func() error {
+						if err := gui.GitCommand.ResetHard("HEAD"); err != nil {
+							return gui.surfaceError(err)
+						}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					},
+				})
 			},
 		},
 	}
