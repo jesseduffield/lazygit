@@ -2,18 +2,10 @@ package i18n
 
 import (
 	"fmt"
-	"io/ioutil"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
-
-func getDummyLog() *logrus.Entry {
-	log := logrus.New()
-	log.Out = ioutil.Discard
-	return log.WithField("test", "test")
-}
 
 // TestDetectLanguage is a function.
 func TestDetectLanguage(t *testing.T) {

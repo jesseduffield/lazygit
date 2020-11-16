@@ -149,7 +149,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int,
 	}
 
 	if err := p.ApplyPatches(true); err != nil {
-		if c.WorkingTreeState() == "rebasing" {
+		if c.WorkingTreeState() == REBASE_MODE_REBASING {
 			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
 			}
@@ -169,7 +169,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int,
 	c.onSuccessfulContinue = func() error {
 		// add patches to index
 		if err := p.ApplyPatches(false); err != nil {
-			if c.WorkingTreeState() == "rebasing" {
+			if c.WorkingTreeState() == REBASE_MODE_REBASING {
 				if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 					return err
 				}

@@ -471,12 +471,13 @@ func RunLineOutputCmd(cmd *exec.Cmd, onLine func(line string) (bool, error)) err
 			return err
 		}
 		if stop {
-			cmd.Process.Kill()
+			_ = cmd.Process.Kill()
 			break
 		}
 	}
 
-	cmd.Wait()
+	_ = cmd.Wait()
+
 	return nil
 }
 

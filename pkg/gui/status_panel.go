@@ -6,6 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -33,7 +34,7 @@ func (gui *Gui) refreshStatus() {
 		status = utils.ColoredString(fmt.Sprintf("↑%s↓%s ", currentBranch.Pushables, currentBranch.Pullables), trackColor)
 	}
 
-	if gui.GitCommand.WorkingTreeState() != "normal" {
+	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
 		status += utils.ColoredString(fmt.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState()), color.FgYellow)
 	}
 
@@ -57,7 +58,7 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 
 func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
 	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.createLoaderPanel(v, gui.Tr.CheckingForUpdates)
+	return gui.createLoaderPanel(gui.Tr.CheckingForUpdates)
 }
 
 func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
@@ -80,7 +81,7 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 	upstreamStatus := fmt.Sprintf("↑%s↓%s", currentBranch.Pushables, currentBranch.Pullables)
 	repoName := utils.GetCurrentRepoName()
 	switch gui.GitCommand.WorkingTreeState() {
-	case "rebasing", "merging":
+	case commands.REBASE_MODE_REBASING, commands.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", gui.GitCommand.WorkingTreeState())
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return gui.handleCreateRebaseOptionsMenu()
@@ -149,11 +150,11 @@ func lazygitTitle() string {
 func (gui *Gui) workingTreeState() string {
 	rebaseMode, _ := gui.GitCommand.RebaseMode()
 	if rebaseMode != "" {
-		return "rebasing"
+		return commands.REBASE_MODE_REBASING
 	}
 	merging, _ := gui.GitCommand.IsInMergeState()
 	if merging {
-		return "merging"
+		return commands.REBASE_MODE_MERGING
 	}
-	return "normal"
+	return commands.REBASE_MODE_NORMAL
 }

@@ -34,7 +34,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if height < minimumHeight || width < minimumWidth {
 		v, err := g.SetView("limit", 0, 0, width-1, height-1, 0)
 		if err != nil {
-			if err.Error() != "unknown view" {
+			if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 				return err
 			}
 			v.Title = gui.Tr.NotEnoughSpace
@@ -101,7 +101,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	v, err := setViewFromDimensions("main", "main", true)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		v.Title = gui.Tr.DiffTitle
@@ -112,7 +112,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	secondaryView, err := setViewFromDimensions("secondary", "secondary", true)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		secondaryView.Title = gui.Tr.DiffTitle
@@ -124,7 +124,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	hiddenViewOffset := 9999
 
 	if v, err := setViewFromDimensions("status", "status", true); err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		v.Title = gui.Tr.StatusTitle
@@ -133,7 +133,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	filesView, err := setViewFromDimensions("files", "files", true)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		filesView.Highlight = true
@@ -144,7 +144,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	branchesView, err := setViewFromDimensions("branches", "branches", true)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		branchesView.Title = gui.Tr.BranchesTitle
@@ -154,7 +154,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	commitFilesView, err := setViewFromDimensions("commitFiles", gui.Contexts.CommitFiles.Context.GetWindowName(), true)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		commitFilesView.Title = gui.Tr.CommitFiles
@@ -165,7 +165,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	commitsView, err := setViewFromDimensions("commits", "commits", true)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		commitsView.Title = gui.Tr.CommitsTitle
@@ -175,7 +175,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	stashView, err := setViewFromDimensions("stash", "stash", true)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		stashView.Title = gui.Tr.StashTitle
@@ -186,7 +186,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if gui.getCommitMessageView() == nil {
 		// doesn't matter where this view starts because it will be hidden
 		if commitMessageView, err := g.SetView("commitMessage", hiddenViewOffset, hiddenViewOffset, hiddenViewOffset+10, hiddenViewOffset+10, 0); err != nil {
-			if err.Error() != "unknown view" {
+			if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 				return err
 			}
 			_, _ = g.SetViewOnBottom("commitMessage")
@@ -200,7 +200,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if check, _ := g.View("credentials"); check == nil {
 		// doesn't matter where this view starts because it will be hidden
 		if credentialsView, err := g.SetView("credentials", hiddenViewOffset, hiddenViewOffset, hiddenViewOffset+10, hiddenViewOffset+10, 0); err != nil {
-			if err.Error() != "unknown view" {
+			if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 				return err
 			}
 			_, _ = g.SetViewOnBottom("credentials")
@@ -211,7 +211,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if v, err := setViewFromDimensions("options", "options", false); err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		v.Frame = false
@@ -225,7 +225,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	// this view takes up one character. Its only purpose is to show the slash when searching
 	if searchPrefixView, err := setViewFromDimensions("searchPrefix", "searchPrefix", false); err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 
@@ -236,7 +236,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if searchView, err := setViewFromDimensions("search", "search", false); err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 
@@ -247,7 +247,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if appStatusView, err := setViewFromDimensions("appStatus", "appStatus", false); err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		appStatusView.BgColor = gocui.ColorDefault
@@ -258,7 +258,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	informationView, err := setViewFromDimensions("information", "information", false)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 		informationView.BgColor = gocui.ColorDefault
@@ -367,11 +367,4 @@ func (gui *Gui) onInitialViewsCreation() error {
 	}
 
 	return gui.loadNewRepo()
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

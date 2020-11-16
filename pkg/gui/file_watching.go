@@ -28,21 +28,6 @@ func NewFileWatcher(log *logrus.Entry) *fileWatcher {
 	return &fileWatcher{
 		Disabled: true,
 	}
-
-	watcher, err := fsnotify.NewWatcher()
-
-	if err != nil {
-		log.Error(err)
-		return &fileWatcher{
-			Disabled: true,
-		}
-	}
-
-	return &fileWatcher{
-		Watcher:          watcher,
-		Log:              log,
-		WatchedFilenames: make([]string, 0, MAX_WATCHED_FILES),
-	}
 }
 
 func (w *fileWatcher) watchingFilename(filename string) bool {
@@ -132,7 +117,7 @@ func (gui *Gui) watchFilesForChanges() {
 				}
 				// only refresh if we're not already
 				if !gui.State.IsRefreshingFiles {
-					gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
 				}
 
 			// watch for errors
