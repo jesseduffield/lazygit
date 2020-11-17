@@ -107,9 +107,9 @@ func (gui *Gui) handleCopyPullRequestURLPress(g *gocui.Gui, v *gocui.View) error
 		return gui.surfaceError(err)
 	}
 
-	return gui.createPopupPanel(createPopupPanelOpts{
-		prompt: gui.Tr.PullRequestURLCopiedToClipboard,
-	})
+	gui.raiseToastStatus(gui.Tr.PullRequestURLCopiedToClipboard)
+
+	return nil
 }
 
 func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
