@@ -384,7 +384,7 @@ func GetDefaultConfig() *UserConfig {
 				Fetch:                    "f",
 			},
 			Branches: KeybindingBranchesConfig{
-				CopyPullRequestURL:     "c",
+				CopyPullRequestURL:     "<c-y>",
 				CreatePullRequest:      "o",
 				CheckoutBranchByName:   "c",
 				ForceCheckoutBranch:    "F",
