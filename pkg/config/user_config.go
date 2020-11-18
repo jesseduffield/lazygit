@@ -17,16 +17,17 @@ type UserConfig struct {
 }
 
 type GuiConfig struct {
-	ScrollHeight           int                `yaml:"scrollHeight"`
-	ScrollPastBottom       bool               `yaml:"scrollPastBottom"`
-	MouseEvents            bool               `yaml:"mouseEvents"`
-	SkipUnstageLineWarning bool               `yaml:"skipUnstageLineWarning"`
-	SkipStashWarning       bool               `yaml:"skipStashWarning"`
-	SidePanelWidth         float64            `yaml:"sidePanelWidth"`
-	ExpandFocusedSidePanel bool               `yaml:"expandFocusedSidePanel"`
-	MainPanelSplitMode     string             `yaml:"mainPanelSplitMode"`
-	Theme                  ThemeConfig        `yaml:"theme"`
-	CommitLength           CommitLengthConfig `yaml:"commitLength"`
+	ScrollHeight             int                `yaml:"scrollHeight"`
+	ScrollPastBottom         bool               `yaml:"scrollPastBottom"`
+	MouseEvents              bool               `yaml:"mouseEvents"`
+	SkipUnstageLineWarning   bool               `yaml:"skipUnstageLineWarning"`
+	SkipStashWarning         bool               `yaml:"skipStashWarning"`
+	SidePanelWidth           float64            `yaml:"sidePanelWidth"`
+	ExpandFocusedSidePanel   bool               `yaml:"expandFocusedSidePanel"`
+	MainPanelSplitMode       string             `yaml:"mainPanelSplitMode"`
+	Theme                    ThemeConfig        `yaml:"theme"`
+	CommitLength             CommitLengthConfig `yaml:"commitLength"`
+	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
 }
 
 type ThemeConfig struct {
@@ -279,7 +280,8 @@ func GetDefaultConfig() *UserConfig {
 				SelectedLineBgColor:  []string{"default"},
 				SelectedRangeBgColor: []string{"blue"},
 			},
-			CommitLength: CommitLengthConfig{Show: true},
+			CommitLength:             CommitLengthConfig{Show: true},
+			SkipNoStagedFilesWarning: false,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
