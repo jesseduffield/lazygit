@@ -108,7 +108,7 @@ func (gui *Gui) handleCopyPullRequestURLPress(g *gocui.Gui, v *gocui.View) error
 	}
 
 	return gui.createPopupPanel(createPopupPanelOpts{
-		prompt: "Pull request URL copied to clipboard",
+		prompt: gui.Tr.PullRequestURLCopiedToClipboard,
 	})
 }
 
