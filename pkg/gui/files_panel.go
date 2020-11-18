@@ -301,8 +301,19 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 	return &cfg
 }
 
+func (gui *Gui) canCommitNow() bool {
+	if gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
+		err := gui.GitCommand.StageAll()
+		return err == nil
+	}
+	if len(gui.stagedFiles()) > 0 {
+		return true
+	}
+	return false
+}
+
 func (gui *Gui) handleCommitPress() error {
-	if len(gui.stagedFiles()) == 0 {
+	if !gui.canCommitNow() {
 		return gui.promptToStageAllAndRetry(gui.handleCommitPress)
 	}
 
