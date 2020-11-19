@@ -302,12 +302,12 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 }
 
 func (gui *Gui) canCommitNow() bool {
+	if len(gui.stagedFiles()) > 0 {
+		return true
+	}
 	if gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
 		err := gui.GitCommand.StageAll()
 		return err == nil
-	}
-	if len(gui.stagedFiles()) > 0 {
-		return true
 	}
 	return false
 }
