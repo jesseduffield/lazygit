@@ -252,5 +252,7 @@ func polishTranslationSet() TranslationSet {
 		BranchNotFoundTitle:                 "Branch not found",
 		BranchNotFoundPrompt:                "Branch not found. Create a new branch named",
 		PullRequestURLCopiedToClipboard:     "URL żądania ściągnięcia skopiowany do schowka",
+		CommitMessageCopiedToClipboard:      "Commit message skopiowany do schowka",
+		LcCopiedToClipboard:                 "skopiowany do schowka",
 	}
 }

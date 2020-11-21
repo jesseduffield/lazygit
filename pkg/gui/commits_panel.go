@@ -589,5 +589,12 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 	if err != nil {
 		return gui.surfaceError(err)
 	}
-	return gui.OSCommand.CopyToClipboard(message)
+
+	if err := gui.OSCommand.CopyToClipboard(message); err != nil {
+		return gui.surfaceError(err)
+	}
+
+	gui.raiseToast(gui.Tr.CommitMessageCopiedToClipboard)
+
+	return nil
 }

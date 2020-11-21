@@ -431,6 +431,8 @@ type TranslationSet struct {
 	NavigationTitle                     string
 	PushingTagStatus                    string
 	PullRequestURLCopiedToClipboard     string
+	CommitMessageCopiedToClipboard      string
+	LcCopiedToClipboard                 string
 }
 
 const englishReleaseNotes = `## lazygit 0.23.2 Release Notes
@@ -932,5 +934,7 @@ func englishTranslationSet() TranslationSet {
 		NavigationTitle:                     "List Panel Navigation",
 		PushingTagStatus:                    "pushing tag",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
+		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
+		LcCopiedToClipboard:                 "copied to clipboard",
 	}
 }
