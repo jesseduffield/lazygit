@@ -84,7 +84,7 @@ func (m *statusManager) getStatusString() string {
 	return topStatus.message
 }
 
-func (gui *Gui) raiseToastStatus(message string) {
+func (gui *Gui) raiseToast(message string) {
 	gui.statusManager.addToastStatus(message)
 
 	gui.renderAppStatus()

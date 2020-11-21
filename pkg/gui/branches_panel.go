@@ -107,7 +107,7 @@ func (gui *Gui) handleCopyPullRequestURLPress(g *gocui.Gui, v *gocui.View) error
 		return gui.surfaceError(err)
 	}
 
-	gui.raiseToastStatus(gui.Tr.PullRequestURLCopiedToClipboard)
+	gui.raiseToast(gui.Tr.PullRequestURLCopiedToClipboard)
 
 	return nil
 }
