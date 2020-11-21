@@ -1,11 +1,15 @@
 package gui
 
-import "github.com/jesseduffield/gocui"
+import (
+	"fmt"
+
+	"github.com/jesseduffield/gocui"
+)
 
 func (gui *Gui) showUpdatePrompt(newVersion string) error {
 	return gui.ask(askOpts{
 		title:  "New version available!",
-		prompt: "Download latest version? (enter/esc)",
+		prompt: fmt.Sprintf("Download version %s? (enter/esc)", newVersion),
 		handleConfirm: func() error {
 			gui.startUpdating(newVersion)
 			return nil
