@@ -2,7 +2,7 @@
 
 You can add custom command keybindings in your config.yml (accessible by pressing 'o' on the status panel from within lazygit) like so:
 
-```
+```yml
 customCommands:
   - key: '<c-r>'
     command: 'hub browse -- "commit/{{.SelectedLocalCommit.Sha}}"'
@@ -95,7 +95,7 @@ The permitted option fields are:
 
 If an option has no name the value will be displayed to the user in place of the name, so you're allowed to only include the value like so:
 
-```
+```yml
     prompts:
       - type: 'menu'
         title: 'What kind of branch is it?'
