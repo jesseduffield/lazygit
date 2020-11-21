@@ -82,12 +82,12 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 }
 
 func SelectDefaultConfiguration() string {
-	configDirectory := ConfigDir("")
-	if _, err := os.Stat(configDirectory); !os.IsNotExist(err) {
-		return configDirectory
-	}
 	legacyConfigDirectory := ConfigDir("jesseduffield")
-	return legacyConfigDirectory
+	if _, err := os.Stat(legacyConfigDirectory); !os.IsNotExist(err) {
+		return legacyConfigDirectory
+	}
+	configDirectory := ConfigDir("")
+	return configDirectory
 }
 
 func ConfigDir(vendor string) string {
