@@ -301,19 +301,26 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 	return &cfg
 }
 
-func (gui *Gui) canCommitNow() bool {
-	if len(gui.stagedFiles()) > 0 {
-		return true
-	}
-	if gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
+func (gui *Gui) prepareFilesForCommit() error {
+	noStagedFiles := len(gui.stagedFiles()) == 0
+	if noStagedFiles && gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
 		err := gui.GitCommand.StageAll()
-		return err == nil
+		if err != nil {
+			return err
+		}
+
+		return gui.refreshFilesAndSubmodules()
 	}
-	return false
+
+	return nil
 }
 
 func (gui *Gui) handleCommitPress() error {
-	if !gui.canCommitNow() {
+	if err := gui.prepareFilesForCommit(); err != nil {
+		return gui.surfaceError(err)
+	}
+
+	if len(gui.stagedFiles()) == 0 {
 		return gui.promptToStageAllAndRetry(gui.handleCommitPress)
 	}
 
