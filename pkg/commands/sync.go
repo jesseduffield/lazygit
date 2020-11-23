@@ -26,7 +26,9 @@ func (c *GitCommand) usingGpg() bool {
 func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {
 	followTagsFlag := "--follow-tags"
 	followsign, _ := c.getLocalGitConfig("push.followTags")
-	if followsign == "" {
+	if followsign == "false" {
+		followTagsFlag = ""
+	} else if followsign == "" {
 		followsign, _ = c.getGlobalGitConfig("push.followTags")
 		if followsign == "false" {
 			followTagsFlag = ""
