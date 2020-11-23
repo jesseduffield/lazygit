@@ -24,6 +24,15 @@ func (c *GitCommand) usingGpg() bool {
 
 // Push pushes to a branch
 func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {
+	followTagsFlag := "--follow-tags"
+	followsign, _ := c.getLocalGitConfig("push.followTags")
+	if followsign == "" {
+		followsign, _ = c.getGlobalGitConfig("push.followTags")
+		if followsign == "false" {
+			followTagsFlag = ""
+		}
+	}
+
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease"
@@ -34,7 +43,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 		setUpstreamArg = "--set-upstream " + upstream
 	}
 
-	cmd := fmt.Sprintf("git push --follow-tags %s %s %s", forceFlag, setUpstreamArg, args)
+	cmd := fmt.Sprintf("git push %s %s %s %s", followTagsFlag, forceFlag, setUpstreamArg, args)
 	return c.OSCommand.DetectUnamePass(cmd, promptUserForCredential)
 }
 
