@@ -14,6 +14,7 @@ type UserConfig struct {
 	DisableStartupPopups bool              `yaml:"disableStartupPopups"`
 	CustomCommands       []CustomCommand   `yaml:"customCommands"`
 	Services             map[string]string `yaml:"services"`
+	NotARepository       string            `yaml:"notARepository"`
 }
 
 type GuiConfig struct {
@@ -440,5 +441,6 @@ func GetDefaultConfig() *UserConfig {
 		DisableStartupPopups: false,
 		CustomCommands:       []CustomCommand(nil),
 		Services:             map[string]string(nil),
+		NotARepository:       "prompt",
 	}
 }
