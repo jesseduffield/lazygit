@@ -58,6 +58,7 @@ Default path for the config file:
   # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
   quitOnTopLevelReturn: true
   disableStartupPopups: false
+  notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip'
   keybinding:
     universal:
       quit: 'q'
