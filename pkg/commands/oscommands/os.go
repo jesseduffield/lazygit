@@ -19,7 +19,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 	"github.com/sirupsen/logrus"
-	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
 // Platform stores the os state
@@ -36,25 +35,23 @@ type Platform struct {
 
 // OSCommand holds all the os commands
 type OSCommand struct {
-	Log                *logrus.Entry
-	Platform           *Platform
-	Config             config.AppConfigurer
-	Command            func(string, ...string) *exec.Cmd
-	BeforeExecuteCmd   func(*exec.Cmd)
-	GetGlobalGitConfig func(string) (string, error)
-	Getenv             func(string) string
+	Log              *logrus.Entry
+	Platform         *Platform
+	Config           config.AppConfigurer
+	Command          func(string, ...string) *exec.Cmd
+	BeforeExecuteCmd func(*exec.Cmd)
+	Getenv           func(string) string
 }
 
 // NewOSCommand os command runner
 func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 	return &OSCommand{
-		Log:                log,
-		Platform:           getPlatform(),
-		Config:             config,
-		Command:            exec.Command,
-		BeforeExecuteCmd:   func(*exec.Cmd) {},
-		GetGlobalGitConfig: gitconfig.Global,
-		Getenv:             os.Getenv,
+		Log:              log,
+		Platform:         getPlatform(),
+		Config:           config,
+		Command:          exec.Command,
+		BeforeExecuteCmd: func(*exec.Cmd) {},
+		Getenv:           os.Getenv,
 	}
 }
 
@@ -233,31 +230,6 @@ func (c *OSCommand) OpenLink(link string) error {
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
 	err := c.RunCommand(command)
 	return err
-}
-
-// EditFile opens a file in a subprocess using whatever editor is available,
-// falling back to core.editor, VISUAL, EDITOR, then vi
-func (c *OSCommand) EditFile(filename string) (*exec.Cmd, error) {
-	editor, _ := c.GetGlobalGitConfig("core.editor")
-
-	if editor == "" {
-		editor = c.Getenv("VISUAL")
-	}
-	if editor == "" {
-		editor = c.Getenv("EDITOR")
-	}
-	if editor == "" {
-		if err := c.RunCommand("which vi"); err == nil {
-			editor = "vi"
-		}
-	}
-	if editor == "" {
-		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
-	}
-
-	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, c.Quote(filename)))
-
-	return c.PrepareSubProcess(splitCmd[0], splitCmd[1:]...), nil
 }
 
 // PrepareSubProcess iniPrepareSubProcessrocess then tells the Gui to switch to it

@@ -43,10 +43,13 @@ func (c *GitCommand) colorArg() string {
 }
 
 func (c *GitCommand) GetConfigValue(key string) string {
-	output, err := c.OSCommand.RunCommandWithOutput("git config --get %s", key)
-	if err != nil {
-		// looks like this returns an error if there is no matching value which we're okay with
-		return ""
+	value, _ := c.getLocalGitConfig(key)
+	// we get an error if the key doesn't exist which we don't care about
+
+	if value != "" {
+		return value
 	}
-	return strings.TrimSpace(output)
+
+	value, _ = c.getGlobalGitConfig(key)
+	return value
 }
