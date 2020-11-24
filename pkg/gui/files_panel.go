@@ -417,7 +417,7 @@ func (gui *Gui) PrepareSubProcess(command string) {
 }
 
 func (gui *Gui) editFile(filename string) error {
-	_, err := gui.runSyncOrAsyncCommand(gui.OSCommand.EditFile(filename))
+	_, err := gui.runSyncOrAsyncCommand(gui.GitCommand.EditFile(filename))
 	return err
 }
 

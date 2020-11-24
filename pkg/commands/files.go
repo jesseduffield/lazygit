@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mgutz/str"
 )
 
 // CatFile obtains the content of a file
@@ -261,4 +263,29 @@ func (c *GitCommand) ResetAndClean() error {
 	}
 
 	return c.RemoveUntrackedFiles()
+}
+
+// EditFile opens a file in a subprocess using whatever editor is available,
+// falling back to core.editor, VISUAL, EDITOR, then vi
+func (c *GitCommand) EditFile(filename string) (*exec.Cmd, error) {
+	editor, _ := c.getGlobalGitConfig("core.editor")
+
+	if editor == "" {
+		editor = c.OSCommand.Getenv("VISUAL")
+	}
+	if editor == "" {
+		editor = c.OSCommand.Getenv("EDITOR")
+	}
+	if editor == "" {
+		if err := c.OSCommand.RunCommand("which vi"); err == nil {
+			editor = "vi"
+		}
+	}
+	if editor == "" {
+		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
+	}
+
+	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, c.OSCommand.Quote(filename)))
+
+	return c.OSCommand.PrepareSubProcess(splitCmd[0], splitCmd[1:]...), nil
 }
