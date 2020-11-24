@@ -192,10 +192,20 @@ func (app *App) setupRepo() (bool, error) {
 			return false, err // Current directory appears to be a git repository.
 		}
 
-		// Offer to initialize a new repository in current directory.
-		fmt.Print(app.Tr.CreateRepo)
-		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		if strings.Trim(response, " \n") != "y" {
+		shouldInitRepo := true
+		notARepository := app.Config.GetUserConfig().NotARepository
+		if(notARepository == "prompt") {
+			// Offer to initialize a new repository in current directory.
+			fmt.Print(app.Tr.CreateRepo)
+			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+			if strings.Trim(response, " \n") != "y" {
+				shouldInitRepo = false
+			}
+		} else if(notARepository == "skip") {
+			shouldInitRepo = false
+		}
+
+		if !shouldInitRepo {
 			// check if we have a recent repo we can open
 			recentRepos := app.Config.GetAppState().RecentRepos
 			if len(recentRepos) > 0 {
