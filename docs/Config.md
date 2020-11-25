@@ -340,3 +340,24 @@ git:
 Result:
 
 ![](https://i.imgur.com/Nibq35B.png)
+
+## Launching not in a repository behaviour
+
+By default, when launching lazygit from a directory that is not a repository,
+you will be prompted to choose if you would like to initialize a repo. You can
+override this behaviour in the config with one of the following:
+
+```yaml
+# for default prompting behaviour
+notARepository: 'prompt'
+```
+
+```yaml
+# to skip and initialize a new repo
+notARepository: 'create'
+```
+
+```yaml
+# to skip without creating a new repo
+notARepository: 'skip'
+```
