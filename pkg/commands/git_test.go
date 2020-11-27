@@ -954,15 +954,23 @@ func TestGitCommandAmendHead(t *testing.T) {
 // TestGitCommandPush is a function.
 func TestGitCommandPush(t *testing.T) {
 	type scenario struct {
-		testName  string
-		command   func(string, ...string) *exec.Cmd
-		forcePush bool
-		test      func(error)
+		testName           string
+		getLocalGitConfig  func(string) (string, error)
+		getGlobalGitConfig func(string) (string, error)
+		command            func(string, ...string) *exec.Cmd
+		forcePush          bool
+		test               func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"Push with force disabled",
+			"Push with force disabled, follow-tags on",
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--follow-tags"}, args)
@@ -975,7 +983,13 @@ func TestGitCommandPush(t *testing.T) {
 			},
 		},
 		{
-			"Push with force enabled",
+			"Push with force enabled, follow-tags on",
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--follow-tags", "--force-with-lease"}, args)
@@ -988,7 +1002,51 @@ func TestGitCommandPush(t *testing.T) {
 			},
 		},
 		{
-			"Push with an error occurring",
+			"Push with force disabled, follow-tags off locally",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push"}, args)
+
+				return exec.Command("echo")
+			},
+			false,
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Push with force enabled, follow-tags off globally",
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "--force-with-lease"}, args)
+
+				return exec.Command("echo")
+			},
+			true,
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Push with an error occurring, follow-tags on",
+			func(string) (string, error) {
+				return "", nil
+			},
+			func(string) (string, error) {
+				return "", nil
+			},
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--follow-tags"}, args)
@@ -1005,6 +1063,8 @@ func TestGitCommandPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
+			gitCmd.getLocalGitConfig = s.getLocalGitConfig
+			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
 			err := gitCmd.Push("test", s.forcePush, "", "", func(passOrUname string) string {
 				return "\n"
 			})

@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -191,5 +192,13 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	return gui.OSCommand.CopyToClipboard(itemId)
+	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
+		return gui.surfaceError(err)
+	}
+
+	truncatedItemId := utils.TruncateWithEllipsis(strings.ReplaceAll(itemId, "\n", " "), 50)
+
+	gui.raiseToast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.Tr.LcCopiedToClipboard))
+
+	return nil
 }

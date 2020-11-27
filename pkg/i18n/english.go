@@ -166,6 +166,7 @@ type TranslationSet struct {
 	SwitchRepo                          string
 	UnsupportedGitService               string
 	LcCreatePullRequest                 string
+	LcCopyPullRequestURL                string
 	NoBranchOnRemote                    string
 	LcFetch                             string
 	NoAutomaticGitFetchTitle            string
@@ -429,6 +430,9 @@ type TranslationSet struct {
 	SubmodulesTitle                     string
 	NavigationTitle                     string
 	PushingTagStatus                    string
+	PullRequestURLCopiedToClipboard     string
+	CommitMessageCopiedToClipboard      string
+	LcCopiedToClipboard                 string
 }
 
 const englishReleaseNotes = `## lazygit 0.23.2 Release Notes
@@ -664,6 +668,7 @@ func englishTranslationSet() TranslationSet {
 		SwitchRepo:                          `switch to a recent repo`,
 		UnsupportedGitService:               `Unsupported git service`,
 		LcCreatePullRequest:                 `create pull request`,
+		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
 		NoBranchOnRemote:                    `This branch doesn't exist on remote. You need to push it to remote first.`,
 		LcFetch:                             `fetch`,
 		NoAutomaticGitFetchTitle:            `No automatic git fetch`,
@@ -928,5 +933,8 @@ func englishTranslationSet() TranslationSet {
 		SubmodulesTitle:                     "Submodules",
 		NavigationTitle:                     "List Panel Navigation",
 		PushingTagStatus:                    "pushing tag",
+		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
+		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
+		LcCopiedToClipboard:                 "copied to clipboard",
 	}
 }

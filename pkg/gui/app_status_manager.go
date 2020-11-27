@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"sync"
 	"time"
 
 	"github.com/jesseduffield/gocui"
@@ -8,33 +9,68 @@ import (
 )
 
 type appStatus struct {
-	name       string
+	message    string
 	statusType string
-	duration   int
+	id         int
 }
 
 type statusManager struct {
 	statuses []appStatus
+	nextId   int
+	mutex    sync.Mutex
 }
 
-func (m *statusManager) removeStatus(name string) {
+func (m *statusManager) removeStatus(id int) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	newStatuses := []appStatus{}
 	for _, status := range m.statuses {
-		if status.name != name {
+		if status.id != id {
 			newStatuses = append(newStatuses, status)
 		}
 	}
 	m.statuses = newStatuses
 }
 
-func (m *statusManager) addWaitingStatus(name string) {
-	m.removeStatus(name)
+func (m *statusManager) addWaitingStatus(message string) int {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	m.nextId += 1
+	id := m.nextId
+
 	newStatus := appStatus{
-		name:       name,
+		message:    message,
 		statusType: "waiting",
-		duration:   0,
+		id:         id,
 	}
 	m.statuses = append([]appStatus{newStatus}, m.statuses...)
+
+	return id
+}
+
+func (m *statusManager) addToastStatus(message string) int {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	m.nextId++
+	id := m.nextId
+
+	newStatus := appStatus{
+		message:    message,
+		statusType: "toast",
+		id:         id,
+	}
+	m.statuses = append([]appStatus{newStatus}, m.statuses...)
+
+	go func() {
+		time.Sleep(time.Second * 2)
+
+		m.removeStatus(id)
+	}()
+
+	return id
 }
 
 func (m *statusManager) getStatusString() string {
@@ -43,31 +79,42 @@ func (m *statusManager) getStatusString() string {
 	}
 	topStatus := m.statuses[0]
 	if topStatus.statusType == "waiting" {
-		return topStatus.name + " " + utils.Loader()
+		return topStatus.message + " " + utils.Loader()
 	}
-	return topStatus.name
+	return topStatus.message
+}
+
+func (gui *Gui) raiseToast(message string) {
+	gui.statusManager.addToastStatus(message)
+
+	gui.renderAppStatus()
+}
+
+func (gui *Gui) renderAppStatus() {
+	go utils.Safe(func() {
+		ticker := time.NewTicker(time.Millisecond * 50)
+		defer ticker.Stop()
+		for range ticker.C {
+			appStatus := gui.statusManager.getStatusString()
+			if appStatus == "" {
+				gui.renderString("appStatus", "")
+				return
+			}
+			gui.renderString("appStatus", appStatus)
+		}
+	})
 }
 
 // WithWaitingStatus wraps a function and shows a waiting status while the function is still executing
-func (gui *Gui) WithWaitingStatus(name string, f func() error) error {
+func (gui *Gui) WithWaitingStatus(message string, f func() error) error {
 	go utils.Safe(func() {
-		gui.statusManager.addWaitingStatus(name)
+		id := gui.statusManager.addWaitingStatus(message)
 
 		defer func() {
-			gui.statusManager.removeStatus(name)
+			gui.statusManager.removeStatus(id)
 		}()
 
-		go utils.Safe(func() {
-			ticker := time.NewTicker(time.Millisecond * 50)
-			defer ticker.Stop()
-			for range ticker.C {
-				appStatus := gui.statusManager.getStatusString()
-				if appStatus == "" {
-					return
-				}
-				gui.renderString("appStatus", appStatus)
-			}
-		})
+		gui.renderAppStatus()
 
 		if err := f(); err != nil {
 			gui.g.Update(func(g *gocui.Gui) error {

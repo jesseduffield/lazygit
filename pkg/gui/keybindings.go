@@ -508,6 +508,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "branches",
 			Contexts:    []string{LOCAL_BRANCHES_CONTEXT_KEY},
+			Key:         gui.getKey(config.Branches.CopyPullRequestURL),
+			Handler:     gui.handleCopyPullRequestURLPress,
+			Description: gui.Tr.LcCopyPullRequestURL,
+		},
+		{
+			ViewName:    "branches",
+			Contexts:    []string{LOCAL_BRANCHES_CONTEXT_KEY},
 			Key:         gui.getKey(config.Branches.CheckoutBranchByName),
 			Handler:     gui.handleCheckoutByName,
 			Description: gui.Tr.LcCheckoutByName,

@@ -1,11 +1,15 @@
 package gui
 
-import "github.com/jesseduffield/gocui"
+import (
+	"fmt"
+
+	"github.com/jesseduffield/gocui"
+)
 
 func (gui *Gui) showUpdatePrompt(newVersion string) error {
 	return gui.ask(askOpts{
 		title:  "New version available!",
-		prompt: "Download latest version? (enter/esc)",
+		prompt: fmt.Sprintf("Download version %s? (enter/esc)", newVersion),
 		handleConfirm: func() error {
 			gui.startUpdating(newVersion)
 			return nil
@@ -41,13 +45,13 @@ func (gui *Gui) onBackgroundUpdateCheckFinish(newVersion string, err error) erro
 
 func (gui *Gui) startUpdating(newVersion string) {
 	gui.State.Updating = true
-	gui.statusManager.addWaitingStatus("updating")
-	gui.Updater.Update(newVersion, gui.onUpdateFinish)
+	statusId := gui.statusManager.addWaitingStatus("updating")
+	gui.Updater.Update(newVersion, func(err error) error { return gui.onUpdateFinish(statusId, err) })
 }
 
-func (gui *Gui) onUpdateFinish(err error) error {
+func (gui *Gui) onUpdateFinish(statusId int, err error) error {
 	gui.State.Updating = false
-	gui.statusManager.removeStatus("updating")
+	gui.statusManager.removeStatus(statusId)
 	gui.renderString("appStatus", "")
 	if err != nil {
 		return gui.createErrorPanel("Update failed: " + err.Error())

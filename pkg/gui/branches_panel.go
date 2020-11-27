@@ -99,6 +99,19 @@ func (gui *Gui) handleCreatePullRequestPress(g *gocui.Gui, v *gocui.View) error 
 	return nil
 }
 
+func (gui *Gui) handleCopyPullRequestURLPress(g *gocui.Gui, v *gocui.View) error {
+	pullRequest := commands.NewPullRequest(gui.GitCommand)
+
+	branch := gui.getSelectedBranch()
+	if err := pullRequest.CopyURL(branch); err != nil {
+		return gui.surfaceError(err)
+	}
+
+	gui.raiseToast(gui.Tr.PullRequestURLCopiedToClipboard)
+
+	return nil
+}
+
 func (gui *Gui) handleGitFetch(g *gocui.Gui, v *gocui.View) error {
 	if err := gui.createLoaderPanel(gui.Tr.FetchWait); err != nil {
 		return err

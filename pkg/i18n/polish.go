@@ -127,6 +127,7 @@ func polishTranslationSet() TranslationSet {
 		ConfirmQuit:                         `Na pewno chcesz wyjść z programu?`,
 		UnsupportedGitService:               `Nieobsługiwana usługa git`,
 		LcCreatePullRequest:                 `utwórz żądanie wyciągnięcia`,
+		LcCopyPullRequestURL:                `skopiuj adres URL żądania ściągnięcia do schowka`,
 		NoBranchOnRemote:                    `Ta gałąź nie istnieje na zdalnym. Najpierw musisz go odepchnąć na odległość.`,
 		LcFetch:                             `fetch`,
 		NoAutomaticGitFetchTitle:            `No automatic git fetch`,
@@ -250,5 +251,8 @@ func polishTranslationSet() TranslationSet {
 		NoFilesStagedPrompt:                 "You have not staged any files. Commit all files?",
 		BranchNotFoundTitle:                 "Branch not found",
 		BranchNotFoundPrompt:                "Branch not found. Create a new branch named",
+		PullRequestURLCopiedToClipboard:     "URL żądania ściągnięcia skopiowany do schowka",
+		CommitMessageCopiedToClipboard:      "Commit message skopiowany do schowka",
+		LcCopiedToClipboard:                 "skopiowany do schowka",
 	}
 }
