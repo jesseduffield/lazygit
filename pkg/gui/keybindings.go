@@ -360,6 +360,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.SwitchRepo,
 		},
 		{
+			ViewName:    "status",
+			Key:         gui.getKey(config.Status.AllBranchesLogGraph),
+			Handler:     gui.wrappedHandler(gui.handleShowAllBranchLogs),
+			Description: gui.Tr.AllBranchesLogGraph,
+		},
+		{
 			ViewName:    "files",
 			Contexts:    []string{FILES_CONTEXT_KEY},
 			Key:         gui.getKey(config.Files.CommitChanges),

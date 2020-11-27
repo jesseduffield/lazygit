@@ -49,6 +49,7 @@ type GitConfig struct {
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
 	BranchLogCmd        string                        `yaml:"branchLogCmd"`
+	AllBranchesLogCmd   string                        `yaml:"allBranchesLogCmd"`
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
@@ -149,8 +150,9 @@ type KeybindingUniversalConfig struct {
 }
 
 type KeybindingStatusConfig struct {
-	CheckForUpdate string `yaml:"checkForUpdate"`
-	RecentRepos    string `yaml:"recentRepos"`
+	CheckForUpdate      string `yaml:"checkForUpdate"`
+	RecentRepos         string `yaml:"recentRepos"`
+	AllBranchesLogGraph string `yaml:"allBranchesLogGraph"`
 }
 
 type KeybindingFilesConfig struct {
@@ -297,7 +299,7 @@ func GetDefaultConfig() *UserConfig {
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
 			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
-			OverrideGpg:         false,
+			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing: false,
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
 		},
@@ -367,8 +369,9 @@ func GetDefaultConfig() *UserConfig {
 				AppendNewline:                "<tab>",
 			},
 			Status: KeybindingStatusConfig{
-				CheckForUpdate: "u",
-				RecentRepos:    "<enter>",
+				CheckForUpdate:      "u",
+				RecentRepos:         "<enter>",
+				AllBranchesLogGraph: "a",
 			},
 			Files: KeybindingFilesConfig{
 				CommitChanges:            "c",

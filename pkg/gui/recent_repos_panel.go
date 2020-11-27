@@ -32,6 +32,20 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 	return gui.createMenu(gui.Tr.RecentRepos, menuItems, createMenuOptions{showCancel: true})
 }
 
+func (gui *Gui) handleShowAllBranchLogs() error {
+	cmd := gui.OSCommand.ExecutableFromString(
+		gui.Config.GetUserConfig().Git.AllBranchesLogCmd,
+	)
+	task := gui.createRunPtyTask(cmd)
+
+	return gui.refreshMainViews(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Log",
+			task:  task,
+		},
+	})
+}
+
 func (gui *Gui) dispatchSwitchToRepo(path string) error {
 	env.UnsetGitDirEnvs()
 	if err := os.Chdir(path); err != nil {

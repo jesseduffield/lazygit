@@ -48,6 +48,7 @@ Default path for the config file:
     skipHookPrefix: WIP
     autoFetch: true
     branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
+    allBranchesLogCmd: "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
     overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
     disableForcePushing: false
   update:
