@@ -1443,6 +1443,18 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestGitCommandGetAllBranchGraph(t *testing.T) {
+	gitCmd := NewDummyGitCommand()
+	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+		assert.EqualValues(t, "git", cmd)
+		assert.EqualValues(t, []string{"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium"}, args)
+		return exec.Command("echo")
+	}
+	cmdStr := gitCmd.Config.GetUserConfig().Git.AllBranchesLogCmd
+	_, err := gitCmd.OSCommand.RunCommandWithOutput(cmdStr)
+	assert.NoError(t, err)
+}
+
 // TestGitCommandDiff is a function.
 func TestGitCommandDiff(t *testing.T) {
 	type scenario struct {
