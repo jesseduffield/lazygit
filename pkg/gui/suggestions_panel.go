@@ -1,6 +1,8 @@
 package gui
 
-import "github.com/jesseduffield/lazygit/pkg/gui/types"
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
 
 func (gui *Gui) getSelectedSuggestionValue() string {
 	selectedSuggestion := gui.getSelectedSuggestion()
