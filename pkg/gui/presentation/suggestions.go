@@ -1,6 +1,10 @@
 package presentation
 
-func GetSuggestionListDisplayStrings(suggestions []string) [][]string {
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
+
+func GetSuggestionListDisplayStrings(suggestions []*types.Suggestion) [][]string {
 	lines := make([][]string, len(suggestions))
 
 	for i := range suggestions {
@@ -10,6 +14,6 @@ func GetSuggestionListDisplayStrings(suggestions []string) [][]string {
 	return lines
 }
 
-func getSuggestionDisplayStrings(suggestion string) []string {
-	return []string{suggestion}
+func getSuggestionDisplayStrings(suggestion *types.Suggestion) []string {
+	return []string{suggestion.Label}
 }

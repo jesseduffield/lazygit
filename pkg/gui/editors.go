@@ -2,6 +2,8 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -78,7 +80,16 @@ func (gui *Gui) editorWithCallback(v *gocui.View, key gocui.Key, ch rune, mod go
 	input := v.Buffer()
 	branchNames := gui.getBranchNames()
 
-	suggestions := utils.FuzzySearch(input, branchNames)
+	matchingBranchNames := utils.FuzzySearch(input, branchNames)
+
+	suggestions := make([]*types.Suggestion, len(matchingBranchNames))
+	for i, branchName := range matchingBranchNames {
+		suggestions[i] = &types.Suggestion{
+			Value: branchName,
+			Label: utils.ColoredString(branchName, presentation.GetBranchColor(branchName)),
+		}
+	}
+
 	gui.setSuggestions(suggestions)
 }
 

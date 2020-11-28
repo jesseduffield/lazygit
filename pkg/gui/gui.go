@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -305,7 +306,7 @@ type guiState struct {
 	StashEntries []*models.StashEntry
 	CommitFiles  []*models.CommitFile
 	// Suggestions will sometimes appear when typing into a prompt
-	Suggestions []string
+	Suggestions []*types.Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*models.Commit
