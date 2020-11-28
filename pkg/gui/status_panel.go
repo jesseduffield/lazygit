@@ -73,7 +73,7 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	if err := gui.switchContext(gui.Contexts.Status.Context); err != nil {
+	if err := gui.pushContext(gui.Contexts.Status.Context); err != nil {
 		return err
 	}
 

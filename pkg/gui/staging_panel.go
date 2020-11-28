@@ -85,7 +85,7 @@ func (gui *Gui) handleTogglePanel() error {
 func (gui *Gui) handleStagingEscape() error {
 	gui.escapeLineByLinePanel()
 
-	return gui.switchContext(gui.Contexts.Files.Context)
+	return gui.pushContext(gui.Contexts.Files.Context)
 }
 
 func (gui *Gui) handleToggleStagedSelection() error {
@@ -108,7 +108,7 @@ func (gui *Gui) handleResetSelection() error {
 				handlersManageFocus: true,
 				handleConfirm: func() error {
 					return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
-						if err := gui.switchContext(gui.Contexts.Staging.Context); err != nil {
+						if err := gui.pushContext(gui.Contexts.Staging.Context); err != nil {
 							return err
 						}
 
@@ -116,7 +116,7 @@ func (gui *Gui) handleResetSelection() error {
 					})
 				},
 				handleClose: func() error {
-					return gui.switchContext(gui.Contexts.Staging.Context)
+					return gui.pushContext(gui.Contexts.Staging.Context)
 				},
 			})
 		} else {

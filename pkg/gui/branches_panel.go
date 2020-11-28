@@ -212,7 +212,6 @@ func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 			onRefNotFound: func(ref string) error {
 
 				return gui.ask(askOpts{
-
 					title:  gui.Tr.BranchNotFoundTitle,
 					prompt: fmt.Sprintf("%s %s%s", gui.Tr.BranchNotFoundPrompt, ref, "?"),
 					handleConfirm: func() error {
@@ -278,7 +277,6 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 	)
 
 	return gui.ask(askOpts{
-
 		title:  title,
 		prompt: message,
 		handleConfirm: func() error {
@@ -315,7 +313,6 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 	)
 
 	return gui.ask(askOpts{
-
 		title:  gui.Tr.MergingTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
@@ -357,7 +354,6 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 	)
 
 	return gui.ask(askOpts{
-
 		title:  gui.Tr.RebasingTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
@@ -454,7 +450,6 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.ask(askOpts{
-
 		title:         gui.Tr.LcRenameBranch,
 		prompt:        gui.Tr.RenameBranchWarning,
 		handleConfirm: promptForNewName,
@@ -500,7 +495,7 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		}
 
 		if context.GetKey() != gui.Contexts.Branches.Context.GetKey() {
-			if err := gui.switchContext(gui.Contexts.Branches.Context); err != nil {
+			if err := gui.pushContext(gui.Contexts.Branches.Context); err != nil {
 				return err
 			}
 		}

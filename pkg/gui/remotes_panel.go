@@ -81,7 +81,7 @@ func (gui *Gui) handleRemoteEnter() error {
 	}
 	gui.State.Panels.RemoteBranches.SelectedLineIdx = newSelectedLine
 
-	return gui.switchContext(gui.Contexts.Remotes.Branches.Context)
+	return gui.pushContext(gui.Contexts.Remotes.Branches.Context)
 }
 
 func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
