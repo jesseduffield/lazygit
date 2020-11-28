@@ -152,7 +152,7 @@ func dutchTranslationSet() TranslationSet {
 		LcMergeIntoCurrentBranch:            `merge in met huidige checked out branch`,
 		ConfirmQuit:                         `Weet je zeker dat je dit programma wil sluiten?`,
 		SwitchRepo:                          "wissel naar een recente repo",
-		AllBranchesLogGraph:                 `alle takken van het houtblok laten zien`,
+		LcAllBranchesLogGraph:               `alle takken van het houtblok laten zien`,
 		UnsupportedGitService:               `Niet-ondersteunde git-service`,
 		LcCreatePullRequest:                 `maak een pull-aanvraag`,
 		LcCopyPullRequestURL:                `kopieer de URL van het pull-verzoek naar het klembord`,

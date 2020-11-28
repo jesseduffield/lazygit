@@ -363,7 +363,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "status",
 			Key:         gui.getKey(config.Status.AllBranchesLogGraph),
 			Handler:     gui.wrappedHandler(gui.handleShowAllBranchLogs),
-			Description: gui.Tr.AllBranchesLogGraph,
+			Description: gui.Tr.LcAllBranchesLogGraph,
 		},
 		{
 			ViewName:    "files",
