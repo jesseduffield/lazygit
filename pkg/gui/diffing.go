@@ -128,9 +128,12 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 		{
 			displayString: gui.Tr.LcEnterRefToDiff,
 			onPress: func() error {
-				return gui.prompt(gui.Tr.LcEnteRefName, "", func(response string) error {
-					gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+				return gui.prompt(promptOpts{
+					title: gui.Tr.LcEnteRefName,
+					handleConfirm: func(response string) error {
+						gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					},
 				})
 			},
 		},

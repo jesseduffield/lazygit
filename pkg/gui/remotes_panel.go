@@ -85,14 +85,21 @@ func (gui *Gui) handleRemoteEnter() error {
 }
 
 func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(gui.Tr.LcNewRemoteName, "", func(remoteName string) error {
-		return gui.prompt(gui.Tr.LcNewRemoteUrl, "", func(remoteUrl string) error {
-			if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
-				return err
-			}
-			return gui.refreshSidePanels(refreshOptions{scope: []int{REMOTES}})
-		})
+	return gui.prompt(promptOpts{
+		title: gui.Tr.LcNewRemoteName,
+		handleConfirm: func(remoteName string) error {
+			return gui.prompt(promptOpts{
+				title: gui.Tr.LcNewRemoteUrl,
+				handleConfirm: func(remoteUrl string) error {
+					if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
+						return err
+					}
+					return gui.refreshSidePanels(refreshOptions{scope: []int{REMOTES}})
+				},
+			})
+		},
 	})
+
 }
 
 func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
@@ -127,32 +134,40 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.prompt(editNameMessage, remote.Name, func(updatedRemoteName string) error {
-		if updatedRemoteName != remote.Name {
-			if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
-				return gui.surfaceError(err)
+	return gui.prompt(promptOpts{
+		title:          editNameMessage,
+		initialContent: remote.Name,
+		handleConfirm: func(updatedRemoteName string) error {
+			if updatedRemoteName != remote.Name {
+				if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
+					return gui.surfaceError(err)
+				}
 			}
-		}
 
-		editUrlMessage := utils.ResolvePlaceholderString(
-			gui.Tr.LcEditRemoteUrl,
-			map[string]string{
-				"remoteName": updatedRemoteName,
-			},
-		)
+			editUrlMessage := utils.ResolvePlaceholderString(
+				gui.Tr.LcEditRemoteUrl,
+				map[string]string{
+					"remoteName": updatedRemoteName,
+				},
+			)
 
-		urls := remote.Urls
-		url := ""
-		if len(urls) > 0 {
-			url = urls[0]
-		}
-
-		return gui.prompt(editUrlMessage, url, func(updatedRemoteUrl string) error {
-			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
-				return gui.surfaceError(err)
+			urls := remote.Urls
+			url := ""
+			if len(urls) > 0 {
+				url = urls[0]
 			}
-			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
-		})
+
+			return gui.prompt(promptOpts{
+				title:          editUrlMessage,
+				initialContent: url,
+				handleConfirm: func(updatedRemoteUrl string) error {
+					if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
+						return gui.surfaceError(err)
+					}
+					return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+				},
+			})
+		},
 	})
 }
 

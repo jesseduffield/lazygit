@@ -28,43 +28,50 @@ type createPopupPanelOpts struct {
 	// when handlersManageFocus is true, do not return from the confirmation context automatically. It's expected that the handlers will manage focus, whether that means switching to another context, or manually returning the context.
 	handlersManageFocus bool
 
-	showSuggestionsPanel bool
+	showSuggestions bool
 }
 
 type askOpts struct {
-	title                string
-	prompt               string
-	handleConfirm        func() error
-	handleClose          func() error
-	handlersManageFocus  bool
-	showSuggestionsPanel bool
+	title               string
+	prompt              string
+	handleConfirm       func() error
+	handleClose         func() error
+	handlersManageFocus bool
+	showSuggestions     bool
+}
+
+type promptOpts struct {
+	title           string
+	initialContent  string
+	handleConfirm   func(string) error
+	showSuggestions bool
+}
+
+func (gui *Gui) ask(opts askOpts) error {
+	return gui.createPopupPanel(createPopupPanelOpts{
+		title:               opts.title,
+		prompt:              opts.prompt,
+		handleConfirm:       opts.handleConfirm,
+		handleClose:         opts.handleClose,
+		handlersManageFocus: opts.handlersManageFocus,
+		showSuggestions:     opts.showSuggestions,
+	})
+}
+
+func (gui *Gui) prompt(opts promptOpts) error {
+	return gui.createPopupPanel(createPopupPanelOpts{
+		title:               opts.title,
+		prompt:              opts.initialContent,
+		editable:            true,
+		handleConfirmPrompt: opts.handleConfirm,
+		showSuggestions:     opts.showSuggestions,
+	})
 }
 
 func (gui *Gui) createLoaderPanel(prompt string) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
 		prompt:    prompt,
 		hasLoader: true,
-	})
-}
-
-func (gui *Gui) ask(opts askOpts) error {
-	return gui.createPopupPanel(createPopupPanelOpts{
-		title:                opts.title,
-		prompt:               opts.prompt,
-		handleConfirm:        opts.handleConfirm,
-		handleClose:          opts.handleClose,
-		handlersManageFocus:  opts.handlersManageFocus,
-		showSuggestionsPanel: opts.showSuggestionsPanel,
-	})
-}
-
-func (gui *Gui) prompt(title string, initialContent string, handleConfirm func(string) error) error {
-	return gui.createPopupPanel(createPopupPanelOpts{
-		title:                title,
-		prompt:               initialContent,
-		editable:             true,
-		handleConfirmPrompt:  handleConfirm,
-		showSuggestionsPanel: true,
 	})
 }
 
@@ -173,7 +180,7 @@ func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, i
 		height/2 + panelHeight/2
 }
 
-func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, showSuggestionsPanel bool) (*gocui.View, error) {
+func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, showSuggestions bool) (*gocui.View, error) {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
 	confirmationView, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
 	if err != nil {
@@ -189,7 +196,7 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, s
 		confirmationView.FgColor = theme.GocuiDefaultTextColor
 	}
 
-	if showSuggestionsPanel {
+	if showSuggestions {
 		suggestionsViewHeight := 11
 		suggestionsView, err := gui.g.SetView("suggestions", x0, y1, x1, y1+suggestionsViewHeight, 0)
 		if err != nil {
@@ -215,7 +222,7 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 		if view, _ := g.View("confirmation"); view != nil {
 			gui.deleteConfirmationView()
 		}
-		confirmationView, err := gui.prepareConfirmationPanel(opts.title, opts.prompt, opts.hasLoader, opts.showSuggestionsPanel)
+		confirmationView, err := gui.prepareConfirmationPanel(opts.title, opts.prompt, opts.hasLoader, opts.showSuggestions)
 		if err != nil {
 			return err
 		}

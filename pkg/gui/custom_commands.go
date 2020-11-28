@@ -98,15 +98,15 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 						return gui.surfaceError(err)
 					}
 
-					return gui.prompt(
-						title,
-						initialValue,
-						func(str string) error {
+					return gui.prompt(promptOpts{
+						title:          title,
+						initialContent: initialValue,
+						handleConfirm: func(str string) error {
 							promptResponses[idx] = str
 
 							return wrappedF()
 						},
-					)
+					})
 				}
 			case "menu":
 				f = func() error {

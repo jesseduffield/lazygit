@@ -233,12 +233,16 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		return gui.surfaceError(err)
 	}
 
-	return gui.prompt(gui.Tr.LcRenameCommit, message, func(response string) error {
-		if err := gui.GitCommand.RenameCommit(response); err != nil {
-			return gui.surfaceError(err)
-		}
+	return gui.prompt(promptOpts{
+		title:          gui.Tr.LcRenameCommit,
+		initialContent: message,
+		handleConfirm: func(response string) error {
+			if err := gui.GitCommand.RenameCommit(response); err != nil {
+				return gui.surfaceError(err)
+			}
 
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		},
 	})
 }
 
@@ -517,11 +521,14 @@ func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
-	return gui.prompt(gui.Tr.TagNameTitle, "", func(response string) error {
-		if err := gui.GitCommand.CreateLightweightTag(response, commitSha); err != nil {
-			return gui.surfaceError(err)
-		}
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
+	return gui.prompt(promptOpts{
+		title: gui.Tr.TagNameTitle,
+		handleConfirm: func(response string) error {
+			if err := gui.GitCommand.CreateLightweightTag(response, commitSha); err != nil {
+				return gui.surfaceError(err)
+			}
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
+		},
 	})
 }
 
