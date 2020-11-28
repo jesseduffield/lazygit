@@ -44,9 +44,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	gui.RenderCommitLength()
 }
 
-// we've just copy+pasted the editor from gocui to here so that we can also re-
-// render the commit message length on each keypress
-func (gui *Gui) editorWithCallback(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
