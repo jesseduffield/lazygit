@@ -164,7 +164,7 @@ type TranslationSet struct {
 	LcMergeIntoCurrentBranch            string
 	ConfirmQuit                         string
 	SwitchRepo                          string
-	AllBranchesLogGraph                 string
+	LcAllBranchesLogGraph               string
 	UnsupportedGitService               string
 	LcCreatePullRequest                 string
 	LcCopyPullRequestURL                string
@@ -667,7 +667,7 @@ func englishTranslationSet() TranslationSet {
 		LcMergeIntoCurrentBranch:            `merge into currently checked out branch`,
 		ConfirmQuit:                         `Are you sure you want to quit?`,
 		SwitchRepo:                          `switch to a recent repo`,
-		AllBranchesLogGraph:                 `show all branch logs`,
+		LcAllBranchesLogGraph:               `show all branch logs`,
 		UnsupportedGitService:               `Unsupported git service`,
 		LcCreatePullRequest:                 `create pull request`,
 		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,

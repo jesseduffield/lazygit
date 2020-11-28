@@ -125,7 +125,7 @@ func polishTranslationSet() TranslationSet {
 		LcRefreshFiles:                      `odśwież pliki`,
 		LcMergeIntoCurrentBranch:            `scal do obecnej gałęzi`,
 		ConfirmQuit:                         `Na pewno chcesz wyjść z programu?`,
-		AllBranchesLogGraph:                 `pokazywać wszystkie logi branżowe`,
+		LcAllBranchesLogGraph:               `pokazywać wszystkie logi branżowe`,
 		UnsupportedGitService:               `Nieobsługiwana usługa git`,
 		LcCreatePullRequest:                 `utwórz żądanie wyciągnięcia`,
 		LcCopyPullRequestURL:                `skopiuj adres URL żądania ściągnięcia do schowka`,
