@@ -97,7 +97,7 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	gui.State.Panels.SubCommits.SelectedLineIdx = 0
 	gui.Contexts.SubCommits.Context.SetParentContext(gui.currentSideContext())
 
-	return gui.switchContext(gui.Contexts.SubCommits.Context)
+	return gui.pushContext(gui.Contexts.SubCommits.Context)
 }
 
 func (gui *Gui) handleSwitchToSubCommits() error {

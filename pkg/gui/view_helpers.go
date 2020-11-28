@@ -259,6 +259,11 @@ func (gui *Gui) getMainView() *gocui.View {
 	return v
 }
 
+func (gui *Gui) getSuggestionsView() *gocui.View {
+	v, _ := gui.g.View("suggestions")
+	return v
+}
+
 func (gui *Gui) getSecondaryView() *gocui.View {
 	v, _ := gui.g.View("secondary")
 	return v
@@ -415,7 +420,7 @@ func (gui *Gui) clearEditorView(v *gocui.View) {
 func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
 	context := gui.ViewTabContextMap[viewName][tabIndex].contexts[0]
 
-	return gui.switchContext(context)
+	return gui.pushContext(context)
 }
 
 func (gui *Gui) handleNextTab(g *gocui.Gui, v *gocui.View) error {

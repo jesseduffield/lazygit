@@ -180,7 +180,7 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 func (gui *Gui) handleResetPatch() error {
 	gui.GitCommand.PatchManager.Reset()
 	if gui.currentContextKeyIgnoringPopups() == MAIN_PATCH_BUILDING_CONTEXT_KEY {
-		if err := gui.switchContext(gui.Contexts.CommitFiles.Context); err != nil {
+		if err := gui.pushContext(gui.Contexts.CommitFiles.Context); err != nil {
 			return err
 		}
 	}

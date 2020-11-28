@@ -35,6 +35,7 @@ const (
 	SEARCH_CONTEXT_KEY              = "search"
 	COMMIT_MESSAGE_CONTEXT_KEY      = "commitMessage"
 	SUBMODULES_CONTEXT_KEY          = "submodules"
+	SUGGESTIONS_CONTEXT_KEY         = "suggestions"
 )
 
 var allContextKeys = []string{
@@ -59,6 +60,7 @@ var allContextKeys = []string{
 	SEARCH_CONTEXT_KEY,
 	COMMIT_MESSAGE_CONTEXT_KEY,
 	SUBMODULES_CONTEXT_KEY,
+	SUGGESTIONS_CONTEXT_KEY,
 }
 
 type SimpleContextNode struct {
@@ -91,6 +93,7 @@ type ContextTree struct {
 	Confirmation  SimpleContextNode
 	CommitMessage SimpleContextNode
 	Search        SimpleContextNode
+	Suggestions   SimpleContextNode
 }
 
 func (gui *Gui) allContexts() []Context {
@@ -115,6 +118,7 @@ func (gui *Gui) allContexts() []Context {
 		gui.Contexts.Merging.Context,
 		gui.Contexts.PatchBuilding.Context,
 		gui.Contexts.SubCommits.Context,
+		gui.Contexts.Suggestions.Context,
 	}
 }
 
@@ -303,6 +307,9 @@ func (gui *Gui) contextTree() ContextTree {
 				Key:      CONFIRMATION_CONTEXT_KEY,
 			},
 		},
+		Suggestions: SimpleContextNode{
+			Context: gui.suggestionsListContext(),
+		},
 		CommitMessage: SimpleContextNode{
 			Context: BasicContext{
 				OnFocus:  gui.handleCommitMessageFocused,
@@ -400,7 +407,24 @@ func (gui *Gui) currentContextKeyIgnoringPopups() string {
 	return ""
 }
 
-func (gui *Gui) switchContext(c Context) error {
+// use replaceContext when you don't want to return to the original context upon
+// hitting escape: you want to go that context's parent instead.
+func (gui *Gui) replaceContext(c Context) error {
+	gui.g.Update(func(*gocui.Gui) error {
+		if len(gui.State.ContextStack) == 0 {
+			gui.State.ContextStack = []Context{c}
+		} else {
+			// replace the last item with the given item
+			gui.State.ContextStack = append(gui.State.ContextStack[0:len(gui.State.ContextStack)-1], c)
+		}
+
+		return gui.activateContext(c)
+	})
+
+	return nil
+}
+
+func (gui *Gui) pushContext(c Context) error {
 	gui.g.Update(func(*gocui.Gui) error {
 		// push onto stack
 		// if we are switching to a side context, remove all other contexts in the stack
@@ -424,11 +448,11 @@ func (gui *Gui) switchContext(c Context) error {
 	return nil
 }
 
-// switchContextToView is to be used when you don't know which context you
+// pushContextWithView is to be used when you don't know which context you
 // want to switch to: you only know the view that you want to switch to. It will
 // look up the context currently active for that view and switch to that context
-func (gui *Gui) switchContextToView(viewName string) error {
-	return gui.switchContext(gui.State.ViewContextMap[viewName])
+func (gui *Gui) pushContextWithView(viewName string) error {
+	return gui.pushContext(gui.State.ViewContextMap[viewName])
 }
 
 func (gui *Gui) returnFromContext() error {

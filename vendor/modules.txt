@@ -123,6 +123,8 @@ github.com/kevinburke/ssh_config
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 github.com/kr/logfmt
+# github.com/kylelemons/godebug v1.1.0
+## explicit
 # github.com/mattn/go-colorable v0.1.7
 ## explicit
 github.com/mattn/go-colorable
@@ -142,6 +144,9 @@ github.com/mitchellh/go-homedir
 ## explicit
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
+# github.com/sahilm/fuzzy v0.1.0
+## explicit
+github.com/sahilm/fuzzy
 # github.com/sergi/go-diff v1.1.0
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/sirupsen/logrus v1.4.2

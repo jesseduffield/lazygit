@@ -219,7 +219,7 @@ func (lc *ListContext) handleClick(g *gocui.Gui, v *gocui.View) error {
 	newSelectedLineIdx := v.SelectedLineIdx()
 
 	// we need to focus the view
-	if err := lc.Gui.switchContext(lc); err != nil {
+	if err := lc.Gui.pushContext(lc); err != nil {
 		return err
 	}
 
@@ -483,6 +483,23 @@ func (gui *Gui) submodulesListContext() *ListContext {
 	}
 }
 
+func (gui *Gui) suggestionsListContext() *ListContext {
+	return &ListContext{
+		ViewName:                   "suggestions",
+		WindowName:                 "suggestions",
+		ContextKey:                 SUGGESTIONS_CONTEXT_KEY,
+		GetItemsLength:             func() int { return len(gui.State.Suggestions) },
+		GetPanelState:              func() IListPanelState { return gui.State.Panels.Suggestions },
+		OnFocus:                    func() error { return nil },
+		Gui:                        gui,
+		ResetMainViewOriginOnFocus: false,
+		Kind:                       PERSISTENT_POPUP,
+		GetDisplayStrings: func() [][]string {
+			return presentation.GetSuggestionListDisplayStrings(gui.State.Suggestions)
+		},
+	}
+}
+
 func (gui *Gui) getListContexts() []*ListContext {
 	return []*ListContext{
 		gui.menuListContext(),
@@ -497,6 +514,7 @@ func (gui *Gui) getListContexts() []*ListContext {
 		gui.stashListContext(),
 		gui.commitFilesListContext(),
 		gui.submodulesListContext(),
+		gui.suggestionsListContext(),
 	}
 }
 

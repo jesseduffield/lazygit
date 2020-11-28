@@ -176,7 +176,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 			}
 		}
 
-		if err := gui.switchContext(gui.Contexts.PatchBuilding.Context); err != nil {
+		if err := gui.pushContext(gui.Contexts.PatchBuilding.Context); err != nil {
 			return err
 		}
 		return gui.handleRefreshPatchBuildingPanel(selectedLineIdx)
@@ -192,7 +192,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 				return enterTheFile(selectedLineIdx)
 			},
 			handleClose: func() error {
-				return gui.switchContext(gui.Contexts.CommitFiles.Context)
+				return gui.pushContext(gui.Contexts.CommitFiles.Context)
 			},
 		})
 	}
@@ -215,5 +215,5 @@ func (gui *Gui) switchToCommitFilesContext(refName string, canRebase bool, conte
 		return err
 	}
 
-	return gui.switchContext(gui.Contexts.CommitFiles.Context)
+	return gui.pushContext(gui.Contexts.CommitFiles.Context)
 }

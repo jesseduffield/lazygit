@@ -220,6 +220,10 @@ type submodulePanelState struct {
 	listPanelState
 }
 
+type suggestionsPanelState struct {
+	listPanelState
+}
+
 type panelStates struct {
 	Files          *filePanelState
 	Branches       *branchPanelState
@@ -235,6 +239,7 @@ type panelStates struct {
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
 	Submodules     *submodulePanelState
+	Suggestions    *suggestionsPanelState
 }
 
 type searchingState struct {
@@ -299,6 +304,8 @@ type guiState struct {
 	Commits      []*models.Commit
 	StashEntries []*models.StashEntry
 	CommitFiles  []*models.CommitFile
+	// Suggestions will sometimes appear when typing into a prompt
+	Suggestions []string
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*models.Commit
@@ -385,6 +392,7 @@ func (gui *Gui) resetState() {
 			CommitFiles:    &commitFilesPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, refName: ""},
 			Stash:          &stashPanelState{listPanelState{SelectedLineIdx: -1}},
 			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
+			Suggestions:    &suggestionsPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}},
 			Merging: &mergingPanelState{
 				ConflictIndex: 0,
 				ConflictTop:   true,

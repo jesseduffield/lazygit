@@ -277,7 +277,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			initialContext = gui.Contexts.BranchCommits.Context
 		}
 
-		if err := gui.switchContext(initialContext); err != nil {
+		if err := gui.pushContext(initialContext); err != nil {
 			return err
 		}
 	}
@@ -351,7 +351,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 	}
 	gui.g.Mutexes.ViewsMutex.Unlock()
 
-	if err := gui.switchContext(gui.defaultSideContext()); err != nil {
+	if err := gui.pushContext(gui.defaultSideContext()); err != nil {
 		return err
 	}
 

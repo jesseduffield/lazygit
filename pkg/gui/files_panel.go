@@ -183,7 +183,7 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.FileStagingRequirements)
 	}
-	_ = gui.switchContext(gui.Contexts.Staging.Context)
+	_ = gui.pushContext(gui.Contexts.Staging.Context)
 
 	return gui.handleRefreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
 }
@@ -341,7 +341,7 @@ func (gui *Gui) handleCommitPress() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if err := gui.switchContext(gui.Contexts.CommitMessage.Context); err != nil {
+		if err := gui.pushContext(gui.Contexts.CommitMessage.Context); err != nil {
 			return err
 		}
 
@@ -642,7 +642,7 @@ func (gui *Gui) handleSwitchToMerge() error {
 		return gui.createErrorPanel(gui.Tr.FileNoMergeCons)
 	}
 
-	return gui.switchContext(gui.Contexts.Merging.Context)
+	return gui.pushContext(gui.Contexts.Merging.Context)
 }
 
 func (gui *Gui) openFile(filename string) error {

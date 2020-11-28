@@ -40,7 +40,7 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 	parentContext, hasParent := currentContext.GetParentContext()
 	if hasParent && currentContext != nil && parentContext != nil {
 		// TODO: think about whether this should be marked as a return rather than adding to the stack
-		return gui.switchContext(parentContext)
+		return gui.pushContext(parentContext)
 	}
 
 	for _, mode := range gui.modeStatuses() {
