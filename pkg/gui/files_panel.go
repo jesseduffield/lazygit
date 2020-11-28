@@ -496,15 +496,19 @@ func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		return gui.prompt(gui.Tr.EnterUpstream, "origin/"+currentBranch.Name, func(upstream string) error {
-			if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
-				errorMessage := err.Error()
-				if strings.Contains(errorMessage, "does not exist") {
-					errorMessage = fmt.Sprintf("upstream branch %s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')", upstream)
+		return gui.prompt(promptOpts{
+			title:          gui.Tr.EnterUpstream,
+			initialContent: "origin/" + currentBranch.Name,
+			handleConfirm: func(upstream string) error {
+				if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
+					errorMessage := err.Error()
+					if strings.Contains(errorMessage, "does not exist") {
+						errorMessage = fmt.Sprintf("upstream branch %s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')", upstream)
+					}
+					return gui.createErrorPanel(errorMessage)
 				}
-				return gui.createErrorPanel(errorMessage)
-			}
-			return gui.pullFiles(PullFilesOptions{})
+				return gui.pullFiles(PullFilesOptions{})
+			},
 		})
 	}
 
@@ -610,8 +614,12 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		if gui.GitCommand.PushToCurrent {
 			return gui.pushWithForceFlag(v, false, "", "--set-upstream")
 		} else {
-			return gui.prompt(gui.Tr.EnterUpstream, "origin "+currentBranch.Name, func(response string) error {
-				return gui.pushWithForceFlag(v, false, response, "")
+			return gui.prompt(promptOpts{
+				title:          gui.Tr.EnterUpstream,
+				initialContent: "origin " + currentBranch.Name,
+				handleConfirm: func(response string) error {
+					return gui.pushWithForceFlag(v, false, response, "")
+				},
 			})
 		}
 	} else if currentBranch.Pullables == "0" {
@@ -662,9 +670,12 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 }
 
 func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(gui.Tr.CustomCommand, "", func(command string) error {
-		gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
-		return gui.Errors.ErrSubProcess
+	return gui.prompt(promptOpts{
+		title: gui.Tr.CustomCommand,
+		handleConfirm: func(command string) error {
+			gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
+			return gui.Errors.ErrSubProcess
+		},
 	})
 }
 

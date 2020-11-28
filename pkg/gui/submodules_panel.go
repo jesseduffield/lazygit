@@ -126,30 +126,47 @@ func (gui *Gui) resetSubmodule(submodule *models.SubmoduleConfig) error {
 }
 
 func (gui *Gui) handleAddSubmodule() error {
-	return gui.prompt(gui.Tr.LcNewSubmoduleUrl, "", func(submoduleUrl string) error {
-		nameSuggestion := filepath.Base(strings.TrimSuffix(submoduleUrl, filepath.Ext(submoduleUrl)))
+	return gui.prompt(promptOpts{
+		title: gui.Tr.LcNewSubmoduleUrl,
+		handleConfirm: func(submoduleUrl string) error {
+			nameSuggestion := filepath.Base(strings.TrimSuffix(submoduleUrl, filepath.Ext(submoduleUrl)))
 
-		return gui.prompt(gui.Tr.LcNewSubmoduleName, nameSuggestion, func(submoduleName string) error {
-			return gui.prompt(gui.Tr.LcNewSubmodulePath, submoduleName, func(submodulePath string) error {
-				return gui.WithWaitingStatus(gui.Tr.LcAddingSubmoduleStatus, func() error {
-					err := gui.GitCommand.SubmoduleAdd(submoduleName, submodulePath, submoduleUrl)
-					gui.handleCredentialsPopup(err)
+			return gui.prompt(promptOpts{
+				title:          gui.Tr.LcNewSubmoduleName,
+				initialContent: nameSuggestion,
+				handleConfirm: func(submoduleName string) error {
 
-					return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
-				})
+					return gui.prompt(promptOpts{
+						title:          gui.Tr.LcNewSubmodulePath,
+						initialContent: submoduleName,
+						handleConfirm: func(submodulePath string) error {
+							return gui.WithWaitingStatus(gui.Tr.LcAddingSubmoduleStatus, func() error {
+								err := gui.GitCommand.SubmoduleAdd(submoduleName, submodulePath, submoduleUrl)
+								gui.handleCredentialsPopup(err)
+
+								return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+							})
+						},
+					})
+				},
 			})
-		})
+		},
 	})
+
 }
 
 func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error {
-	return gui.prompt(fmt.Sprintf(gui.Tr.LcUpdateSubmoduleUrl, submodule.Name), submodule.Url, func(newUrl string) error {
-		return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleUrlStatus, func() error {
-			err := gui.GitCommand.SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
-			gui.handleCredentialsPopup(err)
+	return gui.prompt(promptOpts{
+		title:          fmt.Sprintf(gui.Tr.LcUpdateSubmoduleUrl, submodule.Name),
+		initialContent: submodule.Url,
+		handleConfirm: func(newUrl string) error {
+			return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleUrlStatus, func() error {
+				err := gui.GitCommand.SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
+				gui.handleCredentialsPopup(err)
 
-			return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
-		})
+				return gui.refreshSidePanels(refreshOptions{scope: []int{SUBMODULES}})
+			})
+		},
 	})
 }
 

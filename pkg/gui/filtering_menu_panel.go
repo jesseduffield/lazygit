@@ -41,9 +41,12 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 	menuItems = append(menuItems, &menuItem{
 		displayString: gui.Tr.LcFilterPathOption,
 		onPress: func() error {
-			return gui.prompt(gui.Tr.LcEnterFileName, "", func(response string) error {
-				gui.State.Modes.Filtering.Path = strings.TrimSpace(response)
-				return gui.Errors.ErrRestart
+			return gui.prompt(promptOpts{
+				title: gui.Tr.LcEnterFileName,
+				handleConfirm: func(response string) error {
+					gui.State.Modes.Filtering.Path = strings.TrimSpace(response)
+					return gui.Errors.ErrRestart
+				},
 			})
 		},
 	})

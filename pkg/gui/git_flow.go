@@ -52,10 +52,14 @@ func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
 	startHandler := func(branchType string) func() error {
 		return func() error {
 			title := utils.ResolvePlaceholderString(gui.Tr.NewGitFlowBranchPrompt, map[string]string{"branchType": branchType})
-			return gui.prompt(title, "", func(name string) error {
-				subProcess := gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "start", name)
-				gui.SubProcess = subProcess
-				return gui.Errors.ErrSubProcess
+
+			return gui.prompt(promptOpts{
+				title: title,
+				handleConfirm: func(name string) error {
+					subProcess := gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "start", name)
+					gui.SubProcess = subProcess
+					return gui.Errors.ErrSubProcess
+				},
 			})
 		}
 	}

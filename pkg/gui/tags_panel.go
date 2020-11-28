@@ -97,36 +97,43 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.prompt(title, "origin", func(response string) error {
-		return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
-			err := gui.GitCommand.PushTag(response, tag.Name, gui.promptUserForCredential)
-			gui.handleCredentialsPopup(err)
+	return gui.prompt(promptOpts{
+		title:          title,
+		initialContent: "origin",
+		handleConfirm: func(response string) error {
+			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
+				err := gui.GitCommand.PushTag(response, tag.Name, gui.promptUserForCredential)
+				gui.handleCredentialsPopup(err)
 
-			return nil
-		})
+				return nil
+			})
+		},
 	})
 }
 
 func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(gui.Tr.CreateTagTitle, "", func(tagName string) error {
-		// leaving commit SHA blank so that we're just creating the tag for the current commit
-		if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
-			return gui.surfaceError(err)
-		}
-		return gui.refreshSidePanels(refreshOptions{scope: []int{COMMITS, TAGS}, then: func() {
-			// find the index of the tag and set that as the currently selected line
-			for i, tag := range gui.State.Tags {
-				if tag.Name == tagName {
-					gui.State.Panels.Tags.SelectedLineIdx = i
-					if err := gui.Contexts.Tags.Context.HandleRender(); err != nil {
-						gui.Log.Error(err)
-					}
-
-					return
-				}
+	return gui.prompt(promptOpts{
+		title: gui.Tr.CreateTagTitle,
+		handleConfirm: func(tagName string) error {
+			// leaving commit SHA blank so that we're just creating the tag for the current commit
+			if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
+				return gui.surfaceError(err)
 			}
+			return gui.refreshSidePanels(refreshOptions{scope: []int{COMMITS, TAGS}, then: func() {
+				// find the index of the tag and set that as the currently selected line
+				for i, tag := range gui.State.Tags {
+					if tag.Name == tagName {
+						gui.State.Panels.Tags.SelectedLineIdx = i
+						if err := gui.Contexts.Tags.Context.HandleRender(); err != nil {
+							gui.Log.Error(err)
+						}
+
+						return
+					}
+				}
+			},
+			})
 		},
-		})
 	})
 }
 
