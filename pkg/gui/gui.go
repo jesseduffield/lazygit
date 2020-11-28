@@ -113,6 +113,10 @@ type Gui struct {
 	StartTime      time.Time
 
 	Mutexes guiStateMutexes
+
+	// findSuggestions will take a string that the user has typed into a prompt
+	// and return a slice of suggestions which match that string.
+	findSuggestions func(string) []*types.Suggestion
 }
 
 type RecordedEvent struct {

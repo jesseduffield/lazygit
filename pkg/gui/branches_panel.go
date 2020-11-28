@@ -7,6 +7,8 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -208,8 +210,8 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 
 func (gui *Gui) handleCheckoutByName(g *gocui.Gui, v *gocui.View) error {
 	return gui.prompt(promptOpts{
-		title:           gui.Tr.BranchName + ":",
-		showSuggestions: true,
+		title:               gui.Tr.BranchName + ":",
+		findSuggestionsFunc: gui.findBranchNameSuggestions,
 		handleConfirm: func(response string) error {
 			return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
 				onRefNotFound: func(ref string) error {
@@ -516,4 +518,30 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 		},
 	})
+}
+
+func (gui *Gui) getBranchNames() []string {
+	result := make([]string, len(gui.State.Branches))
+
+	for i, branch := range gui.State.Branches {
+		result[i] = branch.Name
+	}
+
+	return result
+}
+
+func (gui *Gui) findBranchNameSuggestions(input string) []*types.Suggestion {
+	branchNames := gui.getBranchNames()
+
+	matchingBranchNames := utils.FuzzySearch(input, branchNames)
+
+	suggestions := make([]*types.Suggestion, len(matchingBranchNames))
+	for i, branchName := range matchingBranchNames {
+		suggestions[i] = &types.Suggestion{
+			Value: branchName,
+			Label: utils.ColoredString(branchName, presentation.GetBranchColor(branchName)),
+		}
+	}
+
+	return suggestions
 }

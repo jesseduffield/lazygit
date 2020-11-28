@@ -2,9 +2,6 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // we've just copy+pasted the editor from gocui to here so that we can also re-
@@ -77,28 +74,9 @@ func (gui *Gui) editorWithCallback(v *gocui.View, key gocui.Key, ch rune, mod go
 		v.EditWrite(ch)
 	}
 
-	input := v.Buffer()
-	branchNames := gui.getBranchNames()
-
-	matchingBranchNames := utils.FuzzySearch(input, branchNames)
-
-	suggestions := make([]*types.Suggestion, len(matchingBranchNames))
-	for i, branchName := range matchingBranchNames {
-		suggestions[i] = &types.Suggestion{
-			Value: branchName,
-			Label: utils.ColoredString(branchName, presentation.GetBranchColor(branchName)),
-		}
+	if gui.findSuggestions != nil {
+		input := v.Buffer()
+		suggestions := gui.findSuggestions(input)
+		gui.setSuggestions(suggestions)
 	}
-
-	gui.setSuggestions(suggestions)
-}
-
-func (gui *Gui) getBranchNames() []string {
-	result := make([]string, len(gui.State.Branches))
-
-	for i, branch := range gui.State.Branches {
-		result[i] = branch.Name
-	}
-
-	return result
 }
