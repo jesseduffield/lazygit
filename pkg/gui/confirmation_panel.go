@@ -12,6 +12,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -206,7 +207,7 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, s
 			suggestionsView.Wrap = true
 			suggestionsView.FgColor = theme.GocuiDefaultTextColor
 		}
-		gui.setSuggestions([]string{})
+		gui.setSuggestions([]*types.Suggestion{})
 		_, _ = gui.g.SetViewOnTop("suggestions")
 	}
 
@@ -279,7 +280,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		return err
 	}
 
-	onSuggestionConfirm := gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.getSelectedSuggestion() })
+	onSuggestionConfirm := gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.getSelectedSuggestionValue() })
 	if err := gui.g.SetKeybinding("suggestions", nil, gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone, onSuggestionConfirm); err != nil {
 		return err
 	}
