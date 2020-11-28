@@ -11,11 +11,6 @@ func FuzzySearch(needle string, haystack []string) []string {
 		return []string{}
 	}
 
-	myHaystack := make([]string, len(haystack))
-	for i := range haystack {
-		myHaystack[i] = haystack[i]
-	}
-
 	matches := fuzzy.Find(needle, haystack)
 	sort.Sort(matches)
 
