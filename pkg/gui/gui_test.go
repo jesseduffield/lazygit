@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -250,7 +250,7 @@ func Test(t *testing.T) {
 func createFixture(testPath, actualDir string) error {
 	osCommand := oscommands.NewDummyOSCommand()
 	bashScriptPath := filepath.Join(testPath, "setup.sh")
-	cmd := exec.Command("bash", bashScriptPath, actualDir)
+	cmd := secureexec.Command("bash", bashScriptPath, actualDir)
 
 	if err := osCommand.RunExecutable(cmd); err != nil {
 		return err

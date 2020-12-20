@@ -11,9 +11,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
 func main() {
@@ -49,7 +50,7 @@ func main() {
 
 func runCommand(args ...string) {
 	fmt.Println(strings.Join(args, " "))
-	cmd := exec.Command(args[0], args[1:]...)
+	cmd := secureexec.Command(args[0], args[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Start()

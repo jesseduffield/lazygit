@@ -16,6 +16,7 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 	"github.com/sirupsen/logrus"
@@ -49,7 +50,7 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 		Log:              log,
 		Platform:         getPlatform(),
 		Config:           config,
-		Command:          exec.Command,
+		Command:          secureexec.Command,
 		BeforeExecuteCmd: func(*exec.Cmd) {},
 		Getenv:           os.Getenv,
 	}

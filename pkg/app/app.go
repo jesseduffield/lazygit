@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -21,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/sirupsen/logrus"
 )
@@ -324,7 +324,7 @@ func TailLogs() {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("tail", "-f", logFilePath)
+	cmd := secureexec.Command("tail", "-f", logFilePath)
 
 	stdout, _ := cmd.StdoutPipe()
 	if err := cmd.Start(); err != nil {

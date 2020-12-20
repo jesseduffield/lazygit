@@ -16,6 +16,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
@@ -269,7 +270,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 		{
 			"No stash entries found",
 			func(string, ...string) *exec.Cmd {
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(entries []*models.StashEntry) {
 				assert.Len(t, entries, 0)
@@ -278,7 +279,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 		{
 			"Several stash entries found",
 			func(string, ...string) *exec.Cmd {
-				return exec.Command("echo", "WIP on add-pkg-commands-test: 55c6af2 increase parallel build\nWIP on master: bb86a3f update github template")
+				return secureexec.Command("echo", "WIP on add-pkg-commands-test: 55c6af2 increase parallel build\nWIP on master: bb86a3f update github template")
 			},
 			func(entries []*models.StashEntry) {
 				expected := []*models.StashEntry{
@@ -320,7 +321,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 		{
 			"No files found",
 			func(cmd string, args ...string) *exec.Cmd {
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(files []*models.File) {
 				assert.Len(t, files, 0)
@@ -329,7 +330,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 		{
 			"Several files found",
 			func(cmd string, args ...string) *exec.Cmd {
-				return exec.Command(
+				return secureexec.Command(
 					"echo",
 					"MM file1.txt\nA  file3.txt\nAM file2.txt\n?? file4.txt\nUU file5.txt",
 				)
@@ -422,7 +423,7 @@ func TestGitCommandStashDo(t *testing.T) {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"stash", "drop", "stash@{1}"}, args)
 
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 
 	assert.NoError(t, gitCmd.StashDo(1, "drop"))
@@ -435,7 +436,7 @@ func TestGitCommandStashSave(t *testing.T) {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"stash", "save", "A stash message"}, args)
 
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 
 	assert.NoError(t, gitCmd.StashSave("A stash message"))
@@ -448,7 +449,7 @@ func TestGitCommandCommitAmend(t *testing.T) {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"commit", "--amend", "--allow-empty"}, args)
 
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 
 	_, err := gitCmd.PrepareCommitAmendSubProcess().CombinedOutput()
@@ -548,7 +549,7 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 		{
 			"Can't retrieve pushable count",
 			func(string, ...string) *exec.Cmd {
-				return exec.Command("test")
+				return secureexec.Command("test")
 			},
 			func(pushableCount string, pullableCount string) {
 				assert.EqualValues(t, "?", pushableCount)
@@ -559,10 +560,10 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 			"Can't retrieve pullable count",
 			func(cmd string, args ...string) *exec.Cmd {
 				if args[1] == "HEAD..@{u}" {
-					return exec.Command("test")
+					return secureexec.Command("test")
 				}
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(pushableCount string, pullableCount string) {
 				assert.EqualValues(t, "?", pushableCount)
@@ -573,10 +574,10 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 			"Retrieve pullable and pushable count",
 			func(cmd string, args ...string) *exec.Cmd {
 				if args[1] == "HEAD..@{u}" {
-					return exec.Command("echo", "10")
+					return secureexec.Command("echo", "10")
 				}
 
-				return exec.Command("echo", "11")
+				return secureexec.Command("echo", "11")
 			},
 			func(pushableCount string, pullableCount string) {
 				assert.EqualValues(t, "11", pushableCount)
@@ -601,7 +602,7 @@ func TestGitCommandRenameCommit(t *testing.T) {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"commit", "--allow-empty", "--amend", "-m", "test"}, args)
 
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 
 	assert.NoError(t, gitCmd.RenameCommit("test"))
@@ -614,7 +615,7 @@ func TestGitCommandResetToCommit(t *testing.T) {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"reset", "--hard", "78976bc"}, args)
 
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 
 	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", oscommands.RunCommandOptions{}))
@@ -627,7 +628,7 @@ func TestGitCommandNewBranch(t *testing.T) {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"checkout", "-b", "test", "master"}, args)
 
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 
 	assert.NoError(t, gitCmd.NewBranch("test", "master"))
@@ -652,7 +653,7 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"branch", "-d", "test"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -666,7 +667,7 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"branch", "-D", "test"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -690,7 +691,7 @@ func TestGitCommandMerge(t *testing.T) {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"merge", "--no-edit", "test"}, args)
 
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 
 	assert.NoError(t, gitCmd.Merge("test", MergeOpts{}))
@@ -807,7 +808,7 @@ func TestGitCommandCommit(t *testing.T) {
 				assert.EqualValues(t, "bash", cmd)
 				assert.EqualValues(t, []string{"-c", "git commit  -m \"test\""}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(string) (string, error) {
 				return "true", nil
@@ -824,7 +825,7 @@ func TestGitCommandCommit(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"commit", "-m", "test"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(string) (string, error) {
 				return "false", nil
@@ -841,7 +842,7 @@ func TestGitCommandCommit(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"commit", "--no-verify", "-m", "test"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(string) (string, error) {
 				return "false", nil
@@ -858,7 +859,7 @@ func TestGitCommandCommit(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"commit", "-m", "test"}, args)
 
-				return exec.Command("test")
+				return secureexec.Command("test")
 			},
 			func(string) (string, error) {
 				return "false", nil
@@ -897,7 +898,7 @@ func TestGitCommandAmendHead(t *testing.T) {
 				assert.EqualValues(t, "bash", cmd)
 				assert.EqualValues(t, []string{"-c", "git commit --amend --no-edit --allow-empty"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(string) (string, error) {
 				return "true", nil
@@ -913,7 +914,7 @@ func TestGitCommandAmendHead(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"commit", "--amend", "--no-edit", "--allow-empty"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(string) (string, error) {
 				return "false", nil
@@ -929,7 +930,7 @@ func TestGitCommandAmendHead(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"commit", "--amend", "--no-edit", "--allow-empty"}, args)
 
-				return exec.Command("test")
+				return secureexec.Command("test")
 			},
 			func(string) (string, error) {
 				return "false", nil
@@ -975,7 +976,7 @@ func TestGitCommandPush(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--follow-tags"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			false,
 			func(err error) {
@@ -994,7 +995,7 @@ func TestGitCommandPush(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--follow-tags", "--force-with-lease"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			true,
 			func(err error) {
@@ -1013,7 +1014,7 @@ func TestGitCommandPush(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			false,
 			func(err error) {
@@ -1032,7 +1033,7 @@ func TestGitCommandPush(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--force-with-lease"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			true,
 			func(err error) {
@@ -1050,7 +1051,7 @@ func TestGitCommandPush(t *testing.T) {
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--follow-tags"}, args)
-				return exec.Command("test")
+				return secureexec.Command("test")
 			},
 			false,
 			func(err error) {
@@ -1087,7 +1088,7 @@ func TestGitCommandCatFile(t *testing.T) {
 		assert.EqualValues(t, osCmd, cmd)
 		assert.EqualValues(t, []string{"test.txt"}, args)
 
-		return exec.Command("echo", "-n", "test")
+		return secureexec.Command("echo", "-n", "test")
 	}
 
 	o, err := gitCmd.CatFile("test.txt")
@@ -1102,7 +1103,7 @@ func TestGitCommandStageFile(t *testing.T) {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"add", "test.txt"}, args)
 
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 
 	assert.NoError(t, gitCmd.StageFile("test.txt"))
@@ -1124,7 +1125,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"rm", "--cached", "--force", "test.txt"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -1137,7 +1138,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"reset", "HEAD", "test.txt"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -1173,7 +1174,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				return func(cmd string, args ...string) *exec.Cmd {
 					cmdsCalled = append(cmdsCalled, args)
 
-					return exec.Command("test")
+					return secureexec.Command("test")
 				}, &cmdsCalled
 			},
 			func(cmdsCalled *[][]string, err error) {
@@ -1198,7 +1199,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				return func(cmd string, args ...string) *exec.Cmd {
 					cmdsCalled = append(cmdsCalled, args)
 
-					return exec.Command("test")
+					return secureexec.Command("test")
 				}, &cmdsCalled
 			},
 			func(cmdsCalled *[][]string, err error) {
@@ -1221,7 +1222,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				return func(cmd string, args ...string) *exec.Cmd {
 					cmdsCalled = append(cmdsCalled, args)
 
-					return exec.Command("test")
+					return secureexec.Command("test")
 				}, &cmdsCalled
 			},
 			func(cmdsCalled *[][]string, err error) {
@@ -1247,7 +1248,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				return func(cmd string, args ...string) *exec.Cmd {
 					cmdsCalled = append(cmdsCalled, args)
 
-					return exec.Command("echo")
+					return secureexec.Command("echo")
 				}, &cmdsCalled
 			},
 			func(cmdsCalled *[][]string, err error) {
@@ -1273,7 +1274,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				return func(cmd string, args ...string) *exec.Cmd {
 					cmdsCalled = append(cmdsCalled, args)
 
-					return exec.Command("echo")
+					return secureexec.Command("echo")
 				}, &cmdsCalled
 			},
 			func(cmdsCalled *[][]string, err error) {
@@ -1300,7 +1301,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				return func(cmd string, args ...string) *exec.Cmd {
 					cmdsCalled = append(cmdsCalled, args)
 
-					return exec.Command("echo")
+					return secureexec.Command("echo")
 				}, &cmdsCalled
 			},
 			func(cmdsCalled *[][]string, err error) {
@@ -1327,7 +1328,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				return func(cmd string, args ...string) *exec.Cmd {
 					cmdsCalled = append(cmdsCalled, args)
 
-					return exec.Command("echo")
+					return secureexec.Command("echo")
 				}, &cmdsCalled
 			},
 			func(cmdsCalled *[][]string, err error) {
@@ -1354,7 +1355,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 				return func(cmd string, args ...string) *exec.Cmd {
 					cmdsCalled = append(cmdsCalled, args)
 
-					return exec.Command("echo")
+					return secureexec.Command("echo")
 				}, &cmdsCalled
 			},
 			func(cmdsCalled *[][]string, err error) {
@@ -1400,7 +1401,7 @@ func TestGitCommandCheckout(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"checkout", "test"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -1413,7 +1414,7 @@ func TestGitCommandCheckout(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"checkout", "--force", "test"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -1437,7 +1438,7 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--"}, args)
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 	_, err := gitCmd.GetBranchGraph("test")
 	assert.NoError(t, err)
@@ -1448,7 +1449,7 @@ func TestGitCommandGetAllBranchGraph(t *testing.T) {
 	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium"}, args)
-		return exec.Command("echo")
+		return secureexec.Command("echo")
 	}
 	cmdStr := gitCmd.Config.GetUserConfig().Git.AllBranchesLogCmd
 	_, err := gitCmd.OSCommand.RunCommandWithOutput(cmdStr)
@@ -1472,7 +1473,7 @@ func TestGitCommandDiff(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--", "test.txt"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			&models.File{
 				Name:             "test.txt",
@@ -1488,7 +1489,7 @@ func TestGitCommandDiff(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--cached", "--", "test.txt"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			&models.File{
 				Name:             "test.txt",
@@ -1504,7 +1505,7 @@ func TestGitCommandDiff(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=never", "--", "test.txt"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			&models.File{
 				Name:             "test.txt",
@@ -1520,7 +1521,7 @@ func TestGitCommandDiff(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--no-index", "/dev/null", "test.txt"}, args)
 
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			&models.File{
 				Name:             "test.txt",
@@ -1554,7 +1555,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 			"says we are on the master branch if we are",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.Equal(t, "git", cmd)
-				return exec.Command("echo", "master")
+				return secureexec.Command("echo", "master")
 			},
 			func(name string, displayname string, err error) {
 				assert.NoError(t, err)
@@ -1570,10 +1571,10 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 				switch args[0] {
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
-					return exec.Command("test")
+					return secureexec.Command("test")
 				case "branch":
 					assert.EqualValues(t, []string{"branch", "--contains"}, args)
-					return exec.Command("echo", "* master")
+					return secureexec.Command("echo", "* master")
 				}
 
 				return nil
@@ -1592,10 +1593,10 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 				switch args[0] {
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
-					return exec.Command("test")
+					return secureexec.Command("test")
 				case "branch":
 					assert.EqualValues(t, []string{"branch", "--contains"}, args)
-					return exec.Command("echo", "* (HEAD detached at 123abcd)")
+					return secureexec.Command("echo", "* (HEAD detached at 123abcd)")
 				}
 
 				return nil
@@ -1610,7 +1611,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 			"bubbles up error if there is one",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.Equal(t, "git", cmd)
-				return exec.Command("test")
+				return secureexec.Command("test")
 			},
 			func(name string, displayname string, err error) {
 				assert.Error(t, err)
@@ -1648,7 +1649,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 
 				assert.Equal(t, "test", string(content))
 
-				return exec.Command("echo", "done")
+				return secureexec.Command("echo", "done")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -1669,7 +1670,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 
 				assert.Equal(t, "test", string(content))
 
-				return exec.Command("test")
+				return secureexec.Command("test")
 			},
 			func(err error) {
 				assert.Error(t, err)
@@ -2174,7 +2175,7 @@ func TestEditFile(t *testing.T) {
 		{
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
-				return exec.Command("exit", "1")
+				return secureexec.Command("exit", "1")
 			},
 			func(env string) string {
 				return ""
@@ -2190,7 +2191,7 @@ func TestEditFile(t *testing.T) {
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
 				if name == "which" {
-					return exec.Command("exit", "1")
+					return secureexec.Command("exit", "1")
 				}
 
 				assert.EqualValues(t, "nano", name)
@@ -2211,7 +2212,7 @@ func TestEditFile(t *testing.T) {
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
 				if name == "which" {
-					return exec.Command("exit", "1")
+					return secureexec.Command("exit", "1")
 				}
 
 				assert.EqualValues(t, "nano", name)
@@ -2236,7 +2237,7 @@ func TestEditFile(t *testing.T) {
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
 				if name == "which" {
-					return exec.Command("exit", "1")
+					return secureexec.Command("exit", "1")
 				}
 
 				assert.EqualValues(t, "emacs", name)
@@ -2261,7 +2262,7 @@ func TestEditFile(t *testing.T) {
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
 				if name == "which" {
-					return exec.Command("echo")
+					return secureexec.Command("echo")
 				}
 
 				assert.EqualValues(t, "vi", name)
@@ -2282,7 +2283,7 @@ func TestEditFile(t *testing.T) {
 			"file/with space",
 			func(name string, args ...string) *exec.Cmd {
 				if name == "which" {
-					return exec.Command("echo")
+					return secureexec.Command("echo")
 				}
 
 				assert.EqualValues(t, "vi", name)

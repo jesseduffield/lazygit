@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -63,12 +64,12 @@ func TestCreatePullRequest(t *testing.T) {
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
 				if strings.HasPrefix(cmd, "git") {
-					return exec.Command("echo", "git@bitbucket.org:johndoe/social_network.git")
+					return secureexec.Command("echo", "git@bitbucket.org:johndoe/social_network.git")
 				}
 
 				assert.Equal(t, cmd, "open")
 				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1"})
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			test: func(err error) {
 				assert.NoError(t, err)
@@ -83,12 +84,12 @@ func TestCreatePullRequest(t *testing.T) {
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
 				if strings.HasPrefix(cmd, "git") {
-					return exec.Command("echo", "https://my_username@bitbucket.org/johndoe/social_network.git")
+					return secureexec.Command("echo", "https://my_username@bitbucket.org/johndoe/social_network.git")
 				}
 
 				assert.Equal(t, cmd, "open")
 				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events&t=1"})
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			test: func(err error) {
 				assert.NoError(t, err)
@@ -103,12 +104,12 @@ func TestCreatePullRequest(t *testing.T) {
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
 				if strings.HasPrefix(cmd, "git") {
-					return exec.Command("echo", "git@github.com:peter/calculator.git")
+					return secureexec.Command("echo", "git@github.com:peter/calculator.git")
 				}
 
 				assert.Equal(t, cmd, "open")
 				assert.Equal(t, args, []string{"https://github.com/peter/calculator/compare/feature/sum-operation?expand=1"})
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			test: func(err error) {
 				assert.NoError(t, err)
@@ -123,12 +124,12 @@ func TestCreatePullRequest(t *testing.T) {
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
 				if strings.HasPrefix(cmd, "git") {
-					return exec.Command("echo", "git@gitlab.com:peter/calculator.git")
+					return secureexec.Command("echo", "git@gitlab.com:peter/calculator.git")
 				}
 
 				assert.Equal(t, cmd, "open")
 				assert.Equal(t, args, []string{"https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/ui"})
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			test: func(err error) {
 				assert.NoError(t, err)
@@ -141,7 +142,7 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 			remoteUrl: "git@something.com:peter/calculator.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			test: func(err error) {
 				assert.Error(t, err)

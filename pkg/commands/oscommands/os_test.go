@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -70,7 +71,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 		{
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
-				return exec.Command("exit", "1")
+				return secureexec.Command("exit", "1")
 			},
 			func(err error) {
 				assert.Error(t, err)
@@ -81,7 +82,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 			func(name string, arg ...string) *exec.Cmd {
 				assert.Equal(t, "open", name)
 				assert.Equal(t, []string{"test"}, arg)
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -92,7 +93,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 			func(name string, arg ...string) *exec.Cmd {
 				assert.Equal(t, "open", name)
 				assert.Equal(t, []string{"filename with spaces"}, arg)
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
