@@ -15,12 +15,11 @@ func NewDummyGitCommand() *GitCommand {
 // NewDummyGitCommandWithOSCommand creates a new dummy GitCommand for testing
 func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
 	return &GitCommand{
-		Log:                utils.NewDummyLog(),
-		OSCommand:          osCommand,
-		Tr:                 i18n.NewTranslationSet(utils.NewDummyLog()),
-		Config:             config.NewDummyAppConfig(),
-		getGlobalGitConfig: func(string) (string, error) { return "", nil },
-		getLocalGitConfig:  func(string) (string, error) { return "", nil },
-		removeFile:         func(string) error { return nil },
+		Log:               utils.NewDummyLog(),
+		OSCommand:         osCommand,
+		Tr:                i18n.NewTranslationSet(utils.NewDummyLog()),
+		Config:            config.NewDummyAppConfig(),
+		getGitConfigValue: func(string) (string, error) { return "", nil },
+		removeFile:        func(string) error { return nil },
 	}
 }

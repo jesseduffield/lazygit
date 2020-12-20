@@ -162,13 +162,9 @@ func TestCreatePullRequest(t *testing.T) {
 				"invalid.work.com":   "noservice:invalid.work.com",
 				"noservice.work.com": "noservice.work.com",
 			}
-			gitCommand.getLocalGitConfig = func(path string) (string, error) {
+			gitCommand.getGitConfigValue = func(path string) (string, error) {
 				assert.Equal(t, path, "remote.origin.url")
 				return s.remoteUrl, nil
-			}
-			gitCommand.getGlobalGitConfig = func(path string) (string, error) {
-				assert.Equal(t, path, "remote.origin.url")
-				return "", nil
 			}
 			dummyPullRequest := NewPullRequest(gitCommand)
 			s.test(dummyPullRequest.Create(s.branch))

@@ -16,7 +16,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
-	gitconfig "github.com/tcnksm/go-gitconfig"
 )
 
 // this takes something like:
@@ -32,8 +31,7 @@ type GitCommand struct {
 	Repo                 *gogit.Repository
 	Tr                   *i18n.TranslationSet
 	Config               config.AppConfigurer
-	getGlobalGitConfig   func(string) (string, error)
-	getLocalGitConfig    func(string) (string, error)
+	getGitConfigValue    func(string) (string, error)
 	removeFile           func(string) error
 	DotGitDir            string
 	onSuccessfulContinue func() error
@@ -74,16 +72,15 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 	}
 
 	gitCommand := &GitCommand{
-		Log:                log,
-		OSCommand:          osCommand,
-		Tr:                 tr,
-		Repo:               repo,
-		Config:             config,
-		getGlobalGitConfig: gitconfig.Global,
-		getLocalGitConfig:  gitconfig.Local,
-		removeFile:         os.RemoveAll,
-		DotGitDir:          dotGitDir,
-		PushToCurrent:      pushToCurrent,
+		Log:               log,
+		OSCommand:         osCommand,
+		Tr:                tr,
+		Repo:              repo,
+		Config:            config,
+		getGitConfigValue: getGitConfigValue,
+		removeFile:        os.RemoveAll,
+		DotGitDir:         dotGitDir,
+		PushToCurrent:     pushToCurrent,
 	}
 
 	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
