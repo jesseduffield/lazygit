@@ -6,6 +6,7 @@ require (
 	github.com/OpenPeeDeeP/xdg v1.0.0
 	github.com/atotto/clipboard v0.1.2
 	github.com/aybabtme/humanlog v0.4.1
+	github.com/cli/safeexec v1.0.0
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
 	github.com/fatih/color v1.9.0

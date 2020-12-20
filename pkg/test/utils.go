@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/mgutz/str"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +28,7 @@ func (i *CommandSwapper) SwapCommand(t *testing.T, cmd string, args []string) *e
 	}
 
 	splitCmd = str.ToArgv(i.Replace)
-	return exec.Command(splitCmd[0], splitCmd[1:]...)
+	return secureexec.Command(splitCmd[0], splitCmd[1:]...)
 }
 
 // CreateMockCommand creates a command function that will verify its receiving the right sequence of commands from lazygit
