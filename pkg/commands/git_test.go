@@ -700,44 +700,23 @@ func TestGitCommandMerge(t *testing.T) {
 // TestGitCommandUsingGpg is a function.
 func TestGitCommandUsingGpg(t *testing.T) {
 	type scenario struct {
-		testName           string
-		getLocalGitConfig  func(string) (string, error)
-		getGlobalGitConfig func(string) (string, error)
-		test               func(bool)
+		testName          string
+		getGitConfigValue func(string) (string, error)
+		test              func(bool)
 	}
 
 	scenarios := []scenario{
 		{
 			"Option global and local config commit.gpgsign is not set",
-			func(string) (string, error) {
-				return "", nil
-			},
-			func(string) (string, error) {
-				return "", nil
-			},
+			func(string) (string, error) { return "", nil },
 			func(gpgEnabled bool) {
 				assert.False(t, gpgEnabled)
-			},
-		},
-		{
-			"Option global config commit.gpgsign is not set, fallback on local config",
-			func(string) (string, error) {
-				return "", nil
-			},
-			func(string) (string, error) {
-				return "true", nil
-			},
-			func(gpgEnabled bool) {
-				assert.True(t, gpgEnabled)
 			},
 		},
 		{
 			"Option commit.gpgsign is true",
 			func(string) (string, error) {
 				return "True", nil
-			},
-			func(string) (string, error) {
-				return "", nil
 			},
 			func(gpgEnabled bool) {
 				assert.True(t, gpgEnabled)
@@ -748,9 +727,6 @@ func TestGitCommandUsingGpg(t *testing.T) {
 			func(string) (string, error) {
 				return "ON", nil
 			},
-			func(string) (string, error) {
-				return "", nil
-			},
 			func(gpgEnabled bool) {
 				assert.True(t, gpgEnabled)
 			},
@@ -759,9 +735,6 @@ func TestGitCommandUsingGpg(t *testing.T) {
 			"Option commit.gpgsign is yes",
 			func(string) (string, error) {
 				return "YeS", nil
-			},
-			func(string) (string, error) {
-				return "", nil
 			},
 			func(gpgEnabled bool) {
 				assert.True(t, gpgEnabled)
@@ -772,9 +745,6 @@ func TestGitCommandUsingGpg(t *testing.T) {
 			func(string) (string, error) {
 				return "1", nil
 			},
-			func(string) (string, error) {
-				return "", nil
-			},
 			func(gpgEnabled bool) {
 				assert.True(t, gpgEnabled)
 			},
@@ -784,8 +754,7 @@ func TestGitCommandUsingGpg(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
-			gitCmd.getLocalGitConfig = s.getLocalGitConfig
+			gitCmd.getGitConfigValue = s.getGitConfigValue
 			s.test(gitCmd.usingGpg())
 		})
 	}
@@ -794,11 +763,11 @@ func TestGitCommandUsingGpg(t *testing.T) {
 // TestGitCommandCommit is a function.
 func TestGitCommandCommit(t *testing.T) {
 	type scenario struct {
-		testName           string
-		command            func(string, ...string) *exec.Cmd
-		getGlobalGitConfig func(string) (string, error)
-		test               func(*exec.Cmd, error)
-		flags              string
+		testName          string
+		command           func(string, ...string) *exec.Cmd
+		getGitConfigValue func(string) (string, error)
+		test              func(*exec.Cmd, error)
+		flags             string
 	}
 
 	scenarios := []scenario{
@@ -875,7 +844,7 @@ func TestGitCommandCommit(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			gitCmd.getGitConfigValue = s.getGitConfigValue
 			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.Commit("test", s.flags))
 		})
@@ -885,10 +854,10 @@ func TestGitCommandCommit(t *testing.T) {
 // TestGitCommandAmendHead is a function.
 func TestGitCommandAmendHead(t *testing.T) {
 	type scenario struct {
-		testName           string
-		command            func(string, ...string) *exec.Cmd
-		getGlobalGitConfig func(string) (string, error)
-		test               func(*exec.Cmd, error)
+		testName          string
+		command           func(string, ...string) *exec.Cmd
+		getGitConfigValue func(string) (string, error)
+		test              func(*exec.Cmd, error)
 	}
 
 	scenarios := []scenario{
@@ -945,7 +914,7 @@ func TestGitCommandAmendHead(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			gitCmd.getGitConfigValue = s.getGitConfigValue
 			gitCmd.OSCommand.Command = s.command
 			s.test(gitCmd.AmendHead())
 		})
@@ -955,20 +924,16 @@ func TestGitCommandAmendHead(t *testing.T) {
 // TestGitCommandPush is a function.
 func TestGitCommandPush(t *testing.T) {
 	type scenario struct {
-		testName           string
-		getLocalGitConfig  func(string) (string, error)
-		getGlobalGitConfig func(string) (string, error)
-		command            func(string, ...string) *exec.Cmd
-		forcePush          bool
-		test               func(error)
+		testName          string
+		getGitConfigValue func(string) (string, error)
+		command           func(string, ...string) *exec.Cmd
+		forcePush         bool
+		test              func(error)
 	}
 
 	scenarios := []scenario{
 		{
 			"Push with force disabled, follow-tags on",
-			func(string) (string, error) {
-				return "", nil
-			},
 			func(string) (string, error) {
 				return "", nil
 			},
@@ -988,9 +953,6 @@ func TestGitCommandPush(t *testing.T) {
 			func(string) (string, error) {
 				return "", nil
 			},
-			func(string) (string, error) {
-				return "", nil
-			},
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
 				assert.EqualValues(t, []string{"push", "--follow-tags", "--force-with-lease"}, args)
@@ -1003,12 +965,9 @@ func TestGitCommandPush(t *testing.T) {
 			},
 		},
 		{
-			"Push with force disabled, follow-tags off locally",
+			"Push with force disabled, follow-tags off",
 			func(string) (string, error) {
 				return "false", nil
-			},
-			func(string) (string, error) {
-				return "", nil
 			},
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
@@ -1022,29 +981,7 @@ func TestGitCommandPush(t *testing.T) {
 			},
 		},
 		{
-			"Push with force enabled, follow-tags off globally",
-			func(string) (string, error) {
-				return "", nil
-			},
-			func(string) (string, error) {
-				return "false", nil
-			},
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "--force-with-lease"}, args)
-
-				return secureexec.Command("echo")
-			},
-			true,
-			func(err error) {
-				assert.NoError(t, err)
-			},
-		},
-		{
 			"Push with an error occurring, follow-tags on",
-			func(string) (string, error) {
-				return "", nil
-			},
 			func(string) (string, error) {
 				return "", nil
 			},
@@ -1064,8 +1001,7 @@ func TestGitCommandPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
-			gitCmd.getLocalGitConfig = s.getLocalGitConfig
-			gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+			gitCmd.getGitConfigValue = s.getGitConfigValue
 			err := gitCmd.Push("test", s.forcePush, "", "", func(passOrUname string) string {
 				return "\n"
 			})
@@ -1790,7 +1726,7 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 	type scenario struct {
 		testName          string
-		getLocalGitConfig func(string) (string, error)
+		getGitConfigValue func(string) (string, error)
 		commits           []*models.Commit
 		commitIndex       int
 		fileName          string
@@ -1871,7 +1807,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.Command = s.command
-			gitCmd.getLocalGitConfig = s.getLocalGitConfig
+			gitCmd.getGitConfigValue = s.getGitConfigValue
 			s.test(gitCmd.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
 		})
 	}
@@ -2164,11 +2100,11 @@ func TestFindDotGitDir(t *testing.T) {
 // TestEditFile is a function.
 func TestEditFile(t *testing.T) {
 	type scenario struct {
-		filename           string
-		command            func(string, ...string) *exec.Cmd
-		getenv             func(string) string
-		getGlobalGitConfig func(string) (string, error)
-		test               func(*exec.Cmd, error)
+		filename          string
+		command           func(string, ...string) *exec.Cmd
+		getenv            func(string) string
+		getGitConfigValue func(string) (string, error)
+		test              func(*exec.Cmd, error)
 	}
 
 	scenarios := []scenario{
@@ -2307,7 +2243,7 @@ func TestEditFile(t *testing.T) {
 		gitCmd := NewDummyGitCommand()
 		gitCmd.OSCommand.Command = s.command
 		gitCmd.OSCommand.Getenv = s.getenv
-		gitCmd.getGlobalGitConfig = s.getGlobalGitConfig
+		gitCmd.getGitConfigValue = s.getGitConfigValue
 		s.test(gitCmd.EditFile(s.filename))
 	}
 }

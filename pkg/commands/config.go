@@ -43,13 +43,6 @@ func (c *GitCommand) colorArg() string {
 }
 
 func (c *GitCommand) GetConfigValue(key string) string {
-	value, _ := c.getLocalGitConfig(key)
-	// we get an error if the key doesn't exist which we don't care about
-
-	if value != "" {
-		return value
-	}
-
-	value, _ = c.getGlobalGitConfig(key)
-	return value
+	output, _ := c.getGitConfigValue(key)
+	return output
 }

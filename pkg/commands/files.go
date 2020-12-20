@@ -268,7 +268,7 @@ func (c *GitCommand) ResetAndClean() error {
 // EditFile opens a file in a subprocess using whatever editor is available,
 // falling back to core.editor, VISUAL, EDITOR, then vi
 func (c *GitCommand) EditFile(filename string) (*exec.Cmd, error) {
-	editor, _ := c.getGlobalGitConfig("core.editor")
+	editor := c.GetConfigValue("core.editor")
 
 	if editor == "" {
 		editor = c.OSCommand.Getenv("VISUAL")
