@@ -36,7 +36,7 @@ import (
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 func getGitConfigValue(key string) (string, error) {
-	gitArgs := append([]string{"config", "--get", "--null", key})
+	gitArgs := []string{"config", "--get", "--null", key}
 	var stdout bytes.Buffer
 	cmd := secureexec.Command("git", gitArgs...)
 	cmd.Stdout = &stdout
