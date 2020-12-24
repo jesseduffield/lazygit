@@ -6,8 +6,8 @@ on:
       - 'v*'
 
 jobs:
-  cd:
-    runs-on: ubuntu-20.04
+  goreleaser:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -21,11 +21,17 @@ jobs:
         uses: goreleaser/goreleaser-action@v1
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
-      - name: Bump Homebrew
+  homebrew:
+    runs-on: macos-latest
+    steps:
+      - name: Bump Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
         with:
           token: ${{secrets.GITHUB_API_TOKEN}}
           formula: lazygit
+  ppa:
+    runs-on: ubuntu-20.04
+    steps:
       - name: Checkout PPA repo
         uses: actions/checkout@v2
         with:
