@@ -59,12 +59,14 @@ includes_Darwin='
 #include <stdint.h>
 #include <sys/attr.h>
 #include <sys/clonefile.h>
+#include <sys/kern_control.h>
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/ptrace.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/sockio.h>
+#include <sys/sys_domain.h>
 #include <sys/sysctl.h>
 #include <sys/mman.h>
 #include <sys/mount.h>
@@ -94,6 +96,7 @@ includes_DragonFly='
 #include <sys/ioctl.h>
 #include <net/bpf.h>
 #include <net/if.h>
+#include <net/if_clone.h>
 #include <net/if_types.h>
 #include <net/route.h>
 #include <netinet/in.h>
@@ -201,6 +204,7 @@ struct ltchars {
 #include <linux/devlink.h>
 #include <linux/dm-ioctl.h>
 #include <linux/errqueue.h>
+#include <linux/ethtool_netlink.h>
 #include <linux/falloc.h>
 #include <linux/fanotify.h>
 #include <linux/filter.h>
@@ -222,6 +226,7 @@ struct ltchars {
 #include <linux/kexec.h>
 #include <linux/keyctl.h>
 #include <linux/loop.h>
+#include <linux/lwtunnel.h>
 #include <linux/magic.h>
 #include <linux/memfd.h>
 #include <linux/module.h>
@@ -230,6 +235,7 @@ struct ltchars {
 #include <linux/net_namespace.h>
 #include <linux/nsfs.h>
 #include <linux/perf_event.h>
+#include <linux/pps.h>
 #include <linux/ptrace.h>
 #include <linux/random.h>
 #include <linux/reboot.h>
@@ -372,6 +378,7 @@ includes_SunOS='
 #include <sys/socket.h>
 #include <sys/sockio.h>
 #include <sys/stat.h>
+#include <sys/stream.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
@@ -496,6 +503,7 @@ ccflags="$@"
 		$2 !~ "NLA_TYPE_MASK" &&
 		$2 !~ /^RTC_VL_(ACCURACY|BACKUP|DATA)/ &&
 		$2 ~ /^(NETLINK|NLM|NLMSG|NLA|IFA|IFAN|RT|RTC|RTCF|RTN|RTPROT|RTNH|ARPHRD|ETH_P|NETNSA)_/ ||
+		$2 ~ /^FIORDCHK$/ ||
 		$2 ~ /^SIOC/ ||
 		$2 ~ /^TIOC/ ||
 		$2 ~ /^TCGET/ ||
@@ -516,6 +524,7 @@ ccflags="$@"
 		$2 ~ /^CAP_/ ||
 		$2 ~ /^CP_/ ||
 		$2 ~ /^CPUSTATES$/ ||
+		$2 ~ /^CTLIOCGINFO$/ ||
 		$2 ~ /^ALG_/ ||
 		$2 ~ /^FI(CLONE|DEDUPERANGE)/ ||
 		$2 ~ /^FS_(POLICY_FLAGS|KEY_DESC|ENCRYPTION_MODE|[A-Z0-9_]+_KEY_SIZE)/ ||
@@ -553,7 +562,10 @@ ccflags="$@"
 		$2 ~ /^(HDIO|WIN|SMART)_/ ||
 		$2 ~ /^CRYPTO_/ ||
 		$2 ~ /^TIPC_/ ||
+		$2 !~  "DEVLINK_RELOAD_LIMITS_VALID_MASK" &&
 		$2 ~ /^DEVLINK_/ ||
+		$2 ~ /^ETHTOOL_/ ||
+		$2 ~ /^LWTUNNEL_IP/ ||
 		$2 !~ "WMESGLEN" &&
 		$2 ~ /^W[A-Z0-9]+$/ ||
 		$2 ~/^PPPIOC/ ||

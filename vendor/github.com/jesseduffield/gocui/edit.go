@@ -33,10 +33,16 @@ var DefaultEditor Editor = EditorFunc(simpleEditor)
 // simpleEditor is used as the default gocui editor.
 func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 	switch {
+	case ch != 0 && mod == 0:
+		v.EditWrite(ch)
+	case key == KeySpace:
+		v.EditWrite(' ')
 	case key == KeyBackspace || key == KeyBackspace2:
 		v.EditDelete(true)
 	case key == KeyDelete:
 		v.EditDelete(false)
+	case key == KeyInsert:
+		v.Overwrite = !v.Overwrite
 	case key == KeyArrowDown:
 		v.MoveCursor(0, 1, false)
 	case key == KeyArrowUp:
@@ -69,7 +75,7 @@ func (v *View) EditWrite(ch rune) {
 	v.moveCursor(w, 0, true)
 }
 
-// EditDeleteToStartOfLine is the equivalent of pressing ctrl+U in your terminal, it deletes to the end of the line. Or if you are already at the start of the line, it deletes the newline character
+// EditDeleteToStartOfLine is the equivalent of pressing ctrl+U in your terminal, it deletes to the start of the line. Or if you are already at the start of the line, it deletes the newline character
 func (v *View) EditDeleteToStartOfLine() {
 	x, _ := v.Cursor()
 	if x == 0 {
@@ -343,31 +349,22 @@ func (v *View) writeRune(x, y int, ch rune) error {
 	}
 
 	olen := len(v.lines[y])
-	w := runewidth.RuneWidth(ch)
 
 	var s []cell
 	if x >= len(v.lines[y]) {
-		s = make([]cell, x-len(v.lines[y])+w)
+		s = make([]cell, x-len(v.lines[y])+1)
 	} else if !v.Overwrite {
-		s = make([]cell, w)
+		s = make([]cell, 1)
 	}
 	v.lines[y] = append(v.lines[y], s...)
 
-	if !v.Overwrite || (v.Overwrite && x >= olen-w) {
-		copy(v.lines[y][x+w:], v.lines[y][x:])
+	if !v.Overwrite || (v.Overwrite && x >= olen-1) {
+		copy(v.lines[y][x+1:], v.lines[y][x:])
 	}
 	v.lines[y][x] = cell{
 		fgColor: v.FgColor,
 		bgColor: v.BgColor,
 		chr:     ch,
-	}
-
-	for i := 1; i < w; i++ {
-		v.lines[y][x+i] = cell{
-			fgColor: v.FgColor,
-			bgColor: v.BgColor,
-			chr:     '\x00',
-		}
 	}
 
 	return nil
@@ -393,7 +390,7 @@ func (v *View) deleteRune(x, y int) (int, error) {
 		w := runewidth.RuneWidth(v.lines[y][i].chr)
 		tw += w
 		if tw > x {
-			v.lines[y] = append(v.lines[y][:i], v.lines[y][i+w:]...)
+			v.lines[y] = append(v.lines[y][:i], v.lines[y][i+1:]...)
 			return w, nil
 		}
 
