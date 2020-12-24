@@ -38,6 +38,8 @@ jobs:
           repository: dawidd6/lazygit-debian
           token: ${{secrets.GITHUB_API_TOKEN}}
           fetch-depth: 0
+      - name: Setup git
+        uses: dawidd6/action-git-user-config@v1
       - name: Update PPA repo
         run: |
           version="$(echo "$GITHUB_REF" | sed 's@refs/tags/v@@')"
