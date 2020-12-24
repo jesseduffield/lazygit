@@ -416,7 +416,9 @@ const (
 	SYS_FSPICK                       = 4433
 	SYS_PIDFD_OPEN                   = 4434
 	SYS_CLONE3                       = 4435
+	SYS_CLOSE_RANGE                  = 4436
 	SYS_OPENAT2                      = 4437
 	SYS_PIDFD_GETFD                  = 4438
 	SYS_FACCESSAT2                   = 4439
+	SYS_PROCESS_MADVISE              = 4440
 )
