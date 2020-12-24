@@ -11,6 +11,7 @@ require (
 	github.com/creack/pty v1.1.11
 	github.com/fatih/color v1.9.0
 	github.com/fsnotify/fsnotify v1.4.7
+	github.com/gdamore/tcell/v2 v2.1.0 // indirect
 	github.com/go-errors/errors v1.1.1
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
@@ -25,10 +26,10 @@ require (
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mattn/go-runewidth v0.0.10
 	github.com/mgutz/str v1.2.0
-	github.com/nsf/termbox-go v0.0.0-20210114135735-d04385b850e8 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
@@ -38,7 +39,8 @@ require (
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
 	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
-	golang.org/x/sys v0.0.0-20201005172224-997123666555 // indirect
+	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/text v0.3.5 // indirect
 )
 
 replace github.com/go-git/go-git/v5 => github.com/jesseduffield/go-git/v5 v5.1.1

@@ -1357,13 +1357,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleLBLMouseDown,
 		},
-		{
-			ViewName: "main",
-			Contexts: []string{MAIN_PATCH_BUILDING_CONTEXT_KEY, MAIN_STAGING_CONTEXT_KEY},
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModMotion,
-			Handler:  gui.handleMouseDrag,
-		},
+		// TODO: see how to get mouse dragging in tcell
+		// {
+		// 	ViewName: "main",
+		// 	Contexts: []string{MAIN_PATCH_BUILDING_CONTEXT_KEY, MAIN_STAGING_CONTEXT_KEY},
+		// 	Key:      gocui.MouseLeft,
+		// 	Modifier: gocui.ModMotion,
+		// 	Handler:  gui.handleMouseDrag,
+		// },
 		{
 			ViewName: "main",
 			Contexts: []string{MAIN_PATCH_BUILDING_CONTEXT_KEY, MAIN_STAGING_CONTEXT_KEY},

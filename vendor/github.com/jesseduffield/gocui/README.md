@@ -1,8 +1,13 @@
 # GOCUI - Go Console User Interface
-
-[![GoDoc](https://godoc.org/github.com/jroimartin/gocui?status.svg)](https://godoc.org/github.com/jroimartin/gocui)
+[![CircleCI](https://circleci.com/gh/awesome-gocui/gocui/tree/master.svg?style=svg)](https://circleci.com/gh/awesome-gocui/gocui/tree/master)
+[![CodeCov](https://codecov.io/gh/awesome-gocui/gocui/branch/master/graph/badge.svg)](https://codecov.io/gh/awesome-gocui/gocui)
+[![Go Report Card](https://goreportcard.com/badge/github.com/awesome-gocui/gocui)](https://goreportcard.com/report/github.com/awesome-gocui/gocui)
+[![GolangCI](https://golangci.com/badges/github.com/awesome-gocui/gocui.svg)](https://golangci.com/badges/github.com/awesome-gocui/gocui.svg)
+[![GoDoc](https://godoc.org/github.com/awesome-gocui/gocui?status.svg)](https://godoc.org/github.com/awesome-gocui/gocui)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/awesome-gocui/gocui.svg)
 
 Minimalist Go package aimed at creating Console User Interfaces.
+A community fork based on the amazing work of [jroimartin](https://github.com/jroimartin/gocui)
 
 ## Features
 
@@ -13,15 +18,30 @@ Minimalist Go package aimed at creating Console User Interfaces.
 * Global and view-level keybindings.
 * Mouse support.
 * Colored text.
-* Customizable edition mode.
+* Customizable editing mode.
 * Easy to build reusable widgets, complex layouts...
+
+## About fork
+
+This fork has many improvements over the original work from [jroimartin](https://github.com/jroimartin/gocui).
+
+* Written ontop of TCell
+* Better wide character support
+* Support for 1 Line height views
+* Better support for running in docker container
+* Customize frame colors
+* Improved code comments and quality
+* Many small improvements
+* Change Visibility of views
+
+For information about this org see: [awesome-gocui/about](https://github.com/awesome-gocui/about).
 
 ## Installation
 
 Execute:
 
 ```
-$ go get github.com/jroimartin/gocui
+$ go get github.com/awesome-gocui/gocui
 ```
 
 ## Documentation
@@ -29,13 +49,14 @@ $ go get github.com/jroimartin/gocui
 Execute:
 
 ```
-$ go doc github.com/jroimartin/gocui
+$ go doc github.com/awesome-gocui/gocui
 ```
 
-Or visit [godoc.org](https://godoc.org/github.com/jroimartin/gocui) to read it
+Or visit [godoc.org](https://godoc.org/github.com/awesome-gocui/gocui) to read it
 online.
 
 ## Example
+See the [_example](./_example/) folder for more examples
 
 ```go
 package main
@@ -44,11 +65,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 )
 
 func main() {
-	g, err := gocui.NewGui(gocui.OutputNormal)
+	g, err := gocui.NewGui(gocui.OutputNormal, true)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -60,19 +81,25 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+	if err := g.MainLoop(); err != nil && !gocui.IsQuit(err) {
 		log.Panicln(err)
 	}
 }
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	if v, err := g.SetView("hello", maxX/2-7, maxY/2, maxX/2+7, maxY/2+2); err != nil {
-		if err != gocui.ErrUnknownView {
+	if v, err := g.SetView("hello", maxX/2-7, maxY/2, maxX/2+7, maxY/2+2, 0); err != nil {
+		if !gocui.IsUnknownView(err) {
 			return err
 		}
+
+		if _, err := g.SetCurrentView("hello"); err != nil {
+			return err
+		}
+
 		fmt.Fprintln(v, "Hello world!")
 	}
+
 	return nil
 }
 
@@ -106,5 +133,7 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 * [fac](https://github.com/mkchoi212/fac): git merge conflict resolver
 * [jsonui](https://github.com/gulyasm/jsonui): Interactive JSON explorer for your terminal.
 * [cointop](https://github.com/miguelmota/cointop): Interactive terminal based UI application for tracking cryptocurrencies.
+* [lazygit](https://github.com/jesseduffield/lazygit): simple terminal UI for git commands.
+* [lazydocker](https://github.com/jesseduffield/lazydocker): The lazier way to manage everything docker.
 
 Note: if your project is not listed here, let us know! :)
