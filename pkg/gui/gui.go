@@ -495,7 +495,7 @@ func (gui *Gui) Run() error {
 		go utils.Safe(gui.startBackgroundFetch)
 	}
 
-	gui.goEvery(time.Second*10, gui.stopChan, gui.refreshFilesAndSubmodules)
+	gui.goEvery(time.Second*time.Duration(userConfig.Refresher.RefreshInterval), gui.stopChan, gui.refreshFilesAndSubmodules)
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
@@ -643,8 +643,9 @@ func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function fun
 func (gui *Gui) startBackgroundFetch() {
 	gui.waitForIntro.Wait()
 	isNew := gui.Config.GetIsNewRepo()
+	userConfig := gui.Config.GetUserConfig()
 	if !isNew {
-		time.After(60 * time.Second)
+		time.After(time.Duration(userConfig.Refresher.FetchInterval) * time.Second)
 	}
 	err := gui.fetch(false)
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
@@ -653,7 +654,7 @@ func (gui *Gui) startBackgroundFetch() {
 			prompt: gui.Tr.NoAutomaticGitFetchBody,
 		})
 	} else {
-		gui.goEvery(time.Second*60, gui.stopChan, func() error {
+		gui.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), gui.stopChan, func() error {
 			err := gui.fetch(false)
 			return err
 		})

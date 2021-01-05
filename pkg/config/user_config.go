@@ -4,6 +4,7 @@ type UserConfig struct {
 	Gui                  GuiConfig        `yaml:"gui"`
 	Git                  GitConfig        `yaml:"git"`
 	Update               UpdateConfig     `yaml:"update"`
+	Refresher            RefresherConfig  `yaml:"refresher"`
 	Reporting            string           `yaml:"reporting"`
 	SplashUpdatesIndex   int              `yaml:"splashUpdatesIndex"`
 	ConfirmOnQuit        bool             `yaml:"confirmOnQuit"`
@@ -15,6 +16,11 @@ type UserConfig struct {
 	CustomCommands       []CustomCommand   `yaml:"customCommands"`
 	Services             map[string]string `yaml:"services"`
 	NotARepository       string            `yaml:"notARepository"`
+}
+
+type RefresherConfig struct {
+	RefreshInterval int `yaml:"refreshInterval"`
+	FetchInterval   int `yaml:"fetchInterval"`
 }
 
 type GuiConfig struct {
@@ -305,6 +311,10 @@ func GetDefaultConfig() *UserConfig {
 			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing: false,
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
+		},
+		Refresher: RefresherConfig{
+			RefreshInterval: 10,
+			FetchInterval:   60,
 		},
 		Update: UpdateConfig{
 			Method: "prompt",
