@@ -121,6 +121,8 @@ const (
 	KeyCtrlSlash      Key = 0x1F
 	KeyCtrlUnderscore Key = 0x1F
 	KeySpace          Key = 0x20
+	KeyCtrlArrowRight Key = 0x30
+	KeyCtrlArrowLeft  Key = 0x31
 	KeyBackspace2     Key = 0x7F
 	KeyCtrl8          Key = 0x7F
 )

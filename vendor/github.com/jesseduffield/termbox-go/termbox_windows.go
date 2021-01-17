@@ -726,9 +726,17 @@ func key_event_record_to_event(r *key_event_record) (Event, bool) {
 		case vk_arrow_down:
 			e.Key = KeyArrowDown
 		case vk_arrow_left:
-			e.Key = KeyArrowLeft
+			if ctrlpressed {
+				e.Key = KeyCtrlArrowLeft
+			} else {
+				e.Key = KeyArrowLeft
+			}
 		case vk_arrow_right:
-			e.Key = KeyArrowRight
+			if ctrlpressed {
+				e.Key = KeyCtrlArrowRight
+			} else {
+				e.Key = KeyArrowRight
+			}
 		case vk_backspace:
 			if ctrlpressed {
 				e.Key = KeyBackspace2

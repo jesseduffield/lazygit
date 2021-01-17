@@ -25,6 +25,10 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		v.MoveCursor(-1, 0, false)
 	case key == gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
+	case key == gocui.KeyCtrlArrowLeft:
+		v.MoveCursorPrevWord()
+	case key == gocui.KeyCtrlArrowRight:
+		v.MoveCursorNextWord()
 	case key == newlineKey:
 		v.EditNewLine()
 	case key == gocui.KeySpace:
@@ -33,9 +37,9 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		v.Overwrite = !v.Overwrite
 	case key == gocui.KeyCtrlU:
 		v.EditDeleteToStartOfLine()
-	case key == gocui.KeyCtrlA:
+	case key == gocui.KeyCtrlA || key == gocui.KeyHome:
 		v.EditGotoToStartOfLine()
-	case key == gocui.KeyCtrlE:
+	case key == gocui.KeyCtrlE || key == gocui.KeyEnd:
 		v.EditGotoToEndOfLine()
 	default:
 		v.EditWrite(ch)
@@ -58,15 +62,19 @@ func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 		v.MoveCursor(-1, 0, false)
 	case key == gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
+	case key == gocui.KeyCtrlArrowLeft:
+		v.MoveCursorPrevWord()
+	case key == gocui.KeyCtrlArrowRight:
+		v.MoveCursorNextWord()
 	case key == gocui.KeySpace:
 		v.EditWrite(' ')
 	case key == gocui.KeyInsert:
 		v.Overwrite = !v.Overwrite
 	case key == gocui.KeyCtrlU:
 		v.EditDeleteToStartOfLine()
-	case key == gocui.KeyCtrlA:
+	case key == gocui.KeyCtrlA || key == gocui.KeyHome:
 		v.EditGotoToStartOfLine()
-	case key == gocui.KeyCtrlE:
+	case key == gocui.KeyCtrlE || key == gocui.KeyEnd:
 		v.EditGotoToEndOfLine()
 	default:
 		v.EditWrite(ch)

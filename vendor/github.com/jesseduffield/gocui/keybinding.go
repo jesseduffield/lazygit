@@ -155,6 +155,8 @@ const (
 	KeyCtrlUnderscore     = Key(termbox.KeyCtrlUnderscore)
 	KeySpace              = Key(termbox.KeySpace)
 	KeyBackspace2         = Key(termbox.KeyBackspace2)
+	KeyCtrlArrowRight     = Key(termbox.KeyCtrlArrowRight)
+	KeyCtrlArrowLeft      = Key(termbox.KeyCtrlArrowLeft)
 	KeyCtrl8              = Key(termbox.KeyCtrl8)
 )
 

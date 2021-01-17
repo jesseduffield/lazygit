@@ -45,6 +45,10 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 		v.MoveCursor(-1, 0, false)
 	case key == KeyArrowRight:
 		v.MoveCursor(1, 0, false)
+	case key == KeyCtrlArrowLeft:
+		v.MoveCursorPrevWord()
+	case key == KeyCtrlArrowRight:
+		v.MoveCursorNextWord()
 	case key == KeyTab:
 		v.EditNewLine()
 	case key == KeySpace:
@@ -53,9 +57,9 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 		v.Overwrite = !v.Overwrite
 	case key == KeyCtrlU:
 		v.EditDeleteToStartOfLine()
-	case key == KeyCtrlA:
+	case key == KeyCtrlA || key == KeyHome:
 		v.EditGotoToStartOfLine()
-	case key == KeyCtrlE:
+	case key == KeyCtrlE || key == KeyEnd:
 		v.EditGotoToEndOfLine()
 	default:
 		v.EditWrite(ch)
@@ -67,6 +71,86 @@ func (v *View) EditWrite(ch rune) {
 	w := runewidth.RuneWidth(ch)
 	v.writeRune(v.cx, v.cy, ch)
 	v.moveCursor(w, 0, true)
+}
+
+func (v *View) GetRuneUnderCursor() rune {
+	x, y := v.cx+v.ox, v.cy+v.oy
+	line := v.viewLines[y].line
+	if x == len(line) {
+		if y == len(v.viewLines) - 1 {
+			return 0
+		}
+		return '\n'
+	}
+	return line[x].chr
+}
+
+func (v *View) MoveCursorToNextWhitespace(back bool) {
+	for {
+		c := v.GetRuneUnderCursor()
+		if c == 0 {
+			return
+		}
+		if c == ' ' || c == '\t' || c == '\n' {
+			return
+		}
+
+		x, y := v.Cursor()
+		if back {
+			if x == 0 && y == 0 {
+				return
+			}
+			v.MoveCursor(-1, 0, false)
+		} else {
+			v.MoveCursor(1, 0, false)
+		}
+	}
+}
+
+func (v *View) MoveCursorToNextNonWhitespace(back bool) {
+	for {
+		c := v.GetRuneUnderCursor()
+		if c == 0 {
+			return
+		}
+		if c != ' ' && c != '\t' && c != '\n' {
+			return
+		}
+
+		x, y := v.Cursor()
+		if back {
+			if x == 0 && y == 0 {
+				return
+			}
+			v.MoveCursor(-1, 0, false)
+		} else {
+			v.MoveCursor(1, 0, false)
+		}
+	}
+}
+
+func (v *View) MoveCursorNextWord() {
+	v.MoveCursorToNextWhitespace(false)
+	v.MoveCursorToNextNonWhitespace(false)
+}
+
+func (v* View) MoveCursorPrevWord() {
+	{
+		c := v.GetRuneUnderCursor()
+		if c != ' ' && c != '\n' {
+			v.MoveCursor(-1, 0, false)
+		}
+	}
+
+	v.MoveCursorToNextNonWhitespace(true)
+	v.MoveCursorToNextWhitespace(true)
+
+	{
+		c := v.GetRuneUnderCursor()
+		if c == ' ' || c == '\n' {
+			v.MoveCursor(1, 0, false)
+		}
+	}
 }
 
 // EditDeleteToStartOfLine is the equivalent of pressing ctrl+U in your terminal, it deletes to the end of the line. Or if you are already at the start of the line, it deletes the newline character
