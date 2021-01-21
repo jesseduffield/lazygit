@@ -59,6 +59,7 @@ func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 			Pullables: "?",
 			Pushables: "?",
 			Head:      split[0] == "*",
+			Merged:    false,
 		}
 
 		upstreamName := split[2]
@@ -89,7 +90,30 @@ func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 		branches = append(branches, branch)
 	}
 
+	b.updateMergedStatuses(branches)
+
 	return branches
+}
+
+func (b *BranchListBuilder) updateMergedStatuses(branches []*models.Branch) {
+	cmdStr := `git branch --format="%(refname:short)" --merged`
+	output, err := b.GitCommand.OSCommand.RunCommandWithOutput(cmdStr)
+	if err != nil {
+		panic(err)
+	}
+
+	mergedNames := strings.Split(strings.TrimSpace(output), "\n")
+	merged := make(map[string]bool, len(mergedNames))
+	for _, mergedName := range mergedNames {
+		merged[mergedName] = true
+	}
+
+	for _, branch := range branches {
+		_, contains := merged[branch.Name]
+		if contains {
+			branch.Merged = true
+		}
+	}
 }
 
 // Build the list of branches for the current repo

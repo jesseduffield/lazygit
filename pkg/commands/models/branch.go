@@ -11,6 +11,7 @@ type Branch struct {
 	Pullables    string
 	UpstreamName string
 	Head         bool
+	Merged       bool
 }
 
 func (b *Branch) RefName() string {
