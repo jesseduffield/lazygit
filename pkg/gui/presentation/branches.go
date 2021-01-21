@@ -42,6 +42,10 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 		coloredName = fmt.Sprintf("%s %s", coloredName, track)
 	}
 
+	if !b.Merged {
+		coloredName = coloredName + utils.ColoredString("Δ", color.Bold, color.FgMagenta)
+	}
+
 	recencyColor := color.FgCyan
 	if b.Recency == "  *" {
 		recencyColor = color.FgGreen
