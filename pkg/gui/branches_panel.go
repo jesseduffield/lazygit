@@ -435,6 +435,7 @@ func (gui *Gui) handleRenameBranch(g *gocui.Gui, v *gocui.View) error {
 	promptForNewName := func() error {
 		return gui.prompt(promptOpts{
 			title: gui.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
+			initialContent: branch.Name,
 			handleConfirm: func(newBranchName string) error {
 				if err := gui.GitCommand.RenameBranch(branch.Name, newBranchName); err != nil {
 					return gui.surfaceError(err)
