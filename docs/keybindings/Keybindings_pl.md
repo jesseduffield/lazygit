@@ -24,13 +24,13 @@
 ## List Panel Navigation
 
 <pre>
+  <kbd>.</kbd>: next page
+  <kbd>,</kbd>: previous page
+  <kbd><</kbd>: scroll to top
+  <kbd>></kbd>: scroll to bottom
+  <kbd>/</kbd>: start search
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
-  <kbd>,</kbd>: previous page
-  <kbd>.</kbd>: next page
-  <kbd><</kbd>: scroll to top
-  <kbd>/</kbd>: start search
-  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Gałęzie Panel (Branches Tab)
@@ -38,6 +38,7 @@
 <pre>
   <kbd>space</kbd>: przełącz
   <kbd>o</kbd>: utwórz żądanie wyciągnięcia
+  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania ściągnięcia do schowka
   <kbd>c</kbd>: przełącz używając nazwy
   <kbd>F</kbd>: wymuś przełączenie
   <kbd>n</kbd>: nowa gałąź
@@ -137,6 +138,7 @@
   <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>ctrl+y</kbd>: copy commit message to clipboard
 </pre>
 
 ## Commity Panel (Reflog Tab)
@@ -267,4 +269,5 @@
   <kbd>o</kbd>: otwórz plik konfiguracyjny
   <kbd>u</kbd>: sprawdź aktualizacje
   <kbd>enter</kbd>: switch to a recent repo
+  <kbd>a</kbd>: pokazywać wszystkie logi branżowe
 </pre>

@@ -24,13 +24,13 @@
 ## List Panel Navigation
 
 <pre>
+  <kbd>.</kbd>: next page
+  <kbd>,</kbd>: previous page
+  <kbd><</kbd>: scroll to top
+  <kbd>></kbd>: scroll to bottom
+  <kbd>/</kbd>: start search
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
-  <kbd>,</kbd>: previous page
-  <kbd>.</kbd>: next page
-  <kbd><</kbd>: scroll to top
-  <kbd>/</kbd>: start search
-  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Branches Panel (Branches Tab)
@@ -38,6 +38,7 @@
 <pre>
   <kbd>space</kbd>: checkout
   <kbd>o</kbd>: create pull request
+  <kbd>ctrl+y</kbd>: copy pull request URL to clipboard
   <kbd>c</kbd>: checkout by name
   <kbd>F</kbd>: force checkout
   <kbd>n</kbd>: new branch
@@ -137,6 +138,7 @@
   <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>ctrl+y</kbd>: copy commit message to clipboard
 </pre>
 
 ## Commits Panel (Reflog Tab)
@@ -267,4 +269,5 @@
   <kbd>o</kbd>: open config file
   <kbd>u</kbd>: check for update
   <kbd>enter</kbd>: switch to a recent repo
+  <kbd>a</kbd>: show all branch logs
 </pre>
