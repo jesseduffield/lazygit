@@ -84,6 +84,8 @@ github.com/jesseduffield/gocui v0.3.1-0.20210208224444-2eecee85583d h1:Jto9W9w8C
 github.com/jesseduffield/gocui v0.3.1-0.20210208224444-2eecee85583d/go.mod h1:2RtZznzYKt8RLRwvFiSkXjU0Ei8WwHdubgnlaYH47dw=
 github.com/jesseduffield/gocui v0.3.1-0.20210209104758-347bedd83689 h1:oWN8FGGdXqts0Il/yAm7JF6H0/5Lj2xiqiQHEwAoziI=
 github.com/jesseduffield/gocui v0.3.1-0.20210209104758-347bedd83689/go.mod h1:9LmtJcK+Kwiuc2huslzS37uFJPdHka2Cs/cQ06JZdbk=
+github.com/jesseduffield/gocui v0.3.1-0.20210209105433-56085399e331 h1:hXQsNiPhQMMN5fIhU6MRoQrZTqgpKfr7JXS9Emrvx4A=
+github.com/jesseduffield/gocui v0.3.1-0.20210209105433-56085399e331/go.mod h1:9LmtJcK+Kwiuc2huslzS37uFJPdHka2Cs/cQ06JZdbk=
 github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe h1:qsVhCf2RFyyKIUe/+gJblbCpXMUki9rZrHuEctg6M/E=
 github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe/go.mod h1:anMibpZtqNxjDbxrcDEAwSdaJ37vyUeM1f/M4uekib4=
 github.com/jesseduffield/yaml v2.1.0+incompatible h1:HWQJ1gIv2zHKbDYNp0Jwjlj24K8aqpFHnMCynY1EpmE=
