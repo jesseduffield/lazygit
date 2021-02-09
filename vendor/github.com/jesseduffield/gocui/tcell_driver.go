@@ -8,7 +8,8 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-var screen tcell.Screen
+// We probably don't want this being a global variable for YOLO for now
+var Screen tcell.Screen
 
 // tcellInit initializes tcell screen for use.
 func tcellInit() error {
@@ -17,7 +18,7 @@ func tcellInit() error {
 	} else if e = s.Init(); e != nil {
 		return e
 	} else {
-		screen = s
+		Screen = s
 		return nil
 	}
 }
@@ -26,7 +27,7 @@ func tcellInit() error {
 // content (rune) and attributes using provided OutputMode
 func tcellSetCell(x, y int, ch rune, fg, bg Attribute, omode OutputMode) {
 	st := getTcellStyle(fg, bg, omode)
-	screen.SetContent(x, y, ch, nil, st)
+	Screen.SetContent(x, y, ch, nil, st)
 }
 
 // getTcellStyle creates tcell.Style from Attributes
@@ -120,7 +121,7 @@ var (
 
 // pollEvent get tcell.Event and transform it into gocuiEvent
 func pollEvent() GocuiEvent {
-	tev := screen.PollEvent()
+	tev := Screen.PollEvent()
 	switch tev := tev.(type) {
 	case *tcell.EventInterrupt:
 		return GocuiEvent{Type: eventInterrupt}

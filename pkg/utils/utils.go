@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
@@ -366,9 +367,8 @@ func ResolveTemplate(templateStr string, object interface{}) (string, error) {
 func Safe(f func()) {
 	panicking := true
 	defer func() {
-		if panicking {
-			// TODO: close tcell
-			// termbox.Close()
+		if panicking && gocui.Screen != nil {
+			gocui.Screen.Fini()
 		}
 	}()
 
