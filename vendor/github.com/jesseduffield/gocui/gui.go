@@ -158,7 +158,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, err
 			return nil, err
 		}
 	} else {
-		g.maxX, g.maxY = screen.Size()
+		g.maxX, g.maxY = Screen.Size()
 	}
 
 	g.BgColor, g.FgColor, g.FrameColor = ColorDefault, ColorDefault, ColorDefault
@@ -184,7 +184,7 @@ func (g *Gui) Close() {
 	go func() {
 		g.stop <- struct{}{}
 	}()
-	screen.Fini()
+	Screen.Fini()
 }
 
 // Size returns the terminal's size.
@@ -210,7 +210,7 @@ func (g *Gui) Rune(x, y int) (rune, error) {
 	if x < 0 || y < 0 || x >= g.maxX || y >= g.maxY {
 		return ' ', errors.New("invalid point")
 	}
-	c, _, _, _ := screen.GetContent(x, y)
+	c, _, _, _ := Screen.GetContent(x, y)
 	return c, nil
 }
 
@@ -536,7 +536,7 @@ func (g *Gui) MainLoop() error {
 	}()
 
 	if g.Mouse {
-		screen.EnableMouse()
+		Screen.EnableMouse()
 	}
 
 	if err := g.flush(); err != nil {
@@ -608,7 +608,7 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 func (g *Gui) flush() error {
 	g.clear(g.FgColor, g.BgColor)
 
-	maxX, maxY := screen.Size()
+	maxX, maxY := Screen.Size()
 	// if GUI's size has changed, we need to redraw all views
 	if maxX != g.maxX || maxY != g.maxY {
 		for _, v := range g.views {
@@ -672,16 +672,16 @@ func (g *Gui) flush() error {
 			return err
 		}
 	}
-	screen.Show()
+	Screen.Show()
 	return nil
 }
 
 func (g *Gui) clear(fg, bg Attribute) (int, int) {
 	st := getTcellStyle(fg, bg, g.outputMode)
-	w, h := screen.Size()
+	w, h := Screen.Size()
 	for row := 0; row < h; row++ {
 		for col := 0; col < w; col++ {
-			screen.SetContent(col, row, ' ', nil, st)
+			Screen.SetContent(col, row, ' ', nil, st)
 		}
 	}
 	return w, h
@@ -969,13 +969,13 @@ func (g *Gui) draw(v *View) error {
 			// tcell is hiding cursor by setting coordinates outside of screen.
 			// Keeping it here for now, as I'm not 100% sure :)
 			if cx >= 0 && cx < gMaxX && cy >= 0 && cy < gMaxY {
-				screen.ShowCursor(cx, cy)
+				Screen.ShowCursor(cx, cy)
 			} else {
-				screen.HideCursor()
+				Screen.HideCursor()
 			}
 		}
 	} else {
-		screen.HideCursor()
+		Screen.HideCursor()
 	}
 
 	v.clearRunes()
