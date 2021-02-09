@@ -713,7 +713,7 @@ func (v *View) draw() error {
 
 	if v.Wrap {
 		if maxX == 0 {
-			return errors.New("X size of the view cannot be 0")
+			return nil
 		}
 		v.ox = 0
 	}
