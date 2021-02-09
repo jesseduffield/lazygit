@@ -266,6 +266,7 @@ const (
 	KeyBackspace      = Key(tcell.KeyBackspace)
 	KeyCtrlH          = Key(tcell.KeyCtrlH)
 	KeyTab            = Key(tcell.KeyTab)
+	KeyBacktab        = Key(tcell.KeyBacktab)
 	KeyCtrlI          = Key(tcell.KeyCtrlI)
 	KeyCtrlJ          = Key(tcell.KeyCtrlJ)
 	KeyCtrlK          = Key(tcell.KeyCtrlK)
