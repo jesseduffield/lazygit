@@ -1681,6 +1681,8 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			{ViewName: viewName, Key: gui.getKey(config.Universal.NextBlock), Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.nextSideWindow)},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.PrevBlockAlt), Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.previousSideWindow)},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.NextBlockAlt), Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.nextSideWindow)},
+			{ViewName: viewName, Key: gocui.KeyBacktab, Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.previousSideWindow)},
+			{ViewName: viewName, Key: gocui.KeyTab, Modifier: gocui.ModNone, Handler: gui.wrappedHandler(gui.nextSideWindow)},
 		}...)
 	}
 

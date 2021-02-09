@@ -20,7 +20,7 @@ require (
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
-	github.com/jesseduffield/gocui v0.3.1-0.20210209111848-66c577279d83
+	github.com/jesseduffield/gocui v0.3.1-0.20210209115706-908f90fdc184
 	github.com/jesseduffield/yaml v2.1.0+incompatible
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
