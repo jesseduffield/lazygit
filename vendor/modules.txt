@@ -149,11 +149,9 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20210209105433-56085399e331
+# github.com/jesseduffield/gocui v0.3.1-0.20210209105939-287efbd7c09e
 ## explicit
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe
-## explicit
 # github.com/jesseduffield/yaml v2.1.0+incompatible
 ## explicit
 github.com/jesseduffield/yaml
