@@ -446,7 +446,7 @@ func (gui *Gui) Run() error {
 
 	recordEvents := recordingEvents()
 
-	g, err := gocui.NewGui(gocui.Output256, OverlappingEdges, recordEvents)
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, recordEvents)
 	if err != nil {
 		return err
 	}
