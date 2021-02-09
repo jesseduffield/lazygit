@@ -317,8 +317,9 @@ const (
 
 // Modifiers.
 const (
-	ModNone Modifier = Modifier(0)
-	ModAlt           = Modifier(tcell.ModAlt)
+	ModNone   Modifier = Modifier(0)
+	ModAlt             = Modifier(tcell.ModAlt)
+	ModMotion          = Modifier(2) // just picking an arbitrary number here that doesn't clash with tcell.ModAlt
 	// ModCtrl doesn't work with keyboard keys. Use CtrlKey in Key and ModNone. This is was for mouse clicks only (tcell.v1)
 	// ModCtrl = Modifier(tcell.ModCtrl)
 )

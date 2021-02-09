@@ -349,22 +349,31 @@ func (v *View) writeRune(x, y int, ch rune) error {
 	}
 
 	olen := len(v.lines[y])
+	w := runewidth.RuneWidth(ch)
 
 	var s []cell
 	if x >= len(v.lines[y]) {
-		s = make([]cell, x-len(v.lines[y])+1)
+		s = make([]cell, x-len(v.lines[y])+w)
 	} else if !v.Overwrite {
-		s = make([]cell, 1)
+		s = make([]cell, w)
 	}
 	v.lines[y] = append(v.lines[y], s...)
 
-	if !v.Overwrite || (v.Overwrite && x >= olen-1) {
-		copy(v.lines[y][x+1:], v.lines[y][x:])
+	if !v.Overwrite || (v.Overwrite && x >= olen-w) {
+		copy(v.lines[y][x+w:], v.lines[y][x:])
 	}
 	v.lines[y][x] = cell{
 		fgColor: v.FgColor,
 		bgColor: v.BgColor,
 		chr:     ch,
+	}
+
+	for i := 1; i < w; i++ {
+		v.lines[y][x+i] = cell{
+			fgColor: v.FgColor,
+			bgColor: v.BgColor,
+			chr:     '\x00',
+		}
 	}
 
 	return nil
@@ -390,7 +399,7 @@ func (v *View) deleteRune(x, y int) (int, error) {
 		w := runewidth.RuneWidth(v.lines[y][i].chr)
 		tw += w
 		if tw > x {
-			v.lines[y] = append(v.lines[y][:i], v.lines[y][i+1:]...)
+			v.lines[y] = append(v.lines[y][:i], v.lines[y][i+w:]...)
 			return w, nil
 		}
 
