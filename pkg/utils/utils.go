@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/termbox-go"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
@@ -368,7 +367,8 @@ func Safe(f func()) {
 	panicking := true
 	defer func() {
 		if panicking {
-			termbox.Close()
+			// TODO: close tcell
+			// termbox.Close()
 		}
 	}()
 
