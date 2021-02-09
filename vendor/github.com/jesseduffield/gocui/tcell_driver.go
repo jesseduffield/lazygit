@@ -104,9 +104,18 @@ const (
 	eventRaw
 )
 
+const (
+	NOT_DRAGGING int = iota
+	MAYBE_DRAGGING
+	DRAGGING
+)
+
 var (
 	lastMouseKey tcell.ButtonMask = tcell.ButtonNone
 	lastMouseMod tcell.ModMask    = tcell.ModNone
+	dragState    int              = NOT_DRAGGING
+	lastX        int              = 0
+	lastY        int              = 0
 )
 
 // pollEvent get tcell.Event and transform it into gocuiEvent
@@ -172,6 +181,17 @@ func pollEvent() GocuiEvent {
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
 			lastMouseKey = button
 			lastMouseMod = tev.Modifiers()
+			switch button {
+			case tcell.ButtonPrimary:
+				mouseKey = MouseLeft
+				dragState = MAYBE_DRAGGING
+				lastX = x
+				lastY = y
+			case tcell.ButtonSecondary:
+				mouseKey = MouseRight
+			case tcell.ButtonMiddle:
+				mouseKey = MouseMiddle
+			}
 		}
 
 		switch tev.Buttons() {
@@ -179,16 +199,25 @@ func pollEvent() GocuiEvent {
 			if lastMouseKey != tcell.ButtonNone {
 				switch lastMouseKey {
 				case tcell.ButtonPrimary:
-					mouseKey = MouseLeft
+					dragState = NOT_DRAGGING
 				case tcell.ButtonSecondary:
-					mouseKey = MouseRight
 				case tcell.ButtonMiddle:
-					mouseKey = MouseMiddle
 				}
 				mouseMod = Modifier(lastMouseMod)
 				lastMouseMod = tcell.ModNone
 				lastMouseKey = tcell.ButtonNone
 			}
+		}
+
+		switch dragState {
+		// if we haven't released the left mouse button and we've moved the cursor then we're dragging
+		case MAYBE_DRAGGING:
+			if x != lastX || y != lastY {
+				dragState = DRAGGING
+			}
+		case DRAGGING:
+			mouseMod = ModMotion
+			mouseKey = MouseLeft
 		}
 
 		return GocuiEvent{
