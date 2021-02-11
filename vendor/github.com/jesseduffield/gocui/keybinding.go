@@ -185,6 +185,7 @@ var translate = map[string]Key{
 	"Backspace":      KeyBackspace,
 	"CtrlH":          KeyCtrlH,
 	"Tab":            KeyTab,
+	"BackTab":        KeyBacktab,
 	"CtrlI":          KeyCtrlI,
 	"CtrlJ":          KeyCtrlJ,
 	"CtrlK":          KeyCtrlK,

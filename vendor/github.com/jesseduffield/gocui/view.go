@@ -780,14 +780,9 @@ func (v *View) draw() error {
 				return err
 			}
 
-			if c.chr != 0 {
-				// If it is a rune, add rune width
-				x += runewidth.RuneWidth(c.chr)
-			} else {
-				// If it is NULL rune, add 1 to be able to use SetWritePos
-				// (runewidth.RuneWidth of space is 1)
-				x++
-			}
+			// Not sure why the previous code was here but it caused problems
+			// when typing wide characters in an editor
+			x += runewidth.RuneWidth(c.chr)
 		}
 		y++
 	}
