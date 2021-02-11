@@ -21,7 +21,7 @@ the `colorArg` key is for whether you want the `--color=always` arg in your `git
 git:
   paging:
     colorArg: always
-    pager: delta --dark --paging=never --24-bit-color=never
+    pager: delta --dark --paging=never
 ```
 
 ![](https://i.imgur.com/QJpQkF3.png)
