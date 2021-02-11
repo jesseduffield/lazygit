@@ -80,6 +80,8 @@ github.com/jesseduffield/gocui v0.3.1-0.20210209115706-908f90fdc184 h1:ZeRvNSkeX
 github.com/jesseduffield/gocui v0.3.1-0.20210209115706-908f90fdc184/go.mod h1:QWq79xplEoyhQO+dgpk3sojjTVRKjQklyTlzm5nC5Kg=
 github.com/jesseduffield/gocui v0.3.1-0.20210211100312-3054df7861f8 h1:F+TNu4ctbZQd6Y7d6+BR+PhIq6/o20WRD7NYfLCaIGg=
 github.com/jesseduffield/gocui v0.3.1-0.20210211100312-3054df7861f8/go.mod h1:QWq79xplEoyhQO+dgpk3sojjTVRKjQklyTlzm5nC5Kg=
+github.com/jesseduffield/gocui v0.3.1-0.20210211103034-df403d2beb15 h1:YwmwCCPTrZvYidLMuyEhUlR/f+B1G8E7Yx959IdLSE8=
+github.com/jesseduffield/gocui v0.3.1-0.20210211103034-df403d2beb15/go.mod h1:QWq79xplEoyhQO+dgpk3sojjTVRKjQklyTlzm5nC5Kg=
 github.com/jesseduffield/yaml v2.1.0+incompatible h1:HWQJ1gIv2zHKbDYNp0Jwjlj24K8aqpFHnMCynY1EpmE=
 github.com/jesseduffield/yaml v2.1.0+incompatible/go.mod h1:w0xGhOSIJCGYYW+hnFPTutCy5aACpkcwbmORt5axGqk=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=

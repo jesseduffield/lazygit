@@ -211,6 +211,8 @@ func pollEvent() GocuiEvent {
 		}
 
 		switch dragState {
+		case NOT_DRAGGING:
+			return GocuiEvent{Type: eventNone}
 		// if we haven't released the left mouse button and we've moved the cursor then we're dragging
 		case MAYBE_DRAGGING:
 			if x != lastX || y != lastY {
