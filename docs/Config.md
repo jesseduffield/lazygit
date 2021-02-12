@@ -328,7 +328,7 @@ Example:
   git:
     commitPrefixes:
       my_project: # This is repository folder name
-        pattern: "^\\w+\\/(\\w+-\\w+)"
+        pattern: "^\\w+\\/(\\w+-\\w+).*"
         replace: "[$1] "
 ```
 
