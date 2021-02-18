@@ -8,16 +8,17 @@ import (
 
 // we've just copy+pasted the editor from gocui to here so that we can also re-
 // render the commit message length on each keypress
-func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	newlineKey, ok := gui.getKey(gui.Config.GetUserConfig().Keybinding.Universal.AppendNewline).(gocui.Key)
 	if !ok {
 		newlineKey = gocui.KeyTab
 	}
 
+	matched := true
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
-	case key == gocui.KeyDelete:
+	case key == gocui.KeyCtrlD || key == gocui.KeyDelete:
 		v.EditDelete(false)
 	case key == gocui.KeyArrowDown:
 		v.MoveCursor(0, 1, false)
@@ -44,13 +45,16 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	}
 
 	gui.RenderCommitLength()
+
+	return matched
 }
 
-func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
+	matched := true
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
-	case key == gocui.KeyDelete:
+	case key == gocui.KeyCtrlD || key == gocui.KeyDelete:
 		v.EditDelete(false)
 	case key == gocui.KeyArrowDown:
 		v.MoveCursor(0, 1, false)
@@ -79,4 +83,6 @@ func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 		suggestions := gui.findSuggestions(input)
 		gui.setSuggestions(suggestions)
 	}
+
+	return matched
 }

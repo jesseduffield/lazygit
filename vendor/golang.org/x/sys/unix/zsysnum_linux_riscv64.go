@@ -302,4 +302,5 @@ const (
 	SYS_PIDFD_GETFD            = 438
 	SYS_FACCESSAT2             = 439
 	SYS_PROCESS_MADVISE        = 440
+	SYS_EPOLL_PWAIT2           = 441
 )

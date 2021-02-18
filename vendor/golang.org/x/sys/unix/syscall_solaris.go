@@ -579,7 +579,7 @@ func IoctlGetTermio(fd int, req uint) (*Termio, error) {
 	return &value, err
 }
 
-//sys   poll(fds *PollFd, nfds int, timeout int) (n int, err error)
+//sys	poll(fds *PollFd, nfds int, timeout int) (n int, err error)
 
 func Poll(fds []PollFd, timeout int) (n int, err error) {
 	if len(fds) == 0 {
@@ -682,6 +682,7 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 //sys	Statvfs(path string, vfsstat *Statvfs_t) (err error)
 //sys	Symlink(path string, link string) (err error)
 //sys	Sync() (err error)
+//sys	Sysconf(which int) (n int64, err error)
 //sysnb	Times(tms *Tms) (ticks uintptr, err error)
 //sys	Truncate(path string, length int64) (err error)
 //sys	Fsync(fd int) (err error)

@@ -288,7 +288,8 @@ type RawSockaddrVM struct {
 	Reserved1 uint16
 	Port      uint32
 	Cid       uint32
-	Zero      [4]uint8
+	Flags     uint8
+	Zero      [3]uint8
 }
 
 type RawSockaddrXDP struct {
@@ -999,7 +1000,7 @@ const (
 	PERF_SAMPLE_PHYS_ADDR                 = 0x80000
 	PERF_SAMPLE_AUX                       = 0x100000
 	PERF_SAMPLE_CGROUP                    = 0x200000
-	PERF_SAMPLE_MAX                       = 0x400000
+	PERF_SAMPLE_MAX                       = 0x1000000
 	PERF_SAMPLE_BRANCH_USER_SHIFT         = 0x0
 	PERF_SAMPLE_BRANCH_KERNEL_SHIFT       = 0x1
 	PERF_SAMPLE_BRANCH_HV_SHIFT           = 0x2

@@ -14,24 +14,26 @@ const maxInt = int(^uint(0) >> 1)
 
 // Editor interface must be satisfied by gocui editors.
 type Editor interface {
-	Edit(v *View, key Key, ch rune, mod Modifier)
+	Edit(v *View, key Key, ch rune, mod Modifier) bool
 }
 
 // The EditorFunc type is an adapter to allow the use of ordinary functions as
 // Editors. If f is a function with the appropriate signature, EditorFunc(f)
 // is an Editor object that calls f.
-type EditorFunc func(v *View, key Key, ch rune, mod Modifier)
+type EditorFunc func(v *View, key Key, ch rune, mod Modifier) bool
 
 // Edit calls f(v, key, ch, mod)
-func (f EditorFunc) Edit(v *View, key Key, ch rune, mod Modifier) {
-	f(v, key, ch, mod)
+func (f EditorFunc) Edit(v *View, key Key, ch rune, mod Modifier) bool {
+	return f(v, key, ch, mod)
 }
 
 // DefaultEditor is the default editor.
 var DefaultEditor Editor = EditorFunc(simpleEditor)
 
 // simpleEditor is used as the default gocui editor.
-func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
+func simpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
+	matched := true
+
 	switch {
 	case ch != 0 && mod == 0:
 		v.EditWrite(ch)
@@ -39,7 +41,7 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 		v.EditWrite(' ')
 	case key == KeyBackspace || key == KeyBackspace2:
 		v.EditDelete(true)
-	case key == KeyDelete:
+	case key == KeyCtrlD || key == KeyDelete:
 		v.EditDelete(false)
 	case key == KeyInsert:
 		v.Overwrite = !v.Overwrite
@@ -63,9 +65,16 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 		v.EditGotoToStartOfLine()
 	case key == KeyCtrlE:
 		v.EditGotoToEndOfLine()
+		matched = true
 	default:
-		v.EditWrite(ch)
+		if ch != 0 && mod == 0 {
+			v.EditWrite(ch)
+		} else {
+			matched = false
+		}
 	}
+
+	return matched
 }
 
 // EditWrite writes a rune at the cursor position.

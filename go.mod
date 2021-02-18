@@ -39,7 +39,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
 	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/sys v0.0.0-20210217105451-b926d437f341 // indirect
 	golang.org/x/text v0.3.5 // indirect
 )
 
