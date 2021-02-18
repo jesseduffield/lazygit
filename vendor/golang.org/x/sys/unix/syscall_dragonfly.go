@@ -95,7 +95,7 @@ func direntNamlen(buf []byte) (uint64, bool) {
 	return readInt(buf, unsafe.Offsetof(Dirent{}.Namlen), unsafe.Sizeof(Dirent{}.Namlen))
 }
 
-//sysnb pipe() (r int, w int, err error)
+//sysnb	pipe() (r int, w int, err error)
 
 func Pipe(p []int) (err error) {
 	if len(p) != 2 {
@@ -170,7 +170,7 @@ func setattrlistTimes(path string, times []Timespec, flags int) error {
 
 //sys	ioctl(fd int, req uint, arg uintptr) (err error)
 
-//sys   sysctl(mib []_C_int, old *byte, oldlen *uintptr, new *byte, newlen uintptr) (err error) = SYS___SYSCTL
+//sys	sysctl(mib []_C_int, old *byte, oldlen *uintptr, new *byte, newlen uintptr) (err error) = SYS___SYSCTL
 
 func sysctlUname(mib []_C_int, old *byte, oldlen *uintptr) error {
 	err := sysctl(mib, old, oldlen, nil, 0)
@@ -337,8 +337,8 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 //sys	Unlinkat(dirfd int, path string, flags int) (err error)
 //sys	Unmount(path string, flags int) (err error)
 //sys	write(fd int, p []byte) (n int, err error)
-//sys   mmap(addr uintptr, length uintptr, prot int, flag int, fd int, pos int64) (ret uintptr, err error)
-//sys   munmap(addr uintptr, length uintptr) (err error)
+//sys	mmap(addr uintptr, length uintptr, prot int, flag int, fd int, pos int64) (ret uintptr, err error)
+//sys	munmap(addr uintptr, length uintptr) (err error)
 //sys	readlen(fd int, buf *byte, nbuf int) (n int, err error) = SYS_READ
 //sys	writelen(fd int, buf *byte, nbuf int) (n int, err error) = SYS_WRITE
 //sys	accept4(fd int, rsa *RawSockaddrAny, addrlen *_Socklen, flags int) (nfd int, err error)

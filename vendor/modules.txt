@@ -149,7 +149,7 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20210211103034-df403d2beb15
+# github.com/jesseduffield/gocui v0.3.1-0.20210218083841-20cddf8f54fd
 ## explicit
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/yaml v2.1.0+incompatible
@@ -233,7 +233,7 @@ golang.org/x/crypto/ssh/knownhosts
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
+# golang.org/x/sys v0.0.0-20210217105451-b926d437f341
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
