@@ -313,6 +313,7 @@ const (
 	CAN_J1939                                   = 0x7
 	CAN_MAX_DLC                                 = 0x8
 	CAN_MAX_DLEN                                = 0x8
+	CAN_MAX_RAW_DLC                             = 0xf
 	CAN_MCNET                                   = 0x5
 	CAN_MTU                                     = 0x10
 	CAN_NPROTO                                  = 0x8
@@ -664,6 +665,7 @@ const (
 	ETH_P_CAIF                                  = 0xf7
 	ETH_P_CAN                                   = 0xc
 	ETH_P_CANFD                                 = 0xd
+	ETH_P_CFM                                   = 0x8902
 	ETH_P_CONTROL                               = 0x16
 	ETH_P_CUST                                  = 0x6006
 	ETH_P_DDCMP                                 = 0x6
@@ -834,7 +836,6 @@ const (
 	FSCRYPT_POLICY_FLAGS_PAD_4                  = 0x0
 	FSCRYPT_POLICY_FLAGS_PAD_8                  = 0x1
 	FSCRYPT_POLICY_FLAGS_PAD_MASK               = 0x3
-	FSCRYPT_POLICY_FLAGS_VALID                  = 0x1f
 	FSCRYPT_POLICY_FLAG_DIRECT_KEY              = 0x4
 	FSCRYPT_POLICY_FLAG_IV_INO_LBLK_32          = 0x10
 	FSCRYPT_POLICY_FLAG_IV_INO_LBLK_64          = 0x8
@@ -865,7 +866,7 @@ const (
 	FS_POLICY_FLAGS_PAD_4                       = 0x0
 	FS_POLICY_FLAGS_PAD_8                       = 0x1
 	FS_POLICY_FLAGS_PAD_MASK                    = 0x3
-	FS_POLICY_FLAGS_VALID                       = 0x1f
+	FS_POLICY_FLAGS_VALID                       = 0x7
 	FS_VERITY_FL                                = 0x100000
 	FS_VERITY_HASH_ALG_SHA256                   = 0x1
 	FS_VERITY_HASH_ALG_SHA512                   = 0x2
@@ -1138,6 +1139,7 @@ const (
 	IPV6_PMTUDISC_WANT                          = 0x1
 	IPV6_RECVDSTOPTS                            = 0x3a
 	IPV6_RECVERR                                = 0x19
+	IPV6_RECVERR_RFC4884                        = 0x1f
 	IPV6_RECVFRAGSIZE                           = 0x4d
 	IPV6_RECVHOPLIMIT                           = 0x33
 	IPV6_RECVHOPOPTS                            = 0x35
@@ -1202,6 +1204,7 @@ const (
 	IP_PMTUDISC_PROBE                           = 0x3
 	IP_PMTUDISC_WANT                            = 0x1
 	IP_RECVERR                                  = 0xb
+	IP_RECVERR_RFC4884                          = 0x1a
 	IP_RECVFRAGSIZE                             = 0x19
 	IP_RECVOPTS                                 = 0x6
 	IP_RECVORIGDSTADDR                          = 0x14
@@ -1840,6 +1843,7 @@ const (
 	PR_SET_SECCOMP                              = 0x16
 	PR_SET_SECUREBITS                           = 0x1c
 	PR_SET_SPECULATION_CTRL                     = 0x35
+	PR_SET_SYSCALL_USER_DISPATCH                = 0x3b
 	PR_SET_TAGGED_ADDR_CTRL                     = 0x37
 	PR_SET_THP_DISABLE                          = 0x29
 	PR_SET_TIMERSLACK                           = 0x1d
@@ -1859,6 +1863,8 @@ const (
 	PR_SVE_SET_VL_ONEXEC                        = 0x40000
 	PR_SVE_VL_INHERIT                           = 0x20000
 	PR_SVE_VL_LEN_MASK                          = 0xffff
+	PR_SYS_DISPATCH_OFF                         = 0x0
+	PR_SYS_DISPATCH_ON                          = 0x1
 	PR_TAGGED_ADDR_ENABLE                       = 0x1
 	PR_TASK_PERF_EVENTS_DISABLE                 = 0x1f
 	PR_TASK_PERF_EVENTS_ENABLE                  = 0x20
@@ -2104,12 +2110,13 @@ const (
 	RTM_SETLINK                                 = 0x13
 	RTM_SETNEIGHTBL                             = 0x43
 	RTNH_ALIGNTO                                = 0x4
-	RTNH_COMPARE_MASK                           = 0x19
+	RTNH_COMPARE_MASK                           = 0x59
 	RTNH_F_DEAD                                 = 0x1
 	RTNH_F_LINKDOWN                             = 0x10
 	RTNH_F_OFFLOAD                              = 0x8
 	RTNH_F_ONLINK                               = 0x4
 	RTNH_F_PERVASIVE                            = 0x2
+	RTNH_F_TRAP                                 = 0x40
 	RTNH_F_UNRESOLVED                           = 0x20
 	RTN_MAX                                     = 0xb
 	RTPROT_BABEL                                = 0x2a
@@ -2580,6 +2587,7 @@ const (
 	VMADDR_CID_HOST                             = 0x2
 	VMADDR_CID_HYPERVISOR                       = 0x0
 	VMADDR_CID_LOCAL                            = 0x1
+	VMADDR_FLAG_TO_HOST                         = 0x1
 	VMADDR_PORT_ANY                             = 0xffffffff
 	VM_SOCKETS_INVALID_VERSION                  = 0xffffffff
 	VQUIT                                       = 0x1

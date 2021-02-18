@@ -233,7 +233,7 @@ golang.org/x/crypto/ssh/knownhosts
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
+# golang.org/x/sys v0.0.0-20210217105451-b926d437f341
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
