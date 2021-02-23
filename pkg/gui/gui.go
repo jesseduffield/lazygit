@@ -464,6 +464,9 @@ func (gui *Gui) Run() error {
 	}
 
 	g.OnSearchEscape = gui.onSearchEscape
+	if err := gui.Config.ReloadUserConfig(); err != nil {
+		return nil
+	}
 	userConfig := gui.Config.GetUserConfig()
 	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
 	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
