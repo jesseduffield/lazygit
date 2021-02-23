@@ -550,5 +550,5 @@ func (gui *Gui) findBranchNameSuggestions(input string) []*types.Suggestion {
 // sanitizedBranchName will remove all spaces in favor of a dash "-" to meet
 // git's branch naming requirement.
 func sanitizedBranchName(input string) string {
-	return strings.ReplaceAll(input, " ", "-")
+	return strings.Replace(input, " ", "-", -1)
 }
