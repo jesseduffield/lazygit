@@ -41,6 +41,7 @@ type AppConfigurer interface {
 	SaveAppState() error
 	SetIsNewRepo(bool)
 	GetIsNewRepo() bool
+	ReloadUserConfig() error
 }
 
 // NewAppConfig makes a new app config
@@ -201,6 +202,16 @@ func (c *AppConfig) GetAppState() *AppState {
 
 func (c *AppConfig) GetUserConfigDir() string {
 	return c.UserConfigDir
+}
+
+func (c *AppConfig) ReloadUserConfig() error {
+	userConfig, err := loadUserConfigWithDefaults(c.UserConfigDir)
+	if err != nil {
+		return err
+	}
+
+	c.UserConfig = userConfig
+	return nil
 }
 
 func configFilePath(filename string) (string, error) {
