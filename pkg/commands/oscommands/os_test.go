@@ -114,6 +114,8 @@ func TestOSCommandOpenFile(t *testing.T) {
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
+	osCommand.Platform.OS = "linux"
+
 	actual := osCommand.Quote("hello `test`")
 
 	expected := osCommand.Platform.EscapedQuote + "hello \\`test\\`" + osCommand.Platform.EscapedQuote
@@ -129,7 +131,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 
 	actual := osCommand.Quote("hello 'test'")
 
-	expected := osCommand.Platform.FallbackEscapedQuote + "hello 'test'" + osCommand.Platform.FallbackEscapedQuote
+	expected := osCommand.Platform.EscapedQuote + "hello 'test'" + osCommand.Platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -142,7 +144,20 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 
 	actual := osCommand.Quote(`hello "test"`)
 
-	expected := osCommand.Platform.EscapedQuote + "hello \"test\"" + osCommand.Platform.EscapedQuote
+	expected := osCommand.Platform.EscapedQuote + `hello \"test\"` + osCommand.Platform.EscapedQuote
+
+	assert.EqualValues(t, expected, actual)
+}
+
+// TestOSCommandQuoteWindows tests the quote function for Windows
+func TestOSCommandQuoteWindows(t *testing.T) {
+	osCommand := NewDummyOSCommand()
+
+	osCommand.Platform.OS = "windows"
+
+	actual := osCommand.Quote(`hello "test"`)
+
+	expected := osCommand.Platform.EscapedQuote + `hello "'"'"test"'"'"` + osCommand.Platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }

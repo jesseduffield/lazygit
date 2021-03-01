@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -25,7 +24,7 @@ func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
 	splitMessage := strings.Split(message, "\n")
 	lineArgs := ""
 	for _, line := range splitMessage {
-		lineArgs += fmt.Sprintf(" -m %s", strconv.Quote(line))
+		lineArgs += fmt.Sprintf(" -m %s", c.OSCommand.Quote(line))
 	}
 
 	command := fmt.Sprintf("git commit %s%s", flags, lineArgs)
