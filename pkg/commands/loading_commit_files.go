@@ -14,7 +14,7 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchM
 		reverseFlag = " -R "
 	}
 
-	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --submodule --no-ext-diff --name-status %s %s %s", reverseFlag, from, to)
+	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --submodule --no-ext-diff --name-status -z %s %s %s", reverseFlag, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -26,13 +26,12 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool, patchM
 func (c *GitCommand) getCommitFilesFromFilenames(filenames string, parent string, patchManager *patch.PatchManager) []*models.CommitFile {
 	commitFiles := make([]*models.CommitFile, 0)
 
-	for _, line := range strings.Split(strings.TrimRight(filenames, "\n"), "\n") {
+	lines := strings.Split(strings.TrimRight(filenames, "\x00"), "\x00")
+	n := len(lines)
+	for i := 0; i < n-1; i += 2 {
 		// typical result looks like 'A my_file' meaning my_file was added
-		if line == "" {
-			continue
-		}
-		changeStatus := line[0:1]
-		name := line[2:]
+		changeStatus := lines[i+0]
+		name := lines[i+1]
 		status := patch.UNSELECTED
 		if patchManager != nil && patchManager.To == parent {
 			status = patchManager.GetFileStatus(name)
