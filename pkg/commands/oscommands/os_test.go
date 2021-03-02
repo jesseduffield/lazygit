@@ -147,17 +147,6 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandUnquote is a function.
-func TestOSCommandUnquote(t *testing.T) {
-	osCommand := NewDummyOSCommand()
-
-	actual := osCommand.Unquote(`hello "test"`)
-
-	expected := "hello test"
-
-	assert.EqualValues(t, expected, actual)
-}
-
 // TestOSCommandFileType is a function.
 func TestOSCommandFileType(t *testing.T) {
 	type scenario struct {
