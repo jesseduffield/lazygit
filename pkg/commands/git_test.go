@@ -1037,7 +1037,7 @@ func TestGitCommandStageFile(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"add", "test.txt"}, args)
+		assert.EqualValues(t, []string{"add", "--", "test.txt"}, args)
 
 		return secureexec.Command("echo")
 	}
@@ -1059,7 +1059,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 			"Remove an untracked file from staging",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"rm", "--cached", "--force", "test.txt"}, args)
+				assert.EqualValues(t, []string{"rm", "--cached", "--force", "--", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},
@@ -1072,7 +1072,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 			"Remove a tracked file from staging",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"reset", "HEAD", "test.txt"}, args)
+				assert.EqualValues(t, []string{"reset", "HEAD", "--", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},
@@ -1455,7 +1455,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"File not tracked and file has no staged changes",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--no-index", "/dev/null", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--no-index", "--", "/dev/null", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},
