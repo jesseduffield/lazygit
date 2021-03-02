@@ -72,7 +72,13 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 		noRenamesFlag = "--no-renames"
 	}
 
-	return c.OSCommand.RunCommandWithOutput("git status %s --porcelain %s", opts.UntrackedFilesArg, noRenamesFlag)
+	statusLines, err := c.OSCommand.RunCommandWithOutput("git status %s --porcelain -z %s", opts.UntrackedFilesArg, noRenamesFlag)
+	if err != nil {
+		return "", err
+	}
+
+	statusLines = strings.Replace(statusLines, "\x00", "\n", -1)
+	return statusLines, nil
 }
 
 // MergeStatusFiles merge status files
