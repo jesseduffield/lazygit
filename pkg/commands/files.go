@@ -22,7 +22,7 @@ func (c *GitCommand) CatFile(fileName string) (string, error) {
 func (c *GitCommand) StageFile(fileName string) error {
 	// renamed files look like "file1 -> file2"
 	fileNames := strings.Split(fileName, " -> ")
-	return c.OSCommand.RunCommand("git add %s", c.OSCommand.Quote(fileNames[len(fileNames)-1]))
+	return c.OSCommand.RunCommand("git add -- %s", c.OSCommand.Quote(fileNames[len(fileNames)-1]))
 }
 
 // StageAll stages all files
@@ -37,9 +37,9 @@ func (c *GitCommand) UnstageAll() error {
 
 // UnStageFile unstages a file
 func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
-	command := "git rm --cached --force %s"
+	command := "git rm --cached --force -- %s"
 	if tracked {
-		command = "git reset HEAD %s"
+		command = "git reset HEAD -- %s"
 	}
 
 	// renamed files look like "file1 -> file2"
@@ -141,7 +141,7 @@ func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool
 
 func (c *GitCommand) WorktreeFileDiffCmdStr(file *models.File, plain bool, cached bool) string {
 	cachedArg := ""
-	trackedArg := "--"
+	trackedArg := ""
 	colorArg := c.colorArg()
 	split := strings.Split(file.Name, " -> ") // in case of a renamed file we get the new filename
 	fileName := c.OSCommand.Quote(split[len(split)-1])
@@ -155,7 +155,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(file *models.File, plain bool, cache
 		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s -- %s", colorArg, cachedArg, trackedArg, fileName)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
