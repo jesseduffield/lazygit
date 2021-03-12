@@ -2,7 +2,7 @@
 
 Default path for the config file:
 
-* Linux: `~/.config/jesseduffield/lazygit/config.yml`
+* Linux: `~/.config/lazygit/config.yml`
 * MacOS: `~/Library/Application Support/jesseduffield/lazygit/config.yml`
 * Windows: `%APPDATA%\jesseduffield\lazygit\config.yml`
 
