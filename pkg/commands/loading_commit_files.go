@@ -30,7 +30,7 @@ func (c *GitCommand) getCommitFilesFromFilenames(filenames string, parent string
 	n := len(lines)
 	for i := 0; i < n-1; i += 2 {
 		// typical result looks like 'A my_file' meaning my_file was added
-		changeStatus := lines[i+0]
+		changeStatus := lines[i]
 		name := lines[i+1]
 		status := patch.UNSELECTED
 		if patchManager != nil && patchManager.To == parent {
