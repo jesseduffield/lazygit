@@ -437,7 +437,34 @@ type TranslationSet struct {
 	LcCopiedToClipboard                 string
 }
 
-const englishReleaseNotes = `## lazygit 0.24 Release Notes
+const englishReleaseNotes = `## lazygit 0.26 Release Notes
+
+- Config changes applied after editing from within lazygit, no reload required.
+
+- LOTS of fixes for rendering filenames with strange characters, escaped
+  characters, and UI fixes, by the amazing @Ryooooooga!
+
+- Also thanks to @Isti115
+
+## lazygit 0.25 Release Notes
+
+- Fixes for windows, thanks @murphy66!
+
+- Allow mapping spaces to dashes when creating a branch, thanks @caquillo07!
+
+- Allow configuring file refresh and fetch frequency, thanks @Liberatys!
+
+- Minor security improvement
+
+- Wide characters supported when entering commit messages, thanks @Ryooooooga!
+
+- Original branch name appears when renaming, thanks piresrui!
+
+- Better menus, thanks @1jz!
+
+- Also thanks to @snipem, @dbast, and @dawidd6
+
+## lazygit 0.24 Release Notes
 
 - Suggestions now shown when checking out branch by name
 
