@@ -475,7 +475,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts:    []string{FILES_CONTEXT_KEY},
 			Key:         gui.getKey(config.Universal.GoInto),
 			Handler:     gui.handleEnterFile,
-			Description: gui.Tr.StageLines,
+			Description: gui.Tr.FileEnter,
 		},
 		{
 			ViewName:    "files",

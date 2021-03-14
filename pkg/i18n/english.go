@@ -172,7 +172,7 @@ type TranslationSet struct {
 	LcFetch                             string
 	NoAutomaticGitFetchTitle            string
 	NoAutomaticGitFetchBody             string
-	StageLines                          string
+	FileEnter                           string
 	FileStagingRequirements             string
 	SelectHunk                          string
 	StageSelection                      string
@@ -729,7 +729,7 @@ func englishTranslationSet() TranslationSet {
 		LcFetch:                             `fetch`,
 		NoAutomaticGitFetchTitle:            `No automatic git fetch`,
 		NoAutomaticGitFetchBody:             `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
-		StageLines:                          `stage individual hunks/lines`,
+		FileEnter:                           `stage individual hunks/lines for file, or collapse/expand for directory`,
 		FileStagingRequirements:             `Can only stage individual lines for tracked files`,
 		SelectHunk:                          `select hunk`,
 		StageSelection:                      `toggle line staged / unstaged`,
