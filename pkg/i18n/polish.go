@@ -133,7 +133,7 @@ func polishTranslationSet() TranslationSet {
 		LcFetch:                             `fetch`,
 		NoAutomaticGitFetchTitle:            `No automatic git fetch`,
 		NoAutomaticGitFetchBody:             `Lazygit can't use "git fetch" in a private repo use f in the branches panel to run "git fetch" manually`,
-		StageLines:                          `zatwierdź pojedyncze linie`,
+		FileEnter:                           `zatwierdź pojedyncze linie`,
 		FileStagingRequirements:             `Można tylko zatwierdzić pojedyncze linie dla śledzonych plików z niezatwierdzonymi zmianami`,
 		StagingTitle:                        `Zatwierdzanie`,
 		ReturnToFilesPanel:                  `wróć do panelu plików`,

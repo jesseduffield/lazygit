@@ -160,7 +160,7 @@ func dutchTranslationSet() TranslationSet {
 		LcFetch:                             `fetch`,
 		NoAutomaticGitFetchTitle:            `Geen automatische git fetch`,
 		NoAutomaticGitFetchBody:             `Lazygit kan niet "git fetch" uitvoeren in een privé repository, gebruik f in het branches paneel om "git fetch" manueel uit te voeren`,
-		StageLines:                          `stage individuele hunks/lijnen`,
+		FileEnter:                           `stage individuele hunks/lijnen`,
 		FileStagingRequirements:             `Kan alleen individuele lijnen stagen van getrackte bestanden met onstaged veranderingen`,
 		SelectHunk:                          `selecteer hunk`,
 		StageSelection:                      `toggle lijnen staged / unstaged`,
