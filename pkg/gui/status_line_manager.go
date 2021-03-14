@@ -51,36 +51,60 @@ func (m *StatusLineManager) SetFiles(files []*models.File) {
 }
 
 func (m *StatusLineManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
-	return m.renderAux(m.Tree, -1, diffName, submoduleConfigs)
+	return m.renderAux(m.Tree, "", -1, diffName, submoduleConfigs)
 }
 
-func (m *StatusLineManager) renderAux(s *models.StatusLineNode, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
+const INNER_ITEM = "├─ "
+const LAST_ITEM = "└─ "
+const NESTED = "│   "
+const NOTHING = "    "
+
+func (m *StatusLineManager) renderAux(s *models.StatusLineNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
+	isRoot := depth == -1
 	if s == nil {
 		return []string{}
 	}
 
 	getLine := func() string {
-		return strings.Repeat("  ", depth) + presentation.GetStatusNodeLine(s.HasUnstagedChanges(), s.GetShortStatus(), s.Name, diffName, submoduleConfigs, s.File)
+		return prefix + presentation.GetStatusNodeLine(s.HasUnstagedChanges(), s.GetShortStatus(), s.Name, diffName, submoduleConfigs, s.File)
 	}
 
 	if s.IsLeaf() {
-		if depth == -1 {
+		if isRoot {
 			return []string{}
 		}
 		return []string{getLine()}
 	}
 
 	if s.Collapsed {
-		return []string{fmt.Sprintf("%s%s %s", strings.Repeat("  ", depth), s.Name, COLLAPSED_ARROW)}
+		return []string{fmt.Sprintf("%s%s %s", prefix, s.Name, COLLAPSED_ARROW)}
 	}
 
 	arr := []string{}
-	if depth > -1 {
-		arr = append(arr, fmt.Sprintf("%s%s %s", strings.Repeat("  ", depth), s.Name, EXPANDED_ARROW))
+	if !isRoot {
+		arr = append(arr, fmt.Sprintf("%s%s %s", prefix, s.Name, EXPANDED_ARROW))
 	}
 
-	for _, child := range s.Children {
-		arr = append(arr, m.renderAux(child, depth+1, diffName, submoduleConfigs)...)
+	newPrefix := prefix
+	if strings.HasSuffix(prefix, LAST_ITEM) {
+		newPrefix = strings.TrimSuffix(prefix, LAST_ITEM) + NOTHING
+	} else if strings.HasSuffix(prefix, INNER_ITEM) {
+		newPrefix = strings.TrimSuffix(prefix, INNER_ITEM) + NESTED
+	}
+
+	for i, child := range s.Children {
+		isLast := i == len(s.Children)-1
+
+		var childPrefix string
+		if isRoot {
+			childPrefix = newPrefix
+		} else if isLast {
+			childPrefix = newPrefix + LAST_ITEM
+		} else {
+			childPrefix = newPrefix + INNER_ITEM
+		}
+
+		arr = append(arr, m.renderAux(child, childPrefix, depth+1, diffName, submoduleConfigs)...)
 	}
 
 	return arr
