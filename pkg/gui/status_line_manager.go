@@ -56,8 +56,8 @@ func (m *StatusLineManager) Render(diffName string, submoduleConfigs []*models.S
 
 const INNER_ITEM = "├─ "
 const LAST_ITEM = "└─ "
-const NESTED = "│   "
-const NOTHING = "    "
+const NESTED = "│  "
+const NOTHING = "   "
 
 func (m *StatusLineManager) renderAux(s *models.StatusLineNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
 	isRoot := depth == -1
