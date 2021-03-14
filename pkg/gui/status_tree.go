@@ -43,7 +43,8 @@ func GetTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
 		}
 	}
 
-	root.SortTree()
+	root.Sort()
+	root.Compress()
 
 	return root
 }

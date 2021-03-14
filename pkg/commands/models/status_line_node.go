@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"sort"
 )
 
@@ -106,11 +107,11 @@ func (s *StatusLineNode) Flatten() []*StatusLineNode {
 	return arr
 }
 
-func (s *StatusLineNode) SortTree() {
+func (s *StatusLineNode) Sort() {
 	s.sortChildren()
 
 	for _, child := range s.Children {
-		child.SortTree()
+		child.Sort()
 	}
 }
 
@@ -148,4 +149,36 @@ func (s *StatusLineNode) GetIsTracked() bool {
 
 func (s *StatusLineNode) GetPath() string {
 	return s.Path
+}
+
+func (s *StatusLineNode) HasExactlyOneChild() bool {
+	return len(s.Children) == 1
+}
+
+func (s *StatusLineNode) Compress() {
+	if s == nil {
+		return
+	}
+
+	s.compressAux()
+}
+
+func (s *StatusLineNode) compressAux() *StatusLineNode {
+	if s.IsLeaf() {
+		return s
+	}
+
+	for i, child := range s.Children {
+		if child.HasExactlyOneChild() {
+			grandchild := child.Children[0]
+			grandchild.Name = fmt.Sprintf("%s/%s", child.Name, grandchild.Name)
+			s.Children[i] = grandchild
+		}
+	}
+
+	for i, child := range s.Children {
+		s.Children[i] = child.compressAux()
+	}
+
+	return s
 }
