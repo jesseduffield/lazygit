@@ -378,7 +378,7 @@ func (gui *Gui) resetState() {
 	}
 
 	gui.State = &guiState{
-		StatusLineManager:     &StatusLineManager{Files: make([]*models.File, 0), Log: gui.Log, TreeMode: true},
+		StatusLineManager:     NewStatusLineManager(make([]*models.File, 0), gui.Log),
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),
 		ReflogCommits:         make([]*models.Commit, 0),

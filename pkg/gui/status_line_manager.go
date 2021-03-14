@@ -13,16 +13,26 @@ const EXPANDED_ARROW = "▼"
 const COLLAPSED_ARROW = "►"
 
 type StatusLineManager struct {
-	Files    []*models.File
-	Tree     *models.StatusLineNode
-	TreeMode bool
-	Log      *logrus.Entry
+	Files          []*models.File
+	Tree           *models.StatusLineNode
+	TreeMode       bool
+	Log            *logrus.Entry
+	CollapsedPaths map[string]bool
+}
+
+func NewStatusLineManager(files []*models.File, log *logrus.Entry) *StatusLineManager {
+	return &StatusLineManager{
+		Files:          files,
+		Log:            log,
+		TreeMode:       true, // always true for now
+		CollapsedPaths: map[string]bool{},
+	}
 }
 
 func (m *StatusLineManager) GetItemAtIndex(index int) *models.StatusLineNode {
 	if m.TreeMode {
 		// need to traverse the three depth first until we get to the index.
-		return m.Tree.GetNodeAtIndex(index + 1) // ignoring root
+		return m.Tree.GetNodeAtIndex(index+1, m.CollapsedPaths) // ignoring root
 	}
 
 	m.Log.Warn(index)
@@ -34,11 +44,11 @@ func (m *StatusLineManager) GetItemAtIndex(index int) *models.StatusLineNode {
 }
 
 func (m *StatusLineManager) GetAllItems() []*models.StatusLineNode {
-	return m.Tree.Flatten()[1:] // ignoring root
+	return m.Tree.Flatten(m.CollapsedPaths)[1:] // ignoring root
 }
 
 func (m *StatusLineManager) GetItemsLength() int {
-	return m.Tree.Size() - 1 // ignoring root
+	return m.Tree.Size(m.CollapsedPaths) - 1 // ignoring root
 }
 
 func (m *StatusLineManager) GetAllFiles() []*models.File {
@@ -59,6 +69,14 @@ const LAST_ITEM = "└─ "
 const NESTED = "│  "
 const NOTHING = "   "
 
+func (m *StatusLineManager) IsCollapsed(s *models.StatusLineNode) bool {
+	return m.CollapsedPaths[s.GetPath()]
+}
+
+func (m *StatusLineManager) ToggleCollapsed(s *models.StatusLineNode) {
+	m.CollapsedPaths[s.GetPath()] = !m.CollapsedPaths[s.GetPath()]
+}
+
 func (m *StatusLineManager) renderAux(s *models.StatusLineNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
 	isRoot := depth == -1
 	if s == nil {
@@ -76,7 +94,7 @@ func (m *StatusLineManager) renderAux(s *models.StatusLineNode, prefix string, d
 		return []string{getLine()}
 	}
 
-	if s.Collapsed {
+	if m.IsCollapsed(s) {
 		return []string{fmt.Sprintf("%s %s", getLine(), COLLAPSED_ARROW)}
 	}
 
