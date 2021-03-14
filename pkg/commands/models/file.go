@@ -59,3 +59,20 @@ func (f *File) SubmoduleConfig(configs []*SubmoduleConfig) *SubmoduleConfig {
 
 	return nil
 }
+
+func (f *File) GetHasUnstagedChanges() bool {
+	return f.HasUnstagedChanges
+}
+
+func (f *File) GetHasStagedChanges() bool {
+	return f.HasStagedChanges
+}
+
+func (f *File) GetIsTracked() bool {
+	return f.Tracked
+}
+
+func (f *File) GetPath() string {
+	names := f.Names()
+	return names[len(names)-1]
+}

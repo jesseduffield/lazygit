@@ -158,23 +158,22 @@ func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool
 	return s
 }
 
-func (c *GitCommand) WorktreeFileDiffCmdStr(file *models.File, plain bool, cached bool) string {
+func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IStatusLine, plain bool, cached bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()
-	split := strings.Split(file.Name, models.RENAME_SEPARATOR) // in case of a renamed file we get the new filename
-	fileName := c.OSCommand.Quote(split[len(split)-1])
+	path := c.OSCommand.Quote(node.GetPath())
 	if cached {
 		cachedArg = "--cached"
 	}
-	if !file.Tracked && !file.HasStagedChanges && !cached {
+	if !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached {
 		trackedArg = "--no-index -- /dev/null"
 	}
 	if plain {
 		colorArg = "never"
 	}
 
-	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, fileName)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, path)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {

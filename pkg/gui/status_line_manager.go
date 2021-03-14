@@ -66,7 +66,7 @@ func (m *StatusLineManager) renderAux(s *models.StatusLineNode, prefix string, d
 	}
 
 	getLine := func() string {
-		return prefix + presentation.GetStatusNodeLine(s.HasUnstagedChanges(), s.GetShortStatus(), s.Name, diffName, submoduleConfigs, s.File)
+		return prefix + presentation.GetStatusNodeLine(s.GetHasUnstagedChanges(), s.GetShortStatus(), s.Name, diffName, submoduleConfigs, s.File)
 	}
 
 	if s.IsLeaf() {
