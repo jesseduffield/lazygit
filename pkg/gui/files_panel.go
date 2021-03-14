@@ -46,8 +46,9 @@ func (gui *Gui) getSelectedFile() *models.File {
 func (gui *Gui) selectFile(alreadySelected bool) error {
 	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
 
-	file := gui.getSelectedFile()
-	if file == nil {
+	node := gui.getSelectedStatusNode()
+
+	if node == nil {
 		return gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
 				title: "",
@@ -66,11 +67,11 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		}
 	}
 
-	if file.HasInlineMergeConflicts {
+	if node.File != nil && node.File.HasInlineMergeConflicts {
 		return gui.refreshMergePanel()
 	}
 
-	cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+	cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
 
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
@@ -78,15 +79,17 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		task:  gui.createRunPtyTask(cmd),
 	}}
 
-	if file.HasStagedChanges && file.HasUnstagedChanges {
-		cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, true)
-		cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+	if node.GetHasUnstagedChanges() {
+		if node.GetHasStagedChanges() {
+			cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(node, false, true)
+			cmd := gui.OSCommand.ExecutableFromString(cmdStr)
 
-		refreshOpts.secondary = &viewUpdateOpts{
-			title: gui.Tr.StagedChanges,
-			task:  gui.createRunPtyTask(cmd),
+			refreshOpts.secondary = &viewUpdateOpts{
+				title: gui.Tr.StagedChanges,
+				task:  gui.createRunPtyTask(cmd),
+			}
 		}
-	} else if !file.HasUnstagedChanges {
+	} else {
 		refreshOpts.main.title = gui.Tr.StagedChanges
 	}
 
@@ -226,7 +229,7 @@ func (gui *Gui) handleFilePress() error {
 			}
 		}
 	} else {
-		if node.HasUnstagedChanges() {
+		if node.GetHasUnstagedChanges() {
 			if err := gui.GitCommand.StageFile(node.Path); err != nil {
 				return gui.surfaceError(err)
 			}

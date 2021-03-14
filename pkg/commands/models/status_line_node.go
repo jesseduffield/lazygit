@@ -20,23 +20,23 @@ func (s *StatusLineNode) GetShortStatus() string {
 
 	firstChar := " "
 	secondChar := " "
-	if s.HasStagedChanges() {
+	if s.GetHasStagedChanges() {
 		firstChar = "M"
 	}
-	if s.HasUnstagedChanges() {
+	if s.GetHasUnstagedChanges() {
 		secondChar = "M"
 	}
 
 	return firstChar + secondChar
 }
 
-func (s *StatusLineNode) HasUnstagedChanges() bool {
+func (s *StatusLineNode) GetHasUnstagedChanges() bool {
 	if s.IsLeaf() {
 		return s.File.HasUnstagedChanges
 	}
 
 	for _, child := range s.Children {
-		if child.HasUnstagedChanges() {
+		if child.GetHasUnstagedChanges() {
 			return true
 		}
 	}
@@ -44,13 +44,13 @@ func (s *StatusLineNode) HasUnstagedChanges() bool {
 	return false
 }
 
-func (s *StatusLineNode) HasStagedChanges() bool {
+func (s *StatusLineNode) GetHasStagedChanges() bool {
 	if s.IsLeaf() {
 		return s.File.HasStagedChanges
 	}
 
 	for _, child := range s.Children {
-		if child.HasStagedChanges() {
+		if child.GetHasStagedChanges() {
 			return true
 		}
 	}
@@ -135,4 +135,17 @@ func (s *StatusLineNode) sortChildren() {
 
 	// TODO: think about making this in-place
 	s.Children = sortedChildren
+}
+
+func (s *StatusLineNode) GetIsTracked() bool {
+	if s.File != nil {
+		return s.File.GetIsTracked()
+	}
+
+	// pretty sure I'm allowed to do this
+	return true
+}
+
+func (s *StatusLineNode) GetPath() string {
+	return s.Path
 }
