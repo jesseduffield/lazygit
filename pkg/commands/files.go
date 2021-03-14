@@ -21,7 +21,7 @@ func (c *GitCommand) CatFile(fileName string) (string, error) {
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
 	// renamed files look like "file1 -> file2"
-	fileNames := strings.Split(fileName, " -> ")
+	fileNames := strings.Split(fileName, models.RENAME_SEPARATOR)
 	return c.OSCommand.RunCommand("git add -- %s", c.OSCommand.Quote(fileNames[len(fileNames)-1]))
 }
 
@@ -43,7 +43,7 @@ func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
 	}
 
 	// renamed files look like "file1 -> file2"
-	fileNames := strings.Split(fileName, " -> ")
+	fileNames := strings.Split(fileName, models.RENAME_SEPARATOR)
 	for _, name := range fileNames {
 		if err := c.OSCommand.RunCommand(command, c.OSCommand.Quote(name)); err != nil {
 			return err
@@ -63,7 +63,7 @@ func (c *GitCommand) BeforeAndAfterFileForRename(file *models.File) (*models.Fil
 	// all files, passing the --no-renames flag and then recursively call the function
 	// again for the before file and after file. At some point we should fix the abstraction itself
 
-	split := strings.Split(file.Name, " -> ")
+	split := strings.Split(file.Name, models.RENAME_SEPARATOR)
 	filesWithoutRenames := c.GetStatusFiles(GetStatusFileOptions{NoRenames: true})
 	var beforeFile *models.File
 	var afterFile *models.File
@@ -143,7 +143,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(file *models.File, plain bool, cache
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()
-	split := strings.Split(file.Name, " -> ") // in case of a renamed file we get the new filename
+	split := strings.Split(file.Name, models.RENAME_SEPARATOR) // in case of a renamed file we get the new filename
 	fileName := c.OSCommand.Quote(split[len(split)-1])
 	if cached {
 		cachedArg = "--cached"
