@@ -21,14 +21,14 @@ import (
 
 // list panel functions
 
-// func (gui *Gui) getSelectedStatusNode() *models.StatusLineNode {
-// 	selectedLine := gui.State.Panels.Files.SelectedLineIdx
-// 	if selectedLine == -1 {
-// 		return nil
-// 	}
+func (gui *Gui) getSelectedStatusNode() *models.StatusLineNode {
+	selectedLine := gui.State.Panels.Files.SelectedLineIdx
+	if selectedLine == -1 {
+		return nil
+	}
 
-// 	return gui.State.StatusLineManager.GetItemAtIndex(selectedLine)
-// }
+	return gui.State.StatusLineManager.GetItemAtIndex(selectedLine)
+}
 
 func (gui *Gui) getSelectedFile() *models.File {
 	selectedLine := gui.State.Panels.Files.SelectedLineIdx
@@ -202,22 +202,39 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 }
 
 func (gui *Gui) handleFilePress() error {
-	file := gui.getSelectedFile()
-	if file == nil {
+	node := gui.getSelectedStatusNode()
+	if node == nil {
 		return nil
 	}
 
-	if file.HasInlineMergeConflicts {
-		return gui.handleSwitchToMerge()
-	}
+	// need to stage or unstage depending on situation. If we have a merge conflict we can't do anything
 
-	if file.HasUnstagedChanges {
-		if err := gui.GitCommand.StageFile(file.Name); err != nil {
-			return gui.surfaceError(err)
+	if node.IsLeaf() {
+		file := node.File
+
+		if file.HasInlineMergeConflicts {
+			return gui.handleSwitchToMerge()
+		}
+
+		if file.HasUnstagedChanges {
+			if err := gui.GitCommand.StageFile(file.Name); err != nil {
+				return gui.surfaceError(err)
+			}
+		} else {
+			if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
+				return gui.surfaceError(err)
+			}
 		}
 	} else {
-		if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
-			return gui.surfaceError(err)
+		if node.HasUnstagedChanges() {
+			if err := gui.GitCommand.StageFile(node.Path); err != nil {
+				return gui.surfaceError(err)
+			}
+		} else {
+			// pretty sure it doesn't matter that we're always passing true here
+			if err := gui.GitCommand.UnStageFile(node.Path, true); err != nil {
+				return gui.surfaceError(err)
+			}
 		}
 	}
 
