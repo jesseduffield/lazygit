@@ -77,8 +77,19 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 		return "", err
 	}
 
-	statusLines = strings.Replace(statusLines, "\x00", "\n", -1)
-	return statusLines, nil
+	splitLines := strings.Split(statusLines, "\x00")
+	// if a line starts with 'R' then the next line is the original file.
+	for i := 0; i < len(splitLines)-1; i++ {
+		original := splitLines[i]
+		if strings.HasPrefix(original, "R  ") {
+			next := splitLines[i+1]
+			updated := "R  " + next + models.RENAME_SEPARATOR + strings.TrimPrefix(original, "R  ")
+			splitLines[i] = updated
+			splitLines = append(splitLines[0:i+1], splitLines[i+2:]...)
+		}
+	}
+
+	return strings.Join(splitLines, "\n"), nil
 }
 
 // MergeStatusFiles merge status files
