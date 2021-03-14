@@ -862,7 +862,7 @@ func englishTranslationSet() TranslationSet {
 		ViewPatchOptions:                    "view custom patch options",
 		PatchOptionsTitle:                   "Patch Options",
 		NoPatchError:                        "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
-		LcEnterFile:                         "enter file to add selected lines to the patch",
+		LcEnterFile:                         "enter file to add selected lines to the patch (or toggle directory collapsed)",
 		ExitLineByLineMode:                  `exit line-by-line mode`,
 		EnterUpstream:                       `Enter upstream as '<remote> <branchname>'`,
 		EnterUpstreamWithSlash:              `Enter upstream as '<remote>/<branchname>'`,

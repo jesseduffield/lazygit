@@ -59,24 +59,26 @@ func (s *StatusLineNode) GetHasStagedChanges() bool {
 	return false
 }
 
-func (s *StatusLineNode) GetNodeAtIndex(index int) *StatusLineNode {
-	node, _ := s.getNodeAtIndexAux(index)
+func (s *StatusLineNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *StatusLineNode {
+	node, _ := s.getNodeAtIndexAux(index, collapsedPaths)
 
 	return node
 }
 
-func (s *StatusLineNode) getNodeAtIndexAux(index int) (*StatusLineNode, int) {
+func (s *StatusLineNode) getNodeAtIndexAux(index int, collapsedPaths map[string]bool) (*StatusLineNode, int) {
 	offset := 1
 
 	if index == 0 {
 		return s, offset
 	}
 
-	for _, child := range s.Children {
-		node, offsetChange := child.getNodeAtIndexAux(index - offset)
-		offset += offsetChange
-		if node != nil {
-			return node, offset
+	if !collapsedPaths[s.GetPath()] {
+		for _, child := range s.Children {
+			node, offsetChange := child.getNodeAtIndexAux(index-offset, collapsedPaths)
+			offset += offsetChange
+			if node != nil {
+				return node, offset
+			}
 		}
 	}
 
@@ -87,21 +89,25 @@ func (s *StatusLineNode) IsLeaf() bool {
 	return len(s.Children) == 0
 }
 
-func (s *StatusLineNode) Size() int {
+func (s *StatusLineNode) Size(collapsedPaths map[string]bool) int {
 	output := 1
 
-	for _, child := range s.Children {
-		output += child.Size()
+	if !collapsedPaths[s.GetPath()] {
+		for _, child := range s.Children {
+			output += child.Size(collapsedPaths)
+		}
 	}
 
 	return output
 }
 
-func (s *StatusLineNode) Flatten() []*StatusLineNode {
+func (s *StatusLineNode) Flatten(collapsedPaths map[string]bool) []*StatusLineNode {
 	arr := []*StatusLineNode{s}
 
-	for _, child := range s.Children {
-		arr = append(arr, child.Flatten()...)
+	if !collapsedPaths[s.GetPath()] {
+		for _, child := range s.Children {
+			arr = append(arr, child.Flatten(collapsedPaths)...)
+		}
 	}
 
 	return arr

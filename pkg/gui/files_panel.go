@@ -182,10 +182,16 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error {
-	file := gui.getSelectedFile()
-	if file == nil {
+	node := gui.getSelectedStatusNode()
+	if node == nil {
 		return nil
 	}
+
+	if node.File == nil {
+		return gui.handleToggleDirCollapsed()
+	}
+
+	file := node.File
 
 	submoduleConfigs := gui.State.Submodules
 	if file.IsSubmodule(submoduleConfigs) {
@@ -741,4 +747,19 @@ func (gui *Gui) handleStashChanges(g *gocui.Gui, v *gocui.View) error {
 
 func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) error {
 	return gui.createResetMenu("@{upstream}")
+}
+
+func (gui *Gui) handleToggleDirCollapsed() error {
+	node := gui.getSelectedStatusNode()
+	if node == nil {
+		return nil
+	}
+
+	gui.State.StatusLineManager.ToggleCollapsed(node)
+
+	if err := gui.postRefreshUpdate(gui.Contexts.Files.Context); err != nil {
+		gui.Log.Error(err)
+	}
+
+	return nil
 }
