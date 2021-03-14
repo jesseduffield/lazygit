@@ -157,10 +157,6 @@ func (s *StatusLineNode) GetPath() string {
 	return s.Path
 }
 
-func (s *StatusLineNode) HasExactlyOneChild() bool {
-	return len(s.Children) == 1
-}
-
 func (s *StatusLineNode) Compress() {
 	if s == nil {
 		return
@@ -174,10 +170,10 @@ func (s *StatusLineNode) compressAux() *StatusLineNode {
 		return s
 	}
 
-	for i, child := range s.Children {
-		if child.HasExactlyOneChild() {
-			grandchild := child.Children[0]
-			grandchild.Name = fmt.Sprintf("%s/%s", child.Name, grandchild.Name)
+	for i := range s.Children {
+		for s.Children[i].HasExactlyOneChild() {
+			grandchild := s.Children[i].Children[0]
+			grandchild.Name = fmt.Sprintf("%s/%s", s.Children[i].Name, grandchild.Name)
 			s.Children[i] = grandchild
 		}
 	}
@@ -187,4 +183,8 @@ func (s *StatusLineNode) compressAux() *StatusLineNode {
 	}
 
 	return s
+}
+
+func (s *StatusLineNode) HasExactlyOneChild() bool {
+	return len(s.Children) == 1
 }

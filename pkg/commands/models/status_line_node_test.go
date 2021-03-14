@@ -65,6 +65,23 @@ func TestCompress(t *testing.T) {
 						},
 					},
 					{
+						Name: "dir3",
+						Path: "dir3",
+						Children: []*StatusLineNode{
+							{
+								Name: "dir3-1",
+								Path: "dir3/dir3-1",
+								Children: []*StatusLineNode{
+									{
+										File: &File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
+										Name: "file5",
+										Path: "dir3/dir3-1/file5",
+									},
+								},
+							},
+						},
+					},
+					{
 						File: &File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 						Name: "file1",
 						Path: "file1",
@@ -94,6 +111,11 @@ func TestCompress(t *testing.T) {
 								Path: "dir2/file4",
 							},
 						},
+					},
+					{
+						Name: "dir3/dir3-1/file5",
+						File: &File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
+						Path: "dir3/dir3-1/file5",
 					},
 					{
 						File: &File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
