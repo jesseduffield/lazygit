@@ -7,7 +7,8 @@ import (
 type StatusLineNode struct {
 	Children  []*StatusLineNode
 	File      *File
-	Name      string
+	Name      string // e.g. 'mydir'
+	Path      string // e.g. '/path/to/mydir'
 	Collapsed bool
 }
 

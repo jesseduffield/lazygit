@@ -2,6 +2,7 @@ package gui
 
 import (
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -33,6 +34,7 @@ func GetTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
 			}
 			newChild := &models.StatusLineNode{
 				Name: dir,
+				Path: filepath.Join(split[:i+1]...),
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)

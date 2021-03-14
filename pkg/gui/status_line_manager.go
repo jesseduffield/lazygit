@@ -77,12 +77,12 @@ func (m *StatusLineManager) renderAux(s *models.StatusLineNode, prefix string, d
 	}
 
 	if s.Collapsed {
-		return []string{fmt.Sprintf("%s%s %s", prefix, s.Name, COLLAPSED_ARROW)}
+		return []string{fmt.Sprintf("%s %s", getLine(), COLLAPSED_ARROW)}
 	}
 
 	arr := []string{}
 	if !isRoot {
-		arr = append(arr, fmt.Sprintf("%s%s %s", prefix, s.Name, EXPANDED_ARROW))
+		arr = append(arr, fmt.Sprintf("%s %s", getLine(), EXPANDED_ARROW))
 	}
 
 	newPrefix := prefix
