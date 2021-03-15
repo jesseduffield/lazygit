@@ -278,10 +278,11 @@ func (gui *Gui) filesListContext() *ListContext {
 
 			return mappedLines
 
+			// TODO: Fix this up
 			return presentation.GetFileListDisplayStrings(gui.State.StatusLineManager.GetAllFiles(), gui.State.Modes.Diffing.Ref, gui.State.Submodules)
 		},
 		SelectedItem: func() (ListItem, bool) {
-			item := gui.getSelectedFile()
+			item := gui.getSelectedStatusNode()
 			return item, item != nil
 		},
 	}
