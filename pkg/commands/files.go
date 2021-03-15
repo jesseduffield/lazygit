@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -138,6 +139,47 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 		return c.removeFile(file.Name)
 	}
 	return c.DiscardUnstagedFileChanges(file)
+}
+
+func (c *GitCommand) DiscardAllDirChanges(node *models.StatusLineNode) error {
+	if err := c.RemoveUntrackedDirFiles(node); err != nil {
+		return err
+	}
+
+	quotedPath := c.OSCommand.Quote(node.GetPath())
+	if err := c.OSCommand.RunCommand("git checkout HEAD -- %s", quotedPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *GitCommand) DiscardUnstagedDirChanges(node *models.StatusLineNode) error {
+	if err := c.RemoveUntrackedDirFiles(node); err != nil {
+		return err
+	}
+
+	quotedPath := c.OSCommand.Quote(node.GetPath())
+	if err := c.OSCommand.RunCommand("git checkout -- %s", quotedPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *GitCommand) RemoveUntrackedDirFiles(node *models.StatusLineNode) error {
+	untrackedFilePaths := node.GetPathsMatching(
+		func(n *models.StatusLineNode) bool { return n.File != nil && !n.File.GetIsTracked() },
+	)
+
+	for _, path := range untrackedFilePaths {
+		err := os.Remove(path)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // DiscardUnstagedFileChanges directly

@@ -188,3 +188,18 @@ func (s *StatusLineNode) compressAux() *StatusLineNode {
 func (s *StatusLineNode) HasExactlyOneChild() bool {
 	return len(s.Children) == 1
 }
+
+// This ignores the root
+func (s *StatusLineNode) GetPathsMatching(test func(*StatusLineNode) bool) []string {
+	paths := []string{}
+
+	if test(s) {
+		paths = append(paths, s.GetPath())
+	}
+
+	for _, child := range s.Children {
+		paths = append(paths, child.GetPathsMatching(test)...)
+	}
+
+	return paths
+}
