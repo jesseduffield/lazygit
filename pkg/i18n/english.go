@@ -435,6 +435,7 @@ type TranslationSet struct {
 	PullRequestURLCopiedToClipboard     string
 	CommitMessageCopiedToClipboard      string
 	LcCopiedToClipboard                 string
+	ErrCannotEditDirectory              string
 }
 
 const englishReleaseNotes = `## lazygit 0.26 Release Notes
@@ -993,5 +994,6 @@ func englishTranslationSet() TranslationSet {
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
 		LcCopiedToClipboard:                 "copied to clipboard",
+		ErrCannotEditDirectory:              "Cannot edit directory: you can only edit individual files",
 	}
 }

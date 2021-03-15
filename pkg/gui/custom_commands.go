@@ -16,6 +16,7 @@ type CustomCommandObjects struct {
 	SelectedReflogCommit *models.Commit
 	SelectedSubCommit    *models.Commit
 	SelectedFile         *models.File
+	SelectedPath         string
 	SelectedLocalBranch  *models.Branch
 	SelectedRemoteBranch *models.RemoteBranch
 	SelectedRemote       *models.Remote
@@ -29,6 +30,7 @@ type CustomCommandObjects struct {
 func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (string, error) {
 	objects := CustomCommandObjects{
 		SelectedFile:         gui.getSelectedFile(),
+		SelectedPath:         gui.getSelectedPath(),
 		SelectedLocalCommit:  gui.getSelectedLocalCommit(),
 		SelectedReflogCommit: gui.getSelectedReflogCommit(),
 		SelectedLocalBranch:  gui.getSelectedBranch(),

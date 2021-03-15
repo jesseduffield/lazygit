@@ -43,6 +43,15 @@ func (gui *Gui) getSelectedFile() *models.File {
 	return node.File
 }
 
+func (gui *Gui) getSelectedPath() string {
+	node := gui.getSelectedStatusNode()
+	if node == nil {
+		return ""
+	}
+
+	return node.GetPath()
+}
+
 func (gui *Gui) selectFile(alreadySelected bool) error {
 	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
 
@@ -104,7 +113,7 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 		gui.Mutexes.RefreshingFilesMutex.Unlock()
 	}()
 
-	selectedFile := gui.getSelectedFile()
+	selectedPath := gui.getSelectedPath()
 
 	filesView := gui.getFilesView()
 	if filesView == nil {
@@ -131,8 +140,8 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 		}
 
 		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
-			newSelectedFile := gui.getSelectedFile()
-			alreadySelected := selectedFile != nil && newSelectedFile != nil && newSelectedFile.Name == selectedFile.Name
+			newSelectedPath := gui.getSelectedPath()
+			alreadySelected := selectedPath != "" && newSelectedPath == selectedPath
 			if err := gui.selectFile(alreadySelected); err != nil {
 				return err
 			}
@@ -461,20 +470,25 @@ func (gui *Gui) editFile(filename string) error {
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
-	file := gui.getSelectedFile()
-	if file == nil {
+	node := gui.getSelectedStatusNode()
+	if node == nil {
 		return nil
 	}
 
-	return gui.editFile(file.Name)
+	if node.File == nil {
+		return gui.createErrorPanel(gui.Tr.ErrCannotEditDirectory)
+	}
+
+	return gui.editFile(node.GetPath())
 }
 
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
-	file := gui.getSelectedFile()
-	if file == nil {
+	node := gui.getSelectedStatusNode()
+	if node == nil {
 		return nil
 	}
-	return gui.openFile(file.Name)
+
+	return gui.openFile(node.GetPath())
 }
 
 func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {

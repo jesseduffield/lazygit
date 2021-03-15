@@ -203,3 +203,11 @@ func (s *StatusLineNode) GetPathsMatching(test func(*StatusLineNode) bool) []str
 
 	return paths
 }
+
+func (s *StatusLineNode) ID() string {
+	return s.GetPath()
+}
+
+func (s *StatusLineNode) Description() string {
+	return s.GetPath()
+}
