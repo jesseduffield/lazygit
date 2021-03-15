@@ -408,7 +408,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "files",
 			Contexts:    []string{FILES_CONTEXT_KEY},
 			Key:         gui.getKey(config.Universal.Remove),
-			Handler:     gui.handleCreateDiscardMenu,
+			Handler:     gui.wrappedHandler(gui.handleCreateDiscardMenu),
 			Description: gui.Tr.LcViewDiscardOptions,
 			OpensMenu:   true,
 		},
