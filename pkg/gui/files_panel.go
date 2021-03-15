@@ -294,24 +294,43 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 	return gui.selectFile(false)
 }
 
-func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
-	file := gui.getSelectedFile()
-	if file == nil {
+func (gui *Gui) handleIgnoreFile() error {
+	node := gui.getSelectedStatusNode()
+	if node == nil {
 		return nil
 	}
-	if file.Name == ".gitignore" {
+
+	if node.GetPath() == ".gitignore" {
 		return gui.createErrorPanel("Cannot ignore .gitignore")
 	}
 
-	if file.Tracked {
+	unstageFiles := func() error {
+		return node.ForEachFile(func(file *models.File) error {
+			if file.HasStagedChanges {
+				if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
+	}
+
+	if node.GetIsTracked() {
 		return gui.ask(askOpts{
 			title:  gui.Tr.IgnoreTracked,
 			prompt: gui.Tr.IgnoreTrackedPrompt,
 			handleConfirm: func() error {
-				if err := gui.GitCommand.Ignore(file.Name); err != nil {
+				// not 100% sure if this is necessary but I'll assume it is
+				if err := unstageFiles(); err != nil {
 					return err
 				}
-				if err := gui.GitCommand.RemoveTrackedFiles(file.Name); err != nil {
+
+				if err := gui.GitCommand.RemoveTrackedFiles(node.GetPath()); err != nil {
+					return err
+				}
+
+				if err := gui.GitCommand.Ignore(node.GetPath()); err != nil {
 					return err
 				}
 				return gui.refreshSidePanels(refreshOptions{scope: []int{FILES}})
@@ -319,7 +338,11 @@ func (gui *Gui) handleIgnoreFile(g *gocui.Gui, v *gocui.View) error {
 		})
 	}
 
-	if err := gui.GitCommand.Ignore(file.Name); err != nil {
+	if err := unstageFiles(); err != nil {
+		return err
+	}
+
+	if err := gui.GitCommand.Ignore(node.GetPath()); err != nil {
 		return gui.surfaceError(err)
 	}
 
