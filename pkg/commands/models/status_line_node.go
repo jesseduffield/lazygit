@@ -144,13 +144,19 @@ func (s *StatusLineNode) sortChildren() {
 	s.Children = sortedChildren
 }
 
+// returns true if any descendant file is tracked
 func (s *StatusLineNode) GetIsTracked() bool {
 	if s.File != nil {
 		return s.File.GetIsTracked()
 	}
 
-	// pretty sure I'm allowed to do this
-	return true
+	for _, child := range s.Children {
+		if child.GetIsTracked() {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *StatusLineNode) GetPath() string {
@@ -210,4 +216,20 @@ func (s *StatusLineNode) ID() string {
 
 func (s *StatusLineNode) Description() string {
 	return s.GetPath()
+}
+
+func (s *StatusLineNode) ForEachFile(cb func(*File) error) error {
+	if s.File != nil {
+		if err := cb(s.File); err != nil {
+			return err
+		}
+	}
+
+	for _, child := range s.Children {
+		if err := child.ForEachFile(cb); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

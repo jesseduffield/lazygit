@@ -31,7 +31,7 @@ func (c *GitCommand) StageAll() error {
 	return c.OSCommand.RunCommand("git add -A")
 }
 
-// UnstageAll stages all files
+// UnstageAll unstages all files
 func (c *GitCommand) UnstageAll() error {
 	return c.OSCommand.RunCommand("git reset")
 }

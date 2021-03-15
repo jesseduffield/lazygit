@@ -430,7 +430,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "files",
 			Contexts:    []string{FILES_CONTEXT_KEY},
 			Key:         gui.getKey(config.Files.IgnoreFile),
-			Handler:     gui.handleIgnoreFile,
+			Handler:     gui.wrappedHandler(gui.handleIgnoreFile),
 			Description: gui.Tr.LcIgnoreFile,
 		},
 		{
