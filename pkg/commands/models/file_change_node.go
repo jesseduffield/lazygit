@@ -13,7 +13,7 @@ type FileChangeNode struct {
 	File             *File
 	Path             string // e.g. '/path/to/mydir'
 	Collapsed        bool
-	CompressionLevel int // equal to the number of forward slashes you'll see in the path when it's rendered
+	CompressionLevel int // equal to the number of forward slashes you'll see in the path when it's rendered in tree mode
 }
 
 func (s *FileChangeNode) GetHasUnstagedChanges() bool {
