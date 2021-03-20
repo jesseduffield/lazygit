@@ -2,7 +2,6 @@ package gui
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -58,9 +57,6 @@ func (m *StatusLineManager) GetAllFiles() []*models.File {
 
 func (m *StatusLineManager) SetFiles(files []*models.File) {
 	m.Files = files
-	sort.SliceStable(m.Files, func(i, j int) bool {
-		return m.Files[i].Name < m.Files[j].Name
-	})
 
 	m.SetTree()
 }
