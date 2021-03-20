@@ -95,7 +95,7 @@ func (s *FileChangeNode) getIndexForPathAux(path string, collapsedPaths map[stri
 }
 
 func (s *FileChangeNode) IsLeaf() bool {
-	return len(s.Children) == 0
+	return s.File != nil
 }
 
 func (s *FileChangeNode) Size(collapsedPaths map[string]bool) int {
