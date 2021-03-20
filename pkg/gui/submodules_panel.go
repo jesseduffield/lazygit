@@ -110,7 +110,7 @@ func (gui *Gui) fileForSubmodule(submodule *models.SubmoduleConfig) *models.File
 func (gui *Gui) resetSubmodule(submodule *models.SubmoduleConfig) error {
 	file := gui.fileForSubmodule(submodule)
 	if file != nil {
-		if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
+		if err := gui.GitCommand.UnStageFile(file.Names(), file.Tracked); err != nil {
 			return gui.surfaceError(err)
 		}
 	}

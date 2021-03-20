@@ -3,38 +3,39 @@ package gui
 import (
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/sirupsen/logrus"
 )
 
-func GetTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
+func GetTreeFromStatusFiles(files []*models.File, log *logrus.Entry) *models.StatusLineNode {
 	root := &models.StatusLineNode{}
-
-	sort.SliceStable(files, func(i, j int) bool {
-		return files[i].Name < files[j].Name
-	})
 
 	var curr *models.StatusLineNode
 	for _, file := range files {
 		split := strings.Split(file.Name, string(os.PathSeparator))
 		curr = root
 	outer:
-		for i, dir := range split {
+		for i := range split {
 			var setFile *models.File
-			if i == len(split)-1 {
+			isFile := i == len(split)-1
+			if isFile {
 				setFile = file
 			}
+
+			path := filepath.Join(split[:i+1]...)
+
 			for _, existingChild := range curr.Children {
-				if existingChild.Name == dir {
+				if existingChild.Path == path {
 					curr = existingChild
 					continue outer
 				}
 			}
+
 			newChild := &models.StatusLineNode{
-				Name: dir,
-				Path: filepath.Join(split[:i+1]...),
+				Name: path, // TODO: Remove concept of name
+				Path: path,
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)
@@ -45,6 +46,19 @@ func GetTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
 
 	root.Sort()
 	root.Compress()
+
+	return root
+}
+
+func GetFlatTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
+	root := &models.StatusLineNode{}
+	for _, file := range files {
+		root.Children = append(root.Children, &models.StatusLineNode{
+			Name: file.Name,
+			Path: file.GetPath(),
+			File: file,
+		})
+	}
 
 	return root
 }

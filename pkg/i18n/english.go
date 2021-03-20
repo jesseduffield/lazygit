@@ -47,6 +47,7 @@ type TranslationSet struct {
 	LcDelete                            string
 	LcToggleStaged                      string
 	LcToggleStagedAll                   string
+	LcToggleTreeView                    string
 	LcRefresh                           string
 	LcPush                              string
 	LcPull                              string
@@ -605,6 +606,7 @@ func englishTranslationSet() TranslationSet {
 		LcDelete:                            "delete",
 		LcToggleStaged:                      "toggle staged",
 		LcToggleStagedAll:                   "stage/unstage all",
+		LcToggleTreeView:                    "toggle file tree view",
 		LcRefresh:                           "refresh",
 		LcPush:                              "push",
 		LcPull:                              "pull",

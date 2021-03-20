@@ -8,6 +8,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+const RENAME_SEPARATOR = " -> "
+
 // GetStatusFiles git status files
 type GetStatusFileOptions struct {
 	NoRenames bool
@@ -37,14 +39,21 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 		change := statusString[0:2]
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
-		filename := statusString[3:]
+		name := statusString[3:]
 		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
 		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
 		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
 		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
+		previousName := ""
+		if strings.Contains(name, RENAME_SEPARATOR) {
+			split := strings.Split(name, RENAME_SEPARATOR)
+			name = split[1]
+			previousName = split[0]
+		}
 
 		file := &models.File{
-			Name:                    filename,
+			Name:                    name,
+			PreviousName:            previousName,
 			DisplayString:           statusString,
 			HasStagedChanges:        !hasNoStagedChanges,
 			HasUnstagedChanges:      unstagedChange != " ",
@@ -53,7 +62,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 			Added:                   unstagedChange == "A" || untracked,
 			HasMergeConflicts:       hasMergeConflicts,
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			Type:                    c.OSCommand.FileType(filename),
+			Type:                    c.OSCommand.FileType(name),
 			ShortStatus:             change,
 		}
 		files = append(files, file)
@@ -85,7 +94,7 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 		original := splitLines[i]
 		if strings.HasPrefix(original, "R  ") {
 			next := splitLines[i+1]
-			updated := "R  " + next + models.RENAME_SEPARATOR + strings.TrimPrefix(original, "R  ")
+			updated := "R  " + next + RENAME_SEPARATOR + strings.TrimPrefix(original, "R  ")
 			splitLines[i] = updated
 			splitLines = append(splitLines[0:i+1], splitLines[i+2:]...)
 		}

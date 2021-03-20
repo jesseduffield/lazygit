@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -24,23 +25,19 @@ func NewStatusLineManager(files []*models.File, log *logrus.Entry) *StatusLineMa
 	return &StatusLineManager{
 		Files:          files,
 		Log:            log,
-		TreeMode:       true, // always true for now
+		TreeMode:       false, // always true for now
 		CollapsedPaths: map[string]bool{},
 	}
 }
 
 func (m *StatusLineManager) GetItemAtIndex(index int) *models.StatusLineNode {
-	if m.TreeMode {
-		// need to traverse the three depth first until we get to the index.
-		return m.Tree.GetNodeAtIndex(index+1, m.CollapsedPaths) // ignoring root
-	}
+	// need to traverse the three depth first until we get to the index.
+	return m.Tree.GetNodeAtIndex(index+1, m.CollapsedPaths) // ignoring root
+}
 
-	m.Log.Warn(index)
-	if index > len(m.Files)-1 {
-		return nil
-	}
-
-	return &models.StatusLineNode{File: m.Files[index]}
+func (m *StatusLineManager) GetIndexForPath(path string) (int, bool) {
+	index, found := m.Tree.GetIndexForPath(path, m.CollapsedPaths)
+	return index - 1, found
 }
 
 func (m *StatusLineManager) GetAllItems() []*models.StatusLineNode {
@@ -57,7 +54,19 @@ func (m *StatusLineManager) GetAllFiles() []*models.File {
 
 func (m *StatusLineManager) SetFiles(files []*models.File) {
 	m.Files = files
-	m.Tree = GetTreeFromStatusFiles(files)
+	sort.SliceStable(m.Files, func(i, j int) bool {
+		return m.Files[i].Name < m.Files[j].Name
+	})
+
+	m.SetTree()
+}
+
+func (m *StatusLineManager) SetTree() {
+	if m.TreeMode {
+		m.Tree = GetTreeFromStatusFiles(m.Files, m.Log)
+	} else {
+		m.Tree = GetFlatTreeFromStatusFiles(m.Files)
+	}
 }
 
 func (m *StatusLineManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
@@ -84,7 +93,7 @@ func (m *StatusLineManager) renderAux(s *models.StatusLineNode, prefix string, d
 	}
 
 	getLine := func() string {
-		return prefix + presentation.GetStatusNodeLine(s.GetHasUnstagedChanges(), s.GetHasStagedChanges(), s.Name, diffName, submoduleConfigs, s.File)
+		return prefix + presentation.GetStatusNodeLine(s.GetHasUnstagedChanges(), s.GetHasStagedChanges(), s.NameAtDepth(depth), diffName, submoduleConfigs, s.File)
 	}
 
 	if s.IsLeaf() {

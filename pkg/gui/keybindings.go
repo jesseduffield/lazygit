@@ -506,6 +506,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			OpensMenu:   true,
 		},
 		{
+			ViewName:    "files",
+			Contexts:    []string{FILES_CONTEXT_KEY},
+			Key:         gui.getKey(config.Files.ToggleTreeView),
+			Handler:     gui.wrappedHandler(gui.handleToggleFileTreeView),
+			Description: gui.Tr.LcToggleTreeView,
+		},
+		{
 			ViewName:    "branches",
 			Contexts:    []string{LOCAL_BRANCHES_CONTEXT_KEY},
 			Key:         gui.getKey(config.Universal.Select),

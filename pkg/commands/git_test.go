@@ -1056,7 +1056,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 		testName string
 		command  func(string, ...string) *exec.Cmd
 		test     func(error)
-		tracked  bool
+		reset    bool
 	}
 
 	scenarios := []scenario{
@@ -1092,7 +1092,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
-			s.test(gitCmd.UnStageFile("test.txt", s.tracked))
+			s.test(gitCmd.UnStageFile([]string{"test.txt"}, s.reset))
 		})
 	}
 }

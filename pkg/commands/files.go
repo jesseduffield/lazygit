@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -21,9 +20,7 @@ func (c *GitCommand) CatFile(fileName string) (string, error) {
 
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
-	// renamed files look like "file1 -> file2"
-	fileNames := strings.Split(fileName, models.RENAME_SEPARATOR)
-	return c.OSCommand.RunCommand("git add -- %s", c.OSCommand.Quote(fileNames[len(fileNames)-1]))
+	return c.OSCommand.RunCommand("git add -- %s", c.OSCommand.Quote(fileName))
 }
 
 // StageAll stages all files
@@ -37,14 +34,14 @@ func (c *GitCommand) UnstageAll() error {
 }
 
 // UnStageFile unstages a file
-func (c *GitCommand) UnStageFile(fileName string, tracked bool) error {
+// we accept an array of filenames for the cases where a file has been renamed i.e.
+// we accept the current name and the previous name
+func (c *GitCommand) UnStageFile(fileNames []string, reset bool) error {
 	command := "git rm --cached --force -- %s"
-	if tracked {
+	if reset {
 		command = "git reset HEAD -- %s"
 	}
 
-	// renamed files look like "file1 -> file2"
-	fileNames := strings.Split(fileName, models.RENAME_SEPARATOR)
 	for _, name := range fileNames {
 		if err := c.OSCommand.RunCommand(command, c.OSCommand.Quote(name)); err != nil {
 			return err
@@ -59,20 +56,19 @@ func (c *GitCommand) BeforeAndAfterFileForRename(file *models.File) (*models.Fil
 		return nil, nil, errors.New("Expected renamed file")
 	}
 
-	// we've got a file that represents a rename from one file to another. Unfortunately
-	// our File abstraction fails to consider this case, so here we will refetch
+	// we've got a file that represents a rename from one file to another. Here we will refetch
 	// all files, passing the --no-renames flag and then recursively call the function
-	// again for the before file and after file. At some point we should fix the abstraction itself
+	// again for the before file and after file.
 
-	split := strings.Split(file.Name, models.RENAME_SEPARATOR)
 	filesWithoutRenames := c.GetStatusFiles(GetStatusFileOptions{NoRenames: true})
 	var beforeFile *models.File
 	var afterFile *models.File
 	for _, f := range filesWithoutRenames {
-		if f.Name == split[0] {
+		if f.Name == file.PreviousName {
 			beforeFile = f
 		}
-		if f.Name == split[1] {
+
+		if f.Name == file.Name {
 			afterFile = f
 		}
 	}
