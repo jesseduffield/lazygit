@@ -377,8 +377,10 @@ func (gui *Gui) resetState() {
 		Diffing:       prevDiff,
 	}
 
+	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
+
 	gui.State = &guiState{
-		StatusLineManager:     NewStatusLineManager(make([]*models.File, 0), gui.Log),
+		StatusLineManager:     NewStatusLineManager(make([]*models.File, 0), gui.Log, showTree),
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),
 		ReflogCommits:         make([]*models.Commit, 0),

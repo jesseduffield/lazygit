@@ -15,16 +15,16 @@ const COLLAPSED_ARROW = "►"
 type StatusLineManager struct {
 	Files          []*models.File
 	Tree           *models.StatusLineNode
-	TreeMode       bool
+	ShowTree       bool
 	Log            *logrus.Entry
 	CollapsedPaths map[string]bool
 }
 
-func NewStatusLineManager(files []*models.File, log *logrus.Entry) *StatusLineManager {
+func NewStatusLineManager(files []*models.File, log *logrus.Entry, showTree bool) *StatusLineManager {
 	return &StatusLineManager{
 		Files:          files,
 		Log:            log,
-		TreeMode:       false, // always true for now
+		ShowTree:       showTree,
 		CollapsedPaths: map[string]bool{},
 	}
 }
@@ -62,7 +62,7 @@ func (m *StatusLineManager) SetFiles(files []*models.File) {
 }
 
 func (m *StatusLineManager) SetTree() {
-	if m.TreeMode {
+	if m.ShowTree {
 		m.Tree = GetTreeFromStatusFiles(m.Files, m.Log)
 	} else {
 		m.Tree = GetFlatTreeFromStatusFiles(m.Files)

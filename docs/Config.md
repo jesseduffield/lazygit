@@ -34,6 +34,7 @@ Default path for the config file:
     mouseEvents: true
     skipUnstageLineWarning: false
     skipStashWarning: true
+    showFileTree: false # for rendering changes files in a tree format
   git:
     paging:
       colorArg: always
