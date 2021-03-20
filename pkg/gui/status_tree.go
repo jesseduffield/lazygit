@@ -7,10 +7,9 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/sirupsen/logrus"
 )
 
-func GetTreeFromStatusFiles(files []*models.File, log *logrus.Entry) *models.FileChangeNode {
+func GetTreeFromStatusFiles(files []*models.File) *models.FileChangeNode {
 	root := &models.FileChangeNode{}
 
 	var curr *models.FileChangeNode
@@ -51,21 +50,14 @@ func GetTreeFromStatusFiles(files []*models.File, log *logrus.Entry) *models.Fil
 }
 
 func GetFlatTreeFromStatusFiles(files []*models.File) *models.FileChangeNode {
-	root := &models.FileChangeNode{}
-	for _, file := range files {
-		root.Children = append(root.Children, &models.FileChangeNode{
-			Path: file.GetPath(),
-			File: file,
-		})
-	}
-
-	root.Sort()
+	rootAux := GetTreeFromStatusFiles(files)
+	sortedFiles := rootAux.GetLeaves()
 
 	// Move merge conflicts to top. This is the one way in which sorting
 	// differs between flat mode and tree mode
-	sort.SliceStable(root.Children, func(i, j int) bool {
-		return root.Children[i].File != nil && root.Children[i].File.HasMergeConflicts && !(root.Children[j].File != nil && root.Children[j].File.HasMergeConflicts)
+	sort.SliceStable(sortedFiles, func(i, j int) bool {
+		return sortedFiles[i].File != nil && sortedFiles[i].File.HasMergeConflicts && !(sortedFiles[j].File != nil && sortedFiles[j].File.HasMergeConflicts)
 	})
 
-	return root
+	return &models.FileChangeNode{Children: sortedFiles}
 }

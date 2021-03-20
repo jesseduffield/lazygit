@@ -7,24 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetFileListDisplayStrings(files []*models.File, diffName string, submoduleConfigs []*models.SubmoduleConfig) [][]string {
-	lines := make([][]string, len(files))
-
-	for i := range files {
-		lines[i] = getFileDisplayStrings(files[i], diffName, submoduleConfigs)
-	}
-
-	return lines
-}
-
-// getFileDisplayStrings returns the display string of branch
-func getFileDisplayStrings(f *models.File, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
-	output := GetStatusNodeLine(f.HasUnstagedChanges, f.HasStagedChanges, f.Name, diffName, submoduleConfigs, f)
-
-	return []string{output}
-}
-
-func GetStatusNodeLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, diffName string, submoduleConfigs []*models.SubmoduleConfig, file *models.File) string {
+func GetFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, diffName string, submoduleConfigs []*models.SubmoduleConfig, file *models.File) string {
 	// potentially inefficient to be instantiating these color
 	// objects with each render
 	red := color.New(color.FgRed)
