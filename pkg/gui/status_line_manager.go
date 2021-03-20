@@ -12,16 +12,16 @@ import (
 const EXPANDED_ARROW = "▼"
 const COLLAPSED_ARROW = "►"
 
-type StatusLineManager struct {
+type FileChangeManager struct {
 	Files          []*models.File
-	Tree           *models.StatusLineNode
+	Tree           *models.FileChangeNode
 	ShowTree       bool
 	Log            *logrus.Entry
 	CollapsedPaths map[string]bool
 }
 
-func NewStatusLineManager(files []*models.File, log *logrus.Entry, showTree bool) *StatusLineManager {
-	return &StatusLineManager{
+func NewFileChangeManager(files []*models.File, log *logrus.Entry, showTree bool) *FileChangeManager {
+	return &FileChangeManager{
 		Files:          files,
 		Log:            log,
 		ShowTree:       showTree,
@@ -29,17 +29,17 @@ func NewStatusLineManager(files []*models.File, log *logrus.Entry, showTree bool
 	}
 }
 
-func (m *StatusLineManager) GetItemAtIndex(index int) *models.StatusLineNode {
+func (m *FileChangeManager) GetItemAtIndex(index int) *models.FileChangeNode {
 	// need to traverse the three depth first until we get to the index.
 	return m.Tree.GetNodeAtIndex(index+1, m.CollapsedPaths) // ignoring root
 }
 
-func (m *StatusLineManager) GetIndexForPath(path string) (int, bool) {
+func (m *FileChangeManager) GetIndexForPath(path string) (int, bool) {
 	index, found := m.Tree.GetIndexForPath(path, m.CollapsedPaths)
 	return index - 1, found
 }
 
-func (m *StatusLineManager) GetAllItems() []*models.StatusLineNode {
+func (m *FileChangeManager) GetAllItems() []*models.FileChangeNode {
 	if m.Tree == nil {
 		return nil
 	}
@@ -47,21 +47,21 @@ func (m *StatusLineManager) GetAllItems() []*models.StatusLineNode {
 	return m.Tree.Flatten(m.CollapsedPaths)[1:] // ignoring root
 }
 
-func (m *StatusLineManager) GetItemsLength() int {
+func (m *FileChangeManager) GetItemsLength() int {
 	return m.Tree.Size(m.CollapsedPaths) - 1 // ignoring root
 }
 
-func (m *StatusLineManager) GetAllFiles() []*models.File {
+func (m *FileChangeManager) GetAllFiles() []*models.File {
 	return m.Files
 }
 
-func (m *StatusLineManager) SetFiles(files []*models.File) {
+func (m *FileChangeManager) SetFiles(files []*models.File) {
 	m.Files = files
 
 	m.SetTree()
 }
 
-func (m *StatusLineManager) SetTree() {
+func (m *FileChangeManager) SetTree() {
 	if m.ShowTree {
 		m.Tree = GetTreeFromStatusFiles(m.Files, m.Log)
 	} else {
@@ -69,7 +69,7 @@ func (m *StatusLineManager) SetTree() {
 	}
 }
 
-func (m *StatusLineManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
+func (m *FileChangeManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
 	return m.renderAux(m.Tree, "", -1, diffName, submoduleConfigs)
 }
 
@@ -78,15 +78,15 @@ const LAST_ITEM = "└─ "
 const NESTED = "│  "
 const NOTHING = "   "
 
-func (m *StatusLineManager) IsCollapsed(s *models.StatusLineNode) bool {
+func (m *FileChangeManager) IsCollapsed(s *models.FileChangeNode) bool {
 	return m.CollapsedPaths[s.GetPath()]
 }
 
-func (m *StatusLineManager) ToggleCollapsed(s *models.StatusLineNode) {
+func (m *FileChangeManager) ToggleCollapsed(s *models.FileChangeNode) {
 	m.CollapsedPaths[s.GetPath()] = !m.CollapsedPaths[s.GetPath()]
 }
 
-func (m *StatusLineManager) renderAux(s *models.StatusLineNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
+func (m *FileChangeManager) renderAux(s *models.FileChangeNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
 	isRoot := depth == -1
 	if s == nil {
 		return []string{}
