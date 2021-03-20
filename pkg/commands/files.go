@@ -142,16 +142,8 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 }
 
 func (c *GitCommand) DiscardAllDirChanges(node *models.StatusLineNode) error {
-	if err := c.RemoveUntrackedDirFiles(node); err != nil {
-		return err
-	}
-
-	quotedPath := c.OSCommand.Quote(node.GetPath())
-	if err := c.OSCommand.RunCommand("git checkout HEAD -- %s", quotedPath); err != nil {
-		return err
-	}
-
-	return nil
+	// this could be more efficient but we would need to handle all the edge cases
+	return node.ForEachFile(c.DiscardAllFileChanges)
 }
 
 func (c *GitCommand) DiscardUnstagedDirChanges(node *models.StatusLineNode) error {
