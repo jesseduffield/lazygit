@@ -102,38 +102,3 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 
 	return strings.Join(splitLines, "\n"), nil
 }
-
-// MergeStatusFiles merge status files
-func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*models.File, selectedFile *models.File) []*models.File {
-	if len(oldFiles) == 0 {
-		return newFiles
-	}
-
-	appendedIndexes := []int{}
-
-	// retain position of files we already could see
-	result := []*models.File{}
-	for _, oldFile := range oldFiles {
-		for newIndex, newFile := range newFiles {
-			if utils.IncludesInt(appendedIndexes, newIndex) {
-				continue
-			}
-			// if we just staged B and in doing so created 'A -> B' and we are currently have oldFile: A and newFile: 'A -> B', we want to wait until we come across B so the our cursor isn't jumping anywhere
-			waitForMatchingFile := selectedFile != nil && newFile.IsRename() && !selectedFile.IsRename() && newFile.Matches(selectedFile) && !oldFile.Matches(selectedFile)
-
-			if oldFile.Matches(newFile) && !waitForMatchingFile {
-				result = append(result, newFile)
-				appendedIndexes = append(appendedIndexes, newIndex)
-			}
-		}
-	}
-
-	// append any new files to the end
-	for index, newFile := range newFiles {
-		if !utils.IncludesInt(appendedIndexes, index) {
-			result = append(result, newFile)
-		}
-	}
-
-	return result
-}

@@ -54,11 +54,13 @@ func GetFlatTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
 	root := &models.StatusLineNode{}
 	for _, file := range files {
 		root.Children = append(root.Children, &models.StatusLineNode{
-			Name: file.Name,
+			Name: file.GetPath(),
 			Path: file.GetPath(),
 			File: file,
 		})
 	}
+
+	root.Sort()
 
 	return root
 }

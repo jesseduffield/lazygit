@@ -522,26 +522,36 @@ func (gui *Gui) refreshStateFiles() error {
 	// keep track of where the cursor is currently and the current file names
 	// when we refresh, go looking for a matching name
 	// move the cursor to there.
-	selectedFile := gui.getSelectedFile()
+
+	selectedNode := gui.getSelectedStatusNode()
+	getPaths := func(node *models.StatusLineNode) []string {
+		if node.File != nil && node.File.IsRename() {
+			return node.File.Names()
+		} else {
+			return []string{node.Path}
+		}
+	}
+	selectedPaths := getPaths(selectedNode)
+
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
-	// get files to stage
-	// noRenames := gui.State.StatusLineManager.TreeMode
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
-	gui.State.StatusLineManager.SetFiles(
-		gui.GitCommand.MergeStatusFiles(gui.State.StatusLineManager.GetAllFiles(), files, selectedFile),
-	)
+	gui.State.StatusLineManager.SetFiles(files)
 
 	if err := gui.fileWatcher.addFilesToFileWatcher(files); err != nil {
 		return err
 	}
 
 	// let's try to find our file again and move the cursor to that
-	if selectedFile != nil {
+	if selectedNode != nil {
 		for idx, node := range gui.State.StatusLineManager.GetAllItems() {
-			// TODO: check that this works
-			selectedFileHasMoved := node.File != nil && node.File.Matches(selectedFile) && idx != prevSelectedLineIdx
-			if selectedFileHasMoved {
+			paths := getPaths(node)
+
+			// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
+			// This is because the new should be in the same position as the rename was meaning less cursor jumping
+			foundOldFileInRename := selectedNode.File != nil && selectedNode.File.IsRename() && node.Path == selectedNode.File.PreviousName
+			selectedNodeHasMoved := idx != prevSelectedLineIdx && utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
+			if selectedNodeHasMoved {
 				gui.State.Panels.Files.SelectedLineIdx = idx
 				break
 			}
