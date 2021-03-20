@@ -840,7 +840,7 @@ func (gui *Gui) handleToggleFileTreeView() error {
 	if node != nil {
 		path = node.Path
 	}
-	gui.State.StatusLineManager.TreeMode = !gui.State.StatusLineManager.TreeMode
+	gui.State.StatusLineManager.ShowTree = !gui.State.StatusLineManager.ShowTree
 	gui.State.StatusLineManager.SetTree()
 
 	// find that same node in the new format and move the cursor to it
