@@ -252,7 +252,7 @@ func (s *StatusLineNode) NameAtDepth(depth int) string {
 		prevName := s.File.PreviousName
 		// if the file has just been renamed inside the same directory, we can shave off
 		// the prefix for the previous path too. Otherwise we'll keep it unchanged
-		sameParentDir := filepath.Join(splitName[0:depth]...) == filepath.Join(splitPrevName[0:depth]...)
+		sameParentDir := len(splitName) == len(splitPrevName) && filepath.Join(splitName[0:depth]...) == filepath.Join(splitPrevName[0:depth]...)
 		if sameParentDir {
 			prevName = filepath.Join(splitPrevName[depth:]...)
 		}
