@@ -13,24 +13,6 @@ type StatusLineNode struct {
 	Collapsed bool
 }
 
-func (s *StatusLineNode) GetShortStatus() string {
-	// need to see if any child has unstaged changes.
-	if s.IsLeaf() {
-		return s.File.ShortStatus
-	}
-
-	firstChar := " "
-	secondChar := " "
-	if s.GetHasStagedChanges() {
-		firstChar = "M"
-	}
-	if s.GetHasUnstagedChanges() {
-		secondChar = "M"
-	}
-
-	return firstChar + secondChar
-}
-
 func (s *StatusLineNode) GetHasUnstagedChanges() bool {
 	if s.IsLeaf() {
 		return s.File.HasUnstagedChanges
