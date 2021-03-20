@@ -3,6 +3,7 @@ package gui
 import (
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -61,6 +62,12 @@ func GetFlatTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
 	}
 
 	root.Sort()
+
+	// Move merge conflicts to top. This is the one way in which sorting
+	// differs between flat mode and tree mode
+	sort.SliceStable(root.Children, func(i, j int) bool {
+		return root.Children[i].File != nil && root.Children[i].File.HasMergeConflicts && !(root.Children[j].File != nil && root.Children[j].File.HasMergeConflicts)
+	})
 
 	return root
 }
