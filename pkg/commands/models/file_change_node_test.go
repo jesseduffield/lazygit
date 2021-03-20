@@ -20,61 +20,53 @@ func TestCompress(t *testing.T) {
 		{
 			name: "leaf node",
 			root: &FileChangeNode{
-				Name: "",
+				Path: "",
 				Children: []*FileChangeNode{
-					{File: &File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Name: "test"},
+					{File: &File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 			expected: &FileChangeNode{
-				Name: "",
+				Path: "",
 				Children: []*FileChangeNode{
-					{File: &File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Name: "test"},
+					{File: &File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 		},
 		{
 			name: "big example",
 			root: &FileChangeNode{
-				Name: "",
+				Path: "",
 				Children: []*FileChangeNode{
 					{
-						Name: "dir1",
 						Path: "dir1",
 						Children: []*FileChangeNode{
 							{
 								File: &File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
-								Name: "file2",
 								Path: "dir1/file2",
 							},
 						},
 					},
 					{
-						Name: "dir2",
 						Path: "dir2",
 						Children: []*FileChangeNode{
 							{
 								File: &File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
-								Name: "file3",
 								Path: "dir2/file3",
 							},
 							{
 								File: &File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
-								Name: "file4",
 								Path: "dir2/file4",
 							},
 						},
 					},
 					{
-						Name: "dir3",
 						Path: "dir3",
 						Children: []*FileChangeNode{
 							{
-								Name: "dir3-1",
 								Path: "dir3/dir3-1",
 								Children: []*FileChangeNode{
 									{
 										File: &File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
-										Name: "file5",
 										Path: "dir3/dir3-1/file5",
 									},
 								},
@@ -83,43 +75,36 @@ func TestCompress(t *testing.T) {
 					},
 					{
 						File: &File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
-						Name: "file1",
 						Path: "file1",
 					},
 				},
 			},
 			expected: &FileChangeNode{
-				Name: "",
+				Path: "",
 				Children: []*FileChangeNode{
 					{
-						Name: "dir1/file2",
-						File: &File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 						Path: "dir1/file2",
+						File: &File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 					},
 					{
-						Name: "dir2",
 						Path: "dir2",
 						Children: []*FileChangeNode{
 							{
 								File: &File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
-								Name: "file3",
 								Path: "dir2/file3",
 							},
 							{
 								File: &File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
-								Name: "file4",
 								Path: "dir2/file4",
 							},
 						},
 					},
 					{
-						Name: "dir3/dir3-1/file5",
-						File: &File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 						Path: "dir3/dir3-1/file5",
+						File: &File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 					},
 					{
 						File: &File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
-						Name: "file1",
 						Path: "file1",
 					},
 				},

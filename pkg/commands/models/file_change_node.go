@@ -9,10 +9,11 @@ import (
 )
 
 type FileChangeNode struct {
-	Children  []*FileChangeNode
-	File      *File
-	Path      string // e.g. '/path/to/mydir'
-	Collapsed bool
+	Children         []*FileChangeNode
+	File             *File
+	Path             string // e.g. '/path/to/mydir'
+	Collapsed        bool
+	CompressionLevel int // equal to the number of forward slashes you'll see in the path when it's rendered
 }
 
 func (s *FileChangeNode) GetHasUnstagedChanges() bool {
@@ -186,8 +187,10 @@ func (s *FileChangeNode) compressAux() *FileChangeNode {
 
 	for i := range s.Children {
 		for s.Children[i].HasExactlyOneChild() {
+			prevCompressionLevel := s.Children[i].CompressionLevel
 			grandchild := s.Children[i].Children[0]
 			s.Children[i] = grandchild
+			s.Children[i].CompressionLevel = prevCompressionLevel + 1
 		}
 	}
 
@@ -239,6 +242,19 @@ func (s *FileChangeNode) ForEachFile(cb func(*File) error) error {
 	}
 
 	return nil
+}
+
+func (s *FileChangeNode) GetLeaves() []*FileChangeNode {
+	if s.IsLeaf() {
+		return []*FileChangeNode{s}
+	}
+
+	output := []*FileChangeNode{}
+	for _, child := range s.Children {
+		output = append(output, child.GetLeaves()...)
+	}
+
+	return output
 }
 
 func (s *FileChangeNode) NameAtDepth(depth int) string {

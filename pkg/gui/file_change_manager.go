@@ -63,7 +63,7 @@ func (m *FileChangeManager) SetFiles(files []*models.File) {
 
 func (m *FileChangeManager) SetTree() {
 	if m.ShowTree {
-		m.Tree = GetTreeFromStatusFiles(m.Files, m.Log)
+		m.Tree = GetTreeFromStatusFiles(m.Files)
 	} else {
 		m.Tree = GetFlatTreeFromStatusFiles(m.Files)
 	}
@@ -93,7 +93,7 @@ func (m *FileChangeManager) renderAux(s *models.FileChangeNode, prefix string, d
 	}
 
 	getLine := func() string {
-		return prefix + presentation.GetStatusNodeLine(s.GetHasUnstagedChanges(), s.GetHasStagedChanges(), s.NameAtDepth(depth), diffName, submoduleConfigs, s.File)
+		return prefix + presentation.GetFileLine(s.GetHasUnstagedChanges(), s.GetHasStagedChanges(), s.NameAtDepth(depth), diffName, submoduleConfigs, s.File)
 	}
 
 	if s.IsLeaf() {
@@ -131,7 +131,7 @@ func (m *FileChangeManager) renderAux(s *models.FileChangeNode, prefix string, d
 			childPrefix = newPrefix + INNER_ITEM
 		}
 
-		arr = append(arr, m.renderAux(child, childPrefix, depth+1, diffName, submoduleConfigs)...)
+		arr = append(arr, m.renderAux(child, childPrefix, depth+1+s.CompressionLevel, diffName, submoduleConfigs)...)
 	}
 
 	return arr
