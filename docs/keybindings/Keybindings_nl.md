@@ -174,6 +174,7 @@
   <kbd>f</kbd>: fetch
   <kbd>ctrl+o</kbd>: kopieer de bestandsnaam naar het klembord
   <kbd>g</kbd>: bekijk upstream reset opties
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Bestanden Paneel (Submodules)
