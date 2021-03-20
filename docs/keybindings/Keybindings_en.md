@@ -109,7 +109,7 @@
   <kbd>o</kbd>: open file
   <kbd>e</kbd>: edit file
   <kbd>space</kbd>: toggle file included in patch
-  <kbd>enter</kbd>: enter file to add selected lines to the patch
+  <kbd>enter</kbd>: enter file to add selected lines to the patch (or toggle directory collapsed)
 </pre>
 
 ## Commits Panel (Commits)
@@ -170,10 +170,11 @@
   <kbd>S</kbd>: view stash options
   <kbd>a</kbd>: stage/unstage all
   <kbd>D</kbd>: view reset options
-  <kbd>enter</kbd>: stage individual hunks/lines
+  <kbd>enter</kbd>: stage individual hunks/lines for file, or collapse/expand for directory
   <kbd>f</kbd>: fetch
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>g</kbd>: view upstream reset options
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Files Panel (Submodules)

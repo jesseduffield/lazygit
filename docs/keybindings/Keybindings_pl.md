@@ -109,7 +109,7 @@
   <kbd>o</kbd>: otwórz plik
   <kbd>e</kbd>: edytuj plik
   <kbd>space</kbd>: toggle file included in patch
-  <kbd>enter</kbd>: enter file to add selected lines to the patch
+  <kbd>enter</kbd>: enter file to add selected lines to the patch (or toggle directory collapsed)
 </pre>
 
 ## Commity Panel (Commity)
@@ -174,6 +174,7 @@
   <kbd>f</kbd>: fetch
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>g</kbd>: view upstream reset options
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Pliki Panel (Submodules)
