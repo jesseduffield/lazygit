@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"unicode"
+
 	"github.com/jesseduffield/gocui"
 )
 
@@ -37,7 +39,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		v.EditGotoToStartOfLine()
 	case key == gocui.KeyCtrlE:
 		v.EditGotoToEndOfLine()
-	default:
+	case unicode.IsPrint(ch):
 		v.EditWrite(ch)
 	}
 
@@ -68,7 +70,7 @@ func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 		v.EditGotoToStartOfLine()
 	case key == gocui.KeyCtrlE:
 		v.EditGotoToEndOfLine()
-	default:
+	case unicode.IsPrint(ch):
 		v.EditWrite(ch)
 	}
 
