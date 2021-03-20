@@ -11,7 +11,6 @@ import (
 type StatusLineNode struct {
 	Children  []*StatusLineNode
 	File      *File
-	Name      string // e.g. 'mydir'
 	Path      string // e.g. '/path/to/mydir'
 	Collapsed bool
 }
@@ -146,7 +145,7 @@ func (s *StatusLineNode) sortChildren() {
 			return false
 		}
 
-		return sortedChildren[i].Name < sortedChildren[j].Name
+		return sortedChildren[i].Path < sortedChildren[j].Path
 	})
 
 	// TODO: think about making this in-place
@@ -243,7 +242,7 @@ func (s *StatusLineNode) ForEachFile(cb func(*File) error) error {
 }
 
 func (s *StatusLineNode) NameAtDepth(depth int) string {
-	splitName := strings.Split(s.Name, string(os.PathSeparator))
+	splitName := strings.Split(s.Path, string(os.PathSeparator))
 	name := filepath.Join(splitName[depth:]...)
 
 	if s.File != nil && s.File.IsRename() {

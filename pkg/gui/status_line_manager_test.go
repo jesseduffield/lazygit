@@ -21,9 +21,9 @@ func TestRender(t *testing.T) {
 		{
 			name: "leaf node",
 			root: &models.StatusLineNode{
-				Name: "",
+				Path: "",
 				Children: []*models.StatusLineNode{
-					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Name: "test"},
+					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 			expected: []string{" M test"},
@@ -31,43 +31,43 @@ func TestRender(t *testing.T) {
 		{
 			name: "big example",
 			root: &models.StatusLineNode{
-				Name: "",
+				Path: "",
 				Children: []*models.StatusLineNode{
 					{
-						Name:      "dir1",
+						Path:      "dir1",
 						Collapsed: true,
 						Children: []*models.StatusLineNode{
 							{
 								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
-								Name: "file2",
+								Path: "file2",
 							},
 						},
 					},
 					{
-						Name: "dir2",
+						Path: "dir2",
 						Children: []*models.StatusLineNode{
 							{
-								Name: "dir2",
+								Path: "dir2",
 								Children: []*models.StatusLineNode{
 									{
 										File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
-										Name: "file3",
+										Path: "file3",
 									},
 									{
 										File: &models.File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
-										Name: "file4",
+										Path: "file4",
 									},
 								},
 							},
 							{
 								File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
-								Name: "file5",
+								Path: "file5",
 							},
 						},
 					},
 					{
 						File: &models.File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
-						Name: "file1",
+						Path: "file1",
 					},
 				},
 			},

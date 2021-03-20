@@ -35,7 +35,6 @@ func GetTreeFromStatusFiles(files []*models.File, log *logrus.Entry) *models.Sta
 			}
 
 			newChild := &models.StatusLineNode{
-				Name: path, // TODO: Remove concept of name
 				Path: path,
 				File: setFile,
 			}
@@ -55,7 +54,6 @@ func GetFlatTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
 	root := &models.StatusLineNode{}
 	for _, file := range files {
 		root.Children = append(root.Children, &models.StatusLineNode{
-			Name: file.GetPath(),
 			Path: file.GetPath(),
 			File: file,
 		})
