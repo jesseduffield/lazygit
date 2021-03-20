@@ -41,6 +41,10 @@ func (m *StatusLineManager) GetIndexForPath(path string) (int, bool) {
 }
 
 func (m *StatusLineManager) GetAllItems() []*models.StatusLineNode {
+	if m.Tree == nil {
+		return nil
+	}
+
 	return m.Tree.Flatten(m.CollapsedPaths)[1:] // ignoring root
 }
 

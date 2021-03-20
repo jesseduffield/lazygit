@@ -524,18 +524,8 @@ func (gui *Gui) refreshStateFiles() error {
 	// move the cursor to there.
 
 	selectedNode := gui.getSelectedStatusNode()
-	getPaths := func(node *models.StatusLineNode) []string {
-		if node == nil {
-			return nil
-		}
-		if node.File != nil && node.File.IsRename() {
-			return node.File.Names()
-		} else {
-			return []string{node.Path}
-		}
-	}
-	selectedPaths := getPaths(selectedNode)
 
+	prevNodes := gui.State.StatusLineManager.GetAllItems()
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
@@ -545,18 +535,39 @@ func (gui *Gui) refreshStateFiles() error {
 		return err
 	}
 
-	// let's try to find our file again and move the cursor to that
+	// Let's try to find our file again and move the cursor to that.
+	// If we can't find our file, it was probably just removed by the user. In that
+	// case, we go looking for where the next file has been moved to. Given that the
+	// user could have removed a whole directory, we continue iterating through the old
+	// nodes until we find one that exists in the new set of nodes, then move the cursor
+	// to that
 	if selectedNode != nil {
-		for idx, node := range gui.State.StatusLineManager.GetAllItems() {
-			paths := getPaths(node)
+		getPaths := func(node *models.StatusLineNode) []string {
+			if node == nil {
+				return nil
+			}
+			if node.File != nil && node.File.IsRename() {
+				return node.File.Names()
+			} else {
+				return []string{node.Path}
+			}
+		}
 
-			// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
-			// This is because the new should be in the same position as the rename was meaning less cursor jumping
-			foundOldFileInRename := selectedNode.File != nil && selectedNode.File.IsRename() && node.Path == selectedNode.File.PreviousName
-			selectedNodeHasMoved := idx != prevSelectedLineIdx && utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
-			if selectedNodeHasMoved {
-				gui.State.Panels.Files.SelectedLineIdx = idx
-				break
+	outer:
+		for _, prevNode := range prevNodes[prevSelectedLineIdx:] {
+			selectedPaths := getPaths(prevNode)
+
+			for idx, node := range gui.State.StatusLineManager.GetAllItems() {
+				paths := getPaths(node)
+
+				// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
+				// This is because the new should be in the same position as the rename was meaning less cursor jumping
+				foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.Path == prevNode.File.PreviousName
+				foundNode := utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
+				if foundNode {
+					gui.State.Panels.Files.SelectedLineIdx = idx
+					break outer
+				}
 			}
 		}
 	}
