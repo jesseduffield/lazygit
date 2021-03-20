@@ -10,10 +10,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetTreeFromStatusFiles(files []*models.File, log *logrus.Entry) *models.StatusLineNode {
-	root := &models.StatusLineNode{}
+func GetTreeFromStatusFiles(files []*models.File, log *logrus.Entry) *models.FileChangeNode {
+	root := &models.FileChangeNode{}
 
-	var curr *models.StatusLineNode
+	var curr *models.FileChangeNode
 	for _, file := range files {
 		split := strings.Split(file.Name, string(os.PathSeparator))
 		curr = root
@@ -34,7 +34,7 @@ func GetTreeFromStatusFiles(files []*models.File, log *logrus.Entry) *models.Sta
 				}
 			}
 
-			newChild := &models.StatusLineNode{
+			newChild := &models.FileChangeNode{
 				Path: path,
 				File: setFile,
 			}
@@ -50,10 +50,10 @@ func GetTreeFromStatusFiles(files []*models.File, log *logrus.Entry) *models.Sta
 	return root
 }
 
-func GetFlatTreeFromStatusFiles(files []*models.File) *models.StatusLineNode {
-	root := &models.StatusLineNode{}
+func GetFlatTreeFromStatusFiles(files []*models.File) *models.FileChangeNode {
+	root := &models.FileChangeNode{}
 	for _, file := range files {
-		root.Children = append(root.Children, &models.StatusLineNode{
+		root.Children = append(root.Children, &models.FileChangeNode{
 			Path: file.GetPath(),
 			File: file,
 		})

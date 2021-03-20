@@ -137,12 +137,12 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 	return c.DiscardUnstagedFileChanges(file)
 }
 
-func (c *GitCommand) DiscardAllDirChanges(node *models.StatusLineNode) error {
+func (c *GitCommand) DiscardAllDirChanges(node *models.FileChangeNode) error {
 	// this could be more efficient but we would need to handle all the edge cases
 	return node.ForEachFile(c.DiscardAllFileChanges)
 }
 
-func (c *GitCommand) DiscardUnstagedDirChanges(node *models.StatusLineNode) error {
+func (c *GitCommand) DiscardUnstagedDirChanges(node *models.FileChangeNode) error {
 	if err := c.RemoveUntrackedDirFiles(node); err != nil {
 		return err
 	}
@@ -155,9 +155,9 @@ func (c *GitCommand) DiscardUnstagedDirChanges(node *models.StatusLineNode) erro
 	return nil
 }
 
-func (c *GitCommand) RemoveUntrackedDirFiles(node *models.StatusLineNode) error {
+func (c *GitCommand) RemoveUntrackedDirFiles(node *models.FileChangeNode) error {
 	untrackedFilePaths := node.GetPathsMatching(
-		func(n *models.StatusLineNode) bool { return n.File != nil && !n.File.GetIsTracked() },
+		func(n *models.FileChangeNode) bool { return n.File != nil && !n.File.GetIsTracked() },
 	)
 
 	for _, path := range untrackedFilePaths {
@@ -188,7 +188,7 @@ func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool
 	return s
 }
 
-func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IStatusLine, plain bool, cached bool) string {
+func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFileChange, plain bool, cached bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()

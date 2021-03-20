@@ -9,8 +9,8 @@ import (
 func TestCompress(t *testing.T) {
 	scenarios := []struct {
 		name     string
-		root     *StatusLineNode
-		expected *StatusLineNode
+		root     *FileChangeNode
+		expected *FileChangeNode
 	}{
 		{
 			name:     "nil node",
@@ -19,28 +19,28 @@ func TestCompress(t *testing.T) {
 		},
 		{
 			name: "leaf node",
-			root: &StatusLineNode{
+			root: &FileChangeNode{
 				Name: "",
-				Children: []*StatusLineNode{
+				Children: []*FileChangeNode{
 					{File: &File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Name: "test"},
 				},
 			},
-			expected: &StatusLineNode{
+			expected: &FileChangeNode{
 				Name: "",
-				Children: []*StatusLineNode{
+				Children: []*FileChangeNode{
 					{File: &File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Name: "test"},
 				},
 			},
 		},
 		{
 			name: "big example",
-			root: &StatusLineNode{
+			root: &FileChangeNode{
 				Name: "",
-				Children: []*StatusLineNode{
+				Children: []*FileChangeNode{
 					{
 						Name: "dir1",
 						Path: "dir1",
-						Children: []*StatusLineNode{
+						Children: []*FileChangeNode{
 							{
 								File: &File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Name: "file2",
@@ -51,7 +51,7 @@ func TestCompress(t *testing.T) {
 					{
 						Name: "dir2",
 						Path: "dir2",
-						Children: []*StatusLineNode{
+						Children: []*FileChangeNode{
 							{
 								File: &File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Name: "file3",
@@ -67,11 +67,11 @@ func TestCompress(t *testing.T) {
 					{
 						Name: "dir3",
 						Path: "dir3",
-						Children: []*StatusLineNode{
+						Children: []*FileChangeNode{
 							{
 								Name: "dir3-1",
 								Path: "dir3/dir3-1",
-								Children: []*StatusLineNode{
+								Children: []*FileChangeNode{
 									{
 										File: &File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 										Name: "file5",
@@ -88,9 +88,9 @@ func TestCompress(t *testing.T) {
 					},
 				},
 			},
-			expected: &StatusLineNode{
+			expected: &FileChangeNode{
 				Name: "",
-				Children: []*StatusLineNode{
+				Children: []*FileChangeNode{
 					{
 						Name: "dir1/file2",
 						File: &File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
@@ -99,7 +99,7 @@ func TestCompress(t *testing.T) {
 					{
 						Name: "dir2",
 						Path: "dir2",
-						Children: []*StatusLineNode{
+						Children: []*FileChangeNode{
 							{
 								File: &File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Name: "file3",

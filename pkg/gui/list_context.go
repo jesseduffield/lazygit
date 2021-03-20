@@ -262,7 +262,7 @@ func (gui *Gui) filesListContext() *ListContext {
 	return &ListContext{
 		ViewName:                   "files",
 		ContextKey:                 FILES_CONTEXT_KEY,
-		GetItemsLength:             func() int { return gui.State.StatusLineManager.GetItemsLength() },
+		GetItemsLength:             func() int { return gui.State.FileChangeManager.GetItemsLength() },
 		GetPanelState:              func() IListPanelState { return gui.State.Panels.Files },
 		OnFocus:                    gui.focusAndSelectFile,
 		OnClickSelectedItem:        gui.handleFilePress,
@@ -270,7 +270,7 @@ func (gui *Gui) filesListContext() *ListContext {
 		ResetMainViewOriginOnFocus: false,
 		Kind:                       SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			lines := gui.State.StatusLineManager.Render(gui.State.Modes.Diffing.Ref, gui.State.Submodules)
+			lines := gui.State.FileChangeManager.Render(gui.State.Modes.Diffing.Ref, gui.State.Submodules)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}
@@ -279,7 +279,7 @@ func (gui *Gui) filesListContext() *ListContext {
 			return mappedLines
 
 			// TODO: Fix this up
-			return presentation.GetFileListDisplayStrings(gui.State.StatusLineManager.GetAllFiles(), gui.State.Modes.Diffing.Ref, gui.State.Submodules)
+			return presentation.GetFileListDisplayStrings(gui.State.FileChangeManager.GetAllFiles(), gui.State.Modes.Diffing.Ref, gui.State.Submodules)
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item := gui.getSelectedStatusNode()

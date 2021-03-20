@@ -303,7 +303,7 @@ type guiStateMutexes struct {
 }
 
 type guiState struct {
-	StatusLineManager *StatusLineManager
+	FileChangeManager *FileChangeManager
 	Submodules        []*models.SubmoduleConfig
 	Branches          []*models.Branch
 	Commits           []*models.Commit
@@ -380,7 +380,7 @@ func (gui *Gui) resetState() {
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
 
 	gui.State = &guiState{
-		StatusLineManager:     NewStatusLineManager(make([]*models.File, 0), gui.Log, showTree),
+		FileChangeManager:     NewFileChangeManager(make([]*models.File, 0), gui.Log, showTree),
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),
 		ReflogCommits:         make([]*models.Commit, 0),

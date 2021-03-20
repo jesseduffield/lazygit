@@ -8,14 +8,14 @@ import (
 	"strings"
 )
 
-type StatusLineNode struct {
-	Children  []*StatusLineNode
+type FileChangeNode struct {
+	Children  []*FileChangeNode
 	File      *File
 	Path      string // e.g. '/path/to/mydir'
 	Collapsed bool
 }
 
-func (s *StatusLineNode) GetHasUnstagedChanges() bool {
+func (s *FileChangeNode) GetHasUnstagedChanges() bool {
 	if s.IsLeaf() {
 		return s.File.HasUnstagedChanges
 	}
@@ -29,7 +29,7 @@ func (s *StatusLineNode) GetHasUnstagedChanges() bool {
 	return false
 }
 
-func (s *StatusLineNode) GetHasStagedChanges() bool {
+func (s *FileChangeNode) GetHasStagedChanges() bool {
 	if s.IsLeaf() {
 		return s.File.HasStagedChanges
 	}
@@ -43,13 +43,13 @@ func (s *StatusLineNode) GetHasStagedChanges() bool {
 	return false
 }
 
-func (s *StatusLineNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *StatusLineNode {
+func (s *FileChangeNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *FileChangeNode {
 	node, _ := s.getNodeAtIndexAux(index, collapsedPaths)
 
 	return node
 }
 
-func (s *StatusLineNode) getNodeAtIndexAux(index int, collapsedPaths map[string]bool) (*StatusLineNode, int) {
+func (s *FileChangeNode) getNodeAtIndexAux(index int, collapsedPaths map[string]bool) (*FileChangeNode, int) {
 	offset := 1
 
 	if index == 0 {
@@ -69,11 +69,11 @@ func (s *StatusLineNode) getNodeAtIndexAux(index int, collapsedPaths map[string]
 	return nil, offset
 }
 
-func (s *StatusLineNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
+func (s *FileChangeNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
 	return s.getIndexForPathAux(path, collapsedPaths)
 }
 
-func (s *StatusLineNode) getIndexForPathAux(path string, collapsedPaths map[string]bool) (int, bool) {
+func (s *FileChangeNode) getIndexForPathAux(path string, collapsedPaths map[string]bool) (int, bool) {
 	offset := 0
 
 	if s.Path == path {
@@ -93,11 +93,11 @@ func (s *StatusLineNode) getIndexForPathAux(path string, collapsedPaths map[stri
 	return offset, false
 }
 
-func (s *StatusLineNode) IsLeaf() bool {
+func (s *FileChangeNode) IsLeaf() bool {
 	return len(s.Children) == 0
 }
 
-func (s *StatusLineNode) Size(collapsedPaths map[string]bool) int {
+func (s *FileChangeNode) Size(collapsedPaths map[string]bool) int {
 	output := 1
 
 	if !collapsedPaths[s.GetPath()] {
@@ -109,8 +109,8 @@ func (s *StatusLineNode) Size(collapsedPaths map[string]bool) int {
 	return output
 }
 
-func (s *StatusLineNode) Flatten(collapsedPaths map[string]bool) []*StatusLineNode {
-	arr := []*StatusLineNode{s}
+func (s *FileChangeNode) Flatten(collapsedPaths map[string]bool) []*FileChangeNode {
+	arr := []*FileChangeNode{s}
 
 	if !collapsedPaths[s.GetPath()] {
 		for _, child := range s.Children {
@@ -121,7 +121,7 @@ func (s *StatusLineNode) Flatten(collapsedPaths map[string]bool) []*StatusLineNo
 	return arr
 }
 
-func (s *StatusLineNode) Sort() {
+func (s *FileChangeNode) Sort() {
 	s.sortChildren()
 
 	for _, child := range s.Children {
@@ -129,12 +129,12 @@ func (s *StatusLineNode) Sort() {
 	}
 }
 
-func (s *StatusLineNode) sortChildren() {
+func (s *FileChangeNode) sortChildren() {
 	if s.IsLeaf() {
 		return
 	}
 
-	sortedChildren := make([]*StatusLineNode, len(s.Children))
+	sortedChildren := make([]*FileChangeNode, len(s.Children))
 	copy(sortedChildren, s.Children)
 
 	sort.Slice(sortedChildren, func(i, j int) bool {
@@ -153,7 +153,7 @@ func (s *StatusLineNode) sortChildren() {
 }
 
 // returns true if any descendant file is tracked
-func (s *StatusLineNode) GetIsTracked() bool {
+func (s *FileChangeNode) GetIsTracked() bool {
 	if s.File != nil {
 		return s.File.GetIsTracked()
 	}
@@ -167,11 +167,11 @@ func (s *StatusLineNode) GetIsTracked() bool {
 	return false
 }
 
-func (s *StatusLineNode) GetPath() string {
+func (s *FileChangeNode) GetPath() string {
 	return s.Path
 }
 
-func (s *StatusLineNode) Compress() {
+func (s *FileChangeNode) Compress() {
 	if s == nil {
 		return
 	}
@@ -179,7 +179,7 @@ func (s *StatusLineNode) Compress() {
 	s.compressAux()
 }
 
-func (s *StatusLineNode) compressAux() *StatusLineNode {
+func (s *FileChangeNode) compressAux() *FileChangeNode {
 	if s.IsLeaf() {
 		return s
 	}
@@ -198,12 +198,12 @@ func (s *StatusLineNode) compressAux() *StatusLineNode {
 	return s
 }
 
-func (s *StatusLineNode) HasExactlyOneChild() bool {
+func (s *FileChangeNode) HasExactlyOneChild() bool {
 	return len(s.Children) == 1
 }
 
 // This ignores the root
-func (s *StatusLineNode) GetPathsMatching(test func(*StatusLineNode) bool) []string {
+func (s *FileChangeNode) GetPathsMatching(test func(*FileChangeNode) bool) []string {
 	paths := []string{}
 
 	if test(s) {
@@ -217,15 +217,15 @@ func (s *StatusLineNode) GetPathsMatching(test func(*StatusLineNode) bool) []str
 	return paths
 }
 
-func (s *StatusLineNode) ID() string {
+func (s *FileChangeNode) ID() string {
 	return s.GetPath()
 }
 
-func (s *StatusLineNode) Description() string {
+func (s *FileChangeNode) Description() string {
 	return s.GetPath()
 }
 
-func (s *StatusLineNode) ForEachFile(cb func(*File) error) error {
+func (s *FileChangeNode) ForEachFile(cb func(*File) error) error {
 	if s.File != nil {
 		if err := cb(s.File); err != nil {
 			return err
@@ -241,7 +241,7 @@ func (s *StatusLineNode) ForEachFile(cb func(*File) error) error {
 	return nil
 }
 
-func (s *StatusLineNode) NameAtDepth(depth int) string {
+func (s *FileChangeNode) NameAtDepth(depth int) string {
 	splitName := strings.Split(s.Path, string(os.PathSeparator))
 	name := filepath.Join(splitName[depth:]...)
 

@@ -1,6 +1,6 @@
 package models
 
-type IStatusLine interface {
+type IFileChange interface {
 	GetHasUnstagedChanges() bool
 	GetHasStagedChanges() bool
 	GetIsTracked() bool
