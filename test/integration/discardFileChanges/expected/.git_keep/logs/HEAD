@@ -1,0 +1,7 @@
+0000000000000000000000000000000000000000 0e5c9fd43732ca064946e9c582fd6f159774db84 CI <CI@example.com> 1616203051 +1100	commit (initial): one
+0e5c9fd43732ca064946e9c582fd6f159774db84 eb4814e3f9d5eb1869704cf4498420c9f4a141da CI <CI@example.com> 1616203051 +1100	commit: both-deleted.txt renamed in added-them-changed-us.txt
+eb4814e3f9d5eb1869704cf4498420c9f4a141da 38b645bf2388b21695d22d7f673d87971a78e4ad CI <CI@example.com> 1616203051 +1100	commit: two
+38b645bf2388b21695d22d7f673d87971a78e4ad 0e5c9fd43732ca064946e9c582fd6f159774db84 CI <CI@example.com> 1616203051 +1100	checkout: moving from conflict to conflict_second
+0e5c9fd43732ca064946e9c582fd6f159774db84 698e214196fed018bb4164380745dd2df3bbac74 CI <CI@example.com> 1616203051 +1100	commit: both-deleted.txt renamed in changed-them-added-us.txt
+698e214196fed018bb4164380745dd2df3bbac74 c64dd6aea3efd197ed630dedc1ffb538d35c3fdb CI <CI@example.com> 1616203052 +1100	commit: three
+c64dd6aea3efd197ed630dedc1ffb538d35c3fdb c64dd6aea3efd197ed630dedc1ffb538d35c3fdb CI <CI@example.com> 1616203052 +1100	reset: moving to conflict_second

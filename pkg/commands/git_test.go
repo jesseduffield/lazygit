@@ -344,6 +344,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasStagedChanges:        true,
 						HasUnstagedChanges:      true,
 						Tracked:                 true,
+						Added:                   false,
 						Deleted:                 false,
 						HasMergeConflicts:       false,
 						HasInlineMergeConflicts: false,
@@ -356,6 +357,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasStagedChanges:        true,
 						HasUnstagedChanges:      false,
 						Tracked:                 false,
+						Added:                   true,
 						Deleted:                 false,
 						HasMergeConflicts:       false,
 						HasInlineMergeConflicts: false,
@@ -368,6 +370,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasStagedChanges:        true,
 						HasUnstagedChanges:      true,
 						Tracked:                 false,
+						Added:                   true,
 						Deleted:                 false,
 						HasMergeConflicts:       false,
 						HasInlineMergeConflicts: false,
@@ -380,6 +383,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasStagedChanges:        false,
 						HasUnstagedChanges:      true,
 						Tracked:                 false,
+						Added:                   true,
 						Deleted:                 false,
 						HasMergeConflicts:       false,
 						HasInlineMergeConflicts: false,
@@ -392,6 +396,7 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						HasStagedChanges:        false,
 						HasUnstagedChanges:      true,
 						Tracked:                 true,
+						Added:                   false,
 						Deleted:                 false,
 						HasMergeConflicts:       true,
 						HasInlineMergeConflicts: true,
@@ -1093,6 +1098,9 @@ func TestGitCommandUnstageFile(t *testing.T) {
 }
 
 // TestGitCommandDiscardAllFileChanges is a function.
+// these tests don't cover everything, in part because we already have an integration
+// test which does cover everything. I don't want to unnecessarily assert on the 'how'
+// when the 'what' is what matters
 func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 	type scenario struct {
 		testName   string
@@ -1146,6 +1154,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 			&models.File{
 				Name:    "test",
 				Tracked: false,
+				Added:   true,
 			},
 			func(string) error {
 				return fmt.Errorf("an error occurred when removing file")
@@ -1277,6 +1286,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 			&models.File{
 				Name:             "test",
 				Tracked:          false,
+				Added:            true,
 				HasStagedChanges: true,
 			},
 			func(filename string) error {
@@ -1301,6 +1311,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 			&models.File{
 				Name:             "test",
 				Tracked:          false,
+				Added:            true,
 				HasStagedChanges: false,
 			},
 			func(filename string) error {

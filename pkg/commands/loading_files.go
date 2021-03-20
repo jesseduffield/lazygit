@@ -50,6 +50,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 			HasUnstagedChanges:      unstagedChange != " ",
 			Tracked:                 !untracked,
 			Deleted:                 unstagedChange == "D" || stagedChange == "D",
+			Added:                   unstagedChange == "A" || untracked,
 			HasMergeConflicts:       hasMergeConflicts,
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
 			Type:                    c.OSCommand.FileType(filename),

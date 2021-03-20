@@ -107,15 +107,34 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 		return nil
 	}
 
-	// if the file isn't tracked, we assume you want to delete it
 	quotedFileName := c.OSCommand.Quote(file.Name)
+
+	if file.ShortStatus == "AA" {
+		if err := c.OSCommand.RunCommand("git checkout --ours --  %s", quotedFileName); err != nil {
+			return err
+		}
+		if err := c.OSCommand.RunCommand("git add %s", quotedFileName); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if file.ShortStatus == "DU" {
+		return c.OSCommand.RunCommand("git rm %s", quotedFileName)
+	}
+
+	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges || file.HasMergeConflicts {
 		if err := c.OSCommand.RunCommand("git reset -- %s", quotedFileName); err != nil {
 			return err
 		}
 	}
 
-	if !file.Tracked {
+	if file.ShortStatus == "DD" || file.ShortStatus == "AU" {
+		return nil
+	}
+
+	if file.Added {
 		return c.removeFile(file.Name)
 	}
 	return c.DiscardUnstagedFileChanges(file)
