@@ -535,45 +535,53 @@ func (gui *Gui) refreshStateFiles() error {
 		return err
 	}
 
-	// Let's try to find our file again and move the cursor to that.
-	// If we can't find our file, it was probably just removed by the user. In that
-	// case, we go looking for where the next file has been moved to. Given that the
-	// user could have removed a whole directory, we continue iterating through the old
-	// nodes until we find one that exists in the new set of nodes, then move the cursor
-	// to that
 	if selectedNode != nil {
-		getPaths := func(node *models.StatusLineNode) []string {
-			if node == nil {
-				return nil
-			}
-			if node.File != nil && node.File.IsRename() {
-				return node.File.Names()
-			} else {
-				return []string{node.Path}
-			}
-		}
-
-	outer:
-		for _, prevNode := range prevNodes[prevSelectedLineIdx:] {
-			selectedPaths := getPaths(prevNode)
-
-			for idx, node := range gui.State.StatusLineManager.GetAllItems() {
-				paths := getPaths(node)
-
-				// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
-				// This is because the new should be in the same position as the rename was meaning less cursor jumping
-				foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.Path == prevNode.File.PreviousName
-				foundNode := utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
-				if foundNode {
-					gui.State.Panels.Files.SelectedLineIdx = idx
-					break outer
-				}
-			}
+		newIdx := gui.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], gui.State.StatusLineManager.GetAllItems())
+		if newIdx != -1 && newIdx != prevSelectedLineIdx {
+			gui.State.Panels.Files.SelectedLineIdx = newIdx
 		}
 	}
 
 	gui.refreshSelectedLine(gui.State.Panels.Files, gui.State.StatusLineManager.GetItemsLength())
 	return nil
+}
+
+// Let's try to find our file again and move the cursor to that.
+// If we can't find our file, it was probably just removed by the user. In that
+// case, we go looking for where the next file has been moved to. Given that the
+// user could have removed a whole directory, we continue iterating through the old
+// nodes until we find one that exists in the new set of nodes, then move the cursor
+// to that.
+// prevNodes starts from our previously selected node because we don't need to consider anything above that
+func (gui *Gui) findNewSelectedIdx(prevNodes []*models.StatusLineNode, currNodes []*models.StatusLineNode) int {
+	getPaths := func(node *models.StatusLineNode) []string {
+		if node == nil {
+			return nil
+		}
+		if node.File != nil && node.File.IsRename() {
+			return node.File.Names()
+		} else {
+			return []string{node.Path}
+		}
+	}
+
+	for _, prevNode := range prevNodes {
+		selectedPaths := getPaths(prevNode)
+
+		for idx, node := range currNodes {
+			paths := getPaths(node)
+
+			// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
+			// This is because the new should be in the same position as the rename was meaning less cursor jumping
+			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.Path == prevNode.File.PreviousName
+			foundNode := utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
+			if foundNode {
+				return idx
+			}
+		}
+	}
+
+	return -1
 }
 
 func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
