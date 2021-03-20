@@ -2,7 +2,10 @@ package models
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
+	"strings"
 )
 
 type StatusLineNode struct {
@@ -65,6 +68,30 @@ func (s *StatusLineNode) getNodeAtIndexAux(index int, collapsedPaths map[string]
 	}
 
 	return nil, offset
+}
+
+func (s *StatusLineNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
+	return s.getIndexForPathAux(path, collapsedPaths)
+}
+
+func (s *StatusLineNode) getIndexForPathAux(path string, collapsedPaths map[string]bool) (int, bool) {
+	offset := 0
+
+	if s.Path == path {
+		return offset, true
+	}
+
+	if !collapsedPaths[s.GetPath()] {
+		for _, child := range s.Children {
+			offsetChange, found := child.getIndexForPathAux(path, collapsedPaths)
+			offset += offsetChange + 1
+			if found {
+				return offset, true
+			}
+		}
+	}
+
+	return offset, false
 }
 
 func (s *StatusLineNode) IsLeaf() bool {
@@ -161,7 +188,6 @@ func (s *StatusLineNode) compressAux() *StatusLineNode {
 	for i := range s.Children {
 		for s.Children[i].HasExactlyOneChild() {
 			grandchild := s.Children[i].Children[0]
-			grandchild.Name = fmt.Sprintf("%s/%s", s.Children[i].Name, grandchild.Name)
 			s.Children[i] = grandchild
 		}
 	}
@@ -214,4 +240,25 @@ func (s *StatusLineNode) ForEachFile(cb func(*File) error) error {
 	}
 
 	return nil
+}
+
+func (s *StatusLineNode) NameAtDepth(depth int) string {
+	splitName := strings.Split(s.Name, string(os.PathSeparator))
+	name := filepath.Join(splitName[depth:]...)
+
+	if s.File != nil && s.File.IsRename() {
+		splitPrevName := strings.Split(s.File.PreviousName, string(os.PathSeparator))
+
+		prevName := s.File.PreviousName
+		// if the file has just been renamed inside the same directory, we can shave off
+		// the prefix for the previous path too. Otherwise we'll keep it unchanged
+		sameParentDir := filepath.Join(splitName[0:depth]...) == filepath.Join(splitPrevName[0:depth]...)
+		if sameParentDir {
+			prevName = filepath.Join(splitPrevName[depth:]...)
+		}
+
+		return fmt.Sprintf("%s%s%s", prevName, " -> ", name)
+	}
+
+	return name
 }

@@ -48,7 +48,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 	files := c.GetStatusFiles(GetStatusFileOptions{})
 	for _, file := range files {
 		if file.ShortStatus == "AD" {
-			if err := c.UnStageFile(file.Name, false); err != nil {
+			if err := c.UnStageFile(file.Names(), false); err != nil {
 				return err
 			}
 		}

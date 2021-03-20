@@ -133,6 +133,7 @@ Default path for the config file:
       toggleStagedAll: 'a' # stage/unstage all
       viewResetOptions: 'D'
       fetch: 'f'
+      toggleTreeView: '`'
     branches:
       createPullRequest: 'o'
       checkoutBranchByName: 'c'

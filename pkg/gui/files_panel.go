@@ -239,7 +239,7 @@ func (gui *Gui) handleFilePress() error {
 				return gui.surfaceError(err)
 			}
 		} else {
-			if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
+			if err := gui.GitCommand.UnStageFile(file.Names(), file.Tracked); err != nil {
 				return gui.surfaceError(err)
 			}
 		}
@@ -250,7 +250,7 @@ func (gui *Gui) handleFilePress() error {
 			}
 		} else {
 			// pretty sure it doesn't matter that we're always passing true here
-			if err := gui.GitCommand.UnStageFile(node.Path, true); err != nil {
+			if err := gui.GitCommand.UnStageFile([]string{node.Path}, true); err != nil {
 				return gui.surfaceError(err)
 			}
 		}
@@ -307,7 +307,7 @@ func (gui *Gui) handleIgnoreFile() error {
 	unstageFiles := func() error {
 		return node.ForEachFile(func(file *models.File) error {
 			if file.HasStagedChanges {
-				if err := gui.GitCommand.UnStageFile(file.Name, file.Tracked); err != nil {
+				if err := gui.GitCommand.UnStageFile(file.Names(), file.Tracked); err != nil {
 					return err
 				}
 			}
@@ -526,8 +526,8 @@ func (gui *Gui) refreshStateFiles() error {
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
 	// get files to stage
-	noRenames := gui.State.StatusLineManager.TreeMode
-	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{NoRenames: noRenames})
+	// noRenames := gui.State.StatusLineManager.TreeMode
+	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
 	gui.State.StatusLineManager.SetFiles(
 		gui.GitCommand.MergeStatusFiles(gui.State.StatusLineManager.GetAllFiles(), files, selectedFile),
 	)
@@ -796,6 +796,33 @@ func (gui *Gui) handleToggleDirCollapsed() error {
 
 	if err := gui.postRefreshUpdate(gui.Contexts.Files.Context); err != nil {
 		gui.Log.Error(err)
+	}
+
+	return nil
+}
+
+func (gui *Gui) handleToggleFileTreeView() error {
+	// get path of currently selected file
+	node := gui.getSelectedStatusNode()
+	path := ""
+	if node != nil {
+		path = node.Path
+	}
+	gui.State.StatusLineManager.TreeMode = !gui.State.StatusLineManager.TreeMode
+	gui.State.StatusLineManager.SetTree()
+
+	// find that same node in the new format and move the cursor to it
+	if path != "" {
+		index, found := gui.State.StatusLineManager.GetIndexForPath(path)
+		if found {
+			gui.filesListContext().GetPanelState().SetSelectedLineIdx(index)
+		}
+	}
+
+	if gui.getFilesView().Context == FILES_CONTEXT_KEY {
+		if err := gui.Contexts.Files.Context.HandleRender(); err != nil {
+			return err
+		}
 	}
 
 	return nil
