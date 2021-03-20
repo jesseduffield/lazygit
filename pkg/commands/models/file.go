@@ -13,6 +13,7 @@ type File struct {
 	HasStagedChanges        bool
 	HasUnstagedChanges      bool
 	Tracked                 bool
+	Added                   bool
 	Deleted                 bool
 	HasMergeConflicts       bool
 	HasInlineMergeConflicts bool

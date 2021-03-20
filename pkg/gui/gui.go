@@ -451,6 +451,7 @@ func (gui *Gui) Run() error {
 	if err != nil {
 		return err
 	}
+	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 	defer g.Close()
 
 	if recordEvents {
@@ -477,8 +478,6 @@ func (gui *Gui) Run() error {
 	if userConfig.Gui.MouseEvents {
 		g.Mouse = true
 	}
-
-	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 
 	if err := gui.setColorScheme(); err != nil {
 		return err
