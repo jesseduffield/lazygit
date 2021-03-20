@@ -525,6 +525,9 @@ func (gui *Gui) refreshStateFiles() error {
 
 	selectedNode := gui.getSelectedStatusNode()
 	getPaths := func(node *models.StatusLineNode) []string {
+		if node == nil {
+			return nil
+		}
 		if node.File != nil && node.File.IsRename() {
 			return node.File.Names()
 		} else {
