@@ -10,7 +10,7 @@ import (
 func TestRender(t *testing.T) {
 	scenarios := []struct {
 		name           string
-		root           *models.FileChangeNode
+		root           *FileChangeNode
 		collapsedPaths map[string]bool
 		expected       []string
 	}{
@@ -21,9 +21,9 @@ func TestRender(t *testing.T) {
 		},
 		{
 			name: "leaf node",
-			root: &models.FileChangeNode{
+			root: &FileChangeNode{
 				Path: "",
-				Children: []*models.FileChangeNode{
+				Children: []*FileChangeNode{
 					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
@@ -31,12 +31,12 @@ func TestRender(t *testing.T) {
 		},
 		{
 			name: "big example",
-			root: &models.FileChangeNode{
+			root: &FileChangeNode{
 				Path: "",
-				Children: []*models.FileChangeNode{
+				Children: []*FileChangeNode{
 					{
 						Path: "dir1",
-						Children: []*models.FileChangeNode{
+						Children: []*FileChangeNode{
 							{
 								File: &models.File{Name: "dir1/file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir1/file2",
@@ -49,10 +49,10 @@ func TestRender(t *testing.T) {
 					},
 					{
 						Path: "dir2",
-						Children: []*models.FileChangeNode{
+						Children: []*FileChangeNode{
 							{
 								Path: "dir2/dir2",
-								Children: []*models.FileChangeNode{
+								Children: []*FileChangeNode{
 									{
 										File: &models.File{Name: "dir2/dir2/file3", ShortStatus: " M", HasStagedChanges: true},
 										Path: "dir2/dir2/file3",

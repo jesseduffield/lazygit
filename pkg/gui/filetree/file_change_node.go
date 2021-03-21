@@ -1,4 +1,4 @@
-package models
+package filetree
 
 import (
 	"fmt"
@@ -6,28 +6,30 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 type FileChangeNode struct {
 	Children         []*FileChangeNode
-	File             *File
+	File             *models.File
 	Path             string // e.g. '/path/to/mydir'
 	CompressionLevel int    // equal to the number of forward slashes you'll see in the path when it's rendered in tree mode
 }
 
 func (s *FileChangeNode) GetHasUnstagedChanges() bool {
-	return s.AnyFile(func(file *File) bool { return file.HasUnstagedChanges })
+	return s.AnyFile(func(file *models.File) bool { return file.HasUnstagedChanges })
 }
 
 func (s *FileChangeNode) GetHasStagedChanges() bool {
-	return s.AnyFile(func(file *File) bool { return file.HasStagedChanges })
+	return s.AnyFile(func(file *models.File) bool { return file.HasStagedChanges })
 }
 
 func (s *FileChangeNode) GetHasInlineMergeConflicts() bool {
-	return s.AnyFile(func(file *File) bool { return file.HasInlineMergeConflicts })
+	return s.AnyFile(func(file *models.File) bool { return file.HasInlineMergeConflicts })
 }
 
-func (s *FileChangeNode) AnyFile(test func(file *File) bool) bool {
+func (s *FileChangeNode) AnyFile(test func(file *models.File) bool) bool {
 	return s.Any(func(node *FileChangeNode) bool {
 		return node.IsLeaf() && test(node.File)
 	})
@@ -39,7 +41,7 @@ func (s *FileChangeNode) Any(test func(node *FileChangeNode) bool) bool {
 	}
 
 	for _, child := range s.Children {
-		if test(child) {
+		if child.Any(test) {
 			return true
 		}
 	}
@@ -231,7 +233,7 @@ func (s *FileChangeNode) Description() string {
 	return s.GetPath()
 }
 
-func (s *FileChangeNode) ForEachFile(cb func(*File) error) error {
+func (s *FileChangeNode) ForEachFile(cb func(*models.File) error) error {
 	if s.File != nil {
 		if err := cb(s.File); err != nil {
 			return err

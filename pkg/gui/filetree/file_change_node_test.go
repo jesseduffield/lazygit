@@ -1,8 +1,9 @@
-package models
+package filetree
 
 import (
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,13 +23,13 @@ func TestCompress(t *testing.T) {
 			root: &FileChangeNode{
 				Path: "",
 				Children: []*FileChangeNode{
-					{File: &File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
+					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 			expected: &FileChangeNode{
 				Path: "",
 				Children: []*FileChangeNode{
-					{File: &File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
+					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 		},
@@ -41,7 +42,7 @@ func TestCompress(t *testing.T) {
 						Path: "dir1",
 						Children: []*FileChangeNode{
 							{
-								File: &File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
+								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir1/file2",
 							},
 						},
@@ -50,11 +51,11 @@ func TestCompress(t *testing.T) {
 						Path: "dir2",
 						Children: []*FileChangeNode{
 							{
-								File: &File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
+								File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Path: "dir2/file3",
 							},
 							{
-								File: &File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
+								File: &models.File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir2/file4",
 							},
 						},
@@ -66,7 +67,7 @@ func TestCompress(t *testing.T) {
 								Path: "dir3/dir3-1",
 								Children: []*FileChangeNode{
 									{
-										File: &File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
+										File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 										Path: "dir3/dir3-1/file5",
 									},
 								},
@@ -74,7 +75,7 @@ func TestCompress(t *testing.T) {
 						},
 					},
 					{
-						File: &File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
+						File: &models.File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 						Path: "file1",
 					},
 				},
@@ -84,29 +85,29 @@ func TestCompress(t *testing.T) {
 				Children: []*FileChangeNode{
 					{
 						Path:             "dir1/file2",
-						File:             &File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
+						File:             &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 						CompressionLevel: 1,
 					},
 					{
 						Path: "dir2",
 						Children: []*FileChangeNode{
 							{
-								File: &File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
+								File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Path: "dir2/file3",
 							},
 							{
-								File: &File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
+								File: &models.File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir2/file4",
 							},
 						},
 					},
 					{
 						Path:             "dir3/dir3-1/file5",
-						File:             &File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
+						File:             &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 						CompressionLevel: 2,
 					},
 					{
-						File: &File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
+						File: &models.File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 						Path: "file1",
 					},
 				},

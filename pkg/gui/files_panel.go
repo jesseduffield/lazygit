@@ -15,13 +15,14 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedFileChangeNode() *models.FileChangeNode {
+func (gui *Gui) getSelectedFileChangeNode() *filetree.FileChangeNode {
 	selectedLine := gui.State.Panels.Files.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
@@ -557,8 +558,8 @@ func (gui *Gui) refreshStateFiles() error {
 // nodes until we find one that exists in the new set of nodes, then move the cursor
 // to that.
 // prevNodes starts from our previously selected node because we don't need to consider anything above that
-func (gui *Gui) findNewSelectedIdx(prevNodes []*models.FileChangeNode, currNodes []*models.FileChangeNode) int {
-	getPaths := func(node *models.FileChangeNode) []string {
+func (gui *Gui) findNewSelectedIdx(prevNodes []*filetree.FileChangeNode, currNodes []*filetree.FileChangeNode) int {
+	getPaths := func(node *filetree.FileChangeNode) []string {
 		if node == nil {
 			return nil
 		}
