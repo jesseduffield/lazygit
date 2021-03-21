@@ -225,8 +225,6 @@ func (gui *Gui) handleFilePress() error {
 		return nil
 	}
 
-	// need to stage or unstage depending on situation. If we have a merge conflict we can't do anything
-
 	if node.IsLeaf() {
 		file := node.File
 
@@ -244,6 +242,12 @@ func (gui *Gui) handleFilePress() error {
 			}
 		}
 	} else {
+		// if any files within have inline merge conflicts we can't stage or unstage,
+		// or it'll end up with those >>>>>> lines actually staged
+		if node.GetHasInlineMergeConflicts() {
+			return gui.createErrorPanel(gui.Tr.ErrStageDirWithInlineMergeConflicts)
+		}
+
 		if node.GetHasUnstagedChanges() {
 			if err := gui.GitCommand.StageFile(node.Path); err != nil {
 				return gui.surfaceError(err)

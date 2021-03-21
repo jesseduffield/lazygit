@@ -16,26 +16,30 @@ type FileChangeNode struct {
 }
 
 func (s *FileChangeNode) GetHasUnstagedChanges() bool {
-	if s.IsLeaf() {
-		return s.File.HasUnstagedChanges
-	}
-
-	for _, child := range s.Children {
-		if child.GetHasUnstagedChanges() {
-			return true
-		}
-	}
-
-	return false
+	return s.AnyFile(func(file *File) bool { return file.HasUnstagedChanges })
 }
 
 func (s *FileChangeNode) GetHasStagedChanges() bool {
-	if s.IsLeaf() {
-		return s.File.HasStagedChanges
+	return s.AnyFile(func(file *File) bool { return file.HasStagedChanges })
+}
+
+func (s *FileChangeNode) GetHasInlineMergeConflicts() bool {
+	return s.AnyFile(func(file *File) bool { return file.HasInlineMergeConflicts })
+}
+
+func (s *FileChangeNode) AnyFile(test func(file *File) bool) bool {
+	return s.Any(func(node *FileChangeNode) bool {
+		return node.IsLeaf() && test(node.File)
+	})
+}
+
+func (s *FileChangeNode) Any(test func(node *FileChangeNode) bool) bool {
+	if test(s) {
+		return true
 	}
 
 	for _, child := range s.Children {
-		if child.GetHasStagedChanges() {
+		if test(child) {
 			return true
 		}
 	}
