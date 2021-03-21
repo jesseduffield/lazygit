@@ -45,7 +45,7 @@ func GetFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 
 		output = firstCharCl.Sprint(firstChar)
 		output += secondCharCl.Sprint(secondChar)
-		output += " "
+		output += restColor.Sprint(" ")
 	}
 
 	output += restColor.Sprint(name)
