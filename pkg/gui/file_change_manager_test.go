@@ -9,9 +9,10 @@ import (
 
 func TestRender(t *testing.T) {
 	scenarios := []struct {
-		name     string
-		root     *models.FileChangeNode
-		expected []string
+		name           string
+		root           *models.FileChangeNode
+		collapsedPaths map[string]bool
+		expected       []string
 	}{
 		{
 			name:     "nil node",
@@ -34,12 +35,15 @@ func TestRender(t *testing.T) {
 				Path: "",
 				Children: []*models.FileChangeNode{
 					{
-						Path:      "dir1",
-						Collapsed: true,
+						Path: "dir1",
 						Children: []*models.FileChangeNode{
 							{
 								File: &models.File{Name: "dir1/file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir1/file2",
+							},
+							{
+								File: &models.File{Name: "dir1/file3", ShortStatus: "M ", HasUnstagedChanges: true},
+								Path: "dir1/file3",
 							},
 						},
 					},
@@ -71,15 +75,15 @@ func TestRender(t *testing.T) {
 					},
 				},
 			},
-
-			expected: []string{"dir1 ▼", "└─ M  file2", "dir2 ▼", "├─ dir2 ▼", "│  ├─  M file3", "│  └─ M  file4", "└─ M  file5", "M  file1"},
+			expected:       []string{"dir1 ►", "dir2 ▼", "├─ dir2 ▼", "│  ├─  M file3", "│  └─ M  file4", "└─ M  file5", "M  file1"},
+			collapsedPaths: map[string]bool{"dir1": true},
 		},
 	}
 
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
-			mngr := &FileChangeManager{Tree: s.root}
+			mngr := &FileChangeManager{Tree: s.root, CollapsedPaths: s.collapsedPaths}
 			result := mngr.Render("", nil)
 			assert.EqualValues(t, s.expected, result)
 		})
