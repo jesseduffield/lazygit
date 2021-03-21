@@ -1,4 +1,4 @@
-package gui
+package filetree
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func GetTreeFromFiles(files []*models.File) *models.FileChangeNode {
+func BuildTreeFromFiles(files []*models.File) *models.FileChangeNode {
 	root := &models.FileChangeNode{}
 
 	var curr *models.FileChangeNode
@@ -49,8 +49,8 @@ func GetTreeFromFiles(files []*models.File) *models.FileChangeNode {
 	return root
 }
 
-func GetFlatTreeFromFiles(files []*models.File) *models.FileChangeNode {
-	rootAux := GetTreeFromFiles(files)
+func BuildFlatTreeFromFiles(files []*models.File) *models.FileChangeNode {
+	rootAux := BuildTreeFromFiles(files)
 	sortedFiles := rootAux.GetLeaves()
 
 	// Move merge conflicts to top. This is the one way in which sorting

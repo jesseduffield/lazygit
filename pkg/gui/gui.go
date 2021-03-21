@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -303,7 +304,7 @@ type guiStateMutexes struct {
 }
 
 type guiState struct {
-	FileChangeManager *FileChangeManager
+	FileChangeManager *filetree.FileChangeManager
 	Submodules        []*models.SubmoduleConfig
 	Branches          []*models.Branch
 	Commits           []*models.Commit
@@ -380,7 +381,7 @@ func (gui *Gui) resetState() {
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
 
 	gui.State = &guiState{
-		FileChangeManager:     NewFileChangeManager(make([]*models.File, 0), gui.Log, showTree),
+		FileChangeManager:     filetree.NewFileChangeManager(make([]*models.File, 0), gui.Log, showTree),
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),
 		ReflogCommits:         make([]*models.Commit, 0),
