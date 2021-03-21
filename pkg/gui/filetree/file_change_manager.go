@@ -12,6 +12,11 @@ import (
 const EXPANDED_ARROW = "▼"
 const COLLAPSED_ARROW = "►"
 
+const INNER_ITEM = "├─ "
+const LAST_ITEM = "└─ "
+const NESTED = "│  "
+const NOTHING = "   "
+
 type FileChangeManager struct {
 	Files          []*models.File
 	Tree           *models.FileChangeNode
@@ -72,11 +77,6 @@ func (m *FileChangeManager) SetTree() {
 func (m *FileChangeManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
 	return m.renderAux(m.Tree, "", -1, diffName, submoduleConfigs)
 }
-
-const INNER_ITEM = "├─ "
-const LAST_ITEM = "└─ "
-const NESTED = "│  "
-const NOTHING = "   "
 
 func (m *FileChangeManager) IsCollapsed(s *models.FileChangeNode) bool {
 	return m.CollapsedPaths[s.GetPath()]
