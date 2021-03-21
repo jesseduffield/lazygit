@@ -83,7 +83,7 @@ func TestRender(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
-			mngr := &FileChangeManager{Tree: s.root, CollapsedPaths: s.collapsedPaths}
+			mngr := &FileChangeManager{tree: s.root, collapsedPaths: s.collapsedPaths}
 			result := mngr.Render("", nil)
 			assert.EqualValues(t, s.expected, result)
 		})
