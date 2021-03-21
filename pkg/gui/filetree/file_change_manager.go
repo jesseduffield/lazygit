@@ -2,6 +2,7 @@ package filetree
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -140,4 +141,13 @@ func (m *FileChangeManager) renderAux(s *FileChangeNode, prefix string, depth in
 	}
 
 	return arr
+}
+
+func (m *FileChangeManager) ExpandToPath(path string) {
+	// need every directory along the way
+	split := strings.Split(path, string(os.PathSeparator))
+	for i := range split {
+		dir := strings.Join(split[0:i+1], string(os.PathSeparator))
+		m.collapsedPaths[dir] = false
+	}
 }
