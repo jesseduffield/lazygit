@@ -9,10 +9,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func BuildTreeFromFiles(files []*models.File) *models.FileChangeNode {
-	root := &models.FileChangeNode{}
+func BuildTreeFromFiles(files []*models.File) *FileChangeNode {
+	root := &FileChangeNode{}
 
-	var curr *models.FileChangeNode
+	var curr *FileChangeNode
 	for _, file := range files {
 		split := strings.Split(file.Name, string(os.PathSeparator))
 		curr = root
@@ -33,7 +33,7 @@ func BuildTreeFromFiles(files []*models.File) *models.FileChangeNode {
 				}
 			}
 
-			newChild := &models.FileChangeNode{
+			newChild := &FileChangeNode{
 				Path: path,
 				File: setFile,
 			}
@@ -49,7 +49,7 @@ func BuildTreeFromFiles(files []*models.File) *models.FileChangeNode {
 	return root
 }
 
-func BuildFlatTreeFromFiles(files []*models.File) *models.FileChangeNode {
+func BuildFlatTreeFromFiles(files []*models.File) *FileChangeNode {
 	rootAux := BuildTreeFromFiles(files)
 	sortedFiles := rootAux.GetLeaves()
 
@@ -59,5 +59,5 @@ func BuildFlatTreeFromFiles(files []*models.File) *models.FileChangeNode {
 		return sortedFiles[i].File != nil && sortedFiles[i].File.HasMergeConflicts && !(sortedFiles[j].File != nil && sortedFiles[j].File.HasMergeConflicts)
 	})
 
-	return &models.FileChangeNode{Children: sortedFiles}
+	return &FileChangeNode{Children: sortedFiles}
 }

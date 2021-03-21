@@ -19,7 +19,7 @@ const NOTHING = "   "
 
 type FileChangeManager struct {
 	files          []*models.File
-	tree           *models.FileChangeNode
+	tree           *FileChangeNode
 	showTree       bool
 	log            *logrus.Entry
 	collapsedPaths map[string]bool
@@ -39,7 +39,7 @@ func (m *FileChangeManager) ToggleShowTree() {
 	m.SetTree()
 }
 
-func (m *FileChangeManager) GetItemAtIndex(index int) *models.FileChangeNode {
+func (m *FileChangeManager) GetItemAtIndex(index int) *FileChangeNode {
 	// need to traverse the three depth first until we get to the index.
 	return m.tree.GetNodeAtIndex(index+1, m.collapsedPaths) // ignoring root
 }
@@ -49,7 +49,7 @@ func (m *FileChangeManager) GetIndexForPath(path string) (int, bool) {
 	return index - 1, found
 }
 
-func (m *FileChangeManager) GetAllItems() []*models.FileChangeNode {
+func (m *FileChangeManager) GetAllItems() []*FileChangeNode {
 	if m.tree == nil {
 		return nil
 	}
@@ -83,15 +83,15 @@ func (m *FileChangeManager) Render(diffName string, submoduleConfigs []*models.S
 	return m.renderAux(m.tree, "", -1, diffName, submoduleConfigs)
 }
 
-func (m *FileChangeManager) IsCollapsed(s *models.FileChangeNode) bool {
+func (m *FileChangeManager) IsCollapsed(s *FileChangeNode) bool {
 	return m.collapsedPaths[s.GetPath()]
 }
 
-func (m *FileChangeManager) ToggleCollapsed(s *models.FileChangeNode) {
+func (m *FileChangeManager) ToggleCollapsed(s *FileChangeNode) {
 	m.collapsedPaths[s.GetPath()] = !m.collapsedPaths[s.GetPath()]
 }
 
-func (m *FileChangeManager) renderAux(s *models.FileChangeNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
+func (m *FileChangeManager) renderAux(s *FileChangeNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
 	isRoot := depth == -1
 	if s == nil {
 		return []string{}

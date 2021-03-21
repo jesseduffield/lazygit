@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 )
@@ -137,12 +138,12 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 	return c.DiscardUnstagedFileChanges(file)
 }
 
-func (c *GitCommand) DiscardAllDirChanges(node *models.FileChangeNode) error {
+func (c *GitCommand) DiscardAllDirChanges(node *filetree.FileChangeNode) error {
 	// this could be more efficient but we would need to handle all the edge cases
 	return node.ForEachFile(c.DiscardAllFileChanges)
 }
 
-func (c *GitCommand) DiscardUnstagedDirChanges(node *models.FileChangeNode) error {
+func (c *GitCommand) DiscardUnstagedDirChanges(node *filetree.FileChangeNode) error {
 	if err := c.RemoveUntrackedDirFiles(node); err != nil {
 		return err
 	}
@@ -155,9 +156,9 @@ func (c *GitCommand) DiscardUnstagedDirChanges(node *models.FileChangeNode) erro
 	return nil
 }
 
-func (c *GitCommand) RemoveUntrackedDirFiles(node *models.FileChangeNode) error {
+func (c *GitCommand) RemoveUntrackedDirFiles(node *filetree.FileChangeNode) error {
 	untrackedFilePaths := node.GetPathsMatching(
-		func(n *models.FileChangeNode) bool { return n.File != nil && !n.File.GetIsTracked() },
+		func(n *filetree.FileChangeNode) bool { return n.File != nil && !n.File.GetIsTracked() },
 	)
 
 	for _, path := range untrackedFilePaths {
