@@ -193,8 +193,8 @@ func (s *FileChangeNode) compressAux() *FileChangeNode {
 		}
 	}
 
-	for i, child := range s.Children {
-		s.Children[i] = child.compressAux()
+	for i := range s.Children {
+		s.Children[i] = s.Children[i].compressAux()
 	}
 
 	return s
@@ -271,7 +271,7 @@ func (s *FileChangeNode) NameAtDepth(depth int) string {
 			prevName = filepath.Join(splitPrevName[depth:]...)
 		}
 
-		return fmt.Sprintf("%s%s%s", prevName, " -> ", name)
+		return fmt.Sprintf("%s%s%s", prevName, " → ", name)
 	}
 
 	return name
