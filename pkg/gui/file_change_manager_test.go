@@ -72,7 +72,7 @@ func TestRender(t *testing.T) {
 				},
 			},
 
-			expected: []string{" M dir1 ►", "MM dir2 ▼", "├─ MM dir2 ▼", "│   ├─  M file3", "│   └─ M  file4", "└─ M  file5", "M  file1"},
+			expected: []string{"dir1 ▼", "└─ M  file2", "dir2 ▼", "├─ dir2 ▼", "│  ├─  M file3", "│  └─ M  file4", "└─ M  file5", "M  file1"},
 		},
 	}
 
