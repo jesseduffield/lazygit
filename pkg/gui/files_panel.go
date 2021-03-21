@@ -848,6 +848,10 @@ func (gui *Gui) handleToggleFileTreeView() error {
 
 	gui.State.FileChangeManager.ToggleShowTree()
 
+	if path != "" {
+		gui.State.FileChangeManager.ExpandToPath(path)
+	}
+
 	// find that same node in the new format and move the cursor to it
 	if path != "" {
 		index, found := gui.State.FileChangeManager.GetIndexForPath(path)
