@@ -63,9 +63,9 @@ func (m *FileChangeManager) SetFiles(files []*models.File) {
 
 func (m *FileChangeManager) SetTree() {
 	if m.ShowTree {
-		m.Tree = GetTreeFromStatusFiles(m.Files)
+		m.Tree = GetTreeFromFiles(m.Files)
 	} else {
-		m.Tree = GetFlatTreeFromStatusFiles(m.Files)
+		m.Tree = GetFlatTreeFromFiles(m.Files)
 	}
 }
 
