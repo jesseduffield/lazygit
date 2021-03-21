@@ -29,10 +29,51 @@ func (s *FileChangeNode) GetHasInlineMergeConflicts() bool {
 	return s.AnyFile(func(file *models.File) bool { return file.HasInlineMergeConflicts })
 }
 
+func (s *FileChangeNode) GetIsTracked() bool {
+	return s.AnyFile(func(file *models.File) bool { return file.Tracked })
+}
+
 func (s *FileChangeNode) AnyFile(test func(file *models.File) bool) bool {
 	return s.Any(func(node *FileChangeNode) bool {
 		return node.IsLeaf() && test(node.File)
 	})
+}
+
+func (s *FileChangeNode) ForEachFile(cb func(*models.File) error) error {
+	if s.File != nil {
+		if err := cb(s.File); err != nil {
+			return err
+		}
+	}
+
+	for _, child := range s.Children {
+		if err := child.ForEachFile(cb); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *FileChangeNode) NameAtDepth(depth int) string {
+	splitName := strings.Split(s.Path, string(os.PathSeparator))
+	name := filepath.Join(splitName[depth:]...)
+
+	if s.File != nil && s.File.IsRename() {
+		splitPrevName := strings.Split(s.File.PreviousName, string(os.PathSeparator))
+
+		prevName := s.File.PreviousName
+		// if the file has just been renamed inside the same directory, we can shave off
+		// the prefix for the previous path too. Otherwise we'll keep it unchanged
+		sameParentDir := len(splitName) == len(splitPrevName) && filepath.Join(splitName[0:depth]...) == filepath.Join(splitPrevName[0:depth]...)
+		if sameParentDir {
+			prevName = filepath.Join(splitPrevName[depth:]...)
+		}
+
+		return fmt.Sprintf("%s%s%s", prevName, " → ", name)
+	}
+
+	return name
 }
 
 func (s *FileChangeNode) Any(test func(node *FileChangeNode) bool) bool {
@@ -158,21 +199,6 @@ func (s *FileChangeNode) sortChildren() {
 	s.Children = sortedChildren
 }
 
-// returns true if any descendant file is tracked
-func (s *FileChangeNode) GetIsTracked() bool {
-	if s.File != nil {
-		return s.File.GetIsTracked()
-	}
-
-	for _, child := range s.Children {
-		if child.GetIsTracked() {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (s *FileChangeNode) GetPath() string {
 	return s.Path
 }
@@ -233,22 +259,6 @@ func (s *FileChangeNode) Description() string {
 	return s.GetPath()
 }
 
-func (s *FileChangeNode) ForEachFile(cb func(*models.File) error) error {
-	if s.File != nil {
-		if err := cb(s.File); err != nil {
-			return err
-		}
-	}
-
-	for _, child := range s.Children {
-		if err := child.ForEachFile(cb); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (s *FileChangeNode) GetLeaves() []*FileChangeNode {
 	if s.IsLeaf() {
 		return []*FileChangeNode{s}
@@ -260,25 +270,4 @@ func (s *FileChangeNode) GetLeaves() []*FileChangeNode {
 	}
 
 	return output
-}
-
-func (s *FileChangeNode) NameAtDepth(depth int) string {
-	splitName := strings.Split(s.Path, string(os.PathSeparator))
-	name := filepath.Join(splitName[depth:]...)
-
-	if s.File != nil && s.File.IsRename() {
-		splitPrevName := strings.Split(s.File.PreviousName, string(os.PathSeparator))
-
-		prevName := s.File.PreviousName
-		// if the file has just been renamed inside the same directory, we can shave off
-		// the prefix for the previous path too. Otherwise we'll keep it unchanged
-		sameParentDir := len(splitName) == len(splitPrevName) && filepath.Join(splitName[0:depth]...) == filepath.Join(splitPrevName[0:depth]...)
-		if sameParentDir {
-			prevName = filepath.Join(splitPrevName[depth:]...)
-		}
-
-		return fmt.Sprintf("%s%s%s", prevName, " → ", name)
-	}
-
-	return name
 }
