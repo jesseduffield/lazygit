@@ -18,72 +18,77 @@ const NESTED = "│  "
 const NOTHING = "   "
 
 type FileChangeManager struct {
-	Files          []*models.File
-	Tree           *models.FileChangeNode
-	ShowTree       bool
-	Log            *logrus.Entry
-	CollapsedPaths map[string]bool
+	files          []*models.File
+	tree           *models.FileChangeNode
+	showTree       bool
+	log            *logrus.Entry
+	collapsedPaths map[string]bool
 }
 
 func NewFileChangeManager(files []*models.File, log *logrus.Entry, showTree bool) *FileChangeManager {
 	return &FileChangeManager{
-		Files:          files,
-		Log:            log,
-		ShowTree:       showTree,
-		CollapsedPaths: map[string]bool{},
+		files:          files,
+		log:            log,
+		showTree:       showTree,
+		collapsedPaths: map[string]bool{},
 	}
+}
+
+func (m *FileChangeManager) ToggleShowTree() {
+	m.showTree = !m.showTree
+	m.SetTree()
 }
 
 func (m *FileChangeManager) GetItemAtIndex(index int) *models.FileChangeNode {
 	// need to traverse the three depth first until we get to the index.
-	return m.Tree.GetNodeAtIndex(index+1, m.CollapsedPaths) // ignoring root
+	return m.tree.GetNodeAtIndex(index+1, m.collapsedPaths) // ignoring root
 }
 
 func (m *FileChangeManager) GetIndexForPath(path string) (int, bool) {
-	index, found := m.Tree.GetIndexForPath(path, m.CollapsedPaths)
+	index, found := m.tree.GetIndexForPath(path, m.collapsedPaths)
 	return index - 1, found
 }
 
 func (m *FileChangeManager) GetAllItems() []*models.FileChangeNode {
-	if m.Tree == nil {
+	if m.tree == nil {
 		return nil
 	}
 
-	return m.Tree.Flatten(m.CollapsedPaths)[1:] // ignoring root
+	return m.tree.Flatten(m.collapsedPaths)[1:] // ignoring root
 }
 
 func (m *FileChangeManager) GetItemsLength() int {
-	return m.Tree.Size(m.CollapsedPaths) - 1 // ignoring root
+	return m.tree.Size(m.collapsedPaths) - 1 // ignoring root
 }
 
 func (m *FileChangeManager) GetAllFiles() []*models.File {
-	return m.Files
+	return m.files
 }
 
 func (m *FileChangeManager) SetFiles(files []*models.File) {
-	m.Files = files
+	m.files = files
 
 	m.SetTree()
 }
 
 func (m *FileChangeManager) SetTree() {
-	if m.ShowTree {
-		m.Tree = BuildTreeFromFiles(m.Files)
+	if m.showTree {
+		m.tree = BuildTreeFromFiles(m.files)
 	} else {
-		m.Tree = BuildFlatTreeFromFiles(m.Files)
+		m.tree = BuildFlatTreeFromFiles(m.files)
 	}
 }
 
 func (m *FileChangeManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
-	return m.renderAux(m.Tree, "", -1, diffName, submoduleConfigs)
+	return m.renderAux(m.tree, "", -1, diffName, submoduleConfigs)
 }
 
 func (m *FileChangeManager) IsCollapsed(s *models.FileChangeNode) bool {
-	return m.CollapsedPaths[s.GetPath()]
+	return m.collapsedPaths[s.GetPath()]
 }
 
 func (m *FileChangeManager) ToggleCollapsed(s *models.FileChangeNode) {
-	m.CollapsedPaths[s.GetPath()] = !m.CollapsedPaths[s.GetPath()]
+	m.collapsedPaths[s.GetPath()] = !m.collapsedPaths[s.GetPath()]
 }
 
 func (m *FileChangeManager) renderAux(s *models.FileChangeNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
