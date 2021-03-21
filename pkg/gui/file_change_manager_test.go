@@ -38,8 +38,8 @@ func TestRender(t *testing.T) {
 						Collapsed: true,
 						Children: []*models.FileChangeNode{
 							{
-								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
-								Path: "file2",
+								File: &models.File{Name: "dir1/file2", ShortStatus: "M ", HasUnstagedChanges: true},
+								Path: "dir1/file2",
 							},
 						},
 					},
@@ -47,21 +47,21 @@ func TestRender(t *testing.T) {
 						Path: "dir2",
 						Children: []*models.FileChangeNode{
 							{
-								Path: "dir2",
+								Path: "dir2/dir2",
 								Children: []*models.FileChangeNode{
 									{
-										File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
-										Path: "file3",
+										File: &models.File{Name: "dir2/dir2/file3", ShortStatus: " M", HasStagedChanges: true},
+										Path: "dir2/dir2/file3",
 									},
 									{
-										File: &models.File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
-										Path: "file4",
+										File: &models.File{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
+										Path: "dir2/dir2/file4",
 									},
 								},
 							},
 							{
-								File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
-								Path: "file5",
+								File: &models.File{Name: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
+								Path: "dir2/file5",
 							},
 						},
 					},
