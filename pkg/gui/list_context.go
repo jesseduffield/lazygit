@@ -279,7 +279,7 @@ func (gui *Gui) filesListContext() *ListContext {
 			return mappedLines
 		},
 		SelectedItem: func() (ListItem, bool) {
-			item := gui.getSelectedStatusNode()
+			item := gui.getSelectedFileChangeNode()
 			return item, item != nil
 		},
 	}

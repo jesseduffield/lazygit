@@ -21,7 +21,7 @@ import (
 
 // list panel functions
 
-func (gui *Gui) getSelectedStatusNode() *models.FileChangeNode {
+func (gui *Gui) getSelectedFileChangeNode() *models.FileChangeNode {
 	selectedLine := gui.State.Panels.Files.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
@@ -44,7 +44,7 @@ func (gui *Gui) getSelectedFile() *models.File {
 }
 
 func (gui *Gui) getSelectedPath() string {
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 	if node == nil {
 		return ""
 	}
@@ -55,7 +55,7 @@ func (gui *Gui) getSelectedPath() string {
 func (gui *Gui) selectFile(alreadySelected bool) error {
 	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
 
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 
 	if node == nil {
 		return gui.refreshMainViews(refreshMainOpts{
@@ -191,7 +191,7 @@ func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error {
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 	if node == nil {
 		return nil
 	}
@@ -220,7 +220,7 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 }
 
 func (gui *Gui) handleFilePress() error {
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 	if node == nil {
 		return nil
 	}
@@ -295,7 +295,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleIgnoreFile() error {
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 	if node == nil {
 		return nil
 	}
@@ -493,7 +493,7 @@ func (gui *Gui) editFile(filename string) error {
 }
 
 func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 	if node == nil {
 		return nil
 	}
@@ -506,7 +506,7 @@ func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 	if node == nil {
 		return nil
 	}
@@ -523,7 +523,7 @@ func (gui *Gui) refreshStateFiles() error {
 	// when we refresh, go looking for a matching name
 	// move the cursor to there.
 
-	selectedNode := gui.getSelectedStatusNode()
+	selectedNode := gui.getSelectedFileChangeNode()
 
 	prevNodes := gui.State.FileChangeManager.GetAllItems()
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
@@ -819,7 +819,7 @@ func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) err
 }
 
 func (gui *Gui) handleToggleDirCollapsed() error {
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 	if node == nil {
 		return nil
 	}
@@ -835,7 +835,7 @@ func (gui *Gui) handleToggleDirCollapsed() error {
 
 func (gui *Gui) handleToggleFileTreeView() error {
 	// get path of currently selected file
-	node := gui.getSelectedStatusNode()
+	node := gui.getSelectedFileChangeNode()
 	path := ""
 	if node != nil {
 		path = node.Path
