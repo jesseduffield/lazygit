@@ -534,6 +534,14 @@ func (gui *Gui) refreshStateFiles() error {
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
+
+	// for when you stage the old file of a rename and the new file is in a collapsed dir
+	for _, file := range files {
+		if selectedNode != nil && selectedNode.Path != "" && file.PreviousName == selectedNode.Path {
+			gui.State.FileChangeManager.ExpandToPath(file.Name)
+		}
+	}
+
 	gui.State.FileChangeManager.SetFiles(files)
 
 	if err := gui.fileWatcher.addFilesToFileWatcher(files); err != nil {
