@@ -1,4 +1,4 @@
-package gui
+package filetree
 
 import (
 	"fmt"
@@ -63,9 +63,9 @@ func (m *FileChangeManager) SetFiles(files []*models.File) {
 
 func (m *FileChangeManager) SetTree() {
 	if m.ShowTree {
-		m.Tree = GetTreeFromFiles(m.Files)
+		m.Tree = BuildTreeFromFiles(m.Files)
 	} else {
-		m.Tree = GetFlatTreeFromFiles(m.Files)
+		m.Tree = BuildFlatTreeFromFiles(m.Files)
 	}
 }
 

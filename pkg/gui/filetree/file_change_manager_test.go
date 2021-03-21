@@ -1,4 +1,4 @@
-package gui
+package filetree
 
 import (
 	"testing"
