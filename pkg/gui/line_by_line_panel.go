@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"fmt"
-
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -349,11 +347,7 @@ func (gui *Gui) handleOpenFileAtLine() error {
 			return errors.Errorf("unknown main context: %s", gui.State.MainContext)
 		}
 
-		// need to look at current index, then work out what my hunk's header information is, and see how far my line is away from the hunk header
-		selectedHunk := state.PatchParser.GetHunkContainingLine(state.SelectedLineIdx, 0)
-		lineNumber := selectedHunk.LineNumberOfLine(state.SelectedLineIdx)
-		filenameWithLineNum := fmt.Sprintf("%s:%d", filename, lineNumber)
-		if err := gui.OSCommand.OpenFile(filenameWithLineNum); err != nil {
+		if err := gui.OSCommand.OpenFile(filename); err != nil {
 			return err
 		}
 
