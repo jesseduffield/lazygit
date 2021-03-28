@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"strings"
 	"unicode"
 
 	"github.com/jesseduffield/gocui"
@@ -20,9 +21,22 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	case key == gocui.KeyDelete:
 		v.EditDelete(false)
 	case key == gocui.KeyArrowDown:
-		v.MoveCursor(0, 1, false)
+		_, cursorY := v.Cursor()
+		_, viewY := v.Size()
+		if cursorY+1 == viewY {
+			increaseViewHeight(v, cursorY)
+		} else {
+			v.MoveCursor(0, 1, false)
+		}
 	case key == gocui.KeyArrowUp:
-		v.MoveCursor(0, -1, false)
+		cursorX, cursorY := v.Cursor()
+		_, viewY := v.Size()
+		if viewY > 5 && cursorY+1 == viewY {
+			decreaseViewHeightWhenLastLineIsBlank(v, cursorY)
+			v.SetCursor(cursorX, cursorY-1)
+		} else {
+			v.MoveCursor(0, -1, false)
+		}
 	case key == gocui.KeyArrowLeft:
 		v.MoveCursor(-1, 0, false)
 	case key == gocui.KeyArrowRight:
@@ -79,4 +93,33 @@ func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 		suggestions := gui.findSuggestions(input)
 		gui.setSuggestions(suggestions)
 	}
+}
+
+func decreaseViewHeightWhenLastLineIsBlank(v *gocui.View, currentLineNumber int) {
+	line, err := v.Line(currentLineNumber)
+	if err != nil {
+		return
+	}
+
+	if len(strings.TrimSpace(line)) > 0 {
+		return
+	}
+
+	lineLength := len(line)
+	v.SetCursor(0, currentLineNumber)
+	for i := 0; i < lineLength; i++ {
+		v.EditDelete(false)
+	}
+	v.EditDelete(true)
+}
+
+func increaseViewHeight(v *gocui.View, currentLineNumber int) {
+	line, err := v.Line(currentLineNumber)
+	if err != nil {
+		return
+	}
+
+	lineLength := len(line)
+	v.SetCursor(lineLength, currentLineNumber)
+	v.EditNewLine()
 }
