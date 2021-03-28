@@ -185,7 +185,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	if gui.getCommitMessageView() == nil {
 		// doesn't matter where this view starts because it will be hidden
-		if commitMessageView, err := g.SetView("commitMessage", hiddenViewOffset, hiddenViewOffset, hiddenViewOffset+10, hiddenViewOffset+10, 0); err != nil {
+		commitMessageView, err := g.SetView("commitMessage", hiddenViewOffset, hiddenViewOffset, hiddenViewOffset+10, hiddenViewOffset+10, 0)
+		if err != nil {
 			if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 				return err
 			}
@@ -195,6 +196,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			commitMessageView.Editable = true
 			commitMessageView.Editor = gocui.EditorFunc(gui.commitMessageEditor)
 		}
+
+		commitMessageView.Write([]byte{'\n', '\n', '\n', '\n', '\n'})
 	}
 
 	if check, _ := g.View("credentials"); check == nil {

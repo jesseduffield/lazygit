@@ -46,6 +46,7 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 
 	gui.clearEditorView(v)
 	_ = gui.returnFromContext()
+	v.Write([]byte{'\n', '\n', '\n', '\n', '\n'})
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
