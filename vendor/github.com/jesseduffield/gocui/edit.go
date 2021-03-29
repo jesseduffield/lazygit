@@ -65,6 +65,10 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 // EditWrite writes a rune at the cursor position.
 func (v *View) EditWrite(ch rune) {
 	w := runewidth.RuneWidth(ch)
+	if w == 0 {
+		return
+	}
+
 	v.writeRune(v.cx, v.cy, ch)
 	v.moveCursor(w, 0, true)
 }
@@ -326,6 +330,9 @@ func (v *View) moveCursor(dx, dy int, writeMode bool) {
 // buffer is increased if the point is out of bounds. Overwrite mode is
 // governed by the value of View.overwrite.
 func (v *View) writeRune(x, y int, ch rune) error {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.tainted = true
 
 	x, y, err := v.realPosition(x, y)
@@ -377,6 +384,9 @@ func (v *View) writeRune(x, y int, ch rune) error {
 // position corresponding to the point (x, y).
 // returns the amount of columns that where removed.
 func (v *View) deleteRune(x, y int) (int, error) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.tainted = true
 
 	x, y, err := v.realPosition(x, y)
@@ -404,6 +414,9 @@ func (v *View) deleteRune(x, y int) (int, error) {
 
 // mergeLines merges the lines "y" and "y+1" if possible.
 func (v *View) mergeLines(y int) error {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.tainted = true
 
 	_, y, err := v.realPosition(0, y)
@@ -425,6 +438,9 @@ func (v *View) mergeLines(y int) error {
 // breakLine breaks a line of the internal buffer at the position corresponding
 // to the point (x, y).
 func (v *View) breakLine(x, y int) error {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.tainted = true
 
 	x, y, err := v.realPosition(x, y)
