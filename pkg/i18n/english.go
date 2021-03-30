@@ -438,6 +438,7 @@ type TranslationSet struct {
 	LcCopiedToClipboard                 string
 	ErrCannotEditDirectory              string
 	ErrStageDirWithInlineMergeConflicts string
+	ErrRepositoryMovedOrDeleted         string
 }
 
 const englishReleaseNotes = `## lazygit 0.26 Release Notes
@@ -999,5 +1000,6 @@ func englishTranslationSet() TranslationSet {
 		LcCopiedToClipboard:                 "copied to clipboard",
 		ErrCannotEditDirectory:              "Cannot edit directory: you can only edit individual files",
 		ErrStageDirWithInlineMergeConflicts: "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
+		ErrRepositoryMovedOrDeleted:         "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
 	}
 }
