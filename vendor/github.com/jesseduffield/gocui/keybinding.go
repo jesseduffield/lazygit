@@ -7,6 +7,7 @@ package gocui
 import (
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -106,10 +107,12 @@ func newKeybinding(viewname string, contexts []string, key Key, ch rune, mod Mod
 }
 
 func eventMatchesKey(ev *GocuiEvent, key interface{}) bool {
-	// assuming ModNone for now
-	if Modifier(ev.Mod) != ModNone {
-		return false
-	}
+	// // assuming ModNone for now
+	// if Modifier(ev.Mod) != ModNone {
+	// 	return false
+	// }
+
+	logger.Info(spew.Sdump(ev))
 
 	k, ch, err := getKey(key)
 	if err != nil {
@@ -121,6 +124,8 @@ func eventMatchesKey(ev *GocuiEvent, key interface{}) bool {
 
 // matchKeypress returns if the keybinding matches the keypress.
 func (kb *keybinding) matchKeypress(key Key, ch rune, mod Modifier) bool {
+	logger.Info(spew.Sdump(mod))
+
 	return kb.key == key && kb.ch == ch && kb.mod == mod
 }
 

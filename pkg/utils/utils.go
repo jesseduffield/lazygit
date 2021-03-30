@@ -15,6 +15,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/sirupsen/logrus"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
@@ -376,3 +377,5 @@ func Safe(f func()) {
 
 	panicking = false
 }
+
+var Log *logrus.Entry

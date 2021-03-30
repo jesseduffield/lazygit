@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-errors/errors"
 )
 
@@ -134,8 +135,21 @@ type Gui struct {
 	PrevSearchMatchKey interface{}
 }
 
+var logger Logger = nil
+
+type Logger interface {
+	Infof(format string, args ...interface{})
+	Info(args ...interface{})
+	Error(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Warn(args ...interface{})
+	Warnf(format string, args ...interface{})
+	Fatal(args ...interface{})
+	Fatalf(format string, args ...interface{})
+}
+
 // NewGui returns a new Gui object with a given output mode.
-func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, error) {
+func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool, log Logger) (*Gui, error) {
 	err := tcellInit()
 	if err != nil {
 		return nil, err
@@ -174,6 +188,8 @@ func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, err
 	g.PrevSearchMatchKey = 'N'
 
 	g.RecordEvents = recordEvents
+
+	logger = log
 
 	return g, nil
 }
@@ -1010,6 +1026,9 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				break
 			}
 		}
+
+		logger.Info(spew.Sdump(ev))
+
 		_, err := g.execKeybindings(g.currentView, ev)
 		if err != nil {
 			return err
@@ -1081,7 +1100,7 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 		if kb.handler == nil {
 			continue
 		}
-		if !kb.matchKeypress(Key(ev.Key), ev.Ch, Modifier(ev.Mod)) {
+		if !kb.matchKeypress(ev.Key, ev.Ch, ev.Mod) {
 			continue
 		}
 		if kb.matchView(v) {

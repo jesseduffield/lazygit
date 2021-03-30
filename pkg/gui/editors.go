@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/gocui"
 )
 
@@ -9,8 +10,12 @@ import (
 func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	newlineKey, ok := gui.getKey(gui.Config.GetUserConfig().Keybinding.Universal.AppendNewline).(gocui.Key)
 	if !ok {
-		newlineKey = gocui.KeyTab
+		newlineKey = gocui.KeyEnter
 	}
+	newlineKey = gocui.KeyEnter
+
+	gui.Log.Info(spew.Sdump(mod))
+	gui.Log.Info(spew.Sdump(gocui.ModAlt))
 
 	matched := true
 	switch {
@@ -26,7 +31,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		v.MoveCursor(-1, 0, false)
 	case key == gocui.KeyArrowRight:
 		v.MoveCursor(1, 0, false)
-	case key == newlineKey:
+	case key == newlineKey && mod == gocui.ModAlt:
 		v.EditNewLine()
 	case key == gocui.KeySpace:
 		v.EditWrite(' ')

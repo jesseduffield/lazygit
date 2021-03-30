@@ -415,6 +415,7 @@ func (gui *Gui) resetState() {
 // for now the split view will always be on
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
+	utils.Log = log
 	gui := &Gui{
 		Log:                  log,
 		GitCommand:           gitCommand,
@@ -446,7 +447,7 @@ func (gui *Gui) Run() error {
 
 	recordEvents := recordingEvents()
 
-	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, recordEvents)
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, recordEvents, gui.Log)
 	if err != nil {
 		return err
 	}
