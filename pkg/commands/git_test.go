@@ -61,43 +61,6 @@ func (f fileInfoMock) Sys() interface{} {
 	return f.sys
 }
 
-// TestVerifyInGitRepo is a function.
-func TestVerifyInGitRepo(t *testing.T) {
-	type scenario struct {
-		testName string
-		runCmd   func(string, ...interface{}) error
-		test     func(error)
-	}
-
-	scenarios := []scenario{
-		{
-			"Valid git repository",
-			func(string, ...interface{}) error {
-				return nil
-			},
-			func(err error) {
-				assert.NoError(t, err)
-			},
-		},
-		{
-			"Not a valid git repository",
-			func(string, ...interface{}) error {
-				return fmt.Errorf("fatal: Not a git repository (or any of the parent directories): .git")
-			},
-			func(err error) {
-				assert.Error(t, err)
-				assert.Regexp(t, `fatal: .ot a git repository \(or any of the parent directories\s?\/?\): \.git`, err.Error())
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			s.test(verifyInGitRepo(s.runCmd))
-		})
-	}
-}
-
 // TestNavigateToRepoRootDirectory is a function.
 func TestNavigateToRepoRootDirectory(t *testing.T) {
 	type scenario struct {
@@ -233,7 +196,7 @@ func TestNewGitCommand(t *testing.T) {
 			},
 			func(gitCmd *GitCommand, err error) {
 				assert.Error(t, err)
-				assert.Regexp(t, `fatal: .ot a git repository ((\(or any of the parent directories\): \.git)|(\(or any parent up to mount point \/\)))`, err.Error())
+				assert.Regexp(t, `Must open lazygit in a git repository`, err.Error())
 			},
 		},
 		{

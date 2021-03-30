@@ -48,9 +48,26 @@ func (gui *Gui) handleShowAllBranchLogs() error {
 
 func (gui *Gui) dispatchSwitchToRepo(path string) error {
 	env.UnsetGitDirEnvs()
+	originalPath, err := os.Getwd()
+	if err != nil {
+		return nil
+	}
+
 	if err := os.Chdir(path); err != nil {
+		if os.IsNotExist(err) {
+			return gui.createErrorPanel(gui.Tr.ErrRepositoryMovedOrDeleted)
+		}
 		return err
 	}
+
+	if err := commands.VerifyInGitRepo(gui.OSCommand); err != nil {
+		if err := os.Chdir(originalPath); err != nil {
+			return err
+		}
+
+		return err
+	}
+
 	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
 	if err != nil {
 		return err
