@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -16,6 +15,124 @@ type FileChangeNode struct {
 	Path             string // e.g. '/path/to/mydir'
 	CompressionLevel int    // equal to the number of forward slashes you'll see in the path when it's rendered in tree mode
 }
+
+// methods satisfying ListItem interface
+
+func (s *FileChangeNode) ID() string {
+	return s.GetPath()
+}
+
+func (s *FileChangeNode) Description() string {
+	return s.GetPath()
+}
+
+// methods satisfying INode interface
+
+func (s *FileChangeNode) IsLeaf() bool {
+	return s.File != nil
+}
+
+func (s *FileChangeNode) GetPath() string {
+	return s.Path
+}
+
+func (s *FileChangeNode) GetChildren() []INode {
+	result := make([]INode, len(s.Children))
+	for i, child := range s.Children {
+		result[i] = child
+	}
+
+	return result
+}
+
+func (s *FileChangeNode) SetChildren(children []INode) {
+	castChildren := make([]*FileChangeNode, len(children))
+	for i, child := range children {
+		castChildren[i] = child.(*FileChangeNode)
+	}
+
+	s.Children = castChildren
+}
+
+func (s *FileChangeNode) GetCompressionLevel() int {
+	return s.CompressionLevel
+}
+
+func (s *FileChangeNode) SetCompressionLevel(level int) {
+	s.CompressionLevel = level
+}
+
+// methods utilising generic functions for INodes
+
+func (s *FileChangeNode) Sort() {
+	sortNode(s)
+}
+
+func (s *FileChangeNode) ForEachFile(cb func(*models.File) error) error {
+	return forEachLeaf(s, func(n INode) error {
+		castNode := n.(*FileChangeNode)
+		return cb(castNode.File)
+	})
+}
+
+func (s *FileChangeNode) Any(test func(node *FileChangeNode) bool) bool {
+	return any(s, func(n INode) bool {
+		castNode := n.(*FileChangeNode)
+		return test(castNode)
+	})
+}
+
+func (n *FileChangeNode) Flatten(collapsedPaths map[string]bool) []*FileChangeNode {
+	results := flatten(n, collapsedPaths)
+	nodes := make([]*FileChangeNode, len(results))
+	for i, result := range results {
+		nodes[i] = result.(*FileChangeNode)
+	}
+
+	return nodes
+}
+
+func (node *FileChangeNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *FileChangeNode {
+	return getNodeAtIndex(node, index, collapsedPaths).(*FileChangeNode)
+}
+
+func (node *FileChangeNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
+	return getIndexForPath(node, path, collapsedPaths)
+}
+
+func (node *FileChangeNode) Size(collapsedPaths map[string]bool) int {
+	return size(node, collapsedPaths)
+}
+
+func (s *FileChangeNode) Compress() {
+	// with these functions I try to only have type conversion code on the actual struct,
+	// but comparing interface values to nil is fraught with danger so I'm duplicating
+	// that code here.
+	if s == nil {
+		return
+	}
+
+	compressAux(s)
+}
+
+// This ignores the root
+func (node *FileChangeNode) GetPathsMatching(test func(*FileChangeNode) bool) []string {
+	return getPathsMatching(node, func(n INode) bool {
+		return test(n.(*FileChangeNode))
+	})
+}
+
+func (s *FileChangeNode) GetLeaves() []*FileChangeNode {
+	leaves := getLeaves(s)
+	castLeaves := make([]*FileChangeNode, len(leaves))
+	for i := range leaves {
+		castLeaves[i] = leaves[i].(*FileChangeNode)
+	}
+
+	return castLeaves
+}
+
+// extra methods
 
 func (s *FileChangeNode) GetHasUnstagedChanges() bool {
 	return s.AnyFile(func(file *models.File) bool { return file.HasUnstagedChanges })
@@ -39,22 +156,6 @@ func (s *FileChangeNode) AnyFile(test func(file *models.File) bool) bool {
 	})
 }
 
-func (s *FileChangeNode) ForEachFile(cb func(*models.File) error) error {
-	if s.File != nil {
-		if err := cb(s.File); err != nil {
-			return err
-		}
-	}
-
-	for _, child := range s.Children {
-		if err := child.ForEachFile(cb); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (s *FileChangeNode) NameAtDepth(depth int) string {
 	splitName := strings.Split(s.Path, string(os.PathSeparator))
 	name := filepath.Join(splitName[depth:]...)
@@ -74,200 +175,4 @@ func (s *FileChangeNode) NameAtDepth(depth int) string {
 	}
 
 	return name
-}
-
-func (s *FileChangeNode) Any(test func(node *FileChangeNode) bool) bool {
-	if test(s) {
-		return true
-	}
-
-	for _, child := range s.Children {
-		if child.Any(test) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (s *FileChangeNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *FileChangeNode {
-	node, _ := s.getNodeAtIndexAux(index, collapsedPaths)
-
-	return node
-}
-
-func (s *FileChangeNode) getNodeAtIndexAux(index int, collapsedPaths map[string]bool) (*FileChangeNode, int) {
-	offset := 1
-
-	if index == 0 {
-		return s, offset
-	}
-
-	if !collapsedPaths[s.GetPath()] {
-		for _, child := range s.Children {
-			node, offsetChange := child.getNodeAtIndexAux(index-offset, collapsedPaths)
-			offset += offsetChange
-			if node != nil {
-				return node, offset
-			}
-		}
-	}
-
-	return nil, offset
-}
-
-func (s *FileChangeNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
-	return s.getIndexForPathAux(path, collapsedPaths)
-}
-
-func (s *FileChangeNode) getIndexForPathAux(path string, collapsedPaths map[string]bool) (int, bool) {
-	offset := 0
-
-	if s.Path == path {
-		return offset, true
-	}
-
-	if !collapsedPaths[s.GetPath()] {
-		for _, child := range s.Children {
-			offsetChange, found := child.getIndexForPathAux(path, collapsedPaths)
-			offset += offsetChange + 1
-			if found {
-				return offset, true
-			}
-		}
-	}
-
-	return offset, false
-}
-
-func (s *FileChangeNode) IsLeaf() bool {
-	return s.File != nil
-}
-
-func (s *FileChangeNode) Size(collapsedPaths map[string]bool) int {
-	output := 1
-
-	if !collapsedPaths[s.GetPath()] {
-		for _, child := range s.Children {
-			output += child.Size(collapsedPaths)
-		}
-	}
-
-	return output
-}
-
-func (s *FileChangeNode) Flatten(collapsedPaths map[string]bool) []*FileChangeNode {
-	arr := []*FileChangeNode{s}
-
-	if !collapsedPaths[s.GetPath()] {
-		for _, child := range s.Children {
-			arr = append(arr, child.Flatten(collapsedPaths)...)
-		}
-	}
-
-	return arr
-}
-
-func (s *FileChangeNode) Sort() {
-	s.sortChildren()
-
-	for _, child := range s.Children {
-		child.Sort()
-	}
-}
-
-func (s *FileChangeNode) sortChildren() {
-	if s.IsLeaf() {
-		return
-	}
-
-	sortedChildren := make([]*FileChangeNode, len(s.Children))
-	copy(sortedChildren, s.Children)
-
-	sort.Slice(sortedChildren, func(i, j int) bool {
-		if !sortedChildren[i].IsLeaf() && sortedChildren[j].IsLeaf() {
-			return true
-		}
-		if sortedChildren[i].IsLeaf() && !sortedChildren[j].IsLeaf() {
-			return false
-		}
-
-		return sortedChildren[i].Path < sortedChildren[j].Path
-	})
-
-	// TODO: think about making this in-place
-	s.Children = sortedChildren
-}
-
-func (s *FileChangeNode) GetPath() string {
-	return s.Path
-}
-
-func (s *FileChangeNode) Compress() {
-	if s == nil {
-		return
-	}
-
-	s.compressAux()
-}
-
-func (s *FileChangeNode) compressAux() *FileChangeNode {
-	if s.IsLeaf() {
-		return s
-	}
-
-	for i := range s.Children {
-		for s.Children[i].HasExactlyOneChild() {
-			prevCompressionLevel := s.Children[i].CompressionLevel
-			grandchild := s.Children[i].Children[0]
-			s.Children[i] = grandchild
-			s.Children[i].CompressionLevel = prevCompressionLevel + 1
-		}
-	}
-
-	for i := range s.Children {
-		s.Children[i] = s.Children[i].compressAux()
-	}
-
-	return s
-}
-
-func (s *FileChangeNode) HasExactlyOneChild() bool {
-	return len(s.Children) == 1
-}
-
-// This ignores the root
-func (s *FileChangeNode) GetPathsMatching(test func(*FileChangeNode) bool) []string {
-	paths := []string{}
-
-	if test(s) {
-		paths = append(paths, s.GetPath())
-	}
-
-	for _, child := range s.Children {
-		paths = append(paths, child.GetPathsMatching(test)...)
-	}
-
-	return paths
-}
-
-func (s *FileChangeNode) ID() string {
-	return s.GetPath()
-}
-
-func (s *FileChangeNode) Description() string {
-	return s.GetPath()
-}
-
-func (s *FileChangeNode) GetLeaves() []*FileChangeNode {
-	if s.IsLeaf() {
-		return []*FileChangeNode{s}
-	}
-
-	output := []*FileChangeNode{}
-	for _, child := range s.Children {
-		output = append(output, child.GetLeaves()...)
-	}
-
-	return output
 }
