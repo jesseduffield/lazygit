@@ -110,7 +110,7 @@ func (gui *Gui) stashDo(method string) error {
 	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
 		return gui.surfaceError(err)
 	}
-	return gui.refreshSidePanels(refreshOptions{scope: []int{STASH, FILES}})
+	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
 }
 
 func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
@@ -124,7 +124,7 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 			if err := stashFunc(stashComment); err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{scope: []int{STASH, FILES}})
+			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
 		},
 	})
 }

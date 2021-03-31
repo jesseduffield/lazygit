@@ -20,8 +20,10 @@ type refreshMainOpts struct {
 }
 
 // constants for updateTask's kind field
+type TaskKind int
+
 const (
-	RENDER_STRING = iota
+	RENDER_STRING TaskKind = iota
 	RENDER_STRING_WITHOUT_SCROLL
 	RUN_FUNCTION
 	RUN_COMMAND
@@ -29,14 +31,14 @@ const (
 )
 
 type updateTask interface {
-	GetKind() int
+	GetKind() TaskKind
 }
 
 type renderStringTask struct {
 	str string
 }
 
-func (t *renderStringTask) GetKind() int {
+func (t *renderStringTask) GetKind() TaskKind {
 	return RENDER_STRING
 }
 
@@ -48,7 +50,7 @@ type renderStringWithoutScrollTask struct {
 	str string
 }
 
-func (t *renderStringWithoutScrollTask) GetKind() int {
+func (t *renderStringWithoutScrollTask) GetKind() TaskKind {
 	return RENDER_STRING_WITHOUT_SCROLL
 }
 
@@ -61,7 +63,7 @@ type runCommandTask struct {
 	prefix string
 }
 
-func (t *runCommandTask) GetKind() int {
+func (t *runCommandTask) GetKind() TaskKind {
 	return RUN_COMMAND
 }
 
@@ -78,7 +80,7 @@ type runPtyTask struct {
 	prefix string
 }
 
-func (t *runPtyTask) GetKind() int {
+func (t *runPtyTask) GetKind() TaskKind {
 	return RUN_PTY
 }
 
@@ -95,7 +97,7 @@ type runFunctionTask struct {
 	f func(chan struct{}) error
 }
 
-func (t *runFunctionTask) GetKind() int {
+func (t *runFunctionTask) GetKind() TaskKind {
 	return RUN_FUNCTION
 }
 

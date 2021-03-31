@@ -17,15 +17,17 @@ import (
 // the reflog will read UUCBA, and when I read the first two undos, I know to skip the following
 // two user actions, meaning we end up undoing reflog entry C. Redoing works in a similar way.
 
+type ReflogActionKind int
+
 const (
-	CHECKOUT = iota
+	CHECKOUT ReflogActionKind = iota
 	COMMIT
 	REBASE
 	CURRENT_REBASE
 )
 
 type reflogAction struct {
-	kind int // one of CHECKOUT, REBASE, and COMMIT
+	kind ReflogActionKind
 	from string
 	to   string
 }

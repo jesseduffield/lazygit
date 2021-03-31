@@ -437,7 +437,7 @@ func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
 		return gui.surfaceError(err)
 	}
 	gui.State.Panels.Commits.SelectedLineIdx++
-	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
+	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []RefreshableView{COMMITS, BRANCHES}})
 }
 
 func (gui *Gui) handleViewCommitFiles() error {
@@ -527,7 +527,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 			if err := gui.GitCommand.CreateLightweightTag(response, commitSha); err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
 		},
 	})
 }
@@ -560,7 +560,7 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
-		if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS}}); err != nil {
+		if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS}}); err != nil {
 			return err
 		}
 	}
@@ -572,7 +572,7 @@ func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
-		if err := gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []int{COMMITS}}); err != nil {
+		if err := gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}}); err != nil {
 			return err
 		}
 	}

@@ -9,8 +9,10 @@ type Dimensions struct {
 	Y1 int
 }
 
+type Direction int
+
 const (
-	ROW = iota
+	ROW Direction = iota
 	COLUMN
 )
 
@@ -26,10 +28,10 @@ const (
 
 type Box struct {
 	// Direction decides how the children boxes are laid out. ROW means the children will each form a row i.e. that they will be stacked on top of eachother.
-	Direction int // ROW or COLUMN
+	Direction Direction
 
 	// function which takes the width and height assigned to the box and decides which orientation it will have
-	ConditionalDirection func(width int, height int) int
+	ConditionalDirection func(width int, height int) Direction
 
 	Children []*Box
 
@@ -120,7 +122,7 @@ func (b *Box) isStatic() bool {
 	return b.Size > 0
 }
 
-func (b *Box) getDirection(width int, height int) int {
+func (b *Box) getDirection(width int, height int) Direction {
 	if b.ConditionalDirection != nil {
 		return b.ConditionalDirection(width, height)
 	}
