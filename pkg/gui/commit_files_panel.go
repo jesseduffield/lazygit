@@ -63,7 +63,6 @@ func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	// TODO: verify this works for directories
 	if err := gui.GitCommand.CheckoutFile(gui.State.CommitFileManager.GetParent(), node.GetPath()); err != nil {
 		return gui.surfaceError(err)
 	}
