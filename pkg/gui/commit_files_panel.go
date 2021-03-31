@@ -3,6 +3,7 @@ package gui
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 )
 
@@ -104,7 +105,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 	to := gui.State.Panels.CommitFiles.refName
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	files, err := gui.GitCommand.GetFilesInDiff(from, to, reverse, gui.GitCommand.PatchManager)
+	files, err := gui.GitCommand.GetFilesInDiff(from, to, reverse)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -137,8 +138,6 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	// TODO: if file is nil, toggle all leaves underneath on/off
-
 	toggleTheFile := func() error {
 		if !gui.GitCommand.PatchManager.Active() {
 			if err := gui.startPatchManager(); err != nil {
@@ -146,15 +145,29 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 			}
 		}
 
-		if err := gui.GitCommand.PatchManager.ToggleFileWhole(node.GetPath()); err != nil {
-			return err
+		// if there is any file that hasn't been fully added we'll fully add everything,
+		// otherwise we'll remove everything
+		adding := node.AnyFile(func(file *models.CommitFile) bool {
+			return gui.GitCommand.PatchManager.GetFileStatus(file.Name) != patch.WHOLE
+		})
+
+		err := node.ForEachFile(func(file *models.CommitFile) error {
+			if adding {
+				return gui.GitCommand.PatchManager.AddFileWhole(file.Name)
+			} else {
+				return gui.GitCommand.PatchManager.RemoveFile(file.Name)
+			}
+		})
+
+		if err != nil {
+			return gui.surfaceError(err)
 		}
 
 		if gui.GitCommand.PatchManager.IsEmpty() {
 			gui.GitCommand.PatchManager.Reset()
 		}
 
-		return gui.refreshCommitFilesView()
+		return gui.postRefreshUpdate(gui.Contexts.CommitFiles.Context)
 	}
 
 	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != gui.State.CommitFileChangeManager.GetParent() {

@@ -2,6 +2,7 @@ package filetree
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/sirupsen/logrus"
 )
@@ -87,9 +88,9 @@ func (m *CommitFileChangeManager) ToggleCollapsed(path string) {
 	m.collapsedPaths.ToggleCollapsed(path)
 }
 
-func (m *CommitFileChangeManager) Render(diffName string) []string {
+func (m *CommitFileChangeManager) Render(diffName string, patchManager *patch.PatchManager) []string {
 	return renderAux(m.tree, m.collapsedPaths, "", -1, func(n INode, depth int) string {
 		castN := n.(*CommitFileChangeNode)
-		return presentation.GetCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File)
+		return presentation.GetCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, patchManager)
 	})
 }

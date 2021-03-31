@@ -77,6 +77,20 @@ func any(node INode, test func(INode) bool) bool {
 	return false
 }
 
+func every(node INode, test func(INode) bool) bool {
+	if !test(node) {
+		return false
+	}
+
+	for _, child := range node.GetChildren() {
+		if !every(child, test) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func flatten(node INode, collapsedPaths map[string]bool) []INode {
 	result := []INode{}
 	result = append(result, node)
