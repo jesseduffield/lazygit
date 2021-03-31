@@ -81,6 +81,21 @@ func (s *CommitFileChangeNode) Any(test func(node *CommitFileChangeNode) bool) b
 	})
 }
 
+func (s *CommitFileChangeNode) Every(test func(node *CommitFileChangeNode) bool) bool {
+	return every(s, func(n INode) bool {
+		castNode := n.(*CommitFileChangeNode)
+		return test(castNode)
+	})
+}
+
+func (s *CommitFileChangeNode) EveryFile(test func(file *models.CommitFile) bool) bool {
+	return every(s, func(n INode) bool {
+		castNode := n.(*CommitFileChangeNode)
+
+		return castNode.File == nil || test(castNode.File)
+	})
+}
+
 func (n *CommitFileChangeNode) Flatten(collapsedPaths map[string]bool) []*CommitFileChangeNode {
 	results := flatten(n, collapsedPaths)
 	nodes := make([]*CommitFileChangeNode, len(results))
