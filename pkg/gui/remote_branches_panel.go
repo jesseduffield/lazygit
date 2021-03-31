@@ -63,7 +63,7 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 				err := gui.GitCommand.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.promptUserForCredential)
 				gui.handleCredentialsPopup(err)
 
-				return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 			})
 		},
 	})
@@ -94,7 +94,7 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 				return err
 			}
 
-			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 		},
 	})
 }

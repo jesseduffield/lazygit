@@ -79,7 +79,7 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
 		},
 	})
 }
@@ -119,7 +119,7 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 			if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{scope: []int{COMMITS, TAGS}, then: func() {
+			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{COMMITS, TAGS}, then: func() {
 				// find the index of the tag and set that as the currently selected line
 				for i, tag := range gui.State.Tags {
 					if tag.Name == tagName {

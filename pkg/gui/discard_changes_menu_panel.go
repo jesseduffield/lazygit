@@ -15,7 +15,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 					if err := gui.GitCommand.DiscardAllDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 				},
 			},
 		}
@@ -28,7 +28,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 						return gui.surfaceError(err)
 					}
 
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 				},
 			})
 		}
@@ -55,7 +55,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 						if err := gui.GitCommand.DiscardAllFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}
-						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 					},
 				},
 			}
@@ -68,7 +68,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 							return gui.surfaceError(err)
 						}
 
-						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 					},
 				})
 			}

@@ -16,8 +16,10 @@ func (gui *Gui) getCyclableWindows() []string {
 }
 
 // models/views that we can refresh
+type RefreshableView int
+
 const (
-	COMMITS = iota
+	COMMITS RefreshableView = iota
 	BRANCHES
 	FILES
 	STASH
@@ -28,8 +30,8 @@ const (
 	SUBMODULES
 )
 
-func getScopeNames(scopes []int) []string {
-	scopeNameMap := map[int]string{
+func getScopeNames(scopes []RefreshableView) []string {
+	scopeNameMap := map[RefreshableView]string{
 		COMMITS:    "commits",
 		BRANCHES:   "branches",
 		FILES:      "files",
@@ -49,7 +51,7 @@ func getScopeNames(scopes []int) []string {
 	return scopeNames
 }
 
-func getModeName(mode int) string {
+func getModeName(mode RefreshMode) string {
 	switch mode {
 	case SYNC:
 		return "sync"
@@ -62,20 +64,22 @@ func getModeName(mode int) string {
 	}
 }
 
+type RefreshMode int
+
 const (
-	SYNC     = iota // wait until everything is done before returning
-	ASYNC           // return immediately, allowing each independent thing to update itself
-	BLOCK_UI        // wrap code in an update call to ensure UI updates all at once and keybindings aren't executed till complete
+	SYNC     RefreshMode = iota // wait until everything is done before returning
+	ASYNC                       // return immediately, allowing each independent thing to update itself
+	BLOCK_UI                    // wrap code in an update call to ensure UI updates all at once and keybindings aren't executed till complete
 )
 
 type refreshOptions struct {
 	then  func()
-	scope []int // e.g. []int{COMMITS, BRANCHES}. Leave empty to refresh everything
-	mode  int   // one of SYNC (default), ASYNC, and BLOCK_UI
+	scope []RefreshableView // e.g. []int{COMMITS, BRANCHES}. Leave empty to refresh everything
+	mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
 }
 
-func intArrToMap(arr []int) map[int]bool {
-	output := map[int]bool{}
+func arrToMap(arr []RefreshableView) map[RefreshableView]bool {
+	output := map[RefreshableView]bool{}
 	for _, el := range arr {
 		output[el] = true
 	}
@@ -99,11 +103,11 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	wg := sync.WaitGroup{}
 
 	f := func() {
-		var scopeMap map[int]bool
+		var scopeMap map[RefreshableView]bool
 		if len(options.scope) == 0 {
-			scopeMap = intArrToMap([]int{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS})
+			scopeMap = arrToMap([]RefreshableView{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS})
 		} else {
-			scopeMap = intArrToMap(options.scope)
+			scopeMap = arrToMap(options.scope)
 		}
 
 		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] {

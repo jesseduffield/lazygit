@@ -22,14 +22,40 @@ func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
 	return nil
 }
 
+// TODO: GENERICS
+func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
+	for i, val := range sl {
+		if val == current {
+			if i == len(sl)-1 {
+				return sl[0]
+			}
+			return sl[i+1]
+		}
+	}
+	return sl[0]
+}
+
+// TODO: GENERICS
+func prevIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
+	for i, val := range sl {
+		if val == current {
+			if i > 0 {
+				return sl[i-1]
+			}
+			return sl[len(sl)-1]
+		}
+	}
+	return sl[len(sl)-1]
+}
+
 func (gui *Gui) nextScreenMode(g *gocui.Gui, v *gocui.View) error {
-	gui.State.ScreenMode = utils.NextIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+	gui.State.ScreenMode = nextIntInCycle([]WindowMaximisation{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
 
 	return gui.rerenderViewsWithScreenModeDependentContent()
 }
 
 func (gui *Gui) prevScreenMode(g *gocui.Gui, v *gocui.View) error {
-	gui.State.ScreenMode = utils.PrevIntInCycle([]int{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+	gui.State.ScreenMode = prevIntInCycle([]WindowMaximisation{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
 
 	return gui.rerenderViewsWithScreenModeDependentContent()
 }
@@ -179,7 +205,7 @@ func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
 		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
 	}
 
-	_ = gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
+	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
 
 	return err
 }

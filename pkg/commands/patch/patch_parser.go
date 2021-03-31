@@ -10,8 +10,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type PatchLineKind int
+
 const (
-	PATCH_HEADER = iota
+	PATCH_HEADER PatchLineKind = iota
 	COMMIT_SHA
 	COMMIT_DESCRIPTION
 	HUNK_HEADER
@@ -24,7 +26,7 @@ const (
 // the job of this file is to parse a diff, find out where the hunks begin and end, which lines are stageable, and how to find the next hunk from the current position or the next stageable line from the current position.
 
 type PatchLine struct {
-	Kind    int
+	Kind    PatchLineKind
 	Content string // something like '+ hello' (note the first character is not removed)
 }
 
@@ -144,7 +146,7 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine, error) {
 	pastFirstHunkHeader := false
 	pastCommitDescription := true
 	patchLines := make([]*PatchLine, len(lines))
-	var lineKind int
+	var lineKind PatchLineKind
 	var firstChar string
 	for index, line := range lines {
 		firstChar = " "

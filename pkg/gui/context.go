@@ -6,8 +6,10 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
+type ContextKind int
+
 const (
-	SIDE_CONTEXT int = iota
+	SIDE_CONTEXT ContextKind = iota
 	MAIN_CONTEXT
 	TEMPORARY_POPUP
 	PERSISTENT_POPUP
@@ -126,7 +128,7 @@ type Context interface {
 	HandleFocus() error
 	HandleFocusLost() error
 	HandleRender() error
-	GetKind() int
+	GetKind() ContextKind
 	GetViewName() string
 	GetWindowName() string
 	SetWindowName(string)
@@ -143,7 +145,7 @@ type BasicContext struct {
 	OnFocusLost     func() error
 	OnRender        func() error
 	OnGetOptionsMap func() map[string]string
-	Kind            int
+	Kind            ContextKind
 	Key             string
 	ViewName        string
 }
@@ -194,7 +196,7 @@ func (c BasicContext) HandleFocusLost() error {
 	return nil
 }
 
-func (c BasicContext) GetKind() int {
+func (c BasicContext) GetKind() ContextKind {
 	return c.Kind
 }
 

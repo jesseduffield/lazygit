@@ -16,8 +16,10 @@ import (
 // use cases
 
 // these represent what select mode we're in
+type SelectMode int
+
 const (
-	LINE = iota
+	LINE SelectMode = iota
 	RANGE
 	HUNK
 )

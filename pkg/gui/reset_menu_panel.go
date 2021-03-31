@@ -21,7 +21,7 @@ func (gui *Gui) resetToRef(ref string, strength string, options oscommands.RunCo
 		return err
 	}
 
-	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES, BRANCHES, REFLOG, COMMITS}}); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES, BRANCHES, REFLOG, COMMITS}}); err != nil {
 		return err
 	}
 

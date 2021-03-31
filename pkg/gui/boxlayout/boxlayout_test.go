@@ -87,7 +87,7 @@ func TestArrangeWindows(t *testing.T) {
 		},
 		{
 			"Box with COLUMN direction only on wide boxes with narrow box",
-			&Box{ConditionalDirection: func(width int, height int) int {
+			&Box{ConditionalDirection: func(width int, height int) Direction {
 				if width > 4 {
 					return COLUMN
 				} else {
@@ -111,7 +111,7 @@ func TestArrangeWindows(t *testing.T) {
 		},
 		{
 			"Box with COLUMN direction only on wide boxes with wide box",
-			&Box{ConditionalDirection: func(width int, height int) int {
+			&Box{ConditionalDirection: func(width int, height int) Direction {
 				if width > 4 {
 					return COLUMN
 				} else {

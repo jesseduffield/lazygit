@@ -23,7 +23,7 @@ type ListContext struct {
 
 	Gui                        *Gui
 	ResetMainViewOriginOnFocus bool
-	Kind                       int
+	Kind                       ContextKind
 	ParentContext              Context
 	// we can't know on the calling end whether a Context is actually a nil value without reflection, so we're storing this flag here to tell us. There has got to be a better way around this.
 	hasParent  bool
@@ -102,7 +102,7 @@ func (lc *ListContext) GetKey() string {
 	return lc.ContextKey
 }
 
-func (lc *ListContext) GetKind() int {
+func (lc *ListContext) GetKind() ContextKind {
 	return lc.Kind
 }
 

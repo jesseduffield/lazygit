@@ -303,7 +303,7 @@ func (gui *Gui) handleEscapeMerge() error {
 	gui.takeOverScrolling()
 
 	gui.State.Panels.Merging.EditHistory = stack.New()
-	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
 	// it's possible this method won't be called from the merging view so we need to
@@ -318,7 +318,7 @@ func (gui *Gui) handleCompleteMerge() error {
 	if err := gui.stageSelectedFile(); err != nil {
 		return err
 	}
-	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
 	// if we got conflicts after unstashing, we don't want to call any git

@@ -293,7 +293,7 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 				}
 				return gui.createErrorPanel(errMessage)
 			}
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{BRANCHES}})
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{BRANCHES}})
 		},
 	})
 }
@@ -408,7 +408,7 @@ func (gui *Gui) handleFastForward(g *gocui.Gui, v *gocui.View) error {
 		} else {
 			err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
 			gui.handleCredentialsPopup(err)
-			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{BRANCHES}})
+			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{BRANCHES}})
 		}
 	})
 	return nil

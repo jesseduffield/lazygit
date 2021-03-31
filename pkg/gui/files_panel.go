@@ -256,7 +256,7 @@ func (gui *Gui) handleFilePress() error {
 		}
 	}
 
-	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
 
@@ -287,7 +287,7 @@ func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
 		_ = gui.surfaceError(err)
 	}
 
-	if err := gui.refreshSidePanels(refreshOptions{scope: []int{FILES}}); err != nil {
+	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
 
@@ -333,7 +333,7 @@ func (gui *Gui) handleIgnoreFile() error {
 				if err := gui.GitCommand.Ignore(node.GetPath()); err != nil {
 					return err
 				}
-				return gui.refreshSidePanels(refreshOptions{scope: []int{FILES}})
+				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}})
 			},
 		})
 	}
@@ -346,7 +346,7 @@ func (gui *Gui) handleIgnoreFile() error {
 		return gui.surfaceError(err)
 	}
 
-	return gui.refreshSidePanels(refreshOptions{scope: []int{FILES}})
+	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}})
 }
 
 func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error {
@@ -522,7 +522,7 @@ func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
-	return gui.refreshSidePanels(refreshOptions{scope: []int{FILES}})
+	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}})
 }
 
 func (gui *Gui) refreshStateFiles() error {

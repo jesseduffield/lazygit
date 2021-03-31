@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-errors/errors"
-
 	"github.com/fatih/color"
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
@@ -33,8 +31,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// screen sizing determines how much space your selected window takes up (window
+// as in panel, not your terminal's window). Sometimes you want a bit more space
+// to see the contents of a panel, and this keeps track of how much maximisation
+// you've set
+type WindowMaximisation int
+
 const (
-	SCREEN_NORMAL int = iota
+	SCREEN_NORMAL WindowMaximisation = iota
 	SCREEN_HALF
 	SCREEN_FULL
 )
@@ -43,45 +47,6 @@ const StartupPopupVersion = 3
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
-
-// SentinelErrors are the errors that have special meaning and need to be checked
-// by calling functions. The less of these, the better
-type SentinelErrors struct {
-	ErrSubProcess error
-	ErrNoFiles    error
-	ErrSwitchRepo error
-	ErrRestart    error
-}
-
-const UNKNOWN_VIEW_ERROR_MSG = "unknown view"
-
-// GenerateSentinelErrors makes the sentinel errors for the gui. We're defining it here
-// because we can't do package-scoped errors with localization, and also because
-// it seems like package-scoped variables are bad in general
-// https://dave.cheney.net/2017/06/11/go-without-package-scoped-variables
-// In the future it would be good to implement some of the recommendations of
-// that article. For now, if we don't need an error to be a sentinel, we will just
-// define it inline. This has implications for error messages that pop up everywhere
-// in that we'll be duplicating the default values. We may need to look at
-// having a default localisation bundle defined, and just using keys-only when
-// localising things in the code.
-func (gui *Gui) GenerateSentinelErrors() {
-	gui.Errors = SentinelErrors{
-		ErrSubProcess: errors.New(gui.Tr.RunningSubprocess),
-		ErrNoFiles:    errors.New(gui.Tr.NoChangedFiles),
-		ErrSwitchRepo: errors.New("switching repo"),
-		ErrRestart:    errors.New("restarting"),
-	}
-}
-
-func (gui *Gui) sentinelErrorsArr() []error {
-	return []error{
-		gui.Errors.ErrSubProcess,
-		gui.Errors.ErrNoFiles,
-		gui.Errors.ErrSwitchRepo,
-		gui.Errors.ErrRestart,
-	}
-}
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
@@ -151,7 +116,7 @@ type lBlPanelState struct {
 	LastLineIdx      int
 	Diff             string
 	PatchParser      *patch.PatchParser
-	SelectMode       int  // one of LINE, HUNK, or RANGE
+	SelectMode       SelectMode
 	SecondaryFocused bool // this is for if we show the left or right panel
 }
 
@@ -255,8 +220,10 @@ type searchingState struct {
 }
 
 // startup stages so we don't need to load everything at once
+type StartupStage int
+
 const (
-	INITIAL = iota
+	INITIAL StartupStage = iota
 	COMPLETE
 )
 
@@ -331,13 +298,13 @@ type guiState struct {
 	RetainOriginalDir bool
 	IsRefreshingFiles bool
 	Searching         searchingState
-	ScreenMode        int
+	ScreenMode        WindowMaximisation
 	SideView          *gocui.View
 	Ptmx              *os.File
 	PrevMainWidth     int
 	PrevMainHeight    int
 	OldInformation    string
-	StartupStage      int // one of INITIAL and COMPLETE. Allows us to not load everything at once
+	StartupStage      StartupStage // Allows us to not load everything at once
 
 	Modes Modes
 

@@ -94,7 +94,7 @@ func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
 					if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
-					return gui.refreshSidePanels(refreshOptions{scope: []int{REMOTES}})
+					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{REMOTES}})
 				},
 			})
 		},
@@ -116,7 +116,7 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 				return gui.surfaceError(err)
 			}
 
-			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 		},
 	})
 }
@@ -164,7 +164,7 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 					if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 						return gui.surfaceError(err)
 					}
-					return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 				},
 			})
 		},
@@ -184,6 +184,6 @@ func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
 		err := gui.GitCommand.FetchRemote(remote.Name, gui.promptUserForCredential)
 		gui.handleCredentialsPopup(err)
 
-		return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 	})
 }
