@@ -89,6 +89,11 @@ func (m *CommitFileManager) ToggleCollapsed(path string) {
 }
 
 func (m *CommitFileManager) Render(diffName string, patchManager *patch.PatchManager) []string {
+	// can't rely on renderAux to check for nil because an interface won't be nil if its concrete value is nil
+	if m.tree == nil {
+		return []string{}
+	}
+
 	return renderAux(m.tree, m.collapsedPaths, "", -1, func(n INode, depth int) string {
 		castN := n.(*CommitFileNode)
 
