@@ -215,9 +215,6 @@ func getLeaves(node INode) []INode {
 
 func renderAux(s INode, collapsedPaths CollapsedPaths, prefix string, depth int, renderLine func(INode, int) string) []string {
 	isRoot := depth == -1
-	if s == nil {
-		return []string{}
-	}
 
 	renderLineWithPrefix := func() string {
 		return prefix + renderLine(s, depth)
