@@ -102,11 +102,6 @@ func (h *listPanelState) GetSelectedLineIdx() int {
 	return h.SelectedLineIdx
 }
 
-type IListPanelState interface {
-	SetSelectedLineIdx(int)
-	GetSelectedLineIdx() int
-}
-
 // for now the staging panel state, unlike the other panel states, is going to be
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
@@ -271,6 +266,8 @@ type guiStateMutexes struct {
 }
 
 type guiState struct {
+	// the file panels (files and commit files) can render as a tree, so we have
+	// managers for them which handle rendering a flat list of files in tree form
 	FileManager       *filetree.FileManager
 	CommitFileManager *filetree.CommitFileManager
 	Submodules        []*models.SubmoduleConfig
