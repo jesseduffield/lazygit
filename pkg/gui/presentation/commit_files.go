@@ -8,21 +8,16 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFile, patchManager *patch.PatchManager, parent string) string {
+func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFile, status patch.PatchStatus) string {
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
 	defaultColor := color.New(theme.DefaultTextColor)
 	diffTerminalColor := color.New(theme.DiffTerminalColor)
 
-	if commitFile == nil {
-		return name
-	}
-
 	colour := defaultColor
 	if diffName == name {
 		colour = diffTerminalColor
-	} else if commitFile != nil {
-		status := patchManager.GetFileStatus(commitFile.Name, parent)
+	} else {
 		switch status {
 		case patch.UNSELECTED:
 			colour = defaultColor
@@ -31,6 +26,10 @@ func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 		case patch.PART:
 			colour = yellow
 		}
+	}
+
+	if commitFile == nil {
+		return colour.Sprint(name)
 	}
 
 	return utils.ColoredString(commitFile.ChangeStatus, getColorForChangeStatus(commitFile.ChangeStatus)) + " " + colour.Sprint(name)
