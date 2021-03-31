@@ -911,12 +911,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.LcCopyCommitShaToClipboard,
 		},
 		{
-			ViewName:    "commitFiles",
-			Key:         gui.getKey(config.Universal.CopyToClipboard),
-			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
-			Description: gui.Tr.LcCopyCommitFileNameToClipboard,
-		},
-		{
 			ViewName:    "branches",
 			Contexts:    []string{SUB_COMMITS_CONTEXT_KEY},
 			Key:         gui.getKey(config.Universal.GoInto),
@@ -1041,6 +1035,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commitFiles",
+			Key:         gui.getKey(config.Universal.CopyToClipboard),
+			Handler:     gui.wrappedHandler(gui.handleCopySelectedSideContextItemToClipboard),
+			Description: gui.Tr.LcCopyCommitFileNameToClipboard,
+		},
+		{
+			ViewName:    "commitFiles",
 			Key:         gui.getKey(config.CommitFiles.CheckoutCommitFile),
 			Handler:     gui.handleCheckoutCommitFile,
 			Description: gui.Tr.LcCheckoutCommitFile,
@@ -1074,6 +1074,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey(config.Universal.GoInto),
 			Handler:     gui.handleEnterCommitFile,
 			Description: gui.Tr.LcEnterFile,
+		},
+		{
+			ViewName:    "commitFiles",
+			Key:         gui.getKey(config.Files.ToggleTreeView),
+			Handler:     gui.wrappedHandler(gui.handleToggleCommitFileTreeView),
+			Description: gui.Tr.LcToggleTreeView,
 		},
 		{
 			ViewName:    "",

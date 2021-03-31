@@ -237,10 +237,13 @@ func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
 	gui.renderString("options", gui.optionsMapToString(optionsMap))
 }
 
-// TODO: refactor properly
-// i'm so sorry but had to add this getBranchesView
 func (gui *Gui) getFilesView() *gocui.View {
 	v, _ := gui.g.View("files")
+	return v
+}
+
+func (gui *Gui) getCommitFilesView() *gocui.View {
+	v, _ := gui.g.View("commitFiles")
 	return v
 }
 
