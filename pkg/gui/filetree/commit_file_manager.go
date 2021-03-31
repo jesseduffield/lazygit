@@ -7,9 +7,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type CommitFileChangeManager struct {
+type CommitFileManager struct {
 	files          []*models.CommitFile
-	tree           *CommitFileChangeNode
+	tree           *CommitFileNode
 	showTree       bool
 	log            *logrus.Entry
 	collapsedPaths CollapsedPaths
@@ -17,12 +17,12 @@ type CommitFileChangeManager struct {
 	parent string
 }
 
-func (m *CommitFileChangeManager) GetParent() string {
+func (m *CommitFileManager) GetParent() string {
 	return m.parent
 }
 
-func NewCommitFileChangeManager(files []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileChangeManager {
-	return &CommitFileChangeManager{
+func NewCommitFileManager(files []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileManager {
+	return &CommitFileManager{
 		files:          files,
 		log:            log,
 		showTree:       showTree,
@@ -30,26 +30,26 @@ func NewCommitFileChangeManager(files []*models.CommitFile, log *logrus.Entry, s
 	}
 }
 
-func (m *CommitFileChangeManager) ExpandToPath(path string) {
+func (m *CommitFileManager) ExpandToPath(path string) {
 	m.collapsedPaths.ExpandToPath(path)
 }
 
-func (m *CommitFileChangeManager) ToggleShowTree() {
+func (m *CommitFileManager) ToggleShowTree() {
 	m.showTree = !m.showTree
 	m.SetTree()
 }
 
-func (m *CommitFileChangeManager) GetItemAtIndex(index int) *CommitFileChangeNode {
+func (m *CommitFileManager) GetItemAtIndex(index int) *CommitFileNode {
 	// need to traverse the three depth first until we get to the index.
 	return m.tree.GetNodeAtIndex(index+1, m.collapsedPaths) // ignoring root
 }
 
-func (m *CommitFileChangeManager) GetIndexForPath(path string) (int, bool) {
+func (m *CommitFileManager) GetIndexForPath(path string) (int, bool) {
 	index, found := m.tree.GetIndexForPath(path, m.collapsedPaths)
 	return index - 1, found
 }
 
-func (m *CommitFileChangeManager) GetAllItems() []*CommitFileChangeNode {
+func (m *CommitFileManager) GetAllItems() []*CommitFileNode {
 	if m.tree == nil {
 		return nil
 	}
@@ -57,22 +57,22 @@ func (m *CommitFileChangeManager) GetAllItems() []*CommitFileChangeNode {
 	return m.tree.Flatten(m.collapsedPaths)[1:] // ignoring root
 }
 
-func (m *CommitFileChangeManager) GetItemsLength() int {
+func (m *CommitFileManager) GetItemsLength() int {
 	return m.tree.Size(m.collapsedPaths) - 1 // ignoring root
 }
 
-func (m *CommitFileChangeManager) GetAllFiles() []*models.CommitFile {
+func (m *CommitFileManager) GetAllFiles() []*models.CommitFile {
 	return m.files
 }
 
-func (m *CommitFileChangeManager) SetFiles(files []*models.CommitFile, parent string) {
+func (m *CommitFileManager) SetFiles(files []*models.CommitFile, parent string) {
 	m.files = files
 	m.parent = parent
 
 	m.SetTree()
 }
 
-func (m *CommitFileChangeManager) SetTree() {
+func (m *CommitFileManager) SetTree() {
 	if m.showTree {
 		m.tree = BuildTreeFromCommitFiles(m.files)
 	} else {
@@ -80,17 +80,17 @@ func (m *CommitFileChangeManager) SetTree() {
 	}
 }
 
-func (m *CommitFileChangeManager) IsCollapsed(path string) bool {
+func (m *CommitFileManager) IsCollapsed(path string) bool {
 	return m.collapsedPaths.IsCollapsed(path)
 }
 
-func (m *CommitFileChangeManager) ToggleCollapsed(path string) {
+func (m *CommitFileManager) ToggleCollapsed(path string) {
 	m.collapsedPaths.ToggleCollapsed(path)
 }
 
-func (m *CommitFileChangeManager) Render(diffName string, patchManager *patch.PatchManager) []string {
+func (m *CommitFileManager) Render(diffName string, patchManager *patch.PatchManager) []string {
 	return renderAux(m.tree, m.collapsedPaths, "", -1, func(n INode, depth int) string {
-		castN := n.(*CommitFileChangeNode)
+		castN := n.(*CommitFileNode)
 
 		// This is a little convoluted because we're dealing with either a leaf or a non-leaf.
 		// But this code actually applies to both. If it's a leaf, the status will just

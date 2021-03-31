@@ -6,16 +6,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type FileChangeManager struct {
+type FileManager struct {
 	files          []*models.File
-	tree           *FileChangeNode
+	tree           *FileNode
 	showTree       bool
 	log            *logrus.Entry
 	collapsedPaths CollapsedPaths
 }
 
-func NewFileChangeManager(files []*models.File, log *logrus.Entry, showTree bool) *FileChangeManager {
-	return &FileChangeManager{
+func NewFileChangeManager(files []*models.File, log *logrus.Entry, showTree bool) *FileManager {
+	return &FileManager{
 		files:          files,
 		log:            log,
 		showTree:       showTree,
@@ -23,26 +23,26 @@ func NewFileChangeManager(files []*models.File, log *logrus.Entry, showTree bool
 	}
 }
 
-func (m *FileChangeManager) ExpandToPath(path string) {
+func (m *FileManager) ExpandToPath(path string) {
 	m.collapsedPaths.ExpandToPath(path)
 }
 
-func (m *FileChangeManager) ToggleShowTree() {
+func (m *FileManager) ToggleShowTree() {
 	m.showTree = !m.showTree
 	m.SetTree()
 }
 
-func (m *FileChangeManager) GetItemAtIndex(index int) *FileChangeNode {
+func (m *FileManager) GetItemAtIndex(index int) *FileNode {
 	// need to traverse the three depth first until we get to the index.
 	return m.tree.GetNodeAtIndex(index+1, m.collapsedPaths) // ignoring root
 }
 
-func (m *FileChangeManager) GetIndexForPath(path string) (int, bool) {
+func (m *FileManager) GetIndexForPath(path string) (int, bool) {
 	index, found := m.tree.GetIndexForPath(path, m.collapsedPaths)
 	return index - 1, found
 }
 
-func (m *FileChangeManager) GetAllItems() []*FileChangeNode {
+func (m *FileManager) GetAllItems() []*FileNode {
 	if m.tree == nil {
 		return nil
 	}
@@ -50,21 +50,21 @@ func (m *FileChangeManager) GetAllItems() []*FileChangeNode {
 	return m.tree.Flatten(m.collapsedPaths)[1:] // ignoring root
 }
 
-func (m *FileChangeManager) GetItemsLength() int {
+func (m *FileManager) GetItemsLength() int {
 	return m.tree.Size(m.collapsedPaths) - 1 // ignoring root
 }
 
-func (m *FileChangeManager) GetAllFiles() []*models.File {
+func (m *FileManager) GetAllFiles() []*models.File {
 	return m.files
 }
 
-func (m *FileChangeManager) SetFiles(files []*models.File) {
+func (m *FileManager) SetFiles(files []*models.File) {
 	m.files = files
 
 	m.SetTree()
 }
 
-func (m *FileChangeManager) SetTree() {
+func (m *FileManager) SetTree() {
 	if m.showTree {
 		m.tree = BuildTreeFromFiles(m.files)
 	} else {
@@ -72,17 +72,17 @@ func (m *FileChangeManager) SetTree() {
 	}
 }
 
-func (m *FileChangeManager) IsCollapsed(path string) bool {
+func (m *FileManager) IsCollapsed(path string) bool {
 	return m.collapsedPaths.IsCollapsed(path)
 }
 
-func (m *FileChangeManager) ToggleCollapsed(path string) {
+func (m *FileManager) ToggleCollapsed(path string) {
 	m.collapsedPaths.ToggleCollapsed(path)
 }
 
-func (m *FileChangeManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
+func (m *FileManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
 	return renderAux(m.tree, m.collapsedPaths, "", -1, func(n INode, depth int) string {
-		castN := n.(*FileChangeNode)
+		castN := n.(*FileNode)
 		return presentation.GetFileLine(castN.GetHasUnstagedChanges(), castN.GetHasStagedChanges(), castN.NameAtDepth(depth), diffName, submoduleConfigs, castN.File)
 	})
 }

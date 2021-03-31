@@ -9,8 +9,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-type FileChangeNode struct {
-	Children         []*FileChangeNode
+type FileNode struct {
+	Children         []*FileNode
 	File             *models.File
 	Path             string // e.g. '/path/to/mydir'
 	CompressionLevel int    // equal to the number of forward slashes you'll see in the path when it's rendered in tree mode
@@ -18,25 +18,25 @@ type FileChangeNode struct {
 
 // methods satisfying ListItem interface
 
-func (s *FileChangeNode) ID() string {
+func (s *FileNode) ID() string {
 	return s.GetPath()
 }
 
-func (s *FileChangeNode) Description() string {
+func (s *FileNode) Description() string {
 	return s.GetPath()
 }
 
 // methods satisfying INode interface
 
-func (s *FileChangeNode) IsLeaf() bool {
+func (s *FileNode) IsLeaf() bool {
 	return s.File != nil
 }
 
-func (s *FileChangeNode) GetPath() string {
+func (s *FileNode) GetPath() string {
 	return s.Path
 }
 
-func (s *FileChangeNode) GetChildren() []INode {
+func (s *FileNode) GetChildren() []INode {
 	result := make([]INode, len(s.Children))
 	for i, child := range s.Children {
 		result[i] = child
@@ -45,66 +45,66 @@ func (s *FileChangeNode) GetChildren() []INode {
 	return result
 }
 
-func (s *FileChangeNode) SetChildren(children []INode) {
-	castChildren := make([]*FileChangeNode, len(children))
+func (s *FileNode) SetChildren(children []INode) {
+	castChildren := make([]*FileNode, len(children))
 	for i, child := range children {
-		castChildren[i] = child.(*FileChangeNode)
+		castChildren[i] = child.(*FileNode)
 	}
 
 	s.Children = castChildren
 }
 
-func (s *FileChangeNode) GetCompressionLevel() int {
+func (s *FileNode) GetCompressionLevel() int {
 	return s.CompressionLevel
 }
 
-func (s *FileChangeNode) SetCompressionLevel(level int) {
+func (s *FileNode) SetCompressionLevel(level int) {
 	s.CompressionLevel = level
 }
 
 // methods utilising generic functions for INodes
 
-func (s *FileChangeNode) Sort() {
+func (s *FileNode) Sort() {
 	sortNode(s)
 }
 
-func (s *FileChangeNode) ForEachFile(cb func(*models.File) error) error {
+func (s *FileNode) ForEachFile(cb func(*models.File) error) error {
 	return forEachLeaf(s, func(n INode) error {
-		castNode := n.(*FileChangeNode)
+		castNode := n.(*FileNode)
 		return cb(castNode.File)
 	})
 }
 
-func (s *FileChangeNode) Any(test func(node *FileChangeNode) bool) bool {
+func (s *FileNode) Any(test func(node *FileNode) bool) bool {
 	return any(s, func(n INode) bool {
-		castNode := n.(*FileChangeNode)
+		castNode := n.(*FileNode)
 		return test(castNode)
 	})
 }
 
-func (n *FileChangeNode) Flatten(collapsedPaths map[string]bool) []*FileChangeNode {
+func (n *FileNode) Flatten(collapsedPaths map[string]bool) []*FileNode {
 	results := flatten(n, collapsedPaths)
-	nodes := make([]*FileChangeNode, len(results))
+	nodes := make([]*FileNode, len(results))
 	for i, result := range results {
-		nodes[i] = result.(*FileChangeNode)
+		nodes[i] = result.(*FileNode)
 	}
 
 	return nodes
 }
 
-func (node *FileChangeNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *FileChangeNode {
-	return getNodeAtIndex(node, index, collapsedPaths).(*FileChangeNode)
+func (node *FileNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *FileNode {
+	return getNodeAtIndex(node, index, collapsedPaths).(*FileNode)
 }
 
-func (node *FileChangeNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
+func (node *FileNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
 	return getIndexForPath(node, path, collapsedPaths)
 }
 
-func (node *FileChangeNode) Size(collapsedPaths map[string]bool) int {
+func (node *FileNode) Size(collapsedPaths map[string]bool) int {
 	return size(node, collapsedPaths)
 }
 
-func (s *FileChangeNode) Compress() {
+func (s *FileNode) Compress() {
 	// with these functions I try to only have type conversion code on the actual struct,
 	// but comparing interface values to nil is fraught with danger so I'm duplicating
 	// that code here.
@@ -116,17 +116,17 @@ func (s *FileChangeNode) Compress() {
 }
 
 // This ignores the root
-func (node *FileChangeNode) GetPathsMatching(test func(*FileChangeNode) bool) []string {
+func (node *FileNode) GetPathsMatching(test func(*FileNode) bool) []string {
 	return getPathsMatching(node, func(n INode) bool {
-		return test(n.(*FileChangeNode))
+		return test(n.(*FileNode))
 	})
 }
 
-func (s *FileChangeNode) GetLeaves() []*FileChangeNode {
+func (s *FileNode) GetLeaves() []*FileNode {
 	leaves := getLeaves(s)
-	castLeaves := make([]*FileChangeNode, len(leaves))
+	castLeaves := make([]*FileNode, len(leaves))
 	for i := range leaves {
-		castLeaves[i] = leaves[i].(*FileChangeNode)
+		castLeaves[i] = leaves[i].(*FileNode)
 	}
 
 	return castLeaves
@@ -134,29 +134,29 @@ func (s *FileChangeNode) GetLeaves() []*FileChangeNode {
 
 // extra methods
 
-func (s *FileChangeNode) GetHasUnstagedChanges() bool {
+func (s *FileNode) GetHasUnstagedChanges() bool {
 	return s.AnyFile(func(file *models.File) bool { return file.HasUnstagedChanges })
 }
 
-func (s *FileChangeNode) GetHasStagedChanges() bool {
+func (s *FileNode) GetHasStagedChanges() bool {
 	return s.AnyFile(func(file *models.File) bool { return file.HasStagedChanges })
 }
 
-func (s *FileChangeNode) GetHasInlineMergeConflicts() bool {
+func (s *FileNode) GetHasInlineMergeConflicts() bool {
 	return s.AnyFile(func(file *models.File) bool { return file.HasInlineMergeConflicts })
 }
 
-func (s *FileChangeNode) GetIsTracked() bool {
+func (s *FileNode) GetIsTracked() bool {
 	return s.AnyFile(func(file *models.File) bool { return file.Tracked })
 }
 
-func (s *FileChangeNode) AnyFile(test func(file *models.File) bool) bool {
-	return s.Any(func(node *FileChangeNode) bool {
+func (s *FileNode) AnyFile(test func(file *models.File) bool) bool {
+	return s.Any(func(node *FileNode) bool {
 		return node.IsLeaf() && test(node.File)
 	})
 }
 
-func (s *FileChangeNode) NameAtDepth(depth int) string {
+func (s *FileNode) NameAtDepth(depth int) string {
 	splitName := strings.Split(s.Path, string(os.PathSeparator))
 	name := filepath.Join(splitName[depth:]...)
 

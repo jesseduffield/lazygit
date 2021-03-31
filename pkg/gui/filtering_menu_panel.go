@@ -15,7 +15,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 	fileName := ""
 	switch v.Name() {
 	case "files":
-		node := gui.getSelectedFileChangeNode()
+		node := gui.getSelectedFileNode()
 		if node != nil {
 			fileName = node.GetPath()
 		}

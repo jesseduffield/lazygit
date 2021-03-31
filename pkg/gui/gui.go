@@ -304,12 +304,12 @@ type guiStateMutexes struct {
 }
 
 type guiState struct {
-	FileChangeManager       *filetree.FileChangeManager
-	CommitFileChangeManager *filetree.CommitFileChangeManager
-	Submodules              []*models.SubmoduleConfig
-	Branches                []*models.Branch
-	Commits                 []*models.Commit
-	StashEntries            []*models.StashEntry
+	FileManager       *filetree.FileManager
+	CommitFileManager *filetree.CommitFileManager
+	Submodules        []*models.SubmoduleConfig
+	Branches          []*models.Branch
+	Commits           []*models.Commit
+	StashEntries      []*models.StashEntry
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
@@ -381,12 +381,12 @@ func (gui *Gui) resetState() {
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
 
 	gui.State = &guiState{
-		FileChangeManager:       filetree.NewFileChangeManager(make([]*models.File, 0), gui.Log, showTree),
-		CommitFileChangeManager: filetree.NewCommitFileChangeManager(make([]*models.CommitFile, 0), gui.Log, showTree),
-		Commits:                 make([]*models.Commit, 0),
-		FilteredReflogCommits:   make([]*models.Commit, 0),
-		ReflogCommits:           make([]*models.Commit, 0),
-		StashEntries:            make([]*models.StashEntry, 0),
+		FileManager:           filetree.NewFileChangeManager(make([]*models.File, 0), gui.Log, showTree),
+		CommitFileManager:     filetree.NewCommitFileManager(make([]*models.CommitFile, 0), gui.Log, showTree),
+		Commits:               make([]*models.Commit, 0),
+		FilteredReflogCommits: make([]*models.Commit, 0),
+		ReflogCommits:         make([]*models.Commit, 0),
+		StashEntries:          make([]*models.StashEntry, 0),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},

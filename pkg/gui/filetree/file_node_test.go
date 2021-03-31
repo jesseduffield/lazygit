@@ -10,8 +10,8 @@ import (
 func TestCompress(t *testing.T) {
 	scenarios := []struct {
 		name     string
-		root     *FileChangeNode
-		expected *FileChangeNode
+		root     *FileNode
+		expected *FileNode
 	}{
 		{
 			name:     "nil node",
@@ -20,27 +20,27 @@ func TestCompress(t *testing.T) {
 		},
 		{
 			name: "leaf node",
-			root: &FileChangeNode{
+			root: &FileNode{
 				Path: "",
-				Children: []*FileChangeNode{
+				Children: []*FileNode{
 					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
-			expected: &FileChangeNode{
+			expected: &FileNode{
 				Path: "",
-				Children: []*FileChangeNode{
+				Children: []*FileNode{
 					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 		},
 		{
 			name: "big example",
-			root: &FileChangeNode{
+			root: &FileNode{
 				Path: "",
-				Children: []*FileChangeNode{
+				Children: []*FileNode{
 					{
 						Path: "dir1",
-						Children: []*FileChangeNode{
+						Children: []*FileNode{
 							{
 								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir1/file2",
@@ -49,7 +49,7 @@ func TestCompress(t *testing.T) {
 					},
 					{
 						Path: "dir2",
-						Children: []*FileChangeNode{
+						Children: []*FileNode{
 							{
 								File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Path: "dir2/file3",
@@ -62,10 +62,10 @@ func TestCompress(t *testing.T) {
 					},
 					{
 						Path: "dir3",
-						Children: []*FileChangeNode{
+						Children: []*FileNode{
 							{
 								Path: "dir3/dir3-1",
-								Children: []*FileChangeNode{
+								Children: []*FileNode{
 									{
 										File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 										Path: "dir3/dir3-1/file5",
@@ -80,9 +80,9 @@ func TestCompress(t *testing.T) {
 					},
 				},
 			},
-			expected: &FileChangeNode{
+			expected: &FileNode{
 				Path: "",
-				Children: []*FileChangeNode{
+				Children: []*FileNode{
 					{
 						Path:             "dir1/file2",
 						File:             &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
@@ -90,7 +90,7 @@ func TestCompress(t *testing.T) {
 					},
 					{
 						Path: "dir2",
-						Children: []*FileChangeNode{
+						Children: []*FileNode{
 							{
 								File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Path: "dir2/file3",

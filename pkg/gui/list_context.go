@@ -264,7 +264,7 @@ func (gui *Gui) filesListContext() *ListContext {
 	return &ListContext{
 		ViewName:                   "files",
 		ContextKey:                 FILES_CONTEXT_KEY,
-		GetItemsLength:             func() int { return gui.State.FileChangeManager.GetItemsLength() },
+		GetItemsLength:             func() int { return gui.State.FileManager.GetItemsLength() },
 		GetPanelState:              func() IListPanelState { return gui.State.Panels.Files },
 		OnFocus:                    gui.focusAndSelectFile,
 		OnClickSelectedItem:        gui.handleFilePress,
@@ -272,7 +272,7 @@ func (gui *Gui) filesListContext() *ListContext {
 		ResetMainViewOriginOnFocus: false,
 		Kind:                       SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			lines := gui.State.FileChangeManager.Render(gui.State.Modes.Diffing.Ref, gui.State.Submodules)
+			lines := gui.State.FileManager.Render(gui.State.Modes.Diffing.Ref, gui.State.Submodules)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}
@@ -281,7 +281,7 @@ func (gui *Gui) filesListContext() *ListContext {
 			return mappedLines
 		},
 		SelectedItem: func() (ListItem, bool) {
-			item := gui.getSelectedFileChangeNode()
+			item := gui.getSelectedFileNode()
 			return item, item != nil
 		},
 	}
@@ -454,18 +454,18 @@ func (gui *Gui) commitFilesListContext() *ListContext {
 		ViewName:                   "commitFiles",
 		WindowName:                 "commits",
 		ContextKey:                 COMMIT_FILES_CONTEXT_KEY,
-		GetItemsLength:             func() int { return gui.State.CommitFileChangeManager.GetItemsLength() },
+		GetItemsLength:             func() int { return gui.State.CommitFileManager.GetItemsLength() },
 		GetPanelState:              func() IListPanelState { return gui.State.Panels.CommitFiles },
 		OnFocus:                    gui.handleCommitFileSelect,
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: true,
 		Kind:                       SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			if gui.State.CommitFileChangeManager.GetItemsLength() == 0 {
+			if gui.State.CommitFileManager.GetItemsLength() == 0 {
 				return [][]string{{utils.ColoredString("(none)", color.FgRed)}}
 			}
 
-			lines := gui.State.CommitFileChangeManager.Render(gui.State.Modes.Diffing.Ref, gui.GitCommand.PatchManager)
+			lines := gui.State.CommitFileManager.Render(gui.State.Modes.Diffing.Ref, gui.GitCommand.PatchManager)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}

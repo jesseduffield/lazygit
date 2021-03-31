@@ -9,10 +9,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func BuildTreeFromFiles(files []*models.File) *FileChangeNode {
-	root := &FileChangeNode{}
+func BuildTreeFromFiles(files []*models.File) *FileNode {
+	root := &FileNode{}
 
-	var curr *FileChangeNode
+	var curr *FileNode
 	for _, file := range files {
 		split := strings.Split(file.Name, string(os.PathSeparator))
 		curr = root
@@ -33,7 +33,7 @@ func BuildTreeFromFiles(files []*models.File) *FileChangeNode {
 				}
 			}
 
-			newChild := &FileChangeNode{
+			newChild := &FileNode{
 				Path: path,
 				File: setFile,
 			}
@@ -49,17 +49,17 @@ func BuildTreeFromFiles(files []*models.File) *FileChangeNode {
 	return root
 }
 
-func BuildFlatTreeFromCommitFiles(files []*models.CommitFile) *CommitFileChangeNode {
+func BuildFlatTreeFromCommitFiles(files []*models.CommitFile) *CommitFileNode {
 	rootAux := BuildTreeFromCommitFiles(files)
 	sortedFiles := rootAux.GetLeaves()
 
-	return &CommitFileChangeNode{Children: sortedFiles}
+	return &CommitFileNode{Children: sortedFiles}
 }
 
-func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileChangeNode {
-	root := &CommitFileChangeNode{}
+func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileNode {
+	root := &CommitFileNode{}
 
-	var curr *CommitFileChangeNode
+	var curr *CommitFileNode
 	for _, file := range files {
 		split := strings.Split(file.Name, string(os.PathSeparator))
 		curr = root
@@ -80,7 +80,7 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileChangeNode 
 				}
 			}
 
-			newChild := &CommitFileChangeNode{
+			newChild := &CommitFileNode{
 				Path: path,
 				File: setFile,
 			}
@@ -96,7 +96,7 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileChangeNode 
 	return root
 }
 
-func BuildFlatTreeFromFiles(files []*models.File) *FileChangeNode {
+func BuildFlatTreeFromFiles(files []*models.File) *FileNode {
 	rootAux := BuildTreeFromFiles(files)
 	sortedFiles := rootAux.GetLeaves()
 
@@ -106,5 +106,5 @@ func BuildFlatTreeFromFiles(files []*models.File) *FileChangeNode {
 		return sortedFiles[i].File != nil && sortedFiles[i].File.HasMergeConflicts && !(sortedFiles[j].File != nil && sortedFiles[j].File.HasMergeConflicts)
 	})
 
-	return &FileChangeNode{Children: sortedFiles}
+	return &FileNode{Children: sortedFiles}
 }
