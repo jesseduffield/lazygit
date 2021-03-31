@@ -1,7 +1,7 @@
 package gui
 
 func (gui *Gui) handleCreateDiscardMenu() error {
-	node := gui.getSelectedFileChangeNode()
+	node := gui.getSelectedFileNode()
 	if node == nil {
 		return nil
 	}

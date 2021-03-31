@@ -22,7 +22,7 @@ type File struct {
 }
 
 // sometimes we need to deal with either a node (which contains a file) or an actual file
-type IFileChange interface {
+type IFile interface {
 	GetHasUnstagedChanges() bool
 	GetHasStagedChanges() bool
 	GetIsTracked() bool

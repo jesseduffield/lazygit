@@ -229,7 +229,7 @@ func (gui *Gui) handleMouseScrollDown(g *gocui.Gui, v *gocui.View) error {
 func (gui *Gui) getSelectedCommitFileName() string {
 	idx := gui.State.Panels.CommitFiles.SelectedLineIdx
 
-	return gui.State.CommitFileChangeManager.GetItemAtIndex(idx).GetPath()
+	return gui.State.CommitFileManager.GetItemAtIndex(idx).GetPath()
 }
 
 func (gui *Gui) refreshMainViewForLineByLine(state *lBlPanelState) error {

@@ -98,7 +98,7 @@ func (gui *Gui) handleResetSubmodule(submodule *models.SubmoduleConfig) error {
 }
 
 func (gui *Gui) fileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
-	for _, file := range gui.State.FileChangeManager.GetAllFiles() {
+	for _, file := range gui.State.FileManager.GetAllFiles() {
 		if file.IsSubmodule([]*models.SubmoduleConfig{submodule}) {
 			return file
 		}
