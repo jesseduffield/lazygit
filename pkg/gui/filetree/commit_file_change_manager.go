@@ -91,6 +91,24 @@ func (m *CommitFileChangeManager) ToggleCollapsed(path string) {
 func (m *CommitFileChangeManager) Render(diffName string, patchManager *patch.PatchManager) []string {
 	return renderAux(m.tree, m.collapsedPaths, "", -1, func(n INode, depth int) string {
 		castN := n.(*CommitFileChangeNode)
-		return presentation.GetCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, patchManager, m.parent)
+
+		// This is a little convoluted because we're dealing with either a leaf or a non-leaf.
+		// But this code actually applies to both. If it's a leaf, the status will just
+		// be whatever status it is, but if it's a non-leaf it will determine its status
+		// based on the leaves of that subtree
+		var status patch.PatchStatus
+		if castN.EveryFile(func(file *models.CommitFile) bool {
+			return patchManager.GetFileStatus(file.Name, m.parent) == patch.WHOLE
+		}) {
+			status = patch.WHOLE
+		} else if castN.EveryFile(func(file *models.CommitFile) bool {
+			return patchManager.GetFileStatus(file.Name, m.parent) == patch.UNSELECTED
+		}) {
+			status = patch.UNSELECTED
+		} else {
+			status = patch.PART
+		}
+
+		return presentation.GetCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, status)
 	})
 }
