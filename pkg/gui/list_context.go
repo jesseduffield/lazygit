@@ -30,6 +30,11 @@ type ListContext struct {
 	WindowName string
 }
 
+type IListPanelState interface {
+	SetSelectedLineIdx(int)
+	GetSelectedLineIdx() int
+}
+
 type ListItem interface {
 	// ID is a SHA when the item is a commit, a filename when the item is a file, 'stash@{4}' when it's a stash entry, 'my_branch' when it's a branch
 	ID() string
