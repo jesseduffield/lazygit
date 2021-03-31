@@ -148,7 +148,7 @@ func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
 		// if there is any file that hasn't been fully added we'll fully add everything,
 		// otherwise we'll remove everything
 		adding := node.AnyFile(func(file *models.CommitFile) bool {
-			return gui.GitCommand.PatchManager.GetFileStatus(file.Name) != patch.WHOLE
+			return gui.GitCommand.PatchManager.GetFileStatus(file.Name, gui.State.CommitFileChangeManager.GetParent()) != patch.WHOLE
 		})
 
 		err := node.ForEachFile(func(file *models.CommitFile) error {
