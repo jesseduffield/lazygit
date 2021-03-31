@@ -850,20 +850,13 @@ func (gui *Gui) handleToggleDirCollapsed() error {
 
 func (gui *Gui) handleToggleFileTreeView() error {
 	// get path of currently selected file
-	node := gui.getSelectedFileChangeNode()
-	path := ""
-	if node != nil {
-		path = node.Path
-	}
+	path := gui.getSelectedPath()
 
 	gui.State.FileChangeManager.ToggleShowTree()
 
-	if path != "" {
-		gui.State.FileChangeManager.ExpandToPath(path)
-	}
-
 	// find that same node in the new format and move the cursor to it
 	if path != "" {
+		gui.State.FileChangeManager.ExpandToPath(path)
 		index, found := gui.State.FileChangeManager.GetIndexForPath(path)
 		if found {
 			gui.filesListContext().GetPanelState().SetSelectedLineIdx(index)

@@ -275,3 +275,27 @@ func (gui *Gui) switchToCommitFilesContext(refName string, canRebase bool, conte
 
 	return gui.pushContext(gui.Contexts.CommitFiles.Context)
 }
+
+// NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
+func (gui *Gui) handleToggleCommitFileTreeView() error {
+	path := gui.getSelectedCommitFilePath()
+
+	gui.State.CommitFileChangeManager.ToggleShowTree()
+
+	// find that same node in the new format and move the cursor to it
+	if path != "" {
+		gui.State.CommitFileChangeManager.ExpandToPath(path)
+		index, found := gui.State.CommitFileChangeManager.GetIndexForPath(path)
+		if found {
+			gui.commitFilesListContext().GetPanelState().SetSelectedLineIdx(index)
+		}
+	}
+
+	if gui.getCommitFilesView().Context == COMMIT_FILES_CONTEXT_KEY {
+		if err := gui.Contexts.CommitFiles.Context.HandleRender(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
