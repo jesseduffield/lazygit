@@ -91,6 +91,6 @@ func (m *CommitFileChangeManager) ToggleCollapsed(path string) {
 func (m *CommitFileChangeManager) Render(diffName string, patchManager *patch.PatchManager) []string {
 	return renderAux(m.tree, m.collapsedPaths, "", -1, func(n INode, depth int) string {
 		castN := n.(*CommitFileChangeNode)
-		return presentation.GetCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, patchManager)
+		return presentation.GetCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, patchManager, m.parent)
 	})
 }

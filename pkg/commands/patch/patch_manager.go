@@ -222,7 +222,11 @@ func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
 	return result
 }
 
-func (p *PatchManager) GetFileStatus(filename string) PatchStatus {
+func (p *PatchManager) GetFileStatus(filename string, parent string) PatchStatus {
+	if parent != p.To {
+		return UNSELECTED
+	}
+
 	info, ok := p.fileInfoMap[filename]
 	if !ok {
 		return UNSELECTED
