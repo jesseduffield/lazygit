@@ -1,8 +1,10 @@
 package gui
 
 import (
+	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type ListContext struct {
@@ -452,17 +454,27 @@ func (gui *Gui) commitFilesListContext() *ListContext {
 		ViewName:                   "commitFiles",
 		WindowName:                 "commits",
 		ContextKey:                 COMMIT_FILES_CONTEXT_KEY,
-		GetItemsLength:             func() int { return len(gui.State.CommitFiles) },
+		GetItemsLength:             func() int { return gui.State.CommitFileChangeManager.GetItemsLength() },
 		GetPanelState:              func() IListPanelState { return gui.State.Panels.CommitFiles },
 		OnFocus:                    gui.handleCommitFileSelect,
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: true,
 		Kind:                       SIDE_CONTEXT,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetCommitFileListDisplayStrings(gui.State.CommitFiles, gui.State.Modes.Diffing.Ref)
+			if gui.State.CommitFileChangeManager.GetItemsLength() == 0 {
+				return [][]string{{utils.ColoredString("(none)", color.FgRed)}}
+			}
+
+			lines := gui.State.CommitFileChangeManager.Render(gui.State.Modes.Diffing.Ref)
+			mappedLines := make([][]string, len(lines))
+			for i, line := range lines {
+				mappedLines[i] = []string{line}
+			}
+
+			return mappedLines
 		},
 		SelectedItem: func() (ListItem, bool) {
-			item := gui.getSelectedCommitFile()
+			item := gui.getSelectedCommitFileNode()
 			return item, item != nil
 		},
 	}

@@ -12,36 +12,38 @@ import (
 )
 
 type CustomCommandObjects struct {
-	SelectedLocalCommit  *models.Commit
-	SelectedReflogCommit *models.Commit
-	SelectedSubCommit    *models.Commit
-	SelectedFile         *models.File
-	SelectedPath         string
-	SelectedLocalBranch  *models.Branch
-	SelectedRemoteBranch *models.RemoteBranch
-	SelectedRemote       *models.Remote
-	SelectedTag          *models.Tag
-	SelectedStashEntry   *models.StashEntry
-	SelectedCommitFile   *models.CommitFile
-	CheckedOutBranch     *models.Branch
-	PromptResponses      []string
+	SelectedLocalCommit    *models.Commit
+	SelectedReflogCommit   *models.Commit
+	SelectedSubCommit      *models.Commit
+	SelectedFile           *models.File
+	SelectedPath           string
+	SelectedLocalBranch    *models.Branch
+	SelectedRemoteBranch   *models.RemoteBranch
+	SelectedRemote         *models.Remote
+	SelectedTag            *models.Tag
+	SelectedStashEntry     *models.StashEntry
+	SelectedCommitFile     *models.CommitFile
+	SelectedCommitFilePath string
+	CheckedOutBranch       *models.Branch
+	PromptResponses        []string
 }
 
 func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (string, error) {
 	objects := CustomCommandObjects{
-		SelectedFile:         gui.getSelectedFile(),
-		SelectedPath:         gui.getSelectedPath(),
-		SelectedLocalCommit:  gui.getSelectedLocalCommit(),
-		SelectedReflogCommit: gui.getSelectedReflogCommit(),
-		SelectedLocalBranch:  gui.getSelectedBranch(),
-		SelectedRemoteBranch: gui.getSelectedRemoteBranch(),
-		SelectedRemote:       gui.getSelectedRemote(),
-		SelectedTag:          gui.getSelectedTag(),
-		SelectedStashEntry:   gui.getSelectedStashEntry(),
-		SelectedCommitFile:   gui.getSelectedCommitFile(),
-		SelectedSubCommit:    gui.getSelectedSubCommit(),
-		CheckedOutBranch:     gui.currentBranch(),
-		PromptResponses:      promptResponses,
+		SelectedFile:           gui.getSelectedFile(),
+		SelectedPath:           gui.getSelectedPath(),
+		SelectedLocalCommit:    gui.getSelectedLocalCommit(),
+		SelectedReflogCommit:   gui.getSelectedReflogCommit(),
+		SelectedLocalBranch:    gui.getSelectedBranch(),
+		SelectedRemoteBranch:   gui.getSelectedRemoteBranch(),
+		SelectedRemote:         gui.getSelectedRemote(),
+		SelectedTag:            gui.getSelectedTag(),
+		SelectedStashEntry:     gui.getSelectedStashEntry(),
+		SelectedCommitFile:     gui.getSelectedCommitFile(),
+		SelectedCommitFilePath: gui.getSelectedCommitFilePath(),
+		SelectedSubCommit:      gui.getSelectedSubCommit(),
+		CheckedOutBranch:       gui.currentBranch(),
+		PromptResponses:        promptResponses,
 	}
 
 	return utils.ResolveTemplate(templateStr, objects)

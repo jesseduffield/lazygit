@@ -49,6 +49,53 @@ func BuildTreeFromFiles(files []*models.File) *FileChangeNode {
 	return root
 }
 
+func BuildFlatTreeFromCommitFiles(files []*models.CommitFile) *CommitFileChangeNode {
+	rootAux := BuildTreeFromCommitFiles(files)
+	sortedFiles := rootAux.GetLeaves()
+
+	return &CommitFileChangeNode{Children: sortedFiles}
+}
+
+func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileChangeNode {
+	root := &CommitFileChangeNode{}
+
+	var curr *CommitFileChangeNode
+	for _, file := range files {
+		split := strings.Split(file.Name, string(os.PathSeparator))
+		curr = root
+	outer:
+		for i := range split {
+			var setFile *models.CommitFile
+			isFile := i == len(split)-1
+			if isFile {
+				setFile = file
+			}
+
+			path := filepath.Join(split[:i+1]...)
+
+			for _, existingChild := range curr.Children {
+				if existingChild.Path == path {
+					curr = existingChild
+					continue outer
+				}
+			}
+
+			newChild := &CommitFileChangeNode{
+				Path: path,
+				File: setFile,
+			}
+			curr.Children = append(curr.Children, newChild)
+
+			curr = newChild
+		}
+	}
+
+	root.Sort()
+	root.Compress()
+
+	return root
+}
+
 func BuildFlatTreeFromFiles(files []*models.File) *FileChangeNode {
 	rootAux := BuildTreeFromFiles(files)
 	sortedFiles := rootAux.GetLeaves()

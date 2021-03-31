@@ -28,19 +28,19 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *lBlPanelSt
 	gui.getSecondaryView().Title = "Custom Patch"
 
 	// get diff from commit file that's currently selected
-	commitFile := gui.getSelectedCommitFile()
-	if commitFile == nil {
+	node := gui.getSelectedCommitFileNode()
+	if node == nil {
 		return nil
 	}
 
-	to := commitFile.Parent
+	to := gui.State.CommitFileChangeManager.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
-	diff, err := gui.GitCommand.ShowFileDiff(from, to, reverse, commitFile.Name, true)
+	diff, err := gui.GitCommand.ShowFileDiff(from, to, reverse, node.GetPath(), true)
 	if err != nil {
 		return err
 	}
 
-	secondaryDiff := gui.GitCommand.PatchManager.RenderPatchForFile(commitFile.Name, true, false, true)
+	secondaryDiff := gui.GitCommand.PatchManager.RenderPatchForFile(node.GetPath(), true, false, true)
 	if err != nil {
 		return err
 	}
@@ -78,12 +78,12 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 		}
 
 		// add range of lines to those set for the file
-		commitFile := gui.getSelectedCommitFile()
-		if commitFile == nil {
+		node := gui.getSelectedCommitFileNode()
+		if node == nil {
 			return nil
 		}
 
-		if err := toggleFunc(commitFile.Name, state.FirstLineIdx, state.LastLineIdx); err != nil {
+		if err := toggleFunc(node.GetPath(), state.FirstLineIdx, state.LastLineIdx); err != nil {
 			// might actually want to return an error here
 			gui.Log.Error(err)
 		}
