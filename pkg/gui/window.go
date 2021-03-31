@@ -40,9 +40,3 @@ func (gui *Gui) resetWindowForView(viewName string) {
 	// we assume here that the window contains as its default view a view with the same name as the window
 	gui.State.WindowViewNameMap[window] = window
 }
-
-func (gui *Gui) renderWindow(window string) error {
-	viewName := gui.getViewNameForWindow(window)
-	gui.Log.Warn(viewName)
-	return gui.rerenderView(viewName)
-}
