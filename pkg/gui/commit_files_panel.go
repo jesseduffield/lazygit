@@ -129,6 +129,10 @@ func (gui *Gui) handleEditCommitFile(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
+	if node.File == nil {
+		return gui.createErrorPanel(gui.Tr.ErrCannotEditDirectory)
+	}
+
 	return gui.editFile(node.GetPath())
 }
 
