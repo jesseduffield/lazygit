@@ -38,7 +38,6 @@ func (c *GitCommand) getCommitFilesFromFilenames(filenames string, parent string
 		}
 
 		commitFiles = append(commitFiles, &models.CommitFile{
-			Parent:       parent,
 			Name:         name,
 			ChangeStatus: changeStatus,
 			PatchStatus:  status,

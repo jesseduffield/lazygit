@@ -32,12 +32,7 @@ func (gui *Gui) getSelectedFileChangeNode() *filetree.FileChangeNode {
 }
 
 func (gui *Gui) getSelectedFile() *models.File {
-	selectedLine := gui.State.Panels.Files.SelectedLineIdx
-	if selectedLine == -1 {
-		return nil
-	}
-
-	node := gui.State.FileChangeManager.GetItemAtIndex(selectedLine)
+	node := gui.getSelectedFileChangeNode()
 	if node == nil {
 		return nil
 	}
@@ -844,7 +839,7 @@ func (gui *Gui) handleToggleDirCollapsed() error {
 		return nil
 	}
 
-	gui.State.FileChangeManager.ToggleCollapsed(node)
+	gui.State.FileChangeManager.ToggleCollapsed(node.GetPath())
 
 	if err := gui.postRefreshUpdate(gui.Contexts.Files.Context); err != nil {
 		gui.Log.Error(err)

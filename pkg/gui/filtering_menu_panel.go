@@ -17,12 +17,12 @@ func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) erro
 	case "files":
 		node := gui.getSelectedFileChangeNode()
 		if node != nil {
-			fileName = node.Path
+			fileName = node.GetPath()
 		}
 	case "commitFiles":
-		file := gui.getSelectedCommitFile()
-		if file != nil {
-			fileName = file.Name
+		node := gui.getSelectedCommitFileNode()
+		if node != nil {
+			fileName = node.GetPath()
 		}
 	}
 

@@ -1,29 +1,17 @@
 package filetree
 
 import (
-	"fmt"
-	"os"
-	"strings"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/sirupsen/logrus"
 )
-
-const EXPANDED_ARROW = "▼"
-const COLLAPSED_ARROW = "►"
-
-const INNER_ITEM = "├─ "
-const LAST_ITEM = "└─ "
-const NESTED = "│  "
-const NOTHING = "   "
 
 type FileChangeManager struct {
 	files          []*models.File
 	tree           *FileChangeNode
 	showTree       bool
 	log            *logrus.Entry
-	collapsedPaths map[string]bool
+	collapsedPaths CollapsedPaths
 }
 
 func NewFileChangeManager(files []*models.File, log *logrus.Entry, showTree bool) *FileChangeManager {
@@ -31,8 +19,12 @@ func NewFileChangeManager(files []*models.File, log *logrus.Entry, showTree bool
 		files:          files,
 		log:            log,
 		showTree:       showTree,
-		collapsedPaths: map[string]bool{},
+		collapsedPaths: CollapsedPaths{},
 	}
+}
+
+func (m *FileChangeManager) ExpandToPath(path string) {
+	m.collapsedPaths.ExpandToPath(path)
 }
 
 func (m *FileChangeManager) ToggleShowTree() {
@@ -80,74 +72,17 @@ func (m *FileChangeManager) SetTree() {
 	}
 }
 
+func (m *FileChangeManager) IsCollapsed(path string) bool {
+	return m.collapsedPaths.IsCollapsed(path)
+}
+
+func (m *FileChangeManager) ToggleCollapsed(path string) {
+	m.collapsedPaths.ToggleCollapsed(path)
+}
+
 func (m *FileChangeManager) Render(diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
-	return m.renderAux(m.tree, "", -1, diffName, submoduleConfigs)
-}
-
-func (m *FileChangeManager) IsCollapsed(s *FileChangeNode) bool {
-	return m.collapsedPaths[s.GetPath()]
-}
-
-func (m *FileChangeManager) ToggleCollapsed(s *FileChangeNode) {
-	m.collapsedPaths[s.GetPath()] = !m.collapsedPaths[s.GetPath()]
-}
-
-func (m *FileChangeManager) renderAux(s *FileChangeNode, prefix string, depth int, diffName string, submoduleConfigs []*models.SubmoduleConfig) []string {
-	isRoot := depth == -1
-	if s == nil {
-		return []string{}
-	}
-
-	getLine := func() string {
-		return prefix + presentation.GetFileLine(s.GetHasUnstagedChanges(), s.GetHasStagedChanges(), s.NameAtDepth(depth), diffName, submoduleConfigs, s.File)
-	}
-
-	if s.IsLeaf() {
-		if isRoot {
-			return []string{}
-		}
-		return []string{getLine()}
-	}
-
-	if m.IsCollapsed(s) {
-		return []string{fmt.Sprintf("%s %s", getLine(), COLLAPSED_ARROW)}
-	}
-
-	arr := []string{}
-	if !isRoot {
-		arr = append(arr, fmt.Sprintf("%s %s", getLine(), EXPANDED_ARROW))
-	}
-
-	newPrefix := prefix
-	if strings.HasSuffix(prefix, LAST_ITEM) {
-		newPrefix = strings.TrimSuffix(prefix, LAST_ITEM) + NOTHING
-	} else if strings.HasSuffix(prefix, INNER_ITEM) {
-		newPrefix = strings.TrimSuffix(prefix, INNER_ITEM) + NESTED
-	}
-
-	for i, child := range s.Children {
-		isLast := i == len(s.Children)-1
-
-		var childPrefix string
-		if isRoot {
-			childPrefix = newPrefix
-		} else if isLast {
-			childPrefix = newPrefix + LAST_ITEM
-		} else {
-			childPrefix = newPrefix + INNER_ITEM
-		}
-
-		arr = append(arr, m.renderAux(child, childPrefix, depth+1+s.CompressionLevel, diffName, submoduleConfigs)...)
-	}
-
-	return arr
-}
-
-func (m *FileChangeManager) ExpandToPath(path string) {
-	// need every directory along the way
-	split := strings.Split(path, string(os.PathSeparator))
-	for i := range split {
-		dir := strings.Join(split[0:i+1], string(os.PathSeparator))
-		m.collapsedPaths[dir] = false
-	}
+	return renderAux(m.tree, m.collapsedPaths, "", -1, func(n INode, depth int) string {
+		castN := n.(*FileChangeNode)
+		return presentation.GetFileLine(castN.GetHasUnstagedChanges(), castN.GetHasStagedChanges(), castN.NameAtDepth(depth), diffName, submoduleConfigs, castN.File)
+	})
 }
