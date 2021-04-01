@@ -23,6 +23,10 @@ func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *Fil
 	}
 }
 
+func (m *FileManager) InTreeMode() bool {
+	return m.showTree
+}
+
 func (m *FileManager) ExpandToPath(path string) {
 	m.collapsedPaths.ExpandToPath(path)
 }
