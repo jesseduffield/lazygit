@@ -101,6 +101,10 @@ func (node *FileNode) GetIndexForPath(path string, collapsedPaths map[string]boo
 }
 
 func (node *FileNode) Size(collapsedPaths map[string]bool) int {
+	if node == nil {
+		return 0
+	}
+
 	return size(node, collapsedPaths)
 }
 
