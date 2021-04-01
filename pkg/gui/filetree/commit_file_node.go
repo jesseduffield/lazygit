@@ -115,6 +115,10 @@ func (node *CommitFileNode) GetIndexForPath(path string, collapsedPaths map[stri
 }
 
 func (node *CommitFileNode) Size(collapsedPaths map[string]bool) int {
+	if node == nil {
+		return 0
+	}
+
 	return size(node, collapsedPaths)
 }
 
