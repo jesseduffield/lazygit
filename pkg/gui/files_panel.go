@@ -554,7 +554,22 @@ func (gui *Gui) refreshStateFiles() error {
 	if selectedNode != nil {
 		newIdx := gui.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], gui.State.FileManager.GetAllItems())
 		if newIdx != -1 && newIdx != prevSelectedLineIdx {
-			gui.State.Panels.Files.SelectedLineIdx = newIdx
+			newNode := gui.State.FileManager.GetItemAtIndex(newIdx)
+			// when not in tree mode, we show merge conflict files at the top, so you
+			// can work through them one by one without having to sift through a large
+			// set of files. If you have just fixed the merge conflicts of a file, we
+			// actually don't want to jump to that file's new position, because that
+			// file will now be ages away amidst the other files without merge
+			// conflicts: the user in this case would rather work on the next file
+			// with merge conflicts, which will have moved up to fill the gap left by
+			// the last file, meaning the cursor doesn't need to move at all.
+			leaveCursor := !gui.State.FileManager.InTreeMode() && newNode != nil &&
+				selectedNode.File != nil && selectedNode.File.HasMergeConflicts &&
+				newNode.File != nil && !newNode.File.HasMergeConflicts
+
+			if !leaveCursor {
+				gui.State.Panels.Files.SelectedLineIdx = newIdx
+			}
 		}
 	}
 
