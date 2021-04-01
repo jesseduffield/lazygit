@@ -116,10 +116,11 @@ type lBlPanelState struct {
 }
 
 type mergingPanelState struct {
-	ConflictIndex int
-	ConflictTop   bool
-	Conflicts     []commands.Conflict
-	EditHistory   *stack.Stack
+	ConflictIndex  int
+	ConflictTop    bool
+	Conflicts      []commands.Conflict
+	ConflictsMutex sync.Mutex
+	EditHistory    *stack.Stack
 
 	// UserScrolling tells us if the user has started scrolling through the file themselves
 	// in which case we won't auto-scroll to a conflict.
@@ -367,10 +368,11 @@ func (gui *Gui) resetState() {
 			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
 			Suggestions:    &suggestionsPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}},
 			Merging: &mergingPanelState{
-				ConflictIndex: 0,
-				ConflictTop:   true,
-				Conflicts:     []commands.Conflict{},
-				EditHistory:   stack.New(),
+				ConflictIndex:  0,
+				ConflictTop:    true,
+				Conflicts:      []commands.Conflict{},
+				EditHistory:    stack.New(),
+				ConflictsMutex: sync.Mutex{},
 			},
 		},
 		SideView:       nil,

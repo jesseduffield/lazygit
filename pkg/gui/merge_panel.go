@@ -79,18 +79,27 @@ func (gui *Gui) takeOverScrolling() {
 }
 
 func (gui *Gui) handleSelectTop(g *gocui.Gui, v *gocui.View) error {
+	gui.State.Panels.Merging.ConflictsMutex.Lock()
+	defer gui.State.Panels.Merging.ConflictsMutex.Unlock()
+
 	gui.takeOverScrolling()
 	gui.State.Panels.Merging.ConflictTop = true
 	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handleSelectBottom(g *gocui.Gui, v *gocui.View) error {
+	gui.State.Panels.Merging.ConflictsMutex.Lock()
+	defer gui.State.Panels.Merging.ConflictsMutex.Unlock()
+
 	gui.takeOverScrolling()
 	gui.State.Panels.Merging.ConflictTop = false
 	return gui.refreshMergePanel()
 }
 
 func (gui *Gui) handleSelectNextConflict(g *gocui.Gui, v *gocui.View) error {
+	gui.State.Panels.Merging.ConflictsMutex.Lock()
+	defer gui.State.Panels.Merging.ConflictsMutex.Unlock()
+
 	gui.takeOverScrolling()
 	if gui.State.Panels.Merging.ConflictIndex >= len(gui.State.Panels.Merging.Conflicts)-1 {
 		return nil
@@ -100,6 +109,9 @@ func (gui *Gui) handleSelectNextConflict(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleSelectPrevConflict(g *gocui.Gui, v *gocui.View) error {
+	gui.State.Panels.Merging.ConflictsMutex.Lock()
+	defer gui.State.Panels.Merging.ConflictsMutex.Unlock()
+
 	gui.takeOverScrolling()
 	if gui.State.Panels.Merging.ConflictIndex <= 0 {
 		return nil
@@ -172,6 +184,9 @@ func (gui *Gui) handlePopFileSnapshot(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
+	gui.State.Panels.Merging.ConflictsMutex.Lock()
+	defer gui.State.Panels.Merging.ConflictsMutex.Unlock()
+
 	gui.takeOverScrolling()
 
 	conflict := gui.State.Panels.Merging.Conflicts[gui.State.Panels.Merging.ConflictIndex]
@@ -198,6 +213,9 @@ func (gui *Gui) handlePickHunk(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
+	gui.State.Panels.Merging.ConflictsMutex.Lock()
+	defer gui.State.Panels.Merging.ConflictsMutex.Unlock()
+
 	gui.takeOverScrolling()
 
 	conflict := gui.State.Panels.Merging.Conflicts[gui.State.Panels.Merging.ConflictIndex]
@@ -208,6 +226,13 @@ func (gui *Gui) handlePickBothHunks(g *gocui.Gui, v *gocui.View) error {
 	if err != nil {
 		panic(err)
 	}
+	return gui.refreshMergePanel()
+}
+
+func (gui *Gui) refreshMergePanelWithLock() error {
+	gui.State.Panels.Merging.ConflictsMutex.Lock()
+	defer gui.State.Panels.Merging.ConflictsMutex.Unlock()
+
 	return gui.refreshMergePanel()
 }
 

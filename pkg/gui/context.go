@@ -286,7 +286,7 @@ func (gui *Gui) contextTree() ContextTree {
 		},
 		Merging: SimpleContextNode{
 			Context: BasicContext{
-				OnFocus:         gui.refreshMergePanel,
+				OnFocus:         gui.refreshMergePanelWithLock,
 				Kind:            MAIN_CONTEXT,
 				ViewName:        "main",
 				Key:             MAIN_MERGING_CONTEXT_KEY,

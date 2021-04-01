@@ -73,7 +73,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	}
 
 	if node.File != nil && node.File.HasInlineMergeConflicts {
-		return gui.refreshMergePanel()
+		return gui.refreshMergePanelWithLock()
 	}
 
 	cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
