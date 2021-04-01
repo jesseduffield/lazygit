@@ -345,7 +345,7 @@ func (gui *Gui) resetState() {
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
 
 	gui.State = &guiState{
-		FileManager:           filetree.NewFileChangeManager(make([]*models.File, 0), gui.Log, showTree),
+		FileManager:           filetree.NewFileManager(make([]*models.File, 0), gui.Log, showTree),
 		CommitFileManager:     filetree.NewCommitFileManager(make([]*models.CommitFile, 0), gui.Log, showTree),
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),

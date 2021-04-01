@@ -14,7 +14,7 @@ type FileManager struct {
 	collapsedPaths CollapsedPaths
 }
 
-func NewFileChangeManager(files []*models.File, log *logrus.Entry, showTree bool) *FileManager {
+func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *FileManager {
 	return &FileManager{
 		files:          files,
 		log:            log,
