@@ -261,6 +261,20 @@ If you struggle to see the selected line I recommend using the reverse attribute
         - reverse
 ```
 
+The following has also worked for a couple of people:
+```yaml
+gui:
+  theme:
+    activeBorderColor:
+      - white
+      - bold
+    inactiveBorderColor:
+      - white
+    selectedLineBgColor:
+      - reverse
+      - blue
+```
+
 Alternatively you may have bold fonts disabled in your terminal, in which case enabling bold fonts should solve the problem.
 
 If you're still having trouble please raise an issue.
