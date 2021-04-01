@@ -58,7 +58,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			}
 
 			if customCommand.Subprocess {
-				gui.PrepareSubProcess(cmdStr)
+				gui.PrepareShellSubProcess(cmdStr)
 				return nil
 			}
 
@@ -67,9 +67,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				loadingText = gui.Tr.LcRunningCustomCommandStatus
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
-				gui.OSCommand.PrepareSubProcess(cmdStr)
-
-				if err := gui.OSCommand.RunCommand(cmdStr); err != nil {
+				if err := gui.OSCommand.RunShellCommand(cmdStr); err != nil {
 					return gui.surfaceError(err)
 				}
 				return gui.refreshSidePanels(refreshOptions{})
