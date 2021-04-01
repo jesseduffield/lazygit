@@ -1,0 +1,6 @@
+0000000000000000000000000000000000000000 2dda1e731d2480710985d15f48ef66502bded67e CI <CI@example.com> 1617321379 +1100	commit (initial): first commit
+2dda1e731d2480710985d15f48ef66502bded67e 7bd286f21691abfba705b80adafcd2b27652de65 CI <CI@example.com> 1617321379 +1100	commit: blah
+7bd286f21691abfba705b80adafcd2b27652de65 7bd286f21691abfba705b80adafcd2b27652de65 CI <CI@example.com> 1617321387 +1100	reset: moving to HEAD
+7bd286f21691abfba705b80adafcd2b27652de65 3cbe2a75b31f199c5ac036efcb3b5bdb508ccd05 CI <CI@example.com> 1617321389 +1100	commit: tet
+3cbe2a75b31f199c5ac036efcb3b5bdb508ccd05 3cbe2a75b31f199c5ac036efcb3b5bdb508ccd05 CI <CI@example.com> 1617321398 +1100	reset: moving to HEAD
+3cbe2a75b31f199c5ac036efcb3b5bdb508ccd05 27d069e22427ab361d59dd841b7874820e35baa4 CI <CI@example.com> 1617321401 +1100	commit: tet
