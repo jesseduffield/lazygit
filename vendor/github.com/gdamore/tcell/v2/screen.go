@@ -1,4 +1,4 @@
-// Copyright 2019 The TCell Authors
+// Copyright 2021 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -16,7 +16,7 @@ package tcell
 
 // Screen represents the physical (or emulated) screen.
 // This can be a terminal window or a physical console.  Platforms implement
-// this differerently.
+// this differently.
 type Screen interface {
 	// Init initializes the screen for use.
 	Init() error
@@ -88,6 +88,9 @@ type Screen interface {
 	// is dropped, and ErrEventQFull is returned.
 	PostEvent(ev Event) error
 
+	// Deprecated: PostEventWait is unsafe, and will be removed
+	// in the future.
+	//
 	// PostEventWait is like PostEvent, but if the queue is full, it
 	// blocks until there is space in the queue, making delivery
 	// reliable.  However, it is VERY important that this function
@@ -99,7 +102,9 @@ type Screen interface {
 	PostEventWait(ev Event)
 
 	// EnableMouse enables the mouse.  (If your terminal supports it.)
-	EnableMouse()
+	// If no flags are specified, then all events are reported, if the
+	// terminal supports them.
+	EnableMouse(...MouseFlags)
 
 	// DisableMouse disables the mouse.
 	DisableMouse()
@@ -200,6 +205,14 @@ type Screen interface {
 	// runes) is always true.
 	HasKey(Key) bool
 
+	// Suspend pauses input and output processing.  It also restores the
+	// terminal settings to what they were when the application started.
+	// This can be used to, for example, run a sub-shell.
+	Suspend() error
+
+	// Resume resumes after Suspend().
+	Resume() error
+
 	// Beep attempts to sound an OS-dependent audible alert and returns an error
 	// when unsuccessful.
 	Beep() error
@@ -217,3 +230,13 @@ func NewScreen() (Screen, error) {
 		return nil, e
 	}
 }
+
+// MouseFlags are options to modify the handling of mouse events.
+// Actual events can be or'd together.
+type MouseFlags int
+
+const (
+	MouseButtonEvents = MouseFlags(1) // Click events only
+	MouseDragEvents   = MouseFlags(2) // Click-drag events (includes button events)
+	MouseMotionEvents = MouseFlags(4) // All mouse events (includes click and drag events)
+)

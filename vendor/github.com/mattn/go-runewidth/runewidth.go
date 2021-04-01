@@ -12,8 +12,14 @@ var (
 	// EastAsianWidth will be set true if the current locale is CJK
 	EastAsianWidth bool
 
+	// StrictEmojiNeutral should be set false if handle broken fonts
+	StrictEmojiNeutral bool = true
+
 	// DefaultCondition is a condition in current locale
-	DefaultCondition = &Condition{}
+	DefaultCondition = &Condition{
+		EastAsianWidth:     false,
+		StrictEmojiNeutral: true,
+	}
 )
 
 func init() {
@@ -83,26 +89,52 @@ var nonprint = table{
 
 // Condition have flag EastAsianWidth whether the current locale is CJK or not.
 type Condition struct {
-	EastAsianWidth bool
+	EastAsianWidth     bool
+	StrictEmojiNeutral bool
 }
 
 // NewCondition return new instance of Condition which is current locale.
 func NewCondition() *Condition {
 	return &Condition{
-		EastAsianWidth: EastAsianWidth,
+		EastAsianWidth:     EastAsianWidth,
+		StrictEmojiNeutral: StrictEmojiNeutral,
 	}
 }
 
 // RuneWidth returns the number of cells in r.
 // See http://www.unicode.org/reports/tr11/
 func (c *Condition) RuneWidth(r rune) int {
-	switch {
-	case r < 0 || r > 0x10FFFF || inTables(r, nonprint, combining, notassigned):
-		return 0
-	case (c.EastAsianWidth && IsAmbiguousWidth(r)) || inTables(r, doublewidth):
-		return 2
-	default:
-		return 1
+	// optimized version, verified by TestRuneWidthChecksums()
+	if !c.EastAsianWidth {
+		switch {
+		case r < 0x20 || r > 0x10FFFF:
+			return 0
+		case (r >= 0x7F && r <= 0x9F) || r == 0xAD: // nonprint
+			return 0
+		case r < 0x300:
+			return 1
+		case inTable(r, narrow):
+			return 1
+		case inTables(r, nonprint, combining):
+			return 0
+		case inTable(r, doublewidth):
+			return 2
+		default:
+			return 1
+		}
+	} else {
+		switch {
+		case r < 0 || r > 0x10FFFF || inTables(r, nonprint, combining):
+			return 0
+		case inTable(r, narrow):
+			return 1
+		case inTables(r, ambiguous, doublewidth):
+			return 2
+		case !c.StrictEmojiNeutral && inTables(r, ambiguous, emoji, narrow):
+			return 2
+		default:
+			return 1
+		}
 	}
 }
 

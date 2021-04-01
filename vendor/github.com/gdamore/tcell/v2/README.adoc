@@ -28,8 +28,8 @@ Version 1.x remains available using the import `github.com/gdamore/tcell`.
 * https://github.com/gdamore/gomatrix[gomatrix] - converted from Termbox
 * https://github.com/zyedidia/micro/[micro] - lightweight text editor with syntax-highlighting and themes
 * https://github.com/viktomas/godu[godu] - simple golang utility helping to discover large files/folders.
-* https://github.com/rivo/tview[tview] - rich interactive widgets for terminal UIs
-* https://github.com/marcusolsson/tui-go[tui-go] - UI library for terminal apps (_deprecated_)
+* https://github.com/rivo/tview/[tview] - rich interactive widgets for terminal UIs
+* https://github.com/awesome-gocui/gocui[awesome gocui] - Go Console User Interface
 * https://github.com/rgm3/gomandelbrot[gomandelbrot] - Mandelbrot!
 * https://github.com/senorprogrammer/wtf[WTF]- Personal information dashboard for your terminal
 * https://github.com/browsh-org/browsh[browsh] - A fully-modern text-based browser, rendering to TTY and browsers (https://www.youtube.com/watch?v=HZq86XfBoRo[video])
@@ -48,6 +48,9 @@ Version 1.x remains available using the import `github.com/gdamore/tcell`.
 * https://github.com/Bios-Marcel/memoryalike[memoryalike] - A game where you have to memorize runes and hit their respective keys
 * https://github.com/gokcehan/lf[lf] - Terminal file manager
 * https://github.com/bunyk/gokeybr[gokeybr] - program that helps to deliberately practice your typing.
+* https://github.com/jbaramidze/gonano[gonano] - CLI test editor
+* https://github.com/tmountain/uchess[uchess] - A UCI chess client for your terminal
+* https://github.com/a-h/min[min] - A Gemini browser
 
 == Pure Go Terminfo Database
 
@@ -246,9 +249,7 @@ platforms (e.g. AIX) may need to be added.  Pull requests are welcome!
 
 === Windows
 
-Windows console mode applications are supported.  Unfortunately _mintty_
-and other _cygwin_ style applications are not supported, and are
-unlikely to be supportable due to limitations in their design.
+Windows console mode applications are supported.
 
 Modern console applications like ConEmu and the Windows 10 terminal,
 support all the good features (resize, mouse tracking, etc.)

@@ -36,7 +36,6 @@ func init() {
 		ExitAcs:      "\x1b(B",
 		StrikeThrough:"\x1b[9m",
 		Mouse:        "\x1b[<",
-		MouseMode:    "\x1b[?1006;1000%?%p1%{1}%=%th%el%;",
 		SetCursor:    "\x1b[%i%p1%d;%p2%dH",
 		CursorBack1:  "\b",
 		CursorUp1:    "\x1b[A",
