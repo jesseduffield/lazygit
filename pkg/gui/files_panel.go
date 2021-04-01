@@ -70,6 +70,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		if err := gui.resetOrigin(gui.getSecondaryView()); err != nil {
 			return err
 		}
+		gui.takeOverMergeConflictScrolling()
 	}
 
 	if node.File != nil && node.File.HasInlineMergeConflicts {

@@ -18,7 +18,7 @@ import (
 
 func (gui *Gui) handleSelectTop() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverScrolling()
+		gui.takeOverMergeConflictScrolling()
 		gui.State.Panels.Merging.ConflictTop = true
 		return gui.refreshMergePanel()
 	})
@@ -26,7 +26,7 @@ func (gui *Gui) handleSelectTop() error {
 
 func (gui *Gui) handleSelectBottom() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverScrolling()
+		gui.takeOverMergeConflictScrolling()
 		gui.State.Panels.Merging.ConflictTop = false
 		return gui.refreshMergePanel()
 	})
@@ -34,7 +34,7 @@ func (gui *Gui) handleSelectBottom() error {
 
 func (gui *Gui) handleSelectNextConflict() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverScrolling()
+		gui.takeOverMergeConflictScrolling()
 		if gui.State.Panels.Merging.ConflictIndex >= len(gui.State.Panels.Merging.Conflicts)-1 {
 			return nil
 		}
@@ -45,7 +45,7 @@ func (gui *Gui) handleSelectNextConflict() error {
 
 func (gui *Gui) handleSelectPrevConflict() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverScrolling()
+		gui.takeOverMergeConflictScrolling()
 		if gui.State.Panels.Merging.ConflictIndex <= 0 {
 			return nil
 		}
@@ -90,7 +90,7 @@ func (gui *Gui) handlePickHunk() error {
 			return nil
 		}
 
-		gui.takeOverScrolling()
+		gui.takeOverMergeConflictScrolling()
 
 		if err := gui.pushFileSnapshot(); err != nil {
 			return err
@@ -122,7 +122,7 @@ func (gui *Gui) handlePickBothHunks() error {
 			return nil
 		}
 
-		gui.takeOverScrolling()
+		gui.takeOverMergeConflictScrolling()
 
 		if err := gui.pushFileSnapshot(); err != nil {
 			return err
@@ -261,7 +261,7 @@ func (gui *Gui) getMergingOptions() map[string]string {
 }
 
 func (gui *Gui) handleEscapeMerge() error {
-	gui.takeOverScrolling()
+	gui.takeOverMergeConflictScrolling()
 
 	gui.State.Panels.Merging.EditHistory = stack.New()
 	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
@@ -296,7 +296,7 @@ func (gui *Gui) handleCompleteMerge() error {
 
 // promptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
 func (gui *Gui) promptToContinueRebase() error {
-	gui.takeOverScrolling()
+	gui.takeOverMergeConflictScrolling()
 
 	return gui.ask(askOpts{
 		title:               "continue",
@@ -317,7 +317,7 @@ func (gui *Gui) promptToContinueRebase() error {
 
 func (gui *Gui) canScrollMergePanel() bool {
 	currentViewName := gui.currentViewName()
-	if currentViewName != "main" {
+	if currentViewName != "main" && currentViewName != "files" {
 		return false
 	}
 
@@ -336,6 +336,6 @@ func (gui *Gui) withMergeConflictLock(f func() error) error {
 	return f()
 }
 
-func (gui *Gui) takeOverScrolling() {
+func (gui *Gui) takeOverMergeConflictScrolling() {
 	gui.State.Panels.Merging.UserScrolling = false
 }
