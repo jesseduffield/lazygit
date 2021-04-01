@@ -172,6 +172,17 @@ func (c *OSCommand) RunCommand(formatString string, formatArgs ...interface{}) e
 	return err
 }
 
+// RunShellCommand runs shell commands i.e. 'sh -c <command>'. Good for when you
+// need access to the shell
+func (c *OSCommand) RunShellCommand(command string) error {
+	c.Log.WithField("command", command).Info("RunShellCommand")
+
+	cmd := c.Command(c.Platform.Shell, c.Platform.ShellArg, command)
+	_, err := sanitisedCommandOutput(cmd.CombinedOutput())
+
+	return err
+}
+
 // FileType tells us if the file is a file, directory or other
 func (c *OSCommand) FileType(path string) string {
 	fileInfo, err := os.Stat(path)
@@ -182,16 +193,6 @@ func (c *OSCommand) FileType(path string) string {
 		return "directory"
 	}
 	return "file"
-}
-
-// RunDirectCommand wrapper around direct commands
-func (c *OSCommand) RunDirectCommand(command string) (string, error) {
-	c.Log.WithField("command", command).Info("RunDirectCommand")
-
-	return sanitisedCommandOutput(
-		c.Command(c.Platform.Shell, c.Platform.ShellArg, command).
-			CombinedOutput(),
-	)
 }
 
 func sanitisedCommandOutput(output []byte, err error) (string, error) {
@@ -239,6 +240,11 @@ func (c *OSCommand) PrepareSubProcess(cmdName string, commandArgs ...string) *ex
 		cmd.Env = append(os.Environ(), "GIT_OPTIONAL_LOCKS=0")
 	}
 	return cmd
+}
+
+// PrepareShellSubProcess returns the pointer to a custom command
+func (c *OSCommand) PrepareShellSubProcess(command string) *exec.Cmd {
+	return c.PrepareSubProcess(c.Platform.Shell, c.Platform.ShellArg, command)
 }
 
 // Quote wraps a message in platform-specific quotation marks
@@ -347,11 +353,6 @@ func (c *OSCommand) GetLazygitPath() string {
 		ex = os.Args[0] // fallback to the first call argument if needed
 	}
 	return `"` + filepath.ToSlash(ex) + `"`
-}
-
-// RunCustomCommand returns the pointer to a custom command
-func (c *OSCommand) RunCustomCommand(command string) *exec.Cmd {
-	return c.PrepareSubProcess(c.Platform.Shell, c.Platform.ShellArg, command)
 }
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C

@@ -492,6 +492,13 @@ func (gui *Gui) PrepareSubProcess(command string) {
 	})
 }
 
+func (gui *Gui) PrepareShellSubProcess(command string) {
+	gui.SubProcess = gui.OSCommand.PrepareShellSubProcess(command)
+	gui.g.Update(func(g *gocui.Gui) error {
+		return gui.Errors.ErrSubProcess
+	})
+}
+
 func (gui *Gui) editFile(filename string) error {
 	_, err := gui.runSyncOrAsyncCommand(gui.GitCommand.EditFile(filename))
 	return err
@@ -798,7 +805,7 @@ func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.CustomCommand,
 		handleConfirm: func(command string) error {
-			gui.SubProcess = gui.OSCommand.RunCustomCommand(command)
+			gui.SubProcess = gui.OSCommand.PrepareShellSubProcess(command)
 			return gui.Errors.ErrSubProcess
 		},
 	})
