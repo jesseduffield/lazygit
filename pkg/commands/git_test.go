@@ -2013,7 +2013,7 @@ func TestEditFile(t *testing.T) {
 				return "", nil
 			},
 			func(cmd *exec.Cmd, err error) {
-				assert.EqualError(t, err, "No editor defined in $VISUAL, $EDITOR, or git config")
+				assert.EqualError(t, err, "No editor defined in $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 			},
 		},
 		{
