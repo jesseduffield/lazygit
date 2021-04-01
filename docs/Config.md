@@ -250,7 +250,7 @@ If you have issues with a light terminal theme where you can't read / see the te
 
 ## Struggling to see selected line
 
-If you struggle to see the selected line I recomment using the reverse attribute on selected lines like so:
+If you struggle to see the selected line I recommend using the reverse attribute on selected lines like so:
 
 ```yaml
   gui:
@@ -260,6 +260,10 @@ If you struggle to see the selected line I recomment using the reverse attribute
       selectedRangeBgColor:
         - reverse
 ```
+
+Alternatively you may have bold fonts disabled in your terminal, in which case enabling bold fonts should solve the problem.
+
+If you're still having trouble please raise an issue.
 
 ## Example Coloring
 
