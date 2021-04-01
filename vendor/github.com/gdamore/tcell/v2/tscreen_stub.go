@@ -1,6 +1,6 @@
-// +build nacl plan9
+// +build js plan9 windows
 
-// Copyright 2015 The TCell Authors
+// Copyright 2021 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -16,15 +16,22 @@
 
 package tcell
 
-// This stub file is for systems that have no termios.
+// NB: We might someday wish to move Windows to this model.   However,
+// that would probably mean sacrificing some of the richer key reporting
+// that we can obtain with the console API present on Windows.
 
-type termiosPrivate struct{}
-
-func (t *tScreen) termioInit() error {
+func (t *tScreen) engage() error {
 	return ErrNoScreen
 }
 
-func (t *tScreen) termioFini() {
+func (t *tScreen) disengage() {
+}
+
+func (t *tScreen) initialize() error {
+	return ErrNoScreen
+}
+
+func (t *tScreen) finalize() {
 }
 
 func (t *tScreen) getWinSize() (int, int, error) {

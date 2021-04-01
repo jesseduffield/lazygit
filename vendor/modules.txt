@@ -33,7 +33,7 @@ github.com/fatih/color
 github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.1.0
+# github.com/gdamore/tcell/v2 v2.2.0
 ## explicit
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo
@@ -149,9 +149,11 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20210329130738-e026850021e3
+# github.com/jesseduffield/gocui v0.3.1-0.20210329131148-bcc4dcd991ff
 ## explicit
 github.com/jesseduffield/gocui
+# github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe
+## explicit
 # github.com/jesseduffield/yaml v2.1.0+incompatible
 ## explicit
 github.com/jesseduffield/yaml
@@ -175,7 +177,7 @@ github.com/lucasb-eyer/go-colorful
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
-# github.com/mattn/go-runewidth v0.0.10
+# github.com/mattn/go-runewidth v0.0.12
 ## explicit
 github.com/mattn/go-runewidth
 # github.com/mgutz/str v1.2.0
@@ -233,12 +235,16 @@ golang.org/x/crypto/ssh/knownhosts
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20210217105451-b926d437f341
+# golang.org/x/sys v0.0.0-20210331175145-43e1dd70ce54
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
+# golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
+## explicit
+golang.org/x/term
 # golang.org/x/text v0.3.5
 ## explicit
 golang.org/x/text/encoding

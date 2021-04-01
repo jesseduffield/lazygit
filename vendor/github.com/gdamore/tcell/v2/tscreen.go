@@ -1,4 +1,4 @@
-// Copyright 2020 The TCell Authors
+// Copyright 2021 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -24,6 +24,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"golang.org/x/term"
 	"golang.org/x/text/transform"
 
 	"github.com/gdamore/tcell/v2/terminfo"
@@ -89,7 +90,6 @@ type tScreen struct {
 	evch         chan Event
 	sigwinch     chan os.Signal
 	quit         chan struct{}
-	indoneq      chan struct{}
 	keyexist     map[Key]bool
 	keycodes     map[string]*tKeyCode
 	keychan      chan []byte
@@ -101,7 +101,6 @@ type tScreen struct {
 	clear        bool
 	cursorx      int
 	cursory      int
-	tiosp        *termiosPrivate
 	wasbtn       bool
 	acs          map[rune]string
 	charset      string
@@ -116,13 +115,21 @@ type tScreen struct {
 	finiOnce     sync.Once
 	enablePaste  string
 	disablePaste string
+	saved        *term.State
+	stopQ        chan struct{}
+	wg           sync.WaitGroup
+	mouseFlags   MouseFlags
+	pasteEnabled bool
 
 	sync.Mutex
 }
 
 func (t *tScreen) Init() error {
+	if e := t.initialize(); e != nil {
+		return e
+	}
+
 	t.evch = make(chan Event, 10)
-	t.indoneq = make(chan struct{})
 	t.keychan = make(chan []byte, 10)
 	t.keytimer = time.NewTimer(time.Millisecond * 50)
 	t.charset = "UTF-8"
@@ -145,10 +152,6 @@ func (t *tScreen) Init() error {
 	if i, _ := strconv.Atoi(os.Getenv("COLUMNS")); i != 0 {
 		w = i
 	}
-	if e := t.termioInit(); e != nil {
-		return e
-	}
-
 	if t.ti.SetFgBgRGB != "" || t.ti.SetFgRGB != "" || t.ti.SetBgRGB != "" {
 		t.truecolor = true
 	}
@@ -182,8 +185,9 @@ func (t *tScreen) Init() error {
 	t.resize()
 	t.Unlock()
 
-	go t.mainLoop()
-	go t.inputLoop()
+	if err := t.engage(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -291,7 +295,7 @@ func (t *tScreen) prepareBracketedPaste() {
 		t.disablePaste = t.ti.DisablePaste
 		t.prepareKey(keyPasteStart, t.ti.PasteStart)
 		t.prepareKey(keyPasteEnd, t.ti.PasteEnd)
-	} else if t.ti.MouseMode != "" {
+	} else if t.ti.Mouse != "" {
 		t.enablePaste = "\x1b[?2004h"
 		t.disablePaste = "\x1b[?2004l"
 		t.prepareKey(keyPasteStart, "\x1b[200~")
@@ -470,31 +474,8 @@ func (t *tScreen) Fini() {
 }
 
 func (t *tScreen) finish() {
-	t.Lock()
-	defer t.Unlock()
-
-	ti := t.ti
-	t.cells.Resize(0, 0)
-	t.TPuts(ti.ShowCursor)
-	t.TPuts(ti.AttrOff)
-	t.TPuts(ti.Clear)
-	t.TPuts(ti.ExitCA)
-	t.TPuts(ti.ExitKeypad)
-	t.TPuts(ti.TParm(ti.MouseMode, 0))
-	t.TPuts(t.disablePaste)
-	t.curstyle = styleInvalid
-	t.clear = false
-	t.fini = true
-
-	select {
-	case <-t.quit:
-		// do nothing, already closed
-
-	default:
-		close(t.quit)
-	}
-
-	t.termioFini()
+	close(t.quit)
+	t.finalize()
 }
 
 func (t *tScreen) SetStyle(style Style) {
@@ -834,24 +815,71 @@ func (t *tScreen) draw() {
 	_, _ = t.buf.WriteTo(t.out)
 }
 
-func (t *tScreen) EnableMouse() {
+func (t *tScreen) EnableMouse(flags ...MouseFlags) {
+	var f MouseFlags
+	flagsPresent := false
+	for _, flag := range flags {
+		f |= flag
+		flagsPresent = true
+	}
+	if !flagsPresent {
+		f = MouseMotionEvents
+	}
+
+	t.Lock()
+	t.mouseFlags = f
+	t.enableMouse(f)
+	t.Unlock()
+}
+
+func (t *tScreen) enableMouse(f MouseFlags) {
+	// Rather than using terminfo to find mouse escape sequences, we rely on the fact that
+	// pretty much *every* terminal that supports mouse tracking follows the
+	// XTerm standards (the modern ones).
 	if len(t.mouse) != 0 {
-		t.TPuts(t.ti.TParm(t.ti.MouseMode, 1))
+		// start by disabling all tracking.
+		t.TPuts("\x1b[?1000l\x1b[?1002l\x1b[?1003l\x1b[?1006l")
+		if f&MouseMotionEvents != 0 {
+			t.TPuts("\x1b[?1003h\x1b[?1006h")
+		} else if f&MouseDragEvents != 0 {
+			t.TPuts("\x1b[?1002h\x1b[?1006h")
+		} else if f&MouseButtonEvents != 0 {
+			t.TPuts("\x1b[?1000h\x1b[?1006h")
+		}
 	}
 }
 
 func (t *tScreen) DisableMouse() {
-	if len(t.mouse) != 0 {
-		t.TPuts(t.ti.TParm(t.ti.MouseMode, 0))
-	}
+	t.Lock()
+	t.mouseFlags = 0
+	t.enableMouse(0)
+	t.Unlock()
 }
 
 func (t *tScreen) EnablePaste() {
-	t.TPuts(t.enablePaste)
+	t.Lock()
+	t.pasteEnabled = true
+	t.enablePasting(true)
+	t.Unlock()
 }
 
 func (t *tScreen) DisablePaste() {
-	t.TPuts(t.disablePaste)
+	t.Lock()
+	t.pasteEnabled = false
+	t.enablePasting(false)
+	t.Unlock()
+}
+
+func (t *tScreen) enablePasting(on bool) {
+	var s string
+	if on {
+		s = t.enablePaste
+	} else {
+		s = t.disablePaste
+	}
+	if s != "" {
+		t.TPuts(s)
+	}
 }
 
 func (t *tScreen) Size() (int, int) {
@@ -1405,12 +1433,14 @@ func (t *tScreen) collectEventsFromInput(buf *bytes.Buffer, expire bool) []Event
 	return res
 }
 
-func (t *tScreen) mainLoop() {
+func (t *tScreen) mainLoop(stopQ chan struct{}) {
+	defer t.wg.Done()
 	buf := &bytes.Buffer{}
 	for {
 		select {
+		case <-stopQ:
+			return
 		case <-t.quit:
-			close(t.indoneq)
 			return
 		case <-t.sigwinch:
 			t.Lock()
@@ -1458,19 +1488,26 @@ func (t *tScreen) mainLoop() {
 	}
 }
 
-func (t *tScreen) inputLoop() {
+func (t *tScreen) inputLoop(stopQ chan struct{}) {
 
+	defer t.wg.Done()
 	for {
+		select {
+		case <-stopQ:
+			return
+		default:
+		}
 		chunk := make([]byte, 128)
 		n, e := t.in.Read(chunk)
 		switch e {
-		case io.EOF:
 		case nil:
 		default:
 			_ = t.PostEvent(NewEventError(e))
 			return
 		}
-		t.keychan <- chunk[:n]
+		if n > 0 {
+			t.keychan <- chunk[:n]
+		}
 	}
 }
 
@@ -1542,3 +1579,13 @@ func (t *tScreen) HasKey(k Key) bool {
 }
 
 func (t *tScreen) Resize(int, int, int, int) {}
+
+
+func (t *tScreen) Suspend() error {
+	t.disengage()
+	return nil
+}
+
+func (t *tScreen) Resume() error {
+	return t.engage()
+}
