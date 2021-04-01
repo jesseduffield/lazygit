@@ -315,10 +315,13 @@ func (c *GitCommand) ResetAndClean() error {
 }
 
 // EditFile opens a file in a subprocess using whatever editor is available,
-// falling back to core.editor, VISUAL, EDITOR, then vi
+// falling back to core.editor, GIT_EDITOR, VISUAL, EDITOR, then vi
 func (c *GitCommand) EditFile(filename string) (*exec.Cmd, error) {
 	editor := c.GetConfigValue("core.editor")
 
+	if editor == "" {
+		editor = c.OSCommand.Getenv("GIT_EDITOR")
+	}
 	if editor == "" {
 		editor = c.OSCommand.Getenv("VISUAL")
 	}
@@ -331,7 +334,7 @@ func (c *GitCommand) EditFile(filename string) (*exec.Cmd, error) {
 		}
 	}
 	if editor == "" {
-		return nil, errors.New("No editor defined in $VISUAL, $EDITOR, or git config")
+		return nil, errors.New("No editor defined in $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
 	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, c.OSCommand.Quote(filename)))
