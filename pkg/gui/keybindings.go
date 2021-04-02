@@ -53,8 +53,9 @@ var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyArrowDown:  "▼",
 	gocui.KeyArrowLeft:  "◄",
 	gocui.KeyArrowRight: "►",
-	gocui.KeyTab:        "tab",        // ctrl+i
-	gocui.KeyEnter:      "enter",      // ctrl+m
+	gocui.KeyTab:        "tab",   // ctrl+i
+	gocui.KeyEnter:      "enter", // ctrl+m
+	gocui.KeyAltEnter:   "alt+enter",
 	gocui.KeyEsc:        "esc",        // ctrl+[, ctrl+3
 	gocui.KeyBackspace:  "backspace",  // ctrl+h
 	gocui.KeyCtrlSpace:  "ctrl+space", // ctrl+~, ctrl+2
@@ -133,6 +134,7 @@ var keymap = map[string]interface{}{
 	"<backspace>": gocui.KeyBackspace,
 	"<tab>":       gocui.KeyTab,
 	"<enter>":     gocui.KeyEnter,
+	"<a-enter>":   gocui.KeyAltEnter,
 	"<esc>":       gocui.KeyEsc,
 	"<space>":     gocui.KeySpace,
 	"<f1>":        gocui.KeyF1,
