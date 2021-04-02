@@ -5,6 +5,8 @@
 package gocui
 
 import (
+	"unicode"
+
 	"github.com/go-errors/errors"
 
 	"github.com/mattn/go-runewidth"
@@ -53,12 +55,8 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 		v.MoveCursor(-1, 0, false)
 	case key == KeyArrowRight:
 		v.MoveCursor(1, 0, false)
-	case key == KeyTab:
+	case key == KeyEnter:
 		v.EditNewLine()
-	case key == KeySpace:
-		v.EditWrite(' ')
-	case key == KeyInsert:
-		v.Overwrite = !v.Overwrite
 	case key == KeyCtrlU:
 		v.EditDeleteToStartOfLine()
 	case key == KeyCtrlA:
@@ -66,12 +64,12 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 	case key == KeyCtrlE:
 		v.EditGotoToEndOfLine()
 		matched = true
+
+	// TODO: see if we need all three of these conditions: maybe the final one is sufficient
+	case ch != 0 && mod == 0 && unicode.IsPrint(ch):
+		v.EditWrite(ch)
 	default:
-		if ch != 0 && mod == 0 {
-			v.EditWrite(ch)
-		} else {
-			matched = false
-		}
+		matched = false
 	}
 
 	return matched

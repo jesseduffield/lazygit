@@ -11,7 +11,7 @@ import (
 func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	newlineKey, ok := gui.getKey(gui.Config.GetUserConfig().Keybinding.Universal.AppendNewline).(gocui.Key)
 	if !ok {
-		newlineKey = gocui.KeyTab
+		newlineKey = gocui.KeyAltEnter
 	}
 
 	matched := true

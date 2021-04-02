@@ -297,7 +297,8 @@ const (
 	// In tcell, these are not keys per se. But in gocui we have them
 	// mapped to the keys so we have to use placeholder keys.
 
-	MouseLeft         = Key(tcell.KeyF63) // arbitrary assignments
+	KeyAltEnter       = Key(tcell.KeyF64) // arbitrary assignments
+	MouseLeft         = Key(tcell.KeyF63)
 	MouseRight        = Key(tcell.KeyF62)
 	MouseMiddle       = Key(tcell.KeyF61)
 	MouseRelease      = Key(tcell.KeyF60)

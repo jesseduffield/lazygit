@@ -381,7 +381,7 @@ func GetDefaultConfig() *UserConfig {
 				DiffingMenuAlt:               "<c-e>",
 				CopyToClipboard:              "<c-o>",
 				SubmitEditorText:             "<enter>",
-				AppendNewline:                "<tab>",
+				AppendNewline:                "<a-enter>",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:      "u",

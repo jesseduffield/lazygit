@@ -151,7 +151,14 @@ func pollEvent() GocuiEvent {
 			// - shift - will be translated to the final code of rune
 			// - ctrl  - is translated in the key
 			mod = 0
+		} else if mod == tcell.ModAlt && k == tcell.KeyEnter {
+			// for the sake of convenience I'm having a KeyAltEnter key. I will likely
+			// regret this laziness in the future. We're arbitrarily mapping that to tcell's
+			// KeyF64.
+			mod = 0
+			k = tcell.KeyF64
 		}
+
 		return GocuiEvent{
 			Type: eventKey,
 			Key:  Key(k),
