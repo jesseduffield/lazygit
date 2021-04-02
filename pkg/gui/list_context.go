@@ -135,6 +135,15 @@ func (lc *ListContext) HandleFocus() error {
 
 	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
 
+	if lc.ResetMainViewOriginOnFocus {
+		if err := lc.Gui.resetOrigin(lc.Gui.getMainView()); err != nil {
+			return err
+		}
+		if err := lc.Gui.resetOrigin(lc.Gui.getSecondaryView()); err != nil {
+			return err
+		}
+	}
+
 	if lc.Gui.State.Modes.Diffing.Active() {
 		return lc.Gui.renderDiff()
 	}
@@ -175,15 +184,6 @@ func (lc *ListContext) handleLineChange(change int) error {
 
 	lc.Gui.changeSelectedLine(lc.GetPanelState(), lc.GetItemsLength(), change)
 	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
-
-	if lc.ResetMainViewOriginOnFocus {
-		if err := lc.Gui.resetOrigin(lc.Gui.getMainView()); err != nil {
-			return err
-		}
-		if err := lc.Gui.resetOrigin(lc.Gui.getSecondaryView()); err != nil {
-			return err
-		}
-	}
 
 	return lc.HandleFocus()
 }
