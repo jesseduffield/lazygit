@@ -24,7 +24,7 @@ import (
 // Platform stores the os state
 type Platform struct {
 	OS              string
-	CatCmd          string
+	CatCmd          []string
 	Shell           string
 	ShellArg        string
 	EscapedQuote    string
@@ -96,6 +96,18 @@ func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...inte
 	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
 	if err != nil {
 		c.Log.WithField("command", command).Error(err)
+	}
+	return output, err
+}
+
+func (c *OSCommand) CatFile(filename string) (string, error) {
+	arr := append(c.Platform.CatCmd, filename)
+	cmdStr := strings.Join(arr, " ")
+	c.Log.WithField("command", cmdStr).Info("Cat")
+	cmd := c.Command(arr[0], arr[1:]...)
+	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
+	if err != nil {
+		c.Log.WithField("command", cmdStr).Error(err)
 	}
 	return output, err
 }
