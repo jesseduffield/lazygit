@@ -60,8 +60,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			}
 
 			if customCommand.Subprocess {
-				gui.PrepareShellSubProcess(cmdStr)
-				return nil
+				return gui.runSubprocessWithSuspense(gui.OSCommand.PrepareShellSubProcess(cmdStr))
 			}
 
 			loadingText := customCommand.LoadingText

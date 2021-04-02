@@ -239,7 +239,7 @@ func (app *App) Run() error {
 		os.Exit(0)
 	}
 
-	err := app.Gui.RunWithSubprocesses()
+	err := app.Gui.RunWithRestarts()
 	return err
 }
 
