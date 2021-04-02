@@ -204,30 +204,6 @@ func (gui *Gui) handleMouseDrag(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleMouseScrollUp(g *gocui.Gui, v *gocui.View) error {
-	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
-		if gui.popupPanelFocused() {
-			return nil
-		}
-
-		state.SelectMode = LINE
-
-		return gui.LBLCycleLine(-1, state)
-	})
-}
-
-func (gui *Gui) handleMouseScrollDown(g *gocui.Gui, v *gocui.View) error {
-	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
-		if gui.popupPanelFocused() {
-			return nil
-		}
-
-		state.SelectMode = LINE
-
-		return gui.LBLCycleLine(1, state)
-	})
-}
-
 func (gui *Gui) getSelectedCommitFileName() string {
 	idx := gui.State.Panels.CommitFiles.SelectedLineIdx
 
