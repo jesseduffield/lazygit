@@ -94,8 +94,10 @@ func (gui *Gui) scrollDownView(viewName string) error {
 		if scrollableLines-margin < scrollHeight {
 			scrollHeight = scrollableLines - margin
 		}
-		if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
-			return err
+		if oy+scrollHeight >= 0 {
+			if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
+				return err
+			}
 		}
 	}
 	if manager, ok := gui.viewBufferManagerMap[viewName]; ok {
