@@ -310,7 +310,9 @@ func (app *App) layout(g *gocui.Gui) error {
 			return err
 		}
 	}
-	listView.SetCursor(0, app.itemIdx)
+	if err := listView.SetCursor(0, app.itemIdx); err != nil {
+		return err
+	}
 
 	descriptionView, err := g.SetViewBeneath("description", "list", descriptionViewHeight)
 	if err != nil {
