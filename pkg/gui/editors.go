@@ -40,8 +40,12 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 		v.EditGotoToStartOfLine()
 	case key == gocui.KeyCtrlE:
 		v.EditGotoToEndOfLine()
-	case unicode.IsPrint(ch):
+
+		// TODO: see if we need all three of these conditions: maybe the final one is sufficient
+	case ch != 0 && mod == 0 && unicode.IsPrint(ch):
 		v.EditWrite(ch)
+	default:
+		matched = false
 	}
 
 	gui.RenderCommitLength()
@@ -74,8 +78,12 @@ func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 		v.EditGotoToStartOfLine()
 	case key == gocui.KeyCtrlE:
 		v.EditGotoToEndOfLine()
-	case unicode.IsPrint(ch):
+
+		// TODO: see if we need all three of these conditions: maybe the final one is sufficient
+	case ch != 0 && mod == 0 && unicode.IsPrint(ch):
 		v.EditWrite(ch)
+	default:
+		matched = false
 	}
 
 	if gui.findSuggestions != nil {
