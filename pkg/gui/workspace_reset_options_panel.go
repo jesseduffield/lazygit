@@ -4,10 +4,9 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
 )
 
-func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateResetMenu() error {
 	red := color.New(color.FgRed)
 
 	nukeStr := "reset --hard HEAD && git clean -fd"

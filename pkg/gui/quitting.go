@@ -24,7 +24,7 @@ func (gui *Gui) recordCurrentDirectory() error {
 	return gui.OSCommand.CreateFileWithContent(os.Getenv("LAZYGIT_NEW_DIR_FILE"), dirName)
 }
 
-func (gui *Gui) handleQuitWithoutChangingDirectory(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleQuitWithoutChangingDirectory() error {
 	gui.State.RetainOriginalDir = true
 	return gui.quit()
 }
@@ -34,7 +34,7 @@ func (gui *Gui) handleQuit() error {
 	return gui.quit()
 }
 
-func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleTopLevelReturn() error {
 	currentContext := gui.currentContext()
 
 	parentContext, hasParent := currentContext.GetParentContext()

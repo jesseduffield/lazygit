@@ -150,11 +150,11 @@ func (lc *ListContext) HandleRender() error {
 	return lc.OnRender()
 }
 
-func (lc *ListContext) handlePrevLine(g *gocui.Gui, v *gocui.View) error {
+func (lc *ListContext) handlePrevLine() error {
 	return lc.handleLineChange(-1)
 }
 
-func (lc *ListContext) handleNextLine(g *gocui.Gui, v *gocui.View) error {
+func (lc *ListContext) handleNextLine() error {
 	return lc.handleLineChange(1)
 }
 
@@ -188,7 +188,7 @@ func (lc *ListContext) handleLineChange(change int) error {
 	return lc.HandleFocus()
 }
 
-func (lc *ListContext) handleNextPage(g *gocui.Gui, v *gocui.View) error {
+func (lc *ListContext) handleNextPage() error {
 	view, err := lc.Gui.g.View(lc.ViewName)
 	if err != nil {
 		return nil
@@ -198,15 +198,15 @@ func (lc *ListContext) handleNextPage(g *gocui.Gui, v *gocui.View) error {
 	return lc.handleLineChange(delta)
 }
 
-func (lc *ListContext) handleGotoTop(g *gocui.Gui, v *gocui.View) error {
+func (lc *ListContext) handleGotoTop() error {
 	return lc.handleLineChange(-lc.GetItemsLength())
 }
 
-func (lc *ListContext) handleGotoBottom(g *gocui.Gui, v *gocui.View) error {
+func (lc *ListContext) handleGotoBottom() error {
 	return lc.handleLineChange(lc.GetItemsLength())
 }
 
-func (lc *ListContext) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
+func (lc *ListContext) handlePrevPage() error {
 	view, err := lc.Gui.g.View(lc.ViewName)
 	if err != nil {
 		return nil
@@ -217,13 +217,18 @@ func (lc *ListContext) handlePrevPage(g *gocui.Gui, v *gocui.View) error {
 	return lc.handleLineChange(-delta)
 }
 
-func (lc *ListContext) handleClick(g *gocui.Gui, v *gocui.View) error {
+func (lc *ListContext) handleClick() error {
 	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.popupPanelFocused() {
 		return nil
 	}
 
+	view, err := lc.Gui.g.View(lc.ViewName)
+	if err != nil {
+		return nil
+	}
+
 	prevSelectedLineIdx := lc.GetPanelState().GetSelectedLineIdx()
-	newSelectedLineIdx := v.SelectedLineIdx()
+	newSelectedLineIdx := view.SelectedLineIdx()
 
 	// we need to focus the view
 	if err := lc.Gui.pushContext(lc); err != nil {
@@ -573,7 +578,7 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 				ViewName:    listContext.ViewName,
 				Contexts:    []string{listContext.ContextKey},
 				Key:         gui.getKey(keybindingConfig.Universal.StartSearch),
-				Handler:     openSearchHandler,
+				Handler:     func() error { return openSearchHandler(listContext.ViewName) },
 				Description: gui.Tr.LcStartSearch,
 				Tag:         "navigation",
 			},

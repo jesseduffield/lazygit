@@ -3,8 +3,6 @@ package gui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/jesseduffield/gocui"
 )
 
 func (gui *Gui) exitDiffMode() error {
@@ -102,7 +100,7 @@ func (gui *Gui) diffStr() string {
 	return output
 }
 
-func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}

@@ -3,7 +3,6 @@ package gui
 import (
 	"sync"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -148,7 +147,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 
 // specific functions
 
-func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitSquashDown() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -177,7 +176,7 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitFixup() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -206,7 +205,7 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRenameCommit() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -246,7 +245,7 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRenameCommitEditor() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -295,7 +294,7 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	return true, gui.refreshRebaseCommits()
 }
 
-func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitDelete() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -320,7 +319,7 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitMoveDown() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -347,7 +346,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitMoveUp() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -374,7 +373,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitEdit() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -393,7 +392,7 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitAmendTo() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -410,7 +409,7 @@ func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitPick() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -425,10 +424,10 @@ func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
 
 	// at this point we aren't actually rebasing so we will interpret this as an
 	// attempt to pull. We might revoke this later after enabling configurable keybindings
-	return gui.handlePullFiles(g, v)
+	return gui.handlePullFiles()
 }
 
-func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitRevert() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -449,7 +448,7 @@ func (gui *Gui) handleViewCommitFiles() error {
 	return gui.switchToCommitFilesContext(commit.Sha, true, gui.Contexts.BranchCommits.Context, "commits")
 }
 
-func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateFixupCommit() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -479,7 +478,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleSquashAllAboveFixupCommits() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -508,7 +507,7 @@ func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) er
 	})
 }
 
-func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleTagCommit() error {
 	// TODO: bring up menu asking if you want to make a lightweight or annotated tag
 	// if annotated, switch to a subprocess to create the message
 
@@ -532,7 +531,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 	})
 }
 
-func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckoutCommit() error {
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
@@ -547,7 +546,7 @@ func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateCommitResetMenu() error {
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return gui.createErrorPanel(gui.Tr.NoCommitsThisBranch)
@@ -556,7 +555,7 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 	return gui.createResetMenu(commit.Sha)
 }
 
-func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleOpenSearchForCommitsPanel(_viewName string) error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
@@ -565,10 +564,10 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 		}
 	}
 
-	return gui.handleOpenSearch(gui.g, v)
+	return gui.handleOpenSearch("commits")
 }
 
-func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleGotoBottomForCommitsPanel() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
@@ -579,7 +578,7 @@ func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) err
 
 	for _, context := range gui.getListContexts() {
 		if context.ViewName == "commits" {
-			return context.handleGotoBottom(g, v)
+			return context.handleGotoBottom()
 		}
 	}
 

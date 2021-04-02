@@ -5,7 +5,6 @@ import (
 	"math"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -48,13 +47,13 @@ func prevIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowM
 	return sl[len(sl)-1]
 }
 
-func (gui *Gui) nextScreenMode(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) nextScreenMode() error {
 	gui.State.ScreenMode = nextIntInCycle([]WindowMaximisation{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
 
 	return gui.rerenderViewsWithScreenModeDependentContent()
 }
 
-func (gui *Gui) prevScreenMode(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) prevScreenMode() error {
 	gui.State.ScreenMode = prevIntInCycle([]WindowMaximisation{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
 
 	return gui.rerenderViewsWithScreenModeDependentContent()
@@ -121,70 +120,80 @@ func (gui *Gui) scrollDownMain() error {
 	return gui.scrollDownView("main")
 }
 
-func (gui *Gui) scrollUpSecondary(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) scrollUpSecondary() error {
 	return gui.scrollUpView("secondary")
 }
 
-func (gui *Gui) scrollDownSecondary(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) scrollDownSecondary() error {
 	return gui.scrollDownView("secondary")
 }
 
-func (gui *Gui) scrollUpConfirmationPanel(g *gocui.Gui, v *gocui.View) error {
-	if v.Editable {
+func (gui *Gui) scrollUpConfirmationPanel() error {
+	view := gui.getConfirmationView()
+	if view != nil || view.Editable {
 		return nil
 	}
+
 	return gui.scrollUpView("confirmation")
 }
 
-func (gui *Gui) scrollDownConfirmationPanel(g *gocui.Gui, v *gocui.View) error {
-	if v.Editable {
+func (gui *Gui) scrollDownConfirmationPanel() error {
+	view := gui.getConfirmationView()
+	if view != nil || view.Editable {
 		return nil
 	}
+
 	return gui.scrollDownView("confirmation")
 }
 
-func (gui *Gui) handleRefresh(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRefresh() error {
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
-func (gui *Gui) handleMouseDownMain(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleMouseDownMain() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
-	switch g.CurrentView().Name() {
+	view := gui.getMainView()
+
+	switch gui.g.CurrentView().Name() {
 	case "files":
 		// set filename, set primary/secondary selected, set line number, then switch context
 		// I'll need to know it was changed though.
 		// Could I pass something along to the context change?
-		return gui.enterFile(false, v.SelectedLineIdx())
+		return gui.enterFile(false, view.SelectedLineIdx())
 	case "commitFiles":
-		return gui.enterCommitFile(v.SelectedLineIdx())
+		return gui.enterCommitFile(view.SelectedLineIdx())
 	}
 
 	return nil
 }
 
-func (gui *Gui) handleMouseDownSecondary(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleMouseDownSecondary() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
-	switch g.CurrentView().Name() {
+	view := gui.getSecondaryView()
+
+	switch gui.g.CurrentView().Name() {
 	case "files":
-		return gui.enterFile(true, v.SelectedLineIdx())
+		return gui.enterFile(true, view.SelectedLineIdx())
 	}
 
 	return nil
 }
 
-func (gui *Gui) handleInfoClick(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleInfoClick() error {
 	if !gui.g.Mouse {
 		return nil
 	}
 
-	cx, _ := v.Cursor()
-	width, _ := v.Size()
+	view := gui.getInformationView()
+
+	cx, _ := view.Cursor()
+	width, _ := view.Size()
 
 	for _, mode := range gui.modeStatuses() {
 		if mode.isActive() {

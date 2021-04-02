@@ -39,10 +39,11 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	return userInput + "\n"
 }
 
-func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
-	message := gui.trimmedContent(v)
+func (gui *Gui) handleSubmitCredential() error {
+	credentialsView := gui.getCredentialsView()
+	message := gui.trimmedContent(credentialsView)
 	gui.credentials <- message
-	gui.clearEditorView(v)
+	gui.clearEditorView(credentialsView)
 	if err := gui.returnFromContext(); err != nil {
 		return err
 	}
@@ -50,7 +51,7 @@ func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshSidePanels(refreshOptions{})
 }
 
-func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCloseCredentialsView() error {
 	gui.credentials <- ""
 	return gui.returnFromContext()
 }

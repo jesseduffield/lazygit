@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -57,7 +56,7 @@ func (gui *Gui) handleCommitFileSelect() error {
 	})
 }
 
-func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckoutCommitFile() error {
 	node := gui.getSelectedCommitFileNode()
 	if node == nil {
 		return nil
@@ -70,7 +69,7 @@ func (gui *Gui) handleCheckoutCommitFile(g *gocui.Gui, v *gocui.View) error {
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
-func (gui *Gui) handleDiscardOldFileChange(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleDiscardOldFileChange() error {
 	if ok, err := gui.validateNormalWorkingTreeState(); !ok {
 		return err
 	}
@@ -111,7 +110,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 	return gui.postRefreshUpdate(gui.Contexts.CommitFiles.Context)
 }
 
-func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleOpenOldCommitFile() error {
 	node := gui.getSelectedCommitFileNode()
 	if node == nil {
 		return nil
@@ -120,7 +119,7 @@ func (gui *Gui) handleOpenOldCommitFile(g *gocui.Gui, v *gocui.View) error {
 	return gui.openFile(node.GetPath())
 }
 
-func (gui *Gui) handleEditCommitFile(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEditCommitFile() error {
 	node := gui.getSelectedCommitFileNode()
 	if node == nil {
 		return nil
@@ -133,7 +132,7 @@ func (gui *Gui) handleEditCommitFile(g *gocui.Gui, v *gocui.View) error {
 	return gui.editFile(node.GetPath())
 }
 
-func (gui *Gui) handleToggleFileForPatch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleToggleFileForPatch() error {
 	node := gui.getSelectedCommitFileNode()
 	if node == nil {
 		return nil
@@ -195,7 +194,7 @@ func (gui *Gui) startPatchManager() error {
 	return nil
 }
 
-func (gui *Gui) handleEnterCommitFile(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEnterCommitFile() error {
 	return gui.enterCommitFile(-1)
 }
 

@@ -3,14 +3,18 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) handleOpenSearch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleOpenSearch(viewName string) error {
+	view, err := gui.g.View(viewName)
+	if err != nil {
+		return nil
+	}
+
 	gui.State.Searching.isSearching = true
-	gui.State.Searching.view = v
+	gui.State.Searching.view = view
 
 	gui.renderString("search", "")
 
@@ -21,7 +25,7 @@ func (gui *Gui) handleOpenSearch(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) handleSearch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleSearch() error {
 	gui.State.Searching.searchString = gui.getSearchView().Buffer()
 	if err := gui.returnFromContext(); err != nil {
 		return err
@@ -92,7 +96,7 @@ func (gui *Gui) onSearchEscape() error {
 	return nil
 }
 
-func (gui *Gui) handleSearchEscape(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleSearchEscape() error {
 	if err := gui.onSearchEscape(); err != nil {
 		return err
 	}

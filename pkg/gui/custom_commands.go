@@ -198,7 +198,7 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 			Contexts:    contexts,
 			Key:         gui.getKey(customCommand.Key),
 			Modifier:    gocui.ModNone,
-			Handler:     gui.wrappedHandler(gui.handleCustomCommandKeybinding(customCommand)),
+			Handler:     gui.handleCustomCommandKeybinding(customCommand),
 			Description: description,
 		})
 	}

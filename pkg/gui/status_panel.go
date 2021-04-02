@@ -56,12 +56,12 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 	return cx >= runeCount(prefix) && cx < runeCount(prefix+substring)
 }
 
-func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckForUpdate() error {
 	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
 	return gui.createLoaderPanel(gui.Tr.CheckingForUpdates)
 }
 
-func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStatusClick() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
 	if gui.popupPanelFocused() {
 		return nil
@@ -77,7 +77,7 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
-	cx, _ := v.Cursor()
+	cx, _ := gui.getStatusView().Cursor()
 	upstreamStatus := fmt.Sprintf("↑%s↓%s", currentBranch.Pushables, currentBranch.Pullables)
 	repoName := utils.GetCurrentRepoName()
 	switch gui.GitCommand.WorkingTreeState() {
@@ -126,11 +126,11 @@ func (gui *Gui) handleStatusSelect() error {
 	})
 }
 
-func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleOpenConfig() error {
 	return gui.openFile(gui.Config.GetUserConfigPath())
 }
 
-func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEditConfig() error {
 	filename := gui.Config.GetUserConfigPath()
 	return gui.editFile(filename)
 }

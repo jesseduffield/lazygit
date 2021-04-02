@@ -317,6 +317,12 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 	return nil
 }
 
+func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return f()
+	}
+}
+
 func (gui *Gui) createErrorPanel(message string) error {
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))

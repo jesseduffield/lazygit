@@ -42,8 +42,8 @@ func (gui *Gui) getMenuOptions() map[string]string {
 	}
 }
 
-func (gui *Gui) handleMenuClose(g *gocui.Gui, v *gocui.View) error {
-	_ = g.DeleteView("menu")
+func (gui *Gui) handleMenuClose() error {
+	_ = gui.g.DeleteView("menu")
 	return gui.returnFromContext()
 }
 

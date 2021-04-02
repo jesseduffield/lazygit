@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
@@ -39,7 +38,7 @@ func (gui *Gui) handleSubCommitSelect() error {
 	})
 }
 
-func (gui *Gui) handleCheckoutSubCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckoutSubCommit() error {
 	commit := gui.getSelectedSubCommit()
 	if commit == nil {
 		return nil

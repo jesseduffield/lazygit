@@ -3,7 +3,6 @@ package gui
 import (
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 )
 
@@ -60,11 +59,11 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	return nil
 }
 
-func (gui *Gui) handleTogglePanelClick(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleTogglePanelClick() error {
 	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
 		state.SecondaryFocused = !state.SecondaryFocused
 
-		return gui.refreshStagingPanel(false, v.SelectedLineIdx(), state)
+		return gui.refreshStagingPanel(false, gui.getSecondaryView().SelectedLineIdx(), state)
 	})
 }
 

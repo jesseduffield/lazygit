@@ -45,8 +45,13 @@ func (gui *Gui) displayDescription(binding *Binding) string {
 	return commandColor.Sprint(binding.Description)
 }
 
-func (gui *Gui) handleCreateOptionsMenu(g *gocui.Gui, v *gocui.View) error {
-	bindings := gui.getBindings(v)
+func (gui *Gui) handleCreateOptionsMenu() error {
+	view := gui.g.CurrentView()
+	if view == nil {
+		return nil
+	}
+
+	bindings := gui.getBindings(view)
 
 	menuItems := make([]*menuItem, len(bindings))
 
@@ -58,10 +63,10 @@ func (gui *Gui) handleCreateOptionsMenu(g *gocui.Gui, v *gocui.View) error {
 				if binding.Key == nil {
 					return nil
 				}
-				if err := gui.handleMenuClose(g, v); err != nil {
+				if err := gui.handleMenuClose(); err != nil {
 					return err
 				}
-				return binding.Handler(g, v)
+				return binding.Handler()
 			},
 		}
 	}

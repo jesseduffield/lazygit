@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -45,7 +44,7 @@ func (gui *Gui) refreshStashEntries() error {
 
 // specific functions
 
-func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStashApply() error {
 	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
 
 	apply := func() error {
@@ -65,7 +64,7 @@ func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStashPop() error {
 	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
 
 	pop := func() error {
@@ -85,7 +84,7 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStashDrop() error {
 	return gui.ask(askOpts{
 		title:  gui.Tr.StashDrop,
 		prompt: gui.Tr.SureDropStashEntry,

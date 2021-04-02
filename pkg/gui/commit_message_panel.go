@@ -26,8 +26,9 @@ func (gui *Gui) runSyncOrAsyncCommand(sub *exec.Cmd, err error) (bool, error) {
 	return true, nil
 }
 
-func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
-	message := gui.trimmedContent(v)
+func (gui *Gui) handleCommitConfirm() error {
+	commitMessageView := gui.getCommitMessageView()
+	message := gui.trimmedContent(commitMessageView)
 	if message == "" {
 		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
@@ -44,12 +45,12 @@ func (gui *Gui) handleCommitConfirm(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	gui.clearEditorView(v)
+	gui.clearEditorView(commitMessageView)
 	_ = gui.returnFromContext()
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
-func (gui *Gui) handleCommitClose(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitClose() error {
 	return gui.returnFromContext()
 }
 
