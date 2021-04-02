@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -39,16 +38,16 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 	})
 }
 
-func (gui *Gui) handleRemoteBranchesEscape(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRemoteBranchesEscape() error {
 	return gui.pushContext(gui.Contexts.Remotes.Context)
 }
 
-func (gui *Gui) handleMergeRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleMergeRemoteBranch() error {
 	selectedBranchName := gui.getSelectedRemoteBranch().FullName()
 	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
 }
 
-func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleDeleteRemoteBranch() error {
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {
 		return nil
@@ -69,12 +68,12 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleRebaseOntoRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRebaseOntoRemoteBranch() error {
 	selectedBranchName := gui.getSelectedRemoteBranch().FullName()
 	return gui.handleRebaseOntoBranch(selectedBranchName)
 }
 
-func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleSetBranchUpstream() error {
 	selectedBranch := gui.getSelectedRemoteBranch()
 	checkedOutBranch := gui.getCheckedOutBranch()
 
@@ -99,7 +98,7 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCreateResetToRemoteBranchMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateResetToRemoteBranchMenu() error {
 	selectedBranch := gui.getSelectedRemoteBranch()
 	if selectedBranch == nil {
 		return nil

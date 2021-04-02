@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -48,7 +47,7 @@ func (gui *Gui) refreshTags() error {
 	return gui.postRefreshUpdate(gui.Contexts.Tags.Context)
 }
 
-func (gui *Gui) handleCheckoutTag(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckoutTag() error {
 	tag := gui.getSelectedTag()
 	if tag == nil {
 		return nil
@@ -59,7 +58,7 @@ func (gui *Gui) handleCheckoutTag(g *gocui.Gui, v *gocui.View) error {
 	return gui.pushContext(gui.Contexts.Branches.Context)
 }
 
-func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleDeleteTag() error {
 	tag := gui.getSelectedTag()
 	if tag == nil {
 		return nil
@@ -84,7 +83,7 @@ func (gui *Gui) handleDeleteTag(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handlePushTag() error {
 	tag := gui.getSelectedTag()
 	if tag == nil {
 		return nil
@@ -111,7 +110,7 @@ func (gui *Gui) handlePushTag(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateTag() error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.CreateTagTitle,
 		handleConfirm: func(tagName string) error {
@@ -137,7 +136,7 @@ func (gui *Gui) handleCreateTag(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCreateResetToTagMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateResetToTagMenu() error {
 	tag := gui.getSelectedTag()
 	if tag == nil {
 		return nil

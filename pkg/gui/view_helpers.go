@@ -251,6 +251,16 @@ func (gui *Gui) getCommitFilesView() *gocui.View {
 	return v
 }
 
+func (gui *Gui) getCommitsView() *gocui.View {
+	v, _ := gui.g.View("commits")
+	return v
+}
+
+func (gui *Gui) getCredentialsView() *gocui.View {
+	v, _ := gui.g.View("commits")
+	return v
+}
+
 func (gui *Gui) getCommitMessageView() *gocui.View {
 	v, _ := gui.g.View("commitMessage")
 	return v
@@ -304,6 +314,11 @@ func (gui *Gui) getStatusView() *gocui.View {
 }
 
 func (gui *Gui) getConfirmationView() *gocui.View {
+	v, _ := gui.g.View("confirmation")
+	return v
+}
+
+func (gui *Gui) getInformationView() *gocui.View {
 	v, _ := gui.g.View("confirmation")
 	return v
 }
@@ -403,15 +418,6 @@ func (gui *Gui) popupPanelFocused() bool {
 	return gui.isPopupPanel(gui.currentViewName())
 }
 
-// often gocui wants functions in the form `func(g *gocui.Gui, v *gocui.View) error`
-// but sometimes we just have a function that returns an error, so this is a
-// convenience wrapper to give gocui what it wants.
-func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View) error {
-	return func(g *gocui.Gui, v *gocui.View) error {
-		return f()
-	}
-}
-
 // secondaryViewFocused tells us whether it appears that the secondary view is focused. The view is actually never focused for real: we just swap the main and secondary views and then you're still focused on the main view so that we can give you access to all its keybindings for free. I will probably regret this design decision soon enough.
 func (gui *Gui) secondaryViewFocused() bool {
 	state := gui.State.Panels.LineByLine
@@ -430,14 +436,24 @@ func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
 	return gui.pushContext(context)
 }
 
-func (gui *Gui) handleNextTab(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleNextTab() error {
+	v := gui.g.CurrentView()
+	if v != nil {
+		return nil
+	}
+
 	return gui.onViewTabClick(
 		v.Name(),
 		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
 	)
 }
 
-func (gui *Gui) handlePrevTab(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handlePrevTab() error {
+	v := gui.g.CurrentView()
+	if v != nil {
+		return nil
+	}
+
 	return gui.onViewTabClick(
 		v.Name(),
 		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -84,7 +83,7 @@ func (gui *Gui) handleRemoteEnter() error {
 	return gui.pushContext(gui.Contexts.Remotes.Branches.Context)
 }
 
-func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleAddRemote() error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.LcNewRemoteName,
 		handleConfirm: func(remoteName string) error {
@@ -102,7 +101,7 @@ func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
 
 }
 
-func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRemoveRemote() error {
 	remote := gui.getSelectedRemote()
 	if remote == nil {
 		return nil
@@ -121,7 +120,7 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEditRemote() error {
 	remote := gui.getSelectedRemote()
 	if remote == nil {
 		return nil
@@ -171,7 +170,7 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleFetchRemote() error {
 	remote := gui.getSelectedRemote()
 	if remote == nil {
 		return nil

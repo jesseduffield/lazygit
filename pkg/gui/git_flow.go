@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -37,7 +36,7 @@ func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) err
 	return gui.Errors.ErrSubProcess
 }
 
-func (gui *Gui) handleCreateGitFlowMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateGitFlowMenu() error {
 	branch := gui.getSelectedBranch()
 	if branch == nil {
 		return nil

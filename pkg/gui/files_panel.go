@@ -183,7 +183,7 @@ func (gui *Gui) stageSelectedFile() error {
 	return gui.GitCommand.StageFile(file.Name)
 }
 
-func (gui *Gui) handleEnterFile(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEnterFile() error {
 	return gui.enterFile(false, -1)
 }
 
@@ -277,7 +277,7 @@ func (gui *Gui) focusAndSelectFile() error {
 	return gui.selectFile(false)
 }
 
-func (gui *Gui) handleStageAll(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStageAll() error {
 	var err error
 	if gui.allFilesStaged() {
 		err = gui.GitCommand.UnstageAll()
@@ -350,7 +350,7 @@ func (gui *Gui) handleIgnoreFile() error {
 	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}})
 }
 
-func (gui *Gui) handleWIPCommitPress(g *gocui.Gui, filesView *gocui.View) error {
+func (gui *Gui) handleWIPCommitPress() error {
 	skipHookPreifx := gui.Config.GetUserConfig().Git.SkipHookPrefix
 	if skipHookPreifx == "" {
 		return gui.createErrorPanel(gui.Tr.SkipHookPrefixNotConfigured)
@@ -500,7 +500,7 @@ func (gui *Gui) editFile(filename string) error {
 	return err
 }
 
-func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleFileEdit() error {
 	node := gui.getSelectedFileNode()
 	if node == nil {
 		return nil
@@ -513,7 +513,7 @@ func (gui *Gui) handleFileEdit(g *gocui.Gui, v *gocui.View) error {
 	return gui.editFile(node.GetPath())
 }
 
-func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleFileOpen() error {
 	node := gui.getSelectedFileNode()
 	if node == nil {
 		return nil
@@ -522,7 +522,7 @@ func (gui *Gui) handleFileOpen(g *gocui.Gui, v *gocui.View) error {
 	return gui.openFile(node.GetPath())
 }
 
-func (gui *Gui) handleRefreshFiles(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRefreshFiles() error {
 	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}})
 }
 
@@ -615,7 +615,7 @@ func (gui *Gui) findNewSelectedIdx(prevNodes []*filetree.FileNode, currNodes []*
 	return -1
 }
 
-func (gui *Gui) handlePullFiles(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handlePullFiles() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
@@ -706,7 +706,7 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 	}
 }
 
-func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, args string) error {
+func (gui *Gui) pushWithForceFlag(force bool, upstream string, args string) error {
 	if err := gui.createLoaderPanel(gui.Tr.PushWait); err != nil {
 		return err
 	}
@@ -723,7 +723,7 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 				title:  gui.Tr.ForcePush,
 				prompt: gui.Tr.ForcePushPrompt,
 				handleConfirm: func() error {
-					return gui.pushWithForceFlag(v, true, upstream, args)
+					return gui.pushWithForceFlag(true, upstream, args)
 				},
 			})
 			return
@@ -734,7 +734,7 @@ func (gui *Gui) pushWithForceFlag(v *gocui.View, force bool, upstream string, ar
 	return nil
 }
 
-func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) pushFiles() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
@@ -750,23 +750,23 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		}
 		for branchName, branch := range conf.Branches {
 			if branchName == currentBranch.Name {
-				return gui.pushWithForceFlag(v, false, "", fmt.Sprintf("%s %s", branch.Remote, branchName))
+				return gui.pushWithForceFlag(false, "", fmt.Sprintf("%s %s", branch.Remote, branchName))
 			}
 		}
 
 		if gui.GitCommand.PushToCurrent {
-			return gui.pushWithForceFlag(v, false, "", "--set-upstream")
+			return gui.pushWithForceFlag(false, "", "--set-upstream")
 		} else {
 			return gui.prompt(promptOpts{
 				title:          gui.Tr.EnterUpstream,
 				initialContent: "origin " + currentBranch.Name,
 				handleConfirm: func(response string) error {
-					return gui.pushWithForceFlag(v, false, response, "")
+					return gui.pushWithForceFlag(false, response, "")
 				},
 			})
 		}
 	} else if currentBranch.Pullables == "0" {
-		return gui.pushWithForceFlag(v, false, "", "")
+		return gui.pushWithForceFlag(false, "", "")
 	}
 
 	forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
@@ -778,7 +778,7 @@ func (gui *Gui) pushFiles(g *gocui.Gui, v *gocui.View) error {
 		title:  gui.Tr.ForcePush,
 		prompt: gui.Tr.ForcePushPrompt,
 		handleConfirm: func() error {
-			return gui.pushWithForceFlag(v, true, "", "")
+			return gui.pushWithForceFlag(true, "", "")
 		},
 	})
 }
@@ -812,7 +812,7 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 	return false
 }
 
-func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCustomCommand() error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.CustomCommand,
 		handleConfirm: func(command string) error {
@@ -822,7 +822,7 @@ func (gui *Gui) handleCustomCommand(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCreateStashMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateStashMenu() error {
 	menuItems := []*menuItem{
 		{
 			displayString: gui.Tr.LcStashAllChanges,
@@ -841,11 +841,11 @@ func (gui *Gui) handleCreateStashMenu(g *gocui.Gui, v *gocui.View) error {
 	return gui.createMenu(gui.Tr.LcStashOptions, menuItems, createMenuOptions{showCancel: true})
 }
 
-func (gui *Gui) handleStashChanges(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStashChanges() error {
 	return gui.handleStashSave(gui.GitCommand.StashSave)
 }
 
-func (gui *Gui) handleCreateResetToUpstreamMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateResetToUpstreamMenu() error {
 	return gui.createResetMenu("@{upstream}")
 }
 

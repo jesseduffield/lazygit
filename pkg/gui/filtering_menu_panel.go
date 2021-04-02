@@ -3,17 +3,15 @@ package gui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/jesseduffield/gocui"
 )
 
-func (gui *Gui) handleCreateFilteringMenuPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateFilteringMenuPanel() error {
 	if gui.popupPanelFocused() {
 		return nil
 	}
 
 	fileName := ""
-	switch v.Name() {
+	switch gui.currentViewName() {
 	case "files":
 		node := gui.getSelectedFileNode()
 		if node != nil {

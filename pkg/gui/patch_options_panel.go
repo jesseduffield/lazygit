@@ -3,11 +3,10 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
-func (gui *Gui) handleCreatePatchOptionsMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreatePatchOptionsMenu() error {
 	if !gui.GitCommand.PatchManager.Active() {
 		return gui.createErrorPanel(gui.Tr.NoPatchError)
 	}

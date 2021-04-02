@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -179,17 +178,15 @@ func (gui *Gui) handleSubmoduleInit(submodule *models.SubmoduleConfig) error {
 	})
 }
 
-func (gui *Gui) forSubmodule(callback func(*models.SubmoduleConfig) error) func(g *gocui.Gui, v *gocui.View) error {
-	return gui.wrappedHandler(
-		func() error {
-			submodule := gui.getSelectedSubmodule()
-			if submodule == nil {
-				return nil
-			}
+func (gui *Gui) forSubmodule(callback func(*models.SubmoduleConfig) error) func() error {
+	return func() error {
+		submodule := gui.getSelectedSubmodule()
+		if submodule == nil {
+			return nil
+		}
 
-			return callback(submodule)
-		},
-	)
+		return callback(submodule)
+	}
 }
 
 func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) error {

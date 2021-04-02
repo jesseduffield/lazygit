@@ -178,13 +178,13 @@ func (gui *Gui) LBLSelectLine(newSelectedLineIdx int, state *lBlPanelState) erro
 	return gui.focusSelection(false, state)
 }
 
-func (gui *Gui) handleLBLMouseDown(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleLBLMouseDown() error {
 	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
 		if gui.popupPanelFocused() {
 			return nil
 		}
 
-		newSelectedLineIdx := v.SelectedLineIdx()
+		newSelectedLineIdx := gui.getMainView().SelectedLineIdx()
 		state.FirstLineIdx = newSelectedLineIdx
 		state.LastLineIdx = newSelectedLineIdx
 
@@ -194,13 +194,37 @@ func (gui *Gui) handleLBLMouseDown(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleMouseDrag(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleMouseDrag() error {
 	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
 		if gui.popupPanelFocused() {
 			return nil
 		}
 
-		return gui.LBLSelectLine(v.SelectedLineIdx(), state)
+		return gui.LBLSelectLine(gui.getMainView().SelectedLineIdx(), state)
+	})
+}
+
+func (gui *Gui) handleMouseScrollUp() error {
+	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+		if gui.popupPanelFocused() {
+			return nil
+		}
+
+		state.SelectMode = LINE
+
+		return gui.LBLCycleLine(-1, state)
+	})
+}
+
+func (gui *Gui) handleMouseScrollDown() error {
+	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+		if gui.popupPanelFocused() {
+			return nil
+		}
+
+		state.SelectMode = LINE
+
+		return gui.LBLCycleLine(1, state)
 	})
 }
 

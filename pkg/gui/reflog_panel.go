@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -83,7 +82,7 @@ func (gui *Gui) refreshReflogCommits() error {
 	return gui.postRefreshUpdate(gui.Contexts.ReflogCommits.Context)
 }
 
-func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckoutReflogCommit() error {
 	commit := gui.getSelectedReflogCommit()
 	if commit == nil {
 		return nil
@@ -105,7 +104,7 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateReflogResetMenu() error {
 	commit := gui.getSelectedReflogCommit()
 
 	return gui.createResetMenu(commit.Sha)
