@@ -11,17 +11,13 @@ import (
 
 // runSyncOrAsyncCommand takes the output of a command that may have returned
 // either no error, an error, or a subprocess to execute, and if a subprocess
-// needs to be set on the gui object, it does so, and then returns the error
-// the bool returned tells us whether the calling code should continue
+// needs to be run, it runs it
 func (gui *Gui) runSyncOrAsyncCommand(sub *exec.Cmd, err error) (bool, error) {
 	if err != nil {
-		if err != gui.Errors.ErrSubProcess {
-			return false, gui.surfaceError(err)
-		}
+		return false, gui.surfaceError(err)
 	}
 	if sub != nil {
-		gui.SubProcess = sub
-		return false, gui.Errors.ErrSubProcess
+		return false, gui.runSubprocessWithSuspense(sub)
 	}
 	return true, nil
 }

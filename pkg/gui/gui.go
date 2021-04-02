@@ -476,10 +476,9 @@ func (gui *Gui) Run() error {
 	return err
 }
 
-// RunWithSubprocesses loops, instantiating a new gocui.Gui with each iteration
-// if the error returned from a run is a ErrSubProcess, it runs the subprocess
-// otherwise it handles the error, possibly by quitting the application
-func (gui *Gui) RunWithSubprocesses() error {
+// RunWithRestarts loops, instantiating a new gocui.Gui with each iteration
+// (i.e. when switching repos or restarting). If it's a random error, we quit
+func (gui *Gui) RunWithRestarts() error {
 	gui.StartTime = time.Now()
 	go utils.Safe(gui.replayRecordedEvents)
 
@@ -512,11 +511,6 @@ func (gui *Gui) RunWithSubprocesses() error {
 				return nil
 			case gui.Errors.ErrSwitchRepo, gui.Errors.ErrRestart:
 				continue
-			case gui.Errors.ErrSubProcess:
-
-				if err := gui.runCommand(); err != nil {
-					return err
-				}
 			default:
 				return err
 			}
@@ -524,23 +518,40 @@ func (gui *Gui) RunWithSubprocesses() error {
 	}
 }
 
-func (gui *Gui) runCommand() error {
-	gui.SubProcess.Stdout = os.Stdout
-	gui.SubProcess.Stderr = os.Stdout
-	gui.SubProcess.Stdin = os.Stdin
+func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) error {
+	if err := gocui.Screen.Suspend(); err != nil {
+		return gui.surfaceError(err)
+	}
 
-	fmt.Fprintf(os.Stdout, "\n%s\n\n", utils.ColoredString("+ "+strings.Join(gui.SubProcess.Args, " "), color.FgBlue))
+	cmdErr := gui.runSubprocess(subprocess)
 
-	if err := gui.SubProcess.Run(); err != nil {
+	if err := gocui.Screen.Resume(); err != nil {
+		return gui.surfaceError(err)
+	}
+
+	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+		return err
+	}
+
+	return gui.surfaceError(cmdErr)
+}
+
+func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
+	subprocess.Stdout = os.Stdout
+	subprocess.Stderr = os.Stdout
+	subprocess.Stdin = os.Stdin
+
+	fmt.Fprintf(os.Stdout, "\n%s\n\n", utils.ColoredString("+ "+strings.Join(subprocess.Args, " "), color.FgBlue))
+
+	if err := subprocess.Run(); err != nil {
 		// not handling the error explicitly because usually we're going to see it
 		// in the output anyway
 		gui.Log.Error(err)
 	}
 
-	gui.SubProcess.Stdout = ioutil.Discard
-	gui.SubProcess.Stderr = ioutil.Discard
-	gui.SubProcess.Stdin = nil
-	gui.SubProcess = nil
+	subprocess.Stdout = ioutil.Discard
+	subprocess.Stderr = ioutil.Discard
+	subprocess.Stdin = nil
 
 	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.PressEnterToReturn, color.FgGreen))
 	fmt.Scanln() // wait for enter press

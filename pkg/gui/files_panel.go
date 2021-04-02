@@ -17,7 +17,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/mgutz/str"
 )
 
 // list panel functions
@@ -475,24 +474,9 @@ func (gui *Gui) handleCommitEditorPress() error {
 		return gui.promptToStageAllAndRetry(gui.handleCommitEditorPress)
 	}
 
-	gui.PrepareSubProcess("git commit")
-	return nil
-}
-
-// PrepareSubProcess - prepare a subprocess for execution and tell the gui to switch to it
-func (gui *Gui) PrepareSubProcess(command string) {
-	splitCmd := str.ToArgv(command)
-	gui.SubProcess = gui.OSCommand.PrepareSubProcess(splitCmd[0], splitCmd[1:]...)
-	gui.g.Update(func(g *gocui.Gui) error {
-		return gui.Errors.ErrSubProcess
-	})
-}
-
-func (gui *Gui) PrepareShellSubProcess(command string) {
-	gui.SubProcess = gui.OSCommand.PrepareShellSubProcess(command)
-	gui.g.Update(func(g *gocui.Gui) error {
-		return gui.Errors.ErrSubProcess
-	})
+	return gui.runSubprocessWithSuspense(
+		gui.OSCommand.PrepareSubProcess("git", "commit"),
+	)
 }
 
 func (gui *Gui) editFile(filename string) error {
@@ -816,8 +800,9 @@ func (gui *Gui) handleCustomCommand() error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.CustomCommand,
 		handleConfirm: func(command string) error {
-			gui.SubProcess = gui.OSCommand.PrepareShellSubProcess(command)
-			return gui.Errors.ErrSubProcess
+			return gui.runSubprocessWithSuspense(
+				gui.OSCommand.PrepareShellSubProcess(command),
+			)
 		},
 	})
 }

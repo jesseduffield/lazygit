@@ -31,9 +31,9 @@ func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) err
 		return gui.createErrorPanel(gui.Tr.NotAGitFlowBranch)
 	}
 
-	subProcess := gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "finish", suffix)
-	gui.SubProcess = subProcess
-	return gui.Errors.ErrSubProcess
+	return gui.runSubprocessWithSuspense(
+		gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "finish", suffix),
+	)
 }
 
 func (gui *Gui) handleCreateGitFlowMenu() error {
@@ -55,9 +55,9 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 			return gui.prompt(promptOpts{
 				title: title,
 				handleConfirm: func(name string) error {
-					subProcess := gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "start", name)
-					gui.SubProcess = subProcess
-					return gui.Errors.ErrSubProcess
+					return gui.runSubprocessWithSuspense(
+						gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "start", name),
+					)
 				},
 			})
 		}
