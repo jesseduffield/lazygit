@@ -533,10 +533,6 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
-	if err := g.flush(); err != nil {
-		return err
-	}
-
 	go func() {
 		for {
 			select {
@@ -552,9 +548,6 @@ func (g *Gui) MainLoop() error {
 		Screen.EnableMouse()
 	}
 
-	if err := g.flush(); err != nil {
-		return err
-	}
 	for {
 		select {
 		case ev := <-g.gEvents:
@@ -619,7 +612,8 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 
 // flush updates the gui, re-drawing frames and buffers.
 func (g *Gui) flush() error {
-	g.clear(g.FgColor, g.BgColor)
+	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
+	// g.clear(g.FgColor, g.BgColor)
 
 	maxX, maxY := Screen.Size()
 	// if GUI's size has changed, we need to redraw all views
@@ -690,7 +684,7 @@ func (g *Gui) flush() error {
 }
 
 func (g *Gui) clear(fg, bg Attribute) (int, int) {
-	st := getTcellStyle(fg, bg, g.outputMode)
+	st := getTcellStyle(oldStyle{fg: fg, bg: bg, outputMode: g.outputMode})
 	w, h := Screen.Size()
 	for row := 0; row < h; row++ {
 		for col := 0; col < w; col++ {

@@ -11,6 +11,17 @@ import (
 // We probably don't want this being a global variable for YOLO for now
 var Screen tcell.Screen
 
+// oldStyle is a representation of how a cell would be styled when we were using termbox
+type oldStyle struct {
+	fg         Attribute
+	bg         Attribute
+	outputMode OutputMode
+}
+
+// we're using this cache to speed up rendering, because obtaining the tcell style
+// from the old style is deterministic
+var cellStyleCache map[oldStyle]tcell.Style = map[oldStyle]tcell.Style{}
+
 // tcellInit initializes tcell screen for use.
 func tcellInit() error {
 	if s, e := tcell.NewScreen(); e != nil {
@@ -25,24 +36,30 @@ func tcellInit() error {
 
 // tcellSetCell sets the character cell at a given location to the given
 // content (rune) and attributes using provided OutputMode
-func tcellSetCell(x, y int, ch rune, fg, bg Attribute, omode OutputMode) {
-	st := getTcellStyle(fg, bg, omode)
+func tcellSetCell(x, y int, ch rune, fg, bg Attribute, outputMode OutputMode) {
+	st := getTcellStyle(oldStyle{fg: fg, bg: bg, outputMode: outputMode})
 	Screen.SetContent(x, y, ch, nil, st)
 }
 
 // getTcellStyle creates tcell.Style from Attributes
-func getTcellStyle(fg, bg Attribute, omode OutputMode) tcell.Style {
+func getTcellStyle(input oldStyle) tcell.Style {
+	if cachedResult, ok := cellStyleCache[input]; ok {
+		return cachedResult
+	}
+
 	st := tcell.StyleDefault
 
 	// extract colors and attributes
-	if fg != ColorDefault {
-		st = st.Foreground(getTcellColor(fg, omode))
-		st = setTcellFontEffectStyle(st, fg)
+	if input.fg != ColorDefault {
+		st = st.Foreground(getTcellColor(input.fg, input.outputMode))
+		st = setTcellFontEffectStyle(st, input.fg)
 	}
-	if bg != ColorDefault {
-		st = st.Background(getTcellColor(bg, omode))
-		st = setTcellFontEffectStyle(st, bg)
+	if input.bg != ColorDefault {
+		st = st.Background(getTcellColor(input.bg, input.outputMode))
+		st = setTcellFontEffectStyle(st, input.bg)
 	}
+
+	cellStyleCache[input] = st
 
 	return st
 }
