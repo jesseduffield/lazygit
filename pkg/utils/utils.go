@@ -362,7 +362,7 @@ func ResolveTemplate(templateStr string, object interface{}) (string, error) {
 	return buf.String(), nil
 }
 
-// Safe will close termbox if a panic occurs so that we don't end up in a malformed
+// Safe will close tcell if a panic occurs so that we don't end up in a malformed
 // terminal state
 func Safe(f func()) {
 	panicking := true
