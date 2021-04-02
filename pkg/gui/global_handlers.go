@@ -77,12 +77,24 @@ func (gui *Gui) scrollDownView(viewName string) error {
 	}
 	ox, oy := mainView.Origin()
 	y := oy
-	if !gui.Config.GetUserConfig().Gui.ScrollPastBottom {
+	canScrollPastBottom := gui.Config.GetUserConfig().Gui.ScrollPastBottom
+	if !canScrollPastBottom {
 		_, sy := mainView.Size()
 		y += sy
 	}
 	scrollHeight := gui.Config.GetUserConfig().Gui.ScrollHeight
-	if y < mainView.LinesHeight() {
+	scrollableLines := mainView.ViewLinesHeight() - y
+	if scrollableLines > 0 {
+		// margin is about how many lines must still appear if you scroll
+		// all the way down. In practice every file ends in a newline so it will really
+		// just show a single line
+		margin := 1
+		if canScrollPastBottom {
+			margin = 2
+		}
+		if scrollableLines-margin < scrollHeight {
+			scrollHeight = scrollableLines - margin
+		}
 		if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
 			return err
 		}
