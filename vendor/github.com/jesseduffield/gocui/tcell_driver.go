@@ -177,6 +177,8 @@ func pollEvent() GocuiEvent {
 			mouseKey = MouseWheelRight
 		}
 
+		wheeling := mouseKey == MouseWheelUp || mouseKey == MouseWheelDown || mouseKey == MouseWheelLeft || mouseKey == MouseWheelRight
+
 		// process button events (not wheel events)
 		button &= tcell.ButtonMask(0xff)
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
@@ -210,17 +212,19 @@ func pollEvent() GocuiEvent {
 			}
 		}
 
-		switch dragState {
-		case NOT_DRAGGING:
-			return GocuiEvent{Type: eventNone}
-		// if we haven't released the left mouse button and we've moved the cursor then we're dragging
-		case MAYBE_DRAGGING:
-			if x != lastX || y != lastY {
-				dragState = DRAGGING
+		if !wheeling {
+			switch dragState {
+			case NOT_DRAGGING:
+				return GocuiEvent{Type: eventNone}
+			// if we haven't released the left mouse button and we've moved the cursor then we're dragging
+			case MAYBE_DRAGGING:
+				if x != lastX || y != lastY {
+					dragState = DRAGGING
+				}
+			case DRAGGING:
+				mouseMod = ModMotion
+				mouseKey = MouseLeft
 			}
-		case DRAGGING:
-			mouseMod = ModMotion
-			mouseKey = MouseLeft
 		}
 
 		return GocuiEvent{

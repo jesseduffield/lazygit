@@ -93,7 +93,7 @@ func (gui *Gui) scrollDownView(viewName string) error {
 	return nil
 }
 
-func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) scrollUpMain() error {
 	if gui.canScrollMergePanel() {
 		gui.State.Panels.Merging.UserScrolling = true
 	}
@@ -101,7 +101,7 @@ func (gui *Gui) scrollUpMain(g *gocui.Gui, v *gocui.View) error {
 	return gui.scrollUpView("main")
 }
 
-func (gui *Gui) scrollDownMain(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) scrollDownMain() error {
 	if gui.canScrollMergePanel() {
 		gui.State.Panels.Merging.UserScrolling = true
 	}
