@@ -438,7 +438,7 @@ func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
 
 func (gui *Gui) handleNextTab() error {
 	v := gui.g.CurrentView()
-	if v != nil {
+	if v == nil {
 		return nil
 	}
 
@@ -450,7 +450,7 @@ func (gui *Gui) handleNextTab() error {
 
 func (gui *Gui) handlePrevTab() error {
 	v := gui.g.CurrentView()
-	if v != nil {
+	if v == nil {
 		return nil
 	}
 
