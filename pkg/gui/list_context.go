@@ -530,19 +530,20 @@ func (gui *Gui) suggestionsListContext() *ListContext {
 
 func (gui *Gui) getListContexts() []*ListContext {
 	return []*ListContext{
-		gui.menuListContext(),
-		gui.filesListContext(),
-		gui.branchesListContext(),
-		gui.remotesListContext(),
-		gui.remoteBranchesListContext(),
-		gui.tagsListContext(),
-		gui.branchCommitsListContext(),
-		gui.reflogCommitsListContext(),
-		gui.subCommitsListContext(),
-		gui.stashListContext(),
-		gui.commitFilesListContext(),
-		gui.submodulesListContext(),
-		gui.suggestionsListContext(),
+		gui.Contexts.Menu.Context.(*ListContext),
+		gui.Contexts.Files.Context.(*ListContext),
+		gui.Contexts.Branches.Context.(*ListContext),
+		gui.Contexts.Remotes.Context.(*ListContext),
+		gui.Contexts.Remotes.Branches.Context.(*ListContext),
+		gui.Contexts.Tags.Context.(*ListContext),
+		gui.Contexts.BranchCommits.Context.(*ListContext),
+		gui.Contexts.BranchCommits.Context.(*ListContext),
+		gui.Contexts.ReflogCommits.Context.(*ListContext),
+		gui.Contexts.SubCommits.Context.(*ListContext),
+		gui.Contexts.Stash.Context.(*ListContext),
+		gui.Contexts.CommitFiles.Context.(*ListContext),
+		gui.Contexts.Submodules.Context.(*ListContext),
+		gui.Contexts.Suggestions.Context.(*ListContext),
 	}
 }
 
