@@ -505,6 +505,8 @@ func (gui *Gui) handleRefreshFiles() error {
 }
 
 func (gui *Gui) refreshStateFiles() error {
+	state := gui.State
+
 	// keep track of where the cursor is currently and the current file names
 	// when we refresh, go looking for a matching name
 	// move the cursor to there.
@@ -517,22 +519,24 @@ func (gui *Gui) refreshStateFiles() error {
 	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
+	state.FileManager.RWMutex.Lock()
 	for _, file := range files {
 		if selectedNode != nil && selectedNode.Path != "" && file.PreviousName == selectedNode.Path {
-			gui.State.FileManager.ExpandToPath(file.Name)
+			state.FileManager.ExpandToPath(file.Name)
 		}
 	}
 
-	gui.State.FileManager.SetFiles(files)
+	state.FileManager.SetFiles(files)
+	state.FileManager.RWMutex.Unlock()
 
 	if err := gui.fileWatcher.addFilesToFileWatcher(files); err != nil {
 		return err
 	}
 
 	if selectedNode != nil {
-		newIdx := gui.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], gui.State.FileManager.GetAllItems())
+		newIdx := gui.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], state.FileManager.GetAllItems())
 		if newIdx != -1 && newIdx != prevSelectedLineIdx {
-			newNode := gui.State.FileManager.GetItemAtIndex(newIdx)
+			newNode := state.FileManager.GetItemAtIndex(newIdx)
 			// when not in tree mode, we show merge conflict files at the top, so you
 			// can work through them one by one without having to sift through a large
 			// set of files. If you have just fixed the merge conflicts of a file, we
@@ -541,17 +545,17 @@ func (gui *Gui) refreshStateFiles() error {
 			// conflicts: the user in this case would rather work on the next file
 			// with merge conflicts, which will have moved up to fill the gap left by
 			// the last file, meaning the cursor doesn't need to move at all.
-			leaveCursor := !gui.State.FileManager.InTreeMode() && newNode != nil &&
+			leaveCursor := !state.FileManager.InTreeMode() && newNode != nil &&
 				selectedNode.File != nil && selectedNode.File.HasMergeConflicts &&
 				newNode.File != nil && !newNode.File.HasMergeConflicts
 
 			if !leaveCursor {
-				gui.State.Panels.Files.SelectedLineIdx = newIdx
+				state.Panels.Files.SelectedLineIdx = newIdx
 			}
 		}
 	}
 
-	gui.refreshSelectedLine(gui.State.Panels.Files, gui.State.FileManager.GetItemsLength())
+	gui.refreshSelectedLine(state.Panels.Files, state.FileManager.GetItemsLength())
 	return nil
 }
 

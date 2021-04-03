@@ -1,6 +1,8 @@
 package filetree
 
 import (
+	"sync"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/sirupsen/logrus"
@@ -12,6 +14,7 @@ type FileManager struct {
 	showTree       bool
 	log            *logrus.Entry
 	collapsedPaths CollapsedPaths
+	sync.RWMutex
 }
 
 func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *FileManager {
@@ -20,6 +23,7 @@ func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *Fil
 		log:            log,
 		showTree:       showTree,
 		collapsedPaths: CollapsedPaths{},
+		RWMutex:        sync.RWMutex{},
 	}
 }
 
