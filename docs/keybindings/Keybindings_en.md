@@ -16,7 +16,7 @@
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
-  <kbd>|</kbd>: view scoping options
+  <kbd>ctrl+s</kbd>: view scoping options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
 </pre>
@@ -110,6 +110,7 @@
   <kbd>e</kbd>: edit file
   <kbd>space</kbd>: toggle file included in patch
   <kbd>enter</kbd>: enter file to add selected lines to the patch (or toggle directory collapsed)
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Commits Panel (Commits)
