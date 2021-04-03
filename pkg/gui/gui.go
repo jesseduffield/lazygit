@@ -60,6 +60,8 @@ func NewContextManager(contexts ContextTree) ContextManager {
 	}
 }
 
+type Repo string
+
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	g                    *gocui.Gui
@@ -68,6 +70,7 @@ type Gui struct {
 	OSCommand            *oscommands.OSCommand
 	SubProcess           *exec.Cmd
 	State                *guiState
+	RepoStateMap         map[Repo]*guiState
 	Config               config.AppConfigurer
 	Tr                   *i18n.TranslationSet
 	Errors               SentinelErrors
@@ -81,9 +84,8 @@ type Gui struct {
 
 	// when lazygit is opened outside a git directory we want to open to the most
 	// recent repo with the recent repos popup showing
-	showRecentRepos   bool
-	Contexts          ContextTree
-	ViewTabContextMap map[string][]tabContext
+	showRecentRepos bool
+	Contexts        ContextTree
 
 	// this array either includes the events that we're recording in this session
 	// or the events we've recorded in a prior session
@@ -314,8 +316,9 @@ type guiState struct {
 
 	Modes Modes
 
-	ContextManager ContextManager
-	ViewContextMap map[string]Context
+	ContextManager    ContextManager
+	ViewContextMap    map[string]Context
+	ViewTabContextMap map[string][]tabContext
 
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
 	// Some views move between windows for example the commitFiles view and when cycling through
@@ -327,6 +330,16 @@ type guiState struct {
 }
 
 func (gui *Gui) resetState(filterPath string) {
+	currentDir, err := os.Getwd()
+	if err == nil {
+		if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
+			gui.State = state
+			return
+		}
+	} else {
+		gui.Log.Error(err)
+	}
+
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
 
 	screenMode := SCREEN_NORMAL
@@ -374,12 +387,13 @@ func (gui *Gui) resetState(filterPath string) {
 			},
 			Diffing: Diffing{},
 		},
-		ViewContextMap: gui.initialViewContextMap(),
-		ScreenMode:     screenMode,
-		ContextManager: NewContextManager(gui.Contexts),
+		ViewContextMap:    gui.initialViewContextMap(),
+		ViewTabContextMap: gui.initialViewTabContextMap(),
+		ScreenMode:        screenMode,
+		ContextManager:    NewContextManager(gui.Contexts),
 	}
 
-	gui.ViewTabContextMap = gui.initialViewTabContextMap()
+	gui.RepoStateMap[Repo(gui.GitCommand.DotGitDir)] = gui.State
 }
 
 // for now the split view will always be on
@@ -397,6 +411,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		showRecentRepos:      showRecentRepos,
 		RecordedEvents:       []RecordedEvent{},
 		RepoPathStack:        []string{},
+		RepoStateMap:         map[Repo]*guiState{},
 	}
 
 	gui.Contexts = gui.contextTree()
