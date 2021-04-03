@@ -117,6 +117,7 @@ type GocuiEvent struct {
 	MouseX int
 	MouseY int
 	N      int
+	Bytes  string
 }
 
 // Event types.

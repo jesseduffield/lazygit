@@ -1,4 +1,4 @@
-package gui
+package main
 
 import (
 	"encoding/json"
@@ -9,13 +9,10 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"testing"
 
 	"github.com/creack/pty"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
-	"github.com/stretchr/testify/assert"
 )
 
 // To run an integration test, e.g. for test 'commit', go:
@@ -47,53 +44,65 @@ type integrationTest struct {
 	Description string `json:"description"`
 }
 
-func loadTests(t *testing.T, testDir string) []*integrationTest {
+func loadTests(testDir string) ([]*integrationTest, error) {
 	paths, err := filepath.Glob(filepath.Join(testDir, "/*/test.json"))
-	assert.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 
 	tests := make([]*integrationTest, len(paths))
 
 	for i, path := range paths {
 		data, err := ioutil.ReadFile(path)
-		assert.NoError(t, err)
+		if err != nil {
+			return nil, err
+		}
 
 		test := &integrationTest{}
 
 		err = json.Unmarshal(data, test)
-		assert.NoError(t, err)
+		if err != nil {
+			return nil, err
+		}
 
 		test.Name = strings.TrimPrefix(filepath.Dir(path), testDir+"/")
 
 		tests[i] = test
 	}
 
-	return tests
+	return tests, nil
 }
 
-func generateSnapshot(t *testing.T, dir string) string {
+func generateSnapshot(dir string) (string, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	_, err := os.Stat(filepath.Join(dir, ".git"))
 	if err != nil {
-		return "git directory not found"
+		return "git directory not found", nil
 	}
 
 	snapshot := ""
 
 	statusCmd := fmt.Sprintf(`git -C %s status`, dir)
 	statusCmdOutput, err := osCommand.RunCommandWithOutput(statusCmd)
-	assert.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
 	snapshot += statusCmdOutput + "\n"
 
 	logCmd := fmt.Sprintf(`git -C %s log --pretty=%%B -p -1`, dir)
 	logCmdOutput, err := osCommand.RunCommandWithOutput(logCmd)
-	assert.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
 	snapshot += logCmdOutput + "\n"
 
 	err = filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		assert.NoError(t, err)
+		if err != nil {
+			return err
+		}
 
 		if f.IsDir() {
 			if f.Name() == ".git" {
@@ -103,15 +112,19 @@ func generateSnapshot(t *testing.T, dir string) string {
 		}
 
 		bytes, err := ioutil.ReadFile(path)
-		assert.NoError(t, err)
+		if err != nil {
+			return err
+		}
 		snapshot += string(bytes) + "\n"
 
 		return nil
 	})
 
-	assert.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
-	return snapshot
+	return snapshot, nil
 }
 
 func findOrCreateDir(path string) {
@@ -161,91 +174,106 @@ func tempLazygitPath() string {
 	return filepath.Join("/tmp", "lazygit", "test_lazygit")
 }
 
-func Test(t *testing.T) {
+func Test() error {
 	rootDir := getRootDirectory()
 	err := os.Chdir(rootDir)
-	assert.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	osCommand := oscommands.NewDummyOSCommand()
 	err = osCommand.RunCommand("go build -o %s", tempLazygitPath())
-	assert.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
-	tests := loadTests(t, testDir)
+	tests, err := loadTests(testDir)
+	if err != nil {
+		panic(err)
+	}
 
 	record := os.Getenv("RECORD_EVENTS") != ""
 	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
 
-	for _, test := range tests {
+	for _, test := range tests[0:1] {
 		test := test
 
-		t.Run(test.Name, func(t *testing.T) {
-			if runInParallel() {
-				t.Parallel()
+		speeds := getTestSpeeds(test.Speed, updateSnapshots)
+
+		for i, speed := range speeds {
+			// t.Logf("%s: attempting test at speed %d\n", test.Name, speed)
+
+			testPath := filepath.Join(testDir, test.Name)
+			actualDir := filepath.Join(testPath, "actual")
+			expectedDir := filepath.Join(testPath, "expected")
+			// t.Logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
+			findOrCreateDir(testPath)
+
+			prepareIntegrationTestDir(actualDir)
+
+			err := createFixture(testPath, actualDir)
+			if err != nil {
+				return err
 			}
 
-			speeds := getTestSpeeds(test.Speed, updateSnapshots)
+			runLazygit(testPath, rootDir, record, speed)
 
-			for i, speed := range speeds {
-				t.Logf("%s: attempting test at speed %d\n", test.Name, speed)
-
-				testPath := filepath.Join(testDir, test.Name)
-				actualDir := filepath.Join(testPath, "actual")
-				expectedDir := filepath.Join(testPath, "expected")
-				t.Logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
-				findOrCreateDir(testPath)
-
-				prepareIntegrationTestDir(actualDir)
-
-				err := createFixture(testPath, actualDir)
-				assert.NoError(t, err)
-
-				runLazygit(t, testPath, rootDir, record, speed)
-
-				if updateSnapshots {
-					err = oscommands.CopyDir(actualDir, expectedDir)
-					assert.NoError(t, err)
+			if updateSnapshots {
+				err = oscommands.CopyDir(actualDir, expectedDir)
+				if err != nil {
+					return err
 				}
+			}
 
-				actual := generateSnapshot(t, actualDir)
+			actual, err := generateSnapshot(actualDir)
+			if err != nil {
+				return err
+			}
 
-				expected := ""
+			expected := ""
 
-				func() {
-					// git refuses to track .git folders in subdirectories so we need to rename it
-					// to git_keep after running a test
+			func() {
+				// git refuses to track .git folders in subdirectories so we need to rename it
+				// to git_keep after running a test
 
-					defer func() {
-						err = os.Rename(
-							filepath.Join(expectedDir, ".git"),
-							filepath.Join(expectedDir, ".git_keep"),
-						)
-
-						assert.NoError(t, err)
-					}()
-
-					// ignoring this error because we might not have a .git_keep file here yet.
-					_ = os.Rename(
-						filepath.Join(expectedDir, ".git_keep"),
+				defer func() {
+					err = os.Rename(
 						filepath.Join(expectedDir, ".git"),
+						filepath.Join(expectedDir, ".git_keep"),
 					)
 
-					expected = generateSnapshot(t, expectedDir)
+					if err != nil {
+						panic(err)
+					}
 				}()
 
-				if expected == actual {
-					t.Logf("%s: success at speed %d\n", test.Name, speed)
-					break
-				}
+				// ignoring this error because we might not have a .git_keep file here yet.
+				_ = os.Rename(
+					filepath.Join(expectedDir, ".git_keep"),
+					filepath.Join(expectedDir, ".git"),
+				)
 
-				// if the snapshots and we haven't tried all playback speeds different we'll retry at a slower speed
-				if i == len(speeds)-1 {
-					assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
+				expected, err = generateSnapshot(expectedDir)
+				if err != nil {
+					panic(err)
 				}
+			}()
+
+			if expected == actual {
+				// t.Logf("%s: success at speed %d\n", test.Name, speed)
+				break
 			}
-		})
+
+			// if the snapshots and we haven't tried all playback speeds different we'll retry at a slower speed
+			if i == len(speeds)-1 {
+				// assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
+			}
+		}
 	}
+
+	return nil
 }
 
 func createFixture(testPath, actualDir string) error {
@@ -285,7 +313,7 @@ func getRootDirectory() string {
 	}
 }
 
-func runLazygit(t *testing.T, testPath string, rootDir string, record bool, speed int) {
+func runLazygit(testPath string, rootDir string, record bool, speed int) error {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	replayPath := filepath.Join(testPath, "recording.json")
@@ -293,7 +321,9 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	actualDir := filepath.Join(testPath, "actual")
 
 	exists, err := osCommand.FileExists(filepath.Join(testPath, "config"))
-	assert.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
 	if exists {
 		templateConfigDir = filepath.Join(testPath, "config")
@@ -302,11 +332,15 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	configDir := filepath.Join(testPath, "used_config")
 
 	err = os.RemoveAll(configDir)
-	assert.NoError(t, err)
+	if err != nil {
+		return err
+	}
 	err = oscommands.CopyDir(templateConfigDir, configDir)
-	assert.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
-	cmdStr := fmt.Sprintf("sudo dtruss %s --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
+	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
@@ -316,43 +350,43 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Env = append(
-			os.Environ(),
+			cmd.Env,
 			fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath),
-			"TERM=xterm-256color",
 		)
 	} else {
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Env = append(
-			os.Environ(),
+			cmd.Env,
 			fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
-			"TERM=xterm-256color",
 		)
-		t.Log(spew.Sdump(cmd))
 	}
-
-	t.Log("here")
 
 	// if we're on CI we'll need to use a PTY. We can work that out by seeing if the 'TERM' env is defined.
 	if runInPTY() {
-		t.Log("1")
 		cmd.Env = append(cmd.Env, "TERM=xterm")
-		t.Log(cmd.Env)
 
 		f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
-		assert.NoError(t, err)
+		if err != nil {
+			return err
+		}
 
 		_, _ = io.Copy(ioutil.Discard, f)
 
-		assert.NoError(t, err)
+		if err != nil {
+			return err
+		}
 
 		_ = f.Close()
 	} else {
-		t.Log("2")
 		err := cmd.Run()
-		assert.NoError(t, err)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func runInParallel() bool {
@@ -379,4 +413,8 @@ func prepareIntegrationTestDir(actualDir string) {
 	for _, d := range dir {
 		os.RemoveAll(filepath.Join(actualDir, d.Name()))
 	}
+}
+
+func main() {
+	Test()
 }
