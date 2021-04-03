@@ -25,6 +25,7 @@ func (gui *Gui) timeSinceStart() int64 {
 }
 
 func (gui *Gui) replayRecordedEvents() {
+	gui.Log.Warn("going to replay events")
 	if os.Getenv("REPLAY_EVENTS_FROM") == "" {
 		return
 	}
@@ -75,6 +76,7 @@ func (gui *Gui) replayRecordedEvents() {
 			case <-ticker.C:
 				timeWaited += 1
 				if gui.g != nil && timeWaited >= timeToWait {
+					gui.Log.Warn("replaying event")
 					gui.g.ReplayedEvents <- *event.Event
 					break middle
 				}
