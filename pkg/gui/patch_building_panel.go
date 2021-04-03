@@ -109,8 +109,8 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 		gui.GitCommand.PatchManager.Reset()
 	}
 
-	if gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.GetKey() {
-		return gui.pushContext(gui.Contexts.CommitFiles)
+	if gui.currentContext().GetKey() == gui.State.Contexts.PatchBuilding.GetKey() {
+		return gui.pushContext(gui.State.Contexts.CommitFiles)
 	} else {
 		// need to re-focus in case the secondary view should now be hidden
 		return gui.currentContext().HandleFocus()

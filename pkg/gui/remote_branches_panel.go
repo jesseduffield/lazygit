@@ -39,7 +39,7 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 }
 
 func (gui *Gui) handleRemoteBranchesEscape() error {
-	return gui.pushContext(gui.Contexts.Remotes)
+	return gui.pushContext(gui.State.Contexts.Remotes)
 }
 
 func (gui *Gui) handleMergeRemoteBranch() error {

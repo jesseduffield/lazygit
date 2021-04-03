@@ -238,7 +238,7 @@ func (gui *Gui) refreshMainViewForLineByLine(state *lBlPanelState) error {
 	var includedLineIndices []int
 	// I'd prefer not to have knowledge of contexts using this file but I'm not sure
 	// how to get around this
-	if gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.GetKey() {
+	if gui.currentContext().GetKey() == gui.State.Contexts.PatchBuilding.GetKey() {
 		filename := gui.getSelectedCommitFileName()
 		var err error
 		includedLineIndices, err = gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
@@ -341,9 +341,9 @@ func (gui *Gui) handleOpenFileAtLine() error {
 		// again, would be good to use inheritance here (or maybe even composition)
 		var filename string
 		switch gui.State.MainContext {
-		case gui.Contexts.PatchBuilding.GetKey():
+		case gui.State.Contexts.PatchBuilding.GetKey():
 			filename = gui.getSelectedCommitFileName()
-		case gui.Contexts.Staging.GetKey():
+		case gui.State.Contexts.Staging.GetKey():
 			file := gui.getSelectedFile()
 			if file == nil {
 				return nil

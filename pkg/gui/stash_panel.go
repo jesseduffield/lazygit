@@ -39,7 +39,7 @@ func (gui *Gui) handleStashEntrySelect() error {
 func (gui *Gui) refreshStashEntries() error {
 	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.Modes.Filtering.GetPath())
 
-	return gui.Contexts.Stash.HandleRender()
+	return gui.State.Contexts.Stash.HandleRender()
 }
 
 // specific functions
@@ -134,5 +134,5 @@ func (gui *Gui) handleViewStashFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(stashEntry.RefName(), false, gui.Contexts.Stash, "stash")
+	return gui.switchToCommitFilesContext(stashEntry.RefName(), false, gui.State.Contexts.Stash, "stash")
 }

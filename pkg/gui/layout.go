@@ -152,7 +152,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.ContainsList = true
 	}
 
-	commitFilesView, err := setViewFromDimensions("commitFiles", gui.Contexts.CommitFiles.GetWindowName(), true)
+	commitFilesView, err := setViewFromDimensions("commitFiles", gui.State.Contexts.CommitFiles.GetWindowName(), true)
 	if err != nil {
 		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
@@ -266,23 +266,20 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		gui.State.OldInformation = informationStr
 	}
 
-	if !gui.State.ViewsSetup {
+	if !gui.ViewsSetup {
 		if err := gui.onInitialViewsCreation(); err != nil {
 			return err
 		}
 
-		gui.State.ViewsSetup = true
+		gui.ViewsSetup = true
 	}
 
-	if gui.g.CurrentView() == nil {
-		initialContext := gui.Contexts.Files
-		if gui.State.Modes.Filtering.Active() {
-			initialContext = gui.Contexts.BranchCommits
-		}
-
-		if err := gui.pushContext(initialContext); err != nil {
+	if !gui.State.ViewsSetup {
+		if err := gui.onInitialViewsCreationForRepo(); err != nil {
 			return err
 		}
+
+		gui.State.ViewsSetup = true
 	}
 
 	for _, listContext := range gui.getListContexts() {
@@ -323,7 +320,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	return gui.resizeCurrentPopupPanel()
 }
 
-func (gui *Gui) onInitialViewsCreation() error {
+func (gui *Gui) onInitialViewsCreationForRepo() error {
 	gui.setInitialViewContexts()
 
 	// hide any popup views. This only applies when we've just switched repos
@@ -331,6 +328,28 @@ func (gui *Gui) onInitialViewsCreation() error {
 		_, _ = gui.g.SetViewOnBottom(viewName)
 	}
 
+	// the status panel is not actually a list context at the moment, so it is excluded
+	// here. Arguably that's quite convenient because it means we're back to starting
+	// in the files panel when landing in a new repo, but when returning from a submodule
+	// we'll be back in the submodules context. This still seems awkward though, and it's
+	// definitely going to break when (if) we make the status context a list context
+	initialContext := gui.currentSideContext()
+	if initialContext == nil {
+		if gui.State.Modes.Filtering.Active() {
+			initialContext = gui.State.Contexts.BranchCommits
+		} else {
+			initialContext = gui.State.Contexts.Files
+		}
+	}
+
+	if err := gui.pushContext(initialContext); err != nil {
+		return err
+	}
+
+	return gui.loadNewRepo()
+}
+
+func (gui *Gui) onInitialViewsCreation() error {
 	gui.g.Mutexes.ViewsMutex.Lock()
 	// add tabs to views
 	for _, view := range gui.g.Views() {
@@ -341,10 +360,6 @@ func (gui *Gui) onInitialViewsCreation() error {
 		view.Tabs = tabs
 	}
 	gui.g.Mutexes.ViewsMutex.Unlock()
-
-	if err := gui.pushContext(gui.defaultSideContext()); err != nil {
-		return err
-	}
 
 	if err := gui.keybindings(); err != nil {
 		return err
@@ -357,5 +372,9 @@ func (gui *Gui) onInitialViewsCreation() error {
 		gui.showRecentRepos = false
 	}
 
-	return gui.loadNewRepo()
+	gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+
+	gui.waitForIntro.Done()
+
+	return nil
 }

@@ -204,7 +204,7 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, f
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		return gui.pushContext(gui.Contexts.Confirmation)
+		return gui.pushContext(gui.State.Contexts.Confirmation)
 	})
 	return confirmationView, nil
 }
@@ -284,7 +284,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		{
 			viewName: "confirmation",
 			key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
-			handler:  func() error { return gui.replaceContext(gui.Contexts.Suggestions) },
+			handler:  func() error { return gui.replaceContext(gui.State.Contexts.Suggestions) },
 		},
 		{
 			viewName: "suggestions",
@@ -304,7 +304,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		{
 			viewName: "suggestions",
 			key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
-			handler:  func() error { return gui.replaceContext(gui.Contexts.Confirmation) },
+			handler:  func() error { return gui.replaceContext(gui.State.Contexts.Confirmation) },
 		},
 	}
 

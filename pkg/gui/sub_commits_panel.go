@@ -72,7 +72,7 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.SubCommits, "branches")
+	return gui.switchToCommitFilesContext(commit.Sha, false, gui.State.Contexts.SubCommits, "branches")
 }
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {
@@ -94,9 +94,9 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	gui.State.SubCommits = commits
 	gui.State.Panels.SubCommits.refName = refName
 	gui.State.Panels.SubCommits.SelectedLineIdx = 0
-	gui.Contexts.SubCommits.SetParentContext(gui.currentSideContext())
+	gui.State.Contexts.SubCommits.SetParentContext(gui.currentSideContext())
 
-	return gui.pushContext(gui.Contexts.SubCommits)
+	return gui.pushContext(gui.State.Contexts.SubCommits)
 }
 
 func (gui *Gui) handleSwitchToSubCommits() error {

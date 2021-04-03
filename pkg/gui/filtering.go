@@ -32,11 +32,11 @@ func (gui *Gui) setFiltering(path string) error {
 		gui.State.ScreenMode = SCREEN_HALF
 	}
 
-	if err := gui.pushContext(gui.Contexts.BranchCommits); err != nil {
+	if err := gui.pushContext(gui.State.Contexts.BranchCommits); err != nil {
 		return err
 	}
 
 	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{COMMITS}, then: func() {
-		gui.Contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+		gui.State.Contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
 	}})
 }
