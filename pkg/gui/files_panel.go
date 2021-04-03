@@ -868,6 +868,9 @@ func (gui *Gui) handleToggleFileTreeView() error {
 		if err := gui.Contexts.Files.HandleRender(); err != nil {
 			return err
 		}
+		if err := gui.Contexts.Files.HandleFocus(); err != nil {
+			return err
+		}
 	}
 
 	return nil

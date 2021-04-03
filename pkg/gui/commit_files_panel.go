@@ -291,6 +291,9 @@ func (gui *Gui) handleToggleCommitFileTreeView() error {
 		if err := gui.Contexts.CommitFiles.HandleRender(); err != nil {
 			return err
 		}
+		if err := gui.Contexts.CommitFiles.HandleFocus(); err != nil {
+			return err
+		}
 	}
 
 	return nil
