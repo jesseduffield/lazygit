@@ -88,7 +88,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 	gui.State.Panels.Menu.SelectedLineIdx = 0
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		return gui.pushContext(gui.Contexts.Menu.Context)
+		return gui.pushContext(gui.Contexts.Menu)
 	})
 	return nil
 }

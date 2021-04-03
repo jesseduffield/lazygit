@@ -17,7 +17,7 @@ func (gui *Gui) getViewNameForWindow(window string) string {
 
 func (gui *Gui) getWindowForViewName(viewName string) string {
 	if viewName == "commitFiles" {
-		return gui.Contexts.CommitFiles.Context.GetWindowName()
+		return gui.Contexts.CommitFiles.GetWindowName()
 	}
 
 	return viewName

@@ -23,7 +23,7 @@ func (gui *Gui) handleReflogCommitSelect() error {
 		task = gui.createRenderStringTask("No reflog history")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.Path),
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
 
 		task = gui.createRunPtyTask(cmd)
@@ -72,14 +72,14 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	if gui.State.Modes.Filtering.Active() {
-		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.Path); err != nil {
+		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.GetPath()); err != nil {
 			return err
 		}
 	} else {
 		state.FilteredReflogCommits = state.ReflogCommits
 	}
 
-	return gui.postRefreshUpdate(gui.Contexts.ReflogCommits.Context)
+	return gui.postRefreshUpdate(gui.Contexts.ReflogCommits)
 }
 
 func (gui *Gui) handleCheckoutReflogCommit() error {
@@ -116,5 +116,5 @@ func (gui *Gui) handleViewReflogCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.ReflogCommits.Context, "commits")
+	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.ReflogCommits, "commits")
 }

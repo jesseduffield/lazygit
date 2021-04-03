@@ -26,7 +26,7 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 			credentialsView.Mask = '*'
 		}
 
-		if err := gui.pushContext(gui.Contexts.Credentials.Context); err != nil {
+		if err := gui.pushContext(gui.Contexts.Credentials); err != nil {
 			return err
 		}
 

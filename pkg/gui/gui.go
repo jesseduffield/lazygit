@@ -20,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -232,14 +233,6 @@ func (m *Diffing) Active() bool {
 	return m.Ref != ""
 }
 
-type Filtering struct {
-	Path string // the filename that gets passed to git log
-}
-
-func (m *Filtering) Active() bool {
-	return m.Path != ""
-}
-
 type CherryPicking struct {
 	CherryPickedCommits []*models.Commit
 
@@ -252,7 +245,7 @@ func (m *CherryPicking) Active() bool {
 }
 
 type Modes struct {
-	Filtering     Filtering
+	Filtering     filtering.Filtering
 	CherryPicking CherryPicking
 	Diffing       Diffing
 }
@@ -320,9 +313,7 @@ type guiState struct {
 
 func (gui *Gui) resetState() {
 	// we carry over the filter path and diff state
-	prevFiltering := Filtering{
-		Path: "",
-	}
+	prevFiltering := filtering.NewFiltering()
 	prevDiff := Diffing{}
 	prevCherryPicking := CherryPicking{
 		CherryPickedCommits: make([]*models.Commit, 0),
@@ -380,6 +371,12 @@ func (gui *Gui) resetState() {
 		ViewContextMap: gui.initialViewContextMap(),
 		RepoPathStack:  prevRepoPathStack,
 	}
+
+	if gui.State.Modes.Filtering.Active() {
+		gui.State.ScreenMode = SCREEN_HALF
+	} else {
+		gui.State.ScreenMode = SCREEN_NORMAL
+	}
 }
 
 // for now the split view will always be on
@@ -399,7 +396,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 	}
 
 	gui.resetState()
-	gui.State.Modes.Filtering.Path = filterPath
+	gui.State.Modes.Filtering.SetPath(filterPath)
 	gui.Contexts = gui.contextTree()
 	gui.ViewTabContextMap = gui.viewTabContextMap()
 
@@ -425,12 +422,6 @@ func (gui *Gui) Run() error {
 
 	if recordEvents {
 		go utils.Safe(gui.recordEvents)
-	}
-
-	if gui.State.Modes.Filtering.Active() {
-		gui.State.ScreenMode = SCREEN_HALF
-	} else {
-		gui.State.ScreenMode = SCREEN_NORMAL
 	}
 
 	g.OnSearchEscape = gui.onSearchEscape
@@ -509,7 +500,7 @@ func (gui *Gui) RunWithRestarts() error {
 				}
 
 				return nil
-			case gui.Errors.ErrSwitchRepo, gui.Errors.ErrRestart:
+			case gui.Errors.ErrSwitchRepo:
 				continue
 			default:
 				return err

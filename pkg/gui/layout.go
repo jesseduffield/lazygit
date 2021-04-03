@@ -152,7 +152,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		branchesView.ContainsList = true
 	}
 
-	commitFilesView, err := setViewFromDimensions("commitFiles", gui.Contexts.CommitFiles.Context.GetWindowName(), true)
+	commitFilesView, err := setViewFromDimensions("commitFiles", gui.Contexts.CommitFiles.GetWindowName(), true)
 	if err != nil {
 		if err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
@@ -272,9 +272,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	if gui.g.CurrentView() == nil {
-		initialContext := gui.Contexts.Files.Context
+		initialContext := gui.Contexts.Files
 		if gui.State.Modes.Filtering.Active() {
-			initialContext = gui.Contexts.BranchCommits.Context
+			initialContext = gui.Contexts.BranchCommits
 		}
 
 		if err := gui.pushContext(initialContext); err != nil {
@@ -282,41 +282,24 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	type listContextState struct {
-		view        *gocui.View
-		listContext *ListContext
-	}
-
-	// TODO: don't we already have the view included in the context object itself? Or might that change in a way we don't want reflected here?
-	listContextStates := []listContextState{
-		{view: filesView, listContext: gui.filesListContext()},
-		{view: filesView, listContext: gui.submodulesListContext()},
-		{view: branchesView, listContext: gui.branchesListContext()},
-		{view: branchesView, listContext: gui.remotesListContext()},
-		{view: branchesView, listContext: gui.remoteBranchesListContext()},
-		{view: branchesView, listContext: gui.tagsListContext()},
-		{view: commitsView, listContext: gui.branchCommitsListContext()},
-		{view: commitsView, listContext: gui.reflogCommitsListContext()},
-		{view: stashView, listContext: gui.stashListContext()},
-		{view: commitFilesView, listContext: gui.commitFilesListContext()},
-	}
-
-	// menu view might not exist so we check to be safe
-	if menuView, err := gui.g.View("menu"); err == nil {
-		listContextStates = append(listContextStates, listContextState{view: menuView, listContext: gui.menuListContext()})
-	}
-	for _, listContextState := range listContextStates {
-		// ignore contexts whose view is owned by another context right now
-		if listContextState.view.Context != listContextState.listContext.GetKey() {
+	for _, listContext := range gui.getListContexts() {
+		view, err := gui.g.View(listContext.ViewName)
+		if err != nil {
 			continue
 		}
-		// check if the selected line is now out of view and if so refocus it
-		listContextState.view.FocusPoint(0, listContextState.listContext.GetPanelState().GetSelectedLineIdx())
 
-		listContextState.view.SelBgColor = theme.GocuiSelectedLineBgColor
+		// ignore contexts whose view is owned by another context right now
+		if view.Context != listContext.GetKey() {
+			continue
+		}
+
+		// check if the selected line is now out of view and if so refocus it
+		view.FocusPoint(0, listContext.GetPanelState().GetSelectedLineIdx())
+
+		view.SelBgColor = theme.GocuiSelectedLineBgColor
 
 		// I doubt this is expensive though it's admittedly redundant after the first render
-		listContextState.view.SetOnSelectItem(gui.onSelectItemWrapper(listContextState.listContext.onSearchSelect))
+		view.SetOnSelectItem(gui.onSelectItemWrapper(listContext.onSearchSelect))
 	}
 
 	gui.getMainView().SetOnSelectItem(gui.onSelectItemWrapper(gui.handlelineByLineNavigateTo))

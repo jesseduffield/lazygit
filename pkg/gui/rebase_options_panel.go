@@ -80,7 +80,7 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 			prompt:              gui.Tr.FoundConflicts,
 			handlersManageFocus: true,
 			handleConfirm: func() error {
-				return gui.pushContext(gui.Contexts.Files.Context)
+				return gui.pushContext(gui.Contexts.Files)
 			},
 			handleClose: func() error {
 				if err := gui.returnFromContext(); err != nil {

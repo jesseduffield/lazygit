@@ -18,7 +18,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 
 	gui.renderString("search", "")
 
-	if err := gui.pushContext(gui.Contexts.Search.Context); err != nil {
+	if err := gui.pushContext(gui.Contexts.Search); err != nil {
 		return err
 	}
 

@@ -65,62 +65,54 @@ var allContextKeys = []string{
 	SUGGESTIONS_CONTEXT_KEY,
 }
 
-type SimpleContextNode struct {
-	Context Context
-}
-
-type RemotesContextNode struct {
-	Context  Context
-	Branches SimpleContextNode
-}
-
 type ContextTree struct {
-	Status        SimpleContextNode
-	Files         SimpleContextNode
-	Submodules    SimpleContextNode
-	Menu          SimpleContextNode
-	Branches      SimpleContextNode
-	Remotes       RemotesContextNode
-	Tags          SimpleContextNode
-	BranchCommits SimpleContextNode
-	CommitFiles   SimpleContextNode
-	ReflogCommits SimpleContextNode
-	SubCommits    SimpleContextNode
-	Stash         SimpleContextNode
-	Normal        SimpleContextNode
-	Staging       SimpleContextNode
-	PatchBuilding SimpleContextNode
-	Merging       SimpleContextNode
-	Credentials   SimpleContextNode
-	Confirmation  SimpleContextNode
-	CommitMessage SimpleContextNode
-	Search        SimpleContextNode
-	Suggestions   SimpleContextNode
+	Status         Context
+	Files          *ListContext
+	Submodules     *ListContext
+	Menu           *ListContext
+	Branches       *ListContext
+	Remotes        *ListContext
+	RemoteBranches *ListContext
+	Tags           *ListContext
+	BranchCommits  *ListContext
+	CommitFiles    *ListContext
+	ReflogCommits  *ListContext
+	SubCommits     *ListContext
+	Stash          *ListContext
+	Suggestions    *ListContext
+	Normal         Context
+	Staging        Context
+	PatchBuilding  Context
+	Merging        Context
+	Credentials    Context
+	Confirmation   Context
+	CommitMessage  Context
+	Search         Context
 }
 
 func (gui *Gui) allContexts() []Context {
 	return []Context{
-		gui.Contexts.Status.Context,
-		gui.Contexts.Files.Context,
-		gui.Contexts.Submodules.Context,
-		gui.Contexts.Branches.Context,
-		gui.Contexts.Remotes.Context,
-		gui.Contexts.Remotes.Branches.Context,
-		gui.Contexts.Tags.Context,
-		gui.Contexts.BranchCommits.Context,
-		gui.Contexts.CommitFiles.Context,
-		gui.Contexts.ReflogCommits.Context,
-		gui.Contexts.Stash.Context,
-		gui.Contexts.Menu.Context,
-		gui.Contexts.Confirmation.Context,
-		gui.Contexts.Credentials.Context,
-		gui.Contexts.CommitMessage.Context,
-		gui.Contexts.Normal.Context,
-		gui.Contexts.Staging.Context,
-		gui.Contexts.Merging.Context,
-		gui.Contexts.PatchBuilding.Context,
-		gui.Contexts.SubCommits.Context,
-		gui.Contexts.Suggestions.Context,
+		gui.Contexts.Status,
+		gui.Contexts.Files,
+		gui.Contexts.Submodules,
+		gui.Contexts.Branches,
+		gui.Contexts.Remotes,
+		gui.Contexts.RemoteBranches,
+		gui.Contexts.Tags,
+		gui.Contexts.BranchCommits,
+		gui.Contexts.CommitFiles,
+		gui.Contexts.ReflogCommits,
+		gui.Contexts.Stash,
+		gui.Contexts.Menu,
+		gui.Contexts.Confirmation,
+		gui.Contexts.Credentials,
+		gui.Contexts.CommitMessage,
+		gui.Contexts.Normal,
+		gui.Contexts.Staging,
+		gui.Contexts.Merging,
+		gui.Contexts.PatchBuilding,
+		gui.Contexts.SubCommits,
+		gui.Contexts.Suggestions,
 	}
 }
 
@@ -206,145 +198,101 @@ func (c BasicContext) GetKey() string {
 
 func (gui *Gui) contextTree() ContextTree {
 	return ContextTree{
-		Status: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus:  gui.handleStatusSelect,
-				Kind:     SIDE_CONTEXT,
-				ViewName: "status",
-				Key:      STATUS_CONTEXT_KEY,
+		Status: BasicContext{
+			OnFocus:  gui.handleStatusSelect,
+			Kind:     SIDE_CONTEXT,
+			ViewName: "status",
+			Key:      STATUS_CONTEXT_KEY,
+		},
+		Files:          gui.filesListContext(),
+		Submodules:     gui.submodulesListContext(),
+		Menu:           gui.menuListContext(),
+		Remotes:        gui.remotesListContext(),
+		RemoteBranches: gui.remoteBranchesListContext(),
+		BranchCommits:  gui.branchCommitsListContext(),
+		CommitFiles:    gui.commitFilesListContext(),
+		ReflogCommits:  gui.reflogCommitsListContext(),
+		SubCommits:     gui.subCommitsListContext(),
+		Branches:       gui.branchesListContext(),
+		Tags:           gui.tagsListContext(),
+		Stash:          gui.stashListContext(),
+		Normal: BasicContext{
+			OnFocus: func() error {
+				return nil // TODO: should we do something here? We should allow for scrolling the panel
 			},
+			Kind:     MAIN_CONTEXT,
+			ViewName: "main",
+			Key:      MAIN_NORMAL_CONTEXT_KEY,
 		},
-		Files: SimpleContextNode{
-			Context: gui.filesListContext(),
-		},
-		Submodules: SimpleContextNode{
-			Context: gui.submodulesListContext(),
-		},
-		Menu: SimpleContextNode{
-			Context: gui.menuListContext(),
-		},
-		Remotes: RemotesContextNode{
-			Context: gui.remotesListContext(),
-			Branches: SimpleContextNode{
-				Context: gui.remoteBranchesListContext(),
+		Staging: BasicContext{
+			OnFocus: func() error {
+				return nil
+				// TODO: centralise the code here
+				// return gui.refreshStagingPanel(false, -1)
 			},
+			Kind:     MAIN_CONTEXT,
+			ViewName: "main",
+			Key:      MAIN_STAGING_CONTEXT_KEY,
 		},
-		BranchCommits: SimpleContextNode{
-			Context: gui.branchCommitsListContext(),
-		},
-		CommitFiles: SimpleContextNode{
-			Context: gui.commitFilesListContext(),
-		},
-		ReflogCommits: SimpleContextNode{
-			Context: gui.reflogCommitsListContext(),
-		},
-		SubCommits: SimpleContextNode{
-			Context: gui.subCommitsListContext(),
-		},
-		Branches: SimpleContextNode{
-			Context: gui.branchesListContext(),
-		},
-		Tags: SimpleContextNode{
-			Context: gui.tagsListContext(),
-		},
-		Stash: SimpleContextNode{
-			Context: gui.stashListContext(),
-		},
-		Normal: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus: func() error {
-					return nil // TODO: should we do something here? We should allow for scrolling the panel
-				},
-				Kind:     MAIN_CONTEXT,
-				ViewName: "main",
-				Key:      MAIN_NORMAL_CONTEXT_KEY,
+		PatchBuilding: BasicContext{
+			OnFocus: func() error {
+				return nil
+				// TODO: centralise the code here
+				// return gui.refreshPatchBuildingPanel(-1)
 			},
+			Kind:     MAIN_CONTEXT,
+			ViewName: "main",
+			Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
 		},
-		Staging: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus: func() error {
-					return nil
-					// TODO: centralise the code here
-					// return gui.refreshStagingPanel(false, -1)
-				},
-				Kind:     MAIN_CONTEXT,
-				ViewName: "main",
-				Key:      MAIN_STAGING_CONTEXT_KEY,
-			},
+		Merging: BasicContext{
+			OnFocus:         gui.refreshMergePanelWithLock,
+			Kind:            MAIN_CONTEXT,
+			ViewName:        "main",
+			Key:             MAIN_MERGING_CONTEXT_KEY,
+			OnGetOptionsMap: gui.getMergingOptions,
 		},
-		PatchBuilding: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus: func() error {
-					return nil
-					// TODO: centralise the code here
-					// return gui.refreshPatchBuildingPanel(-1)
-				},
-				Kind:     MAIN_CONTEXT,
-				ViewName: "main",
-				Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
-			},
+		Credentials: BasicContext{
+			OnFocus:  gui.handleCredentialsViewFocused,
+			Kind:     PERSISTENT_POPUP,
+			ViewName: "credentials",
+			Key:      CREDENTIALS_CONTEXT_KEY,
 		},
-		Merging: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus:         gui.refreshMergePanelWithLock,
-				Kind:            MAIN_CONTEXT,
-				ViewName:        "main",
-				Key:             MAIN_MERGING_CONTEXT_KEY,
-				OnGetOptionsMap: gui.getMergingOptions,
-			},
+		Confirmation: BasicContext{
+			OnFocus:  func() error { return nil },
+			Kind:     TEMPORARY_POPUP,
+			ViewName: "confirmation",
+			Key:      CONFIRMATION_CONTEXT_KEY,
 		},
-		Credentials: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus:  gui.handleCredentialsViewFocused,
-				Kind:     PERSISTENT_POPUP,
-				ViewName: "credentials",
-				Key:      CREDENTIALS_CONTEXT_KEY,
-			},
+		Suggestions: gui.suggestionsListContext(),
+		CommitMessage: BasicContext{
+			OnFocus:  gui.handleCommitMessageFocused,
+			Kind:     PERSISTENT_POPUP,
+			ViewName: "commitMessage",
+			Key:      COMMIT_MESSAGE_CONTEXT_KEY,
 		},
-		Confirmation: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus:  func() error { return nil },
-				Kind:     TEMPORARY_POPUP,
-				ViewName: "confirmation",
-				Key:      CONFIRMATION_CONTEXT_KEY,
-			},
-		},
-		Suggestions: SimpleContextNode{
-			Context: gui.suggestionsListContext(),
-		},
-		CommitMessage: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus:  gui.handleCommitMessageFocused,
-				Kind:     PERSISTENT_POPUP,
-				ViewName: "commitMessage",
-				Key:      COMMIT_MESSAGE_CONTEXT_KEY,
-			},
-		},
-		Search: SimpleContextNode{
-			Context: BasicContext{
-				OnFocus:  func() error { return nil },
-				Kind:     PERSISTENT_POPUP,
-				ViewName: "search",
-				Key:      SEARCH_CONTEXT_KEY,
-			},
+		Search: BasicContext{
+			OnFocus:  func() error { return nil },
+			Kind:     PERSISTENT_POPUP,
+			ViewName: "search",
+			Key:      SEARCH_CONTEXT_KEY,
 		},
 	}
 }
 
 func (gui *Gui) initialViewContextMap() map[string]Context {
 	return map[string]Context{
-		"status":        gui.Contexts.Status.Context,
-		"files":         gui.Contexts.Files.Context,
-		"branches":      gui.Contexts.Branches.Context,
-		"commits":       gui.Contexts.BranchCommits.Context,
-		"commitFiles":   gui.Contexts.CommitFiles.Context,
-		"stash":         gui.Contexts.Stash.Context,
-		"menu":          gui.Contexts.Menu.Context,
-		"confirmation":  gui.Contexts.Confirmation.Context,
-		"credentials":   gui.Contexts.Credentials.Context,
-		"commitMessage": gui.Contexts.CommitMessage.Context,
-		"main":          gui.Contexts.Normal.Context,
-		"secondary":     gui.Contexts.Normal.Context,
+		"status":        gui.Contexts.Status,
+		"files":         gui.Contexts.Files,
+		"branches":      gui.Contexts.Branches,
+		"commits":       gui.Contexts.BranchCommits,
+		"commitFiles":   gui.Contexts.CommitFiles,
+		"stash":         gui.Contexts.Stash,
+		"menu":          gui.Contexts.Menu,
+		"confirmation":  gui.Contexts.Confirmation,
+		"credentials":   gui.Contexts.Credentials,
+		"commitMessage": gui.Contexts.CommitMessage,
+		"main":          gui.Contexts.Normal,
+		"secondary":     gui.Contexts.Normal,
 	}
 }
 
@@ -353,41 +301,41 @@ func (gui *Gui) viewTabContextMap() map[string][]tabContext {
 		"branches": {
 			{
 				tab:      "Local Branches",
-				contexts: []Context{gui.Contexts.Branches.Context},
+				contexts: []Context{gui.Contexts.Branches},
 			},
 			{
 				tab: "Remotes",
 				contexts: []Context{
-					gui.Contexts.Remotes.Context,
-					gui.Contexts.Remotes.Branches.Context,
+					gui.Contexts.Remotes,
+					gui.Contexts.RemoteBranches,
 				},
 			},
 			{
 				tab:      "Tags",
-				contexts: []Context{gui.Contexts.Tags.Context},
+				contexts: []Context{gui.Contexts.Tags},
 			},
 		},
 		"commits": {
 			{
 				tab:      "Commits",
-				contexts: []Context{gui.Contexts.BranchCommits.Context},
+				contexts: []Context{gui.Contexts.BranchCommits},
 			},
 			{
 				tab: "Reflog",
 				contexts: []Context{
-					gui.Contexts.ReflogCommits.Context,
+					gui.Contexts.ReflogCommits,
 				},
 			},
 		},
 		"files": {
 			{
 				tab:      "Files",
-				contexts: []Context{gui.Contexts.Files.Context},
+				contexts: []Context{gui.Contexts.Files},
 			},
 			{
 				tab: "Submodules",
 				contexts: []Context{
-					gui.Contexts.Submodules.Context,
+					gui.Contexts.Submodules,
 				},
 			},
 		},
@@ -623,7 +571,7 @@ func (gui *Gui) currentSideContext() *ListContext {
 }
 
 func (gui *Gui) defaultSideContext() Context {
-	return gui.Contexts.Files.Context
+	return gui.Contexts.Files
 }
 
 func (gui *Gui) setInitialViewContexts() {
@@ -684,7 +632,7 @@ func (gui *Gui) onViewFocusLost(v *gocui.View, newView *gocui.View) error {
 
 	if v.Name() == "commitFiles" && newView.Name() != "main" && newView.Name() != "secondary" {
 		gui.resetWindowForView("commitFiles")
-		if err := gui.deactivateContext(gui.Contexts.CommitFiles.Context); err != nil {
+		if err := gui.deactivateContext(gui.Contexts.CommitFiles); err != nil {
 			return err
 		}
 	}

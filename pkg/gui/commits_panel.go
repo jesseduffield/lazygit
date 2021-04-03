@@ -12,7 +12,7 @@ import (
 
 func (gui *Gui) getSelectedLocalCommit() *models.Commit {
 	selectedLine := gui.State.Panels.Commits.SelectedLineIdx
-	if selectedLine == -1 {
+	if selectedLine == -1 || selectedLine > len(gui.State.Commits)-1 {
 		return nil
 	}
 
@@ -38,7 +38,7 @@ func (gui *Gui) handleCommitSelect() error {
 		task = gui.createRenderStringTask(gui.Tr.NoCommitsThisBranch)
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.Path),
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
 		task = gui.createRunPtyTask(cmd)
 	}
@@ -86,7 +86,7 @@ func (gui *Gui) refreshCommits() error {
 
 	go utils.Safe(func() {
 		_ = gui.refreshCommitsWithLimit()
-		context, ok := gui.Contexts.CommitFiles.Context.GetParentContext()
+		context, ok := gui.Contexts.CommitFiles.GetParentContext()
 		if ok && context.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
 			// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
 			// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
@@ -117,7 +117,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	commits, err := builder.GetCommits(
 		commands.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
-			FilterPath:           gui.State.Modes.Filtering.Path,
+			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              "HEAD",
 		},
@@ -127,7 +127,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	}
 	gui.State.Commits = commits
 
-	return gui.postRefreshUpdate(gui.Contexts.BranchCommits.Context)
+	return gui.postRefreshUpdate(gui.Contexts.BranchCommits)
 }
 
 func (gui *Gui) refreshRebaseCommits() error {
@@ -142,7 +142,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 	}
 	gui.State.Commits = updatedCommits
 
-	return gui.postRefreshUpdate(gui.Contexts.BranchCommits.Context)
+	return gui.postRefreshUpdate(gui.Contexts.BranchCommits)
 }
 
 // specific functions
@@ -444,7 +444,7 @@ func (gui *Gui) handleViewCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, true, gui.Contexts.BranchCommits.Context, "commits")
+	return gui.switchToCommitFilesContext(commit.Sha, true, gui.Contexts.BranchCommits, "commits")
 }
 
 func (gui *Gui) handleCreateFixupCommit() error {
