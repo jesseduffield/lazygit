@@ -109,8 +109,11 @@ func (gui *Gui) loadRecordedEvents() ([]RecordedEvent, error) {
 
 	err = json.Unmarshal(data, &events)
 	if err != nil {
+		panic(err)
 		return nil, err
 	}
+
+	panic(events)
 
 	return events, nil
 }
@@ -120,8 +123,11 @@ func (gui *Gui) saveRecordedEvents() error {
 		return nil
 	}
 
+	gui.Log.Warn(gui.RecordedEvents)
+
 	jsonEvents, err := json.Marshal(gui.RecordedEvents)
 	if err != nil {
+		panic(err)
 		return err
 	}
 
