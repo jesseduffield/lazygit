@@ -64,12 +64,16 @@ type Repo string
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g                    *gocui.Gui
-	Log                  *logrus.Entry
-	GitCommand           *commands.GitCommand
-	OSCommand            *oscommands.OSCommand
-	SubProcess           *exec.Cmd
-	State                *guiState
+	g          *gocui.Gui
+	Log        *logrus.Entry
+	GitCommand *commands.GitCommand
+	OSCommand  *oscommands.OSCommand
+
+	// this is the state of the GUI for the current repo
+	State *guiState
+
+	// this is a mapping of repos to gui states, so that we can restore the original
+	// gui state when returning from a subrepo
 	RepoStateMap         map[Repo]*guiState
 	Config               config.AppConfigurer
 	Tr                   *i18n.TranslationSet
@@ -85,7 +89,6 @@ type Gui struct {
 	// when lazygit is opened outside a git directory we want to open to the most
 	// recent repo with the recent repos popup showing
 	showRecentRepos bool
-	Contexts        ContextTree
 
 	// this array either includes the events that we're recording in this session
 	// or the events we've recorded in a prior session
@@ -101,6 +104,9 @@ type Gui struct {
 	// when you enter into a submodule we'll append the superproject's path to this array
 	// so that you can return to the superproject
 	RepoPathStack []string
+
+	// this tells us whether our views have been initially set up
+	ViewsSetup bool
 }
 
 type RecordedEvent struct {
@@ -317,6 +323,7 @@ type guiState struct {
 	Modes Modes
 
 	ContextManager    ContextManager
+	Contexts          ContextTree
 	ViewContextMap    map[string]Context
 	ViewTabContextMap map[string][]tabContext
 
@@ -325,7 +332,9 @@ type guiState struct {
 	// side windows we need to know which view to give focus to for a given window
 	WindowViewNameMap map[string]string
 
-	// tells us whether we've set up our views. We only do this once per repo
+	// tells us whether we've set up our views for the current repo. We'll need to
+	// do this whenever we switch back and forth between repos to get the views
+	// back in sync with the repo state
 	ViewsSetup bool
 }
 
@@ -334,6 +343,7 @@ func (gui *Gui) resetState(filterPath string) {
 	if err == nil {
 		if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
 			gui.State = state
+			gui.State.ViewsSetup = false
 			return
 		}
 	} else {
@@ -346,6 +356,8 @@ func (gui *Gui) resetState(filterPath string) {
 	if filterPath != "" {
 		screenMode = SCREEN_HALF
 	}
+
+	contexts := gui.contextTree()
 
 	gui.State = &guiState{
 		FileManager:           filetree.NewFileManager(make([]*models.File, 0), gui.Log, showTree),
@@ -387,13 +399,15 @@ func (gui *Gui) resetState(filterPath string) {
 			},
 			Diffing: Diffing{},
 		},
-		ViewContextMap:    gui.initialViewContextMap(),
-		ViewTabContextMap: gui.initialViewTabContextMap(),
+		ViewContextMap:    contexts.initialViewContextMap(),
+		ViewTabContextMap: contexts.initialViewTabContextMap(),
 		ScreenMode:        screenMode,
-		ContextManager:    NewContextManager(gui.Contexts),
+		// TODO: put contexts in the context manager
+		ContextManager: NewContextManager(contexts),
+		Contexts:       contexts,
 	}
 
-	gui.RepoStateMap[Repo(gui.GitCommand.DotGitDir)] = gui.State
+	gui.RepoStateMap[Repo(currentDir)] = gui.State
 }
 
 // for now the split view will always be on
@@ -414,7 +428,6 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		RepoStateMap:         map[Repo]*guiState{},
 	}
 
-	gui.Contexts = gui.contextTree()
 	gui.resetState(filterPath)
 
 	gui.watchFilesForChanges()
@@ -471,11 +484,6 @@ func (gui *Gui) Run() error {
 	if gui.Config.GetUserConfig().Git.AutoFetch {
 		go utils.Safe(gui.startBackgroundFetch)
 	}
-
-	go func() {
-		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
-		gui.waitForIntro.Done()
-	}()
 
 	gui.goEvery(time.Second*time.Duration(userConfig.Refresher.RefreshInterval), gui.stopChan, gui.refreshFilesAndSubmodules)
 

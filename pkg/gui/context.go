@@ -92,27 +92,27 @@ type ContextTree struct {
 
 func (gui *Gui) allContexts() []Context {
 	return []Context{
-		gui.Contexts.Status,
-		gui.Contexts.Files,
-		gui.Contexts.Submodules,
-		gui.Contexts.Branches,
-		gui.Contexts.Remotes,
-		gui.Contexts.RemoteBranches,
-		gui.Contexts.Tags,
-		gui.Contexts.BranchCommits,
-		gui.Contexts.CommitFiles,
-		gui.Contexts.ReflogCommits,
-		gui.Contexts.Stash,
-		gui.Contexts.Menu,
-		gui.Contexts.Confirmation,
-		gui.Contexts.Credentials,
-		gui.Contexts.CommitMessage,
-		gui.Contexts.Normal,
-		gui.Contexts.Staging,
-		gui.Contexts.Merging,
-		gui.Contexts.PatchBuilding,
-		gui.Contexts.SubCommits,
-		gui.Contexts.Suggestions,
+		gui.State.Contexts.Status,
+		gui.State.Contexts.Files,
+		gui.State.Contexts.Submodules,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.Remotes,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+		gui.State.Contexts.BranchCommits,
+		gui.State.Contexts.CommitFiles,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.Stash,
+		gui.State.Contexts.Menu,
+		gui.State.Contexts.Confirmation,
+		gui.State.Contexts.Credentials,
+		gui.State.Contexts.CommitMessage,
+		gui.State.Contexts.Normal,
+		gui.State.Contexts.Staging,
+		gui.State.Contexts.Merging,
+		gui.State.Contexts.PatchBuilding,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.Suggestions,
 	}
 }
 
@@ -279,20 +279,20 @@ func (gui *Gui) contextTree() ContextTree {
 	}
 }
 
-func (gui *Gui) initialViewContextMap() map[string]Context {
+func (tree ContextTree) initialViewContextMap() map[string]Context {
 	return map[string]Context{
-		"status":        gui.Contexts.Status,
-		"files":         gui.Contexts.Files,
-		"branches":      gui.Contexts.Branches,
-		"commits":       gui.Contexts.BranchCommits,
-		"commitFiles":   gui.Contexts.CommitFiles,
-		"stash":         gui.Contexts.Stash,
-		"menu":          gui.Contexts.Menu,
-		"confirmation":  gui.Contexts.Confirmation,
-		"credentials":   gui.Contexts.Credentials,
-		"commitMessage": gui.Contexts.CommitMessage,
-		"main":          gui.Contexts.Normal,
-		"secondary":     gui.Contexts.Normal,
+		"status":        tree.Status,
+		"files":         tree.Files,
+		"branches":      tree.Branches,
+		"commits":       tree.BranchCommits,
+		"commitFiles":   tree.CommitFiles,
+		"stash":         tree.Stash,
+		"menu":          tree.Menu,
+		"confirmation":  tree.Confirmation,
+		"credentials":   tree.Credentials,
+		"commitMessage": tree.CommitMessage,
+		"main":          tree.Normal,
+		"secondary":     tree.Normal,
 	}
 }
 
@@ -307,46 +307,46 @@ func (gui *Gui) popupViewNames() []string {
 	return result
 }
 
-func (gui *Gui) initialViewTabContextMap() map[string][]tabContext {
+func (tree ContextTree) initialViewTabContextMap() map[string][]tabContext {
 	return map[string][]tabContext{
 		"branches": {
 			{
 				tab:      "Local Branches",
-				contexts: []Context{gui.Contexts.Branches},
+				contexts: []Context{tree.Branches},
 			},
 			{
 				tab: "Remotes",
 				contexts: []Context{
-					gui.Contexts.Remotes,
-					gui.Contexts.RemoteBranches,
+					tree.Remotes,
+					tree.RemoteBranches,
 				},
 			},
 			{
 				tab:      "Tags",
-				contexts: []Context{gui.Contexts.Tags},
+				contexts: []Context{tree.Tags},
 			},
 		},
 		"commits": {
 			{
 				tab:      "Commits",
-				contexts: []Context{gui.Contexts.BranchCommits},
+				contexts: []Context{tree.BranchCommits},
 			},
 			{
 				tab: "Reflog",
 				contexts: []Context{
-					gui.Contexts.ReflogCommits,
+					tree.ReflogCommits,
 				},
 			},
 		},
 		"files": {
 			{
 				tab:      "Files",
-				contexts: []Context{gui.Contexts.Files},
+				contexts: []Context{tree.Files},
 			},
 			{
 				tab: "Submodules",
 				contexts: []Context{
-					gui.Contexts.Submodules,
+					tree.Submodules,
 				},
 			},
 		},
@@ -604,9 +604,10 @@ func (gui *Gui) currentSideContext() *ListContext {
 }
 
 func (gui *Gui) defaultSideContext() Context {
-	return gui.Contexts.Files
+	return gui.State.Contexts.Files
 }
 
+// remove the need to do this: always use a mapping
 func (gui *Gui) setInitialViewContexts() {
 	// arguably we should only have our ViewContextMap and we should do away with
 	// contexts on views, or vice versa
@@ -665,7 +666,7 @@ func (gui *Gui) onViewFocusLost(v *gocui.View, newView *gocui.View) error {
 
 	if v.Name() == "commitFiles" && newView.Name() != "main" && newView.Name() != "secondary" {
 		gui.resetWindowForView("commitFiles")
-		if err := gui.deactivateContext(gui.Contexts.CommitFiles); err != nil {
+		if err := gui.deactivateContext(gui.State.Contexts.CommitFiles); err != nil {
 			return err
 		}
 	}

@@ -1,12 +1,6 @@
 package gui
 
 import (
-
-	// "io"
-	// "io/ioutil"
-
-	// "strings"
-
 	"fmt"
 	"regexp"
 	"strings"
@@ -124,13 +118,13 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if err := gui.postRefreshUpdate(gui.Contexts.Submodules); err != nil {
+		if err := gui.postRefreshUpdate(gui.State.Contexts.Submodules); err != nil {
 			gui.Log.Error(err)
 		}
 
 		if gui.getFilesView().Context == FILES_CONTEXT_KEY {
 			// doing this a little custom (as opposed to using gui.postRefreshUpdate) because we handle selecting the file explicitly below
-			if err := gui.Contexts.Files.HandleRender(); err != nil {
+			if err := gui.State.Contexts.Files.HandleRender(); err != nil {
 				return err
 			}
 		}
@@ -210,7 +204,7 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.FileStagingRequirements)
 	}
-	_ = gui.pushContext(gui.Contexts.Staging)
+	_ = gui.pushContext(gui.State.Contexts.Staging)
 
 	return gui.handleRefreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
 }
@@ -412,7 +406,7 @@ func (gui *Gui) handleCommitPress() error {
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
-		if err := gui.pushContext(gui.Contexts.CommitMessage); err != nil {
+		if err := gui.pushContext(gui.State.Contexts.CommitMessage); err != nil {
 			return err
 		}
 
@@ -777,7 +771,7 @@ func (gui *Gui) handleSwitchToMerge() error {
 		return gui.createErrorPanel(gui.Tr.FileNoMergeCons)
 	}
 
-	return gui.pushContext(gui.Contexts.Merging)
+	return gui.pushContext(gui.State.Contexts.Merging)
 }
 
 func (gui *Gui) openFile(filename string) error {
@@ -842,7 +836,7 @@ func (gui *Gui) handleToggleDirCollapsed() error {
 
 	gui.State.FileManager.ToggleCollapsed(node.GetPath())
 
-	if err := gui.postRefreshUpdate(gui.Contexts.Files); err != nil {
+	if err := gui.postRefreshUpdate(gui.State.Contexts.Files); err != nil {
 		gui.Log.Error(err)
 	}
 
@@ -865,10 +859,10 @@ func (gui *Gui) handleToggleFileTreeView() error {
 	}
 
 	if gui.getFilesView().Context == FILES_CONTEXT_KEY {
-		if err := gui.Contexts.Files.HandleRender(); err != nil {
+		if err := gui.State.Contexts.Files.HandleRender(); err != nil {
 			return err
 		}
-		if err := gui.Contexts.Files.HandleFocus(); err != nil {
+		if err := gui.State.Contexts.Files.HandleFocus(); err != nil {
 			return err
 		}
 	}

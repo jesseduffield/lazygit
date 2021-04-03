@@ -69,7 +69,7 @@ func (gui *Gui) refreshBranches() {
 	}
 	gui.State.Branches = builder.Build()
 
-	if err := gui.postRefreshUpdate(gui.Contexts.Branches); err != nil {
+	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
 	}
 
@@ -507,8 +507,8 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 				context.GetPanelState().SetSelectedLineIdx(0)
 			}
 
-			if context.GetKey() != gui.Contexts.Branches.GetKey() {
-				if err := gui.pushContext(gui.Contexts.Branches); err != nil {
+			if context.GetKey() != gui.State.Contexts.Branches.GetKey() {
+				if err := gui.pushContext(gui.State.Contexts.Branches); err != nil {
 					return err
 				}
 			}

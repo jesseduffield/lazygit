@@ -270,7 +270,7 @@ func (gui *Gui) handleEscapeMerge() error {
 	// it's possible this method won't be called from the merging view so we need to
 	// ensure we only 'return' focus if we already have it
 	if gui.g.CurrentView() == gui.getMainView() {
-		return gui.pushContext(gui.Contexts.Files)
+		return gui.pushContext(gui.State.Contexts.Files)
 	}
 	return nil
 }
@@ -303,14 +303,14 @@ func (gui *Gui) promptToContinueRebase() error {
 		prompt:              gui.Tr.ConflictsResolved,
 		handlersManageFocus: true,
 		handleConfirm: func() error {
-			if err := gui.pushContext(gui.Contexts.Files); err != nil {
+			if err := gui.pushContext(gui.State.Contexts.Files); err != nil {
 				return err
 			}
 
 			return gui.genericMergeCommand("continue")
 		},
 		handleClose: func() error {
-			return gui.pushContext(gui.Contexts.Files)
+			return gui.pushContext(gui.State.Contexts.Files)
 		},
 	})
 }

@@ -107,7 +107,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 	}
 	gui.State.CommitFileManager.SetFiles(files, to)
 
-	return gui.postRefreshUpdate(gui.Contexts.CommitFiles)
+	return gui.postRefreshUpdate(gui.State.Contexts.CommitFiles)
 }
 
 func (gui *Gui) handleOpenOldCommitFile() error {
@@ -167,7 +167,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 			gui.GitCommand.PatchManager.Reset()
 		}
 
-		return gui.postRefreshUpdate(gui.Contexts.CommitFiles)
+		return gui.postRefreshUpdate(gui.State.Contexts.CommitFiles)
 	}
 
 	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != gui.State.CommitFileManager.GetParent() {
@@ -215,7 +215,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 			}
 		}
 
-		if err := gui.pushContext(gui.Contexts.PatchBuilding); err != nil {
+		if err := gui.pushContext(gui.State.Contexts.PatchBuilding); err != nil {
 			return err
 		}
 		return gui.handleRefreshPatchBuildingPanel(selectedLineIdx)
@@ -231,7 +231,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 				return enterTheFile(selectedLineIdx)
 			},
 			handleClose: func() error {
-				return gui.pushContext(gui.Contexts.CommitFiles)
+				return gui.pushContext(gui.State.Contexts.CommitFiles)
 			},
 		})
 	}
@@ -247,7 +247,7 @@ func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
 
 	gui.State.CommitFileManager.ToggleCollapsed(node.GetPath())
 
-	if err := gui.postRefreshUpdate(gui.Contexts.CommitFiles); err != nil {
+	if err := gui.postRefreshUpdate(gui.State.Contexts.CommitFiles); err != nil {
 		gui.Log.Error(err)
 	}
 
@@ -262,14 +262,14 @@ func (gui *Gui) switchToCommitFilesContext(refName string, canRebase bool, conte
 	gui.State.Panels.CommitFiles.SelectedLineIdx = 0
 	gui.State.Panels.CommitFiles.refName = refName
 	gui.State.Panels.CommitFiles.canRebase = canRebase
-	gui.Contexts.CommitFiles.SetParentContext(context)
-	gui.Contexts.CommitFiles.SetWindowName(windowName)
+	gui.State.Contexts.CommitFiles.SetParentContext(context)
+	gui.State.Contexts.CommitFiles.SetWindowName(windowName)
 
 	if err := gui.refreshCommitFilesView(); err != nil {
 		return err
 	}
 
-	return gui.pushContext(gui.Contexts.CommitFiles)
+	return gui.pushContext(gui.State.Contexts.CommitFiles)
 }
 
 // NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
@@ -283,15 +283,15 @@ func (gui *Gui) handleToggleCommitFileTreeView() error {
 		gui.State.CommitFileManager.ExpandToPath(path)
 		index, found := gui.State.CommitFileManager.GetIndexForPath(path)
 		if found {
-			gui.Contexts.CommitFiles.GetPanelState().SetSelectedLineIdx(index)
+			gui.State.Contexts.CommitFiles.GetPanelState().SetSelectedLineIdx(index)
 		}
 	}
 
 	if gui.getCommitFilesView().Context == COMMIT_FILES_CONTEXT_KEY {
-		if err := gui.Contexts.CommitFiles.HandleRender(); err != nil {
+		if err := gui.State.Contexts.CommitFiles.HandleRender(); err != nil {
 			return err
 		}
-		if err := gui.Contexts.CommitFiles.HandleFocus(); err != nil {
+		if err := gui.State.Contexts.CommitFiles.HandleFocus(); err != nil {
 			return err
 		}
 	}

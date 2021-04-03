@@ -44,7 +44,7 @@ func (gui *Gui) refreshTags() error {
 
 	gui.State.Tags = tags
 
-	return gui.postRefreshUpdate(gui.Contexts.Tags)
+	return gui.postRefreshUpdate(gui.State.Contexts.Tags)
 }
 
 func (gui *Gui) handleCheckoutTag() error {
@@ -55,7 +55,7 @@ func (gui *Gui) handleCheckoutTag() error {
 	if err := gui.handleCheckoutRef(tag.Name, handleCheckoutRefOptions{}); err != nil {
 		return err
 	}
-	return gui.pushContext(gui.Contexts.Branches)
+	return gui.pushContext(gui.State.Contexts.Branches)
 }
 
 func (gui *Gui) handleDeleteTag() error {
@@ -123,7 +123,7 @@ func (gui *Gui) handleCreateTag() error {
 				for i, tag := range gui.State.Tags {
 					if tag.Name == tagName {
 						gui.State.Panels.Tags.SelectedLineIdx = i
-						if err := gui.Contexts.Tags.HandleRender(); err != nil {
+						if err := gui.State.Contexts.Tags.HandleRender(); err != nil {
 							gui.Log.Error(err)
 						}
 

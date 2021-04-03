@@ -32,5 +32,5 @@ func (gui *Gui) setSuggestions(suggestions []*types.Suggestion) {
 	gui.State.Suggestions = suggestions
 	gui.State.Panels.Suggestions.SelectedLineIdx = 0
 	_ = gui.resetOrigin(view)
-	_ = gui.Contexts.Suggestions.HandleRender()
+	_ = gui.State.Contexts.Suggestions.HandleRender()
 }
