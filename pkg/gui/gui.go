@@ -77,7 +77,6 @@ type Gui struct {
 	RepoStateMap         map[Repo]*guiState
 	Config               config.AppConfigurer
 	Tr                   *i18n.TranslationSet
-	Errors               SentinelErrors
 	Updater              *updates.Updater
 	statusManager        *statusManager
 	credentials          credentials
@@ -431,8 +430,6 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 	gui.resetState(filterPath)
 
 	gui.watchFilesForChanges()
-
-	gui.GenerateSentinelErrors()
 
 	return gui, nil
 }
