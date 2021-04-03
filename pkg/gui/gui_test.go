@@ -306,28 +306,23 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 	err = oscommands.CopyDir(templateConfigDir, configDir)
 	assert.NoError(t, err)
 
-	cmdStr := fmt.Sprintf("sudo dtruss %s --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
+	cmdStr := fmt.Sprintf("%s --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
 
 	if record {
-		cmd.Stdout = os.Stdout
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
 		cmd.Env = append(
-			os.Environ(),
+			cmd.Env,
 			fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath),
-			"TERM=xterm-256color",
 		)
 	} else {
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Env = append(
-			os.Environ(),
+			cmd.Env,
 			fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
-			"TERM=xterm-256color",
 		)
 		t.Log(spew.Sdump(cmd))
 	}
@@ -360,7 +355,7 @@ func runInParallel() bool {
 }
 
 func runInPTY() bool {
-	return runInParallel() || os.Getenv("TERM") == ""
+	return true
 }
 
 func prepareIntegrationTestDir(actualDir string) {

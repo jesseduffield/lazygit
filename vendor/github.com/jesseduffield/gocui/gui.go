@@ -597,6 +597,10 @@ func (g *Gui) consumeevents() error {
 // handleEvent handles an event, based on its type (key-press, error,
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
+	if g.RecordEvents {
+		g.RecordedEvents <- ev
+	}
+
 	switch ev.Type {
 	case eventKey, eventMouse:
 		return g.onKey(ev)
