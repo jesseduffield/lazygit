@@ -365,6 +365,10 @@ func ResolveTemplate(templateStr string, object interface{}) (string, error) {
 // Safe will close tcell if a panic occurs so that we don't end up in a malformed
 // terminal state
 func Safe(f func()) {
+	_ = SafeWithError(func() error { f(); return nil })
+}
+
+func SafeWithError(f func() error) error {
 	panicking := true
 	defer func() {
 		if panicking && gocui.Screen != nil {
@@ -372,7 +376,9 @@ func Safe(f func()) {
 		}
 	}()
 
-	f()
+	err := f()
 
 	panicking = false
+
+	return err
 }

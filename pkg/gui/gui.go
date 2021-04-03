@@ -48,6 +48,18 @@ const StartupPopupVersion = 3
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
 
+type ContextManager struct {
+	ContextStack []Context
+	sync.Mutex
+}
+
+func NewContextManager(contexts ContextTree) ContextManager {
+	return ContextManager{
+		ContextStack: []Context{contexts.Files},
+		Mutex:        sync.Mutex{},
+	}
+}
+
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	g                    *gocui.Gui
@@ -83,6 +95,10 @@ type Gui struct {
 	// findSuggestions will take a string that the user has typed into a prompt
 	// and return a slice of suggestions which match that string.
 	findSuggestions func(string) []*types.Suggestion
+
+	// when you enter into a submodule we'll append the superproject's path to this array
+	// so that you can return to the superproject
+	RepoPathStack []string
 }
 
 type RecordedEvent struct {
@@ -298,7 +314,7 @@ type guiState struct {
 
 	Modes Modes
 
-	ContextStack   []Context
+	ContextManager ContextManager
 	ViewContextMap map[string]Context
 
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
@@ -306,34 +322,17 @@ type guiState struct {
 	// side windows we need to know which view to give focus to for a given window
 	WindowViewNameMap map[string]string
 
-	// when you enter into a submodule we'll append the superproject's path to this array
-	// so that you can return to the superproject
-	RepoPathStack []string
+	// tells us whether we've set up our views. We only do this once per repo
+	ViewsSetup bool
 }
 
-func (gui *Gui) resetState() {
-	// we carry over the filter path and diff state
-	prevFiltering := filtering.NewFiltering()
-	prevDiff := Diffing{}
-	prevCherryPicking := CherryPicking{
-		CherryPickedCommits: make([]*models.Commit, 0),
-		ContextKey:          "",
-	}
-	prevRepoPathStack := []string{}
-	if gui.State != nil {
-		prevFiltering = gui.State.Modes.Filtering
-		prevDiff = gui.State.Modes.Diffing
-		prevCherryPicking = gui.State.Modes.CherryPicking
-		prevRepoPathStack = gui.State.RepoPathStack
-	}
-
-	modes := Modes{
-		Filtering:     prevFiltering,
-		CherryPicking: prevCherryPicking,
-		Diffing:       prevDiff,
-	}
-
+func (gui *Gui) resetState(filterPath string) {
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
+
+	screenMode := SCREEN_NORMAL
+	if filterPath != "" {
+		screenMode = SCREEN_HALF
+	}
 
 	gui.State = &guiState{
 		FileManager:           filetree.NewFileManager(make([]*models.File, 0), gui.Log, showTree),
@@ -365,18 +364,22 @@ func (gui *Gui) resetState() {
 				ConflictsMutex: sync.Mutex{},
 			},
 		},
-		SideView:       nil,
-		Ptmx:           nil,
-		Modes:          modes,
+		SideView: nil,
+		Ptmx:     nil,
+		Modes: Modes{
+			Filtering: filtering.NewFiltering(),
+			CherryPicking: CherryPicking{
+				CherryPickedCommits: make([]*models.Commit, 0),
+				ContextKey:          "",
+			},
+			Diffing: Diffing{},
+		},
 		ViewContextMap: gui.initialViewContextMap(),
-		RepoPathStack:  prevRepoPathStack,
+		ScreenMode:     screenMode,
+		ContextManager: NewContextManager(gui.Contexts),
 	}
 
-	if gui.State.Modes.Filtering.Active() {
-		gui.State.ScreenMode = SCREEN_HALF
-	} else {
-		gui.State.ScreenMode = SCREEN_NORMAL
-	}
+	gui.ViewTabContextMap = gui.initialViewTabContextMap()
 }
 
 // for now the split view will always be on
@@ -393,12 +396,11 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 		showRecentRepos:      showRecentRepos,
 		RecordedEvents:       []RecordedEvent{},
+		RepoPathStack:        []string{},
 	}
 
-	gui.resetState()
-	gui.State.Modes.Filtering.SetPath(filterPath)
 	gui.Contexts = gui.contextTree()
-	gui.ViewTabContextMap = gui.viewTabContextMap()
+	gui.resetState(filterPath)
 
 	gui.watchFilesForChanges()
 
@@ -409,8 +411,6 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 
 // Run setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run() error {
-	gui.resetState()
-
 	recordEvents := recordingEvents()
 
 	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, recordEvents)
@@ -457,6 +457,11 @@ func (gui *Gui) Run() error {
 		go utils.Safe(gui.startBackgroundFetch)
 	}
 
+	go func() {
+		gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+		gui.waitForIntro.Done()
+	}()
+
 	gui.goEvery(time.Second*time.Duration(userConfig.Refresher.RefreshInterval), gui.stopChan, gui.refreshFilesAndSubmodules)
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
@@ -467,19 +472,17 @@ func (gui *Gui) Run() error {
 	return err
 }
 
-// RunWithRestarts loops, instantiating a new gocui.Gui with each iteration
-// (i.e. when switching repos or restarting). If it's a random error, we quit
-func (gui *Gui) RunWithRestarts() error {
+// RunAndHandleError
+func (gui *Gui) RunAndHandleError() error {
 	gui.StartTime = time.Now()
 	go utils.Safe(gui.replayRecordedEvents)
 
-	for {
-		gui.stopChan = make(chan struct{})
+	gui.stopChan = make(chan struct{})
+	return utils.SafeWithError(func() error {
 		if err := gui.Run(); err != nil {
 			for _, manager := range gui.viewBufferManagerMap {
 				manager.Close()
 			}
-			gui.viewBufferManagerMap = map[string]*tasks.ViewBufferManager{}
 
 			if !gui.fileWatcher.Disabled {
 				gui.fileWatcher.Watcher.Close()
@@ -500,13 +503,14 @@ func (gui *Gui) RunWithRestarts() error {
 				}
 
 				return nil
-			case gui.Errors.ErrSwitchRepo:
-				continue
+
 			default:
 				return err
 			}
 		}
-	}
+
+		return nil
+	})
 }
 
 func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) error {
@@ -551,11 +555,9 @@ func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
 }
 
 func (gui *Gui) loadNewRepo() error {
-	gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
 	if err := gui.updateRecentRepoList(); err != nil {
 		return err
 	}
-	gui.waitForIntro.Done()
 
 	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
 		return err

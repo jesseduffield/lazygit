@@ -1706,7 +1706,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		bindings = append(bindings, &Binding{ViewName: "", Key: rune(i+1) + '0', Modifier: gocui.ModNone, Handler: gui.goToSideWindow(window)})
 	}
 
-	for viewName := range gui.viewTabContextMap() {
+	for viewName := range gui.initialViewTabContextMap() {
 		bindings = append(bindings, []*Binding{
 			{
 				ViewName:    viewName,
@@ -1741,7 +1741,7 @@ func (gui *Gui) keybindings() error {
 		}
 	}
 
-	for viewName := range gui.viewTabContextMap() {
+	for viewName := range gui.initialViewTabContextMap() {
 		viewName := viewName
 		tabClickCallback := func(tabIndex int) error { return gui.onViewTabClick(viewName, tabIndex) }
 

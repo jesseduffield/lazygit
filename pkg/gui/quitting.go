@@ -49,13 +49,13 @@ func (gui *Gui) handleTopLevelReturn() error {
 		}
 	}
 
-	repoPathStack := gui.State.RepoPathStack
+	repoPathStack := gui.RepoPathStack
 	if len(repoPathStack) > 0 {
 		n := len(repoPathStack) - 1
 
 		path := repoPathStack[n]
 
-		gui.State.RepoPathStack = repoPathStack[:n]
+		gui.RepoPathStack = repoPathStack[:n]
 
 		return gui.dispatchSwitchToRepo(path)
 	}

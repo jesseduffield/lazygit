@@ -216,11 +216,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 		v.Frame = false
 		v.FgColor = theme.OptionsColor
-
-		// doing this here because it'll only happen once
-		if err := gui.onInitialViewsCreation(); err != nil {
-			return err
-		}
 	}
 
 	// this view takes up one character. Its only purpose is to show the slash when searching
@@ -269,6 +264,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if gui.State.OldInformation != informationStr {
 		gui.setViewContent(informationView, informationStr)
 		gui.State.OldInformation = informationStr
+	}
+
+	if !gui.State.ViewsSetup {
+		if err := gui.onInitialViewsCreation(); err != nil {
+			return err
+		}
+
+		gui.State.ViewsSetup = true
 	}
 
 	if gui.g.CurrentView() == nil {
@@ -323,8 +326,13 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 func (gui *Gui) onInitialViewsCreation() error {
 	gui.setInitialViewContexts()
 
-	// add tabs to views
+	// hide any popup views. This only applies when we've just switched repos
+	for _, viewName := range gui.popupViewNames() {
+		_, _ = gui.g.SetViewOnBottom(viewName)
+	}
+
 	gui.g.Mutexes.ViewsMutex.Lock()
+	// add tabs to views
 	for _, view := range gui.g.Views() {
 		tabs := gui.viewTabNames(view.Name())
 		if len(tabs) == 0 {

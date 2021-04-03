@@ -296,7 +296,18 @@ func (gui *Gui) initialViewContextMap() map[string]Context {
 	}
 }
 
-func (gui *Gui) viewTabContextMap() map[string][]tabContext {
+func (gui *Gui) popupViewNames() []string {
+	result := []string{}
+	for _, context := range gui.allContexts() {
+		if context.GetKind() == PERSISTENT_POPUP || context.GetKind() == TEMPORARY_POPUP {
+			result = append(result, context.GetViewName())
+		}
+	}
+
+	return result
+}
+
+func (gui *Gui) initialViewTabContextMap() map[string][]tabContext {
 	return map[string][]tabContext{
 		"branches": {
 			{
@@ -343,7 +354,10 @@ func (gui *Gui) viewTabContextMap() map[string][]tabContext {
 }
 
 func (gui *Gui) currentContextKeyIgnoringPopups() string {
-	stack := gui.State.ContextStack
+	gui.State.ContextManager.Lock()
+	defer gui.State.ContextManager.Unlock()
+
+	stack := gui.State.ContextManager.ContextStack
 
 	for i := range stack {
 		reversedIndex := len(stack) - 1 - i
@@ -361,11 +375,14 @@ func (gui *Gui) currentContextKeyIgnoringPopups() string {
 // hitting escape: you want to go that context's parent instead.
 func (gui *Gui) replaceContext(c Context) error {
 	gui.g.Update(func(*gocui.Gui) error {
-		if len(gui.State.ContextStack) == 0 {
-			gui.State.ContextStack = []Context{c}
+		gui.State.ContextManager.Lock()
+		defer gui.State.ContextManager.Unlock()
+
+		if len(gui.State.ContextManager.ContextStack) == 0 {
+			gui.State.ContextManager.ContextStack = []Context{c}
 		} else {
 			// replace the last item with the given item
-			gui.State.ContextStack = append(gui.State.ContextStack[0:len(gui.State.ContextStack)-1], c)
+			gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack[0:len(gui.State.ContextManager.ContextStack)-1], c)
 		}
 
 		return gui.activateContext(c)
@@ -376,27 +393,36 @@ func (gui *Gui) replaceContext(c Context) error {
 
 func (gui *Gui) pushContext(c Context) error {
 	gui.g.Update(func(*gocui.Gui) error {
-		// push onto stack
-		// if we are switching to a side context, remove all other contexts in the stack
-		if c.GetKind() == SIDE_CONTEXT {
-			for _, stackContext := range gui.State.ContextStack {
-				if stackContext.GetKey() != c.GetKey() {
-					if err := gui.deactivateContext(stackContext); err != nil {
-						return err
-					}
-				}
-			}
-			gui.State.ContextStack = []Context{c}
-		} else {
-			// TODO: think about other exceptional cases
-			gui.State.ContextStack = append(gui.State.ContextStack, c)
-		}
+		gui.State.ContextManager.Lock()
+		defer gui.State.ContextManager.Unlock()
 
-		return gui.activateContext(c)
+		return gui.pushContextDirect(c)
 	})
 
 	return nil
 }
+
+func (gui *Gui) pushContextDirect(c Context) error {
+	// push onto stack
+	// if we are switching to a side context, remove all other contexts in the stack
+	if c.GetKind() == SIDE_CONTEXT {
+		for _, stackContext := range gui.State.ContextManager.ContextStack {
+			if stackContext.GetKey() != c.GetKey() {
+				if err := gui.deactivateContext(stackContext); err != nil {
+					return err
+				}
+			}
+		}
+		gui.State.ContextManager.ContextStack = []Context{c}
+	} else {
+		// TODO: think about other exceptional cases
+		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack, c)
+	}
+
+	return gui.activateContext(c)
+}
+
+// asynchronous code idea: functions return an error via a channel, when done
 
 // pushContextWithView is to be used when you don't know which context you
 // want to switch to: you only know the view that you want to switch to. It will
@@ -407,19 +433,20 @@ func (gui *Gui) pushContextWithView(viewName string) error {
 
 func (gui *Gui) returnFromContext() error {
 	gui.g.Update(func(*gocui.Gui) error {
-		// TODO: add mutexes
+		gui.State.ContextManager.Lock()
+		defer gui.State.ContextManager.Unlock()
 
-		if len(gui.State.ContextStack) == 1 {
+		if len(gui.State.ContextManager.ContextStack) == 1 {
 			// cannot escape from bottommost context
 			return nil
 		}
 
-		n := len(gui.State.ContextStack) - 1
+		n := len(gui.State.ContextManager.ContextStack) - 1
 
-		currentContext := gui.State.ContextStack[n]
-		newContext := gui.State.ContextStack[n-1]
+		currentContext := gui.State.ContextManager.ContextStack[n]
+		newContext := gui.State.ContextManager.ContextStack[n-1]
 
-		gui.State.ContextStack = gui.State.ContextStack[:n]
+		gui.State.ContextManager.ContextStack = gui.State.ContextManager.ContextStack[:n]
 
 		if err := gui.deactivateContext(currentContext); err != nil {
 			return err
@@ -529,24 +556,30 @@ func (gui *Gui) activateContext(c Context) error {
 }
 
 // currently unused
-// func (gui *Gui) renderContextStack() string {
-// 	result := ""
-// 	for _, context := range gui.State.ContextStack {
-// 		result += context.GetKey() + "\n"
-// 	}
-// 	return result
-// }
+func (gui *Gui) renderContextStack() string {
+	result := ""
+	for _, context := range gui.State.ContextManager.ContextStack {
+		result += context.GetKey() + "\n"
+	}
+	return result
+}
 
 func (gui *Gui) currentContext() Context {
-	if len(gui.State.ContextStack) == 0 {
+	gui.State.ContextManager.Lock()
+	defer gui.State.ContextManager.Unlock()
+
+	if len(gui.State.ContextManager.ContextStack) == 0 {
 		return gui.defaultSideContext()
 	}
 
-	return gui.State.ContextStack[len(gui.State.ContextStack)-1]
+	return gui.State.ContextManager.ContextStack[len(gui.State.ContextManager.ContextStack)-1]
 }
 
 func (gui *Gui) currentSideContext() *ListContext {
-	stack := gui.State.ContextStack
+	gui.State.ContextManager.Lock()
+	defer gui.State.ContextManager.Unlock()
+
+	stack := gui.State.ContextManager.ContextStack
 
 	// on startup the stack can be empty so we'll return an empty string in that case
 	if len(stack) == 0 {
