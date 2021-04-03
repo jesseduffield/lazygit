@@ -694,7 +694,7 @@ func (gui *Gui) changeMainViewsContext(contextKey string) {
 }
 
 func (gui *Gui) viewTabNames(viewName string) []string {
-	tabContexts := gui.ViewTabContextMap[viewName]
+	tabContexts := gui.State.ViewTabContextMap[viewName]
 
 	if len(tabContexts) == 0 {
 		return nil
@@ -710,7 +710,7 @@ func (gui *Gui) viewTabNames(viewName string) []string {
 
 func (gui *Gui) setViewTabForContext(c Context) {
 	// search for the context in our map and if we find it, set the tab for the corresponding view
-	tabContexts, ok := gui.ViewTabContextMap[c.GetViewName()]
+	tabContexts, ok := gui.State.ViewTabContextMap[c.GetViewName()]
 	if !ok {
 		return
 	}

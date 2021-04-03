@@ -431,7 +431,7 @@ func (gui *Gui) clearEditorView(v *gocui.View) {
 }
 
 func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
-	context := gui.ViewTabContextMap[viewName][tabIndex].contexts[0]
+	context := gui.State.ViewTabContextMap[viewName][tabIndex].contexts[0]
 
 	return gui.pushContext(context)
 }
