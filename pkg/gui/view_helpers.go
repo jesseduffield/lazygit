@@ -319,7 +319,7 @@ func (gui *Gui) getConfirmationView() *gocui.View {
 }
 
 func (gui *Gui) getInformationView() *gocui.View {
-	v, _ := gui.g.View("confirmation")
+	v, _ := gui.g.View("information")
 	return v
 }
 

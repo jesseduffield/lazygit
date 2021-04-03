@@ -315,18 +315,27 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Env = append(
-			cmd.Env,
+			os.Environ(),
 			fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath),
+			"TERM=xterm-256color",
 		)
 	} else {
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
 		cmd.Env = append(
-			cmd.Env,
+			os.Environ(),
 			fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
+			"TERM=xterm-256color",
 		)
+		t.Log(cmd.Env)
 	}
+
+	t.Log("here")
 
 	// if we're on CI we'll need to use a PTY. We can work that out by seeing if the 'TERM' env is defined.
 	if runInPTY() {
+		t.Log("1")
 		cmd.Env = append(cmd.Env, "TERM=xterm")
 
 		f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
@@ -338,6 +347,7 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 
 		_ = f.Close()
 	} else {
+		t.Log("2")
 		err := cmd.Run()
 		assert.NoError(t, err)
 	}
