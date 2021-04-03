@@ -71,7 +71,7 @@ func (gui *Gui) enterSubmodule(submodule *models.SubmoduleConfig) error {
 	if err != nil {
 		return err
 	}
-	gui.State.RepoPathStack = append(gui.State.RepoPathStack, wd)
+	gui.RepoPathStack = append(gui.RepoPathStack, wd)
 
 	return gui.dispatchSwitchToRepo(submodule.Path)
 }

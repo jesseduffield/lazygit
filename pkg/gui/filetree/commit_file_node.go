@@ -107,6 +107,10 @@ func (n *CommitFileNode) Flatten(collapsedPaths map[string]bool) []*CommitFileNo
 }
 
 func (node *CommitFileNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *CommitFileNode {
+	if node == nil {
+		return nil
+	}
+
 	return getNodeAtIndex(node, index, collapsedPaths).(*CommitFileNode)
 }
 

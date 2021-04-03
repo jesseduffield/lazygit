@@ -181,9 +181,12 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 // the default behaviour when accordian mode is NOT in effect. If it is in effect
 // then when it's accessed it will have weight 2, not 1.
 func (gui *Gui) getDefaultStashWindowBox() *boxlayout.Box {
+	gui.State.ContextManager.Lock()
+	defer gui.State.ContextManager.Unlock()
+
 	box := &boxlayout.Box{Window: "stash"}
 	stashWindowAccessed := false
-	for _, context := range gui.State.ContextStack {
+	for _, context := range gui.State.ContextManager.ContextStack {
 		if context.GetWindowName() == "stash" {
 			stashWindowAccessed = true
 		}
@@ -278,9 +281,12 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 
 func (gui *Gui) currentSideWindowName() string {
 	// there is always one and only one cyclable context in the context stack. We'll look from top to bottom
-	for idx := range gui.State.ContextStack {
-		reversedIdx := len(gui.State.ContextStack) - 1 - idx
-		context := gui.State.ContextStack[reversedIdx]
+	gui.State.ContextManager.Lock()
+	defer gui.State.ContextManager.Unlock()
+
+	for idx := range gui.State.ContextManager.ContextStack {
+		reversedIdx := len(gui.State.ContextManager.ContextStack) - 1 - idx
+		context := gui.State.ContextManager.ContextStack[reversedIdx]
 
 		if context.GetKind() == SIDE_CONTEXT {
 			return context.GetWindowName()

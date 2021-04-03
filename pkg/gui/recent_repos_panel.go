@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -24,6 +25,9 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 				yellow.Sprint(path),
 			},
 			onPress: func() error {
+				// if we were in a submodule, we want to forget about that stack of repos
+				// so that hitting escape in the new repo does nothing
+				gui.RepoPathStack = []string{}
 				return gui.dispatchSwitchToRepo(path)
 			},
 		}
@@ -73,8 +77,14 @@ func (gui *Gui) dispatchSwitchToRepo(path string) error {
 		return err
 	}
 	gui.GitCommand = newGitCommand
-	gui.State.Modes.Filtering.Reset()
-	return gui.Errors.ErrSwitchRepo
+
+	gui.g.Update(func(*gocui.Gui) error {
+		gui.resetState("")
+
+		return nil
+	})
+
+	return nil
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,

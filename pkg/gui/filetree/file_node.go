@@ -93,6 +93,10 @@ func (n *FileNode) Flatten(collapsedPaths map[string]bool) []*FileNode {
 }
 
 func (node *FileNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *FileNode {
+	if node == nil {
+		return nil
+	}
+
 	return getNodeAtIndex(node, index, collapsedPaths).(*FileNode)
 }
 

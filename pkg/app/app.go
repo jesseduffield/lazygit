@@ -239,7 +239,7 @@ func (app *App) Run() error {
 		os.Exit(0)
 	}
 
-	err := app.Gui.RunWithRestarts()
+	err := app.Gui.RunAndHandleError()
 	return err
 }
 

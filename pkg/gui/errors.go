@@ -5,9 +5,7 @@ import "github.com/go-errors/errors"
 // SentinelErrors are the errors that have special meaning and need to be checked
 // by calling functions. The less of these, the better
 type SentinelErrors struct {
-	ErrNoFiles    error
-	ErrSwitchRepo error
-	ErrRestart    error
+	ErrNoFiles error
 }
 
 const UNKNOWN_VIEW_ERROR_MSG = "unknown view"
@@ -24,14 +22,12 @@ const UNKNOWN_VIEW_ERROR_MSG = "unknown view"
 // localising things in the code.
 func (gui *Gui) GenerateSentinelErrors() {
 	gui.Errors = SentinelErrors{
-		ErrNoFiles:    errors.New(gui.Tr.NoChangedFiles),
-		ErrSwitchRepo: errors.New("switching repo"),
+		ErrNoFiles: errors.New(gui.Tr.NoChangedFiles),
 	}
 }
 
 func (gui *Gui) sentinelErrorsArr() []error {
 	return []error{
 		gui.Errors.ErrNoFiles,
-		gui.Errors.ErrSwitchRepo,
 	}
 }
