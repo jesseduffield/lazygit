@@ -29,7 +29,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			isActive: gui.State.Modes.Filtering.Active,
 			description: func() string {
 				return utils.ColoredString(
-					fmt.Sprintf("%s '%s' %s", gui.Tr.LcFilteringBy, gui.State.Modes.Filtering.Path, utils.ColoredString(gui.Tr.ResetInParentheses, color.Underline)),
+					fmt.Sprintf("%s '%s' %s", gui.Tr.LcFilteringBy, gui.State.Modes.Filtering.GetPath(), utils.ColoredString(gui.Tr.ResetInParentheses, color.Underline)),
 					color.FgRed,
 					color.Bold,
 				)

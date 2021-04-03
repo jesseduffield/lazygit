@@ -42,7 +42,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 			},
 		}...)
 
-		if gui.currentContext().GetKey() == gui.Contexts.BranchCommits.Context.GetKey() {
+		if gui.currentContext().GetKey() == gui.Contexts.BranchCommits.GetKey() {
 			selectedCommit := gui.getSelectedLocalCommit()
 			if selectedCommit != nil && gui.GitCommand.PatchManager.To != selectedCommit.Sha {
 				// adding this option to index 1
@@ -179,7 +179,7 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 func (gui *Gui) handleResetPatch() error {
 	gui.GitCommand.PatchManager.Reset()
 	if gui.currentContextKeyIgnoringPopups() == MAIN_PATCH_BUILDING_CONTEXT_KEY {
-		if err := gui.pushContext(gui.Contexts.CommitFiles.Context); err != nil {
+		if err := gui.pushContext(gui.Contexts.CommitFiles); err != nil {
 			return err
 		}
 	}

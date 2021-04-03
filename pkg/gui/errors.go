@@ -26,7 +26,6 @@ func (gui *Gui) GenerateSentinelErrors() {
 	gui.Errors = SentinelErrors{
 		ErrNoFiles:    errors.New(gui.Tr.NoChangedFiles),
 		ErrSwitchRepo: errors.New("switching repo"),
-		ErrRestart:    errors.New("restarting"),
 	}
 }
 
@@ -34,6 +33,5 @@ func (gui *Gui) sentinelErrorsArr() []error {
 	return []error{
 		gui.Errors.ErrNoFiles,
 		gui.Errors.ErrSwitchRepo,
-		gui.Errors.ErrRestart,
 	}
 }

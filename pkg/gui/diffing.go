@@ -94,7 +94,7 @@ func (gui *Gui) diffStr() string {
 	if file != "" {
 		output += " -- " + file
 	} else if gui.State.Modes.Filtering.Active() {
-		output += " -- " + gui.State.Modes.Filtering.Path
+		output += " -- " + gui.State.Modes.Filtering.GetPath()
 	}
 
 	return output

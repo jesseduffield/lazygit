@@ -73,7 +73,7 @@ func (gui *Gui) handleStatusClick() error {
 		return nil
 	}
 
-	if err := gui.pushContext(gui.Contexts.Status.Context); err != nil {
+	if err := gui.pushContext(gui.Contexts.Status); err != nil {
 		return err
 	}
 

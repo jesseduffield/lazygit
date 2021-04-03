@@ -73,7 +73,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string) error {
 		return err
 	}
 	gui.GitCommand = newGitCommand
-	gui.State.Modes.Filtering.Path = ""
+	gui.State.Modes.Filtering.Reset()
 	return gui.Errors.ErrSwitchRepo
 }
 

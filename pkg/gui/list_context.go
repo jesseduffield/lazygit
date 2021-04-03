@@ -530,20 +530,20 @@ func (gui *Gui) suggestionsListContext() *ListContext {
 
 func (gui *Gui) getListContexts() []*ListContext {
 	return []*ListContext{
-		gui.Contexts.Menu.Context.(*ListContext),
-		gui.Contexts.Files.Context.(*ListContext),
-		gui.Contexts.Branches.Context.(*ListContext),
-		gui.Contexts.Remotes.Context.(*ListContext),
-		gui.Contexts.Remotes.Branches.Context.(*ListContext),
-		gui.Contexts.Tags.Context.(*ListContext),
-		gui.Contexts.BranchCommits.Context.(*ListContext),
-		gui.Contexts.BranchCommits.Context.(*ListContext),
-		gui.Contexts.ReflogCommits.Context.(*ListContext),
-		gui.Contexts.SubCommits.Context.(*ListContext),
-		gui.Contexts.Stash.Context.(*ListContext),
-		gui.Contexts.CommitFiles.Context.(*ListContext),
-		gui.Contexts.Submodules.Context.(*ListContext),
-		gui.Contexts.Suggestions.Context.(*ListContext),
+		gui.Contexts.Menu,
+		gui.Contexts.Files,
+		gui.Contexts.Branches,
+		gui.Contexts.Remotes,
+		gui.Contexts.RemoteBranches,
+		gui.Contexts.Tags,
+		gui.Contexts.BranchCommits,
+		gui.Contexts.BranchCommits,
+		gui.Contexts.ReflogCommits,
+		gui.Contexts.SubCommits,
+		gui.Contexts.Stash,
+		gui.Contexts.CommitFiles,
+		gui.Contexts.Submodules,
+		gui.Contexts.Suggestions,
 	}
 }
 
@@ -553,6 +553,8 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 	keybindingConfig := gui.Config.GetUserConfig().Keybinding
 
 	for _, listContext := range gui.getListContexts() {
+		listContext := listContext
+
 		bindings = append(bindings, []*Binding{
 			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.PrevItemAlt), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
 			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.PrevItem), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
