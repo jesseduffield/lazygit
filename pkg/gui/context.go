@@ -19,27 +19,27 @@ type ContextKey string
 
 const (
 	STATUS_CONTEXT_KEY              ContextKey = "status"
-	FILES_CONTEXT_KEY                          = "files"
-	LOCAL_BRANCHES_CONTEXT_KEY                 = "localBranches"
-	REMOTES_CONTEXT_KEY                        = "remotes"
-	REMOTE_BRANCHES_CONTEXT_KEY                = "remoteBranches"
-	TAGS_CONTEXT_KEY                           = "tags"
-	BRANCH_COMMITS_CONTEXT_KEY                 = "commits"
-	REFLOG_COMMITS_CONTEXT_KEY                 = "reflogCommits"
-	SUB_COMMITS_CONTEXT_KEY                    = "subCommits"
-	COMMIT_FILES_CONTEXT_KEY                   = "commitFiles"
-	STASH_CONTEXT_KEY                          = "stash"
-	MAIN_NORMAL_CONTEXT_KEY                    = "normal"
-	MAIN_MERGING_CONTEXT_KEY                   = "merging"
-	MAIN_PATCH_BUILDING_CONTEXT_KEY            = "patchBuilding"
-	MAIN_STAGING_CONTEXT_KEY                   = "staging"
-	MENU_CONTEXT_KEY                           = "menu"
-	CREDENTIALS_CONTEXT_KEY                    = "credentials"
-	CONFIRMATION_CONTEXT_KEY                   = "confirmation"
-	SEARCH_CONTEXT_KEY                         = "search"
-	COMMIT_MESSAGE_CONTEXT_KEY                 = "commitMessage"
-	SUBMODULES_CONTEXT_KEY                     = "submodules"
-	SUGGESTIONS_CONTEXT_KEY                    = "suggestions"
+	FILES_CONTEXT_KEY               ContextKey = "files"
+	LOCAL_BRANCHES_CONTEXT_KEY      ContextKey = "localBranches"
+	REMOTES_CONTEXT_KEY             ContextKey = "remotes"
+	REMOTE_BRANCHES_CONTEXT_KEY     ContextKey = "remoteBranches"
+	TAGS_CONTEXT_KEY                ContextKey = "tags"
+	BRANCH_COMMITS_CONTEXT_KEY      ContextKey = "commits"
+	REFLOG_COMMITS_CONTEXT_KEY      ContextKey = "reflogCommits"
+	SUB_COMMITS_CONTEXT_KEY         ContextKey = "subCommits"
+	COMMIT_FILES_CONTEXT_KEY        ContextKey = "commitFiles"
+	STASH_CONTEXT_KEY               ContextKey = "stash"
+	MAIN_NORMAL_CONTEXT_KEY         ContextKey = "normal"
+	MAIN_MERGING_CONTEXT_KEY        ContextKey = "merging"
+	MAIN_PATCH_BUILDING_CONTEXT_KEY ContextKey = "patchBuilding"
+	MAIN_STAGING_CONTEXT_KEY        ContextKey = "staging"
+	MENU_CONTEXT_KEY                ContextKey = "menu"
+	CREDENTIALS_CONTEXT_KEY         ContextKey = "credentials"
+	CONFIRMATION_CONTEXT_KEY        ContextKey = "confirmation"
+	SEARCH_CONTEXT_KEY              ContextKey = "search"
+	COMMIT_MESSAGE_CONTEXT_KEY      ContextKey = "commitMessage"
+	SUBMODULES_CONTEXT_KEY          ContextKey = "submodules"
+	SUGGESTIONS_CONTEXT_KEY         ContextKey = "suggestions"
 )
 
 var allContextKeys = []ContextKey{
@@ -512,7 +512,7 @@ func (gui *Gui) activateContext(c Context) error {
 	originalViewContextKey := ContextKey(v.Context)
 
 	// ensure that any other window for which this view was active is now set to the default for that window.
-	gui.setViewAsActiveForWindow(viewName)
+	gui.setViewAsActiveForWindow(v)
 
 	if viewName == "main" {
 		gui.changeMainViewsContext(c.GetKey())
@@ -677,7 +677,7 @@ func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error 
 	}
 
 	if oldView == gui.Views.CommitFiles && newView != gui.Views.Main && newView != gui.Views.Secondary && newView != gui.Views.Search {
-		gui.resetWindowForView("commitFiles")
+		gui.resetWindowForView(gui.Views.CommitFiles)
 		if err := gui.deactivateContext(gui.State.Contexts.CommitFiles); err != nil {
 			return err
 		}

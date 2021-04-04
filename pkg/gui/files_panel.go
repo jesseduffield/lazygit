@@ -117,14 +117,14 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			gui.Log.Error(err)
 		}
 
-		if gui.Views.Files.Context == FILES_CONTEXT_KEY {
+		if ContextKey(gui.Views.Files.Context) == FILES_CONTEXT_KEY {
 			// doing this a little custom (as opposed to using gui.postRefreshUpdate) because we handle selecting the file explicitly below
 			if err := gui.State.Contexts.Files.HandleRender(); err != nil {
 				return err
 			}
 		}
 
-		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (g.CurrentView() == gui.Views.Main && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
+		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (g.CurrentView() == gui.Views.Main && ContextKey(g.CurrentView().Context) == MAIN_MERGING_CONTEXT_KEY) {
 			newSelectedPath := gui.getSelectedPath()
 			alreadySelected := selectedPath != "" && newSelectedPath == selectedPath
 			if err := gui.selectFile(alreadySelected); err != nil {
@@ -856,7 +856,7 @@ func (gui *Gui) handleToggleFileTreeView() error {
 		}
 	}
 
-	if gui.Views.Files.Context == FILES_CONTEXT_KEY {
+	if ContextKey(gui.Views.Files.Context) == FILES_CONTEXT_KEY {
 		if err := gui.State.Contexts.Files.HandleRender(); err != nil {
 			return err
 		}

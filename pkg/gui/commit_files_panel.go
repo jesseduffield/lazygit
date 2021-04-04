@@ -257,7 +257,7 @@ func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
 func (gui *Gui) switchToCommitFilesContext(refName string, canRebase bool, context Context, windowName string) error {
 	// sometimes the commitFiles view is already shown in another window, so we need to ensure that window
 	// no longer considers the commitFiles view as its main view.
-	gui.resetWindowForView("commitFiles")
+	gui.resetWindowForView(gui.Views.CommitFiles)
 
 	gui.State.Panels.CommitFiles.SelectedLineIdx = 0
 	gui.State.Panels.CommitFiles.refName = refName
@@ -287,14 +287,11 @@ func (gui *Gui) handleToggleCommitFileTreeView() error {
 		}
 	}
 
-	// TODO: pretty sure this view only ever has this context. Is this if condition necessary?
-	if gui.Views.CommitFiles.Context == COMMIT_FILES_CONTEXT_KEY {
-		if err := gui.State.Contexts.CommitFiles.HandleRender(); err != nil {
-			return err
-		}
-		if err := gui.State.Contexts.CommitFiles.HandleFocus(); err != nil {
-			return err
-		}
+	if err := gui.State.Contexts.CommitFiles.HandleRender(); err != nil {
+		return err
+	}
+	if err := gui.State.Contexts.CommitFiles.HandleFocus(); err != nil {
+		return err
 	}
 
 	return nil
