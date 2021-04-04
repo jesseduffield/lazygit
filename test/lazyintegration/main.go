@@ -72,7 +72,7 @@ func main() {
 
 Loop:
 	for {
-		g, err := gocui.NewGui(gocui.OutputNormal, false, false)
+		g, err := gocui.NewGui(gocui.OutputTrue, false, gocui.NORMAL)
 		if err != nil {
 			log.Panicln(err)
 		}

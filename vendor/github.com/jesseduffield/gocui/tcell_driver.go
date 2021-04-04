@@ -190,7 +190,9 @@ func (g *Gui) pollEvent() GocuiEvent {
 		return GocuiEvent{Type: eventResize, Width: w, Height: h}
 	case *tcell.EventKey:
 		if g.PlayMode == RECORDING {
-			g.Recording.KeyEvents = append(g.Recording.KeyEvents, NewTcellKeyEventWrapper(tev, g.timeSinceStart()))
+			g.Recording.KeyEvents = append(
+				g.Recording.KeyEvents, NewTcellKeyEventWrapper(tev, g.timeSinceStart()),
+			)
 		}
 
 		k := tev.Key()
