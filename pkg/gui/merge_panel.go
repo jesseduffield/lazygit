@@ -317,8 +317,8 @@ func (gui *Gui) promptToContinueRebase() error {
 }
 
 func (gui *Gui) canScrollMergePanel() bool {
-	currentViewName := gui.currentViewName()
-	if currentViewName != "main" && currentViewName != "files" {
+	currentView := gui.g.CurrentView()
+	if currentView != gui.Views.Main && currentView != gui.Views.Files {
 		return false
 	}
 
