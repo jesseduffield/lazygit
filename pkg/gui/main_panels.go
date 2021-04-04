@@ -174,7 +174,7 @@ func (gui *Gui) splitMainPanel(splitMainPanel bool) {
 
 	// no need to set view on bottom when splitMainPanel is false: it will have zero size anyway thanks to our view arrangement code.
 	if splitMainPanel {
-		gui.Views.Secondary.Visible = false
+		gui.Views.Secondary.Visible = true
 	}
 }
 
