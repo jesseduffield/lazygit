@@ -170,7 +170,7 @@ func (v *View) gotoNextMatch() error {
 	if len(v.searcher.searchPositions) == 0 {
 		return nil
 	}
-	if v.searcher.currentSearchIndex == len(v.searcher.searchPositions)-1 {
+	if v.searcher.currentSearchIndex >= len(v.searcher.searchPositions)-1 {
 		v.searcher.currentSearchIndex = 0
 	} else {
 		v.searcher.currentSearchIndex++
