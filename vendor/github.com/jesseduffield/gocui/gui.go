@@ -280,9 +280,6 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 
 // SetViewBeneath sets a view stacked beneath another view
 func (g *Gui) SetViewBeneath(name string, aboveViewName string, height int) (*View, error) {
-	g.Mutexes.ViewsMutex.Lock()
-	defer g.Mutexes.ViewsMutex.Unlock()
-
 	aboveView, err := g.View(aboveViewName)
 	if err != nil {
 		return nil, err
