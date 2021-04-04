@@ -59,7 +59,7 @@ func (gui *Gui) handleCommitMessageFocused() error {
 		},
 	)
 
-	gui.renderString("options", message)
+	gui.renderString(gui.Views.Options, message)
 	return nil
 }
 

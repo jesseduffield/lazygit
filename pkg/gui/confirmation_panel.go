@@ -227,7 +227,7 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 			})
 		}
 
-		gui.renderString("confirmation", opts.prompt)
+		gui.renderString(gui.Views.Confirmation, opts.prompt)
 
 		return gui.setKeyBindings(opts)
 	})
@@ -243,7 +243,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		},
 	)
 
-	gui.renderString("options", actions)
+	gui.renderString(gui.Views.Options, actions)
 	var onConfirm func() error
 	if opts.handleConfirmPrompt != nil {
 		onConfirm = gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.Views.Confirmation.Buffer() })

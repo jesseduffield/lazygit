@@ -344,7 +344,7 @@ func (gui *Gui) handleWIPCommitPress() error {
 		return gui.createErrorPanel(gui.Tr.SkipHookPrefixNotConfigured)
 	}
 
-	_ = gui.renderStringSync("commitMessage", skipHookPreifx)
+	_ = gui.renderStringSync(gui.Views.CommitMessage, skipHookPreifx)
 	if err := gui.Views.CommitMessage.SetCursor(len(skipHookPreifx), 0); err != nil {
 		return err
 	}
@@ -393,7 +393,7 @@ func (gui *Gui) handleCommitPress() error {
 			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.LcCommitPrefixPatternError, err.Error()))
 		}
 		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
-		gui.renderString("commitMessage", prefix)
+		gui.renderString(gui.Views.CommitMessage, prefix)
 		if err := gui.Views.CommitMessage.SetCursor(len(prefix), 0); err != nil {
 			return err
 		}

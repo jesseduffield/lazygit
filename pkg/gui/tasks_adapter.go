@@ -8,16 +8,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
-func (gui *Gui) newCmdTask(viewName string, cmd *exec.Cmd, prefix string) error {
+func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	gui.Log.WithField(
 		"command",
 		strings.Join(cmd.Args, " "),
 	).Debug("RunCommand")
-
-	view, err := gui.g.View(viewName)
-	if err != nil {
-		return nil // swallowing for now
-	}
 
 	_, height := view.Size()
 	_, oy := view.Origin()
@@ -41,12 +36,7 @@ func (gui *Gui) newCmdTask(viewName string, cmd *exec.Cmd, prefix string) error 
 	return nil
 }
 
-func (gui *Gui) newTask(viewName string, f func(chan struct{}) error) error {
-	view, err := gui.g.View(viewName)
-	if err != nil {
-		return nil // swallowing for now
-	}
-
+func (gui *Gui) newTask(view *gocui.View, f func(chan struct{}) error) error {
 	manager := gui.getManager(view)
 
 	if err := manager.NewTask(f); err != nil {
@@ -56,16 +46,11 @@ func (gui *Gui) newTask(viewName string, f func(chan struct{}) error) error {
 	return nil
 }
 
-func (gui *Gui) newStringTask(viewName string, str string) error {
-	view, err := gui.g.View(viewName)
-	if err != nil {
-		return nil // swallowing for now
-	}
-
+func (gui *Gui) newStringTask(view *gocui.View, str string) error {
 	manager := gui.getManager(view)
 
 	f := func(stop chan struct{}) error {
-		gui.renderString(viewName, str)
+		gui.renderString(view, str)
 		return nil
 	}
 
@@ -76,12 +61,7 @@ func (gui *Gui) newStringTask(viewName string, str string) error {
 	return nil
 }
 
-func (gui *Gui) newStringTaskWithoutScroll(viewName string, str string) error {
-	view, err := gui.g.View(viewName)
-	if err != nil {
-		return nil // swallowing for now
-	}
-
+func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	manager := gui.getManager(view)
 
 	f := func(stop chan struct{}) error {

@@ -1002,12 +1002,7 @@ func (g *Gui) draw(v *View) error {
 func (g *Gui) onKey(ev *GocuiEvent) error {
 	switch ev.Type {
 	case eventKey:
-		if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
-			matched := g.currentView.Editor.Edit(g.currentView, Key(ev.Key), ev.Ch, Modifier(ev.Mod))
-			if matched {
-				break
-			}
-		}
+
 		_, err := g.execKeybindings(g.currentView, ev)
 		if err != nil {
 			return err
@@ -1095,6 +1090,14 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 	if matchingParentViewKb != nil {
 		return g.execKeybinding(v.ParentView, matchingParentViewKb)
 	}
+
+	if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
+		matched := g.currentView.Editor.Edit(g.currentView, Key(ev.Key), ev.Ch, Modifier(ev.Mod))
+		if matched {
+			return true, nil
+		}
+	}
+
 	if globalKb != nil {
 		return g.execKeybinding(v, globalKb)
 	}
