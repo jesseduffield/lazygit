@@ -40,7 +40,7 @@ func (gui *Gui) handleShowAllBranchLogs() error {
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.Config.GetUserConfig().Git.AllBranchesLogCmd,
 	)
-	task := gui.createRunPtyTask(cmd)
+	task := NewRunPtyTask(cmd)
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{

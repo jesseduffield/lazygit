@@ -15,32 +15,34 @@ const (
 	PERSISTENT_POPUP
 )
 
+type ContextKey string
+
 const (
-	STATUS_CONTEXT_KEY              = "status"
-	FILES_CONTEXT_KEY               = "files"
-	LOCAL_BRANCHES_CONTEXT_KEY      = "localBranches"
-	REMOTES_CONTEXT_KEY             = "remotes"
-	REMOTE_BRANCHES_CONTEXT_KEY     = "remoteBranches"
-	TAGS_CONTEXT_KEY                = "tags"
-	BRANCH_COMMITS_CONTEXT_KEY      = "commits"
-	REFLOG_COMMITS_CONTEXT_KEY      = "reflogCommits"
-	SUB_COMMITS_CONTEXT_KEY         = "subCommits"
-	COMMIT_FILES_CONTEXT_KEY        = "commitFiles"
-	STASH_CONTEXT_KEY               = "stash"
-	MAIN_NORMAL_CONTEXT_KEY         = "normal"
-	MAIN_MERGING_CONTEXT_KEY        = "merging"
-	MAIN_PATCH_BUILDING_CONTEXT_KEY = "patchBuilding"
-	MAIN_STAGING_CONTEXT_KEY        = "staging"
-	MENU_CONTEXT_KEY                = "menu"
-	CREDENTIALS_CONTEXT_KEY         = "credentials"
-	CONFIRMATION_CONTEXT_KEY        = "confirmation"
-	SEARCH_CONTEXT_KEY              = "search"
-	COMMIT_MESSAGE_CONTEXT_KEY      = "commitMessage"
-	SUBMODULES_CONTEXT_KEY          = "submodules"
-	SUGGESTIONS_CONTEXT_KEY         = "suggestions"
+	STATUS_CONTEXT_KEY              ContextKey = "status"
+	FILES_CONTEXT_KEY                          = "files"
+	LOCAL_BRANCHES_CONTEXT_KEY                 = "localBranches"
+	REMOTES_CONTEXT_KEY                        = "remotes"
+	REMOTE_BRANCHES_CONTEXT_KEY                = "remoteBranches"
+	TAGS_CONTEXT_KEY                           = "tags"
+	BRANCH_COMMITS_CONTEXT_KEY                 = "commits"
+	REFLOG_COMMITS_CONTEXT_KEY                 = "reflogCommits"
+	SUB_COMMITS_CONTEXT_KEY                    = "subCommits"
+	COMMIT_FILES_CONTEXT_KEY                   = "commitFiles"
+	STASH_CONTEXT_KEY                          = "stash"
+	MAIN_NORMAL_CONTEXT_KEY                    = "normal"
+	MAIN_MERGING_CONTEXT_KEY                   = "merging"
+	MAIN_PATCH_BUILDING_CONTEXT_KEY            = "patchBuilding"
+	MAIN_STAGING_CONTEXT_KEY                   = "staging"
+	MENU_CONTEXT_KEY                           = "menu"
+	CREDENTIALS_CONTEXT_KEY                    = "credentials"
+	CONFIRMATION_CONTEXT_KEY                   = "confirmation"
+	SEARCH_CONTEXT_KEY                         = "search"
+	COMMIT_MESSAGE_CONTEXT_KEY                 = "commitMessage"
+	SUBMODULES_CONTEXT_KEY                     = "submodules"
+	SUGGESTIONS_CONTEXT_KEY                    = "suggestions"
 )
 
-var allContextKeys = []string{
+var allContextKeys = []ContextKey{
 	STATUS_CONTEXT_KEY,
 	FILES_CONTEXT_KEY,
 	LOCAL_BRANCHES_CONTEXT_KEY,
@@ -124,7 +126,7 @@ type Context interface {
 	GetViewName() string
 	GetWindowName() string
 	SetWindowName(string)
-	GetKey() string
+	GetKey() ContextKey
 	SetParentContext(Context)
 
 	// we return a bool here to tell us whether or not the returned value just wraps a nil
@@ -138,7 +140,7 @@ type BasicContext struct {
 	OnRender        func() error
 	OnGetOptionsMap func() map[string]string
 	Kind            ContextKind
-	Key             string
+	Key             ContextKey
 	ViewName        string
 }
 
@@ -192,7 +194,7 @@ func (c BasicContext) GetKind() ContextKind {
 	return c.Kind
 }
 
-func (c BasicContext) GetKey() string {
+func (c BasicContext) GetKey() ContextKey {
 	return c.Key
 }
 
@@ -353,7 +355,7 @@ func (tree ContextTree) initialViewTabContextMap() map[string][]tabContext {
 	}
 }
 
-func (gui *Gui) currentContextKeyIgnoringPopups() string {
+func (gui *Gui) currentContextKeyIgnoringPopups() ContextKey {
 	gui.State.ContextManager.Lock()
 	defer gui.State.ContextManager.Unlock()
 
@@ -461,7 +463,10 @@ func (gui *Gui) returnFromContext() error {
 func (gui *Gui) deactivateContext(c Context) error {
 	// if we are the kind of context that is sent to back upon deactivation, we should do that
 	if c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP || c.GetKey() == COMMIT_FILES_CONTEXT_KEY {
-		_, _ = gui.g.SetViewOnBottom(c.GetViewName())
+		view, err := gui.g.View(c.GetViewName())
+		if err == nil {
+			view.Visible = false
+		}
 	}
 
 	if err := c.HandleFocusLost(); err != nil {
@@ -480,7 +485,7 @@ func (gui *Gui) postRefreshUpdate(c Context) error {
 		return nil
 	}
 
-	if v.Context != c.GetKey() {
+	if ContextKey(v.Context) != c.GetKey() {
 		return nil
 	}
 
@@ -504,7 +509,7 @@ func (gui *Gui) activateContext(c Context) error {
 	if err != nil {
 		return gui.returnFromContext()
 	}
-	originalViewContextKey := v.Context
+	originalViewContextKey := ContextKey(v.Context)
 
 	// ensure that any other window for which this view was active is now set to the default for that window.
 	gui.setViewAsActiveForWindow(viewName)
@@ -522,10 +527,7 @@ func (gui *Gui) activateContext(c Context) error {
 		return gui.returnFromContext()
 	}
 
-	if _, err := gui.g.SetViewOnTop(viewName); err != nil {
-		// if view no longer exists, pop again
-		return gui.returnFromContext()
-	}
+	v.Visible = true
 
 	// if the new context's view was previously displaying another context, render the new context
 	if originalViewContextKey != c.GetKey() {
@@ -534,7 +536,7 @@ func (gui *Gui) activateContext(c Context) error {
 		}
 	}
 
-	v.Context = c.GetKey()
+	v.Context = string(c.GetKey())
 
 	gui.g.Cursor = v.Editable
 
@@ -559,7 +561,7 @@ func (gui *Gui) activateContext(c Context) error {
 func (gui *Gui) renderContextStack() string {
 	result := ""
 	for _, context := range gui.State.ContextManager.ContextStack {
-		result += context.GetKey() + "\n"
+		result += string(context.GetKey()) + "\n"
 	}
 	return result
 }
@@ -575,7 +577,18 @@ func (gui *Gui) currentContext() Context {
 	return gui.State.ContextManager.ContextStack[len(gui.State.ContextManager.ContextStack)-1]
 }
 
-func (gui *Gui) currentSideContext() *ListContext {
+// the status panel is not yet a list context (and may never be), so this method is not
+// quite the same as currentSideContext()
+func (gui *Gui) currentSideListContext() *ListContext {
+	context := gui.currentSideContext()
+	listContext, ok := context.(*ListContext)
+	if !ok {
+		return nil
+	}
+	return listContext
+}
+
+func (gui *Gui) currentSideContext() Context {
 	gui.State.ContextManager.Lock()
 	defer gui.State.ContextManager.Unlock()
 
@@ -583,7 +596,7 @@ func (gui *Gui) currentSideContext() *ListContext {
 
 	// on startup the stack can be empty so we'll return an empty string in that case
 	if len(stack) == 0 {
-		return nil
+		return gui.defaultSideContext()
 	}
 
 	// find the first context in the stack with the type of SIDE_CONTEXT
@@ -591,20 +604,19 @@ func (gui *Gui) currentSideContext() *ListContext {
 		context := stack[len(stack)-1-i]
 
 		if context.GetKind() == SIDE_CONTEXT {
-			// not all side contexts are list contexts (e.g. the status panel)
-			listContext, ok := context.(*ListContext)
-			if !ok {
-				return nil
-			}
-			return listContext
+			return context
 		}
 	}
 
-	return nil
+	return gui.defaultSideContext()
 }
 
 func (gui *Gui) defaultSideContext() Context {
-	return gui.State.Contexts.Files
+	if gui.State.Modes.Filtering.Active() {
+		return gui.State.Contexts.BranchCommits
+	} else {
+		return gui.State.Contexts.Files
+	}
 }
 
 // remove the need to do this: always use a mapping
@@ -618,7 +630,7 @@ func (gui *Gui) setInitialViewContexts() {
 			continue
 		}
 
-		view.Context = context.GetKey()
+		view.Context = string(context.GetKey())
 	}
 }
 
@@ -678,15 +690,15 @@ func (gui *Gui) onViewFocusLost(v *gocui.View, newView *gocui.View) error {
 // which currently just means a context that affects both the main and secondary views
 // other views can have their context changed directly but this function helps
 // keep the main and secondary views in sync
-func (gui *Gui) changeMainViewsContext(contextKey string) {
+func (gui *Gui) changeMainViewsContext(contextKey ContextKey) {
 	if gui.State.MainContext == contextKey {
 		return
 	}
 
 	switch contextKey {
 	case MAIN_NORMAL_CONTEXT_KEY, MAIN_PATCH_BUILDING_CONTEXT_KEY, MAIN_STAGING_CONTEXT_KEY, MAIN_MERGING_CONTEXT_KEY:
-		gui.getMainView().Context = contextKey
-		gui.getSecondaryView().Context = contextKey
+		gui.Views.Main.Context = string(contextKey)
+		gui.Views.Secondary.Context = string(contextKey)
 	default:
 		panic(fmt.Sprintf("unknown context for main: %s", contextKey))
 	}
@@ -737,7 +749,7 @@ type tabContext struct {
 	contexts []Context
 }
 
-func (gui *Gui) mustContextForContextKey(contextKey string) Context {
+func (gui *Gui) mustContextForContextKey(contextKey ContextKey) Context {
 	context, ok := gui.contextForContextKey(contextKey)
 
 	if !ok {
@@ -747,7 +759,7 @@ func (gui *Gui) mustContextForContextKey(contextKey string) Context {
 	return context
 }
 
-func (gui *Gui) contextForContextKey(contextKey string) (Context, bool) {
+func (gui *Gui) contextForContextKey(contextKey ContextKey) (Context, bool) {
 	for _, context := range gui.allContexts() {
 		if context.GetKey() == contextKey {
 			return context, true
@@ -763,7 +775,7 @@ func (gui *Gui) rerenderView(viewName string) error {
 		return nil
 	}
 
-	contextKey := v.Context
+	contextKey := ContextKey(v.Context)
 	context := gui.mustContextForContextKey(contextKey)
 
 	return context.HandleRender()
@@ -782,7 +794,7 @@ func (gui *Gui) rerenderView(viewName string) error {
 // }
 
 func (gui *Gui) getSideContextSelectedItemId() string {
-	currentSideContext := gui.currentSideContext()
+	currentSideContext := gui.currentSideListContext()
 	if currentSideContext == nil {
 		return ""
 	}

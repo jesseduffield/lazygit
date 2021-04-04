@@ -26,7 +26,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 }
 
 func (gui *Gui) handleSearch() error {
-	gui.State.Searching.searchString = gui.getSearchView().Buffer()
+	gui.State.Searching.searchString = gui.Views.Search.Buffer()
 	if err := gui.returnFromContext(); err != nil {
 		return err
 	}

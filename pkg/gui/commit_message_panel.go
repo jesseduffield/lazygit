@@ -23,8 +23,7 @@ func (gui *Gui) runSyncOrAsyncCommand(sub *exec.Cmd, err error) (bool, error) {
 }
 
 func (gui *Gui) handleCommitConfirm() error {
-	commitMessageView := gui.getCommitMessageView()
-	message := gui.trimmedContent(commitMessageView)
+	message := gui.trimmedContent(gui.Views.CommitMessage)
 	if message == "" {
 		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
@@ -41,7 +40,7 @@ func (gui *Gui) handleCommitConfirm() error {
 		return nil
 	}
 
-	gui.clearEditorView(commitMessageView)
+	gui.clearEditorView(gui.Views.CommitMessage)
 	_ = gui.returnFromContext()
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
@@ -73,6 +72,6 @@ func (gui *Gui) RenderCommitLength() {
 	if !gui.Config.GetUserConfig().Gui.CommitLength.Show {
 		return
 	}
-	v := gui.getCommitMessageView()
-	v.Subtitle = gui.getBufferLength(v)
+
+	gui.Views.CommitMessage.Subtitle = gui.getBufferLength(gui.Views.CommitMessage)
 }

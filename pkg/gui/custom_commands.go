@@ -176,9 +176,14 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 		case "":
 			log.Fatalf("Error parsing custom command keybindings: context not provided (use context: 'global' for the global context). Key: %s, Command: %s", customCommand.Key, customCommand.Command)
 		default:
-			context, ok := gui.contextForContextKey(customCommand.Context)
+			context, ok := gui.contextForContextKey(ContextKey(customCommand.Context))
+			// stupid golang making me build an array of strings for this.
+			allContextKeyStrings := make([]string, len(allContextKeys))
+			for i := range allContextKeys {
+				allContextKeyStrings[i] = string(allContextKeys[i])
+			}
 			if !ok {
-				log.Fatalf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeys, ", "))
+				log.Fatalf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeyStrings, ", "))
 			}
 			// here we assume that a given context will always belong to the same view.
 			// Currently this is a safe bet but it's by no means guaranteed in the long term

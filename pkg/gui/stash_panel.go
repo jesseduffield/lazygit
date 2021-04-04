@@ -20,12 +20,12 @@ func (gui *Gui) handleStashEntrySelect() error {
 	var task updateTask
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
-		task = gui.createRenderStringTask(gui.Tr.NoStashEntries)
+		task = NewRenderStringTask(gui.Tr.NoStashEntries)
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
 		)
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

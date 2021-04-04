@@ -35,12 +35,12 @@ func (gui *Gui) handleCommitSelect() error {
 	var task updateTask
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
-		task = gui.createRenderStringTask(gui.Tr.NoCommitsThisBranch)
+		task = NewRenderStringTask(gui.Tr.NoCommitsThisBranch)
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

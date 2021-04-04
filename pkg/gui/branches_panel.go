@@ -30,13 +30,13 @@ func (gui *Gui) handleBranchSelect() error {
 	var task updateTask
 	branch := gui.getSelectedBranch()
 	if branch == nil {
-		task = gui.createRenderStringTask(gui.Tr.NoBranchesThisRepo)
+		task = NewRenderStringTask(gui.Tr.NoBranchesThisRepo)
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
 		)
 
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -473,7 +473,7 @@ func (gui *Gui) currentBranch() *models.Branch {
 }
 
 func (gui *Gui) handleNewBranchOffCurrentItem() error {
-	context := gui.currentSideContext()
+	context := gui.currentSideListContext()
 
 	item, ok := context.GetSelectedItem()
 	if !ok {

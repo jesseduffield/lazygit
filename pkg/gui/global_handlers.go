@@ -5,6 +5,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -59,30 +60,22 @@ func (gui *Gui) prevScreenMode() error {
 	return gui.rerenderViewsWithScreenModeDependentContent()
 }
 
-func (gui *Gui) scrollUpView(viewName string) error {
-	mainView, err := gui.g.View(viewName)
-	if err != nil {
-		return nil
-	}
-	ox, oy := mainView.Origin()
+func (gui *Gui) scrollUpView(view *gocui.View) error {
+	ox, oy := view.Origin()
 	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().Gui.ScrollHeight)))
-	return mainView.SetOrigin(ox, newOy)
+	return view.SetOrigin(ox, newOy)
 }
 
-func (gui *Gui) scrollDownView(viewName string) error {
-	mainView, err := gui.g.View(viewName)
-	if err != nil {
-		return nil
-	}
-	ox, oy := mainView.Origin()
+func (gui *Gui) scrollDownView(view *gocui.View) error {
+	ox, oy := view.Origin()
 	y := oy
 	canScrollPastBottom := gui.Config.GetUserConfig().Gui.ScrollPastBottom
 	if !canScrollPastBottom {
-		_, sy := mainView.Size()
+		_, sy := view.Size()
 		y += sy
 	}
 	scrollHeight := gui.Config.GetUserConfig().Gui.ScrollHeight
-	scrollableLines := mainView.ViewLinesHeight() - y
+	scrollableLines := view.ViewLinesHeight() - y
 	if scrollableLines > 0 {
 		// margin is about how many lines must still appear if you scroll
 		// all the way down. In practice every file ends in a newline so it will really
@@ -95,12 +88,12 @@ func (gui *Gui) scrollDownView(viewName string) error {
 			scrollHeight = scrollableLines - margin
 		}
 		if oy+scrollHeight >= 0 {
-			if err := mainView.SetOrigin(ox, oy+scrollHeight); err != nil {
+			if err := view.SetOrigin(ox, oy+scrollHeight); err != nil {
 				return err
 			}
 		}
 	}
-	if manager, ok := gui.viewBufferManagerMap[viewName]; ok {
+	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
 		manager.ReadLines(scrollHeight)
 	}
 	return nil
@@ -111,7 +104,7 @@ func (gui *Gui) scrollUpMain() error {
 		gui.State.Panels.Merging.UserScrolling = true
 	}
 
-	return gui.scrollUpView("main")
+	return gui.scrollUpView(gui.Views.Main)
 }
 
 func (gui *Gui) scrollDownMain() error {
@@ -119,33 +112,31 @@ func (gui *Gui) scrollDownMain() error {
 		gui.State.Panels.Merging.UserScrolling = true
 	}
 
-	return gui.scrollDownView("main")
+	return gui.scrollDownView(gui.Views.Main)
 }
 
 func (gui *Gui) scrollUpSecondary() error {
-	return gui.scrollUpView("secondary")
+	return gui.scrollUpView(gui.Views.Secondary)
 }
 
 func (gui *Gui) scrollDownSecondary() error {
-	return gui.scrollDownView("secondary")
+	return gui.scrollDownView(gui.Views.Secondary)
 }
 
 func (gui *Gui) scrollUpConfirmationPanel() error {
-	view := gui.getConfirmationView()
-	if view != nil || view.Editable {
+	if gui.Views.Confirmation.Editable {
 		return nil
 	}
 
-	return gui.scrollUpView("confirmation")
+	return gui.scrollUpView(gui.Views.Confirmation)
 }
 
 func (gui *Gui) scrollDownConfirmationPanel() error {
-	view := gui.getConfirmationView()
-	if view != nil || view.Editable {
+	if gui.Views.Confirmation.Editable {
 		return nil
 	}
 
-	return gui.scrollDownView("confirmation")
+	return gui.scrollDownView(gui.Views.Confirmation)
 }
 
 func (gui *Gui) handleRefresh() error {
@@ -157,16 +148,14 @@ func (gui *Gui) handleMouseDownMain() error {
 		return nil
 	}
 
-	view := gui.getMainView()
-
 	switch gui.g.CurrentView().Name() {
 	case "files":
 		// set filename, set primary/secondary selected, set line number, then switch context
 		// I'll need to know it was changed though.
 		// Could I pass something along to the context change?
-		return gui.enterFile(false, view.SelectedLineIdx())
+		return gui.enterFile(false, gui.Views.Main.SelectedLineIdx())
 	case "commitFiles":
-		return gui.enterCommitFile(view.SelectedLineIdx())
+		return gui.enterCommitFile(gui.Views.Main.SelectedLineIdx())
 	}
 
 	return nil
@@ -177,11 +166,9 @@ func (gui *Gui) handleMouseDownSecondary() error {
 		return nil
 	}
 
-	view := gui.getSecondaryView()
-
 	switch gui.g.CurrentView().Name() {
 	case "files":
-		return gui.enterFile(true, view.SelectedLineIdx())
+		return gui.enterFile(true, gui.Views.Secondary.SelectedLineIdx())
 	}
 
 	return nil
@@ -192,7 +179,7 @@ func (gui *Gui) handleInfoClick() error {
 		return nil
 	}
 
-	view := gui.getInformationView()
+	view := gui.Views.Information
 
 	cx, _ := view.Cursor()
 	width, _ := view.Size()

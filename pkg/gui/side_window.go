@@ -17,7 +17,7 @@ func (gui *Gui) nextSideWindow() error {
 			}
 		}
 	}
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+	if err := gui.resetOrigin(gui.Views.Main); err != nil {
 		return err
 	}
 
@@ -43,7 +43,7 @@ func (gui *Gui) previousSideWindow() error {
 			}
 		}
 	}
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+	if err := gui.resetOrigin(gui.Views.Main); err != nil {
 		return err
 	}
 

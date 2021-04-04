@@ -24,9 +24,9 @@ func (gui *Gui) handleRemoteSelect() error {
 	var task updateTask
 	remote := gui.getSelectedRemote()
 	if remote == nil {
-		task = gui.createRenderStringTask("No remotes")
+		task = NewRenderStringTask("No remotes")
 	} else {
-		task = gui.createRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
+		task = NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -57,12 +57,7 @@ func (gui *Gui) refreshRemotes() error {
 		}
 	}
 
-	branchesView := gui.getBranchesView()
-	if branchesView != nil {
-		return gui.postRefreshUpdate(gui.mustContextForContextKey(branchesView.Context))
-	}
-
-	return nil
+	return gui.postRefreshUpdate(gui.mustContextForContextKey(ContextKey(gui.Views.Branches.Context)))
 }
 
 func (gui *Gui) handleRemoteEnter() error {

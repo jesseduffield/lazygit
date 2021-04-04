@@ -43,7 +43,7 @@ func (gui *Gui) refreshStatus() {
 	status += fmt.Sprintf("%s → %s ", repoName, name)
 
 	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContent(gui.getStatusView(), status)
+		gui.setViewContent(gui.Views.Status, status)
 		return nil
 	})
 }
@@ -77,7 +77,7 @@ func (gui *Gui) handleStatusClick() error {
 		return err
 	}
 
-	cx, _ := gui.getStatusView().Cursor()
+	cx, _ := gui.Views.Status.Cursor()
 	upstreamStatus := fmt.Sprintf("↑%s↓%s", currentBranch.Pushables, currentBranch.Pullables)
 	repoName := utils.GetCurrentRepoName()
 	switch gui.GitCommand.WorkingTreeState() {
@@ -121,7 +121,7 @@ func (gui *Gui) handleStatusSelect() error {
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "",
-			task:  gui.createRenderStringTask(dashboardString),
+			task:  NewRenderStringTask(dashboardString),
 		},
 	})
 }

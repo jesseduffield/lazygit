@@ -24,13 +24,8 @@ func (gui *Gui) getSelectedSuggestion() *types.Suggestion {
 }
 
 func (gui *Gui) setSuggestions(suggestions []*types.Suggestion) {
-	view := gui.getSuggestionsView()
-	if view == nil {
-		return
-	}
-
 	gui.State.Suggestions = suggestions
 	gui.State.Panels.Suggestions.SelectedLineIdx = 0
-	_ = gui.resetOrigin(view)
+	_ = gui.resetOrigin(gui.Views.Suggestions)
 	_ = gui.State.Contexts.Suggestions.HandleRender()
 }

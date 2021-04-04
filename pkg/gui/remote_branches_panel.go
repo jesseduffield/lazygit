@@ -22,12 +22,12 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 	var task updateTask
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {
-		task = gui.createRenderStringTask("No branches for this remote")
+		task = NewRenderStringTask("No branches for this remote")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.GetBranchGraphCmdStr(remoteBranch.FullName()),
 		)
-		task = gui.createRunCommandTask(cmd)
+		task = NewRunCommandTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

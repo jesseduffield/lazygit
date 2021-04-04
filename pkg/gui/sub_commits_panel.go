@@ -21,13 +21,13 @@ func (gui *Gui) handleSubCommitSelect() error {
 	commit := gui.getSelectedSubCommit()
 	var task updateTask
 	if commit == nil {
-		task = gui.createRenderStringTask("No commits")
+		task = NewRenderStringTask("No commits")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
 
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -94,13 +94,13 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	gui.State.SubCommits = commits
 	gui.State.Panels.SubCommits.refName = refName
 	gui.State.Panels.SubCommits.SelectedLineIdx = 0
-	gui.State.Contexts.SubCommits.SetParentContext(gui.currentSideContext())
+	gui.State.Contexts.SubCommits.SetParentContext(gui.currentSideListContext())
 
 	return gui.pushContext(gui.State.Contexts.SubCommits)
 }
 
 func (gui *Gui) handleSwitchToSubCommits() error {
-	currentContext := gui.currentSideContext()
+	currentContext := gui.currentSideListContext()
 	if currentContext == nil {
 		return nil
 	}

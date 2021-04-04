@@ -1,6 +1,10 @@
 package gui
 
-import "os/exec"
+import (
+	"os/exec"
+
+	"github.com/jesseduffield/gocui"
+)
 
 type viewUpdateOpts struct {
 	title string
@@ -42,7 +46,7 @@ func (t *renderStringTask) GetKind() TaskKind {
 	return RENDER_STRING
 }
 
-func (gui *Gui) createRenderStringTask(str string) *renderStringTask {
+func NewRenderStringTask(str string) *renderStringTask {
 	return &renderStringTask{str: str}
 }
 
@@ -54,7 +58,7 @@ func (t *renderStringWithoutScrollTask) GetKind() TaskKind {
 	return RENDER_STRING_WITHOUT_SCROLL
 }
 
-func (gui *Gui) createRenderStringWithoutScrollTask(str string) *renderStringWithoutScrollTask {
+func NewRenderStringWithoutScrollTask(str string) *renderStringWithoutScrollTask {
 	return &renderStringWithoutScrollTask{str: str}
 }
 
@@ -67,11 +71,11 @@ func (t *runCommandTask) GetKind() TaskKind {
 	return RUN_COMMAND
 }
 
-func (gui *Gui) createRunCommandTask(cmd *exec.Cmd) *runCommandTask {
+func NewRunCommandTask(cmd *exec.Cmd) *runCommandTask {
 	return &runCommandTask{cmd: cmd}
 }
 
-func (gui *Gui) createRunCommandTaskWithPrefix(cmd *exec.Cmd, prefix string) *runCommandTask {
+func NewRunCommandTaskWithPrefix(cmd *exec.Cmd, prefix string) *runCommandTask {
 	return &runCommandTask{cmd: cmd, prefix: prefix}
 }
 
@@ -84,7 +88,7 @@ func (t *runPtyTask) GetKind() TaskKind {
 	return RUN_PTY
 }
 
-func (gui *Gui) createRunPtyTask(cmd *exec.Cmd) *runPtyTask {
+func NewRunPtyTask(cmd *exec.Cmd) *runPtyTask {
 	return &runPtyTask{cmd: cmd}
 }
 
@@ -134,18 +138,12 @@ func (gui *Gui) runTaskForView(viewName string, task updateTask) error {
 	return nil
 }
 
-func (gui *Gui) refreshMainView(opts *viewUpdateOpts, viewName string) error {
-	view, err := gui.g.View(viewName)
-	if err != nil {
-		gui.Log.Error(err)
-		return nil
-	}
-
+func (gui *Gui) refreshMainView(opts *viewUpdateOpts, view *gocui.View) error {
 	view.Title = opts.title
 	view.Wrap = !opts.noWrap
 	view.Highlight = opts.highlight
 
-	if err := gui.runTaskForView(viewName, opts.task); err != nil {
+	if err := gui.runTaskForView(view.Name(), opts.task); err != nil {
 		gui.Log.Error(err)
 		return nil
 	}
@@ -155,18 +153,18 @@ func (gui *Gui) refreshMainView(opts *viewUpdateOpts, viewName string) error {
 
 func (gui *Gui) refreshMainViews(opts refreshMainOpts) error {
 	if opts.main != nil {
-		if err := gui.refreshMainView(opts.main, "main"); err != nil {
+		if err := gui.refreshMainView(opts.main, gui.Views.Main); err != nil {
+			return err
+		}
+	}
+
+	if opts.secondary != nil {
+		if err := gui.refreshMainView(opts.secondary, gui.Views.Secondary); err != nil {
 			return err
 		}
 	}
 
 	gui.splitMainPanel(opts.secondary != nil)
-
-	if opts.secondary != nil {
-		if err := gui.refreshMainView(opts.secondary, "secondary"); err != nil {
-			return err
-		}
-	}
 
 	return nil
 }
@@ -176,7 +174,7 @@ func (gui *Gui) splitMainPanel(splitMainPanel bool) {
 
 	// no need to set view on bottom when splitMainPanel is false: it will have zero size anyway thanks to our view arrangement code.
 	if splitMainPanel {
-		_, _ = gui.g.SetViewOnTop("secondary")
+		gui.Views.Secondary.Visible = false
 	}
 }
 

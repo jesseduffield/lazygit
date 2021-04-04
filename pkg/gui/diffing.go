@@ -14,7 +14,7 @@ func (gui *Gui) renderDiff() error {
 	cmd := gui.OSCommand.ExecutableFromString(
 		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", gui.diffStr()),
 	)
-	task := gui.createRunPtyTask(cmd)
+	task := NewRunPtyTask(cmd)
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
@@ -49,7 +49,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 		}
 		return nil
 	default:
-		context := gui.currentSideContext()
+		context := gui.currentSideListContext()
 		if context == nil {
 			return nil
 		}

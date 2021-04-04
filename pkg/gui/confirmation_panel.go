@@ -108,19 +108,17 @@ func (gui *Gui) wrappedPromptConfirmationFunction(handlersManageFocus bool, func
 	}
 }
 
-func (gui *Gui) deleteConfirmationView() {
+func (gui *Gui) clearConfirmationViewKeyBindings() {
 	keybindingConfig := gui.Config.GetUserConfig().Keybinding
 	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)
-
-	_ = gui.g.DeleteView("confirmation")
 }
 
 func (gui *Gui) closeConfirmationPrompt(handlersManageFocus bool) error {
-	view := gui.getConfirmationView()
-	if view == nil {
-		return nil // if it's already been closed we can just return
+	// we've already closed it so we can just return
+	if !gui.Views.Confirmation.Visible {
+		return nil
 	}
 
 	if !handlersManageFocus {
@@ -129,9 +127,9 @@ func (gui *Gui) closeConfirmationPrompt(handlersManageFocus bool) error {
 		}
 	}
 
-	gui.deleteConfirmationView()
-
-	_, _ = gui.g.SetViewOnBottom("suggestions")
+	gui.clearConfirmationViewKeyBindings()
+	gui.Views.Confirmation.Visible = false
+	gui.Views.Suggestions.Visible = false
 
 	return nil
 }
@@ -200,7 +198,7 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, f
 			suggestionsView.FgColor = theme.GocuiDefaultTextColor
 		}
 		gui.setSuggestions([]*types.Suggestion{})
-		_, _ = gui.g.SetViewOnTop("suggestions")
+		suggestionsView.Visible = true
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
@@ -211,10 +209,9 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, f
 
 func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 	gui.g.Update(func(g *gocui.Gui) error {
-		// delete the existing confirmation panel if it exists
-		if view, _ := g.View("confirmation"); view != nil {
-			gui.deleteConfirmationView()
-		}
+		// remove any previous keybindings
+		gui.clearConfirmationViewKeyBindings()
+
 		confirmationView, err := gui.prepareConfirmationPanel(opts.title, opts.prompt, opts.hasLoader, opts.findSuggestionsFunc)
 		if err != nil {
 			return err
@@ -251,7 +248,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 	gui.renderString("options", actions)
 	var onConfirm func() error
 	if opts.handleConfirmPrompt != nil {
-		onConfirm = gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.getConfirmationView().Buffer() })
+		onConfirm = gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.Views.Confirmation.Buffer() })
 	} else {
 		onConfirm = gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleConfirm)
 	}

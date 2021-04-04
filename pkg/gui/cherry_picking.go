@@ -24,7 +24,7 @@ func (gui *Gui) handleCopyCommit() error {
 	}
 
 	// get currently selected commit, add the sha to state.
-	context := gui.currentSideContext()
+	context := gui.currentSideListContext()
 	if context == nil {
 		return nil
 	}
@@ -63,7 +63,7 @@ func (gui *Gui) cherryPickedCommitShaMap() map[string]bool {
 }
 
 func (gui *Gui) commitsListForContext() []*models.Commit {
-	context := gui.currentSideContext()
+	context := gui.currentSideListContext()
 	if context == nil {
 		return nil
 	}
@@ -104,7 +104,7 @@ func (gui *Gui) handleCopyCommitRange() error {
 	}
 
 	// get currently selected commit, add the sha to state.
-	context := gui.currentSideContext()
+	context := gui.currentSideListContext()
 	if context == nil {
 		return nil
 	}
@@ -169,7 +169,7 @@ func (gui *Gui) exitCherryPickingMode() error {
 	return gui.rerenderContextViewIfPresent(contextKey)
 }
 
-func (gui *Gui) rerenderContextViewIfPresent(contextKey string) error {
+func (gui *Gui) rerenderContextViewIfPresent(contextKey ContextKey) error {
 	if contextKey == "" {
 		return nil
 	}
@@ -184,7 +184,7 @@ func (gui *Gui) rerenderContextViewIfPresent(contextKey string) error {
 		return nil
 	}
 
-	if view.Context == contextKey {
+	if ContextKey(view.Context) == contextKey {
 		if err := context.HandleRender(); err != nil {
 			return err
 		}

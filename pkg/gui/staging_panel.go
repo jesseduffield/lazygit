@@ -26,11 +26,11 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	}
 
 	if secondaryFocused {
-		gui.getMainView().Title = gui.Tr.StagedChanges
-		gui.getSecondaryView().Title = gui.Tr.UnstagedChanges
+		gui.Views.Main.Title = gui.Tr.StagedChanges
+		gui.Views.Secondary.Title = gui.Tr.UnstagedChanges
 	} else {
-		gui.getMainView().Title = gui.Tr.UnstagedChanges
-		gui.getSecondaryView().Title = gui.Tr.StagedChanges
+		gui.Views.Main.Title = gui.Tr.UnstagedChanges
+		gui.Views.Secondary.Title = gui.Tr.StagedChanges
 	}
 
 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
@@ -63,7 +63,7 @@ func (gui *Gui) handleTogglePanelClick() error {
 	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
 		state.SecondaryFocused = !state.SecondaryFocused
 
-		return gui.refreshStagingPanel(false, gui.getSecondaryView().SelectedLineIdx(), state)
+		return gui.refreshStagingPanel(false, gui.Views.Secondary.SelectedLineIdx(), state)
 	})
 }
 
