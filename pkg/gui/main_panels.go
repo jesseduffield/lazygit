@@ -110,29 +110,29 @@ func (t *runFunctionTask) GetKind() TaskKind {
 // 	return &runFunctionTask{f: f}
 // }
 
-func (gui *Gui) runTaskForView(viewName string, task updateTask) error {
+func (gui *Gui) runTaskForView(view *gocui.View, task updateTask) error {
 	gui.Log.Warn("running new task for view")
 
 	switch task.GetKind() {
 	case RENDER_STRING:
 		specificTask := task.(*renderStringTask)
-		return gui.newStringTask(viewName, specificTask.str)
+		return gui.newStringTask(view, specificTask.str)
 
 	case RENDER_STRING_WITHOUT_SCROLL:
 		specificTask := task.(*renderStringWithoutScrollTask)
-		return gui.newStringTaskWithoutScroll(viewName, specificTask.str)
+		return gui.newStringTaskWithoutScroll(view, specificTask.str)
 
 	case RUN_FUNCTION:
 		specificTask := task.(*runFunctionTask)
-		return gui.newTask(viewName, specificTask.f)
+		return gui.newTask(view, specificTask.f)
 
 	case RUN_COMMAND:
 		specificTask := task.(*runCommandTask)
-		return gui.newCmdTask(viewName, specificTask.cmd, specificTask.prefix)
+		return gui.newCmdTask(view, specificTask.cmd, specificTask.prefix)
 
 	case RUN_PTY:
 		specificTask := task.(*runPtyTask)
-		return gui.newPtyTask(viewName, specificTask.cmd, specificTask.prefix)
+		return gui.newPtyTask(view, specificTask.cmd, specificTask.prefix)
 	}
 
 	return nil
@@ -143,7 +143,7 @@ func (gui *Gui) refreshMainView(opts *viewUpdateOpts, view *gocui.View) error {
 	view.Wrap = !opts.noWrap
 	view.Highlight = opts.highlight
 
-	if err := gui.runTaskForView(view.Name(), opts.task); err != nil {
+	if err := gui.runTaskForView(view, opts.task); err != nil {
 		gui.Log.Error(err)
 		return nil
 	}

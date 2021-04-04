@@ -13,7 +13,7 @@ type credentials chan string
 func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
-		credentialsView, _ := g.View("credentials")
+		credentialsView := gui.Views.Credentials
 		switch passOrUname {
 		case "username":
 			credentialsView.Title = gui.Tr.CredentialsUsername
@@ -67,7 +67,7 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 		},
 	)
 
-	gui.renderString("options", message)
+	gui.renderString(gui.Views.Options, message)
 	return nil
 }
 

@@ -48,8 +48,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	viewDimensions := gui.getWindowDimensions(informationStr, appStatus)
 
 	// reading more lines into main view buffers upon resize
-	prevMainView, err := gui.g.View("main")
-	if err == nil {
+	prevMainView := gui.Views.Main
+	if prevMainView != nil {
 		_, prevMainHeight := prevMainView.Size()
 		newMainHeight := viewDimensions["main"].Y1 - viewDimensions["main"].Y0 - 1
 		heightDiff := newMainHeight - prevMainHeight
@@ -230,7 +230,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		gui.Views.Information.BgColor = gocui.ColorDefault
 		gui.Views.Information.FgColor = gocui.ColorGreen
 		gui.Views.Information.Frame = false
-		gui.renderString("information", INFO_SECTION_PADDING+informationStr)
+		gui.renderString(gui.Views.Information, INFO_SECTION_PADDING+informationStr)
 	}
 	if gui.State.OldInformation != informationStr {
 		gui.setViewContent(gui.Views.Information, informationStr)

@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"github.com/creack/pty"
+	"github.com/jesseduffield/gocui"
 )
 
 func (gui *Gui) onResize() error {
@@ -29,21 +30,16 @@ func (gui *Gui) onResize() error {
 // which is just an io.Reader. the pty package lets us wrap a command in a
 // pseudo-terminal meaning we'll get the behaviour we want from the underlying
 // command.
-func (gui *Gui) newPtyTask(viewName string, cmd *exec.Cmd, prefix string) error {
+func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	width, _ := gui.Views.Main.Size()
 	pager := gui.GitCommand.GetPager(width)
 
 	if pager == "" {
 		// if we're not using a custom pager we don't need to use a pty
-		return gui.newCmdTask(viewName, cmd, prefix)
+		return gui.newCmdTask(view, cmd, prefix)
 	}
 
 	cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
-
-	view, err := gui.g.View(viewName)
-	if err != nil {
-		return nil // swallowing for now
-	}
 
 	_, height := view.Size()
 	_, oy := view.Origin()
