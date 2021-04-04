@@ -197,8 +197,14 @@ func Test() error {
 	record := os.Getenv("RECORD_EVENTS") != ""
 	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
 
-	for _, test := range tests[0:1] {
+	selectedTestName := os.Args[1]
+
+	for _, test := range tests {
 		test := test
+
+		if selectedTestName != "" && test.Name != selectedTestName {
+			continue
+		}
 
 		speeds := getTestSpeeds(test.Speed, updateSnapshots)
 
