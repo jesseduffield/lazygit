@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -89,11 +90,6 @@ type Gui struct {
 	// recent repo with the recent repos popup showing
 	showRecentRepos bool
 
-	// this array either includes the events that we're recording in this session
-	// or the events we've recorded in a prior session
-	RecordedEvents []RecordedEvent
-	StartTime      time.Time
-
 	Mutexes guiStateMutexes
 
 	// findSuggestions will take a string that the user has typed into a prompt
@@ -108,11 +104,6 @@ type Gui struct {
 	ViewsSetup bool
 
 	Views Views
-}
-
-type RecordedEvent struct {
-	Timestamp int64
-	Event     *gocui.GocuiEvent
 }
 
 type listPanelState struct {
@@ -446,7 +437,6 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		statusManager:        &statusManager{},
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 		showRecentRepos:      showRecentRepos,
-		RecordedEvents:       []RecordedEvent{},
 		RepoPathStack:        []string{},
 		RepoStateMap:         map[Repo]*guiState{},
 	}
@@ -461,16 +451,35 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 // Run setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run() error {
 	recordEvents := recordingEvents()
+	playMode := gocui.NORMAL
+	if recordEvents {
+		playMode = gocui.RECORDING
+	} else if replaying() {
+		playMode = gocui.REPLAYING
+	}
 
-	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, recordEvents)
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode)
 	if err != nil {
 		return err
 	}
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 	defer g.Close()
 
-	if recordEvents {
-		go utils.Safe(gui.recordEvents)
+	if replaying() {
+		g.RecordingConfig = gocui.RecordingConfig{
+			Speed:  getRecordingSpeed(),
+			Leeway: 0,
+		}
+
+		g.Recording, err = gui.loadRecording()
+		if err != nil {
+			return err
+		}
+
+		go utils.Safe(func() {
+			time.Sleep(time.Second * 20)
+			log.Fatal("20 seconds is up, lazygit recording took too long to complete")
+		})
 	}
 
 	g.OnSearchEscape = gui.onSearchEscape
@@ -518,9 +527,6 @@ func (gui *Gui) Run() error {
 
 // RunAndHandleError
 func (gui *Gui) RunAndHandleError() error {
-	gui.StartTime = time.Now()
-	go utils.Safe(gui.replayRecordedEvents)
-
 	gui.stopChan = make(chan struct{})
 	return utils.SafeWithError(func() error {
 		if err := gui.Run(); err != nil {
@@ -542,7 +548,7 @@ func (gui *Gui) RunAndHandleError() error {
 					}
 				}
 
-				if err := gui.saveRecordedEvents(); err != nil {
+				if err := gui.saveRecording(gui.g.Recording); err != nil {
 					return err
 				}
 
