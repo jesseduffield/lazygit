@@ -6,6 +6,7 @@ package gocui
 
 import (
 	"sync"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -144,9 +145,43 @@ var (
 	lastY        int              = 0
 )
 
+// this wrapper struct has public keys so we can easily serialize/deserialize to JSON
+type TcellKeyEventWrapper struct {
+	Timestamp int64
+	Mod       tcell.ModMask
+	Key       tcell.Key
+	Ch        rune
+}
+
+func NewTcellKeyEventWrapper(event *tcell.EventKey, timestamp int64) *TcellKeyEventWrapper {
+	return &TcellKeyEventWrapper{
+		Timestamp: timestamp,
+		Mod:       event.Modifiers(),
+		Key:       event.Key(),
+		Ch:        event.Rune(),
+	}
+}
+
+func (wrapper TcellKeyEventWrapper) toTcellEvent() tcell.Event {
+	return tcell.NewEventKey(wrapper.Key, wrapper.Ch, wrapper.Mod)
+}
+
+func (g *Gui) timeSinceStart() int64 {
+	return time.Since(g.StartTime).Nanoseconds() / 1e6
+}
+
 // pollEvent get tcell.Event and transform it into gocuiEvent
-func pollEvent() GocuiEvent {
-	tev := Screen.PollEvent()
+func (g *Gui) pollEvent() GocuiEvent {
+	var tev tcell.Event
+	if g.PlayMode == REPLAYING {
+		select {
+		case ev := <-g.ReplayedEvents.keys:
+			tev = (ev).toTcellEvent()
+		}
+	} else {
+		tev = Screen.PollEvent()
+	}
+
 	switch tev := tev.(type) {
 	case *tcell.EventInterrupt:
 		return GocuiEvent{Type: eventInterrupt}
@@ -154,6 +189,10 @@ func pollEvent() GocuiEvent {
 		w, h := tev.Size()
 		return GocuiEvent{Type: eventResize, Width: w, Height: h}
 	case *tcell.EventKey:
+		if g.PlayMode == RECORDING {
+			g.Recording.KeyEvents = append(g.Recording.KeyEvents, NewTcellKeyEventWrapper(tev, g.timeSinceStart()))
+		}
+
 		k := tev.Key()
 		ch := rune(0)
 		if k == tcell.KeyRune {

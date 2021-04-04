@@ -75,13 +75,36 @@ type GuiMutexes struct {
 	ViewsMutex sync.Mutex
 }
 
+type PlayMode int
+
+const (
+	NORMAL PlayMode = iota
+	RECORDING
+	REPLAYING
+)
+
+type Recording struct {
+	KeyEvents []*TcellKeyEventWrapper
+}
+
+type replayedEvents struct {
+	keys chan *TcellKeyEventWrapper
+}
+
+type RecordingConfig struct {
+	Speed  int
+	Leeway int
+}
+
 // Gui represents the whole User Interface, including the views, layouts
 // and keybindings.
 type Gui struct {
-	// ReplayedEvents is a channel for passing pre-recorded input events, for the purposes of testing
-	ReplayedEvents chan GocuiEvent
-	RecordEvents   bool
-	RecordedEvents chan *GocuiEvent
+	RecordingConfig
+	Recording *Recording
+	// ReplayedEvents is for passing pre-recorded input events, for the purposes of testing
+	ReplayedEvents replayedEvents
+	PlayMode       PlayMode
+	StartTime      time.Time
 
 	tabClickBindings []*tabClickBinding
 	gEvents          chan GocuiEvent
@@ -135,7 +158,7 @@ type Gui struct {
 }
 
 // NewGui returns a new Gui object with a given output mode.
-func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, error) {
+func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode) (*Gui, error) {
 	err := tcellInit()
 	if err != nil {
 		return nil, err
@@ -147,10 +170,18 @@ func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, err
 
 	g.stop = make(chan struct{})
 
-	g.ReplayedEvents = make(chan GocuiEvent)
 	g.gEvents = make(chan GocuiEvent, 20)
 	g.userEvents = make(chan userEvent, 20)
-	g.RecordedEvents = make(chan *GocuiEvent)
+
+	if playMode == RECORDING {
+		g.Recording = &Recording{
+			KeyEvents: []*TcellKeyEventWrapper{},
+		}
+	} else if playMode == REPLAYING {
+		g.ReplayedEvents = replayedEvents{
+			keys: make(chan *TcellKeyEventWrapper),
+		}
+	}
 
 	if runtime.GOOS != "windows" {
 		g.maxX, g.maxY, err = g.getTermWindowSize()
@@ -173,7 +204,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, err
 	g.NextSearchMatchKey = 'n'
 	g.PrevSearchMatchKey = 'N'
 
-	g.RecordEvents = recordEvents
+	g.PlayMode = playMode
 
 	return g, nil
 }
@@ -533,13 +564,17 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
+	if g.PlayMode == REPLAYING {
+		g.replayRecording()
+	}
+
 	go func() {
 		for {
 			select {
 			case <-g.stop:
 				return
 			default:
-				g.gEvents <- pollEvent()
+				g.gEvents <- g.pollEvent()
 			}
 		}
 	}()
@@ -551,10 +586,6 @@ func (g *Gui) MainLoop() error {
 	for {
 		select {
 		case ev := <-g.gEvents:
-			if err := g.handleEvent(&ev); err != nil {
-				return err
-			}
-		case ev := <-g.ReplayedEvents:
 			if err := g.handleEvent(&ev); err != nil {
 				return err
 			}
@@ -580,10 +611,6 @@ func (g *Gui) consumeevents() error {
 			if err := g.handleEvent(&ev); err != nil {
 				return err
 			}
-		case ev := <-g.ReplayedEvents:
-			if err := g.handleEvent(&ev); err != nil {
-				return err
-			}
 		case ev := <-g.userEvents:
 			if err := ev.f(g); err != nil {
 				return err
@@ -597,10 +624,6 @@ func (g *Gui) consumeevents() error {
 // handleEvent handles an event, based on its type (key-press, error,
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
-	if g.RecordEvents {
-		g.RecordedEvents <- ev
-	}
-
 	switch ev.Type {
 	case eventKey, eventMouse:
 		return g.onKey(ev)
