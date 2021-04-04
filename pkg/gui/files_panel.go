@@ -42,7 +42,7 @@ func (gui *Gui) getSelectedPath() string {
 }
 
 func (gui *Gui) selectFile(alreadySelected bool) error {
-	gui.getFilesView().FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
+	gui.Views.Files.FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
 
 	node := gui.getSelectedFileNode()
 
@@ -50,17 +50,17 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
 				title: "",
-				task:  gui.createRenderStringTask(gui.Tr.NoChangedFiles),
+				task:  NewRenderStringTask(gui.Tr.NoChangedFiles),
 			},
 		})
 	}
 
 	if !alreadySelected {
 		// TODO: pull into update task interface
-		if err := gui.resetOrigin(gui.getMainView()); err != nil {
+		if err := gui.resetOrigin(gui.Views.Main); err != nil {
 			return err
 		}
-		if err := gui.resetOrigin(gui.getSecondaryView()); err != nil {
+		if err := gui.resetOrigin(gui.Views.Secondary); err != nil {
 			return err
 		}
 		gui.takeOverMergeConflictScrolling()
@@ -75,7 +75,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
 		title: gui.Tr.UnstagedChanges,
-		task:  gui.createRunPtyTask(cmd),
+		task:  NewRunPtyTask(cmd),
 	}}
 
 	if node.GetHasUnstagedChanges() {
@@ -85,7 +85,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 
 			refreshOpts.secondary = &viewUpdateOpts{
 				title: gui.Tr.StagedChanges,
-				task:  gui.createRunPtyTask(cmd),
+				task:  NewRunPtyTask(cmd),
 			}
 		}
 	} else {
@@ -105,11 +105,6 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 
 	selectedPath := gui.getSelectedPath()
 
-	filesView := gui.getFilesView()
-	if filesView == nil {
-		// if the filesView hasn't been instantiated yet we just return
-		return nil
-	}
 	if err := gui.refreshStateSubmoduleConfigs(); err != nil {
 		return err
 	}
@@ -122,14 +117,14 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			gui.Log.Error(err)
 		}
 
-		if gui.getFilesView().Context == FILES_CONTEXT_KEY {
+		if gui.Views.Files.Context == FILES_CONTEXT_KEY {
 			// doing this a little custom (as opposed to using gui.postRefreshUpdate) because we handle selecting the file explicitly below
 			if err := gui.State.Contexts.Files.HandleRender(); err != nil {
 				return err
 			}
 		}
 
-		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (g.CurrentView() == gui.getMainView() && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
+		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (g.CurrentView() == gui.Views.Main && g.CurrentView().Context == MAIN_MERGING_CONTEXT_KEY) {
 			newSelectedPath := gui.getSelectedPath()
 			alreadySelected := selectedPath != "" && newSelectedPath == selectedPath
 			if err := gui.selectFile(alreadySelected); err != nil {
@@ -350,7 +345,7 @@ func (gui *Gui) handleWIPCommitPress() error {
 	}
 
 	_ = gui.renderStringSync("commitMessage", skipHookPreifx)
-	if err := gui.getCommitMessageView().SetCursor(len(skipHookPreifx), 0); err != nil {
+	if err := gui.Views.CommitMessage.SetCursor(len(skipHookPreifx), 0); err != nil {
 		return err
 	}
 
@@ -389,7 +384,6 @@ func (gui *Gui) handleCommitPress() error {
 		return gui.promptToStageAllAndRetry(gui.handleCommitPress)
 	}
 
-	commitMessageView := gui.getCommitMessageView()
 	commitPrefixConfig := gui.commitPrefixConfigForRepo()
 	if commitPrefixConfig != nil {
 		prefixPattern := commitPrefixConfig.Pattern
@@ -400,7 +394,7 @@ func (gui *Gui) handleCommitPress() error {
 		}
 		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
 		gui.renderString("commitMessage", prefix)
-		if err := commitMessageView.SetCursor(len(prefix), 0); err != nil {
+		if err := gui.Views.CommitMessage.SetCursor(len(prefix), 0); err != nil {
 			return err
 		}
 	}
@@ -862,7 +856,7 @@ func (gui *Gui) handleToggleFileTreeView() error {
 		}
 	}
 
-	if gui.getFilesView().Context == FILES_CONTEXT_KEY {
+	if gui.Views.Files.Context == FILES_CONTEXT_KEY {
 		if err := gui.State.Contexts.Files.HandleRender(); err != nil {
 			return err
 		}

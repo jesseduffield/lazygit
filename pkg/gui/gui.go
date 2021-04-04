@@ -106,6 +106,8 @@ type Gui struct {
 
 	// this tells us whether our views have been initially set up
 	ViewsSetup bool
+
+	Views Views
 }
 
 type RecordedEvent struct {
@@ -232,6 +234,28 @@ type panelStates struct {
 	Suggestions    *suggestionsPanelState
 }
 
+type Views struct {
+	Status        *gocui.View
+	Files         *gocui.View
+	Branches      *gocui.View
+	Commits       *gocui.View
+	Stash         *gocui.View
+	Main          *gocui.View
+	Secondary     *gocui.View
+	Options       *gocui.View
+	Confirmation  *gocui.View
+	Menu          *gocui.View
+	Credentials   *gocui.View
+	CommitMessage *gocui.View
+	CommitFiles   *gocui.View
+	Information   *gocui.View
+	AppStatus     *gocui.View
+	Search        *gocui.View
+	SearchPrefix  *gocui.View
+	Limit         *gocui.View
+	Suggestions   *gocui.View
+}
+
 type searchingState struct {
 	view         *gocui.View
 	isSearching  bool
@@ -260,7 +284,7 @@ type CherryPicking struct {
 	CherryPickedCommits []*models.Commit
 
 	// we only allow cherry picking from one context at a time, so you can't copy a commit from the local commits context and then also copy a commit in the reflog context
-	ContextKey string
+	ContextKey ContextKey
 }
 
 func (m *CherryPicking) Active() bool {
@@ -306,8 +330,8 @@ type guiState struct {
 	MenuItems         []*menuItem
 	Updating          bool
 	Panels            *panelStates
-	MainContext       string // used to keep the main and secondary views' contexts in sync
 	SplitMainPanel    bool
+	MainContext       ContextKey // used to keep the main and secondary views' contexts in sync
 	RetainOriginalDir bool
 	IsRefreshingFiles bool
 	Searching         searchingState

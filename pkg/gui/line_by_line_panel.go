@@ -82,9 +82,8 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 		return false, err
 	}
 
-	secondaryView := gui.getSecondaryView()
-	secondaryView.Highlight = true
-	secondaryView.Wrap = false
+	gui.Views.Secondary.Highlight = true
+	gui.Views.Secondary.Wrap = false
 
 	secondaryPatchParser, err := patch.NewPatchParser(gui.Log, secondaryDiff)
 	if err != nil {
@@ -92,7 +91,7 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 	}
 
 	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContent(gui.getSecondaryView(), secondaryPatchParser.Render(-1, -1, nil))
+		gui.setViewContent(gui.Views.Secondary, secondaryPatchParser.Render(-1, -1, nil))
 		return nil
 	})
 
@@ -184,7 +183,7 @@ func (gui *Gui) handleLBLMouseDown() error {
 			return nil
 		}
 
-		newSelectedLineIdx := gui.getMainView().SelectedLineIdx()
+		newSelectedLineIdx := gui.Views.Main.SelectedLineIdx()
 		state.FirstLineIdx = newSelectedLineIdx
 		state.LastLineIdx = newSelectedLineIdx
 
@@ -200,7 +199,7 @@ func (gui *Gui) handleMouseDrag() error {
 			return nil
 		}
 
-		return gui.LBLSelectLine(gui.getMainView().SelectedLineIdx(), state)
+		return gui.LBLSelectLine(gui.Views.Main.SelectedLineIdx(), state)
 	})
 }
 
@@ -248,12 +247,11 @@ func (gui *Gui) refreshMainViewForLineByLine(state *lBlPanelState) error {
 	}
 	colorDiff := state.PatchParser.Render(state.FirstLineIdx, state.LastLineIdx, includedLineIndices)
 
-	mainView := gui.getMainView()
-	mainView.Highlight = true
-	mainView.Wrap = false
+	gui.Views.Main.Highlight = true
+	gui.Views.Main.Wrap = false
 
 	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContent(gui.getMainView(), colorDiff)
+		gui.setViewContent(gui.Views.Main, colorDiff)
 		return nil
 	})
 
@@ -263,7 +261,7 @@ func (gui *Gui) refreshMainViewForLineByLine(state *lBlPanelState) error {
 // focusSelection works out the best focus for the staging panel given the
 // selected line and size of the hunk
 func (gui *Gui) focusSelection(includeCurrentHunk bool, state *lBlPanelState) error {
-	stagingView := gui.getMainView()
+	stagingView := gui.Views.Main
 
 	_, viewHeight := stagingView.Size()
 	bufferHeight := viewHeight - 1
@@ -367,7 +365,7 @@ func (gui *Gui) handleOpenFileAtLine() error {
 
 func (gui *Gui) handleLineByLineNextPage() error {
 	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
-		newSelectedLineIdx := state.SelectedLineIdx + gui.pageDelta(gui.getMainView())
+		newSelectedLineIdx := state.SelectedLineIdx + gui.pageDelta(gui.Views.Main)
 
 		return gui.lineByLineNavigateTo(newSelectedLineIdx, state)
 	})
@@ -375,7 +373,7 @@ func (gui *Gui) handleLineByLineNextPage() error {
 
 func (gui *Gui) handleLineByLinePrevPage() error {
 	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
-		newSelectedLineIdx := state.SelectedLineIdx - gui.pageDelta(gui.getMainView())
+		newSelectedLineIdx := state.SelectedLineIdx - gui.pageDelta(gui.Views.Main)
 
 		return gui.lineByLineNavigateTo(newSelectedLineIdx, state)
 	})

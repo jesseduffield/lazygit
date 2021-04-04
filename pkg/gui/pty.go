@@ -12,8 +12,7 @@ func (gui *Gui) onResize() error {
 	if gui.State.Ptmx == nil {
 		return nil
 	}
-	mainView := gui.getMainView()
-	width, height := mainView.Size()
+	width, height := gui.Views.Main.Size()
 
 	if err := pty.Setsize(gui.State.Ptmx, &pty.Winsize{Cols: uint16(width), Rows: uint16(height)}); err != nil {
 		return err
@@ -31,7 +30,7 @@ func (gui *Gui) onResize() error {
 // pseudo-terminal meaning we'll get the behaviour we want from the underlying
 // command.
 func (gui *Gui) newPtyTask(viewName string, cmd *exec.Cmd, prefix string) error {
-	width, _ := gui.getMainView().Size()
+	width, _ := gui.Views.Main.Size()
 	pager := gui.GitCommand.GetPager(width)
 
 	if pager == "" {

@@ -24,7 +24,7 @@ func (gui *Gui) handleSubmoduleSelect() error {
 	var task updateTask
 	submodule := gui.getSelectedSubmodule()
 	if submodule == nil {
-		task = gui.createRenderStringTask("No submodules")
+		task = NewRenderStringTask("No submodules")
 	} else {
 		prefix := fmt.Sprintf(
 			"Name: %s\nPath: %s\nUrl:  %s\n\n",
@@ -35,11 +35,11 @@ func (gui *Gui) handleSubmoduleSelect() error {
 
 		file := gui.fileForSubmodule(submodule)
 		if file == nil {
-			task = gui.createRenderStringTask(prefix)
+			task = NewRenderStringTask(prefix)
 		} else {
 			cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
 			cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-			task = gui.createRunCommandTaskWithPrefix(cmd, prefix)
+			task = NewRunCommandTaskWithPrefix(cmd, prefix)
 		}
 	}
 

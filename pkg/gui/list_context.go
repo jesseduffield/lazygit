@@ -9,7 +9,7 @@ import (
 
 type ListContext struct {
 	ViewName            string
-	ContextKey          string
+	ContextKey          ContextKey
 	GetItemsLength      func() int
 	GetDisplayStrings   func() [][]string
 	OnFocus             func() error
@@ -103,7 +103,7 @@ func (lc *ListContext) OnRender() error {
 	return nil
 }
 
-func (lc *ListContext) GetKey() string {
+func (lc *ListContext) GetKey() ContextKey {
 	return lc.ContextKey
 }
 
@@ -136,10 +136,10 @@ func (lc *ListContext) HandleFocus() error {
 	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
 
 	if lc.ResetMainViewOriginOnFocus {
-		if err := lc.Gui.resetOrigin(lc.Gui.getMainView()); err != nil {
+		if err := lc.Gui.resetOrigin(lc.Gui.Views.Main); err != nil {
 			return err
 		}
-		if err := lc.Gui.resetOrigin(lc.Gui.getSecondaryView()); err != nil {
+		if err := lc.Gui.resetOrigin(lc.Gui.Views.Secondary); err != nil {
 			return err
 		}
 	}
@@ -257,7 +257,7 @@ func (gui *Gui) menuListContext() *ListContext {
 	return &ListContext{
 		ViewName:                   "menu",
 		ContextKey:                 "menu",
-		GetItemsLength:             func() int { return gui.getMenuView().LinesHeight() },
+		GetItemsLength:             func() int { return gui.Views.Menu.LinesHeight() },
 		GetPanelState:              func() IListPanelState { return gui.State.Panels.Menu },
 		OnFocus:                    gui.handleMenuSelect,
 		OnClickSelectedItem:        gui.onMenuPress,
@@ -556,16 +556,16 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 		listContext := listContext
 
 		bindings = append(bindings, []*Binding{
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.PrevItemAlt), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.PrevItem), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.NextItemAlt), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.NextItem), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.PrevPage), Modifier: gocui.ModNone, Handler: listContext.handlePrevPage, Description: gui.Tr.LcPrevPage},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.NextPage), Modifier: gocui.ModNone, Handler: listContext.handleNextPage, Description: gui.Tr.LcNextPage},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gui.getKey(keybindingConfig.Universal.GotoTop), Modifier: gocui.ModNone, Handler: listContext.handleGotoTop, Description: gui.Tr.LcGotoTop},
-			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{listContext.ContextKey}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
-			{ViewName: listContext.ViewName, Contexts: []string{listContext.ContextKey}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listContext.handleClick},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gui.getKey(keybindingConfig.Universal.PrevItemAlt), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gui.getKey(keybindingConfig.Universal.PrevItem), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gui.getKey(keybindingConfig.Universal.NextItemAlt), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gui.getKey(keybindingConfig.Universal.NextItem), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gui.getKey(keybindingConfig.Universal.PrevPage), Modifier: gocui.ModNone, Handler: listContext.handlePrevPage, Description: gui.Tr.LcPrevPage},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gui.getKey(keybindingConfig.Universal.NextPage), Modifier: gocui.ModNone, Handler: listContext.handleNextPage, Description: gui.Tr.LcNextPage},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gui.getKey(keybindingConfig.Universal.GotoTop), Modifier: gocui.ModNone, Handler: listContext.handleGotoTop, Description: gui.Tr.LcGotoTop},
+			{ViewName: listContext.ViewName, Tag: "navigation", Contexts: []string{string(listContext.ContextKey)}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
+			{ViewName: listContext.ViewName, Contexts: []string{string(listContext.ContextKey)}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listContext.handleClick},
 		}...)
 
 		// the commits panel needs to lazyload things so it has a couple of its own handlers
@@ -579,7 +579,7 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 		bindings = append(bindings, []*Binding{
 			{
 				ViewName:    listContext.ViewName,
-				Contexts:    []string{listContext.ContextKey},
+				Contexts:    []string{string(listContext.ContextKey)},
 				Key:         gui.getKey(keybindingConfig.Universal.StartSearch),
 				Handler:     func() error { return openSearchHandler(listContext.ViewName) },
 				Description: gui.Tr.LcStartSearch,
@@ -587,7 +587,7 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 			},
 			{
 				ViewName:    listContext.ViewName,
-				Contexts:    []string{listContext.ContextKey},
+				Contexts:    []string{string(listContext.ContextKey)},
 				Key:         gui.getKey(keybindingConfig.Universal.GotoBottom),
 				Handler:     gotoBottomHandler,
 				Description: gui.Tr.LcGotoBottom,

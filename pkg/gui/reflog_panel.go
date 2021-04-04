@@ -20,13 +20,13 @@ func (gui *Gui) handleReflogCommitSelect() error {
 	commit := gui.getSelectedReflogCommit()
 	var task updateTask
 	if commit == nil {
-		task = gui.createRenderStringTask("No reflog history")
+		task = NewRenderStringTask("No reflog history")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
 
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

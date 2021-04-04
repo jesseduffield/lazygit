@@ -45,7 +45,7 @@ func (gui *Gui) handleCommitFileSelect() error {
 	cmd := gui.OSCommand.ExecutableFromString(
 		gui.GitCommand.ShowFileDiffCmdStr(from, to, reverse, node.GetPath(), false),
 	)
-	task := gui.createRunPtyTask(cmd)
+	task := NewRunPtyTask(cmd)
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
@@ -287,7 +287,8 @@ func (gui *Gui) handleToggleCommitFileTreeView() error {
 		}
 	}
 
-	if gui.getCommitFilesView().Context == COMMIT_FILES_CONTEXT_KEY {
+	// TODO: pretty sure this view only ever has this context. Is this if condition necessary?
+	if gui.Views.CommitFiles.Context == COMMIT_FILES_CONTEXT_KEY {
 		if err := gui.State.Contexts.CommitFiles.HandleRender(); err != nil {
 			return err
 		}

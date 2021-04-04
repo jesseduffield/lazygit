@@ -179,7 +179,7 @@ func (gui *Gui) refreshMergePanel() error {
 		return gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
 				title: "",
-				task:  gui.createRenderStringTask(err.Error()),
+				task:  NewRenderStringTask(err.Error()),
 			},
 		})
 	}
@@ -203,7 +203,7 @@ func (gui *Gui) refreshMergePanel() error {
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title:  gui.Tr.MergeConflictsTitle,
-			task:   gui.createRenderStringWithoutScrollTask(content),
+			task:   NewRenderStringWithoutScrollTask(content),
 			noWrap: true,
 		},
 	})
@@ -236,7 +236,8 @@ func (gui *Gui) scrollToConflict() error {
 	if len(panelState.Conflicts) == 0 {
 		return nil
 	}
-	mergingView := gui.getMainView()
+
+	mergingView := gui.Views.Main
 	conflict := panelState.Conflicts[panelState.ConflictIndex]
 	ox, _ := mergingView.Origin()
 	_, height := mergingView.Size()
@@ -269,7 +270,7 @@ func (gui *Gui) handleEscapeMerge() error {
 	}
 	// it's possible this method won't be called from the merging view so we need to
 	// ensure we only 'return' focus if we already have it
-	if gui.g.CurrentView() == gui.getMainView() {
+	if gui.g.CurrentView() == gui.Views.Main {
 		return gui.pushContext(gui.State.Contexts.Files)
 	}
 	return nil

@@ -43,7 +43,6 @@ func (gui *Gui) getMenuOptions() map[string]string {
 }
 
 func (gui *Gui) handleMenuClose() error {
-	_ = gui.g.DeleteView("menu")
 	return gui.returnFromContext()
 }
 

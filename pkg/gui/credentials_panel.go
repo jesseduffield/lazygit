@@ -40,7 +40,7 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 }
 
 func (gui *Gui) handleSubmitCredential() error {
-	credentialsView := gui.getCredentialsView()
+	credentialsView := gui.Views.Credentials
 	message := gui.trimmedContent(credentialsView)
 	gui.credentials <- message
 	gui.clearEditorView(credentialsView)

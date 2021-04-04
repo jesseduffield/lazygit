@@ -22,10 +22,8 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *lBlPanelSt
 		return gui.handleEscapePatchBuildingPanel()
 	}
 
-	gui.splitMainPanel(true)
-
-	gui.getMainView().Title = "Patch"
-	gui.getSecondaryView().Title = "Custom Patch"
+	gui.Views.Main.Title = "Patch"
+	gui.Views.Secondary.Title = "Custom Patch"
 
 	// get diff from commit file that's currently selected
 	node := gui.getSelectedCommitFileNode()
@@ -125,7 +123,7 @@ func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
 			title:     "Custom Patch",
 			noWrap:    true,
 			highlight: true,
-			task:      gui.createRenderStringWithoutScrollTask(patch),
+			task:      NewRenderStringWithoutScrollTask(patch),
 		}
 	}
 
