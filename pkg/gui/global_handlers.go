@@ -13,8 +13,8 @@ import (
 // these views need to be re-rendered when the screen mode changes. The commits view,
 // for example, will show authorship information in half and full screen mode.
 func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
-	for _, viewName := range []string{"branches", "commits"} {
-		if err := gui.rerenderView(viewName); err != nil {
+	for _, view := range []*gocui.View{gui.Views.Branches, gui.Views.Commits} {
+		if err := gui.rerenderView(view); err != nil {
 			return err
 		}
 	}
