@@ -665,18 +665,18 @@ func (gui *Gui) onViewFocusChange() error {
 	return nil
 }
 
-func (gui *Gui) onViewFocusLost(v *gocui.View, newView *gocui.View) error {
-	if v == nil {
+func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error {
+	if oldView == nil {
 		return nil
 	}
 
-	if v.IsSearching() && newView.Name() != "search" {
+	if oldView.IsSearching() && newView != gui.Views.Search {
 		if err := gui.onSearchEscape(); err != nil {
 			return err
 		}
 	}
 
-	if v.Name() == "commitFiles" && newView.Name() != "main" && newView.Name() != "secondary" {
+	if oldView == gui.Views.CommitFiles && newView != gui.Views.Main && newView != gui.Views.Secondary && newView != gui.Views.Search {
 		gui.resetWindowForView("commitFiles")
 		if err := gui.deactivateContext(gui.State.Contexts.CommitFiles); err != nil {
 			return err
