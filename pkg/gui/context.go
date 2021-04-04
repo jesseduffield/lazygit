@@ -769,13 +769,8 @@ func (gui *Gui) contextForContextKey(contextKey ContextKey) (Context, bool) {
 	return nil, false
 }
 
-func (gui *Gui) rerenderView(viewName string) error {
-	v, err := gui.g.View(viewName)
-	if err != nil {
-		return nil
-	}
-
-	contextKey := ContextKey(v.Context)
+func (gui *Gui) rerenderView(view *gocui.View) error {
+	contextKey := ContextKey(view.Context)
 	context := gui.mustContextForContextKey(contextKey)
 
 	return context.HandleRender()
