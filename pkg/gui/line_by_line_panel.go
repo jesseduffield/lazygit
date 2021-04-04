@@ -27,6 +27,8 @@ const (
 // returns whether the patch is empty so caller can escape if necessary
 // both diffs should be non-coloured because we'll parse them and colour them here
 func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, secondaryFocused bool, selectedLineIdx int, state *lBlPanelState) (bool, error) {
+	gui.splitMainPanel(true)
+
 	patchParser, err := patch.NewPatchParser(gui.Log, diff)
 	if err != nil {
 		return false, nil
