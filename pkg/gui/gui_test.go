@@ -180,8 +180,6 @@ func Test(t *testing.T) {
 		test := test
 
 		t.Run(test.Name, func(t *testing.T) {
-			t.Parallel()
-
 			speeds := getTestSpeeds(test.Speed, updateSnapshots)
 
 			for i, speed := range speeds {
