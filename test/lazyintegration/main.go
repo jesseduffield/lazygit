@@ -259,7 +259,9 @@ func main() {
 }
 
 func (app *App) runSubprocess(cmd *exec.Cmd) {
-	gocui.Screen.Suspend()
+	if err := gocui.Screen.Suspend(); err != nil {
+		panic(err)
+	}
 
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -274,7 +276,9 @@ func (app *App) runSubprocess(cmd *exec.Cmd) {
 	fmt.Fprintf(os.Stdout, "\n%s", coloredString("press enter to return", color.FgGreen))
 	fmt.Scanln() // wait for enter press
 
-	gocui.Screen.Resume()
+	if err := gocui.Screen.Resume(); err != nil {
+		panic(err)
+	}
 }
 
 func (app *App) layout(g *gocui.Gui) error {
