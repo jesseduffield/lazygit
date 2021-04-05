@@ -1,183 +1,34 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 
-	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
+	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/stretchr/testify/assert"
 )
 
-// To run an integration test, e.g. for test 'commit', go:
-// go test pkg/gui/gui_test.go -run /commit
+// This file can be invoked directly, but you might find it easier to go through
+// test/lazyintegration/main.go, which provides a convenient gui wrapper to integration
+// tests.
 //
-// To record keypresses for an integration test, pass RECORD_EVENTS=true like so:
-// RECORD_EVENTS=true go test pkg/gui/gui_test.go -run /commit
-//
-// To update a snapshot for an integration test, pass UPDATE_SNAPSHOTS=true
-// UPDATE_SNAPSHOTS=true go test pkg/gui/gui_test.go -run /commit
-//
-// When RECORD_EVENTS is true, updates will be updated automatically
-//
-// integration tests are run in test/integration_test and the final test does
-// not clean up that directory so you can cd into it to see for yourself what
-// happened when a test failed.
-//
-// To run tests in parallel pass `PARALLEL=true` as an env var. Tests are run in parallel
-// on CI, and are run in a pty so you won't be able to see the stdout of the program
-//
-// To override speed, pass e.g. `SPEED=1` as an env var. Otherwise we start each test
-// at a high speed and then drop down to lower speeds upon each failure until finally
-// trying at the original playback speed (speed 1). A speed of 2 represents twice the
-// original playback speed. Speed must be an integer.
+// If invoked directly, you can specify a test by passing it as the first argument.
+// You can also specify that you want to record a test by passing RECORD_EVENTS=true
+// as an env var.
 
-type integrationTest struct {
-	Name        string `json:"name"`
-	Speed       int    `json:"speed"`
-	Description string `json:"description"`
-}
-
-func loadTests(testDir string) ([]*integrationTest, error) {
-	paths, err := filepath.Glob(filepath.Join(testDir, "/*/test.json"))
+func main() {
+	err := test()
 	if err != nil {
-		return nil, err
-	}
-
-	tests := make([]*integrationTest, len(paths))
-
-	for i, path := range paths {
-		data, err := ioutil.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-
-		test := &integrationTest{}
-
-		err = json.Unmarshal(data, test)
-		if err != nil {
-			return nil, err
-		}
-
-		test.Name = strings.TrimPrefix(filepath.Dir(path), testDir+"/")
-
-		tests[i] = test
-	}
-
-	return tests, nil
-}
-
-func generateSnapshot(dir string) (string, error) {
-	osCommand := oscommands.NewDummyOSCommand()
-
-	_, err := os.Stat(filepath.Join(dir, ".git"))
-	if err != nil {
-		return "git directory not found", nil
-	}
-
-	snapshot := ""
-
-	statusCmd := fmt.Sprintf(`git -C %s status`, dir)
-	statusCmdOutput, err := osCommand.RunCommandWithOutput(statusCmd)
-	if err != nil {
-		return "", err
-	}
-
-	snapshot += statusCmdOutput + "\n"
-
-	logCmd := fmt.Sprintf(`git -C %s log --pretty=%%B -p -1`, dir)
-	logCmdOutput, err := osCommand.RunCommandWithOutput(logCmd)
-	if err != nil {
-		return "", err
-	}
-
-	snapshot += logCmdOutput + "\n"
-
-	err = filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if f.IsDir() {
-			if f.Name() == ".git" {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-
-		bytes, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		snapshot += string(bytes) + "\n"
-
-		return nil
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	return snapshot, nil
-}
-
-func findOrCreateDir(path string) {
-	_, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.MkdirAll(path, 0777)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			panic(err)
-		}
+		panic(err)
 	}
 }
 
-func getTestSpeeds(testStartSpeed int, updateSnapshots bool) []int {
-	if updateSnapshots {
-		// have to go at original speed if updating snapshots in case we go to fast and create a junk snapshot
-		return []int{1}
-	}
-
-	speedEnv := os.Getenv("SPEED")
-	if speedEnv != "" {
-		speed, err := strconv.Atoi(speedEnv)
-		if err != nil {
-			panic(err)
-		}
-		return []int{speed}
-	}
-
-	// default is 10, 5, 1
-	startSpeed := 10
-	if testStartSpeed != 0 {
-		startSpeed = testStartSpeed
-	}
-	speeds := []int{startSpeed}
-	if startSpeed > 5 {
-		speeds = append(speeds, 5)
-	}
-	speeds = append(speeds, 1)
-
-	return speeds
-}
-
-func tempLazygitPath() string {
-	return filepath.Join("/tmp", "lazygit", "test_lazygit")
-}
-
-func Test() error {
-	rootDir := getRootDirectory()
+func test() error {
+	rootDir := integration.GetRootDirectory()
 	err := os.Chdir(rootDir)
 	if err != nil {
 		return err
@@ -186,47 +37,54 @@ func Test() error {
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.RunCommand("go build -o %s", tempLazygitPath())
+	err = osCommand.RunCommand("go build -o %s", integration.TempLazygitPath())
 	if err != nil {
 		return err
 	}
 
-	tests, err := loadTests(testDir)
+	tests, err := integration.LoadTests(testDir)
 	if err != nil {
 		panic(err)
 	}
 
 	record := os.Getenv("RECORD_EVENTS") != ""
+
 	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
 
 	selectedTestName := os.Args[1]
 
 	for _, test := range tests {
-		test := test
-
 		if selectedTestName != "" && test.Name != selectedTestName {
 			continue
 		}
 
-		speeds := getTestSpeeds(test.Speed, updateSnapshots)
+		speeds := integration.GetTestSpeeds(test.Speed, updateSnapshots)
+		testPath := filepath.Join(testDir, test.Name)
+		actualDir := filepath.Join(testPath, "actual")
+		expectedDir := filepath.Join(testPath, "expected")
+		configDir := filepath.Join(testPath, "used_config")
+		log.Printf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
 
 		for i, speed := range speeds {
 			log.Printf("%s: attempting test at speed %d\n", test.Name, speed)
 
-			testPath := filepath.Join(testDir, test.Name)
-			actualDir := filepath.Join(testPath, "actual")
-			expectedDir := filepath.Join(testPath, "expected")
-			log.Printf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
-			findOrCreateDir(testPath)
-
-			prepareIntegrationTestDir(actualDir)
-
-			err := createFixture(testPath, actualDir)
+			integration.FindOrCreateDir(testPath)
+			integration.PrepareIntegrationTestDir(actualDir)
+			err := integration.CreateFixture(testPath, actualDir)
 			if err != nil {
 				return err
 			}
 
-			if err := runLazygit(testPath, rootDir, record, speed); err != nil {
+			cmd, err := integration.GetLazygitCommand(testPath, rootDir, record, speed)
+			if err != nil {
+				return err
+			}
+
+			cmd.Stdout = os.Stdout
+			cmd.Stdin = os.Stdin
+			cmd.Stderr = os.Stderr
+
+			if err := cmd.Run(); err != nil {
 				return err
 			}
 
@@ -237,47 +95,23 @@ func Test() error {
 				}
 			}
 
-			actual, err := generateSnapshot(actualDir)
+			actual, expected, err := integration.GenerateSnapshots(actualDir, expectedDir)
 			if err != nil {
 				return err
 			}
 
-			expected := ""
-
-			func() {
-				// git refuses to track .git folders in subdirectories so we need to rename it
-				// to git_keep after running a test
-
-				defer func() {
-					err = os.Rename(
-						filepath.Join(expectedDir, ".git"),
-						filepath.Join(expectedDir, ".git_keep"),
-					)
-
-					if err != nil {
-						panic(err)
-					}
-				}()
-
-				// ignoring this error because we might not have a .git_keep file here yet.
-				_ = os.Rename(
-					filepath.Join(expectedDir, ".git_keep"),
-					filepath.Join(expectedDir, ".git"),
-				)
-
-				expected, err = generateSnapshot(expectedDir)
-				if err != nil {
-					panic(err)
-				}
-			}()
-
 			if expected == actual {
-				log.Printf("%s: success at speed %d\n", test.Name, speed)
+				fmt.Printf("%s: success at speed %d\n", test.Name, speed)
 				break
 			}
 
 			// if the snapshots and we haven't tried all playback speeds different we'll retry at a slower speed
 			if i == len(speeds)-1 {
+				bytes, err := ioutil.ReadFile(filepath.Join(configDir, "development.log"))
+				if err != nil {
+					return err
+				}
+				fmt.Println(string(bytes))
 				assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
 				os.Exit(1)
 			}
@@ -291,150 +125,4 @@ type MockTestingT struct{}
 
 func (t MockTestingT) Errorf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
-}
-
-func createFixture(testPath, actualDir string) error {
-	osCommand := oscommands.NewDummyOSCommand()
-	bashScriptPath := filepath.Join(testPath, "setup.sh")
-	cmd := secureexec.Command("bash", bashScriptPath, actualDir)
-
-	if err := osCommand.RunExecutable(cmd); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func getRootDirectory() string {
-	path, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	for {
-		_, err := os.Stat(filepath.Join(path, ".git"))
-
-		if err == nil {
-			return path
-		}
-
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-
-		path = filepath.Dir(path)
-
-		if path == "/" {
-			panic("must run in lazygit folder or child folder")
-		}
-	}
-}
-
-func runLazygit(testPath string, rootDir string, record bool, speed int) error {
-	osCommand := oscommands.NewDummyOSCommand()
-
-	replayPath := filepath.Join(testPath, "recording.json")
-	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
-	actualDir := filepath.Join(testPath, "actual")
-
-	exists, err := osCommand.FileExists(filepath.Join(testPath, "config"))
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		templateConfigDir = filepath.Join(testPath, "config")
-	}
-
-	configDir := filepath.Join(testPath, "used_config")
-
-	err = os.RemoveAll(configDir)
-	if err != nil {
-		return err
-	}
-	err = oscommands.CopyDir(templateConfigDir, configDir)
-	if err != nil {
-		return err
-	}
-
-	cmdStr := fmt.Sprintf("%s --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
-
-	cmd := osCommand.ExecutableFromString(cmdStr)
-	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
-
-	if record {
-		cmd.Stdout = os.Stdout
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Env = append(
-			cmd.Env,
-			fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath),
-		)
-	} else {
-		cmd.Stdout = os.Stdout
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Env = append(
-			cmd.Env,
-			fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
-		)
-	}
-
-	// if we're on CI we'll need to use a PTY. We can work that out by seeing if the 'TERM' env is defined.
-	if runInPTY() {
-		cmd.Env = append(cmd.Env, "TERM=xterm")
-
-		f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
-		if err != nil {
-			return err
-		}
-
-		_, _ = io.Copy(ioutil.Discard, f)
-
-		if err != nil {
-			return err
-		}
-
-		_ = f.Close()
-	} else {
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func runInParallel() bool {
-	return os.Getenv("PARALLEL") != ""
-}
-
-func runInPTY() bool {
-	return runInParallel() || os.Getenv("TERM") == ""
-}
-
-func prepareIntegrationTestDir(actualDir string) {
-	// remove contents of integration test directory
-	dir, err := ioutil.ReadDir(actualDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.Mkdir(actualDir, 0777)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			panic(err)
-		}
-	}
-	for _, d := range dir {
-		os.RemoveAll(filepath.Join(actualDir, d.Name()))
-	}
-}
-
-func main() {
-	err := Test()
-	if err != nil {
-		panic(err)
-	}
 }
