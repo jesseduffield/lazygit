@@ -66,7 +66,7 @@ func test() error {
 		log.Printf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
 
 		for i, speed := range speeds {
-			log.Printf("%s: attempting test at speed %d\n", test.Name, speed)
+			log.Printf("%s: attempting test at speed %f\n", test.Name, speed)
 
 			integration.FindOrCreateDir(testPath)
 			integration.PrepareIntegrationTestDir(actualDir)
@@ -101,7 +101,7 @@ func test() error {
 			}
 
 			if expected == actual {
-				fmt.Printf("%s: success at speed %d\n", test.Name, speed)
+				fmt.Printf("%s: success at speed %f\n", test.Name, speed)
 				break
 			}
 

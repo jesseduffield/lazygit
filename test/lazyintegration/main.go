@@ -1,29 +1,27 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
 type App struct {
-	tests   []*IntegrationTest
+	tests   []*integration.Test
 	itemIdx int
 	testDir string
 	editing bool
 	g       *gocui.Gui
 }
 
-func (app *App) getCurrentTest() *IntegrationTest {
+func (app *App) getCurrentTest() *integration.Test {
 	if len(app.tests) > 0 {
 		return app.tests[app.itemIdx]
 	}
@@ -48,7 +46,7 @@ func (app *App) refreshTests() {
 }
 
 func (app *App) loadTests() {
-	tests, err := loadTests(app.testDir)
+	tests, err := integration.LoadTests(app.testDir)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -60,7 +58,7 @@ func (app *App) loadTests() {
 }
 
 func main() {
-	rootDir := getRootDirectory()
+	rootDir := integration.GetRootDirectory()
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	app := &App{testDir: testDir}
@@ -365,7 +363,7 @@ func (app *App) layout(g *gocui.Gui) error {
 	}
 
 	descriptionView.Clear()
-	fmt.Fprintf(descriptionView, "Speed: %d. %s", currentTest.Speed, currentTest.Description)
+	fmt.Fprintf(descriptionView, "Speed: %f. %s", currentTest.Speed, currentTest.Description)
 
 	if err := g.SetKeybinding("list", nil, gocui.KeyArrowDown, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
 		if app.itemIdx < len(app.tests)-1 {
@@ -381,63 +379,6 @@ func (app *App) layout(g *gocui.Gui) error {
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
-}
-
-func getRootDirectory() string {
-	path, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	for {
-		_, err := os.Stat(filepath.Join(path, ".git"))
-
-		if err == nil {
-			return path
-		}
-
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-
-		path = filepath.Dir(path)
-
-		if path == "/" {
-			panic("must run in lazygit folder or child folder")
-		}
-	}
-}
-
-type IntegrationTest struct {
-	Name        string `json:"name"`
-	Speed       int    `json:"speed"`
-	Description string `json:"description"`
-}
-
-func loadTests(testDir string) ([]*IntegrationTest, error) {
-	paths, err := filepath.Glob(filepath.Join(testDir, "/*/test.json"))
-	if err != nil {
-		return nil, err
-	}
-	tests := make([]*IntegrationTest, len(paths))
-
-	for i, path := range paths {
-		data, err := ioutil.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-		test := &IntegrationTest{}
-
-		err = json.Unmarshal(data, test)
-		if err != nil {
-			return nil, err
-		}
-		test.Name = strings.TrimPrefix(filepath.Dir(path), testDir+"/")
-
-		tests[i] = test
-	}
-
-	return tests, nil
 }
 
 func coloredString(str string, colorAttributes ...color.Attribute) string {
