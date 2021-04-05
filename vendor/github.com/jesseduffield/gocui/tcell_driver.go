@@ -5,7 +5,6 @@
 package gocui
 
 import (
-	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -20,11 +19,6 @@ type oldStyle struct {
 	bg         Attribute
 	outputMode OutputMode
 }
-
-// we're using this cache to speed up rendering, because obtaining the tcell style
-// from the old style is deterministic
-var cellStyleCache map[oldStyle]tcell.Style = map[oldStyle]tcell.Style{}
-var cacheMutex = sync.RWMutex{}
 
 // tcellInit initializes tcell screen for use.
 func tcellInit() error {
@@ -58,13 +52,6 @@ func tcellSetCell(x, y int, ch rune, fg, bg Attribute, outputMode OutputMode) {
 
 // getTcellStyle creates tcell.Style from Attributes
 func getTcellStyle(input oldStyle) tcell.Style {
-	cacheMutex.RLock()
-	cachedResult, ok := cellStyleCache[input]
-	cacheMutex.RUnlock()
-	if ok {
-		return cachedResult
-	}
-
 	st := tcell.StyleDefault
 
 	// extract colors and attributes
@@ -76,10 +63,6 @@ func getTcellStyle(input oldStyle) tcell.Style {
 		st = st.Background(getTcellColor(input.bg, input.outputMode))
 		st = setTcellFontEffectStyle(st, input.bg)
 	}
-
-	cacheMutex.Lock()
-	cellStyleCache[input] = st
-	cacheMutex.Unlock()
 
 	return st
 }
