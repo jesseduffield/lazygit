@@ -122,6 +122,20 @@ func main() {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding("list", nil, 's', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("UPDATE_SNAPSHOTS=true go run integration/main.go %s", currentTest.Name))
+		app.runSubprocess(cmd)
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
 	if err := g.SetKeybinding("list", nil, 'o', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
@@ -332,7 +346,7 @@ func (app *App) layout(g *gocui.Gui) error {
 		keybindingsView.Title = "Keybindings"
 		keybindingsView.Wrap = true
 		keybindingsView.FgColor = gocui.ColorDefault
-		fmt.Fprintln(keybindingsView, "up/down: navigate, enter: run test, r: record test, o: open test config, n: duplicate test, m: rename test, d: delete test")
+		fmt.Fprintln(keybindingsView, "up/down: navigate, enter: run test, s: run test and update snapshots, r: record test, o: open test config, n: duplicate test, m: rename test, d: delete test")
 	}
 
 	editorView, err := g.SetViewBeneath("editor", "keybindings", editorViewHeight)
