@@ -367,7 +367,7 @@ type TranslationSet struct {
 	LcGotoBottom                        string
 	LcFilteringBy                       string
 	ResetInParentheses                  string
-	LcOpenScopingMenu                   string
+	LcOpenFilteringMenu                 string
 	LcFilterBy                          string
 	LcExitFilterMode                    string
 	LcFilterPathOption                  string
@@ -929,7 +929,7 @@ func englishTranslationSet() TranslationSet {
 		LcGotoBottom:                        "scroll to bottom",
 		LcFilteringBy:                       "filtering by",
 		ResetInParentheses:                  "(reset)",
-		LcOpenScopingMenu:                   "view scoping options",
+		LcOpenFilteringMenu:                 "view filter-by-path options",
 		LcFilterBy:                          "filter by",
 		LcExitFilterMode:                    "stop filtering by path",
 		LcFilterPathOption:                  "enter path to filter by",

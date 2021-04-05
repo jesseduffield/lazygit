@@ -356,7 +356,7 @@ func dutchTranslationSet() TranslationSet {
 		LcGotoBottom:                        "scroll naar beneden",
 		LcFilteringBy:                       "filteren bij",
 		ResetInParentheses:                  "(reset)",
-		LcOpenScopingMenu:                   "bekijk scoping opties",
+		LcOpenFilteringMenu:                 "bekijk scoping opties",
 		LcFilterBy:                          "filter bij",
 		LcExitFilterMode:                    "stop met filteren bij pad",
 		LcFilterPathOption:                  "vulin pad om op te filteren",
