@@ -1,6 +1,6 @@
-0000000000000000000000000000000000000000 faaeb7b37a761da3170530e73b858a70b64cf584 CI <CI@example.com> 1617447323 +1100	commit (initial): initial commit
-faaeb7b37a761da3170530e73b858a70b64cf584 faaeb7b37a761da3170530e73b858a70b64cf584 CI <CI@example.com> 1617447323 +1100	checkout: moving from master to one
-faaeb7b37a761da3170530e73b858a70b64cf584 faaeb7b37a761da3170530e73b858a70b64cf584 CI <CI@example.com> 1617447323 +1100	checkout: moving from one to two
-faaeb7b37a761da3170530e73b858a70b64cf584 faaeb7b37a761da3170530e73b858a70b64cf584 CI <CI@example.com> 1617447323 +1100	checkout: moving from two to three
-faaeb7b37a761da3170530e73b858a70b64cf584 faaeb7b37a761da3170530e73b858a70b64cf584 CI <CI@example.com> 1617447323 +1100	checkout: moving from three to four
-faaeb7b37a761da3170530e73b858a70b64cf584 faaeb7b37a761da3170530e73b858a70b64cf584 CI <CI@example.com> 1617447327 +1100	checkout: moving from four to three
+0000000000000000000000000000000000000000 7877532bb822c0e04f5ecbc78fc414f997ba53cf CI <CI@example.com> 1617582242 +1000	commit (initial): initial commit
+7877532bb822c0e04f5ecbc78fc414f997ba53cf 7877532bb822c0e04f5ecbc78fc414f997ba53cf CI <CI@example.com> 1617582242 +1000	checkout: moving from master to one
+7877532bb822c0e04f5ecbc78fc414f997ba53cf 7877532bb822c0e04f5ecbc78fc414f997ba53cf CI <CI@example.com> 1617582242 +1000	checkout: moving from one to two
+7877532bb822c0e04f5ecbc78fc414f997ba53cf 7877532bb822c0e04f5ecbc78fc414f997ba53cf CI <CI@example.com> 1617582242 +1000	checkout: moving from two to three
+7877532bb822c0e04f5ecbc78fc414f997ba53cf 7877532bb822c0e04f5ecbc78fc414f997ba53cf CI <CI@example.com> 1617582242 +1000	checkout: moving from three to four
+7877532bb822c0e04f5ecbc78fc414f997ba53cf 7877532bb822c0e04f5ecbc78fc414f997ba53cf CI <CI@example.com> 1617582245 +1000	checkout: moving from four to three
