@@ -21,13 +21,20 @@ import (
 // as an env var.
 
 func main() {
-	err := test()
+	err := testWithEnvVars()
 	if err != nil {
 		panic(err)
 	}
 }
 
-func test() error {
+func testWithEnvVars() error {
+	record := os.Getenv("RECORD_EVENTS") != ""
+	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
+
+	return test(record, updateSnapshots)
+}
+
+func test(record bool, updateSnapshots bool) error {
 	rootDir := integration.GetRootDirectory()
 	err := os.Chdir(rootDir)
 	if err != nil {
@@ -47,10 +54,6 @@ func test() error {
 		panic(err)
 	}
 
-	record := os.Getenv("RECORD_EVENTS") != ""
-
-	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
-
 	selectedTestName := os.Args[1]
 
 	for _, test := range tests {
@@ -58,7 +61,8 @@ func test() error {
 			continue
 		}
 
-		speeds := integration.GetTestSpeeds(test.Speed, updateSnapshots)
+		speedEnv := os.Getenv("SPEED")
+		speeds := integration.GetTestSpeeds(test.Speed, updateSnapshots, speedEnv)
 		testPath := filepath.Join(testDir, test.Name)
 		actualDir := filepath.Join(testPath, "actual")
 		expectedDir := filepath.Join(testPath, "expected")

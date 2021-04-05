@@ -79,15 +79,14 @@ func TempLazygitPath() string {
 	return filepath.Join("/tmp", "lazygit", "test_lazygit")
 }
 
-func GetTestSpeeds(testStartSpeed float64, updateSnapshots bool) []float64 {
+func GetTestSpeeds(testStartSpeed float64, updateSnapshots bool, speedStr string) []float64 {
 	if updateSnapshots {
 		// have to go at original speed if updating snapshots in case we go to fast and create a junk snapshot
 		return []float64{1.0}
 	}
 
-	speedEnv := os.Getenv("SPEED")
-	if speedEnv != "" {
-		speed, err := strconv.ParseFloat(speedEnv, 64)
+	if speedStr != "" {
+		speed, err := strconv.ParseFloat(speedStr, 64)
 		if err != nil {
 			panic(err)
 		}
