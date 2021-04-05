@@ -57,7 +57,8 @@ func Test(t *testing.T) {
 		test := test
 
 		t.Run(test.Name, func(t *testing.T) {
-			speeds := integration.GetTestSpeeds(test.Speed, updateSnapshots)
+			speedEnv := os.Getenv("SPEED")
+			speeds := integration.GetTestSpeeds(test.Speed, updateSnapshots, speedEnv)
 			testPath := filepath.Join(testDir, test.Name)
 			actualDir := filepath.Join(testPath, "actual")
 			expectedDir := filepath.Join(testPath, "expected")
