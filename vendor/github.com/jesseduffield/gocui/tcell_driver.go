@@ -38,6 +38,17 @@ func tcellInit() error {
 	}
 }
 
+// tcellInitSimulation initializes tcell screen for use.
+func tcellInitSimulation() error {
+	s := tcell.NewSimulationScreen("")
+	if e := s.Init(); e != nil {
+		return e
+	} else {
+		Screen = s
+		return nil
+	}
+}
+
 // tcellSetCell sets the character cell at a given location to the given
 // content (rune) and attributes using provided OutputMode
 func tcellSetCell(x, y int, ch rune, fg, bg Attribute, outputMode OutputMode) {
@@ -166,6 +177,26 @@ func (wrapper TcellKeyEventWrapper) toTcellEvent() tcell.Event {
 	return tcell.NewEventKey(wrapper.Key, wrapper.Ch, wrapper.Mod)
 }
 
+type TcellResizeEventWrapper struct {
+	Timestamp int64
+	Width     int
+	Height    int
+}
+
+func NewTcellResizeEventWrapper(event *tcell.EventResize, timestamp int64) *TcellResizeEventWrapper {
+	w, h := event.Size()
+
+	return &TcellResizeEventWrapper{
+		Timestamp: timestamp,
+		Width:     w,
+		Height:    h,
+	}
+}
+
+func (wrapper TcellResizeEventWrapper) toTcellEvent() tcell.Event {
+	return tcell.NewEventResize(wrapper.Width, wrapper.Height)
+}
+
 func (g *Gui) timeSinceStart() int64 {
 	return time.Since(g.StartTime).Nanoseconds() / 1e6
 }
@@ -177,6 +208,8 @@ func (g *Gui) pollEvent() GocuiEvent {
 		select {
 		case ev := <-g.ReplayedEvents.keys:
 			tev = (ev).toTcellEvent()
+		case ev := <-g.ReplayedEvents.resizes:
+			tev = (ev).toTcellEvent()
 		}
 	} else {
 		tev = Screen.PollEvent()
@@ -186,6 +219,12 @@ func (g *Gui) pollEvent() GocuiEvent {
 	case *tcell.EventInterrupt:
 		return GocuiEvent{Type: eventInterrupt}
 	case *tcell.EventResize:
+		if g.PlayMode == RECORDING {
+			g.Recording.ResizeEvents = append(
+				g.Recording.ResizeEvents, NewTcellResizeEventWrapper(tev, g.timeSinceStart()),
+			)
+		}
+
 		w, h := tev.Size()
 		return GocuiEvent{Type: eventResize, Width: w, Height: h}
 	case *tcell.EventKey:

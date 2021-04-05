@@ -22,6 +22,10 @@ func replaying() bool {
 	return os.Getenv("REPLAY_EVENTS_FROM") != ""
 }
 
+func headless() bool {
+	return os.Getenv("HEADLESS") != ""
+}
+
 func getRecordingSpeed() int {
 	// humans are slow so this speeds things up.
 	speed := 1
