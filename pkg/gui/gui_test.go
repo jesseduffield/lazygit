@@ -63,6 +63,8 @@ func Test(t *testing.T) {
 			expectedDir := filepath.Join(testPath, "expected")
 			t.Logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
 
+			// three retries at normal speed for the sake of flakey tests
+			speeds = append(speeds, 1, 1, 1)
 			for i, speed := range speeds {
 				t.Logf("%s: attempting test at speed %d\n", test.Name, speed)
 
