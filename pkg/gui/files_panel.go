@@ -380,6 +380,10 @@ func (gui *Gui) handleCommitPress() error {
 		return gui.surfaceError(err)
 	}
 
+	if gui.State.FileManager.GetItemsLength() == 0 {
+		return gui.createErrorPanel(gui.Tr.NoFilesStagedTitle)
+	}
+
 	if len(gui.stagedFiles()) == 0 {
 		return gui.promptToStageAllAndRetry(gui.handleCommitPress)
 	}
@@ -428,6 +432,10 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 }
 
 func (gui *Gui) handleAmendCommitPress() error {
+	if gui.State.FileManager.GetItemsLength() == 0 {
+		return gui.createErrorPanel(gui.Tr.NoFilesStagedTitle)
+	}
+
 	if len(gui.stagedFiles()) == 0 {
 		return gui.promptToStageAllAndRetry(gui.handleAmendCommitPress)
 	}
@@ -458,6 +466,10 @@ func (gui *Gui) handleAmendCommitPress() error {
 // handleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress() error {
+	if gui.State.FileManager.GetItemsLength() == 0 {
+		return gui.createErrorPanel(gui.Tr.NoFilesStagedTitle)
+	}
+
 	if len(gui.stagedFiles()) == 0 {
 		return gui.promptToStageAllAndRetry(gui.handleCommitEditorPress)
 	}
