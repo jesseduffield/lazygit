@@ -98,7 +98,7 @@ func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...inte
 	cmd := c.ExecutableFromString(command)
 	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
 	if err != nil {
-		c.Log.WithField("command", command).Error(err)
+		c.Log.WithField("command", command).Error(output)
 	}
 	return output, err
 }
@@ -110,7 +110,7 @@ func (c *OSCommand) CatFile(filename string) (string, error) {
 	cmd := c.Command(arr[0], arr[1:]...)
 	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
 	if err != nil {
-		c.Log.WithField("command", cmdStr).Error(err)
+		c.Log.WithField("command", cmdStr).Error(output)
 	}
 	return output, err
 }
