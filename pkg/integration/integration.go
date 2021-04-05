@@ -15,9 +15,9 @@ import (
 )
 
 type Test struct {
-	Name        string `json:"name"`
-	Speed       int    `json:"speed"`
-	Description string `json:"description"`
+	Name        string  `json:"name"`
+	Speed       float64 `json:"speed"`
+	Description string  `json:"description"`
 }
 
 func PrepareIntegrationTestDir(actualDir string) {
@@ -79,27 +79,27 @@ func TempLazygitPath() string {
 	return filepath.Join("/tmp", "lazygit", "test_lazygit")
 }
 
-func GetTestSpeeds(testStartSpeed int, updateSnapshots bool) []int {
+func GetTestSpeeds(testStartSpeed float64, updateSnapshots bool) []float64 {
 	if updateSnapshots {
 		// have to go at original speed if updating snapshots in case we go to fast and create a junk snapshot
-		return []int{1}
+		return []float64{1.0}
 	}
 
 	speedEnv := os.Getenv("SPEED")
 	if speedEnv != "" {
-		speed, err := strconv.Atoi(speedEnv)
+		speed, err := strconv.ParseFloat(speedEnv, 64)
 		if err != nil {
 			panic(err)
 		}
-		return []int{speed}
+		return []float64{speed}
 	}
 
 	// default is 10, 5, 1
-	startSpeed := 10
+	startSpeed := 10.0
 	if testStartSpeed != 0 {
 		startSpeed = testStartSpeed
 	}
-	speeds := []int{startSpeed}
+	speeds := []float64{startSpeed}
 	if startSpeed > 5 {
 		speeds = append(speeds, 5)
 	}
@@ -238,7 +238,7 @@ func GenerateSnapshots(actualDir string, expectedDir string) (string, string, er
 	return actual, expected, nil
 }
 
-func GetLazygitCommand(testPath string, rootDir string, record bool, speed int) (*exec.Cmd, error) {
+func GetLazygitCommand(testPath string, rootDir string, record bool, speed float64) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	replayPath := filepath.Join(testPath, "recording.json")
@@ -268,7 +268,7 @@ func GetLazygitCommand(testPath string, rootDir string, record bool, speed int) 
 	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s", TempLazygitPath(), configDir, actualDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
-	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("SPEED=%f", speed))
 
 	if record {
 		cmd.Env = append(

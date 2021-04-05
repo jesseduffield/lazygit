@@ -95,7 +95,7 @@ type replayedEvents struct {
 }
 
 type RecordingConfig struct {
-	Speed  int
+	Speed  float64
 	Leeway int
 }
 
@@ -1218,11 +1218,11 @@ func (g *Gui) replayRecording() {
 			if i > 0 {
 				prevEventTimestamp = g.Recording.KeyEvents[i-1].Timestamp
 			}
-			timeToWait := (event.Timestamp - prevEventTimestamp) / int64(g.RecordingConfig.Speed)
+			timeToWait := float64(event.Timestamp-prevEventTimestamp) / g.RecordingConfig.Speed
 			if i == 0 {
-				timeToWait += int64(g.RecordingConfig.Leeway)
+				timeToWait += float64(g.RecordingConfig.Leeway)
 			}
-			var timeWaited int64 = 0
+			var timeWaited float64 = 0
 		middle:
 			for {
 				select {
@@ -1251,11 +1251,11 @@ func (g *Gui) replayRecording() {
 			if i > 0 {
 				prevEventTimestamp = g.Recording.ResizeEvents[i-1].Timestamp
 			}
-			timeToWait := (event.Timestamp - prevEventTimestamp) / int64(g.RecordingConfig.Speed)
+			timeToWait := float64(event.Timestamp-prevEventTimestamp) / g.RecordingConfig.Speed
 			if i == 0 {
-				timeToWait += int64(g.RecordingConfig.Leeway)
+				timeToWait += float64(g.RecordingConfig.Leeway)
 			}
-			var timeWaited int64 = 0
+			var timeWaited float64 = 0
 		middle2:
 			for {
 				select {

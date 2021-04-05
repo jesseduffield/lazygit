@@ -34,7 +34,7 @@ import (
 // To override speed, pass e.g. `SPEED=1` as an env var. Otherwise we start each test
 // at a high speed and then drop down to lower speeds upon each failure until finally
 // trying at the original playback speed (speed 1). A speed of 2 represents twice the
-// original playback speed. Speed must be an integer.
+// original playback speed. Speed may be a decimal.
 
 func Test(t *testing.T) {
 	rootDir := integration.GetRootDirectory()
@@ -66,7 +66,7 @@ func Test(t *testing.T) {
 			// three retries at normal speed for the sake of flakey tests
 			speeds = append(speeds, 1, 1, 1)
 			for i, speed := range speeds {
-				t.Logf("%s: attempting test at speed %d\n", test.Name, speed)
+				t.Logf("%s: attempting test at speed %f\n", test.Name, speed)
 
 				integration.FindOrCreateDir(testPath)
 				integration.PrepareIntegrationTestDir(actualDir)
@@ -102,7 +102,7 @@ func Test(t *testing.T) {
 				assert.NoError(t, err)
 
 				if expected == actual {
-					t.Logf("%s: success at speed %d\n", test.Name, speed)
+					t.Logf("%s: success at speed %f\n", test.Name, speed)
 					break
 				}
 

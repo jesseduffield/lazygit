@@ -26,13 +26,13 @@ func headless() bool {
 	return os.Getenv("HEADLESS") != ""
 }
 
-func getRecordingSpeed() int {
+func getRecordingSpeed() float64 {
 	// humans are slow so this speeds things up.
-	speed := 1
-	envReplaySpeed := os.Getenv("REPLAY_SPEED")
+	speed := 1.0
+	envReplaySpeed := os.Getenv("SPEED")
 	if envReplaySpeed != "" {
 		var err error
-		speed, err = strconv.Atoi(envReplaySpeed)
+		speed, err = strconv.ParseFloat(envReplaySpeed, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
