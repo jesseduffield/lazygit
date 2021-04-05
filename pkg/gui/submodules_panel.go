@@ -73,7 +73,7 @@ func (gui *Gui) enterSubmodule(submodule *models.SubmoduleConfig) error {
 	}
 	gui.RepoPathStack = append(gui.RepoPathStack, wd)
 
-	return gui.dispatchSwitchToRepo(submodule.Path)
+	return gui.dispatchSwitchToRepo(submodule.Path, true)
 }
 
 func (gui *Gui) removeSubmodule(submodule *models.SubmoduleConfig) error {

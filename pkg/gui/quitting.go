@@ -57,7 +57,7 @@ func (gui *Gui) handleTopLevelReturn() error {
 
 		gui.RepoPathStack = repoPathStack[:n]
 
-		return gui.dispatchSwitchToRepo(path)
+		return gui.dispatchSwitchToRepo(path, true)
 	}
 
 	if gui.Config.GetUserConfig().QuitOnTopLevelReturn {
