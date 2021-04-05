@@ -355,7 +355,7 @@ func runLazygit(testPath string, rootDir string, record bool, speed int) error {
 		return err
 	}
 
-	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
+	cmdStr := fmt.Sprintf("%s --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
