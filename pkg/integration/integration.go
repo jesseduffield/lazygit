@@ -15,9 +15,10 @@ import (
 )
 
 type Test struct {
-	Name        string  `json:"name"`
-	Speed       float64 `json:"speed"`
-	Description string  `json:"description"`
+	Name         string  `json:"name"`
+	Speed        float64 `json:"speed"`
+	Description  string  `json:"description"`
+	ExtraCmdArgs string  `json:"extraCmdArgs"`
 }
 
 // this function is used by both `go test` and from our lazyintegration gui, but
@@ -75,7 +76,7 @@ func RunTests(
 
 				configDir := filepath.Join(testPath, "used_config")
 
-				cmd, err := getLazygitCommand(testPath, rootDir, record, speed)
+				cmd, err := getLazygitCommand(testPath, rootDir, record, speed, test.ExtraCmdArgs)
 				if err != nil {
 					return err
 				}
@@ -338,7 +339,7 @@ func generateSnapshots(actualDir string, expectedDir string) (string, string, er
 	return actual, expected, nil
 }
 
-func getLazygitCommand(testPath string, rootDir string, record bool, speed float64) (*exec.Cmd, error) {
+func getLazygitCommand(testPath string, rootDir string, record bool, speed float64, extraCmdArgs string) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	replayPath := filepath.Join(testPath, "recording.json")
@@ -365,7 +366,7 @@ func getLazygitCommand(testPath string, rootDir string, record bool, speed float
 		return nil, err
 	}
 
-	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
+	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s %s", tempLazygitPath(), configDir, actualDir, extraCmdArgs)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("SPEED=%f", speed))
