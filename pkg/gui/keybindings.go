@@ -1087,7 +1087,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "",
 			Key:         gui.getKey(config.Universal.FilteringMenu),
 			Handler:     gui.handleCreateFilteringMenuPanel,
-			Description: gui.Tr.LcOpenScopingMenu,
+			Description: gui.Tr.LcOpenFilteringMenu,
 			OpensMenu:   true,
 		},
 		{
