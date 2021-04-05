@@ -54,9 +54,9 @@ type ContextManager struct {
 	sync.Mutex
 }
 
-func NewContextManager(contexts ContextTree) ContextManager {
+func NewContextManager(initialContext Context) ContextManager {
 	return ContextManager{
-		ContextStack: []Context{contexts.Files},
+		ContextStack: []Context{initialContext},
 		Mutex:        sync.Mutex{},
 	}
 }
@@ -366,12 +366,14 @@ func (gui *Gui) resetState(filterPath string) {
 
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
 
+	contexts := gui.contextTree()
+
 	screenMode := SCREEN_NORMAL
+	initialContext := contexts.Files
 	if filterPath != "" {
 		screenMode = SCREEN_HALF
+		initialContext = contexts.BranchCommits
 	}
-
-	contexts := gui.contextTree()
 
 	gui.State = &guiState{
 		FileManager:           filetree.NewFileManager(make([]*models.File, 0), gui.Log, showTree),
@@ -406,7 +408,7 @@ func (gui *Gui) resetState(filterPath string) {
 		SideView: nil,
 		Ptmx:     nil,
 		Modes: Modes{
-			Filtering: filtering.NewFiltering(),
+			Filtering: filtering.NewFiltering(filterPath),
 			CherryPicking: CherryPicking{
 				CherryPickedCommits: make([]*models.Commit, 0),
 				ContextKey:          "",
@@ -417,7 +419,7 @@ func (gui *Gui) resetState(filterPath string) {
 		ViewTabContextMap: contexts.initialViewTabContextMap(),
 		ScreenMode:        screenMode,
 		// TODO: put contexts in the context manager
-		ContextManager: NewContextManager(contexts),
+		ContextManager: NewContextManager(initialContext),
 		Contexts:       contexts,
 	}
 
