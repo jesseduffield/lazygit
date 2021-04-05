@@ -61,7 +61,7 @@ Default path for the config file:
   reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
   confirmOnQuit: false
   # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
-  quitOnTopLevelReturn: true
+  quitOnTopLevelReturn: false
   disableStartupPopups: false
   notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip'
   keybinding:

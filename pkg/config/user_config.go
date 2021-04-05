@@ -325,7 +325,7 @@ func GetDefaultConfig() *UserConfig {
 		Reporting:            "undetermined",
 		SplashUpdatesIndex:   0,
 		ConfirmOnQuit:        false,
-		QuitOnTopLevelReturn: true,
+		QuitOnTopLevelReturn: false,
 		Keybinding: KeybindingConfig{
 			Universal: KeybindingUniversalConfig{
 				Quit:                         "q",
