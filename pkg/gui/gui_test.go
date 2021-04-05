@@ -3,7 +3,6 @@ package gui
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,8 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/creack/pty"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
@@ -181,10 +178,6 @@ func Test(t *testing.T) {
 		test := test
 
 		t.Run(test.Name, func(t *testing.T) {
-			if runInParallel() {
-				t.Parallel()
-			}
-
 			speeds := getTestSpeeds(test.Speed, updateSnapshots)
 
 			for i, speed := range speeds {
@@ -201,7 +194,9 @@ func Test(t *testing.T) {
 				err := createFixture(testPath, actualDir)
 				assert.NoError(t, err)
 
-				runLazygit(t, testPath, rootDir, record, speed)
+				configDir := filepath.Join(testPath, "used_config")
+
+				runLazygit(t, testPath, rootDir, configDir, record, speed)
 
 				if updateSnapshots {
 					err = oscommands.CopyDir(actualDir, expectedDir)
@@ -241,6 +236,10 @@ func Test(t *testing.T) {
 
 				// if the snapshots and we haven't tried all playback speeds different we'll retry at a slower speed
 				if i == len(speeds)-1 {
+					// get the log file and print that
+					bytes, err := ioutil.ReadFile(filepath.Join(configDir, "development.log"))
+					assert.NoError(t, err)
+					t.Log(string(bytes))
 					assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
 				}
 			}
@@ -285,7 +284,7 @@ func getRootDirectory() string {
 	}
 }
 
-func runLazygit(t *testing.T, testPath string, rootDir string, record bool, speed int) {
+func runLazygit(t *testing.T, testPath string, rootDir string, configDir string, record bool, speed int) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	replayPath := filepath.Join(testPath, "recording.json")
@@ -299,63 +298,27 @@ func runLazygit(t *testing.T, testPath string, rootDir string, record bool, spee
 		templateConfigDir = filepath.Join(testPath, "config")
 	}
 
-	configDir := filepath.Join(testPath, "used_config")
-
 	err = os.RemoveAll(configDir)
 	assert.NoError(t, err)
 	err = oscommands.CopyDir(templateConfigDir, configDir)
 	assert.NoError(t, err)
 
-	cmdStr := fmt.Sprintf("%s --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
+	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
 
-	if record {
-		cmd.Env = append(
-			cmd.Env,
-			fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath),
-		)
-	} else {
-		cmd.Stdout = os.Stdout
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Env = append(
-			cmd.Env,
-			fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
-		)
-		t.Log(spew.Sdump(cmd))
-	}
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Env = append(
+		cmd.Env,
+		fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
+		"HEADLESS=true",
+	)
 
-	t.Log("here")
-
-	// if we're on CI we'll need to use a PTY. We can work that out by seeing if the 'TERM' env is defined.
-	if runInPTY() {
-		t.Log("1")
-		cmd.Env = append(cmd.Env, "TERM=xterm")
-		t.Log(cmd.Env)
-
-		f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
-		assert.NoError(t, err)
-
-		_, _ = io.Copy(ioutil.Discard, f)
-
-		assert.NoError(t, err)
-
-		_ = f.Close()
-	} else {
-		t.Log("2")
-		err := cmd.Run()
-		assert.NoError(t, err)
-	}
-}
-
-func runInParallel() bool {
-	return os.Getenv("PARALLEL") != ""
-}
-
-func runInPTY() bool {
-	return true
+	err = cmd.Run()
+	assert.NoError(t, err)
 }
 
 func prepareIntegrationTestDir(actualDir string) {

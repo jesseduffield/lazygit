@@ -564,6 +564,14 @@ func (gui *Gui) RunAndHandleError() error {
 }
 
 func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) error {
+	if replaying() {
+		// we do not yet support running subprocesses within integration tests. So if
+		// we're replaying an integration test and we're inside this method, something
+		// has gone wrong, so we should fail
+
+		log.Fatal("opening subprocesses not yet supported in integration tests. Chances are that this test is running too fast and a subprocess is accidentally opened")
+	}
+
 	if err := gocui.Screen.Suspend(); err != nil {
 		return gui.surfaceError(err)
 	}
