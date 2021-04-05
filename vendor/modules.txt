@@ -149,7 +149,7 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20210403045716-a3be78c4ccf6
+# github.com/jesseduffield/gocui v0.3.1-0.20210405041826-439abd8b6e07
 ## explicit
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe
@@ -235,7 +235,7 @@ golang.org/x/crypto/ssh/knownhosts
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20210402192133-700132347e07
+# golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
