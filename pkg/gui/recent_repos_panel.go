@@ -28,7 +28,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 				// if we were in a submodule, we want to forget about that stack of repos
 				// so that hitting escape in the new repo does nothing
 				gui.RepoPathStack = []string{}
-				return gui.dispatchSwitchToRepo(path)
+				return gui.dispatchSwitchToRepo(path, false)
 			},
 		}
 	}
@@ -50,7 +50,7 @@ func (gui *Gui) handleShowAllBranchLogs() error {
 	})
 }
 
-func (gui *Gui) dispatchSwitchToRepo(path string) error {
+func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 	env.UnsetGitDirEnvs()
 	originalPath, err := os.Getwd()
 	if err != nil {
@@ -87,7 +87,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string) error {
 		gui.Mutexes.RefreshingFilesMutex.Lock()
 		defer gui.Mutexes.RefreshingFilesMutex.Unlock()
 
-		gui.resetState("")
+		gui.resetState("", reuse)
 
 		return nil
 	})

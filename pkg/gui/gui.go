@@ -352,16 +352,28 @@ type guiState struct {
 	ViewsSetup bool
 }
 
-func (gui *Gui) resetState(filterPath string) {
+// reuseState determines if we pull the repo state from our repo state map or
+// just re-initialize it. For now we're only re-using state when we're going
+// in and out of submodules, for the sake of having the cursor back on the submodule
+// when we return.
+//
+// I tried out always reverting to the repo's original state but found that in fact
+// it gets a bit confusing to land back in the status panel when visiting a repo
+// you've already switched from. There's no doubt some easy way to make the UX
+// optimal for all cases but I'm too lazy to think about what that is right now
+func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	currentDir, err := os.Getwd()
-	if err == nil {
-		if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
-			gui.State = state
-			gui.State.ViewsSetup = false
-			return
+
+	if reuseState {
+		if err == nil {
+			if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
+				gui.State = state
+				gui.State.ViewsSetup = false
+				return
+			}
+		} else {
+			gui.Log.Error(err)
 		}
-	} else {
-		gui.Log.Error(err)
 	}
 
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
@@ -443,7 +455,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		RepoStateMap:         map[Repo]*guiState{},
 	}
 
-	gui.resetState(filterPath)
+	gui.resetState(filterPath, false)
 
 	gui.watchFilesForChanges()
 
