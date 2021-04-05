@@ -491,8 +491,8 @@ func (gui *Gui) Run() error {
 		}
 
 		go utils.Safe(func() {
-			time.Sleep(time.Second * 20)
-			log.Fatal("20 seconds is up, lazygit recording took too long to complete")
+			time.Sleep(time.Second * 40)
+			log.Fatal("40 seconds is up, lazygit recording took too long to complete")
 		})
 	}
 
