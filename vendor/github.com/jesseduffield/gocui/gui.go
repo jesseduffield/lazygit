@@ -1202,6 +1202,9 @@ func (g *Gui) replayRecording() {
 
 	waitGroup.Add(2)
 
+	// lots of duplication here due to lack of generics. Also we don't support mouse
+	// events because it would be awkward to replicate but it would be trivial to add
+	// support
 	go func() {
 		ticker := time.NewTicker(time.Millisecond)
 		defer ticker.Stop()
