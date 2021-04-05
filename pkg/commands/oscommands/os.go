@@ -71,7 +71,10 @@ type RunCommandOptions struct {
 func (c *OSCommand) RunCommandWithOutputWithOptions(command string, options RunCommandOptions) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
 	cmd := c.ExecutableFromString(command)
+
+	cmd.Env = append(cmd.Env, "GIT_TERMINAL_PROMPT=0") // prevents git from prompting us for input which would freeze the program
 	cmd.Env = append(cmd.Env, options.EnvVars...)
+
 	return sanitisedCommandOutput(cmd.CombinedOutput())
 }
 
