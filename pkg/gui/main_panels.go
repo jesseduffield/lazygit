@@ -111,8 +111,6 @@ func (t *runFunctionTask) GetKind() TaskKind {
 // }
 
 func (gui *Gui) runTaskForView(view *gocui.View, task updateTask) error {
-	gui.Log.Warn("running new task for view")
-
 	switch task.GetKind() {
 	case RENDER_STRING:
 		specificTask := task.(*renderStringTask)
