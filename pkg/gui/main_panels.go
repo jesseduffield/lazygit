@@ -171,11 +171,6 @@ func (gui *Gui) refreshMainViews(opts refreshMainOpts) error {
 
 func (gui *Gui) splitMainPanel(splitMainPanel bool) {
 	gui.State.SplitMainPanel = splitMainPanel
-
-	// no need to set view on bottom when splitMainPanel is false: it will have zero size anyway thanks to our view arrangement code.
-	if splitMainPanel {
-		gui.Views.Secondary.Visible = true
-	}
 }
 
 func (gui *Gui) isMainPanelSplit() bool {
