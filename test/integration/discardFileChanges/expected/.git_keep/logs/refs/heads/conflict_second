@@ -1,3 +1,4 @@
-0000000000000000000000000000000000000000 0e5c9fd43732ca064946e9c582fd6f159774db84 CI <CI@example.com> 1616203051 +1100	branch: Created from conflict
-0e5c9fd43732ca064946e9c582fd6f159774db84 698e214196fed018bb4164380745dd2df3bbac74 CI <CI@example.com> 1616203051 +1100	commit: both-deleted.txt renamed in changed-them-added-us.txt
-698e214196fed018bb4164380745dd2df3bbac74 c64dd6aea3efd197ed630dedc1ffb538d35c3fdb CI <CI@example.com> 1616203052 +1100	commit: three
+0000000000000000000000000000000000000000 459fa5065afddb89a3dccddef39b17b5fd74d041 CI <CI@example.com> 1617582376 +1000	branch: Created from conflict
+459fa5065afddb89a3dccddef39b17b5fd74d041 3247afc767cff1c98fe5277005f6653547b20fa4 CI <CI@example.com> 1617582377 +1000	commit: both-deleted.txt renamed in changed-them-added-us.txt
+3247afc767cff1c98fe5277005f6653547b20fa4 3633f8c997d88e0c59202f498c8344da9da3aaf4 CI <CI@example.com> 1617582377 +1000	commit: three
+3633f8c997d88e0c59202f498c8344da9da3aaf4 39d62c8a07e5103fef16c32373738ce92c4549b7 CI <CI@example.com> 1617582397 +1000	commit (merge): Merge branch 'conflict' into conflict_second
