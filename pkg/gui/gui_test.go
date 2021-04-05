@@ -3,6 +3,7 @@ package gui
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
@@ -315,8 +317,14 @@ func runLazygit(t *testing.T, testPath string, rootDir string, configDir string,
 		"TERM=xterm",
 	)
 
-	err = cmd.Run()
+	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
 	assert.NoError(t, err)
+
+	_, _ = io.Copy(ioutil.Discard, f)
+
+	assert.NoError(t, err)
+
+	_ = f.Close()
 }
 
 func prepareIntegrationTestDir(actualDir string) {
