@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/go-errors/errors"
 
@@ -196,4 +197,41 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 
 func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
 	return osCommand.RunCommand("git rev-parse --git-dir")
+}
+
+func (c *GitCommand) RunCommand(formatString string, formatArgs ...interface{}) error {
+	_, err := c.RunCommandWithOutput(formatString, formatArgs...)
+	return err
+}
+
+func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error) {
+	// TODO: have this retry logic in other places we run the command
+	waitTime := 50 * time.Millisecond
+	retryCount := 5
+	attempt := 0
+
+	for {
+		output, err := c.OSCommand.RunCommandWithOutput(formatString, formatArgs...)
+		if err != nil {
+			// if we have an error based on the index lock, we should wait a bit and then retry
+			if strings.Contains(output, ".git/index.lock") {
+				c.Log.Error(output)
+				c.Log.Info("index.lock prevented command from running. Retrying command after a small wait")
+				attempt++
+				time.Sleep(waitTime)
+				if attempt < retryCount {
+					continue
+				} else if attempt == retryCount {
+					// delete the lock file because some other process must have died leaving it there
+					// TODO: ensure this is the actual location of the lock
+					c.Log.Warn("WARNING: removing index.lock file after retrying command 5 times")
+					if err := os.Remove(".git/index.lock"); err != nil {
+						return "", err
+					}
+					continue
+				}
+			}
+		}
+		return output, err
+	}
 }

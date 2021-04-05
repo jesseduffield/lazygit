@@ -43,7 +43,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 	}
 
 	// get config
-	gitFlowConfig, err := gui.OSCommand.RunCommandWithOutput("git config --local --get-regexp gitflow")
+	gitFlowConfig, err := gui.GitCommand.RunCommandWithOutput("git config --local --get-regexp gitflow")
 	if err != nil {
 		return gui.createErrorPanel("You need to install git-flow and enable it in this repo to use git-flow features")
 	}

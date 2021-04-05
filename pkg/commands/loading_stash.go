@@ -25,7 +25,7 @@ func (c *GitCommand) GetStashEntries(filterPath string) []*models.StashEntry {
 		return c.getUnfilteredStashEntries()
 	}
 
-	rawString, err := c.OSCommand.RunCommandWithOutput("git stash list --name-only")
+	rawString, err := c.RunCommandWithOutput("git stash list --name-only")
 	if err != nil {
 		return c.getUnfilteredStashEntries()
 	}
