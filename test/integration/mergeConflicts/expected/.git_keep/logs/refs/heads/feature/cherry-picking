@@ -1,9 +1,9 @@
-0000000000000000000000000000000000000000 495a8676a677db2fcd6963abc94685ab87f0f1e2 CI <CI@example.com> 1617312234 +1100	branch: Created from HEAD
-495a8676a677db2fcd6963abc94685ab87f0f1e2 78d8f05867a79068cf661a3654e1e221f6fdc5d8 CI <CI@example.com> 1617312234 +1100	commit: first commit freshman year
-78d8f05867a79068cf661a3654e1e221f6fdc5d8 9fe32ee7a110dbab694c978f1b03fa45f7cd7db6 CI <CI@example.com> 1617312234 +1100	commit: second commit subway eat fresh
-9fe32ee7a110dbab694c978f1b03fa45f7cd7db6 9119187695a5b19287b68b0732f9142eee7dc221 CI <CI@example.com> 1617312234 +1100	commit: third commit fresh
-9119187695a5b19287b68b0732f9142eee7dc221 fd64b741be226a9fe125acf45a438c089a845fea CI <CI@example.com> 1617312234 +1100	commit: fourth commit cool
-fd64b741be226a9fe125acf45a438c089a845fea 47de5d2b09400df9f5252bfb02ecb0cf2702fd3e CI <CI@example.com> 1617312234 +1100	commit: fifth commit nice
-47de5d2b09400df9f5252bfb02ecb0cf2702fd3e 34325b634a636cb6f7fcff24cd010405e459cf90 CI <CI@example.com> 1617312234 +1100	commit: sixth commit haha
-34325b634a636cb6f7fcff24cd010405e459cf90 bcad87f16cdd4fd10adbf9a1976671bad9b0c8aa CI <CI@example.com> 1617312234 +1100	commit: seventh commit yeah
-bcad87f16cdd4fd10adbf9a1976671bad9b0c8aa 7e28009fced47639d5a8b45ec229bcfcc265066a CI <CI@example.com> 1617312234 +1100	commit: eighth commit woo
+0000000000000000000000000000000000000000 c5507059e2aa65bc2dad65bd38b879079b69c48c CI <CI@example.com> 1617586185 +1000	branch: Created from HEAD
+c5507059e2aa65bc2dad65bd38b879079b69c48c 54757435deaedf649b36b12188bc8a5e3ea6a833 CI <CI@example.com> 1617586185 +1000	commit: first commit freshman year
+54757435deaedf649b36b12188bc8a5e3ea6a833 5e3a33cb09434849f7bbabaaad8386c9f0508eec CI <CI@example.com> 1617586185 +1000	commit: second commit subway eat fresh
+5e3a33cb09434849f7bbabaaad8386c9f0508eec a42af37388a9ad2eac85f71828cfc63262c90900 CI <CI@example.com> 1617586185 +1000	commit: third commit fresh
+a42af37388a9ad2eac85f71828cfc63262c90900 174226770a9dfeb661c9818c920568703c27c480 CI <CI@example.com> 1617586185 +1000	commit: fourth commit cool
+174226770a9dfeb661c9818c920568703c27c480 eeb8990921f62a1ec3fc0be960c8068a24503ca8 CI <CI@example.com> 1617586185 +1000	commit: fifth commit nice
+eeb8990921f62a1ec3fc0be960c8068a24503ca8 00dc25bdd47993a880597e0680039d04a4d3328d CI <CI@example.com> 1617586185 +1000	commit: sixth commit haha
+00dc25bdd47993a880597e0680039d04a4d3328d fbd2d93aec237d4e44e44f3647067972c3fa69f5 CI <CI@example.com> 1617586185 +1000	commit: seventh commit yeah
+fbd2d93aec237d4e44e44f3647067972c3fa69f5 f05cdc6bb7f98285583770bec5a8d307a7805bd6 CI <CI@example.com> 1617586185 +1000	commit: eighth commit woo
