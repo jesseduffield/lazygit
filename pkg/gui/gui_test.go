@@ -308,14 +308,11 @@ func runLazygit(t *testing.T, testPath string, rootDir string, configDir string,
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("REPLAY_SPEED=%d", speed))
 
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
 	cmd.Env = append(
 		cmd.Env,
 		fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
 		"HEADLESS=true",
-		"term=xterm",
+		"TERM=xterm",
 	)
 
 	err = cmd.Run()
