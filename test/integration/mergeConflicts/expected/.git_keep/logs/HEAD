@@ -1,35 +1,34 @@
-0000000000000000000000000000000000000000 495a8676a677db2fcd6963abc94685ab87f0f1e2 CI <CI@example.com> 1617312234 +1100	commit (initial): first commit
-495a8676a677db2fcd6963abc94685ab87f0f1e2 495a8676a677db2fcd6963abc94685ab87f0f1e2 CI <CI@example.com> 1617312234 +1100	checkout: moving from master to feature/cherry-picking
-495a8676a677db2fcd6963abc94685ab87f0f1e2 78d8f05867a79068cf661a3654e1e221f6fdc5d8 CI <CI@example.com> 1617312234 +1100	commit: first commit freshman year
-78d8f05867a79068cf661a3654e1e221f6fdc5d8 9fe32ee7a110dbab694c978f1b03fa45f7cd7db6 CI <CI@example.com> 1617312234 +1100	commit: second commit subway eat fresh
-9fe32ee7a110dbab694c978f1b03fa45f7cd7db6 9119187695a5b19287b68b0732f9142eee7dc221 CI <CI@example.com> 1617312234 +1100	commit: third commit fresh
-9119187695a5b19287b68b0732f9142eee7dc221 fd64b741be226a9fe125acf45a438c089a845fea CI <CI@example.com> 1617312234 +1100	commit: fourth commit cool
-fd64b741be226a9fe125acf45a438c089a845fea 47de5d2b09400df9f5252bfb02ecb0cf2702fd3e CI <CI@example.com> 1617312234 +1100	commit: fifth commit nice
-47de5d2b09400df9f5252bfb02ecb0cf2702fd3e 34325b634a636cb6f7fcff24cd010405e459cf90 CI <CI@example.com> 1617312234 +1100	commit: sixth commit haha
-34325b634a636cb6f7fcff24cd010405e459cf90 bcad87f16cdd4fd10adbf9a1976671bad9b0c8aa CI <CI@example.com> 1617312234 +1100	commit: seventh commit yeah
-bcad87f16cdd4fd10adbf9a1976671bad9b0c8aa 7e28009fced47639d5a8b45ec229bcfcc265066a CI <CI@example.com> 1617312234 +1100	commit: eighth commit woo
-7e28009fced47639d5a8b45ec229bcfcc265066a 7e28009fced47639d5a8b45ec229bcfcc265066a CI <CI@example.com> 1617312234 +1100	checkout: moving from feature/cherry-picking to develop
-7e28009fced47639d5a8b45ec229bcfcc265066a ce0674441b6de3c180f4cf1ff1cdf61cf8d7aa98 CI <CI@example.com> 1617312234 +1100	commit: first commit on develop
-ce0674441b6de3c180f4cf1ff1cdf61cf8d7aa98 495a8676a677db2fcd6963abc94685ab87f0f1e2 CI <CI@example.com> 1617312235 +1100	checkout: moving from develop to master
-495a8676a677db2fcd6963abc94685ab87f0f1e2 4c6b27ac04033b33a0f84869ec015b6361f28f31 CI <CI@example.com> 1617312235 +1100	commit: first commit on master
-4c6b27ac04033b33a0f84869ec015b6361f28f31 ce0674441b6de3c180f4cf1ff1cdf61cf8d7aa98 CI <CI@example.com> 1617312235 +1100	checkout: moving from master to develop
-ce0674441b6de3c180f4cf1ff1cdf61cf8d7aa98 c21e6aeba03d5176c28b213be71d3a02e4966c87 CI <CI@example.com> 1617312235 +1100	commit: second commit on develop
-c21e6aeba03d5176c28b213be71d3a02e4966c87 4c6b27ac04033b33a0f84869ec015b6361f28f31 CI <CI@example.com> 1617312235 +1100	checkout: moving from develop to master
-4c6b27ac04033b33a0f84869ec015b6361f28f31 9a415e7414f26bbb93a9369576b6135e29bc7391 CI <CI@example.com> 1617312235 +1100	commit: second commit on master
-9a415e7414f26bbb93a9369576b6135e29bc7391 c21e6aeba03d5176c28b213be71d3a02e4966c87 CI <CI@example.com> 1617312235 +1100	checkout: moving from master to develop
-c21e6aeba03d5176c28b213be71d3a02e4966c87 2d1c52f1a9818ac62a981dbf9f7a95bd5aa0bf2e CI <CI@example.com> 1617312235 +1100	commit: third commit on develop
-2d1c52f1a9818ac62a981dbf9f7a95bd5aa0bf2e 9a415e7414f26bbb93a9369576b6135e29bc7391 CI <CI@example.com> 1617312235 +1100	checkout: moving from develop to master
-9a415e7414f26bbb93a9369576b6135e29bc7391 43e480c08cf3864f85bef1d5698b91786926cb58 CI <CI@example.com> 1617312235 +1100	commit: third commit on master
-43e480c08cf3864f85bef1d5698b91786926cb58 2d1c52f1a9818ac62a981dbf9f7a95bd5aa0bf2e CI <CI@example.com> 1617312235 +1100	checkout: moving from master to develop
-2d1c52f1a9818ac62a981dbf9f7a95bd5aa0bf2e 51c0794d2dfd4eb71cc06f5e894edd3931411057 CI <CI@example.com> 1617312235 +1100	commit: fourth commit on develop
-51c0794d2dfd4eb71cc06f5e894edd3931411057 43e480c08cf3864f85bef1d5698b91786926cb58 CI <CI@example.com> 1617312235 +1100	checkout: moving from develop to master
-43e480c08cf3864f85bef1d5698b91786926cb58 258864d877e7897048a0894cad34fad2a5a4c709 CI <CI@example.com> 1617312235 +1100	commit: fourth commit on master
-258864d877e7897048a0894cad34fad2a5a4c709 258864d877e7897048a0894cad34fad2a5a4c709 CI <CI@example.com> 1617312235 +1100	checkout: moving from master to base_branch
-258864d877e7897048a0894cad34fad2a5a4c709 5d7d612ecff0165ff92363cdf90acda30170038e CI <CI@example.com> 1617312235 +1100	commit: file
-5d7d612ecff0165ff92363cdf90acda30170038e 5d7d612ecff0165ff92363cdf90acda30170038e CI <CI@example.com> 1617312235 +1100	checkout: moving from base_branch to other_branch
-5d7d612ecff0165ff92363cdf90acda30170038e 5d7d612ecff0165ff92363cdf90acda30170038e CI <CI@example.com> 1617312235 +1100	checkout: moving from other_branch to base_branch
-5d7d612ecff0165ff92363cdf90acda30170038e c28b32178002cb0046454f34e77f3d86391e748d CI <CI@example.com> 1617312235 +1100	commit: file changed
-c28b32178002cb0046454f34e77f3d86391e748d 5d7d612ecff0165ff92363cdf90acda30170038e CI <CI@example.com> 1617312235 +1100	checkout: moving from base_branch to other_branch
-5d7d612ecff0165ff92363cdf90acda30170038e e00ef3be7687b4a13bf23199fe9c01767e9b98bc CI <CI@example.com> 1617312236 +1100	commit: asd
-e00ef3be7687b4a13bf23199fe9c01767e9b98bc 669e34b018f5e04940e15bd9d62465c716932039 CI <CI@example.com> 1617312262 +1100	commit (merge): Merge branch 'develop' into other_branch
-669e34b018f5e04940e15bd9d62465c716932039 4ea473079cfdf1776e0d7dc114501860b8ab40c4 CI <CI@example.com> 1617312266 +1100	commit: asd
+0000000000000000000000000000000000000000 c5507059e2aa65bc2dad65bd38b879079b69c48c CI <CI@example.com> 1617586185 +1000	commit (initial): first commit
+c5507059e2aa65bc2dad65bd38b879079b69c48c c5507059e2aa65bc2dad65bd38b879079b69c48c CI <CI@example.com> 1617586185 +1000	checkout: moving from master to feature/cherry-picking
+c5507059e2aa65bc2dad65bd38b879079b69c48c 54757435deaedf649b36b12188bc8a5e3ea6a833 CI <CI@example.com> 1617586185 +1000	commit: first commit freshman year
+54757435deaedf649b36b12188bc8a5e3ea6a833 5e3a33cb09434849f7bbabaaad8386c9f0508eec CI <CI@example.com> 1617586185 +1000	commit: second commit subway eat fresh
+5e3a33cb09434849f7bbabaaad8386c9f0508eec a42af37388a9ad2eac85f71828cfc63262c90900 CI <CI@example.com> 1617586185 +1000	commit: third commit fresh
+a42af37388a9ad2eac85f71828cfc63262c90900 174226770a9dfeb661c9818c920568703c27c480 CI <CI@example.com> 1617586185 +1000	commit: fourth commit cool
+174226770a9dfeb661c9818c920568703c27c480 eeb8990921f62a1ec3fc0be960c8068a24503ca8 CI <CI@example.com> 1617586185 +1000	commit: fifth commit nice
+eeb8990921f62a1ec3fc0be960c8068a24503ca8 00dc25bdd47993a880597e0680039d04a4d3328d CI <CI@example.com> 1617586185 +1000	commit: sixth commit haha
+00dc25bdd47993a880597e0680039d04a4d3328d fbd2d93aec237d4e44e44f3647067972c3fa69f5 CI <CI@example.com> 1617586185 +1000	commit: seventh commit yeah
+fbd2d93aec237d4e44e44f3647067972c3fa69f5 f05cdc6bb7f98285583770bec5a8d307a7805bd6 CI <CI@example.com> 1617586185 +1000	commit: eighth commit woo
+f05cdc6bb7f98285583770bec5a8d307a7805bd6 f05cdc6bb7f98285583770bec5a8d307a7805bd6 CI <CI@example.com> 1617586185 +1000	checkout: moving from feature/cherry-picking to develop
+f05cdc6bb7f98285583770bec5a8d307a7805bd6 417a3f75c440e565dab9b5afa78747ef37446348 CI <CI@example.com> 1617586185 +1000	commit: first commit on develop
+417a3f75c440e565dab9b5afa78747ef37446348 c5507059e2aa65bc2dad65bd38b879079b69c48c CI <CI@example.com> 1617586185 +1000	checkout: moving from develop to master
+c5507059e2aa65bc2dad65bd38b879079b69c48c a2a2ee2fe3ad96c470a921fe71c1216d93188c9b CI <CI@example.com> 1617586186 +1000	commit: first commit on master
+a2a2ee2fe3ad96c470a921fe71c1216d93188c9b 417a3f75c440e565dab9b5afa78747ef37446348 CI <CI@example.com> 1617586186 +1000	checkout: moving from master to develop
+417a3f75c440e565dab9b5afa78747ef37446348 4e71d4ff127ae9e3d482239e16dc1d78e56feec0 CI <CI@example.com> 1617586186 +1000	commit: second commit on develop
+4e71d4ff127ae9e3d482239e16dc1d78e56feec0 a2a2ee2fe3ad96c470a921fe71c1216d93188c9b CI <CI@example.com> 1617586186 +1000	checkout: moving from develop to master
+a2a2ee2fe3ad96c470a921fe71c1216d93188c9b a69f126bd3e0b9dc222cd35c8d9d7dba3d62cf2d CI <CI@example.com> 1617586186 +1000	commit: second commit on master
+a69f126bd3e0b9dc222cd35c8d9d7dba3d62cf2d 4e71d4ff127ae9e3d482239e16dc1d78e56feec0 CI <CI@example.com> 1617586186 +1000	checkout: moving from master to develop
+4e71d4ff127ae9e3d482239e16dc1d78e56feec0 fe1f8f70f67822120b40d9d704011aec6e17c3a7 CI <CI@example.com> 1617586186 +1000	commit: third commit on develop
+fe1f8f70f67822120b40d9d704011aec6e17c3a7 a69f126bd3e0b9dc222cd35c8d9d7dba3d62cf2d CI <CI@example.com> 1617586186 +1000	checkout: moving from develop to master
+a69f126bd3e0b9dc222cd35c8d9d7dba3d62cf2d f2a15f45b921460e675a8849db39de008b2c03cb CI <CI@example.com> 1617586186 +1000	commit: third commit on master
+f2a15f45b921460e675a8849db39de008b2c03cb fe1f8f70f67822120b40d9d704011aec6e17c3a7 CI <CI@example.com> 1617586186 +1000	checkout: moving from master to develop
+fe1f8f70f67822120b40d9d704011aec6e17c3a7 91e16cacdb23b0b5515c6109ea301b0cb6367010 CI <CI@example.com> 1617586186 +1000	commit: fourth commit on develop
+91e16cacdb23b0b5515c6109ea301b0cb6367010 f2a15f45b921460e675a8849db39de008b2c03cb CI <CI@example.com> 1617586186 +1000	checkout: moving from develop to master
+f2a15f45b921460e675a8849db39de008b2c03cb 1b3e191104f74b8e4054e22e9ab3b9dcfe299743 CI <CI@example.com> 1617586186 +1000	commit: fourth commit on master
+1b3e191104f74b8e4054e22e9ab3b9dcfe299743 1b3e191104f74b8e4054e22e9ab3b9dcfe299743 CI <CI@example.com> 1617586186 +1000	checkout: moving from master to base_branch
+1b3e191104f74b8e4054e22e9ab3b9dcfe299743 8e13f545446048648331cbe93de64b1cf22df166 CI <CI@example.com> 1617586186 +1000	commit: file
+8e13f545446048648331cbe93de64b1cf22df166 8e13f545446048648331cbe93de64b1cf22df166 CI <CI@example.com> 1617586186 +1000	checkout: moving from base_branch to other_branch
+8e13f545446048648331cbe93de64b1cf22df166 8e13f545446048648331cbe93de64b1cf22df166 CI <CI@example.com> 1617586186 +1000	checkout: moving from other_branch to base_branch
+8e13f545446048648331cbe93de64b1cf22df166 0539c9baf43fb1939d8f56695ceb08a86e8e1fae CI <CI@example.com> 1617586186 +1000	commit: file changed
+0539c9baf43fb1939d8f56695ceb08a86e8e1fae 8e13f545446048648331cbe93de64b1cf22df166 CI <CI@example.com> 1617586186 +1000	checkout: moving from base_branch to other_branch
+8e13f545446048648331cbe93de64b1cf22df166 1dd0692a163379d160e23ac52509d909b41b0a35 CI <CI@example.com> 1617586188 +1000	commit: asd
+1dd0692a163379d160e23ac52509d909b41b0a35 32129537d40d9fb35cf3dd6fba7985870142324b CI <CI@example.com> 1617586205 +1000	commit (merge): Merge branch 'develop' into other_branch
