@@ -347,15 +347,20 @@ func (g *Gui) View(name string) (*View, error) {
 	return nil, errors.Wrap(ErrUnknownView, 0)
 }
 
-// ViewByPosition returns a pointer to a view matching the given position, or
+// VisibleViewByPosition returns a pointer to a view matching the given position, or
 // error ErrUnknownView if a view in that position does not exist.
-func (g *Gui) ViewByPosition(x, y int) (*View, error) {
+func (g *Gui) VisibleViewByPosition(x, y int) (*View, error) {
 	g.Mutexes.ViewsMutex.Lock()
 	defer g.Mutexes.ViewsMutex.Unlock()
 
 	// traverse views in reverse order checking top views first
 	for i := len(g.views); i > 0; i-- {
 		v := g.views[i-1]
+
+		if !v.Visible {
+			continue
+		}
+
 		frameOffset := 0
 		if v.Frame {
 			frameOffset = 1
@@ -1042,7 +1047,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 
 	case eventMouse:
 		mx, my := ev.MouseX, ev.MouseY
-		v, err := g.ViewByPosition(mx, my)
+		v, err := g.VisibleViewByPosition(mx, my)
 		if err != nil {
 			break
 		}
