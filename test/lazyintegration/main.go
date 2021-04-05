@@ -13,6 +13,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
+// this program lets you manage integration tests in a TUI.
+
 type App struct {
 	tests   []*integration.Test
 	itemIdx int
@@ -98,7 +100,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("RECORD_EVENTS=true go run integration/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("RECORD_EVENTS=true go run test/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -112,7 +114,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("go run integration/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("go run test/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -126,7 +128,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("UPDATE_SNAPSHOTS=true go run integration/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("UPDATE_SNAPSHOTS=true go run test/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil

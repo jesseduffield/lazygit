@@ -20,7 +20,108 @@ type Test struct {
 	Description string  `json:"description"`
 }
 
-func PrepareIntegrationTestDir(actualDir string) {
+// this function is used by both `go test` and from our lazyintegration gui, but
+// errors need to be handled differently in each (for example go test is always
+// working with *testing.T) so we pass in any differences as args here.
+func RunTests(
+	logf func(format string, formatArgs ...interface{}),
+	runCmd func(cmd *exec.Cmd) error,
+	fnWrapper func(test *Test, f func() error),
+	updateSnapshots bool,
+	record bool,
+	speedEnv string,
+	onFail func(expected string, actual string),
+) error {
+	rootDir := GetRootDirectory()
+	err := os.Chdir(rootDir)
+	if err != nil {
+		return err
+	}
+
+	testDir := filepath.Join(rootDir, "test", "integration")
+
+	osCommand := oscommands.NewDummyOSCommand()
+	err = osCommand.RunCommand("go build -o %s", tempLazygitPath())
+	if err != nil {
+		return err
+	}
+
+	tests, err := LoadTests(testDir)
+	if err != nil {
+		return err
+	}
+
+	for _, test := range tests {
+		test := test
+
+		fnWrapper(test, func() error {
+			speeds := getTestSpeeds(test.Speed, updateSnapshots, speedEnv)
+			testPath := filepath.Join(testDir, test.Name)
+			actualDir := filepath.Join(testPath, "actual")
+			expectedDir := filepath.Join(testPath, "expected")
+			logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
+
+			// three retries at normal speed for the sake of flakey tests
+			speeds = append(speeds, 1, 1, 1)
+			for i, speed := range speeds {
+				logf("%s: attempting test at speed %f\n", test.Name, speed)
+
+				findOrCreateDir(testPath)
+				prepareIntegrationTestDir(actualDir)
+				err := createFixture(testPath, actualDir)
+				if err != nil {
+					return err
+				}
+
+				configDir := filepath.Join(testPath, "used_config")
+
+				cmd, err := getLazygitCommand(testPath, rootDir, record, speed)
+				if err != nil {
+					return err
+				}
+
+				err = runCmd(cmd)
+				if err != nil {
+					return err
+				}
+
+				if updateSnapshots {
+					err = oscommands.CopyDir(actualDir, expectedDir)
+					if err != nil {
+						return err
+					}
+				}
+
+				actual, expected, err := generateSnapshots(actualDir, expectedDir)
+				if err != nil {
+					return err
+				}
+
+				if expected == actual {
+					logf("%s: success at speed %f\n", test.Name, speed)
+					break
+				}
+
+				// if the snapshots and we haven't tried all playback speeds different we'll retry at a slower speed
+				if i == len(speeds)-1 {
+					// get the log file and print that
+					bytes, err := ioutil.ReadFile(filepath.Join(configDir, "development.log"))
+					if err != nil {
+						return err
+					}
+					logf("%s", string(bytes))
+					onFail(expected, actual)
+				}
+			}
+
+			return nil
+		})
+	}
+
+	return nil
+}
+
+func prepareIntegrationTestDir(actualDir string) {
 	// remove contents of integration test directory
 	dir, err := ioutil.ReadDir(actualDir)
 	if err != nil {
@@ -63,7 +164,7 @@ func GetRootDirectory() string {
 	}
 }
 
-func CreateFixture(testPath, actualDir string) error {
+func createFixture(testPath, actualDir string) error {
 	osCommand := oscommands.NewDummyOSCommand()
 	bashScriptPath := filepath.Join(testPath, "setup.sh")
 	cmd := secureexec.Command("bash", bashScriptPath, actualDir)
@@ -75,11 +176,11 @@ func CreateFixture(testPath, actualDir string) error {
 	return nil
 }
 
-func TempLazygitPath() string {
+func tempLazygitPath() string {
 	return filepath.Join("/tmp", "lazygit", "test_lazygit")
 }
 
-func GetTestSpeeds(testStartSpeed float64, updateSnapshots bool, speedStr string) []float64 {
+func getTestSpeeds(testStartSpeed float64, updateSnapshots bool, speedStr string) []float64 {
 	if updateSnapshots {
 		// have to go at original speed if updating snapshots in case we go to fast and create a junk snapshot
 		return []float64{1.0}
@@ -136,7 +237,7 @@ func LoadTests(testDir string) ([]*Test, error) {
 	return tests, nil
 }
 
-func FindOrCreateDir(path string) {
+func findOrCreateDir(path string) {
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -150,7 +251,7 @@ func FindOrCreateDir(path string) {
 	}
 }
 
-func GenerateSnapshot(dir string) (string, error) {
+func generateSnapshot(dir string) (string, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	_, err := os.Stat(filepath.Join(dir, ".git"))
@@ -204,8 +305,8 @@ func GenerateSnapshot(dir string) (string, error) {
 	return snapshot, nil
 }
 
-func GenerateSnapshots(actualDir string, expectedDir string) (string, string, error) {
-	actual, err := GenerateSnapshot(actualDir)
+func generateSnapshots(actualDir string, expectedDir string) (string, string, error) {
+	actual, err := generateSnapshot(actualDir)
 	if err != nil {
 		return "", "", err
 	}
@@ -229,7 +330,7 @@ func GenerateSnapshots(actualDir string, expectedDir string) (string, string, er
 		filepath.Join(expectedDir, ".git"),
 	)
 
-	expected, err := GenerateSnapshot(expectedDir)
+	expected, err := generateSnapshot(expectedDir)
 	if err != nil {
 		return "", "", err
 	}
@@ -237,7 +338,7 @@ func GenerateSnapshots(actualDir string, expectedDir string) (string, string, er
 	return actual, expected, nil
 }
 
-func GetLazygitCommand(testPath string, rootDir string, record bool, speed float64) (*exec.Cmd, error) {
+func getLazygitCommand(testPath string, rootDir string, record bool, speed float64) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	replayPath := filepath.Join(testPath, "recording.json")
@@ -264,7 +365,7 @@ func GetLazygitCommand(testPath string, rootDir string, record bool, speed float
 		return nil, err
 	}
 
-	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s", TempLazygitPath(), configDir, actualDir)
+	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s", tempLazygitPath(), configDir, actualDir)
 
 	cmd := osCommand.ExecutableFromString(cmdStr)
 	cmd.Env = append(cmd.Env, fmt.Sprintf("SPEED=%f", speed))

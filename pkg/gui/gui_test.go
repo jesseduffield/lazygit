@@ -5,11 +5,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
+	"os/exec"
 	"testing"
 
 	"github.com/creack/pty"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,85 +36,43 @@ import (
 // original playback speed. Speed may be a decimal.
 
 func Test(t *testing.T) {
-	rootDir := integration.GetRootDirectory()
-	err := os.Chdir(rootDir)
-	assert.NoError(t, err)
-
-	testDir := filepath.Join(rootDir, "test", "integration")
-
-	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.RunCommand("go build -o %s", integration.TempLazygitPath())
-	assert.NoError(t, err)
-
-	tests, err := integration.LoadTests(testDir)
-	assert.NoError(t, err)
-
 	record := false
-	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
+	updateSnapshots := os.Getenv("UPDATE_SNAPSHOTS") != ""
+	speedEnv := os.Getenv("SPEED")
 
-	for _, test := range tests {
-		test := test
-
-		t.Run(test.Name, func(t *testing.T) {
-			speedEnv := os.Getenv("SPEED")
-			speeds := integration.GetTestSpeeds(test.Speed, updateSnapshots, speedEnv)
-			testPath := filepath.Join(testDir, test.Name)
-			actualDir := filepath.Join(testPath, "actual")
-			expectedDir := filepath.Join(testPath, "expected")
-			t.Logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
-
-			// three retries at normal speed for the sake of flakey tests
-			speeds = append(speeds, 1, 1, 1)
-			for i, speed := range speeds {
-				t.Logf("%s: attempting test at speed %f\n", test.Name, speed)
-
-				integration.FindOrCreateDir(testPath)
-				integration.PrepareIntegrationTestDir(actualDir)
-				err := integration.CreateFixture(testPath, actualDir)
+	err := integration.RunTests(
+		t.Logf,
+		runCmdHeadless,
+		func(test *integration.Test, f func() error) {
+			t.Run(test.Name, func(t *testing.T) {
+				err := f()
 				assert.NoError(t, err)
+			})
+		},
+		updateSnapshots,
+		record,
+		speedEnv,
+		func(expected string, actual string) {
+			assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
+		},
+	)
 
-				configDir := filepath.Join(testPath, "used_config")
+	assert.NoError(t, err)
+}
 
-				cmd, err := integration.GetLazygitCommand(testPath, rootDir, record, speed)
-				assert.NoError(t, err)
+func runCmdHeadless(cmd *exec.Cmd) error {
+	cmd.Env = append(
+		cmd.Env,
+		"HEADLESS=true",
+		"TERM=xterm",
+	)
 
-				cmd.Env = append(
-					cmd.Env,
-					"HEADLESS=true",
-					"TERM=xterm",
-				)
-
-				f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
-				assert.NoError(t, err)
-
-				_, _ = io.Copy(ioutil.Discard, f)
-
-				assert.NoError(t, err)
-
-				_ = f.Close()
-
-				if updateSnapshots {
-					err = oscommands.CopyDir(actualDir, expectedDir)
-					assert.NoError(t, err)
-				}
-
-				actual, expected, err := integration.GenerateSnapshots(actualDir, expectedDir)
-				assert.NoError(t, err)
-
-				if expected == actual {
-					t.Logf("%s: success at speed %f\n", test.Name, speed)
-					break
-				}
-
-				// if the snapshots and we haven't tried all playback speeds different we'll retry at a slower speed
-				if i == len(speeds)-1 {
-					// get the log file and print that
-					bytes, err := ioutil.ReadFile(filepath.Join(configDir, "development.log"))
-					assert.NoError(t, err)
-					t.Log(string(bytes))
-					assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
-				}
-			}
-		})
+	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
+	if err != nil {
+		return err
 	}
+
+	_, _ = io.Copy(ioutil.Discard, f)
+
+	return f.Close()
 }
