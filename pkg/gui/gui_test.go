@@ -315,6 +315,7 @@ func runLazygit(t *testing.T, testPath string, rootDir string, configDir string,
 		cmd.Env,
 		fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
 		"HEADLESS=true",
+		"term=xterm",
 	)
 
 	err = cmd.Run()
