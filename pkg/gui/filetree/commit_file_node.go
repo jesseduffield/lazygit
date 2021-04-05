@@ -111,7 +111,13 @@ func (node *CommitFileNode) GetNodeAtIndex(index int, collapsedPaths map[string]
 		return nil
 	}
 
-	return getNodeAtIndex(node, index, collapsedPaths).(*CommitFileNode)
+	result := getNodeAtIndex(node, index, collapsedPaths)
+	if result == nil {
+		// not sure how this can be nil: we probably are missing a mutex somewhere
+		return nil
+	}
+
+	return result.(*CommitFileNode)
 }
 
 func (node *CommitFileNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {

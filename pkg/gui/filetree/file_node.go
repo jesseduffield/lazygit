@@ -97,7 +97,13 @@ func (node *FileNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) 
 		return nil
 	}
 
-	return getNodeAtIndex(node, index, collapsedPaths).(*FileNode)
+	result := getNodeAtIndex(node, index, collapsedPaths)
+	if result == nil {
+		// not sure how this can be nil: we probably are missing a mutex somewhere
+		return nil
+	}
+
+	return result.(*FileNode)
 }
 
 func (node *FileNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
