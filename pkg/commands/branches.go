@@ -11,19 +11,19 @@ import (
 
 // NewBranch create new branch
 func (c *GitCommand) NewBranch(name string, base string) error {
-	return c.OSCommand.RunCommand("git checkout -b %s %s", name, base)
+	return c.RunCommand("git checkout -b %s %s", name, base)
 }
 
 // CurrentBranchName get the current branch name and displayname.
 // the first returned string is the name and the second is the displayname
 // e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
 func (c *GitCommand) CurrentBranchName() (string, string, error) {
-	branchName, err := c.OSCommand.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	branchName, err := c.RunCommandWithOutput("git symbolic-ref --short HEAD")
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-	output, err := c.OSCommand.RunCommandWithOutput("git branch --contains")
+	output, err := c.RunCommandWithOutput("git branch --contains")
 	if err != nil {
 		return "", "", err
 	}
@@ -73,7 +73,7 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 }
 
 func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)
+	output, err := c.RunCommandWithOutput("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)
 	return strings.TrimSpace(output), err
 }
 
@@ -86,11 +86,11 @@ func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
 }
 
 func (c *GitCommand) SetUpstreamBranch(upstream string) error {
-	return c.OSCommand.RunCommand("git branch -u %s", upstream)
+	return c.RunCommand("git branch -u %s", upstream)
 }
 
 func (c *GitCommand) SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error {
-	return c.OSCommand.RunCommand("git branch --set-upstream-to=%s/%s %s", remoteName, remoteBranchName, branchName)
+	return c.RunCommand("git branch --set-upstream-to=%s/%s %s", remoteName, remoteBranchName, branchName)
 }
 
 func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
@@ -134,24 +134,24 @@ func (c *GitCommand) Merge(branchName string, opts MergeOpts) error {
 
 // AbortMerge abort merge
 func (c *GitCommand) AbortMerge() error {
-	return c.OSCommand.RunCommand("git merge --abort")
+	return c.RunCommand("git merge --abort")
 }
 
 func (c *GitCommand) IsHeadDetached() bool {
-	err := c.OSCommand.RunCommand("git symbolic-ref -q HEAD")
+	err := c.RunCommand("git symbolic-ref -q HEAD")
 	return err != nil
 }
 
 // ResetHardHead runs `git reset --hard`
 func (c *GitCommand) ResetHard(ref string) error {
-	return c.OSCommand.RunCommand("git reset --hard " + ref)
+	return c.RunCommand("git reset --hard " + ref)
 }
 
 // ResetSoft runs `git reset --soft HEAD`
 func (c *GitCommand) ResetSoft(ref string) error {
-	return c.OSCommand.RunCommand("git reset --soft " + ref)
+	return c.RunCommand("git reset --soft " + ref)
 }
 
 func (c *GitCommand) RenameBranch(oldName string, newName string) error {
-	return c.OSCommand.RunCommand("git branch --move %s %s", oldName, newName)
+	return c.RunCommand("git branch --move %s %s", oldName, newName)
 }

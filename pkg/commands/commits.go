@@ -11,7 +11,7 @@ import (
 
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) error {
-	return c.OSCommand.RunCommand("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name))
+	return c.RunCommand("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name))
 }
 
 // ResetToCommit reset to commit
@@ -74,7 +74,7 @@ func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {
 
 // Revert reverts the selected commit by sha
 func (c *GitCommand) Revert(sha string) error {
-	return c.OSCommand.RunCommand("git revert %s", sha)
+	return c.RunCommand("git revert %s", sha)
 }
 
 // CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
@@ -94,5 +94,5 @@ func (c *GitCommand) CherryPickCommits(commits []*models.Commit) error {
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
 func (c *GitCommand) CreateFixupCommit(sha string) error {
-	return c.OSCommand.RunCommand("git commit --fixup=%s", sha)
+	return c.RunCommand("git commit --fixup=%s", sha)
 }

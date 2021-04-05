@@ -13,7 +13,7 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool) ([]*mo
 		reverseFlag = " -R "
 	}
 
-	filenames, err := c.OSCommand.RunCommandWithOutput("git diff --submodule --no-ext-diff --name-status -z --no-renames %s %s %s", reverseFlag, from, to)
+	filenames, err := c.RunCommandWithOutput("git diff --submodule --no-ext-diff --name-status -z --no-renames %s %s %s", reverseFlag, from, to)
 	if err != nil {
 		return nil, err
 	}
