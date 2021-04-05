@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// heads up: this code needs some cleanup. It's currently partially duplicated in integration/main.go
 // To run an integration test, e.g. for test 'commit', go:
 // go test pkg/gui/gui_test.go -run /commit
 //
@@ -31,9 +32,6 @@ import (
 // integration tests are run in test/integration_test and the final test does
 // not clean up that directory so you can cd into it to see for yourself what
 // happened when a test failed.
-//
-// To run tests in parallel pass `PARALLEL=true` as an env var. Tests are run in parallel
-// on CI, and are run in a pty so you won't be able to see the stdout of the program
 //
 // To override speed, pass e.g. `SPEED=1` as an env var. Otherwise we start each test
 // at a high speed and then drop down to lower speeds upon each failure until finally
