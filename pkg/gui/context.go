@@ -557,14 +557,14 @@ func (gui *Gui) activateContext(c Context) error {
 	return nil
 }
 
-// currently unused
-func (gui *Gui) renderContextStack() string {
-	result := ""
-	for _, context := range gui.State.ContextManager.ContextStack {
-		result += string(context.GetKey()) + "\n"
-	}
-	return result
-}
+// // currently unused
+// func (gui *Gui) renderContextStack() string {
+// 	result := ""
+// 	for _, context := range gui.State.ContextManager.ContextStack {
+// 		result += string(context.GetKey()) + "\n"
+// 	}
+// 	return result
+// }
 
 func (gui *Gui) currentContext() Context {
 	gui.State.ContextManager.Lock()
