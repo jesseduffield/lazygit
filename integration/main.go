@@ -223,10 +223,12 @@ func Test() error {
 
 			err := createFixture(testPath, actualDir)
 			if err != nil {
-				// return err
+				return err
 			}
 
-			runLazygit(testPath, rootDir, record, speed)
+			if err := runLazygit(testPath, rootDir, record, speed); err != nil {
+				return err
+			}
 
 			if updateSnapshots {
 				err = oscommands.CopyDir(actualDir, expectedDir)
@@ -431,5 +433,8 @@ func prepareIntegrationTestDir(actualDir string) {
 }
 
 func main() {
-	Test()
+	err := Test()
+	if err != nil {
+		panic(err)
+	}
 }
