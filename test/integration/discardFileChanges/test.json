@@ -1,1 +1,1 @@
-{ "description": "discard file changes for various kinds of situations (merge conflicts, etc)", "speed": 3 }
+{ "description": "discard file changes for various kinds of situations (merge conflicts, etc)", "speed": 5 }
