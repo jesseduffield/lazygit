@@ -85,11 +85,13 @@ const (
 )
 
 type Recording struct {
-	KeyEvents []*TcellKeyEventWrapper
+	KeyEvents    []*TcellKeyEventWrapper
+	ResizeEvents []*TcellResizeEventWrapper
 }
 
 type replayedEvents struct {
-	keys chan *TcellKeyEventWrapper
+	keys    chan *TcellKeyEventWrapper
+	resizes chan *TcellResizeEventWrapper
 }
 
 type RecordingConfig struct {
@@ -159,13 +161,18 @@ type Gui struct {
 }
 
 // NewGui returns a new Gui object with a given output mode.
-func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode) (*Gui, error) {
-	err := tcellInit()
+func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless bool) (*Gui, error) {
+	g := &Gui{}
+
+	var err error
+	if headless {
+		err = tcellInitSimulation()
+	} else {
+		err = tcellInit()
+	}
 	if err != nil {
 		return nil, err
 	}
-
-	g := &Gui{}
 
 	g.outputMode = mode
 
@@ -176,11 +183,13 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode) (*Gui, err
 
 	if playMode == RECORDING {
 		g.Recording = &Recording{
-			KeyEvents: []*TcellKeyEventWrapper{},
+			KeyEvents:    []*TcellKeyEventWrapper{},
+			ResizeEvents: []*TcellResizeEventWrapper{},
 		}
 	} else if playMode == REPLAYING {
 		g.ReplayedEvents = replayedEvents{
-			keys: make(chan *TcellKeyEventWrapper),
+			keys:    make(chan *TcellKeyEventWrapper),
+			resizes: make(chan *TcellResizeEventWrapper),
 		}
 	}
 
@@ -562,8 +571,10 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
+
+	g.StartTime = time.Now()
 	if g.PlayMode == REPLAYING {
-		g.replayRecording()
+		go g.replayRecording()
 	}
 
 	go func() {
@@ -1182,38 +1193,80 @@ func IsQuit(err error) bool {
 }
 
 func (g *Gui) replayRecording() {
-	ticker := time.NewTicker(time.Millisecond)
-	defer ticker.Stop()
+	waitGroup := sync.WaitGroup{}
 
-	// The playback could be paused at any time because integration tests run concurrently.
-	// Therefore we can't just check for a given event whether we've passed its timestamp,
-	// or else we'll have an explosion of keypresses after the test is resumed.
-	// We need to check if we've waited long enough since the last event was replayed.
-	// Only handling key events for now.
-	for i, event := range g.Recording.KeyEvents {
-		var prevEventTimestamp int64 = 0
-		if i > 0 {
-			prevEventTimestamp = g.Recording.KeyEvents[i-1].Timestamp
-		}
-		timeToWait := (event.Timestamp - prevEventTimestamp) / int64(g.RecordingConfig.Speed)
-		if i == 0 {
-			timeToWait += int64(g.RecordingConfig.Leeway)
-		}
-		var timeWaited int64 = 0
-	middle:
-		for {
-			select {
-			case <-ticker.C:
-				timeWaited += 1
-				if g != nil && timeWaited >= timeToWait {
-					g.ReplayedEvents.keys <- event
-					break middle
+	waitGroup.Add(2)
+
+	go func() {
+		ticker := time.NewTicker(time.Millisecond)
+		defer ticker.Stop()
+
+		// The playback could be paused at any time because integration tests run concurrently.
+		// Therefore we can't just check for a given event whether we've passed its timestamp,
+		// or else we'll have an explosion of keypresses after the test is resumed.
+		// We need to check if we've waited long enough since the last event was replayed.
+		for i, event := range g.Recording.KeyEvents {
+			var prevEventTimestamp int64 = 0
+			if i > 0 {
+				prevEventTimestamp = g.Recording.KeyEvents[i-1].Timestamp
+			}
+			timeToWait := (event.Timestamp - prevEventTimestamp) / int64(g.RecordingConfig.Speed)
+			if i == 0 {
+				timeToWait += int64(g.RecordingConfig.Leeway)
+			}
+			var timeWaited int64 = 0
+		middle:
+			for {
+				select {
+				case <-ticker.C:
+					timeWaited += 1
+					if timeWaited >= timeToWait {
+						g.ReplayedEvents.keys <- event
+						break middle
+					}
+				case <-g.stop:
+					return
 				}
-			case <-g.stop:
-				return
 			}
 		}
-	}
+
+		waitGroup.Done()
+	}()
+
+	go func() {
+		ticker := time.NewTicker(time.Millisecond)
+		defer ticker.Stop()
+
+		// duplicating until Go gets generics
+		for i, event := range g.Recording.ResizeEvents {
+			var prevEventTimestamp int64 = 0
+			if i > 0 {
+				prevEventTimestamp = g.Recording.ResizeEvents[i-1].Timestamp
+			}
+			timeToWait := (event.Timestamp - prevEventTimestamp) / int64(g.RecordingConfig.Speed)
+			if i == 0 {
+				timeToWait += int64(g.RecordingConfig.Leeway)
+			}
+			var timeWaited int64 = 0
+		middle2:
+			for {
+				select {
+				case <-ticker.C:
+					timeWaited += 1
+					if timeWaited >= timeToWait {
+						g.ReplayedEvents.resizes <- event
+						break middle2
+					}
+				case <-g.stop:
+					return
+				}
+			}
+		}
+
+		waitGroup.Done()
+	}()
+
+	waitGroup.Wait()
 
 	// leaving some time for any handlers to execute before quitting
 	time.Sleep(time.Second * 1)

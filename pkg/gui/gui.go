@@ -458,7 +458,7 @@ func (gui *Gui) Run() error {
 		playMode = gocui.REPLAYING
 	}
 
-	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode)
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless())
 	if err != nil {
 		return err
 	}
@@ -468,7 +468,7 @@ func (gui *Gui) Run() error {
 	if replaying() {
 		g.RecordingConfig = gocui.RecordingConfig{
 			Speed:  getRecordingSpeed(),
-			Leeway: 0,
+			Leeway: 100,
 		}
 
 		g.Recording, err = gui.loadRecording()

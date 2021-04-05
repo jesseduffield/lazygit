@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
+	"github.com/stretchr/testify/assert"
 )
 
 // To run an integration test, e.g. for test 'commit', go:
@@ -209,19 +211,19 @@ func Test() error {
 		speeds := getTestSpeeds(test.Speed, updateSnapshots)
 
 		for i, speed := range speeds {
-			// t.Logf("%s: attempting test at speed %d\n", test.Name, speed)
+			log.Printf("%s: attempting test at speed %d\n", test.Name, speed)
 
 			testPath := filepath.Join(testDir, test.Name)
 			actualDir := filepath.Join(testPath, "actual")
 			expectedDir := filepath.Join(testPath, "expected")
-			// t.Logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
+			log.Printf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
 			findOrCreateDir(testPath)
 
 			prepareIntegrationTestDir(actualDir)
 
 			err := createFixture(testPath, actualDir)
 			if err != nil {
-				return err
+				// return err
 			}
 
 			runLazygit(testPath, rootDir, record, speed)
@@ -268,18 +270,25 @@ func Test() error {
 			}()
 
 			if expected == actual {
-				// t.Logf("%s: success at speed %d\n", test.Name, speed)
+				log.Printf("%s: success at speed %d\n", test.Name, speed)
 				break
 			}
 
 			// if the snapshots and we haven't tried all playback speeds different we'll retry at a slower speed
 			if i == len(speeds)-1 {
-				// assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
+				assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
+				os.Exit(1)
 			}
 		}
 	}
 
 	return nil
+}
+
+type MockTestingT struct{}
+
+func (t MockTestingT) Errorf(format string, args ...interface{}) {
+	fmt.Printf(format, args...)
 }
 
 func createFixture(testPath, actualDir string) error {

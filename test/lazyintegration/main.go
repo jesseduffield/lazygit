@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,15 +15,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
-var errSubProcess = errors.New("subprocess")
-
 type App struct {
-	tests      []*IntegrationTest
-	itemIdx    int
-	subProcess *exec.Cmd
-	testDir    string
-	editing    bool
-	g          *gocui.Gui
+	tests   []*IntegrationTest
+	itemIdx int
+	testDir string
+	editing bool
+	g       *gocui.Gui
 }
 
 func (app *App) getCurrentTest() *IntegrationTest {
@@ -70,215 +66,215 @@ func main() {
 	app := &App{testDir: testDir}
 	app.loadTests()
 
-Loop:
-	for {
-		g, err := gocui.NewGui(gocui.OutputTrue, false, gocui.NORMAL)
+	g, err := gocui.NewGui(gocui.OutputTrue, false, gocui.NORMAL, false)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	g.Cursor = false
+
+	app.g = g
+
+	g.SetManagerFunc(app.layout)
+
+	if err := g.SetKeybinding("list", nil, gocui.KeyArrowUp, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		if app.itemIdx > 0 {
+			app.itemIdx--
+		}
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, 'q', gocui.ModNone, quit); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, 'r', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("RECORD_EVENTS=true go run integration/main.go %s", currentTest.Name))
+		app.runSubprocess(cmd)
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("go run integration/main.go %s", currentTest.Name))
+		app.runSubprocess(cmd)
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, 'o', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code -r %s/%s/test.json", app.testDir, currentTest.Name))
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, 'n', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		// need to duplicate that folder and then re-fetch our tests.
+		dir := app.testDir + "/" + app.getCurrentTest().Name
+		newDir := dir + "_Copy"
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("cp -r %s %s", dir, newDir))
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+
+		app.loadTests()
+
+		app.refreshTests()
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, 'm', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		app.editing = true
+		if _, err := g.SetCurrentView("editor"); err != nil {
+			return err
+		}
+		editorView, err := g.View("editor")
 		if err != nil {
-			log.Panicln(err)
+			return err
 		}
+		editorView.Clear()
+		fmt.Fprint(editorView, currentTest.Name)
 
-		g.Cursor = false
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
 
-		app.g = g
-
-		g.SetManagerFunc(app.layout)
-
-		if err := g.SetKeybinding("list", nil, gocui.KeyArrowUp, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			if app.itemIdx > 0 {
-				app.itemIdx--
-			}
+	if err := g.SetKeybinding("list", nil, 'd', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
 			return nil
-		}); err != nil {
-			log.Panicln(err)
 		}
 
-		if err := g.SetKeybinding("list", nil, gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-			log.Panicln(err)
+		dir := app.testDir + "/" + app.getCurrentTest().Name
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("rm -rf %s", dir))
+		if err := cmd.Run(); err != nil {
+			return err
 		}
 
-		if err := g.SetKeybinding("list", nil, 'q', gocui.ModNone, quit); err != nil {
-			log.Panicln(err)
-		}
+		app.refreshTests()
 
-		if err := g.SetKeybinding("list", nil, 'r', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			currentTest := app.getCurrentTest()
-			if currentTest == nil {
-				return nil
-			}
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
 
-			cmd := secureexec.Command("sh", "-c", fmt.Sprintf("RECORD_EVENTS=true go test pkg/gui/gui_test.go -run /%s", currentTest.Name))
-			app.subProcess = cmd
-
-			return errSubProcess
-		}); err != nil {
-			log.Panicln(err)
-		}
-
-		if err := g.SetKeybinding("list", nil, gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			currentTest := app.getCurrentTest()
-			if currentTest == nil {
-				return nil
-			}
-
-			cmd := secureexec.Command("sh", "-c", fmt.Sprintf("go test pkg/gui/gui_test.go -run /%s", currentTest.Name))
-			app.subProcess = cmd
-
-			return errSubProcess
-		}); err != nil {
-			log.Panicln(err)
-		}
-
-		if err := g.SetKeybinding("list", nil, 'o', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			currentTest := app.getCurrentTest()
-			if currentTest == nil {
-				return nil
-			}
-
-			cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code -r %s/%s/test.json", app.testDir, currentTest.Name))
-			if err := cmd.Run(); err != nil {
-				return err
-			}
-
+	if err := g.SetKeybinding("editor", nil, gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
 			return nil
-		}); err != nil {
-			log.Panicln(err)
 		}
 
-		if err := g.SetKeybinding("list", nil, 'n', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			currentTest := app.getCurrentTest()
-			if currentTest == nil {
-				return nil
-			}
-
-			// need to duplicate that folder and then re-fetch our tests.
-			dir := app.testDir + "/" + app.getCurrentTest().Name
-			newDir := dir + "_Copy"
-
-			cmd := secureexec.Command("sh", "-c", fmt.Sprintf("cp -r %s %s", dir, newDir))
-			if err := cmd.Run(); err != nil {
-				return err
-			}
-
-			app.loadTests()
-
-			app.refreshTests()
-			return nil
-		}); err != nil {
-			log.Panicln(err)
+		app.editing = false
+		if _, err := g.SetCurrentView("list"); err != nil {
+			return err
 		}
 
-		if err := g.SetKeybinding("list", nil, 'm', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			currentTest := app.getCurrentTest()
-			if currentTest == nil {
-				return nil
-			}
-
-			app.editing = true
-			if _, err := g.SetCurrentView("editor"); err != nil {
-				return err
-			}
-			editorView, err := g.View("editor")
-			if err != nil {
-				return err
-			}
-			editorView.Clear()
-			fmt.Fprint(editorView, currentTest.Name)
-
-			return nil
-		}); err != nil {
-			log.Panicln(err)
-		}
-
-		if err := g.SetKeybinding("list", nil, 'd', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			currentTest := app.getCurrentTest()
-			if currentTest == nil {
-				return nil
-			}
-
-			dir := app.testDir + "/" + app.getCurrentTest().Name
-
-			cmd := secureexec.Command("sh", "-c", fmt.Sprintf("rm -rf %s", dir))
-			if err := cmd.Run(); err != nil {
-				return err
-			}
-
-			app.refreshTests()
-
-			return nil
-		}); err != nil {
-			log.Panicln(err)
-		}
-
-		if err := g.SetKeybinding("editor", nil, gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			currentTest := app.getCurrentTest()
-			if currentTest == nil {
-				return nil
-			}
-
-			app.editing = false
-			if _, err := g.SetCurrentView("list"); err != nil {
-				return err
-			}
-
-			editorView, err := g.View("editor")
-			if err != nil {
-				return err
-			}
-
-			dir := app.testDir + "/" + app.getCurrentTest().Name
-			newDir := app.testDir + "/" + editorView.Buffer()
-
-			cmd := secureexec.Command("sh", "-c", fmt.Sprintf("mv %s %s", dir, newDir))
-			if err := cmd.Run(); err != nil {
-				return err
-			}
-
-			editorView.Clear()
-
-			app.refreshTests()
-			return nil
-		}); err != nil {
-			log.Panicln(err)
-		}
-
-		if err := g.SetKeybinding("editor", nil, gocui.KeyEsc, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-			app.editing = false
-			if _, err := g.SetCurrentView("list"); err != nil {
-				return err
-			}
-
-			return nil
-		}); err != nil {
-			log.Panicln(err)
-		}
-
-		err = g.MainLoop()
-		g.Close()
+		editorView, err := g.View("editor")
 		if err != nil {
-			switch err {
-			case gocui.ErrQuit:
-				break Loop
+			return err
+		}
 
-			case errSubProcess:
-				cmd := app.subProcess
-				cmd.Stdin = os.Stdin
-				cmd.Stderr = os.Stderr
-				cmd.Stdout = os.Stdout
-				if err := cmd.Run(); err != nil {
-					log.Println(err.Error())
-				}
-				cmd.Stdin = nil
-				cmd.Stderr = nil
-				cmd.Stdout = nil
+		dir := app.testDir + "/" + app.getCurrentTest().Name
+		newDir := app.testDir + "/" + editorView.Buffer()
 
-				fmt.Fprintf(os.Stdout, "\n%s", coloredString("press enter to return", color.FgGreen))
-				fmt.Scanln() // wait for enter press
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("mv %s %s", dir, newDir))
+		if err := cmd.Run(); err != nil {
+			return err
+		}
 
-			default:
-				log.Panicln(err)
-			}
+		editorView.Clear()
+
+		app.refreshTests()
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("editor", nil, gocui.KeyEsc, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		app.editing = false
+		if _, err := g.SetCurrentView("list"); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	err = g.MainLoop()
+	g.Close()
+	if err != nil {
+		switch err {
+		case gocui.ErrQuit:
+			return
+		default:
+			log.Panicln(err)
 		}
 	}
+}
+
+func (app *App) runSubprocess(cmd *exec.Cmd) {
+	gocui.Screen.Suspend()
+
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	if err := cmd.Run(); err != nil {
+		log.Println(err.Error())
+	}
+	cmd.Stdin = nil
+	cmd.Stderr = nil
+	cmd.Stdout = nil
+
+	fmt.Fprintf(os.Stdout, "\n%s", coloredString("press enter to return", color.FgGreen))
+	fmt.Scanln() // wait for enter press
+
+	gocui.Screen.Resume()
 }
 
 func (app *App) layout(g *gocui.Gui) error {
