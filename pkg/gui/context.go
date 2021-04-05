@@ -506,6 +506,7 @@ func (gui *Gui) activateContext(c Context) error {
 	viewName := c.GetViewName()
 	v, err := gui.g.View(viewName)
 	// if view no longer exists, pop again
+	// (note: this should never happen, unless we call this code before our views are initialised)
 	if err != nil {
 		return gui.returnFromContext()
 	}
