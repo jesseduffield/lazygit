@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/stretchr/testify/assert"
@@ -27,18 +28,18 @@ func main() {
 	err := integration.RunTests(
 		log.Printf,
 		runCmdInTerminal,
-		func(test *integration.Test, f func() error) {
+		func(test *integration.Test, f func(*testing.T) error) {
 			if selectedTestName != "" && test.Name != selectedTestName {
 				return
 			}
-			if err := f(); err != nil {
+			if err := f(nil); err != nil {
 				log.Print(err.Error())
 			}
 		},
 		updateSnapshots,
 		record,
 		speedEnv,
-		func(expected string, actual string) {
+		func(_t *testing.T, expected string, actual string) {
 			assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
 		},
 	)
