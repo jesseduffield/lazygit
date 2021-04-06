@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
@@ -381,4 +382,10 @@ func SafeWithError(f func() error) error {
 	panicking = false
 
 	return err
+}
+
+func StackTrace() string {
+	buf := make([]byte, 10000)
+	n := runtime.Stack(buf, false)
+	return fmt.Sprintf("%s\n", buf[:n])
 }

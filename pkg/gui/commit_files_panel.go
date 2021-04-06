@@ -94,8 +94,10 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 }
 
 func (gui *Gui) refreshCommitFilesView() error {
-	if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
-		return err
+	if gui.currentSideContext().GetKey() == COMMIT_FILES_CONTEXT_KEY {
+		if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
+			return err
+		}
 	}
 
 	to := gui.State.Panels.CommitFiles.refName
