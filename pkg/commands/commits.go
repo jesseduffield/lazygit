@@ -11,7 +11,7 @@ import (
 
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) error {
-	return c.RunCommand("git commit --allow-empty --amend -m %s", c.OSCommand.Quote(name))
+	return c.RunCommand("git commit --allow-empty --amend --only -m %s", c.OSCommand.Quote(name))
 }
 
 // ResetToCommit reset to commit
