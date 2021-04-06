@@ -1,0 +1,7 @@
+0000000000000000000000000000000000000000 21b436d66d2c515ad17285e53d9e6380d599b044 CI <CI@example.com> 1617684680 +1000	commit (initial): file0
+21b436d66d2c515ad17285e53d9e6380d599b044 21b436d66d2c515ad17285e53d9e6380d599b044 CI <CI@example.com> 1617684680 +1000	checkout: moving from master to new-branch
+21b436d66d2c515ad17285e53d9e6380d599b044 21b436d66d2c515ad17285e53d9e6380d599b044 CI <CI@example.com> 1617684680 +1000	checkout: moving from new-branch to new-branch-2
+21b436d66d2c515ad17285e53d9e6380d599b044 21b436d66d2c515ad17285e53d9e6380d599b044 CI <CI@example.com> 1617684680 +1000	checkout: moving from new-branch-2 to new-branch-3
+21b436d66d2c515ad17285e53d9e6380d599b044 21b436d66d2c515ad17285e53d9e6380d599b044 CI <CI@example.com> 1617684680 +1000	checkout: moving from new-branch-3 to old-branch
+21b436d66d2c515ad17285e53d9e6380d599b044 21b436d66d2c515ad17285e53d9e6380d599b044 CI <CI@example.com> 1617684680 +1000	checkout: moving from old-branch to old-branch-2
+21b436d66d2c515ad17285e53d9e6380d599b044 21b436d66d2c515ad17285e53d9e6380d599b044 CI <CI@example.com> 1617684680 +1000	checkout: moving from old-branch-2 to old-branch-3
