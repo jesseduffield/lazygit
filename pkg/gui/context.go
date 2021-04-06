@@ -464,12 +464,17 @@ func (gui *Gui) returnFromContext() error {
 }
 
 func (gui *Gui) deactivateContext(c Context) error {
-	// if we are the kind of context that is sent to back upon deactivation, we should do that
-	if c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP || c.GetKey() == COMMIT_FILES_CONTEXT_KEY {
-		view, err := gui.g.View(c.GetViewName())
-		if err == nil {
-			view.Visible = false
+	view, _ := gui.g.View(c.GetViewName())
+
+	if view != nil && view.IsSearching() {
+		if err := gui.onSearchEscape(); err != nil {
+			return err
 		}
+	}
+
+	// if we are the kind of context that is sent to back upon deactivation, we should do that
+	if view != nil && c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP || c.GetKey() == COMMIT_FILES_CONTEXT_KEY {
+		view.Visible = false
 	}
 
 	if err := c.HandleFocusLost(); err != nil {
@@ -672,12 +677,6 @@ func (gui *Gui) onViewFocusChange() error {
 func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error {
 	if oldView == nil {
 		return nil
-	}
-
-	if oldView.IsSearching() && newView != gui.Views.Search {
-		if err := gui.onSearchEscape(); err != nil {
-			return err
-		}
 	}
 
 	if oldView == gui.Views.CommitFiles && newView != gui.Views.Main && newView != gui.Views.Secondary && newView != gui.Views.Search {
