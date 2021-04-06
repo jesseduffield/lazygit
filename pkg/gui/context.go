@@ -780,18 +780,6 @@ func (gui *Gui) rerenderView(view *gocui.View) error {
 	return context.HandleRender()
 }
 
-// currently unused
-// func (gui *Gui) getCurrentSideView() *gocui.View {
-// 	currentSideContext := gui.currentSideContext()
-// 	if currentSideContext == nil {
-// 		return nil
-// 	}
-
-// 	view, _ := gui.g.View(currentSideContext.GetViewName())
-
-// 	return view
-// }
-
 func (gui *Gui) getSideContextSelectedItemId() string {
 	currentSideContext := gui.currentSideListContext()
 	if currentSideContext == nil {
@@ -806,3 +794,24 @@ func (gui *Gui) getSideContextSelectedItemId() string {
 
 	return ""
 }
+
+// currently unused
+// func (gui *Gui) getCurrentSideView() *gocui.View {
+// 	currentSideContext := gui.currentSideContext()
+// 	if currentSideContext == nil {
+// 		return nil
+// 	}
+
+// 	view, _ := gui.g.View(currentSideContext.GetViewName())
+
+// 	return view
+// }
+
+// currently unused
+// func (gui *Gui) renderContextStack() string {
+// 	result := ""
+// 	for _, context := range gui.State.ContextManager.ContextStack {
+// 		result += context.GetViewName() + "\n"
+// 	}
+// 	return result
+// }
