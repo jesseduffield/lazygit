@@ -101,10 +101,6 @@ func (gui *Gui) diffStr() string {
 }
 
 func (gui *Gui) handleCreateDiffingMenuPanel() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
 	names := gui.currentDiffTerminals()
 
 	menuItems := []*menuItem{}
