@@ -1,8 +1,0 @@
-disableStartupPopups: true
-gui:
-  theme:
-    activeBorderColor:
-    - green
-    - bold
-    SelectedRangeBgcolor:
-    - reverse
