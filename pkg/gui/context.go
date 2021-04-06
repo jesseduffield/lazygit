@@ -395,9 +395,6 @@ func (gui *Gui) replaceContext(c Context) error {
 
 func (gui *Gui) pushContext(c Context) error {
 	gui.g.Update(func(*gocui.Gui) error {
-		gui.State.ContextManager.Lock()
-		defer gui.State.ContextManager.Unlock()
-
 		return gui.pushContextDirect(c)
 	})
 
@@ -405,12 +402,15 @@ func (gui *Gui) pushContext(c Context) error {
 }
 
 func (gui *Gui) pushContextDirect(c Context) error {
+	gui.State.ContextManager.Lock()
+
 	// push onto stack
 	// if we are switching to a side context, remove all other contexts in the stack
 	if c.GetKind() == SIDE_CONTEXT {
 		for _, stackContext := range gui.State.ContextManager.ContextStack {
 			if stackContext.GetKey() != c.GetKey() {
 				if err := gui.deactivateContext(stackContext); err != nil {
+					gui.State.ContextManager.Unlock()
 					return err
 				}
 			}
@@ -423,6 +423,8 @@ func (gui *Gui) pushContextDirect(c Context) error {
 		// TODO: think about other exceptional cases
 		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack, c)
 	}
+
+	gui.State.ContextManager.Unlock()
 
 	return gui.activateContext(c)
 }
@@ -439,10 +441,10 @@ func (gui *Gui) pushContextWithView(viewName string) error {
 func (gui *Gui) returnFromContext() error {
 	gui.g.Update(func(*gocui.Gui) error {
 		gui.State.ContextManager.Lock()
-		defer gui.State.ContextManager.Unlock()
 
 		if len(gui.State.ContextManager.ContextStack) == 1 {
 			// cannot escape from bottommost context
+			gui.State.ContextManager.Unlock()
 			return nil
 		}
 
@@ -452,6 +454,8 @@ func (gui *Gui) returnFromContext() error {
 		newContext := gui.State.ContextManager.ContextStack[n-1]
 
 		gui.State.ContextManager.ContextStack = gui.State.ContextManager.ContextStack[:n]
+
+		gui.State.ContextManager.Unlock()
 
 		if err := gui.deactivateContext(currentContext); err != nil {
 			return err
@@ -513,10 +517,8 @@ func (gui *Gui) postRefreshUpdate(c Context) error {
 func (gui *Gui) activateContext(c Context) error {
 	viewName := c.GetViewName()
 	v, err := gui.g.View(viewName)
-	// if view no longer exists, pop again
-	// (note: this should never happen, unless we call this code before our views are initialised)
 	if err != nil {
-		return gui.returnFromContext()
+		return err
 	}
 	originalViewContextKey := ContextKey(v.Context)
 
@@ -532,8 +534,7 @@ func (gui *Gui) activateContext(c Context) error {
 	gui.setViewTabForContext(c)
 
 	if _, err := gui.g.SetCurrentView(viewName); err != nil {
-		// if view no longer exists, pop again
-		return gui.returnFromContext()
+		return err
 	}
 
 	v.Visible = true
