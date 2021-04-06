@@ -75,12 +75,14 @@ func (gui *Gui) refreshTags() error {
 }
 
 func (gui *Gui) withSelectedTag(f func(tag *models.Tag) error) func() error {
-	tag := gui.getSelectedTag()
-	if tag == nil {
-		return nil
-	}
+	return func() error {
+		tag := gui.getSelectedTag()
+		if tag == nil {
+			return nil
+		}
 
-	return func() error { return f(tag) }
+		return f(tag)
+	}
 }
 
 func (gui *Gui) handleCheckoutTag(tag *models.Tag) error {
