@@ -1,0 +1,6 @@
+0000000000000000000000000000000000000000 ad12d265183742f1aa5ee2fe7c09dc3c16482d7d CI <CI@example.com> 1617686669 +1000	commit (initial): first commit
+ad12d265183742f1aa5ee2fe7c09dc3c16482d7d 5bc64a01e7b980e97f714fba45aa18f0eef726fb CI <CI@example.com> 1617686669 +1000	commit: first commit on master
+5bc64a01e7b980e97f714fba45aa18f0eef726fb 8c464cc13c9ad8d00604ec9b646e2b2187706287 CI <CI@example.com> 1617686669 +1000	commit: second commit on master
+8c464cc13c9ad8d00604ec9b646e2b2187706287 9ec3d8f323be49b6cc9036db9299fb0ae6764440 CI <CI@example.com> 1617686669 +1000	commit: third commit on master
+9ec3d8f323be49b6cc9036db9299fb0ae6764440 4d34b8913eb0991ca63f8f7877ab8408e1511b3d CI <CI@example.com> 1617686669 +1000	commit: fourth commit on master
+4d34b8913eb0991ca63f8f7877ab8408e1511b3d cea4333c6fff70e6248efee2b3a414a4e11a7956 CI <CI@example.com> 1617686684 +1000	rebase -i (finish): refs/heads/master onto e23041d5ff1f243faf319cc5e48e6d57384e4f37
