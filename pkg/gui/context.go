@@ -416,7 +416,10 @@ func (gui *Gui) pushContextDirect(c Context) error {
 			}
 		}
 		gui.State.ContextManager.ContextStack = []Context{c}
-	} else {
+	} else if len(gui.State.ContextManager.ContextStack) == 0 || gui.State.ContextManager.ContextStack[len(gui.State.ContextManager.ContextStack)-1].GetKey() != c.GetKey() {
+		// Do not append if the one at the end is the same context (e.g. opening a menu from a menu)
+		// In that case we'll just close the menu entirely when the user hits escape.
+
 		// TODO: think about other exceptional cases
 		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack, c)
 	}
