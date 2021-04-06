@@ -43,16 +43,16 @@ func Test(t *testing.T) {
 	err := integration.RunTests(
 		t.Logf,
 		runCmdHeadless,
-		func(test *integration.Test, f func() error) {
+		func(test *integration.Test, f func(*testing.T) error) {
 			t.Run(test.Name, func(t *testing.T) {
-				err := f()
+				err := f(t)
 				assert.NoError(t, err)
 			})
 		},
 		updateSnapshots,
 		record,
 		speedEnv,
-		func(expected string, actual string) {
+		func(t *testing.T, expected string, actual string) {
 			assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
 		},
 	)

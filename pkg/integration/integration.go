@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
@@ -27,11 +28,11 @@ type Test struct {
 func RunTests(
 	logf func(format string, formatArgs ...interface{}),
 	runCmd func(cmd *exec.Cmd) error,
-	fnWrapper func(test *Test, f func() error),
+	fnWrapper func(test *Test, f func(*testing.T) error),
 	updateSnapshots bool,
 	record bool,
 	speedEnv string,
-	onFail func(expected string, actual string),
+	onFail func(t *testing.T, expected string, actual string),
 ) error {
 	rootDir := GetRootDirectory()
 	err := os.Chdir(rootDir)
@@ -55,7 +56,7 @@ func RunTests(
 	for _, test := range tests {
 		test := test
 
-		fnWrapper(test, func() error {
+		fnWrapper(test, func(t *testing.T) error {
 			speeds := getTestSpeeds(test.Speed, updateSnapshots, speedEnv)
 			testPath := filepath.Join(testDir, test.Name)
 			actualDir := filepath.Join(testPath, "actual")
@@ -118,7 +119,7 @@ func RunTests(
 						return err
 					}
 					logf("%s", string(bytes))
-					onFail(expected, actual)
+					onFail(t, expected, actual)
 				}
 			}
 
