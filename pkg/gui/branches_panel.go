@@ -428,9 +428,6 @@ func (gui *Gui) handleRenameBranch() error {
 		return nil
 	}
 
-	// TODO: find a way to not checkout the branch here if it's not the current branch (i.e. find some
-	// way to get it to show up in the reflog)
-
 	promptForNewName := func() error {
 		return gui.prompt(promptOpts{
 			title:          gui.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
@@ -439,13 +436,21 @@ func (gui *Gui) handleRenameBranch() error {
 				if err := gui.GitCommand.RenameBranch(branch.Name, newBranchName); err != nil {
 					return gui.surfaceError(err)
 				}
-				// need to checkout so that the branch shows up in our reflog and therefore
-				// doesn't get lost among all the other branches when we switch to something else
-				if err := gui.GitCommand.Checkout(newBranchName, commands.CheckoutOptions{Force: false}); err != nil {
-					return gui.surfaceError(err)
+
+				// need to find where the branch is now so that we can re-select it. That means we need to refetch the branches synchronously and then find our branch
+				gui.refreshBranches()
+
+				// now that we've got our stuff again we need to find that branch and reselect it.
+				for i, newBranch := range gui.State.Branches {
+					if newBranch.Name == newBranchName {
+						gui.State.Panels.Branches.SetSelectedLineIdx(i)
+						if err := gui.State.Contexts.Branches.HandleRender(); err != nil {
+							return err
+						}
+					}
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+				return nil
 			},
 		})
 	}
