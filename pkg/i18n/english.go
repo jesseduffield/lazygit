@@ -441,7 +441,80 @@ type TranslationSet struct {
 	ErrRepositoryMovedOrDeleted         string
 }
 
-const englishReleaseNotes = `## lazygit 0.26 Release Notes
+const englishReleaseNotes = `lazygit 0.27 Release Notes
+
+Holy Moly, this is a big one.
+
+There are two big changes here:
+1) Tree view for the files panel
+2) New rendering library
+
+## File tree view
+
+This is off by default, but can be configured via the 'gui.showFileTree' config
+key and toggled from within lazygit with the backtick key (the one below tilde).
+
+Hitting enter on directories will toggle whether they are collapsed. Most
+keybindings that apply to files also apply to directories e.g. if you hit space
+on a directory, it will stage that whole directory.
+
+When not in tree-mode, the merge conflicts are now bubbled up to the top of the
+list.
+
+The tree view makes it much easier to deal with tonnes of files, because you can
+easily collapse folders you don't care about to focus on the important changes.
+It also reduces the amount of horizontal space used meaning there is less chance
+of content being truncated by the frame of the panel.
+
+## New rendering library
+
+We've switched from the termbox package to tcell, with the help of the contributors
+of the awesome-gocui repo. This has many benefits:
+- More support for various terminals
+- 24 bit colour support (you can now drop the -24-bit-color=never arg if you're using delta)
+- Support for more keybindings like... SHIFT-TAB! Which means you can now navigate
+  the side panels with tab and shift-tab. (Previously pressing shift+tab would
+  crash the program).
+- Better support for switching to subprocesses. Most of that benefit
+
+Other stuff:
+- No more flickering e.g. when staging a file or when contents are refreshed
+- You can now scroll the main panel with your mouse or pgup/pgdown. Before, doing
+  so would move the cursor which was weird
+- You can now insert a newline to the commit message panel via alt-enter. I've
+  changed the default keybinding from <tab> to <a-enter>. Let me know if that makes
+  you angry
+- When you scroll the main view, it will now stop just shy of scrolling too far
+- The gui no longer re-initialises when returning from a subprocess or switching
+  repos
+- By default, 'esc' no longer quits lazygit. Instead you'll need to use ctrl+c
+  or 'q'. We use escape for exiting various modes in lazygit (e.g. cherry-picking)
+  and it gets annoying when you accidentally hit esc one too many times and end
+  up quitting. It's still configurable though
+- Faster startup time
+- Custom commands now run in your shell so you have more freedom to get freaky with it
+
+Bug fixes:
+- No more panicking when attemping to enter an unprintable key (thanks @fsmiamoto!)
+- Rewording the topmost commit no longer commits staged files as well
+- When returning from a submodule we retain the state of the parent repo so that
+  you land back where you were in the submodules tab
+- Fixed a bug in search where the cursor would get stuck if the result set shrunk
+- Commands now retry if .git/index.lock exists
+- Branches are no longer checked out when renamed
+- Fixed issue with merge conflicts on windows where the wrong command was invoked
+  causing a panic
+
+Code-stuff:
+- Lots of refactoring of the code itself. I'm considering a much bigger refactor
+  but need to investigate whether the approach is a good idea
+- Added a TUI for running/recording integration tests so that that whole workflow
+  is easier
+- Added over 40 new integration tests, so bugs will be caught sooner. As always,
+  if you catch a bug, please raise an issue for it!
+
+
+## lazygit 0.26 Release Notes
 
 - Config changes applied after editing from within lazygit, no reload required.
 
