@@ -6,18 +6,14 @@ import (
 )
 
 func (gui *Gui) handleCreateFilteringMenuPanel() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
 	fileName := ""
-	switch gui.currentViewName() {
-	case "files":
+	switch gui.currentSideListContext() {
+	case gui.State.Contexts.Files:
 		node := gui.getSelectedFileNode()
 		if node != nil {
 			fileName = node.GetPath()
 		}
-	case "commitFiles":
+	case gui.State.Contexts.CommitFiles:
 		node := gui.getSelectedCommitFileNode()
 		if node != nil {
 			fileName = node.GetPath()
