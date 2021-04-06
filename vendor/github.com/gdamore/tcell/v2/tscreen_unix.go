@@ -47,6 +47,12 @@ func (t *tScreen) engage() error {
 	t.enablePasting(t.pasteEnabled)
 	signal.Notify(t.sigwinch, syscall.SIGWINCH)
 
+	ti := t.ti
+	t.TPuts(ti.EnterCA)
+	t.TPuts(ti.HideCursor)
+	t.TPuts(ti.EnableAcs)
+	t.TPuts(ti.Clear)
+
 	t.wg.Add(2)
 	go t.inputLoop(stopQ)
 	go t.mainLoop(stopQ)
