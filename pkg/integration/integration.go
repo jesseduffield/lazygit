@@ -60,7 +60,7 @@ func RunTests(
 			testPath := filepath.Join(testDir, test.Name)
 			actualDir := filepath.Join(testPath, "actual")
 			expectedDir := filepath.Join(testPath, "expected")
-			logf("testPath: %s, actualDir: %s, expectedDir: %s", testPath, actualDir, expectedDir)
+			logf("path: %s", testPath)
 
 			// three retries at normal speed for the sake of flakey tests
 			speeds = append(speeds, 1, 1, 1)
@@ -88,6 +88,13 @@ func RunTests(
 
 				if updateSnapshots {
 					err = oscommands.CopyDir(actualDir, expectedDir)
+					if err != nil {
+						return err
+					}
+					err = os.Rename(
+						filepath.Join(expectedDir, ".git"),
+						filepath.Join(expectedDir, ".git_keep"),
+					)
 					if err != nil {
 						return err
 					}
@@ -262,21 +269,18 @@ func generateSnapshot(dir string) (string, error) {
 
 	snapshot := ""
 
-	statusCmd := fmt.Sprintf(`git -C %s status`, dir)
-	statusCmdOutput, err := osCommand.RunCommandWithOutput(statusCmd)
-	if err != nil {
-		return "", err
+	cmdStrs := []string{
+		fmt.Sprintf(`git -C %s status`, dir),                 // file tree
+		fmt.Sprintf(`git -C %s log --pretty=%%B -p -1`, dir), // log
+		fmt.Sprintf(`git -C %s tag -n`, dir),                 // tags
 	}
 
-	snapshot += statusCmdOutput + "\n"
+	for _, cmdStr := range cmdStrs {
+		// ignoring error for now. If there's an error it could be that there are no results
+		output, _ := osCommand.RunCommandWithOutput(cmdStr)
 
-	logCmd := fmt.Sprintf(`git -C %s log --pretty=%%B -p -1`, dir)
-	logCmdOutput, err := osCommand.RunCommandWithOutput(logCmd)
-	if err != nil {
-		return "", err
+		snapshot += output + "\n"
 	}
-
-	snapshot += logCmdOutput + "\n"
 
 	err = filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
