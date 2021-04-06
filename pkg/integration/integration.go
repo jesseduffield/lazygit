@@ -63,7 +63,7 @@ func RunTests(
 			logf("path: %s", testPath)
 
 			// three retries at normal speed for the sake of flakey tests
-			speeds = append(speeds, 1, 1, 1)
+			speeds = append(speeds, 1, 0.5, 0.5)
 			for i, speed := range speeds {
 				logf("%s: attempting test at speed %f\n", test.Name, speed)
 
