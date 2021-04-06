@@ -487,7 +487,7 @@ func TestGitCommandRenameCommit(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"commit", "--allow-empty", "--amend", "-m", "test"}, args)
+		assert.EqualValues(t, []string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, args)
 
 		return secureexec.Command("echo")
 	}
