@@ -18,3 +18,6 @@ git commit -am file1
 echo test2 > file2
 git add .
 git commit -am file2
+
+echo test3 > file3
+git add .
