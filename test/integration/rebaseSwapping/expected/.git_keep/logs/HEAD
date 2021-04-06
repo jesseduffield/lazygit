@@ -1,0 +1,10 @@
+0000000000000000000000000000000000000000 ac32b36c1b300cc79ad3f16dfb3c8a77ea7f4965 CI <CI@example.com> 1617673516 +1000	commit (initial): file0
+ac32b36c1b300cc79ad3f16dfb3c8a77ea7f4965 b218d34eec545f29156411f24ab609b970082e1c CI <CI@example.com> 1617673516 +1000	commit: file1
+b218d34eec545f29156411f24ab609b970082e1c d23bcf26566cbf601e766d12ea206cb7827d6630 CI <CI@example.com> 1617673516 +1000	commit: file2
+d23bcf26566cbf601e766d12ea206cb7827d6630 613c1bfa180babe5e67317d1ef42d566718a7d8f CI <CI@example.com> 1617673516 +1000	commit: file4-added
+613c1bfa180babe5e67317d1ef42d566718a7d8f ceada384bff8df54abb8acbf497b751aa9220f00 CI <CI@example.com> 1617673516 +1000	commit: file4-changed
+ceada384bff8df54abb8acbf497b751aa9220f00 0e45fe2fb8b21adfe348ec5419bd87e4c796c02a CI <CI@example.com> 1617673516 +1000	commit: file4-changed-again
+0e45fe2fb8b21adfe348ec5419bd87e4c796c02a 613c1bfa180babe5e67317d1ef42d566718a7d8f CI <CI@example.com> 1617673517 +1000	rebase -i (start): checkout 613c1bfa180babe5e67317d1ef42d566718a7d8f
+613c1bfa180babe5e67317d1ef42d566718a7d8f 84c7a918e6bd704aaf4f789ecaea479ab31d4741 CI <CI@example.com> 1617673520 +1000	rebase -i (continue): file4-changed-again
+84c7a918e6bd704aaf4f789ecaea479ab31d4741 41eefd8a741d391640c4e0528e0b6fff31f90a18 CI <CI@example.com> 1617673523 +1000	rebase -i (continue): file4-changed
+41eefd8a741d391640c4e0528e0b6fff31f90a18 41eefd8a741d391640c4e0528e0b6fff31f90a18 CI <CI@example.com> 1617673523 +1000	rebase -i (finish): returning to refs/heads/master

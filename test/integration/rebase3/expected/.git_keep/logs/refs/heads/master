@@ -1,0 +1,7 @@
+0000000000000000000000000000000000000000 fdecf9e3e742db4c8690d56b328b2533e67d2866 CI <CI@example.com> 1617673401 +1000	commit (initial): file0
+fdecf9e3e742db4c8690d56b328b2533e67d2866 f06dfb4e9e5a9dfab869590058f2c1ce1c72b2ac CI <CI@example.com> 1617673401 +1000	commit: file1
+f06dfb4e9e5a9dfab869590058f2c1ce1c72b2ac 51a0e4a6635c22a062a48b7134dd556541a1e06c CI <CI@example.com> 1617673401 +1000	commit: file2
+51a0e4a6635c22a062a48b7134dd556541a1e06c d8ae31faf375fd293cedb0c88c41a9c7a77a2530 CI <CI@example.com> 1617673401 +1000	commit: file4-added
+d8ae31faf375fd293cedb0c88c41a9c7a77a2530 4bf6ae41c5ef2186c87f5f39dbb8cadd76c597cc CI <CI@example.com> 1617673401 +1000	commit: file4-changed
+4bf6ae41c5ef2186c87f5f39dbb8cadd76c597cc 9e68fbe4291e7416d50587d9b6968aa5ceeccff9 CI <CI@example.com> 1617673401 +1000	commit: file4-changed-again
+9e68fbe4291e7416d50587d9b6968aa5ceeccff9 3c21f03d819ae34b74084712c3ef1b9b99b2f40e CI <CI@example.com> 1617673409 +1000	rebase -i (finish): refs/heads/master onto fdecf9e3e742db4c8690d56b328b2533e67d2866
