@@ -51,13 +51,13 @@ var OverlappingEdges = false
 
 type ContextManager struct {
 	ContextStack []Context
-	sync.Mutex
+	sync.RWMutex
 }
 
 func NewContextManager(initialContext Context) ContextManager {
 	return ContextManager{
 		ContextStack: []Context{initialContext},
-		Mutex:        sync.Mutex{},
+		RWMutex:      sync.RWMutex{},
 	}
 }
 
