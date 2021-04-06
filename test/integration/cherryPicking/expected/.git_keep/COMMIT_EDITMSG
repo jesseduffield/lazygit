@@ -1,0 +1,15 @@
+fourth commit on develop
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# interactive rebase in progress; onto 696a8fd
+# Last commands done (2 commands done):
+#    pick 234e2fa third commit on develop
+#    pick 0556e5d fourth commit on develop
+# No commands remaining.
+# You are currently rebasing branch 'other_branch' on '696a8fd'.
+#
+# Changes to be committed:
+#	modified:   file5
+#
