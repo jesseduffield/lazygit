@@ -347,8 +347,8 @@ func (gui *Gui) onInitialViewsCreation() error {
 		gui.Views.CommitMessage,
 		gui.Views.Credentials,
 		gui.Views.Menu,
-		gui.Views.Confirmation,
 		gui.Views.Suggestions,
+		gui.Views.Confirmation,
 
 		// this guy will cover everything else when it appears
 		gui.Views.Limit,
