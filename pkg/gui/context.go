@@ -356,8 +356,8 @@ func (tree ContextTree) initialViewTabContextMap() map[string][]tabContext {
 }
 
 func (gui *Gui) currentContextKeyIgnoringPopups() ContextKey {
-	gui.State.ContextManager.Lock()
-	defer gui.State.ContextManager.Unlock()
+	gui.State.ContextManager.RLock()
+	defer gui.State.ContextManager.RUnlock()
 
 	stack := gui.State.ContextManager.ContextStack
 
@@ -577,8 +577,8 @@ func (gui *Gui) activateContext(c Context) error {
 // }
 
 func (gui *Gui) currentContext() Context {
-	gui.State.ContextManager.Lock()
-	defer gui.State.ContextManager.Unlock()
+	gui.State.ContextManager.RLock()
+	defer gui.State.ContextManager.RUnlock()
 
 	if len(gui.State.ContextManager.ContextStack) == 0 {
 		return gui.defaultSideContext()
@@ -599,8 +599,8 @@ func (gui *Gui) currentSideListContext() *ListContext {
 }
 
 func (gui *Gui) currentSideContext() Context {
-	gui.State.ContextManager.Lock()
-	defer gui.State.ContextManager.Unlock()
+	gui.State.ContextManager.RLock()
+	defer gui.State.ContextManager.RUnlock()
 
 	stack := gui.State.ContextManager.ContextStack
 
