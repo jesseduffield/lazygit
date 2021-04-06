@@ -39,6 +39,7 @@ func Test(t *testing.T) {
 	record := false
 	updateSnapshots := os.Getenv("UPDATE_SNAPSHOTS") != ""
 	speedEnv := os.Getenv("SPEED")
+	includeSkipped := os.Getenv("INCLUDE_SKIPPED") != ""
 
 	err := integration.RunTests(
 		t.Logf,
@@ -55,6 +56,7 @@ func Test(t *testing.T) {
 		func(t *testing.T, expected string, actual string) {
 			assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
 		},
+		includeSkipped,
 	)
 
 	assert.NoError(t, err)

@@ -20,6 +20,7 @@ type Test struct {
 	Speed        float64 `json:"speed"`
 	Description  string  `json:"description"`
 	ExtraCmdArgs string  `json:"extraCmdArgs"`
+	Skip         bool    `json:"skip"`
 }
 
 // this function is used by both `go test` and from our lazyintegration gui, but
@@ -33,6 +34,7 @@ func RunTests(
 	record bool,
 	speedEnv string,
 	onFail func(t *testing.T, expected string, actual string),
+	includeSkipped bool,
 ) error {
 	rootDir := GetRootDirectory()
 	err := os.Chdir(rootDir)
@@ -55,6 +57,11 @@ func RunTests(
 
 	for _, test := range tests {
 		test := test
+
+		if test.Skip && !includeSkipped {
+			logf("skipping test: %s", test.Name)
+			continue
+		}
 
 		fnWrapper(test, func(t *testing.T) error {
 			speeds := getTestSpeeds(test.Speed, updateSnapshots, speedEnv)

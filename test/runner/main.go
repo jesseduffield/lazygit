@@ -23,6 +23,7 @@ func main() {
 	record := os.Getenv("RECORD_EVENTS") != ""
 	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
 	speedEnv := os.Getenv("SPEED")
+	includeSkipped := os.Getenv("INCLUDE_SKIPPED") != ""
 	selectedTestName := os.Args[1]
 
 	err := integration.RunTests(
@@ -42,6 +43,7 @@ func main() {
 		func(_t *testing.T, expected string, actual string) {
 			assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
 		},
+		includeSkipped,
 	)
 	if err != nil {
 		log.Print(err.Error())

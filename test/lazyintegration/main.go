@@ -100,7 +100,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("RECORD_EVENTS=true go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true RECORD_EVENTS=true go run test/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -114,7 +114,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true go run test/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -128,7 +128,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("UPDATE_SNAPSHOTS=true go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true UPDATE_SNAPSHOTS=true go run test/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
