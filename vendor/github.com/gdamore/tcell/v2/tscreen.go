@@ -168,11 +168,6 @@ func (t *tScreen) Init() error {
 		t.colors[Color(i)|ColorValid] = Color(i) | ColorValid
 	}
 
-	t.TPuts(ti.EnterCA)
-	t.TPuts(ti.HideCursor)
-	t.TPuts(ti.EnableAcs)
-	t.TPuts(ti.Clear)
-
 	t.quit = make(chan struct{})
 
 	t.Lock()
@@ -1579,7 +1574,6 @@ func (t *tScreen) HasKey(k Key) bool {
 }
 
 func (t *tScreen) Resize(int, int, int, int) {}
-
 
 func (t *tScreen) Suspend() error {
 	t.disengage()
