@@ -1,0 +1,10 @@
+0000000000000000000000000000000000000000 2b16e862b7fc2a6ce1e711e5e174bc2f08c0e001 CI <CI@example.com> 1617683558 +1000	commit (initial): file0
+2b16e862b7fc2a6ce1e711e5e174bc2f08c0e001 9acb41da3b683497b3966135ccd64411b8ef698f CI <CI@example.com> 1617683558 +1000	commit: file1
+9acb41da3b683497b3966135ccd64411b8ef698f 40e3ff58efe2f50bc70ab084aba687ffd56dcd38 CI <CI@example.com> 1617683558 +1000	commit: file2
+40e3ff58efe2f50bc70ab084aba687ffd56dcd38 ced0c7ee1af3cd078a0bd940fa45e973dfd0f226 CI <CI@example.com> 1617683558 +1000	commit: file4
+ced0c7ee1af3cd078a0bd940fa45e973dfd0f226 ced0c7ee1af3cd078a0bd940fa45e973dfd0f226 CI <CI@example.com> 1617683558 +1000	checkout: moving from master to branch2
+ced0c7ee1af3cd078a0bd940fa45e973dfd0f226 fdc461cdae46cbcd0e8b6f33898b25a17ab36f32 CI <CI@example.com> 1617683558 +1000	commit: file4
+fdc461cdae46cbcd0e8b6f33898b25a17ab36f32 37661793a793e075730b85b9c3b300195738fc63 CI <CI@example.com> 1617683558 +1000	commit: file4
+37661793a793e075730b85b9c3b300195738fc63 10e005e1fa2db07721aa63cb048b87b7a2830b64 CI <CI@example.com> 1617683558 +1000	commit: file2
+10e005e1fa2db07721aa63cb048b87b7a2830b64 fdc461cdae46cbcd0e8b6f33898b25a17ab36f32 CI <CI@example.com> 1617683563 +1000	checkout: moving from branch2 to fdc461cdae46cbcd0e8b
+fdc461cdae46cbcd0e8b6f33898b25a17ab36f32 fdc461cdae46cbcd0e8b6f33898b25a17ab36f32 CI <CI@example.com> 1617683567 +1000	checkout: moving from fdc461cdae46cbcd0e8b6f33898b25a17ab36f32 to ma
