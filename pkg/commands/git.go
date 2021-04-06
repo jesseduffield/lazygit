@@ -221,14 +221,6 @@ func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...int
 				time.Sleep(waitTime)
 				if attempt < retryCount {
 					continue
-				} else if attempt == retryCount {
-					// delete the lock file because some other process must have died leaving it there
-					// TODO: ensure this is the actual location of the lock
-					c.Log.Warn("WARNING: removing index.lock file after retrying command 5 times")
-					if err := os.Remove(".git/index.lock"); err != nil {
-						return "", err
-					}
-					continue
 				}
 			}
 		}
