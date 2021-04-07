@@ -375,6 +375,15 @@ func (gui *Gui) onInitialViewsCreation() error {
 		return err
 	}
 
+	if !gui.Config.GetUserConfig().DisableStartupPopups {
+		popupTasks := []func(chan struct{}) error{}
+		storedPopupVersion := gui.Config.GetAppState().StartupPopupVersion
+		if storedPopupVersion < StartupPopupVersion {
+			popupTasks = append(popupTasks, gui.showIntroPopupMessage)
+		}
+		gui.showInitialPopups(popupTasks)
+	}
+
 	if gui.showRecentRepos {
 		if err := gui.handleCreateRecentReposMenu(); err != nil {
 			return err
