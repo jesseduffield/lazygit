@@ -515,15 +515,6 @@ func (gui *Gui) Run() error {
 		return err
 	}
 
-	if !gui.Config.GetUserConfig().DisableStartupPopups {
-		popupTasks := []func(chan struct{}) error{}
-		storedPopupVersion := gui.Config.GetAppState().StartupPopupVersion
-		if storedPopupVersion < StartupPopupVersion {
-			popupTasks = append(popupTasks, gui.showIntroPopupMessage)
-		}
-		gui.showInitialPopups(popupTasks)
-	}
-
 	gui.waitForIntro.Add(1)
 	if gui.Config.GetUserConfig().Git.AutoFetch {
 		go utils.Safe(gui.startBackgroundFetch)
