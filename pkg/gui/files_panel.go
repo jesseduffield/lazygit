@@ -729,6 +729,10 @@ func (gui *Gui) pushFiles() error {
 
 	// if we have pullables we'll ask if the user wants to force push
 	currentBranch := gui.currentBranch()
+	if currentBranch == nil {
+		// need to wait for branches to refresh
+		return nil
+	}
 
 	if currentBranch.Pullables == "?" {
 		// see if we have this branch in our config with an upstream

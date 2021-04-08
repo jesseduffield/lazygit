@@ -48,7 +48,7 @@ func (gui *Gui) handleSubmitCredential() error {
 		return err
 	}
 
-	return gui.refreshSidePanels(refreshOptions{})
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
 func (gui *Gui) handleCloseCredentialsView() error {
@@ -78,6 +78,7 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 		if strings.Contains(errMessage, "Invalid username, password or passphrase") {
 			errMessage = gui.Tr.PassUnameWrong
 		}
+		_ = gui.returnFromContext()
 		// we are not logging this error because it may contain a password or a passphrase
 		_ = gui.createErrorPanel(errMessage)
 	} else {

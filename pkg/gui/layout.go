@@ -355,10 +355,10 @@ func (gui *Gui) onInitialViewsCreation() error {
 		// popups. Ordering within this layer does not matter because there should
 		// only be one popup shown at a time
 		gui.Views.CommitMessage,
-		gui.Views.Credentials,
 		gui.Views.Menu,
 		gui.Views.Suggestions,
 		gui.Views.Confirmation,
+		gui.Views.Credentials,
 
 		// this guy will cover everything else when it appears
 		gui.Views.Limit,
