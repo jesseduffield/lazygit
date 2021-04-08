@@ -1,10 +1,6 @@
 package filetree
 
 import (
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -169,8 +165,8 @@ func (s *CommitFileNode) AnyFile(test func(file *models.CommitFile) bool) bool {
 }
 
 func (s *CommitFileNode) NameAtDepth(depth int) string {
-	splitName := strings.Split(s.Path, string(os.PathSeparator))
-	name := filepath.Join(splitName[depth:]...)
+	splitName := split(s.Path)
+	name := join(splitName[depth:])
 
 	return name
 }

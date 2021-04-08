@@ -1,8 +1,6 @@
 package filetree
 
 import (
-	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -14,18 +12,17 @@ func BuildTreeFromFiles(files []*models.File) *FileNode {
 
 	var curr *FileNode
 	for _, file := range files {
-		split := strings.Split(file.Name, string(os.PathSeparator))
+		splitPath := split(file.Name)
 		curr = root
 	outer:
-		for i := range split {
+		for i := range splitPath {
 			var setFile *models.File
-			isFile := i == len(split)-1
+			isFile := i == len(splitPath)-1
 			if isFile {
 				setFile = file
 			}
 
-			path := filepath.Join(split[:i+1]...)
-
+			path := join(splitPath[:i+1])
 			for _, existingChild := range curr.Children {
 				if existingChild.Path == path {
 					curr = existingChild
@@ -61,17 +58,17 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileNode {
 
 	var curr *CommitFileNode
 	for _, file := range files {
-		split := strings.Split(file.Name, string(os.PathSeparator))
+		splitPath := split(file.Name)
 		curr = root
 	outer:
-		for i := range split {
+		for i := range splitPath {
 			var setFile *models.CommitFile
-			isFile := i == len(split)-1
+			isFile := i == len(splitPath)-1
 			if isFile {
 				setFile = file
 			}
 
-			path := filepath.Join(split[:i+1]...)
+			path := join(splitPath[:i+1])
 
 			for _, existingChild := range curr.Children {
 				if existingChild.Path == path {
@@ -107,4 +104,12 @@ func BuildFlatTreeFromFiles(files []*models.File) *FileNode {
 	})
 
 	return &FileNode{Children: sortedFiles}
+}
+
+func split(str string) []string {
+	return strings.Split(str, "/")
+}
+
+func join(strs []string) string {
+	return strings.Join(strs, "/")
 }
