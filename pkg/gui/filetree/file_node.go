@@ -2,9 +2,6 @@ package filetree
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
@@ -171,18 +168,18 @@ func (s *FileNode) AnyFile(test func(file *models.File) bool) bool {
 }
 
 func (s *FileNode) NameAtDepth(depth int) string {
-	splitName := strings.Split(s.Path, string(os.PathSeparator))
-	name := filepath.Join(splitName[depth:]...)
+	splitName := split(s.Path)
+	name := join(splitName[depth:])
 
 	if s.File != nil && s.File.IsRename() {
-		splitPrevName := strings.Split(s.File.PreviousName, string(os.PathSeparator))
+		splitPrevName := split(s.File.PreviousName)
 
 		prevName := s.File.PreviousName
 		// if the file has just been renamed inside the same directory, we can shave off
 		// the prefix for the previous path too. Otherwise we'll keep it unchanged
-		sameParentDir := len(splitName) == len(splitPrevName) && filepath.Join(splitName[0:depth]...) == filepath.Join(splitPrevName[0:depth]...)
+		sameParentDir := len(splitName) == len(splitPrevName) && join(splitName[0:depth]) == join(splitPrevName[0:depth])
 		if sameParentDir {
-			prevName = filepath.Join(splitPrevName[depth:]...)
+			prevName = join(splitPrevName[depth:])
 		}
 
 		return fmt.Sprintf("%s%s%s", prevName, " → ", name)

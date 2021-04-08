@@ -1,17 +1,12 @@
 package filetree
 
-import (
-	"os"
-	"strings"
-)
-
 type CollapsedPaths map[string]bool
 
 func (cp CollapsedPaths) ExpandToPath(path string) {
 	// need every directory along the way
-	split := strings.Split(path, string(os.PathSeparator))
-	for i := range split {
-		dir := strings.Join(split[0:i+1], string(os.PathSeparator))
+	splitPath := split(path)
+	for i := range splitPath {
+		dir := join(splitPath[0 : i+1])
 		cp[dir] = false
 	}
 }
