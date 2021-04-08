@@ -16,8 +16,13 @@ func (gui *Gui) runSyncOrAsyncCommand(sub *exec.Cmd, err error) (bool, error) {
 	if err != nil {
 		return false, gui.surfaceError(err)
 	}
-	if sub != nil {
-		return false, gui.runSubprocessWithSuspense(sub)
+	if sub == nil {
+		return true, nil
+	}
+
+	err = gui.runSubprocessWithSuspense(sub)
+	if err != nil {
+		return false, err
 	}
 	return true, nil
 }
@@ -36,12 +41,14 @@ func (gui *Gui) handleCommitConfirm() error {
 	if err != nil {
 		return err
 	}
+
+	_ = gui.returnFromContext()
+
 	if !ok {
 		return nil
 	}
 
 	gui.clearEditorView(gui.Views.CommitMessage)
-	_ = gui.returnFromContext()
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
