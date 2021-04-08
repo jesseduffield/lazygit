@@ -518,20 +518,16 @@ func (v *View) writeCells(x, y int, cells []cell) {
 // of functions like fmt.Fprintf, fmt.Fprintln, io.Copy, etc. Clear must
 // be called to clear the view's buffer.
 func (v *View) Write(p []byte) (n int, err error) {
-	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
 	v.tainted = true
+	v.writeMutex.Lock()
 	v.makeWriteable(v.wx, v.wy)
 	v.writeRunes(bytes.Runes(p))
+	v.writeMutex.Unlock()
 
 	return len(p), nil
 }
 
 func (v *View) WriteRunes(p []rune) {
-	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
 	v.tainted = true
 
 	// Fill with empty cells, if writing outside current view buffer
@@ -549,8 +545,6 @@ func (v *View) writeRunes(p []rune) {
 	for _, r := range p {
 		switch r {
 		case '\n':
-			// clear the rest of the line
-			v.lines[v.wy] = v.lines[v.wy][0:v.wx]
 			v.wy++
 			if v.wy >= len(v.lines) {
 				v.lines = append(v.lines, nil)
@@ -648,15 +642,6 @@ func (v *View) Read(p []byte) (n int, err error) {
 
 // Rewind sets read and write pos to (0, 0).
 func (v *View) Rewind() {
-	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
-	v.rewind()
-}
-
-func (v *View) rewind() {
-	v.ei.reset()
-
 	if err := v.SetReadPos(0, 0); err != nil {
 		// SetReadPos returns error only if x and y are negative
 		// we are passing 0, 0, thus no error should occur.
@@ -847,31 +832,13 @@ func (v *View) realPosition(vx, vy int) (x, y int, err error) {
 // And resets reading and writing offsets.
 func (v *View) Clear() {
 	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
-	v.rewind()
+	v.Rewind()
 	v.tainted = true
+	v.ei.reset()
 	v.lines = nil
 	v.viewLines = nil
 	v.clearRunes()
-}
-
-// This is for when we've done a rewind for the sake of avoiding a flicker and
-// we've reached the end of the new content to display: we need to clear the remaining
-// content from the previous round.
-func (v *View) FlushStaleCells() {
-	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
-	// need to wipe the end of the current line and all following lines
-	if len(v.lines) > 0 && v.wy < len(v.lines) {
-		// why this needs to be +1 but the 0:v.wx part doesn't, I'm not sure
-		v.lines = v.lines[0 : v.wy+1]
-
-		if len(v.lines[v.wy]) > 0 && v.wx < len(v.lines[v.wy]) {
-			v.lines[v.wy] = v.lines[v.wy][0:v.wx]
-		}
-	}
+	v.writeMutex.Unlock()
 }
 
 // clearRunes erases all the cells in the view.

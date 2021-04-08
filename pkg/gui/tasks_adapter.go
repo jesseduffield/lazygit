@@ -83,23 +83,13 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			gui.Log,
 			view,
 			func() {
-				// we could clear here, but that actually has the effect of causing a flicker
-				// where the view may contain no content momentarily as the gui refreshes.
-				// Instead, we're rewinding the write pointer so that we will just start
-				// overwriting the existing content from the top down. Once we've reached
-				// the end of the content do display, we call view.FlushStaleCells() to
-				// clear out the remaining content from the previous render.
-				view.Rewind()
+				view.Clear()
 			},
 			func() {
 				gui.g.Update(func(*gocui.Gui) error {
 					return nil
 				})
-			},
-			func() {
-				view.FlushStaleCells()
-			},
-		)
+			})
 		gui.viewBufferManagerMap[view.Name()] = manager
 	}
 

@@ -33,13 +33,12 @@ type ViewBufferManager struct {
 	readLines    chan int
 
 	// beforeStart is the function that is called before starting a new task
-	beforeStart     func()
-	refreshView     func()
-	flushStaleCells func()
+	beforeStart func()
+	refreshView func()
 }
 
-func NewViewBufferManager(log *logrus.Entry, writer io.Writer, beforeStart func(), refreshView func(), flushStaleCells func()) *ViewBufferManager {
-	return &ViewBufferManager{Log: log, writer: writer, beforeStart: beforeStart, refreshView: refreshView, flushStaleCells: flushStaleCells, readLines: make(chan int, 1024)}
+func NewViewBufferManager(log *logrus.Entry, writer io.Writer, beforeStart func(), refreshView func()) *ViewBufferManager {
+	return &ViewBufferManager{Log: log, writer: writer, beforeStart: beforeStart, refreshView: refreshView, readLines: make(chan int, 1024)}
 }
 
 func (m *ViewBufferManager) ReadLines(n int) {
@@ -76,7 +75,7 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 			loaded := false
 
 			go utils.Safe(func() {
-				ticker := time.NewTicker(time.Millisecond * 200)
+				ticker := time.NewTicker(time.Millisecond * 100)
 				defer ticker.Stop()
 				select {
 				case <-ticker.C:
@@ -115,9 +114,6 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 						default:
 						}
 						if !ok {
-							// if we're here then there's nothing left to scan from the source
-							// so we're at the EOF and can flush the stale content
-							m.flushStaleCells()
 							m.refreshView()
 							break outer
 						}
