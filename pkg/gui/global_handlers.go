@@ -200,7 +200,7 @@ func (gui *Gui) handleInfoClick() error {
 	return nil
 }
 
-func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
+func (gui *Gui) fetch(canPromptForCredentials bool, span string) (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
@@ -209,7 +209,7 @@ func (gui *Gui) fetch(canPromptForCredentials bool) (err error) {
 		fetchOpts.PromptUserForCredential = gui.promptUserForCredential
 	}
 
-	err = gui.GitCommand.Fetch(fetchOpts)
+	err = gui.GitCommand.WithSpan(span).Fetch(fetchOpts)
 
 	if canPromptForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
@@ -228,7 +228,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
+	if err := gui.OSCommand.WithSpan("Copy to clipboard").CopyToClipboard(itemId); err != nil {
 		return gui.surfaceError(err)
 	}
 

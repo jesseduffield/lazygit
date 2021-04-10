@@ -609,6 +609,8 @@ func (gui *Gui) handlePullFiles() error {
 		return nil
 	}
 
+	span := "Pull"
+
 	currentBranch := gui.currentBranch()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
@@ -624,7 +626,7 @@ func (gui *Gui) handlePullFiles() error {
 		}
 		for branchName, branch := range conf.Branches {
 			if branchName == currentBranch.Name {
-				return gui.pullFiles(PullFilesOptions{RemoteName: branch.Remote, BranchName: branch.Name})
+				return gui.pullFiles(PullFilesOptions{RemoteName: branch.Remote, BranchName: branch.Name, span: span})
 			}
 		}
 
@@ -639,17 +641,18 @@ func (gui *Gui) handlePullFiles() error {
 					}
 					return gui.createErrorPanel(errorMessage)
 				}
-				return gui.pullFiles(PullFilesOptions{})
+				return gui.pullFiles(PullFilesOptions{span: span})
 			},
 		})
 	}
 
-	return gui.pullFiles(PullFilesOptions{})
+	return gui.pullFiles(PullFilesOptions{span: span})
 }
 
 type PullFilesOptions struct {
 	RemoteName string
 	BranchName string
+	span       string
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
@@ -669,7 +672,7 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	gitCommand := gui.GitCommand.WithSpan("Pull")
+	gitCommand := gui.GitCommand.WithSpan(opts.span)
 
 	err := gitCommand.Fetch(
 		commands.FetchOptions{

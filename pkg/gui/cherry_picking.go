@@ -148,7 +148,7 @@ func (gui *Gui) HandlePasteCommits() error {
 		prompt: gui.Tr.SureCherryPick,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.CherryPickingStatus, func() error {
-				err := gui.GitCommand.CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
+				err := gui.GitCommand.WithSpan("(Cherry-pick) Paste commits").CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},

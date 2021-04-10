@@ -19,7 +19,7 @@ func (gui *Gui) handleCreateTag() error {
 		title: gui.Tr.CreateTagTitle,
 		handleConfirm: func(tagName string) error {
 			// leaving commit SHA blank so that we're just creating the tag for the current commit
-			if err := gui.GitCommand.CreateLightweightTag(tagName, ""); err != nil {
+			if err := gui.GitCommand.WithSpan("Create lightweight tag").CreateLightweightTag(tagName, ""); err != nil {
 				return gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{COMMITS, TAGS}, then: func() {
@@ -86,7 +86,7 @@ func (gui *Gui) withSelectedTag(f func(tag *models.Tag) error) func() error {
 }
 
 func (gui *Gui) handleCheckoutTag(tag *models.Tag) error {
-	if err := gui.handleCheckoutRef(tag.Name, handleCheckoutRefOptions{}); err != nil {
+	if err := gui.handleCheckoutRef(tag.Name, handleCheckoutRefOptions{span: "Checkout tag"}); err != nil {
 		return err
 	}
 	return gui.pushContext(gui.State.Contexts.Branches)
@@ -104,7 +104,7 @@ func (gui *Gui) handleDeleteTag(tag *models.Tag) error {
 		title:  gui.Tr.DeleteTagTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
+			if err := gui.GitCommand.WithSpan("Delete tag").DeleteTag(tag.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
@@ -125,7 +125,7 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		initialContent: "origin",
 		handleConfirm: func(response string) error {
 			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
-				err := gui.GitCommand.PushTag(response, tag.Name, gui.promptUserForCredential)
+				err := gui.GitCommand.WithSpan("Push tag").PushTag(response, tag.Name, gui.promptUserForCredential)
 				gui.handleCredentialsPopup(err)
 
 				return nil
