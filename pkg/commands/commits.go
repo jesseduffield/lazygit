@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -51,11 +50,6 @@ func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
 // AmendHead amends HEAD with whatever is staged in your working tree
 func (c *GitCommand) AmendHead() error {
 	return c.OSCommand.RunCommand(c.AmendHeadCmdStr())
-}
-
-// PrepareCommitAmendHeadSubProcess prepares a subprocess for `git commit --amend --allow-empty`
-func (c *GitCommand) PrepareCommitAmendHeadSubProcess() *exec.Cmd {
-	return c.OSCommand.ShellCommandFromString(c.AmendHeadCmdStr())
 }
 
 func (c *GitCommand) AmendHeadCmdStr() string {

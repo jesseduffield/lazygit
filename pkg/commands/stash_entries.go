@@ -21,7 +21,7 @@ func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
 // StashSaveStagedChanges stashes only the currently staged changes. This takes a few steps
 // shoutouts to Joe on https://stackoverflow.com/questions/14759748/stashing-only-staged-changes-in-git-is-it-possible
 func (c *GitCommand) StashSaveStagedChanges(message string) error {
-
+	// wrap in 'writing', which uses a mutex
 	if err := c.RunCommand("git stash --keep-index"); err != nil {
 		return err
 	}

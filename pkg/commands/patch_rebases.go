@@ -137,7 +137,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	return c.GenericMergeOrRebaseAction("rebase", "continue")
 }
 
-func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
+func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
 	if stash {
 		if err := c.StashSave(c.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
 			return err

@@ -20,6 +20,5 @@ func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitComman
 		Tr:                i18n.NewTranslationSet(utils.NewDummyLog()),
 		Config:            config.NewDummyAppConfig(),
 		getGitConfigValue: func(string) (string, error) { return "", nil },
-		removeFile:        func(string) error { return nil },
 	}
 }

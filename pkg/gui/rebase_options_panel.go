@@ -43,18 +43,20 @@ func (gui *Gui) genericMergeCommand(command string) error {
 		return gui.createErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
+	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge: %s", command))
+
 	commandType := strings.Replace(status, "ing", "e", 1)
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
 	if status == commands.REBASE_MODE_MERGING && command != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
-		sub := gui.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
+		sub := gitCommand.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
 		if sub != nil {
 			return gui.runSubprocessWithSuspenseAndRefresh(sub)
 		}
 		return nil
 	}
-	result := gui.GitCommand.GenericMergeOrRebaseAction(commandType, command)
+	result := gitCommand.GenericMergeOrRebaseAction(commandType, command)
 	if err := gui.handleGenericMergeCommandResult(result); err != nil {
 		return err
 	}

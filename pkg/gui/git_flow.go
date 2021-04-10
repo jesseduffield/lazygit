@@ -56,7 +56,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 				title: title,
 				handleConfirm: func(name string) error {
 					return gui.runSubprocessWithSuspenseAndRefresh(
-						gui.OSCommand.PrepareSubProcess("git", "flow", branchType, "start", name),
+						gui.OSCommand.WithSpan("Git Flow").PrepareSubProcess("git", "flow", branchType, "start", name),
 					)
 				},
 			})

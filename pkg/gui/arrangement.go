@@ -146,7 +146,7 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 		mainPanelsDirection = boxlayout.COLUMN
 	}
 
-	cmdLogSize := 10
+	cmdLogSize := 40 // TODO: make configurable
 
 	root := &boxlayout.Box{
 		Direction: boxlayout.ROW,
