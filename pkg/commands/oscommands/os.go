@@ -300,7 +300,6 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
-	c.LogCommand(fmt.Sprintf("Opening file '%s'", filename), false)
 	commandTemplate := c.Config.GetUserConfig().OS.OpenCommand
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
