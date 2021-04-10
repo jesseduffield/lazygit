@@ -109,6 +109,9 @@ type Gui struct {
 	// we typically want to pause some things that are running like background
 	// file refreshes
 	PauseBackgroundThreads bool
+
+	// Log of the commands that get run, to be displayed to the user.
+	CmdLog []string
 }
 
 type listPanelState struct {
@@ -250,6 +253,7 @@ type Views struct {
 	SearchPrefix  *gocui.View
 	Limit         *gocui.View
 	Suggestions   *gocui.View
+	CmdLog        *gocui.View
 }
 
 type searchingState struct {
@@ -459,11 +463,22 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		showRecentRepos:      showRecentRepos,
 		RepoPathStack:        []string{},
 		RepoStateMap:         map[Repo]*guiState{},
+		CmdLog:               []string{},
 	}
 
 	gui.resetState(filterPath, false)
 
 	gui.watchFilesForChanges()
+
+	oSCommand.SetOnRunCommand(func(cmdStr string) {
+		gui.Log.Warn("HHMM")
+		gui.CmdLog = append(gui.CmdLog, cmdStr)
+		if gui.Views.CmdLog != nil {
+			fmt.Fprintln(gui.Views.CmdLog, cmdStr)
+			gui.Log.Warn("HHMM")
+			gui.Log.Warn(cmdStr)
+		}
+	})
 
 	return gui, nil
 }

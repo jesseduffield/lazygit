@@ -40,6 +40,7 @@ type OSCommand struct {
 	Command          func(string, ...string) *exec.Cmd
 	BeforeExecuteCmd func(*exec.Cmd)
 	Getenv           func(string) string
+	onRunCommand     func(string)
 }
 
 // NewOSCommand os command runner
@@ -52,6 +53,10 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 		BeforeExecuteCmd: func(*exec.Cmd) {},
 		Getenv:           os.Getenv,
 	}
+}
+
+func (c *OSCommand) SetOnRunCommand(f func(string)) {
+	c.onRunCommand = f
 }
 
 // SetCommand sets the command function used by the struct.
@@ -70,6 +75,9 @@ type RunCommandOptions struct {
 
 func (c *OSCommand) RunCommandWithOutputWithOptions(command string, options RunCommandOptions) (string, error) {
 	c.Log.WithField("command", command).Info("RunCommand")
+	if c.onRunCommand != nil {
+		c.onRunCommand(command)
+	}
 	cmd := c.ExecutableFromString(command)
 
 	cmd.Env = append(cmd.Env, "GIT_TERMINAL_PROMPT=0") // prevents git from prompting us for input which would freeze the program
@@ -95,6 +103,9 @@ func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...inte
 		command = fmt.Sprintf(formatString, formatArgs...)
 	}
 	c.Log.WithField("command", command).Info("RunCommand")
+	if c.onRunCommand != nil {
+		c.onRunCommand(command)
+	}
 	cmd := c.ExecutableFromString(command)
 	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
 	if err != nil {

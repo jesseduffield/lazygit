@@ -48,6 +48,7 @@ func (gui *Gui) createAllViews() error {
 		{viewPtr: &gui.Views.Suggestions, name: "suggestions"},
 		{viewPtr: &gui.Views.Confirmation, name: "confirmation"},
 		{viewPtr: &gui.Views.Limit, name: "limit"},
+		{viewPtr: &gui.Views.CmdLog, name: "cmdLog"},
 	}
 
 	var err error
@@ -133,6 +134,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Information.BgColor = gocui.ColorDefault
 	gui.Views.Information.FgColor = gocui.ColorGreen
 	gui.Views.Information.Frame = false
+
+	gui.Views.CmdLog.Title = gui.Tr.CommandLog
+	gui.Views.CmdLog.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.CmdLog.Autoscroll = true
 
 	if _, err := gui.g.SetCurrentView(gui.defaultSideContext().GetViewName()); err != nil {
 		return err
@@ -235,6 +240,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		{viewName: "search", windowName: "search", frame: false},
 		{viewName: "appStatus", windowName: "appStatus", frame: false},
 		{viewName: "information", windowName: "information", frame: false},
+		{viewName: "cmdLog", windowName: "cmdLog", frame: true},
 	}
 
 	for _, arg := range args {
@@ -344,6 +350,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 		gui.Views.CommitFiles,
 		gui.Views.Main,
 		gui.Views.Secondary,
+		gui.Views.CmdLog,
 
 		// bottom line
 		gui.Views.Options,
