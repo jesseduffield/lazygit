@@ -146,6 +146,8 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 		mainPanelsDirection = boxlayout.COLUMN
 	}
 
+	cmdLogSize := 10
+
 	root := &boxlayout.Box{
 		Direction: boxlayout.ROW,
 		Children: []*boxlayout.Box{
@@ -159,9 +161,19 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 						ConditionalChildren: gui.sidePanelChildren,
 					},
 					{
-						Direction: mainPanelsDirection,
+						Direction: boxlayout.ROW,
 						Weight:    mainSectionWeight,
-						Children:  gui.mainSectionChildren(),
+						Children: []*boxlayout.Box{
+							{
+								Direction: mainPanelsDirection,
+								Children:  gui.mainSectionChildren(),
+								Weight:    1,
+							},
+							{
+								Window: "cmdLog",
+								Size:   cmdLogSize,
+							},
+						},
 					},
 				},
 			},
