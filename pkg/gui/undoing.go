@@ -93,6 +93,8 @@ func (gui *Gui) reflogUndo() error {
 		return gui.createErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
 	}
 
+	span := "Undo"
+
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
 		if counter != 0 {
 			return false, nil
@@ -103,11 +105,13 @@ func (gui *Gui) reflogUndo() error {
 			return true, gui.handleHardResetWithAutoStash(action.from, handleHardResetWithAutoStashOptions{
 				EnvVars:       undoEnvVars,
 				WaitingStatus: undoingStatus,
+				span:          span,
 			})
 		case CHECKOUT:
 			return true, gui.handleCheckoutRef(action.from, handleCheckoutRefOptions{
 				EnvVars:       undoEnvVars,
 				WaitingStatus: undoingStatus,
+				span:          span,
 			})
 		}
 
@@ -124,6 +128,8 @@ func (gui *Gui) reflogRedo() error {
 		return gui.createErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
 	}
 
+	span := "Redo"
+
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
 		// if we're redoing and the counter is zero, we just return
 		if counter == 0 {
@@ -137,11 +143,13 @@ func (gui *Gui) reflogRedo() error {
 			return true, gui.handleHardResetWithAutoStash(action.to, handleHardResetWithAutoStashOptions{
 				EnvVars:       redoEnvVars,
 				WaitingStatus: redoingStatus,
+				span:          span,
 			})
 		case CHECKOUT:
 			return true, gui.handleCheckoutRef(action.to, handleCheckoutRefOptions{
 				EnvVars:       redoEnvVars,
 				WaitingStatus: redoingStatus,
+				span:          span,
 			})
 		}
 
@@ -153,19 +161,22 @@ func (gui *Gui) reflogRedo() error {
 type handleHardResetWithAutoStashOptions struct {
 	WaitingStatus string
 	EnvVars       []string
+	span          string
 }
 
 // only to be used in the undo flow for now
 func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHardResetWithAutoStashOptions) error {
+	gitCommand := gui.GitCommand.WithSpan(options.span)
+
 	reset := func() error {
-		if err := gui.resetToRef(commitSha, "hard", oscommands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
+		if err := gui.resetToRef(commitSha, "hard", options.span, oscommands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
 			return gui.surfaceError(err)
 		}
 		return nil
 	}
 
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them
-	dirtyWorkingTree := len(gui.trackedFiles()) > 0
+	dirtyWorkingTree := len(gui.trackedFiles()) > 0 || len(gui.stagedFiles()) > 0
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return gui.ask(askOpts{
@@ -173,17 +184,18 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 			prompt: gui.Tr.AutoStashPrompt,
 			handleConfirm: func() error {
 				return gui.WithWaitingStatus(options.WaitingStatus, func() error {
-					if err := gui.GitCommand.StashSave(gui.Tr.StashPrefix + commitSha); err != nil {
+					if err := gitCommand.StashSave(gui.Tr.StashPrefix + commitSha); err != nil {
 						return gui.surfaceError(err)
 					}
 					if err := reset(); err != nil {
 						return err
 					}
 
-					if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
-						if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
-							return err
-						}
+					err := gitCommand.StashDo(0, "pop")
+					if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
+						return err
+					}
+					if err != nil {
 						return gui.surfaceError(err)
 					}
 					return nil

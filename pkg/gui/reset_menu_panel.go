@@ -7,8 +7,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
-func (gui *Gui) resetToRef(ref string, strength string, options oscommands.RunCommandOptions) error {
-	if err := gui.GitCommand.ResetToCommit(ref, strength, options); err != nil {
+func (gui *Gui) resetToRef(ref string, strength string, span string, options oscommands.RunCommandOptions) error {
+	if err := gui.GitCommand.WithSpan(span).ResetToCommit(ref, strength, options); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -41,7 +41,7 @@ func (gui *Gui) createResetMenu(ref string) error {
 				),
 			},
 			onPress: func() error {
-				return gui.resetToRef(ref, strength, oscommands.RunCommandOptions{})
+				return gui.resetToRef(ref, strength, "Reset", oscommands.RunCommandOptions{})
 			},
 		}
 	}
