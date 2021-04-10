@@ -13,6 +13,7 @@ import (
 	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 )
 
@@ -76,6 +77,7 @@ func (gui *Gui) handlePopFileSnapshot() error {
 	if gitFile == nil {
 		return nil
 	}
+	gui.OnRunCommand(oscommands.NewCmdLogEntry("Undoing last conflict resolution", "Undo merge conflict resolution", false))
 	if err := ioutil.WriteFile(gitFile.Name, []byte(prevContent), 0644); err != nil {
 		return err
 	}
@@ -165,6 +167,17 @@ func (gui *Gui) resolveConflict(conflict commands.Conflict, selection mergeconfl
 			output += line
 		}
 	}
+
+	var logStr string
+	switch selection {
+	case mergeconflicts.TOP:
+		logStr = "Picking top hunk"
+	case mergeconflicts.BOTTOM:
+		logStr = "Picking bottom hunk"
+	case mergeconflicts.BOTH:
+		logStr = "Picking both hunks"
+	}
+	gui.OnRunCommand(oscommands.NewCmdLogEntry(logStr, "Resolve merge conflict", false))
 	return ioutil.WriteFile(gitFile.Name, []byte(output), 0644)
 }
 

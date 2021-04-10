@@ -92,7 +92,7 @@ func (gui *Gui) handleCheckoutReflogCommit() error {
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
-			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
+			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{span: "Checkout reflog commit"})
 		},
 	})
 	if err != nil {

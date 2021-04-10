@@ -90,23 +90,23 @@ func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 }
 
 // Create opens link to new pull request in browser
-func (pr *PullRequest) Create(branch *models.Branch) error {
+func (pr *PullRequest) Create(branch *models.Branch) (string, error) {
 	pullRequestURL, err := pr.getPullRequestURL(branch)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return pr.GitCommand.OSCommand.OpenLink(pullRequestURL)
+	return pullRequestURL, pr.GitCommand.OSCommand.OpenLink(pullRequestURL)
 }
 
 // CopyURL copies the pull request URL to the clipboard
-func (pr *PullRequest) CopyURL(branch *models.Branch) error {
+func (pr *PullRequest) CopyURL(branch *models.Branch) (string, error) {
 	pullRequestURL, err := pr.getPullRequestURL(branch)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return pr.GitCommand.OSCommand.CopyToClipboard(pullRequestURL)
+	return pullRequestURL, pr.GitCommand.OSCommand.CopyToClipboard(pullRequestURL)
 }
 
 func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) {

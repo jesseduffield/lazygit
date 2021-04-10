@@ -43,7 +43,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 		return gui.createErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
-	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge: %s", command))
+	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge/Rebase: %s", command))
 
 	commandType := strings.Replace(status, "ing", "e", 1)
 	// we should end up with a command like 'git merge --continue'

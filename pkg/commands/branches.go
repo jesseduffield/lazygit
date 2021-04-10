@@ -59,9 +59,9 @@ type CheckoutOptions struct {
 func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 	forceArg := ""
 	if options.Force {
-		forceArg = "--force "
+		forceArg = " --force"
 	}
-	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git checkout %s %s", forceArg, branch), oscommands.RunCommandOptions{EnvVars: options.EnvVars})
+	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git checkout%s %s", forceArg, branch), oscommands.RunCommandOptions{EnvVars: options.EnvVars})
 }
 
 // GetBranchGraph gets the color-formatted graph of the log for the given branch
