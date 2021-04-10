@@ -2,16 +2,20 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"testing"
 	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
+	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/mgutz/str"
+	"github.com/stretchr/testify/assert"
 )
 
 // CatFile obtains the content of a file
@@ -267,10 +271,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 	}
 
 	// amend the commit
-	cmd, err := c.AmendHead()
-	if cmd != nil {
-		return errors.New("received unexpected pointer to cmd")
-	}
+	err := c.AmendHead()
 	if err != nil {
 		return err
 	}
@@ -314,9 +315,7 @@ func (c *GitCommand) ResetAndClean() error {
 	return c.RemoveUntrackedFiles()
 }
 
-// EditFile opens a file in a subprocess using whatever editor is available,
-// falling back to core.editor, GIT_EDITOR, VISUAL, EDITOR, then vi
-func (c *GitCommand) EditFile(filename string) (*exec.Cmd, error) {
+func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
 	editor := c.GetConfigValue("core.editor")
 
 	if editor == "" {
@@ -334,10 +333,386 @@ func (c *GitCommand) EditFile(filename string) (*exec.Cmd, error) {
 		}
 	}
 	if editor == "" {
-		return nil, errors.New("No editor defined in $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
+		return "", errors.New("No editor defined in $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
-	splitCmd := str.ToArgv(fmt.Sprintf("%s %s", editor, c.OSCommand.Quote(filename)))
+	return fmt.Sprintf("%s %s", editor, c.OSCommand.Quote(filename)), nil
+}
 
-	return c.OSCommand.PrepareSubProcess(splitCmd[0], splitCmd[1:]...), nil
+func TestGitCommandApplyPatch(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.Equal(t, "git", cmd)
+				assert.EqualValues(t, []string{"apply", "--cached"}, args[0:2])
+				filename := args[2]
+				content, err := ioutil.ReadFile(filename)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "test", string(content))
+
+				return secureexec.Command("echo", "done")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"command returns error",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.Equal(t, "git", cmd)
+				assert.EqualValues(t, []string{"apply", "--cached"}, args[0:2])
+				filename := args[2]
+				// TODO: Ideally we want to mock out OSCommand here so that we're not
+				// double handling testing it's CreateTempFile functionality,
+				// but it is going to take a bit of work to make a proper mock for it
+				// so I'm leaving it for another PR
+				content, err := ioutil.ReadFile(filename)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "test", string(content))
+
+				return secureexec.Command("test")
+			},
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := NewDummyGitCommand()
+			gitCmd.OSCommand.Command = s.command
+			s.test(gitCmd.ApplyPatch("test", "cached"))
+		})
+	}
+}
+
+// TestGitCommandDiscardOldFileChanges is a function.
+func TestGitCommandDiscardOldFileChanges(t *testing.T) {
+	type scenario struct {
+		testName          string
+		getGitConfigValue func(string) (string, error)
+		commits           []*models.Commit
+		commitIndex       int
+		fileName          string
+		command           func(string, ...string) *exec.Cmd
+		test              func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"returns error when index outside of range of commits",
+			func(string) (string, error) {
+				return "", nil
+			},
+			[]*models.Commit{},
+			0,
+			"test999.txt",
+			nil,
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+		{
+			"returns error when using gpg",
+			func(string) (string, error) {
+				return "true", nil
+			},
+			[]*models.Commit{{Name: "commit", Sha: "123456"}},
+			0,
+			"test999.txt",
+			nil,
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+		{
+			"checks out file if it already existed",
+			func(string) (string, error) {
+				return "", nil
+			},
+			[]*models.Commit{
+				{Name: "commit", Sha: "123456"},
+				{Name: "commit2", Sha: "abcdef"},
+			},
+			0,
+			"test999.txt",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  "git rebase --interactive --autostash --keep-empty abcdef",
+					Replace: "echo",
+				},
+				{
+					Expect:  "git cat-file -e HEAD^:test999.txt",
+					Replace: "echo",
+				},
+				{
+					Expect:  "git checkout HEAD^ test999.txt",
+					Replace: "echo",
+				},
+				{
+					Expect:  "git commit --amend --no-edit --allow-empty",
+					Replace: "echo",
+				},
+				{
+					Expect:  "git rebase --continue",
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		// test for when the file was created within the commit requires a refactor to support proper mocks
+		// currently we'd need to mock out the os.Remove function and that's gonna introduce tech debt
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.Command = s.command
+			gitCmd.getGitConfigValue = s.getGitConfigValue
+			s.test(gitCmd.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
+		})
+	}
+}
+
+// TestGitCommandDiscardUnstagedFileChanges is a function.
+func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
+	type scenario struct {
+		testName string
+		file     *models.File
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			&models.File{Name: "test.txt"},
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git checkout -- "test.txt"`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.Command = s.command
+			s.test(gitCmd.DiscardUnstagedFileChanges(s.file))
+		})
+	}
+}
+
+// TestGitCommandDiscardAnyUnstagedFileChanges is a function.
+func TestGitCommandDiscardAnyUnstagedFileChanges(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git checkout -- .`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.Command = s.command
+			s.test(gitCmd.DiscardAnyUnstagedFileChanges())
+		})
+	}
+}
+
+// TestGitCommandRemoveUntrackedFiles is a function.
+func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
+	type scenario struct {
+		testName string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"valid case",
+			test.CreateMockCommand(t, []*test.CommandSwapper{
+				{
+					Expect:  `git clean -fd`,
+					Replace: "echo",
+				},
+			}),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	gitCmd := NewDummyGitCommand()
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd.OSCommand.Command = s.command
+			s.test(gitCmd.RemoveUntrackedFiles())
+		})
+	}
+}
+
+// TestEditFileCmdStr is a function.
+func TestEditFileCmdStr(t *testing.T) {
+	type scenario struct {
+		filename          string
+		command           func(string, ...string) *exec.Cmd
+		getenv            func(string) string
+		getGitConfigValue func(string) (string, error)
+		test              func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"test",
+			func(name string, arg ...string) *exec.Cmd {
+				return secureexec.Command("exit", "1")
+			},
+			func(env string) string {
+				return ""
+			},
+			func(cf string) (string, error) {
+				return "", nil
+			},
+			func(cmdStr string, err error) {
+				assert.EqualError(t, err, "No editor defined in $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
+			},
+		},
+		{
+			"test",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "which", name)
+				return secureexec.Command("exit", "1")
+			},
+			func(env string) string {
+				return ""
+			},
+			func(cf string) (string, error) {
+				return "nano", nil
+			},
+			func(cmdStr string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "nano \"test\"", cmdStr)
+			},
+		},
+		{
+			"test",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "which", name)
+				return secureexec.Command("exit", "1")
+			},
+			func(env string) string {
+				if env == "VISUAL" {
+					return "nano"
+				}
+
+				return ""
+			},
+			func(cf string) (string, error) {
+				return "", nil
+			},
+			func(cmdStr string, err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"test",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "which", name)
+				return secureexec.Command("exit", "1")
+			},
+			func(env string) string {
+				if env == "EDITOR" {
+					return "emacs"
+				}
+
+				return ""
+			},
+			func(cf string) (string, error) {
+				return "", nil
+			},
+			func(cmdStr string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "emacs \"test\"", cmdStr)
+			},
+		},
+		{
+			"test",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "which", name)
+				return secureexec.Command("echo")
+			},
+			func(env string) string {
+				return ""
+			},
+			func(cf string) (string, error) {
+				return "", nil
+			},
+			func(cmdStr string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "vi \"test\"", cmdStr)
+			},
+		},
+		{
+			"file/with space",
+			func(name string, args ...string) *exec.Cmd {
+				assert.Equal(t, "which", name)
+				return secureexec.Command("echo")
+			},
+			func(env string) string {
+				return ""
+			},
+			func(cf string) (string, error) {
+				return "", nil
+			},
+			func(cmdStr string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "vi \"file/with space\"", cmdStr)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		gitCmd := NewDummyGitCommand()
+		gitCmd.OSCommand.Command = s.command
+		gitCmd.OSCommand.Getenv = s.getenv
+		gitCmd.getGitConfigValue = s.getGitConfigValue
+		s.test(gitCmd.EditFileCmdStr(s.filename))
+	}
 }

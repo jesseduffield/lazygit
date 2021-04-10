@@ -46,3 +46,17 @@ func (c *GitCommand) GetConfigValue(key string) string {
 	output, _ := c.getGitConfigValue(key)
 	return output
 }
+
+// UsingGpg tells us whether the user has gpg enabled so that we can know
+// whether we need to run a subprocess to allow them to enter their password
+func (c *GitCommand) UsingGpg() bool {
+	overrideGpg := c.Config.GetUserConfig().Git.OverrideGpg
+	if overrideGpg {
+		return false
+	}
+
+	gpgsign := c.GetConfigValue("commit.gpgsign")
+	value := strings.ToLower(gpgsign)
+
+	return value == "true" || value == "1" || value == "yes" || value == "on"
+}

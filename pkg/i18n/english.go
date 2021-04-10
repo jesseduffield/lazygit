@@ -256,6 +256,7 @@ type TranslationSet struct {
 	UndoingStatus                       string
 	RedoingStatus                       string
 	CheckingOutStatus                   string
+	CommittingStatus                    string
 	CommitFiles                         string
 	LcViewCommitFiles                   string
 	CommitFilesTitle                    string
@@ -891,6 +892,7 @@ func englishTranslationSet() TranslationSet {
 		UndoingStatus:                       "undoing",
 		RedoingStatus:                       "redoing",
 		CheckingOutStatus:                   "checking out",
+		CommittingStatus:                    "committing",
 		CommitFiles:                         "Commit files",
 		LcViewCommitFiles:                   "view commit's files",
 		CommitFilesTitle:                    "Commit Files",

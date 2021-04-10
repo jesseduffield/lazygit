@@ -50,7 +50,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	if status == commands.REBASE_MODE_MERGING && command != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
 		sub := gui.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
 		if sub != nil {
-			return gui.runSubprocessWithSuspense(sub)
+			return gui.runSubprocessWithSuspenseAndRefresh(sub)
 		}
 		return nil
 	}

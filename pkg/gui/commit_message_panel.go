@@ -1,31 +1,12 @@
 package gui
 
 import (
-	"os/exec"
 	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
-
-// runSyncOrAsyncCommand takes the output of a command that may have returned
-// either no error, an error, or a subprocess to execute, and if a subprocess
-// needs to be run, it runs it
-func (gui *Gui) runSyncOrAsyncCommand(sub *exec.Cmd, err error) (bool, error) {
-	if err != nil {
-		return false, gui.surfaceError(err)
-	}
-	if sub == nil {
-		return true, nil
-	}
-
-	err = gui.runSubprocessWithSuspense(sub)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
 
 func (gui *Gui) handleCommitConfirm() error {
 	message := gui.trimmedContent(gui.Views.CommitMessage)
@@ -37,19 +18,12 @@ func (gui *Gui) handleCommitConfirm() error {
 	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
 		flags = "--no-verify"
 	}
-	ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.Commit(message, flags))
-	if err != nil {
-		return err
-	}
 
-	_ = gui.returnFromContext()
-
-	if !ok {
+	return gui.withGpgHandling(gui.GitCommand.CommitCmdStr(message, flags), gui.Tr.CommittingStatus, func() error {
+		_ = gui.returnFromContext()
+		gui.clearEditorView(gui.Views.CommitMessage)
 		return nil
-	}
-
-	gui.clearEditorView(gui.Views.CommitMessage)
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	})
 }
 
 func (gui *Gui) handleCommitClose() error {
