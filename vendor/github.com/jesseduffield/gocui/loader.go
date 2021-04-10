@@ -2,19 +2,6 @@ package gocui
 
 import "time"
 
-func (g *Gui) loaderTick() {
-	go func() {
-		for range time.Tick(time.Millisecond * 50) {
-			for _, view := range g.Views() {
-				if view.HasLoader {
-					g.userEvents <- userEvent{func(g *Gui) error { return nil }}
-					break
-				}
-			}
-		}
-	}()
-}
-
 func (v *View) loaderLines() [][]cell {
 	duplicate := make([][]cell, len(v.lines))
 	for i := range v.lines {

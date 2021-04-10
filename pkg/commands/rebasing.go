@@ -211,7 +211,7 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
-	if c.usingGpg() {
+	if c.UsingGpg() {
 		return errors.New(c.Tr.DisabledForGPG)
 	}
 

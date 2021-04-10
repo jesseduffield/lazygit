@@ -448,17 +448,7 @@ func (gui *Gui) handleAmendCommitPress() error {
 		title:  strings.Title(gui.Tr.AmendLastCommit),
 		prompt: gui.Tr.SureToAmend,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.AmendingStatus, func() error {
-				ok, err := gui.runSyncOrAsyncCommand(gui.GitCommand.AmendHead())
-				if err != nil {
-					return err
-				}
-				if !ok {
-					return nil
-				}
-
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-			})
+			return gui.withGpgHandling(gui.GitCommand.AmendHeadCmdStr(), gui.Tr.AmendingStatus, nil)
 		},
 	})
 }
@@ -474,14 +464,20 @@ func (gui *Gui) handleCommitEditorPress() error {
 		return gui.promptToStageAllAndRetry(gui.handleCommitEditorPress)
 	}
 
-	return gui.runSubprocessWithSuspense(
+	return gui.runSubprocessWithSuspenseAndRefresh(
 		gui.OSCommand.PrepareSubProcess("git", "commit"),
 	)
 }
 
 func (gui *Gui) editFile(filename string) error {
-	_, err := gui.runSyncOrAsyncCommand(gui.GitCommand.EditFile(filename))
-	return err
+	cmdStr, err := gui.GitCommand.EditFileCmdStr(filename)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+
+	return gui.runSubprocessWithSuspenseAndRefresh(
+		gui.OSCommand.PrepareShellSubProcess(cmdStr),
+	)
 }
 
 func (gui *Gui) handleFileEdit() error {
@@ -808,7 +804,7 @@ func (gui *Gui) handleCustomCommand() error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.CustomCommand,
 		handleConfirm: func(command string) error {
-			return gui.runSubprocessWithSuspense(
+			return gui.runSubprocessWithSuspenseAndRefresh(
 				gui.OSCommand.PrepareShellSubProcess(command),
 			)
 		},

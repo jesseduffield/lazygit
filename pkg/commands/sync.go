@@ -2,22 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 )
-
-// usingGpg tells us whether the user has gpg enabled so that we can know
-// whether we need to run a subprocess to allow them to enter their password
-func (c *GitCommand) usingGpg() bool {
-	overrideGpg := c.Config.GetUserConfig().Git.OverrideGpg
-	if overrideGpg {
-		return false
-	}
-
-	gpgsign := c.GetConfigValue("commit.gpgsign")
-	value := strings.ToLower(gpgsign)
-
-	return value == "true" || value == "1" || value == "yes" || value == "on"
-}
 
 // Push pushes to a branch
 func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {

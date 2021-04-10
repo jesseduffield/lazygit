@@ -21,23 +21,25 @@ type oldStyle struct {
 }
 
 // tcellInit initializes tcell screen for use.
-func tcellInit() error {
+func (g *Gui) tcellInit() error {
 	if s, e := tcell.NewScreen(); e != nil {
 		return e
 	} else if e = s.Init(); e != nil {
 		return e
 	} else {
+		g.screen = s
 		Screen = s
 		return nil
 	}
 }
 
 // tcellInitSimulation initializes tcell screen for use.
-func tcellInitSimulation() error {
+func (g *Gui) tcellInitSimulation() error {
 	s := tcell.NewSimulationScreen("")
 	if e := s.Init(); e != nil {
 		return e
 	} else {
+		g.screen = s
 		Screen = s
 		return nil
 	}

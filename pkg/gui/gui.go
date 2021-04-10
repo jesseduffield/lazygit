@@ -90,7 +90,7 @@ type Gui struct {
 	// recent repo with the recent repos popup showing
 	showRecentRepos bool
 
-	Mutexes guiStateMutexes
+	Mutexes guiMutexes
 
 	// findSuggestions will take a string that the user has typed into a prompt
 	// and return a slice of suggestions which match that string.
@@ -288,12 +288,13 @@ type Modes struct {
 	Diffing       Diffing
 }
 
-type guiStateMutexes struct {
+type guiMutexes struct {
 	RefreshingFilesMutex  sync.Mutex
 	RefreshingStatusMutex sync.Mutex
 	FetchMutex            sync.Mutex
 	BranchCommitsMutex    sync.Mutex
 	LineByLinePanelMutex  sync.Mutex
+	SubprocessMutex       sync.Mutex
 }
 
 type guiState struct {
@@ -476,6 +477,7 @@ func (gui *Gui) Run() error {
 	if err != nil {
 		return err
 	}
+
 	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
 	defer g.Close()
 
@@ -568,7 +570,25 @@ func (gui *Gui) RunAndHandleError() error {
 	})
 }
 
-func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) error {
+// returns whether command exited without error or not
+func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *exec.Cmd) error {
+	_, err := gui.runSubprocessWithSuspense(subprocess)
+	if err != nil {
+		return err
+	}
+
+	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// returns whether command exited without error or not
+func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
+	gui.Mutexes.SubprocessMutex.Lock()
+	defer gui.Mutexes.SubprocessMutex.Unlock()
+
 	if replaying() {
 		// we do not yet support running subprocesses within integration tests. So if
 		// we're replaying an integration test and we're inside this method, something
@@ -577,21 +597,17 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) error {
 		log.Fatal("opening subprocesses not yet supported in integration tests. Chances are that this test is running too fast and a subprocess is accidentally opened")
 	}
 
-	if err := gocui.Screen.Suspend(); err != nil {
-		return gui.surfaceError(err)
+	if err := gui.g.Suspend(); err != nil {
+		return false, gui.surfaceError(err)
 	}
 
 	cmdErr := gui.runSubprocess(subprocess)
 
-	if err := gocui.Screen.Resume(); err != nil {
-		return gui.surfaceError(err)
+	if err := gui.g.Resume(); err != nil {
+		return false, gui.surfaceError(err)
 	}
 
-	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
-		return err
-	}
-
-	return gui.surfaceError(cmdErr)
+	return cmdErr == nil, gui.surfaceError(cmdErr)
 }
 
 func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {

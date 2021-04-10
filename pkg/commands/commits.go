@@ -19,20 +19,19 @@ func (c *GitCommand) ResetToCommit(sha string, strength string, options oscomman
 	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git reset --%s %s", strength, sha), options)
 }
 
-// Commit commits to git
-func (c *GitCommand) Commit(message string, flags string) (*exec.Cmd, error) {
+func (c *GitCommand) CommitCmdStr(message string, flags string) string {
 	splitMessage := strings.Split(message, "\n")
 	lineArgs := ""
 	for _, line := range splitMessage {
 		lineArgs += fmt.Sprintf(" -m %s", c.OSCommand.Quote(line))
 	}
 
-	command := fmt.Sprintf("git commit %s%s", flags, lineArgs)
-	if c.usingGpg() {
-		return c.OSCommand.ShellCommandFromString(command), nil
+	flagsStr := ""
+	if flags != "" {
+		flagsStr = fmt.Sprintf(" %s", flags)
 	}
 
-	return nil, c.OSCommand.RunCommand(command)
+	return fmt.Sprintf("git commit%s%s", flagsStr, lineArgs)
 }
 
 // Get the subject of the HEAD commit
@@ -50,18 +49,17 @@ func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
 }
 
 // AmendHead amends HEAD with whatever is staged in your working tree
-func (c *GitCommand) AmendHead() (*exec.Cmd, error) {
-	command := "git commit --amend --no-edit --allow-empty"
-	if c.usingGpg() {
-		return c.OSCommand.ShellCommandFromString(command), nil
-	}
-
-	return nil, c.OSCommand.RunCommand(command)
+func (c *GitCommand) AmendHead() error {
+	return c.OSCommand.RunCommand(c.AmendHeadCmdStr())
 }
 
-// PrepareCommitAmendSubProcess prepares a subprocess for `git commit --amend --allow-empty`
-func (c *GitCommand) PrepareCommitAmendSubProcess() *exec.Cmd {
-	return c.OSCommand.PrepareSubProcess("git", "commit", "--amend", "--allow-empty")
+// PrepareCommitAmendHeadSubProcess prepares a subprocess for `git commit --amend --allow-empty`
+func (c *GitCommand) PrepareCommitAmendHeadSubProcess() *exec.Cmd {
+	return c.OSCommand.ShellCommandFromString(c.AmendHeadCmdStr())
+}
+
+func (c *GitCommand) AmendHeadCmdStr() string {
+	return "git commit --amend --no-edit --allow-empty"
 }
 
 func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {

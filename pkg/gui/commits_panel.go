@@ -263,7 +263,7 @@ func (gui *Gui) handleRenameCommitEditor() error {
 		return gui.surfaceError(err)
 	}
 	if subProcess != nil {
-		return gui.runSubprocessWithSuspense(subProcess)
+		return gui.runSubprocessWithSuspenseAndRefresh(subProcess)
 	}
 
 	return nil
