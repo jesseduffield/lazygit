@@ -152,6 +152,10 @@ func (c *GitCommand) ResetSoft(ref string) error {
 	return c.RunCommand("git reset --soft " + ref)
 }
 
+func (c *GitCommand) ResetMixed(ref string) error {
+	return c.RunCommand("git reset --mixed " + ref)
+}
+
 func (c *GitCommand) RenameBranch(oldName string, newName string) error {
 	return c.RunCommand("git branch --move %s %s", oldName, newName)
 }

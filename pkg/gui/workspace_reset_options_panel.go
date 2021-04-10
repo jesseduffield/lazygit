@@ -21,7 +21,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetAndClean(); err != nil {
+				if err := gui.GitCommand.WithSpan("Nuke working tree").ResetAndClean(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -34,7 +34,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git checkout -- ."),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.DiscardAnyUnstagedFileChanges(); err != nil {
+				if err := gui.GitCommand.WithSpan("Discard unstaged file changes").DiscardAnyUnstagedFileChanges(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -47,7 +47,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git clean -fd"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.RemoveUntrackedFiles(); err != nil {
+				if err := gui.GitCommand.WithSpan("Remove untracked files").RemoveUntrackedFiles(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -60,7 +60,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --soft HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
+				if err := gui.GitCommand.WithSpan("Soft reset").ResetSoft("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -73,7 +73,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --mixed HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
+				if err := gui.GitCommand.WithSpan("Mixed reset").ResetMixed("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -86,7 +86,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetHard("HEAD"); err != nil {
+				if err := gui.GitCommand.WithSpan("Hard reset").ResetHard("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 

@@ -87,7 +87,13 @@ func (c *GitCommand) WithSpan(span string) *GitCommand {
 	newGitCommand := &GitCommand{}
 	*newGitCommand = *c
 	newGitCommand.OSCommand = c.OSCommand.WithSpan(span)
+
+	// NOTE: unlike the other things here which create shallow clones, this will
+	// actually update the PatchManager on the original struct to have the new span.
+	// This means each time we call ApplyPatch in PatchManager, we need to ensure
+	// we've called .WithSpan() ahead of time with the new span value
 	newGitCommand.PatchManager.ApplyPatch = newGitCommand.ApplyPatch
+
 	return newGitCommand
 }
 
