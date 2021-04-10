@@ -146,6 +146,7 @@ type handleCheckoutRefOptions struct {
 	WaitingStatus string
 	EnvVars       []string
 	onRefNotFound func(ref string) error
+	span          string
 }
 
 func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) error {
@@ -163,8 +164,10 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 		gui.State.Panels.Commits.LimitCommits = true
 	}
 
+	gitCommand := gui.GitCommand.WithSpan(options.span)
+
 	return gui.WithWaitingStatus(waitingStatus, func() error {
-		if err := gui.GitCommand.Checkout(ref, cmdOptions); err != nil {
+		if err := gitCommand.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
 			if options.onRefNotFound != nil && strings.Contains(err.Error(), "did not match any file(s) known to git") {
@@ -178,15 +181,15 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 					title:  gui.Tr.AutoStashTitle,
 					prompt: gui.Tr.AutoStashPrompt,
 					handleConfirm: func() error {
-						if err := gui.GitCommand.StashSave(gui.Tr.StashPrefix + ref); err != nil {
+						if err := gitCommand.StashSave(gui.Tr.StashPrefix + ref); err != nil {
 							return gui.surfaceError(err)
 						}
-						if err := gui.GitCommand.Checkout(ref, cmdOptions); err != nil {
+						if err := gitCommand.Checkout(ref, cmdOptions); err != nil {
 							return gui.surfaceError(err)
 						}
 
 						onSuccess()
-						if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
+						if err := gitCommand.StashDo(0, "pop"); err != nil {
 							if err := gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI}); err != nil {
 								return err
 							}

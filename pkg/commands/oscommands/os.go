@@ -94,6 +94,13 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 }
 
 func (c *OSCommand) WithSpan(span string) *OSCommand {
+	// sometimes .WithSpan(span) will be called where span actually is empty, in
+	// which case we don't need to log anything so we can just return early here
+	// with the original struct
+	if span == "" {
+		return c
+	}
+
 	newOSCommand := &OSCommand{}
 	*newOSCommand = *c
 	newOSCommand.CmdLogSpan = span
