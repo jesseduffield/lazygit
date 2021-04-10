@@ -104,6 +104,11 @@ type Gui struct {
 	ViewsSetup bool
 
 	Views Views
+
+	// if we've suspended the gui (e.g. because we've switched to a subprocess)
+	// we typically want to pause some things that are running like background
+	// file refreshes
+	PauseBackgroundThreads bool
 }
 
 type listPanelState struct {
@@ -601,11 +606,15 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
 		return false, gui.surfaceError(err)
 	}
 
+	gui.PauseBackgroundThreads = true
+
 	cmdErr := gui.runSubprocess(subprocess)
 
 	if err := gui.g.Resume(); err != nil {
-		return false, gui.surfaceError(err)
+		return false, err
 	}
+
+	gui.PauseBackgroundThreads = false
 
 	return cmdErr == nil, gui.surfaceError(cmdErr)
 }
@@ -686,6 +695,9 @@ func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function fun
 		for {
 			select {
 			case <-ticker.C:
+				if gui.PauseBackgroundThreads {
+					continue
+				}
 				_ = function()
 			case <-stop:
 				return
