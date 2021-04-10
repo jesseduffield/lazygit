@@ -111,7 +111,8 @@ type Gui struct {
 	PauseBackgroundThreads bool
 
 	// Log of the commands that get run, to be displayed to the user.
-	CmdLog []string
+	CmdLog       []string
+	OnRunCommand func(entry oscommands.CmdLogEntry)
 }
 
 type listPanelState struct {
@@ -470,15 +471,30 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 
 	gui.watchFilesForChanges()
 
-	oSCommand.SetOnRunCommand(func(cmdStr string) {
-		gui.Log.Warn("HHMM")
-		gui.CmdLog = append(gui.CmdLog, cmdStr)
-		if gui.Views.CmdLog != nil {
-			fmt.Fprintln(gui.Views.CmdLog, cmdStr)
-			gui.Log.Warn("HHMM")
-			gui.Log.Warn(cmdStr)
+	onRunCommand := func() func(entry oscommands.CmdLogEntry) {
+		currentSpan := ""
+
+		return func(entry oscommands.CmdLogEntry) {
+			if gui.Views.CmdLog == nil {
+				return
+			}
+
+			if entry.GetSpan() != currentSpan {
+				fmt.Fprintln(gui.Views.CmdLog, utils.ColoredString(entry.GetSpan(), color.FgYellow))
+				currentSpan = entry.GetSpan()
+			}
+
+			clrAttr := theme.DefaultTextColor
+			if !entry.GetCommandLine() {
+				clrAttr = color.FgMagenta
+			}
+			gui.CmdLog = append(gui.CmdLog, entry.GetCmdStr())
+			fmt.Fprintln(gui.Views.CmdLog, "  "+utils.ColoredString(entry.GetCmdStr(), clrAttr))
 		}
-	})
+	}()
+
+	oSCommand.SetOnRunCommand(onRunCommand)
+	gui.OnRunCommand = onRunCommand
 
 	return gui, nil
 }

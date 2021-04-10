@@ -33,7 +33,6 @@ type GitCommand struct {
 	Tr                   *i18n.TranslationSet
 	Config               config.AppConfigurer
 	getGitConfigValue    func(string) (string, error)
-	removeFile           func(string) error
 	DotGitDir            string
 	onSuccessfulContinue func() error
 	PatchManager         *patch.PatchManager
@@ -75,7 +74,6 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 		Repo:              repo,
 		Config:            config,
 		getGitConfigValue: getGitConfigValue,
-		removeFile:        os.RemoveAll,
 		DotGitDir:         dotGitDir,
 		PushToCurrent:     pushToCurrent,
 	}
@@ -83,6 +81,14 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
 
 	return gitCommand, nil
+}
+
+func (c *GitCommand) WithSpan(span string) *GitCommand {
+	newGitCommand := &GitCommand{}
+	*newGitCommand = *c
+	newGitCommand.OSCommand = c.OSCommand.WithSpan(span)
+	newGitCommand.PatchManager.ApplyPatch = newGitCommand.ApplyPatch
+	return newGitCommand
 }
 
 func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {

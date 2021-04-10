@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -19,7 +20,9 @@ func (gui *Gui) handleCommitConfirm() error {
 		flags = "--no-verify"
 	}
 
-	return gui.withGpgHandling(gui.GitCommand.CommitCmdStr(message, flags), gui.Tr.CommittingStatus, func() error {
+	cmdStr := gui.GitCommand.CommitCmdStr(message, flags)
+	gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdStr, "Commit", true))
+	return gui.withGpgHandling(cmdStr, gui.Tr.CommittingStatus, func() error {
 		_ = gui.returnFromContext()
 		gui.clearEditorView(gui.Views.CommitMessage)
 		return nil
