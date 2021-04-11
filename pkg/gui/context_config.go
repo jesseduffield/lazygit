@@ -188,10 +188,15 @@ func (gui *Gui) contextTree() ContextTree {
 			Key:      SEARCH_CONTEXT_KEY,
 		},
 		CommandLog: &BasicContext{
-			OnFocus:  func() error { return nil },
-			Kind:     EXTRAS_CONTEXT,
-			ViewName: "extras",
-			Key:      COMMAND_LOG_CONTEXT_KEY,
+			OnFocus:         func() error { return nil },
+			Kind:            EXTRAS_CONTEXT,
+			ViewName:        "extras",
+			Key:             COMMAND_LOG_CONTEXT_KEY,
+			OnGetOptionsMap: gui.getMergingOptions,
+			OnFocusLost: func() error {
+				gui.Views.Extras.Autoscroll = true
+				return nil
+			},
 		},
 	}
 }

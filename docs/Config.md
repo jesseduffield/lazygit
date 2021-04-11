@@ -41,6 +41,7 @@ For old installations (slightly embarrassing: I didn't realise at the time that 
     skipUnstageLineWarning: false
     skipStashWarning: true
     showFileTree: false # for rendering changes files in a tree format
+    showCommandLog: false
   git:
     paging:
       colorArg: always

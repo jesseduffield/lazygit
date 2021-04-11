@@ -1719,6 +1719,52 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:      gocui.MouseWheelDown,
 			Handler:  gui.scrollDownExtra,
 		},
+		{
+			ViewName:    "extras",
+			Key:         gui.getKey(config.Universal.ExtrasMenu),
+			Handler:     gui.handleCreateExtrasMenuPanel,
+			Description: gui.Tr.LcOpenExtrasMenu,
+			OpensMenu:   true,
+		},
+		{
+			ViewName: "extras",
+			Tag:      "navigation",
+			Contexts: []string{string(COMMAND_LOG_CONTEXT_KEY)},
+			Key:      gui.getKey(config.Universal.PrevItemAlt),
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollUpExtra,
+		},
+		{
+			ViewName: "extras",
+			Tag:      "navigation",
+			Contexts: []string{string(COMMAND_LOG_CONTEXT_KEY)},
+			Key:      gui.getKey(config.Universal.PrevItem),
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollUpExtra,
+		},
+		{
+			ViewName: "extras",
+			Tag:      "navigation",
+			Contexts: []string{string(COMMAND_LOG_CONTEXT_KEY)},
+			Key:      gui.getKey(config.Universal.NextItem),
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollDownExtra,
+		},
+		{
+			ViewName: "extras",
+			Tag:      "navigation",
+			Contexts: []string{string(COMMAND_LOG_CONTEXT_KEY)},
+			Key:      gui.getKey(config.Universal.NextItemAlt),
+			Modifier: gocui.ModNone,
+			Handler:  gui.scrollDownExtra,
+		},
+		{
+			ViewName: "extras",
+			Tag:      "navigation",
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  gui.handleFocusCommandLog,
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {

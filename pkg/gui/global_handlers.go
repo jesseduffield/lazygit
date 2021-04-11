@@ -140,24 +140,6 @@ func (gui *Gui) scrollDownSecondary() error {
 	return gui.scrollDownView(gui.Views.Secondary)
 }
 
-func (gui *Gui) scrollUpExtra() error {
-	gui.Views.Extras.Autoscroll = false
-
-	return gui.scrollUpView(gui.Views.Extras)
-}
-
-func (gui *Gui) scrollDownExtra() error {
-	if gui.atScrollBottom(gui.Views.Extras) {
-		gui.Views.Extras.Autoscroll = true
-	}
-
-	if err := gui.scrollDownView(gui.Views.Extras); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (gui *Gui) scrollUpConfirmationPanel() error {
 	if gui.Views.Confirmation.Editable {
 		return nil
@@ -183,13 +165,13 @@ func (gui *Gui) handleMouseDownMain() error {
 		return nil
 	}
 
-	switch gui.g.CurrentView() {
-	case gui.Views.Files:
+	switch gui.currentSideContext() {
+	case gui.State.Contexts.Files:
 		// set filename, set primary/secondary selected, set line number, then switch context
 		// I'll need to know it was changed though.
 		// Could I pass something along to the context change?
 		return gui.enterFile(false, gui.Views.Main.SelectedLineIdx())
-	case gui.Views.CommitFiles:
+	case gui.State.Contexts.CommitFiles:
 		return gui.enterCommitFile(gui.Views.Main.SelectedLineIdx())
 	}
 

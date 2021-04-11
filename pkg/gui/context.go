@@ -313,6 +313,29 @@ func (gui *Gui) currentSideContext() Context {
 	return gui.defaultSideContext()
 }
 
+// static as opposed to popup
+func (gui *Gui) currentStaticContext() Context {
+	gui.State.ContextManager.RLock()
+	defer gui.State.ContextManager.RUnlock()
+
+	stack := gui.State.ContextManager.ContextStack
+
+	if len(stack) == 0 {
+		return gui.defaultSideContext()
+	}
+
+	// find the first context in the stack without a popup type
+	for i := range stack {
+		context := stack[len(stack)-1-i]
+
+		if context.GetKind() != TEMPORARY_POPUP && context.GetKind() != PERSISTENT_POPUP {
+			return context
+		}
+	}
+
+	return gui.defaultSideContext()
+}
+
 func (gui *Gui) defaultSideContext() Context {
 	if gui.State.Modes.Filtering.Active() {
 		return gui.State.Contexts.BranchCommits
@@ -362,7 +385,7 @@ func (gui *Gui) onViewFocusChange() error {
 
 	currentView := gui.g.CurrentView()
 	for _, view := range gui.g.Views() {
-		view.Highlight = view.Name() != "main" && view == currentView
+		view.Highlight = view.Name() != "main" && view.Name() != "extras" && view == currentView
 	}
 	return nil
 }
