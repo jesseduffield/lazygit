@@ -473,35 +473,38 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 
 	gui.watchFilesForChanges()
 
-	onRunCommand := func() func(entry oscommands.CmdLogEntry) {
-		currentSpan := ""
-
-		return func(entry oscommands.CmdLogEntry) {
-			if gui.Views.Extras == nil {
-				return
-			}
-
-			gui.Views.Extras.Autoscroll = true
-
-			if entry.GetSpan() != currentSpan {
-				fmt.Fprintln(gui.Views.Extras, utils.ColoredString(entry.GetSpan(), color.FgYellow))
-				currentSpan = entry.GetSpan()
-			}
-
-			clrAttr := theme.DefaultTextColor
-			if !entry.GetCommandLine() {
-				clrAttr = color.FgMagenta
-			}
-			gui.CmdLog = append(gui.CmdLog, entry.GetCmdStr())
-			indentedCmdStr := "  " + strings.Replace(entry.GetCmdStr(), "\n", "\n  ", -1)
-			fmt.Fprintln(gui.Views.Extras, utils.ColoredString(indentedCmdStr, clrAttr))
-		}
-	}()
+	onRunCommand := gui.GetOnRunCommand()
 
 	oSCommand.SetOnRunCommand(onRunCommand)
 	gui.OnRunCommand = onRunCommand
 
 	return gui, nil
+}
+
+func (gui *Gui) GetOnRunCommand() func(entry oscommands.CmdLogEntry) {
+	// closing over this so that nobody else can modify it
+	currentSpan := ""
+
+	return func(entry oscommands.CmdLogEntry) {
+		if gui.Views.Extras == nil {
+			return
+		}
+
+		gui.Views.Extras.Autoscroll = true
+
+		if entry.GetSpan() != currentSpan {
+			fmt.Fprintln(gui.Views.Extras, utils.ColoredString(entry.GetSpan(), color.FgYellow))
+			currentSpan = entry.GetSpan()
+		}
+
+		clrAttr := theme.DefaultTextColor
+		if !entry.GetCommandLine() {
+			clrAttr = color.FgMagenta
+		}
+		gui.CmdLog = append(gui.CmdLog, entry.GetCmdStr())
+		indentedCmdStr := "  " + strings.Replace(entry.GetCmdStr(), "\n", "\n  ", -1)
+		fmt.Fprintln(gui.Views.Extras, utils.ColoredString(indentedCmdStr, clrAttr))
+	}
 }
 
 // Run setup the gui with keybindings and start the mainloop
