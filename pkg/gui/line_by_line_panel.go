@@ -92,10 +92,7 @@ func (gui *Gui) refreshLineByLinePanel(diff string, secondaryDiff string, second
 		return false, nil
 	}
 
-	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContent(gui.Views.Secondary, secondaryPatchParser.Render(-1, -1, nil))
-		return nil
-	})
+	gui.setViewContent(gui.Views.Secondary, secondaryPatchParser.Render(-1, -1, nil))
 
 	return false, nil
 }
@@ -228,10 +225,7 @@ func (gui *Gui) refreshMainViewForLineByLine(state *lBlPanelState) error {
 	gui.Views.Main.Highlight = true
 	gui.Views.Main.Wrap = false
 
-	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContent(gui.Views.Main, colorDiff)
-		return nil
-	})
+	gui.setViewContent(gui.Views.Main, colorDiff)
 
 	return nil
 }
