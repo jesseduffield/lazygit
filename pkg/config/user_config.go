@@ -37,6 +37,7 @@ type GuiConfig struct {
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
 	ShowFileTree             bool               `yaml:"showFileTree"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
+	CommandLogSize           int                `yaml:"commandLogSize"`
 }
 
 type ThemeConfig struct {
@@ -297,6 +298,9 @@ func GetDefaultConfig() *UserConfig {
 			},
 			CommitLength:             CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning: false,
+			ShowCommandLog:           true,
+			ShowFileTree:             false,
+			CommandLogSize:           8,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

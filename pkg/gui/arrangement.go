@@ -150,7 +150,8 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 
 	extrasWindowSize := 0
 	if gui.ShowExtrasWindow {
-		extrasWindowSize = 10
+		frameSize := 2
+		extrasWindowSize = gui.Config.GetUserConfig().Gui.CommandLogSize + frameSize
 		if gui.currentStaticContext().GetKey() == COMMAND_LOG_CONTEXT_KEY {
 			extrasWindowSize = 40
 		}
