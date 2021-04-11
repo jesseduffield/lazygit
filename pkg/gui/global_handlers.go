@@ -112,10 +112,6 @@ func (gui *Gui) linesToScrollDown(view *gocui.View) int {
 	}
 }
 
-func (gui *Gui) atScrollBottom(view *gocui.View) bool {
-	return gui.linesToScrollDown(view) == 0
-}
-
 func (gui *Gui) scrollUpMain() error {
 	if gui.canScrollMergePanel() {
 		gui.State.Panels.Merging.UserScrolling = true
