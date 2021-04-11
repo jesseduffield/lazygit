@@ -42,7 +42,7 @@ gui:
   skipStashWarning: true
   showFileTree: false # for rendering changes files in a tree format
   showCommandLog: true
-  commandLogSize: 1
+  commandLogSize: 8
 git:
   paging:
     colorArg: always
