@@ -142,7 +142,7 @@ func (gui *Gui) applySelection(reverse bool, state *lBlPanelState) error {
 	if !reverse || state.SecondaryFocused {
 		applyFlags = append(applyFlags, "cached")
 	}
-	err := gui.GitCommand.WithSpan("Apply patch").ApplyPatch(patch, applyFlags...)
+	err := gui.GitCommand.WithSpan(gui.Tr.Spans.ApplyPatch).ApplyPatch(patch, applyFlags...)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

@@ -448,6 +448,88 @@ type TranslationSet struct {
 	CommandLog                          string
 	ToggleShowCommandLog                string
 	FocusCommandLog                     string
+	Spans                               Spans
+}
+
+type Spans struct {
+	CheckoutCommit                    string
+	CheckoutReflogCommit              string
+	CheckoutTag                       string
+	CheckoutBranch                    string
+	ForceCheckoutBranch               string
+	DeleteBranch                      string
+	Merge                             string
+	RebaseBranch                      string
+	RenameBranch                      string
+	CreateBranch                      string
+	FastForwardBranch                 string
+	CherryPick                        string
+	CheckoutFile                      string
+	DiscardOldFileChange              string
+	SquashCommitDown                  string
+	FixupCommit                       string
+	RewordCommit                      string
+	DropCommit                        string
+	EditCommit                        string
+	AmendCommit                       string
+	RevertCommit                      string
+	CreateFixupCommit                 string
+	SquashAllAboveFixupCommits        string
+	MoveCommitUp                      string
+	MoveCommitDown                    string
+	CopyCommitMessageToClipboard      string
+	CustomCommand                     string
+	DiscardAllChangesInDirectory      string
+	DiscardUnstagedChangesInDirectory string
+	DiscardAllChangesInFile           string
+	DiscardAllUnstagedChangesInFile   string
+	StageFile                         string
+	UnstageFile                       string
+	UnstageAllFiles                   string
+	StageAllFiles                     string
+	IgnoreFile                        string
+	Commit                            string
+	EditFile                          string
+	Push                              string
+	Pull                              string
+	OpenFile                          string
+	StashAllChanges                   string
+	StashStagedChanges                string
+	GitFlowFinish                     string
+	GitFlowStart                      string
+	CopyToClipboard                   string
+	RemovePatchFromCommit             string
+	MovePatchToSelectedCommit         string
+	MovePatchIntoIndex                string
+	MovePatchIntoNewCommit            string
+	DeleteRemoteBranch                string
+	SetBranchUpstream                 string
+	AddRemote                         string
+	RemoveRemote                      string
+	UpdateRemote                      string
+	ApplyPatch                        string
+	Stash                             string
+	RemoveSubmodule                   string
+	ResetSubmodule                    string
+	AddSubmodule                      string
+	UpdateSubmoduleUrl                string
+	InitialiseSubmodule               string
+	BulkInitialiseSubmodules          string
+	BulkUpdateSubmodules              string
+	BulkStashAndResetSubmodules       string
+	BulkDeinitialiseSubmodules        string
+	UpdateSubmodule                   string
+	CreateLightweightTag              string
+	DeleteTag                         string
+	PushTag                           string
+	NukeWorkingTree                   string
+	DiscardUnstagedFileChanges        string
+	RemoveUntrackedFiles              string
+	SoftReset                         string
+	MixedReset                        string
+	HardReset                         string
+	Undo                              string
+	Redo                              string
 }
 
 const englishReleaseNotes = `lazygit 0.27.1-0.27.4 Release notes
@@ -1105,5 +1187,86 @@ func englishTranslationSet() TranslationSet {
 		CommandLog:                          "Command Log",
 		ToggleShowCommandLog:                "Toggle show/hide command log",
 		FocusCommandLog:                     "Focus command log",
+		Spans: Spans{
+			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
+			CheckoutCommit:                    "Checkout commit",
+			CheckoutReflogCommit:              "Checkout reflog commit",
+			CheckoutTag:                       "Checkout tag",
+			CheckoutBranch:                    "Checkout branch",
+			ForceCheckoutBranch:               "Force checkout branch",
+			DeleteBranch:                      "Delete branch",
+			Merge:                             "Merge",
+			RebaseBranch:                      "Rebase branch",
+			RenameBranch:                      "Rename branch",
+			CreateBranch:                      "Create branch",
+			CherryPick:                        "(Cherry-pick) Paste commits",
+			CheckoutFile:                      "Checkout file",
+			DiscardOldFileChange:              "Discard old file change",
+			SquashCommitDown:                  "Squash commit down",
+			FixupCommit:                       "Fixup commit",
+			RewordCommit:                      "Reword commit",
+			DropCommit:                        "Drop commit",
+			EditCommit:                        "Edit commit",
+			AmendCommit:                       "Amend commit",
+			RevertCommit:                      "Revert commit",
+			CreateFixupCommit:                 "Create fixup commit",
+			SquashAllAboveFixupCommits:        "Squash all above fixup commits",
+			CreateLightweightTag:              "Create lightweight tag",
+			CopyCommitMessageToClipboard:      "Copy commit message to clipboard",
+			MoveCommitUp:                      "Move commit up",
+			MoveCommitDown:                    "Move commit down",
+			CustomCommand:                     "Custom command",
+			DiscardAllChangesInDirectory:      "Discard all changes in directory",
+			DiscardUnstagedChangesInDirectory: "Discard unstaged changes in directory",
+			DiscardAllChangesInFile:           "Discard all changes in file",
+			DiscardAllUnstagedChangesInFile:   "Discard all unstaged changes in file",
+			StageFile:                         "Stage file",
+			UnstageFile:                       "Unstage file",
+			UnstageAllFiles:                   "Unstage all files",
+			StageAllFiles:                     "Stage all files",
+			IgnoreFile:                        "Ignore file",
+			Commit:                            "Commit",
+			EditFile:                          "Edit file",
+			Push:                              "Push",
+			Pull:                              "Pull",
+			OpenFile:                          "Open file",
+			StashAllChanges:                   "Stash all changes",
+			StashStagedChanges:                "Stash staged changes",
+			GitFlowFinish:                     "Git flow finish",
+			GitFlowStart:                      "Git Flow start",
+			CopyToClipboard:                   "Copy to clipboard",
+			RemovePatchFromCommit:             "Remove patch from commit",
+			MovePatchToSelectedCommit:         "Move patch to selected commit",
+			MovePatchIntoIndex:                "Move patch into index",
+			MovePatchIntoNewCommit:            "Move patch into new commit",
+			DeleteRemoteBranch:                "Delete remote branch",
+			SetBranchUpstream:                 "Set branch upstream",
+			AddRemote:                         "Add remote",
+			RemoveRemote:                      "Remove remote",
+			UpdateRemote:                      "Update remote",
+			ApplyPatch:                        "Apply patch",
+			Stash:                             "Stash",
+			RemoveSubmodule:                   "Remove submodule",
+			ResetSubmodule:                    "Reset submodule",
+			AddSubmodule:                      "Add submodule",
+			UpdateSubmoduleUrl:                "Update submodule URL",
+			InitialiseSubmodule:               "Initialise submodule",
+			BulkInitialiseSubmodules:          "Bulk initialise submodules",
+			BulkUpdateSubmodules:              "Bulk update submodules",
+			BulkStashAndResetSubmodules:       "Bulk stash and reset submodules",
+			BulkDeinitialiseSubmodules:        "Bulk deinitialise submodules",
+			UpdateSubmodule:                   "Update submodule",
+			DeleteTag:                         "Delete tag",
+			PushTag:                           "Push tag",
+			NukeWorkingTree:                   "Nuke working tree",
+			DiscardUnstagedFileChanges:        "Discard unstaged file changes",
+			RemoveUntrackedFiles:              "Remove untracked files",
+			SoftReset:                         "Soft reset",
+			MixedReset:                        "Mixed reset",
+			HardReset:                         "Hard reset",
+			FastForwardBranch:                 "Fast forward branch",
+			Undo:                              "Undo",
+			Redo:                              "Redo",
+		},
 	}
 }

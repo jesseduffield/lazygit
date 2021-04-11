@@ -12,7 +12,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 			{
 				displayString: gui.Tr.LcDiscardAllChanges,
 				onPress: func() error {
-					if err := gui.GitCommand.WithSpan("Discard all changes in directory").DiscardAllDirChanges(node); err != nil {
+					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardAllChangesInDirectory).DiscardAllDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -24,7 +24,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 			menuItems = append(menuItems, &menuItem{
 				displayString: gui.Tr.LcDiscardUnstagedChanges,
 				onPress: func() error {
-					if err := gui.GitCommand.WithSpan("Discard unstaged changes in directory").DiscardUnstagedDirChanges(node); err != nil {
+					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardUnstagedChangesInDirectory).DiscardUnstagedDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -53,7 +53,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 					displayString: gui.Tr.LcDiscardAllChanges,
 					onPress: func() error {
 						gui.Log.Warn("HA?")
-						if err := gui.GitCommand.WithSpan("Discard all changes in file").DiscardAllFileChanges(file); err != nil {
+						if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardAllChangesInFile).DiscardAllFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}
 						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -65,7 +65,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				menuItems = append(menuItems, &menuItem{
 					displayString: gui.Tr.LcDiscardUnstagedChanges,
 					onPress: func() error {
-						if err := gui.GitCommand.WithSpan("Discard all unstaged changes in file").DiscardUnstagedFileChanges(file); err != nil {
+						if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardAllUnstagedChangesInFile).DiscardUnstagedFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}
 

@@ -68,7 +68,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				loadingText = gui.Tr.LcRunningCustomCommandStatus
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
-				if err := gui.OSCommand.WithSpan("Custom command").RunShellCommand(cmdStr); err != nil {
+				if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CustomCommand).RunShellCommand(cmdStr); err != nil {
 					return gui.surfaceError(err)
 				}
 				return gui.refreshSidePanels(refreshOptions{})

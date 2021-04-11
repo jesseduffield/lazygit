@@ -215,7 +215,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	if err := gui.OSCommand.WithSpan("Copy to clipboard").CopyToClipboard(itemId); err != nil {
+	if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CopyToClipboard).CopyToClipboard(itemId); err != nil {
 		return gui.surfaceError(err)
 	}
 

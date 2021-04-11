@@ -106,7 +106,7 @@ func (gui *Gui) stashDo(method string) error {
 
 		return gui.createErrorPanel(errorMessage)
 	}
-	if err := gui.GitCommand.WithSpan("Stash").StashDo(stashEntry.Index, method); err != nil {
+	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.Stash).StashDo(stashEntry.Index, method); err != nil {
 		return gui.surfaceError(err)
 	}
 	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
