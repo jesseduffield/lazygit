@@ -94,9 +94,13 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 
 func (gui *Gui) onMenuPress() error {
 	selectedLine := gui.State.Panels.Menu.SelectedLineIdx
+	if err := gui.returnFromContext(); err != nil {
+		return err
+	}
+
 	if err := gui.State.MenuItems[selectedLine].onPress(); err != nil {
 		return err
 	}
 
-	return gui.returnFromContext()
+	return nil
 }
