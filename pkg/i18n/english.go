@@ -449,6 +449,7 @@ type TranslationSet struct {
 	ToggleShowCommandLog                string
 	FocusCommandLog                     string
 	CommandLogHeader                    string
+	RandomTip                           string
 	Spans                               Spans
 }
 
@@ -960,7 +961,7 @@ func englishTranslationSet() TranslationSet {
 		ConfirmMerge:                        "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdCommitsToPush:                    "Cannot fast-forward a branch with commits to push",
-		ErrorOccurred:                       "An error occurred! Please create an issue at https://github.com/jesseduffield/lazygit/issues",
+		ErrorOccurred:                       "An error occurred! Please create an issue at",
 		NoRoom:                              "Not enough room",
 		YouAreHere:                          "YOU ARE HERE",
 		LcRewordNotSupported:                "rewording commits while interactively rebasing is not currently supported",
@@ -1189,6 +1190,7 @@ func englishTranslationSet() TranslationSet {
 		ToggleShowCommandLog:                "Toggle show/hide command log",
 		FocusCommandLog:                     "Focus command log",
 		CommandLogHeader:                    "You can hide/focus this panel by pressing '%s' or hide it permanently in your config with `gui.showCommandLog: false`\n",
+		RandomTip:                           "Random Tip",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

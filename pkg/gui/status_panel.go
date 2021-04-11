@@ -6,6 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -106,11 +107,11 @@ func (gui *Gui) handleStatusSelect() error {
 		[]string{
 			lazygitTitle(),
 			"Copyright (c) 2018 Jesse Duffield",
-			"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings",
-			"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
-			"Tutorial: https://youtu.be/VDXvbHZYeKY",
-			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
-			magenta.Sprint("Become a sponsor (github is matching all donations for 12 months): https://github.com/sponsors/jesseduffield"), // caffeine ain't free
+			fmt.Sprintf("Keybindings: %s", constants.Links.Docs.Keybindings),
+			fmt.Sprintf("Config Options: %s", constants.Links.Docs.Config),
+			fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
+			fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
+			magenta.Sprintf("Become a sponsor (github is matching all donations for 12 months): %s", constants.Links.Donate), // caffeine ain't free
 			gui.Tr.ReleaseNotes,
 		}, "\n\n")
 

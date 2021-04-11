@@ -145,7 +145,7 @@ func polishTranslationSet() TranslationSet {
 		ConfirmMerge:                        "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdCommitsToPush:                    "Cannot fast-forward a branch with commits to push",
-		ErrorOccurred:                       "An error occurred! Please create an issue at https://github.com/jesseduffield/lazygit/issues",
+		ErrorOccurred:                       "An error occurred! Please create an issue at",
 		MainTitle:                           "Main",
 		NormalTitle:                         "Normal",
 		LcSoftReset:                         "soft reset",

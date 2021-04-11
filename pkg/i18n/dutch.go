@@ -207,7 +207,7 @@ func dutchTranslationSet() TranslationSet {
 		ConfirmMerge:                        "Weet je zeker dat je {{.selectedBranch}} in {{.checkedOutBranch}} wil mergen?",
 		FwdNoUpstream:                       "Kan niet de branch vooruitspoelen zonder upstream",
 		FwdCommitsToPush:                    "Je kan niet vooruitspoelen als de branch geen nieuwe commits heeft",
-		ErrorOccurred:                       "Er is iets fout gegaan! Zou je hier een issue aan willen maken: https://github.com/jesseduffield/lazygit/issues",
+		ErrorOccurred:                       "Er is iets fout gegaan! Zou je hier een issue aan willen maken",
 		NoRoom:                              "Niet genoeg ruimte",
 		YouAreHere:                          "JE BENT HIER",
 		LcRewordNotSupported:                "herformatteren van commits in interactief rebasen is nog niet ondersteund",

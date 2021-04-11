@@ -17,6 +17,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -36,10 +37,6 @@ type Updaterer interface {
 	Update()
 }
 
-const (
-	PROJECT_URL = "https://github.com/jesseduffield/lazygit"
-)
-
 // NewUpdater creates a new updater
 func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
@@ -53,7 +50,7 @@ func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscom
 }
 
 func (u *Updater) getLatestVersionNumber() (string, error) {
-	req, err := http.NewRequest("GET", PROJECT_URL+"/releases/latest", nil)
+	req, err := http.NewRequest("GET", constants.Links.RepoUrl+"/releases/latest", nil)
 	if err != nil {
 		return "", err
 	}
@@ -235,7 +232,7 @@ func (u *Updater) zipExtension() string {
 func (u *Updater) getBinaryUrl(newVersion string) (string, error) {
 	url := fmt.Sprintf(
 		"%s/releases/download/%s/lazygit_%s_%s_%s.%s",
-		PROJECT_URL,
+		constants.Links.RepoUrl,
 		newVersion,
 		newVersion[1:],
 		u.mappedOs(runtime.GOOS),
