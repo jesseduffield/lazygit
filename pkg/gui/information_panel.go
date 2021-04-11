@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 )
 
 func (gui *Gui) informationStr() string {
@@ -43,9 +44,9 @@ func (gui *Gui) handleInfoClick() error {
 
 	// if we're not in an active mode we show the donate button
 	if cx <= len(gui.Tr.Donate) {
-		return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
+		return gui.OSCommand.OpenLink(constants.Links.Donate)
 	} else if cx <= len(gui.Tr.Donate)+1+len(gui.Tr.AskQuestion) {
-		return gui.OSCommand.OpenLink("https://github.com/jesseduffield/lazygit/discussions")
+		return gui.OSCommand.OpenLink(constants.Links.Discussions)
 	}
 	return nil
 }

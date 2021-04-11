@@ -1,12 +1,8 @@
 package gui
 
 import (
-	"fmt"
-
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 const SEARCH_PREFIX = "search: "
@@ -125,6 +121,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Extras.Title = gui.Tr.CommandLog
 	gui.Views.Extras.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Extras.Autoscroll = true
+	gui.Views.Extras.Wrap = true
 	gui.printCommandLogHeader()
 
 	if _, err := gui.g.SetCurrentView(gui.defaultSideContext().GetViewName()); err != nil {
@@ -132,14 +129,6 @@ func (gui *Gui) createAllViews() error {
 	}
 
 	return nil
-}
-
-func (gui *Gui) printCommandLogHeader() {
-	introStr := fmt.Sprintf(
-		gui.Tr.CommandLogHeader,
-		gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.ExtrasMenu),
-	)
-	fmt.Fprintln(gui.Views.Extras, utils.ColoredString(introStr, color.FgCyan))
 }
 
 // layout is called for every screen re-render e.g. when the screen is resized

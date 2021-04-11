@@ -103,6 +103,7 @@ type KeybindingConfig struct {
 	Submodules  KeybindingSubmodulesConfig  `yaml:"submodules"`
 }
 
+// damn looks like we have some inconsistencies here with -alt and -alt1
 type KeybindingUniversalConfig struct {
 	Quit                         string `yaml:"quit"`
 	QuitAlt1                     string `yaml:"quit-alt1"`
@@ -121,6 +122,8 @@ type KeybindingUniversalConfig struct {
 	NextBlock                    string `yaml:"nextBlock"`
 	PrevBlockAlt                 string `yaml:"prevBlock-alt"`
 	NextBlockAlt                 string `yaml:"nextBlock-alt"`
+	NextBlockAlt2                string `yaml:"nextBlock-alt2"`
+	PrevBlockAlt2                string `yaml:"prevBlock-alt2"`
 	NextMatch                    string `yaml:"nextMatch"`
 	PrevMatch                    string `yaml:"prevMatch"`
 	StartSearch                  string `yaml:"startSearch"`
@@ -352,6 +355,8 @@ func GetDefaultConfig() *UserConfig {
 				NextBlock:                    "<right>",
 				PrevBlockAlt:                 "h",
 				NextBlockAlt:                 "l",
+				PrevBlockAlt2:                "<backtab>",
+				NextBlockAlt2:                "<tab>",
 				NextMatch:                    "n",
 				PrevMatch:                    "N",
 				StartSearch:                  "/",
