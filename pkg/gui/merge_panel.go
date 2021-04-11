@@ -241,8 +241,7 @@ func (gui *Gui) scrollToConflict() error {
 	conflict := panelState.Conflicts[panelState.ConflictIndex]
 	ox, _ := mergingView.Origin()
 	_, height := mergingView.Size()
-	conflictMiddle := (conflict.End + conflict.Start) / 2
-	newOriginY := int(math.Max(0, float64(conflictMiddle-(height/2))))
+	newOriginY := int(math.Max(0, float64(conflict.Middle-(height/2))))
 	gui.g.Update(func(g *gocui.Gui) error {
 		return mergingView.SetOrigin(ox, newOriginY)
 	})
