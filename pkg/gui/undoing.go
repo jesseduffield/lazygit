@@ -93,7 +93,7 @@ func (gui *Gui) reflogUndo() error {
 		return gui.createErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
 	}
 
-	span := "Undo"
+	span := gui.Tr.Spans.Undo
 
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
 		if counter != 0 {
@@ -128,7 +128,7 @@ func (gui *Gui) reflogRedo() error {
 		return gui.createErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
 	}
 
-	span := "Redo"
+	span := gui.Tr.Spans.Redo
 
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
 		// if we're redoing and the counter is zero, we just return

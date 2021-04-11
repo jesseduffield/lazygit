@@ -171,7 +171,7 @@ func (gui *Gui) handleCommitSquashDown() error {
 		prompt: gui.Tr.SureSquashThisCommit,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
-				err := gui.GitCommand.WithSpan("Squash commit down").InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "squash")
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.SquashCommitDown).InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "squash")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -200,7 +200,7 @@ func (gui *Gui) handleCommitFixup() error {
 		prompt: gui.Tr.SureFixupThisCommit,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.FixingStatus, func() error {
-				err := gui.GitCommand.WithSpan("Fixup commit").InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "fixup")
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.FixupCommit).InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "fixup")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -238,7 +238,7 @@ func (gui *Gui) handleRenameCommit() error {
 		title:          gui.Tr.LcRenameCommit,
 		initialContent: message,
 		handleConfirm: func(response string) error {
-			if err := gui.GitCommand.WithSpan("Reword commit").RenameCommit(response); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RewordCommit).RenameCommit(response); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -260,7 +260,7 @@ func (gui *Gui) handleRenameCommitEditor() error {
 		return nil
 	}
 
-	subProcess, err := gui.GitCommand.WithSpan("Reword commit").RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
+	subProcess, err := gui.GitCommand.WithSpan(gui.Tr.Spans.RewordCommit).RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -319,7 +319,7 @@ func (gui *Gui) handleCommitDelete() error {
 		prompt: gui.Tr.DeleteCommitPrompt,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				err := gui.GitCommand.WithSpan("Drop commit").InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "drop")
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DropCommit).InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "drop")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -331,7 +331,7 @@ func (gui *Gui) handleCommitMoveDown() error {
 		return err
 	}
 
-	span := "Move commit down"
+	span := gui.Tr.Spans.MoveCommitDown
 
 	index := gui.State.Panels.Commits.SelectedLineIdx
 	selectedCommit := gui.State.Commits[index]
@@ -374,7 +374,7 @@ func (gui *Gui) handleCommitMoveUp() error {
 		return nil
 	}
 
-	span := "Move commit up"
+	span := gui.Tr.Spans.MoveCommitUp
 
 	selectedCommit := gui.State.Commits[index]
 	if selectedCommit.Status == "rebasing" {
@@ -416,7 +416,7 @@ func (gui *Gui) handleCommitEdit() error {
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
-		err = gui.GitCommand.WithSpan("Edit commit").InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "edit")
+		err = gui.GitCommand.WithSpan(gui.Tr.Spans.EditCommit).InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "edit")
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -431,7 +431,7 @@ func (gui *Gui) handleCommitAmendTo() error {
 		prompt: gui.Tr.AmendCommitPrompt,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.AmendingStatus, func() error {
-				err := gui.GitCommand.WithSpan("Amend commit").AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha)
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.AmendCommit).AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha)
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -461,7 +461,7 @@ func (gui *Gui) handleCommitRevert() error {
 		return err
 	}
 
-	if err := gui.GitCommand.WithSpan("Revert commit").Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha); err != nil {
+	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RevertCommit).Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha); err != nil {
 		return gui.surfaceError(err)
 	}
 	gui.State.Panels.Commits.SelectedLineIdx++
@@ -498,7 +498,7 @@ func (gui *Gui) handleCreateFixupCommit() error {
 		title:  gui.Tr.CreateFixupCommit,
 		prompt: prompt,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan("Create fixup commit").CreateFixupCommit(commit.Sha); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateFixupCommit).CreateFixupCommit(commit.Sha); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -529,7 +529,7 @@ func (gui *Gui) handleSquashAllAboveFixupCommits() error {
 		prompt: prompt,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
-				err := gui.GitCommand.WithSpan("Squash all above fixup commits").SquashAllAboveFixupCommits(commit.Sha)
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.SquashAllAboveFixupCommits).SquashAllAboveFixupCommits(commit.Sha)
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
@@ -552,7 +552,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.TagNameTitle,
 		handleConfirm: func(response string) error {
-			if err := gui.GitCommand.WithSpan("Create lightweight tag").CreateLightweightTag(response, commitSha); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateLightweightTag).CreateLightweightTag(response, commitSha); err != nil {
 				return gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
@@ -570,7 +570,7 @@ func (gui *Gui) handleCheckoutCommit() error {
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
-			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{span: "Checkout commit"})
+			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutCommit})
 		},
 	})
 }
@@ -625,7 +625,7 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 		return gui.surfaceError(err)
 	}
 
-	if err := gui.OSCommand.WithSpan("Copy commit message to clipboard").CopyToClipboard(message); err != nil {
+	if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CopyCommitMessageToClipboard).CopyToClipboard(message); err != nil {
 		return gui.surfaceError(err)
 	}
 

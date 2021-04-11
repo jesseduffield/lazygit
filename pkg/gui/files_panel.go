@@ -219,11 +219,11 @@ func (gui *Gui) handleFilePress() error {
 		}
 
 		if file.HasUnstagedChanges {
-			if err := gui.GitCommand.WithSpan("Stage file").StageFile(file.Name); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageFile).StageFile(file.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 		} else {
-			if err := gui.GitCommand.WithSpan("Unstage file").UnStageFile(file.Names(), file.Tracked); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.UnstageFile).UnStageFile(file.Names(), file.Tracked); err != nil {
 				return gui.surfaceError(err)
 			}
 		}
@@ -235,12 +235,12 @@ func (gui *Gui) handleFilePress() error {
 		}
 
 		if node.GetHasUnstagedChanges() {
-			if err := gui.GitCommand.WithSpan("Stage file").StageFile(node.Path); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageFile).StageFile(node.Path); err != nil {
 				return gui.surfaceError(err)
 			}
 		} else {
 			// pretty sure it doesn't matter that we're always passing true here
-			if err := gui.GitCommand.WithSpan("Unstage file").UnStageFile([]string{node.Path}, true); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.UnstageFile).UnStageFile([]string{node.Path}, true); err != nil {
 				return gui.surfaceError(err)
 			}
 		}
@@ -269,9 +269,9 @@ func (gui *Gui) focusAndSelectFile() error {
 func (gui *Gui) handleStageAll() error {
 	var err error
 	if gui.allFilesStaged() {
-		err = gui.GitCommand.WithSpan("Unstage all files").UnstageAll()
+		err = gui.GitCommand.WithSpan(gui.Tr.Spans.UnstageAllFiles).UnstageAll()
 	} else {
-		err = gui.GitCommand.WithSpan("Stage all files").StageAll()
+		err = gui.GitCommand.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
 	}
 	if err != nil {
 		_ = gui.surfaceError(err)
@@ -294,7 +294,7 @@ func (gui *Gui) handleIgnoreFile() error {
 		return gui.createErrorPanel("Cannot ignore .gitignore")
 	}
 
-	gitCommand := gui.GitCommand.WithSpan("Ignore file")
+	gitCommand := gui.GitCommand.WithSpan(gui.Tr.Spans.IgnoreFile)
 
 	unstageFiles := func() error {
 		return node.ForEachFile(func(file *models.File) error {
@@ -367,7 +367,7 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 func (gui *Gui) prepareFilesForCommit() error {
 	noStagedFiles := len(gui.stagedFiles()) == 0
 	if noStagedFiles && gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
-		err := gui.GitCommand.WithSpan("Stage all files").StageAll()
+		err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
 		if err != nil {
 			return err
 		}
@@ -422,7 +422,7 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 		title:  gui.Tr.NoFilesStagedTitle,
 		prompt: gui.Tr.NoFilesStagedPrompt,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan("Stage all files").StageAll(); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll(); err != nil {
 				return gui.surfaceError(err)
 			}
 			if err := gui.refreshFilesAndSubmodules(); err != nil {
@@ -452,7 +452,7 @@ func (gui *Gui) handleAmendCommitPress() error {
 		prompt: gui.Tr.SureToAmend,
 		handleConfirm: func() error {
 			cmdStr := gui.GitCommand.AmendHeadCmdStr()
-			gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdStr, "Amend commit", true))
+			gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdStr, gui.Tr.Spans.AmendCommit, true))
 			return gui.withGpgHandling(cmdStr, gui.Tr.AmendingStatus, nil)
 		},
 	})
@@ -470,7 +470,7 @@ func (gui *Gui) handleCommitEditorPress() error {
 	}
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan("Commit").PrepareSubProcess("git", "commit"),
+		gui.OSCommand.WithSpan(gui.Tr.Spans.Commit).PrepareSubProcess("git", "commit"),
 	)
 }
 
@@ -481,7 +481,7 @@ func (gui *Gui) editFile(filename string) error {
 	}
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan("Edit file").PrepareShellSubProcess(cmdStr),
+		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).PrepareShellSubProcess(cmdStr),
 	)
 }
 
@@ -609,7 +609,7 @@ func (gui *Gui) handlePullFiles() error {
 		return nil
 	}
 
-	span := "Pull"
+	span := gui.Tr.Spans.Pull
 
 	currentBranch := gui.currentBranch()
 	if currentBranch == nil {
@@ -707,7 +707,7 @@ func (gui *Gui) pushWithForceFlag(force bool, upstream string, args string) erro
 	}
 	go utils.Safe(func() {
 		branchName := gui.getCheckedOutBranch().Name
-		err := gui.GitCommand.WithSpan("Push").Push(branchName, force, upstream, args, gui.promptUserForCredential)
+		err := gui.GitCommand.WithSpan(gui.Tr.Spans.Push).Push(branchName, force, upstream, args, gui.promptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
 			forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 			if forcePushDisabled {
@@ -796,7 +796,7 @@ func (gui *Gui) handleSwitchToMerge() error {
 }
 
 func (gui *Gui) openFile(filename string) error {
-	if err := gui.OSCommand.WithSpan("Open file").OpenFile(filename); err != nil {
+	if err := gui.OSCommand.WithSpan(gui.Tr.Spans.OpenFile).OpenFile(filename); err != nil {
 		return gui.surfaceError(err)
 	}
 	return nil
@@ -815,7 +815,7 @@ func (gui *Gui) handleCustomCommand() error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.CustomCommand,
 		handleConfirm: func(command string) error {
-			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, "Custom command", true))
+			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, gui.Tr.Spans.CustomCommand, true))
 			return gui.runSubprocessWithSuspenseAndRefresh(
 				gui.OSCommand.PrepareShellSubProcess(command),
 			)
@@ -828,13 +828,13 @@ func (gui *Gui) handleCreateStashMenu() error {
 		{
 			displayString: gui.Tr.LcStashAllChanges,
 			onPress: func() error {
-				return gui.handleStashSave(gui.GitCommand.WithSpan("Stash all changes").StashSave)
+				return gui.handleStashSave(gui.GitCommand.WithSpan(gui.Tr.Spans.StashAllChanges).StashSave)
 			},
 		},
 		{
 			displayString: gui.Tr.LcStashStagedChanges,
 			onPress: func() error {
-				return gui.handleStashSave(gui.GitCommand.WithSpan("Stash staged changes").StashSaveStagedChanges)
+				return gui.handleStashSave(gui.GitCommand.WithSpan(gui.Tr.Spans.StashStagedChanges).StashSaveStagedChanges)
 			},
 		},
 	}

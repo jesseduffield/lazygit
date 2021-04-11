@@ -85,7 +85,7 @@ func (gui *Gui) handleAddRemote() error {
 			return gui.prompt(promptOpts{
 				title: gui.Tr.LcNewRemoteUrl,
 				handleConfirm: func(remoteUrl string) error {
-					if err := gui.GitCommand.WithSpan("Add remote").AddRemote(remoteName, remoteUrl); err != nil {
+					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.AddRemote).AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
 					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{REMOTES}})
@@ -106,7 +106,7 @@ func (gui *Gui) handleRemoveRemote() error {
 		title:  gui.Tr.LcRemoveRemote,
 		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan("Remove remote").RemoveRemote(remote.Name); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveRemote).RemoveRemote(remote.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -128,7 +128,7 @@ func (gui *Gui) handleEditRemote() error {
 		},
 	)
 
-	gitCommand := gui.GitCommand.WithSpan("Update remote")
+	gitCommand := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateRemote)
 
 	return gui.prompt(promptOpts{
 		title:          editNameMessage,
