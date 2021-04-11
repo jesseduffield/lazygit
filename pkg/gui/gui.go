@@ -113,6 +113,9 @@ type Gui struct {
 	// Log of the commands that get run, to be displayed to the user.
 	CmdLog       []string
 	OnRunCommand func(entry oscommands.CmdLogEntry)
+
+	// the extras window contains things like the command log
+	ShowExtrasWindow bool
 }
 
 type listPanelState struct {
@@ -338,7 +341,6 @@ type guiState struct {
 	IsRefreshingFiles bool
 	Searching         searchingState
 	ScreenMode        WindowMaximisation
-	SideView          *gocui.View
 	Ptmx              *os.File
 	PrevMainWidth     int
 	PrevMainHeight    int
@@ -428,8 +430,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 				ConflictsMutex: sync.Mutex{},
 			},
 		},
-		SideView: nil,
-		Ptmx:     nil,
+		Ptmx: nil,
 		Modes: Modes{
 			Filtering: filtering.NewFiltering(filterPath),
 			CherryPicking: CherryPicking{

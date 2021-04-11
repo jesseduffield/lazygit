@@ -156,6 +156,7 @@ type KeybindingUniversalConfig struct {
 	CopyToClipboard              string `yaml:"copyToClipboard"`
 	SubmitEditorText             string `yaml:"submitEditorText"`
 	AppendNewline                string `yaml:"appendNewline"`
+	ExtrasMenu                   string `yaml:"extrasMenu"`
 }
 
 type KeybindingStatusConfig struct {
@@ -383,6 +384,7 @@ func GetDefaultConfig() *UserConfig {
 				CopyToClipboard:              "<c-o>",
 				SubmitEditorText:             "<enter>",
 				AppendNewline:                "<a-enter>",
+				ExtrasMenu:                   "@",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:      "u",

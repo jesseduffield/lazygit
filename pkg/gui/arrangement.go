@@ -146,7 +146,10 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 		mainPanelsDirection = boxlayout.COLUMN
 	}
 
-	extrasWindowSize := 40 // TODO: make configurable
+	extrasWindowSize := 0
+	if gui.ShowExtrasWindow {
+		extrasWindowSize = 40 // TODO: make configurable
+	}
 
 	root := &boxlayout.Box{
 		Direction: boxlayout.ROW,

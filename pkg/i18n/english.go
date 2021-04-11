@@ -386,6 +386,7 @@ type TranslationSet struct {
 	DiffingMenuTitle                    string
 	LcSwapDiff                          string
 	LcOpenDiffingMenu                   string
+	LcOpenExtrasMenu                    string
 	LcShowingGitDiff                    string
 	LcCopyCommitShaToClipboard          string
 	LcCopyCommitMessageToClipboard      string
@@ -1038,6 +1039,8 @@ func englishTranslationSet() TranslationSet {
 		DiffingMenuTitle:                    "Diffing",
 		LcSwapDiff:                          "reverse diff direction",
 		LcOpenDiffingMenu:                   "open diff menu",
+		// the actual view is the extras view which I intend to give more tabs in future but for now we'll only mention the command log part
+		LcOpenExtrasMenu:                    "open command log menu",
 		LcShowingGitDiff:                    "showing output for:",
 		LcCopyCommitShaToClipboard:          "copy commit SHA to clipboard",
 		LcCopyCommitMessageToClipboard:      "copy commit message to clipboard",
