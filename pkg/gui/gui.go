@@ -254,7 +254,7 @@ type Views struct {
 	SearchPrefix  *gocui.View
 	Limit         *gocui.View
 	Suggestions   *gocui.View
-	CmdLog        *gocui.View
+	Extras        *gocui.View
 }
 
 type searchingState struct {
@@ -475,12 +475,12 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		currentSpan := ""
 
 		return func(entry oscommands.CmdLogEntry) {
-			if gui.Views.CmdLog == nil {
+			if gui.Views.Extras == nil {
 				return
 			}
 
 			if entry.GetSpan() != currentSpan {
-				fmt.Fprintln(gui.Views.CmdLog, utils.ColoredString(entry.GetSpan(), color.FgYellow))
+				fmt.Fprintln(gui.Views.Extras, utils.ColoredString(entry.GetSpan(), color.FgYellow))
 				currentSpan = entry.GetSpan()
 			}
 
@@ -489,7 +489,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 				clrAttr = color.FgMagenta
 			}
 			gui.CmdLog = append(gui.CmdLog, entry.GetCmdStr())
-			fmt.Fprintln(gui.Views.CmdLog, "  "+utils.ColoredString(entry.GetCmdStr(), clrAttr))
+			indentedCmdStr := "  " + strings.Replace(entry.GetCmdStr(), "\n", "\n  ", -1)
+			fmt.Fprintln(gui.Views.Extras, utils.ColoredString(indentedCmdStr, clrAttr))
 		}
 	}()
 
