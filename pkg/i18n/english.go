@@ -445,7 +445,19 @@ type TranslationSet struct {
 	ErrRepositoryMovedOrDeleted         string
 }
 
-const englishReleaseNotes = `lazygit 0.27 Release Notes
+const englishReleaseNotes = `lazygit 0.27.1-0.27.4 Release notes
+
+Version 0.27 was quite ambitious so a few bugs were introduced. Lesson learnt,
+release features gradually! All the newly introduced bugs should now be fixed,
+except for https://github.com/jesseduffield/lazygit/issues/1233 which looks to
+be a limitation of the new rendering library, tcell.
+
+You can also now open 'git mergetool' by pressing shift+M in the files panel or
+merge panel.
+
+Otherwise, these releases contained minor bug fixes and improvements.
+
+lazygit 0.27 Release Notes
 
 Holy Moly, this is a big one.
 
@@ -644,8 +656,8 @@ Thanks for using lazygit! Three things to share with you:
     Or even just star the repo cos we're not far from 20k stars!
 
  3) You can now read through the release notes by navigating to the status panel.
-    Version 0.23 has a LOT of new stuff so check it out. Also configs are now
-    case-sensitive so run ` + "`" + `lazygit --config` + "`" + ` for comparison.
+    Version 0.27 introduces a file tree view, better rendering, tab/shift+tab
+    keybindings, and more
 `
 
 func englishTranslationSet() TranslationSet {
