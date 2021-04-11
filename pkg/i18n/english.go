@@ -233,6 +233,7 @@ type TranslationSet struct {
 	CannotRebaseOntoFirstCommit         string
 	CannotSquashOntoSecondCommit        string
 	Donate                              string
+	AskQuestion                         string
 	PrevLine                            string
 	NextLine                            string
 	PrevHunk                            string
@@ -888,6 +889,7 @@ func englishTranslationSet() TranslationSet {
 		CannotRebaseOntoFirstCommit:         "You cannot interactive rebase onto the first commit",
 		CannotSquashOntoSecondCommit:        "You cannot squash/fixup onto the second commit",
 		Donate:                              "Donate",
+		AskQuestion:                         "Ask Question",
 		PrevLine:                            "select previous line",
 		NextLine:                            "select next line",
 		PrevHunk:                            "select previous hunk",

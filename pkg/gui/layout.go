@@ -1,28 +1,11 @@
 package gui
 
 import (
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 const SEARCH_PREFIX = "search: "
-const INFO_SECTION_PADDING = " "
-
-func (gui *Gui) informationStr() string {
-	for _, mode := range gui.modeStatuses() {
-		if mode.isActive() {
-			return mode.description()
-		}
-	}
-
-	if gui.g.Mouse {
-		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.Donate)
-		return donate + " " + gui.Config.GetVersion()
-	} else {
-		return gui.Config.GetVersion()
-	}
-}
 
 func (gui *Gui) createAllViews() error {
 	viewNameMappings := []struct {
