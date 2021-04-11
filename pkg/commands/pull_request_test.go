@@ -51,7 +51,7 @@ func TestCreatePullRequest(t *testing.T) {
 		branch    *models.Branch
 		remoteUrl string
 		command   func(string, ...string) *exec.Cmd
-		test      func(err error)
+		test      func(url string, err error)
 	}
 
 	scenarios := []scenario{
@@ -71,8 +71,9 @@ func TestCreatePullRequest(t *testing.T) {
 				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1"})
 				return secureexec.Command("echo")
 			},
-			test: func(err error) {
+			test: func(url string, err error) {
 				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1", url)
 			},
 		},
 		{
@@ -91,8 +92,9 @@ func TestCreatePullRequest(t *testing.T) {
 				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events&t=1"})
 				return secureexec.Command("echo")
 			},
-			test: func(err error) {
+			test: func(url string, err error) {
 				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events&t=1", url)
 			},
 		},
 		{
@@ -111,8 +113,9 @@ func TestCreatePullRequest(t *testing.T) {
 				assert.Equal(t, args, []string{"https://github.com/peter/calculator/compare/feature/sum-operation?expand=1"})
 				return secureexec.Command("echo")
 			},
-			test: func(err error) {
+			test: func(url string, err error) {
 				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature/sum-operation?expand=1", url)
 			},
 		},
 		{
@@ -131,8 +134,9 @@ func TestCreatePullRequest(t *testing.T) {
 				assert.Equal(t, args, []string{"https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/ui"})
 				return secureexec.Command("echo")
 			},
-			test: func(err error) {
+			test: func(url string, err error) {
 				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/ui", url)
 			},
 		},
 		{
@@ -144,7 +148,7 @@ func TestCreatePullRequest(t *testing.T) {
 			command: func(cmd string, args ...string) *exec.Cmd {
 				return secureexec.Command("echo")
 			},
-			test: func(err error) {
+			test: func(url string, err error) {
 				assert.Error(t, err)
 			},
 		},
