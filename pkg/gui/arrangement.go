@@ -146,7 +146,7 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 		mainPanelsDirection = boxlayout.COLUMN
 	}
 
-	cmdLogSize := 40 // TODO: make configurable
+	extrasWindowSize := 40 // TODO: make configurable
 
 	root := &boxlayout.Box{
 		Direction: boxlayout.ROW,
@@ -170,8 +170,8 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 								Weight:    1,
 							},
 							{
-								Window: "cmdLog",
-								Size:   cmdLogSize,
+								Window: "extras",
+								Size:   extrasWindowSize,
 							},
 						},
 					},

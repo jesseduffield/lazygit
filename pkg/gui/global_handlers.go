@@ -68,6 +68,21 @@ func (gui *Gui) scrollUpView(view *gocui.View) error {
 
 func (gui *Gui) scrollDownView(view *gocui.View) error {
 	ox, oy := view.Origin()
+	scrollHeight := gui.linesToScrollDown(view)
+	if scrollHeight > 0 {
+		if err := view.SetOrigin(ox, oy+scrollHeight); err != nil {
+			return err
+		}
+	}
+
+	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
+		manager.ReadLines(scrollHeight)
+	}
+	return nil
+}
+
+func (gui *Gui) linesToScrollDown(view *gocui.View) int {
+	_, oy := view.Origin()
 	y := oy
 	canScrollPastBottom := gui.Config.GetUserConfig().Gui.ScrollPastBottom
 	if !canScrollPastBottom {
@@ -76,27 +91,29 @@ func (gui *Gui) scrollDownView(view *gocui.View) error {
 	}
 	scrollHeight := gui.Config.GetUserConfig().Gui.ScrollHeight
 	scrollableLines := view.ViewLinesHeight() - y
-	if scrollableLines > 0 {
-		// margin is about how many lines must still appear if you scroll
-		// all the way down. In practice every file ends in a newline so it will really
-		// just show a single line
-		margin := 1
-		if canScrollPastBottom {
-			margin = 2
-		}
-		if scrollableLines-margin < scrollHeight {
-			scrollHeight = scrollableLines - margin
-		}
-		if oy+scrollHeight >= 0 {
-			if err := view.SetOrigin(ox, oy+scrollHeight); err != nil {
-				return err
-			}
-		}
+	if scrollableLines < 0 {
+		return 0
 	}
-	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
-		manager.ReadLines(scrollHeight)
+
+	// margin is about how many lines must still appear if you scroll
+	// all the way down. In practice every file ends in a newline so it will really
+	// just show a single line
+	margin := 1
+	if canScrollPastBottom {
+		margin = 2
 	}
-	return nil
+	if scrollableLines-margin < scrollHeight {
+		scrollHeight = scrollableLines - margin
+	}
+	if oy+scrollHeight < 0 {
+		return 0
+	} else {
+		return scrollHeight
+	}
+}
+
+func (gui *Gui) atScrollBottom(view *gocui.View) bool {
+	return gui.linesToScrollDown(view) > 0
 }
 
 func (gui *Gui) scrollUpMain() error {
@@ -121,6 +138,24 @@ func (gui *Gui) scrollUpSecondary() error {
 
 func (gui *Gui) scrollDownSecondary() error {
 	return gui.scrollDownView(gui.Views.Secondary)
+}
+
+func (gui *Gui) scrollUpExtra() error {
+	gui.Views.Extras.Autoscroll = false
+
+	return gui.scrollUpView(gui.Views.Extras)
+}
+
+func (gui *Gui) scrollDownExtra() error {
+	if err := gui.scrollDownView(gui.Views.Extras); err != nil {
+		return err
+	}
+
+	if gui.atScrollBottom(gui.Views.Extras) {
+		gui.Views.Extras.Autoscroll = true
+	}
+
+	return nil
 }
 
 func (gui *Gui) scrollUpConfirmationPanel() error {

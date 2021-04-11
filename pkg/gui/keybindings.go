@@ -1702,6 +1702,16 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.LcViewBulkSubmoduleOptions,
 			OpensMenu:   true,
 		},
+		{
+			ViewName: "extras",
+			Key:      gocui.MouseWheelUp,
+			Handler:  gui.scrollUpExtra,
+		},
+		{
+			ViewName: "extras",
+			Key:      gocui.MouseWheelDown,
+			Handler:  gui.scrollDownExtra,
+		},
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
