@@ -515,6 +515,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.LcToggleTreeView,
 		},
 		{
+			ViewName:    "files",
+			Contexts:    []string{string(FILES_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Files.OpenMergeTool),
+			Handler:     gui.handleOpenMergeTool,
+			Description: gui.Tr.LcOpenMergeTool,
+		},
+		{
 			ViewName:    "branches",
 			Contexts:    []string{string(LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.Select),
@@ -1407,6 +1414,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey(config.Universal.Return),
 			Handler:     gui.handleEscapeMerge,
 			Description: gui.Tr.ReturnToFilesPanel,
+		},
+		{
+			ViewName:    "main",
+			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Files.OpenMergeTool),
+			Handler:     gui.handleOpenMergeTool,
+			Description: gui.Tr.LcOpenMergeTool,
 		},
 		{
 			ViewName:    "main",

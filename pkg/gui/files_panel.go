@@ -879,3 +879,15 @@ func (gui *Gui) handleToggleFileTreeView() error {
 
 	return nil
 }
+
+func (gui *Gui) handleOpenMergeTool() error {
+	return gui.ask(askOpts{
+		title:  gui.Tr.MergeToolTitle,
+		prompt: gui.Tr.MergeToolPrompt,
+		handleConfirm: func() error {
+			return gui.runSubprocessWithSuspenseAndRefresh(
+				gui.OSCommand.ExecutableFromString(gui.GitCommand.OpenMergeToolCmd()),
+			)
+		},
+	})
+}
