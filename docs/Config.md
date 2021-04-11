@@ -2,190 +2,190 @@
 
 Default path for the config file:
 
-* Linux: `~/.config/lazygit/config.yml`
-* MacOS: `~/Library/Application Support/lazygit/config.yml`
-* Windows: `%APPDATA%\lazygit\config.yml`
+- Linux: `~/.config/lazygit/config.yml`
+- MacOS: `~/Library/Application Support/lazygit/config.yml`
+- Windows: `%APPDATA%\lazygit\config.yml`
 
 For old installations (slightly embarrassing: I didn't realise at the time that you didn't need to supply a vendor name to the path so I just used my name):
 
-* Linux: `~/.config/jesseduffield/lazygit/config.yml`
-* MacOS: `~/Library/Application Support/jesseduffield/lazygit/config.yml`
-* Windows: `%APPDATA%\jesseduffield\lazygit\config.yml`
+- Linux: `~/.config/jesseduffield/lazygit/config.yml`
+- MacOS: `~/Library/Application Support/jesseduffield/lazygit/config.yml`
+- Windows: `%APPDATA%\jesseduffield\lazygit\config.yml`
 
 ## Default
 
 ```yaml
-  gui:
-    # stuff relating to the UI
-    scrollHeight: 2 # how many lines you scroll by
-    scrollPastBottom: true # enable scrolling past the bottom
-    sidePanelWidth: 0.3333 # number from 0 to 1
-    expandFocusedSidePanel: false
-    mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
-    theme:
-      lightTheme: false # For terminals with a light background
-      activeBorderColor:
-        - white
-        - bold
-      inactiveBorderColor:
-        - green
-      optionsTextColor:
-        - blue
-      selectedLineBgColor:
-        - default
-      selectedRangeBgColor:
-        - blue
-    commitLength:
-      show: true
-    mouseEvents: true
-    skipUnstageLineWarning: false
-    skipStashWarning: true
-    showFileTree: false # for rendering changes files in a tree format
-    showCommandLog: false
-  git:
-    paging:
-      colorArg: always
-      useConfig: false
-    merging:
-      # only applicable to unix users
-      manualCommit: false
-      # extra args passed to `git merge`, e.g. --no-ff
-      args: ""
-    pull:
-      mode: 'merge' # one of 'merge' | 'rebase' | 'ff-only'
-    skipHookPrefix: WIP
-    autoFetch: true
-    branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
-    allBranchesLogCmd: "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
-    overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
-    disableForcePushing: false
-  refresher:
-    refreshInterval: 10 # file/submodule refresh interval in seconds
-    fetchInterval: 60 # re-fetch interval in seconds
-  update:
-    method: prompt # can be: prompt | background | never
-    days: 14 # how often an update is checked for
-  reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
-  confirmOnQuit: false
-  # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
-  quitOnTopLevelReturn: false
-  disableStartupPopups: false
-  notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip'
-  keybinding:
-    universal:
-      quit: 'q'
-      quit-alt1: '<c-c>' # alternative/alias of quit
-      return: '<esc>' # return to previous menu, will quit if there's nowhere to return
-      quitWithoutChangingDirectory: 'Q'
-      togglePanel: '<tab>' # goto the next panel
-      prevItem: '<up>' # go one line up
-      nextItem: '<down>' # go one line down
-      prevItem-alt: 'k' # go one line up
-      nextItem-alt: 'j' # go one line down
-      prevPage: ',' # go to next page in list
-      nextPage: '.' # go to previous page in list
-      gotoTop: '<' # go to top of list
-      gotoBottom: '>' # go to bottom of list
-      prevBlock: '<left>' # goto the previous block / panel
-      nextBlock: '<right>' # goto the next block / panel
-      prevBlock-alt: 'h' # goto the previous block / panel
-      nextBlock-alt: 'l' # goto the next block / panel
-      nextMatch: 'n'
-      prevMatch: 'N'
-      optionMenu: 'x' # show help menu
-      optionMenu-alt1: '?' # show help menu
-      select: '<space>'
-      goInto: '<enter>'
-      confirm: '<enter>'
-      confirm-alt1: 'y'
-      remove: 'd'
-      new: 'n'
-      edit: 'e'
-      openFile: 'o'
-      scrollUpMain: '<pgup>' # main panel scrool up
-      scrollDownMain: '<pgdown>' # main panel scrool down
-      scrollUpMain-alt1: 'K' # main panel scrool up
-      scrollDownMain-alt1: 'J' # main panel scrool down
-      scrollUpMain-alt2: '<c-u>' # main panel scrool up
-      scrollDownMain-alt2: '<c-d>' # main panel scrool down
-      executeCustomCommand: ':'
-      createRebaseOptionsMenu: 'm'
-      pushFiles: 'P'
-      pullFiles: 'p'
-      refresh: 'R'
-      createPatchOptionsMenu: '<c-p>'
-      nextTab: ']'
-      prevTab: '['
-      nextScreenMode: '+'
-      prevScreenMode: '_'
-      undo: 'z'
-      redo: '<c-z>'
-      filteringMenu: '<c-s>'
-      diffingMenu: 'W'
-      diffingMenu-alt: '<c-e>' # deprecated
-      copyToClipboard: '<c-o>'
-      submitEditorText: '<enter>'
-      appendNewline: '<tab>'
-    status:
-      checkForUpdate: 'u'
-      recentRepos: '<enter>'
-    files:
-      commitChanges: 'c'
-      commitChangesWithoutHook: 'w' # commit changes without pre-commit hook
-      amendLastCommit: 'A'
-      commitChangesWithEditor: 'C'
-      ignoreFile: 'i'
-      refreshFiles: 'r'
-      stashAllChanges: 's'
-      viewStashOptions: 'S'
-      toggleStagedAll: 'a' # stage/unstage all
-      viewResetOptions: 'D'
-      fetch: 'f'
-      toggleTreeView: '`'
-    branches:
-      createPullRequest: 'o'
-      checkoutBranchByName: 'c'
-      forceCheckoutBranch: 'F'
-      rebaseBranch: 'r'
-      mergeIntoCurrentBranch: 'M'
-      viewGitFlowOptions: 'i'
-      fastForward: 'f' # fast-forward this branch from its upstream
-      pushTag: 'P'
-      setUpstream: 'u' # set as upstream of checked-out branch
-      fetchRemote: 'f'
-    commits:
-      squashDown: 's'
-      renameCommit: 'r'
-      renameCommitWithEditor: 'R'
-      viewResetOptions: 'g'
-      markCommitAsFixup: 'f'
-      createFixupCommit: 'F' # create fixup commit for this commit
-      squashAboveCommits: 'S'
-      moveDownCommit: '<c-j>' # move commit down one
-      moveUpCommit: '<c-k>' # move commit up one
-      amendToCommit: 'A'
-      pickCommit: 'p' # pick commit (when mid-rebase)
-      revertCommit: 't'
-      cherryPickCopy: 'c'
-      cherryPickCopyRange: 'C'
-      pasteCommits: 'v'
-      tagCommit: 'T'
-      checkoutCommit: '<space>'
-      resetCherryPick: '<c-R>'
-      copyCommitMessageToClipboard: '<c-y>'
-    stash:
-      popStash: 'g'
-    commitFiles:
-      checkoutCommitFile: 'c'
-    main:
-      toggleDragSelect: 'v'
-      toggleDragSelect-alt: 'V'
-      toggleSelectHunk: 'a'
-      pickBothHunks: 'b'
-    submodules:
-      init: 'i'
-      update: 'u'
-      bulkMenu: 'b'
+gui:
+  # stuff relating to the UI
+  scrollHeight: 2 # how many lines you scroll by
+  scrollPastBottom: true # enable scrolling past the bottom
+  sidePanelWidth: 0.3333 # number from 0 to 1
+  expandFocusedSidePanel: false
+  mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
+  theme:
+    lightTheme: false # For terminals with a light background
+    activeBorderColor:
+      - white
+      - bold
+    inactiveBorderColor:
+      - green
+    optionsTextColor:
+      - blue
+    selectedLineBgColor:
+      - default
+    selectedRangeBgColor:
+      - blue
+  commitLength:
+    show: true
+  mouseEvents: true
+  skipUnstageLineWarning: false
+  skipStashWarning: true
+  showFileTree: false # for rendering changes files in a tree format
+  showCommandLog:
+git:
+  paging:
+    colorArg: always
+    useConfig: false
+  merging:
+    # only applicable to unix users
+    manualCommit: false
+    # extra args passed to `git merge`, e.g. --no-ff
+    args: ''
+  pull:
+    mode: 'merge' # one of 'merge' | 'rebase' | 'ff-only'
+  skipHookPrefix: WIP
+  autoFetch: true
+  branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'
+  allBranchesLogCmd: 'git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium'
+  overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
+  disableForcePushing: false
+refresher:
+  refreshInterval: 10 # file/submodule refresh interval in seconds
+  fetchInterval: 60 # re-fetch interval in seconds
+update:
+  method: prompt # can be: prompt | background | never
+  days: 14 # how often an update is checked for
+reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
+confirmOnQuit: false
+# determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
+quitOnTopLevelReturn: false
+disableStartupPopups: false
+notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip'
+keybinding:
+  universal:
+    quit: 'q'
+    quit-alt1: '<c-c>' # alternative/alias of quit
+    return: '<esc>' # return to previous menu, will quit if there's nowhere to return
+    quitWithoutChangingDirectory: 'Q'
+    togglePanel: '<tab>' # goto the next panel
+    prevItem: '<up>' # go one line up
+    nextItem: '<down>' # go one line down
+    prevItem-alt: 'k' # go one line up
+    nextItem-alt: 'j' # go one line down
+    prevPage: ',' # go to next page in list
+    nextPage: '.' # go to previous page in list
+    gotoTop: '<' # go to top of list
+    gotoBottom: '>' # go to bottom of list
+    prevBlock: '<left>' # goto the previous block / panel
+    nextBlock: '<right>' # goto the next block / panel
+    prevBlock-alt: 'h' # goto the previous block / panel
+    nextBlock-alt: 'l' # goto the next block / panel
+    nextMatch: 'n'
+    prevMatch: 'N'
+    optionMenu: 'x' # show help menu
+    optionMenu-alt1: '?' # show help menu
+    select: '<space>'
+    goInto: '<enter>'
+    confirm: '<enter>'
+    confirm-alt1: 'y'
+    remove: 'd'
+    new: 'n'
+    edit: 'e'
+    openFile: 'o'
+    scrollUpMain: '<pgup>' # main panel scrool up
+    scrollDownMain: '<pgdown>' # main panel scrool down
+    scrollUpMain-alt1: 'K' # main panel scrool up
+    scrollDownMain-alt1: 'J' # main panel scrool down
+    scrollUpMain-alt2: '<c-u>' # main panel scrool up
+    scrollDownMain-alt2: '<c-d>' # main panel scrool down
+    executeCustomCommand: ':'
+    createRebaseOptionsMenu: 'm'
+    pushFiles: 'P'
+    pullFiles: 'p'
+    refresh: 'R'
+    createPatchOptionsMenu: '<c-p>'
+    nextTab: ']'
+    prevTab: '['
+    nextScreenMode: '+'
+    prevScreenMode: '_'
+    undo: 'z'
+    redo: '<c-z>'
+    filteringMenu: '<c-s>'
+    diffingMenu: 'W'
+    diffingMenu-alt: '<c-e>' # deprecated
+    copyToClipboard: '<c-o>'
+    submitEditorText: '<enter>'
+    appendNewline: '<tab>'
+  status:
+    checkForUpdate: 'u'
+    recentRepos: '<enter>'
+  files:
+    commitChanges: 'c'
+    commitChangesWithoutHook: 'w' # commit changes without pre-commit hook
+    amendLastCommit: 'A'
+    commitChangesWithEditor: 'C'
+    ignoreFile: 'i'
+    refreshFiles: 'r'
+    stashAllChanges: 's'
+    viewStashOptions: 'S'
+    toggleStagedAll: 'a' # stage/unstage all
+    viewResetOptions: 'D'
+    fetch: 'f'
+    toggleTreeView: '`'
+  branches:
+    createPullRequest: 'o'
+    checkoutBranchByName: 'c'
+    forceCheckoutBranch: 'F'
+    rebaseBranch: 'r'
+    mergeIntoCurrentBranch: 'M'
+    viewGitFlowOptions: 'i'
+    fastForward: 'f' # fast-forward this branch from its upstream
+    pushTag: 'P'
+    setUpstream: 'u' # set as upstream of checked-out branch
+    fetchRemote: 'f'
+  commits:
+    squashDown: 's'
+    renameCommit: 'r'
+    renameCommitWithEditor: 'R'
+    viewResetOptions: 'g'
+    markCommitAsFixup: 'f'
+    createFixupCommit: 'F' # create fixup commit for this commit
+    squashAboveCommits: 'S'
+    moveDownCommit: '<c-j>' # move commit down one
+    moveUpCommit: '<c-k>' # move commit up one
+    amendToCommit: 'A'
+    pickCommit: 'p' # pick commit (when mid-rebase)
+    revertCommit: 't'
+    cherryPickCopy: 'c'
+    cherryPickCopyRange: 'C'
+    pasteCommits: 'v'
+    tagCommit: 'T'
+    checkoutCommit: '<space>'
+    resetCherryPick: '<c-R>'
+    copyCommitMessageToClipboard: '<c-y>'
+  stash:
+    popStash: 'g'
+  commitFiles:
+    checkoutCommitFile: 'c'
+  main:
+    toggleDragSelect: 'v'
+    toggleDragSelect-alt: 'V'
+    toggleSelectHunk: 'a'
+    pickBothHunks: 'b'
+  submodules:
+    init: 'i'
+    update: 'u'
+    bulkMenu: 'b'
 ```
 
 ## Platform Defaults
@@ -193,22 +193,22 @@ For old installations (slightly embarrassing: I didn't realise at the time that 
 ### Windows
 
 ```yaml
-  os:
-    openCommand: 'cmd /c "start "" {{filename}}"'
+os:
+  openCommand: 'cmd /c "start "" {{filename}}"'
 ```
 
 ### Linux
 
 ```yaml
-  os:
-    openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'
+os:
+  openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'
 ```
 
 ### OSX
 
 ```yaml
-  os:
-    openCommand: 'open {{filename}}'
+os:
+  openCommand: 'open {{filename}}'
 ```
 
 ### Recommended Config Values
@@ -216,8 +216,8 @@ For old installations (slightly embarrassing: I didn't realise at the time that 
 for users of VSCode
 
 ```yaml
-  os:
-    openCommand: 'code -rg {{filename}}'
+os:
+  openCommand: 'code -rg {{filename}}'
 ```
 
 ## Color Attributes
@@ -243,16 +243,16 @@ The available attributes are:
 If you have issues with a light terminal theme where you can't read / see the text add these settings
 
 ```yaml
-  gui:
-    theme:
-      lightTheme: true
-      activeBorderColor:
-        - black
-        - bold
-      inactiveBorderColor:
-        - black
-      selectedLineBgColor:
-        - default
+gui:
+  theme:
+    lightTheme: true
+    activeBorderColor:
+      - black
+      - bold
+    inactiveBorderColor:
+      - black
+    selectedLineBgColor:
+      - default
 ```
 
 ## Struggling to see selected line
@@ -260,15 +260,16 @@ If you have issues with a light terminal theme where you can't read / see the te
 If you struggle to see the selected line I recommend using the reverse attribute on selected lines like so:
 
 ```yaml
-  gui:
-    theme:
-      selectedLineBgColor:
-        - reverse
-      selectedRangeBgColor:
-        - reverse
+gui:
+  theme:
+    selectedLineBgColor:
+      - reverse
+    selectedRangeBgColor:
+      - reverse
 ```
 
 The following has also worked for a couple of people:
+
 ```yaml
 gui:
   theme:
@@ -297,33 +298,33 @@ For all possible keybinding options, check [Custom_Keybindings.md](https://githu
 ### Example Keybindings For Colemak Users
 
 ```yaml
-  keybinding:
-    universal:
-      prevItem-alt: 'u'
-      nextItem-alt: 'e'
-      prevBlock-alt: 'n'
-      nextBlock-alt: 'i'
-      nextMatch: '='
-      prevMatch: '-'
-      new: 'k'
-      edit: 'o'
-      openFile: 'O'
-      scrollUpMain-alt1: 'U'
-      scrollDownMain-alt1: 'E'
-      scrollUpMain-alt2: '<c-u>'
-      scrollDownMain-alt2: '<c-e>'
-      undo: 'l'
-      redo: '<c-r>'
-      diffingMenu: 'M'
-      filteringMenu: '<c-f>'
-    files:
-      ignoreFile: 'I'
-    commits:
-      moveDownCommit: '<c-e>'
-      moveUpCommit: '<c-u>'
-    branches:
-      viewGitFlowOptions: 'I'
-      setUpstream: 'U'
+keybinding:
+  universal:
+    prevItem-alt: 'u'
+    nextItem-alt: 'e'
+    prevBlock-alt: 'n'
+    nextBlock-alt: 'i'
+    nextMatch: '='
+    prevMatch: '-'
+    new: 'k'
+    edit: 'o'
+    openFile: 'O'
+    scrollUpMain-alt1: 'U'
+    scrollDownMain-alt1: 'E'
+    scrollUpMain-alt2: '<c-u>'
+    scrollDownMain-alt2: '<c-e>'
+    undo: 'l'
+    redo: '<c-r>'
+    diffingMenu: 'M'
+    filteringMenu: '<c-f>'
+  files:
+    ignoreFile: 'I'
+  commits:
+    moveDownCommit: '<c-e>'
+    moveUpCommit: '<c-u>'
+  branches:
+    viewGitFlowOptions: 'I'
+    setUpstream: 'U'
 ```
 
 ## Custom pull request URLs
@@ -334,7 +335,7 @@ the pull request. You can do so on your `config.yml` file using the following sy
 
 ```yaml
 services:
-  "<gitDomain>": "<provider>:<webDomain>"
+  '<gitDomain>': '<provider>:<webDomain>'
 ```
 
 Where:
@@ -344,19 +345,21 @@ Where:
 - `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
 
 ## Predefined commit message prefix
+
 In situations where certain naming pattern is used for branches and commits, pattern can be used to populate
 commit message with prefix that is parsed from the branch name.
 
 Example:
-* Branch name: feature/AB-123
-* Commit message: [AB-123] Adding feature
+
+- Branch name: feature/AB-123
+- Commit message: [AB-123] Adding feature
 
 ```yaml
-  git:
-    commitPrefixes:
-      my_project: # This is repository folder name
-        pattern: "^\\w+\\/(\\w+-\\w+).*"
-        replace: "[$1] "
+git:
+  commitPrefixes:
+    my_project: # This is repository folder name
+      pattern: "^\\w+\\/(\\w+-\\w+).*"
+      replace: '[$1] '
 ```
 
 ## Custom git log command
