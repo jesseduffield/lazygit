@@ -201,9 +201,16 @@ func (gui *Gui) cleanString(s string) string {
 	return utils.NormalizeLinefeeds(output)
 }
 
-func (gui *Gui) setViewContent(v *gocui.View, s string) {
+func (gui *Gui) setViewContentSync(v *gocui.View, s string) {
 	v.Clear()
 	fmt.Fprint(v, gui.cleanString(s))
+}
+
+func (gui *Gui) setViewContent(v *gocui.View, s string) {
+	gui.g.Update(func(*gocui.Gui) error {
+		gui.setViewContentSync(v, s)
+		return nil
+	})
 }
 
 // renderString resets the origin of a view and sets its content
@@ -220,7 +227,7 @@ func (gui *Gui) renderStringSync(view *gocui.View, s string) error {
 	if err := view.SetCursor(0, 0); err != nil {
 		return err
 	}
-	gui.setViewContent(view, s)
+	gui.setViewContentSync(view, s)
 	return nil
 }
 

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -42,10 +41,7 @@ func (gui *Gui) refreshStatus() {
 	repoName := utils.GetCurrentRepoName()
 	status += fmt.Sprintf("%s → %s ", repoName, name)
 
-	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContent(gui.Views.Status, status)
-		return nil
-	})
+	gui.setViewContent(gui.Views.Status, status)
 }
 
 func runeCount(str string) int {
