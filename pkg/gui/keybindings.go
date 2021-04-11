@@ -1112,6 +1112,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			OpensMenu:   true,
 		},
 		{
+			ViewName:    "",
+			Key:         gui.getKey(config.Universal.ExtrasMenu),
+			Handler:     gui.handleCreateExtrasMenuPanel,
+			Description: gui.Tr.LcOpenExtrasMenu,
+			OpensMenu:   true,
+		},
+		{
 			ViewName: "secondary",
 			Key:      gocui.MouseWheelUp,
 			Modifier: gocui.ModNone,

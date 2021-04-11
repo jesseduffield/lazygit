@@ -113,7 +113,7 @@ func (gui *Gui) linesToScrollDown(view *gocui.View) int {
 }
 
 func (gui *Gui) atScrollBottom(view *gocui.View) bool {
-	return gui.linesToScrollDown(view) > 0
+	return gui.linesToScrollDown(view) == 0
 }
 
 func (gui *Gui) scrollUpMain() error {
@@ -147,12 +147,12 @@ func (gui *Gui) scrollUpExtra() error {
 }
 
 func (gui *Gui) scrollDownExtra() error {
-	if err := gui.scrollDownView(gui.Views.Extras); err != nil {
-		return err
-	}
-
 	if gui.atScrollBottom(gui.Views.Extras) {
 		gui.Views.Extras.Autoscroll = true
+	}
+
+	if err := gui.scrollDownView(gui.Views.Extras); err != nil {
+		return err
 	}
 
 	return nil
