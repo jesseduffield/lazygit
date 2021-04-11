@@ -445,6 +445,8 @@ type TranslationSet struct {
 	ErrStageDirWithInlineMergeConflicts string
 	ErrRepositoryMovedOrDeleted         string
 	CommandLog                          string
+	ToggleShowCommandLog                string
+	FocusCommandLog                     string
 }
 
 const englishReleaseNotes = `lazygit 0.27.1-0.27.4 Release notes
@@ -1099,5 +1101,7 @@ func englishTranslationSet() TranslationSet {
 		ErrStageDirWithInlineMergeConflicts: "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
 		ErrRepositoryMovedOrDeleted:         "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
 		CommandLog:                          "Command Log",
+		ToggleShowCommandLog:                "Toggle show/hide command log",
+		FocusCommandLog:                     "Focus command log",
 	}
 }
