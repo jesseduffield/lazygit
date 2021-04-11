@@ -36,6 +36,7 @@ type GuiConfig struct {
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
 	ShowFileTree             bool               `yaml:"showFileTree"`
+	ShowCommandLog           bool               `yaml:"showCommandLog"`
 }
 
 type ThemeConfig struct {

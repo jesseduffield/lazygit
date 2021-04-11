@@ -466,6 +466,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		RepoPathStack:        []string{},
 		RepoStateMap:         map[Repo]*guiState{},
 		CmdLog:               []string{},
+		ShowExtrasWindow:     config.GetUserConfig().Gui.ShowCommandLog,
 	}
 
 	gui.resetState(filterPath, false)
@@ -479,6 +480,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 			if gui.Views.Extras == nil {
 				return
 			}
+
+			gui.Views.Extras.Autoscroll = true
 
 			if entry.GetSpan() != currentSpan {
 				fmt.Fprintln(gui.Views.Extras, utils.ColoredString(entry.GetSpan(), color.FgYellow))

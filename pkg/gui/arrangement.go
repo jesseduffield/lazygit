@@ -148,7 +148,10 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 
 	extrasWindowSize := 0
 	if gui.ShowExtrasWindow {
-		extrasWindowSize = 40 // TODO: make configurable
+		extrasWindowSize = 10
+		if gui.currentStaticContext().GetKey() == COMMAND_LOG_CONTEXT_KEY {
+			extrasWindowSize = 40
+		}
 	}
 
 	root := &boxlayout.Box{
