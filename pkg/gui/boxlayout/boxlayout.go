@@ -96,6 +96,11 @@ func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions 
 		var boxSize int
 		if child.isStatic() {
 			boxSize = child.Size
+			// assuming that only one static child can have a size greater than the
+			// available space. In that case we just crop the size to what's available
+			if boxSize > availableSize {
+				boxSize = availableSize
+			}
 		} else {
 			// TODO: consider more evenly distributing the remainder
 			boxSize = unitSize * child.Weight
