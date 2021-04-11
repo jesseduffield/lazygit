@@ -46,13 +46,11 @@ func (gui *Gui) printCommandLogHeader() {
 	)
 	fmt.Fprintln(gui.Views.Extras, utils.ColoredString(introStr, color.FgCyan))
 
-	fmt.Fprint(
+	fmt.Fprintf(
 		gui.Views.Extras,
-		fmt.Sprintf(
-			"%s: %s",
-			utils.ColoredString(gui.Tr.RandomTip, color.FgYellow),
-			utils.ColoredString(gui.getRandomTip(), color.FgGreen),
-		),
+		"%s: %s",
+		utils.ColoredString(gui.Tr.RandomTip, color.FgYellow),
+		utils.ColoredString(gui.getRandomTip(), color.FgGreen),
 	)
 }
 
