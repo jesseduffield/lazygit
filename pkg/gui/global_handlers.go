@@ -187,32 +187,6 @@ func (gui *Gui) handleMouseDownSecondary() error {
 	return nil
 }
 
-func (gui *Gui) handleInfoClick() error {
-	if !gui.g.Mouse {
-		return nil
-	}
-
-	view := gui.Views.Information
-
-	cx, _ := view.Cursor()
-	width, _ := view.Size()
-
-	for _, mode := range gui.modeStatuses() {
-		if mode.isActive() {
-			if width-cx > len(gui.Tr.ResetInParentheses) {
-				return nil
-			}
-			return mode.reset()
-		}
-	}
-
-	// if we're not in an active mode we show the donate button
-	if cx <= len(gui.Tr.Donate)+len(INFO_SECTION_PADDING) {
-		return gui.OSCommand.OpenLink("https://github.com/sponsors/jesseduffield")
-	}
-	return nil
-}
-
 func (gui *Gui) fetch(canPromptForCredentials bool, span string) (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()

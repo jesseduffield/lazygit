@@ -5,6 +5,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+const INFO_SECTION_PADDING = " "
+
 func (gui *Gui) mainSectionChildren() []*boxlayout.Box {
 	currentWindow := gui.currentWindow()
 
