@@ -77,6 +77,8 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	gitSequenceEditor := ex
 	if todo == "" {
 		gitSequenceEditor = "true"
+	} else {
+		c.OSCommand.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
 	}
 
 	cmd.Env = os.Environ()
