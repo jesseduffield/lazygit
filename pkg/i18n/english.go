@@ -448,6 +448,7 @@ type TranslationSet struct {
 	CommandLog                          string
 	ToggleShowCommandLog                string
 	FocusCommandLog                     string
+	CommandLogHeader                    string
 	Spans                               Spans
 }
 
@@ -1187,6 +1188,7 @@ func englishTranslationSet() TranslationSet {
 		CommandLog:                          "Command Log",
 		ToggleShowCommandLog:                "Toggle show/hide command log",
 		FocusCommandLog:                     "Focus command log",
+		CommandLogHeader:                    "You can hide/focus this panel by pressing '%s' or hide it permanently in your config with `gui.showCommandLog: false`\n",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
