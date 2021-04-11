@@ -23,6 +23,14 @@ func (c *GitCommand) CatFile(fileName string) (string, error) {
 	return c.OSCommand.CatFile(fileName)
 }
 
+func (c *GitCommand) OpenMergeToolCmd() string {
+	return "git mergetool"
+}
+
+func (c *GitCommand) OpenMergeTool() error {
+	return c.OSCommand.RunCommand("git mergetool")
+}
+
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
 	return c.RunCommand("git add -- %s", c.OSCommand.Quote(fileName))

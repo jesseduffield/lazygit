@@ -48,6 +48,7 @@ type TranslationSet struct {
 	LcToggleStaged                      string
 	LcToggleStagedAll                   string
 	LcToggleTreeView                    string
+	LcOpenMergeTool                     string
 	LcRefresh                           string
 	LcPush                              string
 	LcPull                              string
@@ -156,6 +157,8 @@ type TranslationSet struct {
 	CouldNotFindBinaryErr               string
 	AnonymousReportingTitle             string
 	AnonymousReportingPrompt            string
+	MergeToolTitle                      string
+	MergeToolPrompt                     string
 	IntroPopupMessage                   string
 	GitconfigParseErr                   string
 	LcEditFile                          string
@@ -683,6 +686,7 @@ func englishTranslationSet() TranslationSet {
 		LcToggleStaged:                      "toggle staged",
 		LcToggleStagedAll:                   "stage/unstage all",
 		LcToggleTreeView:                    "toggle file tree view",
+		LcOpenMergeTool:                     "open external merge tool (git mergetool)",
 		LcRefresh:                           "refresh",
 		LcPush:                              "push",
 		LcPull:                              "pull",
@@ -791,6 +795,8 @@ func englishTranslationSet() TranslationSet {
 		CouldNotFindBinaryErr:               "Could not find any binary at {{.url}}",
 		AnonymousReportingTitle:             "Help make lazygit better",
 		AnonymousReportingPrompt:            "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
+		MergeToolTitle:                      "Merge tool",
+		MergeToolPrompt:                     "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                   englishIntroPopupMessage,
 		GitconfigParseErr:                   `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		LcEditFile:                          `edit file`,
