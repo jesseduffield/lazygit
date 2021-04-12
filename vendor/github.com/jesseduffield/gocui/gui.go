@@ -651,12 +651,21 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 		return g.onKey(ev)
 	case eventError:
 		return ev.Err
-	// Not sure if this should be handled. It acts weirder when it's here
-	// case eventResize:
-	// 	return Sync()
+	case eventResize:
+		g.onResize()
+		return nil
 	default:
 		return nil
 	}
+}
+
+func (g *Gui) onResize() {
+	for _, v := range g.views {
+		// wonder if we should be calling this in other contexts e.g. whenever the view's dimensions change in general
+		v.FlushStaleCells()
+	}
+	// Not sure if we actually need this
+	// g.screen.Sync()
 }
 
 // flush updates the gui, re-drawing frames and buffers.

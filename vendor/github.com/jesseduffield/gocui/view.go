@@ -683,7 +683,6 @@ func (v *View) FlushStaleCells() {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.rewind()
 	v.tainted = true
 	v.viewLines = nil
 }
