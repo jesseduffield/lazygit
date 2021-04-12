@@ -104,12 +104,12 @@ keybinding:
     new: 'n'
     edit: 'e'
     openFile: 'o'
-    scrollUpMain: '<pgup>' # main panel scrool up
-    scrollDownMain: '<pgdown>' # main panel scrool down
-    scrollUpMain-alt1: 'K' # main panel scrool up
-    scrollDownMain-alt1: 'J' # main panel scrool down
-    scrollUpMain-alt2: '<c-u>' # main panel scrool up
-    scrollDownMain-alt2: '<c-d>' # main panel scrool down
+    scrollUpMain: '<pgup>' # main panel scroll up
+    scrollDownMain: '<pgdown>' # main panel scroll down
+    scrollUpMain-alt1: 'K' # main panel scroll up
+    scrollDownMain-alt1: 'J' # main panel scroll down
+    scrollUpMain-alt2: '<c-u>' # main panel scroll up
+    scrollDownMain-alt2: '<c-d>' # main panel scroll down
     executeCustomCommand: ':'
     createRebaseOptionsMenu: 'm'
     pushFiles: 'P'
