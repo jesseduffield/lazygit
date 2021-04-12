@@ -37,9 +37,9 @@ func (gui *Gui) handleCommitMessageFocused() error {
 	message := utils.ResolvePlaceholderString(
 		gui.Tr.CommitMessageConfirm,
 		map[string]string{
-			"keyBindClose":   "esc",
-			"keyBindConfirm": "enter",
-			"keyBindNewLine": "tab",
+			"keyBindClose":   gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.Return),
+			"keyBindConfirm": gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.Confirm),
+			"keyBindNewLine": gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.AppendNewline),
 		},
 	)
 
