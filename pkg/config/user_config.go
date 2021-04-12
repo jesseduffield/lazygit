@@ -36,6 +36,7 @@ type GuiConfig struct {
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
 	ShowFileTree             bool               `yaml:"showFileTree"`
+	ShowRandomTip            bool               `yaml:"showRandomTip"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
 }
@@ -303,6 +304,7 @@ func GetDefaultConfig() *UserConfig {
 			SkipNoStagedFilesWarning: false,
 			ShowCommandLog:           true,
 			ShowFileTree:             false,
+			ShowRandomTip:            true,
 			CommandLogSize:           8,
 		},
 		Git: GitConfig{
