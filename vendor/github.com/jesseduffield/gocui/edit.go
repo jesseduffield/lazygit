@@ -430,7 +430,7 @@ func (v *View) mergeLines(y int) error {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.tainted = true
+	v.clearViewLines()
 
 	_, y, err := v.realPosition(0, y)
 	if err != nil {
