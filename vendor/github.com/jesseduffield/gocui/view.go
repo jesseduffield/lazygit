@@ -48,7 +48,12 @@ type View struct {
 	// tained is true if the viewLines must be updated
 	tainted bool
 
-	// internal representation of the view's buffer
+	// internal representation of the view's buffer. We will keep viewLines around
+	// from a previous render until we explicitly set them to nil, allowing us to
+	// render the same content twice without flicker. Wherever we want to render
+	// something without any chance of old content appearing (e.g. when actually
+	// rendering new content or if the view is resized) we should set tainted to
+	// true and viewLines to nil
 	viewLines []viewLine
 
 	// writeMutex protects locks the write process
@@ -153,6 +158,14 @@ type View struct {
 	// KeybindOnEdit should be set to true when you want to execute keybindings even when the view is editable
 	// (this is usually not the case)
 	KeybindOnEdit bool
+}
+
+// call this in the event of a view resize, or if you want to render new content
+// without the chance of old content still appearing, or if you want to remove
+// a line from the existing content
+func (v *View) clearViewLines() {
+	v.tainted = true
+	v.viewLines = nil
 }
 
 type searcher struct {
@@ -651,9 +664,8 @@ func (v *View) Clear() {
 	defer v.writeMutex.Unlock()
 
 	v.rewind()
-	v.tainted = true
 	v.lines = nil
-	v.viewLines = nil
+	v.clearViewLines()
 	v.clearRunes()
 }
 
@@ -683,8 +695,7 @@ func (v *View) FlushStaleCells() {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.tainted = true
-	v.viewLines = nil
+	v.clearViewLines()
 }
 
 func (v *View) rewind() {
