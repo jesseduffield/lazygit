@@ -41,6 +41,7 @@ gui:
   skipUnstageLineWarning: false
   skipStashWarning: true
   showFileTree: false # for rendering changes files in a tree format
+  showRandomTip: true
   showCommandLog: true
   commandLogSize: 8
 git:

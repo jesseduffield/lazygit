@@ -46,12 +46,14 @@ func (gui *Gui) printCommandLogHeader() {
 	)
 	fmt.Fprintln(gui.Views.Extras, utils.ColoredString(introStr, color.FgCyan))
 
-	fmt.Fprintf(
-		gui.Views.Extras,
-		"%s: %s",
-		utils.ColoredString(gui.Tr.RandomTip, color.FgYellow),
-		utils.ColoredString(gui.getRandomTip(), color.FgGreen),
-	)
+	if gui.Config.GetUserConfig().Gui.ShowRandomTip {
+		fmt.Fprintf(
+			gui.Views.Extras,
+			"%s: %s",
+			utils.ColoredString(gui.Tr.RandomTip, color.FgYellow),
+			utils.ColoredString(gui.getRandomTip(), color.FgGreen),
+		)
+	}
 }
 
 func (gui *Gui) getRandomTip() string {
