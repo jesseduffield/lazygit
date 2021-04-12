@@ -236,33 +236,59 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 			},
 		},
 		{
-			name: "paths that can be sorted including a merge conflict file",
+			name: "tracked, untracked, and conflicted files",
 			files: []*models.File{
 				{
-					Name:              "z",
+					Name:    "a2",
+					Tracked: false,
+				},
+				{
+					Name:    "a1",
+					Tracked: false,
+				},
+				{
+					Name:              "c2",
 					HasMergeConflicts: true,
 				},
 				{
-					Name: "b",
+					Name:              "c1",
+					HasMergeConflicts: true,
 				},
 				{
-					Name: "a",
+					Name:    "b2",
+					Tracked: true,
+				},
+				{
+					Name:    "b1",
+					Tracked: true,
 				},
 			},
 			expected: &FileNode{
 				Path: "",
 				Children: []*FileNode{
 					{
-						File: &models.File{Name: "z", HasMergeConflicts: true},
-						Path: "z",
+						File: &models.File{Name: "c1", HasMergeConflicts: true},
+						Path: "c1",
 					},
 					{
-						File: &models.File{Name: "a"},
-						Path: "a",
+						File: &models.File{Name: "c2", HasMergeConflicts: true},
+						Path: "c2",
 					},
 					{
-						File: &models.File{Name: "b"},
-						Path: "b",
+						File: &models.File{Name: "b1", Tracked: true},
+						Path: "b1",
+					},
+					{
+						File: &models.File{Name: "b2", Tracked: true},
+						Path: "b2",
+					},
+					{
+						File: &models.File{Name: "a1", Tracked: false},
+						Path: "a1",
+					},
+					{
+						File: &models.File{Name: "a2", Tracked: false},
+						Path: "a2",
 					},
 				},
 			},
