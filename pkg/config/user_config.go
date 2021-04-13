@@ -1,5 +1,9 @@
 package config
 
+import (
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
+)
+
 type UserConfig struct {
 	Gui                  GuiConfig        `yaml:"gui"`
 	Git                  GitConfig        `yaml:"git"`
@@ -317,7 +321,7 @@ func GetDefaultConfig() *UserConfig {
 				Args:         "",
 			},
 			Pull: PullConfig{
-				Mode: "merge",
+				Mode: getPullModeFromGitConfig(),
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
@@ -477,4 +481,18 @@ func GetDefaultConfig() *UserConfig {
 		Services:             map[string]string(nil),
 		NotARepository:       "prompt",
 	}
+}
+
+func getPullModeFromGitConfig() string {
+	rebaseOut, rebaseErr := secureexec.Command("git config --get pull.rebase").Output()
+	if rebaseErr == nil && rebaseOut[0] == 't' {
+		return "rebase"
+	}
+
+	ffOut, ffErr := secureexec.Command("git config --get pull.ff").Output()
+	if ffErr == nil && ffOut[0] == 't' {
+		return "ff-only"
+	}
+
+	return "merge"
 }
