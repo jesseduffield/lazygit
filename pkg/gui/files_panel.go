@@ -342,13 +342,12 @@ func (gui *Gui) handleIgnoreFile() error {
 }
 
 func (gui *Gui) handleWIPCommitPress() error {
-	skipHookPreifx := gui.Config.GetUserConfig().Git.SkipHookPrefix
-	if skipHookPreifx == "" {
+	skipHookPrefix := gui.Config.GetUserConfig().Git.SkipHookPrefix
+	if skipHookPrefix == "" {
 		return gui.createErrorPanel(gui.Tr.SkipHookPrefixNotConfigured)
 	}
 
-	_ = gui.renderStringSync(gui.Views.CommitMessage, skipHookPreifx)
-	if err := gui.Views.CommitMessage.SetCursor(len(skipHookPreifx), 0); err != nil {
+	if err := gui.Views.CommitMessage.SetEditorContent(skipHookPrefix); err != nil {
 		return err
 	}
 
