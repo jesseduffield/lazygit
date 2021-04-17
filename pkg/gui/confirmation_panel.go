@@ -8,7 +8,6 @@ package gui
 
 import (
 	"strings"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -216,18 +215,16 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 		}
 		gui.Views.Confirmation.Editable = opts.editable
 		gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.defaultEditor)
-		if opts.editable {
-			go utils.Safe(func() {
-				// TODO: remove this wait (right now if you remove it the EditGotoToEndOfLine method doesn't seem to work)
-				time.Sleep(time.Millisecond)
-				gui.g.Update(func(g *gocui.Gui) error {
-					gui.Views.Confirmation.EditGotoToEndOfLine()
-					return nil
-				})
-			})
-		}
 
-		gui.renderString(gui.Views.Confirmation, opts.prompt)
+		if opts.editable {
+			if err := gui.Views.Confirmation.SetEditorContent(opts.prompt); err != nil {
+				return err
+			}
+		} else {
+			if err := gui.renderStringSync(gui.Views.Confirmation, opts.prompt); err != nil {
+				return err
+			}
+		}
 
 		return gui.setKeyBindings(opts)
 	})

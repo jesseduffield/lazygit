@@ -52,7 +52,6 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				{
 					displayString: gui.Tr.LcDiscardAllChanges,
 					onPress: func() error {
-						gui.Log.Warn("HA?")
 						if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardAllChangesInFile).DiscardAllFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}

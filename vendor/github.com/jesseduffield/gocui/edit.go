@@ -86,6 +86,24 @@ func (v *View) EditWrite(ch rune) {
 	v.moveCursor(w, 0, true)
 }
 
+func (v *View) EditWriteString(str string) {
+	for _, ch := range str {
+		v.EditWrite(ch)
+	}
+}
+
+func (v *View) SetEditorContent(content string) error {
+	v.Clear()
+	if err := v.SetOrigin(0, 0); err != nil {
+		return err
+	}
+	if err := v.SetCursor(0, 0); err != nil {
+		return err
+	}
+	v.EditWriteString(content)
+	return nil
+}
+
 // EditDeleteToStartOfLine is the equivalent of pressing ctrl+U in your terminal, it deletes to the start of the line. Or if you are already at the start of the line, it deletes the newline character
 func (v *View) EditDeleteToStartOfLine() {
 	x, _ := v.Cursor()
