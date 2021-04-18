@@ -323,7 +323,7 @@ func GetDefaultConfig() *UserConfig {
 				Args:         "",
 			},
 			Pull: PullConfig{
-				Mode: "merge",
+				Mode: "auto",
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
