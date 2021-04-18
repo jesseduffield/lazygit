@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -21,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
+	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -138,12 +138,8 @@ type LblPanelState struct {
 	SecondaryFocused bool // this is for if we show the left or right panel
 }
 
-type mergingPanelState struct {
-	ConflictIndex  int
-	ConflictTop    bool
-	Conflicts      []commands.Conflict
-	ConflictsMutex sync.Mutex
-	EditHistory    *stack.Stack
+type MergingPanelState struct {
+	*mergeconflicts.State
 
 	// UserScrolling tells us if the user has started scrolling through the file themselves
 	// in which case we won't auto-scroll to a conflict.
@@ -226,7 +222,7 @@ type panelStates struct {
 	Stash          *stashPanelState
 	Menu           *menuPanelState
 	LineByLine     *LblPanelState
-	Merging        *mergingPanelState
+	Merging        *MergingPanelState
 	CommitFiles    *commitFilesPanelState
 	Submodules     *submodulePanelState
 	Suggestions    *suggestionsPanelState
@@ -417,12 +413,9 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Stash:          &stashPanelState{listPanelState{SelectedLineIdx: -1}},
 			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
 			Suggestions:    &suggestionsPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}},
-			Merging: &mergingPanelState{
-				ConflictIndex:  0,
-				ConflictTop:    true,
-				Conflicts:      []commands.Conflict{},
-				EditHistory:    stack.New(),
-				ConflictsMutex: sync.Mutex{},
+			Merging: &MergingPanelState{
+				State:         mergeconflicts.NewState(),
+				UserScrolling: false,
 			},
 		},
 		Ptmx: nil,
