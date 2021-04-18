@@ -39,11 +39,8 @@ type PatchParser struct {
 }
 
 // NewPatchParser builds a new branch list builder
-func NewPatchParser(log *logrus.Entry, patch string) (*PatchParser, error) {
-	hunkStarts, stageableLines, patchLines, err := parsePatch(patch)
-	if err != nil {
-		return nil, err
-	}
+func NewPatchParser(log *logrus.Entry, patch string) *PatchParser {
+	hunkStarts, stageableLines, patchLines := parsePatch(patch)
 
 	patchHunks := GetHunksFromDiff(patch)
 
@@ -53,7 +50,7 @@ func NewPatchParser(log *logrus.Entry, patch string) (*PatchParser, error) {
 		StageableLines: stageableLines,
 		PatchLines:     patchLines,
 		PatchHunks:     patchHunks,
-	}, nil
+	}
 }
 
 // GetHunkContainingLine takes a line index and an offset and finds the hunk
@@ -139,7 +136,7 @@ func coloredString(colorAttr color.Attribute, str string, selected bool, include
 	return utils.ColoredStringDirect(str[:1], clIncluded) + utils.ColoredStringDirect(str[1:], cl)
 }
 
-func parsePatch(patch string) ([]int, []int, []*PatchLine, error) {
+func parsePatch(patch string) ([]int, []int, []*PatchLine) {
 	lines := strings.Split(patch, "\n")
 	hunkStarts := []int{}
 	stageableLines := []int{}
@@ -185,7 +182,7 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine, error) {
 		}
 		patchLines[index] = &PatchLine{Kind: lineKind, Content: line}
 	}
-	return hunkStarts, stageableLines, patchLines, nil
+	return hunkStarts, stageableLines, patchLines
 }
 
 // Render returns the coloured string of the diff with any selected lines highlighted

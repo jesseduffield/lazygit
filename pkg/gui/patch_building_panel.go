@@ -17,7 +17,7 @@ func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
 	return from, reverse
 }
 
-func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *lBlPanelState) error {
+func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *LblPanelState) error {
 	if !gui.GitCommand.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
@@ -43,7 +43,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *lBlPanelSt
 		return err
 	}
 
-	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx, state)
+	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx)
 	if err != nil {
 		return err
 	}
@@ -63,14 +63,14 @@ func (gui *Gui) handleRefreshPatchBuildingPanel(selectedLineIdx int) error {
 }
 
 func (gui *Gui) handleToggleSelectionForPatch() error {
-	err := gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+	err := gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
 		filename := gui.getSelectedCommitFileName()
 		includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
 		if err != nil {
 			return err
 		}
-		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
+		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.GetSelectedLineIdx())
 		if currentLineIsStaged {
 			toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
 		}
@@ -81,7 +81,9 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 			return nil
 		}
 
-		if err := toggleFunc(node.GetPath(), state.FirstLineIdx, state.LastLineIdx); err != nil {
+		firstLineIdx, lastLineIdx := state.SelectedRange()
+
+		if err := toggleFunc(node.GetPath(), firstLineIdx, lastLineIdx); err != nil {
 			// might actually want to return an error here
 			gui.Log.Error(err)
 		}

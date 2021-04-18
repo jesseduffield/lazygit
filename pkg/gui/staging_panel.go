@@ -6,7 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 )
 
-func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx int, state *lBlPanelState) error {
+func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx int) error {
 	gui.splitMainPanel(true)
 
 	file := gui.getSelectedFile()
@@ -17,8 +17,8 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	secondaryFocused := false
 	if forceSecondaryFocused {
 		secondaryFocused = true
-	} else if state != nil {
-		secondaryFocused = state.SecondaryFocused
+	} else if gui.State.Panels.LineByLine != nil {
+		secondaryFocused = gui.State.Panels.LineByLine.SecondaryFocused
 	}
 
 	if (secondaryFocused && !file.HasStagedChanges) || (!secondaryFocused && !file.HasUnstagedChanges) {
@@ -47,7 +47,7 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 		diff, secondaryDiff = secondaryDiff, diff
 	}
 
-	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, secondaryFocused, selectedLineIdx, state)
+	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, secondaryFocused, selectedLineIdx)
 	if err != nil {
 		return err
 	}
@@ -60,10 +60,10 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 }
 
 func (gui *Gui) handleTogglePanelClick() error {
-	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		state.SecondaryFocused = !state.SecondaryFocused
 
-		return gui.refreshStagingPanel(false, gui.Views.Secondary.SelectedLineIdx(), state)
+		return gui.refreshStagingPanel(false, gui.Views.Secondary.SelectedLineIdx())
 	})
 }
 
@@ -71,13 +71,13 @@ func (gui *Gui) handleRefreshStagingPanel(forceSecondaryFocused bool, selectedLi
 	gui.Mutexes.LineByLinePanelMutex.Lock()
 	defer gui.Mutexes.LineByLinePanelMutex.Unlock()
 
-	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx, gui.State.Panels.LineByLine)
+	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
 }
 
 func (gui *Gui) handleTogglePanel() error {
-	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		state.SecondaryFocused = !state.SecondaryFocused
-		return gui.refreshStagingPanel(false, -1, state)
+		return gui.refreshStagingPanel(false, -1)
 	})
 }
 
@@ -88,13 +88,13 @@ func (gui *Gui) handleStagingEscape() error {
 }
 
 func (gui *Gui) handleToggleStagedSelection() error {
-	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		return gui.applySelection(state.SecondaryFocused, state)
 	})
 }
 
 func (gui *Gui) handleResetSelection() error {
-	return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		if state.SecondaryFocused {
 			// for backwards compatibility
 			return gui.applySelection(true, state)
@@ -106,7 +106,7 @@ func (gui *Gui) handleResetSelection() error {
 				prompt:              gui.Tr.UnstageLinesPrompt,
 				handlersManageFocus: true,
 				handleConfirm: func() error {
-					return gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+					return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 						if err := gui.pushContext(gui.State.Contexts.Staging); err != nil {
 							return err
 						}
@@ -124,13 +124,14 @@ func (gui *Gui) handleResetSelection() error {
 	})
 }
 
-func (gui *Gui) applySelection(reverse bool, state *lBlPanelState) error {
+func (gui *Gui) applySelection(reverse bool, state *LblPanelState) error {
 	file := gui.getSelectedFile()
 	if file == nil {
 		return nil
 	}
 
-	patch := patch.ModifiedPatchForRange(gui.Log, file.Name, state.Diff, state.FirstLineIdx, state.LastLineIdx, reverse, false)
+	firstLineIdx, lastLineIdx := state.SelectedRange()
+	patch := patch.ModifiedPatchForRange(gui.Log, file.Name, state.GetDiff(), firstLineIdx, lastLineIdx, reverse, false)
 
 	if patch == "" {
 		return nil
@@ -147,14 +148,14 @@ func (gui *Gui) applySelection(reverse bool, state *lBlPanelState) error {
 		return gui.surfaceError(err)
 	}
 
-	if state.SelectMode == RANGE {
-		state.SelectMode = LINE
+	if state.SelectingRange() {
+		state.SetLineSelectMode()
 	}
 
 	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
-	if err := gui.refreshStagingPanel(false, -1, state); err != nil {
+	if err := gui.refreshStagingPanel(false, -1); err != nil {
 		return err
 	}
 	return nil
