@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -660,12 +661,40 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 		return err
 	}
 
-	mode := gui.Config.GetUserConfig().Git.Pull.Mode
+	mode := gui.getPullMode()
 
 	// TODO: this doesn't look like a good idea. Why the goroutine?
 	go utils.Safe(func() { _ = gui.pullWithMode(mode, opts) })
 
 	return nil
+}
+
+func (gui *Gui) getPullMode() string {
+	mode := &gui.Config.GetUserConfig().Git.Pull.Mode
+	if *mode == "auto" {
+		var isRebase bool
+		var isFf bool
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			isRebase = gui.GitCommand.GetConfigValue("pull.rebase") == "true"
+			wg.Done()
+		}()
+		go func() {
+			isFf = gui.GitCommand.GetConfigValue("pull.ff") == "true"
+			wg.Done()
+		}()
+		wg.Wait()
+
+		if isRebase {
+			*mode = "rebase"
+		} else if isFf {
+			*mode = "ff-only"
+		} else {
+			*mode = "merge"
+		}
+	}
+	return *mode
 }
 
 func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
