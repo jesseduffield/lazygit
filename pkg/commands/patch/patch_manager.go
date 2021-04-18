@@ -182,11 +182,8 @@ func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse b
 	if plain {
 		return patch
 	}
-	parser, err := NewPatchParser(p.Log, patch)
-	if err != nil {
-		// swallowing for now
-		return ""
-	}
+	parser := NewPatchParser(p.Log, patch)
+
 	// not passing included lines because we don't want to see them in the secondary panel
 	return parser.Render(-1, -1, nil)
 }

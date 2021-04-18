@@ -18,9 +18,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -133,13 +133,8 @@ func (h *listPanelState) GetSelectedLineIdx() int {
 // for now the staging panel state, unlike the other panel states, is going to be
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future
-type lBlPanelState struct {
-	SelectedLineIdx  int
-	FirstLineIdx     int
-	LastLineIdx      int
-	Diff             string
-	PatchParser      *patch.PatchParser
-	SelectMode       SelectMode
+type LblPanelState struct {
+	*lbl.State
 	SecondaryFocused bool // this is for if we show the left or right panel
 }
 
@@ -230,7 +225,7 @@ type panelStates struct {
 	SubCommits     *subCommitPanelState
 	Stash          *stashPanelState
 	Menu           *menuPanelState
-	LineByLine     *lBlPanelState
+	LineByLine     *LblPanelState
 	Merging        *mergingPanelState
 	CommitFiles    *commitFilesPanelState
 	Submodules     *submodulePanelState
