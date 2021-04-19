@@ -49,6 +49,10 @@ const StartupPopupVersion = 4
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
 
+func init() {
+	runewidth.DefaultCondition.EastAsianWidth = false
+}
+
 type ContextManager struct {
 	ContextStack []Context
 	sync.RWMutex
