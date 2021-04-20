@@ -539,7 +539,7 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
  1) If you want to learn about lazygit's features, watch this vid:
       https://youtu.be/CPLdltN7wgE
 
-  3) Be sure to read the latest release notes at:
+ 2) Be sure to read the latest release notes at:
       https://github.com/jesseduffield/lazygit/releases
 
  3) If you're using git, that makes you a programmer! With your help we can make
