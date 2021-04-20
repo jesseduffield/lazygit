@@ -44,7 +44,7 @@ const (
 	SCREEN_FULL
 )
 
-const StartupPopupVersion = 4
+const StartupPopupVersion = 5
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false

@@ -111,8 +111,8 @@ func (gui *Gui) handleStatusSelect() error {
 			fmt.Sprintf("Config Options: %s", constants.Links.Docs.Config),
 			fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
 			fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
+			fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
 			magenta.Sprintf("Become a sponsor (github is matching all donations for 12 months): %s", constants.Links.Donate), // caffeine ain't free
-			gui.Tr.ReleaseNotes,
 		}, "\n\n")
 
 	return gui.refreshMainViews(refreshMainOpts{

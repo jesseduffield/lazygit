@@ -11,7 +11,6 @@ Todo list when making a new translation
 package i18n
 
 type TranslationSet struct {
-	ReleaseNotes                        string
 	NotEnoughSpace                      string
 	DiffTitle                           string
 	LogTitle                            string
@@ -534,224 +533,25 @@ type Spans struct {
 	Redo                              string
 }
 
-const englishReleaseNotes = `lazygit 0.27.1-0.27.4 Release notes
-
-Version 0.27 was quite ambitious so a few bugs were introduced. Lesson learnt,
-release features gradually! All the newly introduced bugs should now be fixed,
-except for https://github.com/jesseduffield/lazygit/issues/1233 which looks to
-be a limitation of the new rendering library, tcell.
-
-You can also now open 'git mergetool' by pressing shift+M in the files panel or
-merge panel.
-
-Otherwise, these releases contained minor bug fixes and improvements.
-
-lazygit 0.27 Release Notes
-
-Holy Moly, this is a big one.
-
-There are two big changes here:
-1) Tree view for the files panel
-2) New rendering library
-
-## File tree view
-
-This is off by default, but can be configured via the 'gui.showFileTree' config
-key and toggled from within lazygit with the backtick key (the one below tilde).
-
-Hitting enter on directories will toggle whether they are collapsed. Most
-keybindings that apply to files also apply to directories e.g. if you hit space
-on a directory, it will stage that whole directory.
-
-When not in tree-mode, the merge conflicts are now bubbled up to the top of the
-list.
-
-The tree view makes it much easier to deal with tonnes of files, because you can
-easily collapse folders you don't care about to focus on the important changes.
-It also reduces the amount of horizontal space used meaning there is less chance
-of content being truncated by the frame of the panel.
-
-## New rendering library
-
-We've switched from the termbox package to tcell, with the help of the contributors
-of the awesome-gocui repo. This has many benefits:
-- More support for various terminals
-- 24 bit colour support (you can now drop the -24-bit-color=never arg if you're using delta)
-- Support for more keybindings like... SHIFT-TAB! Which means you can now navigate
-  the side panels with tab and shift-tab. (Previously pressing shift+tab would
-  crash the program).
-- Better support for switching to subprocesses. Most of that benefit
-
-Other stuff:
-- No more flickering e.g. when staging a file or when contents are refreshed
-- You can now scroll the main panel with your mouse or pgup/pgdown. Before, doing
-  so would move the cursor which was weird
-- You can now insert a newline to the commit message panel via alt-enter. I've
-  changed the default keybinding from <tab> to <a-enter>. Let me know if that makes
-  you angry
-- When you scroll the main view, it will now stop just shy of scrolling too far
-- The gui no longer re-initialises when returning from a subprocess or switching
-  repos
-- By default, 'esc' no longer quits lazygit. Instead you'll need to use ctrl+c
-  or 'q'. We use escape for exiting various modes in lazygit (e.g. cherry-picking)
-  and it gets annoying when you accidentally hit esc one too many times and end
-  up quitting. It's still configurable though
-- Faster startup time
-- Custom commands now run in your shell so you have more freedom to get freaky with it
-
-Bug fixes:
-- No more panicking when attemping to enter an unprintable key (thanks @fsmiamoto!)
-- Rewording the topmost commit no longer commits staged files as well
-- When returning from a submodule we retain the state of the parent repo so that
-  you land back where you were in the submodules tab
-- Fixed a bug in search where the cursor would get stuck if the result set shrunk
-- Commands now retry if .git/index.lock exists
-- Branches are no longer checked out when renamed
-- Fixed issue with merge conflicts on windows where the wrong command was invoked
-  causing a panic
-
-Code-stuff:
-- Lots of refactoring of the code itself. I'm considering a much bigger refactor
-  but need to investigate whether the approach is a good idea
-- Added a TUI for running/recording integration tests so that that whole workflow
-  is easier
-- Added over 40 new integration tests, so bugs will be caught sooner. As always,
-  if you catch a bug, please raise an issue for it!
-
-
-## lazygit 0.26 Release Notes
-
-- Config changes applied after editing from within lazygit, no reload required.
-
-- LOTS of fixes for rendering filenames with strange characters, escaped
-  characters, and UI fixes, by the amazing @Ryooooooga!
-
-- Also thanks to @Isti115
-
-## lazygit 0.25 Release Notes
-
-- Fixes for windows, thanks @murphy66!
-
-- Allow mapping spaces to dashes when creating a branch, thanks @caquillo07!
-
-- Allow configuring file refresh and fetch frequency, thanks @Liberatys!
-
-- Minor security improvement
-
-- Wide characters supported when entering commit messages, thanks @Ryooooooga!
-
-- Original branch name appears when renaming, thanks piresrui!
-
-- Better menus, thanks @1jz!
-
-- Also thanks to @snipem, @dbast, and @dawidd6
-
-## lazygit 0.24 Release Notes
-
-- Suggestions now shown when checking out branch by name
-
-- Minimum OSX version is now officially 10.10
-
-- Pull requests URLs can be copied from the keyboard, thanks @farzadmf!
-
-- Allow --follow-tags flag for git push to be disabled in config,
-  thanks @fishybell!
-
-- Allow quick commit when no files are staged and the user presses 'c',
-  thanks @fluffynuts!
-
-- Lazygit config is now by default created with 'jesseduffield' as the parent
-  folder, thanks @Liberatys!
-
-- You can now configure how lazygit behaves when you open it outside a repo
-  (e.g. skip the prompt and open the most recent repo), thanks @kalvinpearce!
-
-- You can now visualise the commit graph for all branches by pressing 'a' in
-	the status panel - thanks @Yuuki77!
-
-- And thanks to @dawidd6, @sstiglitz, @fargozhu and @nils-a for helping out with
-  CI and documentation!
-
-## lazygit 0.23.2 Release Notes
-
-- Fixed bug where editing a file with spaces did not work
-- Fixed formatting issue with delta that rendered '[0;K' to the screen
-- Fixed bug where lazygit failed upon attempting to create a config file in a
-  read-only filesystem
-
-## lazygit 0.23 Release Notes
-
-Custom Commands:
-- You can now create your own custom commands complete with menus and prompts
-  to tailor lazygit to your workflow
-
-  See https://github.com/jesseduffield/lazygit/wiki/Custom-Commands-Compendium
-  and https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md
-
-Submodules:
-- Add, update, and sync submodules with the new submodules tab. To enter a
-  submodule hit enter on it and then hit escape to return to the superproject
-
-Bare repos:
-- Bare repos are now supported with the --git-dir and --work-tree args, so you
-  can use lazygit to manage your dotfiles!
-
-Staging panel navigation:
-- Ability to search with '/' and jump page by page with ',', '.', '<', '>' in
-  the staging and patch-building contexts
-
-More clipboard stuff:
-- More text copying. Pressing ` + "`" + `ctrl+o` + "`" + ` on a commit to copy
-  its SHA, or a file to copy its name, etc.
-
-Easily view lazygit logs:
-- View lazygit logs with ` + "`" + `lazygit --logs` + "`" + ` (in another
-  terminal tab run ` + "`" + `lazygit --debug` + "`" + ` to write to logs)
-
-Other:
-- For the butterfingers of the world, you are now protected from accidentally
-  deleting the .gitignore file (thanks @kobutomo!)
-
-- Fewer panics
-
-- No more 'invalid merge' errors on startup
-
-- Smaller binary after ditching the Viper and i18n package. Beware! This means
-  configs are now case-sensitive so if your config stops working check the case
-  sensitivity of the keys against what you get from ` + "`" + `lazygit --config` + "`" + `
-
-- Code refactor for better dev experience including more type safety
-
-- Integration tests have finally been added and there are many more to come.
-  These will assist in ensuring no regressions have been introduced in future
-  releases. Making an integration test is actually pretty fun you basically just
-  record yourself using lazygit and that's it. See the guide to integration tests at
-  https://github.com/jesseduffield/lazygit/blob/master/docs/Integration_Tests.md
-
-- Showing release notes from within lazygit, as you no doubt have realised. I'm
-  too lazy to include retrospective release notes but better late than never.`
-
 const englishIntroPopupMessage = `
-Thanks for using lazygit! Three things to share with you:
+Thanks for using lazygit! Seriously you rock. Three things to share with you:
 
  1) If you want to learn about lazygit's features, watch this vid:
       https://youtu.be/CPLdltN7wgE
 
- 2) If you're using git, that makes you a programmer! With your help we can make
+  3) Be sure to read the latest release notes at:
+      https://github.com/jesseduffield/lazygit/releases
+
+ 3) If you're using git, that makes you a programmer! With your help we can make
     lazygit better, so consider becoming a contributor and joining the fun at
       https://github.com/jesseduffield/lazygit
     You can also sponsor me and tell me what to work on by clicking the donate
-    button at the bottom right (github is still matching donations dollar-for-dollar.)
+    button at the bottom right.
     Or even just star the repo cos we're not far from 20k stars!
-
- 3) You can now read through the release notes by navigating to the status panel.
-    Version 0.27 introduces a file tree view, better rendering, tab/shift+tab
-    keybindings, and more
 `
 
 func englishTranslationSet() TranslationSet {
 	return TranslationSet{
-		ReleaseNotes:                        englishReleaseNotes,
 		NotEnoughSpace:                      "Not enough space to render panels",
 		DiffTitle:                           "Diff",
 		LogTitle:                            "Log",
