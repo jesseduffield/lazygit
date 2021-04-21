@@ -454,6 +454,7 @@ type TranslationSet struct {
 	ToggleWhitespaceInDiffView          string
 	IgnoringWhitespaceInDiffView        string
 	ShowingWhitespaceInDiffView         string
+	CreatePullRequest                   string
 	Spans                               Spans
 }
 
@@ -1001,6 +1002,7 @@ func englishTranslationSet() TranslationSet {
 		ToggleWhitespaceInDiffView:          "Toggle whether or not whitespace changes are shown in the diff view",
 		IgnoringWhitespaceInDiffView:        "Whitespace will be ignored in the diff view",
 		ShowingWhitespaceInDiffView:         "Whitespace will be shown in the diff view",
+		CreatePullRequest:                   "Create pull request",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

@@ -91,23 +91,25 @@ func (gui *Gui) handleBranchPress() error {
 }
 
 func (gui *Gui) handleCreatePullRequestPress() error {
-	pullRequest := commands.NewPullRequest(gui.GitCommand)
-
 	branch := gui.getSelectedBranch()
-	url, err := pullRequest.Create(branch)
-	if err != nil {
-		return gui.surfaceError(err)
-	}
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf("Creating pull request at URL: %s", url), "Create pull request", false))
+	return createPullRequest(branch, nil, gui)
+}
 
-	return nil
+func (gui *Gui) handleCreatePullRequestMenu() error {
+	selectedBranch := gui.getSelectedBranch()
+	if selectedBranch == nil {
+		return nil
+	}
+	checkedOutBranch := gui.getCheckedOutBranch()
+
+	return gui.createPullRequestMenu(selectedBranch, checkedOutBranch)
 }
 
 func (gui *Gui) handleCopyPullRequestURLPress() error {
 	pullRequest := commands.NewPullRequest(gui.GitCommand)
 
 	branch := gui.getSelectedBranch()
-	url, err := pullRequest.CopyURL(branch)
+	url, err := pullRequest.CopyURL(branch, nil)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

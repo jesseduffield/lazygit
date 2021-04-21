@@ -37,24 +37,39 @@ func NewService(typeName string, repositoryDomain string, siteDomain string) *Se
 		service = &Service{
 			Name: repositoryDomain,
 			PullRequestURL: func(owner string, repository string, from string, to string) string {
-				urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s?expand=1")
-				return fmt.Sprintf(urlFormat, owner, repository, from)
+				if to == "" {
+					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s?expand=1")
+					return fmt.Sprintf(urlFormat, owner, repository, from)
+				} else {
+					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s...%s?expand=1")
+					return fmt.Sprintf(urlFormat, owner, repository, to, from)
+				}
 			},
 		}
 	case "bitbucket":
 		service = &Service{
-			Name:           repositoryDomain,
+			Name: repositoryDomain,
 			PullRequestURL: func(owner string, repository string, from string, to string) string {
-				urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&t=1")
-				return fmt.Sprintf(urlFormat, owner, repository, from)
+				if to == "" {
+					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&t=1")
+					return fmt.Sprintf(urlFormat, owner, repository, from)
+				} else {
+					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&dest=%s&t=1")
+					return fmt.Sprintf(urlFormat, owner, repository, from, to)
+				}
 			},
 		}
 	case "gitlab":
 		service = &Service{
-			Name:           repositoryDomain,
+			Name: repositoryDomain,
 			PullRequestURL: func(owner string, repository string, from string, to string) string {
-				urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s")
-				return fmt.Sprintf(urlFormat, owner, repository, from)
+				if to == "" {
+					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s")
+					return fmt.Sprintf(urlFormat, owner, repository, from)
+				} else {
+					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s")
+					return fmt.Sprintf(urlFormat, owner, repository, from, to)
+				}
 			},
 		}
 	}
@@ -99,8 +114,8 @@ func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 }
 
 // Create opens link to new pull request in browser
-func (pr *PullRequest) Create(branch *models.Branch) (string, error) {
-	pullRequestURL, err := pr.getPullRequestURL(branch)
+func (pr *PullRequest) Create(from *models.Branch, to *models.Branch) (string, error) {
+	pullRequestURL, err := pr.getPullRequestURL(from, to)
 	if err != nil {
 		return "", err
 	}
@@ -109,8 +124,8 @@ func (pr *PullRequest) Create(branch *models.Branch) (string, error) {
 }
 
 // CopyURL copies the pull request URL to the clipboard
-func (pr *PullRequest) CopyURL(branch *models.Branch) (string, error) {
-	pullRequestURL, err := pr.getPullRequestURL(branch)
+func (pr *PullRequest) CopyURL(from *models.Branch, to *models.Branch) (string, error) {
+	pullRequestURL, err := pr.getPullRequestURL(from, to)
 	if err != nil {
 		return "", err
 	}
@@ -118,8 +133,8 @@ func (pr *PullRequest) CopyURL(branch *models.Branch) (string, error) {
 	return pullRequestURL, pr.GitCommand.OSCommand.CopyToClipboard(pullRequestURL)
 }
 
-func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) {
-	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(branch)
+func (pr *PullRequest) getPullRequestURL(from *models.Branch, to *models.Branch) (string, error) {
+	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(from)
 
 	if !branchExistsOnRemote {
 		return "", errors.New(pr.GitCommand.Tr.NoBranchOnRemote)
@@ -140,7 +155,13 @@ func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) 
 	}
 
 	repoInfo := getRepoInfoFromURL(repoURL)
-	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, branch.Name, "")
+	var toBranchName string
+	if to == nil {
+		toBranchName = ""
+	} else {
+		toBranchName = to.Name
+	}
+	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, from.Name, toBranchName)
 
 	return pullRequestURL, nil
 }
