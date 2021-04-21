@@ -37,7 +37,7 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 		},
 	})
 
-	return gui.createMenu(fmt.Sprintf(gui.Tr.CreatePullRequest), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(fmt.Sprintf(gui.Tr.CreatePullRequestOptions), menuItems, createMenuOptions{showCancel: true})
 }
 
 func createPullRequest(checkedOutBranch *models.Branch, selectedBranch *models.Branch, gui *Gui) error {

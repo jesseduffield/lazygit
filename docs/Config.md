@@ -151,6 +151,7 @@ keybinding:
     toggleTreeView: '`'
   branches:
     createPullRequest: 'o'
+    viewPullRequestOptions: 'O'
     checkoutBranchByName: 'c'
     forceCheckoutBranch: 'F'
     rebaseBranch: 'r'
