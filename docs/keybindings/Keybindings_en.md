@@ -40,6 +40,7 @@
 <pre>
   <kbd>space</kbd>: checkout
   <kbd>o</kbd>: create pull request
+  <kbd>O</kbd>: view pull request options
   <kbd>ctrl+y</kbd>: copy pull request URL to clipboard
   <kbd>c</kbd>: checkout by name
   <kbd>F</kbd>: force checkout

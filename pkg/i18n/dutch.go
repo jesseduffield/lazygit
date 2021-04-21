@@ -396,5 +396,7 @@ func dutchTranslationSet() TranslationSet {
 		LcInitSubmodule:                     "initialiseer submodule",
 		LcViewBulkSubmoduleOptions:          "bekijk bulk submodule opties",
 		LcViewStashFiles:                    "bekijk bestanden van stash entry",
+		CreatePullRequestOptions:            "Maak opties voor pull-aanvragen",
+		LcCreatePullRequestOptions:          "maak opties voor pull-aanvragen",
 	}
 }

@@ -40,6 +40,7 @@
 <pre>
   <kbd>space</kbd>: przełącz
   <kbd>o</kbd>: utwórz żądanie wyciągnięcia
+  <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
   <kbd>ctrl+y</kbd>: skopiuj adres URL żądania ściągnięcia do schowka
   <kbd>c</kbd>: przełącz używając nazwy
   <kbd>F</kbd>: wymuś przełączenie

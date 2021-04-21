@@ -550,7 +550,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts:    []string{string(LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Branches.ViewPullRequestOptions),
 			Handler:     gui.handleCreatePullRequestMenu,
-			Description: gui.Tr.LcCreatePullRequest,
+			Description: gui.Tr.LcCreatePullRequestOptions,
 		},
 		{
 			ViewName:    "branches",

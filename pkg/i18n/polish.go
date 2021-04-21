@@ -255,5 +255,7 @@ func polishTranslationSet() TranslationSet {
 		PullRequestURLCopiedToClipboard:     "URL żądania ściągnięcia skopiowany do schowka",
 		CommitMessageCopiedToClipboard:      "Commit message skopiowany do schowka",
 		LcCopiedToClipboard:                 "skopiowany do schowka",
+		CreatePullRequestOptions:            "Utwórz opcje żądania ściągnięcia",
+		LcCreatePullRequestOptions:          "utwórz opcje żądania ściągnięcia",
 	}
 }
