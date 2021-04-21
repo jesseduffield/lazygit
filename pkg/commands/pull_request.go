@@ -12,7 +12,7 @@ import (
 // Service is a service that repository is on (Github, Bitbucket, ...)
 type Service struct {
 	Name           string
-	PullRequestURL string
+	PullRequestURL func(owner string, repository string, from string, to string) string
 }
 
 // PullRequest opens a link in browser to create new pull request
@@ -35,18 +35,27 @@ func NewService(typeName string, repositoryDomain string, siteDomain string) *Se
 	switch typeName {
 	case "github":
 		service = &Service{
-			Name:           repositoryDomain,
-			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s?expand=1"),
+			Name: repositoryDomain,
+			PullRequestURL: func(owner string, repository string, from string, to string) string {
+				urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s?expand=1")
+				return fmt.Sprintf(urlFormat, owner, repository, from)
+			},
 		}
 	case "bitbucket":
 		service = &Service{
 			Name:           repositoryDomain,
-			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&t=1"),
+			PullRequestURL: func(owner string, repository string, from string, to string) string {
+				urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&t=1")
+				return fmt.Sprintf(urlFormat, owner, repository, from)
+			},
 		}
 	case "gitlab":
 		service = &Service{
 			Name:           repositoryDomain,
-			PullRequestURL: fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s"),
+			PullRequestURL: func(owner string, repository string, from string, to string) string {
+				urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s")
+				return fmt.Sprintf(urlFormat, owner, repository, from)
+			},
 		}
 	}
 
@@ -131,9 +140,7 @@ func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) 
 	}
 
 	repoInfo := getRepoInfoFromURL(repoURL)
-	pullRequestURL := fmt.Sprintf(
-		gitService.PullRequestURL, repoInfo.Owner, repoInfo.Repository, branch.Name,
-	)
+	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, branch.Name, "")
 
 	return pullRequestURL, nil
 }
