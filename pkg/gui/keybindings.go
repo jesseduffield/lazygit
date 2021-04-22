@@ -551,6 +551,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey(config.Branches.ViewPullRequestOptions),
 			Handler:     gui.handleCreatePullRequestMenu,
 			Description: gui.Tr.LcCreatePullRequestOptions,
+			OpensMenu:   true,
 		},
 		{
 			ViewName:    "branches",
