@@ -96,3 +96,128 @@ func TestGitCommandPush(t *testing.T) {
 		})
 	}
 }
+
+type getPullModeScenario struct {
+	testName              string
+	getGitConfigValueMock func(string) (string, error)
+	configPullModeValue   string
+	test                  func(string)
+}
+
+func TestGetPullMode(t *testing.T) {
+
+	scenarios := getPullModeScenarios(t)
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := NewDummyGitCommand()
+			gitCmd.getGitConfigValue = s.getGitConfigValueMock
+			s.test(gitCmd.GetPullMode(s.configPullModeValue))
+		})
+	}
+}
+
+func getPullModeScenarios(t *testing.T) []getPullModeScenario {
+	return []getPullModeScenario{
+		{
+			testName: "Merge is default",
+			getGitConfigValueMock: func(s string) (string, error) {
+				return "", nil
+			},
+			configPullModeValue: "auto",
+			test: func(actual string) {
+				assert.Equal(t, "merge", actual)
+			},
+		}, {
+			testName: "Reads rebase when pull.rebase is true",
+			getGitConfigValueMock: func(s string) (string, error) {
+				if s == "pull.rebase" {
+					return "true", nil
+				}
+				return "", nil
+			},
+			configPullModeValue: "auto",
+			test: func(actual string) {
+				assert.Equal(t, "rebase", actual)
+			},
+		}, {
+			testName: "Reads ff-only when pull.ff is only",
+			getGitConfigValueMock: func(s string) (string, error) {
+				if s == "pull.ff" {
+					return "only", nil
+				}
+				return "", nil
+			},
+			configPullModeValue: "auto",
+			test: func(actual string) {
+				assert.Equal(t, "ff-only", actual)
+			},
+		}, {
+			testName: "Reads rebase when rebase is true and ff is only",
+			getGitConfigValueMock: func(s string) (string, error) {
+				if s == "pull.rebase" {
+					return "true", nil
+				}
+				if s == "pull.ff" {
+					return "only", nil
+				}
+				return "", nil
+			},
+			configPullModeValue: "auto",
+			test: func(actual string) {
+				assert.Equal(t, "rebase", actual)
+			},
+		}, {
+			testName: "Reads rebase when pull.rebase is true",
+			getGitConfigValueMock: func(s string) (string, error) {
+				if s == "pull.rebase" {
+					return "true", nil
+				}
+				return "", nil
+			},
+			configPullModeValue: "auto",
+			test: func(actual string) {
+				assert.Equal(t, "rebase", actual)
+			},
+		}, {
+			testName: "Reads ff-only when pull.ff is only",
+			getGitConfigValueMock: func(s string) (string, error) {
+				if s == "pull.ff" {
+					return "only", nil
+				}
+				return "", nil
+			},
+			configPullModeValue: "auto",
+			test: func(actual string) {
+				assert.Equal(t, "ff-only", actual)
+			},
+		}, {
+			testName: "Respects merge config",
+			getGitConfigValueMock: func(s string) (string, error) {
+				return "", nil
+			},
+			configPullModeValue: "merge",
+			test: func(actual string) {
+				assert.Equal(t, "merge", actual)
+			},
+		}, {
+			testName: "Respects rebase config",
+			getGitConfigValueMock: func(s string) (string, error) {
+				return "", nil
+			},
+			configPullModeValue: "rebase",
+			test: func(actual string) {
+				assert.Equal(t, "rebase", actual)
+			},
+		}, {
+			testName: "Respects ff-only config",
+			getGitConfigValueMock: func(s string) (string, error) {
+				return "", nil
+			},
+			configPullModeValue: "ff-only",
+			test: func(actual string) {
+				assert.Equal(t, "ff-only", actual)
+			},
+		},
+	}
+}
