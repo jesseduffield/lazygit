@@ -39,6 +39,7 @@ type GuiConfig struct {
 	ShowRandomTip            bool               `yaml:"showRandomTip"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
+	SortTagsDescending       bool               `yaml:"sortTagsDescending"`
 }
 
 type ThemeConfig struct {
@@ -307,6 +308,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowFileTree:             false,
 			ShowRandomTip:            true,
 			CommandLogSize:           8,
+			SortTagsDescending:       false,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

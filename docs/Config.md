@@ -44,6 +44,7 @@ gui:
   showRandomTip: true
   showCommandLog: true
   commandLogSize: 8
+  sortTagsDescending: false # sort order for tags
 git:
   paging:
     colorArg: always
