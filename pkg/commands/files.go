@@ -318,7 +318,11 @@ func (c *GitCommand) ResetAndClean() error {
 }
 
 func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
-	editor := c.GetConfigValue("core.editor")
+	editor := c.Config.GetUserConfig().OS.EditCommand
+
+	if editor == "" {
+		editor = c.GetConfigValue("core.editor")
+	}
 
 	if editor == "" {
 		editor = c.OSCommand.Getenv("GIT_EDITOR")
