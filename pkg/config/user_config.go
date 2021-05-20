@@ -247,6 +247,9 @@ type KeybindingSubmodulesConfig struct {
 
 // OSConfig contains config on the level of the os
 type OSConfig struct {
+	// EditCommand is the command for editing a file
+	EditCommand string `yaml:"editCommand,omitempty"`
+
 	// OpenCommand is the command for opening a file
 	OpenCommand string `yaml:"openCommand,omitempty"`
 
