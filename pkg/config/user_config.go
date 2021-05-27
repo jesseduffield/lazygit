@@ -160,6 +160,7 @@ type KeybindingUniversalConfig struct {
 	DiffingMenu                  string `yaml:"diffingMenu"`
 	DiffingMenuAlt               string `yaml:"diffingMenu-alt"`
 	CopyToClipboard              string `yaml:"copyToClipboard"`
+	OpenRecentRepos              string `yaml:"openRecentRepos"`
 	SubmitEditorText             string `yaml:"submitEditorText"`
 	AppendNewline                string `yaml:"appendNewline"`
 	ExtrasMenu                   string `yaml:"extrasMenu"`
@@ -372,6 +373,7 @@ func GetDefaultConfig() *UserConfig {
 				New:                          "n",
 				Edit:                         "e",
 				OpenFile:                     "o",
+				OpenRecentRepos:              "<c-r>",
 				ScrollUpMain:                 "<pgup>",
 				ScrollDownMain:               "<pgdown>",
 				ScrollUpMainAlt1:             "K",
