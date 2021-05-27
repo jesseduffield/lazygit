@@ -233,6 +233,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "",
+			Key:         gui.getKey(config.Universal.OpenRecentRepos),
+			Handler:     gui.handleCreateRecentReposMenu,
+			Alternative: "<c-r>",
+			Description: gui.Tr.SwitchRepo,
+		},
+		{
+			ViewName:    "",
 			Key:         gui.getKey(config.Universal.ScrollUpMain),
 			Handler:     gui.scrollUpMain,
 			Alternative: "fn+up",
