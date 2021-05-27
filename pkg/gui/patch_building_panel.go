@@ -17,35 +17,33 @@ func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
 	return from, reverse
 }
 
-func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *lBlPanelState) error {
+func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *LblPanelState) error {
 	if !gui.GitCommand.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 
-	gui.splitMainPanel(true)
-
-	gui.getMainView().Title = "Patch"
-	gui.getSecondaryView().Title = "Custom Patch"
+	gui.Views.Main.Title = "Patch"
+	gui.Views.Secondary.Title = "Custom Patch"
 
 	// get diff from commit file that's currently selected
-	commitFile := gui.getSelectedCommitFile()
-	if commitFile == nil {
+	node := gui.getSelectedCommitFileNode()
+	if node == nil {
 		return nil
 	}
 
-	to := commitFile.Parent
+	to := gui.State.CommitFileManager.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
-	diff, err := gui.GitCommand.ShowFileDiff(from, to, reverse, commitFile.Name, true)
+	diff, err := gui.GitCommand.ShowFileDiff(from, to, reverse, node.GetPath(), true)
 	if err != nil {
 		return err
 	}
 
-	secondaryDiff := gui.GitCommand.PatchManager.RenderPatchForFile(commitFile.Name, true, false, true)
+	secondaryDiff := gui.GitCommand.PatchManager.RenderPatchForFile(node.GetPath(), true, false, true)
 	if err != nil {
 		return err
 	}
 
-	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx, state)
+	empty, err := gui.refreshLineByLinePanel(diff, secondaryDiff, false, selectedLineIdx)
 	if err != nil {
 		return err
 	}
@@ -65,25 +63,27 @@ func (gui *Gui) handleRefreshPatchBuildingPanel(selectedLineIdx int) error {
 }
 
 func (gui *Gui) handleToggleSelectionForPatch() error {
-	err := gui.withLBLActiveCheck(func(state *lBlPanelState) error {
+	err := gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
 		filename := gui.getSelectedCommitFileName()
 		includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
 		if err != nil {
 			return err
 		}
-		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.SelectedLineIdx)
+		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.GetSelectedLineIdx())
 		if currentLineIsStaged {
 			toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
 		}
 
 		// add range of lines to those set for the file
-		commitFile := gui.getSelectedCommitFile()
-		if commitFile == nil {
+		node := gui.getSelectedCommitFileNode()
+		if node == nil {
 			return nil
 		}
 
-		if err := toggleFunc(commitFile.Name, state.FirstLineIdx, state.LastLineIdx); err != nil {
+		firstLineIdx, lastLineIdx := state.SelectedRange()
+
+		if err := toggleFunc(node.GetPath(), firstLineIdx, lastLineIdx); err != nil {
 			// might actually want to return an error here
 			gui.Log.Error(err)
 		}
@@ -109,8 +109,8 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 		gui.GitCommand.PatchManager.Reset()
 	}
 
-	if gui.currentContext().GetKey() == gui.Contexts.PatchBuilding.Context.GetKey() {
-		return gui.switchContext(gui.Contexts.CommitFiles.Context)
+	if gui.currentContext().GetKey() == gui.State.Contexts.PatchBuilding.GetKey() {
+		return gui.pushContext(gui.State.Contexts.CommitFiles)
 	} else {
 		// need to re-focus in case the secondary view should now be hidden
 		return gui.currentContext().HandleFocus()
@@ -125,7 +125,7 @@ func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
 			title:     "Custom Patch",
 			noWrap:    true,
 			highlight: true,
-			task:      gui.createRenderStringWithoutScrollTask(patch),
+			task:      NewRenderStringWithoutScrollTask(patch),
 		}
 	}
 

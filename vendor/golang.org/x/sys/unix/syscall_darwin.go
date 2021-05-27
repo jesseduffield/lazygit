@@ -13,6 +13,7 @@
 package unix
 
 import (
+	"runtime"
 	"syscall"
 	"unsafe"
 )
@@ -30,10 +31,40 @@ type SockaddrDatalink struct {
 	raw    RawSockaddrDatalink
 }
 
+// SockaddrCtl implements the Sockaddr interface for AF_SYSTEM type sockets.
+type SockaddrCtl struct {
+	ID   uint32
+	Unit uint32
+	raw  RawSockaddrCtl
+}
+
+func (sa *SockaddrCtl) sockaddr() (unsafe.Pointer, _Socklen, error) {
+	sa.raw.Sc_len = SizeofSockaddrCtl
+	sa.raw.Sc_family = AF_SYSTEM
+	sa.raw.Ss_sysaddr = AF_SYS_CONTROL
+	sa.raw.Sc_id = sa.ID
+	sa.raw.Sc_unit = sa.Unit
+	return unsafe.Pointer(&sa.raw), SizeofSockaddrCtl, nil
+}
+
+func anyToSockaddrGOOS(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
+	switch rsa.Addr.Family {
+	case AF_SYSTEM:
+		pp := (*RawSockaddrCtl)(unsafe.Pointer(rsa))
+		if pp.Ss_sysaddr == AF_SYS_CONTROL {
+			sa := new(SockaddrCtl)
+			sa.ID = pp.Sc_id
+			sa.Unit = pp.Sc_unit
+			return sa, nil
+		}
+	}
+	return nil, EAFNOSUPPORT
+}
+
 // Some external packages rely on SYS___SYSCTL being defined to implement their
 // own sysctl wrappers. Provide it here, even though direct syscalls are no
 // longer supported on darwin.
-const SYS___SYSCTL = 202
+const SYS___SYSCTL = SYS_SYSCTL
 
 // Translate "kern.hostname" to []_C_int{0,1,2,3}.
 func nametomib(name string) (mib []_C_int, err error) {
@@ -88,13 +119,16 @@ type attrList struct {
 	Forkattr    uint32
 }
 
-//sysnb pipe() (r int, w int, err error)
+//sysnb	pipe(p *[2]int32) (err error)
 
 func Pipe(p []int) (err error) {
 	if len(p) != 2 {
 		return EINVAL
 	}
-	p[0], p[1], err = pipe()
+	var x [2]int32
+	err = pipe(&x)
+	p[0] = int(x[0])
+	p[1] = int(x[1])
 	return
 }
 
@@ -238,7 +272,7 @@ func setattrlistTimes(path string, times []Timespec, flags int) error {
 		options)
 }
 
-//sys setattrlist(path *byte, list unsafe.Pointer, buf unsafe.Pointer, size uintptr, options int) (err error)
+//sys	setattrlist(path *byte, list unsafe.Pointer, buf unsafe.Pointer, size uintptr, options int) (err error)
 
 func utimensat(dirfd int, path string, times *[2]Timespec, flags int) error {
 	// Darwin doesn't support SYS_UTIMENSAT
@@ -257,7 +291,36 @@ func Kill(pid int, signum syscall.Signal) (err error) { return kill(pid, int(sig
 
 //sys	ioctl(fd int, req uint, arg uintptr) (err error)
 
-//sys   sysctl(mib []_C_int, old *byte, oldlen *uintptr, new *byte, newlen uintptr) (err error) = SYS_SYSCTL
+func IoctlCtlInfo(fd int, ctlInfo *CtlInfo) error {
+	err := ioctl(fd, CTLIOCGINFO, uintptr(unsafe.Pointer(ctlInfo)))
+	runtime.KeepAlive(ctlInfo)
+	return err
+}
+
+// IfreqMTU is struct ifreq used to get or set a network device's MTU.
+type IfreqMTU struct {
+	Name [IFNAMSIZ]byte
+	MTU  int32
+}
+
+// IoctlGetIfreqMTU performs the SIOCGIFMTU ioctl operation on fd to get the MTU
+// of the network device specified by ifname.
+func IoctlGetIfreqMTU(fd int, ifname string) (*IfreqMTU, error) {
+	var ifreq IfreqMTU
+	copy(ifreq.Name[:], ifname)
+	err := ioctl(fd, SIOCGIFMTU, uintptr(unsafe.Pointer(&ifreq)))
+	return &ifreq, err
+}
+
+// IoctlSetIfreqMTU performs the SIOCSIFMTU ioctl operation on fd to set the MTU
+// of the network device specified by ifreq.Name.
+func IoctlSetIfreqMTU(fd int, ifreq *IfreqMTU) error {
+	err := ioctl(fd, SIOCSIFMTU, uintptr(unsafe.Pointer(ifreq)))
+	runtime.KeepAlive(ifreq)
+	return err
+}
+
+//sys	sysctl(mib []_C_int, old *byte, oldlen *uintptr, new *byte, newlen uintptr) (err error) = SYS_SYSCTL
 
 func Uname(uname *Utsname) error {
 	mib := []_C_int{CTL_KERN, KERN_OSTYPE}
@@ -313,6 +376,15 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 	err = sendfile(infd, outfd, *offset, &length, nil, 0)
 	written = int(length)
 	return
+}
+
+// GetsockoptXucred is a getsockopt wrapper that returns an Xucred struct.
+// The usual level and opt are SOL_LOCAL and LOCAL_PEERCRED, respectively.
+func GetsockoptXucred(fd, level, opt int) (*Xucred, error) {
+	x := new(Xucred)
+	vallen := _Socklen(SizeofXucred)
+	err := getsockopt(fd, level, opt, unsafe.Pointer(x), &vallen)
+	return x, err
 }
 
 //sys	sendfile(infd int, outfd int, offset int64, len *int64, hdtr unsafe.Pointer, flags int) (err error)
@@ -409,8 +481,8 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 //sys	Unlinkat(dirfd int, path string, flags int) (err error)
 //sys	Unmount(path string, flags int) (err error)
 //sys	write(fd int, p []byte) (n int, err error)
-//sys   mmap(addr uintptr, length uintptr, prot int, flag int, fd int, pos int64) (ret uintptr, err error)
-//sys   munmap(addr uintptr, length uintptr) (err error)
+//sys	mmap(addr uintptr, length uintptr, prot int, flag int, fd int, pos int64) (ret uintptr, err error)
+//sys	munmap(addr uintptr, length uintptr) (err error)
 //sys	readlen(fd int, buf *byte, nbuf int) (n int, err error) = SYS_READ
 //sys	writelen(fd int, buf *byte, nbuf int) (n int, err error) = SYS_WRITE
 

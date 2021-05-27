@@ -106,6 +106,31 @@ func IoctlGetRTCTime(fd int) (*RTCTime, error) {
 	return &value, err
 }
 
+type ifreqEthtool struct {
+	name [IFNAMSIZ]byte
+	data unsafe.Pointer
+}
+
+// IoctlGetEthtoolDrvinfo fetches ethtool driver information for the network
+// device specified by ifname.
+func IoctlGetEthtoolDrvinfo(fd int, ifname string) (*EthtoolDrvinfo, error) {
+	// Leave room for terminating NULL byte.
+	if len(ifname) >= IFNAMSIZ {
+		return nil, EINVAL
+	}
+
+	value := EthtoolDrvinfo{
+		Cmd: ETHTOOL_GDRVINFO,
+	}
+	ifreq := ifreqEthtool{
+		data: unsafe.Pointer(&value),
+	}
+	copy(ifreq.name[:], ifname)
+	err := ioctl(fd, SIOCETHTOOL, uintptr(unsafe.Pointer(&ifreq)))
+	runtime.KeepAlive(ifreq)
+	return &value, err
+}
+
 // IoctlGetWatchdogInfo fetches information about a watchdog device from the
 // Linux watchdog API. For more information, see:
 // https://www.kernel.org/doc/html/latest/watchdog/watchdog-api.html.
@@ -137,12 +162,61 @@ func IoctlFileClone(destFd, srcFd int) error {
 	return ioctl(destFd, FICLONE, uintptr(srcFd))
 }
 
+type FileDedupeRange struct {
+	Src_offset uint64
+	Src_length uint64
+	Reserved1  uint16
+	Reserved2  uint32
+	Info       []FileDedupeRangeInfo
+}
+
+type FileDedupeRangeInfo struct {
+	Dest_fd       int64
+	Dest_offset   uint64
+	Bytes_deduped uint64
+	Status        int32
+	Reserved      uint32
+}
+
 // IoctlFileDedupeRange performs an FIDEDUPERANGE ioctl operation to share the
-// range of data conveyed in value with the file associated with the file
-// descriptor destFd. See the ioctl_fideduperange(2) man page for details.
-func IoctlFileDedupeRange(destFd int, value *FileDedupeRange) error {
-	err := ioctl(destFd, FIDEDUPERANGE, uintptr(unsafe.Pointer(value)))
-	runtime.KeepAlive(value)
+// range of data conveyed in value from the file associated with the file
+// descriptor srcFd to the value.Info destinations. See the
+// ioctl_fideduperange(2) man page for details.
+func IoctlFileDedupeRange(srcFd int, value *FileDedupeRange) error {
+	buf := make([]byte, SizeofRawFileDedupeRange+
+		len(value.Info)*SizeofRawFileDedupeRangeInfo)
+	rawrange := (*RawFileDedupeRange)(unsafe.Pointer(&buf[0]))
+	rawrange.Src_offset = value.Src_offset
+	rawrange.Src_length = value.Src_length
+	rawrange.Dest_count = uint16(len(value.Info))
+	rawrange.Reserved1 = value.Reserved1
+	rawrange.Reserved2 = value.Reserved2
+
+	for i := range value.Info {
+		rawinfo := (*RawFileDedupeRangeInfo)(unsafe.Pointer(
+			uintptr(unsafe.Pointer(&buf[0])) + uintptr(SizeofRawFileDedupeRange) +
+				uintptr(i*SizeofRawFileDedupeRangeInfo)))
+		rawinfo.Dest_fd = value.Info[i].Dest_fd
+		rawinfo.Dest_offset = value.Info[i].Dest_offset
+		rawinfo.Bytes_deduped = value.Info[i].Bytes_deduped
+		rawinfo.Status = value.Info[i].Status
+		rawinfo.Reserved = value.Info[i].Reserved
+	}
+
+	err := ioctl(srcFd, FIDEDUPERANGE, uintptr(unsafe.Pointer(&buf[0])))
+
+	// Output
+	for i := range value.Info {
+		rawinfo := (*RawFileDedupeRangeInfo)(unsafe.Pointer(
+			uintptr(unsafe.Pointer(&buf[0])) + uintptr(SizeofRawFileDedupeRange) +
+				uintptr(i*SizeofRawFileDedupeRangeInfo)))
+		value.Info[i].Dest_fd = rawinfo.Dest_fd
+		value.Info[i].Dest_offset = rawinfo.Dest_offset
+		value.Info[i].Bytes_deduped = rawinfo.Bytes_deduped
+		value.Info[i].Status = rawinfo.Status
+		value.Info[i].Reserved = rawinfo.Reserved
+	}
+
 	return err
 }
 
@@ -151,6 +225,36 @@ func IoctlFileDedupeRange(destFd int, value *FileDedupeRange) error {
 // https://www.kernel.org/doc/html/latest/watchdog/watchdog-api.html.
 func IoctlWatchdogKeepalive(fd int) error {
 	return ioctl(fd, WDIOC_KEEPALIVE, 0)
+}
+
+func IoctlHIDGetDesc(fd int, value *HIDRawReportDescriptor) error {
+	err := ioctl(fd, HIDIOCGRDESC, uintptr(unsafe.Pointer(value)))
+	runtime.KeepAlive(value)
+	return err
+}
+
+func IoctlHIDGetRawInfo(fd int) (*HIDRawDevInfo, error) {
+	var value HIDRawDevInfo
+	err := ioctl(fd, HIDIOCGRAWINFO, uintptr(unsafe.Pointer(&value)))
+	return &value, err
+}
+
+func IoctlHIDGetRawName(fd int) (string, error) {
+	var value [_HIDIOCGRAWNAME_LEN]byte
+	err := ioctl(fd, _HIDIOCGRAWNAME, uintptr(unsafe.Pointer(&value[0])))
+	return ByteSliceToString(value[:]), err
+}
+
+func IoctlHIDGetRawPhys(fd int) (string, error) {
+	var value [_HIDIOCGRAWPHYS_LEN]byte
+	err := ioctl(fd, _HIDIOCGRAWPHYS, uintptr(unsafe.Pointer(&value[0])))
+	return ByteSliceToString(value[:]), err
+}
+
+func IoctlHIDGetRawUniq(fd int) (string, error) {
+	var value [_HIDIOCGRAWUNIQ_LEN]byte
+	err := ioctl(fd, _HIDIOCGRAWUNIQ, uintptr(unsafe.Pointer(&value[0])))
+	return ByteSliceToString(value[:]), err
 }
 
 //sys	Linkat(olddirfd int, oldpath string, newdirfd int, newpath string, flags int) (err error)
@@ -641,6 +745,36 @@ func (sa *SockaddrCAN) sockaddr() (unsafe.Pointer, _Socklen, error) {
 	return unsafe.Pointer(&sa.raw), SizeofSockaddrCAN, nil
 }
 
+// SockaddrCANJ1939 implements the Sockaddr interface for AF_CAN using J1939
+// protocol (https://en.wikipedia.org/wiki/SAE_J1939). For more information
+// on the purposes of the fields, check the official linux kernel documentation
+// available here: https://www.kernel.org/doc/Documentation/networking/j1939.rst
+type SockaddrCANJ1939 struct {
+	Ifindex int
+	Name    uint64
+	PGN     uint32
+	Addr    uint8
+	raw     RawSockaddrCAN
+}
+
+func (sa *SockaddrCANJ1939) sockaddr() (unsafe.Pointer, _Socklen, error) {
+	if sa.Ifindex < 0 || sa.Ifindex > 0x7fffffff {
+		return nil, 0, EINVAL
+	}
+	sa.raw.Family = AF_CAN
+	sa.raw.Ifindex = int32(sa.Ifindex)
+	n := (*[8]byte)(unsafe.Pointer(&sa.Name))
+	for i := 0; i < 8; i++ {
+		sa.raw.Addr[i] = n[i]
+	}
+	p := (*[4]byte)(unsafe.Pointer(&sa.PGN))
+	for i := 0; i < 4; i++ {
+		sa.raw.Addr[i+8] = p[i]
+	}
+	sa.raw.Addr[12] = sa.Addr
+	return unsafe.Pointer(&sa.raw), SizeofSockaddrCAN, nil
+}
+
 // SockaddrALG implements the Sockaddr interface for AF_ALG type sockets.
 // SockaddrALG enables userspace access to the Linux kernel's cryptography
 // subsystem. The Type and Name fields specify which type of hash or cipher
@@ -748,16 +882,19 @@ type SockaddrVM struct {
 	// CID and Port specify a context ID and port address for a VM socket.
 	// Guests have a unique CID, and hosts may have a well-known CID of:
 	//  - VMADDR_CID_HYPERVISOR: refers to the hypervisor process.
+	//  - VMADDR_CID_LOCAL: refers to local communication (loopback).
 	//  - VMADDR_CID_HOST: refers to other processes on the host.
-	CID  uint32
-	Port uint32
-	raw  RawSockaddrVM
+	CID   uint32
+	Port  uint32
+	Flags uint8
+	raw   RawSockaddrVM
 }
 
 func (sa *SockaddrVM) sockaddr() (unsafe.Pointer, _Socklen, error) {
 	sa.raw.Family = AF_VSOCK
 	sa.raw.Port = sa.Port
 	sa.raw.Cid = sa.CID
+	sa.raw.Flags = sa.Flags
 
 	return unsafe.Pointer(&sa.raw), SizeofSockaddrVM, nil
 }
@@ -952,6 +1089,10 @@ func (sa *SockaddrIUCV) sockaddr() (unsafe.Pointer, _Socklen, error) {
 	return unsafe.Pointer(&sa.raw), SizeofSockaddrIUCV, nil
 }
 
+var socketProtocol = func(fd int) (int, error) {
+	return GetsockoptInt(fd, SOL_SOCKET, SO_PROTOCOL)
+}
+
 func anyToSockaddr(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
 	switch rsa.Addr.Family {
 	case AF_NETLINK:
@@ -1002,7 +1143,7 @@ func anyToSockaddr(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
 		return sa, nil
 
 	case AF_INET:
-		proto, err := GetsockoptInt(fd, SOL_SOCKET, SO_PROTOCOL)
+		proto, err := socketProtocol(fd)
 		if err != nil {
 			return nil, err
 		}
@@ -1028,7 +1169,7 @@ func anyToSockaddr(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
 		}
 
 	case AF_INET6:
-		proto, err := GetsockoptInt(fd, SOL_SOCKET, SO_PROTOCOL)
+		proto, err := socketProtocol(fd)
 		if err != nil {
 			return nil, err
 		}
@@ -1058,12 +1199,13 @@ func anyToSockaddr(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
 	case AF_VSOCK:
 		pp := (*RawSockaddrVM)(unsafe.Pointer(rsa))
 		sa := &SockaddrVM{
-			CID:  pp.Cid,
-			Port: pp.Port,
+			CID:   pp.Cid,
+			Port:  pp.Port,
+			Flags: pp.Flags,
 		}
 		return sa, nil
 	case AF_BLUETOOTH:
-		proto, err := GetsockoptInt(fd, SOL_SOCKET, SO_PROTOCOL)
+		proto, err := socketProtocol(fd)
 		if err != nil {
 			return nil, err
 		}
@@ -1150,20 +1292,43 @@ func anyToSockaddr(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
 		return sa, nil
 
 	case AF_CAN:
-		pp := (*RawSockaddrCAN)(unsafe.Pointer(rsa))
-		sa := &SockaddrCAN{
-			Ifindex: int(pp.Ifindex),
+		proto, err := socketProtocol(fd)
+		if err != nil {
+			return nil, err
 		}
-		rx := (*[4]byte)(unsafe.Pointer(&sa.RxID))
-		for i := 0; i < 4; i++ {
-			rx[i] = pp.Addr[i]
-		}
-		tx := (*[4]byte)(unsafe.Pointer(&sa.TxID))
-		for i := 0; i < 4; i++ {
-			tx[i] = pp.Addr[i+4]
-		}
-		return sa, nil
 
+		pp := (*RawSockaddrCAN)(unsafe.Pointer(rsa))
+
+		switch proto {
+		case CAN_J1939:
+			sa := &SockaddrCANJ1939{
+				Ifindex: int(pp.Ifindex),
+			}
+			name := (*[8]byte)(unsafe.Pointer(&sa.Name))
+			for i := 0; i < 8; i++ {
+				name[i] = pp.Addr[i]
+			}
+			pgn := (*[4]byte)(unsafe.Pointer(&sa.PGN))
+			for i := 0; i < 4; i++ {
+				pgn[i] = pp.Addr[i+8]
+			}
+			addr := (*[1]byte)(unsafe.Pointer(&sa.Addr))
+			addr[0] = pp.Addr[12]
+			return sa, nil
+		default:
+			sa := &SockaddrCAN{
+				Ifindex: int(pp.Ifindex),
+			}
+			rx := (*[4]byte)(unsafe.Pointer(&sa.RxID))
+			for i := 0; i < 4; i++ {
+				rx[i] = pp.Addr[i]
+			}
+			tx := (*[4]byte)(unsafe.Pointer(&sa.TxID))
+			for i := 0; i < 4; i++ {
+				tx[i] = pp.Addr[i+4]
+			}
+			return sa, nil
+		}
 	}
 	return nil, EAFNOSUPPORT
 }
@@ -1425,8 +1590,8 @@ func KeyctlRestrictKeyring(ringid int, keyType string, restriction string) error
 	return keyctlRestrictKeyringByType(KEYCTL_RESTRICT_KEYRING, ringid, keyType, restriction)
 }
 
-//sys keyctlRestrictKeyringByType(cmd int, arg2 int, keyType string, restriction string) (err error) = SYS_KEYCTL
-//sys keyctlRestrictKeyring(cmd int, arg2 int) (err error) = SYS_KEYCTL
+//sys	keyctlRestrictKeyringByType(cmd int, arg2 int, keyType string, restriction string) (err error) = SYS_KEYCTL
+//sys	keyctlRestrictKeyring(cmd int, arg2 int) (err error) = SYS_KEYCTL
 
 func Recvmsg(fd int, p, oob []byte, flags int) (n, oobn int, recvflags int, from Sockaddr, err error) {
 	var msg Msghdr
@@ -1741,6 +1906,7 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 //sys	ClockGettime(clockid int32, time *Timespec) (err error)
 //sys	ClockNanosleep(clockid int32, flags int, request *Timespec, remain *Timespec) (err error)
 //sys	Close(fd int) (err error)
+//sys	CloseRange(first uint, last uint, flags uint) (err error)
 //sys	CopyFileRange(rfd int, roff *int64, wfd int, woff *int64, len int, flags int) (n int, err error)
 //sys	DeleteModule(name string, flags int) (err error)
 //sys	Dup(oldfd int) (fd int, err error)
@@ -1803,8 +1969,8 @@ func Getpgrp() (pid int) {
 //sys	Nanosleep(time *Timespec, leftover *Timespec) (err error)
 //sys	PerfEventOpen(attr *PerfEventAttr, pid int, cpu int, groupFd int, flags int) (fd int, err error)
 //sys	PivotRoot(newroot string, putold string) (err error) = SYS_PIVOT_ROOT
-//sysnb prlimit(pid int, resource int, newlimit *Rlimit, old *Rlimit) (err error) = SYS_PRLIMIT64
-//sys   Prctl(option int, arg2 uintptr, arg3 uintptr, arg4 uintptr, arg5 uintptr) (err error)
+//sysnb	prlimit(pid int, resource int, newlimit *Rlimit, old *Rlimit) (err error) = SYS_PRLIMIT64
+//sys	Prctl(option int, arg2 uintptr, arg3 uintptr, arg4 uintptr, arg5 uintptr) (err error)
 //sys	Pselect(nfd int, r *FdSet, w *FdSet, e *FdSet, timeout *Timespec, sigmask *Sigset_t) (n int, err error) = SYS_PSELECT6
 //sys	read(fd int, p []byte) (n int, err error)
 //sys	Removexattr(path string, attr string) (err error)
@@ -1877,9 +2043,9 @@ func Signalfd(fd int, sigmask *Sigset_t, flags int) (newfd int, err error) {
 //sys	Syncfs(fd int) (err error)
 //sysnb	Sysinfo(info *Sysinfo_t) (err error)
 //sys	Tee(rfd int, wfd int, len int, flags int) (n int64, err error)
-//sysnb TimerfdCreate(clockid int, flags int) (fd int, err error)
-//sysnb TimerfdGettime(fd int, currValue *ItimerSpec) (err error)
-//sysnb TimerfdSettime(fd int, flags int, newValue *ItimerSpec, oldValue *ItimerSpec) (err error)
+//sysnb	TimerfdCreate(clockid int, flags int) (fd int, err error)
+//sysnb	TimerfdGettime(fd int, currValue *ItimerSpec) (err error)
+//sysnb	TimerfdSettime(fd int, flags int, newValue *ItimerSpec, oldValue *ItimerSpec) (err error)
 //sysnb	Tgkill(tgid int, tid int, sig syscall.Signal) (err error)
 //sysnb	Times(tms *Tms) (ticks uintptr, err error)
 //sysnb	Umask(mask int) (oldmask int)
@@ -2139,8 +2305,8 @@ func Faccessat(dirfd int, path string, mode uint32, flags int) (err error) {
 	return EACCES
 }
 
-//sys nameToHandleAt(dirFD int, pathname string, fh *fileHandle, mountID *_C_int, flags int) (err error) = SYS_NAME_TO_HANDLE_AT
-//sys openByHandleAt(mountFD int, fh *fileHandle, flags int) (fd int, err error) = SYS_OPEN_BY_HANDLE_AT
+//sys	nameToHandleAt(dirFD int, pathname string, fh *fileHandle, mountID *_C_int, flags int) (err error) = SYS_NAME_TO_HANDLE_AT
+//sys	openByHandleAt(mountFD int, fh *fileHandle, flags int) (fd int, err error) = SYS_OPEN_BY_HANDLE_AT
 
 // fileHandle is the argument to nameToHandleAt and openByHandleAt. We
 // originally tried to generate it via unix/linux/types.go with "type

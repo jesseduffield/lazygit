@@ -8,13 +8,14 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/termbox-go"
+	"github.com/jesseduffield/gocui"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
@@ -362,17 +363,29 @@ func ResolveTemplate(templateStr string, object interface{}) (string, error) {
 	return buf.String(), nil
 }
 
-// Safe will close termbox if a panic occurs so that we don't end up in a malformed
+// Safe will close tcell if a panic occurs so that we don't end up in a malformed
 // terminal state
 func Safe(f func()) {
+	_ = SafeWithError(func() error { f(); return nil })
+}
+
+func SafeWithError(f func() error) error {
 	panicking := true
 	defer func() {
-		if panicking {
-			termbox.Close()
+		if panicking && gocui.Screen != nil {
+			gocui.Screen.Fini()
 		}
 	}()
 
-	f()
+	err := f()
 
 	panicking = false
+
+	return err
+}
+
+func StackTrace() string {
+	buf := make([]byte, 10000)
+	n := runtime.Stack(buf, false)
+	return fmt.Sprintf("%s\n", buf[:n])
 }

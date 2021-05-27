@@ -4,10 +4,9 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
 )
 
-func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateResetMenu() error {
 	red := color.New(color.FgRed)
 
 	nukeStr := "reset --hard HEAD && git clean -fd"
@@ -22,11 +21,11 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetAndClean(); err != nil {
+				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.NukeWorkingTree).ResetAndClean(); err != nil {
 					return gui.surfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -35,11 +34,11 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git checkout -- ."),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.DiscardAnyUnstagedFileChanges(); err != nil {
+				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardUnstagedFileChanges).DiscardAnyUnstagedFileChanges(); err != nil {
 					return gui.surfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -48,11 +47,11 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git clean -fd"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.RemoveUntrackedFiles(); err != nil {
+				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveUntrackedFiles).RemoveUntrackedFiles(); err != nil {
 					return gui.surfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -61,11 +60,11 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git reset --soft HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
+				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SoftReset).ResetSoft("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -74,11 +73,11 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git reset --mixed HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
+				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.MixedReset).ResetMixed("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -87,11 +86,11 @@ func (gui *Gui) handleCreateResetMenu(g *gocui.Gui, v *gocui.View) error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.ResetHard("HEAD"); err != nil {
+				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.HardReset).ResetHard("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{FILES}})
+				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 			},
 		},
 	}

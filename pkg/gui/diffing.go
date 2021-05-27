@@ -3,8 +3,6 @@ package gui
 import (
 	"fmt"
 	"strings"
-
-	"github.com/jesseduffield/gocui"
 )
 
 func (gui *Gui) exitDiffMode() error {
@@ -16,7 +14,7 @@ func (gui *Gui) renderDiff() error {
 	cmd := gui.OSCommand.ExecutableFromString(
 		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", gui.diffStr()),
 	)
-	task := gui.createRunPtyTask(cmd)
+	task := NewRunPtyTask(cmd)
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
@@ -51,7 +49,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 		}
 		return nil
 	default:
-		context := gui.currentSideContext()
+		context := gui.currentSideListContext()
 		if context == nil {
 			return nil
 		}
@@ -96,17 +94,13 @@ func (gui *Gui) diffStr() string {
 	if file != "" {
 		output += " -- " + file
 	} else if gui.State.Modes.Filtering.Active() {
-		output += " -- " + gui.State.Modes.Filtering.Path
+		output += " -- " + gui.State.Modes.Filtering.GetPath()
 	}
 
 	return output
 }
 
-func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
+func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	names := gui.currentDiffTerminals()
 
 	menuItems := []*menuItem{}
@@ -128,9 +122,12 @@ func (gui *Gui) handleCreateDiffingMenuPanel(g *gocui.Gui, v *gocui.View) error 
 		{
 			displayString: gui.Tr.LcEnterRefToDiff,
 			onPress: func() error {
-				return gui.prompt(gui.Tr.LcEnteRefName, "", func(response string) error {
-					gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+				return gui.prompt(promptOpts{
+					title: gui.Tr.LcEnteRefName,
+					handleConfirm: func(response string) error {
+						gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
+						return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					},
 				})
 			},
 		},

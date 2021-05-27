@@ -21,7 +21,6 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Binary releases](#binary-releases)
   - [Homebrew](#homebrew)
   - [MacPorts](#macports)
-  - [Ubuntu](#ubuntu)
   - [Void Linux](#void-linux)
   - [Scoop (Windows)](#scoop-windows)
   - [Arch Linux](#arch-linux)
@@ -30,6 +29,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [FreeBSD](#freebsd)
   - [Conda](#conda)
   - [Go](#go)
+  - [Chocolatey (Windows)](#chocolatey-windows)
   - [Manual](#manual)
 - [Usage](#usage)
   - [Keybindings](#keybindings)
@@ -52,7 +52,7 @@ Github Sponsors is matching all donations dollar-for-dollar for 12 months so if 
 
 ### Binary Releases
 
-For Windows, Mac OS or Linux, you can download a binary release [here](../../releases).
+For Windows, Mac OS(10.10+) or Linux, you can download a binary release [here](../../releases).
 
 ### Homebrew
 
@@ -80,6 +80,8 @@ sudo port install lazygit
 ```
 
 ### Ubuntu
+
+**Deprecated**: will no longer receive updates.
 
 Packages for Ubuntu are available via [Launchpad PPA](https://launchpad.net/~lazygit-team).
 
@@ -113,12 +115,12 @@ scoop install lazygit
 
 ### Arch Linux
 
-Packages for Arch Linux are available via AUR (Arch User Repository).
+Packages for Arch Linux are available via pacman and AUR (Arch User Repository).
 
 There are two packages. The stable one which is built with the latest release
 and the git version which builds from the most recent commit.
 
-- Stable: <https://aur.archlinux.org/packages/lazygit/>
+- Stable: `sudo pacman -S lazygit`
 - Development: <https://aur.archlinux.org/packages/lazygit-git/>
 
 Instruction of how to install AUR content can be found here:
@@ -165,6 +167,14 @@ If you get an error claiming that lazygit cannot be found or is not defined, you
 may need to add `~/go/bin` to your \$PATH (MacOS/Linux), or `%HOME%\go\bin`
 (Windows). Not to be mistaked for `C:\Go\bin` (which is for Go's own binaries,
 not apps like Lazygit).
+
+### Chocolatey (Windows)
+
+You can install `lazygit` using [Chocolatey](https://chocolatey.org/):
+
+```sh
+choco install lazygit
+```
 
 ### Manual
 
@@ -270,12 +280,10 @@ Run `lazygit --debug` in one terminal tab and `lazygit --logs` in another to vie
 
 If you would like to support the development of lazygit, consider [sponsoring me](https://github.com/sponsors/jesseduffield) (github is matching all donations dollar-for-dollar for 12 months)
 
-## Work in progress
+## FAQ
 
-This is still a work in progress so there's still bugs to iron out and as this
-is my first project in Go the code could no doubt use an increase in quality,
-but I'll be improving on it whenever I find the time. If you have any feedback
-feel free to [raise an issue](https://github.com/jesseduffield/lazygit/issues)/[submit a PR](https://github.com/jesseduffield/lazygit/pulls).
+### I'm struggling to see the selected line
+see [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#struggling-to-see-selected-line)
 
 ## Social
 

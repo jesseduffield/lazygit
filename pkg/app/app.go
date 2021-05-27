@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -21,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/sirupsen/logrus"
 )
@@ -97,6 +97,7 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 
 // NewApp bootstrap a new application
 func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
+
 	app := &App{
 		closers: []io.Closer{},
 		Config:  config,
@@ -182,7 +183,7 @@ func (app *App) setupRepo() (bool, error) {
 	}
 
 	// if we are not in a git repo, we ask if we want to `git init`
-	if err := app.OSCommand.RunCommand("git status"); err != nil {
+	if err := commands.VerifyInGitRepo(app.OSCommand); err != nil {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return false, err
@@ -192,10 +193,20 @@ func (app *App) setupRepo() (bool, error) {
 			return false, err // Current directory appears to be a git repository.
 		}
 
-		// Offer to initialize a new repository in current directory.
-		fmt.Print(app.Tr.CreateRepo)
-		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		if strings.Trim(response, " \n") != "y" {
+		shouldInitRepo := true
+		notARepository := app.Config.GetUserConfig().NotARepository
+		if notARepository == "prompt" {
+			// Offer to initialize a new repository in current directory.
+			fmt.Print(app.Tr.CreateRepo)
+			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+			if strings.Trim(response, " \n") != "y" {
+				shouldInitRepo = false
+			}
+		} else if notARepository == "skip" {
+			shouldInitRepo = false
+		}
+
+		if !shouldInitRepo {
 			// check if we have a recent repo we can open
 			recentRepos := app.Config.GetAppState().RecentRepos
 			if len(recentRepos) > 0 {
@@ -215,6 +226,7 @@ func (app *App) setupRepo() (bool, error) {
 			return false, err
 		}
 	}
+
 	return false, nil
 }
 
@@ -227,7 +239,7 @@ func (app *App) Run() error {
 		os.Exit(0)
 	}
 
-	err := app.Gui.RunWithSubprocesses()
+	err := app.Gui.RunAndHandleError()
 	return err
 }
 
@@ -314,7 +326,7 @@ func TailLogs() {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("tail", "-f", logFilePath)
+	cmd := secureexec.Command("tail", "-f", logFilePath)
 
 	stdout, _ := cmd.StdoutPipe()
 	if err := cmd.Start(); err != nil {

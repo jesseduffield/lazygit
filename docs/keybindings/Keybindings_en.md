@@ -16,7 +16,7 @@
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
-  <kbd>|</kbd>: view scoping options
+  <kbd>|</kbd>: view filter-by-path options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
 </pre>
@@ -24,13 +24,13 @@
 ## List Panel Navigation
 
 <pre>
+  <kbd>.</kbd>: next page
+  <kbd>,</kbd>: previous page
+  <kbd><</kbd>: scroll to top
+  <kbd>></kbd>: scroll to bottom
+  <kbd>/</kbd>: start search
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
-  <kbd>,</kbd>: previous page
-  <kbd>.</kbd>: next page
-  <kbd><</kbd>: scroll to top
-  <kbd>/</kbd>: start search
-  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Branches Panel (Branches Tab)
@@ -38,6 +38,7 @@
 <pre>
   <kbd>space</kbd>: checkout
   <kbd>o</kbd>: create pull request
+  <kbd>ctrl+y</kbd>: copy pull request URL to clipboard
   <kbd>c</kbd>: checkout by name
   <kbd>F</kbd>: force checkout
   <kbd>n</kbd>: new branch
@@ -108,7 +109,8 @@
   <kbd>o</kbd>: open file
   <kbd>e</kbd>: edit file
   <kbd>space</kbd>: toggle file included in patch
-  <kbd>enter</kbd>: enter file to add selected lines to the patch
+  <kbd>enter</kbd>: enter file to add selected lines to the patch (or toggle directory collapsed)
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Commits Panel (Commits)
@@ -137,6 +139,7 @@
   <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>ctrl+y</kbd>: copy commit message to clipboard
 </pre>
 
 ## Commits Panel (Reflog Tab)
@@ -168,10 +171,11 @@
   <kbd>S</kbd>: view stash options
   <kbd>a</kbd>: stage/unstage all
   <kbd>D</kbd>: view reset options
-  <kbd>enter</kbd>: stage individual hunks/lines
+  <kbd>enter</kbd>: stage individual hunks/lines for file, or collapse/expand for directory
   <kbd>f</kbd>: fetch
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>g</kbd>: view upstream reset options
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Files Panel (Submodules)
@@ -203,8 +207,8 @@
 ## Main Panel (Normal)
 
 <pre>
-  <kbd>￣</kbd>: scroll down (fn+up)
-  <kbd>￤</kbd>: scroll up (fn+down)
+  <kbd>Ő</kbd>: scroll down (fn+up)
+  <kbd>ő</kbd>: scroll up (fn+down)
 </pre>
 
 ## Main Panel (Patch Building)
@@ -267,4 +271,5 @@
   <kbd>o</kbd>: open config file
   <kbd>u</kbd>: check for update
   <kbd>enter</kbd>: switch to a recent repo
+  <kbd>a</kbd>: show all branch logs
 </pre>

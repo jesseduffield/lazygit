@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -23,12 +22,12 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 	var task updateTask
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {
-		task = gui.createRenderStringTask("No branches for this remote")
+		task = NewRenderStringTask("No branches for this remote")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.GetBranchGraphCmdStr(remoteBranch.FullName()),
 		)
-		task = gui.createRunCommandTask(cmd)
+		task = NewRunCommandTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -39,16 +38,16 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 	})
 }
 
-func (gui *Gui) handleRemoteBranchesEscape(g *gocui.Gui, v *gocui.View) error {
-	return gui.switchContext(gui.Contexts.Remotes.Context)
+func (gui *Gui) handleRemoteBranchesEscape() error {
+	return gui.pushContext(gui.State.Contexts.Remotes)
 }
 
-func (gui *Gui) handleMergeRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleMergeRemoteBranch() error {
 	selectedBranchName := gui.getSelectedRemoteBranch().FullName()
 	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
 }
 
-func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleDeleteRemoteBranch() error {
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {
 		return nil
@@ -60,21 +59,21 @@ func (gui *Gui) handleDeleteRemoteBranch(g *gocui.Gui, v *gocui.View) error {
 		prompt: message,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				err := gui.GitCommand.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.promptUserForCredential)
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.promptUserForCredential)
 				gui.handleCredentialsPopup(err)
 
-				return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 			})
 		},
 	})
 }
 
-func (gui *Gui) handleRebaseOntoRemoteBranch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRebaseOntoRemoteBranch() error {
 	selectedBranchName := gui.getSelectedRemoteBranch().FullName()
 	return gui.handleRebaseOntoBranch(selectedBranchName)
 }
 
-func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleSetBranchUpstream() error {
 	selectedBranch := gui.getSelectedRemoteBranch()
 	checkedOutBranch := gui.getCheckedOutBranch()
 
@@ -90,16 +89,16 @@ func (gui *Gui) handleSetBranchUpstream(g *gocui.Gui, v *gocui.View) error {
 		title:  gui.Tr.SetUpstreamTitle,
 		prompt: message,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SetBranchUpstream).SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
 				return err
 			}
 
-			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 		},
 	})
 }
 
-func (gui *Gui) handleCreateResetToRemoteBranchMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateResetToRemoteBranchMenu() error {
 	selectedBranch := gui.getSelectedRemoteBranch()
 	if selectedBranch == nil {
 		return nil

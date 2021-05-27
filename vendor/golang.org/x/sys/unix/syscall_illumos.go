@@ -4,11 +4,14 @@
 
 // illumos system calls not present on Solaris.
 
+//go:build amd64 && illumos
 // +build amd64,illumos
 
 package unix
 
-import "unsafe"
+import (
+	"unsafe"
+)
 
 func bytes2iovec(bs [][]byte) []Iovec {
 	iovecs := make([]Iovec, len(bs))
@@ -76,15 +79,51 @@ func Accept4(fd int, flags int) (nfd int, sa Sockaddr, err error) {
 	return
 }
 
-//sysnb	pipe2(p *[2]_C_int, flags int) (err error)
+//sys	putmsg(fd int, clptr *strbuf, dataptr *strbuf, flags int) (err error)
 
-func Pipe2(p []int, flags int) error {
-	if len(p) != 2 {
-		return EINVAL
+func Putmsg(fd int, cl []byte, data []byte, flags int) (err error) {
+	var clp, datap *strbuf
+	if len(cl) > 0 {
+		clp = &strbuf{
+			Len: int32(len(cl)),
+			Buf: (*int8)(unsafe.Pointer(&cl[0])),
+		}
 	}
-	var pp [2]_C_int
-	err := pipe2(&pp, flags)
-	p[0] = int(pp[0])
-	p[1] = int(pp[1])
-	return err
+	if len(data) > 0 {
+		datap = &strbuf{
+			Len: int32(len(data)),
+			Buf: (*int8)(unsafe.Pointer(&data[0])),
+		}
+	}
+	return putmsg(fd, clp, datap, flags)
+}
+
+//sys	getmsg(fd int, clptr *strbuf, dataptr *strbuf, flags *int) (err error)
+
+func Getmsg(fd int, cl []byte, data []byte) (retCl []byte, retData []byte, flags int, err error) {
+	var clp, datap *strbuf
+	if len(cl) > 0 {
+		clp = &strbuf{
+			Maxlen: int32(len(cl)),
+			Buf:    (*int8)(unsafe.Pointer(&cl[0])),
+		}
+	}
+	if len(data) > 0 {
+		datap = &strbuf{
+			Maxlen: int32(len(data)),
+			Buf:    (*int8)(unsafe.Pointer(&data[0])),
+		}
+	}
+
+	if err = getmsg(fd, clp, datap, &flags); err != nil {
+		return nil, nil, 0, err
+	}
+
+	if len(cl) > 0 {
+		retCl = cl[:clp.Len]
+	}
+	if len(data) > 0 {
+		retData = data[:datap.Len]
+	}
+	return retCl, retData, flags, nil
 }

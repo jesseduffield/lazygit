@@ -1,7 +1,6 @@
 package patch
 
 import (
-	"errors"
 	"sort"
 	"strings"
 
@@ -9,9 +8,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type PatchStatus int
+
 const (
 	// UNSELECTED is for when the commit file has not been added to the patch in any way
-	UNSELECTED = iota
+	UNSELECTED PatchStatus = iota
 	// WHOLE is for when you want to add the whole diff of a file to the patch,
 	// including e.g. if it was deleted
 	WHOLE
@@ -20,7 +21,7 @@ const (
 )
 
 type fileInfo struct {
-	mode                int // one of WHOLE/PART
+	mode                PatchStatus
 	includedLineIndices []int
 	diff                string
 }
@@ -81,19 +82,24 @@ func (p *PatchManager) removeFile(info *fileInfo) {
 	info.includedLineIndices = nil
 }
 
-func (p *PatchManager) ToggleFileWhole(filename string) error {
+func (p *PatchManager) AddFileWhole(filename string) error {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		return err
 	}
-	switch info.mode {
-	case UNSELECTED, PART:
-		p.addFileWhole(info)
-	case WHOLE:
-		p.removeFile(info)
-	default:
-		return errors.New("unknown file mode")
+
+	p.addFileWhole(info)
+
+	return nil
+}
+
+func (p *PatchManager) RemoveFile(filename string) error {
+	info, err := p.getFileInfo(filename)
+	if err != nil {
+		return err
 	}
+
+	p.removeFile(info)
 
 	return nil
 }
@@ -176,11 +182,8 @@ func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse b
 	if plain {
 		return patch
 	}
-	parser, err := NewPatchParser(p.Log, patch)
-	if err != nil {
-		// swallowing for now
-		return ""
-	}
+	parser := NewPatchParser(p.Log, patch)
+
 	// not passing included lines because we don't want to see them in the secondary panel
 	return parser.Render(-1, -1, nil)
 }
@@ -216,7 +219,11 @@ func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
 	return result
 }
 
-func (p *PatchManager) GetFileStatus(filename string) int {
+func (p *PatchManager) GetFileStatus(filename string, parent string) PatchStatus {
+	if parent != p.To {
+		return UNSELECTED
+	}
+
 	info, ok := p.fileInfoMap[filename]
 	if !ok {
 		return UNSELECTED

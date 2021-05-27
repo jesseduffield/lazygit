@@ -1,7 +1,5 @@
 package gui
 
-import "github.com/jesseduffield/gocui"
-
 func (gui *Gui) nextSideWindow() error {
 	windows := gui.getCyclableWindows()
 	currentWindow := gui.currentWindow()
@@ -19,13 +17,13 @@ func (gui *Gui) nextSideWindow() error {
 			}
 		}
 	}
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+	if err := gui.resetOrigin(gui.Views.Main); err != nil {
 		return err
 	}
 
 	viewName := gui.getViewNameForWindow(newWindow)
 
-	return gui.switchContextToView(viewName)
+	return gui.pushContextWithView(viewName)
 }
 
 func (gui *Gui) previousSideWindow() error {
@@ -45,17 +43,17 @@ func (gui *Gui) previousSideWindow() error {
 			}
 		}
 	}
-	if err := gui.resetOrigin(gui.getMainView()); err != nil {
+	if err := gui.resetOrigin(gui.Views.Main); err != nil {
 		return err
 	}
 
 	viewName := gui.getViewNameForWindow(newWindow)
 
-	return gui.switchContextToView(viewName)
+	return gui.pushContextWithView(viewName)
 }
 
-func (gui *Gui) goToSideWindow(sideViewName string) func(g *gocui.Gui, v *gocui.View) error {
-	return func(g *gocui.Gui, v *gocui.View) error {
-		return gui.switchContextToView(sideViewName)
+func (gui *Gui) goToSideWindow(sideViewName string) func() error {
+	return func() error {
+		return gui.pushContextWithView(sideViewName)
 	}
 }

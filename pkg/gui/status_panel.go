@@ -5,7 +5,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -33,7 +34,7 @@ func (gui *Gui) refreshStatus() {
 		status = utils.ColoredString(fmt.Sprintf("↑%s↓%s ", currentBranch.Pushables, currentBranch.Pullables), trackColor)
 	}
 
-	if gui.GitCommand.WorkingTreeState() != "normal" {
+	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
 		status += utils.ColoredString(fmt.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState()), color.FgYellow)
 	}
 
@@ -41,10 +42,7 @@ func (gui *Gui) refreshStatus() {
 	repoName := utils.GetCurrentRepoName()
 	status += fmt.Sprintf("%s → %s ", repoName, name)
 
-	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContent(gui.getStatusView(), status)
-		return nil
-	})
+	gui.setViewContent(gui.Views.Status, status)
 }
 
 func runeCount(str string) int {
@@ -55,12 +53,12 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 	return cx >= runeCount(prefix) && cx < runeCount(prefix+substring)
 }
 
-func (gui *Gui) handleCheckForUpdate(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckForUpdate() error {
 	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.createLoaderPanel(v, gui.Tr.CheckingForUpdates)
+	return gui.createLoaderPanel(gui.Tr.CheckingForUpdates)
 }
 
-func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStatusClick() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
 	if gui.popupPanelFocused() {
 		return nil
@@ -72,15 +70,15 @@ func (gui *Gui) handleStatusClick(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	if err := gui.switchContext(gui.Contexts.Status.Context); err != nil {
+	if err := gui.pushContext(gui.State.Contexts.Status); err != nil {
 		return err
 	}
 
-	cx, _ := v.Cursor()
+	cx, _ := gui.Views.Status.Cursor()
 	upstreamStatus := fmt.Sprintf("↑%s↓%s", currentBranch.Pushables, currentBranch.Pullables)
 	repoName := utils.GetCurrentRepoName()
 	switch gui.GitCommand.WorkingTreeState() {
-	case "rebasing", "merging":
+	case commands.REBASE_MODE_REBASING, commands.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", gui.GitCommand.WorkingTreeState())
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return gui.handleCreateRebaseOptionsMenu()
@@ -109,27 +107,27 @@ func (gui *Gui) handleStatusSelect() error {
 		[]string{
 			lazygitTitle(),
 			"Copyright (c) 2018 Jesse Duffield",
-			"Keybindings: https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings",
-			"Config Options: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
-			"Tutorial: https://youtu.be/VDXvbHZYeKY",
-			"Raise an Issue: https://github.com/jesseduffield/lazygit/issues",
-			magenta.Sprint("Become a sponsor (github is matching all donations for 12 months): https://github.com/sponsors/jesseduffield"), // caffeine ain't free
-			gui.Tr.ReleaseNotes,
+			fmt.Sprintf("Keybindings: %s", constants.Links.Docs.Keybindings),
+			fmt.Sprintf("Config Options: %s", constants.Links.Docs.Config),
+			fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
+			fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
+			fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
+			magenta.Sprintf("Become a sponsor (github is matching all donations for 12 months): %s", constants.Links.Donate), // caffeine ain't free
 		}, "\n\n")
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "",
-			task:  gui.createRenderStringTask(dashboardString),
+			task:  NewRenderStringTask(dashboardString),
 		},
 	})
 }
 
-func (gui *Gui) handleOpenConfig(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleOpenConfig() error {
 	return gui.openFile(gui.Config.GetUserConfigPath())
 }
 
-func (gui *Gui) handleEditConfig(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEditConfig() error {
 	filename := gui.Config.GetUserConfigPath()
 	return gui.editFile(filename)
 }
@@ -149,11 +147,11 @@ func lazygitTitle() string {
 func (gui *Gui) workingTreeState() string {
 	rebaseMode, _ := gui.GitCommand.RebaseMode()
 	if rebaseMode != "" {
-		return "rebasing"
+		return commands.REBASE_MODE_REBASING
 	}
 	merging, _ := gui.GitCommand.IsInMergeState()
 	if merging {
-		return "merging"
+		return commands.REBASE_MODE_MERGING
 	}
-	return "normal"
+	return commands.REBASE_MODE_NORMAL
 }

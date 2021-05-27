@@ -41,6 +41,7 @@ type AppConfigurer interface {
 	SaveAppState() error
 	SetIsNewRepo(bool)
 	GetIsNewRepo() bool
+	ReloadUserConfig() error
 }
 
 // NewAppConfig makes a new app config
@@ -82,20 +83,25 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 }
 
 func ConfigDir() string {
+	legacyConfigDirectory := configDirForVendor("jesseduffield")
+	if _, err := os.Stat(legacyConfigDirectory); !os.IsNotExist(err) {
+		return legacyConfigDirectory
+	}
+	configDirectory := configDirForVendor("")
+	return configDirectory
+}
+
+func configDirForVendor(vendor string) string {
 	envConfigDir := os.Getenv("CONFIG_DIR")
 	if envConfigDir != "" {
 		return envConfigDir
 	}
-
-	// chucking my name there is not for vanity purposes, the xdg spec (and that
-	// function) requires a vendor name. May as well line up with github
-	configDirs := xdg.New("jesseduffield", "lazygit")
+	configDirs := xdg.New(vendor, "lazygit")
 	return configDirs.ConfigHome()
 }
 
 func findOrCreateConfigDir() (string, error) {
 	folder := ConfigDir()
-
 	err := os.MkdirAll(folder, 0755)
 	if err != nil {
 		return "", err
@@ -196,6 +202,16 @@ func (c *AppConfig) GetAppState() *AppState {
 
 func (c *AppConfig) GetUserConfigDir() string {
 	return c.UserConfigDir
+}
+
+func (c *AppConfig) ReloadUserConfig() error {
+	userConfig, err := loadUserConfigWithDefaults(c.UserConfigDir)
+	if err != nil {
+		return err
+	}
+
+	c.UserConfig = userConfig
+	return nil
 }
 
 func configFilePath(filename string) (string, error) {

@@ -7,38 +7,59 @@ package gocui
 import (
 	standardErrors "errors"
 	"fmt"
+	"log"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/go-errors/errors"
-
-	"github.com/jesseduffield/termbox-go"
 )
 
+// OutputMode represents an output mode, which determines how colors
+// are used.
+type OutputMode int
+
 var (
-	// ErrQuit is used to decide if the MainLoop finished successfully.
-	ErrQuit = standardErrors.New("quit")
+	// ErrAlreadyBlacklisted is returned when the keybinding is already blacklisted.
+	ErrAlreadyBlacklisted = standardErrors.New("keybind already blacklisted")
+
+	// ErrBlacklisted is returned when the keybinding being parsed / used is blacklisted.
+	ErrBlacklisted = standardErrors.New("keybind blacklisted")
+
+	// ErrNotBlacklisted is returned when a keybinding being whitelisted is not blacklisted.
+	ErrNotBlacklisted = standardErrors.New("keybind not blacklisted")
+
+	// ErrNoSuchKeybind is returned when the keybinding being parsed does not exist.
+	ErrNoSuchKeybind = standardErrors.New("no such keybind")
 
 	// ErrUnknownView allows to assert if a View must be initialized.
 	ErrUnknownView = standardErrors.New("unknown view")
-)
 
-// OutputMode represents the terminal's output mode (8 or 256 colors).
-type OutputMode termbox.OutputMode
+	// ErrQuit is used to decide if the MainLoop finished successfully.
+	ErrQuit = standardErrors.New("quit")
+)
 
 const (
 	// OutputNormal provides 8-colors terminal mode.
-	OutputNormal = OutputMode(termbox.OutputNormal)
+	OutputNormal OutputMode = iota
 
 	// Output256 provides 256-colors terminal mode.
-	Output256 = OutputMode(termbox.Output256)
+	Output256
 
-	// OutputGrayScale provides greyscale terminal mode.
-	OutputGrayScale = OutputMode(termbox.OutputGrayscale)
+	// Output216 provides 216 ansi color terminal mode.
+	Output216
 
-	// Output216 provides greyscale terminal mode.
-	Output216 = OutputMode(termbox.Output216)
+	// OutputGrayscale provides greyscale terminal mode.
+	OutputGrayscale
+
+	// OutputTrue provides 24bit color terminal mode.
+	// This mode is recommended even if your terminal doesn't support
+	// such mode. The colors are represented exactly as you
+	// write them (no clamping or truncating). `tcell` should take care
+	// of what your terminal can do.
+	OutputTrue
 )
 
 type tabClickHandler func(int) error
@@ -56,33 +77,58 @@ type GuiMutexes struct {
 	ViewsMutex sync.Mutex
 }
 
+type PlayMode int
+
+const (
+	NORMAL PlayMode = iota
+	RECORDING
+	REPLAYING
+)
+
+type Recording struct {
+	KeyEvents    []*TcellKeyEventWrapper
+	ResizeEvents []*TcellResizeEventWrapper
+}
+
+type replayedEvents struct {
+	keys    chan *TcellKeyEventWrapper
+	resizes chan *TcellResizeEventWrapper
+}
+
+type RecordingConfig struct {
+	Speed  float64
+	Leeway int
+}
+
 // Gui represents the whole User Interface, including the views, layouts
 // and keybindings.
 type Gui struct {
-	tbEvents   chan termbox.Event
-	userEvents chan userEvent
+	RecordingConfig
+	Recording *Recording
+	// ReplayedEvents is for passing pre-recorded input events, for the purposes of testing
+	ReplayedEvents replayedEvents
+	PlayMode       PlayMode
+	StartTime      time.Time
 
-	// ReplayedEvents is a channel for passing pre-recorded input events, for the purposes of testing
-	ReplayedEvents chan termbox.Event
-	RecordEvents   bool
-	RecordedEvents chan *termbox.Event
-
+	tabClickBindings []*tabClickBinding
+	gEvents          chan GocuiEvent
+	userEvents       chan userEvent
 	views            []*View
 	currentView      *View
 	managers         []Manager
 	keybindings      []*keybinding
-	tabClickBindings []*tabClickBinding
 	maxX, maxY       int
 	outputMode       OutputMode
 	stop             chan struct{}
+	blacklist        []Key
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
-	BgColor, FgColor Attribute
+	BgColor, FgColor, FrameColor Attribute
 
 	// SelBgColor and SelFgColor allow to configure the background and
 	// foreground colors of the frame of the current view.
-	SelBgColor, SelFgColor Attribute
+	SelBgColor, SelFgColor, SelFrameColor Attribute
 
 	// If Highlight is true, Sel{Bg,Fg}Colors will be used to draw the
 	// frame of the current view.
@@ -113,33 +159,56 @@ type Gui struct {
 	SearchEscapeKey    interface{}
 	NextSearchMatchKey interface{}
 	PrevSearchMatchKey interface{}
+
+	screen         tcell.Screen
+	suspendedMutex sync.Mutex
+	suspended      bool
 }
 
 // NewGui returns a new Gui object with a given output mode.
-func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, error) {
+func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless bool) (*Gui, error) {
 	g := &Gui{}
 
 	var err error
-	if g.maxX, g.maxY, err = g.getTermWindowSize(); err != nil {
-		return nil, err
+	if headless {
+		err = g.tcellInitSimulation()
+	} else {
+		err = g.tcellInit()
 	}
-
-	if err := termbox.Init(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
 	g.outputMode = mode
-	termbox.SetOutputMode(termbox.OutputMode(mode))
 
-	g.stop = make(chan struct{}, 0)
+	g.stop = make(chan struct{})
 
-	g.tbEvents = make(chan termbox.Event, 20)
-	g.ReplayedEvents = make(chan termbox.Event)
+	g.gEvents = make(chan GocuiEvent, 20)
 	g.userEvents = make(chan userEvent, 20)
-	g.RecordedEvents = make(chan *termbox.Event)
 
-	g.BgColor, g.FgColor = ColorDefault, ColorDefault
-	g.SelBgColor, g.SelFgColor = ColorDefault, ColorDefault
+	if playMode == RECORDING {
+		g.Recording = &Recording{
+			KeyEvents:    []*TcellKeyEventWrapper{},
+			ResizeEvents: []*TcellResizeEventWrapper{},
+		}
+	} else if playMode == REPLAYING {
+		g.ReplayedEvents = replayedEvents{
+			keys:    make(chan *TcellKeyEventWrapper),
+			resizes: make(chan *TcellResizeEventWrapper),
+		}
+	}
+
+	if runtime.GOOS != "windows" {
+		g.maxX, g.maxY, err = g.getTermWindowSize()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		g.maxX, g.maxY = Screen.Size()
+	}
+
+	g.BgColor, g.FgColor, g.FrameColor = ColorDefault, ColorDefault, ColorDefault
+	g.SelBgColor, g.SelFgColor, g.SelFrameColor = ColorDefault, ColorDefault, ColorDefault
 
 	// SupportOverlaps is true when we allow for view edges to overlap with other
 	// view edges
@@ -150,7 +219,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, err
 	g.NextSearchMatchKey = 'n'
 	g.PrevSearchMatchKey = 'N'
 
-	g.RecordEvents = recordEvents
+	g.PlayMode = playMode
 
 	return g, nil
 }
@@ -158,8 +227,10 @@ func NewGui(mode OutputMode, supportOverlaps bool, recordEvents bool) (*Gui, err
 // Close finalizes the library. It should be called after a successful
 // initialization and when gocui is not needed anymore.
 func (g *Gui) Close() {
-	close(g.stop)
-	termbox.Close()
+	go func() {
+		g.stop <- struct{}{}
+	}()
+	Screen.Fini()
 }
 
 // Size returns the terminal's size.
@@ -175,7 +246,7 @@ func (g *Gui) SetRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 		// swallowing error because it's not that big of a deal
 		return nil
 	}
-	termbox.SetCell(x, y, ch, termbox.Attribute(fgColor), termbox.Attribute(bgColor))
+	tcellSetCell(x, y, ch, fgColor, bgColor, g.outputMode)
 	return nil
 }
 
@@ -185,8 +256,8 @@ func (g *Gui) Rune(x, y int) (rune, error) {
 	if x < 0 || y < 0 || x >= g.maxX || y >= g.maxY {
 		return ' ', errors.New("invalid point")
 	}
-	c := termbox.CellBuffer()[y*g.maxX+x]
-	return c.Ch, nil
+	c, _, _, _ := Screen.GetContent(x, y)
+	return c, nil
 }
 
 // SetView creates a new view with its top-left corner at (x0, y0)
@@ -200,11 +271,14 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 	}
 
 	if v, err := g.View(name); err == nil {
+		if v.x0 != x0 || v.x1 != x1 || v.y0 != y0 || v.y1 != y1 {
+			v.clearViewLines()
+		}
+
 		v.x0 = x0
 		v.y0 = y0
 		v.x1 = x1
 		v.y1 = y1
-		v.tainted = true
 		return v, nil
 	}
 
@@ -281,15 +355,20 @@ func (g *Gui) View(name string) (*View, error) {
 	return nil, errors.Wrap(ErrUnknownView, 0)
 }
 
-// ViewByPosition returns a pointer to a view matching the given position, or
+// VisibleViewByPosition returns a pointer to a view matching the given position, or
 // error ErrUnknownView if a view in that position does not exist.
-func (g *Gui) ViewByPosition(x, y int) (*View, error) {
+func (g *Gui) VisibleViewByPosition(x, y int) (*View, error) {
 	g.Mutexes.ViewsMutex.Lock()
 	defer g.Mutexes.ViewsMutex.Unlock()
 
 	// traverse views in reverse order checking top views first
 	for i := len(g.views); i > 0; i-- {
 		v := g.views[i-1]
+
+		if !v.Visible {
+			continue
+		}
+
 		frameOffset := 0
 		if v.Frame {
 			frameOffset = 1
@@ -352,6 +431,11 @@ func (g *Gui) CurrentView() *View {
 // SetKeybinding creates a new keybinding. If viewname equals to ""
 // (empty string) then the keybinding will apply to all views. key must
 // be a rune or a Key.
+//
+// When mouse keys are used (MouseLeft, MouseRight, ...), modifier might not work correctly.
+// It behaves differently on different platforms. Somewhere it doesn't register Alt key press,
+// on others it might report Ctrl as Alt. It's not consistent and therefore it's not recommended
+// to use with mouse keys.
 func (g *Gui) SetKeybinding(viewname string, contexts []string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
 	var kb *keybinding
 
@@ -359,6 +443,11 @@ func (g *Gui) SetKeybinding(viewname string, contexts []string, key interface{},
 	if err != nil {
 		return err
 	}
+
+	if g.isBlacklisted(k) {
+		return ErrBlacklisted
+	}
+
 	kb = newKeybinding(viewname, contexts, k, ch, mod, handler)
 	g.keybindings = append(g.keybindings, kb)
 	return nil
@@ -401,6 +490,28 @@ func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) error
 	return nil
 }
 
+// BlackListKeybinding adds a keybinding to the blacklist
+func (g *Gui) BlacklistKeybinding(k Key) error {
+	for _, j := range g.blacklist {
+		if j == k {
+			return ErrAlreadyBlacklisted
+		}
+	}
+	g.blacklist = append(g.blacklist, k)
+	return nil
+}
+
+// WhiteListKeybinding removes a keybinding from the blacklist
+func (g *Gui) WhitelistKeybinding(k Key) error {
+	for i, j := range g.blacklist {
+		if j == k {
+			g.blacklist = append(g.blacklist[:i], g.blacklist[i+1:]...)
+			return nil
+		}
+	}
+	return ErrNotBlacklisted
+}
+
 // getKey takes an empty interface with a key and returns the corresponding
 // typed Key or rune.
 func getKey(key interface{}) (Key, rune, error) {
@@ -425,7 +536,14 @@ type userEvent struct {
 // the user events queue. Given that Update spawns a goroutine, the order in
 // which the user events will be handled is not guaranteed.
 func (g *Gui) Update(f func(*Gui) error) {
-	go func() { g.userEvents <- userEvent{f: f} }()
+	go g.UpdateAsync(f)
+}
+
+// UpdateAsync is a version of Update that does not spawn a go routine, it can
+// be a bit more efficient in cases where Update is called many times like when
+// tailing a file.  In general you should use Update()
+func (g *Gui) UpdateAsync(f func(*Gui) error) {
+	g.userEvents <- userEvent{f: f}
 }
 
 // A Manager is in charge of GUI's layout and can be used to build widgets.
@@ -454,7 +572,7 @@ func (g *Gui) SetManager(managers ...Manager) {
 	g.keybindings = nil
 	g.tabClickBindings = nil
 
-	go func() { g.tbEvents <- termbox.Event{Type: termbox.EventResize} }()
+	go func() { g.gEvents <- GocuiEvent{Type: eventResize} }()
 }
 
 // SetManagerFunc sets the given manager function. It deletes all views and
@@ -466,8 +584,10 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
-	if err := g.flush(); err != nil {
-		return err
+
+	g.StartTime = time.Now()
+	if g.PlayMode == REPLAYING {
+		go g.replayRecording()
 	}
 
 	go func() {
@@ -476,30 +596,18 @@ func (g *Gui) MainLoop() error {
 			case <-g.stop:
 				return
 			default:
-				g.tbEvents <- termbox.PollEvent()
+				g.gEvents <- g.pollEvent()
 			}
 		}
 	}()
 
-	inputMode := termbox.InputAlt
-	if true { // previously g.InputEsc, but didn't seem to work
-		inputMode = termbox.InputEsc
-	}
 	if g.Mouse {
-		inputMode |= termbox.InputMouse
+		Screen.EnableMouse()
 	}
-	termbox.SetInputMode(inputMode)
 
-	if err := g.flush(); err != nil {
-		return err
-	}
 	for {
 		select {
-		case ev := <-g.tbEvents:
-			if err := g.handleEvent(&ev); err != nil {
-				return err
-			}
-		case ev := <-g.ReplayedEvents:
+		case ev := <-g.gEvents:
 			if err := g.handleEvent(&ev); err != nil {
 				return err
 			}
@@ -521,11 +629,7 @@ func (g *Gui) MainLoop() error {
 func (g *Gui) consumeevents() error {
 	for {
 		select {
-		case ev := <-g.tbEvents:
-			if err := g.handleEvent(&ev); err != nil {
-				return err
-			}
-		case ev := <-g.ReplayedEvents:
+		case ev := <-g.gEvents:
 			if err := g.handleEvent(&ev); err != nil {
 				return err
 			}
@@ -541,30 +645,35 @@ func (g *Gui) consumeevents() error {
 
 // handleEvent handles an event, based on its type (key-press, error,
 // etc.)
-func (g *Gui) handleEvent(ev *termbox.Event) error {
-	if g.RecordEvents {
-		g.RecordedEvents <- ev
-	}
-
+func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	switch ev.Type {
-	case termbox.EventKey, termbox.EventMouse:
+	case eventKey, eventMouse:
 		return g.onKey(ev)
-	case termbox.EventError:
+	case eventError:
 		return ev.Err
+	case eventResize:
+		g.onResize()
+		return nil
 	default:
 		return nil
 	}
 }
 
+func (g *Gui) onResize() {
+	// not sure if we actually need this
+	// g.screen.Sync()
+}
+
 // flush updates the gui, re-drawing frames and buffers.
 func (g *Gui) flush() error {
-	termbox.Clear(termbox.Attribute(g.FgColor), termbox.Attribute(g.BgColor))
+	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
+	// g.clear(g.FgColor, g.BgColor)
 
-	maxX, maxY := termbox.Size()
+	maxX, maxY := Screen.Size()
 	// if GUI's size has changed, we need to redraw all views
 	if maxX != g.maxX || maxY != g.maxY {
 		for _, v := range g.views {
-			v.tainted = true
+			v.clearViewLines()
 		}
 	}
 	g.maxX, g.maxY = maxX, maxY
@@ -575,16 +684,33 @@ func (g *Gui) flush() error {
 		}
 	}
 	for _, v := range g.views {
-		if v.y1 < v.y0 {
+		if !v.Visible || v.y1 < v.y0 {
 			continue
 		}
 		if v.Frame {
-			fgColor, bgColor := g.viewColors(v)
+			var fgColor, bgColor, frameColor Attribute
+			if g.Highlight && v == g.currentView {
+				fgColor = g.SelFgColor
+				bgColor = g.SelBgColor
+				frameColor = g.SelFrameColor
+			} else {
+				bgColor = g.BgColor
+				if v.TitleColor != ColorDefault {
+					fgColor = v.TitleColor
+				} else {
+					fgColor = g.FgColor
+				}
+				if v.FrameColor != ColorDefault {
+					frameColor = v.FrameColor
+				} else {
+					frameColor = g.FrameColor
+				}
+			}
 
-			if err := g.drawFrameEdges(v, fgColor, bgColor); err != nil {
+			if err := g.drawFrameEdges(v, frameColor, bgColor); err != nil {
 				return err
 			}
-			if err := g.drawFrameCorners(v, fgColor, bgColor); err != nil {
+			if err := g.drawFrameCorners(v, frameColor, bgColor); err != nil {
 				return err
 			}
 			if v.Title != "" || len(v.Tabs) > 0 {
@@ -607,15 +733,19 @@ func (g *Gui) flush() error {
 			return err
 		}
 	}
-	termbox.Flush()
+	Screen.Show()
 	return nil
 }
 
-func (g *Gui) viewColors(v *View) (Attribute, Attribute) {
-	if g.Highlight && v == g.currentView {
-		return g.SelFgColor, g.SelBgColor
+func (g *Gui) clear(fg, bg Attribute) (int, int) {
+	st := getTcellStyle(oldStyle{fg: fg, bg: bg, outputMode: g.outputMode})
+	w, h := Screen.Size()
+	for row := 0; row < h; row++ {
+		for col := 0; col < w; col++ {
+			Screen.SetContent(col, row, ' ', nil, st)
+		}
 	}
-	return g.FgColor, g.BgColor
+	return w, h
 }
 
 // drawFrameEdges draws the horizontal and vertical edges of a view.
@@ -623,6 +753,8 @@ func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 	runeH, runeV := '─', '│'
 	if g.ASCII {
 		runeH, runeV = '-', '|'
+	} else if len(v.FrameRunes) >= 2 {
+		runeH, runeV = v.FrameRunes[0], v.FrameRunes[1]
 	}
 
 	for x := v.x0 + 1; x < v.x1 && x < g.maxX; x++ {
@@ -662,8 +794,64 @@ func cornerRune(index byte) rune {
 	return []rune{' ', '│', '│', '│', '─', '┘', '┐', '┤', '─', '└', '┌', '├', '├', '┴', '┬', '┼'}[index]
 }
 
+// cornerCustomRune returns rune from `v.FrameRunes` slice. If the length of slice is less than 11
+// all the missing runes will be translated to the default `cornerRune()`
+func cornerCustomRune(v *View, index byte) rune {
+	// Translate `cornerRune()` index
+	//  0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
+	// ' ', '│', '│', '│', '─', '┘', '┐', '┤', '─', '└', '┌', '├', '├', '┴', '┬', '┼'
+	// into `FrameRunes` index
+	//  0    1    2    3    4    5    6    7    8    9    10
+	// '─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼'
+	switch index {
+	case 1, 2, 3:
+		return v.FrameRunes[1]
+	case 4, 8:
+		return v.FrameRunes[0]
+	case 5:
+		return v.FrameRunes[5]
+	case 6:
+		return v.FrameRunes[3]
+	case 7:
+		if len(v.FrameRunes) < 8 {
+			break
+		}
+		return v.FrameRunes[7]
+	case 9:
+		return v.FrameRunes[4]
+	case 10:
+		return v.FrameRunes[2]
+	case 11, 12:
+		if len(v.FrameRunes) < 7 {
+			break
+		}
+		return v.FrameRunes[6]
+	case 13:
+		if len(v.FrameRunes) < 10 {
+			break
+		}
+		return v.FrameRunes[9]
+	case 14:
+		if len(v.FrameRunes) < 9 {
+			break
+		}
+		return v.FrameRunes[8]
+	case 15:
+		if len(v.FrameRunes) < 11 {
+			break
+		}
+		return v.FrameRunes[10]
+	default:
+		return ' ' // cornerRune(0)
+	}
+	return cornerRune(index)
+}
+
 func corner(v *View, directions byte) rune {
 	index := v.Overlaps | directions
+	if len(v.FrameRunes) >= 6 {
+		return cornerCustomRune(v, index)
+	}
 	return cornerRune(index)
 }
 
@@ -682,6 +870,9 @@ func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
 	}
 
 	runeTL, runeTR, runeBL, runeBR := '┌', '┐', '└', '┘'
+	if len(v.FrameRunes) >= 6 {
+		runeTL, runeTR, runeBL, runeBR = v.FrameRunes[2], v.FrameRunes[3], v.FrameRunes[4], v.FrameRunes[5]
+	}
 	if g.SupportOverlaps {
 		runeTL = corner(v, BOTTOM|RIGHT)
 		runeTR = corner(v, BOTTOM|LEFT)
@@ -743,7 +934,6 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		} else if x > v.x1-2 || x >= g.maxX {
 			break
 		}
-
 		currentFgColor := fgColor
 		currentBgColor := bgColor
 		// if you are the current view and you have multiple tabs, de-highlight the non-selected tabs
@@ -765,7 +955,6 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -821,6 +1010,10 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 
 // draw manages the cursor and calls the draw function of a view.
 func (g *Gui) draw(v *View) error {
+	if g.suspended {
+		return nil
+	}
+
 	if g.Cursor {
 		if curview := g.currentView; curview != nil {
 			vMaxX, vMaxY := curview.Size()
@@ -837,14 +1030,17 @@ func (g *Gui) draw(v *View) error {
 
 			gMaxX, gMaxY := g.Size()
 			cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
+			// This test probably doesn't need to be here.
+			// tcell is hiding cursor by setting coordinates outside of screen.
+			// Keeping it here for now, as I'm not 100% sure :)
 			if cx >= 0 && cx < gMaxX && cy >= 0 && cy < gMaxY {
-				termbox.SetCursor(cx, cy)
+				Screen.ShowCursor(cx, cy)
 			} else {
-				termbox.HideCursor()
+				Screen.HideCursor()
 			}
 		}
 	} else {
-		termbox.HideCursor()
+		Screen.HideCursor()
 	}
 
 	v.clearRunes()
@@ -857,22 +1053,18 @@ func (g *Gui) draw(v *View) error {
 // onKey manages key-press events. A keybinding handler is called when
 // a key-press or mouse event satisfies a configured keybinding. Furthermore,
 // currentView's internal buffer is modified if currentView.Editable is true.
-func (g *Gui) onKey(ev *termbox.Event) error {
+func (g *Gui) onKey(ev *GocuiEvent) error {
 	switch ev.Type {
-	case termbox.EventKey:
-		matched, err := g.execKeybindings(g.currentView, ev)
+	case eventKey:
+
+		_, err := g.execKeybindings(g.currentView, ev)
 		if err != nil {
 			return err
 		}
-		if matched {
-			break
-		}
-		if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
-			g.currentView.Editor.Edit(g.currentView, Key(ev.Key), ev.Ch, Modifier(ev.Mod))
-		}
-	case termbox.EventMouse:
+
+	case eventMouse:
 		mx, my := ev.MouseX, ev.MouseY
-		v, err := g.ViewByPosition(mx, my)
+		v, err := g.VisibleViewByPosition(mx, my)
 		if err != nil {
 			break
 		}
@@ -911,7 +1103,7 @@ func (g *Gui) onKey(ev *termbox.Event) error {
 
 // execKeybindings executes the keybinding handlers that match the passed view
 // and event. The value of matched is true if there is a match and no errors.
-func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err error) {
+func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error) {
 	var globalKb *keybinding
 	var matchingParentViewKb *keybinding
 
@@ -952,6 +1144,14 @@ func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err err
 	if matchingParentViewKb != nil {
 		return g.execKeybinding(v.ParentView, matchingParentViewKb)
 	}
+
+	if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
+		matched := g.currentView.Editor.Edit(g.currentView, Key(ev.Key), ev.Ch, Modifier(ev.Mod))
+		if matched {
+			return true, nil
+		}
+	}
+
 	if globalKb != nil {
 		return g.execKeybinding(v, globalKb)
 	}
@@ -960,6 +1160,10 @@ func (g *Gui) execKeybindings(v *View, ev *termbox.Event) (matched bool, err err
 
 // execKeybinding executes a given keybinding
 func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
+	if g.isBlacklisted(kb.key) {
+		return true, nil
+	}
+
 	if err := kb.handler(g, v); err != nil {
 		return false, err
 	}
@@ -976,6 +1180,11 @@ func (g *Gui) StartTicking() {
 		for {
 			select {
 			case <-ticker.C:
+				// I'm okay with having a data race here: there's no harm in letting one of these updates through
+				if g.suspended {
+					continue outer
+				}
+
 				for _, view := range g.Views() {
 					if view.HasLoader {
 						g.userEvents <- userEvent{func(g *Gui) error { return nil }}
@@ -988,4 +1197,141 @@ func (g *Gui) StartTicking() {
 			}
 		}
 	}()
+}
+
+// isBlacklisted reports whether the key is blacklisted
+func (g *Gui) isBlacklisted(k Key) bool {
+	for _, j := range g.blacklist {
+		if j == k {
+			return true
+		}
+	}
+	return false
+}
+
+// IsUnknownView reports whether the contents of an error is "unknown view".
+func IsUnknownView(err error) bool {
+	return err != nil && err.Error() == ErrUnknownView.Error()
+}
+
+// IsQuit reports whether the contents of an error is "quit".
+func IsQuit(err error) bool {
+	return err != nil && err.Error() == ErrQuit.Error()
+}
+
+func (g *Gui) replayRecording() {
+	waitGroup := sync.WaitGroup{}
+
+	waitGroup.Add(2)
+
+	// lots of duplication here due to lack of generics. Also we don't support mouse
+	// events because it would be awkward to replicate but it would be trivial to add
+	// support
+	go func() {
+		ticker := time.NewTicker(time.Millisecond)
+		defer ticker.Stop()
+
+		// The playback could be paused at any time because integration tests run concurrently.
+		// Therefore we can't just check for a given event whether we've passed its timestamp,
+		// or else we'll have an explosion of keypresses after the test is resumed.
+		// We need to check if we've waited long enough since the last event was replayed.
+		for i, event := range g.Recording.KeyEvents {
+			var prevEventTimestamp int64 = 0
+			if i > 0 {
+				prevEventTimestamp = g.Recording.KeyEvents[i-1].Timestamp
+			}
+			timeToWait := float64(event.Timestamp-prevEventTimestamp) / g.RecordingConfig.Speed
+			if i == 0 {
+				timeToWait += float64(g.RecordingConfig.Leeway)
+			}
+			var timeWaited float64 = 0
+		middle:
+			for {
+				select {
+				case <-ticker.C:
+					timeWaited += 1
+					if timeWaited >= timeToWait {
+						g.ReplayedEvents.keys <- event
+						break middle
+					}
+				case <-g.stop:
+					return
+				}
+			}
+		}
+
+		waitGroup.Done()
+	}()
+
+	go func() {
+		ticker := time.NewTicker(time.Millisecond)
+		defer ticker.Stop()
+
+		// duplicating until Go gets generics
+		for i, event := range g.Recording.ResizeEvents {
+			var prevEventTimestamp int64 = 0
+			if i > 0 {
+				prevEventTimestamp = g.Recording.ResizeEvents[i-1].Timestamp
+			}
+			timeToWait := float64(event.Timestamp-prevEventTimestamp) / g.RecordingConfig.Speed
+			if i == 0 {
+				timeToWait += float64(g.RecordingConfig.Leeway)
+			}
+			var timeWaited float64 = 0
+		middle2:
+			for {
+				select {
+				case <-ticker.C:
+					timeWaited += 1
+					if timeWaited >= timeToWait {
+						g.ReplayedEvents.resizes <- event
+						break middle2
+					}
+				case <-g.stop:
+					return
+				}
+			}
+		}
+
+		waitGroup.Done()
+	}()
+
+	waitGroup.Wait()
+
+	// leaving some time for any handlers to execute before quitting
+	time.Sleep(time.Second * 1)
+
+	g.Update(func(*Gui) error {
+		return ErrQuit
+	})
+
+	time.Sleep(time.Second * 1)
+
+	log.Fatal("gocui should have already exited")
+}
+
+func (g *Gui) Suspend() error {
+	g.suspendedMutex.Lock()
+	defer g.suspendedMutex.Unlock()
+
+	if g.suspended {
+		return errors.New("Already suspended")
+	}
+
+	g.suspended = true
+
+	return g.screen.Suspend()
+}
+
+func (g *Gui) Resume() error {
+	g.suspendedMutex.Lock()
+	defer g.suspendedMutex.Unlock()
+
+	if !g.suspended {
+		return errors.New("Cannot resume because we are not suspended")
+	}
+
+	g.suspended = false
+
+	return g.screen.Resume()
 }

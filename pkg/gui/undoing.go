@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -16,15 +16,17 @@ import (
 // the reflog will read UUCBA, and when I read the first two undos, I know to skip the following
 // two user actions, meaning we end up undoing reflog entry C. Redoing works in a similar way.
 
+type ReflogActionKind int
+
 const (
-	CHECKOUT = iota
+	CHECKOUT ReflogActionKind = iota
 	COMMIT
 	REBASE
 	CURRENT_REBASE
 )
 
 type reflogAction struct {
-	kind int // one of CHECKOUT, REBASE, and COMMIT
+	kind ReflogActionKind
 	from string
 	to   string
 }
@@ -83,13 +85,15 @@ func (gui *Gui) parseReflogForActions(onUserAction func(counter int, action refl
 	return nil
 }
 
-func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) reflogUndo() error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := gui.Tr.UndoingStatus
 
-	if gui.GitCommand.WorkingTreeState() == "rebasing" {
+	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
 		return gui.createErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
 	}
+
+	span := gui.Tr.Spans.Undo
 
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
 		if counter != 0 {
@@ -101,11 +105,13 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 			return true, gui.handleHardResetWithAutoStash(action.from, handleHardResetWithAutoStashOptions{
 				EnvVars:       undoEnvVars,
 				WaitingStatus: undoingStatus,
+				span:          span,
 			})
 		case CHECKOUT:
 			return true, gui.handleCheckoutRef(action.from, handleCheckoutRefOptions{
 				EnvVars:       undoEnvVars,
 				WaitingStatus: undoingStatus,
+				span:          span,
 			})
 		}
 
@@ -114,13 +120,15 @@ func (gui *Gui) reflogUndo(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) reflogRedo() error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := gui.Tr.RedoingStatus
 
-	if gui.GitCommand.WorkingTreeState() == "rebasing" {
+	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
 		return gui.createErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
 	}
+
+	span := gui.Tr.Spans.Redo
 
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
 		// if we're redoing and the counter is zero, we just return
@@ -135,11 +143,13 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 			return true, gui.handleHardResetWithAutoStash(action.to, handleHardResetWithAutoStashOptions{
 				EnvVars:       redoEnvVars,
 				WaitingStatus: redoingStatus,
+				span:          span,
 			})
 		case CHECKOUT:
 			return true, gui.handleCheckoutRef(action.to, handleCheckoutRefOptions{
 				EnvVars:       redoEnvVars,
 				WaitingStatus: redoingStatus,
+				span:          span,
 			})
 		}
 
@@ -151,19 +161,22 @@ func (gui *Gui) reflogRedo(g *gocui.Gui, v *gocui.View) error {
 type handleHardResetWithAutoStashOptions struct {
 	WaitingStatus string
 	EnvVars       []string
+	span          string
 }
 
 // only to be used in the undo flow for now
 func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHardResetWithAutoStashOptions) error {
+	gitCommand := gui.GitCommand.WithSpan(options.span)
+
 	reset := func() error {
-		if err := gui.resetToRef(commitSha, "hard", oscommands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
+		if err := gui.resetToRef(commitSha, "hard", options.span, oscommands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
 			return gui.surfaceError(err)
 		}
 		return nil
 	}
 
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them
-	dirtyWorkingTree := len(gui.trackedFiles()) > 0
+	dirtyWorkingTree := len(gui.trackedFiles()) > 0 || len(gui.stagedFiles()) > 0
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return gui.ask(askOpts{
@@ -171,17 +184,18 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 			prompt: gui.Tr.AutoStashPrompt,
 			handleConfirm: func() error {
 				return gui.WithWaitingStatus(options.WaitingStatus, func() error {
-					if err := gui.GitCommand.StashSave(gui.Tr.StashPrefix + commitSha); err != nil {
+					if err := gitCommand.StashSave(gui.Tr.StashPrefix + commitSha); err != nil {
 						return gui.surfaceError(err)
 					}
 					if err := reset(); err != nil {
 						return err
 					}
 
-					if err := gui.GitCommand.StashDo(0, "pop"); err != nil {
-						if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
-							return err
-						}
+					err := gitCommand.StashDo(0, "pop")
+					if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
+						return err
+					}
+					if err != nil {
 						return gui.surfaceError(err)
 					}
 					return nil

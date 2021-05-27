@@ -9,8 +9,10 @@ type Dimensions struct {
 	Y1 int
 }
 
+type Direction int
+
 const (
-	ROW = iota
+	ROW Direction = iota
 	COLUMN
 )
 
@@ -26,10 +28,10 @@ const (
 
 type Box struct {
 	// Direction decides how the children boxes are laid out. ROW means the children will each form a row i.e. that they will be stacked on top of eachother.
-	Direction int // ROW or COLUMN
+	Direction Direction
 
 	// function which takes the width and height assigned to the box and decides which orientation it will have
-	ConditionalDirection func(width int, height int) int
+	ConditionalDirection func(width int, height int) Direction
 
 	Children []*Box
 
@@ -94,6 +96,11 @@ func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions 
 		var boxSize int
 		if child.isStatic() {
 			boxSize = child.Size
+			// assuming that only one static child can have a size greater than the
+			// available space. In that case we just crop the size to what's available
+			if boxSize > availableSize {
+				boxSize = availableSize
+			}
 		} else {
 			// TODO: consider more evenly distributing the remainder
 			boxSize = unitSize * child.Weight
@@ -120,7 +127,7 @@ func (b *Box) isStatic() bool {
 	return b.Size > 0
 }
 
-func (b *Box) getDirection(width int, height int) int {
+func (b *Box) getDirection(width int, height int) Direction {
 	if b.ConditionalDirection != nil {
 		return b.ConditionalDirection(width, height)
 	}

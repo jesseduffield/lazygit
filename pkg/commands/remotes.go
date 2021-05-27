@@ -7,19 +7,19 @@ import (
 )
 
 func (c *GitCommand) AddRemote(name string, url string) error {
-	return c.OSCommand.RunCommand("git remote add %s %s", name, url)
+	return c.RunCommand("git remote add %s %s", name, url)
 }
 
 func (c *GitCommand) RemoveRemote(name string) error {
-	return c.OSCommand.RunCommand("git remote remove %s", name)
+	return c.RunCommand("git remote remove %s", name)
 }
 
 func (c *GitCommand) RenameRemote(oldRemoteName string, newRemoteName string) error {
-	return c.OSCommand.RunCommand("git remote rename %s %s", oldRemoteName, newRemoteName)
+	return c.RunCommand("git remote rename %s %s", oldRemoteName, newRemoteName)
 }
 
 func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
-	return c.OSCommand.RunCommand("git remote set-url %s %s", remoteName, updatedUrl)
+	return c.RunCommand("git remote set-url %s %s", remoteName, updatedUrl)
 }
 
 func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {

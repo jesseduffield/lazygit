@@ -8,6 +8,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+const RENAME_SEPARATOR = " -> "
+
 // GetStatusFiles git status files
 type GetStatusFileOptions struct {
 	NoRenames bool
@@ -37,26 +39,35 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 		change := statusString[0:2]
 		stagedChange := change[0:1]
 		unstagedChange := statusString[1:2]
-		filename := c.OSCommand.Unquote(statusString[3:])
+		name := statusString[3:]
 		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
 		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
 		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
 		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
+		previousName := ""
+		if strings.Contains(name, RENAME_SEPARATOR) {
+			split := strings.Split(name, RENAME_SEPARATOR)
+			name = split[1]
+			previousName = split[0]
+		}
 
 		file := &models.File{
-			Name:                    filename,
+			Name:                    name,
+			PreviousName:            previousName,
 			DisplayString:           statusString,
 			HasStagedChanges:        !hasNoStagedChanges,
 			HasUnstagedChanges:      unstagedChange != " ",
 			Tracked:                 !untracked,
 			Deleted:                 unstagedChange == "D" || stagedChange == "D",
+			Added:                   unstagedChange == "A" || untracked,
 			HasMergeConflicts:       hasMergeConflicts,
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			Type:                    c.OSCommand.FileType(filename),
+			Type:                    c.OSCommand.FileType(name),
 			ShortStatus:             change,
 		}
 		files = append(files, file)
 	}
+
 	return files
 }
 
@@ -72,40 +83,22 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 		noRenamesFlag = "--no-renames"
 	}
 
-	return c.OSCommand.RunCommandWithOutput("git status %s --porcelain %s", opts.UntrackedFilesArg, noRenamesFlag)
-}
-
-// MergeStatusFiles merge status files
-func (c *GitCommand) MergeStatusFiles(oldFiles, newFiles []*models.File, selectedFile *models.File) []*models.File {
-	if len(oldFiles) == 0 {
-		return newFiles
+	statusLines, err := c.RunCommandWithOutput("git status %s --porcelain -z %s", opts.UntrackedFilesArg, noRenamesFlag)
+	if err != nil {
+		return "", err
 	}
 
-	appendedIndexes := []int{}
-
-	// retain position of files we already could see
-	result := []*models.File{}
-	for _, oldFile := range oldFiles {
-		for newIndex, newFile := range newFiles {
-			if utils.IncludesInt(appendedIndexes, newIndex) {
-				continue
-			}
-			// if we just staged B and in doing so created 'A -> B' and we are currently have oldFile: A and newFile: 'A -> B', we want to wait until we come across B so the our cursor isn't jumping anywhere
-			waitForMatchingFile := selectedFile != nil && newFile.IsRename() && !selectedFile.IsRename() && newFile.Matches(selectedFile) && !oldFile.Matches(selectedFile)
-
-			if oldFile.Matches(newFile) && !waitForMatchingFile {
-				result = append(result, newFile)
-				appendedIndexes = append(appendedIndexes, newIndex)
-			}
+	splitLines := strings.Split(statusLines, "\x00")
+	// if a line starts with 'R' then the next line is the original file.
+	for i := 0; i < len(splitLines)-1; i++ {
+		original := splitLines[i]
+		if strings.HasPrefix(original, "R  ") {
+			next := splitLines[i+1]
+			updated := "R  " + next + RENAME_SEPARATOR + strings.TrimPrefix(original, "R  ")
+			splitLines[i] = updated
+			splitLines = append(splitLines[0:i+1], splitLines[i+2:]...)
 		}
 	}
 
-	// append any new files to the end
-	for index, newFile := range newFiles {
-		if !utils.IncludesInt(appendedIndexes, index) {
-			result = append(result, newFile)
-		}
-	}
-
-	return result
+	return strings.Join(splitLines, "\n"), nil
 }

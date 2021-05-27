@@ -2,7 +2,7 @@
 
 You can add custom command keybindings in your config.yml (accessible by pressing 'o' on the status panel from within lazygit) like so:
 
-```
+```yml
 customCommands:
   - key: '<c-r>'
     command: 'hub browse -- "commit/{{.SelectedLocalCommit.Sha}}"'
@@ -95,7 +95,7 @@ The permitted option fields are:
 
 If an option has no name the value will be displayed to the user in place of the name, so you're allowed to only include the value like so:
 
-```
+```yml
     prompts:
       - type: 'menu'
         title: 'What kind of branch is it?'
@@ -123,7 +123,7 @@ SelectedCommitFile
 CheckedOutBranch
 ```
 
-To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/commands/file.go) (all the modelling lives in the same directory). Note that the custom commands feature does not guarantee backwards compatibility (until we hit lazygit version 1.0 of course) which means a field you're accessing on an object may no longer be available from one release to the next. Typically however, all you'll need is `{{.SelectedFile.Name}}`, `{{.SelectedLocalCommit.Sha}}` and `{{.SelectedBranch.Name}}`. In the future we will likely introduce a tighter interface that exposes a limited set of fields for each model.
+To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/commands/models/file.go) (all the modelling lives in the same directory). Note that the custom commands feature does not guarantee backwards compatibility (until we hit lazygit version 1.0 of course) which means a field you're accessing on an object may no longer be available from one release to the next. Typically however, all you'll need is `{{.SelectedFile.Name}}`, `{{.SelectedLocalCommit.Sha}}` and `{{.SelectedBranch.Name}}`. In the future we will likely introduce a tighter interface that exposes a limited set of fields for each model.
 
 ### Keybinding collisions
 

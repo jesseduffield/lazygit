@@ -1,0 +1,1 @@
+{ "description": "rebasing by reordering two commits, causing a merge conflict", "speed": 10 }

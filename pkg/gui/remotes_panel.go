@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -25,9 +24,9 @@ func (gui *Gui) handleRemoteSelect() error {
 	var task updateTask
 	remote := gui.getSelectedRemote()
 	if remote == nil {
-		task = gui.createRenderStringTask("No remotes")
+		task = NewRenderStringTask("No remotes")
 	} else {
-		task = gui.createRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
+		task = NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -58,12 +57,7 @@ func (gui *Gui) refreshRemotes() error {
 		}
 	}
 
-	branchesView := gui.getBranchesView()
-	if branchesView != nil {
-		return gui.postRefreshUpdate(gui.mustContextForContextKey(branchesView.Context))
-	}
-
-	return nil
+	return gui.postRefreshUpdate(gui.mustContextForContextKey(ContextKey(gui.Views.Branches.Context)))
 }
 
 func (gui *Gui) handleRemoteEnter() error {
@@ -81,21 +75,28 @@ func (gui *Gui) handleRemoteEnter() error {
 	}
 	gui.State.Panels.RemoteBranches.SelectedLineIdx = newSelectedLine
 
-	return gui.switchContext(gui.Contexts.Remotes.Branches.Context)
+	return gui.pushContext(gui.State.Contexts.RemoteBranches)
 }
 
-func (gui *Gui) handleAddRemote(g *gocui.Gui, v *gocui.View) error {
-	return gui.prompt(gui.Tr.LcNewRemoteName, "", func(remoteName string) error {
-		return gui.prompt(gui.Tr.LcNewRemoteUrl, "", func(remoteUrl string) error {
-			if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
-				return err
-			}
-			return gui.refreshSidePanels(refreshOptions{scope: []int{REMOTES}})
-		})
+func (gui *Gui) handleAddRemote() error {
+	return gui.prompt(promptOpts{
+		title: gui.Tr.LcNewRemoteName,
+		handleConfirm: func(remoteName string) error {
+			return gui.prompt(promptOpts{
+				title: gui.Tr.LcNewRemoteUrl,
+				handleConfirm: func(remoteUrl string) error {
+					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.AddRemote).AddRemote(remoteName, remoteUrl); err != nil {
+						return err
+					}
+					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{REMOTES}})
+				},
+			})
+		},
 	})
+
 }
 
-func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRemoveRemote() error {
 	remote := gui.getSelectedRemote()
 	if remote == nil {
 		return nil
@@ -105,16 +106,16 @@ func (gui *Gui) handleRemoveRemote(g *gocui.Gui, v *gocui.View) error {
 		title:  gui.Tr.LcRemoveRemote,
 		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		handleConfirm: func() error {
-			if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveRemote).RemoveRemote(remote.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 
-			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 		},
 	})
 }
 
-func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleEditRemote() error {
 	remote := gui.getSelectedRemote()
 	if remote == nil {
 		return nil
@@ -127,36 +128,46 @@ func (gui *Gui) handleEditRemote(g *gocui.Gui, v *gocui.View) error {
 		},
 	)
 
-	return gui.prompt(editNameMessage, remote.Name, func(updatedRemoteName string) error {
-		if updatedRemoteName != remote.Name {
-			if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
-				return gui.surfaceError(err)
+	gitCommand := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateRemote)
+
+	return gui.prompt(promptOpts{
+		title:          editNameMessage,
+		initialContent: remote.Name,
+		handleConfirm: func(updatedRemoteName string) error {
+			if updatedRemoteName != remote.Name {
+				if err := gitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
+					return gui.surfaceError(err)
+				}
 			}
-		}
 
-		editUrlMessage := utils.ResolvePlaceholderString(
-			gui.Tr.LcEditRemoteUrl,
-			map[string]string{
-				"remoteName": updatedRemoteName,
-			},
-		)
+			editUrlMessage := utils.ResolvePlaceholderString(
+				gui.Tr.LcEditRemoteUrl,
+				map[string]string{
+					"remoteName": updatedRemoteName,
+				},
+			)
 
-		urls := remote.Urls
-		url := ""
-		if len(urls) > 0 {
-			url = urls[0]
-		}
-
-		return gui.prompt(editUrlMessage, url, func(updatedRemoteUrl string) error {
-			if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
-				return gui.surfaceError(err)
+			urls := remote.Urls
+			url := ""
+			if len(urls) > 0 {
+				url = urls[0]
 			}
-			return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
-		})
+
+			return gui.prompt(promptOpts{
+				title:          editUrlMessage,
+				initialContent: url,
+				handleConfirm: func(updatedRemoteUrl string) error {
+					if err := gitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
+						return gui.surfaceError(err)
+					}
+					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
+				},
+			})
+		},
 	})
 }
 
-func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleFetchRemote() error {
 	remote := gui.getSelectedRemote()
 	if remote == nil {
 		return nil
@@ -169,6 +180,6 @@ func (gui *Gui) handleFetchRemote(g *gocui.Gui, v *gocui.View) error {
 		err := gui.GitCommand.FetchRemote(remote.Name, gui.promptUserForCredential)
 		gui.handleCredentialsPopup(err)
 
-		return gui.refreshSidePanels(refreshOptions{scope: []int{BRANCHES, REMOTES}})
+		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 	})
 }

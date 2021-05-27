@@ -6,8 +6,8 @@ on:
       - 'v*'
 
 jobs:
-  cd:
-    runs-on: ubuntu-20.04
+  goreleaser:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -16,31 +16,16 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.14.x
+          go-version: 1.16.x
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v1
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
-      - name: Bump Homebrew
+  homebrew:
+    runs-on: macos-latest
+    steps:
+      - name: Bump Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
         with:
           token: ${{secrets.GITHUB_API_TOKEN}}
           formula: lazygit
-      - name: Checkout PPA repo
-        uses: actions/checkout@v2
-        with:
-          repository: dawidd6/lazygit-debian
-          token: ${{secrets.GITHUB_API_TOKEN}}
-          fetch-depth: 0
-      - name: Update PPA repo
-        run: |
-          version="$(echo "$GITHUB_REF" | sed 's@refs/tags/v@@')"
-          sudo apt update
-          sudo apt install -y git-buildpackage
-          git fetch --tags https://github.com/$GITHUB_REPOSITORY
-          gbp import-ref -u "$version"
-          gbp dch -D xenial -N "$version"-1
-          git add debian/changelog
-          git commit -m "d/changelog: dch $version"
-          gbp tag
-          git push --tags origin master

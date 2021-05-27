@@ -4,13 +4,13 @@ import "fmt"
 
 // StashDo modify stash
 func (c *GitCommand) StashDo(index int, method string) error {
-	return c.OSCommand.RunCommand("git stash %s stash@{%d}", method, index)
+	return c.RunCommand("git stash %s stash@{%d}", method, index)
 }
 
 // StashSave save stash
 // TODO: before calling this, check if there is anything to save
 func (c *GitCommand) StashSave(message string) error {
-	return c.OSCommand.RunCommand("git stash save %s", c.OSCommand.Quote(message))
+	return c.RunCommand("git stash save %s", c.OSCommand.Quote(message))
 }
 
 // GetStashEntryDiff stash diff
@@ -21,8 +21,8 @@ func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
 // StashSaveStagedChanges stashes only the currently staged changes. This takes a few steps
 // shoutouts to Joe on https://stackoverflow.com/questions/14759748/stashing-only-staged-changes-in-git-is-it-possible
 func (c *GitCommand) StashSaveStagedChanges(message string) error {
-
-	if err := c.OSCommand.RunCommand("git stash --keep-index"); err != nil {
+	// wrap in 'writing', which uses a mutex
+	if err := c.RunCommand("git stash --keep-index"); err != nil {
 		return err
 	}
 
@@ -30,7 +30,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 		return err
 	}
 
-	if err := c.OSCommand.RunCommand("git stash apply stash@{1}"); err != nil {
+	if err := c.RunCommand("git stash apply stash@{1}"); err != nil {
 		return err
 	}
 
@@ -38,7 +38,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 		return err
 	}
 
-	if err := c.OSCommand.RunCommand("git stash drop stash@{1}"); err != nil {
+	if err := c.RunCommand("git stash drop stash@{1}"); err != nil {
 		return err
 	}
 
@@ -48,7 +48,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 	files := c.GetStatusFiles(GetStatusFileOptions{})
 	for _, file := range files {
 		if file.ShortStatus == "AD" {
-			if err := c.UnStageFile(file.Name, false); err != nil {
+			if err := c.UnStageFile(file.Names(), false); err != nil {
 				return err
 			}
 		}

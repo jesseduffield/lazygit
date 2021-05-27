@@ -5,6 +5,8 @@
 package gocui
 
 import (
+	"unicode"
+
 	"github.com/go-errors/errors"
 
 	"github.com/mattn/go-runewidth"
@@ -14,29 +16,37 @@ const maxInt = int(^uint(0) >> 1)
 
 // Editor interface must be satisfied by gocui editors.
 type Editor interface {
-	Edit(v *View, key Key, ch rune, mod Modifier)
+	Edit(v *View, key Key, ch rune, mod Modifier) bool
 }
 
 // The EditorFunc type is an adapter to allow the use of ordinary functions as
 // Editors. If f is a function with the appropriate signature, EditorFunc(f)
 // is an Editor object that calls f.
-type EditorFunc func(v *View, key Key, ch rune, mod Modifier)
+type EditorFunc func(v *View, key Key, ch rune, mod Modifier) bool
 
 // Edit calls f(v, key, ch, mod)
-func (f EditorFunc) Edit(v *View, key Key, ch rune, mod Modifier) {
-	f(v, key, ch, mod)
+func (f EditorFunc) Edit(v *View, key Key, ch rune, mod Modifier) bool {
+	return f(v, key, ch, mod)
 }
 
 // DefaultEditor is the default editor.
 var DefaultEditor Editor = EditorFunc(simpleEditor)
 
 // simpleEditor is used as the default gocui editor.
-func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
+func simpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
+	matched := true
+
 	switch {
+	case ch != 0 && mod == 0:
+		v.EditWrite(ch)
+	case key == KeySpace:
+		v.EditWrite(' ')
 	case key == KeyBackspace || key == KeyBackspace2:
 		v.EditDelete(true)
-	case key == KeyDelete:
+	case key == KeyCtrlD || key == KeyDelete:
 		v.EditDelete(false)
+	case key == KeyInsert:
+		v.Overwrite = !v.Overwrite
 	case key == KeyArrowDown:
 		v.MoveCursor(0, 1, false)
 	case key == KeyArrowUp:
@@ -45,31 +55,56 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) {
 		v.MoveCursor(-1, 0, false)
 	case key == KeyArrowRight:
 		v.MoveCursor(1, 0, false)
-	case key == KeyTab:
+	case key == KeyEnter:
 		v.EditNewLine()
-	case key == KeySpace:
-		v.EditWrite(' ')
-	case key == KeyInsert:
-		v.Overwrite = !v.Overwrite
 	case key == KeyCtrlU:
 		v.EditDeleteToStartOfLine()
 	case key == KeyCtrlA:
 		v.EditGotoToStartOfLine()
 	case key == KeyCtrlE:
 		v.EditGotoToEndOfLine()
-	default:
+		matched = true
+
+	// TODO: see if we need all three of these conditions: maybe the final one is sufficient
+	case ch != 0 && mod == 0 && unicode.IsPrint(ch):
 		v.EditWrite(ch)
+	default:
+		matched = false
 	}
+
+	return matched
 }
 
 // EditWrite writes a rune at the cursor position.
 func (v *View) EditWrite(ch rune) {
 	w := runewidth.RuneWidth(ch)
+	if w == 0 {
+		return
+	}
+
 	v.writeRune(v.cx, v.cy, ch)
 	v.moveCursor(w, 0, true)
 }
 
-// EditDeleteToStartOfLine is the equivalent of pressing ctrl+U in your terminal, it deletes to the end of the line. Or if you are already at the start of the line, it deletes the newline character
+func (v *View) EditWriteString(str string) {
+	for _, ch := range str {
+		v.EditWrite(ch)
+	}
+}
+
+func (v *View) SetEditorContent(content string) error {
+	v.Clear()
+	if err := v.SetOrigin(0, 0); err != nil {
+		return err
+	}
+	if err := v.SetCursor(0, 0); err != nil {
+		return err
+	}
+	v.EditWriteString(content)
+	return nil
+}
+
+// EditDeleteToStartOfLine is the equivalent of pressing ctrl+U in your terminal, it deletes to the start of the line. Or if you are already at the start of the line, it deletes the newline character
 func (v *View) EditDeleteToStartOfLine() {
 	x, _ := v.Cursor()
 	if x == 0 {
@@ -114,6 +149,9 @@ func (v *View) EditGotoToEndOfLine() {
 // EditDelete deletes a rune at the cursor position. back determines the
 // direction.
 func (v *View) EditDelete(back bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	x, y := v.ox+v.cx, v.oy+v.cy
 	if y < 0 {
 		return
@@ -160,6 +198,9 @@ func (v *View) EditDelete(back bool) {
 
 // EditNewLine inserts a new line under the cursor.
 func (v *View) EditNewLine() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.breakLine(v.cx, v.cy)
 	v.ox = 0
 	v.cy = v.cy + 1
@@ -326,6 +367,9 @@ func (v *View) moveCursor(dx, dy int, writeMode bool) {
 // buffer is increased if the point is out of bounds. Overwrite mode is
 // governed by the value of View.overwrite.
 func (v *View) writeRune(x, y int, ch rune) error {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.tainted = true
 
 	x, y, err := v.realPosition(x, y)
@@ -343,22 +387,31 @@ func (v *View) writeRune(x, y int, ch rune) error {
 	}
 
 	olen := len(v.lines[y])
+	w := runewidth.RuneWidth(ch)
 
 	var s []cell
 	if x >= len(v.lines[y]) {
-		s = make([]cell, x-len(v.lines[y])+1)
+		s = make([]cell, x-len(v.lines[y])+w)
 	} else if !v.Overwrite {
-		s = make([]cell, 1)
+		s = make([]cell, w)
 	}
 	v.lines[y] = append(v.lines[y], s...)
 
-	if !v.Overwrite || (v.Overwrite && x >= olen-1) {
-		copy(v.lines[y][x+1:], v.lines[y][x:])
+	if !v.Overwrite || (v.Overwrite && x >= olen-w) {
+		copy(v.lines[y][x+w:], v.lines[y][x:])
 	}
 	v.lines[y][x] = cell{
 		fgColor: v.FgColor,
 		bgColor: v.BgColor,
 		chr:     ch,
+	}
+
+	for i := 1; i < w; i++ {
+		v.lines[y][x+i] = cell{
+			fgColor: v.FgColor,
+			bgColor: v.BgColor,
+			chr:     '\x00',
+		}
 	}
 
 	return nil
@@ -384,7 +437,7 @@ func (v *View) deleteRune(x, y int) (int, error) {
 		w := runewidth.RuneWidth(v.lines[y][i].chr)
 		tw += w
 		if tw > x {
-			v.lines[y] = append(v.lines[y][:i], v.lines[y][i+1:]...)
+			v.lines[y] = append(v.lines[y][:i], v.lines[y][i+w:]...)
 			return w, nil
 		}
 
@@ -395,7 +448,7 @@ func (v *View) deleteRune(x, y int) (int, error) {
 
 // mergeLines merges the lines "y" and "y+1" if possible.
 func (v *View) mergeLines(y int) error {
-	v.tainted = true
+	v.clearViewLines()
 
 	_, y, err := v.realPosition(0, y)
 	if err != nil {

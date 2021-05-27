@@ -26,17 +26,6 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			reset: gui.exitDiffMode,
 		},
 		{
-			isActive: gui.State.Modes.Filtering.Active,
-			description: func() string {
-				return utils.ColoredString(
-					fmt.Sprintf("%s '%s' %s", gui.Tr.LcFilteringBy, gui.State.Modes.Filtering.Path, utils.ColoredString(gui.Tr.ResetInParentheses, color.Underline)),
-					color.FgRed,
-					color.Bold,
-				)
-			},
-			reset: gui.exitFilterMode,
-		},
-		{
 			isActive: gui.GitCommand.PatchManager.Active,
 			description: func() string {
 				return utils.ColoredString(
@@ -46,6 +35,17 @@ func (gui *Gui) modeStatuses() []modeStatus {
 				)
 			},
 			reset: gui.handleResetPatch,
+		},
+		{
+			isActive: gui.State.Modes.Filtering.Active,
+			description: func() string {
+				return utils.ColoredString(
+					fmt.Sprintf("%s '%s' %s", gui.Tr.LcFilteringBy, gui.State.Modes.Filtering.GetPath(), utils.ColoredString(gui.Tr.ResetInParentheses, color.Underline)),
+					color.FgRed,
+					color.Bold,
+				)
+			},
+			reset: gui.exitFilterMode,
 		},
 		{
 			isActive: gui.State.Modes.CherryPicking.Active,

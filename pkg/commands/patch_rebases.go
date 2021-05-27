@@ -23,7 +23,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitInd
 	}
 
 	// time to amend the selected commit
-	if _, err := c.AmendHead(); err != nil {
+	if err := c.AmendHead(); err != nil {
 		return err
 	}
 
@@ -51,7 +51,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		}
 
 		// amend the destination commit
-		if _, err := c.AmendHead(); err != nil {
+		if err := c.AmendHead(); err != nil {
 			return err
 		}
 
@@ -71,7 +71,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
-	if c.usingGpg() {
+	if c.UsingGpg() {
 		return errors.New(c.Tr.DisabledForGPG)
 	}
 
@@ -103,7 +103,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	}
 
 	// amend the source commit
-	if _, err := c.AmendHead(); err != nil {
+	if err := c.AmendHead(); err != nil {
 		return err
 	}
 
@@ -122,7 +122,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		}
 
 		// amend the destination commit
-		if _, err := c.AmendHead(); err != nil {
+		if err := c.AmendHead(); err != nil {
 			return err
 		}
 
@@ -137,7 +137,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	return c.GenericMergeOrRebaseAction("rebase", "continue")
 }
 
-func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
+func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
 	if stash {
 		if err := c.StashSave(c.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
 			return err
@@ -149,7 +149,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int,
 	}
 
 	if err := p.ApplyPatches(true); err != nil {
-		if c.WorkingTreeState() == "rebasing" {
+		if c.WorkingTreeState() == REBASE_MODE_REBASING {
 			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
 			}
@@ -158,7 +158,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int,
 	}
 
 	// amend the commit
-	if _, err := c.AmendHead(); err != nil {
+	if err := c.AmendHead(); err != nil {
 		return err
 	}
 
@@ -169,7 +169,7 @@ func (c *GitCommand) PullPatchIntoIndex(commits []*models.Commit, commitIdx int,
 	c.onSuccessfulContinue = func() error {
 		// add patches to index
 		if err := p.ApplyPatches(false); err != nil {
-			if c.WorkingTreeState() == "rebasing" {
+			if c.WorkingTreeState() == REBASE_MODE_REBASING {
 				if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 					return err
 				}
@@ -203,7 +203,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 	}
 
 	// amend the commit
-	if _, err := c.AmendHead(); err != nil {
+	if err := c.AmendHead(); err != nil {
 		return err
 	}
 
@@ -217,7 +217,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 
 	head_message, _ := c.GetHeadCommitMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	_, err := c.Commit(new_message, "")
+	err := c.OSCommand.RunCommand(c.CommitCmdStr(new_message, ""))
 	if err != nil {
 		return err
 	}

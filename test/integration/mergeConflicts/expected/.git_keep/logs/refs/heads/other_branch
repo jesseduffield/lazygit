@@ -1,3 +1,3 @@
-0000000000000000000000000000000000000000 8580d8908b1bfc6d71971e73812effa15c68ecf3 CI <CI@example.com> 1601981290 +1100	branch: Created from HEAD
-8580d8908b1bfc6d71971e73812effa15c68ecf3 659aa732ccda1aaa1cd6564fdb93bf0445b5115a CI <CI@example.com> 1601981293 +1100	commit: asd
-659aa732ccda1aaa1cd6564fdb93bf0445b5115a ed21fe1044b8600683ec6c2abbf86195a4d55461 CI <CI@example.com> 1601981298 +1100	commit (merge): Merge branch 'base_branch' into other_branch
+0000000000000000000000000000000000000000 0b2387a3f67ec050f6d4e08f379e3cbb0a9913f1 CI <CI@example.com> 1617671441 +1000	branch: Created from HEAD
+0b2387a3f67ec050f6d4e08f379e3cbb0a9913f1 562af0640203fb5a6e92c090d8d1ded26806d2c4 CI <CI@example.com> 1617671444 +1000	commit: asd
+562af0640203fb5a6e92c090d8d1ded26806d2c4 f8dd12b796f400be7f59d9471670c3080f9c90a1 CI <CI@example.com> 1617671461 +1000	commit (merge): Merge branch 'develop' into other_branch

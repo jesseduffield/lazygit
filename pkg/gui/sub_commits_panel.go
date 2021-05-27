@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
@@ -22,13 +21,13 @@ func (gui *Gui) handleSubCommitSelect() error {
 	commit := gui.getSelectedSubCommit()
 	var task updateTask
 	if commit == nil {
-		task = gui.createRenderStringTask("No commits")
+		task = NewRenderStringTask("No commits")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.Path),
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
 
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -39,7 +38,7 @@ func (gui *Gui) handleSubCommitSelect() error {
 	})
 }
 
-func (gui *Gui) handleCheckoutSubCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckoutSubCommit() error {
 	commit := gui.getSelectedSubCommit()
 	if commit == nil {
 		return nil
@@ -49,7 +48,7 @@ func (gui *Gui) handleCheckoutSubCommit(g *gocui.Gui, v *gocui.View) error {
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
-			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
+			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutCommit})
 		},
 	})
 	if err != nil {
@@ -73,7 +72,7 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.SubCommits.Context, "branches")
+	return gui.switchToCommitFilesContext(commit.Sha, false, gui.State.Contexts.SubCommits, "branches")
 }
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {
@@ -83,7 +82,7 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	commits, err := builder.GetCommits(
 		commands.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
-			FilterPath:           gui.State.Modes.Filtering.Path,
+			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: false,
 			RefName:              refName,
 		},
@@ -95,13 +94,13 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	gui.State.SubCommits = commits
 	gui.State.Panels.SubCommits.refName = refName
 	gui.State.Panels.SubCommits.SelectedLineIdx = 0
-	gui.Contexts.SubCommits.Context.SetParentContext(gui.currentSideContext())
+	gui.State.Contexts.SubCommits.SetParentContext(gui.currentSideListContext())
 
-	return gui.switchContext(gui.Contexts.SubCommits.Context)
+	return gui.pushContext(gui.State.Contexts.SubCommits)
 }
 
 func (gui *Gui) handleSwitchToSubCommits() error {
-	currentContext := gui.currentSideContext()
+	currentContext := gui.currentSideListContext()
 	if currentContext == nil {
 		return nil
 	}

@@ -1,0 +1,12 @@
+0000000000000000000000000000000000000000 5a5a519752ffd367bbd85dfbc19e5b18d44d6223 CI <CI@example.com> 1617683609 +1000	commit (initial): file0
+5a5a519752ffd367bbd85dfbc19e5b18d44d6223 713ec49844ebad06a5c98fd3c5ce1445f664c3c6 CI <CI@example.com> 1617683609 +1000	commit: file1
+713ec49844ebad06a5c98fd3c5ce1445f664c3c6 e23253d1f81331e1c94a5a5f68e2d4cc1cbee2fd CI <CI@example.com> 1617683609 +1000	commit: file2
+e23253d1f81331e1c94a5a5f68e2d4cc1cbee2fd afeb127e4579981e4b852e8aabb44b07f2ea4e09 CI <CI@example.com> 1617683609 +1000	commit: file4
+afeb127e4579981e4b852e8aabb44b07f2ea4e09 afeb127e4579981e4b852e8aabb44b07f2ea4e09 CI <CI@example.com> 1617683609 +1000	checkout: moving from master to branch2
+afeb127e4579981e4b852e8aabb44b07f2ea4e09 ac7b38400c8aed050f379f9643b953b9d428fda1 CI <CI@example.com> 1617683609 +1000	commit: file4
+ac7b38400c8aed050f379f9643b953b9d428fda1 a955e641b00e7e896842122a3537c70476d7b4e0 CI <CI@example.com> 1617683609 +1000	commit: file4
+a955e641b00e7e896842122a3537c70476d7b4e0 bc8891320172f4cfa3efd7bb8767a46daa200d79 CI <CI@example.com> 1617683609 +1000	commit: file2
+bc8891320172f4cfa3efd7bb8767a46daa200d79 afeb127e4579981e4b852e8aabb44b07f2ea4e09 CI <CI@example.com> 1617683610 +1000	checkout: moving from branch2 to master
+afeb127e4579981e4b852e8aabb44b07f2ea4e09 afeb127e4579981e4b852e8aabb44b07f2ea4e09 CI <CI@example.com> 1617683619 +1000	rebase -i (start): checkout HEAD
+afeb127e4579981e4b852e8aabb44b07f2ea4e09 35bedc872b1ca9e026e51c4017416acba4b3d64b CI <CI@example.com> 1617683619 +1000	rebase -i (pick): file2
+35bedc872b1ca9e026e51c4017416acba4b3d64b 35bedc872b1ca9e026e51c4017416acba4b3d64b CI <CI@example.com> 1617683619 +1000	rebase -i (finish): returning to refs/heads/master

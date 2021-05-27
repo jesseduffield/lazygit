@@ -15,7 +15,7 @@ func (c *GitCommand) ConfiguredPager() string {
 	if os.Getenv("PAGER") != "" {
 		return os.Getenv("PAGER")
 	}
-	output, err := c.OSCommand.RunCommandWithOutput("git config --get-all core.pager")
+	output, err := c.RunCommandWithOutput("git config --get-all core.pager")
 	if err != nil {
 		return ""
 	}
@@ -43,10 +43,20 @@ func (c *GitCommand) colorArg() string {
 }
 
 func (c *GitCommand) GetConfigValue(key string) string {
-	output, err := c.OSCommand.RunCommandWithOutput("git config --get %s", key)
-	if err != nil {
-		// looks like this returns an error if there is no matching value which we're okay with
-		return ""
+	output, _ := c.getGitConfigValue(key)
+	return output
+}
+
+// UsingGpg tells us whether the user has gpg enabled so that we can know
+// whether we need to run a subprocess to allow them to enter their password
+func (c *GitCommand) UsingGpg() bool {
+	overrideGpg := c.Config.GetUserConfig().Git.OverrideGpg
+	if overrideGpg {
+		return false
 	}
-	return strings.TrimSpace(output)
+
+	gpgsign := c.GetConfigValue("commit.gpgsign")
+	value := strings.ToLower(gpgsign)
+
+	return value == "true" || value == "1" || value == "yes" || value == "on"
 }

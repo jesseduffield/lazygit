@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -24,7 +25,10 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 				yellow.Sprint(path),
 			},
 			onPress: func() error {
-				return gui.dispatchSwitchToRepo(path)
+				// if we were in a submodule, we want to forget about that stack of repos
+				// so that hitting escape in the new repo does nothing
+				gui.RepoPathStack = []string{}
+				return gui.dispatchSwitchToRepo(path, false)
 			},
 		}
 	}
@@ -32,18 +36,63 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 	return gui.createMenu(gui.Tr.RecentRepos, menuItems, createMenuOptions{showCancel: true})
 }
 
-func (gui *Gui) dispatchSwitchToRepo(path string) error {
+func (gui *Gui) handleShowAllBranchLogs() error {
+	cmd := gui.OSCommand.ExecutableFromString(
+		gui.Config.GetUserConfig().Git.AllBranchesLogCmd,
+	)
+	task := NewRunPtyTask(cmd)
+
+	return gui.refreshMainViews(refreshMainOpts{
+		main: &viewUpdateOpts{
+			title: "Log",
+			task:  task,
+		},
+	})
+}
+
+func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 	env.UnsetGitDirEnvs()
+	originalPath, err := os.Getwd()
+	if err != nil {
+		return nil
+	}
+
 	if err := os.Chdir(path); err != nil {
+		if os.IsNotExist(err) {
+			return gui.createErrorPanel(gui.Tr.ErrRepositoryMovedOrDeleted)
+		}
 		return err
 	}
+
+	if err := commands.VerifyInGitRepo(gui.OSCommand); err != nil {
+		if err := os.Chdir(originalPath); err != nil {
+			return err
+		}
+
+		return err
+	}
+
 	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
 	if err != nil {
 		return err
 	}
 	gui.GitCommand = newGitCommand
-	gui.State.Modes.Filtering.Path = ""
-	return gui.Errors.ErrSwitchRepo
+
+	gui.g.Update(func(*gocui.Gui) error {
+		// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to
+		// switch to a repo while one of these goroutines is in the process of updating something
+		gui.Mutexes.FetchMutex.Lock()
+		defer gui.Mutexes.FetchMutex.Unlock()
+
+		gui.Mutexes.RefreshingFilesMutex.Lock()
+		defer gui.Mutexes.RefreshingFilesMutex.Unlock()
+
+		gui.resetState("", reuse)
+
+		return nil
+	})
+
+	return nil
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,

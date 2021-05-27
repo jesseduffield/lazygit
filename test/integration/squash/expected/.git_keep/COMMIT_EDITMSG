@@ -14,14 +14,14 @@ myfile3
 # Please enter the commit message for your changes. Lines starting
 # with '#' will be ignored, and an empty message aborts the commit.
 #
-# Date:      Tue Oct 6 21:47:36 2020 +1100
+# Date:      Tue Apr 6 11:12:11 2021 +1000
 #
-# interactive rebase in progress; onto 0c6aed6
+# interactive rebase in progress; onto a59b3d4
 # Last commands done (4 commands done):
-#    drop 35bf029 myfile4
-#    fixup 51a88ed myfile5
+#    drop 88fb48b myfile4
+#    fixup a1cf779 myfile5
 # No commands remaining.
-# You are currently rebasing branch 'master' on '0c6aed6'.
+# You are currently rebasing branch 'master' on 'a59b3d4'.
 #
 # Changes to be committed:
 #	new file:   myfile2

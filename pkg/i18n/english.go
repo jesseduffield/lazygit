@@ -11,7 +11,6 @@ Todo list when making a new translation
 package i18n
 
 type TranslationSet struct {
-	ReleaseNotes                        string
 	NotEnoughSpace                      string
 	DiffTitle                           string
 	LogTitle                            string
@@ -47,6 +46,8 @@ type TranslationSet struct {
 	LcDelete                            string
 	LcToggleStaged                      string
 	LcToggleStagedAll                   string
+	LcToggleTreeView                    string
+	LcOpenMergeTool                     string
 	LcRefresh                           string
 	LcPush                              string
 	LcPull                              string
@@ -155,6 +156,8 @@ type TranslationSet struct {
 	CouldNotFindBinaryErr               string
 	AnonymousReportingTitle             string
 	AnonymousReportingPrompt            string
+	MergeToolTitle                      string
+	MergeToolPrompt                     string
 	IntroPopupMessage                   string
 	GitconfigParseErr                   string
 	LcEditFile                          string
@@ -164,13 +167,15 @@ type TranslationSet struct {
 	LcMergeIntoCurrentBranch            string
 	ConfirmQuit                         string
 	SwitchRepo                          string
+	LcAllBranchesLogGraph               string
 	UnsupportedGitService               string
 	LcCreatePullRequest                 string
+	LcCopyPullRequestURL                string
 	NoBranchOnRemote                    string
 	LcFetch                             string
 	NoAutomaticGitFetchTitle            string
 	NoAutomaticGitFetchBody             string
-	StageLines                          string
+	FileEnter                           string
 	FileStagingRequirements             string
 	SelectHunk                          string
 	StageSelection                      string
@@ -227,6 +232,7 @@ type TranslationSet struct {
 	CannotRebaseOntoFirstCommit         string
 	CannotSquashOntoSecondCommit        string
 	Donate                              string
+	AskQuestion                         string
 	PrevLine                            string
 	NextLine                            string
 	PrevHunk                            string
@@ -253,6 +259,7 @@ type TranslationSet struct {
 	UndoingStatus                       string
 	RedoingStatus                       string
 	CheckingOutStatus                   string
+	CommittingStatus                    string
 	CommitFiles                         string
 	LcViewCommitFiles                   string
 	CommitFilesTitle                    string
@@ -364,7 +371,7 @@ type TranslationSet struct {
 	LcGotoBottom                        string
 	LcFilteringBy                       string
 	ResetInParentheses                  string
-	LcOpenScopingMenu                   string
+	LcOpenFilteringMenu                 string
 	LcFilterBy                          string
 	LcExitFilterMode                    string
 	LcFilterPathOption                  string
@@ -379,6 +386,7 @@ type TranslationSet struct {
 	DiffingMenuTitle                    string
 	LcSwapDiff                          string
 	LcOpenDiffingMenu                   string
+	LcOpenExtrasMenu                    string
 	LcShowingGitDiff                    string
 	LcCopyCommitShaToClipboard          string
 	LcCopyCommitMessageToClipboard      string
@@ -428,89 +436,122 @@ type TranslationSet struct {
 	SubCommitsTitle                     string
 	SubmodulesTitle                     string
 	NavigationTitle                     string
+	SuggestionsTitle                    string
 	PushingTagStatus                    string
+	PullRequestURLCopiedToClipboard     string
+	CommitMessageCopiedToClipboard      string
+	LcCopiedToClipboard                 string
+	ErrCannotEditDirectory              string
+	ErrStageDirWithInlineMergeConflicts string
+	ErrRepositoryMovedOrDeleted         string
+	CommandLog                          string
+	ToggleShowCommandLog                string
+	FocusCommandLog                     string
+	CommandLogHeader                    string
+	RandomTip                           string
+	Spans                               Spans
 }
 
-const englishReleaseNotes = `## lazygit 0.23.2 Release Notes
-
-- Fixed bug where editing a file with spaces did not work
-- Fixed formatting issue with delta that rendered '[0;K' to the screen
-- Fixed bug where lazygit failed upon attempting to create a config file in a
-  read-only filesystem
-
-## lazygit 0.23 Release Notes
-
-Custom Commands:
-- You can now create your own custom commands complete with menus and prompts
-  to tailor lazygit to your workflow
-
-  See https://github.com/jesseduffield/lazygit/wiki/Custom-Commands-Compendium
-  and https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md
-
-Submodules:
-- Add, update, and sync submodules with the new submodules tab. To enter a
-  submodule hit enter on it and then hit escape to return to the superproject
-
-Bare repos:
-- Bare repos are now supported with the --git-dir and --work-tree args, so you
-  can use lazygit to manage your dotfiles!
-
-Staging panel navigation:
-- Ability to search with '/' and jump page by page with ',', '.', '<', '>' in
-  the staging and patch-building contexts
-
-More clipboard stuff:
-- More text copying. Pressing ` + "`" + `ctrl+o` + "`" + ` on a commit to copy
-  its SHA, or a file to copy its name, etc.
-
-Easily view lazygit logs:
-- View lazygit logs with ` + "`" + `lazygit --logs` + "`" + ` (in another
-  terminal tab run ` + "`" + `lazygit --debug` + "`" + ` to write to logs)
-
-Other:
-- For the butterfingers of the world, you are now protected from accidentally
-  deleting the .gitignore file (thanks @kobutomo!)
-
-- Fewer panics
-
-- No more 'invalid merge' errors on startup
-
-- Smaller binary after ditching the Viper and i18n package. Beware! This means
-  configs are now case-sensitive so if your config stops working check the case
-  sensitivity of the keys against what you get from ` + "`" + `lazygit --config` + "`" + `
-
-- Code refactor for better dev experience including more type safety
-
-- Integration tests have finally been added and there are many more to come.
-  These will assist in ensuring no regressions have been introduced in future
-  releases. Making an integration test is actually pretty fun you basically just
-  record yourself using lazygit and that's it. See the guide to integration tests at
-  https://github.com/jesseduffield/lazygit/blob/master/docs/Integration_Tests.md
-
-- Showing release notes from within lazygit, as you no doubt have realised. I'm
-  too lazy to include retrospective release notes but better late than never.`
+type Spans struct {
+	CheckoutCommit                    string
+	CheckoutReflogCommit              string
+	CheckoutTag                       string
+	CheckoutBranch                    string
+	ForceCheckoutBranch               string
+	DeleteBranch                      string
+	Merge                             string
+	RebaseBranch                      string
+	RenameBranch                      string
+	CreateBranch                      string
+	FastForwardBranch                 string
+	CherryPick                        string
+	CheckoutFile                      string
+	DiscardOldFileChange              string
+	SquashCommitDown                  string
+	FixupCommit                       string
+	RewordCommit                      string
+	DropCommit                        string
+	EditCommit                        string
+	AmendCommit                       string
+	RevertCommit                      string
+	CreateFixupCommit                 string
+	SquashAllAboveFixupCommits        string
+	MoveCommitUp                      string
+	MoveCommitDown                    string
+	CopyCommitMessageToClipboard      string
+	CustomCommand                     string
+	DiscardAllChangesInDirectory      string
+	DiscardUnstagedChangesInDirectory string
+	DiscardAllChangesInFile           string
+	DiscardAllUnstagedChangesInFile   string
+	StageFile                         string
+	UnstageFile                       string
+	UnstageAllFiles                   string
+	StageAllFiles                     string
+	IgnoreFile                        string
+	Commit                            string
+	EditFile                          string
+	Push                              string
+	Pull                              string
+	OpenFile                          string
+	StashAllChanges                   string
+	StashStagedChanges                string
+	GitFlowFinish                     string
+	GitFlowStart                      string
+	CopyToClipboard                   string
+	RemovePatchFromCommit             string
+	MovePatchToSelectedCommit         string
+	MovePatchIntoIndex                string
+	MovePatchIntoNewCommit            string
+	DeleteRemoteBranch                string
+	SetBranchUpstream                 string
+	AddRemote                         string
+	RemoveRemote                      string
+	UpdateRemote                      string
+	ApplyPatch                        string
+	Stash                             string
+	RemoveSubmodule                   string
+	ResetSubmodule                    string
+	AddSubmodule                      string
+	UpdateSubmoduleUrl                string
+	InitialiseSubmodule               string
+	BulkInitialiseSubmodules          string
+	BulkUpdateSubmodules              string
+	BulkStashAndResetSubmodules       string
+	BulkDeinitialiseSubmodules        string
+	UpdateSubmodule                   string
+	CreateLightweightTag              string
+	DeleteTag                         string
+	PushTag                           string
+	NukeWorkingTree                   string
+	DiscardUnstagedFileChanges        string
+	RemoveUntrackedFiles              string
+	SoftReset                         string
+	MixedReset                        string
+	HardReset                         string
+	Undo                              string
+	Redo                              string
+}
 
 const englishIntroPopupMessage = `
-Thanks for using lazygit! Three things to share with you:
+Thanks for using lazygit! Seriously you rock. Three things to share with you:
 
  1) If you want to learn about lazygit's features, watch this vid:
       https://youtu.be/CPLdltN7wgE
 
- 2) If you're using git, that makes you a programmer! With your help we can make
+ 2) Be sure to read the latest release notes at:
+      https://github.com/jesseduffield/lazygit/releases
+
+ 3) If you're using git, that makes you a programmer! With your help we can make
     lazygit better, so consider becoming a contributor and joining the fun at
       https://github.com/jesseduffield/lazygit
     You can also sponsor me and tell me what to work on by clicking the donate
-    button at the bottom right (github is still matching donations dollar-for-dollar.)
+    button at the bottom right.
     Or even just star the repo cos we're not far from 20k stars!
-
- 3) You can now read through the release notes by navigating to the status panel.
-    Version 0.23 has a LOT of new stuff so check it out. Also configs are now
-    case-sensitive so run ` + "`" + `lazygit --config` + "`" + ` for comparison.
 `
 
 func englishTranslationSet() TranslationSet {
 	return TranslationSet{
-		ReleaseNotes:                        englishReleaseNotes,
 		NotEnoughSpace:                      "Not enough space to render panels",
 		DiffTitle:                           "Diff",
 		LogTitle:                            "Log",
@@ -545,6 +586,8 @@ func englishTranslationSet() TranslationSet {
 		LcDelete:                            "delete",
 		LcToggleStaged:                      "toggle staged",
 		LcToggleStagedAll:                   "stage/unstage all",
+		LcToggleTreeView:                    "toggle file tree view",
+		LcOpenMergeTool:                     "open external merge tool (git mergetool)",
 		LcRefresh:                           "refresh",
 		LcPush:                              "push",
 		LcPull:                              "pull",
@@ -653,6 +696,8 @@ func englishTranslationSet() TranslationSet {
 		CouldNotFindBinaryErr:               "Could not find any binary at {{.url}}",
 		AnonymousReportingTitle:             "Help make lazygit better",
 		AnonymousReportingPrompt:            "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
+		MergeToolTitle:                      "Merge tool",
+		MergeToolPrompt:                     "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                   englishIntroPopupMessage,
 		GitconfigParseErr:                   `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		LcEditFile:                          `edit file`,
@@ -662,13 +707,15 @@ func englishTranslationSet() TranslationSet {
 		LcMergeIntoCurrentBranch:            `merge into currently checked out branch`,
 		ConfirmQuit:                         `Are you sure you want to quit?`,
 		SwitchRepo:                          `switch to a recent repo`,
+		LcAllBranchesLogGraph:               `show all branch logs`,
 		UnsupportedGitService:               `Unsupported git service`,
 		LcCreatePullRequest:                 `create pull request`,
+		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
 		NoBranchOnRemote:                    `This branch doesn't exist on remote. You need to push it to remote first.`,
 		LcFetch:                             `fetch`,
 		NoAutomaticGitFetchTitle:            `No automatic git fetch`,
 		NoAutomaticGitFetchBody:             `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
-		StageLines:                          `stage individual hunks/lines`,
+		FileEnter:                           `stage individual hunks/lines for file, or collapse/expand for directory`,
 		FileStagingRequirements:             `Can only stage individual lines for tracked files`,
 		SelectHunk:                          `select hunk`,
 		StageSelection:                      `toggle line staged / unstaged`,
@@ -714,7 +761,7 @@ func englishTranslationSet() TranslationSet {
 		ConfirmMerge:                        "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdCommitsToPush:                    "Cannot fast-forward a branch with commits to push",
-		ErrorOccurred:                       "An error occurred! Please create an issue at https://github.com/jesseduffield/lazygit/issues",
+		ErrorOccurred:                       "An error occurred! Please create an issue at",
 		NoRoom:                              "Not enough room",
 		YouAreHere:                          "YOU ARE HERE",
 		LcRewordNotSupported:                "rewording commits while interactively rebasing is not currently supported",
@@ -726,6 +773,7 @@ func englishTranslationSet() TranslationSet {
 		CannotRebaseOntoFirstCommit:         "You cannot interactive rebase onto the first commit",
 		CannotSquashOntoSecondCommit:        "You cannot squash/fixup onto the second commit",
 		Donate:                              "Donate",
+		AskQuestion:                         "Ask Question",
 		PrevLine:                            "select previous line",
 		NextLine:                            "select next line",
 		PrevHunk:                            "select previous hunk",
@@ -752,6 +800,7 @@ func englishTranslationSet() TranslationSet {
 		UndoingStatus:                       "undoing",
 		RedoingStatus:                       "redoing",
 		CheckingOutStatus:                   "checking out",
+		CommittingStatus:                    "committing",
 		CommitFiles:                         "Commit files",
 		LcViewCommitFiles:                   "view commit's files",
 		CommitFilesTitle:                    "Commit Files",
@@ -777,8 +826,8 @@ func englishTranslationSet() TranslationSet {
 		LcHardResetUpstream:                 "hard reset to upstream branch",
 		LcViewResetOptions:                  `view reset options`,
 		LcCreateFixupCommit:                 `create fixup commit for this commit`,
-		LcSquashAboveCommits:                `squash above commits`,
-		SquashAboveCommits:                  `Squash above commits`,
+		LcSquashAboveCommits:                `squash all 'fixup!' commits above selected commit (autosquash)`,
+		SquashAboveCommits:                  `Squash all 'fixup!' commits above selected commit (autosquash)`,
 		SureSquashAboveCommits:              `Are you sure you want to squash all fixup! commits above {{.commit}}?`,
 		CreateFixupCommit:                   `Create fixup commit`,
 		SureCreateFixupCommit:               `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
@@ -801,7 +850,7 @@ func englishTranslationSet() TranslationSet {
 		ViewPatchOptions:                    "view custom patch options",
 		PatchOptionsTitle:                   "Patch Options",
 		NoPatchError:                        "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
-		LcEnterFile:                         "enter file to add selected lines to the patch",
+		LcEnterFile:                         "enter file to add selected lines to the patch (or toggle directory collapsed)",
 		ExitLineByLineMode:                  `exit line-by-line mode`,
 		EnterUpstream:                       `Enter upstream as '<remote> <branchname>'`,
 		EnterUpstreamWithSlash:              `Enter upstream as '<remote>/<branchname>'`,
@@ -810,8 +859,8 @@ func englishTranslationSet() TranslationSet {
 		LcAddNewRemote:                      `add new remote`,
 		LcNewRemoteName:                     `New remote name:`,
 		LcNewRemoteUrl:                      `New remote url:`,
-		LcEditRemoteName:                    `Enter updated remote name for {{ .remoteName }}:`,
-		LcEditRemoteUrl:                     `Enter updated remote url for {{ .remoteName }}:`,
+		LcEditRemoteName:                    `Enter updated remote name for {{.remoteName}}:`,
+		LcEditRemoteUrl:                     `Enter updated remote url for {{.remoteName}}:`,
 		LcRemoveRemote:                      `remove remote`,
 		LcRemoveRemotePrompt:                "Are you sure you want to remove remote",
 		DeleteRemoteBranch:                  "Delete Remote Branch",
@@ -863,7 +912,7 @@ func englishTranslationSet() TranslationSet {
 		LcGotoBottom:                        "scroll to bottom",
 		LcFilteringBy:                       "filtering by",
 		ResetInParentheses:                  "(reset)",
-		LcOpenScopingMenu:                   "view scoping options",
+		LcOpenFilteringMenu:                 "view filter-by-path options",
 		LcFilterBy:                          "filter by",
 		LcExitFilterMode:                    "stop filtering by path",
 		LcFilterPathOption:                  "enter path to filter by",
@@ -878,6 +927,8 @@ func englishTranslationSet() TranslationSet {
 		DiffingMenuTitle:                    "Diffing",
 		LcSwapDiff:                          "reverse diff direction",
 		LcOpenDiffingMenu:                   "open diff menu",
+		// the actual view is the extras view which I intend to give more tabs in future but for now we'll only mention the command log part
+		LcOpenExtrasMenu:                    "open command log menu",
 		LcShowingGitDiff:                    "showing output for:",
 		LcCopyCommitShaToClipboard:          "copy commit SHA to clipboard",
 		LcCopyCommitMessageToClipboard:      "copy commit message to clipboard",
@@ -927,6 +978,99 @@ func englishTranslationSet() TranslationSet {
 		SubCommitsTitle:                     "Sub-commits",
 		SubmodulesTitle:                     "Submodules",
 		NavigationTitle:                     "List Panel Navigation",
+		SuggestionsTitle:                    "Suggestions",
 		PushingTagStatus:                    "pushing tag",
+		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
+		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
+		LcCopiedToClipboard:                 "copied to clipboard",
+		ErrCannotEditDirectory:              "Cannot edit directory: you can only edit individual files",
+		ErrStageDirWithInlineMergeConflicts: "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
+		ErrRepositoryMovedOrDeleted:         "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
+		CommandLog:                          "Command Log",
+		ToggleShowCommandLog:                "Toggle show/hide command log",
+		FocusCommandLog:                     "Focus command log",
+		CommandLogHeader:                    "You can hide/focus this panel by pressing '%s' or hide it permanently in your config with `gui.showCommandLog: false`\n",
+		RandomTip:                           "Random Tip",
+		Spans: Spans{
+			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
+			CheckoutCommit:                    "Checkout commit",
+			CheckoutReflogCommit:              "Checkout reflog commit",
+			CheckoutTag:                       "Checkout tag",
+			CheckoutBranch:                    "Checkout branch",
+			ForceCheckoutBranch:               "Force checkout branch",
+			DeleteBranch:                      "Delete branch",
+			Merge:                             "Merge",
+			RebaseBranch:                      "Rebase branch",
+			RenameBranch:                      "Rename branch",
+			CreateBranch:                      "Create branch",
+			CherryPick:                        "(Cherry-pick) Paste commits",
+			CheckoutFile:                      "Checkout file",
+			DiscardOldFileChange:              "Discard old file change",
+			SquashCommitDown:                  "Squash commit down",
+			FixupCommit:                       "Fixup commit",
+			RewordCommit:                      "Reword commit",
+			DropCommit:                        "Drop commit",
+			EditCommit:                        "Edit commit",
+			AmendCommit:                       "Amend commit",
+			RevertCommit:                      "Revert commit",
+			CreateFixupCommit:                 "Create fixup commit",
+			SquashAllAboveFixupCommits:        "Squash all above fixup commits",
+			CreateLightweightTag:              "Create lightweight tag",
+			CopyCommitMessageToClipboard:      "Copy commit message to clipboard",
+			MoveCommitUp:                      "Move commit up",
+			MoveCommitDown:                    "Move commit down",
+			CustomCommand:                     "Custom command",
+			DiscardAllChangesInDirectory:      "Discard all changes in directory",
+			DiscardUnstagedChangesInDirectory: "Discard unstaged changes in directory",
+			DiscardAllChangesInFile:           "Discard all changes in file",
+			DiscardAllUnstagedChangesInFile:   "Discard all unstaged changes in file",
+			StageFile:                         "Stage file",
+			UnstageFile:                       "Unstage file",
+			UnstageAllFiles:                   "Unstage all files",
+			StageAllFiles:                     "Stage all files",
+			IgnoreFile:                        "Ignore file",
+			Commit:                            "Commit",
+			EditFile:                          "Edit file",
+			Push:                              "Push",
+			Pull:                              "Pull",
+			OpenFile:                          "Open file",
+			StashAllChanges:                   "Stash all changes",
+			StashStagedChanges:                "Stash staged changes",
+			GitFlowFinish:                     "Git flow finish",
+			GitFlowStart:                      "Git Flow start",
+			CopyToClipboard:                   "Copy to clipboard",
+			RemovePatchFromCommit:             "Remove patch from commit",
+			MovePatchToSelectedCommit:         "Move patch to selected commit",
+			MovePatchIntoIndex:                "Move patch into index",
+			MovePatchIntoNewCommit:            "Move patch into new commit",
+			DeleteRemoteBranch:                "Delete remote branch",
+			SetBranchUpstream:                 "Set branch upstream",
+			AddRemote:                         "Add remote",
+			RemoveRemote:                      "Remove remote",
+			UpdateRemote:                      "Update remote",
+			ApplyPatch:                        "Apply patch",
+			Stash:                             "Stash",
+			RemoveSubmodule:                   "Remove submodule",
+			ResetSubmodule:                    "Reset submodule",
+			AddSubmodule:                      "Add submodule",
+			UpdateSubmoduleUrl:                "Update submodule URL",
+			InitialiseSubmodule:               "Initialise submodule",
+			BulkInitialiseSubmodules:          "Bulk initialise submodules",
+			BulkUpdateSubmodules:              "Bulk update submodules",
+			BulkStashAndResetSubmodules:       "Bulk stash and reset submodules",
+			BulkDeinitialiseSubmodules:        "Bulk deinitialise submodules",
+			UpdateSubmodule:                   "Update submodule",
+			DeleteTag:                         "Delete tag",
+			PushTag:                           "Push tag",
+			NukeWorkingTree:                   "Nuke working tree",
+			DiscardUnstagedFileChanges:        "Discard unstaged file changes",
+			RemoveUntrackedFiles:              "Remove untracked files",
+			SoftReset:                         "Soft reset",
+			MixedReset:                        "Mixed reset",
+			HardReset:                         "Hard reset",
+			FastForwardBranch:                 "Fast forward branch",
+			Undo:                              "Undo",
+			Redo:                              "Redo",
+		},
 	}
 }

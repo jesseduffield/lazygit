@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -70,7 +71,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 		{
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
-				return exec.Command("exit", "1")
+				return secureexec.Command("exit", "1")
 			},
 			func(err error) {
 				assert.Error(t, err)
@@ -81,7 +82,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 			func(name string, arg ...string) *exec.Cmd {
 				assert.Equal(t, "open", name)
 				assert.Equal(t, []string{"test"}, arg)
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -92,7 +93,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 			func(name string, arg ...string) *exec.Cmd {
 				assert.Equal(t, "open", name)
 				assert.Equal(t, []string{"filename with spaces"}, arg)
-				return exec.Command("echo")
+				return secureexec.Command("echo")
 			},
 			func(err error) {
 				assert.NoError(t, err)
@@ -109,161 +110,11 @@ func TestOSCommandOpenFile(t *testing.T) {
 	}
 }
 
-// TestOSCommandEditFile is a function.
-func TestOSCommandEditFile(t *testing.T) {
-	type scenario struct {
-		filename           string
-		command            func(string, ...string) *exec.Cmd
-		getenv             func(string) string
-		getGlobalGitConfig func(string) (string, error)
-		test               func(*exec.Cmd, error)
-	}
-
-	scenarios := []scenario{
-		{
-			"test",
-			func(name string, arg ...string) *exec.Cmd {
-				return exec.Command("exit", "1")
-			},
-			func(env string) string {
-				return ""
-			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
-			func(cmd *exec.Cmd, err error) {
-				assert.EqualError(t, err, "No editor defined in $VISUAL, $EDITOR, or git config")
-			},
-		},
-		{
-			"test",
-			func(name string, arg ...string) *exec.Cmd {
-				if name == "which" {
-					return exec.Command("exit", "1")
-				}
-
-				assert.EqualValues(t, "nano", name)
-
-				return nil
-			},
-			func(env string) string {
-				return ""
-			},
-			func(cf string) (string, error) {
-				return "nano", nil
-			},
-			func(cmd *exec.Cmd, err error) {
-				assert.NoError(t, err)
-			},
-		},
-		{
-			"test",
-			func(name string, arg ...string) *exec.Cmd {
-				if name == "which" {
-					return exec.Command("exit", "1")
-				}
-
-				assert.EqualValues(t, "nano", name)
-
-				return nil
-			},
-			func(env string) string {
-				if env == "VISUAL" {
-					return "nano"
-				}
-
-				return ""
-			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
-			func(cmd *exec.Cmd, err error) {
-				assert.NoError(t, err)
-			},
-		},
-		{
-			"test",
-			func(name string, arg ...string) *exec.Cmd {
-				if name == "which" {
-					return exec.Command("exit", "1")
-				}
-
-				assert.EqualValues(t, "emacs", name)
-
-				return nil
-			},
-			func(env string) string {
-				if env == "EDITOR" {
-					return "emacs"
-				}
-
-				return ""
-			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
-			func(cmd *exec.Cmd, err error) {
-				assert.NoError(t, err)
-			},
-		},
-		{
-			"test",
-			func(name string, arg ...string) *exec.Cmd {
-				if name == "which" {
-					return exec.Command("echo")
-				}
-
-				assert.EqualValues(t, "vi", name)
-
-				return nil
-			},
-			func(env string) string {
-				return ""
-			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
-			func(cmd *exec.Cmd, err error) {
-				assert.NoError(t, err)
-			},
-		},
-		{
-			"file/with space",
-			func(name string, args ...string) *exec.Cmd {
-				if name == "which" {
-					return exec.Command("echo")
-				}
-
-				assert.EqualValues(t, "vi", name)
-				assert.EqualValues(t, "file/with space", args[0])
-
-				return nil
-			},
-			func(env string) string {
-				return ""
-			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
-			func(cmd *exec.Cmd, err error) {
-				assert.NoError(t, err)
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		OSCmd := NewDummyOSCommand()
-		OSCmd.Command = s.command
-		OSCmd.GetGlobalGitConfig = s.getGlobalGitConfig
-		OSCmd.Getenv = s.getenv
-
-		s.test(OSCmd.EditFile(s.filename))
-	}
-}
-
 // TestOSCommandQuote is a function.
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
+
+	osCommand.Platform.OS = "linux"
 
 	actual := osCommand.Quote("hello `test`")
 
@@ -280,7 +131,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 
 	actual := osCommand.Quote("hello 'test'")
 
-	expected := osCommand.Platform.FallbackEscapedQuote + "hello 'test'" + osCommand.Platform.FallbackEscapedQuote
+	expected := osCommand.Platform.EscapedQuote + "hello 'test'" + osCommand.Platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -293,18 +144,20 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 
 	actual := osCommand.Quote(`hello "test"`)
 
-	expected := osCommand.Platform.EscapedQuote + "hello \"test\"" + osCommand.Platform.EscapedQuote
+	expected := osCommand.Platform.EscapedQuote + `hello \"test\"` + osCommand.Platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandUnquote is a function.
-func TestOSCommandUnquote(t *testing.T) {
+// TestOSCommandQuoteWindows tests the quote function for Windows
+func TestOSCommandQuoteWindows(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
-	actual := osCommand.Unquote(`hello "test"`)
+	osCommand.Platform.OS = "windows"
 
-	expected := "hello test"
+	actual := osCommand.Quote(`hello "test"`)
+
+	expected := osCommand.Platform.EscapedQuote + `hello "'"'"test"'"'"` + osCommand.Platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }

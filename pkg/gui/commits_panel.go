@@ -1,11 +1,12 @@
 package gui
 
 import (
+	"fmt"
 	"sync"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -13,7 +14,7 @@ import (
 
 func (gui *Gui) getSelectedLocalCommit() *models.Commit {
 	selectedLine := gui.State.Panels.Commits.SelectedLineIdx
-	if selectedLine == -1 {
+	if selectedLine == -1 || selectedLine > len(gui.State.Commits)-1 {
 		return nil
 	}
 
@@ -36,12 +37,12 @@ func (gui *Gui) handleCommitSelect() error {
 	var task updateTask
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
-		task = gui.createRenderStringTask(gui.Tr.NoCommitsThisBranch)
+		task = NewRenderStringTask(gui.Tr.NoCommitsThisBranch)
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.Path),
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -87,7 +88,7 @@ func (gui *Gui) refreshCommits() error {
 
 	go utils.Safe(func() {
 		_ = gui.refreshCommitsWithLimit()
-		context, ok := gui.Contexts.CommitFiles.Context.GetParentContext()
+		context, ok := gui.State.Contexts.CommitFiles.GetParentContext()
 		if ok && context.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
 			// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
 			// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
@@ -118,7 +119,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	commits, err := builder.GetCommits(
 		commands.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
-			FilterPath:           gui.State.Modes.Filtering.Path,
+			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              "HEAD",
 		},
@@ -128,7 +129,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	}
 	gui.State.Commits = commits
 
-	return gui.postRefreshUpdate(gui.Contexts.BranchCommits.Context)
+	return gui.postRefreshUpdate(gui.State.Contexts.BranchCommits)
 }
 
 func (gui *Gui) refreshRebaseCommits() error {
@@ -143,12 +144,12 @@ func (gui *Gui) refreshRebaseCommits() error {
 	}
 	gui.State.Commits = updatedCommits
 
-	return gui.postRefreshUpdate(gui.Contexts.BranchCommits.Context)
+	return gui.postRefreshUpdate(gui.State.Contexts.BranchCommits)
 }
 
 // specific functions
 
-func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitSquashDown() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -170,14 +171,14 @@ func (gui *Gui) handleCommitSquashDown(g *gocui.Gui, v *gocui.View) error {
 		prompt: gui.Tr.SureSquashThisCommit,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
-				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "squash")
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.SquashCommitDown).InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "squash")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
 	})
 }
 
-func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitFixup() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -199,14 +200,14 @@ func (gui *Gui) handleCommitFixup(g *gocui.Gui, v *gocui.View) error {
 		prompt: gui.Tr.SureFixupThisCommit,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.FixingStatus, func() error {
-				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "fixup")
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.FixupCommit).InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "fixup")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
 	})
 }
 
-func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRenameCommit() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -233,16 +234,20 @@ func (gui *Gui) handleRenameCommit(g *gocui.Gui, v *gocui.View) error {
 		return gui.surfaceError(err)
 	}
 
-	return gui.prompt(gui.Tr.LcRenameCommit, message, func(response string) error {
-		if err := gui.GitCommand.RenameCommit(response); err != nil {
-			return gui.surfaceError(err)
-		}
+	return gui.prompt(promptOpts{
+		title:          gui.Tr.LcRenameCommit,
+		initialContent: message,
+		handleConfirm: func(response string) error {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RewordCommit).RenameCommit(response); err != nil {
+				return gui.surfaceError(err)
+			}
 
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		},
 	})
 }
 
-func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleRenameCommitEditor() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -255,13 +260,12 @@ func (gui *Gui) handleRenameCommitEditor(g *gocui.Gui, v *gocui.View) error {
 		return nil
 	}
 
-	subProcess, err := gui.GitCommand.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
+	subProcess, err := gui.GitCommand.WithSpan(gui.Tr.Spans.RewordCommit).RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
 	if subProcess != nil {
-		gui.SubProcess = subProcess
-		return gui.Errors.ErrSubProcess
+		return gui.runSubprocessWithSuspenseAndRefresh(subProcess)
 	}
 
 	return nil
@@ -284,6 +288,12 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 		return true, gui.createErrorPanel(gui.Tr.LcRewordNotSupported)
 	}
 
+	gui.OnRunCommand(oscommands.NewCmdLogEntry(
+		fmt.Sprintf("Updating rebase action of commit %s to '%s'", selectedCommit.ShortSha(), action),
+		"Update rebase TODO",
+		false,
+	))
+
 	if err := gui.GitCommand.EditRebaseTodo(gui.State.Panels.Commits.SelectedLineIdx, action); err != nil {
 		return false, gui.surfaceError(err)
 	}
@@ -291,7 +301,7 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	return true, gui.refreshRebaseCommits()
 }
 
-func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitDelete() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -309,17 +319,19 @@ func (gui *Gui) handleCommitDelete(g *gocui.Gui, v *gocui.View) error {
 		prompt: gui.Tr.DeleteCommitPrompt,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				err := gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "drop")
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DropCommit).InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "drop")
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
 	})
 }
 
-func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitMoveDown() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
+
+	span := gui.Tr.Spans.MoveCommitDown
 
 	index := gui.State.Panels.Commits.SelectedLineIdx
 	selectedCommit := gui.State.Commits[index]
@@ -327,6 +339,15 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 		if gui.State.Commits[index+1].Status != "rebasing" {
 			return nil
 		}
+
+		// logging directly here because MoveTodoDown doesn't have enough information
+		// to provide a useful log
+		gui.OnRunCommand(oscommands.NewCmdLogEntry(
+			fmt.Sprintf("Moving commit %s down", selectedCommit.ShortSha()),
+			span,
+			false,
+		))
+
 		if err := gui.GitCommand.MoveTodoDown(index); err != nil {
 			return gui.surfaceError(err)
 		}
@@ -335,7 +356,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
-		err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index)
+		err := gui.GitCommand.WithSpan(span).MoveCommitDown(gui.State.Commits, index)
 		if err == nil {
 			gui.State.Panels.Commits.SelectedLineIdx++
 		}
@@ -343,7 +364,7 @@ func (gui *Gui) handleCommitMoveDown(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitMoveUp() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -352,8 +373,19 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 	if index == 0 {
 		return nil
 	}
+
+	span := gui.Tr.Spans.MoveCommitUp
+
 	selectedCommit := gui.State.Commits[index]
 	if selectedCommit.Status == "rebasing" {
+		// logging directly here because MoveTodoDown doesn't have enough information
+		// to provide a useful log
+		gui.OnRunCommand(oscommands.NewCmdLogEntry(
+			fmt.Sprintf("Moving commit %s up", selectedCommit.ShortSha()),
+			span,
+			false,
+		))
+
 		if err := gui.GitCommand.MoveTodoDown(index - 1); err != nil {
 			return gui.surfaceError(err)
 		}
@@ -362,7 +394,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
-		err := gui.GitCommand.MoveCommitDown(gui.State.Commits, index-1)
+		err := gui.GitCommand.WithSpan(span).MoveCommitDown(gui.State.Commits, index-1)
 		if err == nil {
 			gui.State.Panels.Commits.SelectedLineIdx--
 		}
@@ -370,7 +402,7 @@ func (gui *Gui) handleCommitMoveUp(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitEdit() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -384,12 +416,12 @@ func (gui *Gui) handleCommitEdit(g *gocui.Gui, v *gocui.View) error {
 	}
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
-		err = gui.GitCommand.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "edit")
+		err = gui.GitCommand.WithSpan(gui.Tr.Spans.EditCommit).InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "edit")
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
 
-func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitAmendTo() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -399,14 +431,14 @@ func (gui *Gui) handleCommitAmendTo(g *gocui.Gui, v *gocui.View) error {
 		prompt: gui.Tr.AmendCommitPrompt,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.AmendingStatus, func() error {
-				err := gui.GitCommand.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha)
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.AmendCommit).AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha)
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
 	})
 }
 
-func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitPick() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -421,19 +453,19 @@ func (gui *Gui) handleCommitPick(g *gocui.Gui, v *gocui.View) error {
 
 	// at this point we aren't actually rebasing so we will interpret this as an
 	// attempt to pull. We might revoke this later after enabling configurable keybindings
-	return gui.handlePullFiles(g, v)
+	return gui.handlePullFiles()
 }
 
-func (gui *Gui) handleCommitRevert(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCommitRevert() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
 
-	if err := gui.GitCommand.Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha); err != nil {
+	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RevertCommit).Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha); err != nil {
 		return gui.surfaceError(err)
 	}
 	gui.State.Panels.Commits.SelectedLineIdx++
-	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []int{COMMITS, BRANCHES}})
+	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []RefreshableView{COMMITS, BRANCHES}})
 }
 
 func (gui *Gui) handleViewCommitFiles() error {
@@ -442,23 +474,10 @@ func (gui *Gui) handleViewCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, true, gui.Contexts.BranchCommits.Context, "commits")
+	return gui.switchToCommitFilesContext(commit.Sha, true, gui.State.Contexts.BranchCommits, "commits")
 }
 
-func (gui *Gui) hasCommit(commits []*models.Commit, target string) (int, bool) {
-	for idx, commit := range commits {
-		if commit.Sha == target {
-			return idx, true
-		}
-	}
-	return -1, false
-}
-
-func (gui *Gui) unchooseCommit(commits []*models.Commit, i int) []*models.Commit {
-	return append(commits[:i], commits[i+1:]...)
-}
-
-func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateFixupCommit() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -479,7 +498,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 		title:  gui.Tr.CreateFixupCommit,
 		prompt: prompt,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.CreateFixupCommit(commit.Sha); err != nil {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateFixupCommit).CreateFixupCommit(commit.Sha); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -488,7 +507,7 @@ func (gui *Gui) handleCreateFixupCommit(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleSquashAllAboveFixupCommits() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -510,14 +529,14 @@ func (gui *Gui) handleSquashAllAboveFixupCommits(g *gocui.Gui, v *gocui.View) er
 		prompt: prompt,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
-				err := gui.GitCommand.SquashAllAboveFixupCommits(commit.Sha)
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.SquashAllAboveFixupCommits).SquashAllAboveFixupCommits(commit.Sha)
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},
 	})
 }
 
-func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleTagCommit() error {
 	// TODO: bring up menu asking if you want to make a lightweight or annotated tag
 	// if annotated, switch to a subprocess to create the message
 
@@ -530,15 +549,18 @@ func (gui *Gui) handleTagCommit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
-	return gui.prompt(gui.Tr.TagNameTitle, "", func(response string) error {
-		if err := gui.GitCommand.CreateLightweightTag(response, commitSha); err != nil {
-			return gui.surfaceError(err)
-		}
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS, TAGS}})
+	return gui.prompt(promptOpts{
+		title: gui.Tr.TagNameTitle,
+		handleConfirm: func(response string) error {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateLightweightTag).CreateLightweightTag(response, commitSha); err != nil {
+				return gui.surfaceError(err)
+			}
+			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
+		},
 	})
 }
 
-func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckoutCommit() error {
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
@@ -548,12 +570,12 @@ func (gui *Gui) handleCheckoutCommit(g *gocui.Gui, v *gocui.View) error {
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
-			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
+			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutCommit})
 		},
 	})
 }
 
-func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateCommitResetMenu() error {
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return gui.createErrorPanel(gui.Tr.NoCommitsThisBranch)
@@ -562,30 +584,30 @@ func (gui *Gui) handleCreateCommitResetMenu(g *gocui.Gui, v *gocui.View) error {
 	return gui.createResetMenu(commit.Sha)
 }
 
-func (gui *Gui) handleOpenSearchForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleOpenSearchForCommitsPanel(_viewName string) error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
-		if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []int{COMMITS}}); err != nil {
+		if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS}}); err != nil {
 			return err
 		}
 	}
 
-	return gui.handleOpenSearch(gui.g, v)
+	return gui.handleOpenSearch("commits")
 }
 
-func (gui *Gui) handleGotoBottomForCommitsPanel(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleGotoBottomForCommitsPanel() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
-		if err := gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []int{COMMITS}}); err != nil {
+		if err := gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}}); err != nil {
 			return err
 		}
 	}
 
 	for _, context := range gui.getListContexts() {
 		if context.ViewName == "commits" {
-			return context.handleGotoBottom(g, v)
+			return context.handleGotoBottom()
 		}
 	}
 
@@ -602,5 +624,12 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 	if err != nil {
 		return gui.surfaceError(err)
 	}
-	return gui.OSCommand.CopyToClipboard(message)
+
+	if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CopyCommitMessageToClipboard).CopyToClipboard(message); err != nil {
+		return gui.surfaceError(err)
+	}
+
+	gui.raiseToast(gui.Tr.CommitMessageCopiedToClipboard)
+
+	return nil
 }

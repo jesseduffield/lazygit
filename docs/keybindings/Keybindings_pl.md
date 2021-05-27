@@ -16,7 +16,7 @@
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
-  <kbd>|</kbd>: view scoping options
+  <kbd>|</kbd>: view filter-by-path options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
 </pre>
@@ -24,13 +24,13 @@
 ## List Panel Navigation
 
 <pre>
+  <kbd>.</kbd>: next page
+  <kbd>,</kbd>: previous page
+  <kbd><</kbd>: scroll to top
+  <kbd>></kbd>: scroll to bottom
+  <kbd>/</kbd>: start search
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
-  <kbd>,</kbd>: previous page
-  <kbd>.</kbd>: next page
-  <kbd><</kbd>: scroll to top
-  <kbd>/</kbd>: start search
-  <kbd>></kbd>: scroll to bottom
 </pre>
 
 ## Gałęzie Panel (Branches Tab)
@@ -38,6 +38,7 @@
 <pre>
   <kbd>space</kbd>: przełącz
   <kbd>o</kbd>: utwórz żądanie wyciągnięcia
+  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania ściągnięcia do schowka
   <kbd>c</kbd>: przełącz używając nazwy
   <kbd>F</kbd>: wymuś przełączenie
   <kbd>n</kbd>: nowa gałąź
@@ -108,7 +109,8 @@
   <kbd>o</kbd>: otwórz plik
   <kbd>e</kbd>: edytuj plik
   <kbd>space</kbd>: toggle file included in patch
-  <kbd>enter</kbd>: enter file to add selected lines to the patch
+  <kbd>enter</kbd>: enter file to add selected lines to the patch (or toggle directory collapsed)
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Commity Panel (Commity)
@@ -137,6 +139,7 @@
   <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>ctrl+y</kbd>: copy commit message to clipboard
 </pre>
 
 ## Commity Panel (Reflog Tab)
@@ -172,6 +175,7 @@
   <kbd>f</kbd>: fetch
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>g</kbd>: view upstream reset options
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Pliki Panel (Submodules)
@@ -203,8 +207,8 @@
 ## Main Panel (Normal)
 
 <pre>
-  <kbd>￣</kbd>: scroll down (fn+up)
-  <kbd>￤</kbd>: scroll up (fn+down)
+  <kbd>Ő</kbd>: scroll down (fn+up)
+  <kbd>ő</kbd>: scroll up (fn+down)
 </pre>
 
 ## Main Panel (Patch Building)
@@ -267,4 +271,5 @@
   <kbd>o</kbd>: otwórz plik konfiguracyjny
   <kbd>u</kbd>: sprawdź aktualizacje
   <kbd>enter</kbd>: switch to a recent repo
+  <kbd>a</kbd>: pokazywać wszystkie logi branżowe
 </pre>

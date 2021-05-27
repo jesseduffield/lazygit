@@ -24,7 +24,7 @@ func (gui *Gui) recordCurrentDirectory() error {
 	return gui.OSCommand.CreateFileWithContent(os.Getenv("LAZYGIT_NEW_DIR_FILE"), dirName)
 }
 
-func (gui *Gui) handleQuitWithoutChangingDirectory(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleQuitWithoutChangingDirectory() error {
 	gui.State.RetainOriginalDir = true
 	return gui.quit()
 }
@@ -34,13 +34,13 @@ func (gui *Gui) handleQuit() error {
 	return gui.quit()
 }
 
-func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleTopLevelReturn() error {
 	currentContext := gui.currentContext()
 
 	parentContext, hasParent := currentContext.GetParentContext()
 	if hasParent && currentContext != nil && parentContext != nil {
 		// TODO: think about whether this should be marked as a return rather than adding to the stack
-		return gui.switchContext(parentContext)
+		return gui.pushContext(parentContext)
 	}
 
 	for _, mode := range gui.modeStatuses() {
@@ -49,15 +49,15 @@ func (gui *Gui) handleTopLevelReturn(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 
-	repoPathStack := gui.State.RepoPathStack
+	repoPathStack := gui.RepoPathStack
 	if len(repoPathStack) > 0 {
 		n := len(repoPathStack) - 1
 
 		path := repoPathStack[n]
 
-		gui.State.RepoPathStack = repoPathStack[:n]
+		gui.RepoPathStack = repoPathStack[:n]
 
-		return gui.dispatchSwitchToRepo(path)
+		return gui.dispatchSwitchToRepo(path, true)
 	}
 
 	if gui.Config.GetUserConfig().QuitOnTopLevelReturn {

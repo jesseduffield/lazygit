@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -39,10 +40,10 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 				switch args[0] {
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
-					return exec.Command("echo", "master")
+					return secureexec.Command("echo", "master")
 				case "merge-base":
 					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
-					return exec.Command("test")
+					return secureexec.Command("test")
 				}
 				return nil
 			},
@@ -59,10 +60,10 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 				switch args[0] {
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
-					return exec.Command("echo", "master")
+					return secureexec.Command("echo", "master")
 				case "merge-base":
 					assert.EqualValues(t, []string{"merge-base", "HEAD", "master"}, args)
-					return exec.Command("echo", "blah")
+					return secureexec.Command("echo", "blah")
 				}
 				return nil
 			},
@@ -79,10 +80,10 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 				switch args[0] {
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
-					return exec.Command("echo", "feature/test")
+					return secureexec.Command("echo", "feature/test")
 				case "merge-base":
 					assert.EqualValues(t, []string{"merge-base", "HEAD", "develop"}, args)
-					return exec.Command("echo", "blah")
+					return secureexec.Command("echo", "blah")
 				}
 				return nil
 			},
@@ -94,7 +95,7 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 		{
 			"bubbles up error if there is one",
 			func(cmd string, args ...string) *exec.Cmd {
-				return exec.Command("test")
+				return secureexec.Command("test")
 			},
 			func(output string, err error) {
 				assert.Error(t, err)

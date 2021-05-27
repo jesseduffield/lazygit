@@ -87,7 +87,7 @@ func TestArrangeWindows(t *testing.T) {
 		},
 		{
 			"Box with COLUMN direction only on wide boxes with narrow box",
-			&Box{ConditionalDirection: func(width int, height int) int {
+			&Box{ConditionalDirection: func(width int, height int) Direction {
 				if width > 4 {
 					return COLUMN
 				} else {
@@ -111,7 +111,7 @@ func TestArrangeWindows(t *testing.T) {
 		},
 		{
 			"Box with COLUMN direction only on wide boxes with wide box",
-			&Box{ConditionalDirection: func(width int, height int) int {
+			&Box{ConditionalDirection: func(width int, height int) Direction {
 				if width > 4 {
 					return COLUMN
 				} else {
@@ -179,9 +179,31 @@ func TestArrangeWindows(t *testing.T) {
 				)
 			},
 		},
+		{
+			"Box with static child with size too large",
+			&Box{Direction: COLUMN, Children: []*Box{{Size: 11, Window: "static"}, {Weight: 1, Window: "dynamic1"}, {Weight: 2, Window: "dynamic2"}}},
+			0,
+			0,
+			10,
+			10,
+			func(result map[string]Dimensions) {
+				assert.EqualValues(
+					t,
+					result,
+					map[string]Dimensions{
+						"static": {X0: 0, X1: 9, Y0: 0, Y1: 9},
+						// not sure if X0: 10, X1: 9 makes any sense, but testing this in the
+						// actual GUI it seems harmless
+						"dynamic1": {X0: 10, X1: 9, Y0: 0, Y1: 9},
+						"dynamic2": {X0: 10, X1: 9, Y0: 0, Y1: 9},
+					},
+				)
+			},
+		},
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(ArrangeWindows(s.root, s.x0, s.y0, s.width, s.height))
 		})

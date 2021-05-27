@@ -13,19 +13,20 @@ type credentials chan string
 func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
-		credentialsView, _ := g.View("credentials")
-		if passOrUname == "username" {
+		credentialsView := gui.Views.Credentials
+		switch passOrUname {
+		case "username":
 			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.Mask = 0
-		} else if passOrUname == "password" {
+		case "password":
 			credentialsView.Title = gui.Tr.CredentialsPassword
 			credentialsView.Mask = '*'
-		} else {
+		default:
 			credentialsView.Title = gui.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
 		}
 
-		if err := gui.switchContext(gui.Contexts.Credentials.Context); err != nil {
+		if err := gui.pushContext(gui.State.Contexts.Credentials); err != nil {
 			return err
 		}
 
@@ -38,18 +39,19 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 	return userInput + "\n"
 }
 
-func (gui *Gui) handleSubmitCredential(g *gocui.Gui, v *gocui.View) error {
-	message := gui.trimmedContent(v)
+func (gui *Gui) handleSubmitCredential() error {
+	credentialsView := gui.Views.Credentials
+	message := gui.trimmedContent(credentialsView)
 	gui.credentials <- message
-	gui.clearEditorView(v)
+	gui.clearEditorView(credentialsView)
 	if err := gui.returnFromContext(); err != nil {
 		return err
 	}
 
-	return gui.refreshSidePanels(refreshOptions{})
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
-func (gui *Gui) handleCloseCredentialsView(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCloseCredentialsView() error {
 	gui.credentials <- ""
 	return gui.returnFromContext()
 }
@@ -65,7 +67,7 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 		},
 	)
 
-	gui.renderString("options", message)
+	gui.renderString(gui.Views.Options, message)
 	return nil
 }
 
@@ -76,8 +78,9 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 		if strings.Contains(errMessage, "Invalid username, password or passphrase") {
 			errMessage = gui.Tr.PassUnameWrong
 		}
+		_ = gui.returnFromContext()
 		// we are not logging this error because it may contain a password or a passphrase
-		gui.createErrorPanel(errMessage)
+		_ = gui.createErrorPanel(errMessage)
 	} else {
 		_ = gui.closeConfirmationPrompt(false)
 	}

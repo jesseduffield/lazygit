@@ -3,26 +3,30 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) handleOpenSearch(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleOpenSearch(viewName string) error {
+	view, err := gui.g.View(viewName)
+	if err != nil {
+		return nil
+	}
+
 	gui.State.Searching.isSearching = true
-	gui.State.Searching.view = v
+	gui.State.Searching.view = view
 
-	gui.renderString("search", "")
+	gui.renderString(gui.Views.Search, "")
 
-	if err := gui.switchContext(gui.Contexts.Search.Context); err != nil {
+	if err := gui.pushContext(gui.State.Contexts.Search); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (gui *Gui) handleSearch(g *gocui.Gui, v *gocui.View) error {
-	gui.State.Searching.searchString = gui.getSearchView().Buffer()
+func (gui *Gui) handleSearch() error {
+	gui.State.Searching.searchString = gui.Views.Search.Buffer()
 	if err := gui.returnFromContext(); err != nil {
 		return err
 	}
@@ -45,7 +49,7 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 	return func(y int, index int, total int) error {
 		if total == 0 {
 			gui.renderString(
-				"search",
+				gui.Views.Search,
 				fmt.Sprintf(
 					"no matches for '%s' %s",
 					gui.State.Searching.searchString,
@@ -58,7 +62,7 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 			return nil
 		}
 		gui.renderString(
-			"search",
+			gui.Views.Search,
 			fmt.Sprintf(
 				"matches for '%s' (%d of %d) %s",
 				gui.State.Searching.searchString,
@@ -92,7 +96,7 @@ func (gui *Gui) onSearchEscape() error {
 	return nil
 }
 
-func (gui *Gui) handleSearchEscape(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleSearchEscape() error {
 	if err := gui.onSearchEscape(); err != nil {
 		return err
 	}

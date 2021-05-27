@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -21,12 +20,12 @@ func (gui *Gui) handleStashEntrySelect() error {
 	var task updateTask
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
-		task = gui.createRenderStringTask(gui.Tr.NoStashEntries)
+		task = NewRenderStringTask(gui.Tr.NoStashEntries)
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
 			gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
 		)
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -38,14 +37,14 @@ func (gui *Gui) handleStashEntrySelect() error {
 }
 
 func (gui *Gui) refreshStashEntries() error {
-	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.Modes.Filtering.Path)
+	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.Modes.Filtering.GetPath())
 
-	return gui.Contexts.Stash.Context.HandleRender()
+	return gui.State.Contexts.Stash.HandleRender()
 }
 
 // specific functions
 
-func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStashApply() error {
 	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
 
 	apply := func() error {
@@ -65,7 +64,7 @@ func (gui *Gui) handleStashApply(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStashPop() error {
 	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
 
 	pop := func() error {
@@ -85,7 +84,7 @@ func (gui *Gui) handleStashPop(g *gocui.Gui, v *gocui.View) error {
 	})
 }
 
-func (gui *Gui) handleStashDrop(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleStashDrop() error {
 	return gui.ask(askOpts{
 		title:  gui.Tr.StashDrop,
 		prompt: gui.Tr.SureDropStashEntry,
@@ -107,21 +106,25 @@ func (gui *Gui) stashDo(method string) error {
 
 		return gui.createErrorPanel(errorMessage)
 	}
-	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
+	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.Stash).StashDo(stashEntry.Index, method); err != nil {
 		return gui.surfaceError(err)
 	}
-	return gui.refreshSidePanels(refreshOptions{scope: []int{STASH, FILES}})
+	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
 }
 
 func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
 		return gui.createErrorPanel(gui.Tr.NoTrackedStagedFilesStash)
 	}
-	return gui.prompt(gui.Tr.StashChanges, "", func(stashComment string) error {
-		if err := stashFunc(stashComment); err != nil {
-			return gui.surfaceError(err)
-		}
-		return gui.refreshSidePanels(refreshOptions{scope: []int{STASH, FILES}})
+
+	return gui.prompt(promptOpts{
+		title: gui.Tr.StashChanges,
+		handleConfirm: func(stashComment string) error {
+			if err := stashFunc(stashComment); err != nil {
+				return gui.surfaceError(err)
+			}
+			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
+		},
 	})
 }
 
@@ -131,5 +134,5 @@ func (gui *Gui) handleViewStashFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(stashEntry.RefName(), false, gui.Contexts.Stash.Context, "stash")
+	return gui.switchToCommitFilesContext(stashEntry.RefName(), false, gui.State.Contexts.Stash, "stash")
 }

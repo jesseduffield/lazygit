@@ -1,5 +1,7 @@
 package gui
 
+import "github.com/jesseduffield/gocui"
+
 // A window refers to a place on the screen which can hold one or more views.
 // A view is a box that renders content, and within a window only one view will
 // appear at a time. When a view appears within a window, it occupies the whole
@@ -15,28 +17,28 @@ func (gui *Gui) getViewNameForWindow(window string) string {
 	return viewName
 }
 
-func (gui *Gui) getWindowForViewName(viewName string) string {
-	if viewName == "commitFiles" {
-		return gui.Contexts.CommitFiles.Context.GetWindowName()
+func (gui *Gui) getWindowForView(view *gocui.View) string {
+	if view == gui.Views.CommitFiles {
+		return gui.State.Contexts.CommitFiles.GetWindowName()
 	}
 
-	return viewName
+	return view.Name()
 }
 
-func (gui *Gui) setViewAsActiveForWindow(viewName string) {
+func (gui *Gui) setViewAsActiveForWindow(view *gocui.View) {
 	if gui.State.WindowViewNameMap == nil {
 		gui.State.WindowViewNameMap = map[string]string{}
 	}
 
-	gui.State.WindowViewNameMap[gui.getWindowForViewName(viewName)] = viewName
+	gui.State.WindowViewNameMap[gui.getWindowForView(view)] = view.Name()
 }
 
 func (gui *Gui) currentWindow() string {
-	return gui.getWindowForViewName(gui.currentViewName())
+	return gui.getWindowForView(gui.g.CurrentView())
 }
 
-func (gui *Gui) resetWindowForView(viewName string) {
-	window := gui.getWindowForViewName(viewName)
+func (gui *Gui) resetWindowForView(view *gocui.View) {
+	window := gui.getWindowForView(view)
 	// we assume here that the window contains as its default view a view with the same name as the window
 	gui.State.WindowViewNameMap[window] = window
 }

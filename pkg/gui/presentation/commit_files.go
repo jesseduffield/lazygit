@@ -8,41 +8,31 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetCommitFileListDisplayStrings(commitFiles []*models.CommitFile, diffName string) [][]string {
-	if len(commitFiles) == 0 {
-		return [][]string{{utils.ColoredString("(none)", color.FgRed)}}
-	}
-
-	lines := make([][]string, len(commitFiles))
-
-	for i := range commitFiles {
-		diffed := commitFiles[i].Name == diffName
-		lines[i] = getCommitFileDisplayStrings(commitFiles[i], diffed)
-	}
-
-	return lines
-}
-
-// getCommitFileDisplayStrings returns the display string of branch
-func getCommitFileDisplayStrings(f *models.CommitFile, diffed bool) []string {
+func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFile, status patch.PatchStatus) string {
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
 	defaultColor := color.New(theme.DefaultTextColor)
 	diffTerminalColor := color.New(theme.DiffTerminalColor)
 
-	var colour *color.Color
-	switch f.PatchStatus {
-	case patch.UNSELECTED:
-		colour = defaultColor
-	case patch.WHOLE:
-		colour = green
-	case patch.PART:
-		colour = yellow
-	}
-	if diffed {
+	colour := defaultColor
+	if diffName == name {
 		colour = diffTerminalColor
+	} else {
+		switch status {
+		case patch.UNSELECTED:
+			colour = defaultColor
+		case patch.WHOLE:
+			colour = green
+		case patch.PART:
+			colour = yellow
+		}
 	}
-	return []string{utils.ColoredString(f.ChangeStatus, getColorForChangeStatus(f.ChangeStatus)), colour.Sprint(f.Name)}
+
+	if commitFile == nil {
+		return colour.Sprint(name)
+	}
+
+	return utils.ColoredString(commitFile.ChangeStatus, getColorForChangeStatus(commitFile.ChangeStatus)) + " " + colour.Sprint(name)
 }
 
 func getColorForChangeStatus(changeStatus string) color.Attribute {

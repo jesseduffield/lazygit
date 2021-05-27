@@ -12,34 +12,38 @@ import (
 )
 
 type CustomCommandObjects struct {
-	SelectedLocalCommit  *models.Commit
-	SelectedReflogCommit *models.Commit
-	SelectedSubCommit    *models.Commit
-	SelectedFile         *models.File
-	SelectedLocalBranch  *models.Branch
-	SelectedRemoteBranch *models.RemoteBranch
-	SelectedRemote       *models.Remote
-	SelectedTag          *models.Tag
-	SelectedStashEntry   *models.StashEntry
-	SelectedCommitFile   *models.CommitFile
-	CheckedOutBranch     *models.Branch
-	PromptResponses      []string
+	SelectedLocalCommit    *models.Commit
+	SelectedReflogCommit   *models.Commit
+	SelectedSubCommit      *models.Commit
+	SelectedFile           *models.File
+	SelectedPath           string
+	SelectedLocalBranch    *models.Branch
+	SelectedRemoteBranch   *models.RemoteBranch
+	SelectedRemote         *models.Remote
+	SelectedTag            *models.Tag
+	SelectedStashEntry     *models.StashEntry
+	SelectedCommitFile     *models.CommitFile
+	SelectedCommitFilePath string
+	CheckedOutBranch       *models.Branch
+	PromptResponses        []string
 }
 
 func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (string, error) {
 	objects := CustomCommandObjects{
-		SelectedFile:         gui.getSelectedFile(),
-		SelectedLocalCommit:  gui.getSelectedLocalCommit(),
-		SelectedReflogCommit: gui.getSelectedReflogCommit(),
-		SelectedLocalBranch:  gui.getSelectedBranch(),
-		SelectedRemoteBranch: gui.getSelectedRemoteBranch(),
-		SelectedRemote:       gui.getSelectedRemote(),
-		SelectedTag:          gui.getSelectedTag(),
-		SelectedStashEntry:   gui.getSelectedStashEntry(),
-		SelectedCommitFile:   gui.getSelectedCommitFile(),
-		SelectedSubCommit:    gui.getSelectedSubCommit(),
-		CheckedOutBranch:     gui.currentBranch(),
-		PromptResponses:      promptResponses,
+		SelectedFile:           gui.getSelectedFile(),
+		SelectedPath:           gui.getSelectedPath(),
+		SelectedLocalCommit:    gui.getSelectedLocalCommit(),
+		SelectedReflogCommit:   gui.getSelectedReflogCommit(),
+		SelectedLocalBranch:    gui.getSelectedBranch(),
+		SelectedRemoteBranch:   gui.getSelectedRemoteBranch(),
+		SelectedRemote:         gui.getSelectedRemote(),
+		SelectedTag:            gui.getSelectedTag(),
+		SelectedStashEntry:     gui.getSelectedStashEntry(),
+		SelectedCommitFile:     gui.getSelectedCommitFile(),
+		SelectedCommitFilePath: gui.getSelectedCommitFilePath(),
+		SelectedSubCommit:      gui.getSelectedSubCommit(),
+		CheckedOutBranch:       gui.currentBranch(),
+		PromptResponses:        promptResponses,
 	}
 
 	return utils.ResolveTemplate(templateStr, objects)
@@ -56,8 +60,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			}
 
 			if customCommand.Subprocess {
-				gui.PrepareSubProcess(cmdStr)
-				return nil
+				return gui.runSubprocessWithSuspenseAndRefresh(gui.OSCommand.PrepareShellSubProcess(cmdStr))
 			}
 
 			loadingText := customCommand.LoadingText
@@ -65,9 +68,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				loadingText = gui.Tr.LcRunningCustomCommandStatus
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
-				gui.OSCommand.PrepareSubProcess(cmdStr)
-
-				if err := gui.OSCommand.RunCommand(cmdStr); err != nil {
+				if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CustomCommand).RunShellCommand(cmdStr); err != nil {
 					return gui.surfaceError(err)
 				}
 				return gui.refreshSidePanels(refreshOptions{})
@@ -98,15 +99,15 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 						return gui.surfaceError(err)
 					}
 
-					return gui.prompt(
-						title,
-						initialValue,
-						func(str string) error {
+					return gui.prompt(promptOpts{
+						title:          title,
+						initialContent: initialValue,
+						handleConfirm: func(str string) error {
 							promptResponses[idx] = str
 
 							return wrappedF()
 						},
-					)
+					})
 				}
 			case "menu":
 				f = func() error {
@@ -175,9 +176,14 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 		case "":
 			log.Fatalf("Error parsing custom command keybindings: context not provided (use context: 'global' for the global context). Key: %s, Command: %s", customCommand.Key, customCommand.Command)
 		default:
-			context, ok := gui.contextForContextKey(customCommand.Context)
+			context, ok := gui.contextForContextKey(ContextKey(customCommand.Context))
+			// stupid golang making me build an array of strings for this.
+			allContextKeyStrings := make([]string, len(allContextKeys))
+			for i := range allContextKeys {
+				allContextKeyStrings[i] = string(allContextKeys[i])
+			}
 			if !ok {
-				log.Fatalf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeys, ", "))
+				log.Fatalf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeyStrings, ", "))
 			}
 			// here we assume that a given context will always belong to the same view.
 			// Currently this is a safe bet but it's by no means guaranteed in the long term
@@ -196,7 +202,7 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 			Contexts:    contexts,
 			Key:         gui.getKey(customCommand.Key),
 			Modifier:    gocui.ModNone,
-			Handler:     gui.wrappedHandler(gui.handleCustomCommandKeybinding(customCommand)),
+			Handler:     gui.handleCustomCommandKeybinding(customCommand),
 			Description: description,
 		})
 	}

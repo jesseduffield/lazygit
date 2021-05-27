@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -21,13 +20,13 @@ func (gui *Gui) handleReflogCommitSelect() error {
 	commit := gui.getSelectedReflogCommit()
 	var task updateTask
 	if commit == nil {
-		task = gui.createRenderStringTask("No reflog history")
+		task = NewRenderStringTask("No reflog history")
 	} else {
 		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.Path),
+			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
 
-		task = gui.createRunPtyTask(cmd)
+		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -73,17 +72,17 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	if gui.State.Modes.Filtering.Active() {
-		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.Path); err != nil {
+		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.GetPath()); err != nil {
 			return err
 		}
 	} else {
 		state.FilteredReflogCommits = state.ReflogCommits
 	}
 
-	return gui.postRefreshUpdate(gui.Contexts.ReflogCommits.Context)
+	return gui.postRefreshUpdate(gui.State.Contexts.ReflogCommits)
 }
 
-func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCheckoutReflogCommit() error {
 	commit := gui.getSelectedReflogCommit()
 	if commit == nil {
 		return nil
@@ -93,7 +92,7 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
-			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
+			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutReflogCommit})
 		},
 	})
 	if err != nil {
@@ -105,7 +104,7 @@ func (gui *Gui) handleCheckoutReflogCommit(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (gui *Gui) handleCreateReflogResetMenu(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) handleCreateReflogResetMenu() error {
 	commit := gui.getSelectedReflogCommit()
 
 	return gui.createResetMenu(commit.Sha)
@@ -117,5 +116,5 @@ func (gui *Gui) handleViewReflogCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, false, gui.Contexts.ReflogCommits.Context, "commits")
+	return gui.switchToCommitFilesContext(commit.Sha, false, gui.State.Contexts.ReflogCommits, "commits")
 }

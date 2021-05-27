@@ -2,11 +2,11 @@ package test
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/go-errors/errors"
 
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -24,7 +24,7 @@ func GenerateRepo(filename string) error {
 	if err := os.Chdir(testPath); err != nil {
 		return err
 	}
-	if output, err := exec.Command("bash", filename).CombinedOutput(); err != nil {
+	if output, err := secureexec.Command("bash", filename).CombinedOutput(); err != nil {
 		return errors.New(string(output))
 	}
 

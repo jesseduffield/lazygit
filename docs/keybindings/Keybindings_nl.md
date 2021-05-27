@@ -24,13 +24,13 @@
 ## List Panel Navigation
 
 <pre>
+  <kbd>.</kbd>: volgende pagina
+  <kbd>,</kbd>: vorige pagina
+  <kbd><</kbd>: scroll naar boven
+  <kbd>></kbd>: scroll naar beneden
+  <kbd>/</kbd>: start met zoekken
   <kbd>]</kbd>: volgende tab
   <kbd>[</kbd>: vorige tab
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoekken
-  <kbd>></kbd>: scroll naar beneden
 </pre>
 
 ## Branches Paneel (Branches Tab)
@@ -38,6 +38,7 @@
 <pre>
   <kbd>space</kbd>: uitchecken
   <kbd>o</kbd>: maak een pull-aanvraag
+  <kbd>ctrl+y</kbd>: kopieer de URL van het pull-verzoek naar het klembord
   <kbd>c</kbd>: uitchecken bij naam
   <kbd>F</kbd>: forceer checkout
   <kbd>n</kbd>: nieuwe branch
@@ -109,6 +110,7 @@
   <kbd>e</kbd>: verander bestand
   <kbd>space</kbd>: toggle bestand inbegrepen in patch
   <kbd>enter</kbd>: enter bestand to add selecteered lines to the patch
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Commits Paneel (Commits)
@@ -137,6 +139,7 @@
   <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (gecopieerde) commits selectie
+  <kbd>ctrl+y</kbd>: copieer commit bericht naar clipboard
 </pre>
 
 ## Commits Paneel (Reflog Tab)
@@ -172,6 +175,7 @@
   <kbd>f</kbd>: fetch
   <kbd>ctrl+o</kbd>: kopieer de bestandsnaam naar het klembord
   <kbd>g</kbd>: bekijk upstream reset opties
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Bestanden Paneel (Submodules)
@@ -203,8 +207,8 @@
 ## Hooft Paneel (Normaal)
 
 <pre>
-  <kbd>￣</kbd>: scroll omlaag (fn+up)
-  <kbd>￤</kbd>: scroll omhoog (fn+down)
+  <kbd>Ő</kbd>: scroll omlaag (fn+up)
+  <kbd>ő</kbd>: scroll omhoog (fn+down)
 </pre>
 
 ## Hooft Paneel (Patch Bouwen)
@@ -267,4 +271,5 @@
   <kbd>o</kbd>: open config bestand
   <kbd>u</kbd>: check voor updates
   <kbd>enter</kbd>: wissel naar een recente repo
+  <kbd>a</kbd>: alle takken van het houtblok laten zien
 </pre>

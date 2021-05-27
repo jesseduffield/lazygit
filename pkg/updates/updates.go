@@ -17,6 +17,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -36,10 +37,6 @@ type Updaterer interface {
 	Update()
 }
 
-const (
-	PROJECT_URL = "https://github.com/jesseduffield/lazygit"
-)
-
 // NewUpdater creates a new updater
 func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
@@ -53,7 +50,7 @@ func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscom
 }
 
 func (u *Updater) getLatestVersionNumber() (string, error) {
-	req, err := http.NewRequest("GET", PROJECT_URL+"/releases/latest", nil)
+	req, err := http.NewRequest("GET", constants.Links.RepoUrl+"/releases/latest", nil)
 	if err != nil {
 		return "", err
 	}
@@ -92,9 +89,18 @@ func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
 	return strings.Split(oldVersion, ".")[0] != strings.Split(newVersion, ".")[0]
 }
 
+func (u *Updater) currentVersion() string {
+	versionNumber := u.Config.GetVersion()
+	if versionNumber == "unversioned" {
+		return versionNumber
+	}
+
+	return fmt.Sprintf("v%s", u.Config.GetVersion())
+}
+
 func (u *Updater) checkForNewUpdate() (string, error) {
 	u.Log.Info("Checking for an updated version")
-	currentVersion := u.Config.GetVersion()
+	currentVersion := u.currentVersion()
 	if err := u.RecordLastUpdateCheck(); err != nil {
 		return "", err
 	}
@@ -214,20 +220,24 @@ func (u *Updater) mappedArch(arch string) string {
 	return arch
 }
 
+func (u *Updater) zipExtension() string {
+	if runtime.GOOS == "windows" {
+		return "zip"
+	}
+
+	return "tar.gz"
+}
+
 // example: https://github.com/jesseduffield/lazygit/releases/download/v0.1.73/lazygit_0.1.73_Darwin_x86_64.tar.gz
 func (u *Updater) getBinaryUrl(newVersion string) (string, error) {
-	extension := "tar.gz"
-	if runtime.GOOS == "windows" {
-		extension = "zip"
-	}
 	url := fmt.Sprintf(
 		"%s/releases/download/%s/lazygit_%s_%s_%s.%s",
-		PROJECT_URL,
+		constants.Links.RepoUrl,
 		newVersion,
 		newVersion[1:],
 		u.mappedOs(runtime.GOOS),
 		u.mappedArch(runtime.GOARCH),
-		extension,
+		u.zipExtension(),
 	)
 	u.Log.Info("Url for latest release is " + url)
 	return url, nil
@@ -256,11 +266,16 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	configDir := u.Config.GetUserConfigDir()
 	u.Log.Info("Download directory is " + configDir)
 
-	tempPath := filepath.Join(configDir, "temp_lazygit")
-	u.Log.Info("Temp path to binary is " + tempPath)
+	zipPath := filepath.Join(configDir, "temp_lazygit."+u.zipExtension())
+	u.Log.Info("Temp path to tarball/zip file is " + zipPath)
 
-	// Create the file
-	out, err := os.Create(tempPath)
+	// remove existing zip file
+	if err := os.RemoveAll(zipPath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	// Create the zip file
+	out, err := os.Create(zipPath)
 	if err != nil {
 		return err
 	}
@@ -284,6 +299,18 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 		return err
 	}
 
+	u.Log.Info("untarring tarball/unzipping zip file")
+	if err := u.OSCommand.RunCommand("tar -zxf %s %s", u.OSCommand.Quote(zipPath), "lazygit"); err != nil {
+		return err
+	}
+
+	// the `tar` terminal cannot store things in a new location without permission
+	// so it creates it in the current directory. As such our path is fairly simple.
+	// You won't see it because it's gitignored.
+	tempLazygitFilePath := "lazygit"
+
+	u.Log.Infof("Path to temp binary is %s", tempLazygitFilePath)
+
 	// get the path of the current binary
 	binaryPath, err := osext.Executable()
 	if err != nil {
@@ -292,12 +319,12 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	u.Log.Info("Binary path is " + binaryPath)
 
 	// Verify the main file exists
-	if _, err := os.Stat(tempPath); err != nil {
+	if _, err := os.Stat(zipPath); err != nil {
 		return err
 	}
 
 	// swap out the old binary for the new one
-	err = os.Rename(tempPath, binaryPath)
+	err = os.Rename(tempLazygitFilePath, binaryPath)
 	if err != nil {
 		return err
 	}

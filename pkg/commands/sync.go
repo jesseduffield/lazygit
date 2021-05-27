@@ -2,28 +2,15 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 )
-
-// usingGpg tells us whether the user has gpg enabled so that we can know
-// whether we need to run a subprocess to allow them to enter their password
-func (c *GitCommand) usingGpg() bool {
-	overrideGpg := c.Config.GetUserConfig().Git.OverrideGpg
-	if overrideGpg {
-		return false
-	}
-
-	gpgsign, _ := c.getLocalGitConfig("commit.gpgsign")
-	if gpgsign == "" {
-		gpgsign, _ = c.getGlobalGitConfig("commit.gpgsign")
-	}
-	value := strings.ToLower(gpgsign)
-
-	return value == "true" || value == "1" || value == "yes" || value == "on"
-}
 
 // Push pushes to a branch
 func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {
+	followTagsFlag := "--follow-tags"
+	if c.GetConfigValue("push.followTags") == "false" {
+		followTagsFlag = ""
+	}
+
 	forceFlag := ""
 	if force {
 		forceFlag = "--force-with-lease"
@@ -34,7 +21,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 		setUpstreamArg = "--set-upstream " + upstream
 	}
 
-	cmd := fmt.Sprintf("git push --follow-tags %s %s %s", forceFlag, setUpstreamArg, args)
+	cmd := fmt.Sprintf("git push %s %s %s %s", followTagsFlag, forceFlag, setUpstreamArg, args)
 	return c.OSCommand.DetectUnamePass(cmd, promptUserForCredential)
 }
 
