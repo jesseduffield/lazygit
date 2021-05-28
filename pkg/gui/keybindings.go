@@ -1720,6 +1720,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			OpensMenu:   true,
 		},
 		{
+			ViewName: 	 "files",
+			Contexts: 	 []string{string(FILES_CONTEXT_KEY)},
+			Key:      	 gui.getKey(config.Universal.ToggleWhitespaceInDiffView),
+			Handler:  	 gui.toggleWhitespaceInDiffView,
+			Description: gui.Tr.ToggleWhitespaceInDiffView,
+		},
+		{
 			ViewName: "extras",
 			Key:      gocui.MouseWheelUp,
 			Handler:  gui.scrollUpExtra,

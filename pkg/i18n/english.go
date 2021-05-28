@@ -451,6 +451,7 @@ type TranslationSet struct {
 	CommandLogHeader                    string
 	RandomTip                           string
 	SelectParentCommitForMerge          string
+	ToggleWhitespaceInDiffView          string
 	Spans                               Spans
 }
 
@@ -995,6 +996,7 @@ func englishTranslationSet() TranslationSet {
 		CommandLogHeader:                    "You can hide/focus this panel by pressing '%s' or hide it permanently in your config with `gui.showCommandLog: false`\n",
 		RandomTip:                           "Random Tip",
 		SelectParentCommitForMerge:          "Select parent commit for merge",
+		ToggleWhitespaceInDiffView:          "Toggle whether or not whitespace changes are shown in the diff view",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

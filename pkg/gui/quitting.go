@@ -29,6 +29,11 @@ func (gui *Gui) handleQuitWithoutChangingDirectory() error {
 	return gui.quit()
 }
 
+func (gui *Gui) toggleWhitespaceInDiffView() error {
+	gui.State.IgnoreWhitespaceInDiffView = !gui.State.IgnoreWhitespaceInDiffView
+	return gui.refreshFilesAndSubmodules()
+}
+
 func (gui *Gui) handleQuit() error {
 	gui.State.RetainOriginalDir = false
 	return gui.quit()

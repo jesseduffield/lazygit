@@ -189,17 +189,18 @@ func (c *GitCommand) Ignore(filename string) error {
 }
 
 // WorktreeFileDiff returns the diff of a file
-func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
+func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool, ignoreWhitespace bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := c.OSCommand.RunCommandWithOutput(c.WorktreeFileDiffCmdStr(file, plain, cached))
+	s, _ := c.OSCommand.RunCommandWithOutput(c.WorktreeFileDiffCmdStr(file, plain, cached, ignoreWhitespace))
 	return s
 }
 
-func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cached bool) string {
+func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cached bool, ignoreWhitespace bool) string {
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()
 	path := c.OSCommand.Quote(node.GetPath())
+	ignoreWhitespaceArg := ""
 	if cached {
 		cachedArg = "--cached"
 	}
@@ -209,8 +210,11 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 	if plain {
 		colorArg = "never"
 	}
+	if ignoreWhitespace {
+		ignoreWhitespaceArg = "-w"
+	}
 
-	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, path)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s %s", colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, path)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {

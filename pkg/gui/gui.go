@@ -339,6 +339,9 @@ type guiState struct {
 	// do this whenever we switch back and forth between repos to get the views
 	// back in sync with the repo state
 	ViewsSetup bool
+
+	// flag as to whether or not the diff view should ignore whitespace
+	IgnoreWhitespaceInDiffView bool
 }
 
 // reuseState determines if we pull the repo state from our repo state map or

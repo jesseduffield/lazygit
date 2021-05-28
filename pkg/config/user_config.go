@@ -165,6 +165,7 @@ type KeybindingUniversalConfig struct {
 	SubmitEditorText             string `yaml:"submitEditorText"`
 	AppendNewline                string `yaml:"appendNewline"`
 	ExtrasMenu                   string `yaml:"extrasMenu"`
+	ToggleWhitespaceInDiffView   string `yaml:"toggleWhitespaceInDiffView"`
 }
 
 type KeybindingStatusConfig struct {
@@ -404,6 +405,7 @@ func GetDefaultConfig() *UserConfig {
 				SubmitEditorText:             "<enter>",
 				AppendNewline:                "<a-enter>",
 				ExtrasMenu:                   "@",
+				ToggleWhitespaceInDiffView:   "<c-w>",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:      "u",
