@@ -333,11 +333,12 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 // TestGitCommandDiff is a function.
 func TestGitCommandDiff(t *testing.T) {
 	type scenario struct {
-		testName string
-		command  func(string, ...string) *exec.Cmd
-		file     *models.File
-		plain    bool
-		cached   bool
+		testName         string
+		command          func(string, ...string) *exec.Cmd
+		file             *models.File
+		plain            bool
+		cached           bool
+		ignoreWhitespace bool
 	}
 
 	scenarios := []scenario{
@@ -356,6 +357,7 @@ func TestGitCommandDiff(t *testing.T) {
 			},
 			false,
 			false,
+			false,
 		},
 		{
 			"cached",
@@ -372,6 +374,7 @@ func TestGitCommandDiff(t *testing.T) {
 			},
 			false,
 			true,
+			false,
 		},
 		{
 			"plain",
@@ -387,6 +390,7 @@ func TestGitCommandDiff(t *testing.T) {
 				Tracked:          true,
 			},
 			true,
+			false,
 			false,
 		},
 		{
@@ -404,6 +408,24 @@ func TestGitCommandDiff(t *testing.T) {
 			},
 			false,
 			false,
+			false,
+		},
+		{
+			"Default case (ignore whitespace)",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "-w", "--", "test.txt"}, args)
+
+				return secureexec.Command("echo")
+			},
+			&models.File{
+				Name:             "test.txt",
+				HasStagedChanges: false,
+				Tracked:          true,
+			},
+			false,
+			false,
+			true,
 		},
 	}
 
@@ -411,7 +433,7 @@ func TestGitCommandDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
-			gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached, false)
+			gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached, s.ignoreWhitespace)
 		})
 	}
 }
