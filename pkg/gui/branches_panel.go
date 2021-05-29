@@ -505,8 +505,8 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 
 	prefilledName := ""
 	if context.GetKey() == REMOTE_BRANCHES_CONTEXT_KEY {
-		// will set to the remote's existing name
-		prefilledName = item.ID()
+		// will set to the remote's branch name without the remote name
+		prefilledName = strings.SplitAfterN(item.ID(), "/", 2)[1]
 	}
 
 	return gui.prompt(promptOpts{
