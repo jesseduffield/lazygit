@@ -51,6 +51,13 @@ foo
 ++=======
 bar
 ++>>>>>>> branch
+
+<<<<<<< Updated upstream: foo/bar/baz.go
+foo
+bar
+=======
+baz
+>>>>>>> branch
 `,
 			expected: []*mergeConflict{
 				{
@@ -77,6 +84,11 @@ bar
 					start:  25,
 					middle: 27,
 					end:    29,
+				},
+				{
+					start:  31,
+					middle: 34,
+					end:    36,
 				},
 			},
 		},
