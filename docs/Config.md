@@ -98,6 +98,7 @@ keybinding:
     optionMenu-alt1: '?' # show help menu
     select: '<space>'
     goInto: '<enter>'
+    openRecentRepos: '<c-r>'
     confirm: '<enter>'
     confirm-alt1: 'y'
     remove: 'd'

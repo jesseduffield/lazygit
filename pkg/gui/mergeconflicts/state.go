@@ -104,6 +104,10 @@ func findConflicts(content string) []*mergeConflict {
 		case "=======":
 			newConflict.middle = i
 		default:
+			// Sometimes these lines look like "<<<<<<< HEAD:foo/bar/baz.go" so handle that case as well.
+			if strings.HasPrefix(trimmedLine, "<<<<<<< HEAD:") {
+				newConflict = &mergeConflict{start: i}
+			}
 			if strings.HasPrefix(trimmedLine, ">>>>>>> ") {
 				newConflict.end = i
 				conflicts = append(conflicts, newConflict)
