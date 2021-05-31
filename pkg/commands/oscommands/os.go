@@ -301,10 +301,15 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
 	commandTemplate := c.Config.GetUserConfig().OS.OpenCommand
-	templateValues := map[string]string{
-		"filename": c.Quote(filename),
+	quoted := c.Quote(filename)
+	if c.Platform.OS == "linux" {
+		// Add extra quoting to avoid issues with shell command string
+		quoted = c.Quote(quoted)
+		quoted = quoted[1 : len(quoted)-1]
 	}
-
+	templateValues := map[string]string{
+		"filename": quoted,
+	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
 	err := c.RunCommand(command)
 	return err
