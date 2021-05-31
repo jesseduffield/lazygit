@@ -46,8 +46,8 @@ func (c *GitCommand) GetTags() ([]*models.Tag, error) {
 	// now lets sort our tags by name numerically
 	re := regexp.MustCompile(semverRegex)
 
-	sortAsc := !c.Config.GetUserConfig().Gui.SortTagsDescending
-	// the reason  this is complicated is because we're both sorting alphabetically
+	sortAsc := c.Config.GetUserConfig().Gui.SortTagsAscending
+	// the reason this is complicated is because we're both sorting alphabetically
 	// and when we're dealing with semver strings
 	sort.Slice(tags, func(i, j int) bool {
 		var a, b string
