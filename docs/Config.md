@@ -61,6 +61,9 @@ git:
   allBranchesLogCmd: 'git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium'
   overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
   disableForcePushing: false
+os:
+  editCommand: '' # see EditCommand section
+  openCommand: # see OpenCommand section
 refresher:
   refreshInterval: 10 # file/submodule refresh interval in seconds
   fetchInterval: 60 # re-fetch interval in seconds
@@ -212,6 +215,21 @@ os:
 os:
   openCommand: 'open {{filename}}'
 ```
+
+### EditCommand
+Lazygit will run edit with the first non-empty command:
+1. config.yaml
+```yaml
+os:
+  editCommand:
+```
+2. $(git config core.editor)
+3. $GIT_EDITOR
+4. $VISUAL
+5. $EDITOR
+6. vi (if found through `which vi`)
+
+Lazygit will log an error if none of these commands are non-empty.
 
 ### Recommended Config Values
 
