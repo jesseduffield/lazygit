@@ -216,8 +216,8 @@ os:
   openCommand: 'open {{filename}}'
 ```
 
-### EditCommand
-Lazygit will run edit with the first non-empty command:
+### Configuring File Editing
+Lazygit will run edit with the first set option:
 1. config.yaml
 ```yaml
 os:
@@ -227,9 +227,9 @@ os:
 3. $GIT_EDITOR
 4. $VISUAL
 5. $EDITOR
-6. vi (if found through `which vi`)
+6. $(which vi)
 
-Lazygit will log an error if none of these commands are non-empty.
+Lazygit will log an error if none of these options are set.
 
 ### Recommended Config Values
 
