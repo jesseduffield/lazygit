@@ -35,6 +35,8 @@ func findConflicts(content string) []*mergeConflict {
 		case END:
 			newConflict.end = i
 			conflicts = append(conflicts, newConflict)
+			// reset value to avoid any possible silent mutations in further iterations
+			newConflict = nil
 		default:
 			// line isn't a merge conflict marker so we just continue
 		}
