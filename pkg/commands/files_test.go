@@ -741,7 +741,7 @@ func TestEditFileCmdStr(t *testing.T) {
 				return "", nil
 			},
 			func(cmdStr string, err error) {
-				assert.EqualError(t, err, "No editor defined in $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
+				assert.EqualError(t, err, "No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 			},
 		},
 		{
