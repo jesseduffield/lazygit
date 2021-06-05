@@ -1,5 +1,7 @@
 package gui
 
+import . "github.com/jesseduffield/lazygit/pkg/gui/types"
+
 func (gui *Gui) handleCreateExtrasMenuPanel() error {
 	menuItems := []*menuItem{
 		{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type ContextKind int

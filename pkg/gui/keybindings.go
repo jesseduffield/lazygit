@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/pushFiles"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress

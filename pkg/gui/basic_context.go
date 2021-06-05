@@ -1,5 +1,7 @@
 package gui
 
+import . "github.com/jesseduffield/lazygit/pkg/gui/types"
+
 type BasicContext struct {
 	OnFocus         func() error
 	OnFocusLost     func() error

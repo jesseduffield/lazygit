@@ -8,11 +8,11 @@ import (
 // you can only copy from one context at a time, because the order and position of commits matter
 
 func (gui *Gui) resetCherryPickingIfNecessary(context Context) error {
-	oldContextKey := ContextKey(gui.State.Modes.CherryPicking.ContextKey)
+	oldContextKey := gui.State.Modes.CherryPicking.ContextKey
 
 	if oldContextKey != context.GetKey() {
 		// need to reset the cherry picking mode
-		gui.State.Modes.CherryPicking.ContextKey = string(context.GetKey())
+		gui.State.Modes.CherryPicking.ContextKey = context.GetKey()
 		gui.State.Modes.CherryPicking.CherryPickedCommits = make([]*models.Commit, 0)
 
 		return gui.rerenderContextViewIfPresent(oldContextKey)
@@ -159,7 +159,7 @@ func (gui *Gui) HandlePasteCommits() error {
 }
 
 func (gui *Gui) exitCherryPickingMode() error {
-	contextKey := ContextKey(gui.State.Modes.CherryPicking.ContextKey)
+	contextKey := gui.State.Modes.CherryPicking.ContextKey
 
 	gui.State.Modes.CherryPicking.ContextKey = ""
 	gui.State.Modes.CherryPicking.CherryPickedCommits = nil

@@ -2,13 +2,14 @@ package cherrypicking
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type CherryPicking struct {
 	CherryPickedCommits []*models.Commit
 
 	// we only allow cherry picking from one context at a time, so you can't copy a commit from the local commits context and then also copy a commit in the reflog context
-	ContextKey string
+	ContextKey ContextKey
 }
 
 func New() CherryPicking {
