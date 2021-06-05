@@ -54,5 +54,6 @@ func init() {
 		KeyF19:       "\x1b[33~",
 		KeyF20:       "\x1b[34~",
 		KeyHelp:      "\x1b[28~",
+		AutoMargin:   true,
 	})
 }

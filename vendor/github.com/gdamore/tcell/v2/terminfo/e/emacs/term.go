@@ -23,6 +23,7 @@ func init() {
 		SetCursor:   "\x1b[%i%p1%d;%p2%dH",
 		CursorBack1: "\b",
 		CursorUp1:   "\x1b[A",
+		AutoMargin:  true,
 	})
 
 	// Emacs term.el terminal emulator term-protocol-version 0.96
@@ -57,5 +58,6 @@ func init() {
 		KeyEnd:       "\x1b[4~",
 		KeyPgUp:      "\x1b[5~",
 		KeyPgDn:      "\x1b[6~",
+		AutoMargin:   true,
 	})
 }

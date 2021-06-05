@@ -43,5 +43,6 @@ func init() {
 		KeyF8:        "\x1bOl",
 		KeyF9:        "\x1bOw",
 		KeyF10:       "\x1bOx",
+		AutoMargin:   true,
 	})
 }

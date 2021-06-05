@@ -46,5 +46,6 @@ func init() {
 		KeyF7:        "\x1bv",
 		KeyF8:        "\x1bw",
 		KeyClear:     "\x1bJ",
+		AutoMargin:   true,
 	})
 }

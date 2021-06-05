@@ -20,24 +20,6 @@ package tcell
 // that would probably mean sacrificing some of the richer key reporting
 // that we can obtain with the console API present on Windows.
 
-func (t *tScreen) engage() error {
-	return ErrNoScreen
-}
-
-func (t *tScreen) disengage() {
-}
-
 func (t *tScreen) initialize() error {
-	return ErrNoScreen
-}
-
-func (t *tScreen) finalize() {
-}
-
-func (t *tScreen) getWinSize() (int, int, error) {
-	return 0, 0, ErrNoScreen
-}
-
-func (t *tScreen) Beep() error {
 	return ErrNoScreen
 }
