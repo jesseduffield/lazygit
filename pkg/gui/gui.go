@@ -21,6 +21,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
+	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
+	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -269,31 +271,10 @@ const (
 	COMPLETE
 )
 
-// if ref is blank we're not diffing anything
-type Diffing struct {
-	Ref     string
-	Reverse bool
-}
-
-func (m *Diffing) Active() bool {
-	return m.Ref != ""
-}
-
-type CherryPicking struct {
-	CherryPickedCommits []*models.Commit
-
-	// we only allow cherry picking from one context at a time, so you can't copy a commit from the local commits context and then also copy a commit in the reflog context
-	ContextKey ContextKey
-}
-
-func (m *CherryPicking) Active() bool {
-	return len(m.CherryPickedCommits) > 0
-}
-
 type Modes struct {
 	Filtering     filtering.Filtering
-	CherryPicking CherryPicking
-	Diffing       Diffing
+	CherryPicking cherrypicking.CherryPicking
+	Diffing       diffing.Diffing
 }
 
 type guiMutexes struct {
@@ -424,12 +405,9 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		},
 		Ptmx: nil,
 		Modes: Modes{
-			Filtering: filtering.NewFiltering(filterPath),
-			CherryPicking: CherryPicking{
-				CherryPickedCommits: make([]*models.Commit, 0),
-				ContextKey:          "",
-			},
-			Diffing: Diffing{},
+			Filtering:     filtering.New(filterPath),
+			CherryPicking: cherrypicking.New(),
+			Diffing:       diffing.New(),
 		},
 		ViewContextMap:    contexts.initialViewContextMap(),
 		ViewTabContextMap: contexts.initialViewTabContextMap(),

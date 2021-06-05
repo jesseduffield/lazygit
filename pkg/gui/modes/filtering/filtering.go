@@ -4,7 +4,7 @@ type Filtering struct {
 	path string // the filename that gets passed to git log
 }
 
-func NewFiltering(path string) Filtering {
+func New(path string) Filtering {
 	return Filtering{path: path}
 }
 
