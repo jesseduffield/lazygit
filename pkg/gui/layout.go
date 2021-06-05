@@ -394,7 +394,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 		gui.showRecentRepos = false
 	}
 
-	gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+	gui.Updater.CheckForNewUpdateInBackground(gui.onBackgroundUpdateCheckFinish)
 
 	gui.waitForIntro.Done()
 

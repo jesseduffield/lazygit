@@ -122,6 +122,11 @@ type Gui struct {
 
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
+
+	// used to keep track of which popup is currently shown, so that if we want to
+	// open a loading popup for a brief period of time, we can ensure to only remove
+	// it if the id hasn't been incremented
+	PopupPanelId int
 }
 
 type listPanelState struct {

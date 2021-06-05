@@ -32,7 +32,7 @@ type createPopupPanelOpts struct {
 }
 
 func (gui *Gui) Ask(opts AskOpts) error {
-	return gui.createPopupPanel(createPopupPanelOpts{
+	_, err := gui.createPopupPanel(createPopupPanelOpts{
 		title:               opts.Title,
 		prompt:              opts.Prompt,
 		handleConfirm:       opts.HandleConfirm,
@@ -40,19 +40,23 @@ func (gui *Gui) Ask(opts AskOpts) error {
 		handlersManageFocus: opts.HandlersManageFocus,
 		findSuggestionsFunc: opts.FindSuggestionsFunc,
 	})
+
+	return err
 }
 
 func (gui *Gui) Prompt(opts PromptOpts) error {
-	return gui.createPopupPanel(createPopupPanelOpts{
+	_, err := gui.createPopupPanel(createPopupPanelOpts{
 		title:               opts.Title,
 		prompt:              opts.InitialContent,
 		editable:            true,
 		handleConfirmPrompt: opts.HandleConfirm,
 		findSuggestionsFunc: opts.FindSuggestionsFunc,
 	})
+
+	return err
 }
 
-func (gui *Gui) CreateLoaderPanel(prompt string) error {
+func (gui *Gui) createLoaderPanel(prompt string) (int, error) {
 	return gui.createPopupPanel(createPopupPanelOpts{
 		prompt:    prompt,
 		hasLoader: true,
@@ -188,7 +192,10 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, f
 	return nil
 }
 
-func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
+func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) (int, error) {
+	gui.PopupPanelId++
+	id := gui.PopupPanelId
+
 	gui.g.Update(func(g *gocui.Gui) error {
 		// remove any previous keybindings
 		gui.clearConfirmationViewKeyBindings()
@@ -212,6 +219,16 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 
 		return gui.setKeyBindings(opts)
 	})
+	return id, nil
+}
+
+func (gui *Gui) closePopupPanelById(id int) error {
+	if gui.PopupPanelId == id {
+		if err := gui.closeConfirmationPrompt(false); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

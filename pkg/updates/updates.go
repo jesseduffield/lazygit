@@ -145,18 +145,23 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 	return newVersion, nil
 }
 
-// CheckForNewUpdate checks if there is an available update
-func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error, userRequested bool) {
-	if !userRequested && u.skipUpdateCheck() {
+type OnFinish func(string, error) error
+
+func (u *Updater) CheckForNewUpdateInBackground(onFinish OnFinish) {
+	if u.skipUpdateCheck() {
 		return
 	}
 
 	go utils.Safe(func() {
-		newVersion, err := u.checkForNewUpdate()
-		if err = onFinish(newVersion, err); err != nil {
-			u.Log.Error(err)
-		}
+		u.CheckForNewUpdate(onFinish)
 	})
+}
+
+func (u *Updater) CheckForNewUpdate(onFinish OnFinish) {
+	newVersion, err := u.checkForNewUpdate()
+	if err = onFinish(newVersion, err); err != nil {
+		u.Log.Error(err)
+	}
 }
 
 func (u *Updater) skipUpdateCheck() bool {

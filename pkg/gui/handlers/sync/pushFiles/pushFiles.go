@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type Gui interface {
@@ -22,7 +21,7 @@ type Gui interface {
 	Ask(AskOpts) error
 	GetTr() *i18n.TranslationSet
 	CreateErrorPanel(string) error
-	CreateLoaderPanel(string) error
+	WithPopupWaitingStatus(string, func() error) error
 	HandleCredentialsPopup(error)
 	PromptUserForCredential(passOrUname string) string
 	RefreshSidePanels(RefreshOptions) error
@@ -80,31 +79,28 @@ func (gui *PushFilesHandler) Run() error {
 }
 
 func (gui *PushFilesHandler) pushWithForceFlag(force bool, upstream string, args string) error {
-	if err := gui.CreateLoaderPanel(gui.GetTr().PushWait); err != nil {
-		return err
-	}
-	go utils.Safe(func() {
+	return gui.WithPopupWaitingStatus(gui.GetTr().PushWait, func() error {
 		branchName := gui.CurrentBranch().Name
 		err := gui.GetGitCommand().WithSpan(gui.GetTr().Spans.Push).Push(branchName, force, upstream, args, gui.PromptUserForCredential)
 		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
 			forcePushDisabled := gui.GetUserConfig().Git.DisableForcePushing
 			if forcePushDisabled {
 				_ = gui.CreateErrorPanel(gui.GetTr().UpdatesRejectedAndForcePushDisabled)
-				return
+				return nil
 			}
-			_ = gui.Ask(AskOpts{
+			return gui.Ask(AskOpts{
 				Title:  gui.GetTr().ForcePush,
 				Prompt: gui.GetTr().ForcePushPrompt,
 				HandleConfirm: func() error {
 					return gui.pushWithForceFlag(true, upstream, args)
 				},
 			})
-			return
 		}
 		gui.HandleCredentialsPopup(err)
 		_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
+
+		return nil
 	})
-	return nil
 }
 
 func (gui *PushFilesHandler) requestToForcePush() error {

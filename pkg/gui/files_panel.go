@@ -656,16 +656,13 @@ type PullFilesOptions struct {
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
-	if err := gui.CreateLoaderPanel(gui.Tr.PullWait); err != nil {
-		return err
-	}
+	return gui.WithPopupWaitingStatus(gui.Tr.PullWait, func() error {
+		mode := gui.Config.GetUserConfig().Git.Pull.Mode
 
-	mode := gui.Config.GetUserConfig().Git.Pull.Mode
+		_ = gui.pullWithMode(mode, opts)
 
-	// TODO: this doesn't look like a good idea. Why the goroutine?
-	go utils.Safe(func() { _ = gui.pullWithMode(mode, opts) })
-
-	return nil
+		return nil
+	})
 }
 
 func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {

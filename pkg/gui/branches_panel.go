@@ -120,15 +120,13 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 }
 
 func (gui *Gui) handleGitFetch() error {
-	if err := gui.CreateLoaderPanel(gui.Tr.FetchWait); err != nil {
-		return err
-	}
-	go utils.Safe(func() {
+	return gui.WithPopupWaitingStatus(gui.Tr.FetchWait, func() error {
 		err := gui.fetch(true, "Fetch")
 		gui.HandleCredentialsPopup(err)
 		_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
+
+		return nil
 	})
-	return nil
 }
 
 func (gui *Gui) handleForceCheckout() error {
@@ -401,9 +399,8 @@ func (gui *Gui) handleFastForward() error {
 			"to":   branch.Name,
 		},
 	)
-	go utils.Safe(func() {
-		_ = gui.CreateLoaderPanel(message)
 
+	return gui.WithPopupWaitingStatus(message, func() error {
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{span: span})
 		} else {
@@ -411,8 +408,9 @@ func (gui *Gui) handleFastForward() error {
 			gui.HandleCredentialsPopup(err)
 			_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{BRANCHES}})
 		}
+
+		return nil
 	})
-	return nil
 }
 
 func (gui *Gui) handleCreateResetToBranchMenu() error {

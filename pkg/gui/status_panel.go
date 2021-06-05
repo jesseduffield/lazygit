@@ -47,8 +47,11 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 }
 
 func (gui *Gui) handleCheckForUpdate() error {
-	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.CreateLoaderPanel(gui.Tr.CheckingForUpdates)
+	return gui.WithPopupWaitingStatus(gui.Tr.CheckingForUpdates, func() error {
+		gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish)
+
+		return nil
+	})
 }
 
 func (gui *Gui) handleStatusClick() error {

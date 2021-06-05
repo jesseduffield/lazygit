@@ -125,3 +125,23 @@ func (gui *Gui) WithWaitingStatus(message string, f func() error) error {
 
 	return nil
 }
+
+// TODO: pull this into the same structure as the other app message stuff. Right
+// now it's coupled to our confirmation panel but really doesn't need to be
+func (gui *Gui) WithPopupWaitingStatus(message string, f func() error) error {
+	go utils.Safe(func() {
+		id, _ := gui.createLoaderPanel(message)
+
+		defer func() {
+			gui.closePopupPanelById(id)
+		}()
+
+		if err := f(); err != nil {
+			gui.g.Update(func(g *gocui.Gui) error {
+				return gui.SurfaceError(err)
+			})
+		}
+	})
+
+	return nil
+}
