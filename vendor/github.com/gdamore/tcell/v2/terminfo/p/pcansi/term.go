@@ -36,5 +36,6 @@ func init() {
 		KeyLeft:      "\x1b[D",
 		KeyBackspace: "\b",
 		KeyHome:      "\x1b[H",
+		AutoMargin:   true,
 	})
 }

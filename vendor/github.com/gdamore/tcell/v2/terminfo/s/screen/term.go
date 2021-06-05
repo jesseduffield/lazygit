@@ -63,6 +63,7 @@ func init() {
 		KeyF11:       "\x1b[23~",
 		KeyF12:       "\x1b[24~",
 		KeyBacktab:   "\x1b[Z",
+		AutoMargin:   true,
 	})
 
 	// GNU Screen with 256 colors
@@ -122,5 +123,6 @@ func init() {
 		KeyF11:       "\x1b[23~",
 		KeyF12:       "\x1b[24~",
 		KeyBacktab:   "\x1b[Z",
+		AutoMargin:   true,
 	})
 }

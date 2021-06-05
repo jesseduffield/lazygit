@@ -61,5 +61,7 @@ func init() {
 		KeyF12:       "\x1b[24~",
 		KeyBacktab:   "\x1b[Z",
 		Modifiers:    1,
+		AutoMargin:   true,
+		InsertChar:   "\x1b[@",
 	})
 }

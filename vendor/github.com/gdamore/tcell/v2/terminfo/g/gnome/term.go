@@ -64,6 +64,7 @@ func init() {
 		KeyF12:       "\x1b[24~",
 		KeyBacktab:   "\x1b[Z",
 		Modifiers:    1,
+		AutoMargin:   true,
 	})
 
 	// GNOME Terminal with xterm 256-colors
@@ -124,5 +125,6 @@ func init() {
 		KeyF12:       "\x1b[24~",
 		KeyBacktab:   "\x1b[Z",
 		Modifiers:    1,
+		AutoMargin:   true,
 	})
 }

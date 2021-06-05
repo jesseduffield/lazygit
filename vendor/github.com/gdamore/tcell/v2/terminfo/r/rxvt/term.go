@@ -107,6 +107,8 @@ func init() {
 		KeyCtrlLeft:  "\x1b[Od",
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
+		AutoMargin:   true,
+		InsertChar:   "\x1b[@",
 	})
 
 	// rxvt 2.7.9 with xterm 256-colors
@@ -210,6 +212,8 @@ func init() {
 		KeyCtrlLeft:  "\x1b[Od",
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
+		AutoMargin:   true,
+		InsertChar:   "\x1b[@",
 	})
 
 	// rxvt 2.7.9 with xterm 88-colors
@@ -313,6 +317,8 @@ func init() {
 		KeyCtrlLeft:  "\x1b[Od",
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
+		AutoMargin:   true,
+		InsertChar:   "\x1b[@",
 	})
 
 	// rxvt-unicode terminal (X Window System)
@@ -392,6 +398,8 @@ func init() {
 		KeyCtrlLeft:  "\x1b[Od",
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
+		AutoMargin:   true,
+		InsertChar:   "\x1b[@",
 	})
 
 	// rxvt-unicode terminal with 256 colors (X Window System)
@@ -471,5 +479,7 @@ func init() {
 		KeyCtrlLeft:  "\x1b[Od",
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
+		AutoMargin:   true,
+		InsertChar:   "\x1b[@",
 	})
 }

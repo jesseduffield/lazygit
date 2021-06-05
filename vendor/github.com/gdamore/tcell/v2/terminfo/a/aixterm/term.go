@@ -78,5 +78,6 @@ func init() {
 		KeyF36:       "\x1b[036q",
 		KeyClear:     "\x1b[144q",
 		KeyBacktab:   "\x1b[Z",
+		AutoMargin:   true,
 	})
 }

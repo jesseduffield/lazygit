@@ -59,5 +59,6 @@ func init() {
 		KeyPrint:     "\x1bP",
 		KeyBacktab:   "\x1bI",
 		KeyShfHome:   "\x1b{",
+		AutoMargin:   true,
 	})
 }

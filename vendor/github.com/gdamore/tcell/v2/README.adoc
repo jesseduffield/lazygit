@@ -5,7 +5,7 @@ image:https://img.shields.io/travis/gdamore/tcell.svg?label=linux[Linux Status,l
 image:https://img.shields.io/appveyor/ci/gdamore/tcell.svg?label=windows[Windows Status,link="https://ci.appveyor.com/project/gdamore/tcell"]
 image:https://img.shields.io/badge/license-APACHE2-blue.svg[Apache License,link="https://github.com/gdamore/tcell/blob/master/LICENSE"]
 image:https://img.shields.io/badge/godoc-reference-blue.svg[GoDoc,link="https://godoc.org/github.com/gdamore/tcell"]
-image:http://goreportcard.com/badge/gdamore/tcell[Go Report Card,link="http://goreportcard.com/report/gdamore/tcell"]
+image:https://goreportcard.com/badge/gdamore/tcell[Go Report Card,link="http://goreportcard.com/report/gdamore/tcell"]
 image:https://img.shields.io/discord/639503822733180969?label=discord[Discord,link="https://discord.gg/urTTxDN"]
 image:https://codecov.io/gh/gdamore/tcell/branch/master/graph/badge.svg[codecov,link="https://codecov.io/gh/gdamore/tcell"]
 
@@ -51,6 +51,9 @@ Version 1.x remains available using the import `github.com/gdamore/tcell`.
 * https://github.com/jbaramidze/gonano[gonano] - CLI test editor
 * https://github.com/tmountain/uchess[uchess] - A UCI chess client for your terminal
 * https://github.com/a-h/min[min] - A Gemini browser
+* https://github.com/noborus/ov[ov] - Terminal pager
+* https://github.com/gcla/tmux-wormhole[tmux-wormhole] - A tmux plugin to transfer files with magic wormhole
+* https://github.com/anaseto/gruid-tcell[gruid-tcell] - A tcell driver for the grid based UI and game framework gruid.
 
 == Pure Go Terminfo Database
 

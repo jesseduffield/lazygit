@@ -360,6 +360,10 @@ func (s *simscreen) PollEvent() Event {
 	}
 }
 
+func (s *simscreen) HasPendingEvent() bool {
+	return len(s.evch) > 0
+}
+
 func (s *simscreen) PostEventWait(ev Event) {
 	s.evch <- ev
 }

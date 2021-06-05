@@ -41,6 +41,7 @@ type cScreen struct {
 	fini       bool
 	vten       bool
 	truecolor  bool
+	running    bool
 
 	w int
 	h int
@@ -265,42 +266,14 @@ func (s *cScreen) Fini() {
 	s.disengage()
 }
 
-func (s *cScreen) finish() {
-	s.Lock()
-	s.style = StyleDefault
-	s.curx = -1
-	s.cury = -1
-	s.fini = true
-	s.vten = false
-	s.Unlock()
-
-	s.setCursorInfo(&s.ocursor)
-	s.setInMode(s.oimode)
-	s.setOutMode(s.oomode)
-	s.setBufferSize(int(s.oscreen.size.x), int(s.oscreen.size.y))
-	s.clearScreen(StyleDefault, false)
-	s.setCursorPos(0, 0, false)
-	procSetConsoleTextAttribute.Call(
-		uintptr(s.out),
-		uintptr(s.mapStyle(StyleDefault)))
-
-	close(s.quit)
-	procSetEvent.Call(uintptr(s.cancelflag))
-	// Block until scanInput returns; this prevents a race condition on Win 8+
-	// which causes syscall.Close to block until another keypress is read.
-	<-s.scandone
-	syscall.Close(s.in)
-	syscall.Close(s.out)
-}
-
 func (s *cScreen) disengage() {
 	s.Lock()
-	stopQ := s.stopQ
-	if stopQ == nil {
+	if !s.running {
 		s.Unlock()
 		return
 	}
-	s.stopQ = nil
+	s.running = false
+	stopQ := s.stopQ
 	procSetEvent.Call(uintptr(s.cancelflag))
 	close(stopQ)
 	s.Unlock()
@@ -312,6 +285,7 @@ func (s *cScreen) disengage() {
 	s.setBufferSize(int(s.oscreen.size.x), int(s.oscreen.size.y))
 	s.clearScreen(StyleDefault, false)
 	s.setCursorPos(0, 0, false)
+	s.setCursorInfo(&s.ocursor)
 	procSetConsoleTextAttribute.Call(
 		uintptr(s.out),
 		uintptr(s.mapStyle(StyleDefault)))
@@ -320,7 +294,7 @@ func (s *cScreen) disengage() {
 func (s *cScreen) engage() error {
 	s.Lock()
 	defer s.Unlock()
-	if s.stopQ != nil {
+	if s.running {
 		return errors.New("already engaged")
 	}
 	s.stopQ = make(chan struct{})
@@ -332,6 +306,7 @@ func (s *cScreen) engage() error {
 	if cf == uintptr(0) {
 		return e
 	}
+	s.running = true
 	s.cancelflag = syscall.Handle(cf)
 	s.enableMouse(s.mouseEnabled)
 
@@ -370,11 +345,15 @@ func (s *cScreen) PostEvent(ev Event) error {
 
 func (s *cScreen) PollEvent() Event {
 	select {
-	case <-s.quit:
+	case <-s.stopQ:
 		return nil
 	case ev := <-s.evch:
 		return ev
 	}
+}
+
+func (s *cScreen) HasPendingEvent() bool {
+	return len(s.evch) > 0
 }
 
 type cursorInfo struct {
