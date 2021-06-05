@@ -48,18 +48,14 @@ func findConflicts(content string) []*mergeConflict {
 func determineLineType(line string) LineType {
 	trimmedLine := strings.TrimPrefix(line, "++")
 
-	mapping := map[string]LineType{
-		"^<<<<<<< (HEAD|MERGE_HEAD|Updated upstream|ours)(:.+)?$": START,
-		"^=======$":    MIDDLE,
-		"^>>>>>>> .*$": END,
+	switch {
+	case strings.HasPrefix(trimmedLine, "<<<<<<< "):
+		return START
+	case trimmedLine == "=======":
+		return MIDDLE
+	case strings.HasPrefix(trimmedLine, ">>>>>>> "):
+		return END
+	default:
+		return NOT_A_MARKER
 	}
-
-	for regexp_str, lineType := range mapping {
-		match, _ := regexp.MatchString(regexp_str, trimmedLine)
-		if match {
-			return lineType
-		}
-	}
-
-	return NOT_A_MARKER
 }
