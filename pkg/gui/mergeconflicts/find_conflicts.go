@@ -1,7 +1,6 @@
 package mergeconflicts
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
