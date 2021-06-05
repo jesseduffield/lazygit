@@ -83,6 +83,7 @@ bar
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.name, func(t *testing.T) {
 			assert.EqualValues(t, s.expected, findConflicts(s.content))
 		})
