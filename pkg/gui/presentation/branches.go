@@ -33,13 +33,8 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 		nameColorAttr = theme.DiffTerminalColor
 	}
 	coloredName := utils.ColoredString(displayName, nameColorAttr)
-	if b.Pushables != "" && b.Pullables != "" && b.Pushables != "?" && b.Pullables != "?" {
-		trackColor := color.FgYellow
-		if b.Pushables == "0" && b.Pullables == "0" {
-			trackColor = color.FgGreen
-		}
-		track := utils.ColoredString(fmt.Sprintf("↑%s↓%s", b.Pushables, b.Pullables), trackColor)
-		coloredName = fmt.Sprintf("%s %s", coloredName, track)
+	if b.IsTrackingRemote() {
+		coloredName = fmt.Sprintf("%s %s", coloredName, ColoredBranchStatus(b))
 	}
 
 	recencyColor := color.FgCyan
@@ -68,4 +63,19 @@ func GetBranchColor(name string) color.Attribute {
 	default:
 		return theme.DefaultTextColor
 	}
+}
+
+func ColoredBranchStatus(branch *models.Branch) string {
+	colour := color.FgYellow
+	if branch.MatchesUpstream() {
+		colour = color.FgGreen
+	} else if !branch.IsTrackingRemote() {
+		colour = color.FgRed
+	}
+
+	return utils.ColoredString(BranchStatus(branch), colour)
+}
+
+func BranchStatus(branch *models.Branch) string {
+	return fmt.Sprintf("↑%s↓%s", branch.Pushables, branch.Pullables)
 }

@@ -379,16 +379,14 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 
 func (gui *Gui) handleFastForward() error {
 	branch := gui.getSelectedBranch()
-	if branch == nil {
+	if branch == nil || !branch.IsRealBranch() {
 		return nil
 	}
-	if branch.Pushables == "" {
-		return nil
-	}
-	if branch.Pushables == "?" {
+
+	if !branch.IsTrackingRemote() {
 		return gui.createErrorPanel(gui.Tr.FwdNoUpstream)
 	}
-	if branch.Pushables != "0" {
+	if branch.HasCommitsToPush() {
 		return gui.createErrorPanel(gui.Tr.FwdCommitsToPush)
 	}
 
@@ -435,7 +433,7 @@ func (gui *Gui) handleCreateResetToBranchMenu() error {
 
 func (gui *Gui) handleRenameBranch() error {
 	branch := gui.getSelectedBranch()
-	if branch == nil {
+	if branch == nil || !branch.IsRealBranch() {
 		return nil
 	}
 
@@ -469,8 +467,7 @@ func (gui *Gui) handleRenameBranch() error {
 	// I could do an explicit check here for whether the branch is tracking a remote branch
 	// but if we've selected it we'll already know that via Pullables and Pullables.
 	// Bit of a hack but I'm lazy.
-	notTrackingRemote := branch.Pullables == "?"
-	if notTrackingRemote {
+	if !branch.IsTrackingRemote() {
 		return promptForNewName()
 	}
 
