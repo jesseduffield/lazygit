@@ -13,8 +13,8 @@ type Commit struct {
 	Author        string
 	UnixTimestamp int64
 
-	// IsMerge tells us whether we're dealing with a merge commit i.e. a commit with two parents
-	IsMerge bool
+	// SHAs of parent commits (will be multiple if it's a merge commit)
+	Parents []string
 }
 
 func (c *Commit) ShortSha() string {
@@ -34,4 +34,8 @@ func (c *Commit) ID() string {
 
 func (c *Commit) Description() string {
 	return fmt.Sprintf("%s %s", c.Sha[:7], c.Name)
+}
+
+func (c *Commit) IsMerge() bool {
+	return len(c.Parents) > 1
 }

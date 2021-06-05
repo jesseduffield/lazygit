@@ -1,0 +1,12 @@
+0000000000000000000000000000000000000000 d3b35176a575d48743900b1f0863cefbc198f84c CI <CI@example.com> 1622875852 +1000	commit (initial): test 1
+d3b35176a575d48743900b1f0863cefbc198f84c d3b35176a575d48743900b1f0863cefbc198f84c CI <CI@example.com> 1622875853 +1000	checkout: moving from master to other
+d3b35176a575d48743900b1f0863cefbc198f84c 3c3594b2fd655fb7ffe36077ee8a9c3f79fb5fc6 CI <CI@example.com> 1622875853 +1000	commit: test 2
+3c3594b2fd655fb7ffe36077ee8a9c3f79fb5fc6 3c3594b2fd655fb7ffe36077ee8a9c3f79fb5fc6 CI <CI@example.com> 1622875853 +1000	checkout: moving from other to another
+3c3594b2fd655fb7ffe36077ee8a9c3f79fb5fc6 1e7d643e0db24ebee10f92aa2f8099d50dbe0f0f CI <CI@example.com> 1622875853 +1000	commit: test 3
+1e7d643e0db24ebee10f92aa2f8099d50dbe0f0f 3c3594b2fd655fb7ffe36077ee8a9c3f79fb5fc6 CI <CI@example.com> 1622875853 +1000	checkout: moving from another to other
+3c3594b2fd655fb7ffe36077ee8a9c3f79fb5fc6 fa0b6bf64815f57729716334319596c926b6564a CI <CI@example.com> 1622875853 +1000	commit: test 4
+fa0b6bf64815f57729716334319596c926b6564a ba4581dc53b5b2ff56803651dfd79245203d546b CI <CI@example.com> 1622875853 +1000	merge another: Merge made by the 'recursive' strategy.
+ba4581dc53b5b2ff56803651dfd79245203d546b a4942a576eec3a1a15fb790c942b6860331bee32 CI <CI@example.com> 1622875853 +1000	commit: test 5
+a4942a576eec3a1a15fb790c942b6860331bee32 e5265503c8aea2860fc4754c1025e4597530ce0e CI <CI@example.com> 1622875856 +1000	revert: Revert "Merge branch 'another' into other"
+e5265503c8aea2860fc4754c1025e4597530ce0e a4942a576eec3a1a15fb790c942b6860331bee32 CI <CI@example.com> 1622875860 +1000	reset: moving to a4942a576eec3a1a15fb790c942b6860331bee32
+a4942a576eec3a1a15fb790c942b6860331bee32 ddad764e9e78b555cd41e5e81f8ce969cfa3972c CI <CI@example.com> 1622875862 +1000	commit: test

@@ -87,6 +87,14 @@ func TruncateWithEllipsis(str string, limit int) string {
 	return str[0:remainingLength] + "..."
 }
 
+func SafeTruncate(str string, limit int) string {
+	if len(str) > limit {
+		return str[0:limit]
+	} else {
+		return str
+	}
+}
+
 func FindStringSubmatch(str string, regexpStr string) (bool, []string) {
 	re := regexp.MustCompile(regexpStr)
 	match := re.FindStringSubmatch(str)

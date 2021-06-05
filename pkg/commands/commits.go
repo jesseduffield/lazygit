@@ -47,6 +47,10 @@ func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
 	return strings.TrimSpace(message), err
 }
 
+func (c *GitCommand) GetCommitMessageFirstLine(sha string) (string, error) {
+	return c.RunCommandWithOutput("git show --no-patch --pretty=format:%%s %s", sha)
+}
+
 // AmendHead amends HEAD with whatever is staged in your working tree
 func (c *GitCommand) AmendHead() error {
 	return c.OSCommand.RunCommand(c.AmendHeadCmdStr())
@@ -67,6 +71,10 @@ func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {
 // Revert reverts the selected commit by sha
 func (c *GitCommand) Revert(sha string) error {
 	return c.RunCommand("git revert %s", sha)
+}
+
+func (c *GitCommand) RevertMerge(sha string, parentNumber int) error {
+	return c.RunCommand("git revert %s -m %d", sha, parentNumber)
 }
 
 // CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD

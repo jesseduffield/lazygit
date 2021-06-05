@@ -461,9 +461,43 @@ func (gui *Gui) handleCommitRevert() error {
 		return err
 	}
 
-	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RevertCommit).Revert(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha); err != nil {
-		return gui.surfaceError(err)
+	commit := gui.getSelectedLocalCommit()
+
+	if commit.IsMerge() {
+		return gui.createRevertMergeCommitMenu(commit)
+	} else {
+		if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RevertCommit).Revert(commit.Sha); err != nil {
+			return gui.surfaceError(err)
+		}
+		return gui.afterRevertCommit()
 	}
+}
+
+func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
+	menuItems := make([]*menuItem, len(commit.Parents))
+	for i, parentSha := range commit.Parents {
+		i := i
+		message, err := gui.GitCommand.GetCommitMessageFirstLine(parentSha)
+		if err != nil {
+			return gui.surfaceError(err)
+		}
+
+		menuItems[i] = &menuItem{
+			displayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
+			onPress: func() error {
+				parentNumber := i + 1
+				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RevertCommit).RevertMerge(commit.Sha, parentNumber); err != nil {
+					return gui.surfaceError(err)
+				}
+				return gui.afterRevertCommit()
+			},
+		}
+	}
+
+	return gui.createMenu(gui.Tr.SelectParentCommitForMerge, menuItems, createMenuOptions{showCancel: true})
+}
+
+func (gui *Gui) afterRevertCommit() error {
 	gui.State.Panels.Commits.SelectedLineIdx++
 	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []RefreshableView{COMMITS, BRANCHES}})
 }
