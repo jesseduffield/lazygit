@@ -155,25 +155,16 @@ func (gui *Gui) focusSelection(state *LblPanelState) error {
 	bufferHeight := viewHeight - 1
 	_, origin := stagingView.Origin()
 
-	firstLineIdx, lastLineIdx := state.SelectedRange()
+	selectedLineIdx := state.GetSelectedLineIdx()
 
-	margin := 0 // we may want to have a margin in place to show context  but right now I'm thinking we keep this at zero
-
-	var newOrigin int
-	if firstLineIdx-origin < margin {
-		newOrigin = firstLineIdx - margin
-	} else if lastLineIdx-origin > bufferHeight-margin {
-		newOrigin = lastLineIdx - bufferHeight + margin
-	} else {
-		newOrigin = origin
-	}
+	newOrigin := state.CalculateOrigin(origin, bufferHeight)
 
 	gui.g.Update(func(*gocui.Gui) error {
 		if err := stagingView.SetOrigin(0, newOrigin); err != nil {
 			return err
 		}
 
-		return stagingView.SetCursor(0, state.GetSelectedLineIdx()-newOrigin)
+		return stagingView.SetCursor(0, selectedLineIdx-newOrigin)
 	})
 
 	return nil
