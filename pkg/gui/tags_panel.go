@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -15,14 +16,14 @@ func (gui *Gui) getSelectedTag() *models.Tag {
 }
 
 func (gui *Gui) handleCreateTag() error {
-	return gui.prompt(promptOpts{
-		title: gui.Tr.CreateTagTitle,
-		handleConfirm: func(tagName string) error {
+	return gui.Prompt(PromptOpts{
+		Title: gui.Tr.CreateTagTitle,
+		HandleConfirm: func(tagName string) error {
 			// leaving commit SHA blank so that we're just creating the tag for the current commit
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateLightweightTag).CreateLightweightTag(tagName, ""); err != nil {
-				return gui.surfaceError(err)
+				return gui.SurfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{COMMITS, TAGS}, then: func() {
+			return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{COMMITS, TAGS}, Then: func() {
 				// find the index of the tag and set that as the currently selected line
 				for i, tag := range gui.State.Tags {
 					if tag.Name == tagName {
@@ -66,7 +67,7 @@ func (gui *Gui) handleTagSelect() error {
 func (gui *Gui) refreshTags() error {
 	tags, err := gui.GitCommand.GetTags()
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.SurfaceError(err)
 	}
 
 	gui.State.Tags = tags
@@ -100,14 +101,14 @@ func (gui *Gui) handleDeleteTag(tag *models.Tag) error {
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.DeleteTagTitle,
-		prompt: prompt,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  gui.Tr.DeleteTagTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteTag).DeleteTag(tag.Name); err != nil {
-				return gui.surfaceError(err)
+				return gui.SurfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
+			return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{COMMITS, TAGS}})
 		},
 	})
 }
@@ -120,13 +121,13 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		},
 	)
 
-	return gui.prompt(promptOpts{
-		title:          title,
-		initialContent: "origin",
-		handleConfirm: func(response string) error {
+	return gui.Prompt(PromptOpts{
+		Title:          title,
+		InitialContent: "origin",
+		HandleConfirm: func(response string) error {
 			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
-				err := gui.GitCommand.WithSpan(gui.Tr.Spans.PushTag).PushTag(response, tag.Name, gui.promptUserForCredential)
-				gui.handleCredentialsPopup(err)
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.PushTag).PushTag(response, tag.Name, gui.PromptUserForCredential)
+				gui.HandleCredentialsPopup(err)
 
 				return nil
 			})

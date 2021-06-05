@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleCreateRebaseOptionsMenu() error {
@@ -40,7 +41,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	status := gui.GitCommand.WorkingTreeState()
 
 	if status != commands.REBASE_MODE_MERGING && status != commands.REBASE_MODE_REBASING {
-		return gui.createErrorPanel(gui.Tr.NotMergingOrRebasing)
+		return gui.CreateErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
 	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge/Rebase: %s", command))
@@ -64,7 +65,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 }
 
 func (gui *Gui) handleGenericMergeCommandResult(result error) error {
-	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+	if err := gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC}); err != nil {
 		return err
 	}
 	if result == nil {
@@ -77,14 +78,14 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		// assume in this case that we're already done
 		return nil
 	} else if strings.Contains(result.Error(), "When you have resolved this problem") || strings.Contains(result.Error(), "fix conflicts") || strings.Contains(result.Error(), "Resolve all conflicts manually") {
-		return gui.ask(askOpts{
-			title:               gui.Tr.FoundConflictsTitle,
-			prompt:              gui.Tr.FoundConflicts,
-			handlersManageFocus: true,
-			handleConfirm: func() error {
+		return gui.Ask(AskOpts{
+			Title:               gui.Tr.FoundConflictsTitle,
+			Prompt:              gui.Tr.FoundConflicts,
+			HandlersManageFocus: true,
+			HandleConfirm: func() error {
 				return gui.pushContext(gui.State.Contexts.Files)
 			},
-			handleClose: func() error {
+			HandleClose: func() error {
 				if err := gui.returnFromContext(); err != nil {
 					return err
 				}
@@ -93,6 +94,6 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 			},
 		})
 	} else {
-		return gui.createErrorPanel(result.Error())
+		return gui.CreateErrorPanel(result.Error())
 	}
 }

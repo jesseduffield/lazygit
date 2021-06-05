@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -54,15 +55,15 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 	}
 	message := fmt.Sprintf("%s '%s'?", gui.Tr.DeleteRemoteBranchMessage, remoteBranch.FullName())
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.DeleteRemoteBranch,
-		prompt: message,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  gui.Tr.DeleteRemoteBranch,
+		Prompt: message,
+		HandleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.promptUserForCredential)
-				gui.handleCredentialsPopup(err)
+				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.PromptUserForCredential)
+				gui.HandleCredentialsPopup(err)
 
-				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
+				return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, REMOTES}})
 			})
 		},
 	})
@@ -75,7 +76,7 @@ func (gui *Gui) handleRebaseOntoRemoteBranch() error {
 
 func (gui *Gui) handleSetBranchUpstream() error {
 	selectedBranch := gui.getSelectedRemoteBranch()
-	checkedOutBranch := gui.getCheckedOutBranch()
+	checkedOutBranch := gui.CurrentBranch()
 
 	message := utils.ResolvePlaceholderString(
 		gui.Tr.SetUpstreamMessage,
@@ -85,15 +86,15 @@ func (gui *Gui) handleSetBranchUpstream() error {
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.SetUpstreamTitle,
-		prompt: message,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  gui.Tr.SetUpstreamTitle,
+		Prompt: message,
+		HandleConfirm: func() error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SetBranchUpstream).SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
 				return err
 			}
 
-			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
+			return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, REMOTES}})
 		},
 	})
 }

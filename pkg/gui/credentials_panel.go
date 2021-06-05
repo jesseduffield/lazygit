@@ -4,13 +4,14 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type credentials chan string
 
-// promptUserForCredential wait for a username, password or passphrase input from the credentials popup
-func (gui *Gui) promptUserForCredential(passOrUname string) string {
+// PromptUserForCredential wait for a username, password or passphrase input from the credentials popup
+func (gui *Gui) PromptUserForCredential(passOrUname string) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView := gui.Views.Credentials
@@ -48,7 +49,7 @@ func (gui *Gui) handleSubmitCredential() error {
 		return err
 	}
 
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 }
 
 func (gui *Gui) handleCloseCredentialsView() error {
@@ -71,8 +72,8 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 	return nil
 }
 
-// handleCredentialsPopup handles the views after executing a command that might ask for credentials
-func (gui *Gui) handleCredentialsPopup(cmdErr error) {
+// HandleCredentialsPopup handles the views after executing a command that might ask for credentials
+func (gui *Gui) HandleCredentialsPopup(cmdErr error) {
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
 		if strings.Contains(errMessage, "Invalid username, password or passphrase") {
@@ -80,7 +81,7 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 		}
 		_ = gui.returnFromContext()
 		// we are not logging this error because it may contain a password or a passphrase
-		_ = gui.createErrorPanel(errMessage)
+		_ = gui.CreateErrorPanel(errMessage)
 	} else {
 		_ = gui.closeConfirmationPrompt(false)
 	}

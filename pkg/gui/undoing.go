@@ -3,6 +3,7 @@ package gui
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -90,7 +91,7 @@ func (gui *Gui) reflogUndo() error {
 	undoingStatus := gui.Tr.UndoingStatus
 
 	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
-		return gui.createErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
+		return gui.CreateErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
 	}
 
 	span := gui.Tr.Spans.Undo
@@ -125,7 +126,7 @@ func (gui *Gui) reflogRedo() error {
 	redoingStatus := gui.Tr.RedoingStatus
 
 	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
-		return gui.createErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
+		return gui.CreateErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
 	}
 
 	span := gui.Tr.Spans.Redo
@@ -170,7 +171,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 
 	reset := func() error {
 		if err := gui.resetToRef(commitSha, "hard", options.span, oscommands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
-			return gui.surfaceError(err)
+			return gui.SurfaceError(err)
 		}
 		return nil
 	}
@@ -179,24 +180,24 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 	dirtyWorkingTree := len(gui.trackedFiles()) > 0 || len(gui.stagedFiles()) > 0
 	if dirtyWorkingTree {
 		// offer to autostash changes
-		return gui.ask(askOpts{
-			title:  gui.Tr.AutoStashTitle,
-			prompt: gui.Tr.AutoStashPrompt,
-			handleConfirm: func() error {
+		return gui.Ask(AskOpts{
+			Title:  gui.Tr.AutoStashTitle,
+			Prompt: gui.Tr.AutoStashPrompt,
+			HandleConfirm: func() error {
 				return gui.WithWaitingStatus(options.WaitingStatus, func() error {
 					if err := gitCommand.StashSave(gui.Tr.StashPrefix + commitSha); err != nil {
-						return gui.surfaceError(err)
+						return gui.SurfaceError(err)
 					}
 					if err := reset(); err != nil {
 						return err
 					}
 
 					err := gitCommand.StashDo(0, "pop")
-					if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
+					if err := gui.RefreshSidePanels(RefreshOptions{}); err != nil {
 						return err
 					}
 					if err != nil {
-						return gui.surfaceError(err)
+						return gui.SurfaceError(err)
 					}
 					return nil
 				})

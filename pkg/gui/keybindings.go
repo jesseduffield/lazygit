@@ -9,6 +9,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/pushFiles"
 )
 
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
@@ -293,7 +294,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "",
 			Key:         gui.getKey(config.Universal.PushFiles),
-			Handler:     gui.pushFiles,
+			Handler:     func() error { return pushFiles.New(gui).Run() },
 			Description: gui.Tr.LcPush,
 		},
 		{

@@ -16,7 +16,7 @@ func (gui *Gui) refreshStatus() {
 	gui.Mutexes.RefreshingStatusMutex.Lock()
 	defer gui.Mutexes.RefreshingStatusMutex.Unlock()
 
-	currentBranch := gui.currentBranch()
+	currentBranch := gui.CurrentBranch()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
 		return
@@ -48,16 +48,16 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 
 func (gui *Gui) handleCheckForUpdate() error {
 	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.createLoaderPanel(gui.Tr.CheckingForUpdates)
+	return gui.CreateLoaderPanel(gui.Tr.CheckingForUpdates)
 }
 
 func (gui *Gui) handleStatusClick() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
-	if gui.popupPanelFocused() {
+	if gui.PopupPanelFocused() {
 		return nil
 	}
 
-	currentBranch := gui.currentBranch()
+	currentBranch := gui.CurrentBranch()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
 		return nil
@@ -90,7 +90,7 @@ func (gui *Gui) handleStatusClick() error {
 
 func (gui *Gui) handleStatusSelect() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
-	if gui.popupPanelFocused() {
+	if gui.PopupPanelFocused() {
 		return nil
 	}
 

@@ -96,7 +96,7 @@ func (gui *Gui) refreshAndFocusLblPanel(state *LblPanelState) error {
 
 func (gui *Gui) handleLBLMouseDown() error {
 	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
-		if gui.popupPanelFocused() {
+		if gui.PopupPanelFocused() {
 			return nil
 		}
 
@@ -108,7 +108,7 @@ func (gui *Gui) handleLBLMouseDown() error {
 
 func (gui *Gui) handleMouseDrag() error {
 	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
-		if gui.popupPanelFocused() {
+		if gui.PopupPanelFocused() {
 			return nil
 		}
 

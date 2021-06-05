@@ -118,7 +118,7 @@ func (gui *Gui) WithWaitingStatus(message string, f func() error) error {
 
 		if err := f(); err != nil {
 			gui.g.Update(func(g *gocui.Gui) error {
-				return gui.surfaceError(err)
+				return gui.SurfaceError(err)
 			})
 		}
 	})

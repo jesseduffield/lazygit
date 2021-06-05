@@ -1,5 +1,7 @@
 package gui
 
+import . "github.com/jesseduffield/lazygit/pkg/gui/types"
+
 // Currently there is a bug where if we switch to a subprocess from within
 // WithWaitingStatus we get stuck there and can't return to lazygit. We could
 // fix this bug, or just stop running subprocesses from within there, given that
@@ -15,7 +17,7 @@ func (gui *Gui) withGpgHandling(cmdStr string, waitingStatus string, onSuccess f
 				return err
 			}
 		}
-		if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+		if err := gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC}); err != nil {
 			return err
 		}
 
@@ -33,7 +35,7 @@ func (gui *Gui) withGpgHandling(cmdStr string, waitingStatus string, onSuccess f
 				}
 			}
 
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 		})
 	}
 

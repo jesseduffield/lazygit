@@ -1,6 +1,9 @@
 package gui
 
-import "github.com/jesseduffield/lazygit/pkg/commands/models"
+import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
+)
 
 // you can only copy from one context at a time, because the order and position of commits matter
 
@@ -143,10 +146,10 @@ func (gui *Gui) HandlePasteCommits() error {
 		return err
 	}
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.CherryPick,
-		prompt: gui.Tr.SureCherryPick,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  gui.Tr.CherryPick,
+		Prompt: gui.Tr.SureCherryPick,
+		HandleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.CherryPickingStatus, func() error {
 				err := gui.GitCommand.WithSpan(gui.Tr.Spans.CherryPick).CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
 				return gui.handleGenericMergeCommandResult(err)

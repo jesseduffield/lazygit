@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleCreatePatchOptionsMenu() error {
 	if !gui.GitCommand.PatchManager.Active() {
-		return gui.createErrorPanel(gui.Tr.NoPatchError)
+		return gui.CreateErrorPanel(gui.Tr.NoPatchError)
 	}
 
 	menuItems := []*menuItem{
@@ -75,7 +76,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
 	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
-		return false, gui.createErrorPanel(gui.Tr.CantPatchWhileRebasingError)
+		return false, gui.CreateErrorPanel(gui.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
 }
@@ -137,10 +138,10 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 	}
 
 	if len(gui.trackedFiles()) > 0 {
-		return gui.ask(askOpts{
-			title:  gui.Tr.MustStashTitle,
-			prompt: gui.Tr.MustStashWarning,
-			handleConfirm: func() error {
+		return gui.Ask(AskOpts{
+			Title:  gui.Tr.MustStashTitle,
+			Prompt: gui.Tr.MustStashWarning,
+			HandleConfirm: func() error {
 				return pull(true)
 			},
 		})
@@ -175,9 +176,9 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 		span = "Apply patch in reverse"
 	}
 	if err := gui.GitCommand.WithSpan(span).PatchManager.ApplyPatches(reverse); err != nil {
-		return gui.surfaceError(err)
+		return gui.SurfaceError(err)
 	}
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 }
 
 func (gui *Gui) handleResetPatch() error {

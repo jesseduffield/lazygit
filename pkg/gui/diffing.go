@@ -5,11 +5,12 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) exitDiffMode() error {
 	gui.State.Modes.Diffing = diffing.New()
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 }
 
 func (gui *Gui) renderDiff() error {
@@ -114,7 +115,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 				onPress: func() error {
 					gui.State.Modes.Diffing.Ref = name
 					// can scope this down based on current view but too lazy right now
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 				},
 			},
 		}...)
@@ -124,11 +125,11 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 		{
 			displayString: gui.Tr.LcEnterRefToDiff,
 			onPress: func() error {
-				return gui.prompt(promptOpts{
-					title: gui.Tr.LcEnteRefName,
-					handleConfirm: func(response string) error {
+				return gui.Prompt(PromptOpts{
+					Title: gui.Tr.LcEnteRefName,
+					HandleConfirm: func(response string) error {
 						gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
-						return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+						return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 					},
 				})
 			},
@@ -141,14 +142,14 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 				displayString: gui.Tr.LcSwapDiff,
 				onPress: func() error {
 					gui.State.Modes.Diffing.Reverse = !gui.State.Modes.Diffing.Reverse
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 				},
 			},
 			{
 				displayString: gui.Tr.LcExitDiffMode,
 				onPress: func() error {
 					gui.State.Modes.Diffing = diffing.New()
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 				},
 			},
 		}...)

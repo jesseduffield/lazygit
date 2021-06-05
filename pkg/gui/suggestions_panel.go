@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) getSelectedSuggestionValue() string {
@@ -14,7 +14,7 @@ func (gui *Gui) getSelectedSuggestionValue() string {
 	return ""
 }
 
-func (gui *Gui) getSelectedSuggestion() *types.Suggestion {
+func (gui *Gui) getSelectedSuggestion() *Suggestion {
 	selectedLine := gui.State.Panels.Suggestions.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
@@ -23,7 +23,7 @@ func (gui *Gui) getSelectedSuggestion() *types.Suggestion {
 	return gui.State.Suggestions[selectedLine]
 }
 
-func (gui *Gui) setSuggestions(suggestions []*types.Suggestion) {
+func (gui *Gui) setSuggestions(suggestions []*Suggestion) {
 	gui.State.Suggestions = suggestions
 	gui.State.Panels.Suggestions.SelectedLineIdx = 0
 	_ = gui.resetOrigin(gui.Views.Suggestions)

@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleSelectTop() error {
@@ -128,7 +129,7 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 	}
 
 	if err := gui.pushFileSnapshot(); err != nil {
-		return false, gui.surfaceError(err)
+		return false, gui.SurfaceError(err)
 	}
 
 	var logStr string
@@ -240,7 +241,7 @@ func (gui *Gui) handleEscapeMerge() error {
 	gui.takeOverMergeConflictScrolling()
 
 	gui.State.Panels.Merging.Reset()
-	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
+	if err := gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
 	// it's possible this method won't be called from the merging view so we need to
@@ -255,7 +256,7 @@ func (gui *Gui) handleCompleteMerge() error {
 	if err := gui.stageSelectedFile(); err != nil {
 		return err
 	}
-	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
+	if err := gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
 	// if we got conflicts after unstashing, we don't want to call any git
@@ -274,18 +275,18 @@ func (gui *Gui) handleCompleteMerge() error {
 func (gui *Gui) promptToContinueRebase() error {
 	gui.takeOverMergeConflictScrolling()
 
-	return gui.ask(askOpts{
-		title:               "continue",
-		prompt:              gui.Tr.ConflictsResolved,
-		handlersManageFocus: true,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:               "continue",
+		Prompt:              gui.Tr.ConflictsResolved,
+		HandlersManageFocus: true,
+		HandleConfirm: func() error {
 			if err := gui.pushContext(gui.State.Contexts.Files); err != nil {
 				return err
 			}
 
 			return gui.genericMergeCommand("continue")
 		},
-		handleClose: func() error {
+		HandleClose: func() error {
 			return gui.pushContext(gui.State.Contexts.Files)
 		},
 	})

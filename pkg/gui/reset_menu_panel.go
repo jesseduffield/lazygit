@@ -5,11 +5,12 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) resetToRef(ref string, strength string, span string, options oscommands.RunCommandOptions) error {
 	if err := gui.GitCommand.WithSpan(span).ResetToCommit(ref, strength, options); err != nil {
-		return gui.surfaceError(err)
+		return gui.SurfaceError(err)
 	}
 
 	gui.State.Panels.Commits.SelectedLineIdx = 0
@@ -21,7 +22,7 @@ func (gui *Gui) resetToRef(ref string, strength string, span string, options osc
 		return err
 	}
 
-	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES, BRANCHES, REFLOG, COMMITS}}); err != nil {
+	if err := gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{FILES, BRANCHES, REFLOG, COMMITS}}); err != nil {
 		return err
 	}
 

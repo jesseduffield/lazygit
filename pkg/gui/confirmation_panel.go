@@ -11,7 +11,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -28,47 +28,31 @@ type createPopupPanelOpts struct {
 	// when handlersManageFocus is true, do not return from the confirmation context automatically. It's expected that the handlers will manage focus, whether that means switching to another context, or manually returning the context.
 	handlersManageFocus bool
 
-	findSuggestionsFunc func(string) []*types.Suggestion
+	findSuggestionsFunc func(string) []*Suggestion
 }
 
-type askOpts struct {
-	title               string
-	prompt              string
-	handleConfirm       func() error
-	handleClose         func() error
-	handlersManageFocus bool
-	findSuggestionsFunc func(string) []*types.Suggestion
-}
-
-type promptOpts struct {
-	title               string
-	initialContent      string
-	handleConfirm       func(string) error
-	findSuggestionsFunc func(string) []*types.Suggestion
-}
-
-func (gui *Gui) ask(opts askOpts) error {
+func (gui *Gui) Ask(opts AskOpts) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
-		title:               opts.title,
-		prompt:              opts.prompt,
-		handleConfirm:       opts.handleConfirm,
-		handleClose:         opts.handleClose,
-		handlersManageFocus: opts.handlersManageFocus,
-		findSuggestionsFunc: opts.findSuggestionsFunc,
+		title:               opts.Title,
+		prompt:              opts.Prompt,
+		handleConfirm:       opts.HandleConfirm,
+		handleClose:         opts.HandleClose,
+		handlersManageFocus: opts.HandlersManageFocus,
+		findSuggestionsFunc: opts.FindSuggestionsFunc,
 	})
 }
 
-func (gui *Gui) prompt(opts promptOpts) error {
+func (gui *Gui) Prompt(opts PromptOpts) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
-		title:               opts.title,
-		prompt:              opts.initialContent,
+		title:               opts.Title,
+		prompt:              opts.InitialContent,
 		editable:            true,
-		handleConfirmPrompt: opts.handleConfirm,
-		findSuggestionsFunc: opts.findSuggestionsFunc,
+		handleConfirmPrompt: opts.HandleConfirm,
+		findSuggestionsFunc: opts.FindSuggestionsFunc,
 	})
 }
 
-func (gui *Gui) createLoaderPanel(prompt string) error {
+func (gui *Gui) CreateLoaderPanel(prompt string) error {
 	return gui.createPopupPanel(createPopupPanelOpts{
 		prompt:    prompt,
 		hasLoader: true,
@@ -95,7 +79,7 @@ func (gui *Gui) wrappedPromptConfirmationFunction(handlersManageFocus bool, func
 	return func() error {
 		if function != nil {
 			if err := function(getResponse()); err != nil {
-				return gui.surfaceError(err)
+				return gui.SurfaceError(err)
 			}
 		}
 
@@ -169,7 +153,7 @@ func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, i
 		height/2 + panelHeight/2
 }
 
-func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, findSuggestionsFunc func(string) []*types.Suggestion) error {
+func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, findSuggestionsFunc func(string) []*Suggestion) error {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
 	// calling SetView on an existing view returns the same view, so I'm not bothering
 	// to reassign to gui.Views.Confirmation
@@ -194,7 +178,7 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, f
 		}
 		suggestionsView.Wrap = true
 		suggestionsView.FgColor = theme.GocuiDefaultTextColor
-		gui.setSuggestions([]*types.Suggestion{})
+		gui.setSuggestions([]*Suggestion{})
 		suggestionsView.Visible = true
 	}
 
@@ -315,23 +299,23 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 	}
 }
 
-func (gui *Gui) createErrorPanel(message string) error {
+func (gui *Gui) CreateErrorPanel(message string) error {
 	colorFunction := color.New(color.FgRed).SprintFunc()
 	coloredMessage := colorFunction(strings.TrimSpace(message))
-	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+	if err := gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC}); err != nil {
 		return err
 	}
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.Error,
-		prompt: coloredMessage,
+	return gui.Ask(AskOpts{
+		Title:  gui.Tr.Error,
+		Prompt: coloredMessage,
 	})
 }
 
-func (gui *Gui) surfaceError(err error) error {
+func (gui *Gui) SurfaceError(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	return gui.createErrorPanel(err.Error())
+	return gui.CreateErrorPanel(err.Error())
 }

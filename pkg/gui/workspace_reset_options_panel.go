@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleCreateResetMenu() error {
@@ -22,10 +23,10 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.NukeWorkingTree).ResetAndClean(); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -35,10 +36,10 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardUnstagedFileChanges).DiscardAnyUnstagedFileChanges(); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -48,10 +49,10 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveUntrackedFiles).RemoveUntrackedFiles(); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -61,10 +62,10 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SoftReset).ResetSoft("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -74,10 +75,10 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.MixedReset).ResetMixed("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{FILES}})
 			},
 		},
 		{
@@ -87,10 +88,10 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.HardReset).ResetHard("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{FILES}})
 			},
 		},
 	}

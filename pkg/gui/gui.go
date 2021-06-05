@@ -24,7 +24,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -100,7 +100,7 @@ type Gui struct {
 
 	// findSuggestions will take a string that the user has typed into a prompt
 	// and return a slice of suggestions which match that string.
-	findSuggestions func(string) []*types.Suggestion
+	findSuggestions func(string) []*Suggestion
 
 	// when you enter into a submodule we'll append the superproject's path to this array
 	// so that you can return to the superproject
@@ -296,7 +296,7 @@ type guiState struct {
 	Commits           []*models.Commit
 	StashEntries      []*models.StashEntry
 	// Suggestions will sometimes appear when typing into a prompt
-	Suggestions []*types.Suggestion
+	Suggestions []*Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*models.Commit
@@ -564,7 +564,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *exec.Cmd) error 
 		return err
 	}
 
-	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+	if err := gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC}); err != nil {
 		return err
 	}
 
@@ -585,7 +585,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
 	}
 
 	if err := gui.g.Suspend(); err != nil {
-		return false, gui.surfaceError(err)
+		return false, gui.SurfaceError(err)
 	}
 
 	gui.PauseBackgroundThreads = true
@@ -598,7 +598,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
 
 	gui.PauseBackgroundThreads = false
 
-	return cmdErr == nil, gui.surfaceError(cmdErr)
+	return cmdErr == nil, gui.SurfaceError(cmdErr)
 }
 
 func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
@@ -629,7 +629,7 @@ func (gui *Gui) loadNewRepo() error {
 		return err
 	}
 
-	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+	if err := gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC}); err != nil {
 		return err
 	}
 
@@ -645,7 +645,7 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 			task := task
 			go utils.Safe(func() {
 				if err := task(done); err != nil {
-					_ = gui.surfaceError(err)
+					_ = gui.SurfaceError(err)
 				}
 			})
 
@@ -662,11 +662,11 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 		return gui.Config.SaveAppState()
 	}
 
-	return gui.ask(askOpts{
-		title:         "",
-		prompt:        gui.Tr.IntroPopupMessage,
-		handleConfirm: onConfirm,
-		handleClose:   onConfirm,
+	return gui.Ask(AskOpts{
+		Title:         "",
+		Prompt:        gui.Tr.IntroPopupMessage,
+		HandleConfirm: onConfirm,
+		HandleClose:   onConfirm,
 	})
 }
 
@@ -697,9 +697,9 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	err := gui.fetch(false, "")
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.ask(askOpts{
-			title:  gui.Tr.NoAutomaticGitFetchTitle,
-			prompt: gui.Tr.NoAutomaticGitFetchBody,
+		_ = gui.Ask(AskOpts{
+			Title:  gui.Tr.NoAutomaticGitFetchTitle,
+			Prompt: gui.Tr.NoAutomaticGitFetchBody,
 		})
 	} else {
 		gui.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), gui.stopChan, func() error {
@@ -720,4 +720,20 @@ func (gui *Gui) setColorScheme() error {
 	gui.g.SelFrameColor = theme.ActiveBorderColor
 
 	return nil
+}
+
+func (gui *Gui) GetUserConfig() *config.UserConfig {
+	return gui.Config.GetUserConfig()
+}
+
+func (gui *Gui) GetGitCommand() *commands.GitCommand {
+	return gui.GitCommand
+}
+
+func (gui *Gui) GetOSCommand() *oscommands.OSCommand {
+	return gui.OSCommand
+}
+
+func (gui *Gui) GetTr() *i18n.TranslationSet {
+	return gui.Tr
 }

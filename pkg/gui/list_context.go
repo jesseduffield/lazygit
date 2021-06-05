@@ -68,7 +68,7 @@ func (lc *ListContext) HandleFocusLost() error {
 }
 
 func (lc *ListContext) HandleFocus() error {
-	if lc.Gui.popupPanelFocused() {
+	if lc.Gui.PopupPanelFocused() {
 		return nil
 	}
 
@@ -112,7 +112,7 @@ func (lc *ListContext) handleNextLine() error {
 }
 
 func (lc *ListContext) handleLineChange(change int) error {
-	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.popupPanelFocused() {
+	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.PopupPanelFocused() {
 		return nil
 	}
 
@@ -162,7 +162,7 @@ func (lc *ListContext) handlePrevPage() error {
 }
 
 func (lc *ListContext) handleClick() error {
-	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.popupPanelFocused() {
+	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.PopupPanelFocused() {
 		return nil
 	}
 

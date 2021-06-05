@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -66,7 +67,7 @@ func (gui *Gui) refreshBranches() {
 
 	builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, reflogCommits)
 	if err != nil {
-		_ = gui.surfaceError(err)
+		_ = gui.SurfaceError(err)
 	}
 	gui.State.Branches = builder.Build()
 
@@ -84,7 +85,7 @@ func (gui *Gui) handleBranchPress() error {
 		return nil
 	}
 	if gui.State.Panels.Branches.SelectedLineIdx == 0 {
-		return gui.createErrorPanel(gui.Tr.AlreadyCheckedOutBranch)
+		return gui.CreateErrorPanel(gui.Tr.AlreadyCheckedOutBranch)
 	}
 	branch := gui.getSelectedBranch()
 	return gui.handleCheckoutRef(branch.Name, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutBranch})
@@ -96,7 +97,7 @@ func (gui *Gui) handleCreatePullRequestPress() error {
 	branch := gui.getSelectedBranch()
 	url, err := pullRequest.Create(branch)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.SurfaceError(err)
 	}
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf("Creating pull request at URL: %s", url), "Create pull request", false))
 
@@ -109,7 +110,7 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 	branch := gui.getSelectedBranch()
 	url, err := pullRequest.CopyURL(branch)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.SurfaceError(err)
 	}
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf("Copying to clipboard: '%s'", url), "Copy URL", false))
 
@@ -119,13 +120,13 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 }
 
 func (gui *Gui) handleGitFetch() error {
-	if err := gui.createLoaderPanel(gui.Tr.FetchWait); err != nil {
+	if err := gui.CreateLoaderPanel(gui.Tr.FetchWait); err != nil {
 		return err
 	}
 	go utils.Safe(func() {
 		err := gui.fetch(true, "Fetch")
-		gui.handleCredentialsPopup(err)
-		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		gui.HandleCredentialsPopup(err)
+		_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 	})
 	return nil
 }
@@ -135,14 +136,14 @@ func (gui *Gui) handleForceCheckout() error {
 	message := gui.Tr.SureForceCheckout
 	title := gui.Tr.ForceCheckoutBranch
 
-	return gui.ask(askOpts{
-		title:  title,
-		prompt: message,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  title,
+		Prompt: message,
+		HandleConfirm: func() error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.ForceCheckoutBranch).Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
-				_ = gui.surfaceError(err)
+				_ = gui.SurfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 		},
 	})
 }
@@ -181,53 +182,53 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 
 			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 				// offer to autostash changes
-				return gui.ask(askOpts{
+				return gui.Ask(AskOpts{
 
-					title:  gui.Tr.AutoStashTitle,
-					prompt: gui.Tr.AutoStashPrompt,
-					handleConfirm: func() error {
+					Title:  gui.Tr.AutoStashTitle,
+					Prompt: gui.Tr.AutoStashPrompt,
+					HandleConfirm: func() error {
 						if err := gitCommand.StashSave(gui.Tr.StashPrefix + ref); err != nil {
-							return gui.surfaceError(err)
+							return gui.SurfaceError(err)
 						}
 						if err := gitCommand.Checkout(ref, cmdOptions); err != nil {
-							return gui.surfaceError(err)
+							return gui.SurfaceError(err)
 						}
 
 						onSuccess()
 						if err := gitCommand.StashDo(0, "pop"); err != nil {
-							if err := gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI}); err != nil {
+							if err := gui.RefreshSidePanels(RefreshOptions{Mode: BLOCK_UI}); err != nil {
 								return err
 							}
-							return gui.surfaceError(err)
+							return gui.SurfaceError(err)
 						}
-						return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI})
+						return gui.RefreshSidePanels(RefreshOptions{Mode: BLOCK_UI})
 					},
 				})
 			}
 
-			if err := gui.surfaceError(err); err != nil {
+			if err := gui.SurfaceError(err); err != nil {
 				return err
 			}
 		}
 		onSuccess()
 
-		return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI})
+		return gui.RefreshSidePanels(RefreshOptions{Mode: BLOCK_UI})
 	})
 }
 
 func (gui *Gui) handleCheckoutByName() error {
-	return gui.prompt(promptOpts{
-		title:               gui.Tr.BranchName + ":",
-		findSuggestionsFunc: gui.findBranchNameSuggestions,
-		handleConfirm: func(response string) error {
+	return gui.Prompt(PromptOpts{
+		Title:               gui.Tr.BranchName + ":",
+		FindSuggestionsFunc: gui.findBranchNameSuggestions,
+		HandleConfirm: func(response string) error {
 			return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
 				span: "Checkout branch",
 				onRefNotFound: func(ref string) error {
 
-					return gui.ask(askOpts{
-						title:  gui.Tr.BranchNotFoundTitle,
-						prompt: fmt.Sprintf("%s %s%s", gui.Tr.BranchNotFoundPrompt, ref, "?"),
-						handleConfirm: func() error {
+					return gui.Ask(AskOpts{
+						Title:  gui.Tr.BranchNotFoundTitle,
+						Prompt: fmt.Sprintf("%s %s%s", gui.Tr.BranchNotFoundPrompt, ref, "?"),
+						HandleConfirm: func() error {
 							return gui.createNewBranchWithName(ref)
 						},
 					})
@@ -237,14 +238,6 @@ func (gui *Gui) handleCheckoutByName() error {
 	)
 }
 
-func (gui *Gui) getCheckedOutBranch() *models.Branch {
-	if len(gui.State.Branches) == 0 {
-		return nil
-	}
-
-	return gui.State.Branches[0]
-}
-
 func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 	branch := gui.getSelectedBranch()
 	if branch == nil {
@@ -252,11 +245,11 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 	}
 
 	if err := gui.GitCommand.NewBranch(newBranchName, branch.Name); err != nil {
-		return gui.surfaceError(err)
+		return gui.SurfaceError(err)
 	}
 
 	gui.State.Panels.Branches.SelectedLineIdx = 0
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 }
 
 func (gui *Gui) handleDeleteBranch() error {
@@ -268,9 +261,9 @@ func (gui *Gui) deleteBranch(force bool) error {
 	if selectedBranch == nil {
 		return nil
 	}
-	checkedOutBranch := gui.getCheckedOutBranch()
+	checkedOutBranch := gui.CurrentBranch()
 	if checkedOutBranch.Name == selectedBranch.Name {
-		return gui.createErrorPanel(gui.Tr.CantDeleteCheckOutBranch)
+		return gui.CreateErrorPanel(gui.Tr.CantDeleteCheckOutBranch)
 	}
 	return gui.deleteNamedBranch(selectedBranch, force)
 }
@@ -290,18 +283,18 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  title,
-		prompt: message,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  title,
+		Prompt: message,
+		HandleConfirm: func() error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteBranch).DeleteBranch(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "is not fully merged") {
 					return gui.deleteNamedBranch(selectedBranch, true)
 				}
-				return gui.createErrorPanel(errMessage)
+				return gui.CreateErrorPanel(errMessage)
 			}
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{BRANCHES}})
+			return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{BRANCHES}})
 		},
 	})
 }
@@ -312,11 +305,11 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 	}
 
 	if gui.GitCommand.IsHeadDetached() {
-		return gui.createErrorPanel("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
+		return gui.CreateErrorPanel("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
-	checkedOutBranchName := gui.getCheckedOutBranch().Name
+	checkedOutBranchName := gui.CurrentBranch().Name
 	if checkedOutBranchName == branchName {
-		return gui.createErrorPanel(gui.Tr.CantMergeBranchIntoItself)
+		return gui.CreateErrorPanel(gui.Tr.CantMergeBranchIntoItself)
 	}
 	prompt := utils.ResolvePlaceholderString(
 		gui.Tr.ConfirmMerge,
@@ -326,10 +319,10 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.MergingTitle,
-		prompt: prompt,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  gui.Tr.MergingTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
 			err := gui.GitCommand.WithSpan(gui.Tr.Spans.Merge).Merge(branchName, commands.MergeOpts{})
 			return gui.handleGenericMergeCommandResult(err)
 		},
@@ -355,9 +348,9 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		return err
 	}
 
-	checkedOutBranch := gui.getCheckedOutBranch().Name
+	checkedOutBranch := gui.CurrentBranch().Name
 	if selectedBranchName == checkedOutBranch {
-		return gui.createErrorPanel(gui.Tr.CantRebaseOntoSelf)
+		return gui.CreateErrorPanel(gui.Tr.CantRebaseOntoSelf)
 	}
 	prompt := utils.ResolvePlaceholderString(
 		gui.Tr.ConfirmRebase,
@@ -367,10 +360,10 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.RebasingTitle,
-		prompt: prompt,
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  gui.Tr.RebasingTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
 			err := gui.GitCommand.WithSpan(gui.Tr.Spans.RebaseBranch).RebaseBranch(selectedBranchName)
 			return gui.handleGenericMergeCommandResult(err)
 		},
@@ -384,15 +377,15 @@ func (gui *Gui) handleFastForward() error {
 	}
 
 	if !branch.IsTrackingRemote() {
-		return gui.createErrorPanel(gui.Tr.FwdNoUpstream)
+		return gui.CreateErrorPanel(gui.Tr.FwdNoUpstream)
 	}
 	if branch.HasCommitsToPush() {
-		return gui.createErrorPanel(gui.Tr.FwdCommitsToPush)
+		return gui.CreateErrorPanel(gui.Tr.FwdCommitsToPush)
 	}
 
 	upstream, err := gui.GitCommand.GetUpstreamForBranch(branch.Name)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.SurfaceError(err)
 	}
 
 	span := gui.Tr.Spans.FastForwardBranch
@@ -409,14 +402,14 @@ func (gui *Gui) handleFastForward() error {
 		},
 	)
 	go utils.Safe(func() {
-		_ = gui.createLoaderPanel(message)
+		_ = gui.CreateLoaderPanel(message)
 
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{span: span})
 		} else {
-			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
-			gui.handleCredentialsPopup(err)
-			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{BRANCHES}})
+			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName, gui.PromptUserForCredential)
+			gui.HandleCredentialsPopup(err)
+			_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{BRANCHES}})
 		}
 	})
 	return nil
@@ -438,12 +431,12 @@ func (gui *Gui) handleRenameBranch() error {
 	}
 
 	promptForNewName := func() error {
-		return gui.prompt(promptOpts{
-			title:          gui.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
-			initialContent: branch.Name,
-			handleConfirm: func(newBranchName string) error {
+		return gui.Prompt(PromptOpts{
+			Title:          gui.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
+			InitialContent: branch.Name,
+			HandleConfirm: func(newBranchName string) error {
 				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RenameBranch).RenameBranch(branch.Name, newBranchName); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
 
 				// need to find where the branch is now so that we can re-select it. That means we need to refetch the branches synchronously and then find our branch
@@ -471,14 +464,14 @@ func (gui *Gui) handleRenameBranch() error {
 		return promptForNewName()
 	}
 
-	return gui.ask(askOpts{
-		title:         gui.Tr.LcRenameBranch,
-		prompt:        gui.Tr.RenameBranchWarning,
-		handleConfirm: promptForNewName,
+	return gui.Ask(AskOpts{
+		Title:         gui.Tr.LcRenameBranch,
+		Prompt:        gui.Tr.RenameBranchWarning,
+		HandleConfirm: promptForNewName,
 	})
 }
 
-func (gui *Gui) currentBranch() *models.Branch {
+func (gui *Gui) CurrentBranch() *models.Branch {
 	if len(gui.State.Branches) == 0 {
 		return nil
 	}
@@ -506,10 +499,10 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		prefilledName = strings.SplitAfterN(item.ID(), "/", 2)[1]
 	}
 
-	return gui.prompt(promptOpts{
-		title:          message,
-		initialContent: prefilledName,
-		handleConfirm: func(response string) error {
+	return gui.Prompt(PromptOpts{
+		Title:          message,
+		InitialContent: prefilledName,
+		HandleConfirm: func(response string) error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateBranch).NewBranch(sanitizedBranchName(response), item.ID()); err != nil {
 				return err
 			}
@@ -528,7 +521,7 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 
 			gui.State.Panels.Branches.SelectedLineIdx = 0
 
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 		},
 	})
 }
@@ -543,12 +536,12 @@ func (gui *Gui) getBranchNames() []string {
 	return result
 }
 
-func (gui *Gui) findBranchNameSuggestions(input string) []*types.Suggestion {
+func (gui *Gui) findBranchNameSuggestions(input string) []*Suggestion {
 	branchNames := gui.getBranchNames()
 
 	matchingBranchNames := utils.FuzzySearch(sanitizedBranchName(input), branchNames)
 
-	suggestions := make([]*types.Suggestion, len(matchingBranchNames))
+	suggestions := make([]*Suggestion, len(matchingBranchNames))
 	for i, branchName := range matchingBranchNames {
 		suggestions[i] = &types.Suggestion{
 			Value: branchName,

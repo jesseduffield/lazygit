@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/gocui"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
@@ -14,21 +15,6 @@ import (
 func (gui *Gui) getCyclableWindows() []string {
 	return []string{"status", "files", "branches", "commits", "stash"}
 }
-
-// models/views that we can refresh
-type RefreshableView int
-
-const (
-	COMMITS RefreshableView = iota
-	BRANCHES
-	FILES
-	STASH
-	REFLOG
-	TAGS
-	REMOTES
-	STATUS
-	SUBMODULES
-)
 
 func getScopeNames(scopes []RefreshableView) []string {
 	scopeNameMap := map[RefreshableView]string{
@@ -64,20 +50,6 @@ func getModeName(mode RefreshMode) string {
 	}
 }
 
-type RefreshMode int
-
-const (
-	SYNC     RefreshMode = iota // wait until everything is done before returning
-	ASYNC                       // return immediately, allowing each independent thing to update itself
-	BLOCK_UI                    // wrap code in an update call to ensure UI updates all at once and keybindings aren't executed till complete
-)
-
-type refreshOptions struct {
-	then  func()
-	scope []RefreshableView // e.g. []int{COMMITS, BRANCHES}. Leave empty to refresh everything
-	mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
-}
-
 func arrToMap(arr []RefreshableView) map[RefreshableView]bool {
 	output := map[RefreshableView]bool{}
 	for _, el := range arr {
@@ -86,17 +58,17 @@ func arrToMap(arr []RefreshableView) map[RefreshableView]bool {
 	return output
 }
 
-func (gui *Gui) refreshSidePanels(options refreshOptions) error {
-	if options.scope == nil {
+func (gui *Gui) RefreshSidePanels(options RefreshOptions) error {
+	if options.Scope == nil {
 		gui.Log.Infof(
 			"refreshing all scopes in %s mode",
-			getModeName(options.mode),
+			getModeName(options.Mode),
 		)
 	} else {
 		gui.Log.Infof(
 			"refreshing the following scopes in %s mode: %s",
-			getModeName(options.mode),
-			strings.Join(getScopeNames(options.scope), ","),
+			getModeName(options.Mode),
+			strings.Join(getScopeNames(options.Scope), ","),
 		)
 	}
 
@@ -104,16 +76,16 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 
 	f := func() {
 		var scopeMap map[RefreshableView]bool
-		if len(options.scope) == 0 {
+		if len(options.Scope) == 0 {
 			scopeMap = arrToMap([]RefreshableView{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS})
 		} else {
-			scopeMap = arrToMap(options.scope)
+			scopeMap = arrToMap(options.Scope)
 		}
 
 		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == ASYNC {
 					go utils.Safe(func() { _ = gui.refreshCommits() })
 				} else {
 					_ = gui.refreshCommits()
@@ -125,7 +97,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 		if scopeMap[FILES] || scopeMap[SUBMODULES] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == ASYNC {
 					go utils.Safe(func() { _ = gui.refreshFilesAndSubmodules() })
 				} else {
 					_ = gui.refreshFilesAndSubmodules()
@@ -137,7 +109,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 		if scopeMap[STASH] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == ASYNC {
 					go utils.Safe(func() { _ = gui.refreshStashEntries() })
 				} else {
 					_ = gui.refreshStashEntries()
@@ -149,7 +121,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 		if scopeMap[TAGS] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == ASYNC {
 					go utils.Safe(func() { _ = gui.refreshTags() })
 				} else {
 					_ = gui.refreshTags()
@@ -161,7 +133,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 		if scopeMap[REMOTES] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == ASYNC {
 					go utils.Safe(func() { _ = gui.refreshRemotes() })
 				} else {
 					_ = gui.refreshRemotes()
@@ -174,12 +146,12 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 
 		gui.refreshStatus()
 
-		if options.then != nil {
-			options.then()
+		if options.Then != nil {
+			options.Then()
 		}
 	}
 
-	if options.mode == BLOCK_UI {
+	if options.Mode == BLOCK_UI {
 		gui.g.Update(func(g *gocui.Gui) error {
 			f()
 			return nil
@@ -335,7 +307,7 @@ func (gui *Gui) isPopupPanel(viewName string) bool {
 	return viewName == "commitMessage" || viewName == "credentials" || viewName == "confirmation" || viewName == "menu"
 }
 
-func (gui *Gui) popupPanelFocused() bool {
+func (gui *Gui) PopupPanelFocused() bool {
 	return gui.isPopupPanel(gui.currentViewName())
 }
 

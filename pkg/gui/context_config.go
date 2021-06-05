@@ -28,7 +28,7 @@ const (
 	COMMAND_LOG_CONTEXT_KEY         ContextKey = "cmdLog"
 )
 
-var allContextKeys = []ContextKey{
+var AllContextKeys = []ContextKey{
 	STATUS_CONTEXT_KEY,
 	FILES_CONTEXT_KEY,
 	LOCAL_BRANCHES_CONTEXT_KEY,

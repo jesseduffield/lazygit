@@ -6,6 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -42,7 +43,7 @@ func (gui *Gui) refreshRemotes() error {
 
 	remotes, err := gui.GitCommand.GetRemotes()
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.SurfaceError(err)
 	}
 
 	gui.State.Remotes = remotes
@@ -79,16 +80,16 @@ func (gui *Gui) handleRemoteEnter() error {
 }
 
 func (gui *Gui) handleAddRemote() error {
-	return gui.prompt(promptOpts{
-		title: gui.Tr.LcNewRemoteName,
-		handleConfirm: func(remoteName string) error {
-			return gui.prompt(promptOpts{
-				title: gui.Tr.LcNewRemoteUrl,
-				handleConfirm: func(remoteUrl string) error {
+	return gui.Prompt(PromptOpts{
+		Title: gui.Tr.LcNewRemoteName,
+		HandleConfirm: func(remoteName string) error {
+			return gui.Prompt(PromptOpts{
+				Title: gui.Tr.LcNewRemoteUrl,
+				HandleConfirm: func(remoteUrl string) error {
 					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.AddRemote).AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
-					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{REMOTES}})
+					return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{REMOTES}})
 				},
 			})
 		},
@@ -102,15 +103,15 @@ func (gui *Gui) handleRemoveRemote() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.LcRemoveRemote,
-		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
-		handleConfirm: func() error {
+	return gui.Ask(AskOpts{
+		Title:  gui.Tr.LcRemoveRemote,
+		Prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
+		HandleConfirm: func() error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveRemote).RemoveRemote(remote.Name); err != nil {
-				return gui.surfaceError(err)
+				return gui.SurfaceError(err)
 			}
 
-			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
+			return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, REMOTES}})
 		},
 	})
 }
@@ -130,13 +131,13 @@ func (gui *Gui) handleEditRemote() error {
 
 	gitCommand := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateRemote)
 
-	return gui.prompt(promptOpts{
-		title:          editNameMessage,
-		initialContent: remote.Name,
-		handleConfirm: func(updatedRemoteName string) error {
+	return gui.Prompt(PromptOpts{
+		Title:          editNameMessage,
+		InitialContent: remote.Name,
+		HandleConfirm: func(updatedRemoteName string) error {
 			if updatedRemoteName != remote.Name {
 				if err := gitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
 			}
 
@@ -153,14 +154,14 @@ func (gui *Gui) handleEditRemote() error {
 				url = urls[0]
 			}
 
-			return gui.prompt(promptOpts{
-				title:          editUrlMessage,
-				initialContent: url,
-				handleConfirm: func(updatedRemoteUrl string) error {
+			return gui.Prompt(PromptOpts{
+				Title:          editUrlMessage,
+				InitialContent: url,
+				HandleConfirm: func(updatedRemoteUrl string) error {
 					if err := gitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
-						return gui.surfaceError(err)
+						return gui.SurfaceError(err)
 					}
-					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
+					return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, REMOTES}})
 				},
 			})
 		},
@@ -177,9 +178,9 @@ func (gui *Gui) handleFetchRemote() error {
 		gui.Mutexes.FetchMutex.Lock()
 		defer gui.Mutexes.FetchMutex.Unlock()
 
-		err := gui.GitCommand.FetchRemote(remote.Name, gui.promptUserForCredential)
-		gui.handleCredentialsPopup(err)
+		err := gui.GitCommand.FetchRemote(remote.Name, gui.PromptUserForCredential)
+		gui.HandleCredentialsPopup(err)
 
-		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
+		return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, REMOTES}})
 	})
 }

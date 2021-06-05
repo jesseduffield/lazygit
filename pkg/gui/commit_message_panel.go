@@ -12,7 +12,7 @@ import (
 func (gui *Gui) handleCommitConfirm() error {
 	message := gui.trimmedContent(gui.Views.CommitMessage)
 	if message == "" {
-		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
+		return gui.CreateErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
 	flags := ""
 	skipHookPrefix := gui.Config.GetUserConfig().Git.SkipHookPrefix

@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -42,7 +43,7 @@ func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (s
 		SelectedCommitFile:     gui.getSelectedCommitFile(),
 		SelectedCommitFilePath: gui.getSelectedCommitFilePath(),
 		SelectedSubCommit:      gui.getSelectedSubCommit(),
-		CheckedOutBranch:       gui.currentBranch(),
+		CheckedOutBranch:       gui.CurrentBranch(),
 		PromptResponses:        promptResponses,
 	}
 
@@ -56,7 +57,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 		f := func() error {
 			cmdStr, err := gui.resolveTemplate(customCommand.Command, promptResponses)
 			if err != nil {
-				return gui.surfaceError(err)
+				return gui.SurfaceError(err)
 			}
 
 			if customCommand.Subprocess {
@@ -69,9 +70,9 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
 				if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CustomCommand).RunShellCommand(cmdStr); err != nil {
-					return gui.surfaceError(err)
+					return gui.SurfaceError(err)
 				}
-				return gui.refreshSidePanels(refreshOptions{})
+				return gui.RefreshSidePanels(RefreshOptions{})
 			})
 		}
 
@@ -91,18 +92,18 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				f = func() error {
 					title, err := gui.resolveTemplate(prompt.Title, promptResponses)
 					if err != nil {
-						return gui.surfaceError(err)
+						return gui.SurfaceError(err)
 					}
 
 					initialValue, err := gui.resolveTemplate(prompt.InitialValue, promptResponses)
 					if err != nil {
-						return gui.surfaceError(err)
+						return gui.SurfaceError(err)
 					}
 
-					return gui.prompt(promptOpts{
-						title:          title,
-						initialContent: initialValue,
-						handleConfirm: func(str string) error {
+					return gui.Prompt(PromptOpts{
+						Title:          title,
+						InitialContent: initialValue,
+						HandleConfirm: func(str string) error {
 							promptResponses[idx] = str
 
 							return wrappedF()
@@ -123,17 +124,17 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 						}
 						name, err := gui.resolveTemplate(nameTemplate, promptResponses)
 						if err != nil {
-							return gui.surfaceError(err)
+							return gui.SurfaceError(err)
 						}
 
 						description, err := gui.resolveTemplate(option.Description, promptResponses)
 						if err != nil {
-							return gui.surfaceError(err)
+							return gui.SurfaceError(err)
 						}
 
 						value, err := gui.resolveTemplate(option.Value, promptResponses)
 						if err != nil {
-							return gui.surfaceError(err)
+							return gui.SurfaceError(err)
 						}
 
 						menuItems[i] = &menuItem{
@@ -148,13 +149,13 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 
 					title, err := gui.resolveTemplate(prompt.Title, promptResponses)
 					if err != nil {
-						return gui.surfaceError(err)
+						return gui.SurfaceError(err)
 					}
 
 					return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 				}
 			default:
-				return gui.createErrorPanel("custom command prompt must have a type of 'input' or 'menu'")
+				return gui.CreateErrorPanel("custom command prompt must have a type of 'input' or 'menu'")
 			}
 
 		}
@@ -178,9 +179,9 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 		default:
 			context, ok := gui.contextForContextKey(ContextKey(customCommand.Context))
 			// stupid golang making me build an array of strings for this.
-			allContextKeyStrings := make([]string, len(allContextKeys))
-			for i := range allContextKeys {
-				allContextKeyStrings[i] = string(allContextKeys[i])
+			allContextKeyStrings := make([]string, len(AllContextKeys))
+			for i := range AllContextKeys {
+				allContextKeyStrings[i] = string(AllContextKeys[i])
 			}
 			if !ok {
 				log.Fatalf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeyStrings, ", "))
