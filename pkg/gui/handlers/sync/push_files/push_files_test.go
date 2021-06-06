@@ -145,6 +145,40 @@ var _ = Describe("PushFiles", func() {
 					Expect(gitCommand.PushCallCount()).To(Equal(1))
 				})
 			})
+
+			Context("When push-to-current is not configured", func() {
+				BeforeEach(func() {
+					pushToCurrent = false
+				})
+
+				It("should prompt to set upstream and then push", func() {
+					gitCommand.PushStub = func(
+						branchName string,
+						force bool, upstream,
+						args string,
+						promptUserForCredential func(string) string,
+					) error {
+						Expect(branchName).To(Equal("mybranch"))
+						Expect(force).To(BeFalse())
+						Expect(upstream).To(Equal("origin mybranch"))
+						// TODO: see if we should be passing --set-upstream here
+						Expect(args).To(Equal(""))
+						return nil
+					}
+
+					gui.PromptStub = func(opts PromptOpts) error {
+						Expect(opts.Title).To(Equal("Enter upstream as '<remote> <branchname>'"))
+						// pressing enter without modifying the content
+						return opts.HandleConfirm(opts.InitialContent)
+					}
+
+					err := handler.Run()
+					Expect(err).To(BeNil())
+
+					Expect(gitCommand.PushCallCount()).To(Equal(1))
+					Expect(gui.PromptCallCount()).To(Equal(1))
+				})
+			})
 		})
 	})
 
@@ -163,6 +197,22 @@ var _ = Describe("PushFiles", func() {
 				Expect(err).To(BeNil())
 
 				Expect(gitCommand.PushCallCount()).To(Equal(1))
+			})
+
+			Context("When push fails and requires push", func() {
+				Context("When force push is disabled in the user config", func() {
+
+				})
+
+				Context("When force push is enabled in the user config", func() {
+					Context("When user confirms to force push", func() {
+
+					})
+
+					Context("When user does not confirm to force push", func() {
+
+					})
+				})
 			})
 		})
 
