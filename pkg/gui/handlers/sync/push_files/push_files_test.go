@@ -52,6 +52,9 @@ var _ = Describe("PushFiles", func() {
 	BeforeEach(func() {
 		gui = &FakeGui{}
 		gitCommand = &FakeIGitCommand{}
+	})
+
+	JustBeforeEach(func() {
 		userConfig := &config.UserConfig{}
 		userConfig.Git.DisableForcePushing = !forcePushEnabledInConfig
 		gui.GetUserConfigReturns(userConfig)
@@ -69,50 +72,117 @@ var _ = Describe("PushFiles", func() {
 		}
 	})
 
-	Context("When branch has no commits to pull", func() {
-		It("should invoke a regular push", func() {
-			gui.CurrentBranchReturns(&models.Branch{Pushables: "0", Pullables: "0", Name: "mybranch"})
-
-			gitCommand.PushStub = stubRegularPush
-
-			err := handler.Run()
-			Expect(err).To(BeNil())
-		})
-	})
-
-	Context("When branch has commits to pull", func() {
-		BeforeEach(func() {
+	Context("When branch is not tracking a remote", func() {
+		JustBeforeEach(func() {
 			gui.CurrentBranchReturns(
-				&models.Branch{Pushables: "0", Pullables: "1", Name: "mybranch"},
+				&models.Branch{Pushables: "?", Pullables: "?", Name: "mybranch"},
 			)
 		})
 
-		Context("When force pushing is disabled in the config", func() {
-			BeforeEach(func() {
-				forcePushEnabledInConfig = false
+		Context("When branch is tracking a remote in the git config", func() {
+			JustBeforeEach(func() {
+				gitCommand.FindRemoteForBranchInConfigStub = func(branchName string) (string, error) {
+					Expect(branchName).To(Equal("mybranch"))
+					return "remoteName", nil
+				}
 			})
 
-			It("should display an error", func() {
-				gui.CreateErrorPanelStub = func(message string) error {
-					Expect(message).To(ContainSubstring("you've disabled force pushing"))
+			It("should invoke a push to the upstream", func() {
+				gitCommand.PushStub = func(
+					branchName string,
+					force bool, upstream,
+					args string,
+					promptUserForCredential func(string) string,
+				) error {
+					Expect(branchName).To(Equal("mybranch"))
+					Expect(force).To(BeFalse())
+					Expect(upstream).To(BeEmpty())
+					Expect(args).To(Equal("remoteName mybranch"))
 					return nil
 				}
 
 				err := handler.Run()
 				Expect(err).To(BeNil())
 
-				Expect(gitCommand.PushCallCount()).To(Equal(0))
+				Expect(gitCommand.PushCallCount()).To(Equal(1))
 			})
 		})
 
-		Context("When force pushing is enabled in the config", func() {
-			BeforeEach(func() {
-				forcePushEnabledInConfig = true
+		Context("When branch is not tracking a remote in the git config", func() {
+			var pushToCurrent bool
+
+			JustBeforeEach(func() {
+				gitCommand.FindRemoteForBranchInConfigStub = func(branchName string) (string, error) {
+					Expect(branchName).To(Equal("mybranch"))
+					return "", nil
+				}
+
+				gitCommand.GetPushToCurrentReturns(pushToCurrent)
 			})
 
-			Context("When user does not confirm to push", func() {
-				It("should not push at all", func() {
-					gui.AskStub = func(opts AskOpts) error { return nil }
+			Context("When push-to-current is configured", func() {
+				BeforeEach(func() {
+					pushToCurrent = true
+				})
+
+				It("should invoke a push to the upstream", func() {
+					gitCommand.PushStub = func(
+						branchName string,
+						force bool, upstream,
+						args string,
+						promptUserForCredential func(string) string,
+					) error {
+						Expect(branchName).To(Equal("mybranch"))
+						Expect(force).To(BeFalse())
+						Expect(upstream).To(BeEmpty())
+						Expect(args).To(Equal("--set-upstream"))
+						return nil
+					}
+
+					err := handler.Run()
+					Expect(err).To(BeNil())
+
+					Expect(gitCommand.PushCallCount()).To(Equal(1))
+				})
+			})
+		})
+	})
+
+	Context("When branch is tracking a remote", func() {
+		Context("When branch has no commits to pull", func() {
+			JustBeforeEach(func() {
+				gui.CurrentBranchReturns(
+					&models.Branch{Pushables: "0", Pullables: "0", Name: "mybranch"},
+				)
+			})
+
+			It("should invoke a regular push", func() {
+				gitCommand.PushStub = stubRegularPush
+
+				err := handler.Run()
+				Expect(err).To(BeNil())
+
+				Expect(gitCommand.PushCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("When branch has commits to pull", func() {
+			JustBeforeEach(func() {
+				gui.CurrentBranchReturns(
+					&models.Branch{Pushables: "0", Pullables: "1", Name: "mybranch"},
+				)
+			})
+
+			Context("When force pushing is disabled in the config", func() {
+				BeforeEach(func() {
+					forcePushEnabledInConfig = false
+				})
+
+				It("should display an error", func() {
+					gui.CreateErrorPanelStub = func(message string) error {
+						Expect(message).To(ContainSubstring("you've disabled force pushing"))
+						return nil
+					}
 
 					err := handler.Run()
 					Expect(err).To(BeNil())
@@ -121,18 +191,35 @@ var _ = Describe("PushFiles", func() {
 				})
 			})
 
-			Context("When user does confirm to push", func() {
-				It("should force push", func() {
-					gitCommand.PushStub = stubForcePush
+			Context("When force pushing is enabled in the config", func() {
+				BeforeEach(func() {
+					forcePushEnabledInConfig = true
+				})
 
-					gui.AskStub = func(opts AskOpts) error {
-						return opts.HandleConfirm()
-					}
+				Context("When user does not confirm to push", func() {
+					It("should not push at all", func() {
+						gui.AskStub = func(opts AskOpts) error { return nil }
 
-					err := handler.Run()
-					Expect(err).To(BeNil())
+						err := handler.Run()
+						Expect(err).To(BeNil())
 
-					Expect(gitCommand.PushCallCount()).To(Equal(1))
+						Expect(gitCommand.PushCallCount()).To(Equal(0))
+					})
+				})
+
+				Context("When user does confirm to push", func() {
+					It("should force push", func() {
+						gitCommand.PushStub = stubForcePush
+
+						gui.AskStub = func(opts AskOpts) error {
+							return opts.HandleConfirm()
+						}
+
+						err := handler.Run()
+						Expect(err).To(BeNil())
+
+						Expect(gitCommand.PushCallCount()).To(Equal(1))
+					})
 				})
 			})
 		})
