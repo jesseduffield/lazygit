@@ -398,6 +398,8 @@ func getTabbedView(gui *Gui) *gocui.View {
 	if v == nil {
 		return nil
 	}
+	// if the action is invoked via the Options menu,
+	// we need to execute it against the parent view
 	if v.Name() == "menu" {
 		v = v.ParentView
 	}
