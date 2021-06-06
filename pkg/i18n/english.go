@@ -551,7 +551,7 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
     Or even just star the repo cos we're not far from 20k stars!
 `
 
-func englishTranslationSet() TranslationSet {
+func EnglishTranslationSet() TranslationSet {
 	return TranslationSet{
 		NotEnoughSpace:                      "Not enough space to render panels",
 		DiffTitle:                           "Diff",

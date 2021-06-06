@@ -9,7 +9,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/pushFiles"
+	"github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/push_files"
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -295,7 +295,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "",
 			Key:         gui.getKey(config.Universal.PushFiles),
-			Handler:     func() error { return pushFiles.New(gui).Run() },
+			Handler:     func() error { return push_files.New(gui).Run() },
 			Description: gui.Tr.LcPush,
 		},
 		{

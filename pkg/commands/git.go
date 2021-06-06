@@ -38,7 +38,11 @@ type GitCommand struct {
 	PatchManager         *patch.PatchManager
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
-	PushToCurrent bool
+	pushToCurrent bool
+}
+
+func (c *GitCommand) GetPushToCurrent() bool {
+	return c.pushToCurrent
 }
 
 // NewGitCommand it runs git commands
@@ -75,7 +79,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 		Config:            config,
 		getGitConfigValue: getGitConfigValue,
 		DotGitDir:         dotGitDir,
-		PushToCurrent:     pushToCurrent,
+		pushToCurrent:     pushToCurrent,
 	}
 
 	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)

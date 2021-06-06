@@ -700,7 +700,7 @@ func (gui *Gui) startBackgroundFetch() {
 	if !isNew {
 		time.After(time.Duration(userConfig.Refresher.FetchInterval) * time.Second)
 	}
-	err := gui.fetch(false, "")
+	err := gui.fetchInBackground()
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = gui.Ask(AskOpts{
 			Title:  gui.Tr.NoAutomaticGitFetchTitle,
@@ -708,7 +708,7 @@ func (gui *Gui) startBackgroundFetch() {
 		})
 	} else {
 		gui.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), gui.stopChan, func() error {
-			err := gui.fetch(false, "")
+			err := gui.fetchInBackground()
 			return err
 		})
 	}
@@ -731,7 +731,7 @@ func (gui *Gui) GetUserConfig() *config.UserConfig {
 	return gui.Config.GetUserConfig()
 }
 
-func (gui *Gui) GetGitCommand() *commands.GitCommand {
+func (gui *Gui) GetGitCommand() commands.IGitCommand {
 	return gui.GitCommand
 }
 

@@ -188,24 +188,36 @@ func (gui *Gui) handleMouseDownSecondary() error {
 	return nil
 }
 
-func (gui *Gui) fetch(canPromptForCredentials bool, span string) (err error) {
+func (gui *Gui) fetch() (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	fetchOpts := commands.FetchOptions{}
-	if canPromptForCredentials {
-		fetchOpts.PromptUserForCredential = gui.PromptUserForCredential
-	}
+	err = gui.GitCommand.WithSpan("Fetch").Fetch(
+		commands.FetchOptions{PromptUserForCredential: gui.PromptUserForCredential},
+	)
 
-	err = gui.GitCommand.WithSpan(span).Fetch(fetchOpts)
-
-	if canPromptForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
+	if err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = gui.CreateErrorPanel(gui.Tr.PassUnameWrong)
 	}
 
-	_ = gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, Mode: ASYNC})
+	gui.refreshAfterFetch()
 
 	return err
+}
+
+func (gui *Gui) fetchInBackground() (err error) {
+	gui.Mutexes.FetchMutex.Lock()
+	defer gui.Mutexes.FetchMutex.Unlock()
+
+	err = gui.GitCommand.Fetch(commands.FetchOptions{})
+
+	gui.refreshAfterFetch()
+
+	return err
+}
+
+func (gui *Gui) refreshAfterFetch() {
+	_ = gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, Mode: ASYNC})
 }
 
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {

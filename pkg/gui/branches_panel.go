@@ -121,7 +121,7 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 
 func (gui *Gui) handleGitFetch() error {
 	return gui.WithPopupWaitingStatus(gui.Tr.FetchWait, func() error {
-		err := gui.fetch(true, "Fetch")
+		err := gui.fetch()
 		gui.HandleCredentialsPopup(err)
 		_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 
