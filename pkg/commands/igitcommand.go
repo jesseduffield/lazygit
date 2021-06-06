@@ -117,7 +117,7 @@ type IGitCommand interface {
 	// ResetAndClean removes all unstaged changes and removes all untracked files
 	ResetAndClean() error
 	EditFileCmdStr(filename string) (string, error)
-	WithSpan(span string) *GitCommand
+	WithSpan(span string) IGitCommand
 	RunCommand(formatString string, formatArgs ...interface{}) error
 	RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error)
 	// GetFilesInDiff get the specified commit files
@@ -211,4 +211,5 @@ type IGitCommand interface {
 	PushTag(remoteName string, tagName string, promptUserForCredential func(string) string) error
 	GetPushToCurrent() bool
 	FindRemoteForBranchInConfig(string) (string, error)
+	GetOSCommand() *oscommands.OSCommand
 }

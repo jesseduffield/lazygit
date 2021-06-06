@@ -88,7 +88,7 @@ func (c *GitCommand) NewPatchManager() *patch.PatchManager {
 	return patch.NewPatchManager(c.log, c.ShowFileDiff)
 }
 
-func (c *GitCommand) WithSpan(span string) *GitCommand {
+func (c *GitCommand) WithSpan(span string) IGitCommand {
 	// sometimes .WithSpan(span) will be called where span actually is empty, in
 	// which case we don't need to log anything so we can just return early here
 	// with the original struct

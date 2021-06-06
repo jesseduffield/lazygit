@@ -799,6 +799,22 @@ func (_m *IGitCommand) GetHeadCommitMessage() (string, error) {
 	return r0, r1
 }
 
+// GetOSCommand provides a mock function with given fields:
+func (_m *IGitCommand) GetOSCommand() *oscommands.OSCommand {
+	ret := _m.Called()
+
+	var r0 *oscommands.OSCommand
+	if rf, ok := ret.Get(0).(func() *oscommands.OSCommand); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*oscommands.OSCommand)
+		}
+	}
+
+	return r0
+}
+
 // GetPager provides a mock function with given fields: width
 func (_m *IGitCommand) GetPager(width int) string {
 	ret := _m.Called(width)
@@ -1977,15 +1993,15 @@ func (_m *IGitCommand) UsingGpg() bool {
 }
 
 // WithSpan provides a mock function with given fields: span
-func (_m *IGitCommand) WithSpan(span string) *commands.GitCommand {
+func (_m *IGitCommand) WithSpan(span string) commands.IGitCommand {
 	ret := _m.Called(span)
 
-	var r0 *commands.GitCommand
-	if rf, ok := ret.Get(0).(func(string) *commands.GitCommand); ok {
+	var r0 commands.IGitCommand
+	if rf, ok := ret.Get(0).(func(string) commands.IGitCommand); ok {
 		r0 = rf(span)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*commands.GitCommand)
+			r0 = ret.Get(0).(commands.IGitCommand)
 		}
 	}
 

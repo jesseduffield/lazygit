@@ -6,6 +6,7 @@ import (
 	commandsMocks "github.com/jesseduffield/lazygit/pkg/commands/mocks"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/push_files/mocks"
+	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/stretchr/testify/mock"
 )
@@ -36,10 +37,6 @@ func TestPushFilesHandler_Run(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			testGitCommandObj := new(commandsMocks.IGitCommand)
-			testGitCommandObj.On("WithSpan", "Push").Return(testGitCommandObj)
-			testGitCommandObj.On("Push", "mybranch", false, "", "", mock.AnythingOfType("func(string) string")).Return(nil)
-
 			testObj := &MockGui{Gui: new(mocks.Gui)}
 			testObj.On("PopupPanelFocused").Return(false)
 			testObj.On("CurrentBranch").Return(&models.Branch{Pushables: "0", Pullables: "0", Name: "mybranch"})
@@ -47,7 +44,16 @@ func TestPushFilesHandler_Run(t *testing.T) {
 				callback := args.Get(1).(func() error)
 				_ = callback()
 			})
+
+			testGitCommandObj := new(commandsMocks.IGitCommand)
+
 			testObj.On("GetGitCommand").Return(testGitCommandObj)
+
+			testGitCommandObj.On("WithSpan", "Push").Return(testGitCommandObj)
+			testGitCommandObj.On("Push", "mybranch", false, "", "", mock.AnythingOfType("func(string) string")).Return(nil)
+
+			testObj.On("HandleCredentialsPopup", nil).Return()
+			testObj.On("RefreshSidePanels", RefreshOptions{Mode: ASYNC}).Return(nil)
 
 			handler := &PushFilesHandler{
 				Gui: testObj,
