@@ -53,7 +53,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 
 			s.test(gitCmd.GetStashEntries(""))
 		})

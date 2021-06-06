@@ -87,7 +87,7 @@ func TestGitCommandPush(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			gitCmd.getGitConfigValue = s.getGitConfigValue
 			err := gitCmd.Push("test", s.forcePush, "", "", func(passOrUname string) string {
 				return "\n"

@@ -28,7 +28,7 @@ const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 // GitCommand is our main git interface
 type GitCommand struct {
 	log                  *logrus.Entry
-	OSCommand            *oscommands.OSCommand
+	oSCommand            *oscommands.OSCommand
 	repo                 *gogit.Repository
 	tr                   *i18n.TranslationSet
 	config               config.AppConfigurer
@@ -72,7 +72,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 
 	gitCommand := &GitCommand{
 		log:               log,
-		OSCommand:         osCommand,
+		oSCommand:         osCommand,
 		tr:                tr,
 		repo:              repo,
 		config:            config,
@@ -98,7 +98,7 @@ func (c *GitCommand) WithSpan(span string) *GitCommand {
 
 	newGitCommand := &GitCommand{}
 	*newGitCommand = *c
-	newGitCommand.OSCommand = c.OSCommand.WithSpan(span)
+	newGitCommand.oSCommand = c.GetOSCommand().WithSpan(span)
 
 	return newGitCommand
 }
@@ -229,7 +229,7 @@ func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...int
 	attempt := 0
 
 	for {
-		output, err := c.OSCommand.RunCommandWithOutput(formatString, formatArgs...)
+		output, err := c.GetOSCommand().RunCommandWithOutput(formatString, formatArgs...)
 		if err != nil {
 			// if we have an error based on the index lock, we should wait a bit and then retry
 			if strings.Contains(output, ".git/index.lock") {
@@ -244,4 +244,8 @@ func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...int
 		}
 		return output, err
 	}
+}
+
+func (c *GitCommand) GetOSCommand() *oscommands.OSCommand {
+	return c.oSCommand
 }

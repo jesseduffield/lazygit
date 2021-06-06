@@ -61,7 +61,7 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.GetCommitDifferences("HEAD", "@{u}"))
 		})
 	}
@@ -70,7 +70,7 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 // TestGitCommandNewBranch is a function.
 func TestGitCommandNewBranch(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"checkout", "-b", "test", "master"}, args)
 
@@ -124,7 +124,7 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.DeleteBranch(s.branch, s.force))
 		})
 	}
@@ -133,7 +133,7 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 // TestGitCommandMerge is a function.
 func TestGitCommandMerge(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"merge", "--no-edit", "test"}, args)
 
@@ -184,7 +184,7 @@ func TestGitCommandCheckout(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.Checkout("test", CheckoutOptions{Force: s.force}))
 		})
 	}
@@ -193,7 +193,7 @@ func TestGitCommandCheckout(t *testing.T) {
 // TestGitCommandGetBranchGraph is a function.
 func TestGitCommandGetBranchGraph(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--"}, args)
 		return secureexec.Command("echo")
@@ -204,13 +204,13 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 
 func TestGitCommandGetAllBranchGraph(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium"}, args)
 		return secureexec.Command("echo")
 	}
 	cmdStr := gitCmd.config.GetUserConfig().Git.AllBranchesLogCmd
-	_, err := gitCmd.OSCommand.RunCommandWithOutput(cmdStr)
+	_, err := gitCmd.GetOSCommand().RunCommandWithOutput(cmdStr)
 	assert.NoError(t, err)
 }
 
@@ -296,7 +296,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.CurrentBranchName())
 		})
 	}
@@ -331,7 +331,7 @@ func TestGitCommandResetHard(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.ResetHard(s.ref))
 		})
 	}

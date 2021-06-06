@@ -24,12 +24,12 @@ func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error
 
 func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {
 	command := fmt.Sprintf("git push %s --delete %s", remoteName, branchName)
-	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
+	return c.GetOSCommand().DetectUnamePass(command, promptUserForCredential)
 }
 
 // CheckRemoteBranchExists Returns remote branch
 func (c *GitCommand) CheckRemoteBranchExists(branch *models.Branch) bool {
-	_, err := c.OSCommand.RunCommandWithOutput(
+	_, err := c.GetOSCommand().RunCommandWithOutput(
 		"git show-ref --verify -- refs/remotes/origin/%s",
 		branch.Name,
 	)

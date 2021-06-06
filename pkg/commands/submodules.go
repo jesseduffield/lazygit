@@ -109,11 +109,11 @@ func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 }
 
 func (c *GitCommand) SubmoduleAdd(name string, path string, url string) error {
-	return c.OSCommand.RunCommand(
+	return c.GetOSCommand().RunCommand(
 		"git submodule add --force --name %s -- %s %s ",
-		c.OSCommand.Quote(name),
-		c.OSCommand.Quote(url),
-		c.OSCommand.Quote(path),
+		c.GetOSCommand().Quote(name),
+		c.GetOSCommand().Quote(url),
+		c.GetOSCommand().Quote(path),
 	)
 }
 

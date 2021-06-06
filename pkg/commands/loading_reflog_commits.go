@@ -17,10 +17,10 @@ func (c *GitCommand) GetReflogCommits(lastReflogCommit *models.Commit, filterPat
 
 	filterPathArg := ""
 	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(filterPath))
+		filterPathArg = fmt.Sprintf(" --follow -- %s", c.GetOSCommand().Quote(filterPath))
 	}
 
-	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf("git reflog --abbrev=20 --date=unix %s", filterPathArg))
+	cmd := c.GetOSCommand().ExecutableFromString(fmt.Sprintf("git reflog --abbrev=20 --date=unix %s", filterPathArg))
 	onlyObtainedNewReflogCommits := false
 	err := oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)

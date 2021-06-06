@@ -90,7 +90,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		return err
 	}
 
-	if err := c.OSCommand.RunPreparedCommand(cmd); err != nil {
+	if err := c.GetOSCommand().RunPreparedCommand(cmd); err != nil {
 		return err
 	}
 
@@ -217,7 +217,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 
 	head_message, _ := c.GetHeadCommitMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := c.OSCommand.RunCommand(c.CommitCmdStr(new_message, ""))
+	err := c.GetOSCommand().RunCommand(c.CommitCmdStr(new_message, ""))
 	if err != nil {
 		return err
 	}

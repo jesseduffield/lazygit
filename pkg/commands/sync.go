@@ -22,7 +22,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 	}
 
 	cmd := fmt.Sprintf("git push %s %s %s %s", followTagsFlag, forceFlag, setUpstreamArg, args)
-	return c.OSCommand.DetectUnamePass(cmd, promptUserForCredential)
+	return c.GetOSCommand().DetectUnamePass(cmd, promptUserForCredential)
 }
 
 type FetchOptions struct {
@@ -42,7 +42,7 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 		command = fmt.Sprintf("%s %s", command, opts.BranchName)
 	}
 
-	return c.OSCommand.DetectUnamePass(command, func(question string) string {
+	return c.GetOSCommand().DetectUnamePass(command, func(question string) string {
 		if opts.PromptUserForCredential != nil {
 			return opts.PromptUserForCredential(question)
 		}
@@ -52,10 +52,10 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 
 func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string, promptUserForCredential func(string) string) error {
 	command := fmt.Sprintf("git fetch %s %s:%s", remoteName, remoteBranchName, branchName)
-	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
+	return c.GetOSCommand().DetectUnamePass(command, promptUserForCredential)
 }
 
 func (c *GitCommand) FetchRemote(remoteName string, promptUserForCredential func(string) string) error {
 	command := fmt.Sprintf("git fetch %s", remoteName)
-	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
+	return c.GetOSCommand().DetectUnamePass(command, promptUserForCredential)
 }

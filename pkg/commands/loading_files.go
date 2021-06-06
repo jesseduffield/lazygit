@@ -62,7 +62,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 			Added:                   unstagedChange == "A" || untracked,
 			HasMergeConflicts:       hasMergeConflicts,
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			Type:                    c.OSCommand.FileType(name),
+			Type:                    c.GetOSCommand().FileType(name),
 			ShortStatus:             change,
 		}
 		files = append(files, file)

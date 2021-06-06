@@ -47,7 +47,7 @@ func (c *GitCommand) DeleteBranch(branch string, force bool) error {
 		command = "git branch -D"
 	}
 
-	return c.OSCommand.RunCommand("%s %s", command, branch)
+	return c.GetOSCommand().RunCommand("%s %s", command, branch)
 }
 
 // Checkout checks out a branch (or commit), with --force if you set the force arg to true
@@ -61,7 +61,7 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 	if options.Force {
 		forceArg = " --force"
 	}
-	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git checkout%s %s", forceArg, branch), oscommands.RunCommandOptions{EnvVars: options.EnvVars})
+	return c.GetOSCommand().RunCommandWithOptions(fmt.Sprintf("git checkout%s %s", forceArg, branch), oscommands.RunCommandOptions{EnvVars: options.EnvVars})
 }
 
 // GetBranchGraph gets the color-formatted graph of the log for the given branch
@@ -69,7 +69,7 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 	cmdStr := c.GetBranchGraphCmdStr(branchName)
-	return c.OSCommand.RunCommandWithOutput(cmdStr)
+	return c.GetOSCommand().RunCommandWithOutput(cmdStr)
 }
 
 func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
@@ -105,11 +105,11 @@ func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string
 // current branch
 func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
 	command := "git rev-list %s..%s --count"
-	pushableCount, err := c.OSCommand.RunCommandWithOutput(command, to, from)
+	pushableCount, err := c.GetOSCommand().RunCommandWithOutput(command, to, from)
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.OSCommand.RunCommandWithOutput(command, from, to)
+	pullableCount, err := c.GetOSCommand().RunCommandWithOutput(command, from, to)
 	if err != nil {
 		return "?", "?"
 	}
@@ -129,7 +129,7 @@ func (c *GitCommand) Merge(branchName string, opts MergeOpts) error {
 		command = fmt.Sprintf("%s --ff-only", command)
 	}
 
-	return c.OSCommand.RunCommand(command)
+	return c.GetOSCommand().RunCommand(command)
 }
 
 // AbortMerge abort merge

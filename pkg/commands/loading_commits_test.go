@@ -107,7 +107,7 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			c := NewDummyCommitListBuilder()
-			c.OSCommand.SetCommand(s.command)
+			c.GetOSCommand().SetCommand(s.command)
 			s.test(c.getMergeBase("HEAD"))
 		})
 	}

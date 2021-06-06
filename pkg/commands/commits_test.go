@@ -13,7 +13,7 @@ import (
 // TestGitCommandRenameCommit is a function.
 func TestGitCommandRenameCommit(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, args)
 
@@ -26,7 +26,7 @@ func TestGitCommandRenameCommit(t *testing.T) {
 // TestGitCommandResetToCommit is a function.
 func TestGitCommandResetToCommit(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"reset", "--hard", "78976bc"}, args)
 
@@ -104,7 +104,7 @@ func TestGitCommandCreateFixupCommit(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.CreateFixupCommit(s.sha))
 		})
 	}

@@ -11,7 +11,7 @@ import (
 
 func (c *GitCommand) getUnfilteredStashEntries() []*models.StashEntry {
 	unescaped := "git stash list --pretty='%gs'"
-	rawString, _ := c.OSCommand.RunCommandWithOutput(unescaped)
+	rawString, _ := c.GetOSCommand().RunCommandWithOutput(unescaped)
 	stashEntries := []*models.StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, stashEntryFromLine(line, i))

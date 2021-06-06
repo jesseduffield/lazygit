@@ -51,7 +51,7 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.RebaseBranch(s.arg))
 		})
 	}
@@ -62,7 +62,7 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 func TestGitCommandSkipEditorCommand(t *testing.T) {
 	cmd := NewDummyGitCommand()
 
-	cmd.OSCommand.SetBeforeExecuteCmd(func(cmd *exec.Cmd) {
+	cmd.GetOSCommand().SetBeforeExecuteCmd(func(cmd *exec.Cmd) {
 		test.AssertContainsMatch(
 			t,
 			cmd.Env,

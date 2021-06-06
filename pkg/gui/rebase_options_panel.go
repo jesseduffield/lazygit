@@ -51,7 +51,8 @@ func (gui *Gui) genericMergeCommand(command string) error {
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
 	if status == commands.REBASE_MODE_MERGING && command != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
-		sub := gitCommand.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
+		// calling GetOSCommand() on git struct rather than on gui struct because the git struct has the span applied
+		sub := gitCommand.GetOSCommand().PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
 		if sub != nil {
 			return gui.runSubprocessWithSuspenseAndRefresh(sub)
 		}

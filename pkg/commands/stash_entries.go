@@ -10,7 +10,7 @@ func (c *GitCommand) StashDo(index int, method string) error {
 // StashSave save stash
 // TODO: before calling this, check if there is anything to save
 func (c *GitCommand) StashSave(message string) error {
-	return c.RunCommand("git stash save %s", c.OSCommand.Quote(message))
+	return c.RunCommand("git stash save %s", c.GetOSCommand().Quote(message))
 }
 
 // GetStashEntryDiff stash diff
@@ -34,7 +34,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 		return err
 	}
 
-	if err := c.OSCommand.PipeCommands("git stash show -p", "git apply -R"); err != nil {
+	if err := c.GetOSCommand().PipeCommands("git stash show -p", "git apply -R"); err != nil {
 		return err
 	}
 

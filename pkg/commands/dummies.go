@@ -16,7 +16,7 @@ func NewDummyGitCommand() *GitCommand {
 func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
 	return &GitCommand{
 		log:               utils.NewDummyLog(),
-		OSCommand:         osCommand,
+		oSCommand:         osCommand,
 		tr:                i18n.NewTranslationSet(utils.NewDummyLog()),
 		config:            config.NewDummyAppConfig(),
 		getGitConfigValue: func(string) (string, error) { return "", nil },

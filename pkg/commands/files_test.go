@@ -23,7 +23,7 @@ func TestGitCommandCatFile(t *testing.T) {
 		osCmd = "cat"
 	}
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, osCmd, cmd)
 		assert.EqualValues(t, []string{"test.txt"}, args)
 
@@ -38,7 +38,7 @@ func TestGitCommandCatFile(t *testing.T) {
 // TestGitCommandStageFile is a function.
 func TestGitCommandStageFile(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
+	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
 		assert.EqualValues(t, []string{"add", "--", "test.txt"}, args)
 
@@ -89,7 +89,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.UnStageFile([]string{"test.txt"}, s.reset))
 		})
 	}
@@ -323,8 +323,8 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			var cmdsCalled *[][]string
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command, cmdsCalled = s.command()
-			gitCmd.OSCommand.SetRemoveFile(s.removeFile)
+			gitCmd.GetOSCommand().Command, cmdsCalled = s.command()
+			gitCmd.GetOSCommand().SetRemoveFile(s.removeFile)
 			s.test(cmdsCalled, gitCmd.DiscardAllFileChanges(s.file))
 		})
 	}
@@ -410,7 +410,7 @@ func TestGitCommandDiff(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached)
 		})
 	}
@@ -461,7 +461,7 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.CheckoutFile(s.commitSha, s.fileName))
 		})
 	}
@@ -518,7 +518,7 @@ func TestGitCommandApplyPatch(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.ApplyPatch("test", "cached"))
 		})
 	}
@@ -608,7 +608,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			gitCmd.getGitConfigValue = s.getGitConfigValue
 			s.test(gitCmd.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
 		})
@@ -644,7 +644,7 @@ func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.DiscardUnstagedFileChanges(s.file))
 		})
 	}
@@ -677,7 +677,7 @@ func TestGitCommandDiscardAnyUnstagedFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.DiscardAnyUnstagedFileChanges())
 		})
 	}
@@ -710,7 +710,7 @@ func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd.GetOSCommand().Command = s.command
 			s.test(gitCmd.RemoveUntrackedFiles())
 		})
 	}
@@ -864,8 +864,8 @@ func TestEditFileCmdStr(t *testing.T) {
 	for _, s := range scenarios {
 		gitCmd := NewDummyGitCommand()
 		gitCmd.config.GetUserConfig().OS.EditCommand = s.configEditCommand
-		gitCmd.OSCommand.Command = s.command
-		gitCmd.OSCommand.Getenv = s.getenv
+		gitCmd.GetOSCommand().Command = s.command
+		gitCmd.GetOSCommand().Getenv = s.getenv
 		gitCmd.getGitConfigValue = s.getGitConfigValue
 		s.test(gitCmd.EditFileCmdStr(s.filename))
 	}

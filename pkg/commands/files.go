@@ -14,7 +14,7 @@ import (
 
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.OSCommand.CatFile(fileName)
+	return c.GetOSCommand().CatFile(fileName)
 }
 
 func (c *GitCommand) OpenMergeToolCmd() string {
@@ -22,12 +22,12 @@ func (c *GitCommand) OpenMergeToolCmd() string {
 }
 
 func (c *GitCommand) OpenMergeTool() error {
-	return c.OSCommand.RunCommand("git mergetool")
+	return c.GetOSCommand().RunCommand("git mergetool")
 }
 
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
-	return c.RunCommand("git add -- %s", c.OSCommand.Quote(fileName))
+	return c.RunCommand("git add -- %s", c.GetOSCommand().Quote(fileName))
 }
 
 // StageAll stages all files
@@ -50,7 +50,7 @@ func (c *GitCommand) UnStageFile(fileNames []string, reset bool) error {
 	}
 
 	for _, name := range fileNames {
-		if err := c.OSCommand.RunCommand(command, c.OSCommand.Quote(name)); err != nil {
+		if err := c.GetOSCommand().RunCommand(command, c.GetOSCommand().Quote(name)); err != nil {
 			return err
 		}
 	}
@@ -111,7 +111,7 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 		return nil
 	}
 
-	quotedFileName := c.OSCommand.Quote(file.Name)
+	quotedFileName := c.GetOSCommand().Quote(file.Name)
 
 	if file.ShortStatus == "AA" {
 		if err := c.RunCommand("git checkout --ours --  %s", quotedFileName); err != nil {
@@ -139,7 +139,7 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 	}
 
 	if file.Added {
-		return c.OSCommand.RemoveFile(file.Name)
+		return c.GetOSCommand().RemoveFile(file.Name)
 	}
 	return c.DiscardUnstagedFileChanges(file)
 }
@@ -154,7 +154,7 @@ func (c *GitCommand) DiscardUnstagedDirChanges(node *filetree.FileNode) error {
 		return err
 	}
 
-	quotedPath := c.OSCommand.Quote(node.GetPath())
+	quotedPath := c.GetOSCommand().Quote(node.GetPath())
 	if err := c.RunCommand("git checkout -- %s", quotedPath); err != nil {
 		return err
 	}
@@ -179,19 +179,19 @@ func (c *GitCommand) RemoveUntrackedDirFiles(node *filetree.FileNode) error {
 
 // DiscardUnstagedFileChanges directly
 func (c *GitCommand) DiscardUnstagedFileChanges(file *models.File) error {
-	quotedFileName := c.OSCommand.Quote(file.Name)
+	quotedFileName := c.GetOSCommand().Quote(file.Name)
 	return c.RunCommand("git checkout -- %s", quotedFileName)
 }
 
 // Ignore adds a file to the gitignore for the repo
 func (c *GitCommand) Ignore(filename string) error {
-	return c.OSCommand.AppendLineToFile(".gitignore", filename)
+	return c.GetOSCommand().AppendLineToFile(".gitignore", filename)
 }
 
 // WorktreeFileDiff returns the diff of a file
 func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := c.OSCommand.RunCommandWithOutput(c.WorktreeFileDiffCmdStr(file, plain, cached))
+	s, _ := c.GetOSCommand().RunCommandWithOutput(c.WorktreeFileDiffCmdStr(file, plain, cached))
 	return s
 }
 
@@ -199,7 +199,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()
-	path := c.OSCommand.Quote(node.GetPath())
+	path := c.GetOSCommand().Quote(node.GetPath())
 	if cached {
 		cachedArg = "--cached"
 	}
@@ -216,7 +216,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	filepath := filepath.Join(c.config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	c.log.Infof("saving temporary patch to %s", filepath)
-	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
+	if err := c.GetOSCommand().CreateFileWithContent(filepath, patch); err != nil {
 		return err
 	}
 
@@ -225,14 +225,14 @@ func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 		flagStr += " --" + flag
 	}
 
-	return c.RunCommand("git apply %s %s", flagStr, c.OSCommand.Quote(filepath))
+	return c.RunCommand("git apply %s %s", flagStr, c.GetOSCommand().Quote(filepath))
 }
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
 func (c *GitCommand) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
 	cmdStr := c.ShowFileDiffCmdStr(from, to, reverse, fileName, plain)
-	return c.OSCommand.RunCommandWithOutput(cmdStr)
+	return c.GetOSCommand().RunCommandWithOutput(cmdStr)
 }
 
 func (c *GitCommand) ShowFileDiffCmdStr(from string, to string, reverse bool, fileName string, plain bool) string {
@@ -262,7 +262,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
 	if err := c.RunCommand("git cat-file -e HEAD^:%s", fileName); err != nil {
-		if err := c.OSCommand.Remove(fileName); err != nil {
+		if err := c.GetOSCommand().Remove(fileName); err != nil {
 			return err
 		}
 		if err := c.StageFile(fileName); err != nil {
@@ -325,16 +325,16 @@ func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
 	}
 
 	if editor == "" {
-		editor = c.OSCommand.Getenv("GIT_EDITOR")
+		editor = c.GetOSCommand().Getenv("GIT_EDITOR")
 	}
 	if editor == "" {
-		editor = c.OSCommand.Getenv("VISUAL")
+		editor = c.GetOSCommand().Getenv("VISUAL")
 	}
 	if editor == "" {
-		editor = c.OSCommand.Getenv("EDITOR")
+		editor = c.GetOSCommand().Getenv("EDITOR")
 	}
 	if editor == "" {
-		if err := c.OSCommand.RunCommand("which vi"); err == nil {
+		if err := c.GetOSCommand().RunCommand("which vi"); err == nil {
 			editor = "vi"
 		}
 	}
@@ -342,5 +342,5 @@ func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
 		return "", errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
-	return fmt.Sprintf("%s %s", editor, c.OSCommand.Quote(filename)), nil
+	return fmt.Sprintf("%s %s", editor, c.GetOSCommand().Quote(filename)), nil
 }

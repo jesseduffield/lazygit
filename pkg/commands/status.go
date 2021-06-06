@@ -16,14 +16,14 @@ const (
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
 // and "interactive" for interactive rebase
 func (c *GitCommand) RebaseMode() (string, error) {
-	exists, err := c.OSCommand.FileExists(filepath.Join(c.dotGitDir, "rebase-apply"))
+	exists, err := c.GetOSCommand().FileExists(filepath.Join(c.dotGitDir, "rebase-apply"))
 	if err != nil {
 		return "", err
 	}
 	if exists {
 		return REBASE_MODE_NORMAL, nil
 	}
-	exists, err = c.OSCommand.FileExists(filepath.Join(c.dotGitDir, "rebase-merge"))
+	exists, err = c.GetOSCommand().FileExists(filepath.Join(c.dotGitDir, "rebase-merge"))
 	if exists {
 		return REBASE_MODE_INTERACTIVE, err
 	} else {
@@ -45,7 +45,7 @@ func (c *GitCommand) WorkingTreeState() string {
 
 // IsInMergeState states whether we are still mid-merge
 func (c *GitCommand) IsInMergeState() (bool, error) {
-	return c.OSCommand.FileExists(filepath.Join(c.dotGitDir, "MERGE_HEAD"))
+	return c.GetOSCommand().FileExists(filepath.Join(c.dotGitDir, "MERGE_HEAD"))
 }
 
 func (c *GitCommand) IsBareRepo() bool {

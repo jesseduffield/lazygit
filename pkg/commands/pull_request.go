@@ -96,7 +96,7 @@ func (pr *PullRequest) Create(branch *models.Branch) (string, error) {
 		return "", err
 	}
 
-	return pullRequestURL, pr.GitCommand.OSCommand.OpenLink(pullRequestURL)
+	return pullRequestURL, pr.GitCommand.GetOSCommand().OpenLink(pullRequestURL)
 }
 
 // CopyURL copies the pull request URL to the clipboard
@@ -106,7 +106,7 @@ func (pr *PullRequest) CopyURL(branch *models.Branch) (string, error) {
 		return "", err
 	}
 
-	return pullRequestURL, pr.GitCommand.OSCommand.CopyToClipboard(pullRequestURL)
+	return pullRequestURL, pr.GitCommand.GetOSCommand().CopyToClipboard(pullRequestURL)
 }
 
 func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) {

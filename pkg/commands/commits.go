@@ -10,19 +10,19 @@ import (
 
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) error {
-	return c.RunCommand("git commit --allow-empty --amend --only -m %s", c.OSCommand.Quote(name))
+	return c.RunCommand("git commit --allow-empty --amend --only -m %s", c.GetOSCommand().Quote(name))
 }
 
 // ResetToCommit reset to commit
 func (c *GitCommand) ResetToCommit(sha string, strength string, options oscommands.RunCommandOptions) error {
-	return c.OSCommand.RunCommandWithOptions(fmt.Sprintf("git reset --%s %s", strength, sha), options)
+	return c.GetOSCommand().RunCommandWithOptions(fmt.Sprintf("git reset --%s %s", strength, sha), options)
 }
 
 func (c *GitCommand) CommitCmdStr(message string, flags string) string {
 	splitMessage := strings.Split(message, "\n")
 	lineArgs := ""
 	for _, line := range splitMessage {
-		lineArgs += fmt.Sprintf(" -m %s", c.OSCommand.Quote(line))
+		lineArgs += fmt.Sprintf(" -m %s", c.GetOSCommand().Quote(line))
 	}
 
 	flagsStr := ""
@@ -36,13 +36,13 @@ func (c *GitCommand) CommitCmdStr(message string, flags string) string {
 // Get the subject of the HEAD commit
 func (c *GitCommand) GetHeadCommitMessage() (string, error) {
 	cmdStr := "git log -1 --pretty=%s"
-	message, err := c.OSCommand.RunCommandWithOutput(cmdStr)
+	message, err := c.GetOSCommand().RunCommandWithOutput(cmdStr)
 	return strings.TrimSpace(message), err
 }
 
 func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
 	cmdStr := "git rev-list --format=%B --max-count=1 " + commitSha
-	messageWithHeader, err := c.OSCommand.RunCommandWithOutput(cmdStr)
+	messageWithHeader, err := c.GetOSCommand().RunCommandWithOutput(cmdStr)
 	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "\n")
 	return strings.TrimSpace(message), err
 }
@@ -53,7 +53,7 @@ func (c *GitCommand) GetCommitMessageFirstLine(sha string) (string, error) {
 
 // AmendHead amends HEAD with whatever is staged in your working tree
 func (c *GitCommand) AmendHead() error {
-	return c.OSCommand.RunCommand(c.AmendHeadCmdStr())
+	return c.GetOSCommand().RunCommand(c.AmendHeadCmdStr())
 }
 
 func (c *GitCommand) AmendHeadCmdStr() string {
@@ -63,7 +63,7 @@ func (c *GitCommand) AmendHeadCmdStr() string {
 func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {
 	filterPathArg := ""
 	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" -- %s", c.OSCommand.Quote(filterPath))
+		filterPathArg = fmt.Sprintf(" -- %s", c.GetOSCommand().Quote(filterPath))
 	}
 	return fmt.Sprintf("git show --submodule --color=%s --no-renames --stat -p %s %s", c.colorArg(), sha, filterPathArg)
 }
@@ -89,7 +89,7 @@ func (c *GitCommand) CherryPickCommits(commits []*models.Commit) error {
 		return err
 	}
 
-	return c.OSCommand.RunPreparedCommand(cmd)
+	return c.GetOSCommand().RunPreparedCommand(cmd)
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
