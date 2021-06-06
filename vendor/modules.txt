@@ -28,7 +28,7 @@ github.com/emirpasic/gods/utils
 # github.com/fatih/color v1.9.0
 ## explicit
 github.com/fatih/color
-# github.com/fsnotify/fsnotify v1.4.7
+# github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
@@ -93,10 +93,6 @@ github.com/go-logfmt/logfmt
 # github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 ## explicit
 github.com/golang-collections/collections/stack
-# github.com/golang/protobuf v1.3.2
-## explicit
-# github.com/google/go-cmp v0.3.1
-## explicit
 # github.com/imdario/mergo v0.3.11
 ## explicit
 github.com/imdario/mergo
@@ -152,8 +148,6 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
 # github.com/jesseduffield/gocui v0.3.1-0.20210417110745-37f79434200d
 ## explicit
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe
-## explicit
 # github.com/jesseduffield/yaml v2.1.0+incompatible
 ## explicit
 github.com/jesseduffield/yaml
@@ -185,14 +179,11 @@ github.com/mattn/go-runewidth
 github.com/mgutz/str
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
-# github.com/onsi/ginkgo v1.10.3
-## explicit
-# github.com/onsi/gomega v1.7.1
+# github.com/onsi/gomega v1.13.0
 ## explicit
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/rivo/uniseg v0.2.0
-## explicit
 github.com/rivo/uniseg
 # github.com/sahilm/fuzzy v0.1.0
 ## explicit
@@ -205,12 +196,9 @@ github.com/sirupsen/logrus
 # github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 ## explicit
 github.com/spkg/bom
-# github.com/stretchr/objx v0.1.1
-github.com/stretchr/objx
-# github.com/stretchr/testify v1.4.0
+# github.com/stretchr/testify v1.5.1
 ## explicit
 github.com/stretchr/testify/assert
-github.com/stretchr/testify/mock
 # github.com/xanzy/ssh-agent v0.2.1
 github.com/xanzy/ssh-agent
 # golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
@@ -233,7 +221,7 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/knownhosts
-# golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c
+# golang.org/x/net v0.0.0-20210525063256-abc453219eb5
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/internal/socks
@@ -249,12 +237,11 @@ golang.org/x/sys/windows
 ## explicit
 golang.org/x/term
 # golang.org/x/text v0.3.6
-## explicit
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal/identifier
 golang.org/x/text/transform
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v2 v2.3.0
+# gopkg.in/yaml.v2 v2.4.0
 gopkg.in/yaml.v2
 # github.com/go-git/go-git/v5 => github.com/jesseduffield/go-git/v5 v5.1.1

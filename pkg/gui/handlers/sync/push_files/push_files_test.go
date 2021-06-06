@@ -3,22 +3,15 @@ package push_files
 import (
 	"testing"
 
-	commandsMocks "github.com/jesseduffield/lazygit/pkg/commands/mocks"
+	commandsMocks "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/push_files/mocks"
-	. "github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/push_files/push_filesfakes"
+
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/assert"
 )
 
-type MockGui struct {
-	*mocks.Gui
-}
-
-func (m *MockGui) GetTr() *i18n.TranslationSet {
-	tr := i18n.EnglishTranslationSet()
-	return &tr
-}
+var tr = i18n.EnglishTranslationSet()
 
 func TestPushFilesHandler_Run(t *testing.T) {
 	type fields struct {
@@ -37,26 +30,29 @@ func TestPushFilesHandler_Run(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			testObj := &MockGui{Gui: new(mocks.Gui)}
-			testObj.On("PopupPanelFocused").Return(false)
-			testObj.On("CurrentBranch").Return(&models.Branch{Pushables: "0", Pullables: "0", Name: "mybranch"})
-			testObj.On("WithPopupWaitingStatus", "Pushing...", mock.AnythingOfType("func() error")).Return(nil).Run(func(args mock.Arguments) {
-				callback := args.Get(1).(func() error)
-				_ = callback()
-			})
+			mockGui := &push_filesfakes.FakeGui{}
+			mockGui.GetTrStub = func() *i18n.TranslationSet { return &tr }
+			mockGui.PopupPanelFocusedReturns(false)
+			mockGui.CurrentBranchReturns(&models.Branch{Pushables: "0", Pullables: "0", Name: "mybranch"})
+			mockGui.WithPopupWaitingStatusStub = func(message string, f func() error) error {
+				assert.Equal(t, "Pushing...", message)
+				return f()
+			}
 
-			testGitCommandObj := new(commandsMocks.IGitCommand)
+			testGitCommandObj := &commandsMocks.FakeIGitCommand{}
 
-			testObj.On("GetGitCommand").Return(testGitCommandObj)
+			mockGui.GetGitCommandReturns(testGitCommandObj)
 
-			testGitCommandObj.On("WithSpan", "Push").Return(testGitCommandObj)
-			testGitCommandObj.On("Push", "mybranch", false, "", "", mock.AnythingOfType("func(string) string")).Return(nil)
-
-			testObj.On("HandleCredentialsPopup", nil).Return()
-			testObj.On("RefreshSidePanels", RefreshOptions{Mode: ASYNC}).Return(nil)
+			testGitCommandObj.WithSpanReturns(testGitCommandObj)
+			testGitCommandObj.PushStub = func(branchName string, force bool, upstream, args string, promptUserForCredential func(string) string) error {
+				assert.Equal(t, "mybranch", branchName)
+				assert.Equal(t, false, force)
+				assert.Equal(t, "", upstream)
+				return nil
+			}
 
 			handler := &PushFilesHandler{
-				Gui: testObj,
+				Gui: mockGui,
 			}
 
 			if err := handler.Run(); (err != nil) != tt.wantErr {
