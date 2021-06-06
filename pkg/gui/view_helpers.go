@@ -358,7 +358,7 @@ func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
 }
 
 func (gui *Gui) handleNextTab() error {
-	v := gui.g.CurrentView()
+	v := getTabbedView(gui)
 	if v == nil {
 		return nil
 	}
@@ -370,7 +370,7 @@ func (gui *Gui) handleNextTab() error {
 }
 
 func (gui *Gui) handlePrevTab() error {
-	v := gui.g.CurrentView()
+	v := getTabbedView(gui)
 	if v == nil {
 		return nil
 	}
@@ -391,4 +391,16 @@ func (gui *Gui) pageDelta(view *gocui.View) int {
 	}
 
 	return delta
+}
+
+func getTabbedView(gui *Gui) *gocui.View {
+	v := gui.g.CurrentView()
+	if v == nil {
+		return nil
+	}
+	if v.Name() == "menu" {
+		v = v.ParentView
+	}
+
+	return v
 }
