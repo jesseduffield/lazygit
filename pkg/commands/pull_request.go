@@ -84,7 +84,7 @@ func getServices(config config.AppConfigurer) []*Service {
 // NewPullRequest creates new instance of PullRequest
 func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 	return &PullRequest{
-		GitServices: getServices(gitCommand.Config),
+		GitServices: getServices(gitCommand.config),
 		GitCommand:  gitCommand,
 	}
 }
@@ -113,7 +113,7 @@ func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) 
 	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(branch)
 
 	if !branchExistsOnRemote {
-		return "", errors.New(pr.GitCommand.Tr.NoBranchOnRemote)
+		return "", errors.New(pr.GitCommand.tr.NoBranchOnRemote)
 	}
 
 	repoURL := pr.GitCommand.GetRemoteURL()
@@ -127,7 +127,7 @@ func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) 
 	}
 
 	if gitService == nil {
-		return "", errors.New(pr.GitCommand.Tr.UnsupportedGitService)
+		return "", errors.New(pr.GitCommand.tr.UnsupportedGitService)
 	}
 
 	repoInfo := getRepoInfoFromURL(repoURL)

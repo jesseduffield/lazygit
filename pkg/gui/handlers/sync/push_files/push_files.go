@@ -1,6 +1,7 @@
 package push_files
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -14,7 +15,6 @@ type Gui interface {
 	PopupPanelFocused() bool
 	CurrentBranch() *models.Branch
 	GetUserConfig() *config.UserConfig
-	UpstreamForBranchInConfig(string) (string, error)
 	SurfaceError(error) error
 	GetGitCommand() commands.IGitCommand
 	Prompt(PromptOpts) error
@@ -55,12 +55,12 @@ func (gui *PushFilesHandler) Run() error {
 		}
 	} else {
 		// see if we have an upstream for this branch in our config
-		upstream, err := gui.UpstreamForBranchInConfig(currentBranch.Name)
+		remoteName, err := gui.GetGitCommand().FindRemoteForBranchInConfig(currentBranch.Name)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}
-
-		if upstream != "" {
+		if remoteName != "" {
+			upstream := fmt.Sprintf("%s %s", remoteName, currentBranch.Name)
 			return gui.pushWithForceFlag(false, "", upstream)
 		}
 

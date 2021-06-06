@@ -26,7 +26,7 @@ func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
 	// we must ensure that we have at least two commits after the selected one
 	if len(commits) <= index+2 {
 		// assuming they aren't picking the bottom commit
-		return errors.New(c.Tr.NoRoom)
+		return errors.New(c.tr.NoRoom)
 	}
 
 	todo := ""
@@ -69,7 +69,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	}
 
 	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty %s", baseSha)
-	c.Log.WithField("command", cmdStr).Info("RunCommand")
+	c.log.WithField("command", cmdStr).Info("RunCommand")
 	splitCmd := str.ToArgv(cmdStr)
 
 	cmd := c.OSCommand.Command(splitCmd[0], splitCmd[1:]...)
@@ -103,14 +103,14 @@ func (c *GitCommand) GenerateGenericRebaseTodo(commits []*models.Commit, actionI
 	baseIndex := actionIndex + 1
 
 	if len(commits) <= baseIndex {
-		return "", "", errors.New(c.Tr.CannotRebaseOntoFirstCommit)
+		return "", "", errors.New(c.tr.CannotRebaseOntoFirstCommit)
 	}
 
 	if action == "squash" || action == "fixup" {
 		baseIndex++
 
 		if len(commits) <= baseIndex {
-			return "", "", errors.New(c.Tr.CannotSquashOntoSecondCommit)
+			return "", "", errors.New(c.tr.CannotSquashOntoSecondCommit)
 		}
 	}
 
@@ -144,7 +144,7 @@ func (c *GitCommand) AmendTo(sha string) error {
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
 func (c *GitCommand) EditRebaseTodo(index int, action string) error {
-	fileName := filepath.Join(c.DotGitDir, "rebase-merge/git-rebase-todo")
+	fileName := filepath.Join(c.dotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -176,7 +176,7 @@ func (c *GitCommand) getTodoCommitCount(content []string) int {
 
 // MoveTodoDown moves a rebase todo item down by one position
 func (c *GitCommand) MoveTodoDown(index int) error {
-	fileName := filepath.Join(c.DotGitDir, "rebase-merge/git-rebase-todo")
+	fileName := filepath.Join(c.dotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -214,7 +214,7 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
 	if c.UsingGpg() {
-		return errors.New(c.Tr.DisabledForGPG)
+		return errors.New(c.tr.DisabledForGPG)
 	}
 
 	todo, sha, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
@@ -258,7 +258,7 @@ func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command stri
 		if !strings.Contains(err.Error(), "no rebase in progress") {
 			return err
 		}
-		c.Log.Warn(err)
+		c.log.Warn(err)
 	}
 
 	// sometimes we need to do a sequence of things in a rebase but the user needs to

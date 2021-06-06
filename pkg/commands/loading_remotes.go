@@ -17,7 +17,7 @@ func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {
 		return nil, err
 	}
 
-	goGitRemotes, err := c.Repo.Remotes()
+	goGitRemotes, err := c.repo.Remotes()
 	if err != nil {
 		return nil, err
 	}

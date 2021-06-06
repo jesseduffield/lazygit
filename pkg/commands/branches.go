@@ -78,7 +78,7 @@ func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
 }
 
 func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
-	branchLogCmdTemplate := c.Config.GetUserConfig().Git.BranchLogCmd
+	branchLogCmdTemplate := c.config.GetUserConfig().Git.BranchLogCmd
 	templateValues := map[string]string{
 		"branchName": branchName,
 	}
@@ -122,7 +122,7 @@ type MergeOpts struct {
 
 // Merge merge
 func (c *GitCommand) Merge(branchName string, opts MergeOpts) error {
-	mergeArgs := c.Config.GetUserConfig().Git.Merging.Args
+	mergeArgs := c.config.GetUserConfig().Git.Merging.Args
 
 	command := fmt.Sprintf("git merge --no-edit %s %s", mergeArgs, branchName)
 	if opts.FastForwardOnly {

@@ -863,7 +863,7 @@ func TestEditFileCmdStr(t *testing.T) {
 
 	for _, s := range scenarios {
 		gitCmd := NewDummyGitCommand()
-		gitCmd.Config.GetUserConfig().OS.EditCommand = s.configEditCommand
+		gitCmd.config.GetUserConfig().OS.EditCommand = s.configEditCommand
 		gitCmd.OSCommand.Command = s.command
 		gitCmd.OSCommand.Getenv = s.getenv
 		gitCmd.getGitConfigValue = s.getGitConfigValue

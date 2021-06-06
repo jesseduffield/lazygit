@@ -620,14 +620,12 @@ func (gui *Gui) handlePullFiles() error {
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
 		// see if we have this branch in our config with an upstream
-		conf, err := gui.GitCommand.Repo.Config()
+		remoteName, err := gui.GitCommand.FindRemoteForBranchInConfig(currentBranch.Name)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}
-		for branchName, branch := range conf.Branches {
-			if branchName == currentBranch.Name {
-				return gui.pullFiles(PullFilesOptions{RemoteName: branch.Remote, BranchName: branch.Name, span: span})
-			}
+		if remoteName != "" {
+			return gui.pullFiles(PullFilesOptions{RemoteName: remoteName, BranchName: currentBranch.Name, span: span})
 		}
 
 		return gui.Prompt(PromptOpts{
@@ -696,21 +694,6 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 	default:
 		return gui.CreateErrorPanel(fmt.Sprintf("git pull mode '%s' unrecognised", mode))
 	}
-}
-
-func (gui *Gui) UpstreamForBranchInConfig(branchName string) (string, error) {
-	conf, err := gui.GitCommand.Repo.Config()
-	if err != nil {
-		return "", err
-	}
-
-	for configBranchName, configBranch := range conf.Branches {
-		if configBranchName == branchName {
-			return fmt.Sprintf("%s %s", configBranch.Remote, configBranchName), nil
-		}
-	}
-
-	return "", nil
 }
 
 func (gui *Gui) handleSwitchToMerge() error {

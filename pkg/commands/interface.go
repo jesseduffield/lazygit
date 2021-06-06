@@ -210,4 +210,5 @@ type IGitCommand interface {
 	DeleteTag(tagName string) error
 	PushTag(remoteName string, tagName string, promptUserForCredential func(string) string) error
 	GetPushToCurrent() bool
+	FindRemoteForBranchInConfig(string) (string, error)
 }

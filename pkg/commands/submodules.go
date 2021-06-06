@@ -65,7 +65,7 @@ func (c *GitCommand) SubmoduleStash(submodule *models.SubmoduleConfig) error {
 	// if the path does not exist then it hasn't yet been initialized so we'll swallow the error
 	// because the intention here is to have no dirty worktree state
 	if _, err := os.Stat(submodule.Path); os.IsNotExist(err) {
-		c.Log.Infof("submodule path %s does not exist, returning", submodule.Path)
+		c.log.Infof("submodule path %s does not exist, returning", submodule.Path)
 		return nil
 	}
 
@@ -102,10 +102,10 @@ func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 
 	if err := c.RunCommand("git rm --force -r %s", submodule.Path); err != nil {
 		// if the directory isn't there then that's fine
-		c.Log.Error(err)
+		c.log.Error(err)
 	}
 
-	return os.RemoveAll(filepath.Join(c.DotGitDir, "modules", submodule.Path))
+	return os.RemoveAll(filepath.Join(c.dotGitDir, "modules", submodule.Path))
 }
 
 func (c *GitCommand) SubmoduleAdd(name string, path string, url string) error {

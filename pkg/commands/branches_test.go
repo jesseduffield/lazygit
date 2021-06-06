@@ -209,7 +209,7 @@ func TestGitCommandGetAllBranchGraph(t *testing.T) {
 		assert.EqualValues(t, []string{"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium"}, args)
 		return secureexec.Command("echo")
 	}
-	cmdStr := gitCmd.Config.GetUserConfig().Git.AllBranchesLogCmd
+	cmdStr := gitCmd.config.GetUserConfig().Git.AllBranchesLogCmd
 	_, err := gitCmd.OSCommand.RunCommandWithOutput(cmdStr)
 	assert.NoError(t, err)
 }

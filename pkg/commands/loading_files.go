@@ -26,14 +26,14 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 
 	statusOutput, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
 	if err != nil {
-		c.Log.Error(err)
+		c.log.Error(err)
 	}
 	statusStrings := utils.SplitLines(statusOutput)
 	files := []*models.File{}
 
 	for _, statusString := range statusStrings {
 		if strings.HasPrefix(statusString, "warning") {
-			c.Log.Warningf("warning when calling git status: %s", statusString)
+			c.log.Warningf("warning when calling git status: %s", statusString)
 			continue
 		}
 		change := statusString[0:2]

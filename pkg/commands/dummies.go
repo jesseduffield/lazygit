@@ -15,10 +15,10 @@ func NewDummyGitCommand() *GitCommand {
 // NewDummyGitCommandWithOSCommand creates a new dummy GitCommand for testing
 func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
 	return &GitCommand{
-		Log:               utils.NewDummyLog(),
+		log:               utils.NewDummyLog(),
 		OSCommand:         osCommand,
-		Tr:                i18n.NewTranslationSet(utils.NewDummyLog()),
-		Config:            config.NewDummyAppConfig(),
+		tr:                i18n.NewTranslationSet(utils.NewDummyLog()),
+		config:            config.NewDummyAppConfig(),
 		getGitConfigValue: func(string) (string, error) { return "", nil },
 	}
 }

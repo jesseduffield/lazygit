@@ -192,7 +192,7 @@ func (c *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*models.Com
 
 func (c *CommitListBuilder) getNormalRebasingCommits() ([]*models.Commit, error) {
 	rewrittenCount := 0
-	bytesContent, err := ioutil.ReadFile(filepath.Join(c.GitCommand.DotGitDir, "rebase-apply/rewritten"))
+	bytesContent, err := ioutil.ReadFile(filepath.Join(c.GitCommand.dotGitDir, "rebase-apply/rewritten"))
 	if err == nil {
 		content := string(bytesContent)
 		rewrittenCount = len(strings.Split(content, "\n"))
@@ -200,7 +200,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*models.Commit, error)
 
 	// we know we're rebasing, so lets get all the files whose names have numbers
 	commits := []*models.Commit{}
-	err = filepath.Walk(filepath.Join(c.GitCommand.DotGitDir, "rebase-apply"), func(path string, f os.FileInfo, err error) error {
+	err = filepath.Walk(filepath.Join(c.GitCommand.dotGitDir, "rebase-apply"), func(path string, f os.FileInfo, err error) error {
 		if rewrittenCount > 0 {
 			rewrittenCount--
 			return nil
@@ -244,7 +244,7 @@ func (c *CommitListBuilder) getNormalRebasingCommits() ([]*models.Commit, error)
 // and extracts out the sha and names of commits that we still have to go
 // in the rebase:
 func (c *CommitListBuilder) getInteractiveRebasingCommits() ([]*models.Commit, error) {
-	bytesContent, err := ioutil.ReadFile(filepath.Join(c.GitCommand.DotGitDir, "rebase-merge/git-rebase-todo"))
+	bytesContent, err := ioutil.ReadFile(filepath.Join(c.GitCommand.dotGitDir, "rebase-merge/git-rebase-todo"))
 	if err != nil {
 		c.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
 		// we assume an error means the file doesn't exist so we just return

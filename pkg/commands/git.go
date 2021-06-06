@@ -27,13 +27,13 @@ const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Log                  *logrus.Entry
+	log                  *logrus.Entry
 	OSCommand            *oscommands.OSCommand
-	Repo                 *gogit.Repository
-	Tr                   *i18n.TranslationSet
-	Config               config.AppConfigurer
+	repo                 *gogit.Repository
+	tr                   *i18n.TranslationSet
+	config               config.AppConfigurer
 	getGitConfigValue    func(string) (string, error)
-	DotGitDir            string
+	dotGitDir            string
 	onSuccessfulContinue func() error
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
@@ -71,13 +71,13 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 	}
 
 	gitCommand := &GitCommand{
-		Log:               log,
+		log:               log,
 		OSCommand:         osCommand,
-		Tr:                tr,
-		Repo:              repo,
-		Config:            config,
+		tr:                tr,
+		repo:              repo,
+		config:            config,
 		getGitConfigValue: getGitConfigValue,
-		DotGitDir:         dotGitDir,
+		dotGitDir:         dotGitDir,
 		pushToCurrent:     pushToCurrent,
 	}
 
@@ -85,7 +85,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 }
 
 func (c *GitCommand) NewPatchManager() *patch.PatchManager {
-	return patch.NewPatchManager(c.Log, c.ShowFileDiff)
+	return patch.NewPatchManager(c.log, c.ShowFileDiff)
 }
 
 func (c *GitCommand) WithSpan(span string) *GitCommand {
@@ -233,8 +233,8 @@ func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...int
 		if err != nil {
 			// if we have an error based on the index lock, we should wait a bit and then retry
 			if strings.Contains(output, ".git/index.lock") {
-				c.Log.Error(output)
-				c.Log.Info("index.lock prevented command from running. Retrying command after a small wait")
+				c.log.Error(output)
+				c.log.Info("index.lock prevented command from running. Retrying command after a small wait")
 				attempt++
 				time.Sleep(waitTime)
 				if attempt < retryCount {
