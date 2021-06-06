@@ -26,7 +26,6 @@ type fileInfo struct {
 	diff                string
 }
 
-type applyPatchFunc func(patch string, flags ...string) error
 type loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
 
 // PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
@@ -43,17 +42,15 @@ type PatchManager struct {
 	// fileInfoMap starts empty but you add files to it as you go along
 	fileInfoMap map[string]*fileInfo
 	Log         *logrus.Entry
-	ApplyPatch  applyPatchFunc
 
 	// LoadFileDiff loads the diff of a file, for a given to (typically a commit SHA)
 	LoadFileDiff loadFileDiffFunc
 }
 
 // NewPatchManager returns a new PatchManager
-func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc, loadFileDiff loadFileDiffFunc) *PatchManager {
+func NewPatchManager(log *logrus.Entry, loadFileDiff loadFileDiffFunc) *PatchManager {
 	return &PatchManager{
 		Log:          log,
-		ApplyPatch:   applyPatch,
 		LoadFileDiff: loadFileDiff,
 	}
 }
@@ -240,7 +237,10 @@ func (p *PatchManager) GetFileIncLineIndices(filename string) ([]int, error) {
 	return info.includedLineIndices, nil
 }
 
-func (p *PatchManager) ApplyPatches(reverse bool) error {
+// The applyPatch function is passed in to this method rather than added as a
+// field to this struct so that if we have a logging span applied we don't need
+// to reassign the function to the struct.
+func (p *PatchManager) ApplyPatches(applyPatch func(patch string, flags ...string) error, reverse bool) error {
 	// for whole patches we'll apply the patch in reverse
 	// but for part patches we'll apply a reverse patch forwards
 	for filename, info := range p.fileInfoMap {
@@ -265,7 +265,7 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 			if patch == "" {
 				continue
 			}
-			if err = p.ApplyPatch(patch, applyFlags...); err != nil {
+			if err = applyPatch(patch, applyFlags...); err != nil {
 				continue
 			}
 			break

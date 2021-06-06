@@ -35,7 +35,6 @@ type GitCommand struct {
 	getGitConfigValue    func(string) (string, error)
 	DotGitDir            string
 	onSuccessfulContinue func() error
-	PatchManager         *patch.PatchManager
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	pushToCurrent bool
@@ -82,9 +81,11 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 		pushToCurrent:     pushToCurrent,
 	}
 
-	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
-
 	return gitCommand, nil
+}
+
+func (c *GitCommand) NewPatchManager() *patch.PatchManager {
+	return patch.NewPatchManager(c.Log, c.ShowFileDiff)
 }
 
 func (c *GitCommand) WithSpan(span string) *GitCommand {
@@ -98,12 +99,6 @@ func (c *GitCommand) WithSpan(span string) *GitCommand {
 	newGitCommand := &GitCommand{}
 	*newGitCommand = *c
 	newGitCommand.OSCommand = c.OSCommand.WithSpan(span)
-
-	// NOTE: unlike the other things here which create shallow clones, this will
-	// actually update the PatchManager on the original struct to have the new span.
-	// This means each time we call ApplyPatch in PatchManager, we need to ensure
-	// we've called .WithSpan() ahead of time with the new span value
-	newGitCommand.PatchManager.ApplyPatch = newGitCommand.ApplyPatch
 
 	return newGitCommand
 }

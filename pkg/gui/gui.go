@@ -17,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
@@ -127,6 +128,8 @@ type Gui struct {
 	// open a loading popup for a brief period of time, we can ensure to only remove
 	// it if the id hasn't been incremented
 	PopupPanelId int
+
+	PatchManager *patch.PatchManager
 }
 
 type listPanelState struct {
@@ -443,6 +446,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		CmdLog:               []string{},
 		ShowExtrasWindow:     config.GetUserConfig().Gui.ShowCommandLog,
 	}
+
+	gui.PatchManager = gui.GitCommand.NewPatchManager()
 
 	gui.resetState(filterPath, false)
 

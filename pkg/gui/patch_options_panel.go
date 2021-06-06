@@ -8,7 +8,7 @@ import (
 )
 
 func (gui *Gui) handleCreatePatchOptionsMenu() error {
-	if !gui.GitCommand.PatchManager.Active() {
+	if !gui.PatchManager.Active() {
 		return gui.CreateErrorPanel(gui.Tr.NoPatchError)
 	}
 
@@ -27,10 +27,10 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		},
 	}
 
-	if gui.GitCommand.PatchManager.CanRebase && gui.workingTreeState() == commands.REBASE_MODE_NORMAL {
+	if gui.PatchManager.CanRebase && gui.workingTreeState() == commands.REBASE_MODE_NORMAL {
 		menuItems = append(menuItems, []*menuItem{
 			{
-				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.To),
+				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.PatchManager.To),
 				onPress:       gui.handleDeletePatchFromCommit,
 			},
 			{
@@ -45,7 +45,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 
 		if gui.currentContext().GetKey() == gui.State.Contexts.BranchCommits.GetKey() {
 			selectedCommit := gui.getSelectedLocalCommit()
-			if selectedCommit != nil && gui.GitCommand.PatchManager.To != selectedCommit.Sha {
+			if selectedCommit != nil && gui.PatchManager.To != selectedCommit.Sha {
 				// adding this option to index 1
 				menuItems = append(
 					menuItems[:1],
@@ -67,7 +67,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 
 func (gui *Gui) getPatchCommitIndex() int {
 	for index, commit := range gui.State.Commits {
-		if commit.Sha == gui.GitCommand.PatchManager.To {
+		if commit.Sha == gui.PatchManager.To {
 			return index
 		}
 	}
@@ -99,7 +99,7 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemovePatchFromCommit).DeletePatchesFromCommit(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
+		err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemovePatchFromCommit).DeletePatchesFromCommit(gui.State.Commits, commitIndex, gui.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -115,7 +115,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.GitCommand.WithSpan(gui.Tr.Spans.MovePatchToSelectedCommit).MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx, gui.GitCommand.PatchManager)
+		err := gui.GitCommand.WithSpan(gui.Tr.Spans.MovePatchToSelectedCommit).MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx, gui.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -132,7 +132,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 	pull := func(stash bool) error {
 		return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 			commitIndex := gui.getPatchCommitIndex()
-			err := gui.GitCommand.WithSpan(gui.Tr.Spans.MovePatchIntoIndex).MovePatchIntoIndex(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager, stash)
+			err := gui.GitCommand.WithSpan(gui.Tr.Spans.MovePatchIntoIndex).MovePatchIntoIndex(gui.State.Commits, commitIndex, gui.PatchManager, stash)
 			return gui.handleGenericMergeCommandResult(err)
 		})
 	}
@@ -161,7 +161,7 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.GitCommand.WithSpan(gui.Tr.Spans.MovePatchIntoNewCommit).PullPatchIntoNewCommit(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
+		err := gui.GitCommand.WithSpan(gui.Tr.Spans.MovePatchIntoNewCommit).PullPatchIntoNewCommit(gui.State.Commits, commitIndex, gui.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -175,14 +175,15 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 	if reverse {
 		span = "Apply patch in reverse"
 	}
-	if err := gui.GitCommand.WithSpan(span).PatchManager.ApplyPatches(reverse); err != nil {
+
+	if err := gui.PatchManager.ApplyPatches(gui.GitCommand.WithSpan(span).ApplyPatch, reverse); err != nil {
 		return gui.SurfaceError(err)
 	}
 	return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 }
 
 func (gui *Gui) handleResetPatch() error {
-	gui.GitCommand.PatchManager.Reset()
+	gui.PatchManager.Reset()
 	if gui.currentContextKeyIgnoringPopups() == MAIN_PATCH_BUILDING_CONTEXT_KEY {
 		if err := gui.pushContext(gui.State.Contexts.CommitFiles); err != nil {
 			return err

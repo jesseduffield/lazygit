@@ -15,7 +15,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitInd
 	}
 
 	// apply each patch in reverse
-	if err := p.ApplyPatches(true); err != nil {
+	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
 		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 			return err
 		}
@@ -28,7 +28,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitInd
 	}
 
 	c.onSuccessfulContinue = func() error {
-		c.PatchManager.Reset()
+		p.Reset()
 		return nil
 	}
 
@@ -43,7 +43,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		}
 
 		// apply each patch forward
-		if err := p.ApplyPatches(false); err != nil {
+		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
 			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
 			}
@@ -56,7 +56,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		}
 
 		c.onSuccessfulContinue = func() error {
-			c.PatchManager.Reset()
+			p.Reset()
 			return nil
 		}
 
@@ -95,7 +95,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	}
 
 	// apply each patch in reverse
-	if err := p.ApplyPatches(true); err != nil {
+	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
 		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 			return err
 		}
@@ -114,7 +114,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	c.onSuccessfulContinue = func() error {
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
-		if err := p.ApplyPatches(false); err != nil {
+		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
 			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
 			}
@@ -127,7 +127,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		}
 
 		c.onSuccessfulContinue = func() error {
-			c.PatchManager.Reset()
+			p.Reset()
 			return nil
 		}
 
@@ -148,7 +148,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 		return err
 	}
 
-	if err := p.ApplyPatches(true); err != nil {
+	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
 		if c.WorkingTreeState() == REBASE_MODE_REBASING {
 			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
@@ -168,7 +168,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 
 	c.onSuccessfulContinue = func() error {
 		// add patches to index
-		if err := p.ApplyPatches(false); err != nil {
+		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
 			if c.WorkingTreeState() == REBASE_MODE_REBASING {
 				if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 					return err
@@ -183,7 +183,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 			}
 		}
 
-		c.PatchManager.Reset()
+		p.Reset()
 		return nil
 	}
 
@@ -195,7 +195,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 		return err
 	}
 
-	if err := p.ApplyPatches(true); err != nil {
+	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
 		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 	}
 
 	// add patches to index
-	if err := p.ApplyPatches(false); err != nil {
+	if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
 		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 			return err
 		}
@@ -226,6 +226,6 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
-	c.PatchManager.Reset()
+	p.Reset()
 	return c.GenericMergeOrRebaseAction("rebase", "continue")
 }
