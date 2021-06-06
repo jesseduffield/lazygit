@@ -1,63 +1,61 @@
-package push_files
+package push_files_test
 
 import (
-	"testing"
+	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
 
-	commandsMocks "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/push_files/push_filesfakes"
-
+	. "github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/push_files"
+	. "github.com/jesseduffield/lazygit/pkg/gui/handlers/sync/push_files/push_filesfakes"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var tr = i18n.EnglishTranslationSet()
 
-func TestPushFilesHandler_Run(t *testing.T) {
-	type fields struct {
-		Gui Gui
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr bool
-	}{
-		{
-			name: "test",
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
+var _ = Describe("PushFiles", func() {
+	var (
+		gui     *FakeGui
+		handler *PushFilesHandler
+	)
 
-		t.Run(tt.name, func(t *testing.T) {
-			mockGui := &push_filesfakes.FakeGui{}
-			mockGui.GetTrStub = func() *i18n.TranslationSet { return &tr }
-			mockGui.PopupPanelFocusedReturns(false)
-			mockGui.CurrentBranchReturns(&models.Branch{Pushables: "0", Pullables: "0", Name: "mybranch"})
-			mockGui.WithPopupWaitingStatusStub = func(message string, f func() error) error {
-				assert.Equal(t, "Pushing...", message)
+	BeforeEach(func() {
+		gui = &FakeGui{}
+		handler = &PushFilesHandler{
+			Gui: gui,
+		}
+	})
+
+	Context("When able to push unforcefully", func() {
+		It("should invoke a regular push", func() {
+			gui.GetTrStub = func() *i18n.TranslationSet { return &tr }
+			gui.PopupPanelFocusedReturns(false)
+			gui.CurrentBranchReturns(&models.Branch{Pushables: "0", Pullables: "0", Name: "mybranch"})
+			gui.WithPopupWaitingStatusStub = func(message string, f func() error) error {
+				Expect(message).To(Equal("Pushing..."))
 				return f()
 			}
 
-			testGitCommandObj := &commandsMocks.FakeIGitCommand{}
+			testGitCommandObj := &FakeIGitCommand{}
 
-			mockGui.GetGitCommandReturns(testGitCommandObj)
+			gui.GetGitCommandReturns(testGitCommandObj)
 
 			testGitCommandObj.WithSpanReturns(testGitCommandObj)
-			testGitCommandObj.PushStub = func(branchName string, force bool, upstream, args string, promptUserForCredential func(string) string) error {
-				assert.Equal(t, "mybranch", branchName)
-				assert.Equal(t, false, force)
-				assert.Equal(t, "", upstream)
+			testGitCommandObj.PushStub = func(
+				branchName string,
+				force bool, upstream,
+				args string,
+				promptUserForCredential func(string) string,
+			) error {
+				Expect(branchName).To(Equal("mybranch"))
+				Expect(force).To(BeFalse())
+				Expect(upstream).To(BeEmpty())
+				Expect(args).To(BeEmpty())
 				return nil
 			}
 
-			handler := &PushFilesHandler{
-				Gui: mockGui,
-			}
-
-			if err := handler.Run(); (err != nil) != tt.wantErr {
-				t.Errorf("PushFilesHandler.Run() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := handler.Run()
+			Expect(err).To(BeNil())
 		})
-	}
-}
+	})
+})
