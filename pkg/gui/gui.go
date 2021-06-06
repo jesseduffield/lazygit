@@ -128,8 +128,6 @@ type Gui struct {
 	// open a loading popup for a brief period of time, we can ensure to only remove
 	// it if the id hasn't been incremented
 	PopupPanelId int
-
-	PatchManager *patch.PatchManager
 }
 
 type listPanelState struct {
@@ -283,6 +281,7 @@ type Modes struct {
 	Filtering     filtering.Filtering
 	CherryPicking cherrypicking.CherryPicking
 	Diffing       diffing.Diffing
+	PatchManager  *patch.PatchManager
 }
 
 type guiMutexes struct {
@@ -416,6 +415,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Filtering:     filtering.New(filterPath),
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
+			PatchManager:  gui.GitCommand.NewPatchManager(),
 		},
 		ViewContextMap:    contexts.initialViewContextMap(),
 		ViewTabContextMap: contexts.initialViewTabContextMap(),
@@ -446,8 +446,6 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		CmdLog:               []string{},
 		ShowExtrasWindow:     config.GetUserConfig().Gui.ShowCommandLog,
 	}
-
-	gui.PatchManager = gui.GitCommand.NewPatchManager()
 
 	gui.resetState(filterPath, false)
 

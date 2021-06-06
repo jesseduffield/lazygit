@@ -18,7 +18,7 @@ func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
 }
 
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *LblPanelState) error {
-	if !gui.PatchManager.Active() {
+	if !gui.State.Modes.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 
@@ -38,7 +38,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *LblPanelSt
 		return err
 	}
 
-	secondaryDiff := gui.PatchManager.RenderPatchForFile(node.GetPath(), true, false, true)
+	secondaryDiff := gui.State.Modes.PatchManager.RenderPatchForFile(node.GetPath(), true, false, true)
 	if err != nil {
 		return err
 	}
@@ -64,15 +64,15 @@ func (gui *Gui) handleRefreshPatchBuildingPanel(selectedLineIdx int) error {
 
 func (gui *Gui) handleToggleSelectionForPatch() error {
 	err := gui.withLBLActiveCheck(func(state *LblPanelState) error {
-		toggleFunc := gui.PatchManager.AddFileLineRange
+		toggleFunc := gui.State.Modes.PatchManager.AddFileLineRange
 		filename := gui.getSelectedCommitFileName()
-		includedLineIndices, err := gui.PatchManager.GetFileIncLineIndices(filename)
+		includedLineIndices, err := gui.State.Modes.PatchManager.GetFileIncLineIndices(filename)
 		if err != nil {
 			return err
 		}
 		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.GetSelectedLineIdx())
 		if currentLineIsStaged {
-			toggleFunc = gui.PatchManager.RemoveFileLineRange
+			toggleFunc = gui.State.Modes.PatchManager.RemoveFileLineRange
 		}
 
 		// add range of lines to those set for the file
@@ -105,8 +105,8 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 func (gui *Gui) handleEscapePatchBuildingPanel() error {
 	gui.escapeLineByLinePanel()
 
-	if gui.PatchManager.IsEmpty() {
-		gui.PatchManager.Reset()
+	if gui.State.Modes.PatchManager.IsEmpty() {
+		gui.State.Modes.PatchManager.Reset()
 	}
 
 	if gui.currentContext().GetKey() == gui.State.Contexts.PatchBuilding.GetKey() {
@@ -118,8 +118,8 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 }
 
 func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
-	if gui.PatchManager.Active() {
-		patch := gui.PatchManager.RenderAggregatedPatchColored(false)
+	if gui.State.Modes.PatchManager.Active() {
+		patch := gui.State.Modes.PatchManager.RenderAggregatedPatchColored(false)
 
 		return &viewUpdateOpts{
 			title:     "Custom Patch",

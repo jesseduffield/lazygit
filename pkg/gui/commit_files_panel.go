@@ -143,7 +143,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 	}
 
 	toggleTheFile := func() error {
-		if !gui.PatchManager.Active() {
+		if !gui.State.Modes.PatchManager.Active() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
@@ -152,14 +152,14 @@ func (gui *Gui) handleToggleFileForPatch() error {
 		// if there is any file that hasn't been fully added we'll fully add everything,
 		// otherwise we'll remove everything
 		adding := node.AnyFile(func(file *models.CommitFile) bool {
-			return gui.PatchManager.GetFileStatus(file.Name, gui.State.CommitFileManager.GetParent()) != patch.WHOLE
+			return gui.State.Modes.PatchManager.GetFileStatus(file.Name, gui.State.CommitFileManager.GetParent()) != patch.WHOLE
 		})
 
 		err := node.ForEachFile(func(file *models.CommitFile) error {
 			if adding {
-				return gui.PatchManager.AddFileWhole(file.Name)
+				return gui.State.Modes.PatchManager.AddFileWhole(file.Name)
 			} else {
-				return gui.PatchManager.RemoveFile(file.Name)
+				return gui.State.Modes.PatchManager.RemoveFile(file.Name)
 			}
 		})
 
@@ -167,19 +167,19 @@ func (gui *Gui) handleToggleFileForPatch() error {
 			return gui.SurfaceError(err)
 		}
 
-		if gui.PatchManager.IsEmpty() {
-			gui.PatchManager.Reset()
+		if gui.State.Modes.PatchManager.IsEmpty() {
+			gui.State.Modes.PatchManager.Reset()
 		}
 
 		return gui.postRefreshUpdate(gui.State.Contexts.CommitFiles)
 	}
 
-	if gui.PatchManager.Active() && gui.PatchManager.To != gui.State.CommitFileManager.GetParent() {
+	if gui.State.Modes.PatchManager.Active() && gui.State.Modes.PatchManager.To != gui.State.CommitFileManager.GetParent() {
 		return gui.Ask(AskOpts{
 			Title:  gui.Tr.DiscardPatch,
 			Prompt: gui.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
-				gui.PatchManager.Reset()
+				gui.State.Modes.PatchManager.Reset()
 				return toggleTheFile()
 			},
 		})
@@ -194,7 +194,7 @@ func (gui *Gui) startPatchManager() error {
 	to := gui.State.Panels.CommitFiles.refName
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	gui.PatchManager.Start(from, to, reverse, canRebase)
+	gui.State.Modes.PatchManager.Start(from, to, reverse, canRebase)
 	return nil
 }
 
@@ -213,7 +213,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 	}
 
 	enterTheFile := func(selectedLineIdx int) error {
-		if !gui.PatchManager.Active() {
+		if !gui.State.Modes.PatchManager.Active() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
@@ -225,13 +225,13 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		return gui.handleRefreshPatchBuildingPanel(selectedLineIdx)
 	}
 
-	if gui.PatchManager.Active() && gui.PatchManager.To != gui.State.CommitFileManager.GetParent() {
+	if gui.State.Modes.PatchManager.Active() && gui.State.Modes.PatchManager.To != gui.State.CommitFileManager.GetParent() {
 		return gui.Ask(AskOpts{
 			Title:               gui.Tr.DiscardPatch,
 			Prompt:              gui.Tr.DiscardPatchConfirm,
 			HandlersManageFocus: true,
 			HandleConfirm: func() error {
-				gui.PatchManager.Reset()
+				gui.State.Modes.PatchManager.Reset()
 				return enterTheFile(selectedLineIdx)
 			},
 			HandleClose: func() error {

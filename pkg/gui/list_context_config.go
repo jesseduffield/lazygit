@@ -261,7 +261,7 @@ func (gui *Gui) commitFilesListContext() *ListContext {
 				return [][]string{{utils.ColoredString("(none)", color.FgRed)}}
 			}
 
-			lines := gui.State.CommitFileManager.Render(gui.State.Modes.Diffing.Ref, gui.PatchManager)
+			lines := gui.State.CommitFileManager.Render(gui.State.Modes.Diffing.Ref, gui.State.Modes.PatchManager)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}

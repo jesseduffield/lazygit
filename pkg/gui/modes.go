@@ -26,7 +26,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			reset: gui.exitDiffMode,
 		},
 		{
-			isActive: gui.PatchManager.Active,
+			isActive: gui.State.Modes.PatchManager.Active,
 			description: func() string {
 				return utils.ColoredString(
 					fmt.Sprintf("%s %s", gui.Tr.LcBuildingPatch, utils.ColoredString(gui.Tr.ResetInParentheses, color.Underline)),

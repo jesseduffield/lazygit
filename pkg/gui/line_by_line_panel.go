@@ -131,7 +131,7 @@ func (gui *Gui) refreshMainViewForLineByLine(state *LblPanelState) error {
 	if gui.currentContext().GetKey() == gui.State.Contexts.PatchBuilding.GetKey() {
 		filename := gui.getSelectedCommitFileName()
 		var err error
-		includedLineIndices, err = gui.PatchManager.GetFileIncLineIndices(filename)
+		includedLineIndices, err = gui.State.Modes.PatchManager.GetFileIncLineIndices(filename)
 		if err != nil {
 			return err
 		}
