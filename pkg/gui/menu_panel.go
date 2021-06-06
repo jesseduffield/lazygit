@@ -74,11 +74,13 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 
 	list := utils.RenderDisplayStrings(stringArrays)
 
+	parentView := gui.g.CurrentView()
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(false, list)
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
 	menuView.Title = title
 	menuView.FgColor = theme.GocuiDefaultTextColor
 	menuView.ContainsList = true
+	menuView.ParentView = parentView
 	menuView.Clear()
 	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
 		return nil
