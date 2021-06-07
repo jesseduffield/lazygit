@@ -452,6 +452,8 @@ type TranslationSet struct {
 	RandomTip                           string
 	SelectParentCommitForMerge          string
 	ToggleWhitespaceInDiffView          string
+	IgnoringWhitespaceInDiffView		string
+	ShowingWhitespaceInDiffView			string
 	Spans                               Spans
 }
 
@@ -997,6 +999,8 @@ func englishTranslationSet() TranslationSet {
 		RandomTip:                           "Random Tip",
 		SelectParentCommitForMerge:          "Select parent commit for merge",
 		ToggleWhitespaceInDiffView:          "Toggle whether or not whitespace changes are shown in the diff view",
+		IgnoringWhitespaceInDiffView:		 "Whitespace will be ignored in the diff view",
+		ShowingWhitespaceInDiffView:		 "Whitespace will be shown in the diff view",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

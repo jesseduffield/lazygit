@@ -166,6 +166,8 @@ type KeybindingUniversalConfig struct {
 	AppendNewline                string `yaml:"appendNewline"`
 	ExtrasMenu                   string `yaml:"extrasMenu"`
 	ToggleWhitespaceInDiffView   string `yaml:"toggleWhitespaceInDiffView"`
+	IgnoringWhitespaceInDiffView string `yaml:"ignoringWhitespaceInDiffView"`
+	ShowingWhitespaceInDiffView  string `yaml:"showingWhitespaceInDiffView"`
 }
 
 type KeybindingStatusConfig struct {
