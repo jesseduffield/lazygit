@@ -155,11 +155,9 @@ func (pr *PullRequest) getPullRequestURL(from *models.Branch, to *models.Branch)
 	}
 
 	repoInfo := getRepoInfoFromURL(repoURL)
-	var toBranchName string
-	if to == nil {
-		toBranchName = ""
-	} else {
-		toBranchName = to.Name
+	toBranchName := ""
+	if to != nil {
+	        toBranchName = to.Name
 	}
 	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, from.Name, toBranchName)
 
