@@ -14,6 +14,7 @@ import (
 	"github.com/go-errors/errors"
 
 	"github.com/atotto/clipboard"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -48,6 +49,8 @@ type OSCommand struct {
 	CmdLogSpan string
 
 	removeFile func(string) error
+
+	PromptUserForCredential func(string) string
 }
 
 // TODO: make these fields private
@@ -232,16 +235,16 @@ func (c *OSCommand) CatFile(filename string) (string, error) {
 // DetectUnamePass detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (c *OSCommand) DetectUnamePass(command string, promptUserForCredential func(string) string) error {
+func (c *OSCommand) DetectUnamePass(command string, promptUserForCredential func(CredentialKind) string) error {
 	ttyText := ""
 	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
 		ttyText = ttyText + " " + word
 
-		prompts := map[string]string{
-			`.+'s password:`:                         "password",
-			`Password\s*for\s*'.+':`:                 "password",
-			`Username\s*for\s*'.+':`:                 "username",
-			`Enter\s*passphrase\s*for\s*key\s*'.+':`: "passphrase",
+		prompts := map[string]CredentialKind{
+			`.+'s password:`:                         PASSWORD,
+			`Password\s*for\s*'.+':`:                 PASSWORD,
+			`Username\s*for\s*'.+':`:                 USERNAME,
+			`Enter\s*passphrase\s*for\s*key\s*'.+':`: PASSPHRASE,
 		}
 
 		for pattern, askFor := range prompts {

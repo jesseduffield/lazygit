@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -22,7 +23,7 @@ type Gui interface {
 	CreateErrorPanel(string) error
 	InformOnCredentialsOutcome(error)
 	WithPopupWaitingStatus(string, func() error) error
-	PromptUserForCredential(passOrUname string) string
+	PromptUserForCredential(CredentialKind) string
 	RefreshSidePanels(RefreshOptions) error
 }
 

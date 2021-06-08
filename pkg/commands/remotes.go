@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
 func (c *GitCommand) AddRemote(name string, url string) error {
@@ -22,7 +23,7 @@ func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error
 	return c.RunCommand("git remote set-url %s %s", remoteName, updatedUrl)
 }
 
-func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {
+func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(CredentialKind) string) error {
 	command := fmt.Sprintf("git push %s --delete %s", remoteName, branchName)
 	return c.GetOSCommand().DetectUnamePass(command, promptUserForCredential)
 }

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -11,20 +12,22 @@ import (
 type credentials chan string
 
 // PromptUserForCredential wait for a username, password or passphrase input from the credentials popup
-func (gui *Gui) PromptUserForCredential(passOrUname string) string {
+func (gui *Gui) PromptUserForCredential(credentialKind CredentialKind) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView := gui.Views.Credentials
-		switch passOrUname {
-		case "username":
+		switch credentialKind {
+		case USERNAME:
 			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.Mask = 0
-		case "password":
+		case PASSWORD:
 			credentialsView.Title = gui.Tr.CredentialsPassword
 			credentialsView.Mask = '*'
-		default:
+		case PASSPHRASE:
 			credentialsView.Title = gui.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
+		default:
+			panic("unknown credential requested")
 		}
 
 		if err := gui.pushContext(gui.State.Contexts.Credentials); err != nil {
