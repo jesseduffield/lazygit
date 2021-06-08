@@ -38,11 +38,9 @@ func NewService(typeName string, repositoryDomain string, siteDomain string) *Se
 			Name: repositoryDomain,
 			PullRequestURL: func(owner string, repository string, from string, to string) string {
 				if to == "" {
-					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s?expand=1")
-					return fmt.Sprintf(urlFormat, owner, repository, from)
+					return fmt.Sprintf("https://%s/%s/%s/compare/%s?expand=1",siteDomain, owner, repository, from)
 				} else {
-					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/compare/%s...%s?expand=1")
-					return fmt.Sprintf(urlFormat, owner, repository, to, from)
+					return fmt.Sprintf("https://%s/%s/%s/compare/%s...%s?expand=1", siteDomain, owner, repository, to, from)
 				}
 			},
 		}
@@ -51,11 +49,9 @@ func NewService(typeName string, repositoryDomain string, siteDomain string) *Se
 			Name: repositoryDomain,
 			PullRequestURL: func(owner string, repository string, from string, to string) string {
 				if to == "" {
-					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&t=1")
-					return fmt.Sprintf(urlFormat, owner, repository, from)
+					return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&t=1", siteDomain, owner, repository, from)
 				} else {
-					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/pull-requests/new?source=%s&dest=%s&t=1")
-					return fmt.Sprintf(urlFormat, owner, repository, from, to)
+					return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&dest=%s&t=1", siteDomain, owner, repository, from, to)
 				}
 			},
 		}
@@ -64,11 +60,9 @@ func NewService(typeName string, repositoryDomain string, siteDomain string) *Se
 			Name: repositoryDomain,
 			PullRequestURL: func(owner string, repository string, from string, to string) string {
 				if to == "" {
-					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s")
-					return fmt.Sprintf(urlFormat, owner, repository, from)
+					return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s", siteDomain, owner, repository, from)
 				} else {
-					urlFormat := fmt.Sprintf("https://%s%s", siteDomain, "/%s/%s/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s")
-					return fmt.Sprintf(urlFormat, owner, repository, from, to)
+					return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s", siteDomain, owner, repository, from, to)
 				}
 			},
 		}
