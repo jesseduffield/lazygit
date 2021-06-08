@@ -183,9 +183,12 @@ func GetRootDirectory() string {
 func createFixture(testPath, actualDir string) error {
 	osCommand := oscommands.NewDummyOSCommand()
 	bashScriptPath := filepath.Join(testPath, "setup.sh")
-	cmd := secureexec.Command("bash", bashScriptPath, actualDir)
 
-	if err := osCommand.RunExecutable(cmd); err != nil {
+	cmdObj := &oscommands.CmdObj{
+		Cmd: secureexec.Command("bash", bashScriptPath, actualDir),
+	}
+
+	if err := osCommand.RunExecutable(cmdObj); err != nil {
 		return err
 	}
 

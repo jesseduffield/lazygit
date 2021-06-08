@@ -19,7 +19,6 @@ var stubRegularPush = func(
 	branchName string,
 	force bool, upstream,
 	args string,
-	promptUserForCredential func(string) string,
 ) error {
 	Expect(branchName).To(Equal("mybranch"))
 	Expect(force).To(BeFalse())
@@ -32,7 +31,6 @@ var stubForcePush = func(
 	branchName string,
 	force bool, upstream,
 	args string,
-	promptUserForCredential func(string) string,
 ) error {
 	Expect(branchName).To(Equal("mybranch"))
 	Expect(force).To(BeTrue())
@@ -92,7 +90,7 @@ var _ = Describe("PushFiles", func() {
 					branchName string,
 					force bool, upstream,
 					args string,
-					promptUserForCredential func(string) string,
+
 				) error {
 					Expect(branchName).To(Equal("mybranch"))
 					Expect(force).To(BeFalse())
@@ -130,7 +128,7 @@ var _ = Describe("PushFiles", func() {
 						branchName string,
 						force bool, upstream,
 						args string,
-						promptUserForCredential func(string) string,
+
 					) error {
 						Expect(branchName).To(Equal("mybranch"))
 						Expect(force).To(BeFalse())
@@ -156,7 +154,7 @@ var _ = Describe("PushFiles", func() {
 						branchName string,
 						force bool, upstream,
 						args string,
-						promptUserForCredential func(string) string,
+
 					) error {
 						Expect(branchName).To(Equal("mybranch"))
 						Expect(force).To(BeFalse())

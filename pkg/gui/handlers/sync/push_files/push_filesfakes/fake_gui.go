@@ -100,17 +100,6 @@ type FakeGui struct {
 	promptReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PromptUserForCredentialStub        func(string) string
-	promptUserForCredentialMutex       sync.RWMutex
-	promptUserForCredentialArgsForCall []struct {
-		arg1 string
-	}
-	promptUserForCredentialReturns struct {
-		result1 string
-	}
-	promptUserForCredentialReturnsOnCall map[int]struct {
-		result1 string
-	}
 	RefreshSidePanelsStub        func(types.RefreshOptions) error
 	refreshSidePanelsMutex       sync.RWMutex
 	refreshSidePanelsArgsForCall []struct {
@@ -629,67 +618,6 @@ func (fake *FakeGui) PromptReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeGui) PromptUserForCredential(arg1 string) string {
-	fake.promptUserForCredentialMutex.Lock()
-	ret, specificReturn := fake.promptUserForCredentialReturnsOnCall[len(fake.promptUserForCredentialArgsForCall)]
-	fake.promptUserForCredentialArgsForCall = append(fake.promptUserForCredentialArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.PromptUserForCredentialStub
-	fakeReturns := fake.promptUserForCredentialReturns
-	fake.recordInvocation("PromptUserForCredential", []interface{}{arg1})
-	fake.promptUserForCredentialMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeGui) PromptUserForCredentialCallCount() int {
-	fake.promptUserForCredentialMutex.RLock()
-	defer fake.promptUserForCredentialMutex.RUnlock()
-	return len(fake.promptUserForCredentialArgsForCall)
-}
-
-func (fake *FakeGui) PromptUserForCredentialCalls(stub func(string) string) {
-	fake.promptUserForCredentialMutex.Lock()
-	defer fake.promptUserForCredentialMutex.Unlock()
-	fake.PromptUserForCredentialStub = stub
-}
-
-func (fake *FakeGui) PromptUserForCredentialArgsForCall(i int) string {
-	fake.promptUserForCredentialMutex.RLock()
-	defer fake.promptUserForCredentialMutex.RUnlock()
-	argsForCall := fake.promptUserForCredentialArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeGui) PromptUserForCredentialReturns(result1 string) {
-	fake.promptUserForCredentialMutex.Lock()
-	defer fake.promptUserForCredentialMutex.Unlock()
-	fake.PromptUserForCredentialStub = nil
-	fake.promptUserForCredentialReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeGui) PromptUserForCredentialReturnsOnCall(i int, result1 string) {
-	fake.promptUserForCredentialMutex.Lock()
-	defer fake.promptUserForCredentialMutex.Unlock()
-	fake.PromptUserForCredentialStub = nil
-	if fake.promptUserForCredentialReturnsOnCall == nil {
-		fake.promptUserForCredentialReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.promptUserForCredentialReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
 func (fake *FakeGui) RefreshSidePanels(arg1 types.RefreshOptions) error {
 	fake.refreshSidePanelsMutex.Lock()
 	ret, specificReturn := fake.refreshSidePanelsReturnsOnCall[len(fake.refreshSidePanelsArgsForCall)]
@@ -895,8 +823,6 @@ func (fake *FakeGui) Invocations() map[string][][]interface{} {
 	defer fake.popupPanelFocusedMutex.RUnlock()
 	fake.promptMutex.RLock()
 	defer fake.promptMutex.RUnlock()
-	fake.promptUserForCredentialMutex.RLock()
-	defer fake.promptUserForCredentialMutex.RUnlock()
 	fake.refreshSidePanelsMutex.RLock()
 	defer fake.refreshSidePanelsMutex.RUnlock()
 	fake.surfaceErrorMutex.RLock()

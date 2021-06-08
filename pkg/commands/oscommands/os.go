@@ -7,14 +7,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 
 	"github.com/go-errors/errors"
 
 	"github.com/atotto/clipboard"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -35,12 +33,11 @@ type Platform struct {
 
 // OSCommand holds all the os commands
 type OSCommand struct {
-	Log              *logrus.Entry
-	Platform         *Platform
-	Config           config.AppConfigurer
-	Command          func(string, ...string) *exec.Cmd
-	BeforeExecuteCmd func(*exec.Cmd)
-	Getenv           func(string) string
+	Log      *logrus.Entry
+	Platform *Platform
+	Config   config.AppConfigurer
+	Command  func(string, ...string) *exec.Cmd
+	Getenv   func(string) string
 
 	// callback to run before running a command, i.e. for the purposes of logging
 	onRunCommand func(CmdLogEntry)
@@ -49,50 +46,17 @@ type OSCommand struct {
 	CmdLogSpan string
 
 	removeFile func(string) error
-
-	PromptUserForCredential func(string) string
-}
-
-// TODO: make these fields private
-type CmdLogEntry struct {
-	// e.g. 'git commit -m "haha"'
-	cmdStr string
-	// Span is something like 'Staging File'. Multiple commands can be grouped under the same
-	// span
-	span string
-
-	// sometimes our command is direct like 'git commit', and sometimes it's a
-	// command to remove a file but through Go's standard library rather than the
-	// command line
-	commandLine bool
-}
-
-func (e CmdLogEntry) GetCmdStr() string {
-	return e.cmdStr
-}
-
-func (e CmdLogEntry) GetSpan() string {
-	return e.span
-}
-
-func (e CmdLogEntry) GetCommandLine() bool {
-	return e.commandLine
-}
-
-func NewCmdLogEntry(cmdStr string, span string, commandLine bool) CmdLogEntry {
-	return CmdLogEntry{cmdStr: cmdStr, span: span, commandLine: commandLine}
 }
 
 // NewOSCommand os command runner
 func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 	return &OSCommand{
-		Log:              log,
-		Platform:         getPlatform(),
-		Config:           config,
-		Command:          secureexec.Command,
-		BeforeExecuteCmd: func(*exec.Cmd) {},
-		Getenv:           os.Getenv,
-		removeFile:       os.RemoveAll,
+		Log:        log,
+		Platform:   getPlatform(),
+		Config:     config,
+		Command:    secureexec.Command,
+		Getenv:     os.Getenv,
+		removeFile: os.RemoveAll,
 	}
 }
 
@@ -108,6 +72,10 @@ func (c *OSCommand) WithSpan(span string) *OSCommand {
 	*newOSCommand = *c
 	newOSCommand.CmdLogSpan = span
 	return newOSCommand
+}
+
+func (c *OSCommand) LogCmd(cmd *CmdObj) {
+	c.LogCommand(cmd.ToString(), true)
 }
 
 func (c *OSCommand) LogExecCmd(cmd *exec.Cmd) {
@@ -137,10 +105,6 @@ func (c *OSCommand) SetRemoveFile(f func(string) error) {
 	c.removeFile = f
 }
 
-func (c *OSCommand) SetBeforeExecuteCmd(cmd func(*exec.Cmd)) {
-	c.BeforeExecuteCmd = cmd
-}
-
 type RunCommandOptions struct {
 	EnvVars []string
 }
@@ -149,7 +113,7 @@ func (c *OSCommand) RunCommandWithOutputWithOptions(command string, options RunC
 	c.LogCommand(command, true)
 	cmd := c.ExecutableFromString(command)
 
-	cmd.Env = append(cmd.Env, "GIT_TERMINAL_PROMPT=0") // prevents git from prompting us for input which would freeze the program
+	cmd.Env = append(cmd.Env, "GIT_TERMINAL_PROMPT=0") // prevents git from prompting us for input which would freeze the program. Only works for git v2.3+
 	cmd.Env = append(cmd.Env, options.EnvVars...)
 
 	return sanitisedCommandOutput(cmd.CombinedOutput())
@@ -181,14 +145,13 @@ func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...inte
 }
 
 // RunExecutableWithOutput runs an executable file and returns its output
-func (c *OSCommand) RunExecutableWithOutput(cmd *exec.Cmd) (string, error) {
-	c.LogExecCmd(cmd)
-	c.BeforeExecuteCmd(cmd)
-	return sanitisedCommandOutput(cmd.CombinedOutput())
+func (c *OSCommand) RunExecutableWithOutput(cmd *CmdObj) (string, error) {
+	c.LogCmd(cmd)
+	return sanitisedCommandOutput(cmd.ToCmd().CombinedOutput())
 }
 
 // RunExecutable runs an executable file and returns an error if there was one
-func (c *OSCommand) RunExecutable(cmd *exec.Cmd) error {
+func (c *OSCommand) RunExecutable(cmd *CmdObj) error {
 	_, err := c.RunExecutableWithOutput(cmd)
 	return err
 }
@@ -230,33 +193,6 @@ func (c *OSCommand) CatFile(filename string) (string, error) {
 		c.Log.WithField("command", cmdStr).Error(output)
 	}
 	return output, err
-}
-
-// DetectUnamePass detect a username / password / passphrase question in a command
-// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
-// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (c *OSCommand) DetectUnamePass(command string, promptUserForCredential func(CredentialKind) string) error {
-	ttyText := ""
-	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
-		ttyText = ttyText + " " + word
-
-		prompts := map[string]CredentialKind{
-			`.+'s password:`:                         PASSWORD,
-			`Password\s*for\s*'.+':`:                 PASSWORD,
-			`Username\s*for\s*'.+':`:                 USERNAME,
-			`Enter\s*passphrase\s*for\s*key\s*'.+':`: PASSPHRASE,
-		}
-
-		for pattern, askFor := range prompts {
-			if match, _ := regexp.MatchString(pattern, ttyText); match {
-				ttyText = ""
-				return promptUserForCredential(askFor)
-			}
-		}
-
-		return ""
-	})
-	return errMessage
 }
 
 // RunCommand runs a command and just returns the error
@@ -432,7 +368,6 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 // this is useful if you need to give your command some environment variables
 // before running it
 func (c *OSCommand) RunPreparedCommand(cmd *exec.Cmd) error {
-	c.BeforeExecuteCmd(cmd)
 	c.LogExecCmd(cmd)
 	out, err := cmd.CombinedOutput()
 	outString := string(out)

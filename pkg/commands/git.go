@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -38,6 +40,12 @@ type GitCommand struct {
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	pushToCurrent bool
+
+	promptUserForCredential func(CredentialKind) string
+}
+
+func (c *GitCommand) SetPromptUserForCredential(f func(CredentialKind) string) {
+	c.promptUserForCredential = f
 }
 
 func (c *GitCommand) GetPushToCurrent() bool {
@@ -248,4 +256,71 @@ func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...int
 
 func (c *GitCommand) GetOSCommand() *oscommands.OSCommand {
 	return c.oSCommand
+}
+
+func BuildGitCmd(command string, positionalArgs []string, kwArgs map[string]bool) string {
+	parts := []string{"git", command}
+
+	if len(positionalArgs) > 0 {
+		presentPosArgs := utils.ExcludeEmpty(positionalArgs)
+		parts = append(parts, presentPosArgs...)
+	}
+
+	if len(kwArgs) > 0 {
+		args := make([]string, 0, len(kwArgs))
+		for arg, include := range kwArgs {
+			if include {
+				args = append(args, arg)
+			}
+		}
+		utils.SortAlphabeticalInPlace(args)
+
+		parts = append(parts, args...)
+	}
+
+	return strings.Join(parts, " ")
+}
+
+func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]bool) *oscommands.CmdObj {
+	cmdStr := BuildGitCmd(command, positionalArgs, kwArgs)
+
+	return &oscommands.CmdObj{CmdStr: cmdStr}
+}
+
+// DetectUnamePass detect a username / password / passphrase question in a command
+// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
+// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
+func (c *GitCommand) DetectUnamePass(cmdObj *oscommands.CmdObj) error {
+	ttyText := ""
+	errMessage := c.oSCommand.RunCommandWithOutputLive(cmdObj.ToString(), func(word string) string {
+		ttyText = ttyText + " " + word
+
+		prompts := map[string]CredentialKind{
+			`.+'s password:`:                         PASSWORD,
+			`Password\s*for\s*'.+':`:                 PASSWORD,
+			`Username\s*for\s*'.+':`:                 USERNAME,
+			`Enter\s*passphrase\s*for\s*key\s*'.+':`: PASSPHRASE,
+		}
+
+		for pattern, askFor := range prompts {
+			if match, _ := regexp.MatchString(pattern, ttyText); match {
+				ttyText = ""
+				return c.promptUserForCredential(askFor)
+			}
+		}
+
+		return ""
+	})
+	return errMessage
+}
+
+func (c *GitCommand) FailOnCredentialsRequest(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
+	lazyGitPath := c.GetOSCommand().GetLazygitPath()
+
+	cmdObj.AddEnvVars(
+		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+		"GIT_ASKPASS="+lazyGitPath,
+	)
+
+	return cmdObj
 }

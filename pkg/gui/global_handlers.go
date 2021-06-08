@@ -192,9 +192,7 @@ func (gui *Gui) fetch() (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	err = gui.GitCommand.WithSpan("Fetch").Fetch(
-		commands.FetchOptions{PromptUserForCredential: gui.PromptUserForCredential},
-	)
+	err = gui.GitCommand.WithSpan("Fetch").Fetch(commands.FetchOptions{})
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = gui.CreateErrorPanel(gui.Tr.PassUnameWrong)

@@ -671,9 +671,8 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 
 	err := gitCommand.Fetch(
 		commands.FetchOptions{
-			PromptUserForCredential: gui.PromptUserForCredential,
-			RemoteName:              opts.RemoteName,
-			BranchName:              opts.BranchName,
+			RemoteName: opts.RemoteName,
+			BranchName: opts.BranchName,
 		},
 	)
 	gui.InformOnCredentialsOutcome(err)

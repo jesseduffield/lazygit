@@ -1,82 +1,48 @@
 package commands
 
-import (
-	"fmt"
-	"strings"
-
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
-)
-
 type PushOpts struct {
-	Force                   bool
-	PromptUserForCredential func(CredentialKind) string
-	SetUpstream             bool
-	DestinationRemote       string
-	DestinationBranch       string
+	Force             bool
+	SetUpstream       bool
+	DestinationRemote string
+	DestinationBranch string
 }
 
 func (c *GitCommand) Push(opts PushOpts) error {
-	cmd := buildGitCmd("push", []string{opts.DestinationRemote, opts.DestinationBranch},
+	cmdObj := BuildGitCmdObj("push", []string{opts.DestinationRemote, opts.DestinationBranch},
 		map[string]bool{
 			"--follow-tags":      c.GetConfigValue("push.followTags") != "false",
 			"--force-with-lease": opts.Force,
 			"--set-upstream":     opts.SetUpstream,
 		})
 
-	return c.GetOSCommand().DetectUnamePass(cmd, opts.PromptUserForCredential)
-}
-
-func buildGitCmd(command string, positionalArgs []string, kwArgs map[string]bool) string {
-	parts := []string{"git", command}
-
-	args := make([]string, 0, len(kwArgs))
-	for arg, include := range kwArgs {
-		if include {
-			args = append(args, arg)
-		}
-	}
-	utils.SortAlphabeticalInPlace(args)
-
-	presentPosArgs := utils.ExcludeEmpty(positionalArgs)
-
-	parts = append(parts, presentPosArgs...)
-	parts = append(parts, args...)
-
-	return strings.Join(parts, " ")
+	return c.DetectUnamePass(cmdObj)
 }
 
 type FetchOptions struct {
-	PromptUserForCredential func(CredentialKind) string
-	RemoteName              string
-	BranchName              string
+	// if Background is true, we will not prompt the user for a credential
+	Background bool
+	RemoteName string
+	BranchName string
 }
 
 // Fetch fetch git repo
 func (c *GitCommand) Fetch(opts FetchOptions) error {
-	command := "git fetch"
+	cmdObj := BuildGitCmdObj("fetch", []string{opts.RemoteName, opts.BranchName}, nil)
 
-	if opts.RemoteName != "" {
-		command = fmt.Sprintf("%s %s", command, opts.RemoteName)
+	if opts.Background {
+		cmdObj = c.FailOnCredentialsRequest(cmdObj)
+		return c.oSCommand.RunExecutable(cmdObj)
+	} else {
+		return c.DetectUnamePass(cmdObj)
 	}
-	if opts.BranchName != "" {
-		command = fmt.Sprintf("%s %s", command, opts.BranchName)
-	}
-
-	return c.GetOSCommand().DetectUnamePass(command, func(question CredentialKind) string {
-		if opts.PromptUserForCredential != nil {
-			return opts.PromptUserForCredential(question)
-		}
-		return "\n"
-	})
 }
 
-func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string, promptUserForCredential func(CredentialKind) string) error {
-	command := fmt.Sprintf("git fetch %s %s:%s", remoteName, remoteBranchName, branchName)
-	return c.GetOSCommand().DetectUnamePass(command, promptUserForCredential)
+func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string) error {
+	cmdObj := BuildGitCmdObj("fetch", []string{remoteName, remoteBranchName + ":" + branchName}, nil)
+	return c.DetectUnamePass(cmdObj)
 }
 
-func (c *GitCommand) FetchRemote(remoteName string, promptUserForCredential func(CredentialKind) string) error {
-	command := fmt.Sprintf("git fetch %s", remoteName)
-	return c.GetOSCommand().DetectUnamePass(command, promptUserForCredential)
+func (c *GitCommand) FetchRemote(remoteName string) error {
+	cmdObj := BuildGitCmdObj("fetch", []string{remoteName}, nil)
+	return c.DetectUnamePass(cmdObj)
 }

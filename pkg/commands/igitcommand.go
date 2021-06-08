@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 )
 
@@ -165,7 +164,7 @@ type IGitCommand interface {
 	RemoveRemote(name string) error
 	RenameRemote(oldRemoteName string, newRemoteName string) error
 	UpdateRemoteUrl(remoteName string, updatedUrl string) error
-	DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(CredentialKind) string) error
+	DeleteRemoteBranch(remoteName string, branchName string) error
 	// CheckRemoteBranchExists Returns remote branch
 	CheckRemoteBranchExists(branch *models.Branch) bool
 	// GetRemoteURL returns current repo remote url
@@ -205,11 +204,11 @@ type IGitCommand interface {
 	Push(PushOpts) error
 	// Fetch fetch git repo
 	Fetch(opts FetchOptions) error
-	FastForward(branchName string, remoteName string, remoteBranchName string, promptUserForCredential func(CredentialKind) string) error
-	FetchRemote(remoteName string, promptUserForCredential func(CredentialKind) string) error
+	FastForward(branchName string, remoteName string, remoteBranchName string) error
+	FetchRemote(remoteName string) error
 	CreateLightweightTag(tagName string, commitSha string) error
 	DeleteTag(tagName string) error
-	PushTag(remoteName string, tagName string, promptUserForCredential func(CredentialKind) string) error
+	PushTag(remoteName string, tagName string) error
 	GetPushToCurrent() bool
 	FindRemoteForBranchInConfig(string) (string, error)
 	GetOSCommand() *oscommands.OSCommand

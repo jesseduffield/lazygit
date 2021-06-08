@@ -404,7 +404,7 @@ func (gui *Gui) handleFastForward() error {
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{span: span})
 		} else {
-			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName, gui.PromptUserForCredential)
+			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName)
 			gui.InformOnCredentialsOutcome(err)
 			_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{BRANCHES}})
 		}

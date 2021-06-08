@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/mgutz/str"
 )
 
@@ -276,14 +277,15 @@ func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command stri
 }
 
 func (c *GitCommand) runSkipEditorCommand(command string) error {
-	cmd := c.GetOSCommand().ExecutableFromString(command)
 	lazyGitPath := c.GetOSCommand().GetLazygitPath()
-	cmd.Env = append(
-		cmd.Env,
+
+	cmdObj := &oscommands.CmdObj{CmdStr: command}
+	cmdObj.AddEnvVars(
 		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
 		"GIT_EDITOR="+lazyGitPath,
 		"EDITOR="+lazyGitPath,
 		"VISUAL="+lazyGitPath,
 	)
-	return c.GetOSCommand().RunExecutable(cmd)
+
+	return c.GetOSCommand().RunExecutable(cmdObj)
 }

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"os/exec"
-	"regexp"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/test"
@@ -55,42 +54,4 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 			s.test(gitCmd.RebaseBranch(s.arg))
 		})
 	}
-}
-
-// TestGitCommandSkipEditorCommand confirms that SkipEditorCommand injects
-// environment variables that suppress an interactive editor
-func TestGitCommandSkipEditorCommand(t *testing.T) {
-	cmd := NewDummyGitCommand()
-
-	cmd.GetOSCommand().SetBeforeExecuteCmd(func(cmd *exec.Cmd) {
-		test.AssertContainsMatch(
-			t,
-			cmd.Env,
-			regexp.MustCompile("^VISUAL="),
-			"expected VISUAL to be set for a non-interactive external command",
-		)
-
-		test.AssertContainsMatch(
-			t,
-			cmd.Env,
-			regexp.MustCompile("^EDITOR="),
-			"expected EDITOR to be set for a non-interactive external command",
-		)
-
-		test.AssertContainsMatch(
-			t,
-			cmd.Env,
-			regexp.MustCompile("^GIT_EDITOR="),
-			"expected GIT_EDITOR to be set for a non-interactive external command",
-		)
-
-		test.AssertContainsMatch(
-			t,
-			cmd.Env,
-			regexp.MustCompile("^LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY$"),
-			"expected LAZYGIT_CLIENT_COMMAND to be set for a non-interactive external command",
-		)
-	})
-
-	_ = cmd.runSkipEditorCommand("true")
 }
