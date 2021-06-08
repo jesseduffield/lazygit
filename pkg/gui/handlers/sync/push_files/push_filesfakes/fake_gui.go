@@ -74,9 +74,9 @@ type FakeGui struct {
 	getUserConfigReturnsOnCall map[int]struct {
 		result1 *config.UserConfig
 	}
-	HandleCredentialsPopupStub        func(error)
-	handleCredentialsPopupMutex       sync.RWMutex
-	handleCredentialsPopupArgsForCall []struct {
+	InformOnCredentialsOutcomeStub        func(error)
+	informOnCredentialsOutcomeMutex       sync.RWMutex
+	informOnCredentialsOutcomeArgsForCall []struct {
 		arg1 error
 	}
 	PopupPanelFocusedStub        func() bool
@@ -483,35 +483,35 @@ func (fake *FakeGui) GetUserConfigReturnsOnCall(i int, result1 *config.UserConfi
 	}{result1}
 }
 
-func (fake *FakeGui) HandleCredentialsPopup(arg1 error) {
-	fake.handleCredentialsPopupMutex.Lock()
-	fake.handleCredentialsPopupArgsForCall = append(fake.handleCredentialsPopupArgsForCall, struct {
+func (fake *FakeGui) InformOnCredentialsOutcome(arg1 error) {
+	fake.informOnCredentialsOutcomeMutex.Lock()
+	fake.informOnCredentialsOutcomeArgsForCall = append(fake.informOnCredentialsOutcomeArgsForCall, struct {
 		arg1 error
 	}{arg1})
-	stub := fake.HandleCredentialsPopupStub
-	fake.recordInvocation("HandleCredentialsPopup", []interface{}{arg1})
-	fake.handleCredentialsPopupMutex.Unlock()
+	stub := fake.InformOnCredentialsOutcomeStub
+	fake.recordInvocation("InformOnCredentialsOutcome", []interface{}{arg1})
+	fake.informOnCredentialsOutcomeMutex.Unlock()
 	if stub != nil {
-		fake.HandleCredentialsPopupStub(arg1)
+		fake.InformOnCredentialsOutcomeStub(arg1)
 	}
 }
 
-func (fake *FakeGui) HandleCredentialsPopupCallCount() int {
-	fake.handleCredentialsPopupMutex.RLock()
-	defer fake.handleCredentialsPopupMutex.RUnlock()
-	return len(fake.handleCredentialsPopupArgsForCall)
+func (fake *FakeGui) InformOnCredentialsOutcomeCallCount() int {
+	fake.informOnCredentialsOutcomeMutex.RLock()
+	defer fake.informOnCredentialsOutcomeMutex.RUnlock()
+	return len(fake.informOnCredentialsOutcomeArgsForCall)
 }
 
-func (fake *FakeGui) HandleCredentialsPopupCalls(stub func(error)) {
-	fake.handleCredentialsPopupMutex.Lock()
-	defer fake.handleCredentialsPopupMutex.Unlock()
-	fake.HandleCredentialsPopupStub = stub
+func (fake *FakeGui) InformOnCredentialsOutcomeCalls(stub func(error)) {
+	fake.informOnCredentialsOutcomeMutex.Lock()
+	defer fake.informOnCredentialsOutcomeMutex.Unlock()
+	fake.InformOnCredentialsOutcomeStub = stub
 }
 
-func (fake *FakeGui) HandleCredentialsPopupArgsForCall(i int) error {
-	fake.handleCredentialsPopupMutex.RLock()
-	defer fake.handleCredentialsPopupMutex.RUnlock()
-	argsForCall := fake.handleCredentialsPopupArgsForCall[i]
+func (fake *FakeGui) InformOnCredentialsOutcomeArgsForCall(i int) error {
+	fake.informOnCredentialsOutcomeMutex.RLock()
+	defer fake.informOnCredentialsOutcomeMutex.RUnlock()
+	argsForCall := fake.informOnCredentialsOutcomeArgsForCall[i]
 	return argsForCall.arg1
 }
 
@@ -889,8 +889,8 @@ func (fake *FakeGui) Invocations() map[string][][]interface{} {
 	defer fake.getTrMutex.RUnlock()
 	fake.getUserConfigMutex.RLock()
 	defer fake.getUserConfigMutex.RUnlock()
-	fake.handleCredentialsPopupMutex.RLock()
-	defer fake.handleCredentialsPopupMutex.RUnlock()
+	fake.informOnCredentialsOutcomeMutex.RLock()
+	defer fake.informOnCredentialsOutcomeMutex.RUnlock()
 	fake.popupPanelFocusedMutex.RLock()
 	defer fake.popupPanelFocusedMutex.RUnlock()
 	fake.promptMutex.RLock()

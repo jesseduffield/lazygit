@@ -72,8 +72,8 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 	return nil
 }
 
-// HandleCredentialsPopup handles the views after executing a command that might ask for credentials
-func (gui *Gui) HandleCredentialsPopup(cmdErr error) {
+// InformOnCredentialsOutcome handles the views after executing a command that might ask for credentials
+func (gui *Gui) InformOnCredentialsOutcome(cmdErr error) {
 	if cmdErr != nil {
 		errMessage := cmdErr.Error()
 		if strings.Contains(errMessage, "Invalid username, password or passphrase") {

@@ -144,7 +144,7 @@ func (gui *Gui) handleAddSubmodule() error {
 						HandleConfirm: func(submodulePath string) error {
 							return gui.WithWaitingStatus(gui.Tr.LcAddingSubmoduleStatus, func() error {
 								err := gui.GitCommand.WithSpan(gui.Tr.Spans.AddSubmodule).SubmoduleAdd(submoduleName, submodulePath, submoduleUrl)
-								gui.HandleCredentialsPopup(err)
+								gui.InformOnCredentialsOutcome(err)
 
 								return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{SUBMODULES}})
 							})
@@ -164,7 +164,7 @@ func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error 
 		HandleConfirm: func(newUrl string) error {
 			return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleUrlStatus, func() error {
 				err := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateSubmoduleUrl).SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
-				gui.HandleCredentialsPopup(err)
+				gui.InformOnCredentialsOutcome(err)
 
 				return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{SUBMODULES}})
 			})
@@ -175,7 +175,7 @@ func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error 
 func (gui *Gui) handleSubmoduleInit(submodule *models.SubmoduleConfig) error {
 	return gui.WithWaitingStatus(gui.Tr.LcInitializingSubmoduleStatus, func() error {
 		err := gui.GitCommand.WithSpan(gui.Tr.Spans.InitialiseSubmodule).SubmoduleInit(submodule.Path)
-		gui.HandleCredentialsPopup(err)
+		gui.InformOnCredentialsOutcome(err)
 
 		return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{SUBMODULES}})
 	})
@@ -269,7 +269,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 func (gui *Gui) handleUpdateSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleStatus, func() error {
 		err := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateSubmodule).SubmoduleUpdate(submodule.Path)
-		gui.HandleCredentialsPopup(err)
+		gui.InformOnCredentialsOutcome(err)
 
 		return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{SUBMODULES}})
 	})

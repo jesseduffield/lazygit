@@ -676,7 +676,7 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 			BranchName:              opts.BranchName,
 		},
 	)
-	gui.HandleCredentialsPopup(err)
+	gui.InformOnCredentialsOutcome(err)
 	if err != nil {
 		return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 	}

@@ -2,27 +2,47 @@ package commands
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// Push pushes to a branch
-func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {
-	followTagsFlag := "--follow-tags"
-	if c.GetConfigValue("push.followTags") == "false" {
-		followTagsFlag = ""
-	}
+type PushOpts struct {
+	Force                   bool
+	PromptUserForCredential func(string) string
+	SetUpstream             bool
+	DestinationRemote       string
+	DestinationBranch       string
+}
 
-	forceFlag := ""
-	if force {
-		forceFlag = "--force-with-lease"
-	}
+func (c *GitCommand) Push(opts PushOpts) error {
+	cmd := buildGitCmd("push", []string{opts.DestinationRemote, opts.DestinationBranch},
+		map[string]bool{
+			"--follow-tags":      c.GetConfigValue("push.followTags") != "false",
+			"--force-with-lease": opts.Force,
+			"--set-upstream":     opts.SetUpstream,
+		})
 
-	setUpstreamArg := ""
-	if upstream != "" {
-		setUpstreamArg = "--set-upstream " + upstream
-	}
+	return c.GetOSCommand().DetectUnamePass(cmd, opts.PromptUserForCredential)
+}
 
-	cmd := fmt.Sprintf("git push %s %s %s %s", followTagsFlag, forceFlag, setUpstreamArg, args)
-	return c.GetOSCommand().DetectUnamePass(cmd, promptUserForCredential)
+func buildGitCmd(command string, positionalArgs []string, kwArgs map[string]bool) string {
+	parts := []string{"git", command}
+
+	args := make([]string, 0, len(kwArgs))
+	for arg, include := range kwArgs {
+		if include {
+			args = append(args, arg)
+		}
+	}
+	utils.SortAlphabeticalInPlace(args)
+
+	presentPosArgs := utils.ExcludeEmpty(positionalArgs)
+
+	parts = append(parts, presentPosArgs...)
+	parts = append(parts, args...)
+
+	return strings.Join(parts, " ")
 }
 
 type FetchOptions struct {

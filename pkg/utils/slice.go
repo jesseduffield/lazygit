@@ -1,5 +1,7 @@
 package utils
 
+import "sort"
+
 // IncludesString if the list contains the string
 func IncludesString(list []string, a string) bool {
 	for _, b := range list {
@@ -115,4 +117,23 @@ func StringArraysOverlap(strArrA []string, strArrB []string) bool {
 	}
 
 	return false
+}
+
+func SortAlphabeticalInPlace(arr []string) []string {
+	sort.Slice(arr, func(i int, j int) bool {
+		return arr[i] < arr[j]
+	})
+
+	return arr
+}
+
+func ExcludeEmpty(arr []string) []string {
+	output := make([]string, 0, len(arr))
+	for _, item := range arr {
+		if item != "" {
+			output = append(output, item)
+		}
+	}
+
+	return output
 }
