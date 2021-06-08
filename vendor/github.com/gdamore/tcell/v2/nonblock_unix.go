@@ -17,36 +17,23 @@
 package tcell
 
 import (
-	"os"
 	"syscall"
 
 	"golang.org/x/sys/unix"
 )
 
-// NB: We might someday wish to move Windows to this model.   However,
-// that would probably mean sacrificing some of the richer key reporting
-// that we can obtain with the console API present on Windows.
-
-// nonBlocking changes VMIN to 0, and VTIME to 1.  This basically ensures that
-// we can wake up the input loop.  We only want to do this if we are going to interrupt
-// that loop.  Normally we use VMIN 1 and VTIME 0, which ensures we pick up bytes when
-// they come but don't spin burning cycles.
-func (t *tScreen) nonBlocking(on bool) {
-	fd := int(os.Stdin.Fd())
+// tcSetBufParams is used by the tty driver on UNIX systems to configure the
+// buffering parameters (minimum character count and minimum wait time in msec.)
+func tcSetBufParams(fd int, vMin uint8, vTime uint8) error {
+	_ = syscall.SetNonblock(fd, true)
 	tio, err := unix.IoctlGetTermios(fd, unix.TCGETS)
 	if err != nil {
-		return
+		return err
 	}
-	if on {
-		tio.Cc[unix.VMIN] = 0
-		tio.Cc[unix.VTIME] = 0
-	} else {
-		// block for any output
-		tio.Cc[unix.VTIME] = 0
-		tio.Cc[unix.VMIN] = 1
+	tio.Cc[unix.VMIN] = vMin
+	tio.Cc[unix.VTIME] = vTime
+	if err = unix.IoctlSetTermios(fd, unix.TCSETS, tio); err != nil {
+		return err
 	}
-
-	_ = syscall.SetNonblock(fd, on)
-	// We want to set this *right now*.
-	_ = unix.IoctlSetTermios(fd, unix.TCSETS, tio)
+	return nil
 }

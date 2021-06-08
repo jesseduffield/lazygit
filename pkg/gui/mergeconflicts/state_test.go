@@ -51,6 +51,13 @@ foo
 ++=======
 bar
 ++>>>>>>> branch
+
+<<<<<<< Updated upstream: foo/bar/baz.go
+foo
+bar
+=======
+baz
+>>>>>>> branch
 `,
 			expected: []*mergeConflict{
 				{
@@ -78,11 +85,17 @@ bar
 					middle: 27,
 					end:    29,
 				},
+				{
+					start:  31,
+					middle: 34,
+					end:    36,
+				},
 			},
 		},
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.name, func(t *testing.T) {
 			assert.EqualValues(t, s.expected, findConflicts(s.content))
 		})

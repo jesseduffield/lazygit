@@ -617,7 +617,7 @@ func (gui *Gui) handlePullFiles() error {
 	}
 
 	// if we have no upstream branch we need to set that first
-	if currentBranch.Pullables == "?" {
+	if !currentBranch.IsTrackingRemote() {
 		// see if we have this branch in our config with an upstream
 		conf, err := gui.GitCommand.Repo.Config()
 		if err != nil {
@@ -740,16 +740,21 @@ func (gui *Gui) pushFiles() error {
 		return nil
 	}
 
-	if currentBranch.Pullables == "?" {
-		// see if we have this branch in our config with an upstream
-		conf, err := gui.GitCommand.Repo.Config()
+	if currentBranch.IsTrackingRemote() {
+		if currentBranch.HasCommitsToPull() {
+			return gui.requestToForcePush()
+		} else {
+			return gui.pushWithForceFlag(false, "", "")
+		}
+	} else {
+		// see if we have an upstream for this branch in our config
+		upstream, err := gui.upstreamForBranchInConfig(currentBranch.Name)
 		if err != nil {
 			return gui.surfaceError(err)
 		}
-		for branchName, branch := range conf.Branches {
-			if branchName == currentBranch.Name {
-				return gui.pushWithForceFlag(false, "", fmt.Sprintf("%s %s", branch.Remote, branchName))
-			}
+
+		if upstream != "" {
+			return gui.pushWithForceFlag(false, "", upstream)
 		}
 
 		if gui.GitCommand.PushToCurrent {
@@ -758,15 +763,15 @@ func (gui *Gui) pushFiles() error {
 			return gui.prompt(promptOpts{
 				title:          gui.Tr.EnterUpstream,
 				initialContent: "origin " + currentBranch.Name,
-				handleConfirm: func(response string) error {
-					return gui.pushWithForceFlag(false, response, "")
+				handleConfirm: func(upstream string) error {
+					return gui.pushWithForceFlag(false, upstream, "")
 				},
 			})
 		}
-	} else if currentBranch.Pullables == "0" {
-		return gui.pushWithForceFlag(false, "", "")
 	}
+}
 
+func (gui *Gui) requestToForcePush() error {
 	forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 	if forcePushDisabled {
 		return gui.createErrorPanel(gui.Tr.ForcePushDisabled)
@@ -779,6 +784,21 @@ func (gui *Gui) pushFiles() error {
 			return gui.pushWithForceFlag(true, "", "")
 		},
 	})
+}
+
+func (gui *Gui) upstreamForBranchInConfig(branchName string) (string, error) {
+	conf, err := gui.GitCommand.Repo.Config()
+	if err != nil {
+		return "", err
+	}
+
+	for configBranchName, configBranch := range conf.Branches {
+		if configBranchName == branchName {
+			return fmt.Sprintf("%s %s", configBranch.Remote, configBranchName), nil
+		}
+	}
+
+	return "", nil
 }
 
 func (gui *Gui) handleSwitchToMerge() error {

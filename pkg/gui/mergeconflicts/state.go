@@ -1,9 +1,6 @@
 package mergeconflicts
 
 import (
-	"bufio"
-	"os"
-	"strings"
 	"sync"
 
 	"github.com/golang-collections/collections/stack"
@@ -19,7 +16,7 @@ const (
 )
 
 // mergeConflict : A git conflict with a start middle and end corresponding to line
-// numbers in the file where the conflict bars appear
+// numbers in the file where the conflict markers appear
 type mergeConflict struct {
 	start  int
 	middle int
@@ -88,36 +85,6 @@ func (s *State) SetConflictsFromCat(cat string) {
 	s.setConflicts(findConflicts(cat))
 }
 
-func findConflicts(content string) []*mergeConflict {
-	conflicts := make([]*mergeConflict, 0)
-
-	if content == "" {
-		return conflicts
-	}
-
-	var newConflict *mergeConflict
-	for i, line := range utils.SplitLines(content) {
-		trimmedLine := strings.TrimPrefix(line, "++")
-		switch trimmedLine {
-		case "<<<<<<< HEAD", "<<<<<<< MERGE_HEAD", "<<<<<<< Updated upstream", "<<<<<<< ours":
-			newConflict = &mergeConflict{start: i}
-		case "=======":
-			newConflict.middle = i
-		default:
-			// Sometimes these lines look like "<<<<<<< HEAD:foo/bar/baz.go" so handle that case as well.
-			if strings.HasPrefix(trimmedLine, "<<<<<<< HEAD:") {
-				newConflict = &mergeConflict{start: i}
-			}
-			if strings.HasPrefix(trimmedLine, ">>>>>>> ") {
-				newConflict.end = i
-				conflicts = append(conflicts, newConflict)
-			}
-		}
-
-	}
-	return conflicts
-}
-
 func (s *State) setConflicts(conflicts []*mergeConflict) {
 	s.conflicts = conflicts
 
@@ -158,32 +125,29 @@ func (s *State) ContentAfterConflictResolve(path string, selection Selection) (b
 		return false, "", nil
 	}
 
-	file, err := os.Open(path)
-	if err != nil {
-		return false, "", err
-	}
-	defer file.Close()
-
-	reader := bufio.NewReader(file)
 	content := ""
-	for i := 0; true; i++ {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			break
-		}
+	err := utils.ForEachLineInFile(path, func(line string, i int) {
 		if !isIndexToDelete(i, conflict, selection) {
 			content += line
 		}
+	})
+
+	if err != nil {
+		return false, "", err
 	}
 
 	return true, content, nil
 }
 
 func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
-	return i == conflict.middle ||
-		i == conflict.start ||
-		i == conflict.end ||
-		selection != BOTH &&
-			(selection == BOTTOM && i > conflict.start && i < conflict.middle) ||
-		(selection == TOP && i > conflict.middle && i < conflict.end)
+	isMarkerLine :=
+		i == conflict.middle ||
+			i == conflict.start ||
+			i == conflict.end
+
+	isUnwantedContent :=
+		(selection == BOTTOM && conflict.start < i && i < conflict.middle) ||
+			(selection == TOP && conflict.middle < i && i < conflict.end)
+
+	return isMarkerLine || isUnwantedContent
 }

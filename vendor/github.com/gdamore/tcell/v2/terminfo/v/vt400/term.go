@@ -42,5 +42,7 @@ func init() {
 		KeyF7:        "\x1b[18~",
 		KeyF8:        "\x1b[19~",
 		KeyF9:        "\x1b[20~",
+		AutoMargin:   true,
+		InsertChar:   "\x1b[@",
 	})
 }

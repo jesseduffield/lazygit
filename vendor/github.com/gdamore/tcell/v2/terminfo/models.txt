@@ -14,7 +14,6 @@ pcansi
 rxvt,rxvt-256color,rxvt-88color,rxvt-unicode,rxvt-unicode-256color
 screen,screen-256color
 st,st-256color|simpleterm
-sun,sun-color
 termite
 tmux
 vt52

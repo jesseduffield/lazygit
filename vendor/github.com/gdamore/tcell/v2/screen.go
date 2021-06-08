@@ -83,6 +83,13 @@ type Screen interface {
 	// Furthermore, this will return nil if the Screen is finalized.
 	PollEvent() Event
 
+	// HasPendingEvent returns true if PollEvent would return an event
+	// without blocking.  If the screen is stopped and PollEvent would
+	// return nil, then the return value from this function is unspecified.
+	// The purpose of this function is to allow multiple events to be collected
+	// at once, to minimize screen redraws.
+	HasPendingEvent() bool
+
 	// PostEvent tries to post an event into the event stream.  This
 	// can fail if the event queue is full.  In that case, the event
 	// is dropped, and ErrEventQFull is returned.
@@ -112,7 +119,7 @@ type Screen interface {
 	// EnablePaste enables bracketed paste mode, if supported.
 	EnablePaste()
 
-	// DisablePaste() disables bracketed paste mode.
+	// DisablePaste disables bracketed paste mode.
 	DisablePaste()
 
 	// HasMouse returns true if the terminal (apparently) supports a
@@ -151,7 +158,7 @@ type Screen interface {
 	CharacterSet() string
 
 	// RegisterRuneFallback adds a fallback for runes that are not
-	// part of the character set -- for example one coudld register
+	// part of the character set -- for example one could register
 	// o as a fallback for ø.  This should be done cautiously for
 	// characters that might be displayed ordinarily in language
 	// specific text -- characters that could change the meaning of
@@ -162,7 +169,7 @@ type Screen interface {
 	// character set, those are used in preference.  Also, standard
 	// fallbacks for graphical characters in the ACSC terminfo string
 	// are registered implicitly.
-
+	//
 	// The display string should be the same width as original rune.
 	// This makes it possible to register two character replacements
 	// for full width East Asian characters, for example.

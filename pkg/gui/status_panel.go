@@ -23,15 +23,8 @@ func (gui *Gui) refreshStatus() {
 	}
 	status := ""
 
-	if currentBranch.Pushables != "" && currentBranch.Pullables != "" {
-		trackColor := color.FgYellow
-		if currentBranch.Pushables == "0" && currentBranch.Pullables == "0" {
-			trackColor = color.FgGreen
-		} else if currentBranch.Pushables == "?" && currentBranch.Pullables == "?" {
-			trackColor = color.FgRed
-		}
-
-		status = utils.ColoredString(fmt.Sprintf("↑%s↓%s ", currentBranch.Pushables, currentBranch.Pullables), trackColor)
+	if currentBranch.IsRealBranch() {
+		status += presentation.ColoredBranchStatus(currentBranch) + " "
 	}
 
 	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
@@ -75,7 +68,7 @@ func (gui *Gui) handleStatusClick() error {
 	}
 
 	cx, _ := gui.Views.Status.Cursor()
-	upstreamStatus := fmt.Sprintf("↑%s↓%s", currentBranch.Pushables, currentBranch.Pullables)
+	upstreamStatus := presentation.BranchStatus(currentBranch)
 	repoName := utils.GetCurrentRepoName()
 	switch gui.GitCommand.WorkingTreeState() {
 	case commands.REBASE_MODE_REBASING, commands.REBASE_MODE_MERGING:

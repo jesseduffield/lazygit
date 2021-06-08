@@ -119,7 +119,7 @@ func (c *GitCommand) GenerateGenericRebaseTodo(commits []*models.Commit, actionI
 		var commitAction string
 		if i == actionIndex {
 			commitAction = action
-		} else if commit.IsMerge {
+		} else if commit.IsMerge() {
 			// your typical interactive rebase will actually drop merge commits by default. Damn git CLI, you scary!
 			// doing this means we don't need to worry about rebasing over merges which always causes problems.
 			// you typically shouldn't be doing rebases that pass over merge commits anyway.

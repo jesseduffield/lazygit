@@ -1,0 +1,1 @@
+{ "description": "In this test we revert a merge conflict, choosing which parent we want to retain... or something like that. We need to rename the newly created commit so that we don't fail on the snapshot comparison", "speed": 10 }

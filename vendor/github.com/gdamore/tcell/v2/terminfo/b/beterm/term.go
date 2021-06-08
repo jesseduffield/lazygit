@@ -51,5 +51,7 @@ func init() {
 		KeyF10:       "\x1b[20~",
 		KeyF11:       "\x1b[21~",
 		KeyF12:       "\x1b[22~",
+		AutoMargin:   true,
+		InsertChar:   "\x1b[@",
 	})
 }

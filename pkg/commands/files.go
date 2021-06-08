@@ -318,7 +318,11 @@ func (c *GitCommand) ResetAndClean() error {
 }
 
 func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
-	editor := c.GetConfigValue("core.editor")
+	editor := c.Config.GetUserConfig().OS.EditCommand
+
+	if editor == "" {
+		editor = c.GetConfigValue("core.editor")
+	}
 
 	if editor == "" {
 		editor = c.OSCommand.Getenv("GIT_EDITOR")
@@ -335,7 +339,7 @@ func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
 		}
 	}
 	if editor == "" {
-		return "", errors.New("No editor defined in $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
+		return "", errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
 	return fmt.Sprintf("%s %s", editor, c.OSCommand.Quote(filename)), nil

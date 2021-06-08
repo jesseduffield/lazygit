@@ -3,10 +3,12 @@ package gui
 import (
 	"fmt"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 )
 
 func (gui *Gui) exitDiffMode() error {
-	gui.State.Modes.Diffing = Diffing{}
+	gui.State.Modes.Diffing = diffing.New()
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
 
@@ -145,7 +147,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 			{
 				displayString: gui.Tr.LcExitDiffMode,
 				onPress: func() error {
-					gui.State.Modes.Diffing = Diffing{}
+					gui.State.Modes.Diffing = diffing.New()
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 				},
 			},
