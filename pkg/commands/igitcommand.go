@@ -201,7 +201,7 @@ type IGitCommand interface {
 	SubmoduleBulkDeinitCmdStr() string
 	ResetSubmodules(submodules []*models.SubmoduleConfig) error
 	// Push pushes to a branch
-	Push(PushOpts) error
+	Push(PushOpts) (bool, error)
 	// Fetch fetch git repo
 	Fetch(opts FetchOptions) error
 	FastForward(branchName string, remoteName string, remoteBranchName string) error

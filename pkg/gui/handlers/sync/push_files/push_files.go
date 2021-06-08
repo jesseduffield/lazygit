@@ -20,7 +20,6 @@ type Gui interface {
 	Ask(AskOpts) error
 	GetTr() *i18n.TranslationSet
 	CreateErrorPanel(string) error
-	InformOnCredentialsOutcome(error)
 	WithPopupWaitingStatus(string, func() error) error
 	RefreshSidePanels(RefreshOptions) error
 }
@@ -91,16 +90,19 @@ func (gui *PushFilesHandler) promptToSetDestinationAndPush(opts commands.PushOpt
 
 func (gui *PushFilesHandler) attemptToPush(opts commands.PushOpts) error {
 	return gui.WithPopupWaitingStatus(gui.GetTr().PushWait, func() error {
-		// cmd := gui.GetGitCommand().PushCmd(opts)
-		// cmd.SetSpan(gui.GetTr().Spans.Push)
-		// osCmd.RunCommandWithCredentialsCheck(cmd, opts.PromptUserForCredential)
-		// // osCmd should have a PromptUserForCredential field and the cmd itself should tell me wheher it needs to prompt the user for a credential. Then it should internally handle informing on the credentials outcome, so that I don't need to care about it here.
-		err := gui.GetGitCommand().WithSpan(gui.GetTr().Spans.Push).Push(opts)
-		if !opts.Force && gui.isRejectionErr(err) {
-			return gui.requestToForcePush(opts, gui.GetTr().UpdatesRejectedAndForcePushDisabled)
+		rejected, err := gui.GetGitCommand().WithSpan(gui.GetTr().Spans.Push).Push(opts)
+		if err != nil {
+			return gui.SurfaceError(err)
+		}
+		if rejected {
+			if opts.Force {
+				// this should really never happen
+				return gui.CreateErrorPanel("Force push rejected")
+			} else {
+				return gui.requestToForcePush(opts, gui.GetTr().UpdatesRejectedAndForcePushDisabled)
+			}
 		}
 
-		gui.InformOnCredentialsOutcome(err)
 		_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 
 		return nil

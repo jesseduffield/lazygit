@@ -42,10 +42,12 @@ type GitCommand struct {
 	pushToCurrent bool
 
 	promptUserForCredential func(CredentialKind) string
+	handleCredentialError   func(error)
 }
 
-func (c *GitCommand) SetPromptUserForCredential(f func(CredentialKind) string) {
-	c.promptUserForCredential = f
+func (c *GitCommand) SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error)) {
+	c.promptUserForCredential = promptUserForCredential
+	c.handleCredentialError = handleCredentialError
 }
 
 func (c *GitCommand) GetPushToCurrent() bool {
@@ -287,12 +289,12 @@ func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]b
 	return &oscommands.CmdObj{CmdStr: cmdStr}
 }
 
-// DetectUnamePass detect a username / password / passphrase question in a command
+// RunCommandWithCredentialsPrompt detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (c *GitCommand) DetectUnamePass(cmdObj *oscommands.CmdObj) error {
+func (c *GitCommand) RunCommandWithCredentialsPrompt(cmdObj *oscommands.CmdObj) error {
 	ttyText := ""
-	errMessage := c.oSCommand.RunCommandWithOutputLive(cmdObj.ToString(), func(word string) string {
+	err := c.oSCommand.RunCommandWithOutputLive(cmdObj.ToString(), func(word string) string {
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]CredentialKind{
@@ -311,7 +313,15 @@ func (c *GitCommand) DetectUnamePass(cmdObj *oscommands.CmdObj) error {
 
 		return ""
 	})
-	return errMessage
+
+	return err
+}
+
+// this goes one step beyond RunCommandWithCredentialsPrompt and handles a credential error
+func (c *GitCommand) RunCommandWithCredentialsHandling(cmdObj *oscommands.CmdObj) error {
+	err := c.RunCommandWithCredentialsPrompt(cmdObj)
+	c.handleCredentialError(err)
+	return nil
 }
 
 func (c *GitCommand) FailOnCredentialsRequest(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {

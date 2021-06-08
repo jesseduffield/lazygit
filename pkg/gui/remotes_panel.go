@@ -179,7 +179,9 @@ func (gui *Gui) handleFetchRemote() error {
 		defer gui.Mutexes.FetchMutex.Unlock()
 
 		err := gui.GitCommand.FetchRemote(remote.Name)
-		gui.InformOnCredentialsOutcome(err)
+		if err != nil {
+			return gui.SurfaceError(err)
+		}
 
 		return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, REMOTES}})
 	})

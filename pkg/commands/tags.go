@@ -13,5 +13,5 @@ func (c *GitCommand) DeleteTag(tagName string) error {
 func (c *GitCommand) PushTag(remoteName string, tagName string) error {
 	cmdObj := BuildGitCmdObj("push", []string{remoteName, tagName}, nil)
 
-	return c.DetectUnamePass(cmdObj)
+	return c.RunCommandWithCredentialsHandling(cmdObj)
 }

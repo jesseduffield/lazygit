@@ -75,17 +75,17 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 	return nil
 }
 
-// InformOnCredentialsOutcome handles the views after executing a command that might ask for credentials
-func (gui *Gui) InformOnCredentialsOutcome(cmdErr error) {
-	if cmdErr != nil {
-		errMessage := cmdErr.Error()
+// handleCredentialError handles the views after executing a command that might ask for credentials
+func (gui *Gui) handleCredentialError(err error) {
+	if err == nil {
+		_ = gui.closeConfirmationPrompt(false)
+	} else {
+		errMessage := err.Error()
 		if strings.Contains(errMessage, "Invalid username, password or passphrase") {
 			errMessage = gui.Tr.PassUnameWrong
 		}
 		_ = gui.returnFromContext()
 		// we are not logging this error because it may contain a password or a passphrase
 		_ = gui.CreateErrorPanel(errMessage)
-	} else {
-		_ = gui.closeConfirmationPrompt(false)
 	}
 }

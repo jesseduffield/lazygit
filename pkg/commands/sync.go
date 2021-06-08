@@ -1,5 +1,7 @@
 package commands
 
+import "strings"
+
 type PushOpts struct {
 	Force             bool
 	SetUpstream       bool
@@ -7,7 +9,7 @@ type PushOpts struct {
 	DestinationBranch string
 }
 
-func (c *GitCommand) Push(opts PushOpts) error {
+func (c *GitCommand) Push(opts PushOpts) (bool, error) {
 	cmdObj := BuildGitCmdObj("push", []string{opts.DestinationRemote, opts.DestinationBranch},
 		map[string]bool{
 			"--follow-tags":      c.GetConfigValue("push.followTags") != "false",
@@ -15,7 +17,19 @@ func (c *GitCommand) Push(opts PushOpts) error {
 			"--set-upstream":     opts.SetUpstream,
 		})
 
-	return c.DetectUnamePass(cmdObj)
+	err := c.RunCommandWithCredentialsPrompt(cmdObj)
+
+	if isRejectionErr(err) {
+		return true, nil
+	}
+
+	c.handleCredentialError(err)
+
+	return false, nil
+}
+
+func isRejectionErr(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "Updates were rejected")
 }
 
 type FetchOptions struct {
@@ -33,16 +47,16 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 		cmdObj = c.FailOnCredentialsRequest(cmdObj)
 		return c.oSCommand.RunExecutable(cmdObj)
 	} else {
-		return c.DetectUnamePass(cmdObj)
+		return c.RunCommandWithCredentialsHandling(cmdObj)
 	}
 }
 
 func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string) error {
 	cmdObj := BuildGitCmdObj("fetch", []string{remoteName, remoteBranchName + ":" + branchName}, nil)
-	return c.DetectUnamePass(cmdObj)
+	return c.RunCommandWithCredentialsHandling(cmdObj)
 }
 
 func (c *GitCommand) FetchRemote(remoteName string) error {
 	cmdObj := BuildGitCmdObj("fetch", []string{remoteName}, nil)
-	return c.DetectUnamePass(cmdObj)
+	return c.RunCommandWithCredentialsHandling(cmdObj)
 }

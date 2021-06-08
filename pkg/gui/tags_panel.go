@@ -127,7 +127,9 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		HandleConfirm: func(response string) error {
 			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
 				err := gui.GitCommand.WithSpan(gui.Tr.Spans.PushTag).PushTag(response, tag.Name)
-				gui.InformOnCredentialsOutcome(err)
+				if err != nil {
+					return gui.SurfaceError(err)
+				}
 
 				return nil
 			})

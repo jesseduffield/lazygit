@@ -23,7 +23,7 @@ func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error
 func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string) error {
 	cmdObj := BuildGitCmdObj("push", []string{remoteName, "--delete", branchName}, nil)
 
-	return c.DetectUnamePass(cmdObj)
+	return c.RunCommandWithCredentialsHandling(cmdObj)
 }
 
 // CheckRemoteBranchExists Returns remote branch

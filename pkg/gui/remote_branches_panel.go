@@ -61,7 +61,9 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 		HandleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
 				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name)
-				gui.InformOnCredentialsOutcome(err)
+				if err != nil {
+					return gui.SurfaceError(err)
+				}
 
 				return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, REMOTES}})
 			})

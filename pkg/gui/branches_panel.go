@@ -122,7 +122,9 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 func (gui *Gui) handleGitFetch() error {
 	return gui.WithPopupWaitingStatus(gui.Tr.FetchWait, func() error {
 		err := gui.fetch()
-		gui.InformOnCredentialsOutcome(err)
+		if err != nil {
+			return gui.SurfaceError(err)
+		}
 		_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
 
 		return nil
@@ -405,7 +407,9 @@ func (gui *Gui) handleFastForward() error {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{span: span})
 		} else {
 			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName)
-			gui.InformOnCredentialsOutcome(err)
+			if err != nil {
+				return gui.SurfaceError(err)
+			}
 			_ = gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{BRANCHES}})
 		}
 
