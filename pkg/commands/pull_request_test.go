@@ -213,6 +213,27 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
+			testName: "Opens a link to new pull request on gitlab in nested groups",
+			from: &models.Branch{
+				Name: "feature/ui",
+			},
+			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
+			command: func(cmd string, args ...string) *exec.Cmd {
+				// Handle git remote url call
+				if strings.HasPrefix(cmd, "git") {
+					return secureexec.Command("echo", "git@gitlab.com:peter/calculator.git")
+				}
+
+				assert.Equal(t, cmd, "open")
+				assert.Equal(t, args, []string{"https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/ui"})
+				return secureexec.Command("echo")
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/ui", url)
+			},
+		},
+		{
 			testName: "Opens a link to new pull request on gitlab with specific target branch",
 			from: &models.Branch{
 				Name: "feature/commit-ui",
@@ -234,6 +255,30 @@ func TestCreatePullRequest(t *testing.T) {
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui", url)
+			},
+		},
+		{
+			testName: "Opens a link to new pull request on gitlab with specific target branch in nested groups",
+			from: &models.Branch{
+				Name: "feature/commit-ui",
+			},
+			to: &models.Branch{
+				Name: "epic/ui",
+			},
+			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
+			command: func(cmd string, args ...string) *exec.Cmd {
+				// Handle git remote url call
+				if strings.HasPrefix(cmd, "git") {
+					return secureexec.Command("echo", "git@gitlab.com:peter/calculator.git")
+				}
+
+				assert.Equal(t, cmd, "open")
+				assert.Equal(t, args, []string{"https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui"})
+				return secureexec.Command("echo")
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui", url)
 			},
 		},
 		{
