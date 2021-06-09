@@ -31,13 +31,13 @@ func (gui *Gui) handleQuitWithoutChangingDirectory() error {
 
 func (gui *Gui) toggleWhitespaceInDiffView() error {
 	gui.State.IgnoreWhitespaceInDiffView = !gui.State.IgnoreWhitespaceInDiffView
-	var toastMessage string
+
+	toastMessage := gui.Tr.ShowingWhitespaceInDiffView
 	if gui.State.IgnoreWhitespaceInDiffView {
 		toastMessage = gui.Tr.IgnoringWhitespaceInDiffView
-	} else {
-		toastMessage = gui.Tr.ShowingWhitespaceInDiffView
 	}
 	gui.raiseToast(toastMessage)
+
 	return gui.refreshFilesAndSubmodules()
 }
 
