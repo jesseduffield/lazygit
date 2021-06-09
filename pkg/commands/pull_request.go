@@ -38,7 +38,7 @@ func NewService(typeName string, repositoryDomain string, siteDomain string) *Se
 			Name: repositoryDomain,
 			PullRequestURL: func(owner string, repository string, from string, to string) string {
 				if to == "" {
-					return fmt.Sprintf("https://%s/%s/%s/compare/%s?expand=1",siteDomain, owner, repository, from)
+					return fmt.Sprintf("https://%s/%s/%s/compare/%s?expand=1", siteDomain, owner, repository, from)
 				} else {
 					return fmt.Sprintf("https://%s/%s/%s/compare/%s...%s?expand=1", siteDomain, owner, repository, to, from)
 				}
@@ -151,7 +151,7 @@ func (pr *PullRequest) getPullRequestURL(from *models.Branch, to *models.Branch)
 	repoInfo := getRepoInfoFromURL(repoURL)
 	toBranchName := ""
 	if to != nil {
-	        toBranchName = to.Name
+		toBranchName = to.Name
 	}
 	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, from.Name, toBranchName)
 
