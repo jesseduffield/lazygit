@@ -130,16 +130,18 @@ func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...inte
 	return output, err
 }
 
-// RunExecutableWithOutput runs an executable file and returns its output
-func (c *OSCommand) RunExecutableWithOutput(cmd *CmdObj) (string, error) {
-	c.LogCmd(cmd)
-	return sanitisedCommandOutput(cmd.ToCmd().CombinedOutput())
-}
-
 // RunExecutable runs an executable file and returns an error if there was one
 func (c *OSCommand) RunExecutable(cmd *CmdObj) error {
 	_, err := c.RunExecutableWithOutput(cmd)
+
 	return err
+}
+
+// RunExecutable runs an executable file and returns an error if there was one
+func (c *OSCommand) RunExecutableWithOutput(cmd *CmdObj) (string, error) {
+	c.LogCmd(cmd)
+
+	return sanitisedCommandOutput(cmd.ToCmd().CombinedOutput())
 }
 
 // ExecutableFromString takes a string like `git status` and returns an executable command for it

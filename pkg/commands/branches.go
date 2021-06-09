@@ -10,7 +10,9 @@ import (
 
 // NewBranch create new branch
 func (c *GitCommand) NewBranch(name string, base string) error {
-	return c.RunCommand("git checkout -b %s %s", name, base)
+	return c.RunExecutable(
+		BuildGitCmdObj("checkout", []string{name, base}, map[string]bool{"-b": true}),
+	)
 }
 
 // CurrentBranchName get the current branch name and displayname.
@@ -40,13 +42,9 @@ func (c *GitCommand) CurrentBranchName() (string, string, error) {
 
 // DeleteBranch delete branch
 func (c *GitCommand) DeleteBranch(branch string, force bool) error {
-	command := "git branch -d"
-
-	if force {
-		command = "git branch -D"
-	}
-
-	return c.GetOSCommand().RunCommand("%s %s", command, branch)
+	return c.GetOSCommand().RunExecutable(
+		BuildGitCmdObj("branch", []string{branch}, map[string]bool{"-d": !force, "-D": force}),
+	)
 }
 
 // Checkout checks out a branch (or commit), with --force if you set the force arg to true

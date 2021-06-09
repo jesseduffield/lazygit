@@ -226,6 +226,15 @@ func (c *GitCommand) RunCommand(formatString string, formatArgs ...interface{}) 
 	return err
 }
 
+func (c *GitCommand) RunExecutable(cmdObj *oscommands.CmdObj) error {
+	_, err := c.RunExecutableWithOutput(cmdObj)
+	return err
+}
+
+func (c *GitCommand) RunExecutableWithOutput(cmdObj *oscommands.CmdObj) (string, error) {
+	return c.RunCommandWithOutput(cmdObj.ToString())
+}
+
 func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error) {
 	// TODO: have this retry logic in other places we run the command
 	waitTime := 50 * time.Millisecond
@@ -270,9 +279,10 @@ func BuildGitCmd(command string, positionalArgs []string, kwArgs map[string]bool
 	}
 
 	if len(positionalArgs) > 0 {
-		presentPosArgs := utils.ExcludeEmpty(positionalArgs)
-		parts = append(parts, presentPosArgs...)
+		parts = append(parts, positionalArgs...)
 	}
+
+	parts = utils.ExcludeEmpty(parts)
 
 	return strings.Join(parts, " ")
 }
@@ -281,4 +291,12 @@ func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]b
 	cmdStr := BuildGitCmd(command, positionalArgs, kwArgs)
 
 	return &oscommands.CmdObj{CmdStr: cmdStr}
+}
+
+func GitInitCmd() *oscommands.CmdObj {
+	return BuildGitCmdObj("init", nil, nil)
+}
+
+func GitVersionCmd() *oscommands.CmdObj {
+	return BuildGitCmdObj("", nil, map[string]bool{"--version": true})
 }
