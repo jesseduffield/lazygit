@@ -53,6 +53,8 @@ func (c *GitCommand) FailOnCredentialsRequest(cmdObj *oscommands.CmdObj) *oscomm
 
 	cmdObj.AddEnvVars(
 		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+		// prevents git from prompting us for input which would freeze the program. Only works for git v2.3+
+		"GIT_TERMINAL_PROMPT=0",
 		"GIT_ASKPASS="+lazyGitPath,
 	)
 

@@ -49,7 +49,7 @@ type IGitCommand interface {
 	// RenameCommit renames the topmost commit with the given name
 	RenameCommit(name string) error
 	// ResetToCommit reset to commit
-	ResetToCommit(sha string, strength string, options oscommands.RunCommandOptions) error
+	ResetToCommit(sha string, strength string, options ResetToCommitOptions) error
 	CommitCmdStr(message string, flags string) string
 	// Get the subject of the HEAD commit
 	GetHeadCommitMessage() (string, error)

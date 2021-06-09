@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -57,11 +56,10 @@ type CheckoutOptions struct {
 }
 
 func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
-	forceArg := ""
-	if options.Force {
-		forceArg = " --force"
-	}
-	return c.GetOSCommand().RunCommandWithOptions(fmt.Sprintf("git checkout%s %s", forceArg, branch), oscommands.RunCommandOptions{EnvVars: options.EnvVars})
+	cmdObj := BuildGitCmdObj("checkout", []string{branch}, map[string]bool{"--force": options.Force})
+	cmdObj.AddEnvVars(options.EnvVars...)
+
+	return c.GetOSCommand().RunCommandWithOptions(cmdObj)
 }
 
 // GetBranchGraph gets the color-formatted graph of the log for the given branch

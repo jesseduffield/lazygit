@@ -105,22 +105,8 @@ func (c *OSCommand) SetRemoveFile(f func(string) error) {
 	c.removeFile = f
 }
 
-type RunCommandOptions struct {
-	EnvVars []string
-}
-
-func (c *OSCommand) RunCommandWithOutputWithOptions(command string, options RunCommandOptions) (string, error) {
-	c.LogCommand(command, true)
-	cmd := c.ExecutableFromString(command)
-
-	cmd.Env = append(cmd.Env, "GIT_TERMINAL_PROMPT=0") // prevents git from prompting us for input which would freeze the program. Only works for git v2.3+
-	cmd.Env = append(cmd.Env, options.EnvVars...)
-
-	return sanitisedCommandOutput(cmd.CombinedOutput())
-}
-
-func (c *OSCommand) RunCommandWithOptions(command string, options RunCommandOptions) error {
-	_, err := c.RunCommandWithOutputWithOptions(command, options)
+func (c *OSCommand) RunCommandWithOptions(cmdObj *CmdObj) error {
+	_, err := c.RunCommandWithOutput(cmdObj.ToString())
 	return err
 }
 

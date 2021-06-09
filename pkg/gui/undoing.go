@@ -2,7 +2,6 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -170,7 +169,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 	gitCommand := gui.GitCommand.WithSpan(options.span)
 
 	reset := func() error {
-		if err := gui.resetToRef(commitSha, "hard", options.span, oscommands.RunCommandOptions{EnvVars: options.EnvVars}); err != nil {
+		if err := gui.resetToRef(commitSha, "hard", options.span, commands.ResetToCommitOptions{EnvVars: options.EnvVars}); err != nil {
 			return gui.SurfaceError(err)
 		}
 		return nil

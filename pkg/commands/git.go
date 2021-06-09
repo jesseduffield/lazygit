@@ -257,11 +257,6 @@ func (c *GitCommand) GetOSCommand() *oscommands.OSCommand {
 func BuildGitCmd(command string, positionalArgs []string, kwArgs map[string]bool) string {
 	parts := []string{"git", command}
 
-	if len(positionalArgs) > 0 {
-		presentPosArgs := utils.ExcludeEmpty(positionalArgs)
-		parts = append(parts, presentPosArgs...)
-	}
-
 	if len(kwArgs) > 0 {
 		args := make([]string, 0, len(kwArgs))
 		for arg, include := range kwArgs {
@@ -272,6 +267,11 @@ func BuildGitCmd(command string, positionalArgs []string, kwArgs map[string]bool
 		utils.SortAlphabeticalInPlace(args)
 
 		parts = append(parts, args...)
+	}
+
+	if len(positionalArgs) > 0 {
+		presentPosArgs := utils.ExcludeEmpty(positionalArgs)
+		parts = append(parts, presentPosArgs...)
 	}
 
 	return strings.Join(parts, " ")
