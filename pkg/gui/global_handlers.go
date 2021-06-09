@@ -207,7 +207,7 @@ func (gui *Gui) fetchInBackground() (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	err = gui.GitCommand.Fetch(commands.FetchOptions{})
+	_ = gui.GitCommand.FetchInBackground(commands.FetchOptions{})
 
 	gui.refreshAfterFetch()
 

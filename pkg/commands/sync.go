@@ -1,6 +1,10 @@
 package commands
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+)
 
 type PushOpts struct {
 	Force             bool
@@ -33,22 +37,27 @@ func isRejectionErr(err error) bool {
 }
 
 type FetchOptions struct {
-	// if Background is true, we will not prompt the user for a credential
-	Background bool
 	RemoteName string
 	BranchName string
 }
 
 // Fetch fetch git repo
 func (c *GitCommand) Fetch(opts FetchOptions) error {
-	cmdObj := BuildGitCmdObj("fetch", []string{opts.RemoteName, opts.BranchName}, nil)
+	cmdObj := GetFetchCommandObj(opts)
 
-	if opts.Background {
-		cmdObj = c.FailOnCredentialsRequest(cmdObj)
-		return c.oSCommand.RunExecutable(cmdObj)
-	} else {
-		return c.RunCommandWithCredentialsHandling(cmdObj)
-	}
+	return c.RunCommandWithCredentialsHandling(cmdObj)
+}
+
+// FetchInBackground fails if credentials are requested
+func (c *GitCommand) FetchInBackground(opts FetchOptions) error {
+	cmdObj := GetFetchCommandObj(opts)
+
+	cmdObj = c.FailOnCredentialsRequest(cmdObj)
+	return c.oSCommand.RunExecutable(cmdObj)
+}
+
+func GetFetchCommandObj(opts FetchOptions) *oscommands.CmdObj {
+	return BuildGitCmdObj("fetch", []string{opts.RemoteName, opts.BranchName}, nil)
 }
 
 func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string) error {

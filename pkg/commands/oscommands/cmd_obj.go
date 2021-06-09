@@ -29,7 +29,7 @@ type CmdObj struct {
 }
 
 func (self *CmdObj) ToCmd() *exec.Cmd {
-	if self.Cmd != nil {
+	if self.Cmd == nil {
 		self.Cmd = executableFromString(self.CmdStr)
 	}
 
