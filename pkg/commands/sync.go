@@ -1,10 +1,63 @@
 package commands
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
+
+func (c *GitCommand) SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error)) {
+	c.promptUserForCredential = promptUserForCredential
+	c.handleCredentialError = handleCredentialError
+}
+
+// RunCommandWithCredentialsPrompt detect a username / password / passphrase question in a command
+// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
+// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
+func (c *GitCommand) RunCommandWithCredentialsPrompt(cmdObj *oscommands.CmdObj) error {
+	ttyText := ""
+	err := c.oSCommand.RunCommandWithOutputLive(cmdObj.ToString(), func(word string) string {
+		ttyText = ttyText + " " + word
+
+		prompts := map[string]CredentialKind{
+			`.+'s password:`:                         PASSWORD,
+			`Password\s*for\s*'.+':`:                 PASSWORD,
+			`Username\s*for\s*'.+':`:                 USERNAME,
+			`Enter\s*passphrase\s*for\s*key\s*'.+':`: PASSPHRASE,
+		}
+
+		for pattern, askFor := range prompts {
+			if match, _ := regexp.MatchString(pattern, ttyText); match {
+				ttyText = ""
+				return c.promptUserForCredential(askFor)
+			}
+		}
+
+		return ""
+	})
+
+	return err
+}
+
+// this goes one step beyond RunCommandWithCredentialsPrompt and handles a credential error
+func (c *GitCommand) RunCommandWithCredentialsHandling(cmdObj *oscommands.CmdObj) error {
+	err := c.RunCommandWithCredentialsPrompt(cmdObj)
+	c.handleCredentialError(err)
+	return nil
+}
+
+func (c *GitCommand) FailOnCredentialsRequest(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
+	lazyGitPath := c.GetOSCommand().GetLazygitPath()
+
+	cmdObj.AddEnvVars(
+		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+		"GIT_ASKPASS="+lazyGitPath,
+	)
+
+	return cmdObj
+}
 
 type PushOpts struct {
 	Force             bool
