@@ -14,17 +14,17 @@ import (
 	"github.com/creack/pty"
 )
 
-// RunCommandWithOutputLiveWrapper runs a command and return every word that gets written in stdout
+// runCommandAndParseOutput runs a command and return every word that gets written in stdout
 // Output is a function that executes by every word that gets read by bufio
 // As return of output you need to give a string that will be written to stdin
 // NOTE: If the return data is empty it won't written anything to stdin
-func RunCommandWithOutputLiveWrapper(c *OSCommand, command string, output func(string) string) error {
-	c.Log.WithField("command", command).Info("RunCommand")
-	c.LogCommand(command, true)
-	cmd := c.ExecutableFromString(command)
-	cmd.Env = append(cmd.Env, "LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
+func runCommandAndParseOutput(c *OSCommand, cmdObj *CmdObj, output func(string) string) error {
+	c.Log.WithField("command", cmdObj.ToString()).Info("RunCommand")
+	c.LogCommand(cmdObj.ToString(), true)
+	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
 
 	var stderr bytes.Buffer
+	cmd := cmdObj.ToCmd()
 	cmd.Stderr = &stderr
 
 	ptmx, err := pty.Start(cmd)

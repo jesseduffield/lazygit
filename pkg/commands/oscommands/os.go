@@ -164,9 +164,8 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 	return c.ExecutableFromString(shellCommand)
 }
 
-// RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
-func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string) string) error {
-	return RunCommandWithOutputLiveWrapper(c, command, output)
+func (c *OSCommand) RunCommandAndParseOutput(cmdObj *CmdObj, output func(string) string) error {
+	return runCommandAndParseOutput(c, cmdObj, output)
 }
 
 func (c *OSCommand) CatFile(filename string) (string, error) {
