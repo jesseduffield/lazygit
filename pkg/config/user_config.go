@@ -35,6 +35,7 @@ type GuiConfig struct {
 	Theme                    ThemeConfig        `yaml:"theme"`
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
+	ShowTotal                bool               `yaml:"showTotal"`
 	ShowFileTree             bool               `yaml:"showFileTree"`
 	ShowRandomTip            bool               `yaml:"showRandomTip"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
@@ -306,6 +307,7 @@ func GetDefaultConfig() *UserConfig {
 			},
 			CommitLength:             CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning: false,
+			ShowTotal:                true,
 			ShowCommandLog:           true,
 			ShowFileTree:             false,
 			ShowRandomTip:            true,
