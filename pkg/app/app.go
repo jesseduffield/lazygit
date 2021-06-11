@@ -370,12 +370,26 @@ func TailLogsNative(logFilePath string, opts *humanlog.HandlerOptions) {
 	}
 }
 
+func OpenAndSeek(filepath string, offset int64) (*os.File, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = file.Seek(offset, 0)
+	if err != nil {
+		_ = file.Close()
+		return nil, err
+	}
+	return file, nil
+}
+
 func TailFrom(lastOffset int64, logFilePath string, opts *humanlog.HandlerOptions) error {
-	file, err := os.Open(logFilePath)
+	file, err := OpenAndSeek(logFilePath, lastOffset)
 	if err != nil {
 		return err
 	}
-	file.Seek(lastOffset, 0)
+
 	fileScanner := bufio.NewScanner(file)
 	var lines []string
 	for fileScanner.Scan() {
