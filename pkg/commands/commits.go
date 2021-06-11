@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
 // RenameCommit renames the topmost commit with the given name
@@ -67,7 +67,7 @@ func (c *GitCommand) AmendHeadCmdStr() string {
 	return "git commit --amend --no-edit --allow-empty"
 }
 
-func (c *GitCommand) ShowCmdObj(sha string, filterPath string) *oscommands.CmdObj {
+func (c *GitCommand) ShowCmdObj(sha string, filterPath string) ICmdObj {
 	filterPathArg := ""
 	if filterPath != "" {
 		filterPathArg = fmt.Sprintf(" -- %s", c.GetOSCommand().Quote(filterPath))

@@ -43,10 +43,9 @@ func (gui *Gui) handleCommitFileSelect() error {
 	to := gui.State.CommitFileManager.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowFileDiffCmdStr(from, to, reverse, node.GetPath(), false),
+	task := NewRunPtyTask(
+		gui.GitCommand.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false),
 	)
-	task := NewRunPtyTask(cmd)
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{

@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
@@ -16,7 +15,7 @@ func (c *GitCommand) SetCredentialHandlers(promptUserForCredential func(Credenti
 // RunCommandWithCredentialsPrompt detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (c *GitCommand) RunCommandWithCredentialsPrompt(cmdObj *oscommands.CmdObj) error {
+func (c *GitCommand) RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error {
 	ttyText := ""
 	err := c.oSCommand.RunCommandAndParseOutput(cmdObj, func(word string) string {
 		ttyText = ttyText + " " + word
@@ -42,13 +41,13 @@ func (c *GitCommand) RunCommandWithCredentialsPrompt(cmdObj *oscommands.CmdObj) 
 }
 
 // this goes one step beyond RunCommandWithCredentialsPrompt and handles a credential error
-func (c *GitCommand) RunCommandWithCredentialsHandling(cmdObj *oscommands.CmdObj) error {
+func (c *GitCommand) RunCommandWithCredentialsHandling(cmdObj ICmdObj) error {
 	err := c.RunCommandWithCredentialsPrompt(cmdObj)
 	c.handleCredentialError(err)
 	return nil
 }
 
-func (c *GitCommand) FailOnCredentialsRequest(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
+func (c *GitCommand) FailOnCredentialsRequest(cmdObj ICmdObj) ICmdObj {
 	lazyGitPath := c.GetOSCommand().GetLazygitPath()
 
 	cmdObj.AddEnvVars(
@@ -111,7 +110,7 @@ func (c *GitCommand) FetchInBackground(opts FetchOptions) error {
 	return c.oSCommand.RunExecutable(cmdObj)
 }
 
-func GetFetchCommandObj(opts FetchOptions) *oscommands.CmdObj {
+func GetFetchCommandObj(opts FetchOptions) ICmdObj {
 	return BuildGitCmdObj("fetch", []string{opts.RemoteName, opts.BranchName}, nil)
 }
 

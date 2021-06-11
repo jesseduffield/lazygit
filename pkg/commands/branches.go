@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -77,7 +78,7 @@ func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
 	return strings.TrimSpace(output), err
 }
 
-func (c *GitCommand) GetBranchGraphCmdObj(branchName string) *oscommands.CmdObj {
+func (c *GitCommand) GetBranchGraphCmdObj(branchName string) ICmdObj {
 	branchLogCmdTemplate := c.config.GetUserConfig().Git.BranchLogCmd
 	templateValues := map[string]string{
 		"branchName": branchName,

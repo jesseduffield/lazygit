@@ -72,22 +72,20 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 		return gui.refreshMergePanelWithLock()
 	}
 
-	cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
-	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
 		title: gui.Tr.UnstagedChanges,
-		task:  NewRunPtyTask(cmd),
+		task: NewRunPtyTask(
+			gui.GitCommand.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges()),
+		),
 	}}
 
 	if node.GetHasUnstagedChanges() {
 		if node.GetHasStagedChanges() {
-			cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(node, false, true)
-			cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-
 			refreshOpts.secondary = &viewUpdateOpts{
 				title: gui.Tr.StagedChanges,
-				task:  NewRunPtyTask(cmd),
+				task: NewRunPtyTask(
+					gui.GitCommand.WorktreeFileDiffCmdObj(node, false, true),
+				),
 			}
 		}
 	} else {

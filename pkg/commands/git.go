@@ -226,12 +226,12 @@ func (c *GitCommand) RunCommand(formatString string, formatArgs ...interface{}) 
 	return err
 }
 
-func (c *GitCommand) RunExecutable(cmdObj *oscommands.CmdObj) error {
+func (c *GitCommand) RunExecutable(cmdObj ICmdObj) error {
 	_, err := c.RunExecutableWithOutput(cmdObj)
 	return err
 }
 
-func (c *GitCommand) RunExecutableWithOutput(cmdObj *oscommands.CmdObj) (string, error) {
+func (c *GitCommand) RunExecutableWithOutput(cmdObj ICmdObj) (string, error) {
 	return c.RunCommandWithOutput(cmdObj.ToString())
 }
 
@@ -287,30 +287,30 @@ func BuildGitCmdStr(command string, positionalArgs []string, kwArgs map[string]b
 	return strings.Join(parts, " ")
 }
 
-func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]bool) *oscommands.CmdObj {
+func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]bool) ICmdObj {
 	return BuildGitCmdObjFromStr(GitCmdStr() + " " + BuildGitCmdStr(command, positionalArgs, kwArgs))
 }
 
-func BuildGitCmdObjFromStr(cmdStr string) *oscommands.CmdObj {
+func BuildGitCmdObjFromStr(cmdStr string) ICmdObj {
 	cmdObj := &oscommands.CmdObj{CmdStr: cmdStr}
 	DisableOptionalLocks(cmdObj)
 
 	return cmdObj
 }
 
-func GitInitCmd() *oscommands.CmdObj {
+func GitInitCmd() ICmdObj {
 	return BuildGitCmdObjFromStr("init")
 }
 
-func GitVersionCmd() *oscommands.CmdObj {
+func GitVersionCmd() ICmdObj {
 	return BuildGitCmdObjFromStr("--version")
 }
 
-func DisableOptionalLocks(cmdObj *oscommands.CmdObj) {
+func DisableOptionalLocks(cmdObj ICmdObj) {
 	cmdObj.AddEnvVars("GIT_OPTIONAL_LOCKS=0")
 }
 
-func (c *GitCommand) AllBranchesCmdObj() *oscommands.CmdObj {
+func (c *GitCommand) AllBranchesCmdObj() ICmdObj {
 	cmdStr := c.cleanCustomGitCmdStr(
 		c.config.GetUserConfig().Git.AllBranchesLogCmd,
 	)

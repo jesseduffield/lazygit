@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -19,7 +20,7 @@ type IGitCommand interface {
 	Checkout(branch string, options CheckoutOptions) error
 	GetBranchGraph(branchName string) (string, error)
 	GetUpstreamForBranch(branchName string) (string, error)
-	GetBranchGraphCmdObj(branchName string) *osCmdObj
+	GetBranchGraphCmdObj(branchName string) ICmdObj
 	SetUpstreamBranch(upstream string) error
 	SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error
 	GetCurrentBranchUpstreamDifferenceCount() (string, string)
@@ -40,7 +41,7 @@ type IGitCommand interface {
 	GetCommitMessageFirstLine(sha string) (string, error)
 	AmendHead() error
 	AmendHeadCmdStr() string
-	ShowCmdObj(sha string, filterPath string) *osCmdObj
+	ShowCmdObj(sha string, filterPath string) ICmdObj
 	Revert(sha string) error
 	RevertMerge(sha string, parentNumber int) error
 	CherryPickCommits(commits []*models.Commit) error
@@ -65,7 +66,7 @@ type IGitCommand interface {
 	DiscardUnstagedFileChanges(file *models.File) error
 	Ignore(filename string) error
 	WorktreeFileDiff(file *models.File, plain bool, cached bool) string
-	WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) *osCmdObj
+	WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) ICmdObj
 	ApplyPatch(patch string, flags ...string) error
 	ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error)
 	ShowFileDiffCmdStr(from string, to string, reverse bool, fileName string, plain bool) string
@@ -80,11 +81,11 @@ type IGitCommand interface {
 	NewPatchManager() *patch.PatchManager
 	WithSpan(span string) IGitCommand
 	RunCommand(formatString string, formatArgs ...interface{}) error
-	RunExecutable(cmdObj *osCmdObj) error
-	RunExecutableWithOutput(cmdObj *osCmdObj) (string, error)
+	RunExecutable(cmdObj ICmdObj) error
+	RunExecutableWithOutput(cmdObj ICmdObj) (string, error)
 	RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error)
-	GetOSCommand() *osOSCommand
-	AllBranchesCmdObj() *osCmdObj
+	GetOSCommand() *oscommands.OSCommand
+	AllBranchesCmdObj() ICmdObj
 	GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error)
 	GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	GitStatus(opts GitStatusOptions) (string, error)
@@ -117,7 +118,7 @@ type IGitCommand interface {
 	GetRemoteURL() string
 	StashDo(index int, method string) error
 	StashSave(message string) error
-	ShowStashEntryCmdObj(index int) *osCmdObj
+	ShowStashEntryCmdObj(index int) ICmdObj
 	StashSaveStagedChanges(message string) error
 	RebaseMode() (string, error)
 	WorkingTreeState() string
@@ -138,9 +139,9 @@ type IGitCommand interface {
 	SubmoduleBulkDeinitCmdStr() string
 	ResetSubmodules(submodules []*models.SubmoduleConfig) error
 	SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error))
-	RunCommandWithCredentialsPrompt(cmdObj *osCmdObj) error
-	RunCommandWithCredentialsHandling(cmdObj *osCmdObj) error
-	FailOnCredentialsRequest(cmdObj *osCmdObj) *osCmdObj
+	RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error
+	RunCommandWithCredentialsHandling(cmdObj ICmdObj) error
+	FailOnCredentialsRequest(cmdObj ICmdObj) ICmdObj
 	Push(opts PushOpts) (bool, error)
 	Fetch(opts FetchOptions) error
 	FetchInBackground(opts FetchOptions) error

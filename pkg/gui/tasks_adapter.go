@@ -2,11 +2,11 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
-func (gui *Gui) newCmdTask(view *gocui.View, cmdObj *oscommands.CmdObj, prefix string) error {
+func (gui *Gui) newCmdTask(view *gocui.View, cmdObj ICmdObj, prefix string) error {
 	gui.Log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
 	_, height := view.Size()

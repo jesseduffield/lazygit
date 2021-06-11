@@ -2,7 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
 type viewUpdateOpts struct {
@@ -62,7 +62,7 @@ func NewRenderStringWithoutScrollTask(str string) *renderStringWithoutScrollTask
 }
 
 type runCommandTask struct {
-	cmdObj *oscommands.CmdObj
+	cmdObj ICmdObj
 	prefix string
 }
 
@@ -70,16 +70,16 @@ func (t *runCommandTask) GetKind() TaskKind {
 	return RUN_COMMAND
 }
 
-func NewRunCommandTask(cmdObj *oscommands.CmdObj) *runCommandTask {
+func NewRunCommandTask(cmdObj ICmdObj) *runCommandTask {
 	return &runCommandTask{cmdObj: cmdObj}
 }
 
-func NewRunCommandTaskWithPrefix(cmdObj *oscommands.CmdObj, prefix string) *runCommandTask {
+func NewRunCommandTaskWithPrefix(cmdObj ICmdObj, prefix string) *runCommandTask {
 	return &runCommandTask{cmdObj: cmdObj, prefix: prefix}
 }
 
 type runPtyTask struct {
-	cmdObj *oscommands.CmdObj
+	cmdObj ICmdObj
 	prefix string
 }
 
@@ -87,7 +87,7 @@ func (t *runPtyTask) GetKind() TaskKind {
 	return RUN_PTY
 }
 
-func NewRunPtyTask(cmdObj *oscommands.CmdObj) *runPtyTask {
+func NewRunPtyTask(cmdObj ICmdObj) *runPtyTask {
 	return &runPtyTask{cmdObj: cmdObj}
 }
 

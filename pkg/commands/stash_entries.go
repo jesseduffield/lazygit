@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
 // StashDo modify stash
@@ -18,7 +18,7 @@ func (c *GitCommand) StashSave(message string) error {
 }
 
 // GetStashEntryDiff stash diff
-func (c *GitCommand) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
+func (c *GitCommand) ShowStashEntryCmdObj(index int) ICmdObj {
 	return BuildGitCmdObjFromStr(
 		fmt.Sprintf("stash show -p --stat --color=%s stash@{%d}", c.colorArg(), index),
 	)

@@ -5,7 +5,7 @@ package gui
 import (
 	"github.com/creack/pty"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
 func (gui *Gui) onResize() error {
@@ -29,7 +29,7 @@ func (gui *Gui) onResize() error {
 // which is just an io.Reader. the pty package lets us wrap a command in a
 // pseudo-terminal meaning we'll get the behaviour we want from the underlying
 // command.
-func (gui *Gui) newPtyTask(view *gocui.View, cmdObj *oscommands.CmdObj, prefix string) error {
+func (gui *Gui) newPtyTask(view *gocui.View, cmdObj ICmdObj, prefix string) error {
 	width, _ := gui.Views.Main.Size()
 	pager := gui.GitCommand.GetPager(width)
 

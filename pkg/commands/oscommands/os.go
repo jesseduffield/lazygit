@@ -13,6 +13,7 @@ import (
 	"github.com/go-errors/errors"
 
 	"github.com/atotto/clipboard"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -74,7 +75,7 @@ func (c *OSCommand) WithSpan(span string) *OSCommand {
 	return newOSCommand
 }
 
-func (c *OSCommand) LogCmd(cmd *CmdObj) {
+func (c *OSCommand) LogCmd(cmd ICmdObj) {
 	c.LogCommand(cmd.ToString(), true)
 }
 
@@ -105,7 +106,7 @@ func (c *OSCommand) SetRemoveFile(f func(string) error) {
 	c.removeFile = f
 }
 
-func (c *OSCommand) RunCommandWithOptions(cmdObj *CmdObj) error {
+func (c *OSCommand) RunCommandWithOptions(cmdObj ICmdObj) error {
 	_, err := c.RunCommandWithOutput(cmdObj.ToString())
 	return err
 }
@@ -131,14 +132,14 @@ func (c *OSCommand) RunCommandWithOutput(formatString string, formatArgs ...inte
 }
 
 // RunExecutable runs an executable file and returns an error if there was one
-func (c *OSCommand) RunExecutable(cmd *CmdObj) error {
+func (c *OSCommand) RunExecutable(cmd ICmdObj) error {
 	_, err := c.RunExecutableWithOutput(cmd)
 
 	return err
 }
 
 // RunExecutable runs an executable file and returns an error if there was one
-func (c *OSCommand) RunExecutableWithOutput(cmd *CmdObj) (string, error) {
+func (c *OSCommand) RunExecutableWithOutput(cmd ICmdObj) (string, error) {
 	c.LogCmd(cmd)
 
 	return sanitisedCommandOutput(cmd.ToCmd().CombinedOutput())
@@ -166,7 +167,7 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 	return c.ExecutableFromString(shellCommand)
 }
 
-func (c *OSCommand) RunCommandAndParseOutput(cmdObj *CmdObj, output func(string) string) error {
+func (c *OSCommand) RunCommandAndParseOutput(cmdObj ICmdObj, output func(string) string) error {
 	return runCommandAndParseOutput(c, cmdObj, output)
 }
 
