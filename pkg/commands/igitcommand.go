@@ -69,7 +69,7 @@ type IGitCommand interface {
 	WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) ICmdObj
 	ApplyPatch(patch string, flags ...string) error
 	ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error)
-	ShowFileDiffCmdStr(from string, to string, reverse bool, fileName string, plain bool) string
+	ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) ICmdObj
 	CheckoutFile(commitSha, fileName string) error
 	DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error
 	DiscardAnyUnstagedFileChanges() error
