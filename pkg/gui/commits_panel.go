@@ -40,10 +40,9 @@ func (gui *Gui) handleCommitSelect() error {
 	if commit == nil {
 		task = NewRenderStringTask(gui.Tr.NoCommitsThisBranch)
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
+		task = NewRunPtyTask(
+			gui.GitCommand.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
-		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

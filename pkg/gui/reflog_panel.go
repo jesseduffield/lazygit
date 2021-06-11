@@ -23,11 +23,9 @@ func (gui *Gui) handleReflogCommitSelect() error {
 	if commit == nil {
 		task = NewRenderStringTask("No reflog history")
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
+		task = NewRunPtyTask(
+			gui.GitCommand.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
-
-		task = NewRunPtyTask(cmd)
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

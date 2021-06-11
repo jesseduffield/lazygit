@@ -1,7 +1,6 @@
 package oscommands
 
 import (
-	"os"
 	"os/exec"
 	"strings"
 
@@ -50,11 +49,8 @@ func (self *CmdObj) AddEnvVars(vars ...string) {
 	self.Cmd.Env = append(self.Cmd.Env, vars...)
 }
 
-// logging, .Command function,
-
 func executableFromString(cmdStr string) *exec.Cmd {
 	splitCmd := str.ToArgv(cmdStr)
 	cmd := secureexec.Command(splitCmd[0], splitCmd[1:]...)
-	cmd.Env = append(os.Environ(), "GIT_OPTIONAL_LOCKS=0")
 	return cmd
 }

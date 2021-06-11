@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 // RenameCommit renames the topmost commit with the given name
@@ -66,12 +67,14 @@ func (c *GitCommand) AmendHeadCmdStr() string {
 	return "git commit --amend --no-edit --allow-empty"
 }
 
-func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {
+func (c *GitCommand) ShowCmdObj(sha string, filterPath string) *oscommands.CmdObj {
 	filterPathArg := ""
 	if filterPath != "" {
 		filterPathArg = fmt.Sprintf(" -- %s", c.GetOSCommand().Quote(filterPath))
 	}
-	return fmt.Sprintf("git show --submodule --color=%s --no-renames --stat -p %s %s", c.colorArg(), sha, filterPathArg)
+	return BuildGitCmdObjFromStr(
+		fmt.Sprintf("show --submodule --color=%s --no-renames --stat -p %s %s", c.colorArg(), sha, filterPathArg),
+	)
 }
 
 // Revert reverts the selected commit by sha

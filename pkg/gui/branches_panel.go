@@ -34,11 +34,7 @@ func (gui *Gui) handleBranchSelect() error {
 	if branch == nil {
 		task = NewRenderStringTask(gui.Tr.NoBranchesThisRepo)
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
-		)
-
-		task = NewRunPtyTask(cmd)
+		task = NewRunPtyTask(gui.GitCommand.GetBranchGraphCmdObj(branch.Name))
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

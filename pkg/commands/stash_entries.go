@@ -1,6 +1,10 @@
 package commands
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+)
 
 // StashDo modify stash
 func (c *GitCommand) StashDo(index int, method string) error {
@@ -14,8 +18,10 @@ func (c *GitCommand) StashSave(message string) error {
 }
 
 // GetStashEntryDiff stash diff
-func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
-	return fmt.Sprintf("git stash show -p --stat --color=%s stash@{%d}", c.colorArg(), index)
+func (c *GitCommand) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
+	return BuildGitCmdObjFromStr(
+		fmt.Sprintf("stash show -p --stat --color=%s stash@{%d}", c.colorArg(), index),
+	)
 }
 
 // StashSaveStagedChanges stashes only the currently staged changes. This takes a few steps

@@ -3,15 +3,14 @@
 package gui
 
 import (
-	"os/exec"
-
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 func (gui *Gui) onResize() error {
 	return nil
 }
 
-func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
-	return gui.newCmdTask(view, cmd, prefix)
+func (gui *Gui) newPtyTask(view *gocui.View, cmdObj *oscommands.CmdObj, prefix string) error {
+	return gui.newCmdTask(view, cmdObj, prefix)
 }

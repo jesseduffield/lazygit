@@ -263,8 +263,8 @@ func (c *GitCommand) GetOSCommand() *oscommands.OSCommand {
 	return c.oSCommand
 }
 
-func BuildGitCmd(command string, positionalArgs []string, kwArgs map[string]bool) string {
-	parts := []string{"git", command}
+func BuildGitCmdStr(command string, positionalArgs []string, kwArgs map[string]bool) string {
+	parts := []string{command}
 
 	if len(kwArgs) > 0 {
 		args := make([]string, 0, len(kwArgs))
@@ -288,15 +288,47 @@ func BuildGitCmd(command string, positionalArgs []string, kwArgs map[string]bool
 }
 
 func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]bool) *oscommands.CmdObj {
-	cmdStr := BuildGitCmd(command, positionalArgs, kwArgs)
+	return BuildGitCmdObjFromStr(GitCmdStr() + " " + BuildGitCmdStr(command, positionalArgs, kwArgs))
+}
 
-	return &oscommands.CmdObj{CmdStr: cmdStr}
+func BuildGitCmdObjFromStr(cmdStr string) *oscommands.CmdObj {
+	cmdObj := &oscommands.CmdObj{CmdStr: cmdStr}
+	DisableOptionalLocks(cmdObj)
+
+	return cmdObj
 }
 
 func GitInitCmd() *oscommands.CmdObj {
-	return BuildGitCmdObj("init", nil, nil)
+	return BuildGitCmdObjFromStr("init")
 }
 
 func GitVersionCmd() *oscommands.CmdObj {
-	return BuildGitCmdObj("", nil, map[string]bool{"--version": true})
+	return BuildGitCmdObjFromStr("--version")
+}
+
+func DisableOptionalLocks(cmdObj *oscommands.CmdObj) {
+	cmdObj.AddEnvVars("GIT_OPTIONAL_LOCKS=0")
+}
+
+func (c *GitCommand) AllBranchesCmdObj() *oscommands.CmdObj {
+	cmdStr := c.cleanCustomGitCmdStr(
+		c.config.GetUserConfig().Git.AllBranchesLogCmd,
+	)
+
+	return BuildGitCmdObjFromStr(cmdStr)
+}
+
+func (c *GitCommand) cleanCustomGitCmdStr(cmdStr string) string {
+	if strings.HasPrefix(cmdStr, "git ") {
+		return GitCmdStr() + strings.TrimPrefix(cmdStr, "git")
+	} else {
+		return cmdStr
+	}
+}
+
+// We may have use for centralising this e.g. so that we call a specific executable
+// or so that we can prepend some flags for bare repos.
+// TODO: make this a method on the GitCommand struct
+func GitCmdStr() string {
+	return "git"
 }

@@ -1,9 +1,8 @@
 package gui
 
 import (
-	"os/exec"
-
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 type viewUpdateOpts struct {
@@ -63,7 +62,7 @@ func NewRenderStringWithoutScrollTask(str string) *renderStringWithoutScrollTask
 }
 
 type runCommandTask struct {
-	cmd    *exec.Cmd
+	cmdObj *oscommands.CmdObj
 	prefix string
 }
 
@@ -71,16 +70,16 @@ func (t *runCommandTask) GetKind() TaskKind {
 	return RUN_COMMAND
 }
 
-func NewRunCommandTask(cmd *exec.Cmd) *runCommandTask {
-	return &runCommandTask{cmd: cmd}
+func NewRunCommandTask(cmdObj *oscommands.CmdObj) *runCommandTask {
+	return &runCommandTask{cmdObj: cmdObj}
 }
 
-func NewRunCommandTaskWithPrefix(cmd *exec.Cmd, prefix string) *runCommandTask {
-	return &runCommandTask{cmd: cmd, prefix: prefix}
+func NewRunCommandTaskWithPrefix(cmdObj *oscommands.CmdObj, prefix string) *runCommandTask {
+	return &runCommandTask{cmdObj: cmdObj, prefix: prefix}
 }
 
 type runPtyTask struct {
-	cmd    *exec.Cmd
+	cmdObj *oscommands.CmdObj
 	prefix string
 }
 
@@ -88,14 +87,9 @@ func (t *runPtyTask) GetKind() TaskKind {
 	return RUN_PTY
 }
 
-func NewRunPtyTask(cmd *exec.Cmd) *runPtyTask {
-	return &runPtyTask{cmd: cmd}
+func NewRunPtyTask(cmdObj *oscommands.CmdObj) *runPtyTask {
+	return &runPtyTask{cmdObj: cmdObj}
 }
-
-// currently unused
-// func (gui *Gui) createRunPtyTaskWithPrefix(cmd *exec.Cmd, prefix string) *runPtyTask {
-// 	return &runPtyTask{cmd: cmd, prefix: prefix}
-// }
 
 type runFunctionTask struct {
 	f func(chan struct{}) error
@@ -126,11 +120,11 @@ func (gui *Gui) runTaskForView(view *gocui.View, task updateTask) error {
 
 	case RUN_COMMAND:
 		specificTask := task.(*runCommandTask)
-		return gui.newCmdTask(view, specificTask.cmd, specificTask.prefix)
+		return gui.newCmdTask(view, specificTask.cmdObj, specificTask.prefix)
 
 	case RUN_PTY:
 		specificTask := task.(*runPtyTask)
-		return gui.newPtyTask(view, specificTask.cmd, specificTask.prefix)
+		return gui.newPtyTask(view, specificTask.cmdObj, specificTask.prefix)
 	}
 
 	return nil

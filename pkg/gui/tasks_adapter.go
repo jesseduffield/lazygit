@@ -1,24 +1,20 @@
 package gui
 
 import (
-	"os/exec"
-	"strings"
-
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
-func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
-	gui.Log.WithField(
-		"command",
-		strings.Join(cmd.Args, " "),
-	).Debug("RunCommand")
+func (gui *Gui) newCmdTask(view *gocui.View, cmdObj *oscommands.CmdObj, prefix string) error {
+	gui.Log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
 	_, height := view.Size()
 	_, oy := view.Origin()
 
 	manager := gui.getManager(view)
 
+	cmd := cmdObj.ToCmd()
 	r, err := cmd.StdoutPipe()
 	if err != nil {
 		return err

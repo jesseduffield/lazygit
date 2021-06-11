@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -19,12 +20,16 @@ func (c *GitCommand) NewBranch(name string, base string) error {
 // the first returned string is the name and the second is the displayname
 // e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
 func (c *GitCommand) CurrentBranchName() (string, string, error) {
-	branchName, err := c.RunCommandWithOutput("git symbolic-ref --short HEAD")
+	branchName, err := c.RunExecutableWithOutput(
+		BuildGitCmdObj("symbolic-ref", []string{"HEAD"}, map[string]bool{"--short": true}),
+	)
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-	output, err := c.RunCommandWithOutput("git branch --contains")
+	output, err := c.RunExecutableWithOutput(
+		BuildGitCmdObj("branch", nil, map[string]bool{"--contains": true}),
+	)
 	if err != nil {
 		return "", "", err
 	}
@@ -64,8 +69,7 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	cmdStr := c.GetBranchGraphCmdStr(branchName)
-	return c.GetOSCommand().RunCommandWithOutput(cmdStr)
+	return c.GetOSCommand().RunExecutableWithOutput(c.GetBranchGraphCmdObj(branchName))
 }
 
 func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
@@ -73,12 +77,16 @@ func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
 	return strings.TrimSpace(output), err
 }
 
-func (c *GitCommand) GetBranchGraphCmdStr(branchName string) string {
+func (c *GitCommand) GetBranchGraphCmdObj(branchName string) *oscommands.CmdObj {
 	branchLogCmdTemplate := c.config.GetUserConfig().Git.BranchLogCmd
 	templateValues := map[string]string{
 		"branchName": branchName,
 	}
-	return utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)
+	str := utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)
+	cmdObj := &oscommands.CmdObj{CmdStr: str}
+	DisableOptionalLocks(cmdObj)
+
+	return cmdObj
 }
 
 func (c *GitCommand) SetUpstreamBranch(upstream string) error {

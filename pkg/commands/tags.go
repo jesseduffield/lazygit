@@ -1,12 +1,12 @@
 package commands
 
 func (c *GitCommand) CreateLightweightTag(tagName string, commitSha string) error {
-	cmdStr := BuildGitCmd("tag", []string{tagName, commitSha}, nil)
+	cmdStr := BuildGitCmdStr("tag", []string{tagName, commitSha}, nil)
 	return c.RunCommand(cmdStr)
 }
 
 func (c *GitCommand) DeleteTag(tagName string) error {
-	cmdStr := BuildGitCmd("tag", []string{"-d", tagName}, nil)
+	cmdStr := BuildGitCmdStr("tag", []string{"-d", tagName}, nil)
 	return c.RunCommand(cmdStr)
 }
 

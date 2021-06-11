@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -191,26 +192,31 @@ func (c *GitCommand) Ignore(filename string) error {
 // WorktreeFileDiff returns the diff of a file
 func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := c.GetOSCommand().RunCommandWithOutput(c.WorktreeFileDiffCmdStr(file, plain, cached))
+	s, _ := c.GetOSCommand().RunExecutableWithOutput(c.WorktreeFileDiffCmdObj(file, plain, cached))
 	return s
 }
 
-func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cached bool) string {
-	cachedArg := ""
-	trackedArg := "--"
-	colorArg := c.colorArg()
+func (c *GitCommand) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) *oscommands.CmdObj {
 	path := c.GetOSCommand().Quote(node.GetPath())
-	if cached {
-		cachedArg = "--cached"
+
+	var colorArg string
+	if plain {
+		colorArg = "never"
+	} else {
+		colorArg = c.colorArg()
 	}
+
+	trackedArg := "--"
 	if !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached {
 		trackedArg = "--no-index -- /dev/null"
 	}
-	if plain {
-		colorArg = "never"
-	}
 
-	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s", colorArg, cachedArg, trackedArg, path)
+	return BuildGitCmdObj("diff", []string{trackedArg, path}, map[string]bool{
+		"--submodule":                       true,
+		"--no-ext-diff":                     true,
+		fmt.Sprintf("--color=%s", colorArg): true,
+		"--cached":                          cached,
+	})
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
