@@ -23,6 +23,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // App struct
@@ -367,6 +368,7 @@ func TailLogsNative(logFilePath string, opts *humanlog.HandlerOptions) {
 			}
 		}
 		lastOffset = stat.Size()
+		time.Sleep(1 * time.Second)
 	}
 }
 
