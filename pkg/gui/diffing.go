@@ -14,10 +14,16 @@ func (gui *Gui) exitDiffMode() error {
 }
 
 func (gui *Gui) renderDiff() error {
-	cmd := gui.OSCommand.ExecutableFromString(
-		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", gui.diffStr()),
+	cmdObj := gui.GitCommand.ShowFileDiffCmdObj(
+		gui.State.Modes.Diffing.Ref,
+		gui.currentDiffTerminal(),
+		gui.State.Modes.Diffing.Reverse,
+		gui.fileToDiff(),
+		false,
+		true, // not sure if it actually matters much whether I show renames here
 	)
-	task := NewRunPtyTask(cmd)
+
+	task := NewRunPtyTask(cmdObj)
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
@@ -82,25 +88,21 @@ func (gui *Gui) currentlySelectedFilename() string {
 }
 
 func (gui *Gui) diffStr() string {
-	output := gui.State.Modes.Diffing.Ref
+	return gui.GitCommand.DiffEndArgs(
+		gui.State.Modes.Diffing.Ref,
+		gui.currentDiffTerminal(),
+		gui.State.Modes.Diffing.Reverse,
+		gui.fileToDiff(),
+	)
+}
 
-	right := gui.currentDiffTerminal()
-	if right != "" {
-		output += " " + right
-	}
-
-	if gui.State.Modes.Diffing.Reverse {
-		output += " -R"
-	}
-
+func (gui *Gui) fileToDiff() string {
 	file := gui.currentlySelectedFilename()
 	if file != "" {
-		output += " -- " + file
-	} else if gui.State.Modes.Filtering.Active() {
-		output += " -- " + gui.State.Modes.Filtering.GetPath()
+		return file
 	}
 
-	return output
+	return gui.State.Modes.Filtering.GetPath()
 }
 
 func (gui *Gui) handleCreateDiffingMenuPanel() error {

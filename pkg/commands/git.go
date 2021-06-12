@@ -288,12 +288,12 @@ func BuildGitCmdStr(command string, positionalArgs []string, kwArgs map[string]b
 }
 
 func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]bool) ICmdObj {
-	return BuildGitCmdObjFromStr(GitCmdStr() + " " + BuildGitCmdStr(command, positionalArgs, kwArgs))
+	return BuildGitCmdObjFromStr(BuildGitCmdStr(command, positionalArgs, kwArgs))
 }
 
 func BuildGitCmdObjFromStr(cmdStr string) ICmdObj {
-	cmdObj := &oscommands.CmdObj{CmdStr: cmdStr}
-	DisableOptionalLocks(cmdObj)
+	cmdObj := &oscommands.CmdObj{CmdStr: GitCmdStr() + " " + cmdStr}
+	SetDefaultEnvVars(cmdObj)
 
 	return cmdObj
 }
@@ -304,6 +304,11 @@ func GitInitCmd() ICmdObj {
 
 func GitVersionCmd() ICmdObj {
 	return BuildGitCmdObjFromStr("--version")
+}
+
+func SetDefaultEnvVars(cmdObj ICmdObj) {
+	cmdObj.ToCmd().Env = os.Environ()
+	DisableOptionalLocks(cmdObj)
 }
 
 func DisableOptionalLocks(cmdObj ICmdObj) {

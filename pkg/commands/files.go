@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -189,36 +188,6 @@ func (c *GitCommand) Ignore(filename string) error {
 	return c.GetOSCommand().AppendLineToFile(".gitignore", filename)
 }
 
-// WorktreeFileDiff returns the diff of a file
-func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
-	// for now we assume an error means the file was deleted
-	s, _ := c.GetOSCommand().RunExecutableWithOutput(c.WorktreeFileDiffCmdObj(file, plain, cached))
-	return s
-}
-
-func (c *GitCommand) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) ICmdObj {
-	path := c.GetOSCommand().Quote(node.GetPath())
-
-	var colorArg string
-	if plain {
-		colorArg = "never"
-	} else {
-		colorArg = c.colorArg()
-	}
-
-	trackedArg := "--"
-	if !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached {
-		trackedArg = "--no-index -- /dev/null"
-	}
-
-	return BuildGitCmdObj("diff", []string{trackedArg, path}, map[string]bool{
-		"--submodule":                       true,
-		"--no-ext-diff":                     true,
-		fmt.Sprintf("--color=%s", colorArg): true,
-		"--cached":                          cached,
-	})
-}
-
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	filepath := filepath.Join(c.config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	c.log.Infof("saving temporary patch to %s", filepath)
@@ -232,26 +201,6 @@ func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 	}
 
 	return c.RunCommand("git apply %s %s", flagStr, c.GetOSCommand().Quote(filepath))
-}
-
-// ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
-// but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
-func (c *GitCommand) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
-	return c.RunExecutableWithOutput(c.ShowFileDiffCmdObj(from, to, reverse, fileName, plain))
-}
-
-func (c *GitCommand) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) ICmdObj {
-	colorArg := c.colorArg()
-	if plain {
-		colorArg = "never"
-	}
-
-	reverseFlag := ""
-	if reverse {
-		reverseFlag = " -R "
-	}
-
-	return BuildGitCmdObjFromStr(fmt.Sprintf("diff --submodule --no-ext-diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, fileName))
 }
 
 // CheckoutFile checks out the file for the given commit

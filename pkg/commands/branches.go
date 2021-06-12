@@ -85,7 +85,7 @@ func (c *GitCommand) GetBranchGraphCmdObj(branchName string) ICmdObj {
 	}
 	str := utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)
 	cmdObj := &oscommands.CmdObj{CmdStr: str}
-	DisableOptionalLocks(cmdObj)
+	SetDefaultEnvVars(cmdObj)
 
 	return cmdObj
 }

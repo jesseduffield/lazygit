@@ -51,6 +51,11 @@ type IGitCommand interface {
 	GetConfigValue(key string) string
 	UsingGpg() bool
 	FindRemoteForBranchInConfig(branchName string) (string, error)
+	WorktreeFileDiff(file *models.File, plain bool, cached bool) string
+	WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) ICmdObj
+	ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error)
+	ShowFileDiffCmdObj(from string, to string, reverse bool, path string, plain bool, showRenames bool) ICmdObj
+	DiffEndArgs(from string, to string, reverse bool, path string) string
 	CatFile(fileName string) (string, error)
 	OpenMergeToolCmd() string
 	OpenMergeTool() error
@@ -65,11 +70,7 @@ type IGitCommand interface {
 	RemoveUntrackedDirFiles(node *filetree.FileNode) error
 	DiscardUnstagedFileChanges(file *models.File) error
 	Ignore(filename string) error
-	WorktreeFileDiff(file *models.File, plain bool, cached bool) string
-	WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) ICmdObj
 	ApplyPatch(patch string, flags ...string) error
-	ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error)
-	ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) ICmdObj
 	CheckoutFile(commitSha, fileName string) error
 	DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error
 	DiscardAnyUnstagedFileChanges() error

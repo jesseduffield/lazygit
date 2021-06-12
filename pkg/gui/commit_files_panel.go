@@ -44,7 +44,7 @@ func (gui *Gui) handleCommitFileSelect() error {
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
 	task := NewRunPtyTask(
-		gui.GitCommand.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false),
+		gui.GitCommand.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false, false),
 	)
 
 	return gui.refreshMainViews(refreshMainOpts{
