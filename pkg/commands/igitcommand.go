@@ -3,8 +3,6 @@
 package commands
 
 import (
-	"os/exec"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -86,7 +84,13 @@ type IGitCommand interface {
 	RunExecutableWithOutput(cmdObj ICmdObj) (string, error)
 	RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error)
 	GetOSCommand() *oscommands.OSCommand
+	SkipEditor(cmdObj ICmdObj)
 	AllBranchesCmdObj() ICmdObj
+	PrepareShellSubProcess(command string) ICmdObj
+	PrepareSubProcess(cmdName string, commandArgs ...string) ICmdObj
+	GenericAbortCmdObj() ICmdObj
+	GenericContinueCmdObj() ICmdObj
+	GenericMergeOrRebaseCmdObj(action string) ICmdObj
 	GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error)
 	GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	GitStatus(opts GitStatusOptions) (string, error)
@@ -98,10 +102,10 @@ type IGitCommand interface {
 	MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error
 	MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error
 	PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p *patch.PatchManager) error
-	RewordCommit(commits []*models.Commit, index int) (*exec.Cmd, error)
+	GetRewordCommitCmdObj(commits []*models.Commit, index int) (ICmdObj, error)
 	MoveCommitDown(commits []*models.Commit, index int) error
 	InteractiveRebase(commits []*models.Commit, index int, action string) error
-	PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (*exec.Cmd, error)
+	PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) ICmdObj
 	GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex int, action string) (string, string, error)
 	AmendTo(sha string) error
 	EditRebaseTodo(index int, action string) error
@@ -121,8 +125,8 @@ type IGitCommand interface {
 	StashSave(message string) error
 	ShowStashEntryCmdObj(index int) ICmdObj
 	StashSaveStagedChanges(message string) error
-	RebaseMode() (string, error)
-	WorkingTreeState() string
+	RebaseMode() (WorkingTreeState, error)
+	WorkingTreeState() WorkingTreeState
 	IsInMergeState() (bool, error)
 	IsBareRepo() bool
 	GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error)
