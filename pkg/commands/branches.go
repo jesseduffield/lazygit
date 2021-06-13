@@ -83,8 +83,9 @@ func (c *GitCommand) GetBranchGraphCmdObj(branchName string) ICmdObj {
 	templateValues := map[string]string{
 		"branchName": branchName,
 	}
-	str := utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)
-	cmdObj := &oscommands.CmdObj{CmdStr: str}
+	cmdObj := oscommands.NewCmdObjFromStr(
+		utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues),
+	)
 	SetDefaultEnvVars(cmdObj)
 
 	return cmdObj
