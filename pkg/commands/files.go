@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -17,8 +18,8 @@ func (c *GitCommand) CatFile(fileName string) (string, error) {
 	return c.GetOSCommand().CatFile(fileName)
 }
 
-func (c *GitCommand) OpenMergeToolCmd() string {
-	return "git mergetool"
+func (c *GitCommand) OpenMergeToolCmdObj() ICmdObj {
+	return BuildGitCmdObjFromStr("mergetool")
 }
 
 func (c *GitCommand) OpenMergeTool() error {
@@ -232,8 +233,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 		return err
 	}
 
-	// continue
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	return c.ContinueRebase()
 }
 
 // DiscardAnyUnstagedFileChanges discards any unstages file changes via `git checkout -- .`
@@ -271,7 +271,7 @@ func (c *GitCommand) ResetAndClean() error {
 	return c.RemoveUntrackedFiles()
 }
 
-func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
+func (c *GitCommand) EditFileCmdObj(filename string) (ICmdObj, error) {
 	editor := c.config.GetUserConfig().OS.EditCommand
 
 	if editor == "" {
@@ -293,8 +293,10 @@ func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
 		}
 	}
 	if editor == "" {
-		return "", errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
+		return nil, errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
-	return fmt.Sprintf("%s %s", editor, c.GetOSCommand().Quote(filename)), nil
+	cmdObj := c.BuildShellCmdObj(fmt.Sprintf("%s %s", editor, c.GetOSCommand().Quote(filename)))
+
+	return cmdObj, nil
 }
