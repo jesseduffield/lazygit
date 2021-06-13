@@ -14,7 +14,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmdObj ICmdObj, prefix string) erro
 
 	manager := gui.getManager(view)
 
-	cmd := cmdObj.ToCmd()
+	cmd := cmdObj.GetCmd()
 	r, err := cmd.StdoutPipe()
 	if err != nil {
 		return err

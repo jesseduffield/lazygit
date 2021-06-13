@@ -1,17 +1,17 @@
 package commands
 
+import "fmt"
+
 func (c *GitCommand) CreateLightweightTag(tagName string, commitSha string) error {
-	cmdStr := BuildGitCmdStr("tag", []string{tagName, commitSha}, nil)
-	return c.RunCommand(cmdStr)
+	return c.RunGitCmdFromStr(fmt.Sprintf("tag %s %s", tagName, commitSha))
 }
 
 func (c *GitCommand) DeleteTag(tagName string) error {
-	cmdStr := BuildGitCmdStr("tag", []string{"-d", tagName}, nil)
-	return c.RunCommand(cmdStr)
+	return c.RunGitCmdFromStr(fmt.Sprintf("tag -d %s", tagName))
 }
 
 func (c *GitCommand) PushTag(remoteName string, tagName string) error {
-	cmdObj := BuildGitCmdObj("push", []string{remoteName, tagName}, nil)
-
-	return c.RunCommandWithCredentialsHandling(cmdObj)
+	return c.RunCommandWithCredentialsHandling(
+		BuildGitCmdObjFromStr(fmt.Sprintf("push %s %s", remoteName, tagName)),
+	)
 }

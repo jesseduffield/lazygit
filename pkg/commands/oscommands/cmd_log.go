@@ -1,5 +1,9 @@
 package oscommands
 
+import (
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
+)
+
 type CmdLogEntry struct {
 	// e.g. 'git commit -m "haha"'
 	cmdStr string
@@ -27,4 +31,8 @@ func (e CmdLogEntry) GetCommandLine() bool {
 
 func NewCmdLogEntry(cmdStr string, span string, commandLine bool) CmdLogEntry {
 	return CmdLogEntry{cmdStr: cmdStr, span: span, commandLine: commandLine}
+}
+
+func NewCmdLogEntryFromCmdObj(cmdObj ICmdObj, span string) CmdLogEntry {
+	return CmdLogEntry{cmdStr: cmdObj.ToString(), span: span, commandLine: true}
 }

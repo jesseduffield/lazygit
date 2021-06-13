@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"sync"
 
-	"os/exec"
 	"strings"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
@@ -568,8 +568,8 @@ func (gui *Gui) RunAndHandleError() error {
 }
 
 // returns whether command exited without error or not
-func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *exec.Cmd) error {
-	_, err := gui.runSubprocessWithSuspense(subprocess)
+func (gui *Gui) runSubprocessWithSuspenseAndRefresh(cmdObj ICmdObj) error {
+	_, err := gui.runSubprocessWithSuspense(cmdObj)
 	if err != nil {
 		return err
 	}
@@ -582,7 +582,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *exec.Cmd) error 
 }
 
 // returns whether command exited without error or not
-func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
+func (gui *Gui) runSubprocessWithSuspense(cmdObj ICmdObj) (bool, error) {
 	gui.Mutexes.SubprocessMutex.Lock()
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
@@ -600,7 +600,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
 
 	gui.PauseBackgroundThreads = true
 
-	cmdErr := gui.runSubprocess(subprocess)
+	cmdErr := gui.runSubprocess(cmdObj)
 
 	if err := gui.g.Resume(); err != nil {
 		return false, err
@@ -611,22 +611,23 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
 	return cmdErr == nil, gui.SurfaceError(cmdErr)
 }
 
-func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
-	subprocess.Stdout = os.Stdout
-	subprocess.Stderr = os.Stdout
-	subprocess.Stdin = os.Stdin
+func (gui *Gui) runSubprocess(cmdObj ICmdObj) error {
+	cmd := cmdObj.GetCmd()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stdout
+	cmd.Stdin = os.Stdin
 
-	fmt.Fprintf(os.Stdout, "\n%s\n\n", utils.ColoredString("+ "+strings.Join(subprocess.Args, " "), color.FgBlue))
+	fmt.Fprintf(os.Stdout, "\n%s\n\n", utils.ColoredString("+ "+strings.Join(cmd.Args, " "), color.FgBlue))
 
-	if err := subprocess.Run(); err != nil {
+	if err := cmd.Run(); err != nil {
 		// not handling the error explicitly because usually we're going to see it
 		// in the output anyway
 		gui.Log.Error(err)
 	}
 
-	subprocess.Stdout = ioutil.Discard
-	subprocess.Stderr = ioutil.Discard
-	subprocess.Stdin = nil
+	cmd.Stdout = ioutil.Discard
+	cmd.Stderr = ioutil.Discard
+	cmd.Stdin = nil
 
 	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.PressEnterToReturn, color.FgGreen))
 	fmt.Scanln() // wait for enter press

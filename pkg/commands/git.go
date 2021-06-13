@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -53,7 +54,9 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 	var repo *gogit.Repository
 
 	// see what our default push behaviour is
-	output, err := osCommand.RunCommandWithOutput("git config --get push.default")
+	output, err := osCommand.RunCommandWithOutput(
+		BuildGitCmdObjFromStr("config --get push.default"),
+	)
 	pushToCurrent := false
 	if err != nil {
 		log.Errorf("error reading git config: %v", err)
@@ -218,31 +221,24 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 }
 
 func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
-	return osCommand.RunCommand("git rev-parse --git-dir")
-}
-
-func (c *GitCommand) RunCommand(formatString string, formatArgs ...interface{}) error {
-	_, err := c.RunCommandWithOutput(formatString, formatArgs...)
-	return err
+	return osCommand.RunExecutable(
+		BuildGitCmdObjFromStr("rev-parse --git-dir"),
+	)
 }
 
 func (c *GitCommand) RunExecutable(cmdObj ICmdObj) error {
-	_, err := c.RunExecutableWithOutput(cmdObj)
+	_, err := c.RunCommandWithOutput(cmdObj)
 	return err
 }
 
-func (c *GitCommand) RunExecutableWithOutput(cmdObj ICmdObj) (string, error) {
-	return c.RunCommandWithOutput(cmdObj.ToString())
-}
-
-func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...interface{}) (string, error) {
+func (c *GitCommand) RunCommandWithOutput(cmdObj ICmdObj) (string, error) {
 	// TODO: have this retry logic in other places we run the command
 	waitTime := 50 * time.Millisecond
 	retryCount := 5
 	attempt := 0
 
 	for {
-		output, err := c.GetOSCommand().RunCommandWithOutput(formatString, formatArgs...)
+		output, err := c.GetOSCommand().RunCommandWithOutput(cmdObj)
 		if err != nil {
 			// if we have an error based on the index lock, we should wait a bit and then retry
 			if strings.Contains(output, ".git/index.lock") {
@@ -291,8 +287,17 @@ func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]b
 	return BuildGitCmdObjFromStr(BuildGitCmdStr(command, positionalArgs, kwArgs))
 }
 
+// returns a command object from a command string. Prepends the `git ` part itself so
+// if you want to do `git diff` just pass `diff` as the cmdStr
 func BuildGitCmdObjFromStr(cmdStr string) ICmdObj {
-	cmdObj := &oscommands.CmdObj{CmdStr: GitCmdStr() + " " + cmdStr}
+	cmdObj := oscommands.NewCmdObjFromStr(GitCmdStr() + " " + cmdStr)
+	SetDefaultEnvVars(cmdObj)
+
+	return cmdObj
+}
+
+func BuildGitCmdObjFromArgs(args []string) ICmdObj {
+	cmdObj := oscommands.NewCmdObjFromArgs(append([]string{GitCmdStr()}, args...))
 	SetDefaultEnvVars(cmdObj)
 
 	return cmdObj
@@ -307,12 +312,23 @@ func GitVersionCmd() ICmdObj {
 }
 
 func SetDefaultEnvVars(cmdObj ICmdObj) {
-	cmdObj.ToCmd().Env = os.Environ()
+	cmdObj.GetCmd().Env = os.Environ()
 	DisableOptionalLocks(cmdObj)
 }
 
 func DisableOptionalLocks(cmdObj ICmdObj) {
 	cmdObj.AddEnvVars("GIT_OPTIONAL_LOCKS=0")
+}
+
+func (c *GitCommand) SkipEditor(cmdObj ICmdObj) {
+	lazyGitPath := c.GetOSCommand().GetLazygitPath()
+
+	cmdObj.AddEnvVars(
+		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+		"GIT_EDITOR="+lazyGitPath,
+		"EDITOR="+lazyGitPath,
+		"VISUAL="+lazyGitPath,
+	)
 }
 
 func (c *GitCommand) AllBranchesCmdObj() ICmdObj {
@@ -336,4 +352,33 @@ func (c *GitCommand) cleanCustomGitCmdStr(cmdStr string) string {
 // TODO: make this a method on the GitCommand struct
 func GitCmdStr() string {
 	return "git"
+}
+
+// BuildShellCmdObj returns the pointer to a custom command
+func (c *GitCommand) BuildShellCmdObj(command string) ICmdObj {
+	return oscommands.NewCmdObjFromArgs([]string{c.oSCommand.Platform.Shell, c.oSCommand.Platform.ShellArg, command})
+}
+
+func (c *GitCommand) GenericAbortCmdObj() ICmdObj {
+	return c.GenericMergeOrRebaseCmdObj("abort")
+}
+
+func (c *GitCommand) GenericContinueCmdObj() ICmdObj {
+	return c.GenericMergeOrRebaseCmdObj("continue")
+}
+
+func (c *GitCommand) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
+	status := c.WorkingTreeState()
+	switch status {
+	case REBASE_MODE_REBASING:
+		return BuildGitCmdObjFromStr(fmt.Sprintf("rebase --%s", action))
+	case REBASE_MODE_MERGING:
+		return BuildGitCmdObjFromStr(fmt.Sprintf("merge --%s", action))
+	default:
+		panic("expected rebase mode")
+	}
+}
+
+func (c *GitCommand) RunGitCmdFromStr(cmdStr string) error {
+	return c.RunGitCmdFromStr(cmdStr)
 }

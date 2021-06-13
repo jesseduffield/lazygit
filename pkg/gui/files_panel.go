@@ -449,9 +449,9 @@ func (gui *Gui) handleAmendCommitPress() error {
 		Title:  strings.Title(gui.Tr.AmendLastCommit),
 		Prompt: gui.Tr.SureToAmend,
 		HandleConfirm: func() error {
-			cmdStr := gui.GitCommand.AmendHeadCmdStr()
-			gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdStr, gui.Tr.Spans.AmendCommit, true))
-			return gui.withGpgHandling(cmdStr, gui.Tr.AmendingStatus, nil)
+			cmdObj := gui.GitCommand.AmendHeadCmdObj()
+			gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.AmendCommit))
+			return gui.withGpgHandling(cmdObj.ToString(), gui.Tr.AmendingStatus, nil)
 		},
 	})
 }
@@ -467,20 +467,20 @@ func (gui *Gui) handleCommitEditorPress() error {
 		return gui.promptToStageAllAndRetry(gui.handleCommitEditorPress)
 	}
 
-	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.Commit).PrepareSubProcess("git", "commit"),
-	)
+	cmdObj := commands.BuildGitCmdObjFromStr("commit")
+	gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.Commit))
+
+	return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
 
 func (gui *Gui) editFile(filename string) error {
-	cmdStr, err := gui.GitCommand.EditFileCmdStr(filename)
+	cmdObj, err := gui.GitCommand.EditFileCmdObj(filename)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}
+	gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.EditFile))
 
-	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).PrepareShellSubProcess(cmdStr),
-	)
+	return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
 
 func (gui *Gui) handleFileEdit() error {
@@ -725,10 +725,9 @@ func (gui *Gui) handleCustomCommand() error {
 	return gui.Prompt(PromptOpts{
 		Title: gui.Tr.CustomCommand,
 		HandleConfirm: func(command string) error {
-			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, gui.Tr.Spans.CustomCommand, true))
-			return gui.runSubprocessWithSuspenseAndRefresh(
-				gui.OSCommand.PrepareShellSubProcess(command),
-			)
+			cmdObj := oscommands.NewCmdObjFromStr(command)
+			gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.CustomCommand))
+			return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 		},
 	})
 }
@@ -807,9 +806,7 @@ func (gui *Gui) handleOpenMergeTool() error {
 		Title:  gui.Tr.MergeToolTitle,
 		Prompt: gui.Tr.MergeToolPrompt,
 		HandleConfirm: func() error {
-			return gui.runSubprocessWithSuspenseAndRefresh(
-				gui.OSCommand.ExecutableFromString(gui.GitCommand.OpenMergeToolCmd()),
-			)
+			return gui.runSubprocessWithSuspenseAndRefresh(gui.GitCommand.OpenMergeToolCmdObj())
 		},
 	})
 }

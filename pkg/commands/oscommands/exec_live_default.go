@@ -25,7 +25,7 @@ func runCommandAndParseOutput(c *OSCommand, cmdObj ICmdObj, output func(string) 
 	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
 
 	var stderr bytes.Buffer
-	cmd := cmdObj.ToCmd()
+	cmd := cmdObj.GetCmd()
 	cmd.Stderr = &stderr
 
 	ptmx, err := pty.Start(cmd)

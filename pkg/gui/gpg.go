@@ -11,7 +11,7 @@ func (gui *Gui) withGpgHandling(cmdStr string, waitingStatus string, onSuccess f
 	if useSubprocess {
 		// Need to remember why we use the shell for the subprocess but not in the other case
 		// Maybe there's no good reason
-		success, err := gui.runSubprocessWithSuspense(gui.OSCommand.ShellCommandFromString(cmdStr))
+		success, err := gui.runSubprocessWithSuspense(gui.GitCommand.BuildShellCmdObj(cmdStr))
 		if success && onSuccess != nil {
 			if err := onSuccess(); err != nil {
 				return err

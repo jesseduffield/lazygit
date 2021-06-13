@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -32,9 +33,10 @@ func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) err
 		return gui.CreateErrorPanel(gui.Tr.NotAGitFlowBranch)
 	}
 
-	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.GitFlowFinish).PrepareSubProcess("git", "flow", branchType, "finish", suffix),
-	)
+	cmdObj := gui.GitCommand.FlowFinish(branchType, suffix)
+	gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.GitFlowFinish))
+
+	return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
 
 func (gui *Gui) handleCreateGitFlowMenu() error {
@@ -44,7 +46,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 	}
 
 	// get config
-	gitFlowConfig, err := gui.GitCommand.RunCommandWithOutput("git config --local --get-regexp gitflow")
+	gitFlowConfig, err := gui.GitCommand.RunCommandWithOutput(BuildGitCmdObjFromStr("config --local --get-regexp gitflow"))
 	if err != nil {
 		return gui.CreateErrorPanel("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
@@ -56,9 +58,10 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 			return gui.Prompt(PromptOpts{
 				Title: title,
 				HandleConfirm: func(name string) error {
-					return gui.runSubprocessWithSuspenseAndRefresh(
-						gui.OSCommand.WithSpan(gui.Tr.Spans.GitFlowStart).PrepareSubProcess("git", "flow", branchType, "start", name),
-					)
+					cmdObj := gui.GitCommand.FlowStart(branchType, name)
+					gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.GitFlowStart))
+
+					return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 				},
 			})
 		}

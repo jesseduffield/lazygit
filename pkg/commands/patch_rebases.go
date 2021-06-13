@@ -16,7 +16,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitInd
 
 	// apply each patch in reverse
 	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
-		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+		if err := c.AbortRebase(); err != nil {
 			return err
 		}
 		return err
@@ -33,7 +33,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitInd
 	}
 
 	// continue
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	return c.ContinueRebase()
 }
 
 func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error {
@@ -44,7 +44,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 
 		// apply each patch forward
 		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
-			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+			if err := c.AbortRebase(); err != nil {
 				return err
 			}
 			return err
@@ -61,7 +61,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		}
 
 		// continue
-		return c.GenericMergeOrRebaseAction("rebase", "continue")
+		return c.ContinueRebase()
 	}
 
 	if len(commits)-1 < sourceCommitIdx {
@@ -85,18 +85,15 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true)
-	if err != nil {
-		return err
-	}
-
-	if err := c.GetOSCommand().RunPreparedCommand(cmd); err != nil {
+	if err := c.RunExecutable(
+		c.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true),
+	); err != nil {
 		return err
 	}
 
 	// apply each patch in reverse
 	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
-		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+		if err := c.AbortRebase(); err != nil {
 			return err
 		}
 		return err
@@ -115,7 +112,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
 		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
-			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+			if err := c.AbortRebase(); err != nil {
 				return err
 			}
 			return err
@@ -131,10 +128,10 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 			return nil
 		}
 
-		return c.GenericMergeOrRebaseAction("rebase", "continue")
+		return c.ContinueRebase()
 	}
 
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	return c.ContinueRebase()
 }
 
 func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
@@ -150,7 +147,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 
 	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
 		if c.WorkingTreeState() == REBASE_MODE_REBASING {
-			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+			if err := c.AbortRebase(); err != nil {
 				return err
 			}
 		}
@@ -170,7 +167,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 		// add patches to index
 		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
 			if c.WorkingTreeState() == REBASE_MODE_REBASING {
-				if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+				if err := c.AbortRebase(); err != nil {
 					return err
 				}
 			}
@@ -187,7 +184,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 		return nil
 	}
 
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	return c.ContinueRebase()
 }
 
 func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p *patch.PatchManager) error {
@@ -196,7 +193,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 	}
 
 	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
-		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+		if err := c.AbortRebase(); err != nil {
 			return err
 		}
 		return err
@@ -209,7 +206,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 
 	// add patches to index
 	if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
-		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+		if err := c.AbortRebase(); err != nil {
 			return err
 		}
 		return err
@@ -217,7 +214,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 
 	head_message, _ := c.GetHeadCommitMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := c.GetOSCommand().RunCommand(c.CommitCmdStr(new_message, ""))
+	err := c.RunExecutable(c.CommitCmdObj(new_message, ""))
 	if err != nil {
 		return err
 	}
@@ -227,5 +224,5 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 	}
 
 	p.Reset()
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	return c.ContinueRebase()
 }

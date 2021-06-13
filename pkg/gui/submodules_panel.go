@@ -217,12 +217,15 @@ func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) er
 }
 
 func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
+	bulkInitCmdObj := gui.GitCommand.SubmoduleBulkInitCmdObj()
+	bulkUpdateCmdObj := gui.GitCommand.SubmoduleBulkUpdateCmdObj()
+	bulkDeinitCmdObj := gui.GitCommand.SubmoduleBulkDeinitCmdObj()
 	menuItems := []*menuItem{
 		{
-			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, utils.ColoredString(gui.GitCommand.SubmoduleBulkInitCmdStr(), color.FgGreen)},
+			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, utils.ColoredString(bulkInitCmdObj.ToString(), color.FgGreen)},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).RunCommand(gui.GitCommand.SubmoduleBulkInitCmdStr()); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).RunExecutable(bulkInitCmdObj); err != nil {
 						return gui.SurfaceError(err)
 					}
 
@@ -231,10 +234,10 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, utils.ColoredString(gui.GitCommand.SubmoduleBulkUpdateCmdStr(), color.FgYellow)},
+			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, utils.ColoredString(bulkUpdateCmdObj.ToString(), color.FgYellow)},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).RunCommand(gui.GitCommand.SubmoduleBulkUpdateCmdStr()); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).RunExecutable(bulkUpdateCmdObj); err != nil {
 						return gui.SurfaceError(err)
 					}
 
@@ -243,7 +246,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, utils.ColoredString(fmt.Sprintf("git stash in each submodule && %s", gui.GitCommand.SubmoduleForceBulkUpdateCmdStr()), color.FgRed)},
+			displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, utils.ColoredString(fmt.Sprintf("git stash in each submodule && %s", bulkUpdateCmdObj.ToString()), color.FgRed)},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
 					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkStashAndResetSubmodules).ResetSubmodules(gui.State.Submodules); err != nil {
@@ -255,10 +258,10 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, utils.ColoredString(gui.GitCommand.SubmoduleBulkDeinitCmdStr(), color.FgRed)},
+			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, utils.ColoredString(bulkDeinitCmdObj.ToString(), color.FgRed)},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).RunCommand(gui.GitCommand.SubmoduleBulkDeinitCmdStr()); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).RunExecutable(bulkDeinitCmdObj); err != nil {
 						return gui.SurfaceError(err)
 					}
 

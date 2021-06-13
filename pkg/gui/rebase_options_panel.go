@@ -37,29 +37,25 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 }
 
-func (gui *Gui) genericMergeCommand(command string) error {
+func (gui *Gui) genericMergeCommand(action string) error {
 	status := gui.GitCommand.WorkingTreeState()
 
 	if status != commands.REBASE_MODE_MERGING && status != commands.REBASE_MODE_REBASING {
 		return gui.CreateErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
-	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge/Rebase: %s", command))
-
-	commandType := strings.Replace(status, "ing", "e", 1)
-	// we should end up with a command like 'git merge --continue'
+	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge/Rebase: %s", action))
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	if status == commands.REBASE_MODE_MERGING && command != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
-		// calling GetOSCommand() on git struct rather than on gui struct because the git struct has the span applied
-		sub := gitCommand.GetOSCommand().PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
-		if sub != nil {
-			return gui.runSubprocessWithSuspenseAndRefresh(sub)
-		}
-		return nil
+	if status == commands.REBASE_MODE_MERGING && action != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
+		return gui.runSubprocessWithSuspenseAndRefresh(
+			gitCommand.GenericMergeOrRebaseCmdObj(action),
+		)
 	}
-	result := gitCommand.GenericMergeOrRebaseAction(commandType, command)
-	if err := gui.handleGenericMergeCommandResult(result); err != nil {
+
+	command := gui.GitCommand.MergeOrRebase()
+	actionErr := gui.GitCommand.GenericMergeOrRebaseAction(command, action)
+	if err := gui.handleGenericMergeCommandResult(actionErr); err != nil {
 		return err
 	}
 	return nil

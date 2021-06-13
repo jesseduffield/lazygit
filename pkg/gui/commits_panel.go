@@ -260,12 +260,12 @@ func (gui *Gui) handleRenameCommitEditor() error {
 		return nil
 	}
 
-	subProcess, err := gui.GitCommand.WithSpan(gui.Tr.Spans.RewordCommit).RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
+	cmdObj, err := gui.GitCommand.WithSpan(gui.Tr.Spans.RewordCommit).GetRewordCommitCmdObj(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}
-	if subProcess != nil {
-		return gui.runSubprocessWithSuspenseAndRefresh(subProcess)
+	if cmdObj != nil {
+		return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 	}
 
 	return nil

@@ -21,15 +21,16 @@ func (c *GitCommand) NewBranch(name string, base string) error {
 // the first returned string is the name and the second is the displayname
 // e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
 func (c *GitCommand) CurrentBranchName() (string, string, error) {
-	branchName, err := c.RunExecutableWithOutput(
-		BuildGitCmdObj("symbolic-ref", []string{"HEAD"}, map[string]bool{"--short": true}),
+	branchName, err := c.RunCommandWithOutput(
+		BuildGitCmdObjFromStr("symbolic-ref --short HEAD"),
 	)
+
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-	output, err := c.RunExecutableWithOutput(
-		BuildGitCmdObj("branch", nil, map[string]bool{"--contains": true}),
+	output, err := c.RunCommandWithOutput(
+		BuildGitCmdObjFromStr("branch --contains"),
 	)
 	if err != nil {
 		return "", "", err
@@ -63,18 +64,18 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 	cmdObj := BuildGitCmdObj("checkout", []string{branch}, map[string]bool{"--force": options.Force})
 	cmdObj.AddEnvVars(options.EnvVars...)
 
-	return c.GetOSCommand().RunCommandWithOptions(cmdObj)
+	return c.GetOSCommand().RunExecutable(cmdObj)
 }
 
 // GetBranchGraph gets the color-formatted graph of the log for the given branch
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	return c.GetOSCommand().RunExecutableWithOutput(c.GetBranchGraphCmdObj(branchName))
+	return c.GetOSCommand().RunCommandWithOutput(c.GetBranchGraphCmdObj(branchName))
 }
 
 func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
-	output, err := c.RunCommandWithOutput("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)
+	output, err := c.RunCommandWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)))
 	return strings.TrimSpace(output), err
 }
 
@@ -92,11 +93,11 @@ func (c *GitCommand) GetBranchGraphCmdObj(branchName string) ICmdObj {
 }
 
 func (c *GitCommand) SetUpstreamBranch(upstream string) error {
-	return c.RunCommand("git branch -u %s", upstream)
+	return c.RunGitCmdFromStr(fmt.Sprintf("branch -u %s", upstream))
 }
 
 func (c *GitCommand) SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error {
-	return c.RunCommand("git branch --set-upstream-to=%s/%s %s", remoteName, remoteBranchName, branchName)
+	return c.RunGitCmdFromStr(fmt.Sprintf("branch --set-upstream-to=%s/%s %s", remoteName, remoteBranchName, branchName))
 }
 
 func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
@@ -110,16 +111,23 @@ func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string
 // GetCommitDifferences checks how many pushables/pullables there are for the
 // current branch
 func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
-	command := "git rev-list %s..%s --count"
-	pushableCount, err := c.GetOSCommand().RunCommandWithOutput(command, to, from)
+	pushableCount, err := c.GetOSCommand().RunCommandWithOutput(
+		c.GetCommitDifferenceCmdObj(to, from),
+	)
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.GetOSCommand().RunCommandWithOutput(command, from, to)
+	pullableCount, err := c.GetOSCommand().RunCommandWithOutput(
+		c.GetCommitDifferenceCmdObj(from, to),
+	)
 	if err != nil {
 		return "?", "?"
 	}
 	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
+}
+
+func (c *GitCommand) GetCommitDifferenceCmdObj(from string, to string) ICmdObj {
+	return BuildGitCmdObjFromStr(fmt.Sprintf("rev-list %s..%s --count", from, to))
 }
 
 type MergeOpts struct {
@@ -130,38 +138,38 @@ type MergeOpts struct {
 func (c *GitCommand) Merge(branchName string, opts MergeOpts) error {
 	mergeArgs := c.config.GetUserConfig().Git.Merging.Args
 
-	command := fmt.Sprintf("git merge --no-edit %s %s", mergeArgs, branchName)
+	cmdStr := fmt.Sprintf("merge --no-edit %s %s", mergeArgs, branchName)
 	if opts.FastForwardOnly {
-		command = fmt.Sprintf("%s --ff-only", command)
+		cmdStr = fmt.Sprintf("%s --ff-only", cmdStr)
 	}
 
-	return c.GetOSCommand().RunCommand(command)
+	return c.RunGitCmdFromStr(cmdStr)
 }
 
 // AbortMerge abort merge
 func (c *GitCommand) AbortMerge() error {
-	return c.RunCommand("git merge --abort")
+	return c.RunGitCmdFromStr("merge --abort")
 }
 
 func (c *GitCommand) IsHeadDetached() bool {
-	err := c.RunCommand("git symbolic-ref -q HEAD")
+	err := c.RunGitCmdFromStr("symbolic-ref -q HEAD")
 	return err != nil
 }
 
 // ResetHardHead runs `git reset --hard`
 func (c *GitCommand) ResetHard(ref string) error {
-	return c.RunCommand("git reset --hard " + ref)
+	return c.RunGitCmdFromStr("reset --hard " + ref)
 }
 
 // ResetSoft runs `git reset --soft HEAD`
 func (c *GitCommand) ResetSoft(ref string) error {
-	return c.RunCommand("git reset --soft " + ref)
+	return c.RunGitCmdFromStr("reset --soft " + ref)
 }
 
 func (c *GitCommand) ResetMixed(ref string) error {
-	return c.RunCommand("git reset --mixed " + ref)
+	return c.RunGitCmdFromStr("reset --mixed " + ref)
 }
 
 func (c *GitCommand) RenameBranch(oldName string, newName string) error {
-	return c.RunCommand("git branch --move %s %s", oldName, newName)
+	return c.RunGitCmdFromStr(fmt.Sprintf("branch --move %s %s", oldName, newName))
 }

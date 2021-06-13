@@ -45,7 +45,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmdObj ICmdObj, prefix string) erro
 
 	manager := gui.getManager(view)
 
-	cmd := cmdObj.ToCmd()
+	cmd := cmdObj.GetCmd()
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
 		return err

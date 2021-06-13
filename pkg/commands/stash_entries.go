@@ -8,13 +8,13 @@ import (
 
 // StashDo modify stash
 func (c *GitCommand) StashDo(index int, method string) error {
-	return c.RunCommand("git stash %s stash@{%d}", method, index)
+	return c.RunGitCmdFromStr(fmt.Sprintf("stash %s stash@{%d}", method, index))
 }
 
 // StashSave save stash
 // TODO: before calling this, check if there is anything to save
 func (c *GitCommand) StashSave(message string) error {
-	return c.RunCommand("git stash save %s", c.GetOSCommand().Quote(message))
+	return c.RunGitCmdFromStr(fmt.Sprintf("stash save %s", c.GetOSCommand().Quote(message)))
 }
 
 // GetStashEntryDiff stash diff
@@ -28,7 +28,7 @@ func (c *GitCommand) ShowStashEntryCmdObj(index int) ICmdObj {
 // shoutouts to Joe on https://stackoverflow.com/questions/14759748/stashing-only-staged-changes-in-git-is-it-possible
 func (c *GitCommand) StashSaveStagedChanges(message string) error {
 	// wrap in 'writing', which uses a mutex
-	if err := c.RunCommand("git stash --keep-index"); err != nil {
+	if err := c.RunGitCmdFromStr("stash --keep-index"); err != nil {
 		return err
 	}
 
@@ -36,7 +36,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 		return err
 	}
 
-	if err := c.RunCommand("git stash apply stash@{1}"); err != nil {
+	if err := c.RunGitCmdFromStr("stash apply stash@{1}"); err != nil {
 		return err
 	}
 
@@ -44,7 +44,7 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 		return err
 	}
 
-	if err := c.RunCommand("git stash drop stash@{1}"); err != nil {
+	if err := c.RunGitCmdFromStr("stash drop stash@{1}"); err != nil {
 		return err
 	}
 
