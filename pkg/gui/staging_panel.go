@@ -33,13 +33,9 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 		gui.Views.Secondary.Title = gui.Tr.StagedChanges
 	}
 
-	// if we were ignoring whitespace, stop doing that so that
-	// line-by-line diffs work as expected
-	_ = gui.setIgnoreWhitespaceFlag(false)
-
 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
-	diff := gui.GitCommand.WorktreeFileDiff(file, true, secondaryFocused, gui.State.IgnoreWhitespaceInDiffView)
-	secondaryDiff := gui.GitCommand.WorktreeFileDiff(file, true, !secondaryFocused, gui.State.IgnoreWhitespaceInDiffView)
+	diff := gui.GitCommand.WorktreeFileDiff(file, true, secondaryFocused, false)
+	secondaryDiff := gui.GitCommand.WorktreeFileDiff(file, true, !secondaryFocused, false)
 
 	// if we have e.g. a deleted file with nothing else to the diff will have only
 	// 4-5 lines in which case we'll swap panels
