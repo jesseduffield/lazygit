@@ -40,7 +40,7 @@ func (gui *Gui) handleShowAllBranchLogs() error {
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title: "Log",
-			task:  NewRunPtyTask(gui.GitCommand.AllBranchesCmdObj()),
+			task:  NewRunPtyTask(gui.Git.AllBranchesCmdObj()),
 		},
 	})
 }
@@ -59,7 +59,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		return err
 	}
 
-	if err := commands.VerifyInGitRepo(gui.OSCommand); err != nil {
+	if err := commands.VerifyInGitRepo(gui.OS); err != nil {
 		if err := os.Chdir(originalPath); err != nil {
 			return err
 		}
@@ -67,12 +67,12 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		return err
 	}
 
-	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
+	newGit, err := commands.NewGit(gui.Log, gui.OS, gui.Tr, gui.Config)
 	if err != nil {
 		return err
 	}
-	gui.GitCommand = newGitCommand
-	gui.State.Modes.PatchManager = newGitCommand.NewPatchManager()
+	gui.Git = newGit
+	gui.State.Modes.PatchManager = newGit.NewPatchManager()
 
 	gui.g.Update(func(*gocui.Gui) error {
 		// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to
@@ -94,7 +94,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
 // so that we can open the same repo via the 'recent repos' menu
 func (gui *Gui) updateRecentRepoList() error {
-	if gui.GitCommand.IsBareRepo() {
+	if gui.Git.IsBareRepo() {
 		// we could totally do this but it would require storing both the git-dir and the
 		// worktree in our recent repos list, which is a change that would need to be
 		// backwards compatible

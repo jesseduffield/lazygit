@@ -62,7 +62,7 @@ func TestGitCommandUsingGpg(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
+			gitCmd := NewDummyGit()
 			gitCmd.getGitConfigValue = s.getGitConfigValue
 			s.test(gitCmd.UsingGpg())
 		})

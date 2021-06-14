@@ -25,7 +25,7 @@ func (gui *Gui) handleRemoteBranchSelect() error {
 	if remoteBranch == nil {
 		task = NewRenderStringTask("No branches for this remote")
 	} else {
-		task = NewRunCommandTask(gui.GitCommand.GetBranchGraphCmdObj(remoteBranch.FullName()))
+		task = NewRunCommandTask(gui.Git.GetBranchGraphCmdObj(remoteBranch.FullName()))
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -57,7 +57,7 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 		Prompt: message,
 		HandleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name)
+				err := gui.Git.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name)
 				if err != nil {
 					return gui.SurfaceError(err)
 				}
@@ -89,7 +89,7 @@ func (gui *Gui) handleSetBranchUpstream() error {
 		Title:  gui.Tr.SetUpstreamTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SetBranchUpstream).SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.SetBranchUpstream).SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
 				return err
 			}
 

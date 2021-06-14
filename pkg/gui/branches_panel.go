@@ -34,7 +34,7 @@ func (gui *Gui) handleBranchSelect() error {
 	if branch == nil {
 		task = NewRenderStringTask(gui.Tr.NoBranchesThisRepo)
 	} else {
-		task = NewRunPtyTask(gui.GitCommand.GetBranchGraphCmdObj(branch.Name))
+		task = NewRunPtyTask(gui.Git.GetBranchGraphCmdObj(branch.Name))
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -55,13 +55,13 @@ func (gui *Gui) refreshBranches() {
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = gui.GitCommand.GetReflogCommits(nil, "")
+		reflogCommits, _, err = gui.Git.GetReflogCommits(nil, "")
 		if err != nil {
 			gui.Log.Error(err)
 		}
 	}
 
-	builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, reflogCommits)
+	builder, err := commands.NewBranchListBuilder(gui.Log, gui.Git, reflogCommits)
 	if err != nil {
 		_ = gui.SurfaceError(err)
 	}
@@ -88,7 +88,7 @@ func (gui *Gui) handleBranchPress() error {
 }
 
 func (gui *Gui) handleCreatePullRequestPress() error {
-	pullRequest := commands.NewPullRequest(gui.GitCommand)
+	pullRequest := commands.NewPullRequest(gui.Git)
 
 	branch := gui.getSelectedBranch()
 	url, err := pullRequest.Create(branch)
@@ -101,7 +101,7 @@ func (gui *Gui) handleCreatePullRequestPress() error {
 }
 
 func (gui *Gui) handleCopyPullRequestURLPress() error {
-	pullRequest := commands.NewPullRequest(gui.GitCommand)
+	pullRequest := commands.NewPullRequest(gui.Git)
 
 	branch := gui.getSelectedBranch()
 	url, err := pullRequest.CopyURL(branch)
@@ -136,7 +136,7 @@ func (gui *Gui) handleForceCheckout() error {
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.ForceCheckoutBranch).Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.ForceCheckoutBranch).Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
 				_ = gui.SurfaceError(err)
 			}
 			return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
@@ -166,7 +166,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 		gui.State.Panels.Commits.LimitCommits = true
 	}
 
-	gitCommand := gui.GitCommand.WithSpan(options.span)
+	gitCommand := gui.Git.WithSpan(options.span)
 
 	return gui.WithWaitingStatus(waitingStatus, func() error {
 		if err := gitCommand.Checkout(ref, cmdOptions); err != nil {
@@ -240,7 +240,7 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 		return nil
 	}
 
-	if err := gui.GitCommand.NewBranch(newBranchName, branch.Name); err != nil {
+	if err := gui.Git.NewBranch(newBranchName, branch.Name); err != nil {
 		return gui.SurfaceError(err)
 	}
 
@@ -283,7 +283,7 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteBranch).DeleteBranch(selectedBranch.Name, force); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.DeleteBranch).DeleteBranch(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "is not fully merged") {
 					return gui.deleteNamedBranch(selectedBranch, true)
@@ -300,7 +300,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		return err
 	}
 
-	if gui.GitCommand.IsHeadDetached() {
+	if gui.Git.IsHeadDetached() {
 		return gui.CreateErrorPanel("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
 	checkedOutBranchName := gui.CurrentBranch().Name
@@ -319,7 +319,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		Title:  gui.Tr.MergingTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			err := gui.GitCommand.WithSpan(gui.Tr.Spans.Merge).Merge(branchName, commands.MergeOpts{})
+			err := gui.Git.WithSpan(gui.Tr.Spans.Merge).Merge(branchName, commands.MergeOpts{})
 			return gui.handleGenericMergeCommandResult(err)
 		},
 	})
@@ -360,7 +360,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		Title:  gui.Tr.RebasingTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			err := gui.GitCommand.WithSpan(gui.Tr.Spans.RebaseBranch).RebaseBranch(selectedBranchName)
+			err := gui.Git.WithSpan(gui.Tr.Spans.RebaseBranch).RebaseBranch(selectedBranchName)
 			return gui.handleGenericMergeCommandResult(err)
 		},
 	})
@@ -379,7 +379,7 @@ func (gui *Gui) handleFastForward() error {
 		return gui.CreateErrorPanel(gui.Tr.FwdCommitsToPush)
 	}
 
-	upstream, err := gui.GitCommand.GetUpstreamForBranch(branch.Name)
+	upstream, err := gui.Git.GetUpstreamForBranch(branch.Name)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}
@@ -402,7 +402,7 @@ func (gui *Gui) handleFastForward() error {
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{span: span})
 		} else {
-			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName)
+			err := gui.Git.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName)
 			if err != nil {
 				return gui.SurfaceError(err)
 			}
@@ -433,7 +433,7 @@ func (gui *Gui) handleRenameBranch() error {
 			Title:          gui.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
 			InitialContent: branch.Name,
 			HandleConfirm: func(newBranchName string) error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RenameBranch).RenameBranch(branch.Name, newBranchName); err != nil {
+				if err := gui.Git.WithSpan(gui.Tr.Spans.RenameBranch).RenameBranch(branch.Name, newBranchName); err != nil {
 					return gui.SurfaceError(err)
 				}
 
@@ -501,7 +501,7 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		Title:          message,
 		InitialContent: prefilledName,
 		HandleConfirm: func(response string) error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateBranch).NewBranch(sanitizedBranchName(response), item.ID()); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.CreateBranch).NewBranch(sanitizedBranchName(response), item.ID()); err != nil {
 				return err
 			}
 

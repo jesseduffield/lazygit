@@ -9,7 +9,7 @@ import (
 )
 
 func (gui *Gui) resetToRef(ref string, strength string, span string, options commands.ResetToCommitOptions) error {
-	if err := gui.GitCommand.WithSpan(span).ResetToCommit(ref, strength, options); err != nil {
+	if err := gui.Git.WithSpan(span).ResetToRef(ref, strength, options); err != nil {
 		return gui.SurfaceError(err)
 	}
 

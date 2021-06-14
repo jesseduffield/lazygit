@@ -34,7 +34,7 @@ func TestOSCommandRunWithOutput(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOSCommand().RunWithOutput(s.command))
+		s.test(NewDummyOS().RunWithOutput(s.command))
 	}
 }
 
@@ -55,7 +55,7 @@ func TestOSCommandRunCommand(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOSCommand().RunCommand(s.command))
+		s.test(NewDummyOS().RunCommand(s.command))
 	}
 }
 
@@ -102,7 +102,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		OSCmd := NewDummyOSCommand()
+		OSCmd := NewDummyOS()
 		OSCmd.Command = s.command
 		OSCmd.Config.GetUserConfig().OS.OpenCommand = "open {{filename}}"
 
@@ -112,7 +112,7 @@ func TestOSCommandOpenFile(t *testing.T) {
 
 // TestOSCommandQuote is a function.
 func TestOSCommandQuote(t *testing.T) {
-	osCommand := NewDummyOSCommand()
+	osCommand := NewDummyOS()
 
 	osCommand.Platform.OS = "linux"
 
@@ -125,7 +125,7 @@ func TestOSCommandQuote(t *testing.T) {
 
 // TestOSCommandQuoteSingleQuote tests the quote function with ' quotes explicitly for Linux
 func TestOSCommandQuoteSingleQuote(t *testing.T) {
-	osCommand := NewDummyOSCommand()
+	osCommand := NewDummyOS()
 
 	osCommand.Platform.OS = "linux"
 
@@ -138,7 +138,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 
 // TestOSCommandQuoteDoubleQuote tests the quote function with " quotes explicitly for Linux
 func TestOSCommandQuoteDoubleQuote(t *testing.T) {
-	osCommand := NewDummyOSCommand()
+	osCommand := NewDummyOS()
 
 	osCommand.Platform.OS = "linux"
 
@@ -151,7 +151,7 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 
 // TestOSCommandQuoteWindows tests the quote function for Windows
 func TestOSCommandQuoteWindows(t *testing.T) {
-	osCommand := NewDummyOSCommand()
+	osCommand := NewDummyOS()
 
 	osCommand.Platform.OS = "windows"
 
@@ -215,7 +215,7 @@ func TestOSCommandFileType(t *testing.T) {
 
 	for _, s := range scenarios {
 		s.setup()
-		s.test(NewDummyOSCommand().FileType(s.path))
+		s.test(NewDummyOS().FileType(s.path))
 		_ = os.RemoveAll(s.path)
 	}
 }
@@ -246,7 +246,7 @@ func TestOSCommandCreateTempFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(NewDummyOSCommand().CreateTempFile(s.filename, s.content))
+			s.test(NewDummyOS().CreateTempFile(s.filename, s.content))
 		})
 	}
 }

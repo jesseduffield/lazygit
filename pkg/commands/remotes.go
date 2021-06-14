@@ -6,31 +6,31 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func (c *GitCommand) AddRemote(name string, url string) error {
+func (c *Git) AddRemote(name string, url string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("remote add %s %s", name, url))
 }
 
-func (c *GitCommand) RemoveRemote(name string) error {
+func (c *Git) RemoveRemote(name string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("remote remove %s", name))
 }
 
-func (c *GitCommand) RenameRemote(oldRemoteName string, newRemoteName string) error {
+func (c *Git) RenameRemote(oldRemoteName string, newRemoteName string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("remote rename %s %s", oldRemoteName, newRemoteName))
 }
 
-func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
+func (c *Git) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("remote set-url %s %s", remoteName, updatedUrl))
 }
 
-func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string) error {
+func (c *Git) DeleteRemoteBranch(remoteName string, branchName string) error {
 	return c.RunCommandWithCredentialsHandling(
 		BuildGitCmdObjFromStr(fmt.Sprintf("push %s --delete %s", remoteName, branchName)),
 	)
 }
 
 // CheckRemoteBranchExists Returns remote branch
-func (c *GitCommand) CheckRemoteBranchExists(branch *models.Branch) bool {
-	_, err := c.GetOSCommand().RunWithOutput(
+func (c *Git) CheckRemoteBranchExists(branch *models.Branch) bool {
+	_, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr(
 			fmt.Sprintf("show-ref --verify -- refs/remotes/origin/%s",
 				branch.Name),
@@ -41,6 +41,6 @@ func (c *GitCommand) CheckRemoteBranchExists(branch *models.Branch) bool {
 }
 
 // GetRemoteURL returns current repo remote url
-func (c *GitCommand) GetRemoteURL() string {
+func (c *Git) GetRemoteURL() string {
 	return c.GetConfigValue("remote.origin.url")
 }

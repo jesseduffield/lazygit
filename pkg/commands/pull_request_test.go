@@ -156,7 +156,7 @@ func TestCreatePullRequest(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCommand := NewDummyGitCommand()
+			gitCommand := NewDummyGit()
 			gitCommand.GetOSCommand().Command = s.command
 			gitCommand.GetOSCommand().Config.GetUserConfig().OS.OpenLinkCommand = "open {{link}}"
 			gitCommand.GetOSCommand().Config.GetUserConfig().Services = map[string]string{

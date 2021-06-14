@@ -33,7 +33,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *LblPanelSt
 
 	to := gui.State.CommitFileManager.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
-	diff, err := gui.GitCommand.ShowFileDiff(from, to, reverse, node.GetPath(), true)
+	diff, err := gui.Git.ShowFileDiff(from, to, reverse, node.GetPath(), true)
 	if err != nil {
 		return err
 	}

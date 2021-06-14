@@ -31,7 +31,7 @@ func (gui *Gui) onResize() error {
 // command.
 func (gui *Gui) newPtyTask(view *gocui.View, cmdObj ICmdObj, prefix string) error {
 	width, _ := gui.Views.Main.Size()
-	pager := gui.GitCommand.GetPager(width)
+	pager := gui.Git.GetPager(width)
 
 	if pager == "" {
 		// if we're not using a custom pager we don't need to use a pty

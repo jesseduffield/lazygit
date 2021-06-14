@@ -89,7 +89,7 @@ func (gui *Gui) reflogUndo() error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := gui.Tr.UndoingStatus
 
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
+	if gui.Git.WorkingTreeState() == commands.REBASE_MODE_REBASING {
 		return gui.CreateErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
 	}
 
@@ -124,7 +124,7 @@ func (gui *Gui) reflogRedo() error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := gui.Tr.RedoingStatus
 
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
+	if gui.Git.WorkingTreeState() == commands.REBASE_MODE_REBASING {
 		return gui.CreateErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
 	}
 
@@ -166,7 +166,7 @@ type handleHardResetWithAutoStashOptions struct {
 
 // only to be used in the undo flow for now
 func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHardResetWithAutoStashOptions) error {
-	gitCommand := gui.GitCommand.WithSpan(options.span)
+	gitCommand := gui.Git.WithSpan(options.span)
 
 	reset := func() error {
 		if err := gui.resetToRef(commitSha, "hard", options.span, commands.ResetToCommitOptions{EnvVars: options.EnvVars}); err != nil {

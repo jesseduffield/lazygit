@@ -9,7 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {
+func (c *Git) GetRemotes() ([]*models.Remote, error) {
 	// get remote branches
 	remoteBranchesStr, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr("branch -r"),

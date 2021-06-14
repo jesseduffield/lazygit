@@ -72,10 +72,10 @@ type Repo string
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g          *gocui.Gui
-	Log        *logrus.Entry
-	GitCommand *commands.GitCommand
-	OSCommand  *oscommands.OSCommand
+	g   *gocui.Gui
+	Log *logrus.Entry
+	Git *commands.Git
+	OS  *oscommands.OS
 
 	// this is the state of the GUI for the current repo
 	State *guiState
@@ -415,7 +415,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Filtering:     filtering.New(filterPath),
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
-			PatchManager:  gui.GitCommand.NewPatchManager(),
+			PatchManager:  gui.Git.NewPatchManager(),
 		},
 		ViewContextMap:    contexts.initialViewContextMap(),
 		ViewTabContextMap: contexts.initialViewTabContextMap(),
@@ -430,11 +430,11 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
+func NewGui(log *logrus.Entry, gitCommand *commands.Git, oSCommand *oscommands.OS, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
 	gui := &Gui{
 		Log:                  log,
-		GitCommand:           gitCommand,
-		OSCommand:            oSCommand,
+		Git:                  gitCommand,
+		OS:                   oSCommand,
 		Config:               config,
 		Tr:                   tr,
 		Updater:              updater,
@@ -447,7 +447,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		ShowExtrasWindow:     config.GetUserConfig().Gui.ShowCommandLog,
 	}
 
-	gui.GitCommand.SetCredentialHandlers(gui.PromptUserForCredential, gui.handleCredentialError)
+	gui.Git.SetCredentialHandlers(gui.PromptUserForCredential, gui.handleCredentialError)
 
 	gui.resetState(filterPath, false)
 
@@ -737,12 +737,12 @@ func (gui *Gui) GetUserConfig() *config.UserConfig {
 	return gui.Config.GetUserConfig()
 }
 
-func (gui *Gui) GetGitCommand() commands.IGitCommand {
-	return gui.GitCommand
+func (gui *Gui) GetGit() commands.IGit {
+	return gui.Git
 }
 
-func (gui *Gui) GetOSCommand() *oscommands.OSCommand {
-	return gui.OSCommand
+func (gui *Gui) GetOS() *oscommands.OS {
+	return gui.OS
 }
 
 func (gui *Gui) GetTr() *i18n.TranslationSet {

@@ -178,7 +178,7 @@ func TestNewGitCommand(t *testing.T) {
 	type scenario struct {
 		testName string
 		setup    func()
-		test     func(*GitCommand, error)
+		test     func(*Git, error)
 	}
 
 	scenarios := []scenario{
@@ -187,7 +187,7 @@ func TestNewGitCommand(t *testing.T) {
 			func() {
 				assert.NoError(t, os.Chdir("/tmp"))
 			},
-			func(gitCmd *GitCommand, err error) {
+			func(gitCmd *Git, err error) {
 				assert.Error(t, err)
 				assert.Regexp(t, `Must open lazygit in a git repository`, err.Error())
 			},
@@ -200,7 +200,7 @@ func TestNewGitCommand(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NoError(t, os.Chdir("/tmp/lazygit-test"))
 			},
-			func(gitCmd *GitCommand, err error) {
+			func(gitCmd *Git, err error) {
 				assert.NoError(t, err)
 			},
 		},
@@ -209,7 +209,7 @@ func TestNewGitCommand(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			s.setup()
-			s.test(NewGitCommand(utils.NewDummyLog(), oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog()), config.NewDummyAppConfig()))
+			s.test(NewGit(utils.NewDummyLog(), oscommands.NewDummyOS(), i18n.NewTranslationSet(utils.NewDummyLog()), config.NewDummyAppConfig()))
 		})
 	}
 }

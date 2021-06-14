@@ -44,7 +44,7 @@ func (gui *Gui) handleCommitFileSelect() error {
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
 	task := NewRunPtyTask(
-		gui.GitCommand.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false, false),
+		gui.Git.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false, false),
 	)
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -62,7 +62,7 @@ func (gui *Gui) handleCheckoutCommitFile() error {
 		return nil
 	}
 
-	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CheckoutFile).CheckoutFile(gui.State.CommitFileManager.GetParent(), node.GetPath()); err != nil {
+	if err := gui.Git.WithSpan(gui.Tr.Spans.CheckoutFile).CheckoutFile(gui.State.CommitFileManager.GetParent(), node.GetPath()); err != nil {
 		return gui.SurfaceError(err)
 	}
 
@@ -81,7 +81,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 		Prompt: gui.Tr.DiscardFileChangesPrompt,
 		HandleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardOldFileChange).DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
+				if err := gui.Git.WithSpan(gui.Tr.Spans.DiscardOldFileChange).DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
 					if err := gui.handleGenericMergeCommandResult(err); err != nil {
 						return err
 					}
@@ -104,7 +104,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 	to := gui.State.Panels.CommitFiles.refName
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	files, err := gui.GitCommand.GetFilesInDiff(from, to, reverse)
+	files, err := gui.Git.GetFilesInDiff(from, to, reverse)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}

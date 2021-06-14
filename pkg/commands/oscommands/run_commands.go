@@ -6,7 +6,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
-func (c *OSCommand) RunWithOutput(cmdObj ICmdObj) (string, error) {
+func (c *OS) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	c.LogCmd(cmdObj)
 	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
 	if err != nil {
@@ -16,13 +16,13 @@ func (c *OSCommand) RunWithOutput(cmdObj ICmdObj) (string, error) {
 }
 
 // Run runs an executable file and returns an error if there was one
-func (c *OSCommand) Run(cmd ICmdObj) error {
+func (c *OS) Run(cmd ICmdObj) error {
 	_, err := c.RunWithOutput(cmd)
 
 	return err
 }
 
-func (c *OSCommand) RunAndParseWords(cmdObj ICmdObj, output func(string) string) error {
+func (c *OS) RunAndParseWords(cmdObj ICmdObj, output func(string) string) error {
 	return runAndParseWords(c, cmdObj, output)
 }
 

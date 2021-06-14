@@ -19,7 +19,7 @@ import (
 // Output is a function that executes by every word that gets read by bufio
 // As return of output you need to give a string that will be written to stdin
 // NOTE: If the return data is empty it won't written anything to stdin
-func runAndParseWords(c *OSCommand, cmdObj ICmdObj, output func(string) string) error {
+func runAndParseWords(c *OS, cmdObj ICmdObj, output func(string) string) error {
 	c.Log.WithField("command", cmdObj.ToString()).Info("RunCommand")
 	c.LogCommand(cmdObj.ToString(), true)
 	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")

@@ -193,7 +193,7 @@ func (gui *Gui) catSelectedFile() (string, error) {
 		return "", errors.New(gui.Tr.NotAFile)
 	}
 
-	cat, err := gui.GitCommand.CatFile(item.Name)
+	cat, err := gui.Git.CatFile(item.Name)
 	if err != nil {
 		gui.Log.Error(err)
 		return "", err
@@ -261,7 +261,7 @@ func (gui *Gui) handleCompleteMerge() error {
 	}
 	// if we got conflicts after unstashing, we don't want to call any git
 	// commands to continue rebasing/merging here
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_NORMAL {
+	if gui.Git.WorkingTreeState() == commands.REBASE_MODE_NORMAL {
 		return gui.handleEscapeMerge()
 	}
 	// if there are no more files with merge conflicts, we should ask whether the user wants to continue

@@ -24,7 +24,7 @@ func (gui *Gui) handleSubCommitSelect() error {
 	if commit == nil {
 		task = NewRenderStringTask("No commits")
 	} else {
-		cmdObj := gui.GitCommand.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
+		cmdObj := gui.Git.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
 
 		task = NewRunPtyTask(cmdObj)
 	}
@@ -76,7 +76,7 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	// need to populate my sub commits
-	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr)
+	builder := commands.NewCommitListBuilder(gui.Log, gui.Git, gui.OS, gui.Tr)
 
 	commits, err := builder.GetCommits(
 		commands.GetCommitsOptions{

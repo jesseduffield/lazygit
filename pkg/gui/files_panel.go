@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -75,7 +76,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
 		title: gui.Tr.UnstagedChanges,
 		task: NewRunPtyTask(
-			gui.GitCommand.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges()),
+			gui.Git.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges()),
 		),
 	}}
 
@@ -84,7 +85,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 			refreshOpts.secondary = &viewUpdateOpts{
 				title: gui.Tr.StagedChanges,
 				task: NewRunPtyTask(
-					gui.GitCommand.WorktreeFileDiffCmdObj(node, false, true),
+					gui.Git.WorktreeFileDiffCmdObj(node, false, true),
 				),
 			}
 		}
@@ -168,7 +169,7 @@ func (gui *Gui) stageSelectedFile() error {
 		return nil
 	}
 
-	return gui.GitCommand.StageFile(file.Name)
+	return gui.Git.StageFile(file.Name)
 }
 
 func (gui *Gui) handleEnterFile() error {
@@ -218,11 +219,11 @@ func (gui *Gui) handleFilePress() error {
 		}
 
 		if file.HasUnstagedChanges {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageFile).StageFile(file.Name); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.StageFile).StageFile(file.Name); err != nil {
 				return gui.SurfaceError(err)
 			}
 		} else {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.UnstageFile).UnStageFile(file.Names(), file.Tracked); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.UnstageFile).UnStageFile(file.Names(), file.Tracked); err != nil {
 				return gui.SurfaceError(err)
 			}
 		}
@@ -234,12 +235,12 @@ func (gui *Gui) handleFilePress() error {
 		}
 
 		if node.GetHasUnstagedChanges() {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageFile).StageFile(node.Path); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.StageFile).StageFile(node.Path); err != nil {
 				return gui.SurfaceError(err)
 			}
 		} else {
 			// pretty sure it doesn't matter that we're always passing true here
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.UnstageFile).UnStageFile([]string{node.Path}, true); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.UnstageFile).UnStageFile([]string{node.Path}, true); err != nil {
 				return gui.SurfaceError(err)
 			}
 		}
@@ -268,9 +269,9 @@ func (gui *Gui) focusAndSelectFile() error {
 func (gui *Gui) handleStageAll() error {
 	var err error
 	if gui.allFilesStaged() {
-		err = gui.GitCommand.WithSpan(gui.Tr.Spans.UnstageAllFiles).UnstageAll()
+		err = gui.Git.WithSpan(gui.Tr.Spans.UnstageAllFiles).UnstageAll()
 	} else {
-		err = gui.GitCommand.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
+		err = gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
 	}
 	if err != nil {
 		_ = gui.SurfaceError(err)
@@ -293,7 +294,7 @@ func (gui *Gui) handleIgnoreFile() error {
 		return gui.CreateErrorPanel("Cannot ignore .gitignore")
 	}
 
-	gitCommand := gui.GitCommand.WithSpan(gui.Tr.Spans.IgnoreFile)
+	gitCommand := gui.Git.WithSpan(gui.Tr.Spans.IgnoreFile)
 
 	unstageFiles := func() error {
 		return node.ForEachFile(func(file *models.File) error {
@@ -365,7 +366,7 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 func (gui *Gui) prepareFilesForCommit() error {
 	noStagedFiles := len(gui.stagedFiles()) == 0
 	if noStagedFiles && gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
-		err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
+		err := gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
 		if err != nil {
 			return err
 		}
@@ -420,7 +421,7 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 		Title:  gui.Tr.NoFilesStagedTitle,
 		Prompt: gui.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll(); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll(); err != nil {
 				return gui.SurfaceError(err)
 			}
 			if err := gui.refreshFilesAndSubmodules(); err != nil {
@@ -449,7 +450,7 @@ func (gui *Gui) handleAmendCommitPress() error {
 		Title:  strings.Title(gui.Tr.AmendLastCommit),
 		Prompt: gui.Tr.SureToAmend,
 		HandleConfirm: func() error {
-			cmdObj := gui.GitCommand.AmendHeadCmdObj()
+			cmdObj := gui.Git.AmendHeadCmdObj()
 			gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.AmendCommit))
 			return gui.withGpgHandling(cmdObj, gui.Tr.AmendingStatus, nil)
 		},
@@ -474,7 +475,7 @@ func (gui *Gui) handleCommitEditorPress() error {
 }
 
 func (gui *Gui) editFile(filename string) error {
-	cmdObj, err := gui.GitCommand.EditFileCmdObj(filename)
+	cmdObj, err := gui.Git.EditFileCmdObj(filename)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}
@@ -521,7 +522,7 @@ func (gui *Gui) refreshStateFiles() error {
 	prevNodes := gui.State.FileManager.GetAllItems()
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
-	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
+	files := gui.Git.GetStatusFiles(loaders.LoadStatusFilesOpts{})
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
 	state.FileManager.RWMutex.Lock()
@@ -618,7 +619,7 @@ func (gui *Gui) handlePullFiles() error {
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
 		// see if we have this branch in our config with an upstream
-		remoteName, err := gui.GitCommand.FindRemoteForBranchInConfig(currentBranch.Name)
+		remoteName, err := gui.Git.FindRemoteForBranchInConfig(currentBranch.Name)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}
@@ -630,7 +631,7 @@ func (gui *Gui) handlePullFiles() error {
 			Title:          gui.Tr.EnterUpstream,
 			InitialContent: "origin/" + currentBranch.Name,
 			HandleConfirm: func(upstream string) error {
-				if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
+				if err := gui.Git.SetUpstreamBranch(upstream); err != nil {
 					errorMessage := err.Error()
 					if strings.Contains(errorMessage, "does not exist") {
 						errorMessage = fmt.Sprintf("upstream branch %s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')", upstream)
@@ -665,7 +666,7 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	gitCommand := gui.GitCommand.WithSpan(opts.span)
+	gitCommand := gui.Git.WithSpan(opts.span)
 
 	err := gitCommand.Fetch(
 		commands.FetchOptions{
@@ -706,7 +707,7 @@ func (gui *Gui) handleSwitchToMerge() error {
 }
 
 func (gui *Gui) openFile(filename string) error {
-	if err := gui.OSCommand.WithSpan(gui.Tr.Spans.OpenFile).OpenFile(filename); err != nil {
+	if err := gui.OS.WithSpan(gui.Tr.Spans.OpenFile).OpenFile(filename); err != nil {
 		return gui.SurfaceError(err)
 	}
 	return nil
@@ -737,13 +738,13 @@ func (gui *Gui) handleCreateStashMenu() error {
 		{
 			displayString: gui.Tr.LcStashAllChanges,
 			onPress: func() error {
-				return gui.handleStashSave(gui.GitCommand.WithSpan(gui.Tr.Spans.StashAllChanges).StashSave)
+				return gui.handleStashSave(gui.Git.WithSpan(gui.Tr.Spans.StashAllChanges).StashSave)
 			},
 		},
 		{
 			displayString: gui.Tr.LcStashStagedChanges,
 			onPress: func() error {
-				return gui.handleStashSave(gui.GitCommand.WithSpan(gui.Tr.Spans.StashStagedChanges).StashSaveStagedChanges)
+				return gui.handleStashSave(gui.Git.WithSpan(gui.Tr.Spans.StashStagedChanges).StashSaveStagedChanges)
 			},
 		},
 	}
@@ -752,7 +753,7 @@ func (gui *Gui) handleCreateStashMenu() error {
 }
 
 func (gui *Gui) handleStashChanges() error {
-	return gui.handleStashSave(gui.GitCommand.StashSave)
+	return gui.handleStashSave(gui.Git.StashSave)
 }
 
 func (gui *Gui) handleCreateResetToUpstreamMenu() error {
@@ -806,7 +807,7 @@ func (gui *Gui) handleOpenMergeTool() error {
 		Title:  gui.Tr.MergeToolTitle,
 		Prompt: gui.Tr.MergeToolPrompt,
 		HandleConfirm: func() error {
-			return gui.runSubprocessWithSuspenseAndRefresh(gui.GitCommand.OpenMergeToolCmdObj())
+			return gui.runSubprocessWithSuspenseAndRefresh(gui.Git.OpenMergeToolCmdObj())
 		},
 	})
 }

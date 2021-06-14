@@ -10,7 +10,7 @@ import (
 // fix this bug, or just stop running subprocesses from within there, given that
 // we don't need to see a loading status if we're in a subprocess.
 func (gui *Gui) withGpgHandling(cmdObj ICmdObj, waitingStatus string, onSuccess func() error) error {
-	useSubprocess := gui.GitCommand.UsingGpg()
+	useSubprocess := gui.Git.UsingGpg()
 	if useSubprocess {
 		success, err := gui.runSubprocessWithSuspense(cmdObj)
 		if success && onSuccess != nil {
@@ -27,7 +27,7 @@ func (gui *Gui) withGpgHandling(cmdObj ICmdObj, waitingStatus string, onSuccess 
 		}
 	} else {
 		return gui.WithWaitingStatus(waitingStatus, func() error {
-			err := gui.OSCommand.Run(cmdObj)
+			err := gui.Git.Run(cmdObj)
 			if err != nil {
 				return err
 			} else if onSuccess != nil {

@@ -6,14 +6,14 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
-func (c *GitCommand) FlowStart(branchType string, name string) ICmdObj {
+func (c *Git) FlowStart(branchType string, name string) ICmdObj {
 	return BuildGitCmdObjFromStr(fmt.Sprintf("flow %s start %s", branchType, name))
 }
 
-func (c *GitCommand) FlowFinish(branchType string, name string) ICmdObj {
+func (c *Git) FlowFinish(branchType string, name string) ICmdObj {
 	return BuildGitCmdObjFromStr(fmt.Sprintf("flow %s finish %s", branchType, name))
 }
 
-func (c *GitCommand) GetGitFlowRegexpConfig() (string, error) {
+func (c *Git) GetGitFlowRegexpConfig() (string, error) {
 	return c.RunWithOutput(BuildGitCmdObjFromStr("config --local --get-regexp gitflow"))
 }

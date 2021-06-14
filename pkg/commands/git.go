@@ -6,11 +6,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/go-errors/errors"
 
 	gogit "github.com/jesseduffield/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
@@ -27,14 +28,15 @@ import (
 // and returns '264fc6f5' as the second match
 const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
-// GitCommand is our main git interface
-type GitCommand struct {
+// Git is our main git interface
+type Git struct {
+	*Commander
+	*GitConfig
 	log                  *logrus.Entry
-	oSCommand            *oscommands.OSCommand
+	os                   *oscommands.OS
 	repo                 *gogit.Repository
 	tr                   *i18n.TranslationSet
 	config               config.AppConfigurer
-	getGitConfigValue    func(string) (string, error)
 	dotGitDir            string
 	onSuccessfulContinue func() error
 
@@ -45,30 +47,22 @@ type GitCommand struct {
 	handleCredentialError   func(error)
 }
 
-func (c *GitCommand) GetPushToCurrent() bool {
+func (c *Git) GetPushToCurrent() bool {
 	return c.pushToCurrent
 }
 
-// NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer) (*GitCommand, error) {
-	var repo *gogit.Repository
+func (c *Git) GetLog() *logrus.Entry {
+	return c.log
+}
 
-	// see what our default push behaviour is
-	output, err := osCommand.RunWithOutput(
-		BuildGitCmdObjFromStr("config --get push.default"),
-	)
-	pushToCurrent := false
-	if err != nil {
-		log.Errorf("error reading git config: %v", err)
-	} else {
-		pushToCurrent = strings.TrimSpace(output) == "current"
-	}
-
+// NewGit it runs git commands
+func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, config config.AppConfigurer) (*Git, error) {
 	if err := navigateToRepoRootDirectory(os.Stat, os.Chdir); err != nil {
 		return nil, err
 	}
 
-	if repo, err = setupRepository(gogit.PlainOpen, tr.GitconfigParseErr); err != nil {
+	repo, err := setupRepository(gogit.PlainOpen, tr.GitconfigParseErr)
+	if err != nil {
 		return nil, err
 	}
 
@@ -77,25 +71,32 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 		return nil, err
 	}
 
-	gitCommand := &GitCommand{
-		log:               log,
-		oSCommand:         osCommand,
-		tr:                tr,
-		repo:              repo,
-		config:            config,
-		getGitConfigValue: getGitConfigValue,
-		dotGitDir:         dotGitDir,
-		pushToCurrent:     pushToCurrent,
+	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath())
+	gitConfig := NewGitConfig(commander, config.GetUserConfig(), getGitConfigValue, log)
+
+	gitCommand := &Git{
+		Commander: commander,
+		GitConfig: gitConfig,
+		log:       log,
+		os:        oS,
+		tr:        tr,
+		repo:      repo,
+		config:    config,
+		dotGitDir: dotGitDir,
 	}
 
 	return gitCommand, nil
 }
 
-func (c *GitCommand) NewPatchManager() *patch.PatchManager {
+func (c *Git) Quote(str string) string {
+	return c.os.Quote(str)
+}
+
+func (c *Git) NewPatchManager() *patch.PatchManager {
 	return patch.NewPatchManager(c.log, c.ShowFileDiff)
 }
 
-func (c *GitCommand) WithSpan(span string) IGitCommand {
+func (c *Git) WithSpan(span string) IGit {
 	// sometimes .WithSpan(span) will be called where span actually is empty, in
 	// which case we don't need to log anything so we can just return early here
 	// with the original struct
@@ -103,11 +104,11 @@ func (c *GitCommand) WithSpan(span string) IGitCommand {
 		return c
 	}
 
-	newGitCommand := &GitCommand{}
-	*newGitCommand = *c
-	newGitCommand.oSCommand = c.GetOSCommand().WithSpan(span)
+	newGit := &Git{}
+	*newGit = *c
+	newGit.os = c.GetOS().WithSpan(span)
 
-	return newGitCommand
+	return newGit
 }
 
 func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {
@@ -146,7 +147,7 @@ func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir f
 
 		atRoot := currentPath == filepath.Dir(currentPath)
 		if atRoot {
-			// we should never really land here: the code that creates GitCommand should
+			// we should never really land here: the code that creates Git should
 			// verify we're in a git directory
 			return errors.New("Must open lazygit in a git repository")
 		}
@@ -220,118 +221,17 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 	return strings.TrimSpace(strings.TrimPrefix(fileContent, "gitdir: ")), nil
 }
 
-func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
+func VerifyInGitRepo(osCommand *oscommands.OS) error {
 	return osCommand.Run(
 		BuildGitCmdObjFromStr("rev-parse --git-dir"),
 	)
 }
 
-func (c *GitCommand) Run(cmdObj ICmdObj) error {
-	_, err := c.RunWithOutput(cmdObj)
-	return err
+func (c *Git) GetOS() *oscommands.OS {
+	return c.os
 }
 
-func (c *GitCommand) RunWithOutput(cmdObj ICmdObj) (string, error) {
-	// TODO: have this retry logic in other places we run the command
-	waitTime := 50 * time.Millisecond
-	retryCount := 5
-	attempt := 0
-
-	for {
-		output, err := c.GetOSCommand().RunWithOutput(cmdObj)
-		if err != nil {
-			// if we have an error based on the index lock, we should wait a bit and then retry
-			if strings.Contains(output, ".git/index.lock") {
-				c.log.Error(output)
-				c.log.Info("index.lock prevented command from running. Retrying command after a small wait")
-				attempt++
-				time.Sleep(waitTime)
-				if attempt < retryCount {
-					continue
-				}
-			}
-		}
-		return output, err
-	}
-}
-
-func (c *GitCommand) GetOSCommand() *oscommands.OSCommand {
-	return c.oSCommand
-}
-
-func BuildGitCmdStr(command string, positionalArgs []string, kwArgs map[string]bool) string {
-	parts := []string{command}
-
-	if len(kwArgs) > 0 {
-		args := make([]string, 0, len(kwArgs))
-		for arg, include := range kwArgs {
-			if include {
-				args = append(args, arg)
-			}
-		}
-		utils.SortAlphabeticalInPlace(args)
-
-		parts = append(parts, args...)
-	}
-
-	if len(positionalArgs) > 0 {
-		parts = append(parts, positionalArgs...)
-	}
-
-	parts = utils.ExcludeEmpty(parts)
-
-	return strings.Join(parts, " ")
-}
-
-func BuildGitCmdObj(command string, positionalArgs []string, kwArgs map[string]bool) ICmdObj {
-	return BuildGitCmdObjFromStr(BuildGitCmdStr(command, positionalArgs, kwArgs))
-}
-
-// returns a command object from a command string. Prepends the `git ` part itself so
-// if you want to do `git diff` just pass `diff` as the cmdStr
-func BuildGitCmdObjFromStr(cmdStr string) ICmdObj {
-	cmdObj := oscommands.NewCmdObjFromStr(GitCmdStr() + " " + cmdStr)
-	SetDefaultEnvVars(cmdObj)
-
-	return cmdObj
-}
-
-func BuildGitCmdObjFromArgs(args []string) ICmdObj {
-	cmdObj := oscommands.NewCmdObjFromArgs(append([]string{GitCmdStr()}, args...))
-	SetDefaultEnvVars(cmdObj)
-
-	return cmdObj
-}
-
-func GitInitCmd() ICmdObj {
-	return BuildGitCmdObjFromStr("init")
-}
-
-func GitVersionCmd() ICmdObj {
-	return BuildGitCmdObjFromStr("--version")
-}
-
-func SetDefaultEnvVars(cmdObj ICmdObj) {
-	cmdObj.GetCmd().Env = os.Environ()
-	DisableOptionalLocks(cmdObj)
-}
-
-func DisableOptionalLocks(cmdObj ICmdObj) {
-	cmdObj.AddEnvVars("GIT_OPTIONAL_LOCKS=0")
-}
-
-func (c *GitCommand) SkipEditor(cmdObj ICmdObj) {
-	lazyGitPath := c.GetOSCommand().GetLazygitPath()
-
-	cmdObj.AddEnvVars(
-		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
-		"GIT_EDITOR="+lazyGitPath,
-		"EDITOR="+lazyGitPath,
-		"VISUAL="+lazyGitPath,
-	)
-}
-
-func (c *GitCommand) AllBranchesCmdObj() ICmdObj {
+func (c *Git) AllBranchesCmdObj() ICmdObj {
 	cmdStr := c.cleanCustomGitCmdStr(
 		c.config.GetUserConfig().Git.AllBranchesLogCmd,
 	)
@@ -339,7 +239,7 @@ func (c *GitCommand) AllBranchesCmdObj() ICmdObj {
 	return BuildGitCmdObjFromStr(cmdStr)
 }
 
-func (c *GitCommand) cleanCustomGitCmdStr(cmdStr string) string {
+func (c *Git) cleanCustomGitCmdStr(cmdStr string) string {
 	if strings.HasPrefix(cmdStr, "git ") {
 		return GitCmdStr() + strings.TrimPrefix(cmdStr, "git")
 	} else {
@@ -347,27 +247,15 @@ func (c *GitCommand) cleanCustomGitCmdStr(cmdStr string) string {
 	}
 }
 
-// We may have use for centralising this e.g. so that we call a specific executable
-// or so that we can prepend some flags for bare repos.
-// TODO: make this a method on the GitCommand struct
-func GitCmdStr() string {
-	return "git"
-}
-
-// BuildShellCmdObj returns the pointer to a custom command
-func (c *GitCommand) BuildShellCmdObj(command string) ICmdObj {
-	return oscommands.NewCmdObjFromArgs([]string{c.oSCommand.Platform.Shell, c.oSCommand.Platform.ShellArg, command})
-}
-
-func (c *GitCommand) GenericAbortCmdObj() ICmdObj {
+func (c *Git) GenericAbortCmdObj() ICmdObj {
 	return c.GenericMergeOrRebaseCmdObj("abort")
 }
 
-func (c *GitCommand) GenericContinueCmdObj() ICmdObj {
+func (c *Git) GenericContinueCmdObj() ICmdObj {
 	return c.GenericMergeOrRebaseCmdObj("continue")
 }
 
-func (c *GitCommand) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
+func (c *Git) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
 	status := c.WorkingTreeState()
 	switch status {
 	case REBASE_MODE_REBASING:
@@ -379,6 +267,10 @@ func (c *GitCommand) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
 	}
 }
 
-func (c *GitCommand) RunGitCmdFromStr(cmdStr string) error {
+func (c *Git) RunGitCmdFromStr(cmdStr string) error {
 	return c.Run(BuildGitCmdObjFromStr(cmdStr))
+}
+
+func (c *Git) GetStatusFiles(opts loaders.LoadStatusFilesOpts) []*models.File {
+	return loaders.NewStatusFileLoader(c).Load(opts)
 }

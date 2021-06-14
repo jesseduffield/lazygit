@@ -20,7 +20,7 @@ func (gui *Gui) handleCommitConfirm() error {
 		flags = "--no-verify"
 	}
 
-	cmdObj := gui.GitCommand.CommitCmdObj(message, flags)
+	cmdObj := gui.Git.CommitCmdObj(message, flags)
 	gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.Commit))
 	return gui.withGpgHandling(cmdObj, gui.Tr.CommittingStatus, func() error {
 		_ = gui.returnFromContext()

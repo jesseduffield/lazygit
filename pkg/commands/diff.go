@@ -8,14 +8,14 @@ import (
 )
 
 // WorktreeFileDiff returns the diff of a file
-func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
+func (c *Git) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := c.GetOSCommand().RunWithOutput(c.WorktreeFileDiffCmdObj(file, plain, cached))
+	s, _ := c.RunWithOutput(c.WorktreeFileDiffCmdObj(file, plain, cached))
 	return s
 }
 
-func (c *GitCommand) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) ICmdObj {
-	path := c.GetOSCommand().Quote(node.GetPath())
+func (c *Git) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) ICmdObj {
+	path := c.GetOS().Quote(node.GetPath())
 
 	var colorArg string
 	if plain {
@@ -47,12 +47,12 @@ func (c *GitCommand) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cache
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
-func (c *GitCommand) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
+func (c *Git) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
 	return c.RunWithOutput(c.ShowFileDiffCmdObj(from, to, reverse, fileName, plain, false))
 }
 
 // we may just want to always hide renames, or always show renames. I've combined two functions that were both identical except for that flag here, but I doubt that flag was particularly important.
-func (c *GitCommand) ShowFileDiffCmdObj(from string, to string, reverse bool, path string, plain bool, showRenames bool) ICmdObj {
+func (c *Git) ShowFileDiffCmdObj(from string, to string, reverse bool, path string, plain bool, showRenames bool) ICmdObj {
 	colorArg := c.colorArg()
 	if plain {
 		colorArg = "never"
@@ -74,7 +74,7 @@ func (c *GitCommand) ShowFileDiffCmdObj(from string, to string, reverse bool, pa
 }
 
 // we've got this as a separate function because the GUI wants to display this part to the user
-func (c *GitCommand) DiffEndArgs(from string, to string, reverse bool, path string) string {
+func (c *Git) DiffEndArgs(from string, to string, reverse bool, path string) string {
 	output := from
 	if to != "" {
 		output += " " + to

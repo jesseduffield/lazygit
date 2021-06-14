@@ -7,7 +7,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
-func (c *GitCommand) SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error)) {
+func (c *Git) SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error)) {
 	c.promptUserForCredential = promptUserForCredential
 	c.handleCredentialError = handleCredentialError
 }
@@ -15,9 +15,9 @@ func (c *GitCommand) SetCredentialHandlers(promptUserForCredential func(Credenti
 // RunCommandWithCredentialsPrompt detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (c *GitCommand) RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error {
+func (c *Git) RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error {
 	ttyText := ""
-	err := c.oSCommand.RunAndParseWords(cmdObj, func(word string) string {
+	err := c.os.RunAndParseWords(cmdObj, func(word string) string {
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]CredentialKind{
@@ -41,14 +41,14 @@ func (c *GitCommand) RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error {
 }
 
 // this goes one step beyond RunCommandWithCredentialsPrompt and handles a credential error
-func (c *GitCommand) RunCommandWithCredentialsHandling(cmdObj ICmdObj) error {
+func (c *Git) RunCommandWithCredentialsHandling(cmdObj ICmdObj) error {
 	err := c.RunCommandWithCredentialsPrompt(cmdObj)
 	c.handleCredentialError(err)
 	return nil
 }
 
-func (c *GitCommand) FailOnCredentialsRequest(cmdObj ICmdObj) ICmdObj {
-	lazyGitPath := c.GetOSCommand().GetLazygitPath()
+func (c *Git) FailOnCredentialsRequest(cmdObj ICmdObj) ICmdObj {
+	lazyGitPath := c.GetOS().GetLazygitPath()
 
 	cmdObj.AddEnvVars(
 		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
@@ -67,7 +67,7 @@ type PushOpts struct {
 	DestinationBranch string
 }
 
-func (c *GitCommand) Push(opts PushOpts) (bool, error) {
+func (c *Git) Push(opts PushOpts) (bool, error) {
 	cmdObj := BuildGitCmdObj("push", []string{opts.DestinationRemote, opts.DestinationBranch},
 		map[string]bool{
 			"--follow-tags":      c.GetConfigValue("push.followTags") != "false",
@@ -96,30 +96,30 @@ type FetchOptions struct {
 }
 
 // Fetch fetch git repo
-func (c *GitCommand) Fetch(opts FetchOptions) error {
+func (c *Git) Fetch(opts FetchOptions) error {
 	cmdObj := GetFetchCommandObj(opts)
 
 	return c.RunCommandWithCredentialsHandling(cmdObj)
 }
 
 // FetchInBackground fails if credentials are requested
-func (c *GitCommand) FetchInBackground(opts FetchOptions) error {
+func (c *Git) FetchInBackground(opts FetchOptions) error {
 	cmdObj := GetFetchCommandObj(opts)
 
 	cmdObj = c.FailOnCredentialsRequest(cmdObj)
-	return c.oSCommand.Run(cmdObj)
+	return c.Run(cmdObj)
 }
 
 func GetFetchCommandObj(opts FetchOptions) ICmdObj {
 	return BuildGitCmdObj("fetch", []string{opts.RemoteName, opts.BranchName}, nil)
 }
 
-func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string) error {
+func (c *Git) FastForward(branchName string, remoteName string, remoteBranchName string) error {
 	cmdObj := BuildGitCmdObj("fetch", []string{remoteName, remoteBranchName + ":" + branchName}, nil)
 	return c.RunCommandWithCredentialsHandling(cmdObj)
 }
 
-func (c *GitCommand) FetchRemote(remoteName string) error {
+func (c *Git) FetchRemote(remoteName string) error {
 	cmdObj := BuildGitCmdObj("fetch", []string{remoteName}, nil)
 	return c.RunCommandWithCredentialsHandling(cmdObj)
 }

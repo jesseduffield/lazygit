@@ -17,15 +17,15 @@ const (
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
 // and "interactive" for interactive rebase
-func (c *GitCommand) RebaseMode() (WorkingTreeState, error) {
-	exists, err := c.GetOSCommand().FileExists(filepath.Join(c.dotGitDir, "rebase-apply"))
+func (c *Git) RebaseMode() (WorkingTreeState, error) {
+	exists, err := c.GetOS().FileExists(filepath.Join(c.dotGitDir, "rebase-apply"))
 	if err != nil {
 		return "", err
 	}
 	if exists {
 		return REBASE_MODE_NORMAL, nil
 	}
-	exists, err = c.GetOSCommand().FileExists(filepath.Join(c.dotGitDir, "rebase-merge"))
+	exists, err = c.GetOS().FileExists(filepath.Join(c.dotGitDir, "rebase-merge"))
 	if exists {
 		return REBASE_MODE_INTERACTIVE, err
 	} else {
@@ -33,7 +33,7 @@ func (c *GitCommand) RebaseMode() (WorkingTreeState, error) {
 	}
 }
 
-func (c *GitCommand) WorkingTreeState() WorkingTreeState {
+func (c *Git) WorkingTreeState() WorkingTreeState {
 	rebaseMode, _ := c.RebaseMode()
 	if rebaseMode != "" {
 		return REBASE_MODE_REBASING
@@ -46,11 +46,11 @@ func (c *GitCommand) WorkingTreeState() WorkingTreeState {
 }
 
 // IsInMergeState states whether we are still mid-merge
-func (c *GitCommand) IsInMergeState() (bool, error) {
-	return c.GetOSCommand().FileExists(filepath.Join(c.dotGitDir, "MERGE_HEAD"))
+func (c *Git) IsInMergeState() (bool, error) {
+	return c.GetOS().FileExists(filepath.Join(c.dotGitDir, "MERGE_HEAD"))
 }
 
-func (c *GitCommand) IsBareRepo() bool {
+func (c *Git) IsBareRepo() bool {
 	// note: could use `git rev-parse --is-bare-repository` if we wanna drop go-git
 	_, err := c.repo.Worktree()
 	return err == gogit.ErrIsBareRepository

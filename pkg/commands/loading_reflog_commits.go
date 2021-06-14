@@ -11,13 +11,13 @@ import (
 
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
-func (c *GitCommand) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
+func (c *Git) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
 	commits := make([]*models.Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 
 	filterPathArg := ""
 	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" --follow -- %s", c.GetOSCommand().Quote(filterPath))
+		filterPathArg = fmt.Sprintf(" --follow -- %s", c.GetOS().Quote(filterPath))
 	}
 
 	cmdObj := BuildGitCmdObjFromStr(fmt.Sprintf("reflog --abbrev=20 --date=unix %s", filterPathArg))

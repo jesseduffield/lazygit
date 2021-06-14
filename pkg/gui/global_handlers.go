@@ -192,7 +192,7 @@ func (gui *Gui) fetch() (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	err = gui.GitCommand.WithSpan("Fetch").Fetch(commands.FetchOptions{})
+	err = gui.Git.WithSpan("Fetch").Fetch(commands.FetchOptions{})
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = gui.CreateErrorPanel(gui.Tr.PassUnameWrong)
@@ -207,7 +207,7 @@ func (gui *Gui) fetchInBackground() (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	_ = gui.GitCommand.FetchInBackground(commands.FetchOptions{})
+	_ = gui.Git.FetchInBackground(commands.FetchOptions{})
 
 	gui.refreshAfterFetch()
 
@@ -226,7 +226,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CopyToClipboard).CopyToClipboard(itemId); err != nil {
+	if err := gui.OS.WithSpan(gui.Tr.Spans.CopyToClipboard).CopyToClipboard(itemId); err != nil {
 		return gui.SurfaceError(err)
 	}
 

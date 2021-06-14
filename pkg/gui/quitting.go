@@ -22,7 +22,7 @@ func (gui *Gui) recordCurrentDirectory() error {
 		return err
 	}
 
-	return gui.OSCommand.CreateFileWithContent(os.Getenv("LAZYGIT_NEW_DIR_FILE"), dirName)
+	return gui.OS.CreateFileWithContent(os.Getenv("LAZYGIT_NEW_DIR_FILE"), dirName)
 }
 
 func (gui *Gui) handleQuitWithoutChangingDirectory() error {

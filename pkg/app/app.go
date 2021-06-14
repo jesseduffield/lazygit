@@ -31,8 +31,8 @@ type App struct {
 
 	Config        config.AppConfigurer
 	Log           *logrus.Entry
-	OSCommand     *oscommands.OSCommand
-	GitCommand    *commands.GitCommand
+	OS            *oscommands.OS
+	Git           *commands.Git
 	Gui           *gui.Gui
 	Tr            *i18n.TranslationSet
 	Updater       *updates.Updater // may only need this on the Gui
@@ -112,9 +112,9 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, nil
 	}
 
-	app.OSCommand = oscommands.NewOSCommand(app.Log, config)
+	app.OS = oscommands.NewOS(app.Log, config)
 
-	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand, app.Tr)
+	app.Updater, err = updates.NewUpdater(app.Log, config, app.OS, app.Tr)
 	if err != nil {
 		return app, err
 	}
@@ -124,12 +124,12 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
-	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr, app.Config)
+	app.Git, err = commands.NewGit(app.Log, app.OS, app.Tr, app.Config)
 	if err != nil {
 		return app, err
 	}
 
-	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater, filterPath, showRecentRepos)
+	app.Gui, err = gui.NewGui(app.Log, app.Git, app.OS, app.Tr, config, app.Updater, filterPath, showRecentRepos)
 	if err != nil {
 		return app, err
 	}
@@ -137,7 +137,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 }
 
 func (app *App) validateGitVersion() error {
-	output, err := app.OSCommand.RunWithOutput(commands.GitVersionCmd())
+	output, err := app.OS.RunWithOutput(commands.GitVersionCmd())
 	// if we get an error anywhere here we'll show the same status
 	minVersionError := errors.New(app.Tr.MinGitVersionError)
 	if err != nil {
@@ -178,12 +178,12 @@ func (app *App) setupRepo() (bool, error) {
 	}
 
 	if env.GetGitDirEnv() != "" {
-		// we've been given the git dir directly. We'll verify this dir when initializing our GitCommand object
+		// we've been given the git dir directly. We'll verify this dir when initializing our Git object
 		return false, nil
 	}
 
 	// if we are not in a git repo, we ask if we want to `git init`
-	if err := commands.VerifyInGitRepo(app.OSCommand); err != nil {
+	if err := commands.VerifyInGitRepo(app.OS); err != nil {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return false, err
@@ -222,7 +222,7 @@ func (app *App) setupRepo() (bool, error) {
 
 			os.Exit(1)
 		}
-		if err := app.OSCommand.Run(commands.GitInitCmd()); err != nil {
+		if err := app.OS.Run(commands.GitInitCmd()); err != nil {
 			return false, err
 		}
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (c *GitCommand) getUnfilteredStashEntries() []*models.StashEntry {
+func (c *Git) getUnfilteredStashEntries() []*models.StashEntry {
 	rawString, _ := c.RunWithOutput(
 		BuildGitCmdObjFromStr("stash list --pretty='%gs'"),
 	)
@@ -21,7 +21,7 @@ func (c *GitCommand) getUnfilteredStashEntries() []*models.StashEntry {
 }
 
 // GetStashEntries stash entries
-func (c *GitCommand) GetStashEntries(filterPath string) []*models.StashEntry {
+func (c *Git) GetStashEntries(filterPath string) []*models.StashEntry {
 	if filterPath == "" {
 		return c.getUnfilteredStashEntries()
 	}

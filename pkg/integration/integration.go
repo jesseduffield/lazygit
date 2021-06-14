@@ -44,7 +44,7 @@ func RunTests(
 
 	testDir := filepath.Join(rootDir, "test", "integration")
 
-	osCommand := oscommands.NewDummyOSCommand()
+	osCommand := oscommands.NewDummyOS()
 	err = osCommand.Run(
 		oscommands.NewCmdObjFromStr(
 			fmt.Sprintf("go build -o %s", tempLazygitPath()),
@@ -185,7 +185,7 @@ func GetRootDirectory() string {
 }
 
 func createFixture(testPath, actualDir string) error {
-	osCommand := oscommands.NewDummyOSCommand()
+	osCommand := oscommands.NewDummyOS()
 	bashScriptPath := filepath.Join(testPath, "setup.sh")
 
 	err := osCommand.Run(
@@ -277,7 +277,7 @@ func findOrCreateDir(path string) {
 }
 
 func generateSnapshot(dir string) (string, error) {
-	osCommand := oscommands.NewDummyOSCommand()
+	osCommand := oscommands.NewDummyOS()
 
 	_, err := os.Stat(filepath.Join(dir, ".git"))
 	if err != nil {
@@ -361,7 +361,7 @@ func generateSnapshots(actualDir string, expectedDir string) (string, string, er
 }
 
 func getLazygitCommand(testPath string, rootDir string, record bool, speed float64, extraCmdArgs string) (*exec.Cmd, error) {
-	osCommand := oscommands.NewDummyOSCommand()
+	osCommand := oscommands.NewDummyOS()
 
 	replayPath := filepath.Join(testPath, "recording.json")
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")

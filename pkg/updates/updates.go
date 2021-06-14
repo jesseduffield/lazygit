@@ -25,10 +25,10 @@ import (
 
 // Updater checks for updates and does updates
 type Updater struct {
-	Log       *logrus.Entry
-	Config    config.AppConfigurer
-	OSCommand *oscommands.OSCommand
-	Tr        *i18n.TranslationSet
+	Log    *logrus.Entry
+	Config config.AppConfigurer
+	OS     *oscommands.OS
+	Tr     *i18n.TranslationSet
 }
 
 // Updaterer implements the check and update methods
@@ -38,14 +38,14 @@ type Updaterer interface {
 }
 
 // NewUpdater creates a new updater
-func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet) (*Updater, error) {
+func NewUpdater(log *logrus.Entry, config config.AppConfigurer, os *oscommands.OS, tr *i18n.TranslationSet) (*Updater, error) {
 	contextLogger := log.WithField("context", "updates")
 
 	return &Updater{
-		Log:       contextLogger,
-		Config:    config,
-		OSCommand: osCommand,
-		Tr:        tr,
+		Log:    contextLogger,
+		Config: config,
+		OS:     os,
+		Tr:     tr,
 	}, nil
 }
 
@@ -305,9 +305,9 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	}
 
 	u.Log.Info("untarring tarball/unzipping zip file")
-	err = u.OSCommand.Run(
+	err = u.OS.Run(
 		oscommands.NewCmdObjFromStr(
-			fmt.Sprintf("tar -zxf %s %s", u.OSCommand.Quote(zipPath), "lazygit"),
+			fmt.Sprintf("tar -zxf %s %s", u.OS.Quote(zipPath), "lazygit"),
 		),
 	)
 	if err != nil {

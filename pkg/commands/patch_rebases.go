@@ -9,7 +9,7 @@ import (
 )
 
 // DeletePatchesFromCommit applies a patch in reverse for a commit
-func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int, p *patch.PatchManager) error {
+func (c *Git) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int, p *patch.PatchManager) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitInd
 	return c.ContinueRebase()
 }
 
-func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error {
+func (c *Git) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error {
 	if sourceCommitIdx < destinationCommitIdx {
 		if err := c.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx); err != nil {
 			return err
@@ -86,7 +86,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	}
 
 	if err := c.Run(
-		c.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true),
+		c.InteractiveRebaseCmdObj(commits[baseIndex].Sha, todo, true),
 	); err != nil {
 		return err
 	}
@@ -134,7 +134,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	return c.ContinueRebase()
 }
 
-func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
+func (c *Git) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
 	if stash {
 		if err := c.StashSave(c.tr.StashPrefix + commits[commitIdx].Sha); err != nil {
 			return err
@@ -187,7 +187,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 	return c.ContinueRebase()
 }
 
-func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p *patch.PatchManager) error {
+func (c *Git) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p *patch.PatchManager) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
 		return err
 	}

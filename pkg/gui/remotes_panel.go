@@ -41,7 +41,7 @@ func (gui *Gui) handleRemoteSelect() error {
 func (gui *Gui) refreshRemotes() error {
 	prevSelectedRemote := gui.getSelectedRemote()
 
-	remotes, err := gui.GitCommand.GetRemotes()
+	remotes, err := gui.Git.GetRemotes()
 	if err != nil {
 		return gui.SurfaceError(err)
 	}
@@ -86,7 +86,7 @@ func (gui *Gui) handleAddRemote() error {
 			return gui.Prompt(PromptOpts{
 				Title: gui.Tr.LcNewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
-					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.AddRemote).AddRemote(remoteName, remoteUrl); err != nil {
+					if err := gui.Git.WithSpan(gui.Tr.Spans.AddRemote).AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
 					return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{REMOTES}})
@@ -107,7 +107,7 @@ func (gui *Gui) handleRemoveRemote() error {
 		Title:  gui.Tr.LcRemoveRemote,
 		Prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		HandleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveRemote).RemoveRemote(remote.Name); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.RemoveRemote).RemoveRemote(remote.Name); err != nil {
 				return gui.SurfaceError(err)
 			}
 
@@ -129,7 +129,7 @@ func (gui *Gui) handleEditRemote() error {
 		},
 	)
 
-	gitCommand := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateRemote)
+	gitCommand := gui.Git.WithSpan(gui.Tr.Spans.UpdateRemote)
 
 	return gui.Prompt(PromptOpts{
 		Title:          editNameMessage,
@@ -178,7 +178,7 @@ func (gui *Gui) handleFetchRemote() error {
 		gui.Mutexes.FetchMutex.Lock()
 		defer gui.Mutexes.FetchMutex.Unlock()
 
-		err := gui.GitCommand.FetchRemote(remote.Name)
+		err := gui.Git.FetchRemote(remote.Name)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}

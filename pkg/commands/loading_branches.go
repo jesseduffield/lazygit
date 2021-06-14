@@ -23,21 +23,21 @@ import (
 // BranchListBuilder returns a list of Branch objects for the current repo
 type BranchListBuilder struct {
 	Log           *logrus.Entry
-	GitCommand    *GitCommand
+	Git           *Git
 	ReflogCommits []*models.Commit
 }
 
 // NewBranchListBuilder builds a new branch list builder
-func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, reflogCommits []*models.Commit) (*BranchListBuilder, error) {
+func NewBranchListBuilder(log *logrus.Entry, gitCommand *Git, reflogCommits []*models.Commit) (*BranchListBuilder, error) {
 	return &BranchListBuilder{
 		Log:           log,
-		GitCommand:    gitCommand,
+		Git:           gitCommand,
 		ReflogCommits: reflogCommits,
 	}, nil
 }
 
 func (b *BranchListBuilder) obtainBranches() []*models.Branch {
-	output, err := b.GitCommand.RunWithOutput(
+	output, err := b.Git.RunWithOutput(
 		BuildGitCmdObjFromStr(
 			`for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`,
 		),
@@ -131,7 +131,7 @@ outer:
 		}
 	}
 	if !foundHead {
-		currentBranchName, currentBranchDisplayName, err := b.GitCommand.CurrentBranchName()
+		currentBranchName, currentBranchDisplayName, err := b.Git.CurrentBranchName()
 		if err != nil {
 			panic(err)
 		}

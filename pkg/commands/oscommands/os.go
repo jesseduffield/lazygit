@@ -30,8 +30,8 @@ type Platform struct {
 	OpenLinkCommand string
 }
 
-// OSCommand holds all the os commands
-type OSCommand struct {
+// OS holds all the os commands
+type OS struct {
 	Log      *logrus.Entry
 	Platform *Platform
 	Config   config.AppConfigurer
@@ -47,9 +47,9 @@ type OSCommand struct {
 	removeFile func(string) error
 }
 
-// NewOSCommand os command runner
-func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
-	return &OSCommand{
+// NewOS os command runner
+func NewOS(log *logrus.Entry, config config.AppConfigurer) *OS {
+	return &OS{
 		Log:        log,
 		Platform:   getPlatform(),
 		Config:     config,
@@ -59,7 +59,7 @@ func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
 	}
 }
 
-func (c *OSCommand) WithSpan(span string) *OSCommand {
+func (c *OS) WithSpan(span string) *OS {
 	// sometimes .WithSpan(span) will be called where span actually is empty, in
 	// which case we don't need to log anything so we can just return early here
 	// with the original struct
@@ -67,17 +67,17 @@ func (c *OSCommand) WithSpan(span string) *OSCommand {
 		return c
 	}
 
-	newOSCommand := &OSCommand{}
-	*newOSCommand = *c
-	newOSCommand.CmdLogSpan = span
-	return newOSCommand
+	newOS := &OS{}
+	*newOS = *c
+	newOS.CmdLogSpan = span
+	return newOS
 }
 
-func (c *OSCommand) LogCmd(cmd ICmdObj) {
+func (c *OS) LogCmd(cmd ICmdObj) {
 	c.LogCommand(cmd.ToString(), true)
 }
 
-func (c *OSCommand) LogCommand(cmdStr string, commandLine bool) {
+func (c *OS) LogCommand(cmdStr string, commandLine bool) {
 	c.Log.WithField("command", cmdStr).Info("RunCommand")
 
 	if c.onRunCommand != nil && c.CmdLogSpan != "" {
@@ -85,22 +85,22 @@ func (c *OSCommand) LogCommand(cmdStr string, commandLine bool) {
 	}
 }
 
-func (c *OSCommand) SetOnRunCommand(f func(CmdLogEntry)) {
+func (c *OS) SetOnRunCommand(f func(CmdLogEntry)) {
 	c.onRunCommand = f
 }
 
 // SetCommand sets the command function used by the struct.
 // To be used for testing only
-func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
+func (c *OS) SetCommand(cmd func(string, ...string) *exec.Cmd) {
 	c.Command = cmd
 }
 
 // To be used for testing only
-func (c *OSCommand) SetRemoveFile(f func(string) error) {
+func (c *OS) SetRemoveFile(f func(string) error) {
 	c.removeFile = f
 }
 
-func (c *OSCommand) CatFile(filename string) (string, error) {
+func (c *OS) CatFile(filename string) (string, error) {
 	arr := append(c.Platform.CatCmd, filename)
 	cmdStr := strings.Join(arr, " ")
 	c.Log.WithField("command", cmdStr).Info("Cat")
@@ -113,7 +113,7 @@ func (c *OSCommand) CatFile(filename string) (string, error) {
 }
 
 // FileType tells us if the file is a file, directory or other
-func (c *OSCommand) FileType(path string) string {
+func (c *OS) FileType(path string) string {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		return "other"
@@ -138,7 +138,7 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 }
 
 // OpenFile opens a file with the given
-func (c *OSCommand) OpenFile(filename string) error {
+func (c *OS) OpenFile(filename string) error {
 	commandTemplate := c.Config.GetUserConfig().OS.OpenCommand
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
@@ -149,7 +149,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 }
 
 // OpenLink opens a file with the given
-func (c *OSCommand) OpenLink(link string) error {
+func (c *OS) OpenLink(link string) error {
 	c.LogCommand(fmt.Sprintf("Opening link '%s'", link), false)
 	commandTemplate := c.Config.GetUserConfig().OS.OpenLinkCommand
 	templateValues := map[string]string{
@@ -161,7 +161,7 @@ func (c *OSCommand) OpenLink(link string) error {
 }
 
 // Quote wraps a message in platform-specific quotation marks
-func (c *OSCommand) Quote(message string) string {
+func (c *OS) Quote(message string) string {
 	if c.Platform.OS == "windows" {
 		message = strings.Replace(message, `"`, `"'"'"`, -1)
 		message = strings.Replace(message, `\"`, `\\"`, -1)
@@ -176,7 +176,7 @@ func (c *OSCommand) Quote(message string) string {
 }
 
 // AppendLineToFile adds a new line in file
-func (c *OSCommand) AppendLineToFile(filename, line string) error {
+func (c *OS) AppendLineToFile(filename, line string) error {
 	c.LogCommand(fmt.Sprintf("Appending '%s' to file '%s'", line, filename), false)
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
@@ -192,7 +192,7 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 }
 
 // CreateTempFile writes a string to a new temp file and returns the file's name
-func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
+func (c *OS) CreateTempFile(filename, content string) (string, error) {
 	tmpfile, err := ioutil.TempFile("", filename)
 	if err != nil {
 		c.Log.Error(err)
@@ -213,7 +213,7 @@ func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
 }
 
 // CreateFileWithContent creates a file with the given content
-func (c *OSCommand) CreateFileWithContent(path string, content string) error {
+func (c *OS) CreateFileWithContent(path string, content string) error {
 	c.LogCommand(fmt.Sprintf("Creating file '%s'", path), false)
 	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
 		c.Log.Error(err)
@@ -229,14 +229,14 @@ func (c *OSCommand) CreateFileWithContent(path string, content string) error {
 }
 
 // Remove removes a file or directory at the specified path
-func (c *OSCommand) Remove(filename string) error {
+func (c *OS) Remove(filename string) error {
 	c.LogCommand(fmt.Sprintf("Removing '%s'", filename), false)
 	err := os.RemoveAll(filename)
 	return utils.WrapError(err)
 }
 
 // FileExists checks whether a file exists at the specified path
-func (c *OSCommand) FileExists(path string) (bool, error) {
+func (c *OS) FileExists(path string) (bool, error) {
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
@@ -247,7 +247,7 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 }
 
 // GetLazygitPath returns the path of the currently executed file
-func (c *OSCommand) GetLazygitPath() string {
+func (c *OS) GetLazygitPath() string {
 	ex, err := os.Executable() // get the executable path for git to use
 	if err != nil {
 		ex = os.Args[0] // fallback to the first call argument if needed
@@ -256,7 +256,7 @@ func (c *OSCommand) GetLazygitPath() string {
 }
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
-func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
+func (c *OS) PipeCommands(cmdObjs ...ICmdObj) error {
 	logCmdStr := ""
 	for i, cmdObj := range cmdObjs {
 		if i > 0 {
@@ -325,12 +325,12 @@ func Kill(cmd *exec.Cmd) error {
 	return cmd.Process.Kill()
 }
 
-func (c *OSCommand) CopyToClipboard(str string) error {
+func (c *OS) CopyToClipboard(str string) error {
 	c.LogCommand(fmt.Sprintf("Copying '%s' to clipboard", utils.TruncateWithEllipsis(str, 40)), false)
 	return clipboard.WriteAll(str)
 }
 
-func (c *OSCommand) RemoveFile(path string) error {
+func (c *OS) RemoveFile(path string) error {
 	c.LogCommand(fmt.Sprintf("Deleting path '%s'", path), false)
 
 	return c.removeFile(path)

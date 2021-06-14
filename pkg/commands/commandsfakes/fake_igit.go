@@ -5,14 +5,16 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/sirupsen/logrus"
 )
 
-type FakeIGitCommand struct {
+type FakeIGit struct {
 	AbortMergeStub        func() error
 	abortMergeMutex       sync.RWMutex
 	abortMergeArgsForCall []struct {
@@ -124,6 +126,17 @@ type FakeIGitCommand struct {
 	}
 	beginInteractiveRebaseForCommitReturnsOnCall map[int]struct {
 		result1 error
+	}
+	BuildGitCmdObjFromStrStub        func(string) types.ICmdObj
+	buildGitCmdObjFromStrMutex       sync.RWMutex
+	buildGitCmdObjFromStrArgsForCall []struct {
+		arg1 string
+	}
+	buildGitCmdObjFromStrReturns struct {
+		result1 types.ICmdObj
+	}
+	buildGitCmdObjFromStrReturnsOnCall map[int]struct {
+		result1 types.ICmdObj
 	}
 	BuildShellCmdObjStub        func(string) types.ICmdObj
 	buildShellCmdObjMutex       sync.RWMutex
@@ -699,6 +712,18 @@ type FakeIGitCommand struct {
 		result1 []*models.CommitFile
 		result2 error
 	}
+	GetGitFlowRegexpConfigStub        func() (string, error)
+	getGitFlowRegexpConfigMutex       sync.RWMutex
+	getGitFlowRegexpConfigArgsForCall []struct {
+	}
+	getGitFlowRegexpConfigReturns struct {
+		result1 string
+		result2 error
+	}
+	getGitFlowRegexpConfigReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	GetHeadCommitMessageStub        func() (string, error)
 	getHeadCommitMessageMutex       sync.RWMutex
 	getHeadCommitMessageArgsForCall []struct {
@@ -711,14 +736,24 @@ type FakeIGitCommand struct {
 		result1 string
 		result2 error
 	}
-	GetOSCommandStub        func() *oscommands.OS
-	getOSCommandMutex       sync.RWMutex
-	getOSCommandArgsForCall []struct {
+	GetLogStub        func() *logrus.Entry
+	getLogMutex       sync.RWMutex
+	getLogArgsForCall []struct {
 	}
-	getOSCommandReturns struct {
+	getLogReturns struct {
+		result1 *logrus.Entry
+	}
+	getLogReturnsOnCall map[int]struct {
+		result1 *logrus.Entry
+	}
+	GetOSStub        func() *oscommands.OS
+	getOSMutex       sync.RWMutex
+	getOSArgsForCall []struct {
+	}
+	getOSReturns struct {
 		result1 *oscommands.OS
 	}
-	getOSCommandReturnsOnCall map[int]struct {
+	getOSReturnsOnCall map[int]struct {
 		result1 *oscommands.OS
 	}
 	GetPagerStub        func(int) string
@@ -805,10 +840,10 @@ type FakeIGitCommand struct {
 	getStashEntriesReturnsOnCall map[int]struct {
 		result1 []*models.StashEntry
 	}
-	GetStatusFilesStub        func(commands.GetStatusFileOptions) []*models.File
+	GetStatusFilesStub        func(loaders.LoadStatusFilesOpts) []*models.File
 	getStatusFilesMutex       sync.RWMutex
 	getStatusFilesArgsForCall []struct {
-		arg1 commands.GetStatusFileOptions
+		arg1 loaders.LoadStatusFilesOpts
 	}
 	getStatusFilesReturns struct {
 		result1 []*models.File
@@ -850,19 +885,6 @@ type FakeIGitCommand struct {
 		result2 error
 	}
 	getUpstreamForBranchReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
-	GitStatusStub        func(commands.GitStatusOptions) (string, error)
-	gitStatusMutex       sync.RWMutex
-	gitStatusArgsForCall []struct {
-		arg1 commands.GitStatusOptions
-	}
-	gitStatusReturns struct {
-		result1 string
-		result2 error
-	}
-	gitStatusReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
 	}
@@ -1699,7 +1721,7 @@ type FakeIGitCommand struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeIGitCommand) AbortMerge() error {
+func (fake *FakeIGit) AbortMerge() error {
 	fake.abortMergeMutex.Lock()
 	ret, specificReturn := fake.abortMergeReturnsOnCall[len(fake.abortMergeArgsForCall)]
 	fake.abortMergeArgsForCall = append(fake.abortMergeArgsForCall, struct {
@@ -1717,19 +1739,19 @@ func (fake *FakeIGitCommand) AbortMerge() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) AbortMergeCallCount() int {
+func (fake *FakeIGit) AbortMergeCallCount() int {
 	fake.abortMergeMutex.RLock()
 	defer fake.abortMergeMutex.RUnlock()
 	return len(fake.abortMergeArgsForCall)
 }
 
-func (fake *FakeIGitCommand) AbortMergeCalls(stub func() error) {
+func (fake *FakeIGit) AbortMergeCalls(stub func() error) {
 	fake.abortMergeMutex.Lock()
 	defer fake.abortMergeMutex.Unlock()
 	fake.AbortMergeStub = stub
 }
 
-func (fake *FakeIGitCommand) AbortMergeReturns(result1 error) {
+func (fake *FakeIGit) AbortMergeReturns(result1 error) {
 	fake.abortMergeMutex.Lock()
 	defer fake.abortMergeMutex.Unlock()
 	fake.AbortMergeStub = nil
@@ -1738,7 +1760,7 @@ func (fake *FakeIGitCommand) AbortMergeReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AbortMergeReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) AbortMergeReturnsOnCall(i int, result1 error) {
 	fake.abortMergeMutex.Lock()
 	defer fake.abortMergeMutex.Unlock()
 	fake.AbortMergeStub = nil
@@ -1752,7 +1774,7 @@ func (fake *FakeIGitCommand) AbortMergeReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AbortRebase() error {
+func (fake *FakeIGit) AbortRebase() error {
 	fake.abortRebaseMutex.Lock()
 	ret, specificReturn := fake.abortRebaseReturnsOnCall[len(fake.abortRebaseArgsForCall)]
 	fake.abortRebaseArgsForCall = append(fake.abortRebaseArgsForCall, struct {
@@ -1770,19 +1792,19 @@ func (fake *FakeIGitCommand) AbortRebase() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) AbortRebaseCallCount() int {
+func (fake *FakeIGit) AbortRebaseCallCount() int {
 	fake.abortRebaseMutex.RLock()
 	defer fake.abortRebaseMutex.RUnlock()
 	return len(fake.abortRebaseArgsForCall)
 }
 
-func (fake *FakeIGitCommand) AbortRebaseCalls(stub func() error) {
+func (fake *FakeIGit) AbortRebaseCalls(stub func() error) {
 	fake.abortRebaseMutex.Lock()
 	defer fake.abortRebaseMutex.Unlock()
 	fake.AbortRebaseStub = stub
 }
 
-func (fake *FakeIGitCommand) AbortRebaseReturns(result1 error) {
+func (fake *FakeIGit) AbortRebaseReturns(result1 error) {
 	fake.abortRebaseMutex.Lock()
 	defer fake.abortRebaseMutex.Unlock()
 	fake.AbortRebaseStub = nil
@@ -1791,7 +1813,7 @@ func (fake *FakeIGitCommand) AbortRebaseReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AbortRebaseReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) AbortRebaseReturnsOnCall(i int, result1 error) {
 	fake.abortRebaseMutex.Lock()
 	defer fake.abortRebaseMutex.Unlock()
 	fake.AbortRebaseStub = nil
@@ -1805,7 +1827,7 @@ func (fake *FakeIGitCommand) AbortRebaseReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AddRemote(arg1 string, arg2 string) error {
+func (fake *FakeIGit) AddRemote(arg1 string, arg2 string) error {
 	fake.addRemoteMutex.Lock()
 	ret, specificReturn := fake.addRemoteReturnsOnCall[len(fake.addRemoteArgsForCall)]
 	fake.addRemoteArgsForCall = append(fake.addRemoteArgsForCall, struct {
@@ -1825,26 +1847,26 @@ func (fake *FakeIGitCommand) AddRemote(arg1 string, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) AddRemoteCallCount() int {
+func (fake *FakeIGit) AddRemoteCallCount() int {
 	fake.addRemoteMutex.RLock()
 	defer fake.addRemoteMutex.RUnlock()
 	return len(fake.addRemoteArgsForCall)
 }
 
-func (fake *FakeIGitCommand) AddRemoteCalls(stub func(string, string) error) {
+func (fake *FakeIGit) AddRemoteCalls(stub func(string, string) error) {
 	fake.addRemoteMutex.Lock()
 	defer fake.addRemoteMutex.Unlock()
 	fake.AddRemoteStub = stub
 }
 
-func (fake *FakeIGitCommand) AddRemoteArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) AddRemoteArgsForCall(i int) (string, string) {
 	fake.addRemoteMutex.RLock()
 	defer fake.addRemoteMutex.RUnlock()
 	argsForCall := fake.addRemoteArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) AddRemoteReturns(result1 error) {
+func (fake *FakeIGit) AddRemoteReturns(result1 error) {
 	fake.addRemoteMutex.Lock()
 	defer fake.addRemoteMutex.Unlock()
 	fake.AddRemoteStub = nil
@@ -1853,7 +1875,7 @@ func (fake *FakeIGitCommand) AddRemoteReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AddRemoteReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) AddRemoteReturnsOnCall(i int, result1 error) {
 	fake.addRemoteMutex.Lock()
 	defer fake.addRemoteMutex.Unlock()
 	fake.AddRemoteStub = nil
@@ -1867,7 +1889,7 @@ func (fake *FakeIGitCommand) AddRemoteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AllBranchesCmdObj() types.ICmdObj {
+func (fake *FakeIGit) AllBranchesCmdObj() types.ICmdObj {
 	fake.allBranchesCmdObjMutex.Lock()
 	ret, specificReturn := fake.allBranchesCmdObjReturnsOnCall[len(fake.allBranchesCmdObjArgsForCall)]
 	fake.allBranchesCmdObjArgsForCall = append(fake.allBranchesCmdObjArgsForCall, struct {
@@ -1885,19 +1907,19 @@ func (fake *FakeIGitCommand) AllBranchesCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) AllBranchesCmdObjCallCount() int {
+func (fake *FakeIGit) AllBranchesCmdObjCallCount() int {
 	fake.allBranchesCmdObjMutex.RLock()
 	defer fake.allBranchesCmdObjMutex.RUnlock()
 	return len(fake.allBranchesCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) AllBranchesCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) AllBranchesCmdObjCalls(stub func() types.ICmdObj) {
 	fake.allBranchesCmdObjMutex.Lock()
 	defer fake.allBranchesCmdObjMutex.Unlock()
 	fake.AllBranchesCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) AllBranchesCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) AllBranchesCmdObjReturns(result1 types.ICmdObj) {
 	fake.allBranchesCmdObjMutex.Lock()
 	defer fake.allBranchesCmdObjMutex.Unlock()
 	fake.AllBranchesCmdObjStub = nil
@@ -1906,7 +1928,7 @@ func (fake *FakeIGitCommand) AllBranchesCmdObjReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AllBranchesCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) AllBranchesCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.allBranchesCmdObjMutex.Lock()
 	defer fake.allBranchesCmdObjMutex.Unlock()
 	fake.AllBranchesCmdObjStub = nil
@@ -1920,7 +1942,7 @@ func (fake *FakeIGitCommand) AllBranchesCmdObjReturnsOnCall(i int, result1 types
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AmendHead() error {
+func (fake *FakeIGit) AmendHead() error {
 	fake.amendHeadMutex.Lock()
 	ret, specificReturn := fake.amendHeadReturnsOnCall[len(fake.amendHeadArgsForCall)]
 	fake.amendHeadArgsForCall = append(fake.amendHeadArgsForCall, struct {
@@ -1938,19 +1960,19 @@ func (fake *FakeIGitCommand) AmendHead() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) AmendHeadCallCount() int {
+func (fake *FakeIGit) AmendHeadCallCount() int {
 	fake.amendHeadMutex.RLock()
 	defer fake.amendHeadMutex.RUnlock()
 	return len(fake.amendHeadArgsForCall)
 }
 
-func (fake *FakeIGitCommand) AmendHeadCalls(stub func() error) {
+func (fake *FakeIGit) AmendHeadCalls(stub func() error) {
 	fake.amendHeadMutex.Lock()
 	defer fake.amendHeadMutex.Unlock()
 	fake.AmendHeadStub = stub
 }
 
-func (fake *FakeIGitCommand) AmendHeadReturns(result1 error) {
+func (fake *FakeIGit) AmendHeadReturns(result1 error) {
 	fake.amendHeadMutex.Lock()
 	defer fake.amendHeadMutex.Unlock()
 	fake.AmendHeadStub = nil
@@ -1959,7 +1981,7 @@ func (fake *FakeIGitCommand) AmendHeadReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AmendHeadReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) AmendHeadReturnsOnCall(i int, result1 error) {
 	fake.amendHeadMutex.Lock()
 	defer fake.amendHeadMutex.Unlock()
 	fake.AmendHeadStub = nil
@@ -1973,7 +1995,7 @@ func (fake *FakeIGitCommand) AmendHeadReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AmendHeadCmdObj() types.ICmdObj {
+func (fake *FakeIGit) AmendHeadCmdObj() types.ICmdObj {
 	fake.amendHeadCmdObjMutex.Lock()
 	ret, specificReturn := fake.amendHeadCmdObjReturnsOnCall[len(fake.amendHeadCmdObjArgsForCall)]
 	fake.amendHeadCmdObjArgsForCall = append(fake.amendHeadCmdObjArgsForCall, struct {
@@ -1991,19 +2013,19 @@ func (fake *FakeIGitCommand) AmendHeadCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) AmendHeadCmdObjCallCount() int {
+func (fake *FakeIGit) AmendHeadCmdObjCallCount() int {
 	fake.amendHeadCmdObjMutex.RLock()
 	defer fake.amendHeadCmdObjMutex.RUnlock()
 	return len(fake.amendHeadCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) AmendHeadCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) AmendHeadCmdObjCalls(stub func() types.ICmdObj) {
 	fake.amendHeadCmdObjMutex.Lock()
 	defer fake.amendHeadCmdObjMutex.Unlock()
 	fake.AmendHeadCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) AmendHeadCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) AmendHeadCmdObjReturns(result1 types.ICmdObj) {
 	fake.amendHeadCmdObjMutex.Lock()
 	defer fake.amendHeadCmdObjMutex.Unlock()
 	fake.AmendHeadCmdObjStub = nil
@@ -2012,7 +2034,7 @@ func (fake *FakeIGitCommand) AmendHeadCmdObjReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AmendHeadCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) AmendHeadCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.amendHeadCmdObjMutex.Lock()
 	defer fake.amendHeadCmdObjMutex.Unlock()
 	fake.AmendHeadCmdObjStub = nil
@@ -2026,7 +2048,7 @@ func (fake *FakeIGitCommand) AmendHeadCmdObjReturnsOnCall(i int, result1 types.I
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AmendTo(arg1 string) error {
+func (fake *FakeIGit) AmendTo(arg1 string) error {
 	fake.amendToMutex.Lock()
 	ret, specificReturn := fake.amendToReturnsOnCall[len(fake.amendToArgsForCall)]
 	fake.amendToArgsForCall = append(fake.amendToArgsForCall, struct {
@@ -2045,26 +2067,26 @@ func (fake *FakeIGitCommand) AmendTo(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) AmendToCallCount() int {
+func (fake *FakeIGit) AmendToCallCount() int {
 	fake.amendToMutex.RLock()
 	defer fake.amendToMutex.RUnlock()
 	return len(fake.amendToArgsForCall)
 }
 
-func (fake *FakeIGitCommand) AmendToCalls(stub func(string) error) {
+func (fake *FakeIGit) AmendToCalls(stub func(string) error) {
 	fake.amendToMutex.Lock()
 	defer fake.amendToMutex.Unlock()
 	fake.AmendToStub = stub
 }
 
-func (fake *FakeIGitCommand) AmendToArgsForCall(i int) string {
+func (fake *FakeIGit) AmendToArgsForCall(i int) string {
 	fake.amendToMutex.RLock()
 	defer fake.amendToMutex.RUnlock()
 	argsForCall := fake.amendToArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) AmendToReturns(result1 error) {
+func (fake *FakeIGit) AmendToReturns(result1 error) {
 	fake.amendToMutex.Lock()
 	defer fake.amendToMutex.Unlock()
 	fake.AmendToStub = nil
@@ -2073,7 +2095,7 @@ func (fake *FakeIGitCommand) AmendToReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) AmendToReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) AmendToReturnsOnCall(i int, result1 error) {
 	fake.amendToMutex.Lock()
 	defer fake.amendToMutex.Unlock()
 	fake.AmendToStub = nil
@@ -2087,7 +2109,7 @@ func (fake *FakeIGitCommand) AmendToReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ApplyPatch(arg1 string, arg2 ...string) error {
+func (fake *FakeIGit) ApplyPatch(arg1 string, arg2 ...string) error {
 	fake.applyPatchMutex.Lock()
 	ret, specificReturn := fake.applyPatchReturnsOnCall[len(fake.applyPatchArgsForCall)]
 	fake.applyPatchArgsForCall = append(fake.applyPatchArgsForCall, struct {
@@ -2107,26 +2129,26 @@ func (fake *FakeIGitCommand) ApplyPatch(arg1 string, arg2 ...string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ApplyPatchCallCount() int {
+func (fake *FakeIGit) ApplyPatchCallCount() int {
 	fake.applyPatchMutex.RLock()
 	defer fake.applyPatchMutex.RUnlock()
 	return len(fake.applyPatchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ApplyPatchCalls(stub func(string, ...string) error) {
+func (fake *FakeIGit) ApplyPatchCalls(stub func(string, ...string) error) {
 	fake.applyPatchMutex.Lock()
 	defer fake.applyPatchMutex.Unlock()
 	fake.ApplyPatchStub = stub
 }
 
-func (fake *FakeIGitCommand) ApplyPatchArgsForCall(i int) (string, []string) {
+func (fake *FakeIGit) ApplyPatchArgsForCall(i int) (string, []string) {
 	fake.applyPatchMutex.RLock()
 	defer fake.applyPatchMutex.RUnlock()
 	argsForCall := fake.applyPatchArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) ApplyPatchReturns(result1 error) {
+func (fake *FakeIGit) ApplyPatchReturns(result1 error) {
 	fake.applyPatchMutex.Lock()
 	defer fake.applyPatchMutex.Unlock()
 	fake.ApplyPatchStub = nil
@@ -2135,7 +2157,7 @@ func (fake *FakeIGitCommand) ApplyPatchReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ApplyPatchReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) ApplyPatchReturnsOnCall(i int, result1 error) {
 	fake.applyPatchMutex.Lock()
 	defer fake.applyPatchMutex.Unlock()
 	fake.ApplyPatchStub = nil
@@ -2149,7 +2171,7 @@ func (fake *FakeIGitCommand) ApplyPatchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) BeforeAndAfterFileForRename(arg1 *models.File) (*models.File, *models.File, error) {
+func (fake *FakeIGit) BeforeAndAfterFileForRename(arg1 *models.File) (*models.File, *models.File, error) {
 	fake.beforeAndAfterFileForRenameMutex.Lock()
 	ret, specificReturn := fake.beforeAndAfterFileForRenameReturnsOnCall[len(fake.beforeAndAfterFileForRenameArgsForCall)]
 	fake.beforeAndAfterFileForRenameArgsForCall = append(fake.beforeAndAfterFileForRenameArgsForCall, struct {
@@ -2168,26 +2190,26 @@ func (fake *FakeIGitCommand) BeforeAndAfterFileForRename(arg1 *models.File) (*mo
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
-func (fake *FakeIGitCommand) BeforeAndAfterFileForRenameCallCount() int {
+func (fake *FakeIGit) BeforeAndAfterFileForRenameCallCount() int {
 	fake.beforeAndAfterFileForRenameMutex.RLock()
 	defer fake.beforeAndAfterFileForRenameMutex.RUnlock()
 	return len(fake.beforeAndAfterFileForRenameArgsForCall)
 }
 
-func (fake *FakeIGitCommand) BeforeAndAfterFileForRenameCalls(stub func(*models.File) (*models.File, *models.File, error)) {
+func (fake *FakeIGit) BeforeAndAfterFileForRenameCalls(stub func(*models.File) (*models.File, *models.File, error)) {
 	fake.beforeAndAfterFileForRenameMutex.Lock()
 	defer fake.beforeAndAfterFileForRenameMutex.Unlock()
 	fake.BeforeAndAfterFileForRenameStub = stub
 }
 
-func (fake *FakeIGitCommand) BeforeAndAfterFileForRenameArgsForCall(i int) *models.File {
+func (fake *FakeIGit) BeforeAndAfterFileForRenameArgsForCall(i int) *models.File {
 	fake.beforeAndAfterFileForRenameMutex.RLock()
 	defer fake.beforeAndAfterFileForRenameMutex.RUnlock()
 	argsForCall := fake.beforeAndAfterFileForRenameArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) BeforeAndAfterFileForRenameReturns(result1 *models.File, result2 *models.File, result3 error) {
+func (fake *FakeIGit) BeforeAndAfterFileForRenameReturns(result1 *models.File, result2 *models.File, result3 error) {
 	fake.beforeAndAfterFileForRenameMutex.Lock()
 	defer fake.beforeAndAfterFileForRenameMutex.Unlock()
 	fake.BeforeAndAfterFileForRenameStub = nil
@@ -2198,7 +2220,7 @@ func (fake *FakeIGitCommand) BeforeAndAfterFileForRenameReturns(result1 *models.
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGitCommand) BeforeAndAfterFileForRenameReturnsOnCall(i int, result1 *models.File, result2 *models.File, result3 error) {
+func (fake *FakeIGit) BeforeAndAfterFileForRenameReturnsOnCall(i int, result1 *models.File, result2 *models.File, result3 error) {
 	fake.beforeAndAfterFileForRenameMutex.Lock()
 	defer fake.beforeAndAfterFileForRenameMutex.Unlock()
 	fake.BeforeAndAfterFileForRenameStub = nil
@@ -2216,7 +2238,7 @@ func (fake *FakeIGitCommand) BeforeAndAfterFileForRenameReturnsOnCall(i int, res
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommit(arg1 []*models.Commit, arg2 int) error {
+func (fake *FakeIGit) BeginInteractiveRebaseForCommit(arg1 []*models.Commit, arg2 int) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -2241,26 +2263,26 @@ func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommit(arg1 []*models.Comm
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommitCallCount() int {
+func (fake *FakeIGit) BeginInteractiveRebaseForCommitCallCount() int {
 	fake.beginInteractiveRebaseForCommitMutex.RLock()
 	defer fake.beginInteractiveRebaseForCommitMutex.RUnlock()
 	return len(fake.beginInteractiveRebaseForCommitArgsForCall)
 }
 
-func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommitCalls(stub func([]*models.Commit, int) error) {
+func (fake *FakeIGit) BeginInteractiveRebaseForCommitCalls(stub func([]*models.Commit, int) error) {
 	fake.beginInteractiveRebaseForCommitMutex.Lock()
 	defer fake.beginInteractiveRebaseForCommitMutex.Unlock()
 	fake.BeginInteractiveRebaseForCommitStub = stub
 }
 
-func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommitArgsForCall(i int) ([]*models.Commit, int) {
+func (fake *FakeIGit) BeginInteractiveRebaseForCommitArgsForCall(i int) ([]*models.Commit, int) {
 	fake.beginInteractiveRebaseForCommitMutex.RLock()
 	defer fake.beginInteractiveRebaseForCommitMutex.RUnlock()
 	argsForCall := fake.beginInteractiveRebaseForCommitArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommitReturns(result1 error) {
+func (fake *FakeIGit) BeginInteractiveRebaseForCommitReturns(result1 error) {
 	fake.beginInteractiveRebaseForCommitMutex.Lock()
 	defer fake.beginInteractiveRebaseForCommitMutex.Unlock()
 	fake.BeginInteractiveRebaseForCommitStub = nil
@@ -2269,7 +2291,7 @@ func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommitReturns(result1 erro
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommitReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) BeginInteractiveRebaseForCommitReturnsOnCall(i int, result1 error) {
 	fake.beginInteractiveRebaseForCommitMutex.Lock()
 	defer fake.beginInteractiveRebaseForCommitMutex.Unlock()
 	fake.BeginInteractiveRebaseForCommitStub = nil
@@ -2283,7 +2305,68 @@ func (fake *FakeIGitCommand) BeginInteractiveRebaseForCommitReturnsOnCall(i int,
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) BuildShellCmdObj(arg1 string) types.ICmdObj {
+func (fake *FakeIGit) BuildGitCmdObjFromStr(arg1 string) types.ICmdObj {
+	fake.buildGitCmdObjFromStrMutex.Lock()
+	ret, specificReturn := fake.buildGitCmdObjFromStrReturnsOnCall[len(fake.buildGitCmdObjFromStrArgsForCall)]
+	fake.buildGitCmdObjFromStrArgsForCall = append(fake.buildGitCmdObjFromStrArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.BuildGitCmdObjFromStrStub
+	fakeReturns := fake.buildGitCmdObjFromStrReturns
+	fake.recordInvocation("BuildGitCmdObjFromStr", []interface{}{arg1})
+	fake.buildGitCmdObjFromStrMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGit) BuildGitCmdObjFromStrCallCount() int {
+	fake.buildGitCmdObjFromStrMutex.RLock()
+	defer fake.buildGitCmdObjFromStrMutex.RUnlock()
+	return len(fake.buildGitCmdObjFromStrArgsForCall)
+}
+
+func (fake *FakeIGit) BuildGitCmdObjFromStrCalls(stub func(string) types.ICmdObj) {
+	fake.buildGitCmdObjFromStrMutex.Lock()
+	defer fake.buildGitCmdObjFromStrMutex.Unlock()
+	fake.BuildGitCmdObjFromStrStub = stub
+}
+
+func (fake *FakeIGit) BuildGitCmdObjFromStrArgsForCall(i int) string {
+	fake.buildGitCmdObjFromStrMutex.RLock()
+	defer fake.buildGitCmdObjFromStrMutex.RUnlock()
+	argsForCall := fake.buildGitCmdObjFromStrArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeIGit) BuildGitCmdObjFromStrReturns(result1 types.ICmdObj) {
+	fake.buildGitCmdObjFromStrMutex.Lock()
+	defer fake.buildGitCmdObjFromStrMutex.Unlock()
+	fake.BuildGitCmdObjFromStrStub = nil
+	fake.buildGitCmdObjFromStrReturns = struct {
+		result1 types.ICmdObj
+	}{result1}
+}
+
+func (fake *FakeIGit) BuildGitCmdObjFromStrReturnsOnCall(i int, result1 types.ICmdObj) {
+	fake.buildGitCmdObjFromStrMutex.Lock()
+	defer fake.buildGitCmdObjFromStrMutex.Unlock()
+	fake.BuildGitCmdObjFromStrStub = nil
+	if fake.buildGitCmdObjFromStrReturnsOnCall == nil {
+		fake.buildGitCmdObjFromStrReturnsOnCall = make(map[int]struct {
+			result1 types.ICmdObj
+		})
+	}
+	fake.buildGitCmdObjFromStrReturnsOnCall[i] = struct {
+		result1 types.ICmdObj
+	}{result1}
+}
+
+func (fake *FakeIGit) BuildShellCmdObj(arg1 string) types.ICmdObj {
 	fake.buildShellCmdObjMutex.Lock()
 	ret, specificReturn := fake.buildShellCmdObjReturnsOnCall[len(fake.buildShellCmdObjArgsForCall)]
 	fake.buildShellCmdObjArgsForCall = append(fake.buildShellCmdObjArgsForCall, struct {
@@ -2302,26 +2385,26 @@ func (fake *FakeIGitCommand) BuildShellCmdObj(arg1 string) types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) BuildShellCmdObjCallCount() int {
+func (fake *FakeIGit) BuildShellCmdObjCallCount() int {
 	fake.buildShellCmdObjMutex.RLock()
 	defer fake.buildShellCmdObjMutex.RUnlock()
 	return len(fake.buildShellCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) BuildShellCmdObjCalls(stub func(string) types.ICmdObj) {
+func (fake *FakeIGit) BuildShellCmdObjCalls(stub func(string) types.ICmdObj) {
 	fake.buildShellCmdObjMutex.Lock()
 	defer fake.buildShellCmdObjMutex.Unlock()
 	fake.BuildShellCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) BuildShellCmdObjArgsForCall(i int) string {
+func (fake *FakeIGit) BuildShellCmdObjArgsForCall(i int) string {
 	fake.buildShellCmdObjMutex.RLock()
 	defer fake.buildShellCmdObjMutex.RUnlock()
 	argsForCall := fake.buildShellCmdObjArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) BuildShellCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) BuildShellCmdObjReturns(result1 types.ICmdObj) {
 	fake.buildShellCmdObjMutex.Lock()
 	defer fake.buildShellCmdObjMutex.Unlock()
 	fake.BuildShellCmdObjStub = nil
@@ -2330,7 +2413,7 @@ func (fake *FakeIGitCommand) BuildShellCmdObjReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) BuildShellCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) BuildShellCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.buildShellCmdObjMutex.Lock()
 	defer fake.buildShellCmdObjMutex.Unlock()
 	fake.BuildShellCmdObjStub = nil
@@ -2344,7 +2427,7 @@ func (fake *FakeIGitCommand) BuildShellCmdObjReturnsOnCall(i int, result1 types.
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CatFile(arg1 string) (string, error) {
+func (fake *FakeIGit) CatFile(arg1 string) (string, error) {
 	fake.catFileMutex.Lock()
 	ret, specificReturn := fake.catFileReturnsOnCall[len(fake.catFileArgsForCall)]
 	fake.catFileArgsForCall = append(fake.catFileArgsForCall, struct {
@@ -2363,26 +2446,26 @@ func (fake *FakeIGitCommand) CatFile(arg1 string) (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) CatFileCallCount() int {
+func (fake *FakeIGit) CatFileCallCount() int {
 	fake.catFileMutex.RLock()
 	defer fake.catFileMutex.RUnlock()
 	return len(fake.catFileArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CatFileCalls(stub func(string) (string, error)) {
+func (fake *FakeIGit) CatFileCalls(stub func(string) (string, error)) {
 	fake.catFileMutex.Lock()
 	defer fake.catFileMutex.Unlock()
 	fake.CatFileStub = stub
 }
 
-func (fake *FakeIGitCommand) CatFileArgsForCall(i int) string {
+func (fake *FakeIGit) CatFileArgsForCall(i int) string {
 	fake.catFileMutex.RLock()
 	defer fake.catFileMutex.RUnlock()
 	argsForCall := fake.catFileArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) CatFileReturns(result1 string, result2 error) {
+func (fake *FakeIGit) CatFileReturns(result1 string, result2 error) {
 	fake.catFileMutex.Lock()
 	defer fake.catFileMutex.Unlock()
 	fake.CatFileStub = nil
@@ -2392,7 +2475,7 @@ func (fake *FakeIGitCommand) CatFileReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) CatFileReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) CatFileReturnsOnCall(i int, result1 string, result2 error) {
 	fake.catFileMutex.Lock()
 	defer fake.catFileMutex.Unlock()
 	fake.CatFileStub = nil
@@ -2408,7 +2491,7 @@ func (fake *FakeIGitCommand) CatFileReturnsOnCall(i int, result1 string, result2
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) CheckRemoteBranchExists(arg1 *models.Branch) bool {
+func (fake *FakeIGit) CheckRemoteBranchExists(arg1 *models.Branch) bool {
 	fake.checkRemoteBranchExistsMutex.Lock()
 	ret, specificReturn := fake.checkRemoteBranchExistsReturnsOnCall[len(fake.checkRemoteBranchExistsArgsForCall)]
 	fake.checkRemoteBranchExistsArgsForCall = append(fake.checkRemoteBranchExistsArgsForCall, struct {
@@ -2427,26 +2510,26 @@ func (fake *FakeIGitCommand) CheckRemoteBranchExists(arg1 *models.Branch) bool {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) CheckRemoteBranchExistsCallCount() int {
+func (fake *FakeIGit) CheckRemoteBranchExistsCallCount() int {
 	fake.checkRemoteBranchExistsMutex.RLock()
 	defer fake.checkRemoteBranchExistsMutex.RUnlock()
 	return len(fake.checkRemoteBranchExistsArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CheckRemoteBranchExistsCalls(stub func(*models.Branch) bool) {
+func (fake *FakeIGit) CheckRemoteBranchExistsCalls(stub func(*models.Branch) bool) {
 	fake.checkRemoteBranchExistsMutex.Lock()
 	defer fake.checkRemoteBranchExistsMutex.Unlock()
 	fake.CheckRemoteBranchExistsStub = stub
 }
 
-func (fake *FakeIGitCommand) CheckRemoteBranchExistsArgsForCall(i int) *models.Branch {
+func (fake *FakeIGit) CheckRemoteBranchExistsArgsForCall(i int) *models.Branch {
 	fake.checkRemoteBranchExistsMutex.RLock()
 	defer fake.checkRemoteBranchExistsMutex.RUnlock()
 	argsForCall := fake.checkRemoteBranchExistsArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) CheckRemoteBranchExistsReturns(result1 bool) {
+func (fake *FakeIGit) CheckRemoteBranchExistsReturns(result1 bool) {
 	fake.checkRemoteBranchExistsMutex.Lock()
 	defer fake.checkRemoteBranchExistsMutex.Unlock()
 	fake.CheckRemoteBranchExistsStub = nil
@@ -2455,7 +2538,7 @@ func (fake *FakeIGitCommand) CheckRemoteBranchExistsReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CheckRemoteBranchExistsReturnsOnCall(i int, result1 bool) {
+func (fake *FakeIGit) CheckRemoteBranchExistsReturnsOnCall(i int, result1 bool) {
 	fake.checkRemoteBranchExistsMutex.Lock()
 	defer fake.checkRemoteBranchExistsMutex.Unlock()
 	fake.CheckRemoteBranchExistsStub = nil
@@ -2469,7 +2552,7 @@ func (fake *FakeIGitCommand) CheckRemoteBranchExistsReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) Checkout(arg1 string, arg2 commands.CheckoutOptions) error {
+func (fake *FakeIGit) Checkout(arg1 string, arg2 commands.CheckoutOptions) error {
 	fake.checkoutMutex.Lock()
 	ret, specificReturn := fake.checkoutReturnsOnCall[len(fake.checkoutArgsForCall)]
 	fake.checkoutArgsForCall = append(fake.checkoutArgsForCall, struct {
@@ -2489,26 +2572,26 @@ func (fake *FakeIGitCommand) Checkout(arg1 string, arg2 commands.CheckoutOptions
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) CheckoutCallCount() int {
+func (fake *FakeIGit) CheckoutCallCount() int {
 	fake.checkoutMutex.RLock()
 	defer fake.checkoutMutex.RUnlock()
 	return len(fake.checkoutArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CheckoutCalls(stub func(string, commands.CheckoutOptions) error) {
+func (fake *FakeIGit) CheckoutCalls(stub func(string, commands.CheckoutOptions) error) {
 	fake.checkoutMutex.Lock()
 	defer fake.checkoutMutex.Unlock()
 	fake.CheckoutStub = stub
 }
 
-func (fake *FakeIGitCommand) CheckoutArgsForCall(i int) (string, commands.CheckoutOptions) {
+func (fake *FakeIGit) CheckoutArgsForCall(i int) (string, commands.CheckoutOptions) {
 	fake.checkoutMutex.RLock()
 	defer fake.checkoutMutex.RUnlock()
 	argsForCall := fake.checkoutArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) CheckoutReturns(result1 error) {
+func (fake *FakeIGit) CheckoutReturns(result1 error) {
 	fake.checkoutMutex.Lock()
 	defer fake.checkoutMutex.Unlock()
 	fake.CheckoutStub = nil
@@ -2517,7 +2600,7 @@ func (fake *FakeIGitCommand) CheckoutReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CheckoutReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) CheckoutReturnsOnCall(i int, result1 error) {
 	fake.checkoutMutex.Lock()
 	defer fake.checkoutMutex.Unlock()
 	fake.CheckoutStub = nil
@@ -2531,7 +2614,7 @@ func (fake *FakeIGitCommand) CheckoutReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CheckoutFile(arg1 string, arg2 string) error {
+func (fake *FakeIGit) CheckoutFile(arg1 string, arg2 string) error {
 	fake.checkoutFileMutex.Lock()
 	ret, specificReturn := fake.checkoutFileReturnsOnCall[len(fake.checkoutFileArgsForCall)]
 	fake.checkoutFileArgsForCall = append(fake.checkoutFileArgsForCall, struct {
@@ -2551,26 +2634,26 @@ func (fake *FakeIGitCommand) CheckoutFile(arg1 string, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) CheckoutFileCallCount() int {
+func (fake *FakeIGit) CheckoutFileCallCount() int {
 	fake.checkoutFileMutex.RLock()
 	defer fake.checkoutFileMutex.RUnlock()
 	return len(fake.checkoutFileArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CheckoutFileCalls(stub func(string, string) error) {
+func (fake *FakeIGit) CheckoutFileCalls(stub func(string, string) error) {
 	fake.checkoutFileMutex.Lock()
 	defer fake.checkoutFileMutex.Unlock()
 	fake.CheckoutFileStub = stub
 }
 
-func (fake *FakeIGitCommand) CheckoutFileArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) CheckoutFileArgsForCall(i int) (string, string) {
 	fake.checkoutFileMutex.RLock()
 	defer fake.checkoutFileMutex.RUnlock()
 	argsForCall := fake.checkoutFileArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) CheckoutFileReturns(result1 error) {
+func (fake *FakeIGit) CheckoutFileReturns(result1 error) {
 	fake.checkoutFileMutex.Lock()
 	defer fake.checkoutFileMutex.Unlock()
 	fake.CheckoutFileStub = nil
@@ -2579,7 +2662,7 @@ func (fake *FakeIGitCommand) CheckoutFileReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CheckoutFileReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) CheckoutFileReturnsOnCall(i int, result1 error) {
 	fake.checkoutFileMutex.Lock()
 	defer fake.checkoutFileMutex.Unlock()
 	fake.CheckoutFileStub = nil
@@ -2593,7 +2676,7 @@ func (fake *FakeIGitCommand) CheckoutFileReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CherryPickCommits(arg1 []*models.Commit) error {
+func (fake *FakeIGit) CherryPickCommits(arg1 []*models.Commit) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -2617,26 +2700,26 @@ func (fake *FakeIGitCommand) CherryPickCommits(arg1 []*models.Commit) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) CherryPickCommitsCallCount() int {
+func (fake *FakeIGit) CherryPickCommitsCallCount() int {
 	fake.cherryPickCommitsMutex.RLock()
 	defer fake.cherryPickCommitsMutex.RUnlock()
 	return len(fake.cherryPickCommitsArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CherryPickCommitsCalls(stub func([]*models.Commit) error) {
+func (fake *FakeIGit) CherryPickCommitsCalls(stub func([]*models.Commit) error) {
 	fake.cherryPickCommitsMutex.Lock()
 	defer fake.cherryPickCommitsMutex.Unlock()
 	fake.CherryPickCommitsStub = stub
 }
 
-func (fake *FakeIGitCommand) CherryPickCommitsArgsForCall(i int) []*models.Commit {
+func (fake *FakeIGit) CherryPickCommitsArgsForCall(i int) []*models.Commit {
 	fake.cherryPickCommitsMutex.RLock()
 	defer fake.cherryPickCommitsMutex.RUnlock()
 	argsForCall := fake.cherryPickCommitsArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) CherryPickCommitsReturns(result1 error) {
+func (fake *FakeIGit) CherryPickCommitsReturns(result1 error) {
 	fake.cherryPickCommitsMutex.Lock()
 	defer fake.cherryPickCommitsMutex.Unlock()
 	fake.CherryPickCommitsStub = nil
@@ -2645,7 +2728,7 @@ func (fake *FakeIGitCommand) CherryPickCommitsReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CherryPickCommitsReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) CherryPickCommitsReturnsOnCall(i int, result1 error) {
 	fake.cherryPickCommitsMutex.Lock()
 	defer fake.cherryPickCommitsMutex.Unlock()
 	fake.CherryPickCommitsStub = nil
@@ -2659,7 +2742,7 @@ func (fake *FakeIGitCommand) CherryPickCommitsReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CommitCmdObj(arg1 string, arg2 string) types.ICmdObj {
+func (fake *FakeIGit) CommitCmdObj(arg1 string, arg2 string) types.ICmdObj {
 	fake.commitCmdObjMutex.Lock()
 	ret, specificReturn := fake.commitCmdObjReturnsOnCall[len(fake.commitCmdObjArgsForCall)]
 	fake.commitCmdObjArgsForCall = append(fake.commitCmdObjArgsForCall, struct {
@@ -2679,26 +2762,26 @@ func (fake *FakeIGitCommand) CommitCmdObj(arg1 string, arg2 string) types.ICmdOb
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) CommitCmdObjCallCount() int {
+func (fake *FakeIGit) CommitCmdObjCallCount() int {
 	fake.commitCmdObjMutex.RLock()
 	defer fake.commitCmdObjMutex.RUnlock()
 	return len(fake.commitCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CommitCmdObjCalls(stub func(string, string) types.ICmdObj) {
+func (fake *FakeIGit) CommitCmdObjCalls(stub func(string, string) types.ICmdObj) {
 	fake.commitCmdObjMutex.Lock()
 	defer fake.commitCmdObjMutex.Unlock()
 	fake.CommitCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) CommitCmdObjArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) CommitCmdObjArgsForCall(i int) (string, string) {
 	fake.commitCmdObjMutex.RLock()
 	defer fake.commitCmdObjMutex.RUnlock()
 	argsForCall := fake.commitCmdObjArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) CommitCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) CommitCmdObjReturns(result1 types.ICmdObj) {
 	fake.commitCmdObjMutex.Lock()
 	defer fake.commitCmdObjMutex.Unlock()
 	fake.CommitCmdObjStub = nil
@@ -2707,7 +2790,7 @@ func (fake *FakeIGitCommand) CommitCmdObjReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CommitCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) CommitCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.commitCmdObjMutex.Lock()
 	defer fake.commitCmdObjMutex.Unlock()
 	fake.CommitCmdObjStub = nil
@@ -2721,7 +2804,7 @@ func (fake *FakeIGitCommand) CommitCmdObjReturnsOnCall(i int, result1 types.ICmd
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ConfiguredPager() string {
+func (fake *FakeIGit) ConfiguredPager() string {
 	fake.configuredPagerMutex.Lock()
 	ret, specificReturn := fake.configuredPagerReturnsOnCall[len(fake.configuredPagerArgsForCall)]
 	fake.configuredPagerArgsForCall = append(fake.configuredPagerArgsForCall, struct {
@@ -2739,19 +2822,19 @@ func (fake *FakeIGitCommand) ConfiguredPager() string {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ConfiguredPagerCallCount() int {
+func (fake *FakeIGit) ConfiguredPagerCallCount() int {
 	fake.configuredPagerMutex.RLock()
 	defer fake.configuredPagerMutex.RUnlock()
 	return len(fake.configuredPagerArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ConfiguredPagerCalls(stub func() string) {
+func (fake *FakeIGit) ConfiguredPagerCalls(stub func() string) {
 	fake.configuredPagerMutex.Lock()
 	defer fake.configuredPagerMutex.Unlock()
 	fake.ConfiguredPagerStub = stub
 }
 
-func (fake *FakeIGitCommand) ConfiguredPagerReturns(result1 string) {
+func (fake *FakeIGit) ConfiguredPagerReturns(result1 string) {
 	fake.configuredPagerMutex.Lock()
 	defer fake.configuredPagerMutex.Unlock()
 	fake.ConfiguredPagerStub = nil
@@ -2760,7 +2843,7 @@ func (fake *FakeIGitCommand) ConfiguredPagerReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ConfiguredPagerReturnsOnCall(i int, result1 string) {
+func (fake *FakeIGit) ConfiguredPagerReturnsOnCall(i int, result1 string) {
 	fake.configuredPagerMutex.Lock()
 	defer fake.configuredPagerMutex.Unlock()
 	fake.ConfiguredPagerStub = nil
@@ -2774,7 +2857,7 @@ func (fake *FakeIGitCommand) ConfiguredPagerReturnsOnCall(i int, result1 string)
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ContinueRebase() error {
+func (fake *FakeIGit) ContinueRebase() error {
 	fake.continueRebaseMutex.Lock()
 	ret, specificReturn := fake.continueRebaseReturnsOnCall[len(fake.continueRebaseArgsForCall)]
 	fake.continueRebaseArgsForCall = append(fake.continueRebaseArgsForCall, struct {
@@ -2792,19 +2875,19 @@ func (fake *FakeIGitCommand) ContinueRebase() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ContinueRebaseCallCount() int {
+func (fake *FakeIGit) ContinueRebaseCallCount() int {
 	fake.continueRebaseMutex.RLock()
 	defer fake.continueRebaseMutex.RUnlock()
 	return len(fake.continueRebaseArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ContinueRebaseCalls(stub func() error) {
+func (fake *FakeIGit) ContinueRebaseCalls(stub func() error) {
 	fake.continueRebaseMutex.Lock()
 	defer fake.continueRebaseMutex.Unlock()
 	fake.ContinueRebaseStub = stub
 }
 
-func (fake *FakeIGitCommand) ContinueRebaseReturns(result1 error) {
+func (fake *FakeIGit) ContinueRebaseReturns(result1 error) {
 	fake.continueRebaseMutex.Lock()
 	defer fake.continueRebaseMutex.Unlock()
 	fake.ContinueRebaseStub = nil
@@ -2813,7 +2896,7 @@ func (fake *FakeIGitCommand) ContinueRebaseReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ContinueRebaseReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) ContinueRebaseReturnsOnCall(i int, result1 error) {
 	fake.continueRebaseMutex.Lock()
 	defer fake.continueRebaseMutex.Unlock()
 	fake.ContinueRebaseStub = nil
@@ -2827,7 +2910,7 @@ func (fake *FakeIGitCommand) ContinueRebaseReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CreateFixupCommit(arg1 string) error {
+func (fake *FakeIGit) CreateFixupCommit(arg1 string) error {
 	fake.createFixupCommitMutex.Lock()
 	ret, specificReturn := fake.createFixupCommitReturnsOnCall[len(fake.createFixupCommitArgsForCall)]
 	fake.createFixupCommitArgsForCall = append(fake.createFixupCommitArgsForCall, struct {
@@ -2846,26 +2929,26 @@ func (fake *FakeIGitCommand) CreateFixupCommit(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) CreateFixupCommitCallCount() int {
+func (fake *FakeIGit) CreateFixupCommitCallCount() int {
 	fake.createFixupCommitMutex.RLock()
 	defer fake.createFixupCommitMutex.RUnlock()
 	return len(fake.createFixupCommitArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CreateFixupCommitCalls(stub func(string) error) {
+func (fake *FakeIGit) CreateFixupCommitCalls(stub func(string) error) {
 	fake.createFixupCommitMutex.Lock()
 	defer fake.createFixupCommitMutex.Unlock()
 	fake.CreateFixupCommitStub = stub
 }
 
-func (fake *FakeIGitCommand) CreateFixupCommitArgsForCall(i int) string {
+func (fake *FakeIGit) CreateFixupCommitArgsForCall(i int) string {
 	fake.createFixupCommitMutex.RLock()
 	defer fake.createFixupCommitMutex.RUnlock()
 	argsForCall := fake.createFixupCommitArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) CreateFixupCommitReturns(result1 error) {
+func (fake *FakeIGit) CreateFixupCommitReturns(result1 error) {
 	fake.createFixupCommitMutex.Lock()
 	defer fake.createFixupCommitMutex.Unlock()
 	fake.CreateFixupCommitStub = nil
@@ -2874,7 +2957,7 @@ func (fake *FakeIGitCommand) CreateFixupCommitReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CreateFixupCommitReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) CreateFixupCommitReturnsOnCall(i int, result1 error) {
 	fake.createFixupCommitMutex.Lock()
 	defer fake.createFixupCommitMutex.Unlock()
 	fake.CreateFixupCommitStub = nil
@@ -2888,7 +2971,7 @@ func (fake *FakeIGitCommand) CreateFixupCommitReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CreateLightweightTag(arg1 string, arg2 string) error {
+func (fake *FakeIGit) CreateLightweightTag(arg1 string, arg2 string) error {
 	fake.createLightweightTagMutex.Lock()
 	ret, specificReturn := fake.createLightweightTagReturnsOnCall[len(fake.createLightweightTagArgsForCall)]
 	fake.createLightweightTagArgsForCall = append(fake.createLightweightTagArgsForCall, struct {
@@ -2908,26 +2991,26 @@ func (fake *FakeIGitCommand) CreateLightweightTag(arg1 string, arg2 string) erro
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) CreateLightweightTagCallCount() int {
+func (fake *FakeIGit) CreateLightweightTagCallCount() int {
 	fake.createLightweightTagMutex.RLock()
 	defer fake.createLightweightTagMutex.RUnlock()
 	return len(fake.createLightweightTagArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CreateLightweightTagCalls(stub func(string, string) error) {
+func (fake *FakeIGit) CreateLightweightTagCalls(stub func(string, string) error) {
 	fake.createLightweightTagMutex.Lock()
 	defer fake.createLightweightTagMutex.Unlock()
 	fake.CreateLightweightTagStub = stub
 }
 
-func (fake *FakeIGitCommand) CreateLightweightTagArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) CreateLightweightTagArgsForCall(i int) (string, string) {
 	fake.createLightweightTagMutex.RLock()
 	defer fake.createLightweightTagMutex.RUnlock()
 	argsForCall := fake.createLightweightTagArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) CreateLightweightTagReturns(result1 error) {
+func (fake *FakeIGit) CreateLightweightTagReturns(result1 error) {
 	fake.createLightweightTagMutex.Lock()
 	defer fake.createLightweightTagMutex.Unlock()
 	fake.CreateLightweightTagStub = nil
@@ -2936,7 +3019,7 @@ func (fake *FakeIGitCommand) CreateLightweightTagReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CreateLightweightTagReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) CreateLightweightTagReturnsOnCall(i int, result1 error) {
 	fake.createLightweightTagMutex.Lock()
 	defer fake.createLightweightTagMutex.Unlock()
 	fake.CreateLightweightTagStub = nil
@@ -2950,7 +3033,7 @@ func (fake *FakeIGitCommand) CreateLightweightTagReturnsOnCall(i int, result1 er
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) CurrentBranchName() (string, string, error) {
+func (fake *FakeIGit) CurrentBranchName() (string, string, error) {
 	fake.currentBranchNameMutex.Lock()
 	ret, specificReturn := fake.currentBranchNameReturnsOnCall[len(fake.currentBranchNameArgsForCall)]
 	fake.currentBranchNameArgsForCall = append(fake.currentBranchNameArgsForCall, struct {
@@ -2968,19 +3051,19 @@ func (fake *FakeIGitCommand) CurrentBranchName() (string, string, error) {
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
-func (fake *FakeIGitCommand) CurrentBranchNameCallCount() int {
+func (fake *FakeIGit) CurrentBranchNameCallCount() int {
 	fake.currentBranchNameMutex.RLock()
 	defer fake.currentBranchNameMutex.RUnlock()
 	return len(fake.currentBranchNameArgsForCall)
 }
 
-func (fake *FakeIGitCommand) CurrentBranchNameCalls(stub func() (string, string, error)) {
+func (fake *FakeIGit) CurrentBranchNameCalls(stub func() (string, string, error)) {
 	fake.currentBranchNameMutex.Lock()
 	defer fake.currentBranchNameMutex.Unlock()
 	fake.CurrentBranchNameStub = stub
 }
 
-func (fake *FakeIGitCommand) CurrentBranchNameReturns(result1 string, result2 string, result3 error) {
+func (fake *FakeIGit) CurrentBranchNameReturns(result1 string, result2 string, result3 error) {
 	fake.currentBranchNameMutex.Lock()
 	defer fake.currentBranchNameMutex.Unlock()
 	fake.CurrentBranchNameStub = nil
@@ -2991,7 +3074,7 @@ func (fake *FakeIGitCommand) CurrentBranchNameReturns(result1 string, result2 st
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGitCommand) CurrentBranchNameReturnsOnCall(i int, result1 string, result2 string, result3 error) {
+func (fake *FakeIGit) CurrentBranchNameReturnsOnCall(i int, result1 string, result2 string, result3 error) {
 	fake.currentBranchNameMutex.Lock()
 	defer fake.currentBranchNameMutex.Unlock()
 	fake.CurrentBranchNameStub = nil
@@ -3009,7 +3092,7 @@ func (fake *FakeIGitCommand) CurrentBranchNameReturnsOnCall(i int, result1 strin
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGitCommand) DeleteBranch(arg1 string, arg2 bool) error {
+func (fake *FakeIGit) DeleteBranch(arg1 string, arg2 bool) error {
 	fake.deleteBranchMutex.Lock()
 	ret, specificReturn := fake.deleteBranchReturnsOnCall[len(fake.deleteBranchArgsForCall)]
 	fake.deleteBranchArgsForCall = append(fake.deleteBranchArgsForCall, struct {
@@ -3029,26 +3112,26 @@ func (fake *FakeIGitCommand) DeleteBranch(arg1 string, arg2 bool) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DeleteBranchCallCount() int {
+func (fake *FakeIGit) DeleteBranchCallCount() int {
 	fake.deleteBranchMutex.RLock()
 	defer fake.deleteBranchMutex.RUnlock()
 	return len(fake.deleteBranchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DeleteBranchCalls(stub func(string, bool) error) {
+func (fake *FakeIGit) DeleteBranchCalls(stub func(string, bool) error) {
 	fake.deleteBranchMutex.Lock()
 	defer fake.deleteBranchMutex.Unlock()
 	fake.DeleteBranchStub = stub
 }
 
-func (fake *FakeIGitCommand) DeleteBranchArgsForCall(i int) (string, bool) {
+func (fake *FakeIGit) DeleteBranchArgsForCall(i int) (string, bool) {
 	fake.deleteBranchMutex.RLock()
 	defer fake.deleteBranchMutex.RUnlock()
 	argsForCall := fake.deleteBranchArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) DeleteBranchReturns(result1 error) {
+func (fake *FakeIGit) DeleteBranchReturns(result1 error) {
 	fake.deleteBranchMutex.Lock()
 	defer fake.deleteBranchMutex.Unlock()
 	fake.DeleteBranchStub = nil
@@ -3057,7 +3140,7 @@ func (fake *FakeIGitCommand) DeleteBranchReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DeleteBranchReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DeleteBranchReturnsOnCall(i int, result1 error) {
 	fake.deleteBranchMutex.Lock()
 	defer fake.deleteBranchMutex.Unlock()
 	fake.DeleteBranchStub = nil
@@ -3071,7 +3154,7 @@ func (fake *FakeIGitCommand) DeleteBranchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DeletePatchesFromCommit(arg1 []*models.Commit, arg2 int, arg3 *patch.PatchManager) error {
+func (fake *FakeIGit) DeletePatchesFromCommit(arg1 []*models.Commit, arg2 int, arg3 *patch.PatchManager) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -3097,26 +3180,26 @@ func (fake *FakeIGitCommand) DeletePatchesFromCommit(arg1 []*models.Commit, arg2
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DeletePatchesFromCommitCallCount() int {
+func (fake *FakeIGit) DeletePatchesFromCommitCallCount() int {
 	fake.deletePatchesFromCommitMutex.RLock()
 	defer fake.deletePatchesFromCommitMutex.RUnlock()
 	return len(fake.deletePatchesFromCommitArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DeletePatchesFromCommitCalls(stub func([]*models.Commit, int, *patch.PatchManager) error) {
+func (fake *FakeIGit) DeletePatchesFromCommitCalls(stub func([]*models.Commit, int, *patch.PatchManager) error) {
 	fake.deletePatchesFromCommitMutex.Lock()
 	defer fake.deletePatchesFromCommitMutex.Unlock()
 	fake.DeletePatchesFromCommitStub = stub
 }
 
-func (fake *FakeIGitCommand) DeletePatchesFromCommitArgsForCall(i int) ([]*models.Commit, int, *patch.PatchManager) {
+func (fake *FakeIGit) DeletePatchesFromCommitArgsForCall(i int) ([]*models.Commit, int, *patch.PatchManager) {
 	fake.deletePatchesFromCommitMutex.RLock()
 	defer fake.deletePatchesFromCommitMutex.RUnlock()
 	argsForCall := fake.deletePatchesFromCommitArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) DeletePatchesFromCommitReturns(result1 error) {
+func (fake *FakeIGit) DeletePatchesFromCommitReturns(result1 error) {
 	fake.deletePatchesFromCommitMutex.Lock()
 	defer fake.deletePatchesFromCommitMutex.Unlock()
 	fake.DeletePatchesFromCommitStub = nil
@@ -3125,7 +3208,7 @@ func (fake *FakeIGitCommand) DeletePatchesFromCommitReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DeletePatchesFromCommitReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DeletePatchesFromCommitReturnsOnCall(i int, result1 error) {
 	fake.deletePatchesFromCommitMutex.Lock()
 	defer fake.deletePatchesFromCommitMutex.Unlock()
 	fake.DeletePatchesFromCommitStub = nil
@@ -3139,7 +3222,7 @@ func (fake *FakeIGitCommand) DeletePatchesFromCommitReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DeleteRemoteBranch(arg1 string, arg2 string) error {
+func (fake *FakeIGit) DeleteRemoteBranch(arg1 string, arg2 string) error {
 	fake.deleteRemoteBranchMutex.Lock()
 	ret, specificReturn := fake.deleteRemoteBranchReturnsOnCall[len(fake.deleteRemoteBranchArgsForCall)]
 	fake.deleteRemoteBranchArgsForCall = append(fake.deleteRemoteBranchArgsForCall, struct {
@@ -3159,26 +3242,26 @@ func (fake *FakeIGitCommand) DeleteRemoteBranch(arg1 string, arg2 string) error 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DeleteRemoteBranchCallCount() int {
+func (fake *FakeIGit) DeleteRemoteBranchCallCount() int {
 	fake.deleteRemoteBranchMutex.RLock()
 	defer fake.deleteRemoteBranchMutex.RUnlock()
 	return len(fake.deleteRemoteBranchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DeleteRemoteBranchCalls(stub func(string, string) error) {
+func (fake *FakeIGit) DeleteRemoteBranchCalls(stub func(string, string) error) {
 	fake.deleteRemoteBranchMutex.Lock()
 	defer fake.deleteRemoteBranchMutex.Unlock()
 	fake.DeleteRemoteBranchStub = stub
 }
 
-func (fake *FakeIGitCommand) DeleteRemoteBranchArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) DeleteRemoteBranchArgsForCall(i int) (string, string) {
 	fake.deleteRemoteBranchMutex.RLock()
 	defer fake.deleteRemoteBranchMutex.RUnlock()
 	argsForCall := fake.deleteRemoteBranchArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) DeleteRemoteBranchReturns(result1 error) {
+func (fake *FakeIGit) DeleteRemoteBranchReturns(result1 error) {
 	fake.deleteRemoteBranchMutex.Lock()
 	defer fake.deleteRemoteBranchMutex.Unlock()
 	fake.DeleteRemoteBranchStub = nil
@@ -3187,7 +3270,7 @@ func (fake *FakeIGitCommand) DeleteRemoteBranchReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DeleteRemoteBranchReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DeleteRemoteBranchReturnsOnCall(i int, result1 error) {
 	fake.deleteRemoteBranchMutex.Lock()
 	defer fake.deleteRemoteBranchMutex.Unlock()
 	fake.DeleteRemoteBranchStub = nil
@@ -3201,7 +3284,7 @@ func (fake *FakeIGitCommand) DeleteRemoteBranchReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DeleteTag(arg1 string) error {
+func (fake *FakeIGit) DeleteTag(arg1 string) error {
 	fake.deleteTagMutex.Lock()
 	ret, specificReturn := fake.deleteTagReturnsOnCall[len(fake.deleteTagArgsForCall)]
 	fake.deleteTagArgsForCall = append(fake.deleteTagArgsForCall, struct {
@@ -3220,26 +3303,26 @@ func (fake *FakeIGitCommand) DeleteTag(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DeleteTagCallCount() int {
+func (fake *FakeIGit) DeleteTagCallCount() int {
 	fake.deleteTagMutex.RLock()
 	defer fake.deleteTagMutex.RUnlock()
 	return len(fake.deleteTagArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DeleteTagCalls(stub func(string) error) {
+func (fake *FakeIGit) DeleteTagCalls(stub func(string) error) {
 	fake.deleteTagMutex.Lock()
 	defer fake.deleteTagMutex.Unlock()
 	fake.DeleteTagStub = stub
 }
 
-func (fake *FakeIGitCommand) DeleteTagArgsForCall(i int) string {
+func (fake *FakeIGit) DeleteTagArgsForCall(i int) string {
 	fake.deleteTagMutex.RLock()
 	defer fake.deleteTagMutex.RUnlock()
 	argsForCall := fake.deleteTagArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) DeleteTagReturns(result1 error) {
+func (fake *FakeIGit) DeleteTagReturns(result1 error) {
 	fake.deleteTagMutex.Lock()
 	defer fake.deleteTagMutex.Unlock()
 	fake.DeleteTagStub = nil
@@ -3248,7 +3331,7 @@ func (fake *FakeIGitCommand) DeleteTagReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DeleteTagReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DeleteTagReturnsOnCall(i int, result1 error) {
 	fake.deleteTagMutex.Lock()
 	defer fake.deleteTagMutex.Unlock()
 	fake.DeleteTagStub = nil
@@ -3262,7 +3345,7 @@ func (fake *FakeIGitCommand) DeleteTagReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiffEndArgs(arg1 string, arg2 string, arg3 bool, arg4 string) string {
+func (fake *FakeIGit) DiffEndArgs(arg1 string, arg2 string, arg3 bool, arg4 string) string {
 	fake.diffEndArgsMutex.Lock()
 	ret, specificReturn := fake.diffEndArgsReturnsOnCall[len(fake.diffEndArgsArgsForCall)]
 	fake.diffEndArgsArgsForCall = append(fake.diffEndArgsArgsForCall, struct {
@@ -3284,26 +3367,26 @@ func (fake *FakeIGitCommand) DiffEndArgs(arg1 string, arg2 string, arg3 bool, ar
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DiffEndArgsCallCount() int {
+func (fake *FakeIGit) DiffEndArgsCallCount() int {
 	fake.diffEndArgsMutex.RLock()
 	defer fake.diffEndArgsMutex.RUnlock()
 	return len(fake.diffEndArgsArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DiffEndArgsCalls(stub func(string, string, bool, string) string) {
+func (fake *FakeIGit) DiffEndArgsCalls(stub func(string, string, bool, string) string) {
 	fake.diffEndArgsMutex.Lock()
 	defer fake.diffEndArgsMutex.Unlock()
 	fake.DiffEndArgsStub = stub
 }
 
-func (fake *FakeIGitCommand) DiffEndArgsArgsForCall(i int) (string, string, bool, string) {
+func (fake *FakeIGit) DiffEndArgsArgsForCall(i int) (string, string, bool, string) {
 	fake.diffEndArgsMutex.RLock()
 	defer fake.diffEndArgsMutex.RUnlock()
 	argsForCall := fake.diffEndArgsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeIGitCommand) DiffEndArgsReturns(result1 string) {
+func (fake *FakeIGit) DiffEndArgsReturns(result1 string) {
 	fake.diffEndArgsMutex.Lock()
 	defer fake.diffEndArgsMutex.Unlock()
 	fake.DiffEndArgsStub = nil
@@ -3312,7 +3395,7 @@ func (fake *FakeIGitCommand) DiffEndArgsReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiffEndArgsReturnsOnCall(i int, result1 string) {
+func (fake *FakeIGit) DiffEndArgsReturnsOnCall(i int, result1 string) {
 	fake.diffEndArgsMutex.Lock()
 	defer fake.diffEndArgsMutex.Unlock()
 	fake.DiffEndArgsStub = nil
@@ -3326,7 +3409,7 @@ func (fake *FakeIGitCommand) DiffEndArgsReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardAllDirChanges(arg1 *filetree.FileNode) error {
+func (fake *FakeIGit) DiscardAllDirChanges(arg1 *filetree.FileNode) error {
 	fake.discardAllDirChangesMutex.Lock()
 	ret, specificReturn := fake.discardAllDirChangesReturnsOnCall[len(fake.discardAllDirChangesArgsForCall)]
 	fake.discardAllDirChangesArgsForCall = append(fake.discardAllDirChangesArgsForCall, struct {
@@ -3345,26 +3428,26 @@ func (fake *FakeIGitCommand) DiscardAllDirChanges(arg1 *filetree.FileNode) error
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DiscardAllDirChangesCallCount() int {
+func (fake *FakeIGit) DiscardAllDirChangesCallCount() int {
 	fake.discardAllDirChangesMutex.RLock()
 	defer fake.discardAllDirChangesMutex.RUnlock()
 	return len(fake.discardAllDirChangesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DiscardAllDirChangesCalls(stub func(*filetree.FileNode) error) {
+func (fake *FakeIGit) DiscardAllDirChangesCalls(stub func(*filetree.FileNode) error) {
 	fake.discardAllDirChangesMutex.Lock()
 	defer fake.discardAllDirChangesMutex.Unlock()
 	fake.DiscardAllDirChangesStub = stub
 }
 
-func (fake *FakeIGitCommand) DiscardAllDirChangesArgsForCall(i int) *filetree.FileNode {
+func (fake *FakeIGit) DiscardAllDirChangesArgsForCall(i int) *filetree.FileNode {
 	fake.discardAllDirChangesMutex.RLock()
 	defer fake.discardAllDirChangesMutex.RUnlock()
 	argsForCall := fake.discardAllDirChangesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) DiscardAllDirChangesReturns(result1 error) {
+func (fake *FakeIGit) DiscardAllDirChangesReturns(result1 error) {
 	fake.discardAllDirChangesMutex.Lock()
 	defer fake.discardAllDirChangesMutex.Unlock()
 	fake.DiscardAllDirChangesStub = nil
@@ -3373,7 +3456,7 @@ func (fake *FakeIGitCommand) DiscardAllDirChangesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardAllDirChangesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DiscardAllDirChangesReturnsOnCall(i int, result1 error) {
 	fake.discardAllDirChangesMutex.Lock()
 	defer fake.discardAllDirChangesMutex.Unlock()
 	fake.DiscardAllDirChangesStub = nil
@@ -3387,7 +3470,7 @@ func (fake *FakeIGitCommand) DiscardAllDirChangesReturnsOnCall(i int, result1 er
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardAllFileChanges(arg1 *models.File) error {
+func (fake *FakeIGit) DiscardAllFileChanges(arg1 *models.File) error {
 	fake.discardAllFileChangesMutex.Lock()
 	ret, specificReturn := fake.discardAllFileChangesReturnsOnCall[len(fake.discardAllFileChangesArgsForCall)]
 	fake.discardAllFileChangesArgsForCall = append(fake.discardAllFileChangesArgsForCall, struct {
@@ -3406,26 +3489,26 @@ func (fake *FakeIGitCommand) DiscardAllFileChanges(arg1 *models.File) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DiscardAllFileChangesCallCount() int {
+func (fake *FakeIGit) DiscardAllFileChangesCallCount() int {
 	fake.discardAllFileChangesMutex.RLock()
 	defer fake.discardAllFileChangesMutex.RUnlock()
 	return len(fake.discardAllFileChangesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DiscardAllFileChangesCalls(stub func(*models.File) error) {
+func (fake *FakeIGit) DiscardAllFileChangesCalls(stub func(*models.File) error) {
 	fake.discardAllFileChangesMutex.Lock()
 	defer fake.discardAllFileChangesMutex.Unlock()
 	fake.DiscardAllFileChangesStub = stub
 }
 
-func (fake *FakeIGitCommand) DiscardAllFileChangesArgsForCall(i int) *models.File {
+func (fake *FakeIGit) DiscardAllFileChangesArgsForCall(i int) *models.File {
 	fake.discardAllFileChangesMutex.RLock()
 	defer fake.discardAllFileChangesMutex.RUnlock()
 	argsForCall := fake.discardAllFileChangesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) DiscardAllFileChangesReturns(result1 error) {
+func (fake *FakeIGit) DiscardAllFileChangesReturns(result1 error) {
 	fake.discardAllFileChangesMutex.Lock()
 	defer fake.discardAllFileChangesMutex.Unlock()
 	fake.DiscardAllFileChangesStub = nil
@@ -3434,7 +3517,7 @@ func (fake *FakeIGitCommand) DiscardAllFileChangesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardAllFileChangesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DiscardAllFileChangesReturnsOnCall(i int, result1 error) {
 	fake.discardAllFileChangesMutex.Lock()
 	defer fake.discardAllFileChangesMutex.Unlock()
 	fake.DiscardAllFileChangesStub = nil
@@ -3448,7 +3531,7 @@ func (fake *FakeIGitCommand) DiscardAllFileChangesReturnsOnCall(i int, result1 e
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardAnyUnstagedFileChanges() error {
+func (fake *FakeIGit) DiscardAnyUnstagedFileChanges() error {
 	fake.discardAnyUnstagedFileChangesMutex.Lock()
 	ret, specificReturn := fake.discardAnyUnstagedFileChangesReturnsOnCall[len(fake.discardAnyUnstagedFileChangesArgsForCall)]
 	fake.discardAnyUnstagedFileChangesArgsForCall = append(fake.discardAnyUnstagedFileChangesArgsForCall, struct {
@@ -3466,19 +3549,19 @@ func (fake *FakeIGitCommand) DiscardAnyUnstagedFileChanges() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DiscardAnyUnstagedFileChangesCallCount() int {
+func (fake *FakeIGit) DiscardAnyUnstagedFileChangesCallCount() int {
 	fake.discardAnyUnstagedFileChangesMutex.RLock()
 	defer fake.discardAnyUnstagedFileChangesMutex.RUnlock()
 	return len(fake.discardAnyUnstagedFileChangesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DiscardAnyUnstagedFileChangesCalls(stub func() error) {
+func (fake *FakeIGit) DiscardAnyUnstagedFileChangesCalls(stub func() error) {
 	fake.discardAnyUnstagedFileChangesMutex.Lock()
 	defer fake.discardAnyUnstagedFileChangesMutex.Unlock()
 	fake.DiscardAnyUnstagedFileChangesStub = stub
 }
 
-func (fake *FakeIGitCommand) DiscardAnyUnstagedFileChangesReturns(result1 error) {
+func (fake *FakeIGit) DiscardAnyUnstagedFileChangesReturns(result1 error) {
 	fake.discardAnyUnstagedFileChangesMutex.Lock()
 	defer fake.discardAnyUnstagedFileChangesMutex.Unlock()
 	fake.DiscardAnyUnstagedFileChangesStub = nil
@@ -3487,7 +3570,7 @@ func (fake *FakeIGitCommand) DiscardAnyUnstagedFileChangesReturns(result1 error)
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardAnyUnstagedFileChangesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DiscardAnyUnstagedFileChangesReturnsOnCall(i int, result1 error) {
 	fake.discardAnyUnstagedFileChangesMutex.Lock()
 	defer fake.discardAnyUnstagedFileChangesMutex.Unlock()
 	fake.DiscardAnyUnstagedFileChangesStub = nil
@@ -3501,7 +3584,7 @@ func (fake *FakeIGitCommand) DiscardAnyUnstagedFileChangesReturnsOnCall(i int, r
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardOldFileChanges(arg1 []*models.Commit, arg2 int, arg3 string) error {
+func (fake *FakeIGit) DiscardOldFileChanges(arg1 []*models.Commit, arg2 int, arg3 string) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -3527,26 +3610,26 @@ func (fake *FakeIGitCommand) DiscardOldFileChanges(arg1 []*models.Commit, arg2 i
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DiscardOldFileChangesCallCount() int {
+func (fake *FakeIGit) DiscardOldFileChangesCallCount() int {
 	fake.discardOldFileChangesMutex.RLock()
 	defer fake.discardOldFileChangesMutex.RUnlock()
 	return len(fake.discardOldFileChangesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DiscardOldFileChangesCalls(stub func([]*models.Commit, int, string) error) {
+func (fake *FakeIGit) DiscardOldFileChangesCalls(stub func([]*models.Commit, int, string) error) {
 	fake.discardOldFileChangesMutex.Lock()
 	defer fake.discardOldFileChangesMutex.Unlock()
 	fake.DiscardOldFileChangesStub = stub
 }
 
-func (fake *FakeIGitCommand) DiscardOldFileChangesArgsForCall(i int) ([]*models.Commit, int, string) {
+func (fake *FakeIGit) DiscardOldFileChangesArgsForCall(i int) ([]*models.Commit, int, string) {
 	fake.discardOldFileChangesMutex.RLock()
 	defer fake.discardOldFileChangesMutex.RUnlock()
 	argsForCall := fake.discardOldFileChangesArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) DiscardOldFileChangesReturns(result1 error) {
+func (fake *FakeIGit) DiscardOldFileChangesReturns(result1 error) {
 	fake.discardOldFileChangesMutex.Lock()
 	defer fake.discardOldFileChangesMutex.Unlock()
 	fake.DiscardOldFileChangesStub = nil
@@ -3555,7 +3638,7 @@ func (fake *FakeIGitCommand) DiscardOldFileChangesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardOldFileChangesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DiscardOldFileChangesReturnsOnCall(i int, result1 error) {
 	fake.discardOldFileChangesMutex.Lock()
 	defer fake.discardOldFileChangesMutex.Unlock()
 	fake.DiscardOldFileChangesStub = nil
@@ -3569,7 +3652,7 @@ func (fake *FakeIGitCommand) DiscardOldFileChangesReturnsOnCall(i int, result1 e
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedDirChanges(arg1 *filetree.FileNode) error {
+func (fake *FakeIGit) DiscardUnstagedDirChanges(arg1 *filetree.FileNode) error {
 	fake.discardUnstagedDirChangesMutex.Lock()
 	ret, specificReturn := fake.discardUnstagedDirChangesReturnsOnCall[len(fake.discardUnstagedDirChangesArgsForCall)]
 	fake.discardUnstagedDirChangesArgsForCall = append(fake.discardUnstagedDirChangesArgsForCall, struct {
@@ -3588,26 +3671,26 @@ func (fake *FakeIGitCommand) DiscardUnstagedDirChanges(arg1 *filetree.FileNode) 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedDirChangesCallCount() int {
+func (fake *FakeIGit) DiscardUnstagedDirChangesCallCount() int {
 	fake.discardUnstagedDirChangesMutex.RLock()
 	defer fake.discardUnstagedDirChangesMutex.RUnlock()
 	return len(fake.discardUnstagedDirChangesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedDirChangesCalls(stub func(*filetree.FileNode) error) {
+func (fake *FakeIGit) DiscardUnstagedDirChangesCalls(stub func(*filetree.FileNode) error) {
 	fake.discardUnstagedDirChangesMutex.Lock()
 	defer fake.discardUnstagedDirChangesMutex.Unlock()
 	fake.DiscardUnstagedDirChangesStub = stub
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedDirChangesArgsForCall(i int) *filetree.FileNode {
+func (fake *FakeIGit) DiscardUnstagedDirChangesArgsForCall(i int) *filetree.FileNode {
 	fake.discardUnstagedDirChangesMutex.RLock()
 	defer fake.discardUnstagedDirChangesMutex.RUnlock()
 	argsForCall := fake.discardUnstagedDirChangesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedDirChangesReturns(result1 error) {
+func (fake *FakeIGit) DiscardUnstagedDirChangesReturns(result1 error) {
 	fake.discardUnstagedDirChangesMutex.Lock()
 	defer fake.discardUnstagedDirChangesMutex.Unlock()
 	fake.DiscardUnstagedDirChangesStub = nil
@@ -3616,7 +3699,7 @@ func (fake *FakeIGitCommand) DiscardUnstagedDirChangesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedDirChangesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DiscardUnstagedDirChangesReturnsOnCall(i int, result1 error) {
 	fake.discardUnstagedDirChangesMutex.Lock()
 	defer fake.discardUnstagedDirChangesMutex.Unlock()
 	fake.DiscardUnstagedDirChangesStub = nil
@@ -3630,7 +3713,7 @@ func (fake *FakeIGitCommand) DiscardUnstagedDirChangesReturnsOnCall(i int, resul
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedFileChanges(arg1 *models.File) error {
+func (fake *FakeIGit) DiscardUnstagedFileChanges(arg1 *models.File) error {
 	fake.discardUnstagedFileChangesMutex.Lock()
 	ret, specificReturn := fake.discardUnstagedFileChangesReturnsOnCall[len(fake.discardUnstagedFileChangesArgsForCall)]
 	fake.discardUnstagedFileChangesArgsForCall = append(fake.discardUnstagedFileChangesArgsForCall, struct {
@@ -3649,26 +3732,26 @@ func (fake *FakeIGitCommand) DiscardUnstagedFileChanges(arg1 *models.File) error
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedFileChangesCallCount() int {
+func (fake *FakeIGit) DiscardUnstagedFileChangesCallCount() int {
 	fake.discardUnstagedFileChangesMutex.RLock()
 	defer fake.discardUnstagedFileChangesMutex.RUnlock()
 	return len(fake.discardUnstagedFileChangesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedFileChangesCalls(stub func(*models.File) error) {
+func (fake *FakeIGit) DiscardUnstagedFileChangesCalls(stub func(*models.File) error) {
 	fake.discardUnstagedFileChangesMutex.Lock()
 	defer fake.discardUnstagedFileChangesMutex.Unlock()
 	fake.DiscardUnstagedFileChangesStub = stub
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedFileChangesArgsForCall(i int) *models.File {
+func (fake *FakeIGit) DiscardUnstagedFileChangesArgsForCall(i int) *models.File {
 	fake.discardUnstagedFileChangesMutex.RLock()
 	defer fake.discardUnstagedFileChangesMutex.RUnlock()
 	argsForCall := fake.discardUnstagedFileChangesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedFileChangesReturns(result1 error) {
+func (fake *FakeIGit) DiscardUnstagedFileChangesReturns(result1 error) {
 	fake.discardUnstagedFileChangesMutex.Lock()
 	defer fake.discardUnstagedFileChangesMutex.Unlock()
 	fake.DiscardUnstagedFileChangesStub = nil
@@ -3677,7 +3760,7 @@ func (fake *FakeIGitCommand) DiscardUnstagedFileChangesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) DiscardUnstagedFileChangesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) DiscardUnstagedFileChangesReturnsOnCall(i int, result1 error) {
 	fake.discardUnstagedFileChangesMutex.Lock()
 	defer fake.discardUnstagedFileChangesMutex.Unlock()
 	fake.DiscardUnstagedFileChangesStub = nil
@@ -3691,7 +3774,7 @@ func (fake *FakeIGitCommand) DiscardUnstagedFileChangesReturnsOnCall(i int, resu
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) EditFileCmdObj(arg1 string) (types.ICmdObj, error) {
+func (fake *FakeIGit) EditFileCmdObj(arg1 string) (types.ICmdObj, error) {
 	fake.editFileCmdObjMutex.Lock()
 	ret, specificReturn := fake.editFileCmdObjReturnsOnCall[len(fake.editFileCmdObjArgsForCall)]
 	fake.editFileCmdObjArgsForCall = append(fake.editFileCmdObjArgsForCall, struct {
@@ -3710,26 +3793,26 @@ func (fake *FakeIGitCommand) EditFileCmdObj(arg1 string) (types.ICmdObj, error) 
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) EditFileCmdObjCallCount() int {
+func (fake *FakeIGit) EditFileCmdObjCallCount() int {
 	fake.editFileCmdObjMutex.RLock()
 	defer fake.editFileCmdObjMutex.RUnlock()
 	return len(fake.editFileCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) EditFileCmdObjCalls(stub func(string) (types.ICmdObj, error)) {
+func (fake *FakeIGit) EditFileCmdObjCalls(stub func(string) (types.ICmdObj, error)) {
 	fake.editFileCmdObjMutex.Lock()
 	defer fake.editFileCmdObjMutex.Unlock()
 	fake.EditFileCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) EditFileCmdObjArgsForCall(i int) string {
+func (fake *FakeIGit) EditFileCmdObjArgsForCall(i int) string {
 	fake.editFileCmdObjMutex.RLock()
 	defer fake.editFileCmdObjMutex.RUnlock()
 	argsForCall := fake.editFileCmdObjArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) EditFileCmdObjReturns(result1 types.ICmdObj, result2 error) {
+func (fake *FakeIGit) EditFileCmdObjReturns(result1 types.ICmdObj, result2 error) {
 	fake.editFileCmdObjMutex.Lock()
 	defer fake.editFileCmdObjMutex.Unlock()
 	fake.EditFileCmdObjStub = nil
@@ -3739,7 +3822,7 @@ func (fake *FakeIGitCommand) EditFileCmdObjReturns(result1 types.ICmdObj, result
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) EditFileCmdObjReturnsOnCall(i int, result1 types.ICmdObj, result2 error) {
+func (fake *FakeIGit) EditFileCmdObjReturnsOnCall(i int, result1 types.ICmdObj, result2 error) {
 	fake.editFileCmdObjMutex.Lock()
 	defer fake.editFileCmdObjMutex.Unlock()
 	fake.EditFileCmdObjStub = nil
@@ -3755,7 +3838,7 @@ func (fake *FakeIGitCommand) EditFileCmdObjReturnsOnCall(i int, result1 types.IC
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) EditRebaseTodo(arg1 int, arg2 string) error {
+func (fake *FakeIGit) EditRebaseTodo(arg1 int, arg2 string) error {
 	fake.editRebaseTodoMutex.Lock()
 	ret, specificReturn := fake.editRebaseTodoReturnsOnCall[len(fake.editRebaseTodoArgsForCall)]
 	fake.editRebaseTodoArgsForCall = append(fake.editRebaseTodoArgsForCall, struct {
@@ -3775,26 +3858,26 @@ func (fake *FakeIGitCommand) EditRebaseTodo(arg1 int, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) EditRebaseTodoCallCount() int {
+func (fake *FakeIGit) EditRebaseTodoCallCount() int {
 	fake.editRebaseTodoMutex.RLock()
 	defer fake.editRebaseTodoMutex.RUnlock()
 	return len(fake.editRebaseTodoArgsForCall)
 }
 
-func (fake *FakeIGitCommand) EditRebaseTodoCalls(stub func(int, string) error) {
+func (fake *FakeIGit) EditRebaseTodoCalls(stub func(int, string) error) {
 	fake.editRebaseTodoMutex.Lock()
 	defer fake.editRebaseTodoMutex.Unlock()
 	fake.EditRebaseTodoStub = stub
 }
 
-func (fake *FakeIGitCommand) EditRebaseTodoArgsForCall(i int) (int, string) {
+func (fake *FakeIGit) EditRebaseTodoArgsForCall(i int) (int, string) {
 	fake.editRebaseTodoMutex.RLock()
 	defer fake.editRebaseTodoMutex.RUnlock()
 	argsForCall := fake.editRebaseTodoArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) EditRebaseTodoReturns(result1 error) {
+func (fake *FakeIGit) EditRebaseTodoReturns(result1 error) {
 	fake.editRebaseTodoMutex.Lock()
 	defer fake.editRebaseTodoMutex.Unlock()
 	fake.EditRebaseTodoStub = nil
@@ -3803,7 +3886,7 @@ func (fake *FakeIGitCommand) EditRebaseTodoReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) EditRebaseTodoReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) EditRebaseTodoReturnsOnCall(i int, result1 error) {
 	fake.editRebaseTodoMutex.Lock()
 	defer fake.editRebaseTodoMutex.Unlock()
 	fake.EditRebaseTodoStub = nil
@@ -3817,7 +3900,7 @@ func (fake *FakeIGitCommand) EditRebaseTodoReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FailOnCredentialsRequest(arg1 types.ICmdObj) types.ICmdObj {
+func (fake *FakeIGit) FailOnCredentialsRequest(arg1 types.ICmdObj) types.ICmdObj {
 	fake.failOnCredentialsRequestMutex.Lock()
 	ret, specificReturn := fake.failOnCredentialsRequestReturnsOnCall[len(fake.failOnCredentialsRequestArgsForCall)]
 	fake.failOnCredentialsRequestArgsForCall = append(fake.failOnCredentialsRequestArgsForCall, struct {
@@ -3836,26 +3919,26 @@ func (fake *FakeIGitCommand) FailOnCredentialsRequest(arg1 types.ICmdObj) types.
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) FailOnCredentialsRequestCallCount() int {
+func (fake *FakeIGit) FailOnCredentialsRequestCallCount() int {
 	fake.failOnCredentialsRequestMutex.RLock()
 	defer fake.failOnCredentialsRequestMutex.RUnlock()
 	return len(fake.failOnCredentialsRequestArgsForCall)
 }
 
-func (fake *FakeIGitCommand) FailOnCredentialsRequestCalls(stub func(types.ICmdObj) types.ICmdObj) {
+func (fake *FakeIGit) FailOnCredentialsRequestCalls(stub func(types.ICmdObj) types.ICmdObj) {
 	fake.failOnCredentialsRequestMutex.Lock()
 	defer fake.failOnCredentialsRequestMutex.Unlock()
 	fake.FailOnCredentialsRequestStub = stub
 }
 
-func (fake *FakeIGitCommand) FailOnCredentialsRequestArgsForCall(i int) types.ICmdObj {
+func (fake *FakeIGit) FailOnCredentialsRequestArgsForCall(i int) types.ICmdObj {
 	fake.failOnCredentialsRequestMutex.RLock()
 	defer fake.failOnCredentialsRequestMutex.RUnlock()
 	argsForCall := fake.failOnCredentialsRequestArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) FailOnCredentialsRequestReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) FailOnCredentialsRequestReturns(result1 types.ICmdObj) {
 	fake.failOnCredentialsRequestMutex.Lock()
 	defer fake.failOnCredentialsRequestMutex.Unlock()
 	fake.FailOnCredentialsRequestStub = nil
@@ -3864,7 +3947,7 @@ func (fake *FakeIGitCommand) FailOnCredentialsRequestReturns(result1 types.ICmdO
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FailOnCredentialsRequestReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) FailOnCredentialsRequestReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.failOnCredentialsRequestMutex.Lock()
 	defer fake.failOnCredentialsRequestMutex.Unlock()
 	fake.FailOnCredentialsRequestStub = nil
@@ -3878,7 +3961,7 @@ func (fake *FakeIGitCommand) FailOnCredentialsRequestReturnsOnCall(i int, result
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FastForward(arg1 string, arg2 string, arg3 string) error {
+func (fake *FakeIGit) FastForward(arg1 string, arg2 string, arg3 string) error {
 	fake.fastForwardMutex.Lock()
 	ret, specificReturn := fake.fastForwardReturnsOnCall[len(fake.fastForwardArgsForCall)]
 	fake.fastForwardArgsForCall = append(fake.fastForwardArgsForCall, struct {
@@ -3899,26 +3982,26 @@ func (fake *FakeIGitCommand) FastForward(arg1 string, arg2 string, arg3 string) 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) FastForwardCallCount() int {
+func (fake *FakeIGit) FastForwardCallCount() int {
 	fake.fastForwardMutex.RLock()
 	defer fake.fastForwardMutex.RUnlock()
 	return len(fake.fastForwardArgsForCall)
 }
 
-func (fake *FakeIGitCommand) FastForwardCalls(stub func(string, string, string) error) {
+func (fake *FakeIGit) FastForwardCalls(stub func(string, string, string) error) {
 	fake.fastForwardMutex.Lock()
 	defer fake.fastForwardMutex.Unlock()
 	fake.FastForwardStub = stub
 }
 
-func (fake *FakeIGitCommand) FastForwardArgsForCall(i int) (string, string, string) {
+func (fake *FakeIGit) FastForwardArgsForCall(i int) (string, string, string) {
 	fake.fastForwardMutex.RLock()
 	defer fake.fastForwardMutex.RUnlock()
 	argsForCall := fake.fastForwardArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) FastForwardReturns(result1 error) {
+func (fake *FakeIGit) FastForwardReturns(result1 error) {
 	fake.fastForwardMutex.Lock()
 	defer fake.fastForwardMutex.Unlock()
 	fake.FastForwardStub = nil
@@ -3927,7 +4010,7 @@ func (fake *FakeIGitCommand) FastForwardReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FastForwardReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) FastForwardReturnsOnCall(i int, result1 error) {
 	fake.fastForwardMutex.Lock()
 	defer fake.fastForwardMutex.Unlock()
 	fake.FastForwardStub = nil
@@ -3941,7 +4024,7 @@ func (fake *FakeIGitCommand) FastForwardReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) Fetch(arg1 commands.FetchOptions) error {
+func (fake *FakeIGit) Fetch(arg1 commands.FetchOptions) error {
 	fake.fetchMutex.Lock()
 	ret, specificReturn := fake.fetchReturnsOnCall[len(fake.fetchArgsForCall)]
 	fake.fetchArgsForCall = append(fake.fetchArgsForCall, struct {
@@ -3960,26 +4043,26 @@ func (fake *FakeIGitCommand) Fetch(arg1 commands.FetchOptions) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) FetchCallCount() int {
+func (fake *FakeIGit) FetchCallCount() int {
 	fake.fetchMutex.RLock()
 	defer fake.fetchMutex.RUnlock()
 	return len(fake.fetchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) FetchCalls(stub func(commands.FetchOptions) error) {
+func (fake *FakeIGit) FetchCalls(stub func(commands.FetchOptions) error) {
 	fake.fetchMutex.Lock()
 	defer fake.fetchMutex.Unlock()
 	fake.FetchStub = stub
 }
 
-func (fake *FakeIGitCommand) FetchArgsForCall(i int) commands.FetchOptions {
+func (fake *FakeIGit) FetchArgsForCall(i int) commands.FetchOptions {
 	fake.fetchMutex.RLock()
 	defer fake.fetchMutex.RUnlock()
 	argsForCall := fake.fetchArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) FetchReturns(result1 error) {
+func (fake *FakeIGit) FetchReturns(result1 error) {
 	fake.fetchMutex.Lock()
 	defer fake.fetchMutex.Unlock()
 	fake.FetchStub = nil
@@ -3988,7 +4071,7 @@ func (fake *FakeIGitCommand) FetchReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FetchReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) FetchReturnsOnCall(i int, result1 error) {
 	fake.fetchMutex.Lock()
 	defer fake.fetchMutex.Unlock()
 	fake.FetchStub = nil
@@ -4002,7 +4085,7 @@ func (fake *FakeIGitCommand) FetchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FetchInBackground(arg1 commands.FetchOptions) error {
+func (fake *FakeIGit) FetchInBackground(arg1 commands.FetchOptions) error {
 	fake.fetchInBackgroundMutex.Lock()
 	ret, specificReturn := fake.fetchInBackgroundReturnsOnCall[len(fake.fetchInBackgroundArgsForCall)]
 	fake.fetchInBackgroundArgsForCall = append(fake.fetchInBackgroundArgsForCall, struct {
@@ -4021,26 +4104,26 @@ func (fake *FakeIGitCommand) FetchInBackground(arg1 commands.FetchOptions) error
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) FetchInBackgroundCallCount() int {
+func (fake *FakeIGit) FetchInBackgroundCallCount() int {
 	fake.fetchInBackgroundMutex.RLock()
 	defer fake.fetchInBackgroundMutex.RUnlock()
 	return len(fake.fetchInBackgroundArgsForCall)
 }
 
-func (fake *FakeIGitCommand) FetchInBackgroundCalls(stub func(commands.FetchOptions) error) {
+func (fake *FakeIGit) FetchInBackgroundCalls(stub func(commands.FetchOptions) error) {
 	fake.fetchInBackgroundMutex.Lock()
 	defer fake.fetchInBackgroundMutex.Unlock()
 	fake.FetchInBackgroundStub = stub
 }
 
-func (fake *FakeIGitCommand) FetchInBackgroundArgsForCall(i int) commands.FetchOptions {
+func (fake *FakeIGit) FetchInBackgroundArgsForCall(i int) commands.FetchOptions {
 	fake.fetchInBackgroundMutex.RLock()
 	defer fake.fetchInBackgroundMutex.RUnlock()
 	argsForCall := fake.fetchInBackgroundArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) FetchInBackgroundReturns(result1 error) {
+func (fake *FakeIGit) FetchInBackgroundReturns(result1 error) {
 	fake.fetchInBackgroundMutex.Lock()
 	defer fake.fetchInBackgroundMutex.Unlock()
 	fake.FetchInBackgroundStub = nil
@@ -4049,7 +4132,7 @@ func (fake *FakeIGitCommand) FetchInBackgroundReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FetchInBackgroundReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) FetchInBackgroundReturnsOnCall(i int, result1 error) {
 	fake.fetchInBackgroundMutex.Lock()
 	defer fake.fetchInBackgroundMutex.Unlock()
 	fake.FetchInBackgroundStub = nil
@@ -4063,7 +4146,7 @@ func (fake *FakeIGitCommand) FetchInBackgroundReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FetchRemote(arg1 string) error {
+func (fake *FakeIGit) FetchRemote(arg1 string) error {
 	fake.fetchRemoteMutex.Lock()
 	ret, specificReturn := fake.fetchRemoteReturnsOnCall[len(fake.fetchRemoteArgsForCall)]
 	fake.fetchRemoteArgsForCall = append(fake.fetchRemoteArgsForCall, struct {
@@ -4082,26 +4165,26 @@ func (fake *FakeIGitCommand) FetchRemote(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) FetchRemoteCallCount() int {
+func (fake *FakeIGit) FetchRemoteCallCount() int {
 	fake.fetchRemoteMutex.RLock()
 	defer fake.fetchRemoteMutex.RUnlock()
 	return len(fake.fetchRemoteArgsForCall)
 }
 
-func (fake *FakeIGitCommand) FetchRemoteCalls(stub func(string) error) {
+func (fake *FakeIGit) FetchRemoteCalls(stub func(string) error) {
 	fake.fetchRemoteMutex.Lock()
 	defer fake.fetchRemoteMutex.Unlock()
 	fake.FetchRemoteStub = stub
 }
 
-func (fake *FakeIGitCommand) FetchRemoteArgsForCall(i int) string {
+func (fake *FakeIGit) FetchRemoteArgsForCall(i int) string {
 	fake.fetchRemoteMutex.RLock()
 	defer fake.fetchRemoteMutex.RUnlock()
 	argsForCall := fake.fetchRemoteArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) FetchRemoteReturns(result1 error) {
+func (fake *FakeIGit) FetchRemoteReturns(result1 error) {
 	fake.fetchRemoteMutex.Lock()
 	defer fake.fetchRemoteMutex.Unlock()
 	fake.FetchRemoteStub = nil
@@ -4110,7 +4193,7 @@ func (fake *FakeIGitCommand) FetchRemoteReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FetchRemoteReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) FetchRemoteReturnsOnCall(i int, result1 error) {
 	fake.fetchRemoteMutex.Lock()
 	defer fake.fetchRemoteMutex.Unlock()
 	fake.FetchRemoteStub = nil
@@ -4124,7 +4207,7 @@ func (fake *FakeIGitCommand) FetchRemoteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FindRemoteForBranchInConfig(arg1 string) (string, error) {
+func (fake *FakeIGit) FindRemoteForBranchInConfig(arg1 string) (string, error) {
 	fake.findRemoteForBranchInConfigMutex.Lock()
 	ret, specificReturn := fake.findRemoteForBranchInConfigReturnsOnCall[len(fake.findRemoteForBranchInConfigArgsForCall)]
 	fake.findRemoteForBranchInConfigArgsForCall = append(fake.findRemoteForBranchInConfigArgsForCall, struct {
@@ -4143,26 +4226,26 @@ func (fake *FakeIGitCommand) FindRemoteForBranchInConfig(arg1 string) (string, e
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) FindRemoteForBranchInConfigCallCount() int {
+func (fake *FakeIGit) FindRemoteForBranchInConfigCallCount() int {
 	fake.findRemoteForBranchInConfigMutex.RLock()
 	defer fake.findRemoteForBranchInConfigMutex.RUnlock()
 	return len(fake.findRemoteForBranchInConfigArgsForCall)
 }
 
-func (fake *FakeIGitCommand) FindRemoteForBranchInConfigCalls(stub func(string) (string, error)) {
+func (fake *FakeIGit) FindRemoteForBranchInConfigCalls(stub func(string) (string, error)) {
 	fake.findRemoteForBranchInConfigMutex.Lock()
 	defer fake.findRemoteForBranchInConfigMutex.Unlock()
 	fake.FindRemoteForBranchInConfigStub = stub
 }
 
-func (fake *FakeIGitCommand) FindRemoteForBranchInConfigArgsForCall(i int) string {
+func (fake *FakeIGit) FindRemoteForBranchInConfigArgsForCall(i int) string {
 	fake.findRemoteForBranchInConfigMutex.RLock()
 	defer fake.findRemoteForBranchInConfigMutex.RUnlock()
 	argsForCall := fake.findRemoteForBranchInConfigArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) FindRemoteForBranchInConfigReturns(result1 string, result2 error) {
+func (fake *FakeIGit) FindRemoteForBranchInConfigReturns(result1 string, result2 error) {
 	fake.findRemoteForBranchInConfigMutex.Lock()
 	defer fake.findRemoteForBranchInConfigMutex.Unlock()
 	fake.FindRemoteForBranchInConfigStub = nil
@@ -4172,7 +4255,7 @@ func (fake *FakeIGitCommand) FindRemoteForBranchInConfigReturns(result1 string, 
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) FindRemoteForBranchInConfigReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) FindRemoteForBranchInConfigReturnsOnCall(i int, result1 string, result2 error) {
 	fake.findRemoteForBranchInConfigMutex.Lock()
 	defer fake.findRemoteForBranchInConfigMutex.Unlock()
 	fake.FindRemoteForBranchInConfigStub = nil
@@ -4188,7 +4271,7 @@ func (fake *FakeIGitCommand) FindRemoteForBranchInConfigReturnsOnCall(i int, res
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) FlowFinish(arg1 string, arg2 string) types.ICmdObj {
+func (fake *FakeIGit) FlowFinish(arg1 string, arg2 string) types.ICmdObj {
 	fake.flowFinishMutex.Lock()
 	ret, specificReturn := fake.flowFinishReturnsOnCall[len(fake.flowFinishArgsForCall)]
 	fake.flowFinishArgsForCall = append(fake.flowFinishArgsForCall, struct {
@@ -4208,26 +4291,26 @@ func (fake *FakeIGitCommand) FlowFinish(arg1 string, arg2 string) types.ICmdObj 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) FlowFinishCallCount() int {
+func (fake *FakeIGit) FlowFinishCallCount() int {
 	fake.flowFinishMutex.RLock()
 	defer fake.flowFinishMutex.RUnlock()
 	return len(fake.flowFinishArgsForCall)
 }
 
-func (fake *FakeIGitCommand) FlowFinishCalls(stub func(string, string) types.ICmdObj) {
+func (fake *FakeIGit) FlowFinishCalls(stub func(string, string) types.ICmdObj) {
 	fake.flowFinishMutex.Lock()
 	defer fake.flowFinishMutex.Unlock()
 	fake.FlowFinishStub = stub
 }
 
-func (fake *FakeIGitCommand) FlowFinishArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) FlowFinishArgsForCall(i int) (string, string) {
 	fake.flowFinishMutex.RLock()
 	defer fake.flowFinishMutex.RUnlock()
 	argsForCall := fake.flowFinishArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) FlowFinishReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) FlowFinishReturns(result1 types.ICmdObj) {
 	fake.flowFinishMutex.Lock()
 	defer fake.flowFinishMutex.Unlock()
 	fake.FlowFinishStub = nil
@@ -4236,7 +4319,7 @@ func (fake *FakeIGitCommand) FlowFinishReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FlowFinishReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) FlowFinishReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.flowFinishMutex.Lock()
 	defer fake.flowFinishMutex.Unlock()
 	fake.FlowFinishStub = nil
@@ -4250,7 +4333,7 @@ func (fake *FakeIGitCommand) FlowFinishReturnsOnCall(i int, result1 types.ICmdOb
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FlowStart(arg1 string, arg2 string) types.ICmdObj {
+func (fake *FakeIGit) FlowStart(arg1 string, arg2 string) types.ICmdObj {
 	fake.flowStartMutex.Lock()
 	ret, specificReturn := fake.flowStartReturnsOnCall[len(fake.flowStartArgsForCall)]
 	fake.flowStartArgsForCall = append(fake.flowStartArgsForCall, struct {
@@ -4270,26 +4353,26 @@ func (fake *FakeIGitCommand) FlowStart(arg1 string, arg2 string) types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) FlowStartCallCount() int {
+func (fake *FakeIGit) FlowStartCallCount() int {
 	fake.flowStartMutex.RLock()
 	defer fake.flowStartMutex.RUnlock()
 	return len(fake.flowStartArgsForCall)
 }
 
-func (fake *FakeIGitCommand) FlowStartCalls(stub func(string, string) types.ICmdObj) {
+func (fake *FakeIGit) FlowStartCalls(stub func(string, string) types.ICmdObj) {
 	fake.flowStartMutex.Lock()
 	defer fake.flowStartMutex.Unlock()
 	fake.FlowStartStub = stub
 }
 
-func (fake *FakeIGitCommand) FlowStartArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) FlowStartArgsForCall(i int) (string, string) {
 	fake.flowStartMutex.RLock()
 	defer fake.flowStartMutex.RUnlock()
 	argsForCall := fake.flowStartArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) FlowStartReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) FlowStartReturns(result1 types.ICmdObj) {
 	fake.flowStartMutex.Lock()
 	defer fake.flowStartMutex.Unlock()
 	fake.FlowStartStub = nil
@@ -4298,7 +4381,7 @@ func (fake *FakeIGitCommand) FlowStartReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) FlowStartReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) FlowStartReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.flowStartMutex.Lock()
 	defer fake.flowStartMutex.Unlock()
 	fake.FlowStartStub = nil
@@ -4312,7 +4395,7 @@ func (fake *FakeIGitCommand) FlowStartReturnsOnCall(i int, result1 types.ICmdObj
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GenerateGenericRebaseTodo(arg1 []*models.Commit, arg2 int, arg3 string) (string, string, error) {
+func (fake *FakeIGit) GenerateGenericRebaseTodo(arg1 []*models.Commit, arg2 int, arg3 string) (string, string, error) {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -4338,26 +4421,26 @@ func (fake *FakeIGitCommand) GenerateGenericRebaseTodo(arg1 []*models.Commit, ar
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
-func (fake *FakeIGitCommand) GenerateGenericRebaseTodoCallCount() int {
+func (fake *FakeIGit) GenerateGenericRebaseTodoCallCount() int {
 	fake.generateGenericRebaseTodoMutex.RLock()
 	defer fake.generateGenericRebaseTodoMutex.RUnlock()
 	return len(fake.generateGenericRebaseTodoArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GenerateGenericRebaseTodoCalls(stub func([]*models.Commit, int, string) (string, string, error)) {
+func (fake *FakeIGit) GenerateGenericRebaseTodoCalls(stub func([]*models.Commit, int, string) (string, string, error)) {
 	fake.generateGenericRebaseTodoMutex.Lock()
 	defer fake.generateGenericRebaseTodoMutex.Unlock()
 	fake.GenerateGenericRebaseTodoStub = stub
 }
 
-func (fake *FakeIGitCommand) GenerateGenericRebaseTodoArgsForCall(i int) ([]*models.Commit, int, string) {
+func (fake *FakeIGit) GenerateGenericRebaseTodoArgsForCall(i int) ([]*models.Commit, int, string) {
 	fake.generateGenericRebaseTodoMutex.RLock()
 	defer fake.generateGenericRebaseTodoMutex.RUnlock()
 	argsForCall := fake.generateGenericRebaseTodoArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) GenerateGenericRebaseTodoReturns(result1 string, result2 string, result3 error) {
+func (fake *FakeIGit) GenerateGenericRebaseTodoReturns(result1 string, result2 string, result3 error) {
 	fake.generateGenericRebaseTodoMutex.Lock()
 	defer fake.generateGenericRebaseTodoMutex.Unlock()
 	fake.GenerateGenericRebaseTodoStub = nil
@@ -4368,7 +4451,7 @@ func (fake *FakeIGitCommand) GenerateGenericRebaseTodoReturns(result1 string, re
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGitCommand) GenerateGenericRebaseTodoReturnsOnCall(i int, result1 string, result2 string, result3 error) {
+func (fake *FakeIGit) GenerateGenericRebaseTodoReturnsOnCall(i int, result1 string, result2 string, result3 error) {
 	fake.generateGenericRebaseTodoMutex.Lock()
 	defer fake.generateGenericRebaseTodoMutex.Unlock()
 	fake.GenerateGenericRebaseTodoStub = nil
@@ -4386,7 +4469,7 @@ func (fake *FakeIGitCommand) GenerateGenericRebaseTodoReturnsOnCall(i int, resul
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGitCommand) GenericAbortCmdObj() types.ICmdObj {
+func (fake *FakeIGit) GenericAbortCmdObj() types.ICmdObj {
 	fake.genericAbortCmdObjMutex.Lock()
 	ret, specificReturn := fake.genericAbortCmdObjReturnsOnCall[len(fake.genericAbortCmdObjArgsForCall)]
 	fake.genericAbortCmdObjArgsForCall = append(fake.genericAbortCmdObjArgsForCall, struct {
@@ -4404,19 +4487,19 @@ func (fake *FakeIGitCommand) GenericAbortCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GenericAbortCmdObjCallCount() int {
+func (fake *FakeIGit) GenericAbortCmdObjCallCount() int {
 	fake.genericAbortCmdObjMutex.RLock()
 	defer fake.genericAbortCmdObjMutex.RUnlock()
 	return len(fake.genericAbortCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GenericAbortCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) GenericAbortCmdObjCalls(stub func() types.ICmdObj) {
 	fake.genericAbortCmdObjMutex.Lock()
 	defer fake.genericAbortCmdObjMutex.Unlock()
 	fake.GenericAbortCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) GenericAbortCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) GenericAbortCmdObjReturns(result1 types.ICmdObj) {
 	fake.genericAbortCmdObjMutex.Lock()
 	defer fake.genericAbortCmdObjMutex.Unlock()
 	fake.GenericAbortCmdObjStub = nil
@@ -4425,7 +4508,7 @@ func (fake *FakeIGitCommand) GenericAbortCmdObjReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GenericAbortCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) GenericAbortCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.genericAbortCmdObjMutex.Lock()
 	defer fake.genericAbortCmdObjMutex.Unlock()
 	fake.GenericAbortCmdObjStub = nil
@@ -4439,7 +4522,7 @@ func (fake *FakeIGitCommand) GenericAbortCmdObjReturnsOnCall(i int, result1 type
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GenericContinueCmdObj() types.ICmdObj {
+func (fake *FakeIGit) GenericContinueCmdObj() types.ICmdObj {
 	fake.genericContinueCmdObjMutex.Lock()
 	ret, specificReturn := fake.genericContinueCmdObjReturnsOnCall[len(fake.genericContinueCmdObjArgsForCall)]
 	fake.genericContinueCmdObjArgsForCall = append(fake.genericContinueCmdObjArgsForCall, struct {
@@ -4457,19 +4540,19 @@ func (fake *FakeIGitCommand) GenericContinueCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GenericContinueCmdObjCallCount() int {
+func (fake *FakeIGit) GenericContinueCmdObjCallCount() int {
 	fake.genericContinueCmdObjMutex.RLock()
 	defer fake.genericContinueCmdObjMutex.RUnlock()
 	return len(fake.genericContinueCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GenericContinueCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) GenericContinueCmdObjCalls(stub func() types.ICmdObj) {
 	fake.genericContinueCmdObjMutex.Lock()
 	defer fake.genericContinueCmdObjMutex.Unlock()
 	fake.GenericContinueCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) GenericContinueCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) GenericContinueCmdObjReturns(result1 types.ICmdObj) {
 	fake.genericContinueCmdObjMutex.Lock()
 	defer fake.genericContinueCmdObjMutex.Unlock()
 	fake.GenericContinueCmdObjStub = nil
@@ -4478,7 +4561,7 @@ func (fake *FakeIGitCommand) GenericContinueCmdObjReturns(result1 types.ICmdObj)
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GenericContinueCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) GenericContinueCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.genericContinueCmdObjMutex.Lock()
 	defer fake.genericContinueCmdObjMutex.Unlock()
 	fake.GenericContinueCmdObjStub = nil
@@ -4492,7 +4575,7 @@ func (fake *FakeIGitCommand) GenericContinueCmdObjReturnsOnCall(i int, result1 t
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseAction(arg1 string, arg2 string) error {
+func (fake *FakeIGit) GenericMergeOrRebaseAction(arg1 string, arg2 string) error {
 	fake.genericMergeOrRebaseActionMutex.Lock()
 	ret, specificReturn := fake.genericMergeOrRebaseActionReturnsOnCall[len(fake.genericMergeOrRebaseActionArgsForCall)]
 	fake.genericMergeOrRebaseActionArgsForCall = append(fake.genericMergeOrRebaseActionArgsForCall, struct {
@@ -4512,26 +4595,26 @@ func (fake *FakeIGitCommand) GenericMergeOrRebaseAction(arg1 string, arg2 string
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseActionCallCount() int {
+func (fake *FakeIGit) GenericMergeOrRebaseActionCallCount() int {
 	fake.genericMergeOrRebaseActionMutex.RLock()
 	defer fake.genericMergeOrRebaseActionMutex.RUnlock()
 	return len(fake.genericMergeOrRebaseActionArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseActionCalls(stub func(string, string) error) {
+func (fake *FakeIGit) GenericMergeOrRebaseActionCalls(stub func(string, string) error) {
 	fake.genericMergeOrRebaseActionMutex.Lock()
 	defer fake.genericMergeOrRebaseActionMutex.Unlock()
 	fake.GenericMergeOrRebaseActionStub = stub
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseActionArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) GenericMergeOrRebaseActionArgsForCall(i int) (string, string) {
 	fake.genericMergeOrRebaseActionMutex.RLock()
 	defer fake.genericMergeOrRebaseActionMutex.RUnlock()
 	argsForCall := fake.genericMergeOrRebaseActionArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseActionReturns(result1 error) {
+func (fake *FakeIGit) GenericMergeOrRebaseActionReturns(result1 error) {
 	fake.genericMergeOrRebaseActionMutex.Lock()
 	defer fake.genericMergeOrRebaseActionMutex.Unlock()
 	fake.GenericMergeOrRebaseActionStub = nil
@@ -4540,7 +4623,7 @@ func (fake *FakeIGitCommand) GenericMergeOrRebaseActionReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseActionReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) GenericMergeOrRebaseActionReturnsOnCall(i int, result1 error) {
 	fake.genericMergeOrRebaseActionMutex.Lock()
 	defer fake.genericMergeOrRebaseActionMutex.Unlock()
 	fake.GenericMergeOrRebaseActionStub = nil
@@ -4554,7 +4637,7 @@ func (fake *FakeIGitCommand) GenericMergeOrRebaseActionReturnsOnCall(i int, resu
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObj(arg1 string) types.ICmdObj {
+func (fake *FakeIGit) GenericMergeOrRebaseCmdObj(arg1 string) types.ICmdObj {
 	fake.genericMergeOrRebaseCmdObjMutex.Lock()
 	ret, specificReturn := fake.genericMergeOrRebaseCmdObjReturnsOnCall[len(fake.genericMergeOrRebaseCmdObjArgsForCall)]
 	fake.genericMergeOrRebaseCmdObjArgsForCall = append(fake.genericMergeOrRebaseCmdObjArgsForCall, struct {
@@ -4573,26 +4656,26 @@ func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObj(arg1 string) types.ICmdO
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObjCallCount() int {
+func (fake *FakeIGit) GenericMergeOrRebaseCmdObjCallCount() int {
 	fake.genericMergeOrRebaseCmdObjMutex.RLock()
 	defer fake.genericMergeOrRebaseCmdObjMutex.RUnlock()
 	return len(fake.genericMergeOrRebaseCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObjCalls(stub func(string) types.ICmdObj) {
+func (fake *FakeIGit) GenericMergeOrRebaseCmdObjCalls(stub func(string) types.ICmdObj) {
 	fake.genericMergeOrRebaseCmdObjMutex.Lock()
 	defer fake.genericMergeOrRebaseCmdObjMutex.Unlock()
 	fake.GenericMergeOrRebaseCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObjArgsForCall(i int) string {
+func (fake *FakeIGit) GenericMergeOrRebaseCmdObjArgsForCall(i int) string {
 	fake.genericMergeOrRebaseCmdObjMutex.RLock()
 	defer fake.genericMergeOrRebaseCmdObjMutex.RUnlock()
 	argsForCall := fake.genericMergeOrRebaseCmdObjArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) GenericMergeOrRebaseCmdObjReturns(result1 types.ICmdObj) {
 	fake.genericMergeOrRebaseCmdObjMutex.Lock()
 	defer fake.genericMergeOrRebaseCmdObjMutex.Unlock()
 	fake.GenericMergeOrRebaseCmdObjStub = nil
@@ -4601,7 +4684,7 @@ func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObjReturns(result1 types.ICm
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) GenericMergeOrRebaseCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.genericMergeOrRebaseCmdObjMutex.Lock()
 	defer fake.genericMergeOrRebaseCmdObjMutex.Unlock()
 	fake.GenericMergeOrRebaseCmdObjStub = nil
@@ -4615,7 +4698,7 @@ func (fake *FakeIGitCommand) GenericMergeOrRebaseCmdObjReturnsOnCall(i int, resu
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetBranchGraph(arg1 string) (string, error) {
+func (fake *FakeIGit) GetBranchGraph(arg1 string) (string, error) {
 	fake.getBranchGraphMutex.Lock()
 	ret, specificReturn := fake.getBranchGraphReturnsOnCall[len(fake.getBranchGraphArgsForCall)]
 	fake.getBranchGraphArgsForCall = append(fake.getBranchGraphArgsForCall, struct {
@@ -4634,26 +4717,26 @@ func (fake *FakeIGitCommand) GetBranchGraph(arg1 string) (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphCallCount() int {
+func (fake *FakeIGit) GetBranchGraphCallCount() int {
 	fake.getBranchGraphMutex.RLock()
 	defer fake.getBranchGraphMutex.RUnlock()
 	return len(fake.getBranchGraphArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphCalls(stub func(string) (string, error)) {
+func (fake *FakeIGit) GetBranchGraphCalls(stub func(string) (string, error)) {
 	fake.getBranchGraphMutex.Lock()
 	defer fake.getBranchGraphMutex.Unlock()
 	fake.GetBranchGraphStub = stub
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphArgsForCall(i int) string {
+func (fake *FakeIGit) GetBranchGraphArgsForCall(i int) string {
 	fake.getBranchGraphMutex.RLock()
 	defer fake.getBranchGraphMutex.RUnlock()
 	argsForCall := fake.getBranchGraphArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphReturns(result1 string, result2 error) {
+func (fake *FakeIGit) GetBranchGraphReturns(result1 string, result2 error) {
 	fake.getBranchGraphMutex.Lock()
 	defer fake.getBranchGraphMutex.Unlock()
 	fake.GetBranchGraphStub = nil
@@ -4663,7 +4746,7 @@ func (fake *FakeIGitCommand) GetBranchGraphReturns(result1 string, result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) GetBranchGraphReturnsOnCall(i int, result1 string, result2 error) {
 	fake.getBranchGraphMutex.Lock()
 	defer fake.getBranchGraphMutex.Unlock()
 	fake.GetBranchGraphStub = nil
@@ -4679,7 +4762,7 @@ func (fake *FakeIGitCommand) GetBranchGraphReturnsOnCall(i int, result1 string, 
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphCmdObj(arg1 string) types.ICmdObj {
+func (fake *FakeIGit) GetBranchGraphCmdObj(arg1 string) types.ICmdObj {
 	fake.getBranchGraphCmdObjMutex.Lock()
 	ret, specificReturn := fake.getBranchGraphCmdObjReturnsOnCall[len(fake.getBranchGraphCmdObjArgsForCall)]
 	fake.getBranchGraphCmdObjArgsForCall = append(fake.getBranchGraphCmdObjArgsForCall, struct {
@@ -4698,26 +4781,26 @@ func (fake *FakeIGitCommand) GetBranchGraphCmdObj(arg1 string) types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphCmdObjCallCount() int {
+func (fake *FakeIGit) GetBranchGraphCmdObjCallCount() int {
 	fake.getBranchGraphCmdObjMutex.RLock()
 	defer fake.getBranchGraphCmdObjMutex.RUnlock()
 	return len(fake.getBranchGraphCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphCmdObjCalls(stub func(string) types.ICmdObj) {
+func (fake *FakeIGit) GetBranchGraphCmdObjCalls(stub func(string) types.ICmdObj) {
 	fake.getBranchGraphCmdObjMutex.Lock()
 	defer fake.getBranchGraphCmdObjMutex.Unlock()
 	fake.GetBranchGraphCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphCmdObjArgsForCall(i int) string {
+func (fake *FakeIGit) GetBranchGraphCmdObjArgsForCall(i int) string {
 	fake.getBranchGraphCmdObjMutex.RLock()
 	defer fake.getBranchGraphCmdObjMutex.RUnlock()
 	argsForCall := fake.getBranchGraphCmdObjArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) GetBranchGraphCmdObjReturns(result1 types.ICmdObj) {
 	fake.getBranchGraphCmdObjMutex.Lock()
 	defer fake.getBranchGraphCmdObjMutex.Unlock()
 	fake.GetBranchGraphCmdObjStub = nil
@@ -4726,7 +4809,7 @@ func (fake *FakeIGitCommand) GetBranchGraphCmdObjReturns(result1 types.ICmdObj) 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetBranchGraphCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) GetBranchGraphCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.getBranchGraphCmdObjMutex.Lock()
 	defer fake.getBranchGraphCmdObjMutex.Unlock()
 	fake.GetBranchGraphCmdObjStub = nil
@@ -4740,7 +4823,7 @@ func (fake *FakeIGitCommand) GetBranchGraphCmdObjReturnsOnCall(i int, result1 ty
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCount(arg1 string) (string, string) {
+func (fake *FakeIGit) GetBranchUpstreamDifferenceCount(arg1 string) (string, string) {
 	fake.getBranchUpstreamDifferenceCountMutex.Lock()
 	ret, specificReturn := fake.getBranchUpstreamDifferenceCountReturnsOnCall[len(fake.getBranchUpstreamDifferenceCountArgsForCall)]
 	fake.getBranchUpstreamDifferenceCountArgsForCall = append(fake.getBranchUpstreamDifferenceCountArgsForCall, struct {
@@ -4759,26 +4842,26 @@ func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCount(arg1 string) (stri
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCountCallCount() int {
+func (fake *FakeIGit) GetBranchUpstreamDifferenceCountCallCount() int {
 	fake.getBranchUpstreamDifferenceCountMutex.RLock()
 	defer fake.getBranchUpstreamDifferenceCountMutex.RUnlock()
 	return len(fake.getBranchUpstreamDifferenceCountArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCountCalls(stub func(string) (string, string)) {
+func (fake *FakeIGit) GetBranchUpstreamDifferenceCountCalls(stub func(string) (string, string)) {
 	fake.getBranchUpstreamDifferenceCountMutex.Lock()
 	defer fake.getBranchUpstreamDifferenceCountMutex.Unlock()
 	fake.GetBranchUpstreamDifferenceCountStub = stub
 }
 
-func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCountArgsForCall(i int) string {
+func (fake *FakeIGit) GetBranchUpstreamDifferenceCountArgsForCall(i int) string {
 	fake.getBranchUpstreamDifferenceCountMutex.RLock()
 	defer fake.getBranchUpstreamDifferenceCountMutex.RUnlock()
 	argsForCall := fake.getBranchUpstreamDifferenceCountArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCountReturns(result1 string, result2 string) {
+func (fake *FakeIGit) GetBranchUpstreamDifferenceCountReturns(result1 string, result2 string) {
 	fake.getBranchUpstreamDifferenceCountMutex.Lock()
 	defer fake.getBranchUpstreamDifferenceCountMutex.Unlock()
 	fake.GetBranchUpstreamDifferenceCountStub = nil
@@ -4788,7 +4871,7 @@ func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCountReturns(result1 str
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCountReturnsOnCall(i int, result1 string, result2 string) {
+func (fake *FakeIGit) GetBranchUpstreamDifferenceCountReturnsOnCall(i int, result1 string, result2 string) {
 	fake.getBranchUpstreamDifferenceCountMutex.Lock()
 	defer fake.getBranchUpstreamDifferenceCountMutex.Unlock()
 	fake.GetBranchUpstreamDifferenceCountStub = nil
@@ -4804,7 +4887,7 @@ func (fake *FakeIGitCommand) GetBranchUpstreamDifferenceCountReturnsOnCall(i int
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferenceCmdObj(arg1 string, arg2 string) types.ICmdObj {
+func (fake *FakeIGit) GetCommitDifferenceCmdObj(arg1 string, arg2 string) types.ICmdObj {
 	fake.getCommitDifferenceCmdObjMutex.Lock()
 	ret, specificReturn := fake.getCommitDifferenceCmdObjReturnsOnCall[len(fake.getCommitDifferenceCmdObjArgsForCall)]
 	fake.getCommitDifferenceCmdObjArgsForCall = append(fake.getCommitDifferenceCmdObjArgsForCall, struct {
@@ -4824,26 +4907,26 @@ func (fake *FakeIGitCommand) GetCommitDifferenceCmdObj(arg1 string, arg2 string)
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferenceCmdObjCallCount() int {
+func (fake *FakeIGit) GetCommitDifferenceCmdObjCallCount() int {
 	fake.getCommitDifferenceCmdObjMutex.RLock()
 	defer fake.getCommitDifferenceCmdObjMutex.RUnlock()
 	return len(fake.getCommitDifferenceCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferenceCmdObjCalls(stub func(string, string) types.ICmdObj) {
+func (fake *FakeIGit) GetCommitDifferenceCmdObjCalls(stub func(string, string) types.ICmdObj) {
 	fake.getCommitDifferenceCmdObjMutex.Lock()
 	defer fake.getCommitDifferenceCmdObjMutex.Unlock()
 	fake.GetCommitDifferenceCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferenceCmdObjArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) GetCommitDifferenceCmdObjArgsForCall(i int) (string, string) {
 	fake.getCommitDifferenceCmdObjMutex.RLock()
 	defer fake.getCommitDifferenceCmdObjMutex.RUnlock()
 	argsForCall := fake.getCommitDifferenceCmdObjArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferenceCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) GetCommitDifferenceCmdObjReturns(result1 types.ICmdObj) {
 	fake.getCommitDifferenceCmdObjMutex.Lock()
 	defer fake.getCommitDifferenceCmdObjMutex.Unlock()
 	fake.GetCommitDifferenceCmdObjStub = nil
@@ -4852,7 +4935,7 @@ func (fake *FakeIGitCommand) GetCommitDifferenceCmdObjReturns(result1 types.ICmd
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferenceCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) GetCommitDifferenceCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.getCommitDifferenceCmdObjMutex.Lock()
 	defer fake.getCommitDifferenceCmdObjMutex.Unlock()
 	fake.GetCommitDifferenceCmdObjStub = nil
@@ -4866,7 +4949,7 @@ func (fake *FakeIGitCommand) GetCommitDifferenceCmdObjReturnsOnCall(i int, resul
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferences(arg1 string, arg2 string) (string, string) {
+func (fake *FakeIGit) GetCommitDifferences(arg1 string, arg2 string) (string, string) {
 	fake.getCommitDifferencesMutex.Lock()
 	ret, specificReturn := fake.getCommitDifferencesReturnsOnCall[len(fake.getCommitDifferencesArgsForCall)]
 	fake.getCommitDifferencesArgsForCall = append(fake.getCommitDifferencesArgsForCall, struct {
@@ -4886,26 +4969,26 @@ func (fake *FakeIGitCommand) GetCommitDifferences(arg1 string, arg2 string) (str
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferencesCallCount() int {
+func (fake *FakeIGit) GetCommitDifferencesCallCount() int {
 	fake.getCommitDifferencesMutex.RLock()
 	defer fake.getCommitDifferencesMutex.RUnlock()
 	return len(fake.getCommitDifferencesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferencesCalls(stub func(string, string) (string, string)) {
+func (fake *FakeIGit) GetCommitDifferencesCalls(stub func(string, string) (string, string)) {
 	fake.getCommitDifferencesMutex.Lock()
 	defer fake.getCommitDifferencesMutex.Unlock()
 	fake.GetCommitDifferencesStub = stub
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferencesArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) GetCommitDifferencesArgsForCall(i int) (string, string) {
 	fake.getCommitDifferencesMutex.RLock()
 	defer fake.getCommitDifferencesMutex.RUnlock()
 	argsForCall := fake.getCommitDifferencesArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferencesReturns(result1 string, result2 string) {
+func (fake *FakeIGit) GetCommitDifferencesReturns(result1 string, result2 string) {
 	fake.getCommitDifferencesMutex.Lock()
 	defer fake.getCommitDifferencesMutex.Unlock()
 	fake.GetCommitDifferencesStub = nil
@@ -4915,7 +4998,7 @@ func (fake *FakeIGitCommand) GetCommitDifferencesReturns(result1 string, result2
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetCommitDifferencesReturnsOnCall(i int, result1 string, result2 string) {
+func (fake *FakeIGit) GetCommitDifferencesReturnsOnCall(i int, result1 string, result2 string) {
 	fake.getCommitDifferencesMutex.Lock()
 	defer fake.getCommitDifferencesMutex.Unlock()
 	fake.GetCommitDifferencesStub = nil
@@ -4931,7 +5014,7 @@ func (fake *FakeIGitCommand) GetCommitDifferencesReturnsOnCall(i int, result1 st
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetCommitMessage(arg1 string) (string, error) {
+func (fake *FakeIGit) GetCommitMessage(arg1 string) (string, error) {
 	fake.getCommitMessageMutex.Lock()
 	ret, specificReturn := fake.getCommitMessageReturnsOnCall[len(fake.getCommitMessageArgsForCall)]
 	fake.getCommitMessageArgsForCall = append(fake.getCommitMessageArgsForCall, struct {
@@ -4950,26 +5033,26 @@ func (fake *FakeIGitCommand) GetCommitMessage(arg1 string) (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageCallCount() int {
+func (fake *FakeIGit) GetCommitMessageCallCount() int {
 	fake.getCommitMessageMutex.RLock()
 	defer fake.getCommitMessageMutex.RUnlock()
 	return len(fake.getCommitMessageArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageCalls(stub func(string) (string, error)) {
+func (fake *FakeIGit) GetCommitMessageCalls(stub func(string) (string, error)) {
 	fake.getCommitMessageMutex.Lock()
 	defer fake.getCommitMessageMutex.Unlock()
 	fake.GetCommitMessageStub = stub
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageArgsForCall(i int) string {
+func (fake *FakeIGit) GetCommitMessageArgsForCall(i int) string {
 	fake.getCommitMessageMutex.RLock()
 	defer fake.getCommitMessageMutex.RUnlock()
 	argsForCall := fake.getCommitMessageArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageReturns(result1 string, result2 error) {
+func (fake *FakeIGit) GetCommitMessageReturns(result1 string, result2 error) {
 	fake.getCommitMessageMutex.Lock()
 	defer fake.getCommitMessageMutex.Unlock()
 	fake.GetCommitMessageStub = nil
@@ -4979,7 +5062,7 @@ func (fake *FakeIGitCommand) GetCommitMessageReturns(result1 string, result2 err
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) GetCommitMessageReturnsOnCall(i int, result1 string, result2 error) {
 	fake.getCommitMessageMutex.Lock()
 	defer fake.getCommitMessageMutex.Unlock()
 	fake.GetCommitMessageStub = nil
@@ -4995,7 +5078,7 @@ func (fake *FakeIGitCommand) GetCommitMessageReturnsOnCall(i int, result1 string
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageFirstLine(arg1 string) (string, error) {
+func (fake *FakeIGit) GetCommitMessageFirstLine(arg1 string) (string, error) {
 	fake.getCommitMessageFirstLineMutex.Lock()
 	ret, specificReturn := fake.getCommitMessageFirstLineReturnsOnCall[len(fake.getCommitMessageFirstLineArgsForCall)]
 	fake.getCommitMessageFirstLineArgsForCall = append(fake.getCommitMessageFirstLineArgsForCall, struct {
@@ -5014,26 +5097,26 @@ func (fake *FakeIGitCommand) GetCommitMessageFirstLine(arg1 string) (string, err
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageFirstLineCallCount() int {
+func (fake *FakeIGit) GetCommitMessageFirstLineCallCount() int {
 	fake.getCommitMessageFirstLineMutex.RLock()
 	defer fake.getCommitMessageFirstLineMutex.RUnlock()
 	return len(fake.getCommitMessageFirstLineArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageFirstLineCalls(stub func(string) (string, error)) {
+func (fake *FakeIGit) GetCommitMessageFirstLineCalls(stub func(string) (string, error)) {
 	fake.getCommitMessageFirstLineMutex.Lock()
 	defer fake.getCommitMessageFirstLineMutex.Unlock()
 	fake.GetCommitMessageFirstLineStub = stub
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageFirstLineArgsForCall(i int) string {
+func (fake *FakeIGit) GetCommitMessageFirstLineArgsForCall(i int) string {
 	fake.getCommitMessageFirstLineMutex.RLock()
 	defer fake.getCommitMessageFirstLineMutex.RUnlock()
 	argsForCall := fake.getCommitMessageFirstLineArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageFirstLineReturns(result1 string, result2 error) {
+func (fake *FakeIGit) GetCommitMessageFirstLineReturns(result1 string, result2 error) {
 	fake.getCommitMessageFirstLineMutex.Lock()
 	defer fake.getCommitMessageFirstLineMutex.Unlock()
 	fake.GetCommitMessageFirstLineStub = nil
@@ -5043,7 +5126,7 @@ func (fake *FakeIGitCommand) GetCommitMessageFirstLineReturns(result1 string, re
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetCommitMessageFirstLineReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) GetCommitMessageFirstLineReturnsOnCall(i int, result1 string, result2 error) {
 	fake.getCommitMessageFirstLineMutex.Lock()
 	defer fake.getCommitMessageFirstLineMutex.Unlock()
 	fake.GetCommitMessageFirstLineStub = nil
@@ -5059,7 +5142,7 @@ func (fake *FakeIGitCommand) GetCommitMessageFirstLineReturnsOnCall(i int, resul
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetConfigValue(arg1 string) string {
+func (fake *FakeIGit) GetConfigValue(arg1 string) string {
 	fake.getConfigValueMutex.Lock()
 	ret, specificReturn := fake.getConfigValueReturnsOnCall[len(fake.getConfigValueArgsForCall)]
 	fake.getConfigValueArgsForCall = append(fake.getConfigValueArgsForCall, struct {
@@ -5078,26 +5161,26 @@ func (fake *FakeIGitCommand) GetConfigValue(arg1 string) string {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetConfigValueCallCount() int {
+func (fake *FakeIGit) GetConfigValueCallCount() int {
 	fake.getConfigValueMutex.RLock()
 	defer fake.getConfigValueMutex.RUnlock()
 	return len(fake.getConfigValueArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetConfigValueCalls(stub func(string) string) {
+func (fake *FakeIGit) GetConfigValueCalls(stub func(string) string) {
 	fake.getConfigValueMutex.Lock()
 	defer fake.getConfigValueMutex.Unlock()
 	fake.GetConfigValueStub = stub
 }
 
-func (fake *FakeIGitCommand) GetConfigValueArgsForCall(i int) string {
+func (fake *FakeIGit) GetConfigValueArgsForCall(i int) string {
 	fake.getConfigValueMutex.RLock()
 	defer fake.getConfigValueMutex.RUnlock()
 	argsForCall := fake.getConfigValueArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetConfigValueReturns(result1 string) {
+func (fake *FakeIGit) GetConfigValueReturns(result1 string) {
 	fake.getConfigValueMutex.Lock()
 	defer fake.getConfigValueMutex.Unlock()
 	fake.GetConfigValueStub = nil
@@ -5106,7 +5189,7 @@ func (fake *FakeIGitCommand) GetConfigValueReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetConfigValueReturnsOnCall(i int, result1 string) {
+func (fake *FakeIGit) GetConfigValueReturnsOnCall(i int, result1 string) {
 	fake.getConfigValueMutex.Lock()
 	defer fake.getConfigValueMutex.Unlock()
 	fake.GetConfigValueStub = nil
@@ -5120,7 +5203,7 @@ func (fake *FakeIGitCommand) GetConfigValueReturnsOnCall(i int, result1 string) 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
+func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
 	fake.getCurrentBranchUpstreamDifferenceCountMutex.Lock()
 	ret, specificReturn := fake.getCurrentBranchUpstreamDifferenceCountReturnsOnCall[len(fake.getCurrentBranchUpstreamDifferenceCountArgsForCall)]
 	fake.getCurrentBranchUpstreamDifferenceCountArgsForCall = append(fake.getCurrentBranchUpstreamDifferenceCountArgsForCall, struct {
@@ -5138,19 +5221,19 @@ func (fake *FakeIGitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, 
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetCurrentBranchUpstreamDifferenceCountCallCount() int {
+func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCountCallCount() int {
 	fake.getCurrentBranchUpstreamDifferenceCountMutex.RLock()
 	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.RUnlock()
 	return len(fake.getCurrentBranchUpstreamDifferenceCountArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetCurrentBranchUpstreamDifferenceCountCalls(stub func() (string, string)) {
+func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCountCalls(stub func() (string, string)) {
 	fake.getCurrentBranchUpstreamDifferenceCountMutex.Lock()
 	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.Unlock()
 	fake.GetCurrentBranchUpstreamDifferenceCountStub = stub
 }
 
-func (fake *FakeIGitCommand) GetCurrentBranchUpstreamDifferenceCountReturns(result1 string, result2 string) {
+func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCountReturns(result1 string, result2 string) {
 	fake.getCurrentBranchUpstreamDifferenceCountMutex.Lock()
 	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.Unlock()
 	fake.GetCurrentBranchUpstreamDifferenceCountStub = nil
@@ -5160,7 +5243,7 @@ func (fake *FakeIGitCommand) GetCurrentBranchUpstreamDifferenceCountReturns(resu
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetCurrentBranchUpstreamDifferenceCountReturnsOnCall(i int, result1 string, result2 string) {
+func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCountReturnsOnCall(i int, result1 string, result2 string) {
 	fake.getCurrentBranchUpstreamDifferenceCountMutex.Lock()
 	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.Unlock()
 	fake.GetCurrentBranchUpstreamDifferenceCountStub = nil
@@ -5176,7 +5259,7 @@ func (fake *FakeIGitCommand) GetCurrentBranchUpstreamDifferenceCountReturnsOnCal
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetFilesInDiff(arg1 string, arg2 string, arg3 bool) ([]*models.CommitFile, error) {
+func (fake *FakeIGit) GetFilesInDiff(arg1 string, arg2 string, arg3 bool) ([]*models.CommitFile, error) {
 	fake.getFilesInDiffMutex.Lock()
 	ret, specificReturn := fake.getFilesInDiffReturnsOnCall[len(fake.getFilesInDiffArgsForCall)]
 	fake.getFilesInDiffArgsForCall = append(fake.getFilesInDiffArgsForCall, struct {
@@ -5197,26 +5280,26 @@ func (fake *FakeIGitCommand) GetFilesInDiff(arg1 string, arg2 string, arg3 bool)
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetFilesInDiffCallCount() int {
+func (fake *FakeIGit) GetFilesInDiffCallCount() int {
 	fake.getFilesInDiffMutex.RLock()
 	defer fake.getFilesInDiffMutex.RUnlock()
 	return len(fake.getFilesInDiffArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetFilesInDiffCalls(stub func(string, string, bool) ([]*models.CommitFile, error)) {
+func (fake *FakeIGit) GetFilesInDiffCalls(stub func(string, string, bool) ([]*models.CommitFile, error)) {
 	fake.getFilesInDiffMutex.Lock()
 	defer fake.getFilesInDiffMutex.Unlock()
 	fake.GetFilesInDiffStub = stub
 }
 
-func (fake *FakeIGitCommand) GetFilesInDiffArgsForCall(i int) (string, string, bool) {
+func (fake *FakeIGit) GetFilesInDiffArgsForCall(i int) (string, string, bool) {
 	fake.getFilesInDiffMutex.RLock()
 	defer fake.getFilesInDiffMutex.RUnlock()
 	argsForCall := fake.getFilesInDiffArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) GetFilesInDiffReturns(result1 []*models.CommitFile, result2 error) {
+func (fake *FakeIGit) GetFilesInDiffReturns(result1 []*models.CommitFile, result2 error) {
 	fake.getFilesInDiffMutex.Lock()
 	defer fake.getFilesInDiffMutex.Unlock()
 	fake.GetFilesInDiffStub = nil
@@ -5226,7 +5309,7 @@ func (fake *FakeIGitCommand) GetFilesInDiffReturns(result1 []*models.CommitFile,
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetFilesInDiffReturnsOnCall(i int, result1 []*models.CommitFile, result2 error) {
+func (fake *FakeIGit) GetFilesInDiffReturnsOnCall(i int, result1 []*models.CommitFile, result2 error) {
 	fake.getFilesInDiffMutex.Lock()
 	defer fake.getFilesInDiffMutex.Unlock()
 	fake.GetFilesInDiffStub = nil
@@ -5242,7 +5325,63 @@ func (fake *FakeIGitCommand) GetFilesInDiffReturnsOnCall(i int, result1 []*model
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetHeadCommitMessage() (string, error) {
+func (fake *FakeIGit) GetGitFlowRegexpConfig() (string, error) {
+	fake.getGitFlowRegexpConfigMutex.Lock()
+	ret, specificReturn := fake.getGitFlowRegexpConfigReturnsOnCall[len(fake.getGitFlowRegexpConfigArgsForCall)]
+	fake.getGitFlowRegexpConfigArgsForCall = append(fake.getGitFlowRegexpConfigArgsForCall, struct {
+	}{})
+	stub := fake.GetGitFlowRegexpConfigStub
+	fakeReturns := fake.getGitFlowRegexpConfigReturns
+	fake.recordInvocation("GetGitFlowRegexpConfig", []interface{}{})
+	fake.getGitFlowRegexpConfigMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeIGit) GetGitFlowRegexpConfigCallCount() int {
+	fake.getGitFlowRegexpConfigMutex.RLock()
+	defer fake.getGitFlowRegexpConfigMutex.RUnlock()
+	return len(fake.getGitFlowRegexpConfigArgsForCall)
+}
+
+func (fake *FakeIGit) GetGitFlowRegexpConfigCalls(stub func() (string, error)) {
+	fake.getGitFlowRegexpConfigMutex.Lock()
+	defer fake.getGitFlowRegexpConfigMutex.Unlock()
+	fake.GetGitFlowRegexpConfigStub = stub
+}
+
+func (fake *FakeIGit) GetGitFlowRegexpConfigReturns(result1 string, result2 error) {
+	fake.getGitFlowRegexpConfigMutex.Lock()
+	defer fake.getGitFlowRegexpConfigMutex.Unlock()
+	fake.GetGitFlowRegexpConfigStub = nil
+	fake.getGitFlowRegexpConfigReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeIGit) GetGitFlowRegexpConfigReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getGitFlowRegexpConfigMutex.Lock()
+	defer fake.getGitFlowRegexpConfigMutex.Unlock()
+	fake.GetGitFlowRegexpConfigStub = nil
+	if fake.getGitFlowRegexpConfigReturnsOnCall == nil {
+		fake.getGitFlowRegexpConfigReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getGitFlowRegexpConfigReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeIGit) GetHeadCommitMessage() (string, error) {
 	fake.getHeadCommitMessageMutex.Lock()
 	ret, specificReturn := fake.getHeadCommitMessageReturnsOnCall[len(fake.getHeadCommitMessageArgsForCall)]
 	fake.getHeadCommitMessageArgsForCall = append(fake.getHeadCommitMessageArgsForCall, struct {
@@ -5260,19 +5399,19 @@ func (fake *FakeIGitCommand) GetHeadCommitMessage() (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetHeadCommitMessageCallCount() int {
+func (fake *FakeIGit) GetHeadCommitMessageCallCount() int {
 	fake.getHeadCommitMessageMutex.RLock()
 	defer fake.getHeadCommitMessageMutex.RUnlock()
 	return len(fake.getHeadCommitMessageArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetHeadCommitMessageCalls(stub func() (string, error)) {
+func (fake *FakeIGit) GetHeadCommitMessageCalls(stub func() (string, error)) {
 	fake.getHeadCommitMessageMutex.Lock()
 	defer fake.getHeadCommitMessageMutex.Unlock()
 	fake.GetHeadCommitMessageStub = stub
 }
 
-func (fake *FakeIGitCommand) GetHeadCommitMessageReturns(result1 string, result2 error) {
+func (fake *FakeIGit) GetHeadCommitMessageReturns(result1 string, result2 error) {
 	fake.getHeadCommitMessageMutex.Lock()
 	defer fake.getHeadCommitMessageMutex.Unlock()
 	fake.GetHeadCommitMessageStub = nil
@@ -5282,7 +5421,7 @@ func (fake *FakeIGitCommand) GetHeadCommitMessageReturns(result1 string, result2
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetHeadCommitMessageReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) GetHeadCommitMessageReturnsOnCall(i int, result1 string, result2 error) {
 	fake.getHeadCommitMessageMutex.Lock()
 	defer fake.getHeadCommitMessageMutex.Unlock()
 	fake.GetHeadCommitMessageStub = nil
@@ -5298,15 +5437,15 @@ func (fake *FakeIGitCommand) GetHeadCommitMessageReturnsOnCall(i int, result1 st
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetOSCommand() *oscommands.OS {
-	fake.getOSCommandMutex.Lock()
-	ret, specificReturn := fake.getOSCommandReturnsOnCall[len(fake.getOSCommandArgsForCall)]
-	fake.getOSCommandArgsForCall = append(fake.getOSCommandArgsForCall, struct {
+func (fake *FakeIGit) GetLog() *logrus.Entry {
+	fake.getLogMutex.Lock()
+	ret, specificReturn := fake.getLogReturnsOnCall[len(fake.getLogArgsForCall)]
+	fake.getLogArgsForCall = append(fake.getLogArgsForCall, struct {
 	}{})
-	stub := fake.GetOSCommandStub
-	fakeReturns := fake.getOSCommandReturns
-	fake.recordInvocation("GetOSCommand", []interface{}{})
-	fake.getOSCommandMutex.Unlock()
+	stub := fake.GetLogStub
+	fakeReturns := fake.getLogReturns
+	fake.recordInvocation("GetLog", []interface{}{})
+	fake.getLogMutex.Unlock()
 	if stub != nil {
 		return stub()
 	}
@@ -5316,42 +5455,95 @@ func (fake *FakeIGitCommand) GetOSCommand() *oscommands.OS {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetOSCommandCallCount() int {
-	fake.getOSCommandMutex.RLock()
-	defer fake.getOSCommandMutex.RUnlock()
-	return len(fake.getOSCommandArgsForCall)
+func (fake *FakeIGit) GetLogCallCount() int {
+	fake.getLogMutex.RLock()
+	defer fake.getLogMutex.RUnlock()
+	return len(fake.getLogArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetOSCommandCalls(stub func() *oscommands.OS) {
-	fake.getOSCommandMutex.Lock()
-	defer fake.getOSCommandMutex.Unlock()
-	fake.GetOSCommandStub = stub
+func (fake *FakeIGit) GetLogCalls(stub func() *logrus.Entry) {
+	fake.getLogMutex.Lock()
+	defer fake.getLogMutex.Unlock()
+	fake.GetLogStub = stub
 }
 
-func (fake *FakeIGitCommand) GetOSCommandReturns(result1 *oscommands.OS) {
-	fake.getOSCommandMutex.Lock()
-	defer fake.getOSCommandMutex.Unlock()
-	fake.GetOSCommandStub = nil
-	fake.getOSCommandReturns = struct {
+func (fake *FakeIGit) GetLogReturns(result1 *logrus.Entry) {
+	fake.getLogMutex.Lock()
+	defer fake.getLogMutex.Unlock()
+	fake.GetLogStub = nil
+	fake.getLogReturns = struct {
+		result1 *logrus.Entry
+	}{result1}
+}
+
+func (fake *FakeIGit) GetLogReturnsOnCall(i int, result1 *logrus.Entry) {
+	fake.getLogMutex.Lock()
+	defer fake.getLogMutex.Unlock()
+	fake.GetLogStub = nil
+	if fake.getLogReturnsOnCall == nil {
+		fake.getLogReturnsOnCall = make(map[int]struct {
+			result1 *logrus.Entry
+		})
+	}
+	fake.getLogReturnsOnCall[i] = struct {
+		result1 *logrus.Entry
+	}{result1}
+}
+
+func (fake *FakeIGit) GetOS() *oscommands.OS {
+	fake.getOSMutex.Lock()
+	ret, specificReturn := fake.getOSReturnsOnCall[len(fake.getOSArgsForCall)]
+	fake.getOSArgsForCall = append(fake.getOSArgsForCall, struct {
+	}{})
+	stub := fake.GetOSStub
+	fakeReturns := fake.getOSReturns
+	fake.recordInvocation("GetOS", []interface{}{})
+	fake.getOSMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGit) GetOSCallCount() int {
+	fake.getOSMutex.RLock()
+	defer fake.getOSMutex.RUnlock()
+	return len(fake.getOSArgsForCall)
+}
+
+func (fake *FakeIGit) GetOSCalls(stub func() *oscommands.OS) {
+	fake.getOSMutex.Lock()
+	defer fake.getOSMutex.Unlock()
+	fake.GetOSStub = stub
+}
+
+func (fake *FakeIGit) GetOSReturns(result1 *oscommands.OS) {
+	fake.getOSMutex.Lock()
+	defer fake.getOSMutex.Unlock()
+	fake.GetOSStub = nil
+	fake.getOSReturns = struct {
 		result1 *oscommands.OS
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetOSCommandReturnsOnCall(i int, result1 *oscommands.OS) {
-	fake.getOSCommandMutex.Lock()
-	defer fake.getOSCommandMutex.Unlock()
-	fake.GetOSCommandStub = nil
-	if fake.getOSCommandReturnsOnCall == nil {
-		fake.getOSCommandReturnsOnCall = make(map[int]struct {
+func (fake *FakeIGit) GetOSReturnsOnCall(i int, result1 *oscommands.OS) {
+	fake.getOSMutex.Lock()
+	defer fake.getOSMutex.Unlock()
+	fake.GetOSStub = nil
+	if fake.getOSReturnsOnCall == nil {
+		fake.getOSReturnsOnCall = make(map[int]struct {
 			result1 *oscommands.OS
 		})
 	}
-	fake.getOSCommandReturnsOnCall[i] = struct {
+	fake.getOSReturnsOnCall[i] = struct {
 		result1 *oscommands.OS
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetPager(arg1 int) string {
+func (fake *FakeIGit) GetPager(arg1 int) string {
 	fake.getPagerMutex.Lock()
 	ret, specificReturn := fake.getPagerReturnsOnCall[len(fake.getPagerArgsForCall)]
 	fake.getPagerArgsForCall = append(fake.getPagerArgsForCall, struct {
@@ -5370,26 +5562,26 @@ func (fake *FakeIGitCommand) GetPager(arg1 int) string {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetPagerCallCount() int {
+func (fake *FakeIGit) GetPagerCallCount() int {
 	fake.getPagerMutex.RLock()
 	defer fake.getPagerMutex.RUnlock()
 	return len(fake.getPagerArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetPagerCalls(stub func(int) string) {
+func (fake *FakeIGit) GetPagerCalls(stub func(int) string) {
 	fake.getPagerMutex.Lock()
 	defer fake.getPagerMutex.Unlock()
 	fake.GetPagerStub = stub
 }
 
-func (fake *FakeIGitCommand) GetPagerArgsForCall(i int) int {
+func (fake *FakeIGit) GetPagerArgsForCall(i int) int {
 	fake.getPagerMutex.RLock()
 	defer fake.getPagerMutex.RUnlock()
 	argsForCall := fake.getPagerArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetPagerReturns(result1 string) {
+func (fake *FakeIGit) GetPagerReturns(result1 string) {
 	fake.getPagerMutex.Lock()
 	defer fake.getPagerMutex.Unlock()
 	fake.GetPagerStub = nil
@@ -5398,7 +5590,7 @@ func (fake *FakeIGitCommand) GetPagerReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetPagerReturnsOnCall(i int, result1 string) {
+func (fake *FakeIGit) GetPagerReturnsOnCall(i int, result1 string) {
 	fake.getPagerMutex.Lock()
 	defer fake.getPagerMutex.Unlock()
 	fake.GetPagerStub = nil
@@ -5412,7 +5604,7 @@ func (fake *FakeIGitCommand) GetPagerReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetPushToCurrent() bool {
+func (fake *FakeIGit) GetPushToCurrent() bool {
 	fake.getPushToCurrentMutex.Lock()
 	ret, specificReturn := fake.getPushToCurrentReturnsOnCall[len(fake.getPushToCurrentArgsForCall)]
 	fake.getPushToCurrentArgsForCall = append(fake.getPushToCurrentArgsForCall, struct {
@@ -5430,19 +5622,19 @@ func (fake *FakeIGitCommand) GetPushToCurrent() bool {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetPushToCurrentCallCount() int {
+func (fake *FakeIGit) GetPushToCurrentCallCount() int {
 	fake.getPushToCurrentMutex.RLock()
 	defer fake.getPushToCurrentMutex.RUnlock()
 	return len(fake.getPushToCurrentArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetPushToCurrentCalls(stub func() bool) {
+func (fake *FakeIGit) GetPushToCurrentCalls(stub func() bool) {
 	fake.getPushToCurrentMutex.Lock()
 	defer fake.getPushToCurrentMutex.Unlock()
 	fake.GetPushToCurrentStub = stub
 }
 
-func (fake *FakeIGitCommand) GetPushToCurrentReturns(result1 bool) {
+func (fake *FakeIGit) GetPushToCurrentReturns(result1 bool) {
 	fake.getPushToCurrentMutex.Lock()
 	defer fake.getPushToCurrentMutex.Unlock()
 	fake.GetPushToCurrentStub = nil
@@ -5451,7 +5643,7 @@ func (fake *FakeIGitCommand) GetPushToCurrentReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetPushToCurrentReturnsOnCall(i int, result1 bool) {
+func (fake *FakeIGit) GetPushToCurrentReturnsOnCall(i int, result1 bool) {
 	fake.getPushToCurrentMutex.Lock()
 	defer fake.getPushToCurrentMutex.Unlock()
 	fake.GetPushToCurrentStub = nil
@@ -5465,7 +5657,7 @@ func (fake *FakeIGitCommand) GetPushToCurrentReturnsOnCall(i int, result1 bool) 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetReflogCommits(arg1 *models.Commit, arg2 string) ([]*models.Commit, bool, error) {
+func (fake *FakeIGit) GetReflogCommits(arg1 *models.Commit, arg2 string) ([]*models.Commit, bool, error) {
 	fake.getReflogCommitsMutex.Lock()
 	ret, specificReturn := fake.getReflogCommitsReturnsOnCall[len(fake.getReflogCommitsArgsForCall)]
 	fake.getReflogCommitsArgsForCall = append(fake.getReflogCommitsArgsForCall, struct {
@@ -5485,26 +5677,26 @@ func (fake *FakeIGitCommand) GetReflogCommits(arg1 *models.Commit, arg2 string) 
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
-func (fake *FakeIGitCommand) GetReflogCommitsCallCount() int {
+func (fake *FakeIGit) GetReflogCommitsCallCount() int {
 	fake.getReflogCommitsMutex.RLock()
 	defer fake.getReflogCommitsMutex.RUnlock()
 	return len(fake.getReflogCommitsArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetReflogCommitsCalls(stub func(*models.Commit, string) ([]*models.Commit, bool, error)) {
+func (fake *FakeIGit) GetReflogCommitsCalls(stub func(*models.Commit, string) ([]*models.Commit, bool, error)) {
 	fake.getReflogCommitsMutex.Lock()
 	defer fake.getReflogCommitsMutex.Unlock()
 	fake.GetReflogCommitsStub = stub
 }
 
-func (fake *FakeIGitCommand) GetReflogCommitsArgsForCall(i int) (*models.Commit, string) {
+func (fake *FakeIGit) GetReflogCommitsArgsForCall(i int) (*models.Commit, string) {
 	fake.getReflogCommitsMutex.RLock()
 	defer fake.getReflogCommitsMutex.RUnlock()
 	argsForCall := fake.getReflogCommitsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) GetReflogCommitsReturns(result1 []*models.Commit, result2 bool, result3 error) {
+func (fake *FakeIGit) GetReflogCommitsReturns(result1 []*models.Commit, result2 bool, result3 error) {
 	fake.getReflogCommitsMutex.Lock()
 	defer fake.getReflogCommitsMutex.Unlock()
 	fake.GetReflogCommitsStub = nil
@@ -5515,7 +5707,7 @@ func (fake *FakeIGitCommand) GetReflogCommitsReturns(result1 []*models.Commit, r
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGitCommand) GetReflogCommitsReturnsOnCall(i int, result1 []*models.Commit, result2 bool, result3 error) {
+func (fake *FakeIGit) GetReflogCommitsReturnsOnCall(i int, result1 []*models.Commit, result2 bool, result3 error) {
 	fake.getReflogCommitsMutex.Lock()
 	defer fake.getReflogCommitsMutex.Unlock()
 	fake.GetReflogCommitsStub = nil
@@ -5533,7 +5725,7 @@ func (fake *FakeIGitCommand) GetReflogCommitsReturnsOnCall(i int, result1 []*mod
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGitCommand) GetRemoteURL() string {
+func (fake *FakeIGit) GetRemoteURL() string {
 	fake.getRemoteURLMutex.Lock()
 	ret, specificReturn := fake.getRemoteURLReturnsOnCall[len(fake.getRemoteURLArgsForCall)]
 	fake.getRemoteURLArgsForCall = append(fake.getRemoteURLArgsForCall, struct {
@@ -5551,19 +5743,19 @@ func (fake *FakeIGitCommand) GetRemoteURL() string {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetRemoteURLCallCount() int {
+func (fake *FakeIGit) GetRemoteURLCallCount() int {
 	fake.getRemoteURLMutex.RLock()
 	defer fake.getRemoteURLMutex.RUnlock()
 	return len(fake.getRemoteURLArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetRemoteURLCalls(stub func() string) {
+func (fake *FakeIGit) GetRemoteURLCalls(stub func() string) {
 	fake.getRemoteURLMutex.Lock()
 	defer fake.getRemoteURLMutex.Unlock()
 	fake.GetRemoteURLStub = stub
 }
 
-func (fake *FakeIGitCommand) GetRemoteURLReturns(result1 string) {
+func (fake *FakeIGit) GetRemoteURLReturns(result1 string) {
 	fake.getRemoteURLMutex.Lock()
 	defer fake.getRemoteURLMutex.Unlock()
 	fake.GetRemoteURLStub = nil
@@ -5572,7 +5764,7 @@ func (fake *FakeIGitCommand) GetRemoteURLReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetRemoteURLReturnsOnCall(i int, result1 string) {
+func (fake *FakeIGit) GetRemoteURLReturnsOnCall(i int, result1 string) {
 	fake.getRemoteURLMutex.Lock()
 	defer fake.getRemoteURLMutex.Unlock()
 	fake.GetRemoteURLStub = nil
@@ -5586,7 +5778,7 @@ func (fake *FakeIGitCommand) GetRemoteURLReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetRemotes() ([]*models.Remote, error) {
+func (fake *FakeIGit) GetRemotes() ([]*models.Remote, error) {
 	fake.getRemotesMutex.Lock()
 	ret, specificReturn := fake.getRemotesReturnsOnCall[len(fake.getRemotesArgsForCall)]
 	fake.getRemotesArgsForCall = append(fake.getRemotesArgsForCall, struct {
@@ -5604,19 +5796,19 @@ func (fake *FakeIGitCommand) GetRemotes() ([]*models.Remote, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetRemotesCallCount() int {
+func (fake *FakeIGit) GetRemotesCallCount() int {
 	fake.getRemotesMutex.RLock()
 	defer fake.getRemotesMutex.RUnlock()
 	return len(fake.getRemotesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetRemotesCalls(stub func() ([]*models.Remote, error)) {
+func (fake *FakeIGit) GetRemotesCalls(stub func() ([]*models.Remote, error)) {
 	fake.getRemotesMutex.Lock()
 	defer fake.getRemotesMutex.Unlock()
 	fake.GetRemotesStub = stub
 }
 
-func (fake *FakeIGitCommand) GetRemotesReturns(result1 []*models.Remote, result2 error) {
+func (fake *FakeIGit) GetRemotesReturns(result1 []*models.Remote, result2 error) {
 	fake.getRemotesMutex.Lock()
 	defer fake.getRemotesMutex.Unlock()
 	fake.GetRemotesStub = nil
@@ -5626,7 +5818,7 @@ func (fake *FakeIGitCommand) GetRemotesReturns(result1 []*models.Remote, result2
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetRemotesReturnsOnCall(i int, result1 []*models.Remote, result2 error) {
+func (fake *FakeIGit) GetRemotesReturnsOnCall(i int, result1 []*models.Remote, result2 error) {
 	fake.getRemotesMutex.Lock()
 	defer fake.getRemotesMutex.Unlock()
 	fake.GetRemotesStub = nil
@@ -5642,7 +5834,7 @@ func (fake *FakeIGitCommand) GetRemotesReturnsOnCall(i int, result1 []*models.Re
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetRewordCommitCmdObj(arg1 []*models.Commit, arg2 int) (types.ICmdObj, error) {
+func (fake *FakeIGit) GetRewordCommitCmdObj(arg1 []*models.Commit, arg2 int) (types.ICmdObj, error) {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -5667,26 +5859,26 @@ func (fake *FakeIGitCommand) GetRewordCommitCmdObj(arg1 []*models.Commit, arg2 i
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetRewordCommitCmdObjCallCount() int {
+func (fake *FakeIGit) GetRewordCommitCmdObjCallCount() int {
 	fake.getRewordCommitCmdObjMutex.RLock()
 	defer fake.getRewordCommitCmdObjMutex.RUnlock()
 	return len(fake.getRewordCommitCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetRewordCommitCmdObjCalls(stub func([]*models.Commit, int) (types.ICmdObj, error)) {
+func (fake *FakeIGit) GetRewordCommitCmdObjCalls(stub func([]*models.Commit, int) (types.ICmdObj, error)) {
 	fake.getRewordCommitCmdObjMutex.Lock()
 	defer fake.getRewordCommitCmdObjMutex.Unlock()
 	fake.GetRewordCommitCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) GetRewordCommitCmdObjArgsForCall(i int) ([]*models.Commit, int) {
+func (fake *FakeIGit) GetRewordCommitCmdObjArgsForCall(i int) ([]*models.Commit, int) {
 	fake.getRewordCommitCmdObjMutex.RLock()
 	defer fake.getRewordCommitCmdObjMutex.RUnlock()
 	argsForCall := fake.getRewordCommitCmdObjArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) GetRewordCommitCmdObjReturns(result1 types.ICmdObj, result2 error) {
+func (fake *FakeIGit) GetRewordCommitCmdObjReturns(result1 types.ICmdObj, result2 error) {
 	fake.getRewordCommitCmdObjMutex.Lock()
 	defer fake.getRewordCommitCmdObjMutex.Unlock()
 	fake.GetRewordCommitCmdObjStub = nil
@@ -5696,7 +5888,7 @@ func (fake *FakeIGitCommand) GetRewordCommitCmdObjReturns(result1 types.ICmdObj,
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetRewordCommitCmdObjReturnsOnCall(i int, result1 types.ICmdObj, result2 error) {
+func (fake *FakeIGit) GetRewordCommitCmdObjReturnsOnCall(i int, result1 types.ICmdObj, result2 error) {
 	fake.getRewordCommitCmdObjMutex.Lock()
 	defer fake.getRewordCommitCmdObjMutex.Unlock()
 	fake.GetRewordCommitCmdObjStub = nil
@@ -5712,7 +5904,7 @@ func (fake *FakeIGitCommand) GetRewordCommitCmdObjReturnsOnCall(i int, result1 t
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetStashEntries(arg1 string) []*models.StashEntry {
+func (fake *FakeIGit) GetStashEntries(arg1 string) []*models.StashEntry {
 	fake.getStashEntriesMutex.Lock()
 	ret, specificReturn := fake.getStashEntriesReturnsOnCall[len(fake.getStashEntriesArgsForCall)]
 	fake.getStashEntriesArgsForCall = append(fake.getStashEntriesArgsForCall, struct {
@@ -5731,26 +5923,26 @@ func (fake *FakeIGitCommand) GetStashEntries(arg1 string) []*models.StashEntry {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetStashEntriesCallCount() int {
+func (fake *FakeIGit) GetStashEntriesCallCount() int {
 	fake.getStashEntriesMutex.RLock()
 	defer fake.getStashEntriesMutex.RUnlock()
 	return len(fake.getStashEntriesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetStashEntriesCalls(stub func(string) []*models.StashEntry) {
+func (fake *FakeIGit) GetStashEntriesCalls(stub func(string) []*models.StashEntry) {
 	fake.getStashEntriesMutex.Lock()
 	defer fake.getStashEntriesMutex.Unlock()
 	fake.GetStashEntriesStub = stub
 }
 
-func (fake *FakeIGitCommand) GetStashEntriesArgsForCall(i int) string {
+func (fake *FakeIGit) GetStashEntriesArgsForCall(i int) string {
 	fake.getStashEntriesMutex.RLock()
 	defer fake.getStashEntriesMutex.RUnlock()
 	argsForCall := fake.getStashEntriesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetStashEntriesReturns(result1 []*models.StashEntry) {
+func (fake *FakeIGit) GetStashEntriesReturns(result1 []*models.StashEntry) {
 	fake.getStashEntriesMutex.Lock()
 	defer fake.getStashEntriesMutex.Unlock()
 	fake.GetStashEntriesStub = nil
@@ -5759,7 +5951,7 @@ func (fake *FakeIGitCommand) GetStashEntriesReturns(result1 []*models.StashEntry
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetStashEntriesReturnsOnCall(i int, result1 []*models.StashEntry) {
+func (fake *FakeIGit) GetStashEntriesReturnsOnCall(i int, result1 []*models.StashEntry) {
 	fake.getStashEntriesMutex.Lock()
 	defer fake.getStashEntriesMutex.Unlock()
 	fake.GetStashEntriesStub = nil
@@ -5773,11 +5965,11 @@ func (fake *FakeIGitCommand) GetStashEntriesReturnsOnCall(i int, result1 []*mode
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetStatusFiles(arg1 commands.GetStatusFileOptions) []*models.File {
+func (fake *FakeIGit) GetStatusFiles(arg1 loaders.LoadStatusFilesOpts) []*models.File {
 	fake.getStatusFilesMutex.Lock()
 	ret, specificReturn := fake.getStatusFilesReturnsOnCall[len(fake.getStatusFilesArgsForCall)]
 	fake.getStatusFilesArgsForCall = append(fake.getStatusFilesArgsForCall, struct {
-		arg1 commands.GetStatusFileOptions
+		arg1 loaders.LoadStatusFilesOpts
 	}{arg1})
 	stub := fake.GetStatusFilesStub
 	fakeReturns := fake.getStatusFilesReturns
@@ -5792,26 +5984,26 @@ func (fake *FakeIGitCommand) GetStatusFiles(arg1 commands.GetStatusFileOptions) 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) GetStatusFilesCallCount() int {
+func (fake *FakeIGit) GetStatusFilesCallCount() int {
 	fake.getStatusFilesMutex.RLock()
 	defer fake.getStatusFilesMutex.RUnlock()
 	return len(fake.getStatusFilesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetStatusFilesCalls(stub func(commands.GetStatusFileOptions) []*models.File) {
+func (fake *FakeIGit) GetStatusFilesCalls(stub func(loaders.LoadStatusFilesOpts) []*models.File) {
 	fake.getStatusFilesMutex.Lock()
 	defer fake.getStatusFilesMutex.Unlock()
 	fake.GetStatusFilesStub = stub
 }
 
-func (fake *FakeIGitCommand) GetStatusFilesArgsForCall(i int) commands.GetStatusFileOptions {
+func (fake *FakeIGit) GetStatusFilesArgsForCall(i int) loaders.LoadStatusFilesOpts {
 	fake.getStatusFilesMutex.RLock()
 	defer fake.getStatusFilesMutex.RUnlock()
 	argsForCall := fake.getStatusFilesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetStatusFilesReturns(result1 []*models.File) {
+func (fake *FakeIGit) GetStatusFilesReturns(result1 []*models.File) {
 	fake.getStatusFilesMutex.Lock()
 	defer fake.getStatusFilesMutex.Unlock()
 	fake.GetStatusFilesStub = nil
@@ -5820,7 +6012,7 @@ func (fake *FakeIGitCommand) GetStatusFilesReturns(result1 []*models.File) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetStatusFilesReturnsOnCall(i int, result1 []*models.File) {
+func (fake *FakeIGit) GetStatusFilesReturnsOnCall(i int, result1 []*models.File) {
 	fake.getStatusFilesMutex.Lock()
 	defer fake.getStatusFilesMutex.Unlock()
 	fake.GetStatusFilesStub = nil
@@ -5834,7 +6026,7 @@ func (fake *FakeIGitCommand) GetStatusFilesReturnsOnCall(i int, result1 []*model
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error) {
+func (fake *FakeIGit) GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error) {
 	fake.getSubmoduleConfigsMutex.Lock()
 	ret, specificReturn := fake.getSubmoduleConfigsReturnsOnCall[len(fake.getSubmoduleConfigsArgsForCall)]
 	fake.getSubmoduleConfigsArgsForCall = append(fake.getSubmoduleConfigsArgsForCall, struct {
@@ -5852,19 +6044,19 @@ func (fake *FakeIGitCommand) GetSubmoduleConfigs() ([]*models.SubmoduleConfig, e
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetSubmoduleConfigsCallCount() int {
+func (fake *FakeIGit) GetSubmoduleConfigsCallCount() int {
 	fake.getSubmoduleConfigsMutex.RLock()
 	defer fake.getSubmoduleConfigsMutex.RUnlock()
 	return len(fake.getSubmoduleConfigsArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetSubmoduleConfigsCalls(stub func() ([]*models.SubmoduleConfig, error)) {
+func (fake *FakeIGit) GetSubmoduleConfigsCalls(stub func() ([]*models.SubmoduleConfig, error)) {
 	fake.getSubmoduleConfigsMutex.Lock()
 	defer fake.getSubmoduleConfigsMutex.Unlock()
 	fake.GetSubmoduleConfigsStub = stub
 }
 
-func (fake *FakeIGitCommand) GetSubmoduleConfigsReturns(result1 []*models.SubmoduleConfig, result2 error) {
+func (fake *FakeIGit) GetSubmoduleConfigsReturns(result1 []*models.SubmoduleConfig, result2 error) {
 	fake.getSubmoduleConfigsMutex.Lock()
 	defer fake.getSubmoduleConfigsMutex.Unlock()
 	fake.GetSubmoduleConfigsStub = nil
@@ -5874,7 +6066,7 @@ func (fake *FakeIGitCommand) GetSubmoduleConfigsReturns(result1 []*models.Submod
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetSubmoduleConfigsReturnsOnCall(i int, result1 []*models.SubmoduleConfig, result2 error) {
+func (fake *FakeIGit) GetSubmoduleConfigsReturnsOnCall(i int, result1 []*models.SubmoduleConfig, result2 error) {
 	fake.getSubmoduleConfigsMutex.Lock()
 	defer fake.getSubmoduleConfigsMutex.Unlock()
 	fake.GetSubmoduleConfigsStub = nil
@@ -5890,7 +6082,7 @@ func (fake *FakeIGitCommand) GetSubmoduleConfigsReturnsOnCall(i int, result1 []*
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetTags() ([]*models.Tag, error) {
+func (fake *FakeIGit) GetTags() ([]*models.Tag, error) {
 	fake.getTagsMutex.Lock()
 	ret, specificReturn := fake.getTagsReturnsOnCall[len(fake.getTagsArgsForCall)]
 	fake.getTagsArgsForCall = append(fake.getTagsArgsForCall, struct {
@@ -5908,19 +6100,19 @@ func (fake *FakeIGitCommand) GetTags() ([]*models.Tag, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetTagsCallCount() int {
+func (fake *FakeIGit) GetTagsCallCount() int {
 	fake.getTagsMutex.RLock()
 	defer fake.getTagsMutex.RUnlock()
 	return len(fake.getTagsArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetTagsCalls(stub func() ([]*models.Tag, error)) {
+func (fake *FakeIGit) GetTagsCalls(stub func() ([]*models.Tag, error)) {
 	fake.getTagsMutex.Lock()
 	defer fake.getTagsMutex.Unlock()
 	fake.GetTagsStub = stub
 }
 
-func (fake *FakeIGitCommand) GetTagsReturns(result1 []*models.Tag, result2 error) {
+func (fake *FakeIGit) GetTagsReturns(result1 []*models.Tag, result2 error) {
 	fake.getTagsMutex.Lock()
 	defer fake.getTagsMutex.Unlock()
 	fake.GetTagsStub = nil
@@ -5930,7 +6122,7 @@ func (fake *FakeIGitCommand) GetTagsReturns(result1 []*models.Tag, result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetTagsReturnsOnCall(i int, result1 []*models.Tag, result2 error) {
+func (fake *FakeIGit) GetTagsReturnsOnCall(i int, result1 []*models.Tag, result2 error) {
 	fake.getTagsMutex.Lock()
 	defer fake.getTagsMutex.Unlock()
 	fake.GetTagsStub = nil
@@ -5946,7 +6138,7 @@ func (fake *FakeIGitCommand) GetTagsReturnsOnCall(i int, result1 []*models.Tag, 
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetUpstreamForBranch(arg1 string) (string, error) {
+func (fake *FakeIGit) GetUpstreamForBranch(arg1 string) (string, error) {
 	fake.getUpstreamForBranchMutex.Lock()
 	ret, specificReturn := fake.getUpstreamForBranchReturnsOnCall[len(fake.getUpstreamForBranchArgsForCall)]
 	fake.getUpstreamForBranchArgsForCall = append(fake.getUpstreamForBranchArgsForCall, struct {
@@ -5965,26 +6157,26 @@ func (fake *FakeIGitCommand) GetUpstreamForBranch(arg1 string) (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) GetUpstreamForBranchCallCount() int {
+func (fake *FakeIGit) GetUpstreamForBranchCallCount() int {
 	fake.getUpstreamForBranchMutex.RLock()
 	defer fake.getUpstreamForBranchMutex.RUnlock()
 	return len(fake.getUpstreamForBranchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) GetUpstreamForBranchCalls(stub func(string) (string, error)) {
+func (fake *FakeIGit) GetUpstreamForBranchCalls(stub func(string) (string, error)) {
 	fake.getUpstreamForBranchMutex.Lock()
 	defer fake.getUpstreamForBranchMutex.Unlock()
 	fake.GetUpstreamForBranchStub = stub
 }
 
-func (fake *FakeIGitCommand) GetUpstreamForBranchArgsForCall(i int) string {
+func (fake *FakeIGit) GetUpstreamForBranchArgsForCall(i int) string {
 	fake.getUpstreamForBranchMutex.RLock()
 	defer fake.getUpstreamForBranchMutex.RUnlock()
 	argsForCall := fake.getUpstreamForBranchArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) GetUpstreamForBranchReturns(result1 string, result2 error) {
+func (fake *FakeIGit) GetUpstreamForBranchReturns(result1 string, result2 error) {
 	fake.getUpstreamForBranchMutex.Lock()
 	defer fake.getUpstreamForBranchMutex.Unlock()
 	fake.GetUpstreamForBranchStub = nil
@@ -5994,7 +6186,7 @@ func (fake *FakeIGitCommand) GetUpstreamForBranchReturns(result1 string, result2
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GetUpstreamForBranchReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) GetUpstreamForBranchReturnsOnCall(i int, result1 string, result2 error) {
 	fake.getUpstreamForBranchMutex.Lock()
 	defer fake.getUpstreamForBranchMutex.Unlock()
 	fake.GetUpstreamForBranchStub = nil
@@ -6010,71 +6202,7 @@ func (fake *FakeIGitCommand) GetUpstreamForBranchReturnsOnCall(i int, result1 st
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) GitStatus(arg1 commands.GitStatusOptions) (string, error) {
-	fake.gitStatusMutex.Lock()
-	ret, specificReturn := fake.gitStatusReturnsOnCall[len(fake.gitStatusArgsForCall)]
-	fake.gitStatusArgsForCall = append(fake.gitStatusArgsForCall, struct {
-		arg1 commands.GitStatusOptions
-	}{arg1})
-	stub := fake.GitStatusStub
-	fakeReturns := fake.gitStatusReturns
-	fake.recordInvocation("GitStatus", []interface{}{arg1})
-	fake.gitStatusMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGitCommand) GitStatusCallCount() int {
-	fake.gitStatusMutex.RLock()
-	defer fake.gitStatusMutex.RUnlock()
-	return len(fake.gitStatusArgsForCall)
-}
-
-func (fake *FakeIGitCommand) GitStatusCalls(stub func(commands.GitStatusOptions) (string, error)) {
-	fake.gitStatusMutex.Lock()
-	defer fake.gitStatusMutex.Unlock()
-	fake.GitStatusStub = stub
-}
-
-func (fake *FakeIGitCommand) GitStatusArgsForCall(i int) commands.GitStatusOptions {
-	fake.gitStatusMutex.RLock()
-	defer fake.gitStatusMutex.RUnlock()
-	argsForCall := fake.gitStatusArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGitCommand) GitStatusReturns(result1 string, result2 error) {
-	fake.gitStatusMutex.Lock()
-	defer fake.gitStatusMutex.Unlock()
-	fake.GitStatusStub = nil
-	fake.gitStatusReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGitCommand) GitStatusReturnsOnCall(i int, result1 string, result2 error) {
-	fake.gitStatusMutex.Lock()
-	defer fake.gitStatusMutex.Unlock()
-	fake.GitStatusStub = nil
-	if fake.gitStatusReturnsOnCall == nil {
-		fake.gitStatusReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.gitStatusReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGitCommand) Ignore(arg1 string) error {
+func (fake *FakeIGit) Ignore(arg1 string) error {
 	fake.ignoreMutex.Lock()
 	ret, specificReturn := fake.ignoreReturnsOnCall[len(fake.ignoreArgsForCall)]
 	fake.ignoreArgsForCall = append(fake.ignoreArgsForCall, struct {
@@ -6093,26 +6221,26 @@ func (fake *FakeIGitCommand) Ignore(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) IgnoreCallCount() int {
+func (fake *FakeIGit) IgnoreCallCount() int {
 	fake.ignoreMutex.RLock()
 	defer fake.ignoreMutex.RUnlock()
 	return len(fake.ignoreArgsForCall)
 }
 
-func (fake *FakeIGitCommand) IgnoreCalls(stub func(string) error) {
+func (fake *FakeIGit) IgnoreCalls(stub func(string) error) {
 	fake.ignoreMutex.Lock()
 	defer fake.ignoreMutex.Unlock()
 	fake.IgnoreStub = stub
 }
 
-func (fake *FakeIGitCommand) IgnoreArgsForCall(i int) string {
+func (fake *FakeIGit) IgnoreArgsForCall(i int) string {
 	fake.ignoreMutex.RLock()
 	defer fake.ignoreMutex.RUnlock()
 	argsForCall := fake.ignoreArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) IgnoreReturns(result1 error) {
+func (fake *FakeIGit) IgnoreReturns(result1 error) {
 	fake.ignoreMutex.Lock()
 	defer fake.ignoreMutex.Unlock()
 	fake.IgnoreStub = nil
@@ -6121,7 +6249,7 @@ func (fake *FakeIGitCommand) IgnoreReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) IgnoreReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) IgnoreReturnsOnCall(i int, result1 error) {
 	fake.ignoreMutex.Lock()
 	defer fake.ignoreMutex.Unlock()
 	fake.IgnoreStub = nil
@@ -6135,7 +6263,7 @@ func (fake *FakeIGitCommand) IgnoreReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) InteractiveRebase(arg1 []*models.Commit, arg2 int, arg3 string) error {
+func (fake *FakeIGit) InteractiveRebase(arg1 []*models.Commit, arg2 int, arg3 string) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -6161,26 +6289,26 @@ func (fake *FakeIGitCommand) InteractiveRebase(arg1 []*models.Commit, arg2 int, 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) InteractiveRebaseCallCount() int {
+func (fake *FakeIGit) InteractiveRebaseCallCount() int {
 	fake.interactiveRebaseMutex.RLock()
 	defer fake.interactiveRebaseMutex.RUnlock()
 	return len(fake.interactiveRebaseArgsForCall)
 }
 
-func (fake *FakeIGitCommand) InteractiveRebaseCalls(stub func([]*models.Commit, int, string) error) {
+func (fake *FakeIGit) InteractiveRebaseCalls(stub func([]*models.Commit, int, string) error) {
 	fake.interactiveRebaseMutex.Lock()
 	defer fake.interactiveRebaseMutex.Unlock()
 	fake.InteractiveRebaseStub = stub
 }
 
-func (fake *FakeIGitCommand) InteractiveRebaseArgsForCall(i int) ([]*models.Commit, int, string) {
+func (fake *FakeIGit) InteractiveRebaseArgsForCall(i int) ([]*models.Commit, int, string) {
 	fake.interactiveRebaseMutex.RLock()
 	defer fake.interactiveRebaseMutex.RUnlock()
 	argsForCall := fake.interactiveRebaseArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) InteractiveRebaseReturns(result1 error) {
+func (fake *FakeIGit) InteractiveRebaseReturns(result1 error) {
 	fake.interactiveRebaseMutex.Lock()
 	defer fake.interactiveRebaseMutex.Unlock()
 	fake.InteractiveRebaseStub = nil
@@ -6189,7 +6317,7 @@ func (fake *FakeIGitCommand) InteractiveRebaseReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) InteractiveRebaseReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) InteractiveRebaseReturnsOnCall(i int, result1 error) {
 	fake.interactiveRebaseMutex.Lock()
 	defer fake.interactiveRebaseMutex.Unlock()
 	fake.InteractiveRebaseStub = nil
@@ -6203,7 +6331,7 @@ func (fake *FakeIGitCommand) InteractiveRebaseReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) IsBareRepo() bool {
+func (fake *FakeIGit) IsBareRepo() bool {
 	fake.isBareRepoMutex.Lock()
 	ret, specificReturn := fake.isBareRepoReturnsOnCall[len(fake.isBareRepoArgsForCall)]
 	fake.isBareRepoArgsForCall = append(fake.isBareRepoArgsForCall, struct {
@@ -6221,19 +6349,19 @@ func (fake *FakeIGitCommand) IsBareRepo() bool {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) IsBareRepoCallCount() int {
+func (fake *FakeIGit) IsBareRepoCallCount() int {
 	fake.isBareRepoMutex.RLock()
 	defer fake.isBareRepoMutex.RUnlock()
 	return len(fake.isBareRepoArgsForCall)
 }
 
-func (fake *FakeIGitCommand) IsBareRepoCalls(stub func() bool) {
+func (fake *FakeIGit) IsBareRepoCalls(stub func() bool) {
 	fake.isBareRepoMutex.Lock()
 	defer fake.isBareRepoMutex.Unlock()
 	fake.IsBareRepoStub = stub
 }
 
-func (fake *FakeIGitCommand) IsBareRepoReturns(result1 bool) {
+func (fake *FakeIGit) IsBareRepoReturns(result1 bool) {
 	fake.isBareRepoMutex.Lock()
 	defer fake.isBareRepoMutex.Unlock()
 	fake.IsBareRepoStub = nil
@@ -6242,7 +6370,7 @@ func (fake *FakeIGitCommand) IsBareRepoReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) IsBareRepoReturnsOnCall(i int, result1 bool) {
+func (fake *FakeIGit) IsBareRepoReturnsOnCall(i int, result1 bool) {
 	fake.isBareRepoMutex.Lock()
 	defer fake.isBareRepoMutex.Unlock()
 	fake.IsBareRepoStub = nil
@@ -6256,7 +6384,7 @@ func (fake *FakeIGitCommand) IsBareRepoReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) IsHeadDetached() bool {
+func (fake *FakeIGit) IsHeadDetached() bool {
 	fake.isHeadDetachedMutex.Lock()
 	ret, specificReturn := fake.isHeadDetachedReturnsOnCall[len(fake.isHeadDetachedArgsForCall)]
 	fake.isHeadDetachedArgsForCall = append(fake.isHeadDetachedArgsForCall, struct {
@@ -6274,19 +6402,19 @@ func (fake *FakeIGitCommand) IsHeadDetached() bool {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) IsHeadDetachedCallCount() int {
+func (fake *FakeIGit) IsHeadDetachedCallCount() int {
 	fake.isHeadDetachedMutex.RLock()
 	defer fake.isHeadDetachedMutex.RUnlock()
 	return len(fake.isHeadDetachedArgsForCall)
 }
 
-func (fake *FakeIGitCommand) IsHeadDetachedCalls(stub func() bool) {
+func (fake *FakeIGit) IsHeadDetachedCalls(stub func() bool) {
 	fake.isHeadDetachedMutex.Lock()
 	defer fake.isHeadDetachedMutex.Unlock()
 	fake.IsHeadDetachedStub = stub
 }
 
-func (fake *FakeIGitCommand) IsHeadDetachedReturns(result1 bool) {
+func (fake *FakeIGit) IsHeadDetachedReturns(result1 bool) {
 	fake.isHeadDetachedMutex.Lock()
 	defer fake.isHeadDetachedMutex.Unlock()
 	fake.IsHeadDetachedStub = nil
@@ -6295,7 +6423,7 @@ func (fake *FakeIGitCommand) IsHeadDetachedReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) IsHeadDetachedReturnsOnCall(i int, result1 bool) {
+func (fake *FakeIGit) IsHeadDetachedReturnsOnCall(i int, result1 bool) {
 	fake.isHeadDetachedMutex.Lock()
 	defer fake.isHeadDetachedMutex.Unlock()
 	fake.IsHeadDetachedStub = nil
@@ -6309,7 +6437,7 @@ func (fake *FakeIGitCommand) IsHeadDetachedReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) IsInMergeState() (bool, error) {
+func (fake *FakeIGit) IsInMergeState() (bool, error) {
 	fake.isInMergeStateMutex.Lock()
 	ret, specificReturn := fake.isInMergeStateReturnsOnCall[len(fake.isInMergeStateArgsForCall)]
 	fake.isInMergeStateArgsForCall = append(fake.isInMergeStateArgsForCall, struct {
@@ -6327,19 +6455,19 @@ func (fake *FakeIGitCommand) IsInMergeState() (bool, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) IsInMergeStateCallCount() int {
+func (fake *FakeIGit) IsInMergeStateCallCount() int {
 	fake.isInMergeStateMutex.RLock()
 	defer fake.isInMergeStateMutex.RUnlock()
 	return len(fake.isInMergeStateArgsForCall)
 }
 
-func (fake *FakeIGitCommand) IsInMergeStateCalls(stub func() (bool, error)) {
+func (fake *FakeIGit) IsInMergeStateCalls(stub func() (bool, error)) {
 	fake.isInMergeStateMutex.Lock()
 	defer fake.isInMergeStateMutex.Unlock()
 	fake.IsInMergeStateStub = stub
 }
 
-func (fake *FakeIGitCommand) IsInMergeStateReturns(result1 bool, result2 error) {
+func (fake *FakeIGit) IsInMergeStateReturns(result1 bool, result2 error) {
 	fake.isInMergeStateMutex.Lock()
 	defer fake.isInMergeStateMutex.Unlock()
 	fake.IsInMergeStateStub = nil
@@ -6349,7 +6477,7 @@ func (fake *FakeIGitCommand) IsInMergeStateReturns(result1 bool, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) IsInMergeStateReturnsOnCall(i int, result1 bool, result2 error) {
+func (fake *FakeIGit) IsInMergeStateReturnsOnCall(i int, result1 bool, result2 error) {
 	fake.isInMergeStateMutex.Lock()
 	defer fake.isInMergeStateMutex.Unlock()
 	fake.IsInMergeStateStub = nil
@@ -6365,7 +6493,7 @@ func (fake *FakeIGitCommand) IsInMergeStateReturnsOnCall(i int, result1 bool, re
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) Merge(arg1 string, arg2 commands.MergeOpts) error {
+func (fake *FakeIGit) Merge(arg1 string, arg2 commands.MergeOpts) error {
 	fake.mergeMutex.Lock()
 	ret, specificReturn := fake.mergeReturnsOnCall[len(fake.mergeArgsForCall)]
 	fake.mergeArgsForCall = append(fake.mergeArgsForCall, struct {
@@ -6385,26 +6513,26 @@ func (fake *FakeIGitCommand) Merge(arg1 string, arg2 commands.MergeOpts) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) MergeCallCount() int {
+func (fake *FakeIGit) MergeCallCount() int {
 	fake.mergeMutex.RLock()
 	defer fake.mergeMutex.RUnlock()
 	return len(fake.mergeArgsForCall)
 }
 
-func (fake *FakeIGitCommand) MergeCalls(stub func(string, commands.MergeOpts) error) {
+func (fake *FakeIGit) MergeCalls(stub func(string, commands.MergeOpts) error) {
 	fake.mergeMutex.Lock()
 	defer fake.mergeMutex.Unlock()
 	fake.MergeStub = stub
 }
 
-func (fake *FakeIGitCommand) MergeArgsForCall(i int) (string, commands.MergeOpts) {
+func (fake *FakeIGit) MergeArgsForCall(i int) (string, commands.MergeOpts) {
 	fake.mergeMutex.RLock()
 	defer fake.mergeMutex.RUnlock()
 	argsForCall := fake.mergeArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) MergeReturns(result1 error) {
+func (fake *FakeIGit) MergeReturns(result1 error) {
 	fake.mergeMutex.Lock()
 	defer fake.mergeMutex.Unlock()
 	fake.MergeStub = nil
@@ -6413,7 +6541,7 @@ func (fake *FakeIGitCommand) MergeReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MergeReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) MergeReturnsOnCall(i int, result1 error) {
 	fake.mergeMutex.Lock()
 	defer fake.mergeMutex.Unlock()
 	fake.MergeStub = nil
@@ -6427,7 +6555,7 @@ func (fake *FakeIGitCommand) MergeReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MergeOrRebase() string {
+func (fake *FakeIGit) MergeOrRebase() string {
 	fake.mergeOrRebaseMutex.Lock()
 	ret, specificReturn := fake.mergeOrRebaseReturnsOnCall[len(fake.mergeOrRebaseArgsForCall)]
 	fake.mergeOrRebaseArgsForCall = append(fake.mergeOrRebaseArgsForCall, struct {
@@ -6445,19 +6573,19 @@ func (fake *FakeIGitCommand) MergeOrRebase() string {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) MergeOrRebaseCallCount() int {
+func (fake *FakeIGit) MergeOrRebaseCallCount() int {
 	fake.mergeOrRebaseMutex.RLock()
 	defer fake.mergeOrRebaseMutex.RUnlock()
 	return len(fake.mergeOrRebaseArgsForCall)
 }
 
-func (fake *FakeIGitCommand) MergeOrRebaseCalls(stub func() string) {
+func (fake *FakeIGit) MergeOrRebaseCalls(stub func() string) {
 	fake.mergeOrRebaseMutex.Lock()
 	defer fake.mergeOrRebaseMutex.Unlock()
 	fake.MergeOrRebaseStub = stub
 }
 
-func (fake *FakeIGitCommand) MergeOrRebaseReturns(result1 string) {
+func (fake *FakeIGit) MergeOrRebaseReturns(result1 string) {
 	fake.mergeOrRebaseMutex.Lock()
 	defer fake.mergeOrRebaseMutex.Unlock()
 	fake.MergeOrRebaseStub = nil
@@ -6466,7 +6594,7 @@ func (fake *FakeIGitCommand) MergeOrRebaseReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MergeOrRebaseReturnsOnCall(i int, result1 string) {
+func (fake *FakeIGit) MergeOrRebaseReturnsOnCall(i int, result1 string) {
 	fake.mergeOrRebaseMutex.Lock()
 	defer fake.mergeOrRebaseMutex.Unlock()
 	fake.MergeOrRebaseStub = nil
@@ -6480,7 +6608,7 @@ func (fake *FakeIGitCommand) MergeOrRebaseReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MoveCommitDown(arg1 []*models.Commit, arg2 int) error {
+func (fake *FakeIGit) MoveCommitDown(arg1 []*models.Commit, arg2 int) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -6505,26 +6633,26 @@ func (fake *FakeIGitCommand) MoveCommitDown(arg1 []*models.Commit, arg2 int) err
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) MoveCommitDownCallCount() int {
+func (fake *FakeIGit) MoveCommitDownCallCount() int {
 	fake.moveCommitDownMutex.RLock()
 	defer fake.moveCommitDownMutex.RUnlock()
 	return len(fake.moveCommitDownArgsForCall)
 }
 
-func (fake *FakeIGitCommand) MoveCommitDownCalls(stub func([]*models.Commit, int) error) {
+func (fake *FakeIGit) MoveCommitDownCalls(stub func([]*models.Commit, int) error) {
 	fake.moveCommitDownMutex.Lock()
 	defer fake.moveCommitDownMutex.Unlock()
 	fake.MoveCommitDownStub = stub
 }
 
-func (fake *FakeIGitCommand) MoveCommitDownArgsForCall(i int) ([]*models.Commit, int) {
+func (fake *FakeIGit) MoveCommitDownArgsForCall(i int) ([]*models.Commit, int) {
 	fake.moveCommitDownMutex.RLock()
 	defer fake.moveCommitDownMutex.RUnlock()
 	argsForCall := fake.moveCommitDownArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) MoveCommitDownReturns(result1 error) {
+func (fake *FakeIGit) MoveCommitDownReturns(result1 error) {
 	fake.moveCommitDownMutex.Lock()
 	defer fake.moveCommitDownMutex.Unlock()
 	fake.MoveCommitDownStub = nil
@@ -6533,7 +6661,7 @@ func (fake *FakeIGitCommand) MoveCommitDownReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MoveCommitDownReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) MoveCommitDownReturnsOnCall(i int, result1 error) {
 	fake.moveCommitDownMutex.Lock()
 	defer fake.moveCommitDownMutex.Unlock()
 	fake.MoveCommitDownStub = nil
@@ -6547,7 +6675,7 @@ func (fake *FakeIGitCommand) MoveCommitDownReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MovePatchIntoIndex(arg1 []*models.Commit, arg2 int, arg3 *patch.PatchManager, arg4 bool) error {
+func (fake *FakeIGit) MovePatchIntoIndex(arg1 []*models.Commit, arg2 int, arg3 *patch.PatchManager, arg4 bool) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -6574,26 +6702,26 @@ func (fake *FakeIGitCommand) MovePatchIntoIndex(arg1 []*models.Commit, arg2 int,
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) MovePatchIntoIndexCallCount() int {
+func (fake *FakeIGit) MovePatchIntoIndexCallCount() int {
 	fake.movePatchIntoIndexMutex.RLock()
 	defer fake.movePatchIntoIndexMutex.RUnlock()
 	return len(fake.movePatchIntoIndexArgsForCall)
 }
 
-func (fake *FakeIGitCommand) MovePatchIntoIndexCalls(stub func([]*models.Commit, int, *patch.PatchManager, bool) error) {
+func (fake *FakeIGit) MovePatchIntoIndexCalls(stub func([]*models.Commit, int, *patch.PatchManager, bool) error) {
 	fake.movePatchIntoIndexMutex.Lock()
 	defer fake.movePatchIntoIndexMutex.Unlock()
 	fake.MovePatchIntoIndexStub = stub
 }
 
-func (fake *FakeIGitCommand) MovePatchIntoIndexArgsForCall(i int) ([]*models.Commit, int, *patch.PatchManager, bool) {
+func (fake *FakeIGit) MovePatchIntoIndexArgsForCall(i int) ([]*models.Commit, int, *patch.PatchManager, bool) {
 	fake.movePatchIntoIndexMutex.RLock()
 	defer fake.movePatchIntoIndexMutex.RUnlock()
 	argsForCall := fake.movePatchIntoIndexArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeIGitCommand) MovePatchIntoIndexReturns(result1 error) {
+func (fake *FakeIGit) MovePatchIntoIndexReturns(result1 error) {
 	fake.movePatchIntoIndexMutex.Lock()
 	defer fake.movePatchIntoIndexMutex.Unlock()
 	fake.MovePatchIntoIndexStub = nil
@@ -6602,7 +6730,7 @@ func (fake *FakeIGitCommand) MovePatchIntoIndexReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MovePatchIntoIndexReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) MovePatchIntoIndexReturnsOnCall(i int, result1 error) {
 	fake.movePatchIntoIndexMutex.Lock()
 	defer fake.movePatchIntoIndexMutex.Unlock()
 	fake.MovePatchIntoIndexStub = nil
@@ -6616,7 +6744,7 @@ func (fake *FakeIGitCommand) MovePatchIntoIndexReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MovePatchToSelectedCommit(arg1 []*models.Commit, arg2 int, arg3 int, arg4 *patch.PatchManager) error {
+func (fake *FakeIGit) MovePatchToSelectedCommit(arg1 []*models.Commit, arg2 int, arg3 int, arg4 *patch.PatchManager) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -6643,26 +6771,26 @@ func (fake *FakeIGitCommand) MovePatchToSelectedCommit(arg1 []*models.Commit, ar
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) MovePatchToSelectedCommitCallCount() int {
+func (fake *FakeIGit) MovePatchToSelectedCommitCallCount() int {
 	fake.movePatchToSelectedCommitMutex.RLock()
 	defer fake.movePatchToSelectedCommitMutex.RUnlock()
 	return len(fake.movePatchToSelectedCommitArgsForCall)
 }
 
-func (fake *FakeIGitCommand) MovePatchToSelectedCommitCalls(stub func([]*models.Commit, int, int, *patch.PatchManager) error) {
+func (fake *FakeIGit) MovePatchToSelectedCommitCalls(stub func([]*models.Commit, int, int, *patch.PatchManager) error) {
 	fake.movePatchToSelectedCommitMutex.Lock()
 	defer fake.movePatchToSelectedCommitMutex.Unlock()
 	fake.MovePatchToSelectedCommitStub = stub
 }
 
-func (fake *FakeIGitCommand) MovePatchToSelectedCommitArgsForCall(i int) ([]*models.Commit, int, int, *patch.PatchManager) {
+func (fake *FakeIGit) MovePatchToSelectedCommitArgsForCall(i int) ([]*models.Commit, int, int, *patch.PatchManager) {
 	fake.movePatchToSelectedCommitMutex.RLock()
 	defer fake.movePatchToSelectedCommitMutex.RUnlock()
 	argsForCall := fake.movePatchToSelectedCommitArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeIGitCommand) MovePatchToSelectedCommitReturns(result1 error) {
+func (fake *FakeIGit) MovePatchToSelectedCommitReturns(result1 error) {
 	fake.movePatchToSelectedCommitMutex.Lock()
 	defer fake.movePatchToSelectedCommitMutex.Unlock()
 	fake.MovePatchToSelectedCommitStub = nil
@@ -6671,7 +6799,7 @@ func (fake *FakeIGitCommand) MovePatchToSelectedCommitReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MovePatchToSelectedCommitReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) MovePatchToSelectedCommitReturnsOnCall(i int, result1 error) {
 	fake.movePatchToSelectedCommitMutex.Lock()
 	defer fake.movePatchToSelectedCommitMutex.Unlock()
 	fake.MovePatchToSelectedCommitStub = nil
@@ -6685,7 +6813,7 @@ func (fake *FakeIGitCommand) MovePatchToSelectedCommitReturnsOnCall(i int, resul
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MoveTodoDown(arg1 int) error {
+func (fake *FakeIGit) MoveTodoDown(arg1 int) error {
 	fake.moveTodoDownMutex.Lock()
 	ret, specificReturn := fake.moveTodoDownReturnsOnCall[len(fake.moveTodoDownArgsForCall)]
 	fake.moveTodoDownArgsForCall = append(fake.moveTodoDownArgsForCall, struct {
@@ -6704,26 +6832,26 @@ func (fake *FakeIGitCommand) MoveTodoDown(arg1 int) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) MoveTodoDownCallCount() int {
+func (fake *FakeIGit) MoveTodoDownCallCount() int {
 	fake.moveTodoDownMutex.RLock()
 	defer fake.moveTodoDownMutex.RUnlock()
 	return len(fake.moveTodoDownArgsForCall)
 }
 
-func (fake *FakeIGitCommand) MoveTodoDownCalls(stub func(int) error) {
+func (fake *FakeIGit) MoveTodoDownCalls(stub func(int) error) {
 	fake.moveTodoDownMutex.Lock()
 	defer fake.moveTodoDownMutex.Unlock()
 	fake.MoveTodoDownStub = stub
 }
 
-func (fake *FakeIGitCommand) MoveTodoDownArgsForCall(i int) int {
+func (fake *FakeIGit) MoveTodoDownArgsForCall(i int) int {
 	fake.moveTodoDownMutex.RLock()
 	defer fake.moveTodoDownMutex.RUnlock()
 	argsForCall := fake.moveTodoDownArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) MoveTodoDownReturns(result1 error) {
+func (fake *FakeIGit) MoveTodoDownReturns(result1 error) {
 	fake.moveTodoDownMutex.Lock()
 	defer fake.moveTodoDownMutex.Unlock()
 	fake.MoveTodoDownStub = nil
@@ -6732,7 +6860,7 @@ func (fake *FakeIGitCommand) MoveTodoDownReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) MoveTodoDownReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) MoveTodoDownReturnsOnCall(i int, result1 error) {
 	fake.moveTodoDownMutex.Lock()
 	defer fake.moveTodoDownMutex.Unlock()
 	fake.MoveTodoDownStub = nil
@@ -6746,7 +6874,7 @@ func (fake *FakeIGitCommand) MoveTodoDownReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) NewBranch(arg1 string, arg2 string) error {
+func (fake *FakeIGit) NewBranch(arg1 string, arg2 string) error {
 	fake.newBranchMutex.Lock()
 	ret, specificReturn := fake.newBranchReturnsOnCall[len(fake.newBranchArgsForCall)]
 	fake.newBranchArgsForCall = append(fake.newBranchArgsForCall, struct {
@@ -6766,26 +6894,26 @@ func (fake *FakeIGitCommand) NewBranch(arg1 string, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) NewBranchCallCount() int {
+func (fake *FakeIGit) NewBranchCallCount() int {
 	fake.newBranchMutex.RLock()
 	defer fake.newBranchMutex.RUnlock()
 	return len(fake.newBranchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) NewBranchCalls(stub func(string, string) error) {
+func (fake *FakeIGit) NewBranchCalls(stub func(string, string) error) {
 	fake.newBranchMutex.Lock()
 	defer fake.newBranchMutex.Unlock()
 	fake.NewBranchStub = stub
 }
 
-func (fake *FakeIGitCommand) NewBranchArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) NewBranchArgsForCall(i int) (string, string) {
 	fake.newBranchMutex.RLock()
 	defer fake.newBranchMutex.RUnlock()
 	argsForCall := fake.newBranchArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) NewBranchReturns(result1 error) {
+func (fake *FakeIGit) NewBranchReturns(result1 error) {
 	fake.newBranchMutex.Lock()
 	defer fake.newBranchMutex.Unlock()
 	fake.NewBranchStub = nil
@@ -6794,7 +6922,7 @@ func (fake *FakeIGitCommand) NewBranchReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) NewBranchReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) NewBranchReturnsOnCall(i int, result1 error) {
 	fake.newBranchMutex.Lock()
 	defer fake.newBranchMutex.Unlock()
 	fake.NewBranchStub = nil
@@ -6808,7 +6936,7 @@ func (fake *FakeIGitCommand) NewBranchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) NewPatchManager() *patch.PatchManager {
+func (fake *FakeIGit) NewPatchManager() *patch.PatchManager {
 	fake.newPatchManagerMutex.Lock()
 	ret, specificReturn := fake.newPatchManagerReturnsOnCall[len(fake.newPatchManagerArgsForCall)]
 	fake.newPatchManagerArgsForCall = append(fake.newPatchManagerArgsForCall, struct {
@@ -6826,19 +6954,19 @@ func (fake *FakeIGitCommand) NewPatchManager() *patch.PatchManager {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) NewPatchManagerCallCount() int {
+func (fake *FakeIGit) NewPatchManagerCallCount() int {
 	fake.newPatchManagerMutex.RLock()
 	defer fake.newPatchManagerMutex.RUnlock()
 	return len(fake.newPatchManagerArgsForCall)
 }
 
-func (fake *FakeIGitCommand) NewPatchManagerCalls(stub func() *patch.PatchManager) {
+func (fake *FakeIGit) NewPatchManagerCalls(stub func() *patch.PatchManager) {
 	fake.newPatchManagerMutex.Lock()
 	defer fake.newPatchManagerMutex.Unlock()
 	fake.NewPatchManagerStub = stub
 }
 
-func (fake *FakeIGitCommand) NewPatchManagerReturns(result1 *patch.PatchManager) {
+func (fake *FakeIGit) NewPatchManagerReturns(result1 *patch.PatchManager) {
 	fake.newPatchManagerMutex.Lock()
 	defer fake.newPatchManagerMutex.Unlock()
 	fake.NewPatchManagerStub = nil
@@ -6847,7 +6975,7 @@ func (fake *FakeIGitCommand) NewPatchManagerReturns(result1 *patch.PatchManager)
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) NewPatchManagerReturnsOnCall(i int, result1 *patch.PatchManager) {
+func (fake *FakeIGit) NewPatchManagerReturnsOnCall(i int, result1 *patch.PatchManager) {
 	fake.newPatchManagerMutex.Lock()
 	defer fake.newPatchManagerMutex.Unlock()
 	fake.NewPatchManagerStub = nil
@@ -6861,7 +6989,7 @@ func (fake *FakeIGitCommand) NewPatchManagerReturnsOnCall(i int, result1 *patch.
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) OpenMergeToolCmdObj() types.ICmdObj {
+func (fake *FakeIGit) OpenMergeToolCmdObj() types.ICmdObj {
 	fake.openMergeToolCmdObjMutex.Lock()
 	ret, specificReturn := fake.openMergeToolCmdObjReturnsOnCall[len(fake.openMergeToolCmdObjArgsForCall)]
 	fake.openMergeToolCmdObjArgsForCall = append(fake.openMergeToolCmdObjArgsForCall, struct {
@@ -6879,19 +7007,19 @@ func (fake *FakeIGitCommand) OpenMergeToolCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) OpenMergeToolCmdObjCallCount() int {
+func (fake *FakeIGit) OpenMergeToolCmdObjCallCount() int {
 	fake.openMergeToolCmdObjMutex.RLock()
 	defer fake.openMergeToolCmdObjMutex.RUnlock()
 	return len(fake.openMergeToolCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) OpenMergeToolCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) OpenMergeToolCmdObjCalls(stub func() types.ICmdObj) {
 	fake.openMergeToolCmdObjMutex.Lock()
 	defer fake.openMergeToolCmdObjMutex.Unlock()
 	fake.OpenMergeToolCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) OpenMergeToolCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) OpenMergeToolCmdObjReturns(result1 types.ICmdObj) {
 	fake.openMergeToolCmdObjMutex.Lock()
 	defer fake.openMergeToolCmdObjMutex.Unlock()
 	fake.OpenMergeToolCmdObjStub = nil
@@ -6900,7 +7028,7 @@ func (fake *FakeIGitCommand) OpenMergeToolCmdObjReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) OpenMergeToolCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) OpenMergeToolCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.openMergeToolCmdObjMutex.Lock()
 	defer fake.openMergeToolCmdObjMutex.Unlock()
 	fake.OpenMergeToolCmdObjStub = nil
@@ -6914,7 +7042,7 @@ func (fake *FakeIGitCommand) OpenMergeToolCmdObjReturnsOnCall(i int, result1 typ
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommand(arg1 string, arg2 string, arg3 bool) types.ICmdObj {
+func (fake *FakeIGit) PrepareInteractiveRebaseCommand(arg1 string, arg2 string, arg3 bool) types.ICmdObj {
 	fake.prepareInteractiveRebaseCommandMutex.Lock()
 	ret, specificReturn := fake.prepareInteractiveRebaseCommandReturnsOnCall[len(fake.prepareInteractiveRebaseCommandArgsForCall)]
 	fake.prepareInteractiveRebaseCommandArgsForCall = append(fake.prepareInteractiveRebaseCommandArgsForCall, struct {
@@ -6935,26 +7063,26 @@ func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommand(arg1 string, arg2 s
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommandCallCount() int {
+func (fake *FakeIGit) PrepareInteractiveRebaseCommandCallCount() int {
 	fake.prepareInteractiveRebaseCommandMutex.RLock()
 	defer fake.prepareInteractiveRebaseCommandMutex.RUnlock()
 	return len(fake.prepareInteractiveRebaseCommandArgsForCall)
 }
 
-func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommandCalls(stub func(string, string, bool) types.ICmdObj) {
+func (fake *FakeIGit) PrepareInteractiveRebaseCommandCalls(stub func(string, string, bool) types.ICmdObj) {
 	fake.prepareInteractiveRebaseCommandMutex.Lock()
 	defer fake.prepareInteractiveRebaseCommandMutex.Unlock()
 	fake.PrepareInteractiveRebaseCommandStub = stub
 }
 
-func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommandArgsForCall(i int) (string, string, bool) {
+func (fake *FakeIGit) PrepareInteractiveRebaseCommandArgsForCall(i int) (string, string, bool) {
 	fake.prepareInteractiveRebaseCommandMutex.RLock()
 	defer fake.prepareInteractiveRebaseCommandMutex.RUnlock()
 	argsForCall := fake.prepareInteractiveRebaseCommandArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommandReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) PrepareInteractiveRebaseCommandReturns(result1 types.ICmdObj) {
 	fake.prepareInteractiveRebaseCommandMutex.Lock()
 	defer fake.prepareInteractiveRebaseCommandMutex.Unlock()
 	fake.PrepareInteractiveRebaseCommandStub = nil
@@ -6963,7 +7091,7 @@ func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommandReturns(result1 type
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommandReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) PrepareInteractiveRebaseCommandReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.prepareInteractiveRebaseCommandMutex.Lock()
 	defer fake.prepareInteractiveRebaseCommandMutex.Unlock()
 	fake.PrepareInteractiveRebaseCommandStub = nil
@@ -6977,7 +7105,7 @@ func (fake *FakeIGitCommand) PrepareInteractiveRebaseCommandReturnsOnCall(i int,
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) PullPatchIntoNewCommit(arg1 []*models.Commit, arg2 int, arg3 *patch.PatchManager) error {
+func (fake *FakeIGit) PullPatchIntoNewCommit(arg1 []*models.Commit, arg2 int, arg3 *patch.PatchManager) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
 		arg1Copy = make([]*models.Commit, len(arg1))
@@ -7003,26 +7131,26 @@ func (fake *FakeIGitCommand) PullPatchIntoNewCommit(arg1 []*models.Commit, arg2 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) PullPatchIntoNewCommitCallCount() int {
+func (fake *FakeIGit) PullPatchIntoNewCommitCallCount() int {
 	fake.pullPatchIntoNewCommitMutex.RLock()
 	defer fake.pullPatchIntoNewCommitMutex.RUnlock()
 	return len(fake.pullPatchIntoNewCommitArgsForCall)
 }
 
-func (fake *FakeIGitCommand) PullPatchIntoNewCommitCalls(stub func([]*models.Commit, int, *patch.PatchManager) error) {
+func (fake *FakeIGit) PullPatchIntoNewCommitCalls(stub func([]*models.Commit, int, *patch.PatchManager) error) {
 	fake.pullPatchIntoNewCommitMutex.Lock()
 	defer fake.pullPatchIntoNewCommitMutex.Unlock()
 	fake.PullPatchIntoNewCommitStub = stub
 }
 
-func (fake *FakeIGitCommand) PullPatchIntoNewCommitArgsForCall(i int) ([]*models.Commit, int, *patch.PatchManager) {
+func (fake *FakeIGit) PullPatchIntoNewCommitArgsForCall(i int) ([]*models.Commit, int, *patch.PatchManager) {
 	fake.pullPatchIntoNewCommitMutex.RLock()
 	defer fake.pullPatchIntoNewCommitMutex.RUnlock()
 	argsForCall := fake.pullPatchIntoNewCommitArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) PullPatchIntoNewCommitReturns(result1 error) {
+func (fake *FakeIGit) PullPatchIntoNewCommitReturns(result1 error) {
 	fake.pullPatchIntoNewCommitMutex.Lock()
 	defer fake.pullPatchIntoNewCommitMutex.Unlock()
 	fake.PullPatchIntoNewCommitStub = nil
@@ -7031,7 +7159,7 @@ func (fake *FakeIGitCommand) PullPatchIntoNewCommitReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) PullPatchIntoNewCommitReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) PullPatchIntoNewCommitReturnsOnCall(i int, result1 error) {
 	fake.pullPatchIntoNewCommitMutex.Lock()
 	defer fake.pullPatchIntoNewCommitMutex.Unlock()
 	fake.PullPatchIntoNewCommitStub = nil
@@ -7045,7 +7173,7 @@ func (fake *FakeIGitCommand) PullPatchIntoNewCommitReturnsOnCall(i int, result1 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) Push(arg1 commands.PushOpts) (bool, error) {
+func (fake *FakeIGit) Push(arg1 commands.PushOpts) (bool, error) {
 	fake.pushMutex.Lock()
 	ret, specificReturn := fake.pushReturnsOnCall[len(fake.pushArgsForCall)]
 	fake.pushArgsForCall = append(fake.pushArgsForCall, struct {
@@ -7064,26 +7192,26 @@ func (fake *FakeIGitCommand) Push(arg1 commands.PushOpts) (bool, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) PushCallCount() int {
+func (fake *FakeIGit) PushCallCount() int {
 	fake.pushMutex.RLock()
 	defer fake.pushMutex.RUnlock()
 	return len(fake.pushArgsForCall)
 }
 
-func (fake *FakeIGitCommand) PushCalls(stub func(commands.PushOpts) (bool, error)) {
+func (fake *FakeIGit) PushCalls(stub func(commands.PushOpts) (bool, error)) {
 	fake.pushMutex.Lock()
 	defer fake.pushMutex.Unlock()
 	fake.PushStub = stub
 }
 
-func (fake *FakeIGitCommand) PushArgsForCall(i int) commands.PushOpts {
+func (fake *FakeIGit) PushArgsForCall(i int) commands.PushOpts {
 	fake.pushMutex.RLock()
 	defer fake.pushMutex.RUnlock()
 	argsForCall := fake.pushArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) PushReturns(result1 bool, result2 error) {
+func (fake *FakeIGit) PushReturns(result1 bool, result2 error) {
 	fake.pushMutex.Lock()
 	defer fake.pushMutex.Unlock()
 	fake.PushStub = nil
@@ -7093,7 +7221,7 @@ func (fake *FakeIGitCommand) PushReturns(result1 bool, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) PushReturnsOnCall(i int, result1 bool, result2 error) {
+func (fake *FakeIGit) PushReturnsOnCall(i int, result1 bool, result2 error) {
 	fake.pushMutex.Lock()
 	defer fake.pushMutex.Unlock()
 	fake.PushStub = nil
@@ -7109,7 +7237,7 @@ func (fake *FakeIGitCommand) PushReturnsOnCall(i int, result1 bool, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) PushTag(arg1 string, arg2 string) error {
+func (fake *FakeIGit) PushTag(arg1 string, arg2 string) error {
 	fake.pushTagMutex.Lock()
 	ret, specificReturn := fake.pushTagReturnsOnCall[len(fake.pushTagArgsForCall)]
 	fake.pushTagArgsForCall = append(fake.pushTagArgsForCall, struct {
@@ -7129,26 +7257,26 @@ func (fake *FakeIGitCommand) PushTag(arg1 string, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) PushTagCallCount() int {
+func (fake *FakeIGit) PushTagCallCount() int {
 	fake.pushTagMutex.RLock()
 	defer fake.pushTagMutex.RUnlock()
 	return len(fake.pushTagArgsForCall)
 }
 
-func (fake *FakeIGitCommand) PushTagCalls(stub func(string, string) error) {
+func (fake *FakeIGit) PushTagCalls(stub func(string, string) error) {
 	fake.pushTagMutex.Lock()
 	defer fake.pushTagMutex.Unlock()
 	fake.PushTagStub = stub
 }
 
-func (fake *FakeIGitCommand) PushTagArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) PushTagArgsForCall(i int) (string, string) {
 	fake.pushTagMutex.RLock()
 	defer fake.pushTagMutex.RUnlock()
 	argsForCall := fake.pushTagArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) PushTagReturns(result1 error) {
+func (fake *FakeIGit) PushTagReturns(result1 error) {
 	fake.pushTagMutex.Lock()
 	defer fake.pushTagMutex.Unlock()
 	fake.PushTagStub = nil
@@ -7157,7 +7285,7 @@ func (fake *FakeIGitCommand) PushTagReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) PushTagReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) PushTagReturnsOnCall(i int, result1 error) {
 	fake.pushTagMutex.Lock()
 	defer fake.pushTagMutex.Unlock()
 	fake.PushTagStub = nil
@@ -7171,7 +7299,7 @@ func (fake *FakeIGitCommand) PushTagReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RebaseBranch(arg1 string) error {
+func (fake *FakeIGit) RebaseBranch(arg1 string) error {
 	fake.rebaseBranchMutex.Lock()
 	ret, specificReturn := fake.rebaseBranchReturnsOnCall[len(fake.rebaseBranchArgsForCall)]
 	fake.rebaseBranchArgsForCall = append(fake.rebaseBranchArgsForCall, struct {
@@ -7190,26 +7318,26 @@ func (fake *FakeIGitCommand) RebaseBranch(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RebaseBranchCallCount() int {
+func (fake *FakeIGit) RebaseBranchCallCount() int {
 	fake.rebaseBranchMutex.RLock()
 	defer fake.rebaseBranchMutex.RUnlock()
 	return len(fake.rebaseBranchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RebaseBranchCalls(stub func(string) error) {
+func (fake *FakeIGit) RebaseBranchCalls(stub func(string) error) {
 	fake.rebaseBranchMutex.Lock()
 	defer fake.rebaseBranchMutex.Unlock()
 	fake.RebaseBranchStub = stub
 }
 
-func (fake *FakeIGitCommand) RebaseBranchArgsForCall(i int) string {
+func (fake *FakeIGit) RebaseBranchArgsForCall(i int) string {
 	fake.rebaseBranchMutex.RLock()
 	defer fake.rebaseBranchMutex.RUnlock()
 	argsForCall := fake.rebaseBranchArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RebaseBranchReturns(result1 error) {
+func (fake *FakeIGit) RebaseBranchReturns(result1 error) {
 	fake.rebaseBranchMutex.Lock()
 	defer fake.rebaseBranchMutex.Unlock()
 	fake.RebaseBranchStub = nil
@@ -7218,7 +7346,7 @@ func (fake *FakeIGitCommand) RebaseBranchReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RebaseBranchReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RebaseBranchReturnsOnCall(i int, result1 error) {
 	fake.rebaseBranchMutex.Lock()
 	defer fake.rebaseBranchMutex.Unlock()
 	fake.RebaseBranchStub = nil
@@ -7232,7 +7360,7 @@ func (fake *FakeIGitCommand) RebaseBranchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RebaseMode() (commands.WorkingTreeState, error) {
+func (fake *FakeIGit) RebaseMode() (commands.WorkingTreeState, error) {
 	fake.rebaseModeMutex.Lock()
 	ret, specificReturn := fake.rebaseModeReturnsOnCall[len(fake.rebaseModeArgsForCall)]
 	fake.rebaseModeArgsForCall = append(fake.rebaseModeArgsForCall, struct {
@@ -7250,19 +7378,19 @@ func (fake *FakeIGitCommand) RebaseMode() (commands.WorkingTreeState, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) RebaseModeCallCount() int {
+func (fake *FakeIGit) RebaseModeCallCount() int {
 	fake.rebaseModeMutex.RLock()
 	defer fake.rebaseModeMutex.RUnlock()
 	return len(fake.rebaseModeArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RebaseModeCalls(stub func() (commands.WorkingTreeState, error)) {
+func (fake *FakeIGit) RebaseModeCalls(stub func() (commands.WorkingTreeState, error)) {
 	fake.rebaseModeMutex.Lock()
 	defer fake.rebaseModeMutex.Unlock()
 	fake.RebaseModeStub = stub
 }
 
-func (fake *FakeIGitCommand) RebaseModeReturns(result1 commands.WorkingTreeState, result2 error) {
+func (fake *FakeIGit) RebaseModeReturns(result1 commands.WorkingTreeState, result2 error) {
 	fake.rebaseModeMutex.Lock()
 	defer fake.rebaseModeMutex.Unlock()
 	fake.RebaseModeStub = nil
@@ -7272,7 +7400,7 @@ func (fake *FakeIGitCommand) RebaseModeReturns(result1 commands.WorkingTreeState
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) RebaseModeReturnsOnCall(i int, result1 commands.WorkingTreeState, result2 error) {
+func (fake *FakeIGit) RebaseModeReturnsOnCall(i int, result1 commands.WorkingTreeState, result2 error) {
 	fake.rebaseModeMutex.Lock()
 	defer fake.rebaseModeMutex.Unlock()
 	fake.RebaseModeStub = nil
@@ -7288,7 +7416,7 @@ func (fake *FakeIGitCommand) RebaseModeReturnsOnCall(i int, result1 commands.Wor
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) RemoveRemote(arg1 string) error {
+func (fake *FakeIGit) RemoveRemote(arg1 string) error {
 	fake.removeRemoteMutex.Lock()
 	ret, specificReturn := fake.removeRemoteReturnsOnCall[len(fake.removeRemoteArgsForCall)]
 	fake.removeRemoteArgsForCall = append(fake.removeRemoteArgsForCall, struct {
@@ -7307,26 +7435,26 @@ func (fake *FakeIGitCommand) RemoveRemote(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RemoveRemoteCallCount() int {
+func (fake *FakeIGit) RemoveRemoteCallCount() int {
 	fake.removeRemoteMutex.RLock()
 	defer fake.removeRemoteMutex.RUnlock()
 	return len(fake.removeRemoteArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RemoveRemoteCalls(stub func(string) error) {
+func (fake *FakeIGit) RemoveRemoteCalls(stub func(string) error) {
 	fake.removeRemoteMutex.Lock()
 	defer fake.removeRemoteMutex.Unlock()
 	fake.RemoveRemoteStub = stub
 }
 
-func (fake *FakeIGitCommand) RemoveRemoteArgsForCall(i int) string {
+func (fake *FakeIGit) RemoveRemoteArgsForCall(i int) string {
 	fake.removeRemoteMutex.RLock()
 	defer fake.removeRemoteMutex.RUnlock()
 	argsForCall := fake.removeRemoteArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RemoveRemoteReturns(result1 error) {
+func (fake *FakeIGit) RemoveRemoteReturns(result1 error) {
 	fake.removeRemoteMutex.Lock()
 	defer fake.removeRemoteMutex.Unlock()
 	fake.RemoveRemoteStub = nil
@@ -7335,7 +7463,7 @@ func (fake *FakeIGitCommand) RemoveRemoteReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RemoveRemoteReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RemoveRemoteReturnsOnCall(i int, result1 error) {
 	fake.removeRemoteMutex.Lock()
 	defer fake.removeRemoteMutex.Unlock()
 	fake.RemoveRemoteStub = nil
@@ -7349,7 +7477,7 @@ func (fake *FakeIGitCommand) RemoveRemoteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RemoveTrackedFiles(arg1 string) error {
+func (fake *FakeIGit) RemoveTrackedFiles(arg1 string) error {
 	fake.removeTrackedFilesMutex.Lock()
 	ret, specificReturn := fake.removeTrackedFilesReturnsOnCall[len(fake.removeTrackedFilesArgsForCall)]
 	fake.removeTrackedFilesArgsForCall = append(fake.removeTrackedFilesArgsForCall, struct {
@@ -7368,26 +7496,26 @@ func (fake *FakeIGitCommand) RemoveTrackedFiles(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RemoveTrackedFilesCallCount() int {
+func (fake *FakeIGit) RemoveTrackedFilesCallCount() int {
 	fake.removeTrackedFilesMutex.RLock()
 	defer fake.removeTrackedFilesMutex.RUnlock()
 	return len(fake.removeTrackedFilesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RemoveTrackedFilesCalls(stub func(string) error) {
+func (fake *FakeIGit) RemoveTrackedFilesCalls(stub func(string) error) {
 	fake.removeTrackedFilesMutex.Lock()
 	defer fake.removeTrackedFilesMutex.Unlock()
 	fake.RemoveTrackedFilesStub = stub
 }
 
-func (fake *FakeIGitCommand) RemoveTrackedFilesArgsForCall(i int) string {
+func (fake *FakeIGit) RemoveTrackedFilesArgsForCall(i int) string {
 	fake.removeTrackedFilesMutex.RLock()
 	defer fake.removeTrackedFilesMutex.RUnlock()
 	argsForCall := fake.removeTrackedFilesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RemoveTrackedFilesReturns(result1 error) {
+func (fake *FakeIGit) RemoveTrackedFilesReturns(result1 error) {
 	fake.removeTrackedFilesMutex.Lock()
 	defer fake.removeTrackedFilesMutex.Unlock()
 	fake.RemoveTrackedFilesStub = nil
@@ -7396,7 +7524,7 @@ func (fake *FakeIGitCommand) RemoveTrackedFilesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RemoveTrackedFilesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RemoveTrackedFilesReturnsOnCall(i int, result1 error) {
 	fake.removeTrackedFilesMutex.Lock()
 	defer fake.removeTrackedFilesMutex.Unlock()
 	fake.RemoveTrackedFilesStub = nil
@@ -7410,7 +7538,7 @@ func (fake *FakeIGitCommand) RemoveTrackedFilesReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedDirFiles(arg1 *filetree.FileNode) error {
+func (fake *FakeIGit) RemoveUntrackedDirFiles(arg1 *filetree.FileNode) error {
 	fake.removeUntrackedDirFilesMutex.Lock()
 	ret, specificReturn := fake.removeUntrackedDirFilesReturnsOnCall[len(fake.removeUntrackedDirFilesArgsForCall)]
 	fake.removeUntrackedDirFilesArgsForCall = append(fake.removeUntrackedDirFilesArgsForCall, struct {
@@ -7429,26 +7557,26 @@ func (fake *FakeIGitCommand) RemoveUntrackedDirFiles(arg1 *filetree.FileNode) er
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedDirFilesCallCount() int {
+func (fake *FakeIGit) RemoveUntrackedDirFilesCallCount() int {
 	fake.removeUntrackedDirFilesMutex.RLock()
 	defer fake.removeUntrackedDirFilesMutex.RUnlock()
 	return len(fake.removeUntrackedDirFilesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedDirFilesCalls(stub func(*filetree.FileNode) error) {
+func (fake *FakeIGit) RemoveUntrackedDirFilesCalls(stub func(*filetree.FileNode) error) {
 	fake.removeUntrackedDirFilesMutex.Lock()
 	defer fake.removeUntrackedDirFilesMutex.Unlock()
 	fake.RemoveUntrackedDirFilesStub = stub
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedDirFilesArgsForCall(i int) *filetree.FileNode {
+func (fake *FakeIGit) RemoveUntrackedDirFilesArgsForCall(i int) *filetree.FileNode {
 	fake.removeUntrackedDirFilesMutex.RLock()
 	defer fake.removeUntrackedDirFilesMutex.RUnlock()
 	argsForCall := fake.removeUntrackedDirFilesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedDirFilesReturns(result1 error) {
+func (fake *FakeIGit) RemoveUntrackedDirFilesReturns(result1 error) {
 	fake.removeUntrackedDirFilesMutex.Lock()
 	defer fake.removeUntrackedDirFilesMutex.Unlock()
 	fake.RemoveUntrackedDirFilesStub = nil
@@ -7457,7 +7585,7 @@ func (fake *FakeIGitCommand) RemoveUntrackedDirFilesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedDirFilesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RemoveUntrackedDirFilesReturnsOnCall(i int, result1 error) {
 	fake.removeUntrackedDirFilesMutex.Lock()
 	defer fake.removeUntrackedDirFilesMutex.Unlock()
 	fake.RemoveUntrackedDirFilesStub = nil
@@ -7471,7 +7599,7 @@ func (fake *FakeIGitCommand) RemoveUntrackedDirFilesReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedFiles() error {
+func (fake *FakeIGit) RemoveUntrackedFiles() error {
 	fake.removeUntrackedFilesMutex.Lock()
 	ret, specificReturn := fake.removeUntrackedFilesReturnsOnCall[len(fake.removeUntrackedFilesArgsForCall)]
 	fake.removeUntrackedFilesArgsForCall = append(fake.removeUntrackedFilesArgsForCall, struct {
@@ -7489,19 +7617,19 @@ func (fake *FakeIGitCommand) RemoveUntrackedFiles() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedFilesCallCount() int {
+func (fake *FakeIGit) RemoveUntrackedFilesCallCount() int {
 	fake.removeUntrackedFilesMutex.RLock()
 	defer fake.removeUntrackedFilesMutex.RUnlock()
 	return len(fake.removeUntrackedFilesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedFilesCalls(stub func() error) {
+func (fake *FakeIGit) RemoveUntrackedFilesCalls(stub func() error) {
 	fake.removeUntrackedFilesMutex.Lock()
 	defer fake.removeUntrackedFilesMutex.Unlock()
 	fake.RemoveUntrackedFilesStub = stub
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedFilesReturns(result1 error) {
+func (fake *FakeIGit) RemoveUntrackedFilesReturns(result1 error) {
 	fake.removeUntrackedFilesMutex.Lock()
 	defer fake.removeUntrackedFilesMutex.Unlock()
 	fake.RemoveUntrackedFilesStub = nil
@@ -7510,7 +7638,7 @@ func (fake *FakeIGitCommand) RemoveUntrackedFilesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RemoveUntrackedFilesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RemoveUntrackedFilesReturnsOnCall(i int, result1 error) {
 	fake.removeUntrackedFilesMutex.Lock()
 	defer fake.removeUntrackedFilesMutex.Unlock()
 	fake.RemoveUntrackedFilesStub = nil
@@ -7524,7 +7652,7 @@ func (fake *FakeIGitCommand) RemoveUntrackedFilesReturnsOnCall(i int, result1 er
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RenameBranch(arg1 string, arg2 string) error {
+func (fake *FakeIGit) RenameBranch(arg1 string, arg2 string) error {
 	fake.renameBranchMutex.Lock()
 	ret, specificReturn := fake.renameBranchReturnsOnCall[len(fake.renameBranchArgsForCall)]
 	fake.renameBranchArgsForCall = append(fake.renameBranchArgsForCall, struct {
@@ -7544,26 +7672,26 @@ func (fake *FakeIGitCommand) RenameBranch(arg1 string, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RenameBranchCallCount() int {
+func (fake *FakeIGit) RenameBranchCallCount() int {
 	fake.renameBranchMutex.RLock()
 	defer fake.renameBranchMutex.RUnlock()
 	return len(fake.renameBranchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RenameBranchCalls(stub func(string, string) error) {
+func (fake *FakeIGit) RenameBranchCalls(stub func(string, string) error) {
 	fake.renameBranchMutex.Lock()
 	defer fake.renameBranchMutex.Unlock()
 	fake.RenameBranchStub = stub
 }
 
-func (fake *FakeIGitCommand) RenameBranchArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) RenameBranchArgsForCall(i int) (string, string) {
 	fake.renameBranchMutex.RLock()
 	defer fake.renameBranchMutex.RUnlock()
 	argsForCall := fake.renameBranchArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) RenameBranchReturns(result1 error) {
+func (fake *FakeIGit) RenameBranchReturns(result1 error) {
 	fake.renameBranchMutex.Lock()
 	defer fake.renameBranchMutex.Unlock()
 	fake.RenameBranchStub = nil
@@ -7572,7 +7700,7 @@ func (fake *FakeIGitCommand) RenameBranchReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RenameBranchReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RenameBranchReturnsOnCall(i int, result1 error) {
 	fake.renameBranchMutex.Lock()
 	defer fake.renameBranchMutex.Unlock()
 	fake.RenameBranchStub = nil
@@ -7586,7 +7714,7 @@ func (fake *FakeIGitCommand) RenameBranchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RenameCommit(arg1 string) error {
+func (fake *FakeIGit) RenameCommit(arg1 string) error {
 	fake.renameCommitMutex.Lock()
 	ret, specificReturn := fake.renameCommitReturnsOnCall[len(fake.renameCommitArgsForCall)]
 	fake.renameCommitArgsForCall = append(fake.renameCommitArgsForCall, struct {
@@ -7605,26 +7733,26 @@ func (fake *FakeIGitCommand) RenameCommit(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RenameCommitCallCount() int {
+func (fake *FakeIGit) RenameCommitCallCount() int {
 	fake.renameCommitMutex.RLock()
 	defer fake.renameCommitMutex.RUnlock()
 	return len(fake.renameCommitArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RenameCommitCalls(stub func(string) error) {
+func (fake *FakeIGit) RenameCommitCalls(stub func(string) error) {
 	fake.renameCommitMutex.Lock()
 	defer fake.renameCommitMutex.Unlock()
 	fake.RenameCommitStub = stub
 }
 
-func (fake *FakeIGitCommand) RenameCommitArgsForCall(i int) string {
+func (fake *FakeIGit) RenameCommitArgsForCall(i int) string {
 	fake.renameCommitMutex.RLock()
 	defer fake.renameCommitMutex.RUnlock()
 	argsForCall := fake.renameCommitArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RenameCommitReturns(result1 error) {
+func (fake *FakeIGit) RenameCommitReturns(result1 error) {
 	fake.renameCommitMutex.Lock()
 	defer fake.renameCommitMutex.Unlock()
 	fake.RenameCommitStub = nil
@@ -7633,7 +7761,7 @@ func (fake *FakeIGitCommand) RenameCommitReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RenameCommitReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RenameCommitReturnsOnCall(i int, result1 error) {
 	fake.renameCommitMutex.Lock()
 	defer fake.renameCommitMutex.Unlock()
 	fake.RenameCommitStub = nil
@@ -7647,7 +7775,7 @@ func (fake *FakeIGitCommand) RenameCommitReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RenameRemote(arg1 string, arg2 string) error {
+func (fake *FakeIGit) RenameRemote(arg1 string, arg2 string) error {
 	fake.renameRemoteMutex.Lock()
 	ret, specificReturn := fake.renameRemoteReturnsOnCall[len(fake.renameRemoteArgsForCall)]
 	fake.renameRemoteArgsForCall = append(fake.renameRemoteArgsForCall, struct {
@@ -7667,26 +7795,26 @@ func (fake *FakeIGitCommand) RenameRemote(arg1 string, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RenameRemoteCallCount() int {
+func (fake *FakeIGit) RenameRemoteCallCount() int {
 	fake.renameRemoteMutex.RLock()
 	defer fake.renameRemoteMutex.RUnlock()
 	return len(fake.renameRemoteArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RenameRemoteCalls(stub func(string, string) error) {
+func (fake *FakeIGit) RenameRemoteCalls(stub func(string, string) error) {
 	fake.renameRemoteMutex.Lock()
 	defer fake.renameRemoteMutex.Unlock()
 	fake.RenameRemoteStub = stub
 }
 
-func (fake *FakeIGitCommand) RenameRemoteArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) RenameRemoteArgsForCall(i int) (string, string) {
 	fake.renameRemoteMutex.RLock()
 	defer fake.renameRemoteMutex.RUnlock()
 	argsForCall := fake.renameRemoteArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) RenameRemoteReturns(result1 error) {
+func (fake *FakeIGit) RenameRemoteReturns(result1 error) {
 	fake.renameRemoteMutex.Lock()
 	defer fake.renameRemoteMutex.Unlock()
 	fake.RenameRemoteStub = nil
@@ -7695,7 +7823,7 @@ func (fake *FakeIGitCommand) RenameRemoteReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RenameRemoteReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RenameRemoteReturnsOnCall(i int, result1 error) {
 	fake.renameRemoteMutex.Lock()
 	defer fake.renameRemoteMutex.Unlock()
 	fake.RenameRemoteStub = nil
@@ -7709,7 +7837,7 @@ func (fake *FakeIGitCommand) RenameRemoteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetAndClean() error {
+func (fake *FakeIGit) ResetAndClean() error {
 	fake.resetAndCleanMutex.Lock()
 	ret, specificReturn := fake.resetAndCleanReturnsOnCall[len(fake.resetAndCleanArgsForCall)]
 	fake.resetAndCleanArgsForCall = append(fake.resetAndCleanArgsForCall, struct {
@@ -7727,19 +7855,19 @@ func (fake *FakeIGitCommand) ResetAndClean() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ResetAndCleanCallCount() int {
+func (fake *FakeIGit) ResetAndCleanCallCount() int {
 	fake.resetAndCleanMutex.RLock()
 	defer fake.resetAndCleanMutex.RUnlock()
 	return len(fake.resetAndCleanArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ResetAndCleanCalls(stub func() error) {
+func (fake *FakeIGit) ResetAndCleanCalls(stub func() error) {
 	fake.resetAndCleanMutex.Lock()
 	defer fake.resetAndCleanMutex.Unlock()
 	fake.ResetAndCleanStub = stub
 }
 
-func (fake *FakeIGitCommand) ResetAndCleanReturns(result1 error) {
+func (fake *FakeIGit) ResetAndCleanReturns(result1 error) {
 	fake.resetAndCleanMutex.Lock()
 	defer fake.resetAndCleanMutex.Unlock()
 	fake.ResetAndCleanStub = nil
@@ -7748,7 +7876,7 @@ func (fake *FakeIGitCommand) ResetAndCleanReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetAndCleanReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) ResetAndCleanReturnsOnCall(i int, result1 error) {
 	fake.resetAndCleanMutex.Lock()
 	defer fake.resetAndCleanMutex.Unlock()
 	fake.ResetAndCleanStub = nil
@@ -7762,7 +7890,7 @@ func (fake *FakeIGitCommand) ResetAndCleanReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetHard(arg1 string) error {
+func (fake *FakeIGit) ResetHard(arg1 string) error {
 	fake.resetHardMutex.Lock()
 	ret, specificReturn := fake.resetHardReturnsOnCall[len(fake.resetHardArgsForCall)]
 	fake.resetHardArgsForCall = append(fake.resetHardArgsForCall, struct {
@@ -7781,26 +7909,26 @@ func (fake *FakeIGitCommand) ResetHard(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ResetHardCallCount() int {
+func (fake *FakeIGit) ResetHardCallCount() int {
 	fake.resetHardMutex.RLock()
 	defer fake.resetHardMutex.RUnlock()
 	return len(fake.resetHardArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ResetHardCalls(stub func(string) error) {
+func (fake *FakeIGit) ResetHardCalls(stub func(string) error) {
 	fake.resetHardMutex.Lock()
 	defer fake.resetHardMutex.Unlock()
 	fake.ResetHardStub = stub
 }
 
-func (fake *FakeIGitCommand) ResetHardArgsForCall(i int) string {
+func (fake *FakeIGit) ResetHardArgsForCall(i int) string {
 	fake.resetHardMutex.RLock()
 	defer fake.resetHardMutex.RUnlock()
 	argsForCall := fake.resetHardArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) ResetHardReturns(result1 error) {
+func (fake *FakeIGit) ResetHardReturns(result1 error) {
 	fake.resetHardMutex.Lock()
 	defer fake.resetHardMutex.Unlock()
 	fake.ResetHardStub = nil
@@ -7809,7 +7937,7 @@ func (fake *FakeIGitCommand) ResetHardReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetHardReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) ResetHardReturnsOnCall(i int, result1 error) {
 	fake.resetHardMutex.Lock()
 	defer fake.resetHardMutex.Unlock()
 	fake.ResetHardStub = nil
@@ -7823,7 +7951,7 @@ func (fake *FakeIGitCommand) ResetHardReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetMixed(arg1 string) error {
+func (fake *FakeIGit) ResetMixed(arg1 string) error {
 	fake.resetMixedMutex.Lock()
 	ret, specificReturn := fake.resetMixedReturnsOnCall[len(fake.resetMixedArgsForCall)]
 	fake.resetMixedArgsForCall = append(fake.resetMixedArgsForCall, struct {
@@ -7842,26 +7970,26 @@ func (fake *FakeIGitCommand) ResetMixed(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ResetMixedCallCount() int {
+func (fake *FakeIGit) ResetMixedCallCount() int {
 	fake.resetMixedMutex.RLock()
 	defer fake.resetMixedMutex.RUnlock()
 	return len(fake.resetMixedArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ResetMixedCalls(stub func(string) error) {
+func (fake *FakeIGit) ResetMixedCalls(stub func(string) error) {
 	fake.resetMixedMutex.Lock()
 	defer fake.resetMixedMutex.Unlock()
 	fake.ResetMixedStub = stub
 }
 
-func (fake *FakeIGitCommand) ResetMixedArgsForCall(i int) string {
+func (fake *FakeIGit) ResetMixedArgsForCall(i int) string {
 	fake.resetMixedMutex.RLock()
 	defer fake.resetMixedMutex.RUnlock()
 	argsForCall := fake.resetMixedArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) ResetMixedReturns(result1 error) {
+func (fake *FakeIGit) ResetMixedReturns(result1 error) {
 	fake.resetMixedMutex.Lock()
 	defer fake.resetMixedMutex.Unlock()
 	fake.ResetMixedStub = nil
@@ -7870,7 +7998,7 @@ func (fake *FakeIGitCommand) ResetMixedReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetMixedReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) ResetMixedReturnsOnCall(i int, result1 error) {
 	fake.resetMixedMutex.Lock()
 	defer fake.resetMixedMutex.Unlock()
 	fake.ResetMixedStub = nil
@@ -7884,7 +8012,7 @@ func (fake *FakeIGitCommand) ResetMixedReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetSoft(arg1 string) error {
+func (fake *FakeIGit) ResetSoft(arg1 string) error {
 	fake.resetSoftMutex.Lock()
 	ret, specificReturn := fake.resetSoftReturnsOnCall[len(fake.resetSoftArgsForCall)]
 	fake.resetSoftArgsForCall = append(fake.resetSoftArgsForCall, struct {
@@ -7903,26 +8031,26 @@ func (fake *FakeIGitCommand) ResetSoft(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ResetSoftCallCount() int {
+func (fake *FakeIGit) ResetSoftCallCount() int {
 	fake.resetSoftMutex.RLock()
 	defer fake.resetSoftMutex.RUnlock()
 	return len(fake.resetSoftArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ResetSoftCalls(stub func(string) error) {
+func (fake *FakeIGit) ResetSoftCalls(stub func(string) error) {
 	fake.resetSoftMutex.Lock()
 	defer fake.resetSoftMutex.Unlock()
 	fake.ResetSoftStub = stub
 }
 
-func (fake *FakeIGitCommand) ResetSoftArgsForCall(i int) string {
+func (fake *FakeIGit) ResetSoftArgsForCall(i int) string {
 	fake.resetSoftMutex.RLock()
 	defer fake.resetSoftMutex.RUnlock()
 	argsForCall := fake.resetSoftArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) ResetSoftReturns(result1 error) {
+func (fake *FakeIGit) ResetSoftReturns(result1 error) {
 	fake.resetSoftMutex.Lock()
 	defer fake.resetSoftMutex.Unlock()
 	fake.ResetSoftStub = nil
@@ -7931,7 +8059,7 @@ func (fake *FakeIGitCommand) ResetSoftReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetSoftReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) ResetSoftReturnsOnCall(i int, result1 error) {
 	fake.resetSoftMutex.Lock()
 	defer fake.resetSoftMutex.Unlock()
 	fake.ResetSoftStub = nil
@@ -7945,7 +8073,7 @@ func (fake *FakeIGitCommand) ResetSoftReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetSubmodules(arg1 []*models.SubmoduleConfig) error {
+func (fake *FakeIGit) ResetSubmodules(arg1 []*models.SubmoduleConfig) error {
 	var arg1Copy []*models.SubmoduleConfig
 	if arg1 != nil {
 		arg1Copy = make([]*models.SubmoduleConfig, len(arg1))
@@ -7969,26 +8097,26 @@ func (fake *FakeIGitCommand) ResetSubmodules(arg1 []*models.SubmoduleConfig) err
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ResetSubmodulesCallCount() int {
+func (fake *FakeIGit) ResetSubmodulesCallCount() int {
 	fake.resetSubmodulesMutex.RLock()
 	defer fake.resetSubmodulesMutex.RUnlock()
 	return len(fake.resetSubmodulesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ResetSubmodulesCalls(stub func([]*models.SubmoduleConfig) error) {
+func (fake *FakeIGit) ResetSubmodulesCalls(stub func([]*models.SubmoduleConfig) error) {
 	fake.resetSubmodulesMutex.Lock()
 	defer fake.resetSubmodulesMutex.Unlock()
 	fake.ResetSubmodulesStub = stub
 }
 
-func (fake *FakeIGitCommand) ResetSubmodulesArgsForCall(i int) []*models.SubmoduleConfig {
+func (fake *FakeIGit) ResetSubmodulesArgsForCall(i int) []*models.SubmoduleConfig {
 	fake.resetSubmodulesMutex.RLock()
 	defer fake.resetSubmodulesMutex.RUnlock()
 	argsForCall := fake.resetSubmodulesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) ResetSubmodulesReturns(result1 error) {
+func (fake *FakeIGit) ResetSubmodulesReturns(result1 error) {
 	fake.resetSubmodulesMutex.Lock()
 	defer fake.resetSubmodulesMutex.Unlock()
 	fake.ResetSubmodulesStub = nil
@@ -7997,7 +8125,7 @@ func (fake *FakeIGitCommand) ResetSubmodulesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetSubmodulesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) ResetSubmodulesReturnsOnCall(i int, result1 error) {
 	fake.resetSubmodulesMutex.Lock()
 	defer fake.resetSubmodulesMutex.Unlock()
 	fake.ResetSubmodulesStub = nil
@@ -8011,7 +8139,7 @@ func (fake *FakeIGitCommand) ResetSubmodulesReturnsOnCall(i int, result1 error) 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetToCommit(arg1 string, arg2 string, arg3 commands.ResetToCommitOptions) error {
+func (fake *FakeIGit) ResetToCommit(arg1 string, arg2 string, arg3 commands.ResetToCommitOptions) error {
 	fake.resetToCommitMutex.Lock()
 	ret, specificReturn := fake.resetToCommitReturnsOnCall[len(fake.resetToCommitArgsForCall)]
 	fake.resetToCommitArgsForCall = append(fake.resetToCommitArgsForCall, struct {
@@ -8032,26 +8160,26 @@ func (fake *FakeIGitCommand) ResetToCommit(arg1 string, arg2 string, arg3 comman
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ResetToCommitCallCount() int {
+func (fake *FakeIGit) ResetToCommitCallCount() int {
 	fake.resetToCommitMutex.RLock()
 	defer fake.resetToCommitMutex.RUnlock()
 	return len(fake.resetToCommitArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ResetToCommitCalls(stub func(string, string, commands.ResetToCommitOptions) error) {
+func (fake *FakeIGit) ResetToCommitCalls(stub func(string, string, commands.ResetToCommitOptions) error) {
 	fake.resetToCommitMutex.Lock()
 	defer fake.resetToCommitMutex.Unlock()
 	fake.ResetToCommitStub = stub
 }
 
-func (fake *FakeIGitCommand) ResetToCommitArgsForCall(i int) (string, string, commands.ResetToCommitOptions) {
+func (fake *FakeIGit) ResetToCommitArgsForCall(i int) (string, string, commands.ResetToCommitOptions) {
 	fake.resetToCommitMutex.RLock()
 	defer fake.resetToCommitMutex.RUnlock()
 	argsForCall := fake.resetToCommitArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) ResetToCommitReturns(result1 error) {
+func (fake *FakeIGit) ResetToCommitReturns(result1 error) {
 	fake.resetToCommitMutex.Lock()
 	defer fake.resetToCommitMutex.Unlock()
 	fake.ResetToCommitStub = nil
@@ -8060,7 +8188,7 @@ func (fake *FakeIGitCommand) ResetToCommitReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ResetToCommitReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) ResetToCommitReturnsOnCall(i int, result1 error) {
 	fake.resetToCommitMutex.Lock()
 	defer fake.resetToCommitMutex.Unlock()
 	fake.ResetToCommitStub = nil
@@ -8074,7 +8202,7 @@ func (fake *FakeIGitCommand) ResetToCommitReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) Revert(arg1 string) error {
+func (fake *FakeIGit) Revert(arg1 string) error {
 	fake.revertMutex.Lock()
 	ret, specificReturn := fake.revertReturnsOnCall[len(fake.revertArgsForCall)]
 	fake.revertArgsForCall = append(fake.revertArgsForCall, struct {
@@ -8093,26 +8221,26 @@ func (fake *FakeIGitCommand) Revert(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RevertCallCount() int {
+func (fake *FakeIGit) RevertCallCount() int {
 	fake.revertMutex.RLock()
 	defer fake.revertMutex.RUnlock()
 	return len(fake.revertArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RevertCalls(stub func(string) error) {
+func (fake *FakeIGit) RevertCalls(stub func(string) error) {
 	fake.revertMutex.Lock()
 	defer fake.revertMutex.Unlock()
 	fake.RevertStub = stub
 }
 
-func (fake *FakeIGitCommand) RevertArgsForCall(i int) string {
+func (fake *FakeIGit) RevertArgsForCall(i int) string {
 	fake.revertMutex.RLock()
 	defer fake.revertMutex.RUnlock()
 	argsForCall := fake.revertArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RevertReturns(result1 error) {
+func (fake *FakeIGit) RevertReturns(result1 error) {
 	fake.revertMutex.Lock()
 	defer fake.revertMutex.Unlock()
 	fake.RevertStub = nil
@@ -8121,7 +8249,7 @@ func (fake *FakeIGitCommand) RevertReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RevertReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RevertReturnsOnCall(i int, result1 error) {
 	fake.revertMutex.Lock()
 	defer fake.revertMutex.Unlock()
 	fake.RevertStub = nil
@@ -8135,7 +8263,7 @@ func (fake *FakeIGitCommand) RevertReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RevertMerge(arg1 string, arg2 int) error {
+func (fake *FakeIGit) RevertMerge(arg1 string, arg2 int) error {
 	fake.revertMergeMutex.Lock()
 	ret, specificReturn := fake.revertMergeReturnsOnCall[len(fake.revertMergeArgsForCall)]
 	fake.revertMergeArgsForCall = append(fake.revertMergeArgsForCall, struct {
@@ -8155,26 +8283,26 @@ func (fake *FakeIGitCommand) RevertMerge(arg1 string, arg2 int) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RevertMergeCallCount() int {
+func (fake *FakeIGit) RevertMergeCallCount() int {
 	fake.revertMergeMutex.RLock()
 	defer fake.revertMergeMutex.RUnlock()
 	return len(fake.revertMergeArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RevertMergeCalls(stub func(string, int) error) {
+func (fake *FakeIGit) RevertMergeCalls(stub func(string, int) error) {
 	fake.revertMergeMutex.Lock()
 	defer fake.revertMergeMutex.Unlock()
 	fake.RevertMergeStub = stub
 }
 
-func (fake *FakeIGitCommand) RevertMergeArgsForCall(i int) (string, int) {
+func (fake *FakeIGit) RevertMergeArgsForCall(i int) (string, int) {
 	fake.revertMergeMutex.RLock()
 	defer fake.revertMergeMutex.RUnlock()
 	argsForCall := fake.revertMergeArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) RevertMergeReturns(result1 error) {
+func (fake *FakeIGit) RevertMergeReturns(result1 error) {
 	fake.revertMergeMutex.Lock()
 	defer fake.revertMergeMutex.Unlock()
 	fake.RevertMergeStub = nil
@@ -8183,7 +8311,7 @@ func (fake *FakeIGitCommand) RevertMergeReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RevertMergeReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RevertMergeReturnsOnCall(i int, result1 error) {
 	fake.revertMergeMutex.Lock()
 	defer fake.revertMergeMutex.Unlock()
 	fake.RevertMergeStub = nil
@@ -8197,7 +8325,7 @@ func (fake *FakeIGitCommand) RevertMergeReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) Run(arg1 types.ICmdObj) error {
+func (fake *FakeIGit) Run(arg1 types.ICmdObj) error {
 	fake.runMutex.Lock()
 	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
@@ -8216,26 +8344,26 @@ func (fake *FakeIGitCommand) Run(arg1 types.ICmdObj) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RunCallCount() int {
+func (fake *FakeIGit) RunCallCount() int {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	return len(fake.runArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RunCalls(stub func(types.ICmdObj) error) {
+func (fake *FakeIGit) RunCalls(stub func(types.ICmdObj) error) {
 	fake.runMutex.Lock()
 	defer fake.runMutex.Unlock()
 	fake.RunStub = stub
 }
 
-func (fake *FakeIGitCommand) RunArgsForCall(i int) types.ICmdObj {
+func (fake *FakeIGit) RunArgsForCall(i int) types.ICmdObj {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	argsForCall := fake.runArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RunReturns(result1 error) {
+func (fake *FakeIGit) RunReturns(result1 error) {
 	fake.runMutex.Lock()
 	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
@@ -8244,7 +8372,7 @@ func (fake *FakeIGitCommand) RunReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RunReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RunReturnsOnCall(i int, result1 error) {
 	fake.runMutex.Lock()
 	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
@@ -8258,7 +8386,7 @@ func (fake *FakeIGitCommand) RunReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsHandling(arg1 types.ICmdObj) error {
+func (fake *FakeIGit) RunCommandWithCredentialsHandling(arg1 types.ICmdObj) error {
 	fake.runCommandWithCredentialsHandlingMutex.Lock()
 	ret, specificReturn := fake.runCommandWithCredentialsHandlingReturnsOnCall[len(fake.runCommandWithCredentialsHandlingArgsForCall)]
 	fake.runCommandWithCredentialsHandlingArgsForCall = append(fake.runCommandWithCredentialsHandlingArgsForCall, struct {
@@ -8277,26 +8405,26 @@ func (fake *FakeIGitCommand) RunCommandWithCredentialsHandling(arg1 types.ICmdOb
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsHandlingCallCount() int {
+func (fake *FakeIGit) RunCommandWithCredentialsHandlingCallCount() int {
 	fake.runCommandWithCredentialsHandlingMutex.RLock()
 	defer fake.runCommandWithCredentialsHandlingMutex.RUnlock()
 	return len(fake.runCommandWithCredentialsHandlingArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsHandlingCalls(stub func(types.ICmdObj) error) {
+func (fake *FakeIGit) RunCommandWithCredentialsHandlingCalls(stub func(types.ICmdObj) error) {
 	fake.runCommandWithCredentialsHandlingMutex.Lock()
 	defer fake.runCommandWithCredentialsHandlingMutex.Unlock()
 	fake.RunCommandWithCredentialsHandlingStub = stub
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsHandlingArgsForCall(i int) types.ICmdObj {
+func (fake *FakeIGit) RunCommandWithCredentialsHandlingArgsForCall(i int) types.ICmdObj {
 	fake.runCommandWithCredentialsHandlingMutex.RLock()
 	defer fake.runCommandWithCredentialsHandlingMutex.RUnlock()
 	argsForCall := fake.runCommandWithCredentialsHandlingArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsHandlingReturns(result1 error) {
+func (fake *FakeIGit) RunCommandWithCredentialsHandlingReturns(result1 error) {
 	fake.runCommandWithCredentialsHandlingMutex.Lock()
 	defer fake.runCommandWithCredentialsHandlingMutex.Unlock()
 	fake.RunCommandWithCredentialsHandlingStub = nil
@@ -8305,7 +8433,7 @@ func (fake *FakeIGitCommand) RunCommandWithCredentialsHandlingReturns(result1 er
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsHandlingReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RunCommandWithCredentialsHandlingReturnsOnCall(i int, result1 error) {
 	fake.runCommandWithCredentialsHandlingMutex.Lock()
 	defer fake.runCommandWithCredentialsHandlingMutex.Unlock()
 	fake.RunCommandWithCredentialsHandlingStub = nil
@@ -8319,7 +8447,7 @@ func (fake *FakeIGitCommand) RunCommandWithCredentialsHandlingReturnsOnCall(i in
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsPrompt(arg1 types.ICmdObj) error {
+func (fake *FakeIGit) RunCommandWithCredentialsPrompt(arg1 types.ICmdObj) error {
 	fake.runCommandWithCredentialsPromptMutex.Lock()
 	ret, specificReturn := fake.runCommandWithCredentialsPromptReturnsOnCall[len(fake.runCommandWithCredentialsPromptArgsForCall)]
 	fake.runCommandWithCredentialsPromptArgsForCall = append(fake.runCommandWithCredentialsPromptArgsForCall, struct {
@@ -8338,26 +8466,26 @@ func (fake *FakeIGitCommand) RunCommandWithCredentialsPrompt(arg1 types.ICmdObj)
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsPromptCallCount() int {
+func (fake *FakeIGit) RunCommandWithCredentialsPromptCallCount() int {
 	fake.runCommandWithCredentialsPromptMutex.RLock()
 	defer fake.runCommandWithCredentialsPromptMutex.RUnlock()
 	return len(fake.runCommandWithCredentialsPromptArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsPromptCalls(stub func(types.ICmdObj) error) {
+func (fake *FakeIGit) RunCommandWithCredentialsPromptCalls(stub func(types.ICmdObj) error) {
 	fake.runCommandWithCredentialsPromptMutex.Lock()
 	defer fake.runCommandWithCredentialsPromptMutex.Unlock()
 	fake.RunCommandWithCredentialsPromptStub = stub
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsPromptArgsForCall(i int) types.ICmdObj {
+func (fake *FakeIGit) RunCommandWithCredentialsPromptArgsForCall(i int) types.ICmdObj {
 	fake.runCommandWithCredentialsPromptMutex.RLock()
 	defer fake.runCommandWithCredentialsPromptMutex.RUnlock()
 	argsForCall := fake.runCommandWithCredentialsPromptArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsPromptReturns(result1 error) {
+func (fake *FakeIGit) RunCommandWithCredentialsPromptReturns(result1 error) {
 	fake.runCommandWithCredentialsPromptMutex.Lock()
 	defer fake.runCommandWithCredentialsPromptMutex.Unlock()
 	fake.RunCommandWithCredentialsPromptStub = nil
@@ -8366,7 +8494,7 @@ func (fake *FakeIGitCommand) RunCommandWithCredentialsPromptReturns(result1 erro
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RunCommandWithCredentialsPromptReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RunCommandWithCredentialsPromptReturnsOnCall(i int, result1 error) {
 	fake.runCommandWithCredentialsPromptMutex.Lock()
 	defer fake.runCommandWithCredentialsPromptMutex.Unlock()
 	fake.RunCommandWithCredentialsPromptStub = nil
@@ -8380,7 +8508,7 @@ func (fake *FakeIGitCommand) RunCommandWithCredentialsPromptReturnsOnCall(i int,
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RunGitCmdFromStr(arg1 string) error {
+func (fake *FakeIGit) RunGitCmdFromStr(arg1 string) error {
 	fake.runGitCmdFromStrMutex.Lock()
 	ret, specificReturn := fake.runGitCmdFromStrReturnsOnCall[len(fake.runGitCmdFromStrArgsForCall)]
 	fake.runGitCmdFromStrArgsForCall = append(fake.runGitCmdFromStrArgsForCall, struct {
@@ -8399,26 +8527,26 @@ func (fake *FakeIGitCommand) RunGitCmdFromStr(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) RunGitCmdFromStrCallCount() int {
+func (fake *FakeIGit) RunGitCmdFromStrCallCount() int {
 	fake.runGitCmdFromStrMutex.RLock()
 	defer fake.runGitCmdFromStrMutex.RUnlock()
 	return len(fake.runGitCmdFromStrArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RunGitCmdFromStrCalls(stub func(string) error) {
+func (fake *FakeIGit) RunGitCmdFromStrCalls(stub func(string) error) {
 	fake.runGitCmdFromStrMutex.Lock()
 	defer fake.runGitCmdFromStrMutex.Unlock()
 	fake.RunGitCmdFromStrStub = stub
 }
 
-func (fake *FakeIGitCommand) RunGitCmdFromStrArgsForCall(i int) string {
+func (fake *FakeIGit) RunGitCmdFromStrArgsForCall(i int) string {
 	fake.runGitCmdFromStrMutex.RLock()
 	defer fake.runGitCmdFromStrMutex.RUnlock()
 	argsForCall := fake.runGitCmdFromStrArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RunGitCmdFromStrReturns(result1 error) {
+func (fake *FakeIGit) RunGitCmdFromStrReturns(result1 error) {
 	fake.runGitCmdFromStrMutex.Lock()
 	defer fake.runGitCmdFromStrMutex.Unlock()
 	fake.RunGitCmdFromStrStub = nil
@@ -8427,7 +8555,7 @@ func (fake *FakeIGitCommand) RunGitCmdFromStrReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RunGitCmdFromStrReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) RunGitCmdFromStrReturnsOnCall(i int, result1 error) {
 	fake.runGitCmdFromStrMutex.Lock()
 	defer fake.runGitCmdFromStrMutex.Unlock()
 	fake.RunGitCmdFromStrStub = nil
@@ -8441,7 +8569,7 @@ func (fake *FakeIGitCommand) RunGitCmdFromStrReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) RunWithOutput(arg1 types.ICmdObj) (string, error) {
+func (fake *FakeIGit) RunWithOutput(arg1 types.ICmdObj) (string, error) {
 	fake.runWithOutputMutex.Lock()
 	ret, specificReturn := fake.runWithOutputReturnsOnCall[len(fake.runWithOutputArgsForCall)]
 	fake.runWithOutputArgsForCall = append(fake.runWithOutputArgsForCall, struct {
@@ -8460,26 +8588,26 @@ func (fake *FakeIGitCommand) RunWithOutput(arg1 types.ICmdObj) (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) RunWithOutputCallCount() int {
+func (fake *FakeIGit) RunWithOutputCallCount() int {
 	fake.runWithOutputMutex.RLock()
 	defer fake.runWithOutputMutex.RUnlock()
 	return len(fake.runWithOutputArgsForCall)
 }
 
-func (fake *FakeIGitCommand) RunWithOutputCalls(stub func(types.ICmdObj) (string, error)) {
+func (fake *FakeIGit) RunWithOutputCalls(stub func(types.ICmdObj) (string, error)) {
 	fake.runWithOutputMutex.Lock()
 	defer fake.runWithOutputMutex.Unlock()
 	fake.RunWithOutputStub = stub
 }
 
-func (fake *FakeIGitCommand) RunWithOutputArgsForCall(i int) types.ICmdObj {
+func (fake *FakeIGit) RunWithOutputArgsForCall(i int) types.ICmdObj {
 	fake.runWithOutputMutex.RLock()
 	defer fake.runWithOutputMutex.RUnlock()
 	argsForCall := fake.runWithOutputArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) RunWithOutputReturns(result1 string, result2 error) {
+func (fake *FakeIGit) RunWithOutputReturns(result1 string, result2 error) {
 	fake.runWithOutputMutex.Lock()
 	defer fake.runWithOutputMutex.Unlock()
 	fake.RunWithOutputStub = nil
@@ -8489,7 +8617,7 @@ func (fake *FakeIGitCommand) RunWithOutputReturns(result1 string, result2 error)
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) RunWithOutputReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) RunWithOutputReturnsOnCall(i int, result1 string, result2 error) {
 	fake.runWithOutputMutex.Lock()
 	defer fake.runWithOutputMutex.Unlock()
 	fake.RunWithOutputStub = nil
@@ -8505,7 +8633,7 @@ func (fake *FakeIGitCommand) RunWithOutputReturnsOnCall(i int, result1 string, r
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) SetBranchUpstream(arg1 string, arg2 string, arg3 string) error {
+func (fake *FakeIGit) SetBranchUpstream(arg1 string, arg2 string, arg3 string) error {
 	fake.setBranchUpstreamMutex.Lock()
 	ret, specificReturn := fake.setBranchUpstreamReturnsOnCall[len(fake.setBranchUpstreamArgsForCall)]
 	fake.setBranchUpstreamArgsForCall = append(fake.setBranchUpstreamArgsForCall, struct {
@@ -8526,26 +8654,26 @@ func (fake *FakeIGitCommand) SetBranchUpstream(arg1 string, arg2 string, arg3 st
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SetBranchUpstreamCallCount() int {
+func (fake *FakeIGit) SetBranchUpstreamCallCount() int {
 	fake.setBranchUpstreamMutex.RLock()
 	defer fake.setBranchUpstreamMutex.RUnlock()
 	return len(fake.setBranchUpstreamArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SetBranchUpstreamCalls(stub func(string, string, string) error) {
+func (fake *FakeIGit) SetBranchUpstreamCalls(stub func(string, string, string) error) {
 	fake.setBranchUpstreamMutex.Lock()
 	defer fake.setBranchUpstreamMutex.Unlock()
 	fake.SetBranchUpstreamStub = stub
 }
 
-func (fake *FakeIGitCommand) SetBranchUpstreamArgsForCall(i int) (string, string, string) {
+func (fake *FakeIGit) SetBranchUpstreamArgsForCall(i int) (string, string, string) {
 	fake.setBranchUpstreamMutex.RLock()
 	defer fake.setBranchUpstreamMutex.RUnlock()
 	argsForCall := fake.setBranchUpstreamArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) SetBranchUpstreamReturns(result1 error) {
+func (fake *FakeIGit) SetBranchUpstreamReturns(result1 error) {
 	fake.setBranchUpstreamMutex.Lock()
 	defer fake.setBranchUpstreamMutex.Unlock()
 	fake.SetBranchUpstreamStub = nil
@@ -8554,7 +8682,7 @@ func (fake *FakeIGitCommand) SetBranchUpstreamReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SetBranchUpstreamReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SetBranchUpstreamReturnsOnCall(i int, result1 error) {
 	fake.setBranchUpstreamMutex.Lock()
 	defer fake.setBranchUpstreamMutex.Unlock()
 	fake.SetBranchUpstreamStub = nil
@@ -8568,7 +8696,7 @@ func (fake *FakeIGitCommand) SetBranchUpstreamReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SetCredentialHandlers(arg1 func(types.CredentialKind) string, arg2 func(error)) {
+func (fake *FakeIGit) SetCredentialHandlers(arg1 func(types.CredentialKind) string, arg2 func(error)) {
 	fake.setCredentialHandlersMutex.Lock()
 	fake.setCredentialHandlersArgsForCall = append(fake.setCredentialHandlersArgsForCall, struct {
 		arg1 func(types.CredentialKind) string
@@ -8582,26 +8710,26 @@ func (fake *FakeIGitCommand) SetCredentialHandlers(arg1 func(types.CredentialKin
 	}
 }
 
-func (fake *FakeIGitCommand) SetCredentialHandlersCallCount() int {
+func (fake *FakeIGit) SetCredentialHandlersCallCount() int {
 	fake.setCredentialHandlersMutex.RLock()
 	defer fake.setCredentialHandlersMutex.RUnlock()
 	return len(fake.setCredentialHandlersArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SetCredentialHandlersCalls(stub func(func(types.CredentialKind) string, func(error))) {
+func (fake *FakeIGit) SetCredentialHandlersCalls(stub func(func(types.CredentialKind) string, func(error))) {
 	fake.setCredentialHandlersMutex.Lock()
 	defer fake.setCredentialHandlersMutex.Unlock()
 	fake.SetCredentialHandlersStub = stub
 }
 
-func (fake *FakeIGitCommand) SetCredentialHandlersArgsForCall(i int) (func(types.CredentialKind) string, func(error)) {
+func (fake *FakeIGit) SetCredentialHandlersArgsForCall(i int) (func(types.CredentialKind) string, func(error)) {
 	fake.setCredentialHandlersMutex.RLock()
 	defer fake.setCredentialHandlersMutex.RUnlock()
 	argsForCall := fake.setCredentialHandlersArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) SetUpstreamBranch(arg1 string) error {
+func (fake *FakeIGit) SetUpstreamBranch(arg1 string) error {
 	fake.setUpstreamBranchMutex.Lock()
 	ret, specificReturn := fake.setUpstreamBranchReturnsOnCall[len(fake.setUpstreamBranchArgsForCall)]
 	fake.setUpstreamBranchArgsForCall = append(fake.setUpstreamBranchArgsForCall, struct {
@@ -8620,26 +8748,26 @@ func (fake *FakeIGitCommand) SetUpstreamBranch(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SetUpstreamBranchCallCount() int {
+func (fake *FakeIGit) SetUpstreamBranchCallCount() int {
 	fake.setUpstreamBranchMutex.RLock()
 	defer fake.setUpstreamBranchMutex.RUnlock()
 	return len(fake.setUpstreamBranchArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SetUpstreamBranchCalls(stub func(string) error) {
+func (fake *FakeIGit) SetUpstreamBranchCalls(stub func(string) error) {
 	fake.setUpstreamBranchMutex.Lock()
 	defer fake.setUpstreamBranchMutex.Unlock()
 	fake.SetUpstreamBranchStub = stub
 }
 
-func (fake *FakeIGitCommand) SetUpstreamBranchArgsForCall(i int) string {
+func (fake *FakeIGit) SetUpstreamBranchArgsForCall(i int) string {
 	fake.setUpstreamBranchMutex.RLock()
 	defer fake.setUpstreamBranchMutex.RUnlock()
 	argsForCall := fake.setUpstreamBranchArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) SetUpstreamBranchReturns(result1 error) {
+func (fake *FakeIGit) SetUpstreamBranchReturns(result1 error) {
 	fake.setUpstreamBranchMutex.Lock()
 	defer fake.setUpstreamBranchMutex.Unlock()
 	fake.SetUpstreamBranchStub = nil
@@ -8648,7 +8776,7 @@ func (fake *FakeIGitCommand) SetUpstreamBranchReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SetUpstreamBranchReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SetUpstreamBranchReturnsOnCall(i int, result1 error) {
 	fake.setUpstreamBranchMutex.Lock()
 	defer fake.setUpstreamBranchMutex.Unlock()
 	fake.SetUpstreamBranchStub = nil
@@ -8662,7 +8790,7 @@ func (fake *FakeIGitCommand) SetUpstreamBranchReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ShowCmdObj(arg1 string, arg2 string) types.ICmdObj {
+func (fake *FakeIGit) ShowCmdObj(arg1 string, arg2 string) types.ICmdObj {
 	fake.showCmdObjMutex.Lock()
 	ret, specificReturn := fake.showCmdObjReturnsOnCall[len(fake.showCmdObjArgsForCall)]
 	fake.showCmdObjArgsForCall = append(fake.showCmdObjArgsForCall, struct {
@@ -8682,26 +8810,26 @@ func (fake *FakeIGitCommand) ShowCmdObj(arg1 string, arg2 string) types.ICmdObj 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ShowCmdObjCallCount() int {
+func (fake *FakeIGit) ShowCmdObjCallCount() int {
 	fake.showCmdObjMutex.RLock()
 	defer fake.showCmdObjMutex.RUnlock()
 	return len(fake.showCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ShowCmdObjCalls(stub func(string, string) types.ICmdObj) {
+func (fake *FakeIGit) ShowCmdObjCalls(stub func(string, string) types.ICmdObj) {
 	fake.showCmdObjMutex.Lock()
 	defer fake.showCmdObjMutex.Unlock()
 	fake.ShowCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) ShowCmdObjArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) ShowCmdObjArgsForCall(i int) (string, string) {
 	fake.showCmdObjMutex.RLock()
 	defer fake.showCmdObjMutex.RUnlock()
 	argsForCall := fake.showCmdObjArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) ShowCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) ShowCmdObjReturns(result1 types.ICmdObj) {
 	fake.showCmdObjMutex.Lock()
 	defer fake.showCmdObjMutex.Unlock()
 	fake.ShowCmdObjStub = nil
@@ -8710,7 +8838,7 @@ func (fake *FakeIGitCommand) ShowCmdObjReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ShowCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) ShowCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.showCmdObjMutex.Lock()
 	defer fake.showCmdObjMutex.Unlock()
 	fake.ShowCmdObjStub = nil
@@ -8724,7 +8852,7 @@ func (fake *FakeIGitCommand) ShowCmdObjReturnsOnCall(i int, result1 types.ICmdOb
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ShowFileDiff(arg1 string, arg2 string, arg3 bool, arg4 string, arg5 bool) (string, error) {
+func (fake *FakeIGit) ShowFileDiff(arg1 string, arg2 string, arg3 bool, arg4 string, arg5 bool) (string, error) {
 	fake.showFileDiffMutex.Lock()
 	ret, specificReturn := fake.showFileDiffReturnsOnCall[len(fake.showFileDiffArgsForCall)]
 	fake.showFileDiffArgsForCall = append(fake.showFileDiffArgsForCall, struct {
@@ -8747,26 +8875,26 @@ func (fake *FakeIGitCommand) ShowFileDiff(arg1 string, arg2 string, arg3 bool, a
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffCallCount() int {
+func (fake *FakeIGit) ShowFileDiffCallCount() int {
 	fake.showFileDiffMutex.RLock()
 	defer fake.showFileDiffMutex.RUnlock()
 	return len(fake.showFileDiffArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffCalls(stub func(string, string, bool, string, bool) (string, error)) {
+func (fake *FakeIGit) ShowFileDiffCalls(stub func(string, string, bool, string, bool) (string, error)) {
 	fake.showFileDiffMutex.Lock()
 	defer fake.showFileDiffMutex.Unlock()
 	fake.ShowFileDiffStub = stub
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffArgsForCall(i int) (string, string, bool, string, bool) {
+func (fake *FakeIGit) ShowFileDiffArgsForCall(i int) (string, string, bool, string, bool) {
 	fake.showFileDiffMutex.RLock()
 	defer fake.showFileDiffMutex.RUnlock()
 	argsForCall := fake.showFileDiffArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffReturns(result1 string, result2 error) {
+func (fake *FakeIGit) ShowFileDiffReturns(result1 string, result2 error) {
 	fake.showFileDiffMutex.Lock()
 	defer fake.showFileDiffMutex.Unlock()
 	fake.ShowFileDiffStub = nil
@@ -8776,7 +8904,7 @@ func (fake *FakeIGitCommand) ShowFileDiffReturns(result1 string, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeIGit) ShowFileDiffReturnsOnCall(i int, result1 string, result2 error) {
 	fake.showFileDiffMutex.Lock()
 	defer fake.showFileDiffMutex.Unlock()
 	fake.ShowFileDiffStub = nil
@@ -8792,7 +8920,7 @@ func (fake *FakeIGitCommand) ShowFileDiffReturnsOnCall(i int, result1 string, re
 	}{result1, result2}
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffCmdObj(arg1 string, arg2 string, arg3 bool, arg4 string, arg5 bool, arg6 bool) types.ICmdObj {
+func (fake *FakeIGit) ShowFileDiffCmdObj(arg1 string, arg2 string, arg3 bool, arg4 string, arg5 bool, arg6 bool) types.ICmdObj {
 	fake.showFileDiffCmdObjMutex.Lock()
 	ret, specificReturn := fake.showFileDiffCmdObjReturnsOnCall[len(fake.showFileDiffCmdObjArgsForCall)]
 	fake.showFileDiffCmdObjArgsForCall = append(fake.showFileDiffCmdObjArgsForCall, struct {
@@ -8816,26 +8944,26 @@ func (fake *FakeIGitCommand) ShowFileDiffCmdObj(arg1 string, arg2 string, arg3 b
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffCmdObjCallCount() int {
+func (fake *FakeIGit) ShowFileDiffCmdObjCallCount() int {
 	fake.showFileDiffCmdObjMutex.RLock()
 	defer fake.showFileDiffCmdObjMutex.RUnlock()
 	return len(fake.showFileDiffCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffCmdObjCalls(stub func(string, string, bool, string, bool, bool) types.ICmdObj) {
+func (fake *FakeIGit) ShowFileDiffCmdObjCalls(stub func(string, string, bool, string, bool, bool) types.ICmdObj) {
 	fake.showFileDiffCmdObjMutex.Lock()
 	defer fake.showFileDiffCmdObjMutex.Unlock()
 	fake.ShowFileDiffCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffCmdObjArgsForCall(i int) (string, string, bool, string, bool, bool) {
+func (fake *FakeIGit) ShowFileDiffCmdObjArgsForCall(i int) (string, string, bool, string, bool, bool) {
 	fake.showFileDiffCmdObjMutex.RLock()
 	defer fake.showFileDiffCmdObjMutex.RUnlock()
 	argsForCall := fake.showFileDiffCmdObjArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) ShowFileDiffCmdObjReturns(result1 types.ICmdObj) {
 	fake.showFileDiffCmdObjMutex.Lock()
 	defer fake.showFileDiffCmdObjMutex.Unlock()
 	fake.ShowFileDiffCmdObjStub = nil
@@ -8844,7 +8972,7 @@ func (fake *FakeIGitCommand) ShowFileDiffCmdObjReturns(result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ShowFileDiffCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) ShowFileDiffCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.showFileDiffCmdObjMutex.Lock()
 	defer fake.showFileDiffCmdObjMutex.Unlock()
 	fake.ShowFileDiffCmdObjStub = nil
@@ -8858,7 +8986,7 @@ func (fake *FakeIGitCommand) ShowFileDiffCmdObjReturnsOnCall(i int, result1 type
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ShowStashEntryCmdObj(arg1 int) types.ICmdObj {
+func (fake *FakeIGit) ShowStashEntryCmdObj(arg1 int) types.ICmdObj {
 	fake.showStashEntryCmdObjMutex.Lock()
 	ret, specificReturn := fake.showStashEntryCmdObjReturnsOnCall[len(fake.showStashEntryCmdObjArgsForCall)]
 	fake.showStashEntryCmdObjArgsForCall = append(fake.showStashEntryCmdObjArgsForCall, struct {
@@ -8877,26 +9005,26 @@ func (fake *FakeIGitCommand) ShowStashEntryCmdObj(arg1 int) types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) ShowStashEntryCmdObjCallCount() int {
+func (fake *FakeIGit) ShowStashEntryCmdObjCallCount() int {
 	fake.showStashEntryCmdObjMutex.RLock()
 	defer fake.showStashEntryCmdObjMutex.RUnlock()
 	return len(fake.showStashEntryCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) ShowStashEntryCmdObjCalls(stub func(int) types.ICmdObj) {
+func (fake *FakeIGit) ShowStashEntryCmdObjCalls(stub func(int) types.ICmdObj) {
 	fake.showStashEntryCmdObjMutex.Lock()
 	defer fake.showStashEntryCmdObjMutex.Unlock()
 	fake.ShowStashEntryCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) ShowStashEntryCmdObjArgsForCall(i int) int {
+func (fake *FakeIGit) ShowStashEntryCmdObjArgsForCall(i int) int {
 	fake.showStashEntryCmdObjMutex.RLock()
 	defer fake.showStashEntryCmdObjMutex.RUnlock()
 	argsForCall := fake.showStashEntryCmdObjArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) ShowStashEntryCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) ShowStashEntryCmdObjReturns(result1 types.ICmdObj) {
 	fake.showStashEntryCmdObjMutex.Lock()
 	defer fake.showStashEntryCmdObjMutex.Unlock()
 	fake.ShowStashEntryCmdObjStub = nil
@@ -8905,7 +9033,7 @@ func (fake *FakeIGitCommand) ShowStashEntryCmdObjReturns(result1 types.ICmdObj) 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) ShowStashEntryCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) ShowStashEntryCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.showStashEntryCmdObjMutex.Lock()
 	defer fake.showStashEntryCmdObjMutex.Unlock()
 	fake.ShowStashEntryCmdObjStub = nil
@@ -8919,7 +9047,7 @@ func (fake *FakeIGitCommand) ShowStashEntryCmdObjReturnsOnCall(i int, result1 ty
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SkipEditor(arg1 types.ICmdObj) {
+func (fake *FakeIGit) SkipEditor(arg1 types.ICmdObj) {
 	fake.skipEditorMutex.Lock()
 	fake.skipEditorArgsForCall = append(fake.skipEditorArgsForCall, struct {
 		arg1 types.ICmdObj
@@ -8932,26 +9060,26 @@ func (fake *FakeIGitCommand) SkipEditor(arg1 types.ICmdObj) {
 	}
 }
 
-func (fake *FakeIGitCommand) SkipEditorCallCount() int {
+func (fake *FakeIGit) SkipEditorCallCount() int {
 	fake.skipEditorMutex.RLock()
 	defer fake.skipEditorMutex.RUnlock()
 	return len(fake.skipEditorArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SkipEditorCalls(stub func(types.ICmdObj)) {
+func (fake *FakeIGit) SkipEditorCalls(stub func(types.ICmdObj)) {
 	fake.skipEditorMutex.Lock()
 	defer fake.skipEditorMutex.Unlock()
 	fake.SkipEditorStub = stub
 }
 
-func (fake *FakeIGitCommand) SkipEditorArgsForCall(i int) types.ICmdObj {
+func (fake *FakeIGit) SkipEditorArgsForCall(i int) types.ICmdObj {
 	fake.skipEditorMutex.RLock()
 	defer fake.skipEditorMutex.RUnlock()
 	argsForCall := fake.skipEditorArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) SquashAllAboveFixupCommits(arg1 string) error {
+func (fake *FakeIGit) SquashAllAboveFixupCommits(arg1 string) error {
 	fake.squashAllAboveFixupCommitsMutex.Lock()
 	ret, specificReturn := fake.squashAllAboveFixupCommitsReturnsOnCall[len(fake.squashAllAboveFixupCommitsArgsForCall)]
 	fake.squashAllAboveFixupCommitsArgsForCall = append(fake.squashAllAboveFixupCommitsArgsForCall, struct {
@@ -8970,26 +9098,26 @@ func (fake *FakeIGitCommand) SquashAllAboveFixupCommits(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SquashAllAboveFixupCommitsCallCount() int {
+func (fake *FakeIGit) SquashAllAboveFixupCommitsCallCount() int {
 	fake.squashAllAboveFixupCommitsMutex.RLock()
 	defer fake.squashAllAboveFixupCommitsMutex.RUnlock()
 	return len(fake.squashAllAboveFixupCommitsArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SquashAllAboveFixupCommitsCalls(stub func(string) error) {
+func (fake *FakeIGit) SquashAllAboveFixupCommitsCalls(stub func(string) error) {
 	fake.squashAllAboveFixupCommitsMutex.Lock()
 	defer fake.squashAllAboveFixupCommitsMutex.Unlock()
 	fake.SquashAllAboveFixupCommitsStub = stub
 }
 
-func (fake *FakeIGitCommand) SquashAllAboveFixupCommitsArgsForCall(i int) string {
+func (fake *FakeIGit) SquashAllAboveFixupCommitsArgsForCall(i int) string {
 	fake.squashAllAboveFixupCommitsMutex.RLock()
 	defer fake.squashAllAboveFixupCommitsMutex.RUnlock()
 	argsForCall := fake.squashAllAboveFixupCommitsArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) SquashAllAboveFixupCommitsReturns(result1 error) {
+func (fake *FakeIGit) SquashAllAboveFixupCommitsReturns(result1 error) {
 	fake.squashAllAboveFixupCommitsMutex.Lock()
 	defer fake.squashAllAboveFixupCommitsMutex.Unlock()
 	fake.SquashAllAboveFixupCommitsStub = nil
@@ -8998,7 +9126,7 @@ func (fake *FakeIGitCommand) SquashAllAboveFixupCommitsReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SquashAllAboveFixupCommitsReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SquashAllAboveFixupCommitsReturnsOnCall(i int, result1 error) {
 	fake.squashAllAboveFixupCommitsMutex.Lock()
 	defer fake.squashAllAboveFixupCommitsMutex.Unlock()
 	fake.SquashAllAboveFixupCommitsStub = nil
@@ -9012,7 +9140,7 @@ func (fake *FakeIGitCommand) SquashAllAboveFixupCommitsReturnsOnCall(i int, resu
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StageAll() error {
+func (fake *FakeIGit) StageAll() error {
 	fake.stageAllMutex.Lock()
 	ret, specificReturn := fake.stageAllReturnsOnCall[len(fake.stageAllArgsForCall)]
 	fake.stageAllArgsForCall = append(fake.stageAllArgsForCall, struct {
@@ -9030,19 +9158,19 @@ func (fake *FakeIGitCommand) StageAll() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) StageAllCallCount() int {
+func (fake *FakeIGit) StageAllCallCount() int {
 	fake.stageAllMutex.RLock()
 	defer fake.stageAllMutex.RUnlock()
 	return len(fake.stageAllArgsForCall)
 }
 
-func (fake *FakeIGitCommand) StageAllCalls(stub func() error) {
+func (fake *FakeIGit) StageAllCalls(stub func() error) {
 	fake.stageAllMutex.Lock()
 	defer fake.stageAllMutex.Unlock()
 	fake.StageAllStub = stub
 }
 
-func (fake *FakeIGitCommand) StageAllReturns(result1 error) {
+func (fake *FakeIGit) StageAllReturns(result1 error) {
 	fake.stageAllMutex.Lock()
 	defer fake.stageAllMutex.Unlock()
 	fake.StageAllStub = nil
@@ -9051,7 +9179,7 @@ func (fake *FakeIGitCommand) StageAllReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StageAllReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) StageAllReturnsOnCall(i int, result1 error) {
 	fake.stageAllMutex.Lock()
 	defer fake.stageAllMutex.Unlock()
 	fake.StageAllStub = nil
@@ -9065,7 +9193,7 @@ func (fake *FakeIGitCommand) StageAllReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StageFile(arg1 string) error {
+func (fake *FakeIGit) StageFile(arg1 string) error {
 	fake.stageFileMutex.Lock()
 	ret, specificReturn := fake.stageFileReturnsOnCall[len(fake.stageFileArgsForCall)]
 	fake.stageFileArgsForCall = append(fake.stageFileArgsForCall, struct {
@@ -9084,26 +9212,26 @@ func (fake *FakeIGitCommand) StageFile(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) StageFileCallCount() int {
+func (fake *FakeIGit) StageFileCallCount() int {
 	fake.stageFileMutex.RLock()
 	defer fake.stageFileMutex.RUnlock()
 	return len(fake.stageFileArgsForCall)
 }
 
-func (fake *FakeIGitCommand) StageFileCalls(stub func(string) error) {
+func (fake *FakeIGit) StageFileCalls(stub func(string) error) {
 	fake.stageFileMutex.Lock()
 	defer fake.stageFileMutex.Unlock()
 	fake.StageFileStub = stub
 }
 
-func (fake *FakeIGitCommand) StageFileArgsForCall(i int) string {
+func (fake *FakeIGit) StageFileArgsForCall(i int) string {
 	fake.stageFileMutex.RLock()
 	defer fake.stageFileMutex.RUnlock()
 	argsForCall := fake.stageFileArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) StageFileReturns(result1 error) {
+func (fake *FakeIGit) StageFileReturns(result1 error) {
 	fake.stageFileMutex.Lock()
 	defer fake.stageFileMutex.Unlock()
 	fake.StageFileStub = nil
@@ -9112,7 +9240,7 @@ func (fake *FakeIGitCommand) StageFileReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StageFileReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) StageFileReturnsOnCall(i int, result1 error) {
 	fake.stageFileMutex.Lock()
 	defer fake.stageFileMutex.Unlock()
 	fake.StageFileStub = nil
@@ -9126,7 +9254,7 @@ func (fake *FakeIGitCommand) StageFileReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StashDo(arg1 int, arg2 string) error {
+func (fake *FakeIGit) StashDo(arg1 int, arg2 string) error {
 	fake.stashDoMutex.Lock()
 	ret, specificReturn := fake.stashDoReturnsOnCall[len(fake.stashDoArgsForCall)]
 	fake.stashDoArgsForCall = append(fake.stashDoArgsForCall, struct {
@@ -9146,26 +9274,26 @@ func (fake *FakeIGitCommand) StashDo(arg1 int, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) StashDoCallCount() int {
+func (fake *FakeIGit) StashDoCallCount() int {
 	fake.stashDoMutex.RLock()
 	defer fake.stashDoMutex.RUnlock()
 	return len(fake.stashDoArgsForCall)
 }
 
-func (fake *FakeIGitCommand) StashDoCalls(stub func(int, string) error) {
+func (fake *FakeIGit) StashDoCalls(stub func(int, string) error) {
 	fake.stashDoMutex.Lock()
 	defer fake.stashDoMutex.Unlock()
 	fake.StashDoStub = stub
 }
 
-func (fake *FakeIGitCommand) StashDoArgsForCall(i int) (int, string) {
+func (fake *FakeIGit) StashDoArgsForCall(i int) (int, string) {
 	fake.stashDoMutex.RLock()
 	defer fake.stashDoMutex.RUnlock()
 	argsForCall := fake.stashDoArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) StashDoReturns(result1 error) {
+func (fake *FakeIGit) StashDoReturns(result1 error) {
 	fake.stashDoMutex.Lock()
 	defer fake.stashDoMutex.Unlock()
 	fake.StashDoStub = nil
@@ -9174,7 +9302,7 @@ func (fake *FakeIGitCommand) StashDoReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StashDoReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) StashDoReturnsOnCall(i int, result1 error) {
 	fake.stashDoMutex.Lock()
 	defer fake.stashDoMutex.Unlock()
 	fake.StashDoStub = nil
@@ -9188,7 +9316,7 @@ func (fake *FakeIGitCommand) StashDoReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StashSave(arg1 string) error {
+func (fake *FakeIGit) StashSave(arg1 string) error {
 	fake.stashSaveMutex.Lock()
 	ret, specificReturn := fake.stashSaveReturnsOnCall[len(fake.stashSaveArgsForCall)]
 	fake.stashSaveArgsForCall = append(fake.stashSaveArgsForCall, struct {
@@ -9207,26 +9335,26 @@ func (fake *FakeIGitCommand) StashSave(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) StashSaveCallCount() int {
+func (fake *FakeIGit) StashSaveCallCount() int {
 	fake.stashSaveMutex.RLock()
 	defer fake.stashSaveMutex.RUnlock()
 	return len(fake.stashSaveArgsForCall)
 }
 
-func (fake *FakeIGitCommand) StashSaveCalls(stub func(string) error) {
+func (fake *FakeIGit) StashSaveCalls(stub func(string) error) {
 	fake.stashSaveMutex.Lock()
 	defer fake.stashSaveMutex.Unlock()
 	fake.StashSaveStub = stub
 }
 
-func (fake *FakeIGitCommand) StashSaveArgsForCall(i int) string {
+func (fake *FakeIGit) StashSaveArgsForCall(i int) string {
 	fake.stashSaveMutex.RLock()
 	defer fake.stashSaveMutex.RUnlock()
 	argsForCall := fake.stashSaveArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) StashSaveReturns(result1 error) {
+func (fake *FakeIGit) StashSaveReturns(result1 error) {
 	fake.stashSaveMutex.Lock()
 	defer fake.stashSaveMutex.Unlock()
 	fake.StashSaveStub = nil
@@ -9235,7 +9363,7 @@ func (fake *FakeIGitCommand) StashSaveReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StashSaveReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) StashSaveReturnsOnCall(i int, result1 error) {
 	fake.stashSaveMutex.Lock()
 	defer fake.stashSaveMutex.Unlock()
 	fake.StashSaveStub = nil
@@ -9249,7 +9377,7 @@ func (fake *FakeIGitCommand) StashSaveReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StashSaveStagedChanges(arg1 string) error {
+func (fake *FakeIGit) StashSaveStagedChanges(arg1 string) error {
 	fake.stashSaveStagedChangesMutex.Lock()
 	ret, specificReturn := fake.stashSaveStagedChangesReturnsOnCall[len(fake.stashSaveStagedChangesArgsForCall)]
 	fake.stashSaveStagedChangesArgsForCall = append(fake.stashSaveStagedChangesArgsForCall, struct {
@@ -9268,26 +9396,26 @@ func (fake *FakeIGitCommand) StashSaveStagedChanges(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) StashSaveStagedChangesCallCount() int {
+func (fake *FakeIGit) StashSaveStagedChangesCallCount() int {
 	fake.stashSaveStagedChangesMutex.RLock()
 	defer fake.stashSaveStagedChangesMutex.RUnlock()
 	return len(fake.stashSaveStagedChangesArgsForCall)
 }
 
-func (fake *FakeIGitCommand) StashSaveStagedChangesCalls(stub func(string) error) {
+func (fake *FakeIGit) StashSaveStagedChangesCalls(stub func(string) error) {
 	fake.stashSaveStagedChangesMutex.Lock()
 	defer fake.stashSaveStagedChangesMutex.Unlock()
 	fake.StashSaveStagedChangesStub = stub
 }
 
-func (fake *FakeIGitCommand) StashSaveStagedChangesArgsForCall(i int) string {
+func (fake *FakeIGit) StashSaveStagedChangesArgsForCall(i int) string {
 	fake.stashSaveStagedChangesMutex.RLock()
 	defer fake.stashSaveStagedChangesMutex.RUnlock()
 	argsForCall := fake.stashSaveStagedChangesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) StashSaveStagedChangesReturns(result1 error) {
+func (fake *FakeIGit) StashSaveStagedChangesReturns(result1 error) {
 	fake.stashSaveStagedChangesMutex.Lock()
 	defer fake.stashSaveStagedChangesMutex.Unlock()
 	fake.StashSaveStagedChangesStub = nil
@@ -9296,7 +9424,7 @@ func (fake *FakeIGitCommand) StashSaveStagedChangesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) StashSaveStagedChangesReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) StashSaveStagedChangesReturnsOnCall(i int, result1 error) {
 	fake.stashSaveStagedChangesMutex.Lock()
 	defer fake.stashSaveStagedChangesMutex.Unlock()
 	fake.StashSaveStagedChangesStub = nil
@@ -9310,7 +9438,7 @@ func (fake *FakeIGitCommand) StashSaveStagedChangesReturnsOnCall(i int, result1 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleAdd(arg1 string, arg2 string, arg3 string) error {
+func (fake *FakeIGit) SubmoduleAdd(arg1 string, arg2 string, arg3 string) error {
 	fake.submoduleAddMutex.Lock()
 	ret, specificReturn := fake.submoduleAddReturnsOnCall[len(fake.submoduleAddArgsForCall)]
 	fake.submoduleAddArgsForCall = append(fake.submoduleAddArgsForCall, struct {
@@ -9331,26 +9459,26 @@ func (fake *FakeIGitCommand) SubmoduleAdd(arg1 string, arg2 string, arg3 string)
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleAddCallCount() int {
+func (fake *FakeIGit) SubmoduleAddCallCount() int {
 	fake.submoduleAddMutex.RLock()
 	defer fake.submoduleAddMutex.RUnlock()
 	return len(fake.submoduleAddArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleAddCalls(stub func(string, string, string) error) {
+func (fake *FakeIGit) SubmoduleAddCalls(stub func(string, string, string) error) {
 	fake.submoduleAddMutex.Lock()
 	defer fake.submoduleAddMutex.Unlock()
 	fake.SubmoduleAddStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleAddArgsForCall(i int) (string, string, string) {
+func (fake *FakeIGit) SubmoduleAddArgsForCall(i int) (string, string, string) {
 	fake.submoduleAddMutex.RLock()
 	defer fake.submoduleAddMutex.RUnlock()
 	argsForCall := fake.submoduleAddArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) SubmoduleAddReturns(result1 error) {
+func (fake *FakeIGit) SubmoduleAddReturns(result1 error) {
 	fake.submoduleAddMutex.Lock()
 	defer fake.submoduleAddMutex.Unlock()
 	fake.SubmoduleAddStub = nil
@@ -9359,7 +9487,7 @@ func (fake *FakeIGitCommand) SubmoduleAddReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleAddReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SubmoduleAddReturnsOnCall(i int, result1 error) {
 	fake.submoduleAddMutex.Lock()
 	defer fake.submoduleAddMutex.Unlock()
 	fake.SubmoduleAddStub = nil
@@ -9373,7 +9501,7 @@ func (fake *FakeIGitCommand) SubmoduleAddReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkDeinitCmdObj() types.ICmdObj {
+func (fake *FakeIGit) SubmoduleBulkDeinitCmdObj() types.ICmdObj {
 	fake.submoduleBulkDeinitCmdObjMutex.Lock()
 	ret, specificReturn := fake.submoduleBulkDeinitCmdObjReturnsOnCall[len(fake.submoduleBulkDeinitCmdObjArgsForCall)]
 	fake.submoduleBulkDeinitCmdObjArgsForCall = append(fake.submoduleBulkDeinitCmdObjArgsForCall, struct {
@@ -9391,19 +9519,19 @@ func (fake *FakeIGitCommand) SubmoduleBulkDeinitCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkDeinitCmdObjCallCount() int {
+func (fake *FakeIGit) SubmoduleBulkDeinitCmdObjCallCount() int {
 	fake.submoduleBulkDeinitCmdObjMutex.RLock()
 	defer fake.submoduleBulkDeinitCmdObjMutex.RUnlock()
 	return len(fake.submoduleBulkDeinitCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkDeinitCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkDeinitCmdObjCalls(stub func() types.ICmdObj) {
 	fake.submoduleBulkDeinitCmdObjMutex.Lock()
 	defer fake.submoduleBulkDeinitCmdObjMutex.Unlock()
 	fake.SubmoduleBulkDeinitCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkDeinitCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkDeinitCmdObjReturns(result1 types.ICmdObj) {
 	fake.submoduleBulkDeinitCmdObjMutex.Lock()
 	defer fake.submoduleBulkDeinitCmdObjMutex.Unlock()
 	fake.SubmoduleBulkDeinitCmdObjStub = nil
@@ -9412,7 +9540,7 @@ func (fake *FakeIGitCommand) SubmoduleBulkDeinitCmdObjReturns(result1 types.ICmd
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkDeinitCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkDeinitCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.submoduleBulkDeinitCmdObjMutex.Lock()
 	defer fake.submoduleBulkDeinitCmdObjMutex.Unlock()
 	fake.SubmoduleBulkDeinitCmdObjStub = nil
@@ -9426,7 +9554,7 @@ func (fake *FakeIGitCommand) SubmoduleBulkDeinitCmdObjReturnsOnCall(i int, resul
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkInitCmdObj() types.ICmdObj {
+func (fake *FakeIGit) SubmoduleBulkInitCmdObj() types.ICmdObj {
 	fake.submoduleBulkInitCmdObjMutex.Lock()
 	ret, specificReturn := fake.submoduleBulkInitCmdObjReturnsOnCall[len(fake.submoduleBulkInitCmdObjArgsForCall)]
 	fake.submoduleBulkInitCmdObjArgsForCall = append(fake.submoduleBulkInitCmdObjArgsForCall, struct {
@@ -9444,19 +9572,19 @@ func (fake *FakeIGitCommand) SubmoduleBulkInitCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkInitCmdObjCallCount() int {
+func (fake *FakeIGit) SubmoduleBulkInitCmdObjCallCount() int {
 	fake.submoduleBulkInitCmdObjMutex.RLock()
 	defer fake.submoduleBulkInitCmdObjMutex.RUnlock()
 	return len(fake.submoduleBulkInitCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkInitCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkInitCmdObjCalls(stub func() types.ICmdObj) {
 	fake.submoduleBulkInitCmdObjMutex.Lock()
 	defer fake.submoduleBulkInitCmdObjMutex.Unlock()
 	fake.SubmoduleBulkInitCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkInitCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkInitCmdObjReturns(result1 types.ICmdObj) {
 	fake.submoduleBulkInitCmdObjMutex.Lock()
 	defer fake.submoduleBulkInitCmdObjMutex.Unlock()
 	fake.SubmoduleBulkInitCmdObjStub = nil
@@ -9465,7 +9593,7 @@ func (fake *FakeIGitCommand) SubmoduleBulkInitCmdObjReturns(result1 types.ICmdOb
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkInitCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkInitCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.submoduleBulkInitCmdObjMutex.Lock()
 	defer fake.submoduleBulkInitCmdObjMutex.Unlock()
 	fake.SubmoduleBulkInitCmdObjStub = nil
@@ -9479,7 +9607,7 @@ func (fake *FakeIGitCommand) SubmoduleBulkInitCmdObjReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkUpdateCmdObj() types.ICmdObj {
+func (fake *FakeIGit) SubmoduleBulkUpdateCmdObj() types.ICmdObj {
 	fake.submoduleBulkUpdateCmdObjMutex.Lock()
 	ret, specificReturn := fake.submoduleBulkUpdateCmdObjReturnsOnCall[len(fake.submoduleBulkUpdateCmdObjArgsForCall)]
 	fake.submoduleBulkUpdateCmdObjArgsForCall = append(fake.submoduleBulkUpdateCmdObjArgsForCall, struct {
@@ -9497,19 +9625,19 @@ func (fake *FakeIGitCommand) SubmoduleBulkUpdateCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkUpdateCmdObjCallCount() int {
+func (fake *FakeIGit) SubmoduleBulkUpdateCmdObjCallCount() int {
 	fake.submoduleBulkUpdateCmdObjMutex.RLock()
 	defer fake.submoduleBulkUpdateCmdObjMutex.RUnlock()
 	return len(fake.submoduleBulkUpdateCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkUpdateCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkUpdateCmdObjCalls(stub func() types.ICmdObj) {
 	fake.submoduleBulkUpdateCmdObjMutex.Lock()
 	defer fake.submoduleBulkUpdateCmdObjMutex.Unlock()
 	fake.SubmoduleBulkUpdateCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkUpdateCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkUpdateCmdObjReturns(result1 types.ICmdObj) {
 	fake.submoduleBulkUpdateCmdObjMutex.Lock()
 	defer fake.submoduleBulkUpdateCmdObjMutex.Unlock()
 	fake.SubmoduleBulkUpdateCmdObjStub = nil
@@ -9518,7 +9646,7 @@ func (fake *FakeIGitCommand) SubmoduleBulkUpdateCmdObjReturns(result1 types.ICmd
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleBulkUpdateCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleBulkUpdateCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.submoduleBulkUpdateCmdObjMutex.Lock()
 	defer fake.submoduleBulkUpdateCmdObjMutex.Unlock()
 	fake.SubmoduleBulkUpdateCmdObjStub = nil
@@ -9532,7 +9660,7 @@ func (fake *FakeIGitCommand) SubmoduleBulkUpdateCmdObjReturnsOnCall(i int, resul
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleDelete(arg1 *models.SubmoduleConfig) error {
+func (fake *FakeIGit) SubmoduleDelete(arg1 *models.SubmoduleConfig) error {
 	fake.submoduleDeleteMutex.Lock()
 	ret, specificReturn := fake.submoduleDeleteReturnsOnCall[len(fake.submoduleDeleteArgsForCall)]
 	fake.submoduleDeleteArgsForCall = append(fake.submoduleDeleteArgsForCall, struct {
@@ -9551,26 +9679,26 @@ func (fake *FakeIGitCommand) SubmoduleDelete(arg1 *models.SubmoduleConfig) error
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleDeleteCallCount() int {
+func (fake *FakeIGit) SubmoduleDeleteCallCount() int {
 	fake.submoduleDeleteMutex.RLock()
 	defer fake.submoduleDeleteMutex.RUnlock()
 	return len(fake.submoduleDeleteArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleDeleteCalls(stub func(*models.SubmoduleConfig) error) {
+func (fake *FakeIGit) SubmoduleDeleteCalls(stub func(*models.SubmoduleConfig) error) {
 	fake.submoduleDeleteMutex.Lock()
 	defer fake.submoduleDeleteMutex.Unlock()
 	fake.SubmoduleDeleteStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleDeleteArgsForCall(i int) *models.SubmoduleConfig {
+func (fake *FakeIGit) SubmoduleDeleteArgsForCall(i int) *models.SubmoduleConfig {
 	fake.submoduleDeleteMutex.RLock()
 	defer fake.submoduleDeleteMutex.RUnlock()
 	argsForCall := fake.submoduleDeleteArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) SubmoduleDeleteReturns(result1 error) {
+func (fake *FakeIGit) SubmoduleDeleteReturns(result1 error) {
 	fake.submoduleDeleteMutex.Lock()
 	defer fake.submoduleDeleteMutex.Unlock()
 	fake.SubmoduleDeleteStub = nil
@@ -9579,7 +9707,7 @@ func (fake *FakeIGitCommand) SubmoduleDeleteReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleDeleteReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SubmoduleDeleteReturnsOnCall(i int, result1 error) {
 	fake.submoduleDeleteMutex.Lock()
 	defer fake.submoduleDeleteMutex.Unlock()
 	fake.SubmoduleDeleteStub = nil
@@ -9593,7 +9721,7 @@ func (fake *FakeIGitCommand) SubmoduleDeleteReturnsOnCall(i int, result1 error) 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleForceBulkUpdateCmdObj() types.ICmdObj {
+func (fake *FakeIGit) SubmoduleForceBulkUpdateCmdObj() types.ICmdObj {
 	fake.submoduleForceBulkUpdateCmdObjMutex.Lock()
 	ret, specificReturn := fake.submoduleForceBulkUpdateCmdObjReturnsOnCall[len(fake.submoduleForceBulkUpdateCmdObjArgsForCall)]
 	fake.submoduleForceBulkUpdateCmdObjArgsForCall = append(fake.submoduleForceBulkUpdateCmdObjArgsForCall, struct {
@@ -9611,19 +9739,19 @@ func (fake *FakeIGitCommand) SubmoduleForceBulkUpdateCmdObj() types.ICmdObj {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleForceBulkUpdateCmdObjCallCount() int {
+func (fake *FakeIGit) SubmoduleForceBulkUpdateCmdObjCallCount() int {
 	fake.submoduleForceBulkUpdateCmdObjMutex.RLock()
 	defer fake.submoduleForceBulkUpdateCmdObjMutex.RUnlock()
 	return len(fake.submoduleForceBulkUpdateCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleForceBulkUpdateCmdObjCalls(stub func() types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleForceBulkUpdateCmdObjCalls(stub func() types.ICmdObj) {
 	fake.submoduleForceBulkUpdateCmdObjMutex.Lock()
 	defer fake.submoduleForceBulkUpdateCmdObjMutex.Unlock()
 	fake.SubmoduleForceBulkUpdateCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleForceBulkUpdateCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleForceBulkUpdateCmdObjReturns(result1 types.ICmdObj) {
 	fake.submoduleForceBulkUpdateCmdObjMutex.Lock()
 	defer fake.submoduleForceBulkUpdateCmdObjMutex.Unlock()
 	fake.SubmoduleForceBulkUpdateCmdObjStub = nil
@@ -9632,7 +9760,7 @@ func (fake *FakeIGitCommand) SubmoduleForceBulkUpdateCmdObjReturns(result1 types
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleForceBulkUpdateCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) SubmoduleForceBulkUpdateCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.submoduleForceBulkUpdateCmdObjMutex.Lock()
 	defer fake.submoduleForceBulkUpdateCmdObjMutex.Unlock()
 	fake.SubmoduleForceBulkUpdateCmdObjStub = nil
@@ -9646,7 +9774,7 @@ func (fake *FakeIGitCommand) SubmoduleForceBulkUpdateCmdObjReturnsOnCall(i int, 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleInit(arg1 string) error {
+func (fake *FakeIGit) SubmoduleInit(arg1 string) error {
 	fake.submoduleInitMutex.Lock()
 	ret, specificReturn := fake.submoduleInitReturnsOnCall[len(fake.submoduleInitArgsForCall)]
 	fake.submoduleInitArgsForCall = append(fake.submoduleInitArgsForCall, struct {
@@ -9665,26 +9793,26 @@ func (fake *FakeIGitCommand) SubmoduleInit(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleInitCallCount() int {
+func (fake *FakeIGit) SubmoduleInitCallCount() int {
 	fake.submoduleInitMutex.RLock()
 	defer fake.submoduleInitMutex.RUnlock()
 	return len(fake.submoduleInitArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleInitCalls(stub func(string) error) {
+func (fake *FakeIGit) SubmoduleInitCalls(stub func(string) error) {
 	fake.submoduleInitMutex.Lock()
 	defer fake.submoduleInitMutex.Unlock()
 	fake.SubmoduleInitStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleInitArgsForCall(i int) string {
+func (fake *FakeIGit) SubmoduleInitArgsForCall(i int) string {
 	fake.submoduleInitMutex.RLock()
 	defer fake.submoduleInitMutex.RUnlock()
 	argsForCall := fake.submoduleInitArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) SubmoduleInitReturns(result1 error) {
+func (fake *FakeIGit) SubmoduleInitReturns(result1 error) {
 	fake.submoduleInitMutex.Lock()
 	defer fake.submoduleInitMutex.Unlock()
 	fake.SubmoduleInitStub = nil
@@ -9693,7 +9821,7 @@ func (fake *FakeIGitCommand) SubmoduleInitReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleInitReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SubmoduleInitReturnsOnCall(i int, result1 error) {
 	fake.submoduleInitMutex.Lock()
 	defer fake.submoduleInitMutex.Unlock()
 	fake.SubmoduleInitStub = nil
@@ -9707,7 +9835,7 @@ func (fake *FakeIGitCommand) SubmoduleInitReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleReset(arg1 *models.SubmoduleConfig) error {
+func (fake *FakeIGit) SubmoduleReset(arg1 *models.SubmoduleConfig) error {
 	fake.submoduleResetMutex.Lock()
 	ret, specificReturn := fake.submoduleResetReturnsOnCall[len(fake.submoduleResetArgsForCall)]
 	fake.submoduleResetArgsForCall = append(fake.submoduleResetArgsForCall, struct {
@@ -9726,26 +9854,26 @@ func (fake *FakeIGitCommand) SubmoduleReset(arg1 *models.SubmoduleConfig) error 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleResetCallCount() int {
+func (fake *FakeIGit) SubmoduleResetCallCount() int {
 	fake.submoduleResetMutex.RLock()
 	defer fake.submoduleResetMutex.RUnlock()
 	return len(fake.submoduleResetArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleResetCalls(stub func(*models.SubmoduleConfig) error) {
+func (fake *FakeIGit) SubmoduleResetCalls(stub func(*models.SubmoduleConfig) error) {
 	fake.submoduleResetMutex.Lock()
 	defer fake.submoduleResetMutex.Unlock()
 	fake.SubmoduleResetStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleResetArgsForCall(i int) *models.SubmoduleConfig {
+func (fake *FakeIGit) SubmoduleResetArgsForCall(i int) *models.SubmoduleConfig {
 	fake.submoduleResetMutex.RLock()
 	defer fake.submoduleResetMutex.RUnlock()
 	argsForCall := fake.submoduleResetArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) SubmoduleResetReturns(result1 error) {
+func (fake *FakeIGit) SubmoduleResetReturns(result1 error) {
 	fake.submoduleResetMutex.Lock()
 	defer fake.submoduleResetMutex.Unlock()
 	fake.SubmoduleResetStub = nil
@@ -9754,7 +9882,7 @@ func (fake *FakeIGitCommand) SubmoduleResetReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleResetReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SubmoduleResetReturnsOnCall(i int, result1 error) {
 	fake.submoduleResetMutex.Lock()
 	defer fake.submoduleResetMutex.Unlock()
 	fake.SubmoduleResetStub = nil
@@ -9768,7 +9896,7 @@ func (fake *FakeIGitCommand) SubmoduleResetReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleStash(arg1 *models.SubmoduleConfig) error {
+func (fake *FakeIGit) SubmoduleStash(arg1 *models.SubmoduleConfig) error {
 	fake.submoduleStashMutex.Lock()
 	ret, specificReturn := fake.submoduleStashReturnsOnCall[len(fake.submoduleStashArgsForCall)]
 	fake.submoduleStashArgsForCall = append(fake.submoduleStashArgsForCall, struct {
@@ -9787,26 +9915,26 @@ func (fake *FakeIGitCommand) SubmoduleStash(arg1 *models.SubmoduleConfig) error 
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleStashCallCount() int {
+func (fake *FakeIGit) SubmoduleStashCallCount() int {
 	fake.submoduleStashMutex.RLock()
 	defer fake.submoduleStashMutex.RUnlock()
 	return len(fake.submoduleStashArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleStashCalls(stub func(*models.SubmoduleConfig) error) {
+func (fake *FakeIGit) SubmoduleStashCalls(stub func(*models.SubmoduleConfig) error) {
 	fake.submoduleStashMutex.Lock()
 	defer fake.submoduleStashMutex.Unlock()
 	fake.SubmoduleStashStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleStashArgsForCall(i int) *models.SubmoduleConfig {
+func (fake *FakeIGit) SubmoduleStashArgsForCall(i int) *models.SubmoduleConfig {
 	fake.submoduleStashMutex.RLock()
 	defer fake.submoduleStashMutex.RUnlock()
 	argsForCall := fake.submoduleStashArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) SubmoduleStashReturns(result1 error) {
+func (fake *FakeIGit) SubmoduleStashReturns(result1 error) {
 	fake.submoduleStashMutex.Lock()
 	defer fake.submoduleStashMutex.Unlock()
 	fake.SubmoduleStashStub = nil
@@ -9815,7 +9943,7 @@ func (fake *FakeIGitCommand) SubmoduleStashReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleStashReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SubmoduleStashReturnsOnCall(i int, result1 error) {
 	fake.submoduleStashMutex.Lock()
 	defer fake.submoduleStashMutex.Unlock()
 	fake.SubmoduleStashStub = nil
@@ -9829,7 +9957,7 @@ func (fake *FakeIGitCommand) SubmoduleStashReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdate(arg1 string) error {
+func (fake *FakeIGit) SubmoduleUpdate(arg1 string) error {
 	fake.submoduleUpdateMutex.Lock()
 	ret, specificReturn := fake.submoduleUpdateReturnsOnCall[len(fake.submoduleUpdateArgsForCall)]
 	fake.submoduleUpdateArgsForCall = append(fake.submoduleUpdateArgsForCall, struct {
@@ -9848,26 +9976,26 @@ func (fake *FakeIGitCommand) SubmoduleUpdate(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateCallCount() int {
+func (fake *FakeIGit) SubmoduleUpdateCallCount() int {
 	fake.submoduleUpdateMutex.RLock()
 	defer fake.submoduleUpdateMutex.RUnlock()
 	return len(fake.submoduleUpdateArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateCalls(stub func(string) error) {
+func (fake *FakeIGit) SubmoduleUpdateCalls(stub func(string) error) {
 	fake.submoduleUpdateMutex.Lock()
 	defer fake.submoduleUpdateMutex.Unlock()
 	fake.SubmoduleUpdateStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateArgsForCall(i int) string {
+func (fake *FakeIGit) SubmoduleUpdateArgsForCall(i int) string {
 	fake.submoduleUpdateMutex.RLock()
 	defer fake.submoduleUpdateMutex.RUnlock()
 	argsForCall := fake.submoduleUpdateArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateReturns(result1 error) {
+func (fake *FakeIGit) SubmoduleUpdateReturns(result1 error) {
 	fake.submoduleUpdateMutex.Lock()
 	defer fake.submoduleUpdateMutex.Unlock()
 	fake.SubmoduleUpdateStub = nil
@@ -9876,7 +10004,7 @@ func (fake *FakeIGitCommand) SubmoduleUpdateReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SubmoduleUpdateReturnsOnCall(i int, result1 error) {
 	fake.submoduleUpdateMutex.Lock()
 	defer fake.submoduleUpdateMutex.Unlock()
 	fake.SubmoduleUpdateStub = nil
@@ -9890,7 +10018,7 @@ func (fake *FakeIGitCommand) SubmoduleUpdateReturnsOnCall(i int, result1 error) 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateUrl(arg1 string, arg2 string, arg3 string) error {
+func (fake *FakeIGit) SubmoduleUpdateUrl(arg1 string, arg2 string, arg3 string) error {
 	fake.submoduleUpdateUrlMutex.Lock()
 	ret, specificReturn := fake.submoduleUpdateUrlReturnsOnCall[len(fake.submoduleUpdateUrlArgsForCall)]
 	fake.submoduleUpdateUrlArgsForCall = append(fake.submoduleUpdateUrlArgsForCall, struct {
@@ -9911,26 +10039,26 @@ func (fake *FakeIGitCommand) SubmoduleUpdateUrl(arg1 string, arg2 string, arg3 s
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateUrlCallCount() int {
+func (fake *FakeIGit) SubmoduleUpdateUrlCallCount() int {
 	fake.submoduleUpdateUrlMutex.RLock()
 	defer fake.submoduleUpdateUrlMutex.RUnlock()
 	return len(fake.submoduleUpdateUrlArgsForCall)
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateUrlCalls(stub func(string, string, string) error) {
+func (fake *FakeIGit) SubmoduleUpdateUrlCalls(stub func(string, string, string) error) {
 	fake.submoduleUpdateUrlMutex.Lock()
 	defer fake.submoduleUpdateUrlMutex.Unlock()
 	fake.SubmoduleUpdateUrlStub = stub
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateUrlArgsForCall(i int) (string, string, string) {
+func (fake *FakeIGit) SubmoduleUpdateUrlArgsForCall(i int) (string, string, string) {
 	fake.submoduleUpdateUrlMutex.RLock()
 	defer fake.submoduleUpdateUrlMutex.RUnlock()
 	argsForCall := fake.submoduleUpdateUrlArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateUrlReturns(result1 error) {
+func (fake *FakeIGit) SubmoduleUpdateUrlReturns(result1 error) {
 	fake.submoduleUpdateUrlMutex.Lock()
 	defer fake.submoduleUpdateUrlMutex.Unlock()
 	fake.SubmoduleUpdateUrlStub = nil
@@ -9939,7 +10067,7 @@ func (fake *FakeIGitCommand) SubmoduleUpdateUrlReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) SubmoduleUpdateUrlReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) SubmoduleUpdateUrlReturnsOnCall(i int, result1 error) {
 	fake.submoduleUpdateUrlMutex.Lock()
 	defer fake.submoduleUpdateUrlMutex.Unlock()
 	fake.SubmoduleUpdateUrlStub = nil
@@ -9953,7 +10081,7 @@ func (fake *FakeIGitCommand) SubmoduleUpdateUrlReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) UnStageFile(arg1 []string, arg2 bool) error {
+func (fake *FakeIGit) UnStageFile(arg1 []string, arg2 bool) error {
 	var arg1Copy []string
 	if arg1 != nil {
 		arg1Copy = make([]string, len(arg1))
@@ -9978,26 +10106,26 @@ func (fake *FakeIGitCommand) UnStageFile(arg1 []string, arg2 bool) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) UnStageFileCallCount() int {
+func (fake *FakeIGit) UnStageFileCallCount() int {
 	fake.unStageFileMutex.RLock()
 	defer fake.unStageFileMutex.RUnlock()
 	return len(fake.unStageFileArgsForCall)
 }
 
-func (fake *FakeIGitCommand) UnStageFileCalls(stub func([]string, bool) error) {
+func (fake *FakeIGit) UnStageFileCalls(stub func([]string, bool) error) {
 	fake.unStageFileMutex.Lock()
 	defer fake.unStageFileMutex.Unlock()
 	fake.UnStageFileStub = stub
 }
 
-func (fake *FakeIGitCommand) UnStageFileArgsForCall(i int) ([]string, bool) {
+func (fake *FakeIGit) UnStageFileArgsForCall(i int) ([]string, bool) {
 	fake.unStageFileMutex.RLock()
 	defer fake.unStageFileMutex.RUnlock()
 	argsForCall := fake.unStageFileArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) UnStageFileReturns(result1 error) {
+func (fake *FakeIGit) UnStageFileReturns(result1 error) {
 	fake.unStageFileMutex.Lock()
 	defer fake.unStageFileMutex.Unlock()
 	fake.UnStageFileStub = nil
@@ -10006,7 +10134,7 @@ func (fake *FakeIGitCommand) UnStageFileReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) UnStageFileReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) UnStageFileReturnsOnCall(i int, result1 error) {
 	fake.unStageFileMutex.Lock()
 	defer fake.unStageFileMutex.Unlock()
 	fake.UnStageFileStub = nil
@@ -10020,7 +10148,7 @@ func (fake *FakeIGitCommand) UnStageFileReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) UnstageAll() error {
+func (fake *FakeIGit) UnstageAll() error {
 	fake.unstageAllMutex.Lock()
 	ret, specificReturn := fake.unstageAllReturnsOnCall[len(fake.unstageAllArgsForCall)]
 	fake.unstageAllArgsForCall = append(fake.unstageAllArgsForCall, struct {
@@ -10038,19 +10166,19 @@ func (fake *FakeIGitCommand) UnstageAll() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) UnstageAllCallCount() int {
+func (fake *FakeIGit) UnstageAllCallCount() int {
 	fake.unstageAllMutex.RLock()
 	defer fake.unstageAllMutex.RUnlock()
 	return len(fake.unstageAllArgsForCall)
 }
 
-func (fake *FakeIGitCommand) UnstageAllCalls(stub func() error) {
+func (fake *FakeIGit) UnstageAllCalls(stub func() error) {
 	fake.unstageAllMutex.Lock()
 	defer fake.unstageAllMutex.Unlock()
 	fake.UnstageAllStub = stub
 }
 
-func (fake *FakeIGitCommand) UnstageAllReturns(result1 error) {
+func (fake *FakeIGit) UnstageAllReturns(result1 error) {
 	fake.unstageAllMutex.Lock()
 	defer fake.unstageAllMutex.Unlock()
 	fake.UnstageAllStub = nil
@@ -10059,7 +10187,7 @@ func (fake *FakeIGitCommand) UnstageAllReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) UnstageAllReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) UnstageAllReturnsOnCall(i int, result1 error) {
 	fake.unstageAllMutex.Lock()
 	defer fake.unstageAllMutex.Unlock()
 	fake.UnstageAllStub = nil
@@ -10073,7 +10201,7 @@ func (fake *FakeIGitCommand) UnstageAllReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) UpdateRemoteUrl(arg1 string, arg2 string) error {
+func (fake *FakeIGit) UpdateRemoteUrl(arg1 string, arg2 string) error {
 	fake.updateRemoteUrlMutex.Lock()
 	ret, specificReturn := fake.updateRemoteUrlReturnsOnCall[len(fake.updateRemoteUrlArgsForCall)]
 	fake.updateRemoteUrlArgsForCall = append(fake.updateRemoteUrlArgsForCall, struct {
@@ -10093,26 +10221,26 @@ func (fake *FakeIGitCommand) UpdateRemoteUrl(arg1 string, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) UpdateRemoteUrlCallCount() int {
+func (fake *FakeIGit) UpdateRemoteUrlCallCount() int {
 	fake.updateRemoteUrlMutex.RLock()
 	defer fake.updateRemoteUrlMutex.RUnlock()
 	return len(fake.updateRemoteUrlArgsForCall)
 }
 
-func (fake *FakeIGitCommand) UpdateRemoteUrlCalls(stub func(string, string) error) {
+func (fake *FakeIGit) UpdateRemoteUrlCalls(stub func(string, string) error) {
 	fake.updateRemoteUrlMutex.Lock()
 	defer fake.updateRemoteUrlMutex.Unlock()
 	fake.UpdateRemoteUrlStub = stub
 }
 
-func (fake *FakeIGitCommand) UpdateRemoteUrlArgsForCall(i int) (string, string) {
+func (fake *FakeIGit) UpdateRemoteUrlArgsForCall(i int) (string, string) {
 	fake.updateRemoteUrlMutex.RLock()
 	defer fake.updateRemoteUrlMutex.RUnlock()
 	argsForCall := fake.updateRemoteUrlArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIGitCommand) UpdateRemoteUrlReturns(result1 error) {
+func (fake *FakeIGit) UpdateRemoteUrlReturns(result1 error) {
 	fake.updateRemoteUrlMutex.Lock()
 	defer fake.updateRemoteUrlMutex.Unlock()
 	fake.UpdateRemoteUrlStub = nil
@@ -10121,7 +10249,7 @@ func (fake *FakeIGitCommand) UpdateRemoteUrlReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) UpdateRemoteUrlReturnsOnCall(i int, result1 error) {
+func (fake *FakeIGit) UpdateRemoteUrlReturnsOnCall(i int, result1 error) {
 	fake.updateRemoteUrlMutex.Lock()
 	defer fake.updateRemoteUrlMutex.Unlock()
 	fake.UpdateRemoteUrlStub = nil
@@ -10135,7 +10263,7 @@ func (fake *FakeIGitCommand) UpdateRemoteUrlReturnsOnCall(i int, result1 error) 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) UsingGpg() bool {
+func (fake *FakeIGit) UsingGpg() bool {
 	fake.usingGpgMutex.Lock()
 	ret, specificReturn := fake.usingGpgReturnsOnCall[len(fake.usingGpgArgsForCall)]
 	fake.usingGpgArgsForCall = append(fake.usingGpgArgsForCall, struct {
@@ -10153,19 +10281,19 @@ func (fake *FakeIGitCommand) UsingGpg() bool {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) UsingGpgCallCount() int {
+func (fake *FakeIGit) UsingGpgCallCount() int {
 	fake.usingGpgMutex.RLock()
 	defer fake.usingGpgMutex.RUnlock()
 	return len(fake.usingGpgArgsForCall)
 }
 
-func (fake *FakeIGitCommand) UsingGpgCalls(stub func() bool) {
+func (fake *FakeIGit) UsingGpgCalls(stub func() bool) {
 	fake.usingGpgMutex.Lock()
 	defer fake.usingGpgMutex.Unlock()
 	fake.UsingGpgStub = stub
 }
 
-func (fake *FakeIGitCommand) UsingGpgReturns(result1 bool) {
+func (fake *FakeIGit) UsingGpgReturns(result1 bool) {
 	fake.usingGpgMutex.Lock()
 	defer fake.usingGpgMutex.Unlock()
 	fake.UsingGpgStub = nil
@@ -10174,7 +10302,7 @@ func (fake *FakeIGitCommand) UsingGpgReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) UsingGpgReturnsOnCall(i int, result1 bool) {
+func (fake *FakeIGit) UsingGpgReturnsOnCall(i int, result1 bool) {
 	fake.usingGpgMutex.Lock()
 	defer fake.usingGpgMutex.Unlock()
 	fake.UsingGpgStub = nil
@@ -10188,7 +10316,7 @@ func (fake *FakeIGitCommand) UsingGpgReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) WithSpan(arg1 string) commands.IGit {
+func (fake *FakeIGit) WithSpan(arg1 string) commands.IGit {
 	fake.withSpanMutex.Lock()
 	ret, specificReturn := fake.withSpanReturnsOnCall[len(fake.withSpanArgsForCall)]
 	fake.withSpanArgsForCall = append(fake.withSpanArgsForCall, struct {
@@ -10207,26 +10335,26 @@ func (fake *FakeIGitCommand) WithSpan(arg1 string) commands.IGit {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) WithSpanCallCount() int {
+func (fake *FakeIGit) WithSpanCallCount() int {
 	fake.withSpanMutex.RLock()
 	defer fake.withSpanMutex.RUnlock()
 	return len(fake.withSpanArgsForCall)
 }
 
-func (fake *FakeIGitCommand) WithSpanCalls(stub func(string) commands.IGit) {
+func (fake *FakeIGit) WithSpanCalls(stub func(string) commands.IGit) {
 	fake.withSpanMutex.Lock()
 	defer fake.withSpanMutex.Unlock()
 	fake.WithSpanStub = stub
 }
 
-func (fake *FakeIGitCommand) WithSpanArgsForCall(i int) string {
+func (fake *FakeIGit) WithSpanArgsForCall(i int) string {
 	fake.withSpanMutex.RLock()
 	defer fake.withSpanMutex.RUnlock()
 	argsForCall := fake.withSpanArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeIGitCommand) WithSpanReturns(result1 commands.IGit) {
+func (fake *FakeIGit) WithSpanReturns(result1 commands.IGit) {
 	fake.withSpanMutex.Lock()
 	defer fake.withSpanMutex.Unlock()
 	fake.WithSpanStub = nil
@@ -10235,7 +10363,7 @@ func (fake *FakeIGitCommand) WithSpanReturns(result1 commands.IGit) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) WithSpanReturnsOnCall(i int, result1 commands.IGit) {
+func (fake *FakeIGit) WithSpanReturnsOnCall(i int, result1 commands.IGit) {
 	fake.withSpanMutex.Lock()
 	defer fake.withSpanMutex.Unlock()
 	fake.WithSpanStub = nil
@@ -10249,7 +10377,7 @@ func (fake *FakeIGitCommand) WithSpanReturnsOnCall(i int, result1 commands.IGit)
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) WorkingTreeState() commands.WorkingTreeState {
+func (fake *FakeIGit) WorkingTreeState() commands.WorkingTreeState {
 	fake.workingTreeStateMutex.Lock()
 	ret, specificReturn := fake.workingTreeStateReturnsOnCall[len(fake.workingTreeStateArgsForCall)]
 	fake.workingTreeStateArgsForCall = append(fake.workingTreeStateArgsForCall, struct {
@@ -10267,19 +10395,19 @@ func (fake *FakeIGitCommand) WorkingTreeState() commands.WorkingTreeState {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) WorkingTreeStateCallCount() int {
+func (fake *FakeIGit) WorkingTreeStateCallCount() int {
 	fake.workingTreeStateMutex.RLock()
 	defer fake.workingTreeStateMutex.RUnlock()
 	return len(fake.workingTreeStateArgsForCall)
 }
 
-func (fake *FakeIGitCommand) WorkingTreeStateCalls(stub func() commands.WorkingTreeState) {
+func (fake *FakeIGit) WorkingTreeStateCalls(stub func() commands.WorkingTreeState) {
 	fake.workingTreeStateMutex.Lock()
 	defer fake.workingTreeStateMutex.Unlock()
 	fake.WorkingTreeStateStub = stub
 }
 
-func (fake *FakeIGitCommand) WorkingTreeStateReturns(result1 commands.WorkingTreeState) {
+func (fake *FakeIGit) WorkingTreeStateReturns(result1 commands.WorkingTreeState) {
 	fake.workingTreeStateMutex.Lock()
 	defer fake.workingTreeStateMutex.Unlock()
 	fake.WorkingTreeStateStub = nil
@@ -10288,7 +10416,7 @@ func (fake *FakeIGitCommand) WorkingTreeStateReturns(result1 commands.WorkingTre
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) WorkingTreeStateReturnsOnCall(i int, result1 commands.WorkingTreeState) {
+func (fake *FakeIGit) WorkingTreeStateReturnsOnCall(i int, result1 commands.WorkingTreeState) {
 	fake.workingTreeStateMutex.Lock()
 	defer fake.workingTreeStateMutex.Unlock()
 	fake.WorkingTreeStateStub = nil
@@ -10302,7 +10430,7 @@ func (fake *FakeIGitCommand) WorkingTreeStateReturnsOnCall(i int, result1 comman
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiff(arg1 *models.File, arg2 bool, arg3 bool) string {
+func (fake *FakeIGit) WorktreeFileDiff(arg1 *models.File, arg2 bool, arg3 bool) string {
 	fake.worktreeFileDiffMutex.Lock()
 	ret, specificReturn := fake.worktreeFileDiffReturnsOnCall[len(fake.worktreeFileDiffArgsForCall)]
 	fake.worktreeFileDiffArgsForCall = append(fake.worktreeFileDiffArgsForCall, struct {
@@ -10323,26 +10451,26 @@ func (fake *FakeIGitCommand) WorktreeFileDiff(arg1 *models.File, arg2 bool, arg3
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffCallCount() int {
+func (fake *FakeIGit) WorktreeFileDiffCallCount() int {
 	fake.worktreeFileDiffMutex.RLock()
 	defer fake.worktreeFileDiffMutex.RUnlock()
 	return len(fake.worktreeFileDiffArgsForCall)
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffCalls(stub func(*models.File, bool, bool) string) {
+func (fake *FakeIGit) WorktreeFileDiffCalls(stub func(*models.File, bool, bool) string) {
 	fake.worktreeFileDiffMutex.Lock()
 	defer fake.worktreeFileDiffMutex.Unlock()
 	fake.WorktreeFileDiffStub = stub
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffArgsForCall(i int) (*models.File, bool, bool) {
+func (fake *FakeIGit) WorktreeFileDiffArgsForCall(i int) (*models.File, bool, bool) {
 	fake.worktreeFileDiffMutex.RLock()
 	defer fake.worktreeFileDiffMutex.RUnlock()
 	argsForCall := fake.worktreeFileDiffArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffReturns(result1 string) {
+func (fake *FakeIGit) WorktreeFileDiffReturns(result1 string) {
 	fake.worktreeFileDiffMutex.Lock()
 	defer fake.worktreeFileDiffMutex.Unlock()
 	fake.WorktreeFileDiffStub = nil
@@ -10351,7 +10479,7 @@ func (fake *FakeIGitCommand) WorktreeFileDiffReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffReturnsOnCall(i int, result1 string) {
+func (fake *FakeIGit) WorktreeFileDiffReturnsOnCall(i int, result1 string) {
 	fake.worktreeFileDiffMutex.Lock()
 	defer fake.worktreeFileDiffMutex.Unlock()
 	fake.WorktreeFileDiffStub = nil
@@ -10365,7 +10493,7 @@ func (fake *FakeIGitCommand) WorktreeFileDiffReturnsOnCall(i int, result1 string
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffCmdObj(arg1 models.IFile, arg2 bool, arg3 bool) types.ICmdObj {
+func (fake *FakeIGit) WorktreeFileDiffCmdObj(arg1 models.IFile, arg2 bool, arg3 bool) types.ICmdObj {
 	fake.worktreeFileDiffCmdObjMutex.Lock()
 	ret, specificReturn := fake.worktreeFileDiffCmdObjReturnsOnCall[len(fake.worktreeFileDiffCmdObjArgsForCall)]
 	fake.worktreeFileDiffCmdObjArgsForCall = append(fake.worktreeFileDiffCmdObjArgsForCall, struct {
@@ -10386,26 +10514,26 @@ func (fake *FakeIGitCommand) WorktreeFileDiffCmdObj(arg1 models.IFile, arg2 bool
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffCmdObjCallCount() int {
+func (fake *FakeIGit) WorktreeFileDiffCmdObjCallCount() int {
 	fake.worktreeFileDiffCmdObjMutex.RLock()
 	defer fake.worktreeFileDiffCmdObjMutex.RUnlock()
 	return len(fake.worktreeFileDiffCmdObjArgsForCall)
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffCmdObjCalls(stub func(models.IFile, bool, bool) types.ICmdObj) {
+func (fake *FakeIGit) WorktreeFileDiffCmdObjCalls(stub func(models.IFile, bool, bool) types.ICmdObj) {
 	fake.worktreeFileDiffCmdObjMutex.Lock()
 	defer fake.worktreeFileDiffCmdObjMutex.Unlock()
 	fake.WorktreeFileDiffCmdObjStub = stub
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffCmdObjArgsForCall(i int) (models.IFile, bool, bool) {
+func (fake *FakeIGit) WorktreeFileDiffCmdObjArgsForCall(i int) (models.IFile, bool, bool) {
 	fake.worktreeFileDiffCmdObjMutex.RLock()
 	defer fake.worktreeFileDiffCmdObjMutex.RUnlock()
 	argsForCall := fake.worktreeFileDiffCmdObjArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffCmdObjReturns(result1 types.ICmdObj) {
+func (fake *FakeIGit) WorktreeFileDiffCmdObjReturns(result1 types.ICmdObj) {
 	fake.worktreeFileDiffCmdObjMutex.Lock()
 	defer fake.worktreeFileDiffCmdObjMutex.Unlock()
 	fake.WorktreeFileDiffCmdObjStub = nil
@@ -10414,7 +10542,7 @@ func (fake *FakeIGitCommand) WorktreeFileDiffCmdObjReturns(result1 types.ICmdObj
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) WorktreeFileDiffCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+func (fake *FakeIGit) WorktreeFileDiffCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
 	fake.worktreeFileDiffCmdObjMutex.Lock()
 	defer fake.worktreeFileDiffCmdObjMutex.Unlock()
 	fake.WorktreeFileDiffCmdObjStub = nil
@@ -10428,7 +10556,7 @@ func (fake *FakeIGitCommand) WorktreeFileDiffCmdObjReturnsOnCall(i int, result1 
 	}{result1}
 }
 
-func (fake *FakeIGitCommand) Invocations() map[string][][]interface{} {
+func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.abortMergeMutex.RLock()
@@ -10451,6 +10579,8 @@ func (fake *FakeIGitCommand) Invocations() map[string][][]interface{} {
 	defer fake.beforeAndAfterFileForRenameMutex.RUnlock()
 	fake.beginInteractiveRebaseForCommitMutex.RLock()
 	defer fake.beginInteractiveRebaseForCommitMutex.RUnlock()
+	fake.buildGitCmdObjFromStrMutex.RLock()
+	defer fake.buildGitCmdObjFromStrMutex.RUnlock()
 	fake.buildShellCmdObjMutex.RLock()
 	defer fake.buildShellCmdObjMutex.RUnlock()
 	fake.catFileMutex.RLock()
@@ -10547,10 +10677,14 @@ func (fake *FakeIGitCommand) Invocations() map[string][][]interface{} {
 	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.RUnlock()
 	fake.getFilesInDiffMutex.RLock()
 	defer fake.getFilesInDiffMutex.RUnlock()
+	fake.getGitFlowRegexpConfigMutex.RLock()
+	defer fake.getGitFlowRegexpConfigMutex.RUnlock()
 	fake.getHeadCommitMessageMutex.RLock()
 	defer fake.getHeadCommitMessageMutex.RUnlock()
-	fake.getOSCommandMutex.RLock()
-	defer fake.getOSCommandMutex.RUnlock()
+	fake.getLogMutex.RLock()
+	defer fake.getLogMutex.RUnlock()
+	fake.getOSMutex.RLock()
+	defer fake.getOSMutex.RUnlock()
 	fake.getPagerMutex.RLock()
 	defer fake.getPagerMutex.RUnlock()
 	fake.getPushToCurrentMutex.RLock()
@@ -10573,8 +10707,6 @@ func (fake *FakeIGitCommand) Invocations() map[string][][]interface{} {
 	defer fake.getTagsMutex.RUnlock()
 	fake.getUpstreamForBranchMutex.RLock()
 	defer fake.getUpstreamForBranchMutex.RUnlock()
-	fake.gitStatusMutex.RLock()
-	defer fake.gitStatusMutex.RUnlock()
 	fake.ignoreMutex.RLock()
 	defer fake.ignoreMutex.RUnlock()
 	fake.interactiveRebaseMutex.RLock()
@@ -10728,7 +10860,7 @@ func (fake *FakeIGitCommand) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeIGitCommand) recordInvocation(key string, args []interface{}) {
+func (fake *FakeIGit) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -10740,4 +10872,4 @@ func (fake *FakeIGitCommand) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ commands.IGit = new(FakeIGitCommand)
+var _ commands.IGit = new(FakeIGit)

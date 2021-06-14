@@ -33,7 +33,7 @@ func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) err
 		return gui.CreateErrorPanel(gui.Tr.NotAGitFlowBranch)
 	}
 
-	cmdObj := gui.GitCommand.FlowFinish(branchType, suffix)
+	cmdObj := gui.Git.FlowFinish(branchType, suffix)
 	gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.GitFlowFinish))
 
 	return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
@@ -45,7 +45,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 		return nil
 	}
 
-	gitFlowConfig, err := gui.GitCommand.GetGitFlowRegexpConfig()
+	gitFlowConfig, err := gui.Git.GetGitFlowRegexpConfig()
 	if err != nil {
 		return gui.CreateErrorPanel("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
@@ -57,7 +57,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 			return gui.Prompt(PromptOpts{
 				Title: title,
 				HandleConfirm: func(name string) error {
-					cmdObj := gui.GitCommand.FlowStart(branchType, name)
+					cmdObj := gui.Git.FlowStart(branchType, name)
 					gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.GitFlowStart))
 
 					return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)

@@ -8,7 +8,7 @@ import (
 )
 
 // GetFilesInDiff get the specified commit files
-func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error) {
+func (c *Git) GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error) {
 	reverseFlag := ""
 	if reverse {
 		reverseFlag = " -R "
@@ -27,7 +27,7 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool) ([]*mo
 }
 
 // filenames string is something like "file1\nfile2\nfile3"
-func (c *GitCommand) getCommitFilesFromFilenames(filenames string) []*models.CommitFile {
+func (c *Git) getCommitFilesFromFilenames(filenames string) []*models.CommitFile {
 	commitFiles := make([]*models.CommitFile, 0)
 
 	lines := strings.Split(strings.TrimRight(filenames, "\x00"), "\x00")

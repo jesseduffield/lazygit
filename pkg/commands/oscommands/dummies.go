@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// NewDummyOSCommand creates a new dummy OSCommand for testing
-func NewDummyOSCommand() *OSCommand {
-	return NewOSCommand(utils.NewDummyLog(), config.NewDummyAppConfig())
+// NewDummyOS creates a new dummy OSCommand for testing
+func NewDummyOS() *OS {
+	return NewOS(utils.NewDummyLog(), config.NewDummyAppConfig())
 }

@@ -7,10 +7,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (c *GitCommand) GetTags() ([]*models.Tag, error) {
+func (c *Git) GetTags() ([]*models.Tag, error) {
 	// get remote branches, sorted  by creation date (descending)
 	// see: https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sortltkeygt
-	remoteBranchesStr, err := c.GetOSCommand().RunWithOutput(
+	remoteBranchesStr, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr("tag --list --sort=-creatordate"),
 	)
 	if err != nil {

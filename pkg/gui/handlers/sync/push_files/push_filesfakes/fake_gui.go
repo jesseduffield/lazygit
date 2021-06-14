@@ -44,15 +44,15 @@ type FakeGui struct {
 	currentBranchReturnsOnCall map[int]struct {
 		result1 *models.Branch
 	}
-	GetGitCommandStub        func() commands.IGitCommand
+	GetGitCommandStub        func() commands.IGit
 	getGitCommandMutex       sync.RWMutex
 	getGitCommandArgsForCall []struct {
 	}
 	getGitCommandReturns struct {
-		result1 commands.IGitCommand
+		result1 commands.IGit
 	}
 	getGitCommandReturnsOnCall map[int]struct {
-		result1 commands.IGitCommand
+		result1 commands.IGit
 	}
 	GetTrStub        func() *i18n.TranslationSet
 	getTrMutex       sync.RWMutex
@@ -313,7 +313,7 @@ func (fake *FakeGui) CurrentBranchReturnsOnCall(i int, result1 *models.Branch) {
 	}{result1}
 }
 
-func (fake *FakeGui) GetGitCommand() commands.IGitCommand {
+func (fake *FakeGui) GetGitCommand() commands.IGit {
 	fake.getGitCommandMutex.Lock()
 	ret, specificReturn := fake.getGitCommandReturnsOnCall[len(fake.getGitCommandArgsForCall)]
 	fake.getGitCommandArgsForCall = append(fake.getGitCommandArgsForCall, struct {
@@ -337,32 +337,32 @@ func (fake *FakeGui) GetGitCommandCallCount() int {
 	return len(fake.getGitCommandArgsForCall)
 }
 
-func (fake *FakeGui) GetGitCommandCalls(stub func() commands.IGitCommand) {
+func (fake *FakeGui) GetGitCommandCalls(stub func() commands.IGit) {
 	fake.getGitCommandMutex.Lock()
 	defer fake.getGitCommandMutex.Unlock()
 	fake.GetGitCommandStub = stub
 }
 
-func (fake *FakeGui) GetGitCommandReturns(result1 commands.IGitCommand) {
+func (fake *FakeGui) GetGitCommandReturns(result1 commands.IGit) {
 	fake.getGitCommandMutex.Lock()
 	defer fake.getGitCommandMutex.Unlock()
 	fake.GetGitCommandStub = nil
 	fake.getGitCommandReturns = struct {
-		result1 commands.IGitCommand
+		result1 commands.IGit
 	}{result1}
 }
 
-func (fake *FakeGui) GetGitCommandReturnsOnCall(i int, result1 commands.IGitCommand) {
+func (fake *FakeGui) GetGitCommandReturnsOnCall(i int, result1 commands.IGit) {
 	fake.getGitCommandMutex.Lock()
 	defer fake.getGitCommandMutex.Unlock()
 	fake.GetGitCommandStub = nil
 	if fake.getGitCommandReturnsOnCall == nil {
 		fake.getGitCommandReturnsOnCall = make(map[int]struct {
-			result1 commands.IGitCommand
+			result1 commands.IGit
 		})
 	}
 	fake.getGitCommandReturnsOnCall[i] = struct {
-		result1 commands.IGitCommand
+		result1 commands.IGit
 	}{result1}
 }
 

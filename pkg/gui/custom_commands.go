@@ -60,7 +60,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				return gui.SurfaceError(err)
 			}
 
-			cmdObj := gui.GitCommand.BuildShellCmdObj(cmdStr)
+			cmdObj := gui.Git.BuildShellCmdObj(cmdStr)
 
 			if customCommand.Subprocess {
 				return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
@@ -71,7 +71,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				loadingText = gui.Tr.LcRunningCustomCommandStatus
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
-				if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CustomCommand).Run(cmdObj); err != nil {
+				if err := gui.Git.WithSpan(gui.Tr.Spans.CustomCommand).Run(cmdObj); err != nil {
 					return gui.SurfaceError(err)
 				}
 				return gui.RefreshSidePanels(RefreshOptions{})

@@ -13,13 +13,13 @@ import (
 
 // NewDummyCommitListBuilder creates a new dummy CommitListBuilder for testing
 func NewDummyCommitListBuilder() *CommitListBuilder {
-	osCommand := oscommands.NewDummyOSCommand()
+	osCommand := oscommands.NewDummyOS()
 
 	return &CommitListBuilder{
-		Log:        utils.NewDummyLog(),
-		GitCommand: NewDummyGitCommandWithOSCommand(osCommand),
-		OSCommand:  osCommand,
-		Tr:         i18n.NewTranslationSet(utils.NewDummyLog()),
+		Log: utils.NewDummyLog(),
+		Git: NewDummyGitWithOS(osCommand),
+		OS:  osCommand,
+		Tr:  i18n.NewTranslationSet(utils.NewDummyLog()),
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	options := []string{"continue", "abort"}
 
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
+	if gui.Git.WorkingTreeState() == commands.REBASE_MODE_REBASING {
 		options = append(options, "skip")
 	}
 
@@ -28,7 +28,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	}
 
 	var title string
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_MERGING {
+	if gui.Git.WorkingTreeState() == commands.REBASE_MODE_MERGING {
 		title = gui.Tr.MergeOptionsTitle
 	} else {
 		title = gui.Tr.RebaseOptionsTitle
@@ -38,13 +38,13 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 }
 
 func (gui *Gui) genericMergeCommand(action string) error {
-	status := gui.GitCommand.WorkingTreeState()
+	status := gui.Git.WorkingTreeState()
 
 	if status != commands.REBASE_MODE_MERGING && status != commands.REBASE_MODE_REBASING {
 		return gui.CreateErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
-	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge/Rebase: %s", action))
+	gitCommand := gui.Git.WithSpan(fmt.Sprintf("Merge/Rebase: %s", action))
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
 	if status == commands.REBASE_MODE_MERGING && action != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
@@ -53,8 +53,8 @@ func (gui *Gui) genericMergeCommand(action string) error {
 		)
 	}
 
-	command := gui.GitCommand.MergeOrRebase()
-	actionErr := gui.GitCommand.GenericMergeOrRebaseAction(command, action)
+	command := gui.Git.MergeOrRebase()
+	actionErr := gui.Git.GenericMergeOrRebaseAction(command, action)
 	if err := gui.handleGenericMergeCommandResult(actionErr); err != nil {
 		return err
 	}

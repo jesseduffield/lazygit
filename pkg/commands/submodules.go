@@ -17,7 +17,7 @@ import (
 //   path = blah/mysubmodule
 //   url = git@github.com:subbo.git
 
-func (c *GitCommand) GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error) {
+func (c *Git) GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error) {
 	file, err := os.Open(".gitmodules")
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -63,7 +63,7 @@ func (c *GitCommand) GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error) {
 	return configs, nil
 }
 
-func (c *GitCommand) SubmoduleStash(submodule *models.SubmoduleConfig) error {
+func (c *Git) SubmoduleStash(submodule *models.SubmoduleConfig) error {
 	// if the path does not exist then it hasn't yet been initialized so we'll swallow the error
 	// because the intention here is to have no dirty worktree state
 	if _, err := os.Stat(submodule.Path); os.IsNotExist(err) {
@@ -74,11 +74,11 @@ func (c *GitCommand) SubmoduleStash(submodule *models.SubmoduleConfig) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("-C %s stash --include-untracked", submodule.Path))
 }
 
-func (c *GitCommand) SubmoduleReset(submodule *models.SubmoduleConfig) error {
+func (c *Git) SubmoduleReset(submodule *models.SubmoduleConfig) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("submodule update --init --force %s", submodule.Path))
 }
 
-func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
+func (c *Git) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 	if err := c.RunGitCmdFromStr(fmt.Sprintf("submodule deinit --force %s", submodule.Path)); err != nil {
@@ -105,18 +105,18 @@ func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 	return os.RemoveAll(filepath.Join(c.dotGitDir, "modules", submodule.Path))
 }
 
-func (c *GitCommand) SubmoduleAdd(name string, path string, url string) error {
+func (c *Git) SubmoduleAdd(name string, path string, url string) error {
 	return c.RunGitCmdFromStr(
 		fmt.Sprintf(
 			"submodule add --force --name %s -- %s %s ",
-			c.GetOSCommand().Quote(name),
-			c.GetOSCommand().Quote(url),
-			c.GetOSCommand().Quote(path),
+			c.GetOS().Quote(name),
+			c.GetOS().Quote(url),
+			c.GetOS().Quote(path),
 		),
 	)
 }
 
-func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string) error {
+func (c *Git) SubmoduleUpdateUrl(name string, path string, newUrl string) error {
 	// the set-url command is only for later git versions so we're doing it manually here
 	if err := c.RunGitCmdFromStr(fmt.Sprintf("config --file .gitmodules submodule.%s.url %s", name, newUrl)); err != nil {
 		return err
@@ -129,32 +129,32 @@ func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string)
 	return nil
 }
 
-func (c *GitCommand) SubmoduleInit(path string) error {
+func (c *Git) SubmoduleInit(path string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("submodule init %s", path))
 }
 
-func (c *GitCommand) SubmoduleUpdate(path string) error {
+func (c *Git) SubmoduleUpdate(path string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("submodule update --init %s", path))
 }
 
-func (c *GitCommand) SubmoduleBulkInitCmdObj() ICmdObj {
+func (c *Git) SubmoduleBulkInitCmdObj() ICmdObj {
 	return BuildGitCmdObjFromStr("submodule init")
 }
 
-func (c *GitCommand) SubmoduleBulkUpdateCmdObj() ICmdObj {
+func (c *Git) SubmoduleBulkUpdateCmdObj() ICmdObj {
 	return BuildGitCmdObjFromStr("submodule update")
 }
 
-func (c *GitCommand) SubmoduleForceBulkUpdateCmdObj() ICmdObj {
+func (c *Git) SubmoduleForceBulkUpdateCmdObj() ICmdObj {
 	// not doing an --init here because the user probably doesn't want that
 	return BuildGitCmdObjFromStr("submodule update --force")
 }
 
-func (c *GitCommand) SubmoduleBulkDeinitCmdObj() ICmdObj {
+func (c *Git) SubmoduleBulkDeinitCmdObj() ICmdObj {
 	return BuildGitCmdObjFromStr("submodule deinit --all --force")
 }
 
-func (c *GitCommand) ResetSubmodules(submodules []*models.SubmoduleConfig) error {
+func (c *Git) ResetSubmodules(submodules []*models.SubmoduleConfig) error {
 	for _, submodule := range submodules {
 		if err := c.SubmoduleStash(submodule); err != nil {
 			return err

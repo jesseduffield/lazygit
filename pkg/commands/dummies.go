@@ -7,18 +7,24 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// NewDummyGitCommand creates a new dummy GitCommand for testing
-func NewDummyGitCommand() *GitCommand {
-	return NewDummyGitCommandWithOSCommand(oscommands.NewDummyOSCommand())
+// NewDummyGit creates a new dummy Git for testing
+func NewDummyGit() *Git {
+	return NewDummyGitWithOS(oscommands.NewDummyOS())
 }
 
-// NewDummyGitCommandWithOSCommand creates a new dummy GitCommand for testing
-func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
-	return &GitCommand{
-		log:               utils.NewDummyLog(),
-		oSCommand:         osCommand,
-		tr:                i18n.NewTranslationSet(utils.NewDummyLog()),
-		config:            config.NewDummyAppConfig(),
+func NewDummyGitConfig() *GitConfig {
+	return &GitConfig{
 		getGitConfigValue: func(string) (string, error) { return "", nil },
+	}
+}
+
+// NewDummyGitWithOS creates a new dummy Git for testing
+func NewDummyGitWithOS(oS *oscommands.OS) *Git {
+	return &Git{
+		GitConfig: &GitConfig{},
+		log:       utils.NewDummyLog(),
+		os:        oS,
+		tr:        i18n.NewTranslationSet(utils.NewDummyLog()),
+		config:    config.NewDummyAppConfig(),
 	}
 }

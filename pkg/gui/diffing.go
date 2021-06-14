@@ -14,7 +14,7 @@ func (gui *Gui) exitDiffMode() error {
 }
 
 func (gui *Gui) renderDiff() error {
-	cmdObj := gui.GitCommand.ShowFileDiffCmdObj(
+	cmdObj := gui.Git.ShowFileDiffCmdObj(
 		gui.State.Modes.Diffing.Ref,
 		gui.currentDiffTerminal(),
 		gui.State.Modes.Diffing.Reverse,
@@ -88,7 +88,7 @@ func (gui *Gui) currentlySelectedFilename() string {
 }
 
 func (gui *Gui) diffStr() string {
-	return gui.GitCommand.DiffEndArgs(
+	return gui.Git.DiffEndArgs(
 		gui.State.Modes.Diffing.Ref,
 		gui.currentDiffTerminal(),
 		gui.State.Modes.Diffing.Reverse,

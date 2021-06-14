@@ -46,7 +46,7 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 		},
 	}
 
-	gitCmd := NewDummyGitCommand()
+	gitCmd := NewDummyGit()
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {

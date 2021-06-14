@@ -15,7 +15,7 @@ type Gui interface {
 	CurrentBranch() *models.Branch
 	GetUserConfig() *config.UserConfig
 	SurfaceError(error) error
-	GetGitCommand() commands.IGitCommand
+	GetGit() commands.IGit
 	Prompt(PromptOpts) error
 	Ask(AskOpts) error
 	GetTr() *i18n.TranslationSet
@@ -55,7 +55,7 @@ func (gui *PushFilesHandler) Run() error {
 	} else {
 		opts.SetUpstream = true
 		// see if we have an upstream for this branch in our config
-		remoteName, err := gui.GetGitCommand().FindRemoteForBranchInConfig(currentBranch.Name)
+		remoteName, err := gui.GetGit().FindRemoteForBranchInConfig(currentBranch.Name)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}
@@ -66,7 +66,7 @@ func (gui *PushFilesHandler) Run() error {
 			return gui.attemptToPush(opts)
 		}
 
-		if gui.GetGitCommand().GetPushToCurrent() {
+		if gui.GetGit().GetPushToCurrent() {
 			return gui.attemptToPush(opts)
 		} else {
 			return gui.promptToSetDestinationAndPush(opts, currentBranch.Name)
@@ -90,7 +90,7 @@ func (gui *PushFilesHandler) promptToSetDestinationAndPush(opts commands.PushOpt
 
 func (gui *PushFilesHandler) attemptToPush(opts commands.PushOpts) error {
 	return gui.WithPopupWaitingStatus(gui.GetTr().PushWait, func() error {
-		rejected, err := gui.GetGitCommand().WithSpan(gui.GetTr().Spans.Push).Push(opts)
+		rejected, err := gui.GetGit().WithSpan(gui.GetTr().Spans.Push).Push(opts)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
@@ -15,48 +16,47 @@ import (
 )
 
 // CatFile obtains the content of a file
-func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.GetOSCommand().CatFile(fileName)
+func (c *Git) CatFile(fileName string) (string, error) {
+	return c.GetOS().CatFile(fileName)
 }
 
-func (c *GitCommand) OpenMergeToolCmdObj() ICmdObj {
+func (c *Git) OpenMergeToolCmdObj() ICmdObj {
 	return BuildGitCmdObjFromStr("mergetool")
 }
 
 // StageFile stages a file
-func (c *GitCommand) StageFile(fileName string) error {
-	return c.RunGitCmdFromStr(fmt.Sprintf("add -- %s", c.GetOSCommand().Quote(fileName)))
+func (c *Git) StageFile(fileName string) error {
+	return c.RunGitCmdFromStr(fmt.Sprintf("add -- %s", c.GetOS().Quote(fileName)))
 }
 
 // StageAll stages all files
-func (c *GitCommand) StageAll() error {
+func (c *Git) StageAll() error {
 	return c.RunGitCmdFromStr("add -A")
 }
 
 // UnstageAll unstages all files
-func (c *GitCommand) UnstageAll() error {
+func (c *Git) UnstageAll() error {
 	return c.RunGitCmdFromStr("reset")
 }
 
 // UnStageFile unstages a file
 // we accept an array of filenames for the cases where a file has been renamed i.e.
 // we accept the current name and the previous name
-func (c *GitCommand) UnStageFile(fileNames []string, reset bool) error {
+func (c *Git) UnStageFile(fileNames []string, reset bool) error {
 	cmdFormat := "rm --cached --force -- %s"
 	if reset {
 		cmdFormat = "reset HEAD -- %s"
 	}
 
 	for _, name := range fileNames {
-		if err := c.RunGitCmdFromStr(fmt.Sprintf(cmdFormat, c.GetOSCommand().Quote(name))); err != nil {
+		if err := c.RunGitCmdFromStr(fmt.Sprintf(cmdFormat, c.GetOS().Quote(name))); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (c *GitCommand) BeforeAndAfterFileForRename(file *models.File) (*models.File, *models.File, error) {
-
+func (c *Git) BeforeAndAfterFileForRename(file *models.File) (*models.File, *models.File, error) {
 	if !file.IsRename() {
 		return nil, nil, errors.New("Expected renamed file")
 	}
@@ -65,7 +65,7 @@ func (c *GitCommand) BeforeAndAfterFileForRename(file *models.File) (*models.Fil
 	// all files, passing the --no-renames flag and then recursively call the function
 	// again for the before file and after file.
 
-	filesWithoutRenames := c.GetStatusFiles(GetStatusFileOptions{NoRenames: true})
+	filesWithoutRenames := c.GetStatusFiles(loaders.LoadStatusFilesOpts{NoRenames: true})
 	var beforeFile *models.File
 	var afterFile *models.File
 	for _, f := range filesWithoutRenames {
@@ -91,7 +91,7 @@ func (c *GitCommand) BeforeAndAfterFileForRename(file *models.File) (*models.Fil
 }
 
 // DiscardAllFileChanges directly
-func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
+func (c *Git) DiscardAllFileChanges(file *models.File) error {
 	if file.IsRename() {
 		beforeFile, afterFile, err := c.BeforeAndAfterFileForRename(file)
 		if err != nil {
@@ -109,7 +109,7 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 		return nil
 	}
 
-	quotedFileName := c.GetOSCommand().Quote(file.Name)
+	quotedFileName := c.GetOS().Quote(file.Name)
 
 	if file.ShortStatus == "AA" {
 		if err := c.RunGitCmdFromStr(fmt.Sprintf("checkout --ours --  %s", quotedFileName)); err != nil {
@@ -137,22 +137,22 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 	}
 
 	if file.Added {
-		return c.GetOSCommand().RemoveFile(file.Name)
+		return c.GetOS().RemoveFile(file.Name)
 	}
 	return c.DiscardUnstagedFileChanges(file)
 }
 
-func (c *GitCommand) DiscardAllDirChanges(node *filetree.FileNode) error {
+func (c *Git) DiscardAllDirChanges(node *filetree.FileNode) error {
 	// this could be more efficient but we would need to handle all the edge cases
 	return node.ForEachFile(c.DiscardAllFileChanges)
 }
 
-func (c *GitCommand) DiscardUnstagedDirChanges(node *filetree.FileNode) error {
+func (c *Git) DiscardUnstagedDirChanges(node *filetree.FileNode) error {
 	if err := c.RemoveUntrackedDirFiles(node); err != nil {
 		return err
 	}
 
-	quotedPath := c.GetOSCommand().Quote(node.GetPath())
+	quotedPath := c.GetOS().Quote(node.GetPath())
 	if err := c.RunGitCmdFromStr(fmt.Sprintf("checkout -- %s", quotedPath)); err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (c *GitCommand) DiscardUnstagedDirChanges(node *filetree.FileNode) error {
 	return nil
 }
 
-func (c *GitCommand) RemoveUntrackedDirFiles(node *filetree.FileNode) error {
+func (c *Git) RemoveUntrackedDirFiles(node *filetree.FileNode) error {
 	untrackedFilePaths := node.GetPathsMatching(
 		func(n *filetree.FileNode) bool { return n.File != nil && !n.File.GetIsTracked() },
 	)
@@ -176,20 +176,20 @@ func (c *GitCommand) RemoveUntrackedDirFiles(node *filetree.FileNode) error {
 }
 
 // DiscardUnstagedFileChanges directly
-func (c *GitCommand) DiscardUnstagedFileChanges(file *models.File) error {
-	quotedFileName := c.GetOSCommand().Quote(file.Name)
+func (c *Git) DiscardUnstagedFileChanges(file *models.File) error {
+	quotedFileName := c.GetOS().Quote(file.Name)
 	return c.RunGitCmdFromStr(fmt.Sprintf("checkout -- %s", quotedFileName))
 }
 
 // Ignore adds a file to the gitignore for the repo
-func (c *GitCommand) Ignore(filename string) error {
-	return c.GetOSCommand().AppendLineToFile(".gitignore", filename)
+func (c *Git) Ignore(filename string) error {
+	return c.GetOS().AppendLineToFile(".gitignore", filename)
 }
 
-func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
+func (c *Git) ApplyPatch(patch string, flags ...string) error {
 	filepath := filepath.Join(c.config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	c.log.Infof("saving temporary patch to %s", filepath)
-	if err := c.GetOSCommand().CreateFileWithContent(filepath, patch); err != nil {
+	if err := c.GetOS().CreateFileWithContent(filepath, patch); err != nil {
 		return err
 	}
 
@@ -198,23 +198,23 @@ func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 		flagStr += " --" + flag
 	}
 
-	return c.RunGitCmdFromStr(fmt.Sprintf("apply %s %s", flagStr, c.GetOSCommand().Quote(filepath)))
+	return c.RunGitCmdFromStr(fmt.Sprintf("apply %s %s", flagStr, c.GetOS().Quote(filepath)))
 }
 
 // CheckoutFile checks out the file for the given commit
-func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
+func (c *Git) CheckoutFile(commitSha, fileName string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("checkout %s %s", commitSha, fileName))
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
-func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
+func (c *Git) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
 		return err
 	}
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
 	if err := c.RunGitCmdFromStr(fmt.Sprintf("cat-file -e HEAD^:%s", fileName)); err != nil {
-		if err := c.GetOSCommand().Remove(fileName); err != nil {
+		if err := c.GetOS().Remove(fileName); err != nil {
 			return err
 		}
 		if err := c.StageFile(fileName); err != nil {
@@ -234,22 +234,22 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 }
 
 // DiscardAnyUnstagedFileChanges discards any unstages file changes via `git checkout -- .`
-func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
+func (c *Git) DiscardAnyUnstagedFileChanges() error {
 	return c.RunGitCmdFromStr("checkout -- .")
 }
 
 // RemoveTrackedFiles will delete the given file(s) even if they are currently tracked
-func (c *GitCommand) RemoveTrackedFiles(name string) error {
+func (c *Git) RemoveTrackedFiles(name string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("rm -r --cached %s", name))
 }
 
 // RemoveUntrackedFiles runs `git clean -fd`
-func (c *GitCommand) RemoveUntrackedFiles() error {
+func (c *Git) RemoveUntrackedFiles() error {
 	return c.RunGitCmdFromStr("clean -fd")
 }
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
-func (c *GitCommand) ResetAndClean() error {
+func (c *Git) ResetAndClean() error {
 	submoduleConfigs, err := c.GetSubmoduleConfigs()
 	if err != nil {
 		return err
@@ -268,7 +268,7 @@ func (c *GitCommand) ResetAndClean() error {
 	return c.RemoveUntrackedFiles()
 }
 
-func (c *GitCommand) EditFileCmdObj(filename string) (ICmdObj, error) {
+func (c *Git) EditFileCmdObj(filename string) (ICmdObj, error) {
 	editor := c.config.GetUserConfig().OS.EditCommand
 
 	if editor == "" {
@@ -276,16 +276,16 @@ func (c *GitCommand) EditFileCmdObj(filename string) (ICmdObj, error) {
 	}
 
 	if editor == "" {
-		editor = c.GetOSCommand().Getenv("GIT_EDITOR")
+		editor = c.GetOS().Getenv("GIT_EDITOR")
 	}
 	if editor == "" {
-		editor = c.GetOSCommand().Getenv("VISUAL")
+		editor = c.GetOS().Getenv("VISUAL")
 	}
 	if editor == "" {
-		editor = c.GetOSCommand().Getenv("EDITOR")
+		editor = c.GetOS().Getenv("EDITOR")
 	}
 	if editor == "" {
-		if err := c.GetOSCommand().Run(oscommands.NewCmdObjFromStr("which vi")); err == nil {
+		if err := c.Run(oscommands.NewCmdObjFromStr("which vi")); err == nil {
 			editor = "vi"
 		}
 	}
@@ -293,7 +293,7 @@ func (c *GitCommand) EditFileCmdObj(filename string) (ICmdObj, error) {
 		return nil, errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
-	cmdObj := c.BuildShellCmdObj(fmt.Sprintf("%s %s", editor, c.GetOSCommand().Quote(filename)))
+	cmdObj := c.BuildShellCmdObj(fmt.Sprintf("%s %s", editor, c.GetOS().Quote(filename)))
 
 	return cmdObj, nil
 }

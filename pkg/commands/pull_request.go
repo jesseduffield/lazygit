@@ -19,7 +19,7 @@ type Service struct {
 // with selected branch
 type PullRequest struct {
 	GitServices []*Service
-	GitCommand  *GitCommand
+	Git         *Git
 }
 
 // RepoInformation holds some basic information about the repo
@@ -82,10 +82,10 @@ func getServices(config config.AppConfigurer) []*Service {
 }
 
 // NewPullRequest creates new instance of PullRequest
-func NewPullRequest(gitCommand *GitCommand) *PullRequest {
+func NewPullRequest(gitCommand *Git) *PullRequest {
 	return &PullRequest{
 		GitServices: getServices(gitCommand.config),
-		GitCommand:  gitCommand,
+		Git:         gitCommand,
 	}
 }
 
@@ -96,7 +96,7 @@ func (pr *PullRequest) Create(branch *models.Branch) (string, error) {
 		return "", err
 	}
 
-	return pullRequestURL, pr.GitCommand.GetOSCommand().OpenLink(pullRequestURL)
+	return pullRequestURL, pr.Git.GetOS().OpenLink(pullRequestURL)
 }
 
 // CopyURL copies the pull request URL to the clipboard
@@ -106,17 +106,17 @@ func (pr *PullRequest) CopyURL(branch *models.Branch) (string, error) {
 		return "", err
 	}
 
-	return pullRequestURL, pr.GitCommand.GetOSCommand().CopyToClipboard(pullRequestURL)
+	return pullRequestURL, pr.Git.GetOS().CopyToClipboard(pullRequestURL)
 }
 
 func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) {
-	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(branch)
+	branchExistsOnRemote := pr.Git.CheckRemoteBranchExists(branch)
 
 	if !branchExistsOnRemote {
-		return "", errors.New(pr.GitCommand.tr.NoBranchOnRemote)
+		return "", errors.New(pr.Git.tr.NoBranchOnRemote)
 	}
 
-	repoURL := pr.GitCommand.GetRemoteURL()
+	repoURL := pr.Git.GetRemoteURL()
 	var gitService *Service
 
 	for _, service := range pr.GitServices {
@@ -127,7 +127,7 @@ func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) 
 	}
 
 	if gitService == nil {
-		return "", errors.New(pr.GitCommand.tr.UnsupportedGitService)
+		return "", errors.New(pr.Git.tr.UnsupportedGitService)
 	}
 
 	repoInfo := getRepoInfoFromURL(repoURL)
