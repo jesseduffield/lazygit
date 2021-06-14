@@ -16,7 +16,7 @@
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
-  <kbd>ctrl+s</kbd>: view scoping options
+  <kbd>|</kbd>: view scoping options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
 </pre>

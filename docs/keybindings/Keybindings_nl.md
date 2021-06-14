@@ -16,7 +16,7 @@
   <kbd>+</kbd>: volgende scherm modus (normaal/half/groot)
   <kbd>_</kbd>: vorige scherm modus
   <kbd>:</kbd>: voor aangepaste commando uit
-  <kbd>ctrl+s</kbd>: bekijk scoping opties
+  <kbd>|</kbd>: bekijk scoping opties
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
 </pre>
