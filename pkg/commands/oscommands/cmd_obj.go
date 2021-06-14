@@ -9,8 +9,6 @@ import (
 	"github.com/mgutz/str"
 )
 
-type CredentialsStrategy int
-
 type CmdObj struct {
 	cmdStr string
 	cmd    *exec.Cmd

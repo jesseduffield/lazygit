@@ -77,10 +77,6 @@ func (c *OSCommand) LogCmd(cmd ICmdObj) {
 	c.LogCommand(cmd.ToString(), true)
 }
 
-func (c *OSCommand) LogExecCmd(cmd *exec.Cmd) {
-	c.LogCommand(strings.Join(cmd.Args, " "), true)
-}
-
 func (c *OSCommand) LogCommand(cmdStr string, commandLine bool) {
 	c.Log.WithField("command", cmdStr).Info("RunCommand")
 
