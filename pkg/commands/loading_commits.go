@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/sirupsen/logrus"
 )
@@ -146,9 +146,9 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit
 		passedFirstPushedCommit = true
 	}
 
-	cmd := c.getLogCmd(opts)
+	cmdObj := c.getLogCmdObj(opts)
 
-	err = oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
+	err = oscommands.RunLineOutputCmd(cmdObj, func(line string) (bool, error) {
 		if strings.Split(line, " ")[0] != "gpg:" {
 			commit := c.extractCommitFromLine(line)
 			if commit.Sha == firstPushedCommit {
@@ -349,7 +349,7 @@ func (c *CommitListBuilder) getFirstPushedCommit(refName string) (string, error)
 }
 
 // getLog gets the git log.
-func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
+func (c *CommitListBuilder) getLogCmdObj(opts GetCommitsOptions) ICmdObj {
 	limitFlag := ""
 	if opts.Limit {
 		limitFlag = "-300"
@@ -360,9 +360,9 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 		filterFlag = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(opts.FilterPath))
 	}
 
-	return c.OSCommand.ExecutableFromString(
+	return BuildGitCmdObjFromStr(
 		fmt.Sprintf(
-			"git log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\" %s --abbrev=%d --date=unix %s",
+			"log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\" %s --abbrev=%d --date=unix %s",
 			opts.RefName,
 			SEPARATION_CHAR,
 			SEPARATION_CHAR,

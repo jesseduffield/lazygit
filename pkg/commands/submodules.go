@@ -78,10 +78,6 @@ func (c *GitCommand) SubmoduleReset(submodule *models.SubmoduleConfig) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("submodule update --init --force %s", submodule.Path))
 }
 
-func (c *GitCommand) SubmoduleUpdateAll() error {
-
-}
-
 func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
 

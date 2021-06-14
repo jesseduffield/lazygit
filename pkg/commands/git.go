@@ -380,5 +380,5 @@ func (c *GitCommand) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
 }
 
 func (c *GitCommand) RunGitCmdFromStr(cmdStr string) error {
-	return c.RunGitCmdFromStr(cmdStr)
+	return c.RunExecutable(BuildGitCmdObjFromStr(cmdStr))
 }

@@ -271,25 +271,23 @@ func (c *OSCommand) GetLazygitPath() string {
 }
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
-func (c *OSCommand) PipeCommands(commandStrings ...string) error {
-	cmds := make([]*exec.Cmd, len(commandStrings))
+func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
 	logCmdStr := ""
-	for i, str := range commandStrings {
+	for i, cmdObj := range cmdObjs {
 		if i > 0 {
 			logCmdStr += " | "
 		}
-		logCmdStr += str
-		cmds[i] = c.ExecutableFromString(str)
+		logCmdStr += cmdObj.ToString()
 	}
 	c.LogCommand(logCmdStr, true)
 
-	for i := 0; i < len(cmds)-1; i++ {
-		stdout, err := cmds[i].StdoutPipe()
+	for i := 0; i < len(cmdObjs)-1; i++ {
+		stdout, err := cmdObjs[i].GetCmd().StdoutPipe()
 		if err != nil {
 			return err
 		}
 
-		cmds[i+1].Stdin = stdout
+		cmdObjs[i+1].GetCmd().Stdin = stdout
 	}
 
 	// keeping this here in case I adapt this code for some other purpose in the future
@@ -298,10 +296,10 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 	finalErrors := []string{}
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(cmds))
+	wg.Add(len(cmdObjs))
 
-	for _, cmd := range cmds {
-		currentCmd := cmd
+	for _, cmdObj := range cmdObjs {
+		currentCmd := cmdObj.GetCmd()
 		go utils.Safe(func() {
 			stderr, err := currentCmd.StderrPipe()
 			if err != nil {

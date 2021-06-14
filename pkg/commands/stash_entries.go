@@ -40,7 +40,11 @@ func (c *GitCommand) StashSaveStagedChanges(message string) error {
 		return err
 	}
 
-	if err := c.GetOSCommand().PipeCommands("git stash show -p", "git apply -R"); err != nil {
+	err := c.GetOSCommand().PipeCommands(
+		BuildGitCmdObjFromStr("stash show -p"),
+		BuildGitCmdObjFromStr("apply -R"),
+	)
+	if err != nil {
 		return err
 	}
 

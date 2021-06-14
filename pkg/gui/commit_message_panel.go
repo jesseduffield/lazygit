@@ -22,7 +22,7 @@ func (gui *Gui) handleCommitConfirm() error {
 
 	cmdObj := gui.GitCommand.CommitCmdObj(message, flags)
 	gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.Commit))
-	return gui.withGpgHandling(cmdObj.ToString(), gui.Tr.CommittingStatus, func() error {
+	return gui.withGpgHandling(cmdObj, gui.Tr.CommittingStatus, func() error {
 		_ = gui.returnFromContext()
 		gui.clearEditorView(gui.Views.CommitMessage)
 		return nil

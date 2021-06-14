@@ -34,7 +34,7 @@ type IGitCommand interface {
 	RenameBranch(oldName string, newName string) error
 	RenameCommit(name string) error
 	ResetToCommit(sha string, strength string, options ResetToCommitOptions) error
-	CommitCmdStr(message string, flags string) string
+	CommitCmdObj(message string, flags string) ICmdObj
 	GetHeadCommitMessage() (string, error)
 	GetCommitMessage(commitSha string) (string, error)
 	GetCommitMessageFirstLine(sha string) (string, error)
@@ -57,7 +57,6 @@ type IGitCommand interface {
 	DiffEndArgs(from string, to string, reverse bool, path string) string
 	CatFile(fileName string) (string, error)
 	OpenMergeToolCmdObj() ICmdObj
-	OpenMergeTool() error
 	StageFile(fileName string) error
 	StageAll() error
 	UnstageAll() error
@@ -80,7 +79,6 @@ type IGitCommand interface {
 	GetPushToCurrent() bool
 	NewPatchManager() *patch.PatchManager
 	WithSpan(span string) IGitCommand
-	RunCommand(formatString string, formatArgs ...interface{}) error
 	RunExecutable(cmdObj ICmdObj) error
 	GetOSCommand() *oscommands.OSCommand
 	RunCommandWithOutput(cmdObj ICmdObj) (string, error)
@@ -125,7 +123,7 @@ type IGitCommand interface {
 	UpdateRemoteUrl(remoteName string, updatedUrl string) error
 	DeleteRemoteBranch(remoteName string, branchName string) error
 	CheckRemoteBranchExists(branch *models.Branch) bool
-	GetRmoteURL() string
+	GetRemoteURL() string
 	StashDo(index int, method string) error
 	StashSave(message string) error
 	ShowStashEntryCmdObj(index int) ICmdObj
@@ -137,16 +135,15 @@ type IGitCommand interface {
 	GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error)
 	SubmoduleStash(submodule *models.SubmoduleConfig) error
 	SubmoduleReset(submodule *models.SubmoduleConfig) error
-	SubmoduleUpdateAll() error
 	SubmoduleDelete(submodule *models.SubmoduleConfig) error
 	SubmoduleAdd(name string, path string, url string) error
 	SubmoduleUpdateUrl(name string, path string, newUrl string) error
 	SubmoduleInit(path string) error
 	SubmoduleUpdate(path string) error
-	SubmoduleBulkInitCmdStr() string
-	SubmoduleBulkUpdateCmdStr() string
-	SubmoduleForceBulkUpdateCmdStr() string
-	SubmoduleBulkDeinitCmdStr() string
+	SubmoduleBulkInitCmdObj() ICmdObj
+	SubmoduleBulkUpdateCmdObj() ICmdObj
+	SubmoduleForceBulkUpdateCmdObj() ICmdObj
+	SubmoduleBulkDeinitCmdObj() ICmdObj
 	ResetSubmodules(submodules []*models.SubmoduleConfig) error
 	SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error))
 	RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error

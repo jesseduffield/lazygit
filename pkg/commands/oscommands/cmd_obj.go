@@ -4,6 +4,7 @@ import (
 	"os/exec"
 	"strings"
 
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/mgutz/str"
 )
@@ -23,8 +24,10 @@ func (self *CmdObj) ToString() string {
 	return self.cmdStr
 }
 
-func (self *CmdObj) AddEnvVars(vars ...string) {
+func (self *CmdObj) AddEnvVars(vars ...string) ICmdObj {
 	self.cmd.Env = append(self.cmd.Env, vars...)
+
+	return self
 }
 
 func NewCmdObjFromStr(cmdStr string) *CmdObj {

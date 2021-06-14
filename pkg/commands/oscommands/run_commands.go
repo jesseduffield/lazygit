@@ -37,7 +37,8 @@ func (c *OSCommand) RunCommandAndParseOutput(cmdObj ICmdObj, output func(string)
 	return runCommandAndParseOutput(c, cmdObj, output)
 }
 
-func RunLineOutputCmd(cmd *exec.Cmd, onLine func(line string) (bool, error)) error {
+func RunLineOutputCmd(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+	cmd := cmdObj.GetCmd()
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
