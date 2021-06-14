@@ -28,6 +28,7 @@ import (
 	_ "github.com/gdamore/tcell/v2/terminfo/c/cygwin"
 	_ "github.com/gdamore/tcell/v2/terminfo/d/dtterm"
 	_ "github.com/gdamore/tcell/v2/terminfo/e/emacs"
+	_ "github.com/gdamore/tcell/v2/terminfo/f/foot"
 	_ "github.com/gdamore/tcell/v2/terminfo/g/gnome"
 	_ "github.com/gdamore/tcell/v2/terminfo/h/hpterm"
 	_ "github.com/gdamore/tcell/v2/terminfo/k/konsole"

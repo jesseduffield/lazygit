@@ -29,11 +29,11 @@ import (
 	"golang.org/x/term"
 )
 
-// devTty is an implementation of the Tty API based upon /dev/tty.
-type devTty struct {
+// stdIoTty is an implementation of the Tty API based upon stdin/stdout.
+type stdIoTty struct {
 	fd    int
-	f     *os.File
-	of    *os.File // the first open of /dev/tty
+	in    *os.File
+	out   *os.File
 	saved *term.State
 	sig   chan os.Signal
 	cb    func()
@@ -43,19 +43,19 @@ type devTty struct {
 	l     sync.Mutex
 }
 
-func (tty *devTty) Read(b []byte) (int, error) {
-	return tty.f.Read(b)
+func (tty *stdIoTty) Read(b []byte) (int, error) {
+	return tty.in.Read(b)
 }
 
-func (tty *devTty) Write(b []byte) (int, error) {
-	return tty.f.Write(b)
+func (tty *stdIoTty) Write(b []byte) (int, error) {
+	return tty.out.Write(b)
 }
 
-func (tty *devTty) Close() error {
-	return tty.f.Close()
+func (tty *stdIoTty) Close() error {
+	return nil
 }
 
-func (tty *devTty) Start() error {
+func (tty *stdIoTty) Start() error {
 	tty.l.Lock()
 	defer tty.l.Unlock()
 
@@ -69,16 +69,15 @@ func (tty *devTty) Start() error {
 	// we will have up to two separate file handles open on /dev/tty.  (Note that when
 	// using stdin/stdout instead of /dev/tty this problem is not observed.)
 	var err error
-	if tty.f, err = os.OpenFile(tty.dev, os.O_RDWR, 0); err != nil {
-		return err
-	}
-	tty.fd = int(tty.of.Fd())
+	tty.in = os.Stdin
+	tty.out = os.Stdout
+	tty.fd = int(tty.in.Fd())
 
 	if !term.IsTerminal(tty.fd) {
 		return errors.New("device is not a terminal")
 	}
 
-	_ = tty.f.SetReadDeadline(time.Time{})
+	_ = tty.in.SetReadDeadline(time.Time{})
 	saved, err := term.MakeRaw(tty.fd) // also sets vMin and vTime
 	if err != nil {
 		return err
@@ -108,21 +107,21 @@ func (tty *devTty) Start() error {
 	return nil
 }
 
-func (tty *devTty) Drain() error {
-	_ = tty.f.SetReadDeadline(time.Now())
+func (tty *stdIoTty) Drain() error {
+	_ = tty.in.SetReadDeadline(time.Now())
 	if err := tcSetBufParams(tty.fd, 0, 0); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (tty *devTty) Stop() error {
+func (tty *stdIoTty) Stop() error {
 	tty.l.Lock()
 	if err := term.Restore(tty.fd, tty.saved); err != nil {
 		tty.l.Unlock()
 		return err
 	}
-	_ = tty.f.SetReadDeadline(time.Now())
+	_ = tty.in.SetReadDeadline(time.Now())
 
 	signal.Stop(tty.sig)
 	close(tty.stopQ)
@@ -130,13 +129,10 @@ func (tty *devTty) Stop() error {
 
 	tty.wg.Wait()
 
-	// close our tty device -- we'll get another one if we Start again later.
-	_ = tty.f.Close()
-
 	return nil
 }
 
-func (tty *devTty) WindowSize() (int, int, error) {
+func (tty *stdIoTty) WindowSize() (int, int, error) {
 	w, h, err := term.GetSize(tty.fd)
 	if err != nil {
 		return 0, 0, err
@@ -156,34 +152,25 @@ func (tty *devTty) WindowSize() (int, int, error) {
 	return w, h, nil
 }
 
-func (tty *devTty) NotifyResize(cb func()) {
+func (tty *stdIoTty) NotifyResize(cb func()) {
 	tty.l.Lock()
 	tty.cb = cb
 	tty.l.Unlock()
 }
 
-// NewDevTty opens a /dev/tty based Tty.
-func NewDevTty() (Tty, error) {
-	return NewDevTtyFromDev("/dev/tty")
-}
-
-// NewDevTtyFromDev opens a tty device given a path.  This can be useful to bind to other nodes.
-func NewDevTtyFromDev(dev string) (Tty, error) {
-	tty := &devTty{
-		dev: dev,
+// NewStdioTty opens a tty using standard input/output.
+func NewStdIoTty() (Tty, error) {
+	tty := &stdIoTty{
 		sig: make(chan os.Signal),
+		in: os.Stdin,
+		out: os.Stdout,
 	}
 	var err error
-	if tty.of, err = os.OpenFile(dev, os.O_RDWR, 0); err != nil {
-		return nil, err
-	}
-	tty.fd = int(tty.of.Fd())
+	tty.fd = int(tty.in.Fd())
 	if !term.IsTerminal(tty.fd) {
-		_ = tty.f.Close()
 		return nil, errors.New("not a terminal")
 	}
 	if tty.saved, err = term.GetState(tty.fd); err != nil {
-		_ = tty.f.Close()
 		return nil, fmt.Errorf("failed to get state: %w", err)
 	}
 	return tty, nil
