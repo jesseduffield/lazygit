@@ -414,7 +414,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"Default case (ignore whitespace)",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "-w", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--ignore-all-space", "--", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},

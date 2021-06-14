@@ -211,7 +211,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 		colorArg = "never"
 	}
 	if ignoreWhitespace {
-		ignoreWhitespaceArg = "-w"
+		ignoreWhitespaceArg = "--ignore-all-space"
 	}
 
 	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s %s", colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, path)
