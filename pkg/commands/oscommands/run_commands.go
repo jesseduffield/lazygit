@@ -2,14 +2,11 @@ package oscommands
 
 import (
 	"bufio"
-	"os"
-	"os/exec"
 
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
-	"github.com/mgutz/str"
 )
 
-func (c *OSCommand) RunCommandWithOutput(cmdObj ICmdObj) (string, error) {
+func (c *OSCommand) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	c.LogCmd(cmdObj)
 	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
 	if err != nil {
@@ -18,26 +15,18 @@ func (c *OSCommand) RunCommandWithOutput(cmdObj ICmdObj) (string, error) {
 	return output, err
 }
 
-// RunExecutable runs an executable file and returns an error if there was one
-func (c *OSCommand) RunExecutable(cmd ICmdObj) error {
-	_, err := c.RunCommandWithOutput(cmd)
+// Run runs an executable file and returns an error if there was one
+func (c *OSCommand) Run(cmd ICmdObj) error {
+	_, err := c.RunWithOutput(cmd)
 
 	return err
 }
 
-// ExecutableFromString takes a string like `git status` and returns an executable command for it
-func (c *OSCommand) ExecutableFromString(commandStr string) *exec.Cmd {
-	splitCmd := str.ToArgv(commandStr)
-	cmd := c.Command(splitCmd[0], splitCmd[1:]...)
-	cmd.Env = append(os.Environ(), "GIT_OPTIONAL_LOCKS=0")
-	return cmd
+func (c *OSCommand) RunAndParseWords(cmdObj ICmdObj, output func(string) string) error {
+	return runAndParseWords(c, cmdObj, output)
 }
 
-func (c *OSCommand) RunCommandAndParseOutput(cmdObj ICmdObj, output func(string) string) error {
-	return runCommandAndParseOutput(c, cmdObj, output)
-}
-
-func RunLineOutputCmd(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+func RunAndParseLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
 	cmd := cmdObj.GetCmd()
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {

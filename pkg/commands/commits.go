@@ -22,7 +22,7 @@ func (c *GitCommand) ResetToCommit(sha string, strength string, options ResetToC
 	cmdObj := BuildGitCmdObj("reset", []string{sha}, map[string]bool{"--" + strength: true})
 	cmdObj.AddEnvVars(options.EnvVars...)
 
-	return c.GetOSCommand().RunExecutable(cmdObj)
+	return c.GetOSCommand().Run(cmdObj)
 }
 
 func (c *GitCommand) CommitCmdObj(message string, flags string) ICmdObj {
@@ -45,12 +45,12 @@ func (c *GitCommand) CommitCmdObj(message string, flags string) ICmdObj {
 // Get the subject of the HEAD commit
 func (c *GitCommand) GetHeadCommitMessage() (string, error) {
 	cmdObj := BuildGitCmdObjFromStr("log -1 --pretty=%s")
-	message, err := c.GetOSCommand().RunCommandWithOutput(cmdObj)
+	message, err := c.GetOSCommand().RunWithOutput(cmdObj)
 	return strings.TrimSpace(message), err
 }
 
 func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
-	messageWithHeader, err := c.GetOSCommand().RunCommandWithOutput(
+	messageWithHeader, err := c.GetOSCommand().RunWithOutput(
 		BuildGitCmdObjFromStr("rev-list --format=%B --max-count=1 " + commitSha),
 	)
 	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "\n")
@@ -58,14 +58,14 @@ func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
 }
 
 func (c *GitCommand) GetCommitMessageFirstLine(sha string) (string, error) {
-	return c.RunCommandWithOutput(
+	return c.RunWithOutput(
 		BuildGitCmdObjFromStr(fmt.Sprintf("show --no-patch --pretty=format:%%s %s", sha)),
 	)
 }
 
 // AmendHead amends HEAD with whatever is staged in your working tree
 func (c *GitCommand) AmendHead() error {
-	return c.GetOSCommand().RunExecutable(c.AmendHeadCmdObj())
+	return c.GetOSCommand().Run(c.AmendHeadCmdObj())
 }
 
 func (c *GitCommand) AmendHeadCmdObj() ICmdObj {
@@ -98,7 +98,7 @@ func (c *GitCommand) CherryPickCommits(commits []*models.Commit) error {
 		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	return c.RunExecutable(c.PrepareInteractiveRebaseCommand("HEAD", todo, false))
+	return c.Run(c.PrepareInteractiveRebaseCommand("HEAD", todo, false))
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit

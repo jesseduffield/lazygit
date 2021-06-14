@@ -37,7 +37,7 @@ func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, reflogCommi
 }
 
 func (b *BranchListBuilder) obtainBranches() []*models.Branch {
-	output, err := b.GitCommand.RunCommandWithOutput(
+	output, err := b.GitCommand.RunWithOutput(
 		BuildGitCmdObjFromStr(
 			`for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`,
 		),

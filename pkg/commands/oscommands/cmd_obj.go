@@ -30,7 +30,7 @@ func (self *CmdObj) AddEnvVars(vars ...string) ICmdObj {
 	return self
 }
 
-func NewCmdObjFromStr(cmdStr string) *CmdObj {
+func NewCmdObjFromStr(cmdStr string) ICmdObj {
 	args := str.ToArgv(cmdStr)
 	cmd := secureexec.Command(args[0], args[1:]...)
 
@@ -40,7 +40,7 @@ func NewCmdObjFromStr(cmdStr string) *CmdObj {
 	}
 }
 
-func NewCmdObjFromArgs(args []string) *CmdObj {
+func NewCmdObjFromArgs(args []string) ICmdObj {
 	cmd := secureexec.Command(args[0], args[1:]...)
 
 	return &CmdObj{
@@ -49,7 +49,7 @@ func NewCmdObjFromArgs(args []string) *CmdObj {
 	}
 }
 
-func NewCmdObj(cmd *exec.Cmd) *CmdObj {
+func NewCmdObj(cmd *exec.Cmd) ICmdObj {
 	return &CmdObj{
 		cmdStr: strings.Join(cmd.Args, " "),
 		cmd:    cmd,

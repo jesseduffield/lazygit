@@ -54,7 +54,7 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 	var repo *gogit.Repository
 
 	// see what our default push behaviour is
-	output, err := osCommand.RunCommandWithOutput(
+	output, err := osCommand.RunWithOutput(
 		BuildGitCmdObjFromStr("config --get push.default"),
 	)
 	pushToCurrent := false
@@ -221,24 +221,24 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 }
 
 func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
-	return osCommand.RunExecutable(
+	return osCommand.Run(
 		BuildGitCmdObjFromStr("rev-parse --git-dir"),
 	)
 }
 
-func (c *GitCommand) RunExecutable(cmdObj ICmdObj) error {
-	_, err := c.RunCommandWithOutput(cmdObj)
+func (c *GitCommand) Run(cmdObj ICmdObj) error {
+	_, err := c.RunWithOutput(cmdObj)
 	return err
 }
 
-func (c *GitCommand) RunCommandWithOutput(cmdObj ICmdObj) (string, error) {
+func (c *GitCommand) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	// TODO: have this retry logic in other places we run the command
 	waitTime := 50 * time.Millisecond
 	retryCount := 5
 	attempt := 0
 
 	for {
-		output, err := c.GetOSCommand().RunCommandWithOutput(cmdObj)
+		output, err := c.GetOSCommand().RunWithOutput(cmdObj)
 		if err != nil {
 			// if we have an error based on the index lock, we should wait a bit and then retry
 			if strings.Contains(output, ".git/index.lock") {
@@ -380,5 +380,5 @@ func (c *GitCommand) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
 }
 
 func (c *GitCommand) RunGitCmdFromStr(cmdStr string) error {
-	return c.RunExecutable(BuildGitCmdObjFromStr(cmdStr))
+	return c.Run(BuildGitCmdObjFromStr(cmdStr))
 }

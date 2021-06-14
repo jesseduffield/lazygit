@@ -79,9 +79,9 @@ type IGitCommand interface {
 	GetPushToCurrent() bool
 	NewPatchManager() *patch.PatchManager
 	WithSpan(span string) IGitCommand
-	RunExecutable(cmdObj ICmdObj) error
+	Run(cmdObj ICmdObj) error
 	GetOSCommand() *oscommands.OSCommand
-	RunCommandWithOutput(cmdObj ICmdObj) (string, error)
+	RunWithOutput(cmdObj ICmdObj) (string, error)
 	SkipEditor(cmdObj ICmdObj)
 	AllBranchesCmdObj() ICmdObj
 	BuildShellCmdObj(command string) ICmdObj

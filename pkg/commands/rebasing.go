@@ -34,7 +34,7 @@ func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
 		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	return c.RunExecutable(
+	return c.Run(
 		c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo, true),
 	)
 }
@@ -45,7 +45,7 @@ func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, acti
 		return err
 	}
 
-	return c.RunExecutable(c.PrepareInteractiveRebaseCommand(sha, todo, true))
+	return c.Run(c.PrepareInteractiveRebaseCommand(sha, todo, true))
 }
 
 // PrepareInteractiveRebaseCommand returns the command object for an interactive rebase
@@ -185,7 +185,7 @@ func (c *GitCommand) SquashAllAboveFixupCommits(sha string) error {
 	cmdObj := oscommands.NewCmdObjFromStr(fmt.Sprintf("rebase --interactive --autostash --autosquash %s^", sha))
 	c.SkipEditor(cmdObj)
 
-	return c.RunExecutable(cmdObj)
+	return c.Run(cmdObj)
 }
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
@@ -207,7 +207,7 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 		return err
 	}
 
-	if err := c.RunExecutable(c.PrepareInteractiveRebaseCommand(sha, todo, true)); err != nil {
+	if err := c.Run(c.PrepareInteractiveRebaseCommand(sha, todo, true)); err != nil {
 		return err
 	}
 
@@ -216,7 +216,7 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 
 // RebaseBranch interactive rebases onto a branch
 func (c *GitCommand) RebaseBranch(branchName string) error {
-	return c.RunExecutable(c.PrepareInteractiveRebaseCommand(branchName, "", false))
+	return c.Run(c.PrepareInteractiveRebaseCommand(branchName, "", false))
 }
 
 func (c *GitCommand) AbortRebase() error {
@@ -245,7 +245,7 @@ func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command stri
 	))
 	c.SkipEditor(cmdObj)
 
-	err := c.RunExecutable(cmdObj)
+	err := c.Run(cmdObj)
 
 	if err != nil {
 		if !strings.Contains(err.Error(), "no rebase in progress") {

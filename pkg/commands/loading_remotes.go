@@ -11,7 +11,7 @@ import (
 
 func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {
 	// get remote branches
-	remoteBranchesStr, err := c.RunCommandWithOutput(
+	remoteBranchesStr, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr("branch -r"),
 	)
 	if err != nil {

@@ -285,7 +285,7 @@ func (c *GitCommand) EditFileCmdObj(filename string) (ICmdObj, error) {
 		editor = c.GetOSCommand().Getenv("EDITOR")
 	}
 	if editor == "" {
-		if err := c.GetOSCommand().RunExecutable(oscommands.NewCmdObjFromStr("which vi")); err == nil {
+		if err := c.GetOSCommand().Run(oscommands.NewCmdObjFromStr("which vi")); err == nil {
 			editor = "vi"
 		}
 	}

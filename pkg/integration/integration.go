@@ -45,7 +45,7 @@ func RunTests(
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.RunExecutable(
+	err = osCommand.Run(
 		oscommands.NewCmdObjFromStr(
 			fmt.Sprintf("go build -o %s", tempLazygitPath()),
 		),
@@ -188,7 +188,7 @@ func createFixture(testPath, actualDir string) error {
 	osCommand := oscommands.NewDummyOSCommand()
 	bashScriptPath := filepath.Join(testPath, "setup.sh")
 
-	err := osCommand.RunExecutable(
+	err := osCommand.Run(
 		oscommands.NewCmdObj(
 			secureexec.Command("bash", bashScriptPath, actualDir),
 		),
@@ -294,7 +294,7 @@ func generateSnapshot(dir string) (string, error) {
 
 	for _, cmdStr := range cmdStrs {
 		// ignoring error for now. If there's an error it could be that there are no results
-		output, _ := osCommand.RunCommandWithOutput(oscommands.NewCmdObjFromStr(cmdStr))
+		output, _ := osCommand.RunWithOutput(oscommands.NewCmdObjFromStr(cmdStr))
 
 		snapshot += output + "\n"
 	}

@@ -15,7 +15,7 @@ func (c *GitCommand) ConfiguredPager() string {
 	if os.Getenv("PAGER") != "" {
 		return os.Getenv("PAGER")
 	}
-	output, err := c.RunCommandWithOutput(BuildGitCmdObjFromStr("config --get-all core.pager"))
+	output, err := c.RunWithOutput(BuildGitCmdObjFromStr("config --get-all core.pager"))
 	if err != nil {
 		return ""
 	}

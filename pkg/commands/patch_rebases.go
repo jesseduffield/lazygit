@@ -85,7 +85,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	if err := c.RunExecutable(
+	if err := c.Run(
 		c.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true),
 	); err != nil {
 		return err
@@ -214,7 +214,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 
 	head_message, _ := c.GetHeadCommitMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := c.RunExecutable(c.CommitCmdObj(new_message, ""))
+	err := c.Run(c.CommitCmdObj(new_message, ""))
 	if err != nil {
 		return err
 	}

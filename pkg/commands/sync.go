@@ -17,7 +17,7 @@ func (c *GitCommand) SetCredentialHandlers(promptUserForCredential func(Credenti
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
 func (c *GitCommand) RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error {
 	ttyText := ""
-	err := c.oSCommand.RunCommandAndParseOutput(cmdObj, func(word string) string {
+	err := c.oSCommand.RunAndParseWords(cmdObj, func(word string) string {
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]CredentialKind{
@@ -107,7 +107,7 @@ func (c *GitCommand) FetchInBackground(opts FetchOptions) error {
 	cmdObj := GetFetchCommandObj(opts)
 
 	cmdObj = c.FailOnCredentialsRequest(cmdObj)
-	return c.oSCommand.RunExecutable(cmdObj)
+	return c.oSCommand.Run(cmdObj)
 }
 
 func GetFetchCommandObj(opts FetchOptions) ICmdObj {

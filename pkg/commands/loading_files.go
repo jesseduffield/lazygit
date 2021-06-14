@@ -83,7 +83,7 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 		noRenamesFlag = "--no-renames"
 	}
 
-	statusLines, err := c.RunCommandWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("status %s --porcelain -z %s", opts.UntrackedFilesArg, noRenamesFlag)))
+	statusLines, err := c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("status %s --porcelain -z %s", opts.UntrackedFilesArg, noRenamesFlag)))
 	if err != nil {
 		return "", err
 	}

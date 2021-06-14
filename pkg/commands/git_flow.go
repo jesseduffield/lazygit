@@ -15,5 +15,5 @@ func (c *GitCommand) FlowFinish(branchType string, name string) ICmdObj {
 }
 
 func (c *GitCommand) GetGitFlowRegexpConfig() (string, error) {
-	return c.RunCommandWithOutput(BuildGitCmdObjFromStr("config --local --get-regexp gitflow"))
+	return c.RunWithOutput(BuildGitCmdObjFromStr("config --local --get-regexp gitflow"))
 }

@@ -14,7 +14,7 @@ func (c *GitCommand) GetFilesInDiff(from string, to string, reverse bool) ([]*mo
 		reverseFlag = " -R "
 	}
 
-	filenames, err := c.RunCommandWithOutput(
+	filenames, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr(
 			fmt.Sprintf("diff --submodule --no-ext-diff --name-status -z --no-renames %s %s %s", reverseFlag, from, to),
 		),

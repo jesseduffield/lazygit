@@ -12,7 +12,7 @@ import (
 
 // NewBranch create new branch
 func (c *GitCommand) NewBranch(name string, base string) error {
-	return c.RunExecutable(
+	return c.Run(
 		BuildGitCmdObj("checkout", []string{name, base}, map[string]bool{"-b": true}),
 	)
 }
@@ -21,7 +21,7 @@ func (c *GitCommand) NewBranch(name string, base string) error {
 // the first returned string is the name and the second is the displayname
 // e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
 func (c *GitCommand) CurrentBranchName() (string, string, error) {
-	branchName, err := c.RunCommandWithOutput(
+	branchName, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr("symbolic-ref --short HEAD"),
 	)
 
@@ -29,7 +29,7 @@ func (c *GitCommand) CurrentBranchName() (string, string, error) {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-	output, err := c.RunCommandWithOutput(
+	output, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr("branch --contains"),
 	)
 	if err != nil {
@@ -49,7 +49,7 @@ func (c *GitCommand) CurrentBranchName() (string, string, error) {
 
 // DeleteBranch delete branch
 func (c *GitCommand) DeleteBranch(branch string, force bool) error {
-	return c.GetOSCommand().RunExecutable(
+	return c.GetOSCommand().Run(
 		BuildGitCmdObj("branch", []string{branch}, map[string]bool{"-d": !force, "-D": force}),
 	)
 }
@@ -64,18 +64,18 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 	cmdObj := BuildGitCmdObj("checkout", []string{branch}, map[string]bool{"--force": options.Force})
 	cmdObj.AddEnvVars(options.EnvVars...)
 
-	return c.GetOSCommand().RunExecutable(cmdObj)
+	return c.GetOSCommand().Run(cmdObj)
 }
 
 // GetBranchGraph gets the color-formatted graph of the log for the given branch
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	return c.GetOSCommand().RunCommandWithOutput(c.GetBranchGraphCmdObj(branchName))
+	return c.GetOSCommand().RunWithOutput(c.GetBranchGraphCmdObj(branchName))
 }
 
 func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
-	output, err := c.RunCommandWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)))
+	output, err := c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)))
 	return strings.TrimSpace(output), err
 }
 
@@ -111,13 +111,13 @@ func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string
 // GetCommitDifferences checks how many pushables/pullables there are for the
 // current branch
 func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
-	pushableCount, err := c.GetOSCommand().RunCommandWithOutput(
+	pushableCount, err := c.GetOSCommand().RunWithOutput(
 		c.GetCommitDifferenceCmdObj(to, from),
 	)
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.GetOSCommand().RunCommandWithOutput(
+	pullableCount, err := c.GetOSCommand().RunWithOutput(
 		c.GetCommitDifferenceCmdObj(from, to),
 	)
 	if err != nil {

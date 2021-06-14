@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestOSCommandRunCommandWithOutput is a function.
-func TestOSCommandRunCommandWithOutput(t *testing.T) {
+// TestOSCommandRunWithOutput is a function.
+func TestOSCommandRunWithOutput(t *testing.T) {
 	type scenario struct {
 		command string
 		test    func(string, error)
@@ -34,7 +34,7 @@ func TestOSCommandRunCommandWithOutput(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOSCommand().RunCommandWithOutput(s.command))
+		s.test(NewDummyOSCommand().RunWithOutput(s.command))
 	}
 }
 

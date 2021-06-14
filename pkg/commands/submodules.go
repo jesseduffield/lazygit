@@ -161,5 +161,5 @@ func (c *GitCommand) ResetSubmodules(submodules []*models.SubmoduleConfig) error
 		}
 	}
 
-	return c.RunExecutable(c.SubmoduleForceBulkUpdateCmdObj())
+	return c.Run(c.SubmoduleForceBulkUpdateCmdObj())
 }

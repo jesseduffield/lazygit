@@ -227,7 +227,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, utils.ColoredString(bulkInitCmdObj.ToString(), color.FgGreen)},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).RunExecutable(bulkInitCmdObj); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).Run(bulkInitCmdObj); err != nil {
 						return gui.SurfaceError(err)
 					}
 
@@ -239,7 +239,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, utils.ColoredString(bulkUpdateCmdObj.ToString(), color.FgYellow)},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).RunExecutable(bulkUpdateCmdObj); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).Run(bulkUpdateCmdObj); err != nil {
 						return gui.SurfaceError(err)
 					}
 
@@ -263,7 +263,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, utils.ColoredString(bulkDeinitCmdObj.ToString(), color.FgRed)},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).RunExecutable(bulkDeinitCmdObj); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).Run(bulkDeinitCmdObj); err != nil {
 						return gui.SurfaceError(err)
 					}
 

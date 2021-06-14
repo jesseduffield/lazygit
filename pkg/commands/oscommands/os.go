@@ -116,17 +116,6 @@ func (c *OSCommand) CatFile(filename string) (string, error) {
 	return output, err
 }
 
-// RunCommand runs a command and just returns the error
-func (c *OSCommand) RunCommand(formatString string, formatArgs ...interface{}) error {
-	cmdStr := formatString
-	if len(formatArgs) > 0 {
-		cmdStr = fmt.Sprintf(cmdStr, formatArgs)
-	}
-
-	_, err := c.RunCommandWithOutput(NewCmdObjFromStr(cmdStr))
-	return err
-}
-
 // FileType tells us if the file is a file, directory or other
 func (c *OSCommand) FileType(path string) string {
 	fileInfo, err := os.Stat(path)
@@ -160,7 +149,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 	}
 
 	cmdStr := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.RunExecutable(NewCmdObjFromStr(cmdStr))
+	return c.Run(NewCmdObjFromStr(cmdStr))
 }
 
 // OpenLink opens a file with the given
@@ -172,7 +161,7 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	cmdStr := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.RunExecutable(NewCmdObjFromStr(cmdStr))
+	return c.Run(NewCmdObjFromStr(cmdStr))
 }
 
 // Quote wraps a message in platform-specific quotation marks
