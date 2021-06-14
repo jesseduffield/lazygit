@@ -3,6 +3,7 @@
 ## Globale Sneltoetsen
 
 <pre>
+  <kbd>ctrl+r</kbd>: wissel naar een recente repo (<c-r>)
   <kbd>pgup</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+up)
   <kbd>pgdown</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+down)
   <kbd>m</kbd>: bekijk merge/rebase opties
@@ -19,6 +20,7 @@
   <kbd>|</kbd>: bekijk scoping opties
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
+  <kbd>@</kbd>: open command log menu
 </pre>
 
 ## Lijstpaneel Navigatie
@@ -109,8 +111,8 @@
   <kbd>o</kbd>: open bestand
   <kbd>e</kbd>: verander bestand
   <kbd>space</kbd>: toggle bestand inbegrepen in patch
-  <kbd>enter</kbd>: enter bestand to add selecteered lines to the patch
-  <kbd>`</kbd>: toggle file tree view
+  <kbd>enter</kbd>: enter bestand om geselecteerde regels toe te voegen aan de patch
+  <kbd>`</kbd>: toggle bestandsboom weergave
 </pre>
 
 ## Commits Paneel (Commits)
@@ -154,6 +156,12 @@
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
 </pre>
 
+## Extras Paneel
+
+<pre>
+  <kbd>@</kbd>: open command log menu
+</pre>
+
 ## Bestanden Paneel (Bestanden)
 
 <pre>
@@ -176,6 +184,7 @@
   <kbd>ctrl+o</kbd>: kopieer de bestandsnaam naar het klembord
   <kbd>g</kbd>: bekijk upstream reset opties
   <kbd>`</kbd>: toggle bestandsboom weergave
+  <kbd>M</kbd>: open external merge tool (git mergetool)
 </pre>
 
 ## Bestanden Paneel (Submodules)
@@ -195,6 +204,7 @@
 
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
+  <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>space</kbd>: kies hunk
   <kbd>b</kbd>: kies bijde hunks
   <kbd>◄</kbd>: selecteer voorgaand conflict
