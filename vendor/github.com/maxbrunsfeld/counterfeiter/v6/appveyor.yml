@@ -1,0 +1,25 @@
+platform: x64
+shallow_clone: true
+clone_depth: 10
+clone_folder: c:\projects\counterfeiter
+image: Visual Studio 2019
+stack: go 1.16
+
+environment:
+  GOPATH: c:\gopath
+  COUNTERFEITER_NO_GENERATE_WARNING: true
+
+before_test:
+  - go vet ./...
+
+test_script:
+  - go install .
+  - copy scripts\counterfeiter.bat c:\gopath\bin
+  - set PATH=c:\gopath\bin;c:\go\bin;C:\msys64\mingw64\bin;C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin;%PATH%
+  - go version
+  - go generate ./...
+  - go build ./...
+  - go test -race ./...
+
+build: off
+deploy: off
