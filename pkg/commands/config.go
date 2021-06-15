@@ -12,8 +12,15 @@ import (
 
 type getGitConfigValueFunc func(key string) (string, error)
 
-type GitConfig struct {
-	commander *Commander
+type IGitConfig interface {
+	GetPager(width int) string
+	ColorArg() string
+	GetConfigValue(key string) string
+	UsingGpg() bool
+}
+
+type GitConfigMgr struct {
+	commander ICommander
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	pushToCurrent bool
@@ -22,8 +29,8 @@ type GitConfig struct {
 	getGitConfigValue getGitConfigValueFunc
 }
 
-func NewGitConfig(commander *Commander, userConfig *config.UserConfig, getGitConfigValue getGitConfigValueFunc, log *logrus.Entry) *GitConfig {
-	gitConfig := &GitConfig{
+func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, getGitConfigValue getGitConfigValueFunc, log *logrus.Entry) *GitConfigMgr {
+	gitConfig := &GitConfigMgr{
 		commander:         commander,
 		getGitConfigValue: getGitConfigValue,
 		userConfig:        userConfig,
@@ -44,7 +51,7 @@ func NewGitConfig(commander *Commander, userConfig *config.UserConfig, getGitCon
 	return gitConfig
 }
 
-func (c *GitConfig) GetPager(width int) string {
+func (c *GitConfigMgr) GetPager(width int) string {
 	useConfig := c.userConfig.Git.Paging.UseConfig
 	if useConfig {
 		pager := c.configuredPager()
@@ -59,16 +66,16 @@ func (c *GitConfig) GetPager(width int) string {
 	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
 }
 
-func (c *GitConfig) colorArg() string {
+func (c *GitConfigMgr) ColorArg() string {
 	return c.userConfig.Git.Paging.ColorArg
 }
 
-func (c *GitConfig) GetConfigValue(key string) string {
+func (c *GitConfigMgr) GetConfigValue(key string) string {
 	output, _ := c.getGitConfigValue(key)
 	return output
 }
 
-func (c *GitConfig) configuredPager() string {
+func (c *GitConfigMgr) configuredPager() string {
 	if os.Getenv("GIT_PAGER") != "" {
 		return os.Getenv("GIT_PAGER")
 	}
@@ -85,7 +92,7 @@ func (c *GitConfig) configuredPager() string {
 
 // UsingGpg tells us whether the user has gpg enabled so that we can know
 // whether we need to run a subprocess to allow them to enter their password
-func (c *GitConfig) UsingGpg() bool {
+func (c *GitConfigMgr) UsingGpg() bool {
 	overrideGpg := c.userConfig.Git.OverrideGpg
 	if overrideGpg {
 		return false

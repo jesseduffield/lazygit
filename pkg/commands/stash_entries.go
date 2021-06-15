@@ -21,7 +21,7 @@ func (c *Git) StashSave(message string) error {
 // GetStashEntryDiff stash diff
 func (c *Git) ShowStashEntryCmdObj(index int) ICmdObj {
 	return BuildGitCmdObjFromStr(
-		fmt.Sprintf("stash show -p --stat --color=%s stash@{%d}", c.colorArg(), index),
+		fmt.Sprintf("stash show -p --stat --color=%s stash@{%d}", c.ColorArg(), index),
 	)
 }
 

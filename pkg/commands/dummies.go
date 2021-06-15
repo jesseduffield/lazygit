@@ -12,8 +12,8 @@ func NewDummyGit() *Git {
 	return NewDummyGitWithOS(oscommands.NewDummyOS())
 }
 
-func NewDummyGitConfig() *GitConfig {
-	return &GitConfig{
+func NewDummyGitConfig() *GitConfigMgr {
+	return &GitConfigMgr{
 		getGitConfigValue: func(string) (string, error) { return "", nil },
 	}
 }
@@ -21,10 +21,10 @@ func NewDummyGitConfig() *GitConfig {
 // NewDummyGitWithOS creates a new dummy Git for testing
 func NewDummyGitWithOS(oS *oscommands.OS) *Git {
 	return &Git{
-		GitConfig: &GitConfig{},
-		log:       utils.NewDummyLog(),
-		os:        oS,
-		tr:        i18n.NewTranslationSet(utils.NewDummyLog()),
-		config:    config.NewDummyAppConfig(),
+		GitConfigMgr: &GitConfigMgr{},
+		log:          utils.NewDummyLog(),
+		os:           oS,
+		tr:           i18n.NewTranslationSet(utils.NewDummyLog()),
+		config:       config.NewDummyAppConfig(),
 	}
 }

@@ -1,70 +1,69 @@
-package commands
+package commands_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	. "github.com/jesseduffield/lazygit/pkg/commands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
 )
 
-// TestGitCommandUsingGpg is a function.
-func TestGitCommandUsingGpg(t *testing.T) {
-	type scenario struct {
-		testName          string
+var _ = Describe("GitConfigMgr", func() {
+	var (
+		commander         *FakeICommander
+		userConfig        *config.UserConfig
+		gitconfig         *GitConfigMgr
 		getGitConfigValue func(string) (string, error)
-		test              func(bool)
-	}
+	)
 
-	scenarios := []scenario{
-		{
-			"Option global and local config commit.gpgsign is not set",
-			func(string) (string, error) { return "", nil },
-			func(gpgEnabled bool) {
-				assert.False(t, gpgEnabled)
-			},
-		},
-		{
-			"Option commit.gpgsign is true",
-			func(string) (string, error) {
-				return "True", nil
-			},
-			func(gpgEnabled bool) {
-				assert.True(t, gpgEnabled)
-			},
-		},
-		{
-			"Option commit.gpgsign is on",
-			func(string) (string, error) {
-				return "ON", nil
-			},
-			func(gpgEnabled bool) {
-				assert.True(t, gpgEnabled)
-			},
-		},
-		{
-			"Option commit.gpgsign is yes",
-			func(string) (string, error) {
-				return "YeS", nil
-			},
-			func(gpgEnabled bool) {
-				assert.True(t, gpgEnabled)
-			},
-		},
-		{
-			"Option commit.gpgsign is 1",
-			func(string) (string, error) {
-				return "1", nil
-			},
-			func(gpgEnabled bool) {
-				assert.True(t, gpgEnabled)
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGit()
-			gitCmd.getGitConfigValue = s.getGitConfigValue
-			s.test(gitCmd.UsingGpg())
+	BeforeEach(func() {
+		commander = &FakeICommander{}
+		commander.BuildGitCmdObjFromStrCalls(func(command string) ICmdObj {
+			return oscommands.NewCmdObjFromStr("git " + command)
 		})
-	}
-}
+		commander.RunGitCmdFromStrCalls(func(command string) error {
+			return commander.Run(commander.BuildGitCmdObjFromStr((command)))
+		})
+		userConfig = &config.UserConfig{}
+		getGitConfigValue = func(string) (string, error) { return "", nil }
+		gitconfig = NewGitConfigMgr(commander, userConfig, getGitConfigValue, nil)
+	})
+
+	Describe("UsingGpg", func() {
+		Context("user has overridden GPG in their config", func() {
+			BeforeEach(func() {
+				userConfig.Git.OverrideGpg = true
+			})
+
+			It("returns false", func() {
+				Expect(gitconfig.UsingGpg()).To(BeFalse())
+			})
+		})
+
+		Context("user has not overridden GPG in their config", func() {
+			BeforeEach(func() {
+				userConfig.Git.OverrideGpg = false
+			})
+
+			DescribeTable("CommitCmdObj",
+				func(result string, expected bool) {
+					getGitConfigValue = func(input string) (string, error) {
+						Expect(input).To(Equal("commit.gpgsign"))
+						return result, nil
+					}
+
+					gitconfig = NewGitConfigMgr(commander, userConfig, getGitConfigValue, nil)
+					Expect(gitconfig.UsingGpg()).To(Equal(expected))
+				},
+				Entry("when returning true", "true", true),
+				Entry("when returning 1", "1", true),
+				Entry("when returning yes", "yes", true),
+				Entry("when returning True (capitalised)", "True", true),
+				Entry("when returning false", "false", false),
+			)
+		})
+	})
+})

@@ -31,7 +31,7 @@ const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 // Git is our main git interface
 type Git struct {
 	*Commander
-	*GitConfig
+	*GitConfigMgr
 	commitsMgr           *CommitsMgr
 	log                  *logrus.Entry
 	os                   *oscommands.OS
@@ -66,19 +66,19 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	}
 
 	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath())
-	gitConfig := NewGitConfig(commander, config.GetUserConfig(), getGitConfigValue, log)
+	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), getGitConfigValue, log)
 	commitsMgr := NewCommitsMgr(commander, gitConfig, oS.Quote)
 
 	gitCommand := &Git{
-		Commander:  commander,
-		GitConfig:  gitConfig,
-		commitsMgr: commitsMgr,
-		log:        log,
-		os:         oS,
-		tr:         tr,
-		repo:       repo,
-		config:     config,
-		dotGitDir:  dotGitDir,
+		Commander:    commander,
+		GitConfigMgr: gitConfig,
+		commitsMgr:   commitsMgr,
+		log:          log,
+		os:           oS,
+		tr:           tr,
+		repo:         repo,
+		config:       config,
+		dotGitDir:    dotGitDir,
 	}
 
 	return gitCommand, nil

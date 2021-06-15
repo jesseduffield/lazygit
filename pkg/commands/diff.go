@@ -21,7 +21,7 @@ func (c *Git) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool)
 	if plain {
 		colorArg = "never"
 	} else {
-		colorArg = c.colorArg()
+		colorArg = c.ColorArg()
 	}
 
 	trackedArg := "--"
@@ -53,7 +53,7 @@ func (c *Git) ShowFileDiff(from string, to string, reverse bool, fileName string
 
 // we may just want to always hide renames, or always show renames. I've combined two functions that were both identical except for that flag here, but I doubt that flag was particularly important.
 func (c *Git) ShowFileDiffCmdObj(from string, to string, reverse bool, path string, plain bool, showRenames bool) ICmdObj {
-	colorArg := c.colorArg()
+	colorArg := c.ColorArg()
 	if plain {
 		colorArg = "never"
 	}

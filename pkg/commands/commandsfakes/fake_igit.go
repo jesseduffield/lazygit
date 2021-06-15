@@ -57,26 +57,6 @@ type FakeIGit struct {
 	allBranchesCmdObjReturnsOnCall map[int]struct {
 		result1 types.ICmdObj
 	}
-	AmendHeadStub        func() error
-	amendHeadMutex       sync.RWMutex
-	amendHeadArgsForCall []struct {
-	}
-	amendHeadReturns struct {
-		result1 error
-	}
-	amendHeadReturnsOnCall map[int]struct {
-		result1 error
-	}
-	AmendHeadCmdObjStub        func() types.ICmdObj
-	amendHeadCmdObjMutex       sync.RWMutex
-	amendHeadCmdObjArgsForCall []struct {
-	}
-	amendHeadCmdObjReturns struct {
-		result1 types.ICmdObj
-	}
-	amendHeadCmdObjReturnsOnCall map[int]struct {
-		result1 types.ICmdObj
-	}
 	AmendToStub        func(string) error
 	amendToMutex       sync.RWMutex
 	amendToArgsForCall []struct {
@@ -208,27 +188,15 @@ type FakeIGit struct {
 	cherryPickCommitsReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CommitCmdObjStub        func(string, string) types.ICmdObj
-	commitCmdObjMutex       sync.RWMutex
-	commitCmdObjArgsForCall []struct {
-		arg1 string
-		arg2 string
+	CommitsStub        func() commands.ICommitsMgr
+	commitsMutex       sync.RWMutex
+	commitsArgsForCall []struct {
 	}
-	commitCmdObjReturns struct {
-		result1 types.ICmdObj
+	commitsReturns struct {
+		result1 commands.ICommitsMgr
 	}
-	commitCmdObjReturnsOnCall map[int]struct {
-		result1 types.ICmdObj
-	}
-	ConfiguredPagerStub        func() string
-	configuredPagerMutex       sync.RWMutex
-	configuredPagerArgsForCall []struct {
-	}
-	configuredPagerReturns struct {
-		result1 string
-	}
-	configuredPagerReturnsOnCall map[int]struct {
-		result1 string
+	commitsReturnsOnCall map[int]struct {
+		result1 commands.ICommitsMgr
 	}
 	ContinueRebaseStub        func() error
 	continueRebaseMutex       sync.RWMutex
@@ -238,17 +206,6 @@ type FakeIGit struct {
 		result1 error
 	}
 	continueRebaseReturnsOnCall map[int]struct {
-		result1 error
-	}
-	CreateFixupCommitStub        func(string) error
-	createFixupCommitMutex       sync.RWMutex
-	createFixupCommitArgsForCall []struct {
-		arg1 string
-	}
-	createFixupCommitReturns struct {
-		result1 error
-	}
-	createFixupCommitReturnsOnCall map[int]struct {
 		result1 error
 	}
 	CreateLightweightTagStub        func(string, string) error
@@ -431,17 +388,6 @@ type FakeIGit struct {
 	editRebaseTodoReturnsOnCall map[int]struct {
 		result1 error
 	}
-	FailOnCredentialsRequestStub        func(types.ICmdObj) types.ICmdObj
-	failOnCredentialsRequestMutex       sync.RWMutex
-	failOnCredentialsRequestArgsForCall []struct {
-		arg1 types.ICmdObj
-	}
-	failOnCredentialsRequestReturns struct {
-		result1 types.ICmdObj
-	}
-	failOnCredentialsRequestReturnsOnCall map[int]struct {
-		result1 types.ICmdObj
-	}
 	FastForwardStub        func(string, string, string) error
 	fastForwardMutex       sync.RWMutex
 	fastForwardArgsForCall []struct {
@@ -622,18 +568,6 @@ type FakeIGit struct {
 		result1 string
 		result2 string
 	}
-	GetCommitDifferenceCmdObjStub        func(string, string) types.ICmdObj
-	getCommitDifferenceCmdObjMutex       sync.RWMutex
-	getCommitDifferenceCmdObjArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	getCommitDifferenceCmdObjReturns struct {
-		result1 types.ICmdObj
-	}
-	getCommitDifferenceCmdObjReturnsOnCall map[int]struct {
-		result1 types.ICmdObj
-	}
 	GetCommitDifferencesStub        func(string, string) (string, string)
 	getCommitDifferencesMutex       sync.RWMutex
 	getCommitDifferencesArgsForCall []struct {
@@ -647,32 +581,6 @@ type FakeIGit struct {
 	getCommitDifferencesReturnsOnCall map[int]struct {
 		result1 string
 		result2 string
-	}
-	GetCommitMessageStub        func(string) (string, error)
-	getCommitMessageMutex       sync.RWMutex
-	getCommitMessageArgsForCall []struct {
-		arg1 string
-	}
-	getCommitMessageReturns struct {
-		result1 string
-		result2 error
-	}
-	getCommitMessageReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
-	GetCommitMessageFirstLineStub        func(string) (string, error)
-	getCommitMessageFirstLineMutex       sync.RWMutex
-	getCommitMessageFirstLineArgsForCall []struct {
-		arg1 string
-	}
-	getCommitMessageFirstLineReturns struct {
-		result1 string
-		result2 error
-	}
-	getCommitMessageFirstLineReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
 	}
 	GetConfigValueStub        func(string) string
 	getConfigValueMutex       sync.RWMutex
@@ -721,18 +629,6 @@ type FakeIGit struct {
 		result2 error
 	}
 	getGitFlowRegexpConfigReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
-	GetHeadCommitMessageStub        func() (string, error)
-	getHeadCommitMessageMutex       sync.RWMutex
-	getHeadCommitMessageArgsForCall []struct {
-	}
-	getHeadCommitMessageReturns struct {
-		result1 string
-		result2 error
-	}
-	getHeadCommitMessageReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
 	}
@@ -912,6 +808,19 @@ type FakeIGit struct {
 	interactiveRebaseReturnsOnCall map[int]struct {
 		result1 error
 	}
+	InteractiveRebaseCmdObjStub        func(string, string, bool) types.ICmdObj
+	interactiveRebaseCmdObjMutex       sync.RWMutex
+	interactiveRebaseCmdObjArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 bool
+	}
+	interactiveRebaseCmdObjReturns struct {
+		result1 types.ICmdObj
+	}
+	interactiveRebaseCmdObjReturnsOnCall map[int]struct {
+		result1 types.ICmdObj
+	}
 	IsBareRepoStub        func() bool
 	isBareRepoMutex       sync.RWMutex
 	isBareRepoArgsForCall []struct {
@@ -1049,19 +958,6 @@ type FakeIGit struct {
 	openMergeToolCmdObjReturnsOnCall map[int]struct {
 		result1 types.ICmdObj
 	}
-	PrepareInteractiveRebaseCommandStub        func(string, string, bool) types.ICmdObj
-	prepareInteractiveRebaseCommandMutex       sync.RWMutex
-	prepareInteractiveRebaseCommandArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 bool
-	}
-	prepareInteractiveRebaseCommandReturns struct {
-		result1 types.ICmdObj
-	}
-	prepareInteractiveRebaseCommandReturnsOnCall map[int]struct {
-		result1 types.ICmdObj
-	}
 	PullPatchIntoNewCommitStub        func([]*models.Commit, int, *patch.PatchManager) error
 	pullPatchIntoNewCommitMutex       sync.RWMutex
 	pullPatchIntoNewCommitArgsForCall []struct {
@@ -1178,17 +1074,6 @@ type FakeIGit struct {
 	renameBranchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	RenameCommitStub        func(string) error
-	renameCommitMutex       sync.RWMutex
-	renameCommitArgsForCall []struct {
-		arg1 string
-	}
-	renameCommitReturns struct {
-		result1 error
-	}
-	renameCommitReturnsOnCall map[int]struct {
-		result1 error
-	}
 	RenameRemoteStub        func(string, string) error
 	renameRemoteMutex       sync.RWMutex
 	renameRemoteArgsForCall []struct {
@@ -1255,40 +1140,17 @@ type FakeIGit struct {
 	resetSubmodulesReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ResetToCommitStub        func(string, string, commands.ResetToCommitOptions) error
-	resetToCommitMutex       sync.RWMutex
-	resetToCommitArgsForCall []struct {
+	ResetToRefStub        func(string, string, commands.ResetToCommitOptions) error
+	resetToRefMutex       sync.RWMutex
+	resetToRefArgsForCall []struct {
 		arg1 string
 		arg2 string
 		arg3 commands.ResetToCommitOptions
 	}
-	resetToCommitReturns struct {
+	resetToRefReturns struct {
 		result1 error
 	}
-	resetToCommitReturnsOnCall map[int]struct {
-		result1 error
-	}
-	RevertStub        func(string) error
-	revertMutex       sync.RWMutex
-	revertArgsForCall []struct {
-		arg1 string
-	}
-	revertReturns struct {
-		result1 error
-	}
-	revertReturnsOnCall map[int]struct {
-		result1 error
-	}
-	RevertMergeStub        func(string, int) error
-	revertMergeMutex       sync.RWMutex
-	revertMergeArgsForCall []struct {
-		arg1 string
-		arg2 int
-	}
-	revertMergeReturns struct {
-		result1 error
-	}
-	revertMergeReturnsOnCall map[int]struct {
+	resetToRefReturnsOnCall map[int]struct {
 		result1 error
 	}
 	RunStub        func(types.ICmdObj) error
@@ -1300,28 +1162,6 @@ type FakeIGit struct {
 		result1 error
 	}
 	runReturnsOnCall map[int]struct {
-		result1 error
-	}
-	RunCommandWithCredentialsHandlingStub        func(types.ICmdObj) error
-	runCommandWithCredentialsHandlingMutex       sync.RWMutex
-	runCommandWithCredentialsHandlingArgsForCall []struct {
-		arg1 types.ICmdObj
-	}
-	runCommandWithCredentialsHandlingReturns struct {
-		result1 error
-	}
-	runCommandWithCredentialsHandlingReturnsOnCall map[int]struct {
-		result1 error
-	}
-	RunCommandWithCredentialsPromptStub        func(types.ICmdObj) error
-	runCommandWithCredentialsPromptMutex       sync.RWMutex
-	runCommandWithCredentialsPromptArgsForCall []struct {
-		arg1 types.ICmdObj
-	}
-	runCommandWithCredentialsPromptReturns struct {
-		result1 error
-	}
-	runCommandWithCredentialsPromptReturnsOnCall map[int]struct {
 		result1 error
 	}
 	RunGitCmdFromStrStub        func(string) error
@@ -1377,18 +1217,6 @@ type FakeIGit struct {
 	}
 	setUpstreamBranchReturnsOnCall map[int]struct {
 		result1 error
-	}
-	ShowCmdObjStub        func(string, string) types.ICmdObj
-	showCmdObjMutex       sync.RWMutex
-	showCmdObjArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	showCmdObjReturns struct {
-		result1 types.ICmdObj
-	}
-	showCmdObjReturnsOnCall map[int]struct {
-		result1 types.ICmdObj
 	}
 	ShowFileDiffStub        func(string, string, bool, string, bool) (string, error)
 	showFileDiffMutex       sync.RWMutex
@@ -1938,112 +1766,6 @@ func (fake *FakeIGit) AllBranchesCmdObjReturnsOnCall(i int, result1 types.ICmdOb
 		})
 	}
 	fake.allBranchesCmdObjReturnsOnCall[i] = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) AmendHead() error {
-	fake.amendHeadMutex.Lock()
-	ret, specificReturn := fake.amendHeadReturnsOnCall[len(fake.amendHeadArgsForCall)]
-	fake.amendHeadArgsForCall = append(fake.amendHeadArgsForCall, struct {
-	}{})
-	stub := fake.AmendHeadStub
-	fakeReturns := fake.amendHeadReturns
-	fake.recordInvocation("AmendHead", []interface{}{})
-	fake.amendHeadMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) AmendHeadCallCount() int {
-	fake.amendHeadMutex.RLock()
-	defer fake.amendHeadMutex.RUnlock()
-	return len(fake.amendHeadArgsForCall)
-}
-
-func (fake *FakeIGit) AmendHeadCalls(stub func() error) {
-	fake.amendHeadMutex.Lock()
-	defer fake.amendHeadMutex.Unlock()
-	fake.AmendHeadStub = stub
-}
-
-func (fake *FakeIGit) AmendHeadReturns(result1 error) {
-	fake.amendHeadMutex.Lock()
-	defer fake.amendHeadMutex.Unlock()
-	fake.AmendHeadStub = nil
-	fake.amendHeadReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) AmendHeadReturnsOnCall(i int, result1 error) {
-	fake.amendHeadMutex.Lock()
-	defer fake.amendHeadMutex.Unlock()
-	fake.AmendHeadStub = nil
-	if fake.amendHeadReturnsOnCall == nil {
-		fake.amendHeadReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.amendHeadReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) AmendHeadCmdObj() types.ICmdObj {
-	fake.amendHeadCmdObjMutex.Lock()
-	ret, specificReturn := fake.amendHeadCmdObjReturnsOnCall[len(fake.amendHeadCmdObjArgsForCall)]
-	fake.amendHeadCmdObjArgsForCall = append(fake.amendHeadCmdObjArgsForCall, struct {
-	}{})
-	stub := fake.AmendHeadCmdObjStub
-	fakeReturns := fake.amendHeadCmdObjReturns
-	fake.recordInvocation("AmendHeadCmdObj", []interface{}{})
-	fake.amendHeadCmdObjMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) AmendHeadCmdObjCallCount() int {
-	fake.amendHeadCmdObjMutex.RLock()
-	defer fake.amendHeadCmdObjMutex.RUnlock()
-	return len(fake.amendHeadCmdObjArgsForCall)
-}
-
-func (fake *FakeIGit) AmendHeadCmdObjCalls(stub func() types.ICmdObj) {
-	fake.amendHeadCmdObjMutex.Lock()
-	defer fake.amendHeadCmdObjMutex.Unlock()
-	fake.AmendHeadCmdObjStub = stub
-}
-
-func (fake *FakeIGit) AmendHeadCmdObjReturns(result1 types.ICmdObj) {
-	fake.amendHeadCmdObjMutex.Lock()
-	defer fake.amendHeadCmdObjMutex.Unlock()
-	fake.AmendHeadCmdObjStub = nil
-	fake.amendHeadCmdObjReturns = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) AmendHeadCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
-	fake.amendHeadCmdObjMutex.Lock()
-	defer fake.amendHeadCmdObjMutex.Unlock()
-	fake.AmendHeadCmdObjStub = nil
-	if fake.amendHeadCmdObjReturnsOnCall == nil {
-		fake.amendHeadCmdObjReturnsOnCall = make(map[int]struct {
-			result1 types.ICmdObj
-		})
-	}
-	fake.amendHeadCmdObjReturnsOnCall[i] = struct {
 		result1 types.ICmdObj
 	}{result1}
 }
@@ -2742,77 +2464,15 @@ func (fake *FakeIGit) CherryPickCommitsReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) CommitCmdObj(arg1 string, arg2 string) types.ICmdObj {
-	fake.commitCmdObjMutex.Lock()
-	ret, specificReturn := fake.commitCmdObjReturnsOnCall[len(fake.commitCmdObjArgsForCall)]
-	fake.commitCmdObjArgsForCall = append(fake.commitCmdObjArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.CommitCmdObjStub
-	fakeReturns := fake.commitCmdObjReturns
-	fake.recordInvocation("CommitCmdObj", []interface{}{arg1, arg2})
-	fake.commitCmdObjMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) CommitCmdObjCallCount() int {
-	fake.commitCmdObjMutex.RLock()
-	defer fake.commitCmdObjMutex.RUnlock()
-	return len(fake.commitCmdObjArgsForCall)
-}
-
-func (fake *FakeIGit) CommitCmdObjCalls(stub func(string, string) types.ICmdObj) {
-	fake.commitCmdObjMutex.Lock()
-	defer fake.commitCmdObjMutex.Unlock()
-	fake.CommitCmdObjStub = stub
-}
-
-func (fake *FakeIGit) CommitCmdObjArgsForCall(i int) (string, string) {
-	fake.commitCmdObjMutex.RLock()
-	defer fake.commitCmdObjMutex.RUnlock()
-	argsForCall := fake.commitCmdObjArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) CommitCmdObjReturns(result1 types.ICmdObj) {
-	fake.commitCmdObjMutex.Lock()
-	defer fake.commitCmdObjMutex.Unlock()
-	fake.CommitCmdObjStub = nil
-	fake.commitCmdObjReturns = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) CommitCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
-	fake.commitCmdObjMutex.Lock()
-	defer fake.commitCmdObjMutex.Unlock()
-	fake.CommitCmdObjStub = nil
-	if fake.commitCmdObjReturnsOnCall == nil {
-		fake.commitCmdObjReturnsOnCall = make(map[int]struct {
-			result1 types.ICmdObj
-		})
-	}
-	fake.commitCmdObjReturnsOnCall[i] = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) ConfiguredPager() string {
-	fake.configuredPagerMutex.Lock()
-	ret, specificReturn := fake.configuredPagerReturnsOnCall[len(fake.configuredPagerArgsForCall)]
-	fake.configuredPagerArgsForCall = append(fake.configuredPagerArgsForCall, struct {
+func (fake *FakeIGit) Commits() commands.ICommitsMgr {
+	fake.commitsMutex.Lock()
+	ret, specificReturn := fake.commitsReturnsOnCall[len(fake.commitsArgsForCall)]
+	fake.commitsArgsForCall = append(fake.commitsArgsForCall, struct {
 	}{})
-	stub := fake.ConfiguredPagerStub
-	fakeReturns := fake.configuredPagerReturns
-	fake.recordInvocation("ConfiguredPager", []interface{}{})
-	fake.configuredPagerMutex.Unlock()
+	stub := fake.CommitsStub
+	fakeReturns := fake.commitsReturns
+	fake.recordInvocation("Commits", []interface{}{})
+	fake.commitsMutex.Unlock()
 	if stub != nil {
 		return stub()
 	}
@@ -2822,38 +2482,38 @@ func (fake *FakeIGit) ConfiguredPager() string {
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGit) ConfiguredPagerCallCount() int {
-	fake.configuredPagerMutex.RLock()
-	defer fake.configuredPagerMutex.RUnlock()
-	return len(fake.configuredPagerArgsForCall)
+func (fake *FakeIGit) CommitsCallCount() int {
+	fake.commitsMutex.RLock()
+	defer fake.commitsMutex.RUnlock()
+	return len(fake.commitsArgsForCall)
 }
 
-func (fake *FakeIGit) ConfiguredPagerCalls(stub func() string) {
-	fake.configuredPagerMutex.Lock()
-	defer fake.configuredPagerMutex.Unlock()
-	fake.ConfiguredPagerStub = stub
+func (fake *FakeIGit) CommitsCalls(stub func() commands.ICommitsMgr) {
+	fake.commitsMutex.Lock()
+	defer fake.commitsMutex.Unlock()
+	fake.CommitsStub = stub
 }
 
-func (fake *FakeIGit) ConfiguredPagerReturns(result1 string) {
-	fake.configuredPagerMutex.Lock()
-	defer fake.configuredPagerMutex.Unlock()
-	fake.ConfiguredPagerStub = nil
-	fake.configuredPagerReturns = struct {
-		result1 string
+func (fake *FakeIGit) CommitsReturns(result1 commands.ICommitsMgr) {
+	fake.commitsMutex.Lock()
+	defer fake.commitsMutex.Unlock()
+	fake.CommitsStub = nil
+	fake.commitsReturns = struct {
+		result1 commands.ICommitsMgr
 	}{result1}
 }
 
-func (fake *FakeIGit) ConfiguredPagerReturnsOnCall(i int, result1 string) {
-	fake.configuredPagerMutex.Lock()
-	defer fake.configuredPagerMutex.Unlock()
-	fake.ConfiguredPagerStub = nil
-	if fake.configuredPagerReturnsOnCall == nil {
-		fake.configuredPagerReturnsOnCall = make(map[int]struct {
-			result1 string
+func (fake *FakeIGit) CommitsReturnsOnCall(i int, result1 commands.ICommitsMgr) {
+	fake.commitsMutex.Lock()
+	defer fake.commitsMutex.Unlock()
+	fake.CommitsStub = nil
+	if fake.commitsReturnsOnCall == nil {
+		fake.commitsReturnsOnCall = make(map[int]struct {
+			result1 commands.ICommitsMgr
 		})
 	}
-	fake.configuredPagerReturnsOnCall[i] = struct {
-		result1 string
+	fake.commitsReturnsOnCall[i] = struct {
+		result1 commands.ICommitsMgr
 	}{result1}
 }
 
@@ -2906,67 +2566,6 @@ func (fake *FakeIGit) ContinueRebaseReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.continueRebaseReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) CreateFixupCommit(arg1 string) error {
-	fake.createFixupCommitMutex.Lock()
-	ret, specificReturn := fake.createFixupCommitReturnsOnCall[len(fake.createFixupCommitArgsForCall)]
-	fake.createFixupCommitArgsForCall = append(fake.createFixupCommitArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.CreateFixupCommitStub
-	fakeReturns := fake.createFixupCommitReturns
-	fake.recordInvocation("CreateFixupCommit", []interface{}{arg1})
-	fake.createFixupCommitMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) CreateFixupCommitCallCount() int {
-	fake.createFixupCommitMutex.RLock()
-	defer fake.createFixupCommitMutex.RUnlock()
-	return len(fake.createFixupCommitArgsForCall)
-}
-
-func (fake *FakeIGit) CreateFixupCommitCalls(stub func(string) error) {
-	fake.createFixupCommitMutex.Lock()
-	defer fake.createFixupCommitMutex.Unlock()
-	fake.CreateFixupCommitStub = stub
-}
-
-func (fake *FakeIGit) CreateFixupCommitArgsForCall(i int) string {
-	fake.createFixupCommitMutex.RLock()
-	defer fake.createFixupCommitMutex.RUnlock()
-	argsForCall := fake.createFixupCommitArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) CreateFixupCommitReturns(result1 error) {
-	fake.createFixupCommitMutex.Lock()
-	defer fake.createFixupCommitMutex.Unlock()
-	fake.CreateFixupCommitStub = nil
-	fake.createFixupCommitReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) CreateFixupCommitReturnsOnCall(i int, result1 error) {
-	fake.createFixupCommitMutex.Lock()
-	defer fake.createFixupCommitMutex.Unlock()
-	fake.CreateFixupCommitStub = nil
-	if fake.createFixupCommitReturnsOnCall == nil {
-		fake.createFixupCommitReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.createFixupCommitReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -3900,67 +3499,6 @@ func (fake *FakeIGit) EditRebaseTodoReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) FailOnCredentialsRequest(arg1 types.ICmdObj) types.ICmdObj {
-	fake.failOnCredentialsRequestMutex.Lock()
-	ret, specificReturn := fake.failOnCredentialsRequestReturnsOnCall[len(fake.failOnCredentialsRequestArgsForCall)]
-	fake.failOnCredentialsRequestArgsForCall = append(fake.failOnCredentialsRequestArgsForCall, struct {
-		arg1 types.ICmdObj
-	}{arg1})
-	stub := fake.FailOnCredentialsRequestStub
-	fakeReturns := fake.failOnCredentialsRequestReturns
-	fake.recordInvocation("FailOnCredentialsRequest", []interface{}{arg1})
-	fake.failOnCredentialsRequestMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) FailOnCredentialsRequestCallCount() int {
-	fake.failOnCredentialsRequestMutex.RLock()
-	defer fake.failOnCredentialsRequestMutex.RUnlock()
-	return len(fake.failOnCredentialsRequestArgsForCall)
-}
-
-func (fake *FakeIGit) FailOnCredentialsRequestCalls(stub func(types.ICmdObj) types.ICmdObj) {
-	fake.failOnCredentialsRequestMutex.Lock()
-	defer fake.failOnCredentialsRequestMutex.Unlock()
-	fake.FailOnCredentialsRequestStub = stub
-}
-
-func (fake *FakeIGit) FailOnCredentialsRequestArgsForCall(i int) types.ICmdObj {
-	fake.failOnCredentialsRequestMutex.RLock()
-	defer fake.failOnCredentialsRequestMutex.RUnlock()
-	argsForCall := fake.failOnCredentialsRequestArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) FailOnCredentialsRequestReturns(result1 types.ICmdObj) {
-	fake.failOnCredentialsRequestMutex.Lock()
-	defer fake.failOnCredentialsRequestMutex.Unlock()
-	fake.FailOnCredentialsRequestStub = nil
-	fake.failOnCredentialsRequestReturns = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) FailOnCredentialsRequestReturnsOnCall(i int, result1 types.ICmdObj) {
-	fake.failOnCredentialsRequestMutex.Lock()
-	defer fake.failOnCredentialsRequestMutex.Unlock()
-	fake.FailOnCredentialsRequestStub = nil
-	if fake.failOnCredentialsRequestReturnsOnCall == nil {
-		fake.failOnCredentialsRequestReturnsOnCall = make(map[int]struct {
-			result1 types.ICmdObj
-		})
-	}
-	fake.failOnCredentialsRequestReturnsOnCall[i] = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
 func (fake *FakeIGit) FastForward(arg1 string, arg2 string, arg3 string) error {
 	fake.fastForwardMutex.Lock()
 	ret, specificReturn := fake.fastForwardReturnsOnCall[len(fake.fastForwardArgsForCall)]
@@ -4887,68 +4425,6 @@ func (fake *FakeIGit) GetBranchUpstreamDifferenceCountReturnsOnCall(i int, resul
 	}{result1, result2}
 }
 
-func (fake *FakeIGit) GetCommitDifferenceCmdObj(arg1 string, arg2 string) types.ICmdObj {
-	fake.getCommitDifferenceCmdObjMutex.Lock()
-	ret, specificReturn := fake.getCommitDifferenceCmdObjReturnsOnCall[len(fake.getCommitDifferenceCmdObjArgsForCall)]
-	fake.getCommitDifferenceCmdObjArgsForCall = append(fake.getCommitDifferenceCmdObjArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.GetCommitDifferenceCmdObjStub
-	fakeReturns := fake.getCommitDifferenceCmdObjReturns
-	fake.recordInvocation("GetCommitDifferenceCmdObj", []interface{}{arg1, arg2})
-	fake.getCommitDifferenceCmdObjMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) GetCommitDifferenceCmdObjCallCount() int {
-	fake.getCommitDifferenceCmdObjMutex.RLock()
-	defer fake.getCommitDifferenceCmdObjMutex.RUnlock()
-	return len(fake.getCommitDifferenceCmdObjArgsForCall)
-}
-
-func (fake *FakeIGit) GetCommitDifferenceCmdObjCalls(stub func(string, string) types.ICmdObj) {
-	fake.getCommitDifferenceCmdObjMutex.Lock()
-	defer fake.getCommitDifferenceCmdObjMutex.Unlock()
-	fake.GetCommitDifferenceCmdObjStub = stub
-}
-
-func (fake *FakeIGit) GetCommitDifferenceCmdObjArgsForCall(i int) (string, string) {
-	fake.getCommitDifferenceCmdObjMutex.RLock()
-	defer fake.getCommitDifferenceCmdObjMutex.RUnlock()
-	argsForCall := fake.getCommitDifferenceCmdObjArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) GetCommitDifferenceCmdObjReturns(result1 types.ICmdObj) {
-	fake.getCommitDifferenceCmdObjMutex.Lock()
-	defer fake.getCommitDifferenceCmdObjMutex.Unlock()
-	fake.GetCommitDifferenceCmdObjStub = nil
-	fake.getCommitDifferenceCmdObjReturns = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) GetCommitDifferenceCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
-	fake.getCommitDifferenceCmdObjMutex.Lock()
-	defer fake.getCommitDifferenceCmdObjMutex.Unlock()
-	fake.GetCommitDifferenceCmdObjStub = nil
-	if fake.getCommitDifferenceCmdObjReturnsOnCall == nil {
-		fake.getCommitDifferenceCmdObjReturnsOnCall = make(map[int]struct {
-			result1 types.ICmdObj
-		})
-	}
-	fake.getCommitDifferenceCmdObjReturnsOnCall[i] = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
 func (fake *FakeIGit) GetCommitDifferences(arg1 string, arg2 string) (string, string) {
 	fake.getCommitDifferencesMutex.Lock()
 	ret, specificReturn := fake.getCommitDifferencesReturnsOnCall[len(fake.getCommitDifferencesArgsForCall)]
@@ -5011,134 +4487,6 @@ func (fake *FakeIGit) GetCommitDifferencesReturnsOnCall(i int, result1 string, r
 	fake.getCommitDifferencesReturnsOnCall[i] = struct {
 		result1 string
 		result2 string
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetCommitMessage(arg1 string) (string, error) {
-	fake.getCommitMessageMutex.Lock()
-	ret, specificReturn := fake.getCommitMessageReturnsOnCall[len(fake.getCommitMessageArgsForCall)]
-	fake.getCommitMessageArgsForCall = append(fake.getCommitMessageArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetCommitMessageStub
-	fakeReturns := fake.getCommitMessageReturns
-	fake.recordInvocation("GetCommitMessage", []interface{}{arg1})
-	fake.getCommitMessageMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGit) GetCommitMessageCallCount() int {
-	fake.getCommitMessageMutex.RLock()
-	defer fake.getCommitMessageMutex.RUnlock()
-	return len(fake.getCommitMessageArgsForCall)
-}
-
-func (fake *FakeIGit) GetCommitMessageCalls(stub func(string) (string, error)) {
-	fake.getCommitMessageMutex.Lock()
-	defer fake.getCommitMessageMutex.Unlock()
-	fake.GetCommitMessageStub = stub
-}
-
-func (fake *FakeIGit) GetCommitMessageArgsForCall(i int) string {
-	fake.getCommitMessageMutex.RLock()
-	defer fake.getCommitMessageMutex.RUnlock()
-	argsForCall := fake.getCommitMessageArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) GetCommitMessageReturns(result1 string, result2 error) {
-	fake.getCommitMessageMutex.Lock()
-	defer fake.getCommitMessageMutex.Unlock()
-	fake.GetCommitMessageStub = nil
-	fake.getCommitMessageReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetCommitMessageReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getCommitMessageMutex.Lock()
-	defer fake.getCommitMessageMutex.Unlock()
-	fake.GetCommitMessageStub = nil
-	if fake.getCommitMessageReturnsOnCall == nil {
-		fake.getCommitMessageReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getCommitMessageReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetCommitMessageFirstLine(arg1 string) (string, error) {
-	fake.getCommitMessageFirstLineMutex.Lock()
-	ret, specificReturn := fake.getCommitMessageFirstLineReturnsOnCall[len(fake.getCommitMessageFirstLineArgsForCall)]
-	fake.getCommitMessageFirstLineArgsForCall = append(fake.getCommitMessageFirstLineArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetCommitMessageFirstLineStub
-	fakeReturns := fake.getCommitMessageFirstLineReturns
-	fake.recordInvocation("GetCommitMessageFirstLine", []interface{}{arg1})
-	fake.getCommitMessageFirstLineMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGit) GetCommitMessageFirstLineCallCount() int {
-	fake.getCommitMessageFirstLineMutex.RLock()
-	defer fake.getCommitMessageFirstLineMutex.RUnlock()
-	return len(fake.getCommitMessageFirstLineArgsForCall)
-}
-
-func (fake *FakeIGit) GetCommitMessageFirstLineCalls(stub func(string) (string, error)) {
-	fake.getCommitMessageFirstLineMutex.Lock()
-	defer fake.getCommitMessageFirstLineMutex.Unlock()
-	fake.GetCommitMessageFirstLineStub = stub
-}
-
-func (fake *FakeIGit) GetCommitMessageFirstLineArgsForCall(i int) string {
-	fake.getCommitMessageFirstLineMutex.RLock()
-	defer fake.getCommitMessageFirstLineMutex.RUnlock()
-	argsForCall := fake.getCommitMessageFirstLineArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) GetCommitMessageFirstLineReturns(result1 string, result2 error) {
-	fake.getCommitMessageFirstLineMutex.Lock()
-	defer fake.getCommitMessageFirstLineMutex.Unlock()
-	fake.GetCommitMessageFirstLineStub = nil
-	fake.getCommitMessageFirstLineReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetCommitMessageFirstLineReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getCommitMessageFirstLineMutex.Lock()
-	defer fake.getCommitMessageFirstLineMutex.Unlock()
-	fake.GetCommitMessageFirstLineStub = nil
-	if fake.getCommitMessageFirstLineReturnsOnCall == nil {
-		fake.getCommitMessageFirstLineReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getCommitMessageFirstLineReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
 	}{result1, result2}
 }
 
@@ -5376,62 +4724,6 @@ func (fake *FakeIGit) GetGitFlowRegexpConfigReturnsOnCall(i int, result1 string,
 		})
 	}
 	fake.getGitFlowRegexpConfigReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetHeadCommitMessage() (string, error) {
-	fake.getHeadCommitMessageMutex.Lock()
-	ret, specificReturn := fake.getHeadCommitMessageReturnsOnCall[len(fake.getHeadCommitMessageArgsForCall)]
-	fake.getHeadCommitMessageArgsForCall = append(fake.getHeadCommitMessageArgsForCall, struct {
-	}{})
-	stub := fake.GetHeadCommitMessageStub
-	fakeReturns := fake.getHeadCommitMessageReturns
-	fake.recordInvocation("GetHeadCommitMessage", []interface{}{})
-	fake.getHeadCommitMessageMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGit) GetHeadCommitMessageCallCount() int {
-	fake.getHeadCommitMessageMutex.RLock()
-	defer fake.getHeadCommitMessageMutex.RUnlock()
-	return len(fake.getHeadCommitMessageArgsForCall)
-}
-
-func (fake *FakeIGit) GetHeadCommitMessageCalls(stub func() (string, error)) {
-	fake.getHeadCommitMessageMutex.Lock()
-	defer fake.getHeadCommitMessageMutex.Unlock()
-	fake.GetHeadCommitMessageStub = stub
-}
-
-func (fake *FakeIGit) GetHeadCommitMessageReturns(result1 string, result2 error) {
-	fake.getHeadCommitMessageMutex.Lock()
-	defer fake.getHeadCommitMessageMutex.Unlock()
-	fake.GetHeadCommitMessageStub = nil
-	fake.getHeadCommitMessageReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetHeadCommitMessageReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getHeadCommitMessageMutex.Lock()
-	defer fake.getHeadCommitMessageMutex.Unlock()
-	fake.GetHeadCommitMessageStub = nil
-	if fake.getHeadCommitMessageReturnsOnCall == nil {
-		fake.getHeadCommitMessageReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getHeadCommitMessageReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -6331,6 +5623,69 @@ func (fake *FakeIGit) InteractiveRebaseReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeIGit) InteractiveRebaseCmdObj(arg1 string, arg2 string, arg3 bool) types.ICmdObj {
+	fake.interactiveRebaseCmdObjMutex.Lock()
+	ret, specificReturn := fake.interactiveRebaseCmdObjReturnsOnCall[len(fake.interactiveRebaseCmdObjArgsForCall)]
+	fake.interactiveRebaseCmdObjArgsForCall = append(fake.interactiveRebaseCmdObjArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 bool
+	}{arg1, arg2, arg3})
+	stub := fake.InteractiveRebaseCmdObjStub
+	fakeReturns := fake.interactiveRebaseCmdObjReturns
+	fake.recordInvocation("InteractiveRebaseCmdObj", []interface{}{arg1, arg2, arg3})
+	fake.interactiveRebaseCmdObjMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGit) InteractiveRebaseCmdObjCallCount() int {
+	fake.interactiveRebaseCmdObjMutex.RLock()
+	defer fake.interactiveRebaseCmdObjMutex.RUnlock()
+	return len(fake.interactiveRebaseCmdObjArgsForCall)
+}
+
+func (fake *FakeIGit) InteractiveRebaseCmdObjCalls(stub func(string, string, bool) types.ICmdObj) {
+	fake.interactiveRebaseCmdObjMutex.Lock()
+	defer fake.interactiveRebaseCmdObjMutex.Unlock()
+	fake.InteractiveRebaseCmdObjStub = stub
+}
+
+func (fake *FakeIGit) InteractiveRebaseCmdObjArgsForCall(i int) (string, string, bool) {
+	fake.interactiveRebaseCmdObjMutex.RLock()
+	defer fake.interactiveRebaseCmdObjMutex.RUnlock()
+	argsForCall := fake.interactiveRebaseCmdObjArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeIGit) InteractiveRebaseCmdObjReturns(result1 types.ICmdObj) {
+	fake.interactiveRebaseCmdObjMutex.Lock()
+	defer fake.interactiveRebaseCmdObjMutex.Unlock()
+	fake.InteractiveRebaseCmdObjStub = nil
+	fake.interactiveRebaseCmdObjReturns = struct {
+		result1 types.ICmdObj
+	}{result1}
+}
+
+func (fake *FakeIGit) InteractiveRebaseCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
+	fake.interactiveRebaseCmdObjMutex.Lock()
+	defer fake.interactiveRebaseCmdObjMutex.Unlock()
+	fake.InteractiveRebaseCmdObjStub = nil
+	if fake.interactiveRebaseCmdObjReturnsOnCall == nil {
+		fake.interactiveRebaseCmdObjReturnsOnCall = make(map[int]struct {
+			result1 types.ICmdObj
+		})
+	}
+	fake.interactiveRebaseCmdObjReturnsOnCall[i] = struct {
+		result1 types.ICmdObj
+	}{result1}
+}
+
 func (fake *FakeIGit) IsBareRepo() bool {
 	fake.isBareRepoMutex.Lock()
 	ret, specificReturn := fake.isBareRepoReturnsOnCall[len(fake.isBareRepoArgsForCall)]
@@ -7042,69 +6397,6 @@ func (fake *FakeIGit) OpenMergeToolCmdObjReturnsOnCall(i int, result1 types.ICmd
 	}{result1}
 }
 
-func (fake *FakeIGit) PrepareInteractiveRebaseCommand(arg1 string, arg2 string, arg3 bool) types.ICmdObj {
-	fake.prepareInteractiveRebaseCommandMutex.Lock()
-	ret, specificReturn := fake.prepareInteractiveRebaseCommandReturnsOnCall[len(fake.prepareInteractiveRebaseCommandArgsForCall)]
-	fake.prepareInteractiveRebaseCommandArgsForCall = append(fake.prepareInteractiveRebaseCommandArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 bool
-	}{arg1, arg2, arg3})
-	stub := fake.PrepareInteractiveRebaseCommandStub
-	fakeReturns := fake.prepareInteractiveRebaseCommandReturns
-	fake.recordInvocation("PrepareInteractiveRebaseCommand", []interface{}{arg1, arg2, arg3})
-	fake.prepareInteractiveRebaseCommandMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) PrepareInteractiveRebaseCommandCallCount() int {
-	fake.prepareInteractiveRebaseCommandMutex.RLock()
-	defer fake.prepareInteractiveRebaseCommandMutex.RUnlock()
-	return len(fake.prepareInteractiveRebaseCommandArgsForCall)
-}
-
-func (fake *FakeIGit) PrepareInteractiveRebaseCommandCalls(stub func(string, string, bool) types.ICmdObj) {
-	fake.prepareInteractiveRebaseCommandMutex.Lock()
-	defer fake.prepareInteractiveRebaseCommandMutex.Unlock()
-	fake.PrepareInteractiveRebaseCommandStub = stub
-}
-
-func (fake *FakeIGit) PrepareInteractiveRebaseCommandArgsForCall(i int) (string, string, bool) {
-	fake.prepareInteractiveRebaseCommandMutex.RLock()
-	defer fake.prepareInteractiveRebaseCommandMutex.RUnlock()
-	argsForCall := fake.prepareInteractiveRebaseCommandArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeIGit) PrepareInteractiveRebaseCommandReturns(result1 types.ICmdObj) {
-	fake.prepareInteractiveRebaseCommandMutex.Lock()
-	defer fake.prepareInteractiveRebaseCommandMutex.Unlock()
-	fake.PrepareInteractiveRebaseCommandStub = nil
-	fake.prepareInteractiveRebaseCommandReturns = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) PrepareInteractiveRebaseCommandReturnsOnCall(i int, result1 types.ICmdObj) {
-	fake.prepareInteractiveRebaseCommandMutex.Lock()
-	defer fake.prepareInteractiveRebaseCommandMutex.Unlock()
-	fake.PrepareInteractiveRebaseCommandStub = nil
-	if fake.prepareInteractiveRebaseCommandReturnsOnCall == nil {
-		fake.prepareInteractiveRebaseCommandReturnsOnCall = make(map[int]struct {
-			result1 types.ICmdObj
-		})
-	}
-	fake.prepareInteractiveRebaseCommandReturnsOnCall[i] = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
 func (fake *FakeIGit) PullPatchIntoNewCommit(arg1 []*models.Commit, arg2 int, arg3 *patch.PatchManager) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
@@ -7714,67 +7006,6 @@ func (fake *FakeIGit) RenameBranchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) RenameCommit(arg1 string) error {
-	fake.renameCommitMutex.Lock()
-	ret, specificReturn := fake.renameCommitReturnsOnCall[len(fake.renameCommitArgsForCall)]
-	fake.renameCommitArgsForCall = append(fake.renameCommitArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.RenameCommitStub
-	fakeReturns := fake.renameCommitReturns
-	fake.recordInvocation("RenameCommit", []interface{}{arg1})
-	fake.renameCommitMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) RenameCommitCallCount() int {
-	fake.renameCommitMutex.RLock()
-	defer fake.renameCommitMutex.RUnlock()
-	return len(fake.renameCommitArgsForCall)
-}
-
-func (fake *FakeIGit) RenameCommitCalls(stub func(string) error) {
-	fake.renameCommitMutex.Lock()
-	defer fake.renameCommitMutex.Unlock()
-	fake.RenameCommitStub = stub
-}
-
-func (fake *FakeIGit) RenameCommitArgsForCall(i int) string {
-	fake.renameCommitMutex.RLock()
-	defer fake.renameCommitMutex.RUnlock()
-	argsForCall := fake.renameCommitArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) RenameCommitReturns(result1 error) {
-	fake.renameCommitMutex.Lock()
-	defer fake.renameCommitMutex.Unlock()
-	fake.RenameCommitStub = nil
-	fake.renameCommitReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RenameCommitReturnsOnCall(i int, result1 error) {
-	fake.renameCommitMutex.Lock()
-	defer fake.renameCommitMutex.Unlock()
-	fake.RenameCommitStub = nil
-	if fake.renameCommitReturnsOnCall == nil {
-		fake.renameCommitReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.renameCommitReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeIGit) RenameRemote(arg1 string, arg2 string) error {
 	fake.renameRemoteMutex.Lock()
 	ret, specificReturn := fake.renameRemoteReturnsOnCall[len(fake.renameRemoteArgsForCall)]
@@ -8139,18 +7370,18 @@ func (fake *FakeIGit) ResetSubmodulesReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) ResetToCommit(arg1 string, arg2 string, arg3 commands.ResetToCommitOptions) error {
-	fake.resetToCommitMutex.Lock()
-	ret, specificReturn := fake.resetToCommitReturnsOnCall[len(fake.resetToCommitArgsForCall)]
-	fake.resetToCommitArgsForCall = append(fake.resetToCommitArgsForCall, struct {
+func (fake *FakeIGit) ResetToRef(arg1 string, arg2 string, arg3 commands.ResetToCommitOptions) error {
+	fake.resetToRefMutex.Lock()
+	ret, specificReturn := fake.resetToRefReturnsOnCall[len(fake.resetToRefArgsForCall)]
+	fake.resetToRefArgsForCall = append(fake.resetToRefArgsForCall, struct {
 		arg1 string
 		arg2 string
 		arg3 commands.ResetToCommitOptions
 	}{arg1, arg2, arg3})
-	stub := fake.ResetToCommitStub
-	fakeReturns := fake.resetToCommitReturns
-	fake.recordInvocation("ResetToCommit", []interface{}{arg1, arg2, arg3})
-	fake.resetToCommitMutex.Unlock()
+	stub := fake.ResetToRefStub
+	fakeReturns := fake.resetToRefReturns
+	fake.recordInvocation("ResetToRef", []interface{}{arg1, arg2, arg3})
+	fake.resetToRefMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3)
 	}
@@ -8160,167 +7391,44 @@ func (fake *FakeIGit) ResetToCommit(arg1 string, arg2 string, arg3 commands.Rese
 	return fakeReturns.result1
 }
 
-func (fake *FakeIGit) ResetToCommitCallCount() int {
-	fake.resetToCommitMutex.RLock()
-	defer fake.resetToCommitMutex.RUnlock()
-	return len(fake.resetToCommitArgsForCall)
+func (fake *FakeIGit) ResetToRefCallCount() int {
+	fake.resetToRefMutex.RLock()
+	defer fake.resetToRefMutex.RUnlock()
+	return len(fake.resetToRefArgsForCall)
 }
 
-func (fake *FakeIGit) ResetToCommitCalls(stub func(string, string, commands.ResetToCommitOptions) error) {
-	fake.resetToCommitMutex.Lock()
-	defer fake.resetToCommitMutex.Unlock()
-	fake.ResetToCommitStub = stub
+func (fake *FakeIGit) ResetToRefCalls(stub func(string, string, commands.ResetToCommitOptions) error) {
+	fake.resetToRefMutex.Lock()
+	defer fake.resetToRefMutex.Unlock()
+	fake.ResetToRefStub = stub
 }
 
-func (fake *FakeIGit) ResetToCommitArgsForCall(i int) (string, string, commands.ResetToCommitOptions) {
-	fake.resetToCommitMutex.RLock()
-	defer fake.resetToCommitMutex.RUnlock()
-	argsForCall := fake.resetToCommitArgsForCall[i]
+func (fake *FakeIGit) ResetToRefArgsForCall(i int) (string, string, commands.ResetToCommitOptions) {
+	fake.resetToRefMutex.RLock()
+	defer fake.resetToRefMutex.RUnlock()
+	argsForCall := fake.resetToRefArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeIGit) ResetToCommitReturns(result1 error) {
-	fake.resetToCommitMutex.Lock()
-	defer fake.resetToCommitMutex.Unlock()
-	fake.ResetToCommitStub = nil
-	fake.resetToCommitReturns = struct {
+func (fake *FakeIGit) ResetToRefReturns(result1 error) {
+	fake.resetToRefMutex.Lock()
+	defer fake.resetToRefMutex.Unlock()
+	fake.ResetToRefStub = nil
+	fake.resetToRefReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeIGit) ResetToCommitReturnsOnCall(i int, result1 error) {
-	fake.resetToCommitMutex.Lock()
-	defer fake.resetToCommitMutex.Unlock()
-	fake.ResetToCommitStub = nil
-	if fake.resetToCommitReturnsOnCall == nil {
-		fake.resetToCommitReturnsOnCall = make(map[int]struct {
+func (fake *FakeIGit) ResetToRefReturnsOnCall(i int, result1 error) {
+	fake.resetToRefMutex.Lock()
+	defer fake.resetToRefMutex.Unlock()
+	fake.ResetToRefStub = nil
+	if fake.resetToRefReturnsOnCall == nil {
+		fake.resetToRefReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.resetToCommitReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) Revert(arg1 string) error {
-	fake.revertMutex.Lock()
-	ret, specificReturn := fake.revertReturnsOnCall[len(fake.revertArgsForCall)]
-	fake.revertArgsForCall = append(fake.revertArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.RevertStub
-	fakeReturns := fake.revertReturns
-	fake.recordInvocation("Revert", []interface{}{arg1})
-	fake.revertMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) RevertCallCount() int {
-	fake.revertMutex.RLock()
-	defer fake.revertMutex.RUnlock()
-	return len(fake.revertArgsForCall)
-}
-
-func (fake *FakeIGit) RevertCalls(stub func(string) error) {
-	fake.revertMutex.Lock()
-	defer fake.revertMutex.Unlock()
-	fake.RevertStub = stub
-}
-
-func (fake *FakeIGit) RevertArgsForCall(i int) string {
-	fake.revertMutex.RLock()
-	defer fake.revertMutex.RUnlock()
-	argsForCall := fake.revertArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) RevertReturns(result1 error) {
-	fake.revertMutex.Lock()
-	defer fake.revertMutex.Unlock()
-	fake.RevertStub = nil
-	fake.revertReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RevertReturnsOnCall(i int, result1 error) {
-	fake.revertMutex.Lock()
-	defer fake.revertMutex.Unlock()
-	fake.RevertStub = nil
-	if fake.revertReturnsOnCall == nil {
-		fake.revertReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.revertReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RevertMerge(arg1 string, arg2 int) error {
-	fake.revertMergeMutex.Lock()
-	ret, specificReturn := fake.revertMergeReturnsOnCall[len(fake.revertMergeArgsForCall)]
-	fake.revertMergeArgsForCall = append(fake.revertMergeArgsForCall, struct {
-		arg1 string
-		arg2 int
-	}{arg1, arg2})
-	stub := fake.RevertMergeStub
-	fakeReturns := fake.revertMergeReturns
-	fake.recordInvocation("RevertMerge", []interface{}{arg1, arg2})
-	fake.revertMergeMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) RevertMergeCallCount() int {
-	fake.revertMergeMutex.RLock()
-	defer fake.revertMergeMutex.RUnlock()
-	return len(fake.revertMergeArgsForCall)
-}
-
-func (fake *FakeIGit) RevertMergeCalls(stub func(string, int) error) {
-	fake.revertMergeMutex.Lock()
-	defer fake.revertMergeMutex.Unlock()
-	fake.RevertMergeStub = stub
-}
-
-func (fake *FakeIGit) RevertMergeArgsForCall(i int) (string, int) {
-	fake.revertMergeMutex.RLock()
-	defer fake.revertMergeMutex.RUnlock()
-	argsForCall := fake.revertMergeArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) RevertMergeReturns(result1 error) {
-	fake.revertMergeMutex.Lock()
-	defer fake.revertMergeMutex.Unlock()
-	fake.RevertMergeStub = nil
-	fake.revertMergeReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RevertMergeReturnsOnCall(i int, result1 error) {
-	fake.revertMergeMutex.Lock()
-	defer fake.revertMergeMutex.Unlock()
-	fake.RevertMergeStub = nil
-	if fake.revertMergeReturnsOnCall == nil {
-		fake.revertMergeReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.revertMergeReturnsOnCall[i] = struct {
+	fake.resetToRefReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -8382,128 +7490,6 @@ func (fake *FakeIGit) RunReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.runReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsHandling(arg1 types.ICmdObj) error {
-	fake.runCommandWithCredentialsHandlingMutex.Lock()
-	ret, specificReturn := fake.runCommandWithCredentialsHandlingReturnsOnCall[len(fake.runCommandWithCredentialsHandlingArgsForCall)]
-	fake.runCommandWithCredentialsHandlingArgsForCall = append(fake.runCommandWithCredentialsHandlingArgsForCall, struct {
-		arg1 types.ICmdObj
-	}{arg1})
-	stub := fake.RunCommandWithCredentialsHandlingStub
-	fakeReturns := fake.runCommandWithCredentialsHandlingReturns
-	fake.recordInvocation("RunCommandWithCredentialsHandling", []interface{}{arg1})
-	fake.runCommandWithCredentialsHandlingMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsHandlingCallCount() int {
-	fake.runCommandWithCredentialsHandlingMutex.RLock()
-	defer fake.runCommandWithCredentialsHandlingMutex.RUnlock()
-	return len(fake.runCommandWithCredentialsHandlingArgsForCall)
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsHandlingCalls(stub func(types.ICmdObj) error) {
-	fake.runCommandWithCredentialsHandlingMutex.Lock()
-	defer fake.runCommandWithCredentialsHandlingMutex.Unlock()
-	fake.RunCommandWithCredentialsHandlingStub = stub
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsHandlingArgsForCall(i int) types.ICmdObj {
-	fake.runCommandWithCredentialsHandlingMutex.RLock()
-	defer fake.runCommandWithCredentialsHandlingMutex.RUnlock()
-	argsForCall := fake.runCommandWithCredentialsHandlingArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsHandlingReturns(result1 error) {
-	fake.runCommandWithCredentialsHandlingMutex.Lock()
-	defer fake.runCommandWithCredentialsHandlingMutex.Unlock()
-	fake.RunCommandWithCredentialsHandlingStub = nil
-	fake.runCommandWithCredentialsHandlingReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsHandlingReturnsOnCall(i int, result1 error) {
-	fake.runCommandWithCredentialsHandlingMutex.Lock()
-	defer fake.runCommandWithCredentialsHandlingMutex.Unlock()
-	fake.RunCommandWithCredentialsHandlingStub = nil
-	if fake.runCommandWithCredentialsHandlingReturnsOnCall == nil {
-		fake.runCommandWithCredentialsHandlingReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.runCommandWithCredentialsHandlingReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsPrompt(arg1 types.ICmdObj) error {
-	fake.runCommandWithCredentialsPromptMutex.Lock()
-	ret, specificReturn := fake.runCommandWithCredentialsPromptReturnsOnCall[len(fake.runCommandWithCredentialsPromptArgsForCall)]
-	fake.runCommandWithCredentialsPromptArgsForCall = append(fake.runCommandWithCredentialsPromptArgsForCall, struct {
-		arg1 types.ICmdObj
-	}{arg1})
-	stub := fake.RunCommandWithCredentialsPromptStub
-	fakeReturns := fake.runCommandWithCredentialsPromptReturns
-	fake.recordInvocation("RunCommandWithCredentialsPrompt", []interface{}{arg1})
-	fake.runCommandWithCredentialsPromptMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsPromptCallCount() int {
-	fake.runCommandWithCredentialsPromptMutex.RLock()
-	defer fake.runCommandWithCredentialsPromptMutex.RUnlock()
-	return len(fake.runCommandWithCredentialsPromptArgsForCall)
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsPromptCalls(stub func(types.ICmdObj) error) {
-	fake.runCommandWithCredentialsPromptMutex.Lock()
-	defer fake.runCommandWithCredentialsPromptMutex.Unlock()
-	fake.RunCommandWithCredentialsPromptStub = stub
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsPromptArgsForCall(i int) types.ICmdObj {
-	fake.runCommandWithCredentialsPromptMutex.RLock()
-	defer fake.runCommandWithCredentialsPromptMutex.RUnlock()
-	argsForCall := fake.runCommandWithCredentialsPromptArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsPromptReturns(result1 error) {
-	fake.runCommandWithCredentialsPromptMutex.Lock()
-	defer fake.runCommandWithCredentialsPromptMutex.Unlock()
-	fake.RunCommandWithCredentialsPromptStub = nil
-	fake.runCommandWithCredentialsPromptReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RunCommandWithCredentialsPromptReturnsOnCall(i int, result1 error) {
-	fake.runCommandWithCredentialsPromptMutex.Lock()
-	defer fake.runCommandWithCredentialsPromptMutex.Unlock()
-	fake.RunCommandWithCredentialsPromptStub = nil
-	if fake.runCommandWithCredentialsPromptReturnsOnCall == nil {
-		fake.runCommandWithCredentialsPromptReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.runCommandWithCredentialsPromptReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -8787,68 +7773,6 @@ func (fake *FakeIGit) SetUpstreamBranchReturnsOnCall(i int, result1 error) {
 	}
 	fake.setUpstreamBranchReturnsOnCall[i] = struct {
 		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) ShowCmdObj(arg1 string, arg2 string) types.ICmdObj {
-	fake.showCmdObjMutex.Lock()
-	ret, specificReturn := fake.showCmdObjReturnsOnCall[len(fake.showCmdObjArgsForCall)]
-	fake.showCmdObjArgsForCall = append(fake.showCmdObjArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.ShowCmdObjStub
-	fakeReturns := fake.showCmdObjReturns
-	fake.recordInvocation("ShowCmdObj", []interface{}{arg1, arg2})
-	fake.showCmdObjMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) ShowCmdObjCallCount() int {
-	fake.showCmdObjMutex.RLock()
-	defer fake.showCmdObjMutex.RUnlock()
-	return len(fake.showCmdObjArgsForCall)
-}
-
-func (fake *FakeIGit) ShowCmdObjCalls(stub func(string, string) types.ICmdObj) {
-	fake.showCmdObjMutex.Lock()
-	defer fake.showCmdObjMutex.Unlock()
-	fake.ShowCmdObjStub = stub
-}
-
-func (fake *FakeIGit) ShowCmdObjArgsForCall(i int) (string, string) {
-	fake.showCmdObjMutex.RLock()
-	defer fake.showCmdObjMutex.RUnlock()
-	argsForCall := fake.showCmdObjArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) ShowCmdObjReturns(result1 types.ICmdObj) {
-	fake.showCmdObjMutex.Lock()
-	defer fake.showCmdObjMutex.Unlock()
-	fake.ShowCmdObjStub = nil
-	fake.showCmdObjReturns = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) ShowCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
-	fake.showCmdObjMutex.Lock()
-	defer fake.showCmdObjMutex.Unlock()
-	fake.ShowCmdObjStub = nil
-	if fake.showCmdObjReturnsOnCall == nil {
-		fake.showCmdObjReturnsOnCall = make(map[int]struct {
-			result1 types.ICmdObj
-		})
-	}
-	fake.showCmdObjReturnsOnCall[i] = struct {
-		result1 types.ICmdObj
 	}{result1}
 }
 
@@ -10567,10 +9491,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.addRemoteMutex.RUnlock()
 	fake.allBranchesCmdObjMutex.RLock()
 	defer fake.allBranchesCmdObjMutex.RUnlock()
-	fake.amendHeadMutex.RLock()
-	defer fake.amendHeadMutex.RUnlock()
-	fake.amendHeadCmdObjMutex.RLock()
-	defer fake.amendHeadCmdObjMutex.RUnlock()
 	fake.amendToMutex.RLock()
 	defer fake.amendToMutex.RUnlock()
 	fake.applyPatchMutex.RLock()
@@ -10593,14 +9513,10 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.checkoutFileMutex.RUnlock()
 	fake.cherryPickCommitsMutex.RLock()
 	defer fake.cherryPickCommitsMutex.RUnlock()
-	fake.commitCmdObjMutex.RLock()
-	defer fake.commitCmdObjMutex.RUnlock()
-	fake.configuredPagerMutex.RLock()
-	defer fake.configuredPagerMutex.RUnlock()
+	fake.commitsMutex.RLock()
+	defer fake.commitsMutex.RUnlock()
 	fake.continueRebaseMutex.RLock()
 	defer fake.continueRebaseMutex.RUnlock()
-	fake.createFixupCommitMutex.RLock()
-	defer fake.createFixupCommitMutex.RUnlock()
 	fake.createLightweightTagMutex.RLock()
 	defer fake.createLightweightTagMutex.RUnlock()
 	fake.currentBranchNameMutex.RLock()
@@ -10631,8 +9547,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.editFileCmdObjMutex.RUnlock()
 	fake.editRebaseTodoMutex.RLock()
 	defer fake.editRebaseTodoMutex.RUnlock()
-	fake.failOnCredentialsRequestMutex.RLock()
-	defer fake.failOnCredentialsRequestMutex.RUnlock()
 	fake.fastForwardMutex.RLock()
 	defer fake.fastForwardMutex.RUnlock()
 	fake.fetchMutex.RLock()
@@ -10663,14 +9577,8 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.getBranchGraphCmdObjMutex.RUnlock()
 	fake.getBranchUpstreamDifferenceCountMutex.RLock()
 	defer fake.getBranchUpstreamDifferenceCountMutex.RUnlock()
-	fake.getCommitDifferenceCmdObjMutex.RLock()
-	defer fake.getCommitDifferenceCmdObjMutex.RUnlock()
 	fake.getCommitDifferencesMutex.RLock()
 	defer fake.getCommitDifferencesMutex.RUnlock()
-	fake.getCommitMessageMutex.RLock()
-	defer fake.getCommitMessageMutex.RUnlock()
-	fake.getCommitMessageFirstLineMutex.RLock()
-	defer fake.getCommitMessageFirstLineMutex.RUnlock()
 	fake.getConfigValueMutex.RLock()
 	defer fake.getConfigValueMutex.RUnlock()
 	fake.getCurrentBranchUpstreamDifferenceCountMutex.RLock()
@@ -10679,8 +9587,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.getFilesInDiffMutex.RUnlock()
 	fake.getGitFlowRegexpConfigMutex.RLock()
 	defer fake.getGitFlowRegexpConfigMutex.RUnlock()
-	fake.getHeadCommitMessageMutex.RLock()
-	defer fake.getHeadCommitMessageMutex.RUnlock()
 	fake.getLogMutex.RLock()
 	defer fake.getLogMutex.RUnlock()
 	fake.getOSMutex.RLock()
@@ -10711,6 +9617,8 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.ignoreMutex.RUnlock()
 	fake.interactiveRebaseMutex.RLock()
 	defer fake.interactiveRebaseMutex.RUnlock()
+	fake.interactiveRebaseCmdObjMutex.RLock()
+	defer fake.interactiveRebaseCmdObjMutex.RUnlock()
 	fake.isBareRepoMutex.RLock()
 	defer fake.isBareRepoMutex.RUnlock()
 	fake.isHeadDetachedMutex.RLock()
@@ -10735,8 +9643,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.newPatchManagerMutex.RUnlock()
 	fake.openMergeToolCmdObjMutex.RLock()
 	defer fake.openMergeToolCmdObjMutex.RUnlock()
-	fake.prepareInteractiveRebaseCommandMutex.RLock()
-	defer fake.prepareInteractiveRebaseCommandMutex.RUnlock()
 	fake.pullPatchIntoNewCommitMutex.RLock()
 	defer fake.pullPatchIntoNewCommitMutex.RUnlock()
 	fake.pushMutex.RLock()
@@ -10757,8 +9663,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.removeUntrackedFilesMutex.RUnlock()
 	fake.renameBranchMutex.RLock()
 	defer fake.renameBranchMutex.RUnlock()
-	fake.renameCommitMutex.RLock()
-	defer fake.renameCommitMutex.RUnlock()
 	fake.renameRemoteMutex.RLock()
 	defer fake.renameRemoteMutex.RUnlock()
 	fake.resetAndCleanMutex.RLock()
@@ -10771,18 +9675,10 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.resetSoftMutex.RUnlock()
 	fake.resetSubmodulesMutex.RLock()
 	defer fake.resetSubmodulesMutex.RUnlock()
-	fake.resetToCommitMutex.RLock()
-	defer fake.resetToCommitMutex.RUnlock()
-	fake.revertMutex.RLock()
-	defer fake.revertMutex.RUnlock()
-	fake.revertMergeMutex.RLock()
-	defer fake.revertMergeMutex.RUnlock()
+	fake.resetToRefMutex.RLock()
+	defer fake.resetToRefMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
-	fake.runCommandWithCredentialsHandlingMutex.RLock()
-	defer fake.runCommandWithCredentialsHandlingMutex.RUnlock()
-	fake.runCommandWithCredentialsPromptMutex.RLock()
-	defer fake.runCommandWithCredentialsPromptMutex.RUnlock()
 	fake.runGitCmdFromStrMutex.RLock()
 	defer fake.runGitCmdFromStrMutex.RUnlock()
 	fake.runWithOutputMutex.RLock()
@@ -10793,8 +9689,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.setCredentialHandlersMutex.RUnlock()
 	fake.setUpstreamBranchMutex.RLock()
 	defer fake.setUpstreamBranchMutex.RUnlock()
-	fake.showCmdObjMutex.RLock()
-	defer fake.showCmdObjMutex.RUnlock()
 	fake.showFileDiffMutex.RLock()
 	defer fake.showFileDiffMutex.RUnlock()
 	fake.showFileDiffCmdObjMutex.RLock()

@@ -23,11 +23,11 @@ type ICommitsMgr interface {
 
 type CommitsMgr struct {
 	commander ICommander
-	config    *GitConfig
+	config    IGitConfig
 	quote     func(string) string
 }
 
-func NewCommitsMgr(commander *Commander, config *GitConfig, quote func(string) string) *CommitsMgr {
+func NewCommitsMgr(commander ICommander, config IGitConfig, quote func(string) string) *CommitsMgr {
 	return &CommitsMgr{
 		commander: commander,
 		config:    config,
@@ -58,19 +58,19 @@ func (c *CommitsMgr) CommitCmdObj(message string, flags string) ICmdObj {
 
 	cmdStr := fmt.Sprintf("commit%s%s", flagsStr, lineArgs)
 
-	return BuildGitCmdObjFromStr(cmdStr)
+	return c.commander.BuildGitCmdObjFromStr(cmdStr)
 }
 
 // Get the subject of the HEAD commit
 func (c *CommitsMgr) GetHeadMessage() (string, error) {
-	cmdObj := BuildGitCmdObjFromStr("log -1 --pretty=%s")
+	cmdObj := c.commander.BuildGitCmdObjFromStr("log -1 --pretty=%s")
 	message, err := c.commander.RunWithOutput(cmdObj)
 	return strings.TrimSpace(message), err
 }
 
 func (c *CommitsMgr) GetMessage(commitSha string) (string, error) {
 	messageWithHeader, err := c.commander.RunWithOutput(
-		BuildGitCmdObjFromStr("rev-list --format=%B --max-count=1 " + commitSha),
+		c.commander.BuildGitCmdObjFromStr("rev-list --format=%B --max-count=1 " + commitSha),
 	)
 	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "\n")
 	return strings.TrimSpace(message), err
@@ -78,7 +78,7 @@ func (c *CommitsMgr) GetMessage(commitSha string) (string, error) {
 
 func (c *CommitsMgr) GetMessageFirstLine(sha string) (string, error) {
 	return c.commander.RunWithOutput(
-		BuildGitCmdObjFromStr(fmt.Sprintf("show --no-patch --pretty=format:%%s %s", sha)),
+		c.commander.BuildGitCmdObjFromStr(fmt.Sprintf("show --no-patch --pretty=format:%%s %s", sha)),
 	)
 }
 
@@ -88,7 +88,7 @@ func (c *CommitsMgr) AmendHead() error {
 }
 
 func (c *CommitsMgr) AmendHeadCmdObj() ICmdObj {
-	return BuildGitCmdObjFromStr("commit --amend --no-edit --allow-empty")
+	return c.commander.BuildGitCmdObjFromStr("commit --amend --no-edit --allow-empty")
 }
 
 func (c *CommitsMgr) ShowCmdObj(sha string, filterPath string) ICmdObj {
@@ -96,8 +96,8 @@ func (c *CommitsMgr) ShowCmdObj(sha string, filterPath string) ICmdObj {
 	if filterPath != "" {
 		filterPathArg = fmt.Sprintf(" -- %s", c.quote(filterPath))
 	}
-	return BuildGitCmdObjFromStr(
-		fmt.Sprintf("show --submodule --color=%s --no-renames --stat -p %s %s", c.config.colorArg(), sha, filterPathArg),
+	return c.commander.BuildGitCmdObjFromStr(
+		fmt.Sprintf("show --submodule --color=%s --no-renames --stat -p %s%s", c.config.ColorArg(), sha, filterPathArg),
 	)
 }
 
