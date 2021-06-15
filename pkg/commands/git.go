@@ -33,6 +33,7 @@ type Git struct {
 	*Commander
 	*GitConfigMgr
 	commitsMgr           *CommitsMgr
+	branchesMgr          *BranchesMgr
 	log                  *logrus.Entry
 	os                   *oscommands.OS
 	repo                 *gogit.Repository
@@ -68,11 +69,13 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath(), oS.Quote)
 	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), getGitConfigValue, log)
 	commitsMgr := NewCommitsMgr(commander, gitConfig)
+	branchesMgr := NewBranchesMgr(commander, gitConfig)
 
 	gitCommand := &Git{
 		Commander:    commander,
 		GitConfigMgr: gitConfig,
 		commitsMgr:   commitsMgr,
+		branchesMgr:  branchesMgr,
 		log:          log,
 		os:           oS,
 		tr:           tr,
@@ -86,6 +89,10 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 
 func (c *Git) Commits() ICommitsMgr {
 	return c.commitsMgr
+}
+
+func (c *Git) Branches() IBranchesMgr {
+	return c.branchesMgr
 }
 
 func (c *Git) Quote(str string) string {

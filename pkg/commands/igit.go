@@ -1,7 +1,6 @@
 // hmm auto-generated for testing purposes. To re-generate, do: <ifacemaker --file="pkg/commands/*.go" --struct=Git --iface=IGit --pkg=commands -o pkg/commands/igit.go --doc false --comment="$(cat pkg/commands/auto-generation-message.txt)"> from the root directory of the repo and fix up any missing imports
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate . IGit
 
 package commands
 
@@ -18,7 +17,8 @@ import (
 // IGit ...
 type IGit interface {
 	// branches
-	NewBranch(name string, base string) error
+	Branches() IBranchesMgr
+
 	CurrentBranchName() (string, string, error)
 	DeleteBranch(branch string, force bool) error
 	Checkout(branch string, options CheckoutOptions) error

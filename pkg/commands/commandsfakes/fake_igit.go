@@ -107,6 +107,16 @@ type FakeIGit struct {
 	beginInteractiveRebaseForCommitReturnsOnCall map[int]struct {
 		result1 error
 	}
+	BranchesStub        func() commands.IBranchesMgr
+	branchesMutex       sync.RWMutex
+	branchesArgsForCall []struct {
+	}
+	branchesReturns struct {
+		result1 commands.IBranchesMgr
+	}
+	branchesReturnsOnCall map[int]struct {
+		result1 commands.IBranchesMgr
+	}
 	BuildGitCmdObjFromStrStub        func(string) types.ICmdObj
 	buildGitCmdObjFromStrMutex       sync.RWMutex
 	buildGitCmdObjFromStrArgsForCall []struct {
@@ -924,18 +934,6 @@ type FakeIGit struct {
 		result1 error
 	}
 	moveTodoDownReturnsOnCall map[int]struct {
-		result1 error
-	}
-	NewBranchStub        func(string, string) error
-	newBranchMutex       sync.RWMutex
-	newBranchArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	newBranchReturns struct {
-		result1 error
-	}
-	newBranchReturnsOnCall map[int]struct {
 		result1 error
 	}
 	NewPatchManagerStub        func() *patch.PatchManager
@@ -2035,6 +2033,59 @@ func (fake *FakeIGit) BeginInteractiveRebaseForCommitReturnsOnCall(i int, result
 	}
 	fake.beginInteractiveRebaseForCommitReturnsOnCall[i] = struct {
 		result1 error
+	}{result1}
+}
+
+func (fake *FakeIGit) Branches() commands.IBranchesMgr {
+	fake.branchesMutex.Lock()
+	ret, specificReturn := fake.branchesReturnsOnCall[len(fake.branchesArgsForCall)]
+	fake.branchesArgsForCall = append(fake.branchesArgsForCall, struct {
+	}{})
+	stub := fake.BranchesStub
+	fakeReturns := fake.branchesReturns
+	fake.recordInvocation("Branches", []interface{}{})
+	fake.branchesMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGit) BranchesCallCount() int {
+	fake.branchesMutex.RLock()
+	defer fake.branchesMutex.RUnlock()
+	return len(fake.branchesArgsForCall)
+}
+
+func (fake *FakeIGit) BranchesCalls(stub func() commands.IBranchesMgr) {
+	fake.branchesMutex.Lock()
+	defer fake.branchesMutex.Unlock()
+	fake.BranchesStub = stub
+}
+
+func (fake *FakeIGit) BranchesReturns(result1 commands.IBranchesMgr) {
+	fake.branchesMutex.Lock()
+	defer fake.branchesMutex.Unlock()
+	fake.BranchesStub = nil
+	fake.branchesReturns = struct {
+		result1 commands.IBranchesMgr
+	}{result1}
+}
+
+func (fake *FakeIGit) BranchesReturnsOnCall(i int, result1 commands.IBranchesMgr) {
+	fake.branchesMutex.Lock()
+	defer fake.branchesMutex.Unlock()
+	fake.BranchesStub = nil
+	if fake.branchesReturnsOnCall == nil {
+		fake.branchesReturnsOnCall = make(map[int]struct {
+			result1 commands.IBranchesMgr
+		})
+	}
+	fake.branchesReturnsOnCall[i] = struct {
+		result1 commands.IBranchesMgr
 	}{result1}
 }
 
@@ -6240,68 +6291,6 @@ func (fake *FakeIGit) MoveTodoDownReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) NewBranch(arg1 string, arg2 string) error {
-	fake.newBranchMutex.Lock()
-	ret, specificReturn := fake.newBranchReturnsOnCall[len(fake.newBranchArgsForCall)]
-	fake.newBranchArgsForCall = append(fake.newBranchArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.NewBranchStub
-	fakeReturns := fake.newBranchReturns
-	fake.recordInvocation("NewBranch", []interface{}{arg1, arg2})
-	fake.newBranchMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) NewBranchCallCount() int {
-	fake.newBranchMutex.RLock()
-	defer fake.newBranchMutex.RUnlock()
-	return len(fake.newBranchArgsForCall)
-}
-
-func (fake *FakeIGit) NewBranchCalls(stub func(string, string) error) {
-	fake.newBranchMutex.Lock()
-	defer fake.newBranchMutex.Unlock()
-	fake.NewBranchStub = stub
-}
-
-func (fake *FakeIGit) NewBranchArgsForCall(i int) (string, string) {
-	fake.newBranchMutex.RLock()
-	defer fake.newBranchMutex.RUnlock()
-	argsForCall := fake.newBranchArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) NewBranchReturns(result1 error) {
-	fake.newBranchMutex.Lock()
-	defer fake.newBranchMutex.Unlock()
-	fake.NewBranchStub = nil
-	fake.newBranchReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) NewBranchReturnsOnCall(i int, result1 error) {
-	fake.newBranchMutex.Lock()
-	defer fake.newBranchMutex.Unlock()
-	fake.NewBranchStub = nil
-	if fake.newBranchReturnsOnCall == nil {
-		fake.newBranchReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.newBranchReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeIGit) NewPatchManager() *patch.PatchManager {
 	fake.newPatchManagerMutex.Lock()
 	ret, specificReturn := fake.newPatchManagerReturnsOnCall[len(fake.newPatchManagerArgsForCall)]
@@ -9571,6 +9560,8 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.beforeAndAfterFileForRenameMutex.RUnlock()
 	fake.beginInteractiveRebaseForCommitMutex.RLock()
 	defer fake.beginInteractiveRebaseForCommitMutex.RUnlock()
+	fake.branchesMutex.RLock()
+	defer fake.branchesMutex.RUnlock()
 	fake.buildGitCmdObjFromStrMutex.RLock()
 	defer fake.buildGitCmdObjFromStrMutex.RUnlock()
 	fake.buildShellCmdObjMutex.RLock()
@@ -9709,8 +9700,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.movePatchToSelectedCommitMutex.RUnlock()
 	fake.moveTodoDownMutex.RLock()
 	defer fake.moveTodoDownMutex.RUnlock()
-	fake.newBranchMutex.RLock()
-	defer fake.newBranchMutex.RUnlock()
 	fake.newPatchManagerMutex.RLock()
 	defer fake.newPatchManagerMutex.RUnlock()
 	fake.openMergeToolCmdObjMutex.RLock()

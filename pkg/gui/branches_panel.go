@@ -240,7 +240,7 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 		return nil
 	}
 
-	if err := gui.Git.NewBranch(newBranchName, branch.Name); err != nil {
+	if err := gui.Git.Branches().NewBranch(newBranchName, branch.Name); err != nil {
 		return gui.SurfaceError(err)
 	}
 
@@ -501,7 +501,7 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		Title:          message,
 		InitialContent: prefilledName,
 		HandleConfirm: func(response string) error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.CreateBranch).NewBranch(sanitizedBranchName(response), item.ID()); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.CreateBranch).Branches().NewBranch(sanitizedBranchName(response), item.ID()); err != nil {
 				return err
 			}
 

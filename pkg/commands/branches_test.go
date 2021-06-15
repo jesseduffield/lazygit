@@ -1,14 +1,5 @@
 package commands
 
-// import (
-// 	"os/exec"
-// 	"testing"
-
-// 	"github.com/jesseduffield/lazygit/pkg/secureexec"
-// 	"github.com/jesseduffield/lazygit/pkg/test"
-// 	"github.com/stretchr/testify/assert"
-// )
-
 // // TestGitCommandGetCommitDifferences is a function.
 // func TestGitCommandGetCommitDifferences(t *testing.T) {
 // 	type scenario struct {
@@ -65,19 +56,6 @@ package commands
 // 			s.test(gitCmd.GetCommitDifferences("HEAD", "@{u}"))
 // 		})
 // 	}
-// }
-
-// // TestGitCommandNewBranch is a function.
-// func TestGitCommandNewBranch(t *testing.T) {
-// 	gitCmd := NewDummyGit()
-// 	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
-// 		assert.EqualValues(t, "git", cmd)
-// 		assert.EqualValues(t, []string{"checkout", "-b", "test", "master"}, args)
-
-// 		return secureexec.Command("echo")
-// 	}
-
-// 	assert.NoError(t, gitCmd.NewBranch("test", "master"))
 // }
 
 // // TestGitCommandDeleteBranch is a function.

@@ -10,11 +10,40 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+type IBranchesMgr interface {
+	NewBranch(name string, base string) error
+	// CurrentBranchName() (string, string, error)
+	// DeleteBranch(branch string, force bool) error
+	// Checkout(branch string, options CheckoutOptions) error
+	// GetBranchGraph(branchName string) (string, error)
+	// GetUpstreamForBranch(branchName string) (string, error)
+	// GetBranchGraphCmdObj(branchName string) ICmdObj
+	// SetUpstreamBranch(upstream string) error
+	// SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error
+	// GetCurrentBranchUpstreamDifferenceCount() (string, string)
+	// GetBranchUpstreamDifferenceCount(branchName string) (string, string)
+	// RenameBranch(oldName string, newName string) error
+	// FindRemoteForBranchInConfig(branchName string) (string, error)
+	// AllBranchesCmdObj() ICmdObj
+	// Merge(branchName string, opts MergeOpts) error
+	// AbortMerge() error
+}
+
+type BranchesMgr struct {
+	commander ICommander
+	config    IGitConfig
+}
+
+func NewBranchesMgr(commander ICommander, config IGitConfig) *BranchesMgr {
+	return &BranchesMgr{
+		commander: commander,
+		config:    config,
+	}
+}
+
 // NewBranch create new branch
-func (c *Git) NewBranch(name string, base string) error {
-	return c.Run(
-		BuildGitCmdObj("checkout", []string{name, base}, map[string]bool{"-b": true}),
-	)
+func (c *BranchesMgr) NewBranch(name string, base string) error {
+	return c.commander.RunGitCmdFromStr(fmt.Sprintf("checkout -b %s %s", name, base))
 }
 
 // CurrentBranchName get the current branch name and displayname.
