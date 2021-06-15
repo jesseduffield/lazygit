@@ -11,7 +11,7 @@ import (
 )
 
 // TestGitCommandRenameCommit is a function.
-func TestGitCommandRenameHeadCommit(t *testing.T) {
+func TestGitCommandRewordHead(t *testing.T) {
 	gitCmd := NewDummyGit()
 	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
 		assert.EqualValues(t, "git", cmd)
@@ -20,7 +20,7 @@ func TestGitCommandRenameHeadCommit(t *testing.T) {
 		return secureexec.Command("echo")
 	}
 
-	assert.NoError(t, gitCmd.RenameHeadCommit("test"))
+	assert.NoError(t, gitCmd.RewordHead("test"))
 }
 
 // TestGitCommandResetToCommit is a function.

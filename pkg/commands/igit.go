@@ -42,18 +42,7 @@ type IGit interface {
 	ResetToRef(ref string, strength string, options ResetToCommitOptions) error
 
 	// commits
-	RenameHeadCommit(name string) error
-	CommitCmdObj(message string, flags string) ICmdObj
-	GetHeadCommitMessage() (string, error)
-	GetCommitMessage(commitSha string) (string, error)
-	GetCommitMessageFirstLine(sha string) (string, error)
-	AmendHead() error
-	AmendHeadCmdObj() ICmdObj
-	ShowCmdObj(sha string, filterPath string) ICmdObj
-	Revert(sha string) error
-	RevertMerge(sha string, parentNumber int) error
-	CherryPickCommits(commits []*models.Commit) error
-	CreateFixupCommit(sha string) error
+	Commits() ICommitsMgr
 
 	// config
 	GetPager(width int) string
@@ -94,15 +83,7 @@ type IGit interface {
 	GetStatusFiles(opts loaders.LoadStatusFilesOpts) []*models.File
 
 	// commands
-	Run(cmdObj ICmdObj) error
-	RunWithOutput(cmdObj ICmdObj) (string, error)
-	RunGitCmdFromStr(cmdStr string) error
-	BuildGitCmdObjFromStr(cmdStr string) ICmdObj
-	BuildShellCmdObj(command string) ICmdObj
-	SkipEditor(cmdObj ICmdObj)
-	RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error
-	RunCommandWithCredentialsHandling(cmdObj ICmdObj) error
-	FailOnCredentialsRequest(cmdObj ICmdObj) ICmdObj
+	ICommander
 
 	SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error))
 
@@ -150,6 +131,7 @@ type IGit interface {
 	BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIndex int) error
 	RebaseBranch(branchName string) error
 	GenericMergeOrRebaseAction(commandType string, command string) error
+	CherryPickCommits(commits []*models.Commit) error
 
 	// remotes
 	AddRemote(name string, url string) error

@@ -23,7 +23,7 @@ func (c *Git) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int,
 	}
 
 	// time to amend the selected commit
-	if err := c.AmendHead(); err != nil {
+	if err := c.Commits().AmendHead(); err != nil {
 		return err
 	}
 
@@ -51,7 +51,7 @@ func (c *Git) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitId
 		}
 
 		// amend the destination commit
-		if err := c.AmendHead(); err != nil {
+		if err := c.Commits().AmendHead(); err != nil {
 			return err
 		}
 
@@ -100,7 +100,7 @@ func (c *Git) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitId
 	}
 
 	// amend the source commit
-	if err := c.AmendHead(); err != nil {
+	if err := c.Commits().AmendHead(); err != nil {
 		return err
 	}
 
@@ -119,7 +119,7 @@ func (c *Git) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitId
 		}
 
 		// amend the destination commit
-		if err := c.AmendHead(); err != nil {
+		if err := c.Commits().AmendHead(); err != nil {
 			return err
 		}
 
@@ -155,7 +155,7 @@ func (c *Git) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *pat
 	}
 
 	// amend the commit
-	if err := c.AmendHead(); err != nil {
+	if err := c.Commits().AmendHead(); err != nil {
 		return err
 	}
 
@@ -200,7 +200,7 @@ func (c *Git) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p 
 	}
 
 	// amend the commit
-	if err := c.AmendHead(); err != nil {
+	if err := c.Commits().AmendHead(); err != nil {
 		return err
 	}
 
@@ -212,9 +212,9 @@ func (c *Git) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p 
 		return err
 	}
 
-	head_message, _ := c.GetHeadCommitMessage()
+	head_message, _ := c.Commits().GetHeadMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := c.Run(c.CommitCmdObj(new_message, ""))
+	err := c.Run(c.Commits().CommitCmdObj(new_message, ""))
 	if err != nil {
 		return err
 	}

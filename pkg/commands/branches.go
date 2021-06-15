@@ -169,3 +169,11 @@ func (c *Git) ResetMixed(ref string) error {
 func (c *Git) RenameBranch(oldName string, newName string) error {
 	return c.RunGitCmdFromStr(fmt.Sprintf("branch --move %s %s", oldName, newName))
 }
+
+// ResetToCommit reset to commit
+func (c *Git) ResetToRef(ref string, strength string, options ResetToCommitOptions) error {
+	cmdObj := BuildGitCmdObjFromStr(fmt.Sprintf("reset --%s %s", strength, ref))
+	cmdObj.AddEnvVars(options.EnvVars...)
+
+	return c.Run(cmdObj)
+}

@@ -24,7 +24,7 @@ func (gui *Gui) handleSubCommitSelect() error {
 	if commit == nil {
 		task = NewRenderStringTask("No commits")
 	} else {
-		cmdObj := gui.Git.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
+		cmdObj := gui.Git.Commits().ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
 
 		task = NewRunPtyTask(cmdObj)
 	}

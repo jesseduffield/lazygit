@@ -13,8 +13,11 @@ import (
 type getGitConfigValueFunc func(key string) (string, error)
 
 type GitConfig struct {
-	commander         *Commander
-	pushToCurrent     bool
+	commander *Commander
+
+	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
+	pushToCurrent bool
+
 	userConfig        *config.UserConfig
 	getGitConfigValue getGitConfigValueFunc
 }
@@ -107,4 +110,8 @@ func (c *Git) FindRemoteForBranchInConfig(branchName string) (string, error) {
 	}
 
 	return "", nil
+}
+
+func (c *Git) GetPushToCurrent() bool {
+	return c.pushToCurrent
 }

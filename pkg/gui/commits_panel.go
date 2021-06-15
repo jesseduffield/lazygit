@@ -41,7 +41,7 @@ func (gui *Gui) handleCommitSelect() error {
 		task = NewRenderStringTask(gui.Tr.NoCommitsThisBranch)
 	} else {
 		task = NewRunPtyTask(
-			gui.Git.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath()),
+			gui.Git.Commits().ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath()),
 		)
 	}
 
@@ -229,7 +229,7 @@ func (gui *Gui) handleRenameCommit() error {
 		return nil
 	}
 
-	message, err := gui.Git.GetCommitMessage(commit.Sha)
+	message, err := gui.Git.Commits().GetMessage(commit.Sha)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}
@@ -238,7 +238,7 @@ func (gui *Gui) handleRenameCommit() error {
 		Title:          gui.Tr.LcRenameCommit,
 		InitialContent: message,
 		HandleConfirm: func(response string) error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.RewordCommit).RenameHeadCommit(response); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.RewordCommit).Commits().RewordHead(response); err != nil {
 				return gui.SurfaceError(err)
 			}
 
@@ -466,7 +466,7 @@ func (gui *Gui) handleCommitRevert() error {
 	if commit.IsMerge() {
 		return gui.createRevertMergeCommitMenu(commit)
 	} else {
-		if err := gui.Git.WithSpan(gui.Tr.Spans.RevertCommit).Revert(commit.Sha); err != nil {
+		if err := gui.Git.WithSpan(gui.Tr.Spans.RevertCommit).Commits().Revert(commit.Sha); err != nil {
 			return gui.SurfaceError(err)
 		}
 		return gui.afterRevertCommit()
@@ -477,7 +477,7 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 	menuItems := make([]*menuItem, len(commit.Parents))
 	for i, parentSha := range commit.Parents {
 		i := i
-		message, err := gui.Git.GetCommitMessageFirstLine(parentSha)
+		message, err := gui.Git.Commits().GetMessageFirstLine(parentSha)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}
@@ -486,7 +486,7 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 			displayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
 			onPress: func() error {
 				parentNumber := i + 1
-				if err := gui.Git.WithSpan(gui.Tr.Spans.RevertCommit).RevertMerge(commit.Sha, parentNumber); err != nil {
+				if err := gui.Git.WithSpan(gui.Tr.Spans.RevertCommit).Commits().RevertMerge(commit.Sha, parentNumber); err != nil {
 					return gui.SurfaceError(err)
 				}
 				return gui.afterRevertCommit()
@@ -532,7 +532,7 @@ func (gui *Gui) handleCreateFixupCommit() error {
 		Title:  gui.Tr.CreateFixupCommit,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.CreateFixupCommit).CreateFixupCommit(commit.Sha); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.CreateFixupCommit).Commits().CreateFixupCommit(commit.Sha); err != nil {
 				return gui.SurfaceError(err)
 			}
 
@@ -654,7 +654,7 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 		return nil
 	}
 
-	message, err := gui.Git.GetCommitMessage(commit.Sha)
+	message, err := gui.Git.Commits().GetMessage(commit.Sha)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}

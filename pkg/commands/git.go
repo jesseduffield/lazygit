@@ -32,6 +32,7 @@ const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 type Git struct {
 	*Commander
 	*GitConfig
+	commitsMgr           *CommitsMgr
 	log                  *logrus.Entry
 	os                   *oscommands.OS
 	repo                 *gogit.Repository
@@ -40,15 +41,8 @@ type Git struct {
 	dotGitDir            string
 	onSuccessfulContinue func() error
 
-	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
-	pushToCurrent bool
-
 	promptUserForCredential func(CredentialKind) string
 	handleCredentialError   func(error)
-}
-
-func (c *Git) GetPushToCurrent() bool {
-	return c.pushToCurrent
 }
 
 func (c *Git) GetLog() *logrus.Entry {
@@ -73,19 +67,25 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 
 	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath())
 	gitConfig := NewGitConfig(commander, config.GetUserConfig(), getGitConfigValue, log)
+	commitsMgr := NewCommitsMgr(commander, gitConfig, oS.Quote)
 
 	gitCommand := &Git{
-		Commander: commander,
-		GitConfig: gitConfig,
-		log:       log,
-		os:        oS,
-		tr:        tr,
-		repo:      repo,
-		config:    config,
-		dotGitDir: dotGitDir,
+		Commander:  commander,
+		GitConfig:  gitConfig,
+		commitsMgr: commitsMgr,
+		log:        log,
+		os:         oS,
+		tr:         tr,
+		repo:       repo,
+		config:     config,
+		dotGitDir:  dotGitDir,
 	}
 
 	return gitCommand, nil
+}
+
+func (c *Git) Commits() ICommitsMgr {
+	return c.commitsMgr
 }
 
 func (c *Git) Quote(str string) string {
@@ -265,10 +265,6 @@ func (c *Git) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
 	default:
 		panic("expected rebase mode")
 	}
-}
-
-func (c *Git) RunGitCmdFromStr(cmdStr string) error {
-	return c.Run(BuildGitCmdObjFromStr(cmdStr))
 }
 
 func (c *Git) GetStatusFiles(opts loaders.LoadStatusFilesOpts) []*models.File {

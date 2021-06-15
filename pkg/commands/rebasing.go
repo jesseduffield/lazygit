@@ -122,7 +122,7 @@ func (c *Git) GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex in
 
 // AmendTo amends the given commit with whatever files are staged
 func (c *Git) AmendTo(sha string) error {
-	if err := c.CreateFixupCommit(sha); err != nil {
+	if err := c.Commits().CreateFixupCommit(sha); err != nil {
 		return err
 	}
 

@@ -225,7 +225,7 @@ func (c *Git) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, f
 	}
 
 	// amend the commit
-	err := c.AmendHead()
+	err := c.Commits().AmendHead()
 	if err != nil {
 		return err
 	}

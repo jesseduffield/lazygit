@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// TODO: decide whether to use this
 type ICommander interface {
 	Run(cmdObj ICmdObj) error
 	RunWithOutput(cmdObj ICmdObj) (string, error)
@@ -18,9 +19,6 @@ type ICommander interface {
 	BuildGitCmdObjFromStr(cmdStr string) ICmdObj
 	BuildShellCmdObj(command string) ICmdObj
 	SkipEditor(cmdObj ICmdObj)
-	RunCommandWithCredentialsPrompt(cmdObj ICmdObj) error
-	RunCommandWithCredentialsHandling(cmdObj ICmdObj) error
-	FailOnCredentialsRequest(cmdObj ICmdObj) ICmdObj
 }
 
 type runWithOutputFunc func(ICmdObj) (string, error)
@@ -69,6 +67,11 @@ func (c *Commander) RunWithOutput(cmdObj ICmdObj) (string, error) {
 		return output, err
 	}
 }
+
+func (c *Commander) RunGitCmdFromStr(cmdStr string) error {
+	return c.Run(BuildGitCmdObjFromStr(cmdStr))
+}
+
 func BuildGitCmdStr(command string, positionalArgs []string, kwArgs map[string]bool) string {
 	parts := []string{command}
 

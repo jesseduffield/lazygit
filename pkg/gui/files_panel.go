@@ -450,7 +450,7 @@ func (gui *Gui) handleAmendCommitPress() error {
 		Title:  strings.Title(gui.Tr.AmendLastCommit),
 		Prompt: gui.Tr.SureToAmend,
 		HandleConfirm: func() error {
-			cmdObj := gui.Git.AmendHeadCmdObj()
+			cmdObj := gui.Git.Commits().AmendHeadCmdObj()
 			gui.OnRunCommand(oscommands.NewCmdLogEntryFromCmdObj(cmdObj, gui.Tr.Spans.AmendCommit))
 			return gui.withGpgHandling(cmdObj, gui.Tr.AmendingStatus, nil)
 		},
