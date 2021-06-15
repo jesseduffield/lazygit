@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-func TailLogs1() {
+func TailLogs() {
 	logFilePath, err := config.LogPath()
 	if err != nil {
 		log.Fatal(err)
