@@ -996,6 +996,17 @@ type FakeIGit struct {
 	pushTagReturnsOnCall map[int]struct {
 		result1 error
 	}
+	QuoteStub        func(string) string
+	quoteMutex       sync.RWMutex
+	quoteArgsForCall []struct {
+		arg1 string
+	}
+	quoteReturns struct {
+		result1 string
+	}
+	quoteReturnsOnCall map[int]struct {
+		result1 string
+	}
 	RebaseBranchStub        func(string) error
 	rebaseBranchMutex       sync.RWMutex
 	rebaseBranchArgsForCall []struct {
@@ -6591,6 +6602,67 @@ func (fake *FakeIGit) PushTagReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeIGit) Quote(arg1 string) string {
+	fake.quoteMutex.Lock()
+	ret, specificReturn := fake.quoteReturnsOnCall[len(fake.quoteArgsForCall)]
+	fake.quoteArgsForCall = append(fake.quoteArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.QuoteStub
+	fakeReturns := fake.quoteReturns
+	fake.recordInvocation("Quote", []interface{}{arg1})
+	fake.quoteMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGit) QuoteCallCount() int {
+	fake.quoteMutex.RLock()
+	defer fake.quoteMutex.RUnlock()
+	return len(fake.quoteArgsForCall)
+}
+
+func (fake *FakeIGit) QuoteCalls(stub func(string) string) {
+	fake.quoteMutex.Lock()
+	defer fake.quoteMutex.Unlock()
+	fake.QuoteStub = stub
+}
+
+func (fake *FakeIGit) QuoteArgsForCall(i int) string {
+	fake.quoteMutex.RLock()
+	defer fake.quoteMutex.RUnlock()
+	argsForCall := fake.quoteArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeIGit) QuoteReturns(result1 string) {
+	fake.quoteMutex.Lock()
+	defer fake.quoteMutex.Unlock()
+	fake.QuoteStub = nil
+	fake.quoteReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeIGit) QuoteReturnsOnCall(i int, result1 string) {
+	fake.quoteMutex.Lock()
+	defer fake.quoteMutex.Unlock()
+	fake.QuoteStub = nil
+	if fake.quoteReturnsOnCall == nil {
+		fake.quoteReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.quoteReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeIGit) RebaseBranch(arg1 string) error {
 	fake.rebaseBranchMutex.Lock()
 	ret, specificReturn := fake.rebaseBranchReturnsOnCall[len(fake.rebaseBranchArgsForCall)]
@@ -9649,6 +9721,8 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.pushMutex.RUnlock()
 	fake.pushTagMutex.RLock()
 	defer fake.pushTagMutex.RUnlock()
+	fake.quoteMutex.RLock()
+	defer fake.quoteMutex.RUnlock()
 	fake.rebaseBranchMutex.RLock()
 	defer fake.rebaseBranchMutex.RUnlock()
 	fake.rebaseModeMutex.RLock()

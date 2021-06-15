@@ -31,6 +31,17 @@ type FakeICommander struct {
 	buildShellCmdObjReturnsOnCall map[int]struct {
 		result1 types.ICmdObj
 	}
+	QuoteStub        func(string) string
+	quoteMutex       sync.RWMutex
+	quoteArgsForCall []struct {
+		arg1 string
+	}
+	quoteReturns struct {
+		result1 string
+	}
+	quoteReturnsOnCall map[int]struct {
+		result1 string
+	}
 	RunStub        func(types.ICmdObj) error
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
@@ -194,6 +205,67 @@ func (fake *FakeICommander) BuildShellCmdObjReturnsOnCall(i int, result1 types.I
 	}
 	fake.buildShellCmdObjReturnsOnCall[i] = struct {
 		result1 types.ICmdObj
+	}{result1}
+}
+
+func (fake *FakeICommander) Quote(arg1 string) string {
+	fake.quoteMutex.Lock()
+	ret, specificReturn := fake.quoteReturnsOnCall[len(fake.quoteArgsForCall)]
+	fake.quoteArgsForCall = append(fake.quoteArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.QuoteStub
+	fakeReturns := fake.quoteReturns
+	fake.recordInvocation("Quote", []interface{}{arg1})
+	fake.quoteMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeICommander) QuoteCallCount() int {
+	fake.quoteMutex.RLock()
+	defer fake.quoteMutex.RUnlock()
+	return len(fake.quoteArgsForCall)
+}
+
+func (fake *FakeICommander) QuoteCalls(stub func(string) string) {
+	fake.quoteMutex.Lock()
+	defer fake.quoteMutex.Unlock()
+	fake.QuoteStub = stub
+}
+
+func (fake *FakeICommander) QuoteArgsForCall(i int) string {
+	fake.quoteMutex.RLock()
+	defer fake.quoteMutex.RUnlock()
+	argsForCall := fake.quoteArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeICommander) QuoteReturns(result1 string) {
+	fake.quoteMutex.Lock()
+	defer fake.quoteMutex.Unlock()
+	fake.QuoteStub = nil
+	fake.quoteReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeICommander) QuoteReturnsOnCall(i int, result1 string) {
+	fake.quoteMutex.Lock()
+	defer fake.quoteMutex.Unlock()
+	fake.QuoteStub = nil
+	if fake.quoteReturnsOnCall == nil {
+		fake.quoteReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.quoteReturnsOnCall[i] = struct {
+		result1 string
 	}{result1}
 }
 
@@ -422,6 +494,8 @@ func (fake *FakeICommander) Invocations() map[string][][]interface{} {
 	defer fake.buildGitCmdObjFromStrMutex.RUnlock()
 	fake.buildShellCmdObjMutex.RLock()
 	defer fake.buildShellCmdObjMutex.RUnlock()
+	fake.quoteMutex.RLock()
+	defer fake.quoteMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	fake.runGitCmdFromStrMutex.RLock()

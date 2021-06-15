@@ -21,7 +21,7 @@ var _ = Describe("CommitsMgr", func() {
 		commander = NewFakeCommander()
 		gitconfig = &FakeIGitConfig{}
 		gitconfig.ColorArgCalls(func() string { return "always" })
-		commitsMgr = NewCommitsMgr(commander, gitconfig, mockQuote)
+		commitsMgr = NewCommitsMgr(commander, gitconfig)
 	})
 
 	Describe("RewordHead", func() {

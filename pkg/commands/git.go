@@ -65,9 +65,9 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 		return nil, err
 	}
 
-	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath())
+	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath(), oS.Quote)
 	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), getGitConfigValue, log)
-	commitsMgr := NewCommitsMgr(commander, gitConfig, oS.Quote)
+	commitsMgr := NewCommitsMgr(commander, gitConfig)
 
 	gitCommand := &Git{
 		Commander:    commander,

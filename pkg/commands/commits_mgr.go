@@ -24,20 +24,18 @@ type ICommitsMgr interface {
 type CommitsMgr struct {
 	commander ICommander
 	config    IGitConfig
-	quote     func(string) string
 }
 
-func NewCommitsMgr(commander ICommander, config IGitConfig, quote func(string) string) *CommitsMgr {
+func NewCommitsMgr(commander ICommander, config IGitConfig) *CommitsMgr {
 	return &CommitsMgr{
 		commander: commander,
 		config:    config,
-		quote:     quote,
 	}
 }
 
 // RenameCommit renames the topmost commit with the given name
 func (c *CommitsMgr) RewordHead(name string) error {
-	return c.commander.RunGitCmdFromStr(fmt.Sprintf("commit --allow-empty --amend --only -m %s", c.quote(name)))
+	return c.commander.RunGitCmdFromStr(fmt.Sprintf("commit --allow-empty --amend --only -m %s", c.commander.Quote(name)))
 }
 
 type ResetToCommitOptions struct {
@@ -48,7 +46,7 @@ func (c *CommitsMgr) CommitCmdObj(message string, flags string) ICmdObj {
 	splitMessage := strings.Split(message, "\n")
 	lineArgs := ""
 	for _, line := range splitMessage {
-		lineArgs += fmt.Sprintf(" -m %s", c.quote(line))
+		lineArgs += fmt.Sprintf(" -m %s", c.commander.Quote(line))
 	}
 
 	flagsStr := ""
@@ -94,7 +92,7 @@ func (c *CommitsMgr) AmendHeadCmdObj() ICmdObj {
 func (c *CommitsMgr) ShowCmdObj(sha string, filterPath string) ICmdObj {
 	filterPathArg := ""
 	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" -- %s", c.quote(filterPath))
+		filterPathArg = fmt.Sprintf(" -- %s", c.commander.Quote(filterPath))
 	}
 	return c.commander.BuildGitCmdObjFromStr(
 		fmt.Sprintf("show --submodule --color=%s --no-renames --stat -p %s%s", c.config.ColorArg(), sha, filterPathArg),

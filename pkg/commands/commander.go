@@ -11,7 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// TODO: decide whether to use this
+// to generate this run:
+// counterfeiter pkg/commands ICommander
 type ICommander interface {
 	Run(cmdObj ICmdObj) error
 	RunWithOutput(cmdObj ICmdObj) (string, error)
@@ -19,6 +20,7 @@ type ICommander interface {
 	BuildGitCmdObjFromStr(cmdStr string) ICmdObj
 	BuildShellCmdObj(command string) ICmdObj
 	SkipEditor(cmdObj ICmdObj)
+	Quote(string) string
 }
 
 type runWithOutputFunc func(ICmdObj) (string, error)
@@ -29,13 +31,20 @@ type Commander struct {
 	lazygitPath   string
 	shell         string // e.g. 'bash'
 	shellArg      string // e.g. '-c'
+	quote         func(string) string
 }
 
-func NewCommander(runWithOutput runWithOutputFunc, log *logrus.Entry, lazygitPath string) *Commander {
+func NewCommander(
+	runWithOutput runWithOutputFunc,
+	log *logrus.Entry,
+	lazygitPath string,
+	quote func(string) string,
+) *Commander {
 	return &Commander{
 		runWithOutput: runWithOutput,
 		log:           log,
 		lazygitPath:   lazygitPath,
+		quote:         quote,
 	}
 }
 
@@ -156,4 +165,8 @@ func GitCmdStr() string {
 // BuildShellCmdObj returns the pointer to a custom command
 func (c *Commander) BuildShellCmdObj(command string) ICmdObj {
 	return oscommands.NewCmdObjFromArgs([]string{c.shell, c.shellArg, command})
+}
+
+func (c *Commander) Quote(str string) string {
+	return c.quote(str)
 }
