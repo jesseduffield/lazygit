@@ -18,6 +18,7 @@ type IGitConfig interface {
 	ColorArg() string
 	GetConfigValue(key string) string
 	UsingGpg() bool
+	GetUserConfig() *config.UserConfig
 }
 
 type GitConfigMgr struct {
@@ -50,6 +51,10 @@ func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, getGit
 	gitConfig.pushToCurrent = pushToCurrent
 
 	return gitConfig
+}
+
+func (c *GitConfigMgr) GetUserConfig() *config.UserConfig {
+	return c.userConfig
 }
 
 func (c *GitConfigMgr) GetPager(width int) string {

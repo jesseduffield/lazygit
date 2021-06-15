@@ -240,22 +240,6 @@ func (c *Git) GetOS() *oscommands.OS {
 	return c.os
 }
 
-func (c *Git) AllBranchesCmdObj() ICmdObj {
-	cmdStr := c.cleanCustomGitCmdStr(
-		c.config.GetUserConfig().Git.AllBranchesLogCmd,
-	)
-
-	return BuildGitCmdObjFromStr(cmdStr)
-}
-
-func (c *Git) cleanCustomGitCmdStr(cmdStr string) string {
-	if strings.HasPrefix(cmdStr, "git ") {
-		return GitCmdStr() + strings.TrimPrefix(cmdStr, "git")
-	} else {
-		return cmdStr
-	}
-}
-
 func (c *Git) GenericAbortCmdObj() ICmdObj {
 	return c.GenericMergeOrRebaseCmdObj("abort")
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/go-errors/errors"
 	. "github.com/jesseduffield/lazygit/pkg/commands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -26,10 +25,8 @@ var _ = Describe("CommitsMgr", func() {
 
 	Describe("RewordHead", func() {
 		It("runs expected command", func() {
-			commander.RunCalls(func(cmdObj ICmdObj) error {
-				Expect(cmdObj.ToString()).To(Equal("git commit --allow-empty --amend --only -m \"newName\""))
-
-				return nil
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git commit --allow-empty --amend --only -m \"newName\"", "", nil},
 			})
 
 			commitsMgr.RewordHead("newName")
@@ -38,38 +35,32 @@ var _ = Describe("CommitsMgr", func() {
 
 	DescribeTable("CommitCmdObj",
 		func(message string, flags string, expected string) {
-			commander.BuildGitCmdObjFromStrCalls(func(command string) ICmdObj {
-				Expect(command).To(Equal(expected))
-
-				return nil
-			})
+			Expect(commitsMgr.CommitCmdObj(message, flags).ToString()).To(Equal(expected))
 		},
 		Entry(
 			"with message",
 			"my message",
 			"",
-			"commit -m \"my message\"",
+			"git commit -m \"my message\"",
 		),
 		Entry(
 			"with additional flags",
 			"my message",
 			"--flag",
-			"commit --flag -m \"my message\"",
+			"git commit --flag -m \"my message\"",
 		),
 		Entry(
 			"with multiline message",
 			"line one\nline two",
 			"--flag",
-			"commit --flag -m \"line one\" -m \"line two\"",
+			"git commit --flag -m \"line one\" -m \"line two\"",
 		),
 	)
 
 	Describe("GetHeadMessage", func() {
 		It("runs expected command and trims output", func() {
-			commander.RunWithOutputCalls(func(obj ICmdObj) (string, error) {
-				Expect(obj.ToString()).To(Equal("git log -1 --pretty=%s"))
-
-				return "blah blah\n", nil
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git log -1 --pretty=%s", "blah blah\n", nil},
 			})
 
 			message, err := commitsMgr.GetHeadMessage()
@@ -79,7 +70,9 @@ var _ = Describe("CommitsMgr", func() {
 		})
 
 		It("returns error if one occurs", func() {
-			commander.RunWithOutputReturns("", errors.New("my error"))
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git log -1 --pretty=%s", "", errors.New("my error")},
+			})
 
 			message, err := commitsMgr.GetHeadMessage()
 
@@ -90,10 +83,8 @@ var _ = Describe("CommitsMgr", func() {
 
 	Describe("GetMessageFirstLine", func() {
 		It("returns first line", func() {
-			commander.RunWithOutputCalls(func(obj ICmdObj) (string, error) {
-				Expect(obj.ToString()).To(Equal("git show --no-patch --pretty=format:%s abc123"))
-
-				return "firstline", nil
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git show --no-patch --pretty=format:%s abc123", "firstline", nil},
 			})
 
 			message, err := commitsMgr.GetMessageFirstLine("abc123")
@@ -103,7 +94,9 @@ var _ = Describe("CommitsMgr", func() {
 		})
 
 		It("bubbles up error", func() {
-			commander.RunWithOutputReturns("", errors.New("my error"))
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git show --no-patch --pretty=format:%s abc123", "", errors.New("my error")},
+			})
 
 			message, err := commitsMgr.GetMessageFirstLine("abc123")
 
@@ -114,10 +107,8 @@ var _ = Describe("CommitsMgr", func() {
 
 	Describe("AmendHead", func() {
 		It("runs command", func() {
-			commander.RunCalls(func(obj ICmdObj) error {
-				Expect(obj.ToString()).To(Equal("git commit --amend --no-edit --allow-empty"))
-
-				return nil
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git commit --amend --no-edit --allow-empty", "", nil},
 			})
 
 			err := commitsMgr.AmendHead()
@@ -147,10 +138,8 @@ var _ = Describe("CommitsMgr", func() {
 
 	Describe("Revert", func() {
 		It("runs command", func() {
-			commander.RunCalls(func(cmdObj ICmdObj) error {
-				Expect(cmdObj.ToString()).To(Equal("git revert abc123"))
-
-				return nil
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git revert abc123", "", nil},
 			})
 
 			err := commitsMgr.Revert("abc123")
@@ -160,10 +149,8 @@ var _ = Describe("CommitsMgr", func() {
 
 	Describe("RevertMerge", func() {
 		It("runs command", func() {
-			commander.RunCalls(func(cmdObj ICmdObj) error {
-				Expect(cmdObj.ToString()).To(Equal("git revert abc123 -m 1"))
-
-				return nil
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git revert abc123 -m 1", "", nil},
 			})
 
 			err := commitsMgr.RevertMerge("abc123", 1)
@@ -173,10 +160,8 @@ var _ = Describe("CommitsMgr", func() {
 
 	Describe("CreateFixupCommit", func() {
 		It("runs command", func() {
-			commander.RunCalls(func(cmdObj ICmdObj) error {
-				Expect(cmdObj.ToString()).To(Equal("git commit --fixup=abc123"))
-
-				return nil
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git commit --fixup=abc123", "", nil},
 			})
 
 			err := commitsMgr.CreateFixupCommit("abc123")

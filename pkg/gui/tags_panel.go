@@ -49,7 +49,7 @@ func (gui *Gui) handleTagSelect() error {
 	if tag == nil {
 		task = NewRenderStringTask("No tags")
 	} else {
-		task = NewRunCommandTask(gui.Git.GetBranchGraphCmdObj(tag.Name))
+		task = NewRunCommandTask(gui.Git.Branches().GetBranchGraphCmdObj(tag.Name))
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

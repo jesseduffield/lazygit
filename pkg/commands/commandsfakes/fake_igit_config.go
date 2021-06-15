@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 type FakeIGitConfig struct {
@@ -39,6 +40,16 @@ type FakeIGitConfig struct {
 	}
 	getPagerReturnsOnCall map[int]struct {
 		result1 string
+	}
+	GetUserConfigStub        func() *config.UserConfig
+	getUserConfigMutex       sync.RWMutex
+	getUserConfigArgsForCall []struct {
+	}
+	getUserConfigReturns struct {
+		result1 *config.UserConfig
+	}
+	getUserConfigReturnsOnCall map[int]struct {
+		result1 *config.UserConfig
 	}
 	UsingGpgStub        func() bool
 	usingGpgMutex       sync.RWMutex
@@ -229,6 +240,59 @@ func (fake *FakeIGitConfig) GetPagerReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeIGitConfig) GetUserConfig() *config.UserConfig {
+	fake.getUserConfigMutex.Lock()
+	ret, specificReturn := fake.getUserConfigReturnsOnCall[len(fake.getUserConfigArgsForCall)]
+	fake.getUserConfigArgsForCall = append(fake.getUserConfigArgsForCall, struct {
+	}{})
+	stub := fake.GetUserConfigStub
+	fakeReturns := fake.getUserConfigReturns
+	fake.recordInvocation("GetUserConfig", []interface{}{})
+	fake.getUserConfigMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGitConfig) GetUserConfigCallCount() int {
+	fake.getUserConfigMutex.RLock()
+	defer fake.getUserConfigMutex.RUnlock()
+	return len(fake.getUserConfigArgsForCall)
+}
+
+func (fake *FakeIGitConfig) GetUserConfigCalls(stub func() *config.UserConfig) {
+	fake.getUserConfigMutex.Lock()
+	defer fake.getUserConfigMutex.Unlock()
+	fake.GetUserConfigStub = stub
+}
+
+func (fake *FakeIGitConfig) GetUserConfigReturns(result1 *config.UserConfig) {
+	fake.getUserConfigMutex.Lock()
+	defer fake.getUserConfigMutex.Unlock()
+	fake.GetUserConfigStub = nil
+	fake.getUserConfigReturns = struct {
+		result1 *config.UserConfig
+	}{result1}
+}
+
+func (fake *FakeIGitConfig) GetUserConfigReturnsOnCall(i int, result1 *config.UserConfig) {
+	fake.getUserConfigMutex.Lock()
+	defer fake.getUserConfigMutex.Unlock()
+	fake.GetUserConfigStub = nil
+	if fake.getUserConfigReturnsOnCall == nil {
+		fake.getUserConfigReturnsOnCall = make(map[int]struct {
+			result1 *config.UserConfig
+		})
+	}
+	fake.getUserConfigReturnsOnCall[i] = struct {
+		result1 *config.UserConfig
+	}{result1}
+}
+
 func (fake *FakeIGitConfig) UsingGpg() bool {
 	fake.usingGpgMutex.Lock()
 	ret, specificReturn := fake.usingGpgReturnsOnCall[len(fake.usingGpgArgsForCall)]
@@ -291,6 +355,8 @@ func (fake *FakeIGitConfig) Invocations() map[string][][]interface{} {
 	defer fake.getConfigValueMutex.RUnlock()
 	fake.getPagerMutex.RLock()
 	defer fake.getPagerMutex.RUnlock()
+	fake.getUserConfigMutex.RLock()
+	defer fake.getUserConfigMutex.RUnlock()
 	fake.usingGpgMutex.RLock()
 	defer fake.usingGpgMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

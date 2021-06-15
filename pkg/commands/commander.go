@@ -169,3 +169,7 @@ func (c *Commander) BuildShellCmdObj(command string) ICmdObj {
 func (c *Commander) Quote(str string) string {
 	return c.quote(str)
 }
+
+func stripGitPrefixFromCmdStr(cmdStr string) string {
+	return strings.TrimPrefix(cmdStr, "git ")
+}

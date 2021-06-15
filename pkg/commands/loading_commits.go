@@ -312,7 +312,7 @@ func (c *CommitListBuilder) setCommitMergedStatuses(refName string, commits []*m
 }
 
 func (c *CommitListBuilder) getMergeBase(refName string) (string, error) {
-	currentBranch, _, err := c.Git.CurrentBranchName()
+	currentBranch, _, err := c.Git.Branches().CurrentBranchName()
 	if err != nil {
 		return "", err
 	}

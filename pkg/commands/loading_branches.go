@@ -131,7 +131,7 @@ outer:
 		}
 	}
 	if !foundHead {
-		currentBranchName, currentBranchDisplayName, err := b.Git.CurrentBranchName()
+		currentBranchName, currentBranchDisplayName, err := b.Git.Branches().CurrentBranchName()
 		if err != nil {
 			panic(err)
 		}

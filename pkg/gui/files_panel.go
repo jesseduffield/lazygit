@@ -683,10 +683,10 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 		err := gitCommand.RebaseBranch("FETCH_HEAD")
 		return gui.handleGenericMergeCommandResult(err)
 	case "merge":
-		err := gitCommand.Merge("FETCH_HEAD", commands.MergeOpts{})
+		err := gitCommand.Branches().Merge("FETCH_HEAD", commands.MergeOpts{})
 		return gui.handleGenericMergeCommandResult(err)
 	case "ff-only":
-		err := gitCommand.Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
+		err := gitCommand.Branches().Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
 		return gui.handleGenericMergeCommandResult(err)
 	default:
 		return gui.CreateErrorPanel(fmt.Sprintf("git pull mode '%s' unrecognised", mode))

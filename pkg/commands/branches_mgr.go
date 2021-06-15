@@ -13,20 +13,19 @@ import (
 //counterfeiter:generate . IBranchesMgr
 type IBranchesMgr interface {
 	NewBranch(name string, base string) error
-	// CurrentBranchName() (string, string, error)
-	// DeleteBranch(branch string, force bool) error
-	// Checkout(branch string, options CheckoutOptions) error
-	// GetBranchGraph(branchName string) (string, error)
+	CurrentBranchName() (string, string, error)
+	AllBranchesCmdObj() ICmdObj
+	GetBranchGraphCmdObj(branchName string) ICmdObj
+	Delete(branch string, force bool) error
+	Merge(branchName string, opts MergeOpts) error
+	Checkout(branch string, options CheckoutOpts) error
 	// GetUpstreamForBranch(branchName string) (string, error)
-	// GetBranchGraphCmdObj(branchName string) ICmdObj
 	// SetUpstreamBranch(upstream string) error
 	// SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error
 	// GetCurrentBranchUpstreamDifferenceCount() (string, string)
 	// GetBranchUpstreamDifferenceCount(branchName string) (string, string)
 	// RenameBranch(oldName string, newName string) error
 	// FindRemoteForBranchInConfig(branchName string) (string, error)
-	// AllBranchesCmdObj() ICmdObj
-	// Merge(branchName string, opts MergeOpts) error
 	// AbortMerge() error
 }
 
@@ -50,21 +49,23 @@ func (c *BranchesMgr) NewBranch(name string, base string) error {
 // CurrentBranchName get the current branch name and displayname.
 // the first returned string is the name and the second is the displayname
 // e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
-func (c *Git) CurrentBranchName() (string, string, error) {
-	branchName, err := c.RunWithOutput(
-		BuildGitCmdObjFromStr("symbolic-ref --short HEAD"),
+func (c *BranchesMgr) CurrentBranchName() (string, string, error) {
+	branchName, err := c.commander.RunWithOutput(
+		c.commander.BuildGitCmdObjFromStr("symbolic-ref --short HEAD"),
 	)
 
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-	output, err := c.RunWithOutput(
-		BuildGitCmdObjFromStr("branch --contains"),
+
+	output, err := c.commander.RunWithOutput(
+		c.commander.BuildGitCmdObjFromStr("branch --contains"),
 	)
 	if err != nil {
 		return "", "", err
 	}
+
 	for _, line := range utils.SplitLines(output) {
 		re := regexp.MustCompile(CurrentBranchNameRegex)
 		match := re.FindStringSubmatch(line)
@@ -74,42 +75,17 @@ func (c *Git) CurrentBranchName() (string, string, error) {
 			return branchName, displayBranchName, nil
 		}
 	}
+
 	return "HEAD", "HEAD", nil
 }
 
-// DeleteBranch delete branch
-func (c *Git) DeleteBranch(branch string, force bool) error {
-	return c.Run(
-		BuildGitCmdObj("branch", []string{branch}, map[string]bool{"-d": !force, "-D": force}),
-	)
+func (c *BranchesMgr) AllBranchesCmdObj() ICmdObj {
+	cmdStr := stripGitPrefixFromCmdStr(c.config.GetUserConfig().Git.AllBranchesLogCmd)
+
+	return BuildGitCmdObjFromStr(cmdStr)
 }
 
-// Checkout checks out a branch (or commit), with --force if you set the force arg to true
-type CheckoutOptions struct {
-	Force   bool
-	EnvVars []string
-}
-
-func (c *Git) Checkout(branch string, options CheckoutOptions) error {
-	cmdObj := BuildGitCmdObj("checkout", []string{branch}, map[string]bool{"--force": options.Force})
-	cmdObj.AddEnvVars(options.EnvVars...)
-
-	return c.Run(cmdObj)
-}
-
-// GetBranchGraph gets the color-formatted graph of the log for the given branch
-// Currently it limits the result to 100 commits, but when we get async stuff
-// working we can do lazy loading
-func (c *Git) GetBranchGraph(branchName string) (string, error) {
-	return c.RunWithOutput(c.GetBranchGraphCmdObj(branchName))
-}
-
-func (c *Git) GetUpstreamForBranch(branchName string) (string, error) {
-	output, err := c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)))
-	return strings.TrimSpace(output), err
-}
-
-func (c *Git) GetBranchGraphCmdObj(branchName string) ICmdObj {
+func (c *BranchesMgr) GetBranchGraphCmdObj(branchName string) ICmdObj {
 	branchLogCmdTemplate := c.config.GetUserConfig().Git.BranchLogCmd
 	templateValues := map[string]string{
 		"branchName": branchName,
@@ -120,6 +96,60 @@ func (c *Git) GetBranchGraphCmdObj(branchName string) ICmdObj {
 	SetDefaultEnvVars(cmdObj)
 
 	return cmdObj
+}
+
+func (c *BranchesMgr) Delete(branch string, force bool) error {
+	forceFlag := "-d"
+	if force {
+		forceFlag = "-D"
+	}
+
+	return c.commander.RunGitCmdFromStr(fmt.Sprintf("branch %s %s", forceFlag, branch))
+}
+
+type MergeOpts struct {
+	FastForwardOnly bool
+}
+
+// Merge merge
+func (c *BranchesMgr) Merge(branchName string, opts MergeOpts) error {
+	mergeArgs := c.config.GetUserConfig().Git.Merging.Args
+
+	cmdStr := "merge --no-edit"
+	if opts.FastForwardOnly {
+		cmdStr += " --ff-only"
+	}
+
+	if mergeArgs != "" {
+		cmdStr += " " + mergeArgs
+	}
+
+	cmdStr += " " + branchName
+
+	return c.commander.RunGitCmdFromStr(cmdStr)
+}
+
+// Checkout checks out a branch (or commit), with --force if you set the force arg to true
+type CheckoutOpts struct {
+	Force   bool
+	EnvVars []string
+}
+
+func (c *BranchesMgr) Checkout(branch string, options CheckoutOpts) error {
+	forceArg := ""
+	if options.Force {
+		forceArg = " --force"
+	}
+
+	cmdObj := c.commander.BuildGitCmdObjFromStr(fmt.Sprintf("checkout%s %s", forceArg, branch))
+	cmdObj.AddEnvVars(options.EnvVars...)
+
+	return c.commander.Run(cmdObj)
+}
+
+func (c *Git) GetUpstreamForBranch(branchName string) (string, error) {
+	output, err := c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)))
+	return strings.TrimSpace(output), err
 }
 
 func (c *Git) SetUpstreamBranch(upstream string) error {
@@ -154,22 +184,6 @@ func (c *Git) GetCommitDifferences(from, to string) (string, string) {
 
 func (c *Git) GetCommitDifference(from string, to string) (string, error) {
 	return c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("rev-list %s..%s --count", from, to)))
-}
-
-type MergeOpts struct {
-	FastForwardOnly bool
-}
-
-// Merge merge
-func (c *Git) Merge(branchName string, opts MergeOpts) error {
-	mergeArgs := c.config.GetUserConfig().Git.Merging.Args
-
-	cmdStr := fmt.Sprintf("merge --no-edit %s %s", mergeArgs, branchName)
-	if opts.FastForwardOnly {
-		cmdStr = fmt.Sprintf("%s --ff-only", cmdStr)
-	}
-
-	return c.RunGitCmdFromStr(cmdStr)
 }
 
 // AbortMerge abort merge

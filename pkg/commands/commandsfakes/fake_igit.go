@@ -47,16 +47,6 @@ type FakeIGit struct {
 	addRemoteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	AllBranchesCmdObjStub        func() types.ICmdObj
-	allBranchesCmdObjMutex       sync.RWMutex
-	allBranchesCmdObjArgsForCall []struct {
-	}
-	allBranchesCmdObjReturns struct {
-		result1 types.ICmdObj
-	}
-	allBranchesCmdObjReturnsOnCall map[int]struct {
-		result1 types.ICmdObj
-	}
 	AmendToStub        func(string) error
 	amendToMutex       sync.RWMutex
 	amendToArgsForCall []struct {
@@ -163,18 +153,6 @@ type FakeIGit struct {
 	checkRemoteBranchExistsReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	CheckoutStub        func(string, commands.CheckoutOptions) error
-	checkoutMutex       sync.RWMutex
-	checkoutArgsForCall []struct {
-		arg1 string
-		arg2 commands.CheckoutOptions
-	}
-	checkoutReturns struct {
-		result1 error
-	}
-	checkoutReturnsOnCall map[int]struct {
-		result1 error
-	}
 	CheckoutFileStub        func(string, string) error
 	checkoutFileMutex       sync.RWMutex
 	checkoutFileArgsForCall []struct {
@@ -228,32 +206,6 @@ type FakeIGit struct {
 		result1 error
 	}
 	createLightweightTagReturnsOnCall map[int]struct {
-		result1 error
-	}
-	CurrentBranchNameStub        func() (string, string, error)
-	currentBranchNameMutex       sync.RWMutex
-	currentBranchNameArgsForCall []struct {
-	}
-	currentBranchNameReturns struct {
-		result1 string
-		result2 string
-		result3 error
-	}
-	currentBranchNameReturnsOnCall map[int]struct {
-		result1 string
-		result2 string
-		result3 error
-	}
-	DeleteBranchStub        func(string, bool) error
-	deleteBranchMutex       sync.RWMutex
-	deleteBranchArgsForCall []struct {
-		arg1 string
-		arg2 bool
-	}
-	deleteBranchReturns struct {
-		result1 error
-	}
-	deleteBranchReturnsOnCall map[int]struct {
 		result1 error
 	}
 	DeletePatchesFromCommitStub        func([]*models.Commit, int, *patch.PatchManager) error
@@ -539,30 +491,6 @@ type FakeIGit struct {
 		result1 types.ICmdObj
 	}
 	genericMergeOrRebaseCmdObjReturnsOnCall map[int]struct {
-		result1 types.ICmdObj
-	}
-	GetBranchGraphStub        func(string) (string, error)
-	getBranchGraphMutex       sync.RWMutex
-	getBranchGraphArgsForCall []struct {
-		arg1 string
-	}
-	getBranchGraphReturns struct {
-		result1 string
-		result2 error
-	}
-	getBranchGraphReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
-	GetBranchGraphCmdObjStub        func(string) types.ICmdObj
-	getBranchGraphCmdObjMutex       sync.RWMutex
-	getBranchGraphCmdObjArgsForCall []struct {
-		arg1 string
-	}
-	getBranchGraphCmdObjReturns struct {
-		result1 types.ICmdObj
-	}
-	getBranchGraphCmdObjReturnsOnCall map[int]struct {
 		result1 types.ICmdObj
 	}
 	GetBranchUpstreamDifferenceCountStub        func(string) (string, string)
@@ -862,18 +790,6 @@ type FakeIGit struct {
 	isInMergeStateReturnsOnCall map[int]struct {
 		result1 bool
 		result2 error
-	}
-	MergeStub        func(string, commands.MergeOpts) error
-	mergeMutex       sync.RWMutex
-	mergeArgsForCall []struct {
-		arg1 string
-		arg2 commands.MergeOpts
-	}
-	mergeReturns struct {
-		result1 error
-	}
-	mergeReturnsOnCall map[int]struct {
-		result1 error
 	}
 	MergeOrRebaseStub        func() string
 	mergeOrRebaseMutex       sync.RWMutex
@@ -1726,59 +1642,6 @@ func (fake *FakeIGit) AddRemoteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) AllBranchesCmdObj() types.ICmdObj {
-	fake.allBranchesCmdObjMutex.Lock()
-	ret, specificReturn := fake.allBranchesCmdObjReturnsOnCall[len(fake.allBranchesCmdObjArgsForCall)]
-	fake.allBranchesCmdObjArgsForCall = append(fake.allBranchesCmdObjArgsForCall, struct {
-	}{})
-	stub := fake.AllBranchesCmdObjStub
-	fakeReturns := fake.allBranchesCmdObjReturns
-	fake.recordInvocation("AllBranchesCmdObj", []interface{}{})
-	fake.allBranchesCmdObjMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) AllBranchesCmdObjCallCount() int {
-	fake.allBranchesCmdObjMutex.RLock()
-	defer fake.allBranchesCmdObjMutex.RUnlock()
-	return len(fake.allBranchesCmdObjArgsForCall)
-}
-
-func (fake *FakeIGit) AllBranchesCmdObjCalls(stub func() types.ICmdObj) {
-	fake.allBranchesCmdObjMutex.Lock()
-	defer fake.allBranchesCmdObjMutex.Unlock()
-	fake.AllBranchesCmdObjStub = stub
-}
-
-func (fake *FakeIGit) AllBranchesCmdObjReturns(result1 types.ICmdObj) {
-	fake.allBranchesCmdObjMutex.Lock()
-	defer fake.allBranchesCmdObjMutex.Unlock()
-	fake.AllBranchesCmdObjStub = nil
-	fake.allBranchesCmdObjReturns = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) AllBranchesCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
-	fake.allBranchesCmdObjMutex.Lock()
-	defer fake.allBranchesCmdObjMutex.Unlock()
-	fake.AllBranchesCmdObjStub = nil
-	if fake.allBranchesCmdObjReturnsOnCall == nil {
-		fake.allBranchesCmdObjReturnsOnCall = make(map[int]struct {
-			result1 types.ICmdObj
-		})
-	}
-	fake.allBranchesCmdObjReturnsOnCall[i] = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
 func (fake *FakeIGit) AmendTo(arg1 string) error {
 	fake.amendToMutex.Lock()
 	ret, specificReturn := fake.amendToReturnsOnCall[len(fake.amendToArgsForCall)]
@@ -2336,68 +2199,6 @@ func (fake *FakeIGit) CheckRemoteBranchExistsReturnsOnCall(i int, result1 bool) 
 	}{result1}
 }
 
-func (fake *FakeIGit) Checkout(arg1 string, arg2 commands.CheckoutOptions) error {
-	fake.checkoutMutex.Lock()
-	ret, specificReturn := fake.checkoutReturnsOnCall[len(fake.checkoutArgsForCall)]
-	fake.checkoutArgsForCall = append(fake.checkoutArgsForCall, struct {
-		arg1 string
-		arg2 commands.CheckoutOptions
-	}{arg1, arg2})
-	stub := fake.CheckoutStub
-	fakeReturns := fake.checkoutReturns
-	fake.recordInvocation("Checkout", []interface{}{arg1, arg2})
-	fake.checkoutMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) CheckoutCallCount() int {
-	fake.checkoutMutex.RLock()
-	defer fake.checkoutMutex.RUnlock()
-	return len(fake.checkoutArgsForCall)
-}
-
-func (fake *FakeIGit) CheckoutCalls(stub func(string, commands.CheckoutOptions) error) {
-	fake.checkoutMutex.Lock()
-	defer fake.checkoutMutex.Unlock()
-	fake.CheckoutStub = stub
-}
-
-func (fake *FakeIGit) CheckoutArgsForCall(i int) (string, commands.CheckoutOptions) {
-	fake.checkoutMutex.RLock()
-	defer fake.checkoutMutex.RUnlock()
-	argsForCall := fake.checkoutArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) CheckoutReturns(result1 error) {
-	fake.checkoutMutex.Lock()
-	defer fake.checkoutMutex.Unlock()
-	fake.CheckoutStub = nil
-	fake.checkoutReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) CheckoutReturnsOnCall(i int, result1 error) {
-	fake.checkoutMutex.Lock()
-	defer fake.checkoutMutex.Unlock()
-	fake.CheckoutStub = nil
-	if fake.checkoutReturnsOnCall == nil {
-		fake.checkoutReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.checkoutReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeIGit) CheckoutFile(arg1 string, arg2 string) error {
 	fake.checkoutFileMutex.Lock()
 	ret, specificReturn := fake.checkoutFileReturnsOnCall[len(fake.checkoutFileArgsForCall)]
@@ -2690,127 +2491,6 @@ func (fake *FakeIGit) CreateLightweightTagReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.createLightweightTagReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) CurrentBranchName() (string, string, error) {
-	fake.currentBranchNameMutex.Lock()
-	ret, specificReturn := fake.currentBranchNameReturnsOnCall[len(fake.currentBranchNameArgsForCall)]
-	fake.currentBranchNameArgsForCall = append(fake.currentBranchNameArgsForCall, struct {
-	}{})
-	stub := fake.CurrentBranchNameStub
-	fakeReturns := fake.currentBranchNameReturns
-	fake.recordInvocation("CurrentBranchName", []interface{}{})
-	fake.currentBranchNameMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2, ret.result3
-	}
-	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
-}
-
-func (fake *FakeIGit) CurrentBranchNameCallCount() int {
-	fake.currentBranchNameMutex.RLock()
-	defer fake.currentBranchNameMutex.RUnlock()
-	return len(fake.currentBranchNameArgsForCall)
-}
-
-func (fake *FakeIGit) CurrentBranchNameCalls(stub func() (string, string, error)) {
-	fake.currentBranchNameMutex.Lock()
-	defer fake.currentBranchNameMutex.Unlock()
-	fake.CurrentBranchNameStub = stub
-}
-
-func (fake *FakeIGit) CurrentBranchNameReturns(result1 string, result2 string, result3 error) {
-	fake.currentBranchNameMutex.Lock()
-	defer fake.currentBranchNameMutex.Unlock()
-	fake.CurrentBranchNameStub = nil
-	fake.currentBranchNameReturns = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
-}
-
-func (fake *FakeIGit) CurrentBranchNameReturnsOnCall(i int, result1 string, result2 string, result3 error) {
-	fake.currentBranchNameMutex.Lock()
-	defer fake.currentBranchNameMutex.Unlock()
-	fake.CurrentBranchNameStub = nil
-	if fake.currentBranchNameReturnsOnCall == nil {
-		fake.currentBranchNameReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 string
-			result3 error
-		})
-	}
-	fake.currentBranchNameReturnsOnCall[i] = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
-}
-
-func (fake *FakeIGit) DeleteBranch(arg1 string, arg2 bool) error {
-	fake.deleteBranchMutex.Lock()
-	ret, specificReturn := fake.deleteBranchReturnsOnCall[len(fake.deleteBranchArgsForCall)]
-	fake.deleteBranchArgsForCall = append(fake.deleteBranchArgsForCall, struct {
-		arg1 string
-		arg2 bool
-	}{arg1, arg2})
-	stub := fake.DeleteBranchStub
-	fakeReturns := fake.deleteBranchReturns
-	fake.recordInvocation("DeleteBranch", []interface{}{arg1, arg2})
-	fake.deleteBranchMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) DeleteBranchCallCount() int {
-	fake.deleteBranchMutex.RLock()
-	defer fake.deleteBranchMutex.RUnlock()
-	return len(fake.deleteBranchArgsForCall)
-}
-
-func (fake *FakeIGit) DeleteBranchCalls(stub func(string, bool) error) {
-	fake.deleteBranchMutex.Lock()
-	defer fake.deleteBranchMutex.Unlock()
-	fake.DeleteBranchStub = stub
-}
-
-func (fake *FakeIGit) DeleteBranchArgsForCall(i int) (string, bool) {
-	fake.deleteBranchMutex.RLock()
-	defer fake.deleteBranchMutex.RUnlock()
-	argsForCall := fake.deleteBranchArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) DeleteBranchReturns(result1 error) {
-	fake.deleteBranchMutex.Lock()
-	defer fake.deleteBranchMutex.Unlock()
-	fake.DeleteBranchStub = nil
-	fake.deleteBranchReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) DeleteBranchReturnsOnCall(i int, result1 error) {
-	fake.deleteBranchMutex.Lock()
-	defer fake.deleteBranchMutex.Unlock()
-	fake.DeleteBranchStub = nil
-	if fake.deleteBranchReturnsOnCall == nil {
-		fake.deleteBranchReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.deleteBranchReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -4294,131 +3974,6 @@ func (fake *FakeIGit) GenericMergeOrRebaseCmdObjReturnsOnCall(i int, result1 typ
 		})
 	}
 	fake.genericMergeOrRebaseCmdObjReturnsOnCall[i] = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) GetBranchGraph(arg1 string) (string, error) {
-	fake.getBranchGraphMutex.Lock()
-	ret, specificReturn := fake.getBranchGraphReturnsOnCall[len(fake.getBranchGraphArgsForCall)]
-	fake.getBranchGraphArgsForCall = append(fake.getBranchGraphArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetBranchGraphStub
-	fakeReturns := fake.getBranchGraphReturns
-	fake.recordInvocation("GetBranchGraph", []interface{}{arg1})
-	fake.getBranchGraphMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGit) GetBranchGraphCallCount() int {
-	fake.getBranchGraphMutex.RLock()
-	defer fake.getBranchGraphMutex.RUnlock()
-	return len(fake.getBranchGraphArgsForCall)
-}
-
-func (fake *FakeIGit) GetBranchGraphCalls(stub func(string) (string, error)) {
-	fake.getBranchGraphMutex.Lock()
-	defer fake.getBranchGraphMutex.Unlock()
-	fake.GetBranchGraphStub = stub
-}
-
-func (fake *FakeIGit) GetBranchGraphArgsForCall(i int) string {
-	fake.getBranchGraphMutex.RLock()
-	defer fake.getBranchGraphMutex.RUnlock()
-	argsForCall := fake.getBranchGraphArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) GetBranchGraphReturns(result1 string, result2 error) {
-	fake.getBranchGraphMutex.Lock()
-	defer fake.getBranchGraphMutex.Unlock()
-	fake.GetBranchGraphStub = nil
-	fake.getBranchGraphReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetBranchGraphReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getBranchGraphMutex.Lock()
-	defer fake.getBranchGraphMutex.Unlock()
-	fake.GetBranchGraphStub = nil
-	if fake.getBranchGraphReturnsOnCall == nil {
-		fake.getBranchGraphReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getBranchGraphReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetBranchGraphCmdObj(arg1 string) types.ICmdObj {
-	fake.getBranchGraphCmdObjMutex.Lock()
-	ret, specificReturn := fake.getBranchGraphCmdObjReturnsOnCall[len(fake.getBranchGraphCmdObjArgsForCall)]
-	fake.getBranchGraphCmdObjArgsForCall = append(fake.getBranchGraphCmdObjArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetBranchGraphCmdObjStub
-	fakeReturns := fake.getBranchGraphCmdObjReturns
-	fake.recordInvocation("GetBranchGraphCmdObj", []interface{}{arg1})
-	fake.getBranchGraphCmdObjMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) GetBranchGraphCmdObjCallCount() int {
-	fake.getBranchGraphCmdObjMutex.RLock()
-	defer fake.getBranchGraphCmdObjMutex.RUnlock()
-	return len(fake.getBranchGraphCmdObjArgsForCall)
-}
-
-func (fake *FakeIGit) GetBranchGraphCmdObjCalls(stub func(string) types.ICmdObj) {
-	fake.getBranchGraphCmdObjMutex.Lock()
-	defer fake.getBranchGraphCmdObjMutex.Unlock()
-	fake.GetBranchGraphCmdObjStub = stub
-}
-
-func (fake *FakeIGit) GetBranchGraphCmdObjArgsForCall(i int) string {
-	fake.getBranchGraphCmdObjMutex.RLock()
-	defer fake.getBranchGraphCmdObjMutex.RUnlock()
-	argsForCall := fake.getBranchGraphCmdObjArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) GetBranchGraphCmdObjReturns(result1 types.ICmdObj) {
-	fake.getBranchGraphCmdObjMutex.Lock()
-	defer fake.getBranchGraphCmdObjMutex.Unlock()
-	fake.GetBranchGraphCmdObjStub = nil
-	fake.getBranchGraphCmdObjReturns = struct {
-		result1 types.ICmdObj
-	}{result1}
-}
-
-func (fake *FakeIGit) GetBranchGraphCmdObjReturnsOnCall(i int, result1 types.ICmdObj) {
-	fake.getBranchGraphCmdObjMutex.Lock()
-	defer fake.getBranchGraphCmdObjMutex.Unlock()
-	fake.GetBranchGraphCmdObjStub = nil
-	if fake.getBranchGraphCmdObjReturnsOnCall == nil {
-		fake.getBranchGraphCmdObjReturnsOnCall = make(map[int]struct {
-			result1 types.ICmdObj
-		})
-	}
-	fake.getBranchGraphCmdObjReturnsOnCall[i] = struct {
 		result1 types.ICmdObj
 	}{result1}
 }
@@ -5908,68 +5463,6 @@ func (fake *FakeIGit) IsInMergeStateReturnsOnCall(i int, result1 bool, result2 e
 		result1 bool
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeIGit) Merge(arg1 string, arg2 commands.MergeOpts) error {
-	fake.mergeMutex.Lock()
-	ret, specificReturn := fake.mergeReturnsOnCall[len(fake.mergeArgsForCall)]
-	fake.mergeArgsForCall = append(fake.mergeArgsForCall, struct {
-		arg1 string
-		arg2 commands.MergeOpts
-	}{arg1, arg2})
-	stub := fake.MergeStub
-	fakeReturns := fake.mergeReturns
-	fake.recordInvocation("Merge", []interface{}{arg1, arg2})
-	fake.mergeMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) MergeCallCount() int {
-	fake.mergeMutex.RLock()
-	defer fake.mergeMutex.RUnlock()
-	return len(fake.mergeArgsForCall)
-}
-
-func (fake *FakeIGit) MergeCalls(stub func(string, commands.MergeOpts) error) {
-	fake.mergeMutex.Lock()
-	defer fake.mergeMutex.Unlock()
-	fake.MergeStub = stub
-}
-
-func (fake *FakeIGit) MergeArgsForCall(i int) (string, commands.MergeOpts) {
-	fake.mergeMutex.RLock()
-	defer fake.mergeMutex.RUnlock()
-	argsForCall := fake.mergeArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) MergeReturns(result1 error) {
-	fake.mergeMutex.Lock()
-	defer fake.mergeMutex.Unlock()
-	fake.MergeStub = nil
-	fake.mergeReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) MergeReturnsOnCall(i int, result1 error) {
-	fake.mergeMutex.Lock()
-	defer fake.mergeMutex.Unlock()
-	fake.MergeStub = nil
-	if fake.mergeReturnsOnCall == nil {
-		fake.mergeReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.mergeReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeIGit) MergeOrRebase() string {
@@ -9550,8 +9043,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.abortRebaseMutex.RUnlock()
 	fake.addRemoteMutex.RLock()
 	defer fake.addRemoteMutex.RUnlock()
-	fake.allBranchesCmdObjMutex.RLock()
-	defer fake.allBranchesCmdObjMutex.RUnlock()
 	fake.amendToMutex.RLock()
 	defer fake.amendToMutex.RUnlock()
 	fake.applyPatchMutex.RLock()
@@ -9570,8 +9061,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.catFileMutex.RUnlock()
 	fake.checkRemoteBranchExistsMutex.RLock()
 	defer fake.checkRemoteBranchExistsMutex.RUnlock()
-	fake.checkoutMutex.RLock()
-	defer fake.checkoutMutex.RUnlock()
 	fake.checkoutFileMutex.RLock()
 	defer fake.checkoutFileMutex.RUnlock()
 	fake.cherryPickCommitsMutex.RLock()
@@ -9582,10 +9071,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.continueRebaseMutex.RUnlock()
 	fake.createLightweightTagMutex.RLock()
 	defer fake.createLightweightTagMutex.RUnlock()
-	fake.currentBranchNameMutex.RLock()
-	defer fake.currentBranchNameMutex.RUnlock()
-	fake.deleteBranchMutex.RLock()
-	defer fake.deleteBranchMutex.RUnlock()
 	fake.deletePatchesFromCommitMutex.RLock()
 	defer fake.deletePatchesFromCommitMutex.RUnlock()
 	fake.deleteRemoteBranchMutex.RLock()
@@ -9634,10 +9119,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.genericMergeOrRebaseActionMutex.RUnlock()
 	fake.genericMergeOrRebaseCmdObjMutex.RLock()
 	defer fake.genericMergeOrRebaseCmdObjMutex.RUnlock()
-	fake.getBranchGraphMutex.RLock()
-	defer fake.getBranchGraphMutex.RUnlock()
-	fake.getBranchGraphCmdObjMutex.RLock()
-	defer fake.getBranchGraphCmdObjMutex.RUnlock()
 	fake.getBranchUpstreamDifferenceCountMutex.RLock()
 	defer fake.getBranchUpstreamDifferenceCountMutex.RUnlock()
 	fake.getCommitDifferencesMutex.RLock()
@@ -9688,8 +9169,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.isHeadDetachedMutex.RUnlock()
 	fake.isInMergeStateMutex.RLock()
 	defer fake.isInMergeStateMutex.RUnlock()
-	fake.mergeMutex.RLock()
-	defer fake.mergeMutex.RUnlock()
 	fake.mergeOrRebaseMutex.RLock()
 	defer fake.mergeOrRebaseMutex.RUnlock()
 	fake.moveCommitDownMutex.RLock()

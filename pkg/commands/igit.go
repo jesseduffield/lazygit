@@ -17,20 +17,13 @@ type IGit interface {
 	// branches
 	Branches() IBranchesMgr
 
-	CurrentBranchName() (string, string, error)
-	DeleteBranch(branch string, force bool) error
-	Checkout(branch string, options CheckoutOptions) error
-	GetBranchGraph(branchName string) (string, error)
 	GetUpstreamForBranch(branchName string) (string, error)
-	GetBranchGraphCmdObj(branchName string) ICmdObj
 	SetUpstreamBranch(upstream string) error
 	SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error
 	GetCurrentBranchUpstreamDifferenceCount() (string, string)
 	GetBranchUpstreamDifferenceCount(branchName string) (string, string)
 	RenameBranch(oldName string, newName string) error
 	FindRemoteForBranchInConfig(branchName string) (string, error)
-	AllBranchesCmdObj() ICmdObj
-	Merge(branchName string, opts MergeOpts) error
 	AbortMerge() error
 
 	// resetting

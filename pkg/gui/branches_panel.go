@@ -34,7 +34,7 @@ func (gui *Gui) handleBranchSelect() error {
 	if branch == nil {
 		task = NewRenderStringTask(gui.Tr.NoBranchesThisRepo)
 	} else {
-		task = NewRunPtyTask(gui.Git.GetBranchGraphCmdObj(branch.Name))
+		task = NewRunPtyTask(gui.Git.Branches().GetBranchGraphCmdObj(branch.Name))
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -136,7 +136,7 @@ func (gui *Gui) handleForceCheckout() error {
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.ForceCheckoutBranch).Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.ForceCheckoutBranch).Branches().Checkout(branch.Name, commands.CheckoutOpts{Force: true}); err != nil {
 				_ = gui.SurfaceError(err)
 			}
 			return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})
@@ -157,7 +157,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 		waitingStatus = gui.Tr.CheckingOutStatus
 	}
 
-	cmdOptions := commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
+	cmdOptions := commands.CheckoutOpts{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
 		gui.State.Panels.Branches.SelectedLineIdx = 0
@@ -169,7 +169,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 	gitCommand := gui.Git.WithSpan(options.span)
 
 	return gui.WithWaitingStatus(waitingStatus, func() error {
-		if err := gitCommand.Checkout(ref, cmdOptions); err != nil {
+		if err := gitCommand.Branches().Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
 			if options.onRefNotFound != nil && strings.Contains(err.Error(), "did not match any file(s) known to git") {
@@ -186,7 +186,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 						if err := gitCommand.StashSave(gui.Tr.StashPrefix + ref); err != nil {
 							return gui.SurfaceError(err)
 						}
-						if err := gitCommand.Checkout(ref, cmdOptions); err != nil {
+						if err := gitCommand.Branches().Checkout(ref, cmdOptions); err != nil {
 							return gui.SurfaceError(err)
 						}
 
@@ -283,7 +283,7 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.DeleteBranch).DeleteBranch(selectedBranch.Name, force); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.DeleteBranch).Branches().Delete(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "is not fully merged") {
 					return gui.deleteNamedBranch(selectedBranch, true)
@@ -319,7 +319,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		Title:  gui.Tr.MergingTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			err := gui.Git.WithSpan(gui.Tr.Spans.Merge).Merge(branchName, commands.MergeOpts{})
+			err := gui.Git.WithSpan(gui.Tr.Spans.Merge).Branches().Merge(branchName, commands.MergeOpts{})
 			return gui.handleGenericMergeCommandResult(err)
 		},
 	})

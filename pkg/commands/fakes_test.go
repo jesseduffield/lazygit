@@ -6,6 +6,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
+	. "github.com/onsi/gomega"
 )
 
 func NewFakeCommander() *FakeICommander {
@@ -19,9 +20,34 @@ func NewFakeCommander() *FakeICommander {
 		return commander.Run(commander.BuildGitCmdObjFromStr((command)))
 	})
 
+	commander.RunCalls(func(cmdObj ICmdObj) error {
+		_, err := commander.RunWithOutput(cmdObj)
+		return err
+	})
+
 	commander.QuoteCalls(func(str string) string {
 		return fmt.Sprintf("\"%s\"", str)
 	})
 
 	return commander
+}
+
+type ExpectedRunWithOutputCall struct {
+	cmdStr    string
+	outputStr string
+	outputErr error
+}
+
+func SetExpectedRunWithOutputCalls(commander *FakeICommander, expectedCalls []ExpectedRunWithOutputCall) {
+	i := 0
+	commander.RunWithOutputCalls(func(cmdObj ICmdObj) (string, error) {
+		// we shouldn't be calling this function any more times than we expect
+		Expect(i).To(BeNumerically("<", len(expectedCalls)))
+
+		call := expectedCalls[i]
+		i += 1
+
+		Expect(cmdObj.ToString()).To(Equal(call.cmdStr))
+		return call.outputStr, call.outputErr
+	})
 }
