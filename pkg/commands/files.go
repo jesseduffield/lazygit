@@ -261,7 +261,7 @@ func (c *Git) ResetAndClean() error {
 		}
 	}
 
-	if err := c.ResetHard("HEAD"); err != nil {
+	if err := c.Branches().ResetToRef("HEAD", HARD, ResetToRefOpts{}); err != nil {
 		return err
 	}
 

@@ -55,16 +55,3 @@ package commands
 // 		})
 // 	}
 // }
-
-// // TestGitCommandResetToCommit is a function.
-// func TestGitCommandResetToRef(t *testing.T) {
-// 	gitCmd := NewDummyGit()
-// 	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
-// 		assert.EqualValues(t, "git", cmd)
-// 		assert.EqualValues(t, []string{"reset", "--hard", "78976bc"}, args)
-
-// 		return secureexec.Command("echo")
-// 	}
-
-// 	assert.NoError(t, gitCmd.ResetToRef("78976bc", "hard", oscommands.RunCommandOptions{}))
-// }

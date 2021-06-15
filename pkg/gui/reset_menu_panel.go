@@ -8,8 +8,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-func (gui *Gui) resetToRef(ref string, strength string, span string, options commands.ResetToCommitOptions) error {
-	if err := gui.Git.WithSpan(span).ResetToRef(ref, strength, options); err != nil {
+func (gui *Gui) resetToRef(ref string, strength commands.ResetStrength, span string, options commands.ResetToRefOpts) error {
+	if err := gui.Git.WithSpan(span).Branches().ResetToRef(ref, strength, options); err != nil {
 		return gui.SurfaceError(err)
 	}
 
@@ -30,7 +30,7 @@ func (gui *Gui) resetToRef(ref string, strength string, span string, options com
 }
 
 func (gui *Gui) createResetMenu(ref string) error {
-	strengths := []string{"soft", "mixed", "hard"}
+	strengths := []commands.ResetStrength{commands.SOFT, commands.MIXED, commands.HARD}
 	menuItems := make([]*menuItem, len(strengths))
 	for i, strength := range strengths {
 		strength := strength
@@ -42,7 +42,7 @@ func (gui *Gui) createResetMenu(ref string) error {
 				),
 			},
 			onPress: func() error {
-				return gui.resetToRef(ref, strength, "Reset", commands.ResetToCommitOptions{})
+				return gui.resetToRef(ref, strength, "Reset", commands.ResetToRefOpts{})
 			},
 		}
 	}

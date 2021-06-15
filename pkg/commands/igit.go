@@ -17,24 +17,13 @@ type IGit interface {
 	// branches
 	Branches() IBranchesMgr
 
-	RenameBranch(oldName string, newName string) error
-	FindRemoteForBranchInConfig(branchName string) (string, error)
-	AbortMerge() error
-
-	// resetting
-	ResetHard(ref string) error
-	ResetSoft(ref string) error
-	ResetMixed(ref string) error
-	ResetToRef(ref string, strength string, options ResetToCommitOptions) error
-
 	// commits
 	Commits() ICommitsMgr
 
 	// config
-	GetPager(width int) string
-	GetConfigValue(key string) string
-	UsingGpg() bool
-	GetPushToCurrent() bool
+	IGitConfig
+
+	FindRemoteForBranchInConfig(branchName string) (string, error)
 
 	// diffing
 	WorktreeFileDiff(file *models.File, plain bool, cached bool) string

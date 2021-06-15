@@ -169,7 +169,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 	gitCommand := gui.Git.WithSpan(options.span)
 
 	reset := func() error {
-		if err := gui.resetToRef(commitSha, "hard", options.span, commands.ResetToCommitOptions{EnvVars: options.EnvVars}); err != nil {
+		if err := gui.resetToRef(commitSha, commands.HARD, options.span, commands.ResetToRefOpts{EnvVars: options.EnvVars}); err != nil {
 			return gui.SurfaceError(err)
 		}
 		return nil

@@ -19,6 +19,7 @@ type IGitConfig interface {
 	GetConfigValue(key string) string
 	UsingGpg() bool
 	GetUserConfig() *config.UserConfig
+	GetPushToCurrent() bool
 }
 
 type GitConfigMgr struct {
@@ -110,6 +111,7 @@ func (c *GitConfigMgr) UsingGpg() bool {
 	return value == "true" || value == "1" || value == "yes" || value == "on"
 }
 
+// TODO: migrate to git config mgr
 func (c *Git) FindRemoteForBranchInConfig(branchName string) (string, error) {
 	conf, err := c.repo.Config()
 	if err != nil {
@@ -125,6 +127,6 @@ func (c *Git) FindRemoteForBranchInConfig(branchName string) (string, error) {
 	return "", nil
 }
 
-func (c *Git) GetPushToCurrent() bool {
+func (c *GitConfigMgr) GetPushToCurrent() bool {
 	return c.pushToCurrent
 }

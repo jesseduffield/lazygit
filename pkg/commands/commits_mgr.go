@@ -39,10 +39,6 @@ func (c *CommitsMgr) RewordHead(name string) error {
 	return c.commander.RunGitCmdFromStr(fmt.Sprintf("commit --allow-empty --amend --only -m %s", c.commander.Quote(name)))
 }
 
-type ResetToCommitOptions struct {
-	EnvVars []string
-}
-
 func (c *CommitsMgr) CommitCmdObj(message string, flags string) ICmdObj {
 	splitMessage := strings.Split(message, "\n")
 	lineArgs := ""

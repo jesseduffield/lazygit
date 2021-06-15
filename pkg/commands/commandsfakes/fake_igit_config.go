@@ -41,6 +41,16 @@ type FakeIGitConfig struct {
 	getPagerReturnsOnCall map[int]struct {
 		result1 string
 	}
+	GetPushToCurrentStub        func() bool
+	getPushToCurrentMutex       sync.RWMutex
+	getPushToCurrentArgsForCall []struct {
+	}
+	getPushToCurrentReturns struct {
+		result1 bool
+	}
+	getPushToCurrentReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	GetUserConfigStub        func() *config.UserConfig
 	getUserConfigMutex       sync.RWMutex
 	getUserConfigArgsForCall []struct {
@@ -240,6 +250,59 @@ func (fake *FakeIGitConfig) GetPagerReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeIGitConfig) GetPushToCurrent() bool {
+	fake.getPushToCurrentMutex.Lock()
+	ret, specificReturn := fake.getPushToCurrentReturnsOnCall[len(fake.getPushToCurrentArgsForCall)]
+	fake.getPushToCurrentArgsForCall = append(fake.getPushToCurrentArgsForCall, struct {
+	}{})
+	stub := fake.GetPushToCurrentStub
+	fakeReturns := fake.getPushToCurrentReturns
+	fake.recordInvocation("GetPushToCurrent", []interface{}{})
+	fake.getPushToCurrentMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGitConfig) GetPushToCurrentCallCount() int {
+	fake.getPushToCurrentMutex.RLock()
+	defer fake.getPushToCurrentMutex.RUnlock()
+	return len(fake.getPushToCurrentArgsForCall)
+}
+
+func (fake *FakeIGitConfig) GetPushToCurrentCalls(stub func() bool) {
+	fake.getPushToCurrentMutex.Lock()
+	defer fake.getPushToCurrentMutex.Unlock()
+	fake.GetPushToCurrentStub = stub
+}
+
+func (fake *FakeIGitConfig) GetPushToCurrentReturns(result1 bool) {
+	fake.getPushToCurrentMutex.Lock()
+	defer fake.getPushToCurrentMutex.Unlock()
+	fake.GetPushToCurrentStub = nil
+	fake.getPushToCurrentReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeIGitConfig) GetPushToCurrentReturnsOnCall(i int, result1 bool) {
+	fake.getPushToCurrentMutex.Lock()
+	defer fake.getPushToCurrentMutex.Unlock()
+	fake.GetPushToCurrentStub = nil
+	if fake.getPushToCurrentReturnsOnCall == nil {
+		fake.getPushToCurrentReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.getPushToCurrentReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeIGitConfig) GetUserConfig() *config.UserConfig {
 	fake.getUserConfigMutex.Lock()
 	ret, specificReturn := fake.getUserConfigReturnsOnCall[len(fake.getUserConfigArgsForCall)]
@@ -355,6 +418,8 @@ func (fake *FakeIGitConfig) Invocations() map[string][][]interface{} {
 	defer fake.getConfigValueMutex.RUnlock()
 	fake.getPagerMutex.RLock()
 	defer fake.getPagerMutex.RUnlock()
+	fake.getPushToCurrentMutex.RLock()
+	defer fake.getPushToCurrentMutex.RUnlock()
 	fake.getUserConfigMutex.RLock()
 	defer fake.getUserConfigMutex.RUnlock()
 	fake.usingGpgMutex.RLock()

@@ -433,7 +433,7 @@ func (gui *Gui) handleRenameBranch() error {
 			Title:          gui.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
 			InitialContent: branch.Name,
 			HandleConfirm: func(newBranchName string) error {
-				if err := gui.Git.WithSpan(gui.Tr.Spans.RenameBranch).RenameBranch(branch.Name, newBranchName); err != nil {
+				if err := gui.Git.WithSpan(gui.Tr.Spans.RenameBranch).Branches().RenameBranch(branch.Name, newBranchName); err != nil {
 					return gui.SurfaceError(err)
 				}
 

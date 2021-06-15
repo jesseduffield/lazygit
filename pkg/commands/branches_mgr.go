@@ -18,12 +18,12 @@ type IBranchesMgr interface {
 	GetBranchGraphCmdObj(branchName string) ICmdObj
 	Delete(branch string, force bool) error
 	Merge(branchName string, opts MergeOpts) error
+	AbortMerge() error
 	Checkout(branch string, options CheckoutOpts) error
 	GetUpstream(branchName string) (string, error)
 	SetUpstream(upstream string, branchName string) error
-	// RenameBranch(oldName string, newName string) error
-	// FindRemoteForBranchInConfig(branchName string) (string, error)
-	// AbortMerge() error
+	RenameBranch(oldName string, newName string) error
+	ResetToRef(ref string, strength ResetStrength, opts ResetToRefOpts) error
 }
 
 type BranchesMgr struct {
@@ -156,9 +156,12 @@ func (c *BranchesMgr) SetUpstream(upstream string, branchName string) error {
 	return c.commander.RunGitCmdFromStr(fmt.Sprintf("branch --set-upstream-to=%s %s", upstream, branchName))
 }
 
-// AbortMerge abort merge
-func (c *Git) AbortMerge() error {
-	return c.RunGitCmdFromStr("merge --abort")
+func (c *BranchesMgr) RenameBranch(oldName string, newName string) error {
+	return c.commander.RunGitCmdFromStr(fmt.Sprintf("branch --move %s %s", oldName, newName))
+}
+
+func (c *BranchesMgr) AbortMerge() error {
+	return c.commander.RunGitCmdFromStr("merge --abort")
 }
 
 func (c *Git) IsHeadDetached() bool {
@@ -166,28 +169,22 @@ func (c *Git) IsHeadDetached() bool {
 	return err != nil
 }
 
-// ResetHardHead runs `git reset --hard`
-func (c *Git) ResetHard(ref string) error {
-	return c.RunGitCmdFromStr("reset --hard " + ref)
-}
+type ResetStrength string
 
-// ResetSoft runs `git reset --soft HEAD`
-func (c *Git) ResetSoft(ref string) error {
-	return c.RunGitCmdFromStr("reset --soft " + ref)
-}
+const (
+	SOFT  ResetStrength = "soft"
+	MIXED               = "mixed"
+	HARD                = "hard"
+)
 
-func (c *Git) ResetMixed(ref string) error {
-	return c.RunGitCmdFromStr("reset --mixed " + ref)
-}
-
-func (c *Git) RenameBranch(oldName string, newName string) error {
-	return c.RunGitCmdFromStr(fmt.Sprintf("branch --move %s %s", oldName, newName))
+type ResetToRefOpts struct {
+	EnvVars []string
 }
 
 // ResetToCommit reset to commit
-func (c *Git) ResetToRef(ref string, strength string, options ResetToCommitOptions) error {
-	cmdObj := BuildGitCmdObjFromStr(fmt.Sprintf("reset --%s %s", strength, ref))
+func (c *BranchesMgr) ResetToRef(ref string, strength ResetStrength, options ResetToRefOpts) error {
+	cmdObj := BuildGitCmdObjFromStr(fmt.Sprintf("reset --%s %s", string(strength), ref))
 	cmdObj.AddEnvVars(options.EnvVars...)
 
-	return c.Run(cmdObj)
+	return c.commander.Run(cmdObj)
 }

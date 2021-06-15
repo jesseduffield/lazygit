@@ -10,21 +10,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/sirupsen/logrus"
 )
 
 type FakeIGit struct {
-	AbortMergeStub        func() error
-	abortMergeMutex       sync.RWMutex
-	abortMergeArgsForCall []struct {
-	}
-	abortMergeReturns struct {
-		result1 error
-	}
-	abortMergeReturnsOnCall map[int]struct {
-		result1 error
-	}
 	AbortRebaseStub        func() error
 	abortRebaseMutex       sync.RWMutex
 	abortRebaseArgsForCall []struct {
@@ -175,6 +166,16 @@ type FakeIGit struct {
 	}
 	cherryPickCommitsReturnsOnCall map[int]struct {
 		result1 error
+	}
+	ColorArgStub        func() string
+	colorArgMutex       sync.RWMutex
+	colorArgArgsForCall []struct {
+	}
+	colorArgReturns struct {
+		result1 string
+	}
+	colorArgReturnsOnCall map[int]struct {
+		result1 string
 	}
 	CommitsStub        func() commands.ICommitsMgr
 	commitsMutex       sync.RWMutex
@@ -493,33 +494,6 @@ type FakeIGit struct {
 	genericMergeOrRebaseCmdObjReturnsOnCall map[int]struct {
 		result1 types.ICmdObj
 	}
-	GetBranchUpstreamDifferenceCountStub        func(string) (string, string)
-	getBranchUpstreamDifferenceCountMutex       sync.RWMutex
-	getBranchUpstreamDifferenceCountArgsForCall []struct {
-		arg1 string
-	}
-	getBranchUpstreamDifferenceCountReturns struct {
-		result1 string
-		result2 string
-	}
-	getBranchUpstreamDifferenceCountReturnsOnCall map[int]struct {
-		result1 string
-		result2 string
-	}
-	GetCommitDifferencesStub        func(string, string) (string, string)
-	getCommitDifferencesMutex       sync.RWMutex
-	getCommitDifferencesArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	getCommitDifferencesReturns struct {
-		result1 string
-		result2 string
-	}
-	getCommitDifferencesReturnsOnCall map[int]struct {
-		result1 string
-		result2 string
-	}
 	GetConfigValueStub        func(string) string
 	getConfigValueMutex       sync.RWMutex
 	getConfigValueArgsForCall []struct {
@@ -530,18 +504,6 @@ type FakeIGit struct {
 	}
 	getConfigValueReturnsOnCall map[int]struct {
 		result1 string
-	}
-	GetCurrentBranchUpstreamDifferenceCountStub        func() (string, string)
-	getCurrentBranchUpstreamDifferenceCountMutex       sync.RWMutex
-	getCurrentBranchUpstreamDifferenceCountArgsForCall []struct {
-	}
-	getCurrentBranchUpstreamDifferenceCountReturns struct {
-		result1 string
-		result2 string
-	}
-	getCurrentBranchUpstreamDifferenceCountReturnsOnCall map[int]struct {
-		result1 string
-		result2 string
 	}
 	GetFilesInDiffStub        func(string, string, bool) ([]*models.CommitFile, error)
 	getFilesInDiffMutex       sync.RWMutex
@@ -708,6 +670,16 @@ type FakeIGit struct {
 	getTagsReturnsOnCall map[int]struct {
 		result1 []*models.Tag
 		result2 error
+	}
+	GetUserConfigStub        func() *config.UserConfig
+	getUserConfigMutex       sync.RWMutex
+	getUserConfigArgsForCall []struct {
+	}
+	getUserConfigReturns struct {
+		result1 *config.UserConfig
+	}
+	getUserConfigReturnsOnCall map[int]struct {
+		result1 *config.UserConfig
 	}
 	IgnoreStub        func(string) error
 	ignoreMutex       sync.RWMutex
@@ -974,18 +946,6 @@ type FakeIGit struct {
 	removeUntrackedFilesReturnsOnCall map[int]struct {
 		result1 error
 	}
-	RenameBranchStub        func(string, string) error
-	renameBranchMutex       sync.RWMutex
-	renameBranchArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	renameBranchReturns struct {
-		result1 error
-	}
-	renameBranchReturnsOnCall map[int]struct {
-		result1 error
-	}
 	RenameRemoteStub        func(string, string) error
 	renameRemoteMutex       sync.RWMutex
 	renameRemoteArgsForCall []struct {
@@ -1008,39 +968,6 @@ type FakeIGit struct {
 	resetAndCleanReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ResetHardStub        func(string) error
-	resetHardMutex       sync.RWMutex
-	resetHardArgsForCall []struct {
-		arg1 string
-	}
-	resetHardReturns struct {
-		result1 error
-	}
-	resetHardReturnsOnCall map[int]struct {
-		result1 error
-	}
-	ResetMixedStub        func(string) error
-	resetMixedMutex       sync.RWMutex
-	resetMixedArgsForCall []struct {
-		arg1 string
-	}
-	resetMixedReturns struct {
-		result1 error
-	}
-	resetMixedReturnsOnCall map[int]struct {
-		result1 error
-	}
-	ResetSoftStub        func(string) error
-	resetSoftMutex       sync.RWMutex
-	resetSoftArgsForCall []struct {
-		arg1 string
-	}
-	resetSoftReturns struct {
-		result1 error
-	}
-	resetSoftReturnsOnCall map[int]struct {
-		result1 error
-	}
 	ResetSubmodulesStub        func([]*models.SubmoduleConfig) error
 	resetSubmodulesMutex       sync.RWMutex
 	resetSubmodulesArgsForCall []struct {
@@ -1050,19 +977,6 @@ type FakeIGit struct {
 		result1 error
 	}
 	resetSubmodulesReturnsOnCall map[int]struct {
-		result1 error
-	}
-	ResetToRefStub        func(string, string, commands.ResetToCommitOptions) error
-	resetToRefMutex       sync.RWMutex
-	resetToRefArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 commands.ResetToCommitOptions
-	}
-	resetToRefReturns struct {
-		result1 error
-	}
-	resetToRefReturnsOnCall map[int]struct {
 		result1 error
 	}
 	RunStub        func(types.ICmdObj) error
@@ -1435,59 +1349,6 @@ type FakeIGit struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeIGit) AbortMerge() error {
-	fake.abortMergeMutex.Lock()
-	ret, specificReturn := fake.abortMergeReturnsOnCall[len(fake.abortMergeArgsForCall)]
-	fake.abortMergeArgsForCall = append(fake.abortMergeArgsForCall, struct {
-	}{})
-	stub := fake.AbortMergeStub
-	fakeReturns := fake.abortMergeReturns
-	fake.recordInvocation("AbortMerge", []interface{}{})
-	fake.abortMergeMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) AbortMergeCallCount() int {
-	fake.abortMergeMutex.RLock()
-	defer fake.abortMergeMutex.RUnlock()
-	return len(fake.abortMergeArgsForCall)
-}
-
-func (fake *FakeIGit) AbortMergeCalls(stub func() error) {
-	fake.abortMergeMutex.Lock()
-	defer fake.abortMergeMutex.Unlock()
-	fake.AbortMergeStub = stub
-}
-
-func (fake *FakeIGit) AbortMergeReturns(result1 error) {
-	fake.abortMergeMutex.Lock()
-	defer fake.abortMergeMutex.Unlock()
-	fake.AbortMergeStub = nil
-	fake.abortMergeReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) AbortMergeReturnsOnCall(i int, result1 error) {
-	fake.abortMergeMutex.Lock()
-	defer fake.abortMergeMutex.Unlock()
-	fake.AbortMergeStub = nil
-	if fake.abortMergeReturnsOnCall == nil {
-		fake.abortMergeReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.abortMergeReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeIGit) AbortRebase() error {
@@ -2287,6 +2148,59 @@ func (fake *FakeIGit) CherryPickCommitsReturnsOnCall(i int, result1 error) {
 	}
 	fake.cherryPickCommitsReturnsOnCall[i] = struct {
 		result1 error
+	}{result1}
+}
+
+func (fake *FakeIGit) ColorArg() string {
+	fake.colorArgMutex.Lock()
+	ret, specificReturn := fake.colorArgReturnsOnCall[len(fake.colorArgArgsForCall)]
+	fake.colorArgArgsForCall = append(fake.colorArgArgsForCall, struct {
+	}{})
+	stub := fake.ColorArgStub
+	fakeReturns := fake.colorArgReturns
+	fake.recordInvocation("ColorArg", []interface{}{})
+	fake.colorArgMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGit) ColorArgCallCount() int {
+	fake.colorArgMutex.RLock()
+	defer fake.colorArgMutex.RUnlock()
+	return len(fake.colorArgArgsForCall)
+}
+
+func (fake *FakeIGit) ColorArgCalls(stub func() string) {
+	fake.colorArgMutex.Lock()
+	defer fake.colorArgMutex.Unlock()
+	fake.ColorArgStub = stub
+}
+
+func (fake *FakeIGit) ColorArgReturns(result1 string) {
+	fake.colorArgMutex.Lock()
+	defer fake.colorArgMutex.Unlock()
+	fake.ColorArgStub = nil
+	fake.colorArgReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeIGit) ColorArgReturnsOnCall(i int, result1 string) {
+	fake.colorArgMutex.Lock()
+	defer fake.colorArgMutex.Unlock()
+	fake.ColorArgStub = nil
+	if fake.colorArgReturnsOnCall == nil {
+		fake.colorArgReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.colorArgReturnsOnCall[i] = struct {
+		result1 string
 	}{result1}
 }
 
@@ -3941,135 +3855,6 @@ func (fake *FakeIGit) GenericMergeOrRebaseCmdObjReturnsOnCall(i int, result1 typ
 	}{result1}
 }
 
-func (fake *FakeIGit) GetBranchUpstreamDifferenceCount(arg1 string) (string, string) {
-	fake.getBranchUpstreamDifferenceCountMutex.Lock()
-	ret, specificReturn := fake.getBranchUpstreamDifferenceCountReturnsOnCall[len(fake.getBranchUpstreamDifferenceCountArgsForCall)]
-	fake.getBranchUpstreamDifferenceCountArgsForCall = append(fake.getBranchUpstreamDifferenceCountArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetBranchUpstreamDifferenceCountStub
-	fakeReturns := fake.getBranchUpstreamDifferenceCountReturns
-	fake.recordInvocation("GetBranchUpstreamDifferenceCount", []interface{}{arg1})
-	fake.getBranchUpstreamDifferenceCountMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGit) GetBranchUpstreamDifferenceCountCallCount() int {
-	fake.getBranchUpstreamDifferenceCountMutex.RLock()
-	defer fake.getBranchUpstreamDifferenceCountMutex.RUnlock()
-	return len(fake.getBranchUpstreamDifferenceCountArgsForCall)
-}
-
-func (fake *FakeIGit) GetBranchUpstreamDifferenceCountCalls(stub func(string) (string, string)) {
-	fake.getBranchUpstreamDifferenceCountMutex.Lock()
-	defer fake.getBranchUpstreamDifferenceCountMutex.Unlock()
-	fake.GetBranchUpstreamDifferenceCountStub = stub
-}
-
-func (fake *FakeIGit) GetBranchUpstreamDifferenceCountArgsForCall(i int) string {
-	fake.getBranchUpstreamDifferenceCountMutex.RLock()
-	defer fake.getBranchUpstreamDifferenceCountMutex.RUnlock()
-	argsForCall := fake.getBranchUpstreamDifferenceCountArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) GetBranchUpstreamDifferenceCountReturns(result1 string, result2 string) {
-	fake.getBranchUpstreamDifferenceCountMutex.Lock()
-	defer fake.getBranchUpstreamDifferenceCountMutex.Unlock()
-	fake.GetBranchUpstreamDifferenceCountStub = nil
-	fake.getBranchUpstreamDifferenceCountReturns = struct {
-		result1 string
-		result2 string
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetBranchUpstreamDifferenceCountReturnsOnCall(i int, result1 string, result2 string) {
-	fake.getBranchUpstreamDifferenceCountMutex.Lock()
-	defer fake.getBranchUpstreamDifferenceCountMutex.Unlock()
-	fake.GetBranchUpstreamDifferenceCountStub = nil
-	if fake.getBranchUpstreamDifferenceCountReturnsOnCall == nil {
-		fake.getBranchUpstreamDifferenceCountReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 string
-		})
-	}
-	fake.getBranchUpstreamDifferenceCountReturnsOnCall[i] = struct {
-		result1 string
-		result2 string
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetCommitDifferences(arg1 string, arg2 string) (string, string) {
-	fake.getCommitDifferencesMutex.Lock()
-	ret, specificReturn := fake.getCommitDifferencesReturnsOnCall[len(fake.getCommitDifferencesArgsForCall)]
-	fake.getCommitDifferencesArgsForCall = append(fake.getCommitDifferencesArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.GetCommitDifferencesStub
-	fakeReturns := fake.getCommitDifferencesReturns
-	fake.recordInvocation("GetCommitDifferences", []interface{}{arg1, arg2})
-	fake.getCommitDifferencesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGit) GetCommitDifferencesCallCount() int {
-	fake.getCommitDifferencesMutex.RLock()
-	defer fake.getCommitDifferencesMutex.RUnlock()
-	return len(fake.getCommitDifferencesArgsForCall)
-}
-
-func (fake *FakeIGit) GetCommitDifferencesCalls(stub func(string, string) (string, string)) {
-	fake.getCommitDifferencesMutex.Lock()
-	defer fake.getCommitDifferencesMutex.Unlock()
-	fake.GetCommitDifferencesStub = stub
-}
-
-func (fake *FakeIGit) GetCommitDifferencesArgsForCall(i int) (string, string) {
-	fake.getCommitDifferencesMutex.RLock()
-	defer fake.getCommitDifferencesMutex.RUnlock()
-	argsForCall := fake.getCommitDifferencesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) GetCommitDifferencesReturns(result1 string, result2 string) {
-	fake.getCommitDifferencesMutex.Lock()
-	defer fake.getCommitDifferencesMutex.Unlock()
-	fake.GetCommitDifferencesStub = nil
-	fake.getCommitDifferencesReturns = struct {
-		result1 string
-		result2 string
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetCommitDifferencesReturnsOnCall(i int, result1 string, result2 string) {
-	fake.getCommitDifferencesMutex.Lock()
-	defer fake.getCommitDifferencesMutex.Unlock()
-	fake.GetCommitDifferencesStub = nil
-	if fake.getCommitDifferencesReturnsOnCall == nil {
-		fake.getCommitDifferencesReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 string
-		})
-	}
-	fake.getCommitDifferencesReturnsOnCall[i] = struct {
-		result1 string
-		result2 string
-	}{result1, result2}
-}
-
 func (fake *FakeIGit) GetConfigValue(arg1 string) string {
 	fake.getConfigValueMutex.Lock()
 	ret, specificReturn := fake.getConfigValueReturnsOnCall[len(fake.getConfigValueArgsForCall)]
@@ -4129,62 +3914,6 @@ func (fake *FakeIGit) GetConfigValueReturnsOnCall(i int, result1 string) {
 	fake.getConfigValueReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
-}
-
-func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
-	fake.getCurrentBranchUpstreamDifferenceCountMutex.Lock()
-	ret, specificReturn := fake.getCurrentBranchUpstreamDifferenceCountReturnsOnCall[len(fake.getCurrentBranchUpstreamDifferenceCountArgsForCall)]
-	fake.getCurrentBranchUpstreamDifferenceCountArgsForCall = append(fake.getCurrentBranchUpstreamDifferenceCountArgsForCall, struct {
-	}{})
-	stub := fake.GetCurrentBranchUpstreamDifferenceCountStub
-	fakeReturns := fake.getCurrentBranchUpstreamDifferenceCountReturns
-	fake.recordInvocation("GetCurrentBranchUpstreamDifferenceCount", []interface{}{})
-	fake.getCurrentBranchUpstreamDifferenceCountMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCountCallCount() int {
-	fake.getCurrentBranchUpstreamDifferenceCountMutex.RLock()
-	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.RUnlock()
-	return len(fake.getCurrentBranchUpstreamDifferenceCountArgsForCall)
-}
-
-func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCountCalls(stub func() (string, string)) {
-	fake.getCurrentBranchUpstreamDifferenceCountMutex.Lock()
-	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.Unlock()
-	fake.GetCurrentBranchUpstreamDifferenceCountStub = stub
-}
-
-func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCountReturns(result1 string, result2 string) {
-	fake.getCurrentBranchUpstreamDifferenceCountMutex.Lock()
-	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.Unlock()
-	fake.GetCurrentBranchUpstreamDifferenceCountStub = nil
-	fake.getCurrentBranchUpstreamDifferenceCountReturns = struct {
-		result1 string
-		result2 string
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetCurrentBranchUpstreamDifferenceCountReturnsOnCall(i int, result1 string, result2 string) {
-	fake.getCurrentBranchUpstreamDifferenceCountMutex.Lock()
-	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.Unlock()
-	fake.GetCurrentBranchUpstreamDifferenceCountStub = nil
-	if fake.getCurrentBranchUpstreamDifferenceCountReturnsOnCall == nil {
-		fake.getCurrentBranchUpstreamDifferenceCountReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 string
-		})
-	}
-	fake.getCurrentBranchUpstreamDifferenceCountReturnsOnCall[i] = struct {
-		result1 string
-		result2 string
-	}{result1, result2}
 }
 
 func (fake *FakeIGit) GetFilesInDiff(arg1 string, arg2 string, arg3 bool) ([]*models.CommitFile, error) {
@@ -5008,6 +4737,59 @@ func (fake *FakeIGit) GetTagsReturnsOnCall(i int, result1 []*models.Tag, result2
 		result1 []*models.Tag
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeIGit) GetUserConfig() *config.UserConfig {
+	fake.getUserConfigMutex.Lock()
+	ret, specificReturn := fake.getUserConfigReturnsOnCall[len(fake.getUserConfigArgsForCall)]
+	fake.getUserConfigArgsForCall = append(fake.getUserConfigArgsForCall, struct {
+	}{})
+	stub := fake.GetUserConfigStub
+	fakeReturns := fake.getUserConfigReturns
+	fake.recordInvocation("GetUserConfig", []interface{}{})
+	fake.getUserConfigMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIGit) GetUserConfigCallCount() int {
+	fake.getUserConfigMutex.RLock()
+	defer fake.getUserConfigMutex.RUnlock()
+	return len(fake.getUserConfigArgsForCall)
+}
+
+func (fake *FakeIGit) GetUserConfigCalls(stub func() *config.UserConfig) {
+	fake.getUserConfigMutex.Lock()
+	defer fake.getUserConfigMutex.Unlock()
+	fake.GetUserConfigStub = stub
+}
+
+func (fake *FakeIGit) GetUserConfigReturns(result1 *config.UserConfig) {
+	fake.getUserConfigMutex.Lock()
+	defer fake.getUserConfigMutex.Unlock()
+	fake.GetUserConfigStub = nil
+	fake.getUserConfigReturns = struct {
+		result1 *config.UserConfig
+	}{result1}
+}
+
+func (fake *FakeIGit) GetUserConfigReturnsOnCall(i int, result1 *config.UserConfig) {
+	fake.getUserConfigMutex.Lock()
+	defer fake.getUserConfigMutex.Unlock()
+	fake.GetUserConfigStub = nil
+	if fake.getUserConfigReturnsOnCall == nil {
+		fake.getUserConfigReturnsOnCall = make(map[int]struct {
+			result1 *config.UserConfig
+		})
+	}
+	fake.getUserConfigReturnsOnCall[i] = struct {
+		result1 *config.UserConfig
+	}{result1}
 }
 
 func (fake *FakeIGit) Ignore(arg1 string) error {
@@ -6397,68 +6179,6 @@ func (fake *FakeIGit) RemoveUntrackedFilesReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) RenameBranch(arg1 string, arg2 string) error {
-	fake.renameBranchMutex.Lock()
-	ret, specificReturn := fake.renameBranchReturnsOnCall[len(fake.renameBranchArgsForCall)]
-	fake.renameBranchArgsForCall = append(fake.renameBranchArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.RenameBranchStub
-	fakeReturns := fake.renameBranchReturns
-	fake.recordInvocation("RenameBranch", []interface{}{arg1, arg2})
-	fake.renameBranchMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) RenameBranchCallCount() int {
-	fake.renameBranchMutex.RLock()
-	defer fake.renameBranchMutex.RUnlock()
-	return len(fake.renameBranchArgsForCall)
-}
-
-func (fake *FakeIGit) RenameBranchCalls(stub func(string, string) error) {
-	fake.renameBranchMutex.Lock()
-	defer fake.renameBranchMutex.Unlock()
-	fake.RenameBranchStub = stub
-}
-
-func (fake *FakeIGit) RenameBranchArgsForCall(i int) (string, string) {
-	fake.renameBranchMutex.RLock()
-	defer fake.renameBranchMutex.RUnlock()
-	argsForCall := fake.renameBranchArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) RenameBranchReturns(result1 error) {
-	fake.renameBranchMutex.Lock()
-	defer fake.renameBranchMutex.Unlock()
-	fake.RenameBranchStub = nil
-	fake.renameBranchReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) RenameBranchReturnsOnCall(i int, result1 error) {
-	fake.renameBranchMutex.Lock()
-	defer fake.renameBranchMutex.Unlock()
-	fake.RenameBranchStub = nil
-	if fake.renameBranchReturnsOnCall == nil {
-		fake.renameBranchReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.renameBranchReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeIGit) RenameRemote(arg1 string, arg2 string) error {
 	fake.renameRemoteMutex.Lock()
 	ret, specificReturn := fake.renameRemoteReturnsOnCall[len(fake.renameRemoteArgsForCall)]
@@ -6574,189 +6294,6 @@ func (fake *FakeIGit) ResetAndCleanReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) ResetHard(arg1 string) error {
-	fake.resetHardMutex.Lock()
-	ret, specificReturn := fake.resetHardReturnsOnCall[len(fake.resetHardArgsForCall)]
-	fake.resetHardArgsForCall = append(fake.resetHardArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.ResetHardStub
-	fakeReturns := fake.resetHardReturns
-	fake.recordInvocation("ResetHard", []interface{}{arg1})
-	fake.resetHardMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) ResetHardCallCount() int {
-	fake.resetHardMutex.RLock()
-	defer fake.resetHardMutex.RUnlock()
-	return len(fake.resetHardArgsForCall)
-}
-
-func (fake *FakeIGit) ResetHardCalls(stub func(string) error) {
-	fake.resetHardMutex.Lock()
-	defer fake.resetHardMutex.Unlock()
-	fake.ResetHardStub = stub
-}
-
-func (fake *FakeIGit) ResetHardArgsForCall(i int) string {
-	fake.resetHardMutex.RLock()
-	defer fake.resetHardMutex.RUnlock()
-	argsForCall := fake.resetHardArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) ResetHardReturns(result1 error) {
-	fake.resetHardMutex.Lock()
-	defer fake.resetHardMutex.Unlock()
-	fake.ResetHardStub = nil
-	fake.resetHardReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) ResetHardReturnsOnCall(i int, result1 error) {
-	fake.resetHardMutex.Lock()
-	defer fake.resetHardMutex.Unlock()
-	fake.ResetHardStub = nil
-	if fake.resetHardReturnsOnCall == nil {
-		fake.resetHardReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.resetHardReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) ResetMixed(arg1 string) error {
-	fake.resetMixedMutex.Lock()
-	ret, specificReturn := fake.resetMixedReturnsOnCall[len(fake.resetMixedArgsForCall)]
-	fake.resetMixedArgsForCall = append(fake.resetMixedArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.ResetMixedStub
-	fakeReturns := fake.resetMixedReturns
-	fake.recordInvocation("ResetMixed", []interface{}{arg1})
-	fake.resetMixedMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) ResetMixedCallCount() int {
-	fake.resetMixedMutex.RLock()
-	defer fake.resetMixedMutex.RUnlock()
-	return len(fake.resetMixedArgsForCall)
-}
-
-func (fake *FakeIGit) ResetMixedCalls(stub func(string) error) {
-	fake.resetMixedMutex.Lock()
-	defer fake.resetMixedMutex.Unlock()
-	fake.ResetMixedStub = stub
-}
-
-func (fake *FakeIGit) ResetMixedArgsForCall(i int) string {
-	fake.resetMixedMutex.RLock()
-	defer fake.resetMixedMutex.RUnlock()
-	argsForCall := fake.resetMixedArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) ResetMixedReturns(result1 error) {
-	fake.resetMixedMutex.Lock()
-	defer fake.resetMixedMutex.Unlock()
-	fake.ResetMixedStub = nil
-	fake.resetMixedReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) ResetMixedReturnsOnCall(i int, result1 error) {
-	fake.resetMixedMutex.Lock()
-	defer fake.resetMixedMutex.Unlock()
-	fake.ResetMixedStub = nil
-	if fake.resetMixedReturnsOnCall == nil {
-		fake.resetMixedReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.resetMixedReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) ResetSoft(arg1 string) error {
-	fake.resetSoftMutex.Lock()
-	ret, specificReturn := fake.resetSoftReturnsOnCall[len(fake.resetSoftArgsForCall)]
-	fake.resetSoftArgsForCall = append(fake.resetSoftArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.ResetSoftStub
-	fakeReturns := fake.resetSoftReturns
-	fake.recordInvocation("ResetSoft", []interface{}{arg1})
-	fake.resetSoftMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) ResetSoftCallCount() int {
-	fake.resetSoftMutex.RLock()
-	defer fake.resetSoftMutex.RUnlock()
-	return len(fake.resetSoftArgsForCall)
-}
-
-func (fake *FakeIGit) ResetSoftCalls(stub func(string) error) {
-	fake.resetSoftMutex.Lock()
-	defer fake.resetSoftMutex.Unlock()
-	fake.ResetSoftStub = stub
-}
-
-func (fake *FakeIGit) ResetSoftArgsForCall(i int) string {
-	fake.resetSoftMutex.RLock()
-	defer fake.resetSoftMutex.RUnlock()
-	argsForCall := fake.resetSoftArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) ResetSoftReturns(result1 error) {
-	fake.resetSoftMutex.Lock()
-	defer fake.resetSoftMutex.Unlock()
-	fake.ResetSoftStub = nil
-	fake.resetSoftReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) ResetSoftReturnsOnCall(i int, result1 error) {
-	fake.resetSoftMutex.Lock()
-	defer fake.resetSoftMutex.Unlock()
-	fake.ResetSoftStub = nil
-	if fake.resetSoftReturnsOnCall == nil {
-		fake.resetSoftReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.resetSoftReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeIGit) ResetSubmodules(arg1 []*models.SubmoduleConfig) error {
 	var arg1Copy []*models.SubmoduleConfig
 	if arg1 != nil {
@@ -6819,69 +6356,6 @@ func (fake *FakeIGit) ResetSubmodulesReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.resetSubmodulesReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) ResetToRef(arg1 string, arg2 string, arg3 commands.ResetToCommitOptions) error {
-	fake.resetToRefMutex.Lock()
-	ret, specificReturn := fake.resetToRefReturnsOnCall[len(fake.resetToRefArgsForCall)]
-	fake.resetToRefArgsForCall = append(fake.resetToRefArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 commands.ResetToCommitOptions
-	}{arg1, arg2, arg3})
-	stub := fake.ResetToRefStub
-	fakeReturns := fake.resetToRefReturns
-	fake.recordInvocation("ResetToRef", []interface{}{arg1, arg2, arg3})
-	fake.resetToRefMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) ResetToRefCallCount() int {
-	fake.resetToRefMutex.RLock()
-	defer fake.resetToRefMutex.RUnlock()
-	return len(fake.resetToRefArgsForCall)
-}
-
-func (fake *FakeIGit) ResetToRefCalls(stub func(string, string, commands.ResetToCommitOptions) error) {
-	fake.resetToRefMutex.Lock()
-	defer fake.resetToRefMutex.Unlock()
-	fake.ResetToRefStub = stub
-}
-
-func (fake *FakeIGit) ResetToRefArgsForCall(i int) (string, string, commands.ResetToCommitOptions) {
-	fake.resetToRefMutex.RLock()
-	defer fake.resetToRefMutex.RUnlock()
-	argsForCall := fake.resetToRefArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeIGit) ResetToRefReturns(result1 error) {
-	fake.resetToRefMutex.Lock()
-	defer fake.resetToRefMutex.Unlock()
-	fake.ResetToRefStub = nil
-	fake.resetToRefReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) ResetToRefReturnsOnCall(i int, result1 error) {
-	fake.resetToRefMutex.Lock()
-	defer fake.resetToRefMutex.Unlock()
-	fake.ResetToRefStub = nil
-	if fake.resetToRefReturnsOnCall == nil {
-		fake.resetToRefReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.resetToRefReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -8812,8 +8286,6 @@ func (fake *FakeIGit) WorktreeFileDiffCmdObjReturnsOnCall(i int, result1 types.I
 func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.abortMergeMutex.RLock()
-	defer fake.abortMergeMutex.RUnlock()
 	fake.abortRebaseMutex.RLock()
 	defer fake.abortRebaseMutex.RUnlock()
 	fake.addRemoteMutex.RLock()
@@ -8840,6 +8312,8 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.checkoutFileMutex.RUnlock()
 	fake.cherryPickCommitsMutex.RLock()
 	defer fake.cherryPickCommitsMutex.RUnlock()
+	fake.colorArgMutex.RLock()
+	defer fake.colorArgMutex.RUnlock()
 	fake.commitsMutex.RLock()
 	defer fake.commitsMutex.RUnlock()
 	fake.continueRebaseMutex.RLock()
@@ -8894,14 +8368,8 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.genericMergeOrRebaseActionMutex.RUnlock()
 	fake.genericMergeOrRebaseCmdObjMutex.RLock()
 	defer fake.genericMergeOrRebaseCmdObjMutex.RUnlock()
-	fake.getBranchUpstreamDifferenceCountMutex.RLock()
-	defer fake.getBranchUpstreamDifferenceCountMutex.RUnlock()
-	fake.getCommitDifferencesMutex.RLock()
-	defer fake.getCommitDifferencesMutex.RUnlock()
 	fake.getConfigValueMutex.RLock()
 	defer fake.getConfigValueMutex.RUnlock()
-	fake.getCurrentBranchUpstreamDifferenceCountMutex.RLock()
-	defer fake.getCurrentBranchUpstreamDifferenceCountMutex.RUnlock()
 	fake.getFilesInDiffMutex.RLock()
 	defer fake.getFilesInDiffMutex.RUnlock()
 	fake.getGitFlowRegexpConfigMutex.RLock()
@@ -8930,6 +8398,8 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.getSubmoduleConfigsMutex.RUnlock()
 	fake.getTagsMutex.RLock()
 	defer fake.getTagsMutex.RUnlock()
+	fake.getUserConfigMutex.RLock()
+	defer fake.getUserConfigMutex.RUnlock()
 	fake.ignoreMutex.RLock()
 	defer fake.ignoreMutex.RUnlock()
 	fake.interactiveRebaseMutex.RLock()
@@ -8976,22 +8446,12 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.removeUntrackedDirFilesMutex.RUnlock()
 	fake.removeUntrackedFilesMutex.RLock()
 	defer fake.removeUntrackedFilesMutex.RUnlock()
-	fake.renameBranchMutex.RLock()
-	defer fake.renameBranchMutex.RUnlock()
 	fake.renameRemoteMutex.RLock()
 	defer fake.renameRemoteMutex.RUnlock()
 	fake.resetAndCleanMutex.RLock()
 	defer fake.resetAndCleanMutex.RUnlock()
-	fake.resetHardMutex.RLock()
-	defer fake.resetHardMutex.RUnlock()
-	fake.resetMixedMutex.RLock()
-	defer fake.resetMixedMutex.RUnlock()
-	fake.resetSoftMutex.RLock()
-	defer fake.resetSoftMutex.RUnlock()
 	fake.resetSubmodulesMutex.RLock()
 	defer fake.resetSubmodulesMutex.RUnlock()
-	fake.resetToRefMutex.RLock()
-	defer fake.resetToRefMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	fake.runGitCmdFromStrMutex.RLock()

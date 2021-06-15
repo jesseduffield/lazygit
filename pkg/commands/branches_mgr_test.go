@@ -197,4 +197,15 @@ var _ = Describe("BranchesMgr", func() {
 			})
 		})
 	})
+
+	Describe("ResetToRef", func() {
+		It("runs expected command", func() {
+			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				{"git reset --hard HEAD", "", nil},
+			})
+
+			err := branchesMgr.ResetToRef("HEAD", HARD, ResetToRefOpts{})
+			Expect(err).To(BeNil())
+		})
+	})
 })
