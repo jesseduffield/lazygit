@@ -160,18 +160,10 @@ func (v *View) EditDelete(back bool) {
 		return
 	}
 
-	maxX, _ := v.Size()
 	if back {
 		if x == 0 { // start of the line
 			if y < 1 {
 				return
-			}
-
-			var maxPrevWidth int
-			if v.Wrap {
-				maxPrevWidth = maxX
-			} else {
-				maxPrevWidth = maxInt
 			}
 
 			if v.viewLines[y].linesX == 0 { // regular line
