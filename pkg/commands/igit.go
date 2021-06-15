@@ -17,11 +17,6 @@ type IGit interface {
 	// branches
 	Branches() IBranchesMgr
 
-	GetUpstreamForBranch(branchName string) (string, error)
-	SetUpstreamBranch(upstream string) error
-	SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error
-	GetCurrentBranchUpstreamDifferenceCount() (string, string)
-	GetBranchUpstreamDifferenceCount(branchName string) (string, string)
 	RenameBranch(oldName string, newName string) error
 	FindRemoteForBranchInConfig(branchName string) (string, error)
 	AbortMerge() error
@@ -42,7 +37,6 @@ type IGit interface {
 	GetPushToCurrent() bool
 
 	// diffing
-	GetCommitDifferences(from, to string) (string, string)
 	WorktreeFileDiff(file *models.File, plain bool, cached bool) string
 	WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) ICmdObj
 	ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error)

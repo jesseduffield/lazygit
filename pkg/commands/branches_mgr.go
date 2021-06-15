@@ -19,11 +19,8 @@ type IBranchesMgr interface {
 	Delete(branch string, force bool) error
 	Merge(branchName string, opts MergeOpts) error
 	Checkout(branch string, options CheckoutOpts) error
-	// GetUpstreamForBranch(branchName string) (string, error)
-	// SetUpstreamBranch(upstream string) error
-	// SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error
-	// GetCurrentBranchUpstreamDifferenceCount() (string, string)
-	// GetBranchUpstreamDifferenceCount(branchName string) (string, string)
+	GetUpstream(branchName string) (string, error)
+	SetUpstream(upstream string, branchName string) error
 	// RenameBranch(oldName string, newName string) error
 	// FindRemoteForBranchInConfig(branchName string) (string, error)
 	// AbortMerge() error
@@ -147,43 +144,16 @@ func (c *BranchesMgr) Checkout(branch string, options CheckoutOpts) error {
 	return c.commander.Run(cmdObj)
 }
 
-func (c *Git) GetUpstreamForBranch(branchName string) (string, error) {
-	output, err := c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)))
+func (c *BranchesMgr) GetUpstream(branchName string) (string, error) {
+	output, err := c.commander.RunWithOutput(
+		BuildGitCmdObjFromStr(fmt.Sprintf("rev-parse --abbrev-ref --symbolic-full-name %s@{u}", branchName)),
+	)
 	return strings.TrimSpace(output), err
 }
 
-func (c *Git) SetUpstreamBranch(upstream string) error {
-	return c.RunGitCmdFromStr(fmt.Sprintf("branch -u %s", upstream))
-}
-
-func (c *Git) SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error {
-	return c.RunGitCmdFromStr(fmt.Sprintf("branch --set-upstream-to=%s/%s %s", remoteName, remoteBranchName, branchName))
-}
-
-func (c *Git) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
-	return c.GetBranchUpstreamDifferenceCount("HEAD")
-}
-
-func (c *Git) GetBranchUpstreamDifferenceCount(branchName string) (string, string) {
-	return c.GetCommitDifferences(branchName, branchName+"@{u}")
-}
-
-// GetCommitDifferences checks how many pushables/pullables there are for the
-// current branch
-func (c *Git) GetCommitDifferences(from, to string) (string, string) {
-	pushableCount, err := c.GetCommitDifference(to, from)
-	if err != nil {
-		return "?", "?"
-	}
-	pullableCount, err := c.GetCommitDifference(from, to)
-	if err != nil {
-		return "?", "?"
-	}
-	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
-}
-
-func (c *Git) GetCommitDifference(from string, to string) (string, error) {
-	return c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("rev-list %s..%s --count", from, to)))
+// upstream is of the form remote/branchname
+func (c *BranchesMgr) SetUpstream(upstream string, branchName string) error {
+	return c.commander.RunGitCmdFromStr(fmt.Sprintf("branch --set-upstream-to=%s %s", upstream, branchName))
 }
 
 // AbortMerge abort merge

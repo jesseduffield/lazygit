@@ -631,7 +631,7 @@ func (gui *Gui) handlePullFiles() error {
 			Title:          gui.Tr.EnterUpstream,
 			InitialContent: "origin/" + currentBranch.Name,
 			HandleConfirm: func(upstream string) error {
-				if err := gui.Git.SetUpstreamBranch(upstream); err != nil {
+				if err := gui.Git.Branches().SetUpstream(upstream, currentBranch.Name); err != nil {
 					errorMessage := err.Error()
 					if strings.Contains(errorMessage, "does not exist") {
 						errorMessage = fmt.Sprintf("upstream branch %s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')", upstream)

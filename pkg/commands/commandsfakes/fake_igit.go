@@ -709,19 +709,6 @@ type FakeIGit struct {
 		result1 []*models.Tag
 		result2 error
 	}
-	GetUpstreamForBranchStub        func(string) (string, error)
-	getUpstreamForBranchMutex       sync.RWMutex
-	getUpstreamForBranchArgsForCall []struct {
-		arg1 string
-	}
-	getUpstreamForBranchReturns struct {
-		result1 string
-		result2 error
-	}
-	getUpstreamForBranchReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
 	IgnoreStub        func(string) error
 	ignoreMutex       sync.RWMutex
 	ignoreArgsForCall []struct {
@@ -1113,35 +1100,11 @@ type FakeIGit struct {
 		result1 string
 		result2 error
 	}
-	SetBranchUpstreamStub        func(string, string, string) error
-	setBranchUpstreamMutex       sync.RWMutex
-	setBranchUpstreamArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 string
-	}
-	setBranchUpstreamReturns struct {
-		result1 error
-	}
-	setBranchUpstreamReturnsOnCall map[int]struct {
-		result1 error
-	}
 	SetCredentialHandlersStub        func(func(types.CredentialKind) string, func(error))
 	setCredentialHandlersMutex       sync.RWMutex
 	setCredentialHandlersArgsForCall []struct {
 		arg1 func(types.CredentialKind) string
 		arg2 func(error)
-	}
-	SetUpstreamBranchStub        func(string) error
-	setUpstreamBranchMutex       sync.RWMutex
-	setUpstreamBranchArgsForCall []struct {
-		arg1 string
-	}
-	setUpstreamBranchReturns struct {
-		result1 error
-	}
-	setUpstreamBranchReturnsOnCall map[int]struct {
-		result1 error
 	}
 	ShowFileDiffStub        func(string, string, bool, string, bool) (string, error)
 	showFileDiffMutex       sync.RWMutex
@@ -5047,70 +5010,6 @@ func (fake *FakeIGit) GetTagsReturnsOnCall(i int, result1 []*models.Tag, result2
 	}{result1, result2}
 }
 
-func (fake *FakeIGit) GetUpstreamForBranch(arg1 string) (string, error) {
-	fake.getUpstreamForBranchMutex.Lock()
-	ret, specificReturn := fake.getUpstreamForBranchReturnsOnCall[len(fake.getUpstreamForBranchArgsForCall)]
-	fake.getUpstreamForBranchArgsForCall = append(fake.getUpstreamForBranchArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetUpstreamForBranchStub
-	fakeReturns := fake.getUpstreamForBranchReturns
-	fake.recordInvocation("GetUpstreamForBranch", []interface{}{arg1})
-	fake.getUpstreamForBranchMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeIGit) GetUpstreamForBranchCallCount() int {
-	fake.getUpstreamForBranchMutex.RLock()
-	defer fake.getUpstreamForBranchMutex.RUnlock()
-	return len(fake.getUpstreamForBranchArgsForCall)
-}
-
-func (fake *FakeIGit) GetUpstreamForBranchCalls(stub func(string) (string, error)) {
-	fake.getUpstreamForBranchMutex.Lock()
-	defer fake.getUpstreamForBranchMutex.Unlock()
-	fake.GetUpstreamForBranchStub = stub
-}
-
-func (fake *FakeIGit) GetUpstreamForBranchArgsForCall(i int) string {
-	fake.getUpstreamForBranchMutex.RLock()
-	defer fake.getUpstreamForBranchMutex.RUnlock()
-	argsForCall := fake.getUpstreamForBranchArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) GetUpstreamForBranchReturns(result1 string, result2 error) {
-	fake.getUpstreamForBranchMutex.Lock()
-	defer fake.getUpstreamForBranchMutex.Unlock()
-	fake.GetUpstreamForBranchStub = nil
-	fake.getUpstreamForBranchReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIGit) GetUpstreamForBranchReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getUpstreamForBranchMutex.Lock()
-	defer fake.getUpstreamForBranchMutex.Unlock()
-	fake.GetUpstreamForBranchStub = nil
-	if fake.getUpstreamForBranchReturnsOnCall == nil {
-		fake.getUpstreamForBranchReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getUpstreamForBranchReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeIGit) Ignore(arg1 string) error {
 	fake.ignoreMutex.Lock()
 	ret, specificReturn := fake.ignoreReturnsOnCall[len(fake.ignoreArgsForCall)]
@@ -7173,69 +7072,6 @@ func (fake *FakeIGit) RunWithOutputReturnsOnCall(i int, result1 string, result2 
 	}{result1, result2}
 }
 
-func (fake *FakeIGit) SetBranchUpstream(arg1 string, arg2 string, arg3 string) error {
-	fake.setBranchUpstreamMutex.Lock()
-	ret, specificReturn := fake.setBranchUpstreamReturnsOnCall[len(fake.setBranchUpstreamArgsForCall)]
-	fake.setBranchUpstreamArgsForCall = append(fake.setBranchUpstreamArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 string
-	}{arg1, arg2, arg3})
-	stub := fake.SetBranchUpstreamStub
-	fakeReturns := fake.setBranchUpstreamReturns
-	fake.recordInvocation("SetBranchUpstream", []interface{}{arg1, arg2, arg3})
-	fake.setBranchUpstreamMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) SetBranchUpstreamCallCount() int {
-	fake.setBranchUpstreamMutex.RLock()
-	defer fake.setBranchUpstreamMutex.RUnlock()
-	return len(fake.setBranchUpstreamArgsForCall)
-}
-
-func (fake *FakeIGit) SetBranchUpstreamCalls(stub func(string, string, string) error) {
-	fake.setBranchUpstreamMutex.Lock()
-	defer fake.setBranchUpstreamMutex.Unlock()
-	fake.SetBranchUpstreamStub = stub
-}
-
-func (fake *FakeIGit) SetBranchUpstreamArgsForCall(i int) (string, string, string) {
-	fake.setBranchUpstreamMutex.RLock()
-	defer fake.setBranchUpstreamMutex.RUnlock()
-	argsForCall := fake.setBranchUpstreamArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeIGit) SetBranchUpstreamReturns(result1 error) {
-	fake.setBranchUpstreamMutex.Lock()
-	defer fake.setBranchUpstreamMutex.Unlock()
-	fake.SetBranchUpstreamStub = nil
-	fake.setBranchUpstreamReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) SetBranchUpstreamReturnsOnCall(i int, result1 error) {
-	fake.setBranchUpstreamMutex.Lock()
-	defer fake.setBranchUpstreamMutex.Unlock()
-	fake.SetBranchUpstreamStub = nil
-	if fake.setBranchUpstreamReturnsOnCall == nil {
-		fake.setBranchUpstreamReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.setBranchUpstreamReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeIGit) SetCredentialHandlers(arg1 func(types.CredentialKind) string, arg2 func(error)) {
 	fake.setCredentialHandlersMutex.Lock()
 	fake.setCredentialHandlersArgsForCall = append(fake.setCredentialHandlersArgsForCall, struct {
@@ -7267,67 +7103,6 @@ func (fake *FakeIGit) SetCredentialHandlersArgsForCall(i int) (func(types.Creden
 	defer fake.setCredentialHandlersMutex.RUnlock()
 	argsForCall := fake.setCredentialHandlersArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIGit) SetUpstreamBranch(arg1 string) error {
-	fake.setUpstreamBranchMutex.Lock()
-	ret, specificReturn := fake.setUpstreamBranchReturnsOnCall[len(fake.setUpstreamBranchArgsForCall)]
-	fake.setUpstreamBranchArgsForCall = append(fake.setUpstreamBranchArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.SetUpstreamBranchStub
-	fakeReturns := fake.setUpstreamBranchReturns
-	fake.recordInvocation("SetUpstreamBranch", []interface{}{arg1})
-	fake.setUpstreamBranchMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIGit) SetUpstreamBranchCallCount() int {
-	fake.setUpstreamBranchMutex.RLock()
-	defer fake.setUpstreamBranchMutex.RUnlock()
-	return len(fake.setUpstreamBranchArgsForCall)
-}
-
-func (fake *FakeIGit) SetUpstreamBranchCalls(stub func(string) error) {
-	fake.setUpstreamBranchMutex.Lock()
-	defer fake.setUpstreamBranchMutex.Unlock()
-	fake.SetUpstreamBranchStub = stub
-}
-
-func (fake *FakeIGit) SetUpstreamBranchArgsForCall(i int) string {
-	fake.setUpstreamBranchMutex.RLock()
-	defer fake.setUpstreamBranchMutex.RUnlock()
-	argsForCall := fake.setUpstreamBranchArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIGit) SetUpstreamBranchReturns(result1 error) {
-	fake.setUpstreamBranchMutex.Lock()
-	defer fake.setUpstreamBranchMutex.Unlock()
-	fake.SetUpstreamBranchStub = nil
-	fake.setUpstreamBranchReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIGit) SetUpstreamBranchReturnsOnCall(i int, result1 error) {
-	fake.setUpstreamBranchMutex.Lock()
-	defer fake.setUpstreamBranchMutex.Unlock()
-	fake.SetUpstreamBranchStub = nil
-	if fake.setUpstreamBranchReturnsOnCall == nil {
-		fake.setUpstreamBranchReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.setUpstreamBranchReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeIGit) ShowFileDiff(arg1 string, arg2 string, arg3 bool, arg4 string, arg5 bool) (string, error) {
@@ -9155,8 +8930,6 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.getSubmoduleConfigsMutex.RUnlock()
 	fake.getTagsMutex.RLock()
 	defer fake.getTagsMutex.RUnlock()
-	fake.getUpstreamForBranchMutex.RLock()
-	defer fake.getUpstreamForBranchMutex.RUnlock()
 	fake.ignoreMutex.RLock()
 	defer fake.ignoreMutex.RUnlock()
 	fake.interactiveRebaseMutex.RLock()
@@ -9225,12 +8998,8 @@ func (fake *FakeIGit) Invocations() map[string][][]interface{} {
 	defer fake.runGitCmdFromStrMutex.RUnlock()
 	fake.runWithOutputMutex.RLock()
 	defer fake.runWithOutputMutex.RUnlock()
-	fake.setBranchUpstreamMutex.RLock()
-	defer fake.setBranchUpstreamMutex.RUnlock()
 	fake.setCredentialHandlersMutex.RLock()
 	defer fake.setCredentialHandlersMutex.RUnlock()
-	fake.setUpstreamBranchMutex.RLock()
-	defer fake.setUpstreamBranchMutex.RUnlock()
 	fake.showFileDiffMutex.RLock()
 	defer fake.showFileDiffMutex.RUnlock()
 	fake.showFileDiffCmdObjMutex.RLock()

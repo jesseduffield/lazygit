@@ -379,7 +379,7 @@ func (gui *Gui) handleFastForward() error {
 		return gui.CreateErrorPanel(gui.Tr.FwdCommitsToPush)
 	}
 
-	upstream, err := gui.Git.GetUpstreamForBranch(branch.Name)
+	upstream, err := gui.Git.Branches().GetUpstream(branch.Name)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}

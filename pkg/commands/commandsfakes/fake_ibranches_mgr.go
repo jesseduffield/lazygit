@@ -68,6 +68,19 @@ type FakeIBranchesMgr struct {
 	getBranchGraphCmdObjReturnsOnCall map[int]struct {
 		result1 types.ICmdObj
 	}
+	GetUpstreamStub        func(string) (string, error)
+	getUpstreamMutex       sync.RWMutex
+	getUpstreamArgsForCall []struct {
+		arg1 string
+	}
+	getUpstreamReturns struct {
+		result1 string
+		result2 error
+	}
+	getUpstreamReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	MergeStub        func(string, commands.MergeOpts) error
 	mergeMutex       sync.RWMutex
 	mergeArgsForCall []struct {
@@ -90,6 +103,18 @@ type FakeIBranchesMgr struct {
 		result1 error
 	}
 	newBranchReturnsOnCall map[int]struct {
+		result1 error
+	}
+	SetUpstreamStub        func(string, string) error
+	setUpstreamMutex       sync.RWMutex
+	setUpstreamArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	setUpstreamReturns struct {
+		result1 error
+	}
+	setUpstreamReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
@@ -393,6 +418,70 @@ func (fake *FakeIBranchesMgr) GetBranchGraphCmdObjReturnsOnCall(i int, result1 t
 	}{result1}
 }
 
+func (fake *FakeIBranchesMgr) GetUpstream(arg1 string) (string, error) {
+	fake.getUpstreamMutex.Lock()
+	ret, specificReturn := fake.getUpstreamReturnsOnCall[len(fake.getUpstreamArgsForCall)]
+	fake.getUpstreamArgsForCall = append(fake.getUpstreamArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetUpstreamStub
+	fakeReturns := fake.getUpstreamReturns
+	fake.recordInvocation("GetUpstream", []interface{}{arg1})
+	fake.getUpstreamMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeIBranchesMgr) GetUpstreamCallCount() int {
+	fake.getUpstreamMutex.RLock()
+	defer fake.getUpstreamMutex.RUnlock()
+	return len(fake.getUpstreamArgsForCall)
+}
+
+func (fake *FakeIBranchesMgr) GetUpstreamCalls(stub func(string) (string, error)) {
+	fake.getUpstreamMutex.Lock()
+	defer fake.getUpstreamMutex.Unlock()
+	fake.GetUpstreamStub = stub
+}
+
+func (fake *FakeIBranchesMgr) GetUpstreamArgsForCall(i int) string {
+	fake.getUpstreamMutex.RLock()
+	defer fake.getUpstreamMutex.RUnlock()
+	argsForCall := fake.getUpstreamArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeIBranchesMgr) GetUpstreamReturns(result1 string, result2 error) {
+	fake.getUpstreamMutex.Lock()
+	defer fake.getUpstreamMutex.Unlock()
+	fake.GetUpstreamStub = nil
+	fake.getUpstreamReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeIBranchesMgr) GetUpstreamReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getUpstreamMutex.Lock()
+	defer fake.getUpstreamMutex.Unlock()
+	fake.GetUpstreamStub = nil
+	if fake.getUpstreamReturnsOnCall == nil {
+		fake.getUpstreamReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getUpstreamReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeIBranchesMgr) Merge(arg1 string, arg2 commands.MergeOpts) error {
 	fake.mergeMutex.Lock()
 	ret, specificReturn := fake.mergeReturnsOnCall[len(fake.mergeArgsForCall)]
@@ -517,6 +606,68 @@ func (fake *FakeIBranchesMgr) NewBranchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeIBranchesMgr) SetUpstream(arg1 string, arg2 string) error {
+	fake.setUpstreamMutex.Lock()
+	ret, specificReturn := fake.setUpstreamReturnsOnCall[len(fake.setUpstreamArgsForCall)]
+	fake.setUpstreamArgsForCall = append(fake.setUpstreamArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.SetUpstreamStub
+	fakeReturns := fake.setUpstreamReturns
+	fake.recordInvocation("SetUpstream", []interface{}{arg1, arg2})
+	fake.setUpstreamMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIBranchesMgr) SetUpstreamCallCount() int {
+	fake.setUpstreamMutex.RLock()
+	defer fake.setUpstreamMutex.RUnlock()
+	return len(fake.setUpstreamArgsForCall)
+}
+
+func (fake *FakeIBranchesMgr) SetUpstreamCalls(stub func(string, string) error) {
+	fake.setUpstreamMutex.Lock()
+	defer fake.setUpstreamMutex.Unlock()
+	fake.SetUpstreamStub = stub
+}
+
+func (fake *FakeIBranchesMgr) SetUpstreamArgsForCall(i int) (string, string) {
+	fake.setUpstreamMutex.RLock()
+	defer fake.setUpstreamMutex.RUnlock()
+	argsForCall := fake.setUpstreamArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeIBranchesMgr) SetUpstreamReturns(result1 error) {
+	fake.setUpstreamMutex.Lock()
+	defer fake.setUpstreamMutex.Unlock()
+	fake.SetUpstreamStub = nil
+	fake.setUpstreamReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeIBranchesMgr) SetUpstreamReturnsOnCall(i int, result1 error) {
+	fake.setUpstreamMutex.Lock()
+	defer fake.setUpstreamMutex.Unlock()
+	fake.SetUpstreamStub = nil
+	if fake.setUpstreamReturnsOnCall == nil {
+		fake.setUpstreamReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setUpstreamReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeIBranchesMgr) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -530,10 +681,14 @@ func (fake *FakeIBranchesMgr) Invocations() map[string][][]interface{} {
 	defer fake.deleteMutex.RUnlock()
 	fake.getBranchGraphCmdObjMutex.RLock()
 	defer fake.getBranchGraphCmdObjMutex.RUnlock()
+	fake.getUpstreamMutex.RLock()
+	defer fake.getUpstreamMutex.RUnlock()
 	fake.mergeMutex.RLock()
 	defer fake.mergeMutex.RUnlock()
 	fake.newBranchMutex.RLock()
 	defer fake.newBranchMutex.RUnlock()
+	fake.setUpstreamMutex.RLock()
+	defer fake.setUpstreamMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

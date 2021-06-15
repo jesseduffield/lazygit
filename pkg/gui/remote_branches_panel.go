@@ -89,7 +89,11 @@ func (gui *Gui) handleSetBranchUpstream() error {
 		Title:  gui.Tr.SetUpstreamTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.SetBranchUpstream).SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+			err := gui.Git.
+				WithSpan(gui.Tr.Spans.SetBranchUpstream).
+				Branches().
+				SetUpstream(selectedBranch.RemoteName+"/"+selectedBranch.Name, checkedOutBranch.Name)
+			if err != nil {
 				return err
 			}
 
