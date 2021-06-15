@@ -394,15 +394,8 @@ func (gui *Gui) pageDelta(view *gocui.View) int {
 }
 
 func getTabbedView(gui *Gui) *gocui.View {
-	v := gui.g.CurrentView()
-	if v == nil {
-		return nil
-	}
-	// if the action is invoked via the Options menu,
-	// we need to execute it against the parent view
-	if v.Name() == "menu" {
-		v = v.ParentView
-	}
-
-	return v
+	// It safe assumption that only static contexts have tabs
+	context := gui.currentStaticContext()
+	view, _ := gui.g.View(context.GetViewName())
+	return view
 }
