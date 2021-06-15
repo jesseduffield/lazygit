@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+//counterfeiter:generate . IBranchesMgr
 type IBranchesMgr interface {
 	NewBranch(name string, base string) error
 	// CurrentBranchName() (string, string, error)

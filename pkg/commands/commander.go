@@ -11,8 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// to generate this run:
-// counterfeiter pkg/commands ICommander
+//counterfeiter:generate . ICommander
 type ICommander interface {
 	Run(cmdObj ICmdObj) error
 	RunWithOutput(cmdObj ICmdObj) (string, error)

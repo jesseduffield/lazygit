@@ -12,6 +12,7 @@ import (
 
 type getGitConfigValueFunc func(key string) (string, error)
 
+//counterfeiter:generate . IGitConfig
 type IGitConfig interface {
 	GetPager(width int) string
 	ColorArg() string

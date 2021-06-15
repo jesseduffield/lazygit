@@ -22,6 +22,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 // this takes something like:
 // * (HEAD detached at 264fc6f5)
 //	remotes

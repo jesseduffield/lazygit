@@ -7,7 +7,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . ICommitsMgr
+//counterfeiter:generate . ICommitsMgr
 type ICommitsMgr interface {
 	RewordHead(name string) error
 	CommitCmdObj(message string, flags string) ICmdObj
