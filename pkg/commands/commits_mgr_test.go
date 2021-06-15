@@ -1,19 +1,14 @@
 package commands_test
 
 import (
-	"fmt"
-
 	"github.com/go-errors/errors"
 	. "github.com/jesseduffield/lazygit/pkg/commands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 )
-
-var mockQuote = func(str string) string { return fmt.Sprintf("\"%s\"", str) }
 
 var _ = Describe("CommitsMgr", func() {
 	var (
@@ -23,13 +18,7 @@ var _ = Describe("CommitsMgr", func() {
 	)
 
 	BeforeEach(func() {
-		commander = &FakeICommander{}
-		commander.BuildGitCmdObjFromStrCalls(func(command string) ICmdObj {
-			return oscommands.NewCmdObjFromStr("git " + command)
-		})
-		commander.RunGitCmdFromStrCalls(func(command string) error {
-			return commander.Run(commander.BuildGitCmdObjFromStr((command)))
-		})
+		commander = NewFakeCommander()
 		gitconfig = &FakeIGitConfig{}
 		gitconfig.ColorArgCalls(func() string { return "always" })
 		commitsMgr = NewCommitsMgr(commander, gitconfig, mockQuote)

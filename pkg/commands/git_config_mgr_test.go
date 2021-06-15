@@ -3,8 +3,6 @@ package commands_test
 import (
 	. "github.com/jesseduffield/lazygit/pkg/commands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -20,13 +18,7 @@ var _ = Describe("GitConfigMgr", func() {
 	)
 
 	BeforeEach(func() {
-		commander = &FakeICommander{}
-		commander.BuildGitCmdObjFromStrCalls(func(command string) ICmdObj {
-			return oscommands.NewCmdObjFromStr("git " + command)
-		})
-		commander.RunGitCmdFromStrCalls(func(command string) error {
-			return commander.Run(commander.BuildGitCmdObjFromStr((command)))
-		})
+		commander = NewFakeCommander()
 		userConfig = &config.UserConfig{}
 		getGitConfigValue = func(string) (string, error) { return "", nil }
 		gitconfig = NewGitConfigMgr(commander, userConfig, getGitConfigValue, nil)
