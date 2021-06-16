@@ -41,7 +41,7 @@ func (gui *Gui) handleRemoteSelect() error {
 func (gui *Gui) refreshRemotes() error {
 	prevSelectedRemote := gui.getSelectedRemote()
 
-	remotes, err := gui.Git.GetRemotes()
+	remotes, err := gui.Git.Remotes().GetRemotes()
 	if err != nil {
 		return gui.SurfaceError(err)
 	}
@@ -86,7 +86,7 @@ func (gui *Gui) handleAddRemote() error {
 			return gui.Prompt(PromptOpts{
 				Title: gui.Tr.LcNewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
-					if err := gui.Git.WithSpan(gui.Tr.Spans.AddRemote).AddRemote(remoteName, remoteUrl); err != nil {
+					if err := gui.Git.WithSpan(gui.Tr.Spans.AddRemote).Remotes().Add(remoteName, remoteUrl); err != nil {
 						return err
 					}
 					return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{REMOTES}})
@@ -107,7 +107,7 @@ func (gui *Gui) handleRemoveRemote() error {
 		Title:  gui.Tr.LcRemoveRemote,
 		Prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		HandleConfirm: func() error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.RemoveRemote).RemoveRemote(remote.Name); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.RemoveRemote).Remotes().Remove(remote.Name); err != nil {
 				return gui.SurfaceError(err)
 			}
 
@@ -136,7 +136,7 @@ func (gui *Gui) handleEditRemote() error {
 		InitialContent: remote.Name,
 		HandleConfirm: func(updatedRemoteName string) error {
 			if updatedRemoteName != remote.Name {
-				if err := gitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
+				if err := gitCommand.Remotes().Rename(remote.Name, updatedRemoteName); err != nil {
 					return gui.SurfaceError(err)
 				}
 			}
@@ -158,7 +158,7 @@ func (gui *Gui) handleEditRemote() error {
 				Title:          editUrlMessage,
 				InitialContent: url,
 				HandleConfirm: func(updatedRemoteUrl string) error {
-					if err := gitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
+					if err := gitCommand.Remotes().UpdateUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 						return gui.SurfaceError(err)
 					}
 					return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{BRANCHES, REMOTES}})

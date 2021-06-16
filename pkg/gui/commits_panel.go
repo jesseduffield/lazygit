@@ -114,10 +114,8 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	builder := commands.NewCommitListBuilder(gui.Log, gui.Git, gui.OS, gui.Tr)
-
-	commits, err := builder.GetCommits(
-		commands.GetCommitsOptions{
+	commits, err := gui.Git.Commits().Load(
+		commands.LoadCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
@@ -136,9 +134,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	builder := commands.NewCommitListBuilder(gui.Log, gui.Git, gui.OS, gui.Tr)
-
-	updatedCommits, err := builder.MergeRebasingCommits(gui.State.Commits)
+	updatedCommits, err := gui.Git.Commits().MergeRebasingCommits(gui.State.Commits)
 	if err != nil {
 		return err
 	}
@@ -586,7 +582,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 	return gui.Prompt(PromptOpts{
 		Title: gui.Tr.TagNameTitle,
 		HandleConfirm: func(response string) error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.CreateLightweightTag).CreateLightweightTag(response, commitSha); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.CreateLightweightTag).Tags().LightweightCreate(response, commitSha); err != nil {
 				return gui.SurfaceError(err)
 			}
 			return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC, Scope: []RefreshableView{COMMITS, TAGS}})

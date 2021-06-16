@@ -110,13 +110,13 @@ func (pr *PullRequest) CopyURL(branch *models.Branch) (string, error) {
 }
 
 func (pr *PullRequest) getPullRequestURL(branch *models.Branch) (string, error) {
-	branchExistsOnRemote := pr.Git.CheckRemoteBranchExists(branch)
+	branchExistsOnRemote := pr.Git.Remotes().RemoteBranchExists(branch)
 
 	if !branchExistsOnRemote {
 		return "", errors.New(pr.Git.tr.NoBranchOnRemote)
 	}
 
-	repoURL := pr.Git.GetRemoteURL()
+	repoURL := pr.Git.Remotes().GetCurrentRemoteUrl()
 	var gitService *Service
 
 	for _, service := range pr.GitServices {

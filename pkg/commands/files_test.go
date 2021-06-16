@@ -13,28 +13,6 @@ package commands
 // 	"github.com/stretchr/testify/assert"
 // )
 
-// // TestGitCommandCatFile tests emitting a file using commands, where commands vary by OS.
-// func TestGitCommandCatFile(t *testing.T) {
-// 	var osCmd string
-// 	switch os := runtime.GOOS; os {
-// 	case "windows":
-// 		osCmd = "type"
-// 	default:
-// 		osCmd = "cat"
-// 	}
-// 	gitCmd := NewDummyGit()
-// 	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
-// 		assert.EqualValues(t, osCmd, cmd)
-// 		assert.EqualValues(t, []string{"test.txt"}, args)
-
-// 		return secureexec.Command("echo", "-n", "test")
-// 	}
-
-// 	o, err := gitCmd.CatFile("test.txt")
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, "test", o)
-// }
-
 // // TestGitCommandStageFile is a function.
 // func TestGitCommandStageFile(t *testing.T) {
 // 	gitCmd := NewDummyGit()

@@ -21,7 +21,7 @@ var _ = Describe("GitConfigMgr", func() {
 		commander = NewFakeCommander()
 		userConfig = &config.UserConfig{}
 		getGitConfigValue = func(string) (string, error) { return "", nil }
-		gitconfig = NewGitConfigMgr(commander, userConfig, getGitConfigValue, nil)
+		gitconfig = NewGitConfigMgr(commander, userConfig, ".", getGitConfigValue, nil)
 	})
 
 	Describe("UsingGpg", func() {
@@ -47,7 +47,7 @@ var _ = Describe("GitConfigMgr", func() {
 						return result, nil
 					}
 
-					gitconfig = NewGitConfigMgr(commander, userConfig, getGitConfigValue, nil)
+					gitconfig = NewGitConfigMgr(commander, userConfig, ".", getGitConfigValue, nil)
 					Expect(gitconfig.UsingGpg()).To(Equal(expected))
 				},
 				Entry("when returning true", "true", true),

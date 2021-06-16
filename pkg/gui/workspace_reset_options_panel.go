@@ -23,7 +23,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
-				if err := gui.Git.WithSpan(gui.Tr.Spans.NukeWorkingTree).ResetAndClean(); err != nil {
+				if err := gui.Git.WithSpan(gui.Tr.Spans.NukeWorkingTree).Worktree().ResetAndClean(); err != nil {
 					return gui.SurfaceError(err)
 				}
 
@@ -36,7 +36,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git checkout -- ."),
 			},
 			onPress: func() error {
-				if err := gui.Git.WithSpan(gui.Tr.Spans.DiscardUnstagedFileChanges).DiscardAnyUnstagedFileChanges(); err != nil {
+				if err := gui.Git.WithSpan(gui.Tr.Spans.DiscardUnstagedFileChanges).Worktree().DiscardAnyUnstagedFileChanges(); err != nil {
 					return gui.SurfaceError(err)
 				}
 
@@ -49,7 +49,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git clean -fd"),
 			},
 			onPress: func() error {
-				if err := gui.Git.WithSpan(gui.Tr.Spans.RemoveUntrackedFiles).RemoveUntrackedFiles(); err != nil {
+				if err := gui.Git.WithSpan(gui.Tr.Spans.RemoveUntrackedFiles).Worktree().RemoveUntrackedFiles(); err != nil {
 					return gui.SurfaceError(err)
 				}
 

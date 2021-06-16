@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -27,8 +26,9 @@ func (gui *Gui) refreshStatus() {
 		status += presentation.ColoredBranchStatus(currentBranch) + " "
 	}
 
-	if gui.Git.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
-		status += utils.ColoredString(fmt.Sprintf("(%s) ", gui.Git.WorkingTreeState()), color.FgYellow)
+	rebasingOrMergingSuffix := gui.rebasingOrMergingSuffix()
+	if rebasingOrMergingSuffix != "" {
+		status += utils.ColoredString(rebasingOrMergingSuffix+" ", color.FgYellow)
 	}
 
 	name := utils.ColoredString(currentBranch.Name, presentation.GetBranchColor(currentBranch.Name))
@@ -36,6 +36,21 @@ func (gui *Gui) refreshStatus() {
 	status += fmt.Sprintf("%s → %s ", repoName, name)
 
 	gui.setViewContent(gui.Views.Status, status)
+}
+
+func (gui *Gui) rebasingOrMergingSuffix() string {
+	rebasingOrMergingStatus := ""
+	if gui.Git.Status().IsRebasing() {
+		rebasingOrMergingStatus = "rebasing"
+	} else if gui.Git.Status().IsMerging() {
+		rebasingOrMergingStatus = "merging"
+	}
+
+	if rebasingOrMergingStatus == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("(%s)", rebasingOrMergingStatus)
 }
 
 func runeCount(str string) int {
@@ -73,17 +88,17 @@ func (gui *Gui) handleStatusClick() error {
 	cx, _ := gui.Views.Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch)
 	repoName := utils.GetCurrentRepoName()
-	switch gui.Git.WorkingTreeState() {
-	case commands.REBASE_MODE_REBASING, commands.REBASE_MODE_MERGING:
-		workingTreeStatus := fmt.Sprintf("(%s)", gui.Git.WorkingTreeState())
-		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
-			return gui.handleCreateRebaseOptionsMenu()
-		}
-		if cursorInSubstring(cx, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
+
+	rebasingOrMergingSuffix := gui.rebasingOrMergingSuffix()
+	if rebasingOrMergingSuffix == "" {
+		if cursorInSubstring(cx, upstreamStatus+" ", repoName) {
 			return gui.handleCreateRecentReposMenu()
 		}
-	default:
-		if cursorInSubstring(cx, upstreamStatus+" ", repoName) {
+	} else {
+		if cursorInSubstring(cx, upstreamStatus+" ", rebasingOrMergingSuffix) {
+			return gui.handleCreateRebaseOptionsMenu()
+		}
+		if cursorInSubstring(cx, upstreamStatus+" "+rebasingOrMergingSuffix+" ", repoName) {
 			return gui.handleCreateRecentReposMenu()
 		}
 	}
@@ -138,16 +153,4 @@ func lazygitTitle() string {
   |_|\__,_/___|\__, |\__, |_|\__|
                 __/ | __/ |
                |___/ |___/       `
-}
-
-func (gui *Gui) workingTreeState() commands.WorkingTreeState {
-	rebaseMode, _ := gui.Git.RebaseMode()
-	if rebaseMode != "" {
-		return commands.REBASE_MODE_REBASING
-	}
-	merging, _ := gui.Git.IsInMergeState()
-	if merging {
-		return commands.REBASE_MODE_MERGING
-	}
-	return commands.REBASE_MODE_NORMAL
 }

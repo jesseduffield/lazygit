@@ -61,11 +61,7 @@ func (gui *Gui) refreshBranches() {
 		}
 	}
 
-	builder, err := commands.NewBranchListBuilder(gui.Log, gui.Git, reflogCommits)
-	if err != nil {
-		_ = gui.SurfaceError(err)
-	}
-	gui.State.Branches = builder.Build()
+	gui.State.Branches = gui.Git.Branches().GetBranches(reflogCommits)
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
@@ -183,7 +179,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 					Title:  gui.Tr.AutoStashTitle,
 					Prompt: gui.Tr.AutoStashPrompt,
 					HandleConfirm: func() error {
-						if err := gitCommand.StashSave(gui.Tr.StashPrefix + ref); err != nil {
+						if err := gitCommand.Stash().Save(gui.Tr.StashPrefix + ref); err != nil {
 							return gui.SurfaceError(err)
 						}
 						if err := gitCommand.Branches().Checkout(ref, cmdOptions); err != nil {
@@ -191,7 +187,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 						}
 
 						onSuccess()
-						if err := gitCommand.StashDo(0, "pop"); err != nil {
+						if err := gitCommand.Stash().Do(0, "pop"); err != nil {
 							if err := gui.RefreshSidePanels(RefreshOptions{Mode: BLOCK_UI}); err != nil {
 								return err
 							}
@@ -300,7 +296,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		return err
 	}
 
-	if gui.Git.IsHeadDetached() {
+	if gui.Git.Status().IsHeadDetached() {
 		return gui.CreateErrorPanel("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
 	checkedOutBranchName := gui.CurrentBranch().Name

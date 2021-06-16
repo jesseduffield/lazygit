@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -122,4 +123,16 @@ func (c *Git) FastForward(branchName string, remoteName string, remoteBranchName
 func (c *Git) FetchRemote(remoteName string) error {
 	cmdObj := BuildGitCmdObj("fetch", []string{remoteName}, nil)
 	return c.RunCommandWithCredentialsHandling(cmdObj)
+}
+
+func (c *Git) DeleteRemoteRef(remoteName string, ref string) error {
+	return c.RunCommandWithCredentialsHandling(
+		BuildGitCmdObjFromStr(fmt.Sprintf("push %s --delete %s", remoteName, ref)),
+	)
+}
+
+func (c *Git) PushRef(remoteName string, ref string) error {
+	return c.RunCommandWithCredentialsHandling(
+		BuildGitCmdObjFromStr(fmt.Sprintf("push %s %s", remoteName, ref)),
+	)
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -169,7 +168,7 @@ func (gui *Gui) stageSelectedFile() error {
 		return nil
 	}
 
-	return gui.Git.StageFile(file.Name)
+	return gui.Git.Worktree().StageFile(file.Name)
 }
 
 func (gui *Gui) handleEnterFile() error {
@@ -219,11 +218,11 @@ func (gui *Gui) handleFilePress() error {
 		}
 
 		if file.HasUnstagedChanges {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.StageFile).StageFile(file.Name); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.StageFile).Worktree().StageFile(file.Name); err != nil {
 				return gui.SurfaceError(err)
 			}
 		} else {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.UnstageFile).UnStageFile(file.Names(), file.Tracked); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.UnstageFile).Worktree().UnStageFile(file.Names(), file.Tracked); err != nil {
 				return gui.SurfaceError(err)
 			}
 		}
@@ -235,12 +234,12 @@ func (gui *Gui) handleFilePress() error {
 		}
 
 		if node.GetHasUnstagedChanges() {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.StageFile).StageFile(node.Path); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.StageFile).Worktree().StageFile(node.Path); err != nil {
 				return gui.SurfaceError(err)
 			}
 		} else {
 			// pretty sure it doesn't matter that we're always passing true here
-			if err := gui.Git.WithSpan(gui.Tr.Spans.UnstageFile).UnStageFile([]string{node.Path}, true); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.UnstageFile).Worktree().UnStageFile([]string{node.Path}, true); err != nil {
 				return gui.SurfaceError(err)
 			}
 		}
@@ -269,9 +268,9 @@ func (gui *Gui) focusAndSelectFile() error {
 func (gui *Gui) handleStageAll() error {
 	var err error
 	if gui.allFilesStaged() {
-		err = gui.Git.WithSpan(gui.Tr.Spans.UnstageAllFiles).UnstageAll()
+		err = gui.Git.WithSpan(gui.Tr.Spans.UnstageAllFiles).Worktree().UnstageAll()
 	} else {
-		err = gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
+		err = gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).Worktree().StageAll()
 	}
 	if err != nil {
 		_ = gui.SurfaceError(err)
@@ -299,7 +298,7 @@ func (gui *Gui) handleIgnoreFile() error {
 	unstageFiles := func() error {
 		return node.ForEachFile(func(file *models.File) error {
 			if file.HasStagedChanges {
-				if err := gitCommand.UnStageFile(file.Names(), file.Tracked); err != nil {
+				if err := gitCommand.Worktree().UnStageFile(file.Names(), file.Tracked); err != nil {
 					return err
 				}
 			}
@@ -318,11 +317,11 @@ func (gui *Gui) handleIgnoreFile() error {
 					return err
 				}
 
-				if err := gitCommand.RemoveTrackedFiles(node.GetPath()); err != nil {
+				if err := gitCommand.Worktree().RemoveTrackedFiles(node.GetPath()); err != nil {
 					return err
 				}
 
-				if err := gitCommand.Ignore(node.GetPath()); err != nil {
+				if err := gitCommand.Worktree().Ignore(node.GetPath()); err != nil {
 					return err
 				}
 				return gui.RefreshSidePanels(RefreshOptions{Scope: []RefreshableView{FILES}})
@@ -334,7 +333,7 @@ func (gui *Gui) handleIgnoreFile() error {
 		return err
 	}
 
-	if err := gitCommand.Ignore(node.GetPath()); err != nil {
+	if err := gitCommand.Worktree().Ignore(node.GetPath()); err != nil {
 		return gui.SurfaceError(err)
 	}
 
@@ -366,7 +365,7 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 func (gui *Gui) prepareFilesForCommit() error {
 	noStagedFiles := len(gui.stagedFiles()) == 0
 	if noStagedFiles && gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
-		err := gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
+		err := gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).Worktree().StageAll()
 		if err != nil {
 			return err
 		}
@@ -421,7 +420,7 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 		Title:  gui.Tr.NoFilesStagedTitle,
 		Prompt: gui.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll(); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.StageAllFiles).Worktree().StageAll(); err != nil {
 				return gui.SurfaceError(err)
 			}
 			if err := gui.refreshFilesAndSubmodules(); err != nil {
@@ -475,7 +474,7 @@ func (gui *Gui) handleCommitEditorPress() error {
 }
 
 func (gui *Gui) editFile(filename string) error {
-	cmdObj, err := gui.Git.EditFileCmdObj(filename)
+	cmdObj, err := gui.Git.Worktree().EditFileCmdObj(filename)
 	if err != nil {
 		return gui.SurfaceError(err)
 	}
@@ -522,7 +521,7 @@ func (gui *Gui) refreshStateFiles() error {
 	prevNodes := gui.State.FileManager.GetAllItems()
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
-	files := gui.Git.GetStatusFiles(loaders.LoadStatusFilesOpts{})
+	files := gui.Git.Worktree().LoadStatusFiles(commands.LoadStatusFilesOpts{})
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
 	state.FileManager.RWMutex.Lock()
@@ -738,13 +737,13 @@ func (gui *Gui) handleCreateStashMenu() error {
 		{
 			displayString: gui.Tr.LcStashAllChanges,
 			onPress: func() error {
-				return gui.handleStashSave(gui.Git.WithSpan(gui.Tr.Spans.StashAllChanges).StashSave)
+				return gui.handleStashSave(gui.Git.WithSpan(gui.Tr.Spans.StashAllChanges).Stash().Save)
 			},
 		},
 		{
 			displayString: gui.Tr.LcStashStagedChanges,
 			onPress: func() error {
-				return gui.handleStashSave(gui.Git.WithSpan(gui.Tr.Spans.StashStagedChanges).StashSaveStagedChanges)
+				return gui.handleStashSave(gui.Git.WithSpan(gui.Tr.Spans.StashStagedChanges).Stash().SaveStagedChanges)
 			},
 		},
 	}
@@ -753,7 +752,7 @@ func (gui *Gui) handleCreateStashMenu() error {
 }
 
 func (gui *Gui) handleStashChanges() error {
-	return gui.handleStashSave(gui.Git.StashSave)
+	return gui.handleStashSave(gui.Git.Stash().Save)
 }
 
 func (gui *Gui) handleCreateResetToUpstreamMenu() error {
@@ -807,7 +806,7 @@ func (gui *Gui) handleOpenMergeTool() error {
 		Title:  gui.Tr.MergeToolTitle,
 		Prompt: gui.Tr.MergeToolPrompt,
 		HandleConfirm: func() error {
-			return gui.runSubprocessWithSuspenseAndRefresh(gui.Git.OpenMergeToolCmdObj())
+			return gui.runSubprocessWithSuspenseAndRefresh(gui.Git.Worktree().OpenMergeToolCmdObj())
 		},
 	})
 }

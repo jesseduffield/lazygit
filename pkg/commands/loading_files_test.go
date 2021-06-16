@@ -116,7 +116,7 @@ package commands
 // 			gitCmd := NewDummyGit()
 // 			gitCmd.GetOSCommand().Command = s.command
 
-// 			s.test(gitCmd.GetStatusFiles(GetStatusFileOptions{}))
+// 			s.test(gitCmd.LoadStatusFiles(GetStatusFileOptions{}))
 // 		})
 // 	}
 // }

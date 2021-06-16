@@ -62,7 +62,7 @@ func (gui *Gui) handleCheckoutCommitFile() error {
 		return nil
 	}
 
-	if err := gui.Git.WithSpan(gui.Tr.Spans.CheckoutFile).CheckoutFile(gui.State.CommitFileManager.GetParent(), node.GetPath()); err != nil {
+	if err := gui.Git.WithSpan(gui.Tr.Spans.CheckoutFile).Worktree().CheckoutFile(gui.State.CommitFileManager.GetParent(), node.GetPath()); err != nil {
 		return gui.SurfaceError(err)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -12,31 +13,23 @@ import (
 
 type getGitConfigValueFunc func(key string) (string, error)
 
-//counterfeiter:generate . IGitConfig
-type IGitConfig interface {
-	GetPager(width int) string
-	ColorArg() string
-	GetConfigValue(key string) string
-	UsingGpg() bool
-	GetUserConfig() *config.UserConfig
-	GetPushToCurrent() bool
-}
-
 type GitConfigMgr struct {
-	commander ICommander
+	ICommander
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	pushToCurrent bool
 
 	userConfig        *config.UserConfig
+	userConfigDir     string
 	getGitConfigValue getGitConfigValueFunc
 }
 
-func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, getGitConfigValue getGitConfigValueFunc, log *logrus.Entry) *GitConfigMgr {
+func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, userConfigDir string, getGitConfigValue getGitConfigValueFunc, log *logrus.Entry) *GitConfigMgr {
 	gitConfig := &GitConfigMgr{
-		commander:         commander,
+		ICommander:        commander,
 		getGitConfigValue: getGitConfigValue,
 		userConfig:        userConfig,
+		userConfigDir:     userConfigDir,
 	}
 
 	output, err := commander.RunWithOutput(
@@ -56,6 +49,10 @@ func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, getGit
 
 func (c *GitConfigMgr) GetUserConfig() *config.UserConfig {
 	return c.userConfig
+}
+
+func (c *GitConfigMgr) GetUserConfigDir() string {
+	return c.userConfigDir
 }
 
 func (c *GitConfigMgr) GetPager(width int) string {
@@ -89,7 +86,7 @@ func (c *GitConfigMgr) configuredPager() string {
 	if os.Getenv("PAGER") != "" {
 		return os.Getenv("PAGER")
 	}
-	output, err := c.commander.RunWithOutput(BuildGitCmdObjFromStr("config --get-all core.pager"))
+	output, err := c.RunWithOutput(BuildGitCmdObjFromStr("config --get-all core.pager"))
 	if err != nil {
 		return ""
 	}

@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	options := []string{"continue", "abort"}
+	title := gui.Tr.MergeOptionsTitle
 
-	if gui.Git.WorkingTreeState() == commands.REBASE_MODE_REBASING {
+	if gui.Git.Status().IsRebasing() {
 		options = append(options, "skip")
+		title = gui.Tr.RebaseOptionsTitle
 	}
 
 	menuItems := make([]*menuItem, len(options))
@@ -27,27 +28,18 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 		}
 	}
 
-	var title string
-	if gui.Git.WorkingTreeState() == commands.REBASE_MODE_MERGING {
-		title = gui.Tr.MergeOptionsTitle
-	} else {
-		title = gui.Tr.RebaseOptionsTitle
-	}
-
 	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) genericMergeCommand(action string) error {
-	status := gui.Git.WorkingTreeState()
-
-	if status != commands.REBASE_MODE_MERGING && status != commands.REBASE_MODE_REBASING {
+	if gui.Git.Status().InNormalWorkingTreeState() {
 		return gui.CreateErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
 	gitCommand := gui.Git.WithSpan(fmt.Sprintf("Merge/Rebase: %s", action))
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	if status == commands.REBASE_MODE_MERGING && action != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
+	if gui.Git.Status().IsMerging() && action != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
 		return gui.runSubprocessWithSuspenseAndRefresh(
 			gitCommand.GenericMergeOrRebaseCmdObj(action),
 		)

@@ -1,33 +1,55 @@
 package presentation
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string) [][]string {
+func GetCommitListDisplayStrings(
+	commits []*models.Commit,
+	fullDescription bool,
+	cherryPickedCommitShaMap map[string]bool,
+	diffName string,
+	isRebasing bool,
+	tr *i18n.TranslationSet,
+) [][]string {
 	lines := make([][]string, len(commits))
 
-	var displayFunc func(*models.Commit, map[string]bool, bool) []string
+	var displayFunc func(*models.Commit, map[string]bool, bool, bool, *i18n.TranslationSet) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForCommit
 	} else {
 		displayFunc = getDisplayStringsForCommit
 	}
 
-	for i := range commits {
-		diffed := commits[i].Sha == diffName
-		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap, diffed)
+	visitedNonRebaseCommit := false
+
+	for i, commit := range commits {
+		isCurrentCommit := false
+		if isRebasing && !visitedNonRebaseCommit && !commit.IsRebaseCommit() {
+			visitedNonRebaseCommit = true
+			isCurrentCommit = true
+		}
+		diffed := commit.Sha == diffName
+		lines[i] = displayFunc(commit, cherryPickedCommitShaMap, diffed, isCurrentCommit, tr)
 	}
 
 	return lines
 }
 
-func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
+func getFullDescriptionDisplayStringsForCommit(
+	c *models.Commit,
+	cherryPickedCommitShaMap map[string]bool,
+	diffed bool,
+	isCurrentCommit bool,
+	tr *i18n.TranslationSet,
+) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -73,10 +95,26 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 
 	truncatedAuthor := utils.TruncateWithEllipsis(c.Author, 17)
 
-	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(c.Name)}
+	name := c.Name
+	if isCurrentCommit {
+		name = youAreHere(name, tr)
+	}
+
+	return []string{
+		shaColor.Sprint(c.ShortSha()),
+		secondColumnString,
+		yellow.Sprint(truncatedAuthor),
+		tagString + defaultColor.Sprint(name),
+	}
 }
 
-func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
+func getDisplayStringsForCommit(
+	c *models.Commit,
+	cherryPickedCommitShaMap map[string]bool,
+	diffed bool,
+	isCurrentCommit bool,
+	tr *i18n.TranslationSet,
+) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -120,7 +158,20 @@ func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[s
 		tagString = utils.ColoredStringDirect(strings.Join(c.Tags, " "), tagColor) + " "
 	}
 
-	return []string{shaColor.Sprint(c.ShortSha()), actionString + tagString + defaultColor.Sprint(c.Name)}
+	name := c.Name
+	if isCurrentCommit {
+		name = youAreHere(name, tr)
+	}
+
+	return []string{
+		shaColor.Sprint(c.ShortSha()),
+		actionString + tagString + defaultColor.Sprint(name),
+	}
+}
+
+func youAreHere(name string, tr *i18n.TranslationSet) string {
+	youAreHere := color.New(color.FgYellow).Sprintf("<-- %s ---", tr.YouAreHere)
+	return fmt.Sprintf("%s %s", youAreHere, name)
 }
 
 func actionColorMap(str string) color.Attribute {

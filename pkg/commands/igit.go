@@ -3,25 +3,26 @@
 package commands
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
-	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/sirupsen/logrus"
 )
 
 //counterfeiter:generate . IGit
 type IGit interface {
-	// branches
 	Branches() IBranchesMgr
-
-	// commits
 	Commits() ICommitsMgr
+	Worktree() IWorktreeMgr
+	Submodules() ISubmodulesMgr
+	Status() IStatusMgr
+	Stash() IStashMgr
+	Tags() ITagsMgr
+	Remotes() IRemotesMgr
 
 	// config
-	IGitConfig
+	IGitConfigMgr
 
 	FindRemoteForBranchInConfig(branchName string) (string, error)
 
@@ -32,30 +33,6 @@ type IGit interface {
 	ShowFileDiffCmdObj(from string, to string, reverse bool, path string, plain bool, showRenames bool) ICmdObj
 	DiffEndArgs(from string, to string, reverse bool, path string) string
 
-	CatFile(fileName string) (string, error)
-	EditFileCmdObj(filename string) (ICmdObj, error)
-
-	// worktree
-	OpenMergeToolCmdObj() ICmdObj
-	StageFile(fileName string) error
-	StageAll() error
-	UnstageAll() error
-	UnStageFile(fileNames []string, reset bool) error
-	BeforeAndAfterFileForRename(file *models.File) (*models.File, *models.File, error)
-	DiscardAllFileChanges(file *models.File) error
-	DiscardAllDirChanges(node *filetree.FileNode) error
-	DiscardUnstagedDirChanges(node *filetree.FileNode) error
-	RemoveUntrackedDirFiles(node *filetree.FileNode) error
-	DiscardUnstagedFileChanges(file *models.File) error
-	Ignore(filename string) error
-	CheckoutFile(commitSha, fileName string) error
-	DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error
-	DiscardAnyUnstagedFileChanges() error
-	RemoveTrackedFiles(name string) error
-	RemoveUntrackedFiles() error
-	ResetAndClean() error
-	GetStatusFiles(opts loaders.LoadStatusFilesOpts) []*models.File
-
 	// commands
 	ICommander
 
@@ -64,7 +41,7 @@ type IGit interface {
 	// common
 	GetLog() *logrus.Entry
 	WithSpan(span string) IGit
-	GetOS() *oscommands.OS
+	GetOS() oscommands.IOS
 
 	// flow
 	FlowStart(branchType string, name string) ICmdObj
@@ -74,12 +51,8 @@ type IGit interface {
 	// loaders
 	GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error)
 	GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error)
-	GetRemotes() ([]*models.Remote, error)
-	GetStashEntries(filterPath string) []*models.StashEntry
-	GetTags() ([]*models.Tag, error)
 
 	// patch
-	ApplyPatch(patch string, flags ...string) error
 	NewPatchManager() *patch.PatchManager
 	DeletePatchesFromCommit(commits []*models.Commit, commitIndex int, p *patch.PatchManager) error
 	MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error
@@ -87,6 +60,7 @@ type IGit interface {
 	PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p *patch.PatchManager) error
 
 	// rebasing
+	DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error
 	GenericAbortCmdObj() ICmdObj
 	GenericContinueCmdObj() ICmdObj
 	GenericMergeOrRebaseCmdObj(action string) ICmdObj
@@ -107,52 +81,12 @@ type IGit interface {
 	GenericMergeOrRebaseAction(commandType string, command string) error
 	CherryPickCommits(commits []*models.Commit) error
 
-	// remotes
-	AddRemote(name string, url string) error
-	RemoveRemote(name string) error
-	RenameRemote(oldRemoteName string, newRemoteName string) error
-	UpdateRemoteUrl(remoteName string, updatedUrl string) error
-	DeleteRemoteBranch(remoteName string, branchName string) error
-	CheckRemoteBranchExists(branch *models.Branch) bool
-	GetRemoteURL() string
-
-	// stash
-	StashDo(index int, method string) error
-	StashSave(message string) error
-	ShowStashEntryCmdObj(index int) ICmdObj
-	StashSaveStagedChanges(message string) error
-
-	// state/info
-	RebaseMode() (WorkingTreeState, error)
-	WorkingTreeState() WorkingTreeState
-	IsInMergeState() (bool, error)
-	IsBareRepo() bool
-	IsHeadDetached() bool
-
-	// submodules
-	GetSubmoduleConfigs() ([]*models.SubmoduleConfig, error)
-	SubmoduleStash(submodule *models.SubmoduleConfig) error
-	SubmoduleReset(submodule *models.SubmoduleConfig) error
-	SubmoduleDelete(submodule *models.SubmoduleConfig) error
-	SubmoduleAdd(name string, path string, url string) error
-	SubmoduleUpdateUrl(name string, path string, newUrl string) error
-	SubmoduleInit(path string) error
-	SubmoduleUpdate(path string) error
-	SubmoduleBulkInitCmdObj() ICmdObj
-	SubmoduleBulkUpdateCmdObj() ICmdObj
-	SubmoduleForceBulkUpdateCmdObj() ICmdObj
-	SubmoduleBulkDeinitCmdObj() ICmdObj
-	ResetSubmodules(submodules []*models.SubmoduleConfig) error
-
 	// sync
 	Push(opts PushOpts) (bool, error)
 	Fetch(opts FetchOptions) error
 	FetchInBackground(opts FetchOptions) error
 	FastForward(branchName string, remoteName string, remoteBranchName string) error
 	FetchRemote(remoteName string) error
-
-	// tags
-	DeleteTag(tagName string) error
-	PushTag(remoteName string, tagName string) error
-	CreateLightweightTag(tagName string, commitSha string) error
+	PushRef(remoteName string, refName string) error
+	DeleteRemoteRef(remoteName string, ref string) error
 }

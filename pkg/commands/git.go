@@ -10,8 +10,6 @@ import (
 	"github.com/go-errors/errors"
 
 	gogit "github.com/jesseduffield/go-git/v5"
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
@@ -34,10 +32,16 @@ const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 type Git struct {
 	*Commander
 	*GitConfigMgr
+	tagsMgr              *TagsMgr
+	remotesMgr           *RemotesMgr
 	commitsMgr           *CommitsMgr
 	branchesMgr          *BranchesMgr
+	worktreeMgr          *WorktreeMgr
+	submodulesMgr        *SubmodulesMgr
+	statusMgr            *StatusMgr
+	stashMgr             *StashMgr
 	log                  *logrus.Entry
-	os                   *oscommands.OS
+	os                   oscommands.IOS
 	repo                 *gogit.Repository
 	tr                   *i18n.TranslationSet
 	config               config.AppConfigurer
@@ -69,21 +73,33 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	}
 
 	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath(), oS.Quote)
-	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), getGitConfigValue, log)
-	commitsMgr := NewCommitsMgr(commander, gitConfig)
-	branchesMgr := NewBranchesMgr(commander, gitConfig)
+	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), config.GetUserConfigDir(), getGitConfigValue, log)
+	tagsMgr := NewTagsMgr(commander, gitConfig)
+	remotesMgr := NewRemotesMgr(commander, gitConfig, repo)
+	branchesMgr := NewBranchesMgr(commander, gitConfig, log)
+	submodulesMgr := NewSubmodulesMgr(commander, gitConfig, log, dotGitDir)
+	worktreeMgr := NewWorktreeMgr(commander, gitConfig, branchesMgr, submodulesMgr, log, oS)
+	statusMgr := NewStatusMgr(commander, oS, repo, dotGitDir, log)
+	commitsMgr := NewCommitsMgr(commander, gitConfig, branchesMgr, statusMgr, log, oS, tr, dotGitDir)
+	stashMgr := NewStashMgr(commander, gitConfig, oS, worktreeMgr)
 
 	gitCommand := &Git{
-		Commander:    commander,
-		GitConfigMgr: gitConfig,
-		commitsMgr:   commitsMgr,
-		branchesMgr:  branchesMgr,
-		log:          log,
-		os:           oS,
-		tr:           tr,
-		repo:         repo,
-		config:       config,
-		dotGitDir:    dotGitDir,
+		Commander:     commander,
+		GitConfigMgr:  gitConfig,
+		tagsMgr:       tagsMgr,
+		remotesMgr:    remotesMgr,
+		commitsMgr:    commitsMgr,
+		branchesMgr:   branchesMgr,
+		worktreeMgr:   worktreeMgr,
+		submodulesMgr: submodulesMgr,
+		statusMgr:     statusMgr,
+		stashMgr:      stashMgr,
+		log:           log,
+		os:            oS,
+		tr:            tr,
+		repo:          repo,
+		config:        config,
+		dotGitDir:     dotGitDir,
 	}
 
 	return gitCommand, nil
@@ -95,6 +111,30 @@ func (c *Git) Commits() ICommitsMgr {
 
 func (c *Git) Branches() IBranchesMgr {
 	return c.branchesMgr
+}
+
+func (c *Git) Worktree() IWorktreeMgr {
+	return c.worktreeMgr
+}
+
+func (c *Git) Submodules() ISubmodulesMgr {
+	return c.submodulesMgr
+}
+
+func (c *Git) Status() IStatusMgr {
+	return c.statusMgr
+}
+
+func (c *Git) Stash() IStashMgr {
+	return c.stashMgr
+}
+
+func (c *Git) Tags() ITagsMgr {
+	return c.tagsMgr
+}
+
+func (c *Git) Remotes() IRemotesMgr {
+	return c.remotesMgr
 }
 
 func (c *Git) Quote(str string) string {
@@ -236,7 +276,7 @@ func VerifyInGitRepo(osCommand *oscommands.OS) error {
 	)
 }
 
-func (c *Git) GetOS() *oscommands.OS {
+func (c *Git) GetOS() oscommands.IOS {
 	return c.os
 }
 
@@ -249,22 +289,13 @@ func (c *Git) GenericContinueCmdObj() ICmdObj {
 }
 
 func (c *Git) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
-	status := c.WorkingTreeState()
-	switch status {
-	case REBASE_MODE_REBASING:
+	if c.Status().IsRebasing() {
 		return BuildGitCmdObjFromStr(fmt.Sprintf("rebase --%s", action))
-	case REBASE_MODE_MERGING:
-		return BuildGitCmdObjFromStr(fmt.Sprintf("merge --%s", action))
-	default:
-		panic("expected rebase mode")
+
 	}
-}
+	if c.Status().IsMerging() {
+		return BuildGitCmdObjFromStr(fmt.Sprintf("merge --%s", action))
+	}
 
-func (c *Git) GetStatusFiles(opts loaders.LoadStatusFilesOpts) []*models.File {
-	return loaders.NewStatusFileLoader(c).Load(opts)
-}
-
-func (c *Git) IsHeadDetached() bool {
-	err := c.RunGitCmdFromStr("symbolic-ref -q HEAD")
-	return err != nil
+	panic("expected rebase mode")
 }

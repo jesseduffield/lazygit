@@ -10,7 +10,7 @@ func (c *OS) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	c.LogCmd(cmdObj)
 	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
 	if err != nil {
-		c.Log.WithField("command", cmdObj.ToString()).Error(output)
+		c.log.WithField("command", cmdObj.ToString()).Error(output)
 	}
 	return output, err
 }

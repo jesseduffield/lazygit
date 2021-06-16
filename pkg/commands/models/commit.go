@@ -39,3 +39,7 @@ func (c *Commit) Description() string {
 func (c *Commit) IsMerge() bool {
 	return len(c.Parents) > 1
 }
+
+func (c *Commit) IsRebaseCommit() bool {
+	return c.Status == "rebasing"
+}

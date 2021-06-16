@@ -103,8 +103,8 @@ func TestOSCommandOpenFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		OSCmd := NewDummyOS()
-		OSCmd.Command = s.command
-		OSCmd.Config.GetUserConfig().OS.OpenCommand = "open {{filename}}"
+		OSCmd.command = s.command
+		OSCmd.config.GetUserConfig().OS.OpenCommand = "open {{filename}}"
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}
@@ -114,11 +114,11 @@ func TestOSCommandOpenFile(t *testing.T) {
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := NewDummyOS()
 
-	osCommand.Platform.OS = "linux"
+	osCommand.platform.OS = "linux"
 
 	actual := osCommand.Quote("hello `test`")
 
-	expected := osCommand.Platform.EscapedQuote + "hello \\`test\\`" + osCommand.Platform.EscapedQuote
+	expected := osCommand.platform.EscapedQuote + "hello \\`test\\`" + osCommand.platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -127,11 +127,11 @@ func TestOSCommandQuote(t *testing.T) {
 func TestOSCommandQuoteSingleQuote(t *testing.T) {
 	osCommand := NewDummyOS()
 
-	osCommand.Platform.OS = "linux"
+	osCommand.platform.OS = "linux"
 
 	actual := osCommand.Quote("hello 'test'")
 
-	expected := osCommand.Platform.EscapedQuote + "hello 'test'" + osCommand.Platform.EscapedQuote
+	expected := osCommand.platform.EscapedQuote + "hello 'test'" + osCommand.platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -140,11 +140,11 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	osCommand := NewDummyOS()
 
-	osCommand.Platform.OS = "linux"
+	osCommand.platform.OS = "linux"
 
 	actual := osCommand.Quote(`hello "test"`)
 
-	expected := osCommand.Platform.EscapedQuote + `hello \"test\"` + osCommand.Platform.EscapedQuote
+	expected := osCommand.platform.EscapedQuote + `hello \"test\"` + osCommand.platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -153,11 +153,11 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 func TestOSCommandQuoteWindows(t *testing.T) {
 	osCommand := NewDummyOS()
 
-	osCommand.Platform.OS = "windows"
+	osCommand.platform.OS = "windows"
 
 	actual := osCommand.Quote(`hello "test"`)
 
-	expected := osCommand.Platform.EscapedQuote + `hello "'"'"test"'"'"` + osCommand.Platform.EscapedQuote
+	expected := osCommand.platform.EscapedQuote + `hello "'"'"test"'"'"` + osCommand.platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }

@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	. "github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -27,7 +26,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		},
 	}
 
-	if gui.State.Modes.PatchManager.CanRebase && gui.workingTreeState() == commands.REBASE_MODE_NORMAL {
+	if gui.State.Modes.PatchManager.CanRebase && gui.Git.Status().InNormalWorkingTreeState() {
 		menuItems = append(menuItems, []*menuItem{
 			{
 				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.State.Modes.PatchManager.To),
@@ -75,7 +74,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 }
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
-	if gui.Git.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
+	if gui.Git.Status().IsRebasing() || gui.Git.Status().IsMerging() {
 		return false, gui.CreateErrorPanel(gui.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
@@ -176,7 +175,7 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 		span = "Apply patch in reverse"
 	}
 
-	if err := gui.State.Modes.PatchManager.ApplyPatches(gui.Git.WithSpan(span).ApplyPatch, reverse); err != nil {
+	if err := gui.State.Modes.PatchManager.ApplyPatches(gui.Git.WithSpan(span).Worktree().ApplyPatch, reverse); err != nil {
 		return gui.SurfaceError(err)
 	}
 	return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})

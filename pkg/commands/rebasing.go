@@ -228,7 +228,7 @@ func (c *Git) ContinueRebase() error {
 }
 
 func (c *Git) MergeOrRebase() string {
-	if c.WorkingTreeState() == "merging" {
+	if c.Status().IsMerging() {
 		return "merge"
 	}
 
@@ -238,7 +238,7 @@ func (c *Git) MergeOrRebase() string {
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
 func (c *Git) GenericMergeOrRebaseAction(commandType string, command string) error {
-	cmdObj := oscommands.NewCmdObjFromStr(fmt.Sprintf(
+	cmdObj := c.BuildGitCmdObjFromStr(fmt.Sprintf(
 		"%s --%s",
 		commandType,
 		command,
@@ -276,4 +276,31 @@ func (c *Git) CherryPickCommits(commits []*models.Commit) error {
 	}
 
 	return c.Run(c.InteractiveRebaseCmdObj("HEAD", todo, false))
+}
+
+// DiscardOldFileChanges discards changes to a file from an old commit
+func (c *Git) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
+	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
+		return err
+	}
+
+	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
+	if err := c.RunGitCmdFromStr(fmt.Sprintf("cat-file -e HEAD^:%s", fileName)); err != nil {
+		if err := c.GetOS().Remove(fileName); err != nil {
+			return err
+		}
+		if err := c.Worktree().StageFile(fileName); err != nil {
+			return err
+		}
+	} else if err := c.Worktree().CheckoutFile("HEAD^", fileName); err != nil {
+		return err
+	}
+
+	// amend the commit
+	err := c.Commits().AmendHead()
+	if err != nil {
+		return err
+	}
+
+	return c.ContinueRebase()
 }

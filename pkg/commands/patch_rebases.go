@@ -15,7 +15,7 @@ func (c *Git) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int,
 	}
 
 	// apply each patch in reverse
-	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
+	if err := p.ApplyPatches(c.Worktree().ApplyPatch, true); err != nil {
 		if err := c.AbortRebase(); err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func (c *Git) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitId
 		}
 
 		// apply each patch forward
-		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
+		if err := p.ApplyPatches(c.Worktree().ApplyPatch, false); err != nil {
 			if err := c.AbortRebase(); err != nil {
 				return err
 			}
@@ -92,7 +92,7 @@ func (c *Git) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitId
 	}
 
 	// apply each patch in reverse
-	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
+	if err := p.ApplyPatches(c.Worktree().ApplyPatch, true); err != nil {
 		if err := c.AbortRebase(); err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func (c *Git) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitId
 	c.onSuccessfulContinue = func() error {
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
-		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
+		if err := p.ApplyPatches(c.Worktree().ApplyPatch, false); err != nil {
 			if err := c.AbortRebase(); err != nil {
 				return err
 			}
@@ -136,7 +136,7 @@ func (c *Git) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitId
 
 func (c *Git) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
 	if stash {
-		if err := c.StashSave(c.tr.StashPrefix + commits[commitIdx].Sha); err != nil {
+		if err := c.Stash().Save(c.tr.StashPrefix + commits[commitIdx].Sha); err != nil {
 			return err
 		}
 	}
@@ -145,8 +145,8 @@ func (c *Git) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *pat
 		return err
 	}
 
-	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
-		if c.WorkingTreeState() == REBASE_MODE_REBASING {
+	if err := p.ApplyPatches(c.Worktree().ApplyPatch, true); err != nil {
+		if c.Status().IsRebasing() {
 			if err := c.AbortRebase(); err != nil {
 				return err
 			}
@@ -165,8 +165,8 @@ func (c *Git) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *pat
 
 	c.onSuccessfulContinue = func() error {
 		// add patches to index
-		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
-			if c.WorkingTreeState() == REBASE_MODE_REBASING {
+		if err := p.ApplyPatches(c.Worktree().ApplyPatch, false); err != nil {
+			if c.Status().IsRebasing() {
 				if err := c.AbortRebase(); err != nil {
 					return err
 				}
@@ -175,7 +175,7 @@ func (c *Git) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *pat
 		}
 
 		if stash {
-			if err := c.StashDo(0, "apply"); err != nil {
+			if err := c.Stash().Do(0, "apply"); err != nil {
 				return err
 			}
 		}
@@ -192,7 +192,7 @@ func (c *Git) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p 
 		return err
 	}
 
-	if err := p.ApplyPatches(c.ApplyPatch, true); err != nil {
+	if err := p.ApplyPatches(c.Worktree().ApplyPatch, true); err != nil {
 		if err := c.AbortRebase(); err != nil {
 			return err
 		}
@@ -205,7 +205,7 @@ func (c *Git) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p 
 	}
 
 	// add patches to index
-	if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
+	if err := p.ApplyPatches(c.Worktree().ApplyPatch, false); err != nil {
 		if err := c.AbortRebase(); err != nil {
 			return err
 		}

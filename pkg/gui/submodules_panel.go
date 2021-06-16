@@ -52,7 +52,7 @@ func (gui *Gui) handleSubmoduleSelect() error {
 }
 
 func (gui *Gui) refreshStateSubmoduleConfigs() error {
-	configs, err := gui.Git.GetSubmoduleConfigs()
+	configs, err := gui.Git.Submodules().GetConfigs()
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (gui *Gui) removeSubmodule(submodule *models.SubmoduleConfig) error {
 		Title:  gui.Tr.RemoveSubmodule,
 		Prompt: fmt.Sprintf(gui.Tr.RemoveSubmodulePrompt, submodule.Name),
 		HandleConfirm: func() error {
-			if err := gui.Git.WithSpan(gui.Tr.Spans.RemoveSubmodule).SubmoduleDelete(submodule); err != nil {
+			if err := gui.Git.WithSpan(gui.Tr.Spans.RemoveSubmodule).Submodules().Delete(submodule); err != nil {
 				return gui.SurfaceError(err)
 			}
 
@@ -111,15 +111,15 @@ func (gui *Gui) resetSubmodule(submodule *models.SubmoduleConfig) error {
 
 	file := gui.fileForSubmodule(submodule)
 	if file != nil {
-		if err := gitCommand.UnStageFile(file.Names(), file.Tracked); err != nil {
+		if err := gitCommand.Worktree().UnStageFile(file.Names(), file.Tracked); err != nil {
 			return gui.SurfaceError(err)
 		}
 	}
 
-	if err := gitCommand.SubmoduleStash(submodule); err != nil {
+	if err := gitCommand.Submodules().Stash(submodule); err != nil {
 		return gui.SurfaceError(err)
 	}
-	if err := gitCommand.SubmoduleReset(submodule); err != nil {
+	if err := gitCommand.Submodules().Reset(submodule); err != nil {
 		return gui.SurfaceError(err)
 	}
 
@@ -142,7 +142,7 @@ func (gui *Gui) handleAddSubmodule() error {
 						InitialContent: submoduleName,
 						HandleConfirm: func(submodulePath string) error {
 							return gui.WithWaitingStatus(gui.Tr.LcAddingSubmoduleStatus, func() error {
-								err := gui.Git.WithSpan(gui.Tr.Spans.AddSubmodule).SubmoduleAdd(submoduleName, submodulePath, submoduleUrl)
+								err := gui.Git.WithSpan(gui.Tr.Spans.AddSubmodule).Submodules().Add(submoduleName, submodulePath, submoduleUrl)
 								if err != nil {
 									return gui.SurfaceError(err)
 								}
@@ -164,7 +164,7 @@ func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error 
 		InitialContent: submodule.Url,
 		HandleConfirm: func(newUrl string) error {
 			return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleUrlStatus, func() error {
-				err := gui.Git.WithSpan(gui.Tr.Spans.UpdateSubmoduleUrl).SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
+				err := gui.Git.WithSpan(gui.Tr.Spans.UpdateSubmoduleUrl).Submodules().UpdateUrl(submodule.Name, submodule.Path, newUrl)
 				if err != nil {
 					return gui.SurfaceError(err)
 				}
@@ -177,7 +177,7 @@ func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error 
 
 func (gui *Gui) handleSubmoduleInit(submodule *models.SubmoduleConfig) error {
 	return gui.WithWaitingStatus(gui.Tr.LcInitializingSubmoduleStatus, func() error {
-		err := gui.Git.WithSpan(gui.Tr.Spans.InitialiseSubmodule).SubmoduleInit(submodule.Path)
+		err := gui.Git.WithSpan(gui.Tr.Spans.InitialiseSubmodule).Submodules().Init(submodule.Path)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}
@@ -217,10 +217,10 @@ func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) er
 }
 
 func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
-	bulkInitCmdObj := gui.Git.SubmoduleBulkInitCmdObj()
-	bulkUpdateCmdObj := gui.Git.SubmoduleBulkUpdateCmdObj()
-	bulkDeinitCmdObj := gui.Git.SubmoduleBulkDeinitCmdObj()
-	bulkForceUpdateCmdObj := gui.Git.SubmoduleForceBulkUpdateCmdObj()
+	bulkInitCmdObj := gui.Git.Submodules().BulkInitCmdObj()
+	bulkUpdateCmdObj := gui.Git.Submodules().BulkUpdateCmdObj()
+	bulkDeinitCmdObj := gui.Git.Submodules().BulkDeinitCmdObj()
+	bulkForceUpdateCmdObj := gui.Git.Submodules().ForceBulkUpdateCmdObj()
 
 	menuItems := []*menuItem{
 		{
@@ -251,7 +251,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, utils.ColoredString(fmt.Sprintf("git stash in each submodule && %s", bulkForceUpdateCmdObj.ToString()), color.FgRed)},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.Git.WithSpan(gui.Tr.Spans.BulkStashAndResetSubmodules).ResetSubmodules(gui.State.Submodules); err != nil {
+					if err := gui.Git.WithSpan(gui.Tr.Spans.BulkStashAndResetSubmodules).Submodules().StashAndReset(gui.State.Submodules); err != nil {
 						return gui.SurfaceError(err)
 					}
 
@@ -278,7 +278,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 
 func (gui *Gui) handleUpdateSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleStatus, func() error {
-		err := gui.Git.WithSpan(gui.Tr.Spans.UpdateSubmodule).SubmoduleUpdate(submodule.Path)
+		err := gui.Git.WithSpan(gui.Tr.Spans.UpdateSubmodule).Submodules().Update(submodule.Path)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}

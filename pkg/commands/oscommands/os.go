@@ -30,19 +30,46 @@ type Platform struct {
 	OpenLinkCommand string
 }
 
+type IOS interface {
+	Getenv(envVar string) string
+	WithSpan(span string) IOS
+	LogCmd(cmd ICmdObj)
+	LogCommand(cmdStr string, commandLine bool)
+	SetOnRunCommand(f func(CmdLogEntry))
+	SetCommand(cmd func(string, ...string) *exec.Cmd)
+	SetRemoveFile(f func(string) error)
+	CatFile(filename string) (string, error)
+	FileType(path string) string
+	OpenFile(filename string) error
+	OpenLink(link string) error
+	Quote(message string) string
+	AppendLineToFile(filename, line string) error
+	CreateTempFile(filename, content string) (string, error)
+	CreateFileWithContent(path string, content string) error
+	Remove(filename string) error
+	FileExists(path string) (bool, error)
+	GetLazygitPath() string
+	PipeCommands(cmdObjs ...ICmdObj) error
+	CopyToClipboard(str string) error
+	RemoveFile(path string) error
+	RunWithOutput(cmdObj ICmdObj) (string, error)
+	Run(cmd ICmdObj) error
+	RunAndParseWords(cmdObj ICmdObj, output func(string) string) error
+}
+
 // OS holds all the os commands
 type OS struct {
-	Log      *logrus.Entry
-	Platform *Platform
-	Config   config.AppConfigurer
-	Command  func(string, ...string) *exec.Cmd
-	Getenv   func(string) string
+	log      *logrus.Entry
+	platform *Platform
+	config   config.AppConfigurer
+	command  func(string, ...string) *exec.Cmd
+	getenv   func(string) string
 
 	// callback to run before running a command, i.e. for the purposes of logging
 	onRunCommand func(CmdLogEntry)
 
 	// something like 'Staging File': allows us to group cmd logs under a single title
-	CmdLogSpan string
+	cmdLogSpan string
 
 	removeFile func(string) error
 }
@@ -50,16 +77,20 @@ type OS struct {
 // NewOS os command runner
 func NewOS(log *logrus.Entry, config config.AppConfigurer) *OS {
 	return &OS{
-		Log:        log,
-		Platform:   getPlatform(),
-		Config:     config,
-		Command:    secureexec.Command,
-		Getenv:     os.Getenv,
+		log:        log,
+		platform:   getPlatform(),
+		config:     config,
+		command:    secureexec.Command,
+		getenv:     os.Getenv,
 		removeFile: os.RemoveAll,
 	}
 }
 
-func (c *OS) WithSpan(span string) *OS {
+func (c *OS) Getenv(envVar string) string {
+	return c.getenv(envVar)
+}
+
+func (c *OS) WithSpan(span string) IOS {
 	// sometimes .WithSpan(span) will be called where span actually is empty, in
 	// which case we don't need to log anything so we can just return early here
 	// with the original struct
@@ -69,7 +100,7 @@ func (c *OS) WithSpan(span string) *OS {
 
 	newOS := &OS{}
 	*newOS = *c
-	newOS.CmdLogSpan = span
+	newOS.cmdLogSpan = span
 	return newOS
 }
 
@@ -78,10 +109,10 @@ func (c *OS) LogCmd(cmd ICmdObj) {
 }
 
 func (c *OS) LogCommand(cmdStr string, commandLine bool) {
-	c.Log.WithField("command", cmdStr).Info("RunCommand")
+	c.log.WithField("command", cmdStr).Info("RunCommand")
 
-	if c.onRunCommand != nil && c.CmdLogSpan != "" {
-		c.onRunCommand(NewCmdLogEntry(cmdStr, c.CmdLogSpan, commandLine))
+	if c.onRunCommand != nil && c.cmdLogSpan != "" {
+		c.onRunCommand(NewCmdLogEntry(cmdStr, c.cmdLogSpan, commandLine))
 	}
 }
 
@@ -92,7 +123,7 @@ func (c *OS) SetOnRunCommand(f func(CmdLogEntry)) {
 // SetCommand sets the command function used by the struct.
 // To be used for testing only
 func (c *OS) SetCommand(cmd func(string, ...string) *exec.Cmd) {
-	c.Command = cmd
+	c.command = cmd
 }
 
 // To be used for testing only
@@ -101,15 +132,9 @@ func (c *OS) SetRemoveFile(f func(string) error) {
 }
 
 func (c *OS) CatFile(filename string) (string, error) {
-	arr := append(c.Platform.CatCmd, filename)
-	cmdStr := strings.Join(arr, " ")
-	c.Log.WithField("command", cmdStr).Info("Cat")
-	cmd := c.Command(arr[0], arr[1:]...)
-	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
-	if err != nil {
-		c.Log.WithField("command", cmdStr).Error(output)
-	}
-	return output, err
+	cmdObj := NewCmdObjFromArgs(append(c.platform.CatCmd, filename))
+	c.log.WithField("command", cmdObj.ToString()).Info("Cat")
+	return c.RunWithOutput(cmdObj)
 }
 
 // FileType tells us if the file is a file, directory or other
@@ -139,7 +164,7 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 
 // OpenFile opens a file with the given
 func (c *OS) OpenFile(filename string) error {
-	commandTemplate := c.Config.GetUserConfig().OS.OpenCommand
+	commandTemplate := c.config.GetUserConfig().OS.OpenCommand
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
 	}
@@ -151,7 +176,7 @@ func (c *OS) OpenFile(filename string) error {
 // OpenLink opens a file with the given
 func (c *OS) OpenLink(link string) error {
 	c.LogCommand(fmt.Sprintf("Opening link '%s'", link), false)
-	commandTemplate := c.Config.GetUserConfig().OS.OpenLinkCommand
+	commandTemplate := c.config.GetUserConfig().OS.OpenLinkCommand
 	templateValues := map[string]string{
 		"link": c.Quote(link),
 	}
@@ -162,7 +187,7 @@ func (c *OS) OpenLink(link string) error {
 
 // Quote wraps a message in platform-specific quotation marks
 func (c *OS) Quote(message string) string {
-	if c.Platform.OS == "windows" {
+	if c.platform.OS == "windows" {
 		message = strings.Replace(message, `"`, `"'"'"`, -1)
 		message = strings.Replace(message, `\"`, `\\"`, -1)
 	} else {
@@ -171,7 +196,7 @@ func (c *OS) Quote(message string) string {
 		message = strings.Replace(message, "`", "\\`", -1)
 		message = strings.Replace(message, "$", "\\$", -1)
 	}
-	escapedQuote := c.Platform.EscapedQuote
+	escapedQuote := c.platform.EscapedQuote
 	return escapedQuote + message + escapedQuote
 }
 
@@ -195,17 +220,17 @@ func (c *OS) AppendLineToFile(filename, line string) error {
 func (c *OS) CreateTempFile(filename, content string) (string, error) {
 	tmpfile, err := ioutil.TempFile("", filename)
 	if err != nil {
-		c.Log.Error(err)
+		c.log.Error(err)
 		return "", utils.WrapError(err)
 	}
 	c.LogCommand(fmt.Sprintf("Creating temp file '%s'", tmpfile.Name()), false)
 
 	if _, err := tmpfile.WriteString(content); err != nil {
-		c.Log.Error(err)
+		c.log.Error(err)
 		return "", utils.WrapError(err)
 	}
 	if err := tmpfile.Close(); err != nil {
-		c.Log.Error(err)
+		c.log.Error(err)
 		return "", utils.WrapError(err)
 	}
 
@@ -216,12 +241,12 @@ func (c *OS) CreateTempFile(filename, content string) (string, error) {
 func (c *OS) CreateFileWithContent(path string, content string) error {
 	c.LogCommand(fmt.Sprintf("Creating file '%s'", path), false)
 	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
-		c.Log.Error(err)
+		c.log.Error(err)
 		return err
 	}
 
 	if err := ioutil.WriteFile(path, []byte(content), 0644); err != nil {
-		c.Log.Error(err)
+		c.log.Error(err)
 		return utils.WrapError(err)
 	}
 
@@ -288,11 +313,11 @@ func (c *OS) PipeCommands(cmdObjs ...ICmdObj) error {
 		go utils.Safe(func() {
 			stderr, err := currentCmd.StderrPipe()
 			if err != nil {
-				c.Log.Error(err)
+				c.log.Error(err)
 			}
 
 			if err := currentCmd.Start(); err != nil {
-				c.Log.Error(err)
+				c.log.Error(err)
 			}
 
 			if b, err := ioutil.ReadAll(stderr); err == nil {
@@ -302,7 +327,7 @@ func (c *OS) PipeCommands(cmdObjs ...ICmdObj) error {
 			}
 
 			if err := currentCmd.Wait(); err != nil {
-				c.Log.Error(err)
+				c.log.Error(err)
 			}
 
 			wg.Done()

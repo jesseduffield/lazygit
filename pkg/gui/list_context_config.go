@@ -165,7 +165,14 @@ func (gui *Gui) branchCommitsListContext() *ListContext {
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: true,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetCommitListDisplayStrings(gui.State.Commits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
+			return presentation.GetCommitListDisplayStrings(
+				gui.State.Commits,
+				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.cherryPickedCommitShaMap(),
+				gui.State.Modes.Diffing.Ref,
+				gui.Git.Status().IsRebasing(),
+				gui.Tr,
+			)
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item := gui.getSelectedLocalCommit()
@@ -188,7 +195,12 @@ func (gui *Gui) reflogCommitsListContext() *ListContext {
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: true,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetReflogCommitListDisplayStrings(gui.State.FilteredReflogCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
+			return presentation.GetReflogCommitListDisplayStrings(
+				gui.State.FilteredReflogCommits,
+				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.cherryPickedCommitShaMap(),
+				gui.State.Modes.Diffing.Ref,
+			)
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item := gui.getSelectedReflogCommit()
@@ -211,7 +223,15 @@ func (gui *Gui) subCommitsListContext() *ListContext {
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: true,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetCommitListDisplayStrings(gui.State.SubCommits, gui.State.ScreenMode != SCREEN_NORMAL, gui.cherryPickedCommitShaMap(), gui.State.Modes.Diffing.Ref)
+			return presentation.GetCommitListDisplayStrings(
+				gui.State.SubCommits,
+				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.cherryPickedCommitShaMap(),
+				gui.State.Modes.Diffing.Ref,
+				// no need to mention if we're rebasing because that only applies to main commits panel
+				false,
+				gui.Tr,
+			)
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item := gui.getSelectedSubCommit()

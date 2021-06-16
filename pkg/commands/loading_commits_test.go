@@ -11,11 +11,11 @@ package commands
 // 	"github.com/stretchr/testify/assert"
 // )
 
-// // NewDummyCommitListBuilder creates a new dummy CommitListBuilder for testing
-// func NewDummyCommitListBuilder() *CommitListBuilder {
+// // NewDummyCommitListBuilder creates a new dummy CommitsLoader for testing
+// func NewDummyCommitListBuilder() *CommitsLoader {
 // 	osCommand := oscommands.NewDummyOS()
 
-// 	return &CommitListBuilder{
+// 	return &CommitsLoader{
 // 		Log: utils.NewDummyLog(),
 // 		Git: NewDummyGitWithOS(osCommand),
 // 		OS:  osCommand,

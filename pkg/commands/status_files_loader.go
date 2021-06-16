@@ -1,4 +1,4 @@
-package loaders
+package commands
 
 import (
 	"fmt"
@@ -13,33 +13,34 @@ import (
 
 const RENAME_SEPARATOR = " -> "
 
-// GetStatusFiles git status files
+// LoadStatusFiles git status files
 type LoadStatusFilesOpts struct {
 	NoRenames bool
 }
 
-type StatusFileLoaderProps interface {
-	GetConfigValue(string) string
-	GetLog() *logrus.Entry
-	GetOS() *oscommands.OS
-	RunWithOutput(ICmdObj) (string, error)
-	BuildGitCmdObjFromStr(string) ICmdObj
+type StatusFilesLoader struct {
+	ICommander
+
+	config IGitConfigMgr
+	log    *logrus.Entry
+	os     oscommands.IOS
 }
 
-type StatusFileLoader struct {
-	StatusFileLoaderProps
+func NewStatusFilesLoader(commander ICommander, config IGitConfigMgr, log *logrus.Entry, os oscommands.IOS) *StatusFilesLoader {
+	return &StatusFilesLoader{
+		ICommander: commander,
+		config:     config,
+		log:        log,
+		os:         os,
+	}
 }
 
-func NewStatusFileLoader(p StatusFileLoaderProps) *StatusFileLoader {
-	return &StatusFileLoader{p}
-}
-
-func (c *StatusFileLoader) Load(opts LoadStatusFilesOpts) []*models.File {
+func (c *StatusFilesLoader) Load(opts LoadStatusFilesOpts) []*models.File {
 	cmdObj := c.buildCmdObj(opts)
 
 	status, err := c.RunWithOutput(cmdObj)
 	if err != nil {
-		c.GetLog().Error(err)
+		c.log.Error(err)
 		return []*models.File{}
 	}
 
@@ -58,9 +59,9 @@ func (c *StatusFileLoader) Load(opts LoadStatusFilesOpts) []*models.File {
 	return files
 }
 
-func (c *StatusFileLoader) fileFromStatusString(statusString string) *models.File {
+func (c *StatusFilesLoader) fileFromStatusString(statusString string) *models.File {
 	if strings.HasPrefix(statusString, "warning") {
-		c.GetLog().Warningf("warning when calling git status: %s", statusString)
+		c.log.Warningf("warning when calling git status: %s", statusString)
 		return nil
 	}
 	change := statusString[0:2]
@@ -89,14 +90,14 @@ func (c *StatusFileLoader) fileFromStatusString(statusString string) *models.Fil
 		Added:                   unstagedChange == "A" || untracked,
 		HasMergeConflicts:       hasMergeConflicts,
 		HasInlineMergeConflicts: hasInlineMergeConflicts,
-		Type:                    c.GetOS().FileType(name),
+		Type:                    c.os.FileType(name),
 		ShortStatus:             change,
 	}
 }
 
-func (c *StatusFileLoader) buildCmdObj(opts LoadStatusFilesOpts) ICmdObj {
+func (c *StatusFilesLoader) buildCmdObj(opts LoadStatusFilesOpts) ICmdObj {
 	// check if config wants us ignoring untracked files
-	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
+	untrackedFilesSetting := c.config.GetConfigValue("status.showUntrackedFiles")
 
 	if untrackedFilesSetting == "" {
 		untrackedFilesSetting = "all"
@@ -111,7 +112,7 @@ func (c *StatusFileLoader) buildCmdObj(opts LoadStatusFilesOpts) ICmdObj {
 	return c.BuildGitCmdObjFromStr(fmt.Sprintf("status %s --porcelain -z %s", untrackedFilesArg, noRenamesFlag))
 }
 
-func (*StatusFileLoader) cleanGitStatus(statusLines string) []string {
+func (*StatusFilesLoader) cleanGitStatus(statusLines string) []string {
 	splitLines := strings.Split(statusLines, "\x00")
 	// if a line starts with 'R' then the next line is the original file.
 	for i := 0; i < len(splitLines)-1; i++ {

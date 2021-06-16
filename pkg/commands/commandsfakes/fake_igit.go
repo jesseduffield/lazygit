@@ -891,16 +891,16 @@ type FakeIGit struct {
 	rebaseBranchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	RebaseModeStub        func() (commands.WorkingTreeState, error)
+	RebaseModeStub        func() (commands.RebasingMode, error)
 	rebaseModeMutex       sync.RWMutex
 	rebaseModeArgsForCall []struct {
 	}
 	rebaseModeReturns struct {
-		result1 commands.WorkingTreeState
+		result1 commands.RebasingMode
 		result2 error
 	}
 	rebaseModeReturnsOnCall map[int]struct {
-		result1 commands.WorkingTreeState
+		result1 commands.RebasingMode
 		result2 error
 	}
 	RemoveRemoteStub        func(string) error
@@ -1311,15 +1311,15 @@ type FakeIGit struct {
 	withSpanReturnsOnCall map[int]struct {
 		result1 commands.IGit
 	}
-	WorkingTreeStateStub        func() commands.WorkingTreeState
+	WorkingTreeStateStub        func() commands.RebasingMode
 	workingTreeStateMutex       sync.RWMutex
 	workingTreeStateArgsForCall []struct {
 	}
 	workingTreeStateReturns struct {
-		result1 commands.WorkingTreeState
+		result1 commands.RebasingMode
 	}
 	workingTreeStateReturnsOnCall map[int]struct {
-		result1 commands.WorkingTreeState
+		result1 commands.RebasingMode
 	}
 	WorktreeFileDiffStub        func(*models.File, bool, bool) string
 	worktreeFileDiffMutex       sync.RWMutex
@@ -1404,7 +1404,7 @@ func (fake *FakeIGit) AbortRebaseReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) AddRemote(arg1 string, arg2 string) error {
+func (fake *FakeIGit) Add(arg1 string, arg2 string) error {
 	fake.addRemoteMutex.Lock()
 	ret, specificReturn := fake.addRemoteReturnsOnCall[len(fake.addRemoteArgsForCall)]
 	fake.addRemoteArgsForCall = append(fake.addRemoteArgsForCall, struct {
@@ -1413,7 +1413,7 @@ func (fake *FakeIGit) AddRemote(arg1 string, arg2 string) error {
 	}{arg1, arg2})
 	stub := fake.AddRemoteStub
 	fakeReturns := fake.addRemoteReturns
-	fake.recordInvocation("AddRemote", []interface{}{arg1, arg2})
+	fake.recordInvocation("Add", []interface{}{arg1, arg2})
 	fake.addRemoteMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
@@ -1962,7 +1962,7 @@ func (fake *FakeIGit) CatFileReturnsOnCall(i int, result1 string, result2 error)
 	}{result1, result2}
 }
 
-func (fake *FakeIGit) CheckRemoteBranchExists(arg1 *models.Branch) bool {
+func (fake *FakeIGit) RemoteBranchExists(arg1 *models.Branch) bool {
 	fake.checkRemoteBranchExistsMutex.Lock()
 	ret, specificReturn := fake.checkRemoteBranchExistsReturnsOnCall[len(fake.checkRemoteBranchExistsArgsForCall)]
 	fake.checkRemoteBranchExistsArgsForCall = append(fake.checkRemoteBranchExistsArgsForCall, struct {
@@ -1970,7 +1970,7 @@ func (fake *FakeIGit) CheckRemoteBranchExists(arg1 *models.Branch) bool {
 	}{arg1})
 	stub := fake.CheckRemoteBranchExistsStub
 	fakeReturns := fake.checkRemoteBranchExistsReturns
-	fake.recordInvocation("CheckRemoteBranchExists", []interface{}{arg1})
+	fake.recordInvocation("RemoteBranchExists", []interface{}{arg1})
 	fake.checkRemoteBranchExistsMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
@@ -2310,7 +2310,7 @@ func (fake *FakeIGit) ContinueRebaseReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) CreateLightweightTag(arg1 string, arg2 string) error {
+func (fake *FakeIGit) LightweightCreate(arg1 string, arg2 string) error {
 	fake.createLightweightTagMutex.Lock()
 	ret, specificReturn := fake.createLightweightTagReturnsOnCall[len(fake.createLightweightTagArgsForCall)]
 	fake.createLightweightTagArgsForCall = append(fake.createLightweightTagArgsForCall, struct {
@@ -2319,7 +2319,7 @@ func (fake *FakeIGit) CreateLightweightTag(arg1 string, arg2 string) error {
 	}{arg1, arg2})
 	stub := fake.CreateLightweightTagStub
 	fakeReturns := fake.createLightweightTagReturns
-	fake.recordInvocation("CreateLightweightTag", []interface{}{arg1, arg2})
+	fake.recordInvocation("LightweightCreate", []interface{}{arg1, arg2})
 	fake.createLightweightTagMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
@@ -2502,7 +2502,7 @@ func (fake *FakeIGit) DeleteRemoteBranchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) DeleteTag(arg1 string) error {
+func (fake *FakeIGit) Delete(arg1 string) error {
 	fake.deleteTagMutex.Lock()
 	ret, specificReturn := fake.deleteTagReturnsOnCall[len(fake.deleteTagArgsForCall)]
 	fake.deleteTagArgsForCall = append(fake.deleteTagArgsForCall, struct {
@@ -2510,7 +2510,7 @@ func (fake *FakeIGit) DeleteTag(arg1 string) error {
 	}{arg1})
 	stub := fake.DeleteTagStub
 	fakeReturns := fake.deleteTagReturns
-	fake.recordInvocation("DeleteTag", []interface{}{arg1})
+	fake.recordInvocation("Delete", []interface{}{arg1})
 	fake.deleteTagMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
@@ -4326,14 +4326,14 @@ func (fake *FakeIGit) GetReflogCommitsReturnsOnCall(i int, result1 []*models.Com
 	}{result1, result2, result3}
 }
 
-func (fake *FakeIGit) GetRemoteURL() string {
+func (fake *FakeIGit) GetCurrentRemoteUrl() string {
 	fake.getRemoteURLMutex.Lock()
 	ret, specificReturn := fake.getRemoteURLReturnsOnCall[len(fake.getRemoteURLArgsForCall)]
 	fake.getRemoteURLArgsForCall = append(fake.getRemoteURLArgsForCall, struct {
 	}{})
 	stub := fake.GetRemoteURLStub
 	fakeReturns := fake.getRemoteURLReturns
-	fake.recordInvocation("GetRemoteURL", []interface{}{})
+	fake.recordInvocation("GetCurrentRemoteUrl", []interface{}{})
 	fake.getRemoteURLMutex.Unlock()
 	if stub != nil {
 		return stub()
@@ -4574,7 +4574,7 @@ func (fake *FakeIGit) GetStatusFiles(arg1 loaders.LoadStatusFilesOpts) []*models
 	}{arg1})
 	stub := fake.GetStatusFilesStub
 	fakeReturns := fake.getStatusFilesReturns
-	fake.recordInvocation("GetStatusFiles", []interface{}{arg1})
+	fake.recordInvocation("LoadStatusFiles", []interface{}{arg1})
 	fake.getStatusFilesMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
@@ -4683,14 +4683,14 @@ func (fake *FakeIGit) GetSubmoduleConfigsReturnsOnCall(i int, result1 []*models.
 	}{result1, result2}
 }
 
-func (fake *FakeIGit) GetTags() ([]*models.Tag, error) {
+func (fake *FakeIGit) Load() ([]*models.Tag, error) {
 	fake.getTagsMutex.Lock()
 	ret, specificReturn := fake.getTagsReturnsOnCall[len(fake.getTagsArgsForCall)]
 	fake.getTagsArgsForCall = append(fake.getTagsArgsForCall, struct {
 	}{})
 	stub := fake.GetTagsStub
 	fakeReturns := fake.getTagsReturns
-	fake.recordInvocation("GetTags", []interface{}{})
+	fake.recordInvocation("Load", []interface{}{})
 	fake.getTagsMutex.Unlock()
 	if stub != nil {
 		return stub()
@@ -5887,7 +5887,7 @@ func (fake *FakeIGit) RebaseBranchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) RebaseMode() (commands.WorkingTreeState, error) {
+func (fake *FakeIGit) RebaseMode() (commands.RebasingMode, error) {
 	fake.rebaseModeMutex.Lock()
 	ret, specificReturn := fake.rebaseModeReturnsOnCall[len(fake.rebaseModeArgsForCall)]
 	fake.rebaseModeArgsForCall = append(fake.rebaseModeArgsForCall, struct {
@@ -5911,39 +5911,39 @@ func (fake *FakeIGit) RebaseModeCallCount() int {
 	return len(fake.rebaseModeArgsForCall)
 }
 
-func (fake *FakeIGit) RebaseModeCalls(stub func() (commands.WorkingTreeState, error)) {
+func (fake *FakeIGit) RebaseModeCalls(stub func() (commands.RebasingMode, error)) {
 	fake.rebaseModeMutex.Lock()
 	defer fake.rebaseModeMutex.Unlock()
 	fake.RebaseModeStub = stub
 }
 
-func (fake *FakeIGit) RebaseModeReturns(result1 commands.WorkingTreeState, result2 error) {
+func (fake *FakeIGit) RebaseModeReturns(result1 commands.RebasingMode, result2 error) {
 	fake.rebaseModeMutex.Lock()
 	defer fake.rebaseModeMutex.Unlock()
 	fake.RebaseModeStub = nil
 	fake.rebaseModeReturns = struct {
-		result1 commands.WorkingTreeState
+		result1 commands.RebasingMode
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIGit) RebaseModeReturnsOnCall(i int, result1 commands.WorkingTreeState, result2 error) {
+func (fake *FakeIGit) RebaseModeReturnsOnCall(i int, result1 commands.RebasingMode, result2 error) {
 	fake.rebaseModeMutex.Lock()
 	defer fake.rebaseModeMutex.Unlock()
 	fake.RebaseModeStub = nil
 	if fake.rebaseModeReturnsOnCall == nil {
 		fake.rebaseModeReturnsOnCall = make(map[int]struct {
-			result1 commands.WorkingTreeState
+			result1 commands.RebasingMode
 			result2 error
 		})
 	}
 	fake.rebaseModeReturnsOnCall[i] = struct {
-		result1 commands.WorkingTreeState
+		result1 commands.RebasingMode
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIGit) RemoveRemote(arg1 string) error {
+func (fake *FakeIGit) Remove(arg1 string) error {
 	fake.removeRemoteMutex.Lock()
 	ret, specificReturn := fake.removeRemoteReturnsOnCall[len(fake.removeRemoteArgsForCall)]
 	fake.removeRemoteArgsForCall = append(fake.removeRemoteArgsForCall, struct {
@@ -5951,7 +5951,7 @@ func (fake *FakeIGit) RemoveRemote(arg1 string) error {
 	}{arg1})
 	stub := fake.RemoveRemoteStub
 	fakeReturns := fake.removeRemoteReturns
-	fake.recordInvocation("RemoveRemote", []interface{}{arg1})
+	fake.recordInvocation("Remove", []interface{}{arg1})
 	fake.removeRemoteMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
@@ -6179,7 +6179,7 @@ func (fake *FakeIGit) RemoveUntrackedFilesReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) RenameRemote(arg1 string, arg2 string) error {
+func (fake *FakeIGit) Rename(arg1 string, arg2 string) error {
 	fake.renameRemoteMutex.Lock()
 	ret, specificReturn := fake.renameRemoteReturnsOnCall[len(fake.renameRemoteArgsForCall)]
 	fake.renameRemoteArgsForCall = append(fake.renameRemoteArgsForCall, struct {
@@ -6188,7 +6188,7 @@ func (fake *FakeIGit) RenameRemote(arg1 string, arg2 string) error {
 	}{arg1, arg2})
 	stub := fake.RenameRemoteStub
 	fakeReturns := fake.renameRemoteReturns
-	fake.recordInvocation("RenameRemote", []interface{}{arg1, arg2})
+	fake.recordInvocation("Rename", []interface{}{arg1, arg2})
 	fake.renameRemoteMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
@@ -7928,7 +7928,7 @@ func (fake *FakeIGit) UnstageAllReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIGit) UpdateRemoteUrl(arg1 string, arg2 string) error {
+func (fake *FakeIGit) UpdateUrl(arg1 string, arg2 string) error {
 	fake.updateRemoteUrlMutex.Lock()
 	ret, specificReturn := fake.updateRemoteUrlReturnsOnCall[len(fake.updateRemoteUrlArgsForCall)]
 	fake.updateRemoteUrlArgsForCall = append(fake.updateRemoteUrlArgsForCall, struct {
@@ -7937,7 +7937,7 @@ func (fake *FakeIGit) UpdateRemoteUrl(arg1 string, arg2 string) error {
 	}{arg1, arg2})
 	stub := fake.UpdateRemoteUrlStub
 	fakeReturns := fake.updateRemoteUrlReturns
-	fake.recordInvocation("UpdateRemoteUrl", []interface{}{arg1, arg2})
+	fake.recordInvocation("UpdateUrl", []interface{}{arg1, arg2})
 	fake.updateRemoteUrlMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
@@ -8104,7 +8104,7 @@ func (fake *FakeIGit) WithSpanReturnsOnCall(i int, result1 commands.IGit) {
 	}{result1}
 }
 
-func (fake *FakeIGit) WorkingTreeState() commands.WorkingTreeState {
+func (fake *FakeIGit) WorkingTreeState() commands.RebasingMode {
 	fake.workingTreeStateMutex.Lock()
 	ret, specificReturn := fake.workingTreeStateReturnsOnCall[len(fake.workingTreeStateArgsForCall)]
 	fake.workingTreeStateArgsForCall = append(fake.workingTreeStateArgsForCall, struct {
@@ -8128,32 +8128,32 @@ func (fake *FakeIGit) WorkingTreeStateCallCount() int {
 	return len(fake.workingTreeStateArgsForCall)
 }
 
-func (fake *FakeIGit) WorkingTreeStateCalls(stub func() commands.WorkingTreeState) {
+func (fake *FakeIGit) WorkingTreeStateCalls(stub func() commands.RebasingMode) {
 	fake.workingTreeStateMutex.Lock()
 	defer fake.workingTreeStateMutex.Unlock()
 	fake.WorkingTreeStateStub = stub
 }
 
-func (fake *FakeIGit) WorkingTreeStateReturns(result1 commands.WorkingTreeState) {
+func (fake *FakeIGit) WorkingTreeStateReturns(result1 commands.RebasingMode) {
 	fake.workingTreeStateMutex.Lock()
 	defer fake.workingTreeStateMutex.Unlock()
 	fake.WorkingTreeStateStub = nil
 	fake.workingTreeStateReturns = struct {
-		result1 commands.WorkingTreeState
+		result1 commands.RebasingMode
 	}{result1}
 }
 
-func (fake *FakeIGit) WorkingTreeStateReturnsOnCall(i int, result1 commands.WorkingTreeState) {
+func (fake *FakeIGit) WorkingTreeStateReturnsOnCall(i int, result1 commands.RebasingMode) {
 	fake.workingTreeStateMutex.Lock()
 	defer fake.workingTreeStateMutex.Unlock()
 	fake.WorkingTreeStateStub = nil
 	if fake.workingTreeStateReturnsOnCall == nil {
 		fake.workingTreeStateReturnsOnCall = make(map[int]struct {
-			result1 commands.WorkingTreeState
+			result1 commands.RebasingMode
 		})
 	}
 	fake.workingTreeStateReturnsOnCall[i] = struct {
-		result1 commands.WorkingTreeState
+		result1 commands.RebasingMode
 	}{result1}
 }
 

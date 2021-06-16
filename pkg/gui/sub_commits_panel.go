@@ -76,10 +76,8 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	// need to populate my sub commits
-	builder := commands.NewCommitListBuilder(gui.Log, gui.Git, gui.OS, gui.Tr)
-
-	commits, err := builder.GetCommits(
-		commands.GetCommitsOptions{
+	commits, err := gui.Git.Commits().Load(
+		commands.LoadCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: false,
