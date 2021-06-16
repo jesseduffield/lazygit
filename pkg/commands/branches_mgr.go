@@ -164,11 +164,6 @@ func (c *BranchesMgr) AbortMerge() error {
 	return c.commander.RunGitCmdFromStr("merge --abort")
 }
 
-func (c *Git) IsHeadDetached() bool {
-	err := c.RunGitCmdFromStr("symbolic-ref -q HEAD")
-	return err != nil
-}
-
 type ResetStrength string
 
 const (

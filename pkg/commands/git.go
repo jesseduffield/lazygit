@@ -263,3 +263,8 @@ func (c *Git) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
 func (c *Git) GetStatusFiles(opts loaders.LoadStatusFilesOpts) []*models.File {
 	return loaders.NewStatusFileLoader(c).Load(opts)
 }
+
+func (c *Git) IsHeadDetached() bool {
+	err := c.RunGitCmdFromStr("symbolic-ref -q HEAD")
+	return err != nil
+}
