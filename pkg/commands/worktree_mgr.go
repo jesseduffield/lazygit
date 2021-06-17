@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
-	"github.com/sirupsen/logrus"
 )
 
 //counterfeiter:generate . IWorktreeMgr
@@ -34,26 +33,19 @@ type IWorktreeMgr interface {
 }
 
 type WorktreeMgr struct {
+	*MgrCtx
+
 	statusFilesLoader *StatusFilesLoader
-	commander         ICommander
-	config            IGitConfigMgr
-	log               *logrus.Entry
-	os                oscommands.IOS
 	branchesMgr       IBranchesMgr
 	submodulesMgr     ISubmodulesMgr
 }
 
-func NewWorktreeMgr(commander ICommander, config IGitConfigMgr, branchesMgr IBranchesMgr, submodulesMgr ISubmodulesMgr, log *logrus.Entry, oS *oscommands.OS) *WorktreeMgr {
-	statusFilesLoader := NewStatusFilesLoader(commander, config, log, oS)
-
+func NewWorktreeMgr(mgrCtx *MgrCtx, branchesMgr IBranchesMgr, submodulesMgr ISubmodulesMgr) *WorktreeMgr {
 	return &WorktreeMgr{
-		statusFilesLoader: statusFilesLoader,
-		commander:         commander,
-		config:            config,
+		MgrCtx:            mgrCtx,
+		statusFilesLoader: NewStatusFilesLoader(mgrCtx),
 		branchesMgr:       branchesMgr,
 		submodulesMgr:     submodulesMgr,
-		os:                oS,
-		log:               log,
 	}
 }
 
@@ -67,17 +59,17 @@ func (c *WorktreeMgr) OpenMergeToolCmdObj() ICmdObj {
 
 // StageFile stages a file
 func (c *WorktreeMgr) StageFile(fileName string) error {
-	return c.commander.RunGitCmdFromStr(fmt.Sprintf("add -- %s", c.commander.Quote(fileName)))
+	return c.RunGitCmdFromStr(fmt.Sprintf("add -- %s", c.Quote(fileName)))
 }
 
 // StageAll stages all files
 func (c *WorktreeMgr) StageAll() error {
-	return c.commander.RunGitCmdFromStr("add -A")
+	return c.RunGitCmdFromStr("add -A")
 }
 
 // UnstageAll unstages all files
 func (c *WorktreeMgr) UnstageAll() error {
-	return c.commander.RunGitCmdFromStr("reset")
+	return c.RunGitCmdFromStr("reset")
 }
 
 // UnStageFile unstages a file
@@ -90,7 +82,7 @@ func (c *WorktreeMgr) UnStageFile(fileNames []string, reset bool) error {
 	}
 
 	for _, name := range fileNames {
-		if err := c.commander.RunGitCmdFromStr(fmt.Sprintf(cmdFormat, c.commander.Quote(name))); err != nil {
+		if err := c.RunGitCmdFromStr(fmt.Sprintf(cmdFormat, c.Quote(name))); err != nil {
 			return err
 		}
 	}
@@ -150,25 +142,25 @@ func (c *WorktreeMgr) DiscardAllFileChanges(file *models.File) error {
 		return nil
 	}
 
-	quotedFileName := c.commander.Quote(file.Name)
+	quotedFileName := c.Quote(file.Name)
 
 	if file.ShortStatus == "AA" {
-		if err := c.commander.RunGitCmdFromStr(fmt.Sprintf("checkout --ours --  %s", quotedFileName)); err != nil {
+		if err := c.RunGitCmdFromStr(fmt.Sprintf("checkout --ours --  %s", quotedFileName)); err != nil {
 			return err
 		}
-		if err := c.commander.RunGitCmdFromStr(fmt.Sprintf("add %s", quotedFileName)); err != nil {
+		if err := c.RunGitCmdFromStr(fmt.Sprintf("add %s", quotedFileName)); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	if file.ShortStatus == "DU" {
-		return c.commander.RunGitCmdFromStr(fmt.Sprintf("rm %s", quotedFileName))
+		return c.RunGitCmdFromStr(fmt.Sprintf("rm %s", quotedFileName))
 	}
 
 	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges || file.HasMergeConflicts {
-		if err := c.commander.RunGitCmdFromStr(fmt.Sprintf("reset -- %s", quotedFileName)); err != nil {
+		if err := c.RunGitCmdFromStr(fmt.Sprintf("reset -- %s", quotedFileName)); err != nil {
 			return err
 		}
 	}
@@ -193,8 +185,8 @@ func (c *WorktreeMgr) DiscardUnstagedDirChanges(node *filetree.FileNode) error {
 		return err
 	}
 
-	quotedPath := c.commander.Quote(node.GetPath())
-	if err := c.commander.RunGitCmdFromStr(fmt.Sprintf("checkout -- %s", quotedPath)); err != nil {
+	quotedPath := c.Quote(node.GetPath())
+	if err := c.RunGitCmdFromStr(fmt.Sprintf("checkout -- %s", quotedPath)); err != nil {
 		return err
 	}
 
@@ -218,8 +210,8 @@ func (c *WorktreeMgr) removeUntrackedDirFiles(node *filetree.FileNode) error {
 
 // DiscardUnstagedFileChanges directly
 func (c *WorktreeMgr) DiscardUnstagedFileChanges(file *models.File) error {
-	quotedFileName := c.commander.Quote(file.Name)
-	return c.commander.RunGitCmdFromStr(fmt.Sprintf("checkout -- %s", quotedFileName))
+	quotedFileName := c.Quote(file.Name)
+	return c.RunGitCmdFromStr(fmt.Sprintf("checkout -- %s", quotedFileName))
 }
 
 // Ignore adds a file to the gitignore for the repo
@@ -229,22 +221,22 @@ func (c *WorktreeMgr) Ignore(filename string) error {
 
 // CheckoutFile checks out the file for the given commit
 func (c *WorktreeMgr) CheckoutFile(commitSha, fileName string) error {
-	return c.commander.RunGitCmdFromStr(fmt.Sprintf("checkout %s %s", commitSha, fileName))
+	return c.RunGitCmdFromStr(fmt.Sprintf("checkout %s %s", commitSha, fileName))
 }
 
 // DiscardAnyUnstagedFileChanges discards any unstages file changes via `git checkout -- .`
 func (c *WorktreeMgr) DiscardAnyUnstagedFileChanges() error {
-	return c.commander.RunGitCmdFromStr("checkout -- .")
+	return c.RunGitCmdFromStr("checkout -- .")
 }
 
 // RemoveTrackedFiles will delete the given file(s) even if they are currently tracked
 func (c *WorktreeMgr) RemoveTrackedFiles(name string) error {
-	return c.commander.RunGitCmdFromStr(fmt.Sprintf("rm -r --cached %s", name))
+	return c.RunGitCmdFromStr(fmt.Sprintf("rm -r --cached %s", name))
 }
 
 // RemoveUntrackedFiles runs `git clean -fd`
 func (c *WorktreeMgr) RemoveUntrackedFiles() error {
-	return c.commander.RunGitCmdFromStr("clean -fd")
+	return c.RunGitCmdFromStr("clean -fd")
 }
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
@@ -284,7 +276,7 @@ func (c *WorktreeMgr) EditFileCmdObj(filename string) (ICmdObj, error) {
 		editor = c.os.Getenv("EDITOR")
 	}
 	if editor == "" {
-		if err := c.commander.Run(oscommands.NewCmdObjFromStr("which vi")); err == nil {
+		if err := c.Run(oscommands.NewCmdObjFromStr("which vi")); err == nil {
 			editor = "vi"
 		}
 	}
@@ -292,7 +284,7 @@ func (c *WorktreeMgr) EditFileCmdObj(filename string) (ICmdObj, error) {
 		return nil, errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
-	cmdObj := c.commander.BuildShellCmdObj(fmt.Sprintf("%s %s", editor, c.commander.Quote(filename)))
+	cmdObj := c.BuildShellCmdObj(fmt.Sprintf("%s %s", editor, c.Quote(filename)))
 
 	return cmdObj, nil
 }

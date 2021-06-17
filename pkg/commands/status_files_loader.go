@@ -5,10 +5,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 )
 
 const RENAME_SEPARATOR = " -> "
@@ -19,20 +17,11 @@ type LoadStatusFilesOpts struct {
 }
 
 type StatusFilesLoader struct {
-	ICommander
-
-	config IGitConfigMgr
-	log    *logrus.Entry
-	os     oscommands.IOS
+	*MgrCtx
 }
 
-func NewStatusFilesLoader(commander ICommander, config IGitConfigMgr, log *logrus.Entry, os oscommands.IOS) *StatusFilesLoader {
-	return &StatusFilesLoader{
-		ICommander: commander,
-		config:     config,
-		log:        log,
-		os:         os,
-	}
+func NewStatusFilesLoader(mgrCtx *MgrCtx) *StatusFilesLoader {
+	return &StatusFilesLoader{MgrCtx: mgrCtx}
 }
 
 func (c *StatusFilesLoader) Load(opts LoadStatusFilesOpts) []*models.File {

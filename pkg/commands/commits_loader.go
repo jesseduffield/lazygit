@@ -12,8 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/sirupsen/logrus"
 )
 
 // context:
@@ -28,26 +26,17 @@ import (
 const SEPARATION_CHAR = "|"
 
 type CommitsLoader struct {
-	Log         *logrus.Entry
-	config      IGitConfigMgr
+	*MgrCtx
+
 	branchesMgr IBranchesMgr
 	statusMgr   IStatusMgr
-	commander   ICommander
-	OS          *oscommands.OS
-	Tr          *i18n.TranslationSet
 }
 
-func NewCommitsLoader(
-	log *logrus.Entry, branchesMgr IBranchesMgr, statusMgr IStatusMgr, osCommand *oscommands.OS, tr *i18n.TranslationSet, commander ICommander, config IGitConfigMgr,
-) *CommitsLoader {
+func NewCommitsLoader(mgrCtx *MgrCtx, branchesMgr IBranchesMgr, statusMgr IStatusMgr) *CommitsLoader {
 	return &CommitsLoader{
-		Log:         log,
+		MgrCtx:      mgrCtx,
 		branchesMgr: branchesMgr,
 		statusMgr:   statusMgr,
-		OS:          osCommand,
-		Tr:          tr,
-		config:      config,
-		commander:   commander,
 	}
 }
 
@@ -236,7 +225,7 @@ func (c *CommitsLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 func (c *CommitsLoader) getInteractiveRebasingCommits() ([]*models.Commit, error) {
 	bytesContent, err := ioutil.ReadFile(filepath.Join(c.config.GetDotGitDir(), "rebase-merge/git-rebase-todo"))
 	if err != nil {
-		c.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
+		c.log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
 		// we assume an error means the file doesn't exist so we just return
 		return nil, nil
 	}
@@ -313,7 +302,7 @@ func (c *CommitsLoader) getMergeBase(refName string) (string, error) {
 	}
 
 	// swallowing error because it's not a big deal; probably because there are no commits yet
-	output, _ := c.commander.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("merge-base %s %s", refName, baseBranch)))
+	output, _ := c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("merge-base %s %s", refName, baseBranch)))
 	return ignoringWarnings(output), nil
 }
 
@@ -330,7 +319,7 @@ func ignoringWarnings(commandOutput string) string {
 // getFirstPushedCommit returns the first commit SHA which has been pushed to the ref's upstream.
 // all commits above this are deemed unpushed and marked as such.
 func (c *CommitsLoader) getFirstPushedCommit(refName string) (string, error) {
-	output, err := c.commander.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("merge-base %s %s@{u}", refName, refName)))
+	output, err := c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("merge-base %s %s@{u}", refName, refName)))
 	if err != nil {
 		return "", err
 	}
@@ -347,7 +336,7 @@ func (c *CommitsLoader) getLogCmdObj(opts LoadCommitsOptions) ICmdObj {
 
 	filterFlag := ""
 	if opts.FilterPath != "" {
-		filterFlag = fmt.Sprintf(" --follow -- %s", c.OS.Quote(opts.FilterPath))
+		filterFlag = fmt.Sprintf(" --follow -- %s", c.os.Quote(opts.FilterPath))
 	}
 
 	return BuildGitCmdObjFromStr(

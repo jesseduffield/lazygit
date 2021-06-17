@@ -4,8 +4,6 @@ import (
 	"path/filepath"
 
 	gogit "github.com/jesseduffield/go-git/v5"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/sirupsen/logrus"
 )
 
 type RebasingMode int
@@ -26,29 +24,11 @@ type IStatusMgr interface {
 }
 
 type StatusMgr struct {
-	ICommander
-
-	config IGitConfigMgr
-
-	os   oscommands.IOS
-	repo *gogit.Repository
-	log  *logrus.Entry
+	*MgrCtx
 }
 
-func NewStatusMgr(
-	commander ICommander,
-	config IGitConfigMgr,
-	os oscommands.IOS,
-	repo *gogit.Repository,
-	log *logrus.Entry,
-) *StatusMgr {
-	return &StatusMgr{
-		ICommander: commander,
-		config:     config,
-		os:         os,
-		repo:       repo,
-		log:        log,
-	}
+func NewStatusMgr(mgrCtx *MgrCtx) *StatusMgr {
+	return &StatusMgr{MgrCtx: mgrCtx}
 }
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase

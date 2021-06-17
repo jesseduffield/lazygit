@@ -10,7 +10,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
-	"github.com/sirupsen/logrus"
 )
 
 type ISubmodulesMgr interface {
@@ -30,18 +29,11 @@ type ISubmodulesMgr interface {
 }
 
 type SubmodulesMgr struct {
-	ICommander
-
-	config IGitConfigMgr
-	log    *logrus.Entry
+	*MgrCtx
 }
 
-func NewSubmodulesMgr(commander ICommander, config IGitConfigMgr, log *logrus.Entry) *SubmodulesMgr {
-	return &SubmodulesMgr{
-		ICommander: commander,
-		config:     config,
-		log:        log,
-	}
+func NewSubmodulesMgr(mgrCtx *MgrCtx) *SubmodulesMgr {
+	return &SubmodulesMgr{MgrCtx: mgrCtx}
 }
 
 // .gitmodules looks like this:

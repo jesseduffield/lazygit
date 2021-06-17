@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 )
 
 // context:
@@ -24,16 +23,15 @@ type getCurrentBranchNameFunc func() (string, string, error)
 
 // BranchesLoader returns a list of Branch objects for the current repo
 type BranchesLoader struct {
-	commander            ICommander
+	*MgrCtx
+
 	getCurrentBranchName getCurrentBranchNameFunc
-	log                  *logrus.Entry
 }
 
-func NewBranchesLoader(commander ICommander, getCurrentBranchname getCurrentBranchNameFunc, log *logrus.Entry) *BranchesLoader {
+func NewBranchesLoader(mgrCtx *MgrCtx, getCurrentBranchname getCurrentBranchNameFunc) *BranchesLoader {
 	return &BranchesLoader{
-		commander:            commander,
+		MgrCtx:               mgrCtx,
 		getCurrentBranchName: getCurrentBranchname,
-		log:                  log,
 	}
 }
 
@@ -83,8 +81,8 @@ outer:
 }
 
 func (b *BranchesLoader) obtainBranches() []*models.Branch {
-	output, err := b.commander.RunWithOutput(
-		b.commander.BuildGitCmdObjFromStr(
+	output, err := b.RunWithOutput(
+		b.BuildGitCmdObjFromStr(
 			`for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`,
 		),
 	)

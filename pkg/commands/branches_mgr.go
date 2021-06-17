@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 )
 
 //counterfeiter:generate . IBranchesMgr
@@ -30,20 +29,15 @@ type IBranchesMgr interface {
 }
 
 type BranchesMgr struct {
-	ICommander
+	*MgrCtx
 
 	branchesLoader *BranchesLoader
-	config         IGitConfigMgr
-	log            *logrus.Entry
 }
 
-func NewBranchesMgr(commander ICommander, config IGitConfigMgr, log *logrus.Entry) *BranchesMgr {
-	mgr := &BranchesMgr{
-		ICommander: commander,
-		config:     config,
-	}
+func NewBranchesMgr(mgrCtx *MgrCtx) *BranchesMgr {
+	mgr := &BranchesMgr{MgrCtx: mgrCtx}
 
-	mgr.branchesLoader = NewBranchesLoader(commander, mgr.CurrentBranchName, log)
+	mgr.branchesLoader = NewBranchesLoader(mgrCtx, mgr.CurrentBranchName)
 
 	return mgr
 }

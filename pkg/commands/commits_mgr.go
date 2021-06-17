@@ -5,10 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/sirupsen/logrus"
 )
 
 //counterfeiter:generate . ICommitsMgr
@@ -29,29 +26,21 @@ type ICommitsMgr interface {
 }
 
 type CommitsMgr struct {
-	ICommander
+	*MgrCtx
 
 	commitsLoader *CommitsLoader
-	config        IGitConfigMgr
 }
 
 func NewCommitsMgr(
-	commander ICommander,
-	config IGitConfigMgr,
+	mgrCtx *MgrCtx,
 	branchesMgr IBranchesMgr,
 	statusMgr IStatusMgr,
-	log *logrus.Entry,
-	oS *oscommands.OS,
-	tr *i18n.TranslationSet,
 ) *CommitsMgr {
-	commitsLoader := NewCommitsLoader(
-		log, branchesMgr, statusMgr, oS, tr, commander, config,
-	)
+	commitsLoader := NewCommitsLoader(mgrCtx, branchesMgr, statusMgr)
 
 	return &CommitsMgr{
+		MgrCtx:        mgrCtx,
 		commitsLoader: commitsLoader,
-		ICommander:    commander,
-		config:        config,
 	}
 }
 

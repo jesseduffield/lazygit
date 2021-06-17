@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 
-	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -22,22 +21,11 @@ type IRemotesMgr interface {
 }
 
 type RemotesMgr struct {
-	ICommander
-
-	config IGitConfigMgr
-	repo   *gogit.Repository
+	*MgrCtx
 }
 
-func NewRemotesMgr(
-	commander ICommander,
-	config IGitConfigMgr,
-	repo *gogit.Repository,
-) *RemotesMgr {
-	return &RemotesMgr{
-		ICommander: commander,
-		config:     config,
-		repo:       repo,
-	}
+func NewRemotesMgr(mgrCtx *MgrCtx) *RemotesMgr {
+	return &RemotesMgr{MgrCtx: mgrCtx}
 }
 
 func (c *RemotesMgr) Add(name string, url string) error {
