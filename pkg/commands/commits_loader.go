@@ -29,17 +29,16 @@ const SEPARATION_CHAR = "|"
 
 type CommitsLoader struct {
 	Log         *logrus.Entry
+	config      IGitConfigMgr
 	branchesMgr IBranchesMgr
 	statusMgr   IStatusMgr
 	commander   ICommander
 	OS          *oscommands.OS
 	Tr          *i18n.TranslationSet
-	dotGitDir   string
 }
 
-// NewCommitsLoader builds a new commit list builder
 func NewCommitsLoader(
-	log *logrus.Entry, branchesMgr IBranchesMgr, statusMgr IStatusMgr, osCommand *oscommands.OS, tr *i18n.TranslationSet, dotGitDir string, commander ICommander,
+	log *logrus.Entry, branchesMgr IBranchesMgr, statusMgr IStatusMgr, osCommand *oscommands.OS, tr *i18n.TranslationSet, commander ICommander, config IGitConfigMgr,
 ) *CommitsLoader {
 	return &CommitsLoader{
 		Log:         log,
@@ -47,7 +46,7 @@ func NewCommitsLoader(
 		statusMgr:   statusMgr,
 		OS:          osCommand,
 		Tr:          tr,
-		dotGitDir:   dotGitDir,
+		config:      config,
 		commander:   commander,
 	}
 }
@@ -183,7 +182,7 @@ func (c *CommitsLoader) getRebasingCommits(rebaseMode RebasingMode) ([]*models.C
 
 func (c *CommitsLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 	rewrittenCount := 0
-	bytesContent, err := ioutil.ReadFile(filepath.Join(c.dotGitDir, "rebase-apply/rewritten"))
+	bytesContent, err := ioutil.ReadFile(filepath.Join(c.config.GetDotGitDir(), "rebase-apply/rewritten"))
 	if err == nil {
 		content := string(bytesContent)
 		rewrittenCount = len(strings.Split(content, "\n"))
@@ -191,7 +190,7 @@ func (c *CommitsLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 
 	// we know we're rebasing, so lets get all the files whose names have numbers
 	commits := []*models.Commit{}
-	err = filepath.Walk(filepath.Join(c.dotGitDir, "rebase-apply"), func(path string, f os.FileInfo, err error) error {
+	err = filepath.Walk(filepath.Join(c.config.GetDotGitDir(), "rebase-apply"), func(path string, f os.FileInfo, err error) error {
 		if rewrittenCount > 0 {
 			rewrittenCount--
 			return nil
@@ -235,7 +234,7 @@ func (c *CommitsLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 // and extracts out the sha and names of commits that we still have to go
 // in the rebase:
 func (c *CommitsLoader) getInteractiveRebasingCommits() ([]*models.Commit, error) {
-	bytesContent, err := ioutil.ReadFile(filepath.Join(c.dotGitDir, "rebase-merge/git-rebase-todo"))
+	bytesContent, err := ioutil.ReadFile(filepath.Join(c.config.GetDotGitDir(), "rebase-merge/git-rebase-todo"))
 	if err != nil {
 		c.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
 		// we assume an error means the file doesn't exist so we just return

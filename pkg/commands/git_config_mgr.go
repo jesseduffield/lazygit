@@ -12,6 +12,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//counterfeiter:generate . IGitConfigMgr
+type IGitConfigMgr interface {
+	GetPager(width int) string
+	ColorArg() string
+	GetConfigValue(key string) string
+	UsingGpg() bool
+	GetUserConfig() *config.UserConfig
+	GetPushToCurrent() bool
+	GetUserConfigDir() string
+	FindRemoteForBranchInConfig(branchName string) (string, error)
+	GetDebug() bool
+	GetDotGitDir() string
+}
+
 type getGitConfigValueFunc func(key string) (string, error)
 
 type GitConfigMgr struct {
@@ -25,9 +39,10 @@ type GitConfigMgr struct {
 	userConfigDir     string
 	getGitConfigValue getGitConfigValueFunc
 	debug             bool
+	dotGitDir         string
 }
 
-func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, userConfigDir string, getGitConfigValue getGitConfigValueFunc, log *logrus.Entry, repo *gogit.Repository, debug bool) *GitConfigMgr {
+func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, userConfigDir string, getGitConfigValue getGitConfigValueFunc, log *logrus.Entry, repo *gogit.Repository, debug bool, dotGitDir string) *GitConfigMgr {
 	gitConfig := &GitConfigMgr{
 		ICommander:        commander,
 		getGitConfigValue: getGitConfigValue,
@@ -35,6 +50,7 @@ func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, userCo
 		userConfigDir:     userConfigDir,
 		repo:              repo,
 		debug:             debug,
+		dotGitDir:         dotGitDir,
 	}
 
 	output, err := commander.RunWithOutput(
@@ -50,6 +66,10 @@ func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, userCo
 	gitConfig.pushToCurrent = pushToCurrent
 
 	return gitConfig
+}
+
+func (c *GitConfigMgr) GetDotGitDir() string {
+	return c.dotGitDir
 }
 
 func (c *GitConfigMgr) GetUserConfig() *config.UserConfig {

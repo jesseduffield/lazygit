@@ -47,7 +47,6 @@ type RebasingMgr struct {
 	tr          *i18n.TranslationSet
 	os          oscommands.IOS
 	log         *logrus.Entry
-	dotGitDir   string
 	commitsMgr  ICommitsMgr
 	worktreeMgr IWorktreeMgr
 	statusMgr   IStatusMgr
@@ -61,7 +60,6 @@ func NewRebasingMgr(
 	tr *i18n.TranslationSet,
 	os oscommands.IOS,
 	log *logrus.Entry,
-	dotGitDir string,
 	commitsMgr ICommitsMgr,
 	worktreeMgr IWorktreeMgr,
 	statusMgr IStatusMgr,
@@ -72,7 +70,6 @@ func NewRebasingMgr(
 		tr:          tr,
 		os:          os,
 		log:         log,
-		dotGitDir:   dotGitDir,
 		commitsMgr:  commitsMgr,
 		worktreeMgr: worktreeMgr,
 		statusMgr:   statusMgr,
@@ -199,7 +196,7 @@ func (c *RebasingMgr) AmendTo(sha string) error {
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
 func (c *RebasingMgr) EditRebaseTodo(index int, action string) error {
-	fileName := filepath.Join(c.dotGitDir, "rebase-merge/git-rebase-todo")
+	fileName := filepath.Join(c.config.GetDotGitDir(), "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
@@ -231,7 +228,7 @@ func (c *RebasingMgr) getTodoCommitCount(content []string) int {
 
 // MoveTodoDown moves a rebase todo item down by one position
 func (c *RebasingMgr) MoveTodoDown(index int) error {
-	fileName := filepath.Join(c.dotGitDir, "rebase-merge/git-rebase-todo")
+	fileName := filepath.Join(c.config.GetDotGitDir(), "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err

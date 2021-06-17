@@ -32,17 +32,15 @@ type ISubmodulesMgr interface {
 type SubmodulesMgr struct {
 	ICommander
 
-	config    IGitConfigMgr
-	log       *logrus.Entry
-	dotGitDir string
+	config IGitConfigMgr
+	log    *logrus.Entry
 }
 
-func NewSubmodulesMgr(commander ICommander, config IGitConfigMgr, log *logrus.Entry, dotGitDir string) *SubmodulesMgr {
+func NewSubmodulesMgr(commander ICommander, config IGitConfigMgr, log *logrus.Entry) *SubmodulesMgr {
 	return &SubmodulesMgr{
 		ICommander: commander,
 		config:     config,
 		log:        log,
-		dotGitDir:  dotGitDir,
 	}
 }
 
@@ -131,7 +129,7 @@ func (c *SubmodulesMgr) Delete(submodule *models.SubmoduleConfig) error {
 		c.log.Error(err)
 	}
 
-	return os.RemoveAll(filepath.Join(c.dotGitDir, "modules", submodule.Path))
+	return os.RemoveAll(filepath.Join(c.config.GetDotGitDir(), "modules", submodule.Path))
 }
 
 func (c *SubmodulesMgr) Add(name string, path string, url string) error {

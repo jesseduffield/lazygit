@@ -43,10 +43,9 @@ func NewCommitsMgr(
 	log *logrus.Entry,
 	oS *oscommands.OS,
 	tr *i18n.TranslationSet,
-	dotGitDir string,
 ) *CommitsMgr {
 	commitsLoader := NewCommitsLoader(
-		log, branchesMgr, statusMgr, oS, tr, dotGitDir, commander,
+		log, branchesMgr, statusMgr, oS, tr, commander, config,
 	)
 
 	return &CommitsMgr{

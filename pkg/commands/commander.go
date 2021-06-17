@@ -11,6 +11,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//counterfeiter:generate . ICommander
+type ICommander interface {
+	Run(cmdObj ICmdObj) error
+	RunWithOutput(cmdObj ICmdObj) (string, error)
+	RunGitCmdFromStr(cmdStr string) error
+	BuildGitCmdObjFromStr(cmdStr string) ICmdObj
+	BuildShellCmdObj(command string) ICmdObj
+	SkipEditor(cmdObj ICmdObj)
+	Quote(string) string
+}
+
 type runWithOutputFunc func(ICmdObj) (string, error)
 
 type Commander struct {

@@ -29,24 +29,25 @@ type IStatusMgr interface {
 type StatusMgr struct {
 	ICommander
 
-	os        oscommands.IOS
-	repo      *gogit.Repository
-	dotGitDir string
-	log       *logrus.Entry
+	config IGitConfigMgr
+
+	os   oscommands.IOS
+	repo *gogit.Repository
+	log  *logrus.Entry
 }
 
 func NewStatusMgr(
 	commander ICommander,
+	config IGitConfigMgr,
 	os oscommands.IOS,
 	repo *gogit.Repository,
-	dotGitDir string,
 	log *logrus.Entry,
 ) *StatusMgr {
 	return &StatusMgr{
 		ICommander: commander,
+		config:     config,
 		os:         os,
 		repo:       repo,
-		dotGitDir:  dotGitDir,
 		log:        log,
 	}
 }
@@ -92,7 +93,7 @@ func (c *StatusMgr) IsBareRepo() bool {
 }
 
 func (c *StatusMgr) gitDirFileExists(path string) bool {
-	result, err := c.os.FileExists(filepath.Join(c.dotGitDir, path))
+	result, err := c.os.FileExists(filepath.Join(c.config.GetDotGitDir(), path))
 	if err != nil {
 		// swallowing error
 		c.log.Error(err)
