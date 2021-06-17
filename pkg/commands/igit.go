@@ -22,6 +22,7 @@ type IGit interface {
 	Remotes() IRemotesMgr
 	Reflog() IReflogMgr
 	Sync() ISyncMgr
+	Flow() IFlowMgr
 
 	// config
 	IGitConfigMgr
@@ -43,11 +44,6 @@ type IGit interface {
 	GetLog() *logrus.Entry
 	WithSpan(span string) IGit
 	GetOS() oscommands.IOS
-
-	// flow
-	FlowStart(branchType string, name string) ICmdObj
-	FlowFinish(branchType string, name string) ICmdObj
-	GetGitFlowRegexpConfig() (string, error)
 
 	// patch
 	NewPatchManager() *patch.PatchManager

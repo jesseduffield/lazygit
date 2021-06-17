@@ -2029,7 +2029,7 @@ func (fake *FakeIGit) FindRemoteForBranchInConfigReturnsOnCall(i int, result1 st
 	}{result1, result2}
 }
 
-func (fake *FakeIGit) FlowFinish(arg1 string, arg2 string) types.ICmdObj {
+func (fake *FakeIGit) Finish(arg1 string, arg2 string) types.ICmdObj {
 	fake.flowFinishMutex.Lock()
 	ret, specificReturn := fake.flowFinishReturnsOnCall[len(fake.flowFinishArgsForCall)]
 	fake.flowFinishArgsForCall = append(fake.flowFinishArgsForCall, struct {
@@ -2038,7 +2038,7 @@ func (fake *FakeIGit) FlowFinish(arg1 string, arg2 string) types.ICmdObj {
 	}{arg1, arg2})
 	stub := fake.FlowFinishStub
 	fakeReturns := fake.flowFinishReturns
-	fake.recordInvocation("FlowFinish", []interface{}{arg1, arg2})
+	fake.recordInvocation("Finish", []interface{}{arg1, arg2})
 	fake.flowFinishMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
@@ -2091,7 +2091,7 @@ func (fake *FakeIGit) FlowFinishReturnsOnCall(i int, result1 types.ICmdObj) {
 	}{result1}
 }
 
-func (fake *FakeIGit) FlowStart(arg1 string, arg2 string) types.ICmdObj {
+func (fake *FakeIGit) Start(arg1 string, arg2 string) types.ICmdObj {
 	fake.flowStartMutex.Lock()
 	ret, specificReturn := fake.flowStartReturnsOnCall[len(fake.flowStartArgsForCall)]
 	fake.flowStartArgsForCall = append(fake.flowStartArgsForCall, struct {
@@ -2100,7 +2100,7 @@ func (fake *FakeIGit) FlowStart(arg1 string, arg2 string) types.ICmdObj {
 	}{arg1, arg2})
 	stub := fake.FlowStartStub
 	fakeReturns := fake.flowStartReturns
-	fake.recordInvocation("FlowStart", []interface{}{arg1, arg2})
+	fake.recordInvocation("Start", []interface{}{arg1, arg2})
 	fake.flowStartMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)

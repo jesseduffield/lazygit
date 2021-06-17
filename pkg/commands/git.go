@@ -42,6 +42,7 @@ type Git struct {
 	statusMgr            *StatusMgr
 	stashMgr             *StashMgr
 	syncMgr              *SyncMgr
+	flowMgr              *FlowMgr
 	log                  *logrus.Entry
 	os                   oscommands.IOS
 	repo                 *gogit.Repository
@@ -83,6 +84,7 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	stashMgr := NewStashMgr(commander, gitConfig, oS, worktreeMgr)
 	reflogMgr := NewReflogMgr(commander, gitConfig)
 	syncMgr := NewSyncMgr(commander, gitConfig, oS)
+	flowMgr := NewFlowMgr(commander, gitConfig)
 
 	gitCommand := &Git{
 		Commander:     commander,
@@ -97,6 +99,7 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 		statusMgr:     statusMgr,
 		stashMgr:      stashMgr,
 		syncMgr:       syncMgr,
+		flowMgr:       flowMgr,
 		log:           log,
 		os:            oS,
 		tr:            tr,
@@ -146,6 +149,10 @@ func (c *Git) Reflog() IReflogMgr {
 
 func (c *Git) Sync() ISyncMgr {
 	return c.syncMgr
+}
+
+func (c *Git) Flow() IFlowMgr {
+	return c.flowMgr
 }
 
 func (c *Git) Quote(str string) string {
