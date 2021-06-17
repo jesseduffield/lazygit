@@ -31,15 +31,15 @@ type FakeIRemotesMgr struct {
 	getCurrentRemoteUrlReturnsOnCall map[int]struct {
 		result1 string
 	}
-	LoadStub        func() ([]*models.Remote, error)
-	loadMutex       sync.RWMutex
-	loadArgsForCall []struct {
+	LoadRemotesStub        func() ([]*models.Remote, error)
+	loadRemotesMutex       sync.RWMutex
+	loadRemotesArgsForCall []struct {
 	}
-	loadReturns struct {
+	loadRemotesReturns struct {
 		result1 []*models.Remote
 		result2 error
 	}
-	loadReturnsOnCall map[int]struct {
+	loadRemotesReturnsOnCall map[int]struct {
 		result1 []*models.Remote
 		result2 error
 	}
@@ -208,15 +208,15 @@ func (fake *FakeIRemotesMgr) GetCurrentRemoteUrlReturnsOnCall(i int, result1 str
 	}{result1}
 }
 
-func (fake *FakeIRemotesMgr) Load() ([]*models.Remote, error) {
-	fake.loadMutex.Lock()
-	ret, specificReturn := fake.loadReturnsOnCall[len(fake.loadArgsForCall)]
-	fake.loadArgsForCall = append(fake.loadArgsForCall, struct {
+func (fake *FakeIRemotesMgr) LoadRemotes() ([]*models.Remote, error) {
+	fake.loadRemotesMutex.Lock()
+	ret, specificReturn := fake.loadRemotesReturnsOnCall[len(fake.loadRemotesArgsForCall)]
+	fake.loadRemotesArgsForCall = append(fake.loadRemotesArgsForCall, struct {
 	}{})
-	stub := fake.LoadStub
-	fakeReturns := fake.loadReturns
-	fake.recordInvocation("Load", []interface{}{})
-	fake.loadMutex.Unlock()
+	stub := fake.LoadRemotesStub
+	fakeReturns := fake.loadRemotesReturns
+	fake.recordInvocation("LoadRemotes", []interface{}{})
+	fake.loadRemotesMutex.Unlock()
 	if stub != nil {
 		return stub()
 	}
@@ -226,39 +226,39 @@ func (fake *FakeIRemotesMgr) Load() ([]*models.Remote, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIRemotesMgr) LoadCallCount() int {
-	fake.loadMutex.RLock()
-	defer fake.loadMutex.RUnlock()
-	return len(fake.loadArgsForCall)
+func (fake *FakeIRemotesMgr) LoadRemotesCallCount() int {
+	fake.loadRemotesMutex.RLock()
+	defer fake.loadRemotesMutex.RUnlock()
+	return len(fake.loadRemotesArgsForCall)
 }
 
-func (fake *FakeIRemotesMgr) LoadCalls(stub func() ([]*models.Remote, error)) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = stub
+func (fake *FakeIRemotesMgr) LoadRemotesCalls(stub func() ([]*models.Remote, error)) {
+	fake.loadRemotesMutex.Lock()
+	defer fake.loadRemotesMutex.Unlock()
+	fake.LoadRemotesStub = stub
 }
 
-func (fake *FakeIRemotesMgr) LoadReturns(result1 []*models.Remote, result2 error) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = nil
-	fake.loadReturns = struct {
+func (fake *FakeIRemotesMgr) LoadRemotesReturns(result1 []*models.Remote, result2 error) {
+	fake.loadRemotesMutex.Lock()
+	defer fake.loadRemotesMutex.Unlock()
+	fake.LoadRemotesStub = nil
+	fake.loadRemotesReturns = struct {
 		result1 []*models.Remote
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIRemotesMgr) LoadReturnsOnCall(i int, result1 []*models.Remote, result2 error) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = nil
-	if fake.loadReturnsOnCall == nil {
-		fake.loadReturnsOnCall = make(map[int]struct {
+func (fake *FakeIRemotesMgr) LoadRemotesReturnsOnCall(i int, result1 []*models.Remote, result2 error) {
+	fake.loadRemotesMutex.Lock()
+	defer fake.loadRemotesMutex.Unlock()
+	fake.LoadRemotesStub = nil
+	if fake.loadRemotesReturnsOnCall == nil {
+		fake.loadRemotesReturnsOnCall = make(map[int]struct {
 			result1 []*models.Remote
 			result2 error
 		})
 	}
-	fake.loadReturnsOnCall[i] = struct {
+	fake.loadRemotesReturnsOnCall[i] = struct {
 		result1 []*models.Remote
 		result2 error
 	}{result1, result2}
@@ -517,8 +517,8 @@ func (fake *FakeIRemotesMgr) Invocations() map[string][][]interface{} {
 	defer fake.addMutex.RUnlock()
 	fake.getCurrentRemoteUrlMutex.RLock()
 	defer fake.getCurrentRemoteUrlMutex.RUnlock()
-	fake.loadMutex.RLock()
-	defer fake.loadMutex.RUnlock()
+	fake.loadRemotesMutex.RLock()
+	defer fake.loadRemotesMutex.RUnlock()
 	fake.remoteBranchExistsMutex.RLock()
 	defer fake.remoteBranchExistsMutex.RUnlock()
 	fake.removeMutex.RLock()

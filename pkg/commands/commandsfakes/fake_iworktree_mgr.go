@@ -11,18 +11,6 @@ import (
 )
 
 type FakeIWorktreeMgr struct {
-	ApplyPatchStub        func(string, ...string) error
-	applyPatchMutex       sync.RWMutex
-	applyPatchArgsForCall []struct {
-		arg1 string
-		arg2 []string
-	}
-	applyPatchReturns struct {
-		result1 error
-	}
-	applyPatchReturnsOnCall map[int]struct {
-		result1 error
-	}
 	CheckoutFileStub        func(string, string) error
 	checkoutFileMutex       sync.RWMutex
 	checkoutFileArgsForCall []struct {
@@ -210,68 +198,6 @@ type FakeIWorktreeMgr struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeIWorktreeMgr) ApplyPatch(arg1 string, arg2 ...string) error {
-	fake.applyPatchMutex.Lock()
-	ret, specificReturn := fake.applyPatchReturnsOnCall[len(fake.applyPatchArgsForCall)]
-	fake.applyPatchArgsForCall = append(fake.applyPatchArgsForCall, struct {
-		arg1 string
-		arg2 []string
-	}{arg1, arg2})
-	stub := fake.ApplyPatchStub
-	fakeReturns := fake.applyPatchReturns
-	fake.recordInvocation("ApplyPatch", []interface{}{arg1, arg2})
-	fake.applyPatchMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2...)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIWorktreeMgr) ApplyPatchCallCount() int {
-	fake.applyPatchMutex.RLock()
-	defer fake.applyPatchMutex.RUnlock()
-	return len(fake.applyPatchArgsForCall)
-}
-
-func (fake *FakeIWorktreeMgr) ApplyPatchCalls(stub func(string, ...string) error) {
-	fake.applyPatchMutex.Lock()
-	defer fake.applyPatchMutex.Unlock()
-	fake.ApplyPatchStub = stub
-}
-
-func (fake *FakeIWorktreeMgr) ApplyPatchArgsForCall(i int) (string, []string) {
-	fake.applyPatchMutex.RLock()
-	defer fake.applyPatchMutex.RUnlock()
-	argsForCall := fake.applyPatchArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeIWorktreeMgr) ApplyPatchReturns(result1 error) {
-	fake.applyPatchMutex.Lock()
-	defer fake.applyPatchMutex.Unlock()
-	fake.ApplyPatchStub = nil
-	fake.applyPatchReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeIWorktreeMgr) ApplyPatchReturnsOnCall(i int, result1 error) {
-	fake.applyPatchMutex.Lock()
-	defer fake.applyPatchMutex.Unlock()
-	fake.ApplyPatchStub = nil
-	if fake.applyPatchReturnsOnCall == nil {
-		fake.applyPatchReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.applyPatchReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeIWorktreeMgr) CheckoutFile(arg1 string, arg2 string) error {
@@ -1276,8 +1202,6 @@ func (fake *FakeIWorktreeMgr) UnstageAllReturnsOnCall(i int, result1 error) {
 func (fake *FakeIWorktreeMgr) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.applyPatchMutex.RLock()
-	defer fake.applyPatchMutex.RUnlock()
 	fake.checkoutFileMutex.RLock()
 	defer fake.checkoutFileMutex.RUnlock()
 	fake.discardAllDirChangesMutex.RLock()

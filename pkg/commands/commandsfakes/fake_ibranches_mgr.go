@@ -42,20 +42,6 @@ type FakeIBranchesMgr struct {
 	checkoutReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CurrentBranchNameStub        func() (string, string, error)
-	currentBranchNameMutex       sync.RWMutex
-	currentBranchNameArgsForCall []struct {
-	}
-	currentBranchNameReturns struct {
-		result1 string
-		result2 string
-		result3 error
-	}
-	currentBranchNameReturnsOnCall map[int]struct {
-		result1 string
-		result2 string
-		result3 error
-	}
 	DeleteStub        func(string, bool) error
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
@@ -79,17 +65,6 @@ type FakeIBranchesMgr struct {
 	getBranchGraphCmdObjReturnsOnCall map[int]struct {
 		result1 types.ICmdObj
 	}
-	GetBranchesStub        func([]*models.Commit) []*models.Branch
-	getBranchesMutex       sync.RWMutex
-	getBranchesArgsForCall []struct {
-		arg1 []*models.Commit
-	}
-	getBranchesReturns struct {
-		result1 []*models.Branch
-	}
-	getBranchesReturnsOnCall map[int]struct {
-		result1 []*models.Branch
-	}
 	GetUpstreamStub        func(string) (string, error)
 	getUpstreamMutex       sync.RWMutex
 	getUpstreamArgsForCall []struct {
@@ -102,6 +77,17 @@ type FakeIBranchesMgr struct {
 	getUpstreamReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
+	}
+	LoadBranchesStub        func([]*models.Commit) []*models.Branch
+	loadBranchesMutex       sync.RWMutex
+	loadBranchesArgsForCall []struct {
+		arg1 []*models.Commit
+	}
+	loadBranchesReturns struct {
+		result1 []*models.Branch
+	}
+	loadBranchesReturnsOnCall map[int]struct {
+		result1 []*models.Branch
 	}
 	MergeStub        func(string, commands.MergeOpts) error
 	mergeMutex       sync.RWMutex
@@ -336,65 +322,6 @@ func (fake *FakeIBranchesMgr) CheckoutReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIBranchesMgr) CurrentBranchName() (string, string, error) {
-	fake.currentBranchNameMutex.Lock()
-	ret, specificReturn := fake.currentBranchNameReturnsOnCall[len(fake.currentBranchNameArgsForCall)]
-	fake.currentBranchNameArgsForCall = append(fake.currentBranchNameArgsForCall, struct {
-	}{})
-	stub := fake.CurrentBranchNameStub
-	fakeReturns := fake.currentBranchNameReturns
-	fake.recordInvocation("CurrentBranchName", []interface{}{})
-	fake.currentBranchNameMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2, ret.result3
-	}
-	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
-}
-
-func (fake *FakeIBranchesMgr) CurrentBranchNameCallCount() int {
-	fake.currentBranchNameMutex.RLock()
-	defer fake.currentBranchNameMutex.RUnlock()
-	return len(fake.currentBranchNameArgsForCall)
-}
-
-func (fake *FakeIBranchesMgr) CurrentBranchNameCalls(stub func() (string, string, error)) {
-	fake.currentBranchNameMutex.Lock()
-	defer fake.currentBranchNameMutex.Unlock()
-	fake.CurrentBranchNameStub = stub
-}
-
-func (fake *FakeIBranchesMgr) CurrentBranchNameReturns(result1 string, result2 string, result3 error) {
-	fake.currentBranchNameMutex.Lock()
-	defer fake.currentBranchNameMutex.Unlock()
-	fake.CurrentBranchNameStub = nil
-	fake.currentBranchNameReturns = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
-}
-
-func (fake *FakeIBranchesMgr) CurrentBranchNameReturnsOnCall(i int, result1 string, result2 string, result3 error) {
-	fake.currentBranchNameMutex.Lock()
-	defer fake.currentBranchNameMutex.Unlock()
-	fake.CurrentBranchNameStub = nil
-	if fake.currentBranchNameReturnsOnCall == nil {
-		fake.currentBranchNameReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 string
-			result3 error
-		})
-	}
-	fake.currentBranchNameReturnsOnCall[i] = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
-}
-
 func (fake *FakeIBranchesMgr) Delete(arg1 string, arg2 bool) error {
 	fake.deleteMutex.Lock()
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
@@ -518,72 +445,6 @@ func (fake *FakeIBranchesMgr) GetBranchGraphCmdObjReturnsOnCall(i int, result1 t
 	}{result1}
 }
 
-func (fake *FakeIBranchesMgr) GetBranches(arg1 []*models.Commit) []*models.Branch {
-	var arg1Copy []*models.Commit
-	if arg1 != nil {
-		arg1Copy = make([]*models.Commit, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.getBranchesMutex.Lock()
-	ret, specificReturn := fake.getBranchesReturnsOnCall[len(fake.getBranchesArgsForCall)]
-	fake.getBranchesArgsForCall = append(fake.getBranchesArgsForCall, struct {
-		arg1 []*models.Commit
-	}{arg1Copy})
-	stub := fake.GetBranchesStub
-	fakeReturns := fake.getBranchesReturns
-	fake.recordInvocation("GetBranches", []interface{}{arg1Copy})
-	fake.getBranchesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIBranchesMgr) GetBranchesCallCount() int {
-	fake.getBranchesMutex.RLock()
-	defer fake.getBranchesMutex.RUnlock()
-	return len(fake.getBranchesArgsForCall)
-}
-
-func (fake *FakeIBranchesMgr) GetBranchesCalls(stub func([]*models.Commit) []*models.Branch) {
-	fake.getBranchesMutex.Lock()
-	defer fake.getBranchesMutex.Unlock()
-	fake.GetBranchesStub = stub
-}
-
-func (fake *FakeIBranchesMgr) GetBranchesArgsForCall(i int) []*models.Commit {
-	fake.getBranchesMutex.RLock()
-	defer fake.getBranchesMutex.RUnlock()
-	argsForCall := fake.getBranchesArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeIBranchesMgr) GetBranchesReturns(result1 []*models.Branch) {
-	fake.getBranchesMutex.Lock()
-	defer fake.getBranchesMutex.Unlock()
-	fake.GetBranchesStub = nil
-	fake.getBranchesReturns = struct {
-		result1 []*models.Branch
-	}{result1}
-}
-
-func (fake *FakeIBranchesMgr) GetBranchesReturnsOnCall(i int, result1 []*models.Branch) {
-	fake.getBranchesMutex.Lock()
-	defer fake.getBranchesMutex.Unlock()
-	fake.GetBranchesStub = nil
-	if fake.getBranchesReturnsOnCall == nil {
-		fake.getBranchesReturnsOnCall = make(map[int]struct {
-			result1 []*models.Branch
-		})
-	}
-	fake.getBranchesReturnsOnCall[i] = struct {
-		result1 []*models.Branch
-	}{result1}
-}
-
 func (fake *FakeIBranchesMgr) GetUpstream(arg1 string) (string, error) {
 	fake.getUpstreamMutex.Lock()
 	ret, specificReturn := fake.getUpstreamReturnsOnCall[len(fake.getUpstreamArgsForCall)]
@@ -646,6 +507,72 @@ func (fake *FakeIBranchesMgr) GetUpstreamReturnsOnCall(i int, result1 string, re
 		result1 string
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeIBranchesMgr) LoadBranches(arg1 []*models.Commit) []*models.Branch {
+	var arg1Copy []*models.Commit
+	if arg1 != nil {
+		arg1Copy = make([]*models.Commit, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.loadBranchesMutex.Lock()
+	ret, specificReturn := fake.loadBranchesReturnsOnCall[len(fake.loadBranchesArgsForCall)]
+	fake.loadBranchesArgsForCall = append(fake.loadBranchesArgsForCall, struct {
+		arg1 []*models.Commit
+	}{arg1Copy})
+	stub := fake.LoadBranchesStub
+	fakeReturns := fake.loadBranchesReturns
+	fake.recordInvocation("LoadBranches", []interface{}{arg1Copy})
+	fake.loadBranchesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIBranchesMgr) LoadBranchesCallCount() int {
+	fake.loadBranchesMutex.RLock()
+	defer fake.loadBranchesMutex.RUnlock()
+	return len(fake.loadBranchesArgsForCall)
+}
+
+func (fake *FakeIBranchesMgr) LoadBranchesCalls(stub func([]*models.Commit) []*models.Branch) {
+	fake.loadBranchesMutex.Lock()
+	defer fake.loadBranchesMutex.Unlock()
+	fake.LoadBranchesStub = stub
+}
+
+func (fake *FakeIBranchesMgr) LoadBranchesArgsForCall(i int) []*models.Commit {
+	fake.loadBranchesMutex.RLock()
+	defer fake.loadBranchesMutex.RUnlock()
+	argsForCall := fake.loadBranchesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeIBranchesMgr) LoadBranchesReturns(result1 []*models.Branch) {
+	fake.loadBranchesMutex.Lock()
+	defer fake.loadBranchesMutex.Unlock()
+	fake.LoadBranchesStub = nil
+	fake.loadBranchesReturns = struct {
+		result1 []*models.Branch
+	}{result1}
+}
+
+func (fake *FakeIBranchesMgr) LoadBranchesReturnsOnCall(i int, result1 []*models.Branch) {
+	fake.loadBranchesMutex.Lock()
+	defer fake.loadBranchesMutex.Unlock()
+	fake.LoadBranchesStub = nil
+	if fake.loadBranchesReturnsOnCall == nil {
+		fake.loadBranchesReturnsOnCall = make(map[int]struct {
+			result1 []*models.Branch
+		})
+	}
+	fake.loadBranchesReturnsOnCall[i] = struct {
+		result1 []*models.Branch
+	}{result1}
 }
 
 func (fake *FakeIBranchesMgr) Merge(arg1 string, arg2 commands.MergeOpts) error {
@@ -968,16 +895,14 @@ func (fake *FakeIBranchesMgr) Invocations() map[string][][]interface{} {
 	defer fake.allBranchesCmdObjMutex.RUnlock()
 	fake.checkoutMutex.RLock()
 	defer fake.checkoutMutex.RUnlock()
-	fake.currentBranchNameMutex.RLock()
-	defer fake.currentBranchNameMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	fake.getBranchGraphCmdObjMutex.RLock()
 	defer fake.getBranchGraphCmdObjMutex.RUnlock()
-	fake.getBranchesMutex.RLock()
-	defer fake.getBranchesMutex.RUnlock()
 	fake.getUpstreamMutex.RLock()
 	defer fake.getUpstreamMutex.RUnlock()
+	fake.loadBranchesMutex.RLock()
+	defer fake.loadBranchesMutex.RUnlock()
 	fake.mergeMutex.RLock()
 	defer fake.mergeMutex.RUnlock()
 	fake.newBranchMutex.RLock()

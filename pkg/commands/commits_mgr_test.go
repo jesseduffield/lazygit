@@ -12,15 +12,22 @@ import (
 var _ = Describe("CommitsMgr", func() {
 	var (
 		commander  *FakeICommander
-		gitconfig  *FakeIGitConfig
+		gitconfig  *FakeIGitConfigMgr
 		commitsMgr *CommitsMgr
+		statusMgr  *FakeIStatusMgr
+		mgrCtx     *MgrCtx
 	)
 
 	BeforeEach(func() {
 		commander = NewFakeCommander()
-		gitconfig = &FakeIGitConfig{}
+		gitconfig = &FakeIGitConfigMgr{}
 		gitconfig.ColorArgCalls(func() string { return "always" })
-		commitsMgr = NewCommitsMgr(commander, gitconfig)
+		mgrCtx = &MgrCtx{
+			ICommander: commander,
+			config:     gitconfig,
+		}
+		statusMgr = &FakeIStatusMgr{}
+		commitsMgr = NewCommitsMgr(mgrCtx, statusMgr)
 	})
 
 	Describe("RewordHead", func() {

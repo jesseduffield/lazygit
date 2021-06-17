@@ -17,6 +17,7 @@ const (
 	REBASE_MODE_INTERACTIVE
 )
 
+//counterfeiter:generate . IStatusMgr
 type IStatusMgr interface {
 	RebaseMode() RebasingMode
 	IsMerging() bool

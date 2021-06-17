@@ -91,16 +91,16 @@ type FakeICommitsMgr struct {
 		result1 string
 		result2 error
 	}
-	LoadStub        func(commands.LoadCommitsOptions) ([]*models.Commit, error)
-	loadMutex       sync.RWMutex
-	loadArgsForCall []struct {
+	LoadCommitsStub        func(commands.LoadCommitsOptions) ([]*models.Commit, error)
+	loadCommitsMutex       sync.RWMutex
+	loadCommitsArgsForCall []struct {
 		arg1 commands.LoadCommitsOptions
 	}
-	loadReturns struct {
+	loadCommitsReturns struct {
 		result1 []*models.Commit
 		result2 error
 	}
-	loadReturnsOnCall map[int]struct {
+	loadCommitsReturnsOnCall map[int]struct {
 		result1 []*models.Commit
 		result2 error
 	}
@@ -580,16 +580,16 @@ func (fake *FakeICommitsMgr) GetMessageFirstLineReturnsOnCall(i int, result1 str
 	}{result1, result2}
 }
 
-func (fake *FakeICommitsMgr) Load(arg1 commands.LoadCommitsOptions) ([]*models.Commit, error) {
-	fake.loadMutex.Lock()
-	ret, specificReturn := fake.loadReturnsOnCall[len(fake.loadArgsForCall)]
-	fake.loadArgsForCall = append(fake.loadArgsForCall, struct {
+func (fake *FakeICommitsMgr) LoadCommits(arg1 commands.LoadCommitsOptions) ([]*models.Commit, error) {
+	fake.loadCommitsMutex.Lock()
+	ret, specificReturn := fake.loadCommitsReturnsOnCall[len(fake.loadCommitsArgsForCall)]
+	fake.loadCommitsArgsForCall = append(fake.loadCommitsArgsForCall, struct {
 		arg1 commands.LoadCommitsOptions
 	}{arg1})
-	stub := fake.LoadStub
-	fakeReturns := fake.loadReturns
-	fake.recordInvocation("Load", []interface{}{arg1})
-	fake.loadMutex.Unlock()
+	stub := fake.LoadCommitsStub
+	fakeReturns := fake.loadCommitsReturns
+	fake.recordInvocation("LoadCommits", []interface{}{arg1})
+	fake.loadCommitsMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
 	}
@@ -599,46 +599,46 @@ func (fake *FakeICommitsMgr) Load(arg1 commands.LoadCommitsOptions) ([]*models.C
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeICommitsMgr) LoadCallCount() int {
-	fake.loadMutex.RLock()
-	defer fake.loadMutex.RUnlock()
-	return len(fake.loadArgsForCall)
+func (fake *FakeICommitsMgr) LoadCommitsCallCount() int {
+	fake.loadCommitsMutex.RLock()
+	defer fake.loadCommitsMutex.RUnlock()
+	return len(fake.loadCommitsArgsForCall)
 }
 
-func (fake *FakeICommitsMgr) LoadCalls(stub func(commands.LoadCommitsOptions) ([]*models.Commit, error)) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = stub
+func (fake *FakeICommitsMgr) LoadCommitsCalls(stub func(commands.LoadCommitsOptions) ([]*models.Commit, error)) {
+	fake.loadCommitsMutex.Lock()
+	defer fake.loadCommitsMutex.Unlock()
+	fake.LoadCommitsStub = stub
 }
 
-func (fake *FakeICommitsMgr) LoadArgsForCall(i int) commands.LoadCommitsOptions {
-	fake.loadMutex.RLock()
-	defer fake.loadMutex.RUnlock()
-	argsForCall := fake.loadArgsForCall[i]
+func (fake *FakeICommitsMgr) LoadCommitsArgsForCall(i int) commands.LoadCommitsOptions {
+	fake.loadCommitsMutex.RLock()
+	defer fake.loadCommitsMutex.RUnlock()
+	argsForCall := fake.loadCommitsArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeICommitsMgr) LoadReturns(result1 []*models.Commit, result2 error) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = nil
-	fake.loadReturns = struct {
+func (fake *FakeICommitsMgr) LoadCommitsReturns(result1 []*models.Commit, result2 error) {
+	fake.loadCommitsMutex.Lock()
+	defer fake.loadCommitsMutex.Unlock()
+	fake.LoadCommitsStub = nil
+	fake.loadCommitsReturns = struct {
 		result1 []*models.Commit
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeICommitsMgr) LoadReturnsOnCall(i int, result1 []*models.Commit, result2 error) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = nil
-	if fake.loadReturnsOnCall == nil {
-		fake.loadReturnsOnCall = make(map[int]struct {
+func (fake *FakeICommitsMgr) LoadCommitsReturnsOnCall(i int, result1 []*models.Commit, result2 error) {
+	fake.loadCommitsMutex.Lock()
+	defer fake.loadCommitsMutex.Unlock()
+	fake.LoadCommitsStub = nil
+	if fake.loadCommitsReturnsOnCall == nil {
+		fake.loadCommitsReturnsOnCall = make(map[int]struct {
 			result1 []*models.Commit
 			result2 error
 		})
 	}
-	fake.loadReturnsOnCall[i] = struct {
+	fake.loadCommitsReturnsOnCall[i] = struct {
 		result1 []*models.Commit
 		result2 error
 	}{result1, result2}
@@ -976,8 +976,8 @@ func (fake *FakeICommitsMgr) Invocations() map[string][][]interface{} {
 	defer fake.getMessageMutex.RUnlock()
 	fake.getMessageFirstLineMutex.RLock()
 	defer fake.getMessageFirstLineMutex.RUnlock()
-	fake.loadMutex.RLock()
-	defer fake.loadMutex.RUnlock()
+	fake.loadCommitsMutex.RLock()
+	defer fake.loadCommitsMutex.RUnlock()
 	fake.mergeRebasingCommitsMutex.RLock()
 	defer fake.mergeRebasingCommitsMutex.RUnlock()
 	fake.revertMutex.RLock()

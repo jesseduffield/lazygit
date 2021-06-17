@@ -32,15 +32,15 @@ type FakeITagsMgr struct {
 	lightweightCreateReturnsOnCall map[int]struct {
 		result1 error
 	}
-	LoadStub        func() ([]*models.Tag, error)
-	loadMutex       sync.RWMutex
-	loadArgsForCall []struct {
+	LoadTagsStub        func() ([]*models.Tag, error)
+	loadTagsMutex       sync.RWMutex
+	loadTagsArgsForCall []struct {
 	}
-	loadReturns struct {
+	loadTagsReturns struct {
 		result1 []*models.Tag
 		result2 error
 	}
-	loadReturnsOnCall map[int]struct {
+	loadTagsReturnsOnCall map[int]struct {
 		result1 []*models.Tag
 		result2 error
 	}
@@ -171,15 +171,15 @@ func (fake *FakeITagsMgr) LightweightCreateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeITagsMgr) Load() ([]*models.Tag, error) {
-	fake.loadMutex.Lock()
-	ret, specificReturn := fake.loadReturnsOnCall[len(fake.loadArgsForCall)]
-	fake.loadArgsForCall = append(fake.loadArgsForCall, struct {
+func (fake *FakeITagsMgr) LoadTags() ([]*models.Tag, error) {
+	fake.loadTagsMutex.Lock()
+	ret, specificReturn := fake.loadTagsReturnsOnCall[len(fake.loadTagsArgsForCall)]
+	fake.loadTagsArgsForCall = append(fake.loadTagsArgsForCall, struct {
 	}{})
-	stub := fake.LoadStub
-	fakeReturns := fake.loadReturns
-	fake.recordInvocation("Load", []interface{}{})
-	fake.loadMutex.Unlock()
+	stub := fake.LoadTagsStub
+	fakeReturns := fake.loadTagsReturns
+	fake.recordInvocation("LoadTags", []interface{}{})
+	fake.loadTagsMutex.Unlock()
 	if stub != nil {
 		return stub()
 	}
@@ -189,39 +189,39 @@ func (fake *FakeITagsMgr) Load() ([]*models.Tag, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeITagsMgr) LoadCallCount() int {
-	fake.loadMutex.RLock()
-	defer fake.loadMutex.RUnlock()
-	return len(fake.loadArgsForCall)
+func (fake *FakeITagsMgr) LoadTagsCallCount() int {
+	fake.loadTagsMutex.RLock()
+	defer fake.loadTagsMutex.RUnlock()
+	return len(fake.loadTagsArgsForCall)
 }
 
-func (fake *FakeITagsMgr) LoadCalls(stub func() ([]*models.Tag, error)) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = stub
+func (fake *FakeITagsMgr) LoadTagsCalls(stub func() ([]*models.Tag, error)) {
+	fake.loadTagsMutex.Lock()
+	defer fake.loadTagsMutex.Unlock()
+	fake.LoadTagsStub = stub
 }
 
-func (fake *FakeITagsMgr) LoadReturns(result1 []*models.Tag, result2 error) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = nil
-	fake.loadReturns = struct {
+func (fake *FakeITagsMgr) LoadTagsReturns(result1 []*models.Tag, result2 error) {
+	fake.loadTagsMutex.Lock()
+	defer fake.loadTagsMutex.Unlock()
+	fake.LoadTagsStub = nil
+	fake.loadTagsReturns = struct {
 		result1 []*models.Tag
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeITagsMgr) LoadReturnsOnCall(i int, result1 []*models.Tag, result2 error) {
-	fake.loadMutex.Lock()
-	defer fake.loadMutex.Unlock()
-	fake.LoadStub = nil
-	if fake.loadReturnsOnCall == nil {
-		fake.loadReturnsOnCall = make(map[int]struct {
+func (fake *FakeITagsMgr) LoadTagsReturnsOnCall(i int, result1 []*models.Tag, result2 error) {
+	fake.loadTagsMutex.Lock()
+	defer fake.loadTagsMutex.Unlock()
+	fake.LoadTagsStub = nil
+	if fake.loadTagsReturnsOnCall == nil {
+		fake.loadTagsReturnsOnCall = make(map[int]struct {
 			result1 []*models.Tag
 			result2 error
 		})
 	}
-	fake.loadReturnsOnCall[i] = struct {
+	fake.loadTagsReturnsOnCall[i] = struct {
 		result1 []*models.Tag
 		result2 error
 	}{result1, result2}
@@ -234,8 +234,8 @@ func (fake *FakeITagsMgr) Invocations() map[string][][]interface{} {
 	defer fake.deleteMutex.RUnlock()
 	fake.lightweightCreateMutex.RLock()
 	defer fake.lightweightCreateMutex.RUnlock()
-	fake.loadMutex.RLock()
-	defer fake.loadMutex.RUnlock()
+	fake.loadTagsMutex.RLock()
+	defer fake.loadTagsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
