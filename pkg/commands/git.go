@@ -31,6 +31,7 @@ type IGit interface {
 	Diff() IDiffMgr
 
 	GetLog() *logrus.Entry
+	// TODO: ensure this works
 	WithSpan(span string) IGit
 	GetOS() oscommands.IOS
 }
@@ -73,6 +74,16 @@ func (c *Git) GetLog() *logrus.Entry {
 	return c.log
 }
 
+type MgrCtx struct {
+	ICommander
+
+	config IGitConfigMgr
+	repo   *gogit.Repository
+	log    *logrus.Entry
+	os     oscommands.IOS
+	tr     *i18n.TranslationSet
+}
+
 // NewGit it runs git commands
 func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, config config.AppConfigurer) (*Git, error) {
 	repo, dotGitDir, err := getRepoInfo(tr)
@@ -83,7 +94,16 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath(), oS.Quote)
 	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), config.GetUserConfigDir(), getGitConfigValue, log, repo, config.GetDebug(), dotGitDir)
 
-	tagsMgr := NewTagsMgr(commander, gitConfig)
+	mgrCtx := &MgrCtx{
+		ICommander: commander,
+		config:     gitConfig,
+		repo:       repo,
+		log:        log,
+		os:         oS,
+		tr:         tr,
+	}
+
+	tagsMgr := NewTagsMgr(mgrCtx)
 	remotesMgr := NewRemotesMgr(commander, gitConfig, repo)
 	branchesMgr := NewBranchesMgr(commander, gitConfig, log)
 	submodulesMgr := NewSubmodulesMgr(commander, gitConfig, log)

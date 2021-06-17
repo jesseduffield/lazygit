@@ -16,19 +16,11 @@ type ITagsMgr interface {
 }
 
 type TagsMgr struct {
-	ICommander
-
-	config IGitConfigMgr
+	*MgrCtx
 }
 
-func NewTagsMgr(
-	commander ICommander,
-	config IGitConfigMgr,
-) *TagsMgr {
-	return &TagsMgr{
-		ICommander: commander,
-		config:     config,
-	}
+func NewTagsMgr(mgrCtx *MgrCtx) *TagsMgr {
+	return &TagsMgr{MgrCtx: mgrCtx}
 }
 
 func (c *TagsMgr) LoadTags() ([]*models.Tag, error) {
