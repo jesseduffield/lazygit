@@ -123,7 +123,7 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		InitialContent: "origin",
 		HandleConfirm: func(response string) error {
 			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
-				err := gui.Git.WithSpan(gui.Tr.Spans.PushTag).PushRef(response, tag.Name)
+				err := gui.Git.WithSpan(gui.Tr.Spans.PushTag).Sync().PushRef(response, tag.Name)
 				if err != nil {
 					return gui.SurfaceError(err)
 				}

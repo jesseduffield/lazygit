@@ -90,7 +90,7 @@ func (gui *PushFilesHandler) promptToSetDestinationAndPush(opts commands.PushOpt
 
 func (gui *PushFilesHandler) attemptToPush(opts commands.PushOpts) error {
 	return gui.WithPopupWaitingStatus(gui.GetTr().PushWait, func() error {
-		rejected, err := gui.GetGit().WithSpan(gui.GetTr().Spans.Push).Push(opts)
+		rejected, err := gui.GetGit().WithSpan(gui.GetTr().Spans.Push).Sync().Push(opts)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}

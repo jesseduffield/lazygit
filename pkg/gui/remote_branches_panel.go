@@ -57,7 +57,7 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 		Prompt: message,
 		HandleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				err := gui.Git.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteRef(remoteBranch.RemoteName, remoteBranch.Name)
+				err := gui.Git.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).Sync().DeleteRemoteRef(remoteBranch.RemoteName, remoteBranch.Name)
 				if err != nil {
 					return gui.SurfaceError(err)
 				}

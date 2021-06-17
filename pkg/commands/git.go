@@ -41,6 +41,7 @@ type Git struct {
 	submodulesMgr        *SubmodulesMgr
 	statusMgr            *StatusMgr
 	stashMgr             *StashMgr
+	syncMgr              *SyncMgr
 	log                  *logrus.Entry
 	os                   oscommands.IOS
 	repo                 *gogit.Repository
@@ -48,9 +49,6 @@ type Git struct {
 	config               config.AppConfigurer
 	dotGitDir            string
 	onSuccessfulContinue func() error
-
-	promptUserForCredential func(CredentialKind) string
-	handleCredentialError   func(error)
 }
 
 func (c *Git) GetLog() *logrus.Entry {
@@ -84,6 +82,7 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	commitsMgr := NewCommitsMgr(commander, gitConfig, branchesMgr, statusMgr, log, oS, tr, dotGitDir)
 	stashMgr := NewStashMgr(commander, gitConfig, oS, worktreeMgr)
 	reflogMgr := NewReflogMgr(commander, gitConfig)
+	syncMgr := NewSyncMgr(commander, gitConfig, oS)
 
 	gitCommand := &Git{
 		Commander:     commander,
@@ -97,6 +96,7 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 		submodulesMgr: submodulesMgr,
 		statusMgr:     statusMgr,
 		stashMgr:      stashMgr,
+		syncMgr:       syncMgr,
 		log:           log,
 		os:            oS,
 		tr:            tr,
@@ -142,6 +142,10 @@ func (c *Git) Remotes() IRemotesMgr {
 
 func (c *Git) Reflog() IReflogMgr {
 	return c.reflogMgr
+}
+
+func (c *Git) Sync() ISyncMgr {
+	return c.syncMgr
 }
 
 func (c *Git) Quote(str string) string {

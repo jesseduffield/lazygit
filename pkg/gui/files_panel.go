@@ -667,7 +667,7 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 
 	gitCommand := gui.Git.WithSpan(opts.span)
 
-	err := gitCommand.Fetch(
+	err := gitCommand.Sync().Fetch(
 		commands.FetchOptions{
 			RemoteName: opts.RemoteName,
 			BranchName: opts.BranchName,

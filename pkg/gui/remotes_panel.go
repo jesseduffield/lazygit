@@ -178,7 +178,7 @@ func (gui *Gui) handleFetchRemote() error {
 		gui.Mutexes.FetchMutex.Lock()
 		defer gui.Mutexes.FetchMutex.Unlock()
 
-		err := gui.Git.FetchRemote(remote.Name)
+		err := gui.Git.Sync().FetchRemote(remote.Name)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}

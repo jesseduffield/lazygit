@@ -447,7 +447,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.Git, oSCommand *oscommands.O
 		ShowExtrasWindow:     config.GetUserConfig().Gui.ShowCommandLog,
 	}
 
-	gui.Git.SetCredentialHandlers(gui.PromptUserForCredential, gui.handleCredentialError)
+	gui.Git.Sync().SetCredentialHandlers(gui.PromptUserForCredential, gui.handleCredentialError)
 
 	gui.resetState(filterPath, false)
 

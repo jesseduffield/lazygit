@@ -21,6 +21,7 @@ type IGit interface {
 	Tags() ITagsMgr
 	Remotes() IRemotesMgr
 	Reflog() IReflogMgr
+	Sync() ISyncMgr
 
 	// config
 	IGitConfigMgr
@@ -76,14 +77,4 @@ type IGit interface {
 	RebaseBranch(branchName string) error
 	GenericMergeOrRebaseAction(commandType string, command string) error
 	CherryPickCommits(commits []*models.Commit) error
-
-	// sync
-	Push(opts PushOpts) (bool, error)
-	Fetch(opts FetchOptions) error
-	FetchInBackground(opts FetchOptions) error
-	FastForward(branchName string, remoteName string, remoteBranchName string) error
-	FetchRemote(remoteName string) error
-	PushRef(remoteName string, refName string) error
-	DeleteRemoteRef(remoteName string, ref string) error
-	SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error))
 }

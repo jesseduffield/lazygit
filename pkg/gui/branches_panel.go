@@ -398,7 +398,7 @@ func (gui *Gui) handleFastForward() error {
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
 			_ = gui.pullWithMode("ff-only", PullFilesOptions{span: span})
 		} else {
-			err := gui.Git.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName)
+			err := gui.Git.WithSpan(span).Sync().FastForward(branch.Name, remoteName, remoteBranchName)
 			if err != nil {
 				return gui.SurfaceError(err)
 			}
