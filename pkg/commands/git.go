@@ -36,12 +36,6 @@ type IGit interface {
 	GetOS() oscommands.IOS
 }
 
-// this takes something like:
-// * (HEAD detached at 264fc6f5)
-//	remotes
-// and returns '264fc6f5' as the second match
-const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
-
 // Git is our main git interface
 type Git struct {
 	*Commander
@@ -62,12 +56,11 @@ type Git struct {
 	rebasingMgr   *RebasingMgr
 	diffMgr       *DiffMgr
 
-	log       *logrus.Entry
-	os        oscommands.IOS
-	repo      *gogit.Repository
-	tr        *i18n.TranslationSet
-	config    config.AppConfigurer
-	dotGitDir string
+	log    *logrus.Entry
+	os     oscommands.IOS
+	repo   *gogit.Repository
+	tr     *i18n.TranslationSet
+	config config.AppConfigurer
 }
 
 func (c *Git) GetLog() *logrus.Entry {
@@ -92,7 +85,16 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	}
 
 	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath(), oS.Quote)
-	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), config.GetUserConfigDir(), getGitConfigValue, log, repo, config.GetDebug(), dotGitDir)
+	gitConfig := NewGitConfigMgr(
+		commander,
+		config.GetUserConfig(),
+		config.GetUserConfigDir(),
+		getGitConfigValue,
+		log,
+		repo,
+		config.GetDebug(),
+		dotGitDir,
+	)
 
 	mgrCtx := &MgrCtx{
 		ICommander: commander,
@@ -140,7 +142,6 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 		tr:            tr,
 		repo:          repo,
 		config:        config,
-		dotGitDir:     dotGitDir,
 	}
 
 	return gitCommand, nil

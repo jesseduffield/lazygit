@@ -11,6 +11,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// this takes something like:
+// * (HEAD detached at 264fc6f5)
+//	remotes
+// and returns '264fc6f5' as the second match
+const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
+
 //counterfeiter:generate . IBranchesMgr
 type IBranchesMgr interface {
 	NewBranch(name string, base string) error
