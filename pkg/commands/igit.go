@@ -20,6 +20,7 @@ type IGit interface {
 	Stash() IStashMgr
 	Tags() ITagsMgr
 	Remotes() IRemotesMgr
+	Reflog() IReflogMgr
 
 	// config
 	IGitConfigMgr
@@ -32,11 +33,10 @@ type IGit interface {
 	ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error)
 	ShowFileDiffCmdObj(from string, to string, reverse bool, path string, plain bool, showRenames bool) ICmdObj
 	DiffEndArgs(from string, to string, reverse bool, path string) string
+	GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error)
 
 	// commands
 	ICommander
-
-	SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error))
 
 	// common
 	GetLog() *logrus.Entry
@@ -47,10 +47,6 @@ type IGit interface {
 	FlowStart(branchType string, name string) ICmdObj
 	FlowFinish(branchType string, name string) ICmdObj
 	GetGitFlowRegexpConfig() (string, error)
-
-	// loaders
-	GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error)
-	GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error)
 
 	// patch
 	NewPatchManager() *patch.PatchManager
@@ -89,4 +85,5 @@ type IGit interface {
 	FetchRemote(remoteName string) error
 	PushRef(remoteName string, refName string) error
 	DeleteRemoteRef(remoteName string, ref string) error
+	SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error))
 }

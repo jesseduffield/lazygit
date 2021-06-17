@@ -1,6 +1,7 @@
 package models
 
 // CommitFile : A git commit file
+// TODO: this should really be renamed to 'DiffFile' because it need not be a file contained within a commit: it could be from any diff
 type CommitFile struct {
 	// TODO: rename this to Path
 	Name string

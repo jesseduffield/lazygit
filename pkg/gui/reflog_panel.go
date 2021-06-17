@@ -53,7 +53,7 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
-		commits, onlyObtainedNewReflogCommits, err := gui.Git.GetReflogCommits(lastReflogCommit, filterPath)
+		commits, onlyObtainedNewReflogCommits, err := gui.Git.Reflog().Load(lastReflogCommit, filterPath)
 		if err != nil {
 			return gui.SurfaceError(err)
 		}

@@ -35,6 +35,7 @@ type Git struct {
 	tagsMgr              *TagsMgr
 	remotesMgr           *RemotesMgr
 	commitsMgr           *CommitsMgr
+	reflogMgr            *ReflogMgr
 	branchesMgr          *BranchesMgr
 	worktreeMgr          *WorktreeMgr
 	submodulesMgr        *SubmodulesMgr
@@ -82,12 +83,14 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	statusMgr := NewStatusMgr(commander, oS, repo, dotGitDir, log)
 	commitsMgr := NewCommitsMgr(commander, gitConfig, branchesMgr, statusMgr, log, oS, tr, dotGitDir)
 	stashMgr := NewStashMgr(commander, gitConfig, oS, worktreeMgr)
+	reflogMgr := NewReflogMgr(commander, gitConfig)
 
 	gitCommand := &Git{
 		Commander:     commander,
 		GitConfigMgr:  gitConfig,
 		tagsMgr:       tagsMgr,
 		remotesMgr:    remotesMgr,
+		reflogMgr:     reflogMgr,
 		commitsMgr:    commitsMgr,
 		branchesMgr:   branchesMgr,
 		worktreeMgr:   worktreeMgr,
@@ -135,6 +138,10 @@ func (c *Git) Tags() ITagsMgr {
 
 func (c *Git) Remotes() IRemotesMgr {
 	return c.remotesMgr
+}
+
+func (c *Git) Reflog() IReflogMgr {
+	return c.reflogMgr
 }
 
 func (c *Git) Quote(str string) string {

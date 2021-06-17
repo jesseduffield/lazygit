@@ -2859,7 +2859,7 @@ func (fake *FakeIGit) GetPushToCurrentReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeIGit) GetReflogCommits(arg1 *models.Commit, arg2 string) ([]*models.Commit, bool, error) {
+func (fake *FakeIGit) Load(arg1 *models.Commit, arg2 string) ([]*models.Commit, bool, error) {
 	fake.getReflogCommitsMutex.Lock()
 	ret, specificReturn := fake.getReflogCommitsReturnsOnCall[len(fake.getReflogCommitsArgsForCall)]
 	fake.getReflogCommitsArgsForCall = append(fake.getReflogCommitsArgsForCall, struct {
@@ -2868,7 +2868,7 @@ func (fake *FakeIGit) GetReflogCommits(arg1 *models.Commit, arg2 string) ([]*mod
 	}{arg1, arg2})
 	stub := fake.GetReflogCommitsStub
 	fakeReturns := fake.getReflogCommitsReturns
-	fake.recordInvocation("GetReflogCommits", []interface{}{arg1, arg2})
+	fake.recordInvocation("Load", []interface{}{arg1, arg2})
 	fake.getReflogCommitsMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)

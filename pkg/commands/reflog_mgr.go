@@ -7,17 +7,39 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
-// GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
+//counterfeiter:generate . IReflogMgr
+type IReflogMgr interface {
+	Load(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error)
+}
+
+type ReflogMgr struct {
+	ICommander
+
+	config IGitConfigMgr
+}
+
+func NewReflogMgr(
+	commander ICommander,
+	config IGitConfigMgr,
+) *ReflogMgr {
+	return &ReflogMgr{
+		ICommander: commander,
+		config:     config,
+	}
+}
+
+// Load only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
-func (c *Git) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
+func (c *ReflogMgr) Load(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
 	commits := make([]*models.Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 
 	filterPathArg := ""
 	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" --follow -- %s", c.GetOS().Quote(filterPath))
+		filterPathArg = fmt.Sprintf(" --follow -- %s", c.Quote(filterPath))
 	}
 
 	cmdObj := BuildGitCmdObjFromStr(fmt.Sprintf("reflog --abbrev=20 --date=unix %s", filterPathArg))
