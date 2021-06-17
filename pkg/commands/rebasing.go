@@ -10,9 +10,73 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/sirupsen/logrus"
 )
 
-func (c *Git) GetRewordCommitCmdObj(commits []*models.Commit, index int) (ICmdObj, error) {
+//counterfeiter:generate . IRebasingMgr
+type IRebasingMgr interface {
+	DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error
+	GenericAbortCmdObj() ICmdObj
+	GenericContinueCmdObj() ICmdObj
+	GenericMergeOrRebaseCmdObj(action string) ICmdObj
+	AbortRebase() error
+	ContinueRebase() error
+	MergeOrRebase() string
+	GetRewordCommitCmdObj(commits []*models.Commit, index int) (ICmdObj, error)
+	MoveCommitDown(commits []*models.Commit, index int) error
+	InteractiveRebase(commits []*models.Commit, index int, action string) error
+	InteractiveRebaseCmdObj(baseSha string, todo string, overrideEditor bool) ICmdObj
+	GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex int, action string) (string, string, error)
+	AmendTo(sha string) error
+	EditRebaseTodo(index int, action string) error
+	MoveTodoDown(index int) error
+	SquashAllAboveFixupCommits(sha string) error
+	BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIndex int) error
+	RebaseBranch(branchName string) error
+	GenericMergeOrRebaseAction(commandType string, command string) error
+	CherryPickCommits(commits []*models.Commit) error
+}
+
+type RebasingMgr struct {
+	ICommander
+
+	config IGitConfigMgr
+
+	tr          *i18n.TranslationSet
+	os          oscommands.IOS
+	log         *logrus.Entry
+	dotGitDir   string
+	commitsMgr  ICommitsMgr
+	worktreeMgr IWorktreeMgr
+	statusMgr   IStatusMgr
+}
+
+func NewRebasingMgr(
+	commander ICommander,
+	config IGitConfigMgr,
+	tr *i18n.TranslationSet,
+	os oscommands.IOS,
+	log *logrus.Entry,
+	dotGitDir string,
+	commitsMgr ICommitsMgr,
+	worktreeMgr IWorktreeMgr,
+	statusMgr IStatusMgr,
+) *RebasingMgr {
+	return &RebasingMgr{
+		ICommander:  commander,
+		config:      config,
+		tr:          tr,
+		os:          os,
+		log:         log,
+		dotGitDir:   dotGitDir,
+		commitsMgr:  commitsMgr,
+		worktreeMgr: worktreeMgr,
+		statusMgr:   statusMgr,
+	}
+}
+
+func (c *RebasingMgr) GetRewordCommitCmdObj(commits []*models.Commit, index int) (ICmdObj, error) {
 	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, "reword")
 	if err != nil {
 		return nil, err
@@ -21,7 +85,7 @@ func (c *Git) GetRewordCommitCmdObj(commits []*models.Commit, index int) (ICmdOb
 	return c.InteractiveRebaseCmdObj(sha, todo, false), nil
 }
 
-func (c *Git) MoveCommitDown(commits []*models.Commit, index int) error {
+func (c *RebasingMgr) MoveCommitDown(commits []*models.Commit, index int) error {
 	// we must ensure that we have at least two commits after the selected one
 	if len(commits) <= index+2 {
 		// assuming they aren't picking the bottom commit
@@ -39,7 +103,7 @@ func (c *Git) MoveCommitDown(commits []*models.Commit, index int) error {
 	)
 }
 
-func (c *Git) InteractiveRebase(commits []*models.Commit, index int, action string) error {
+func (c *RebasingMgr) InteractiveRebase(commits []*models.Commit, index int, action string) error {
 	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, action)
 	if err != nil {
 		return err
@@ -51,8 +115,8 @@ func (c *Git) InteractiveRebase(commits []*models.Commit, index int, action stri
 // InteractiveRebaseCmdObj returns the command object for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
-func (c *Git) InteractiveRebaseCmdObj(baseSha string, todo string, overrideEditor bool) ICmdObj {
-	ex := c.GetOS().GetLazygitPath()
+func (c *RebasingMgr) InteractiveRebaseCmdObj(baseSha string, todo string, overrideEditor bool) ICmdObj {
+	ex := c.os.GetLazygitPath()
 
 	debug := "FALSE"
 	if c.config.GetDebug() {
@@ -66,7 +130,7 @@ func (c *Git) InteractiveRebaseCmdObj(baseSha string, todo string, overrideEdito
 	if todo == "" {
 		gitSequenceEditor = "true"
 	} else {
-		c.GetOS().LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
+		c.os.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
 	}
 
 	SetDefaultEnvVars(cmdObj)
@@ -86,7 +150,7 @@ func (c *Git) InteractiveRebaseCmdObj(baseSha string, todo string, overrideEdito
 	return cmdObj
 }
 
-func (c *Git) GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex int, action string) (string, string, error) {
+func (c *RebasingMgr) GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex int, action string) (string, string, error) {
 	baseIndex := actionIndex + 1
 
 	if len(commits) <= baseIndex {
@@ -121,8 +185,8 @@ func (c *Git) GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex in
 }
 
 // AmendTo amends the given commit with whatever files are staged
-func (c *Git) AmendTo(sha string) error {
-	if err := c.Commits().CreateFixupCommit(sha); err != nil {
+func (c *RebasingMgr) AmendTo(sha string) error {
+	if err := c.commitsMgr.CreateFixupCommit(sha); err != nil {
 		return err
 	}
 
@@ -130,7 +194,7 @@ func (c *Git) AmendTo(sha string) error {
 }
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
-func (c *Git) EditRebaseTodo(index int, action string) error {
+func (c *RebasingMgr) EditRebaseTodo(index int, action string) error {
 	fileName := filepath.Join(c.dotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -150,7 +214,7 @@ func (c *Git) EditRebaseTodo(index int, action string) error {
 	return ioutil.WriteFile(fileName, []byte(result), 0644)
 }
 
-func (c *Git) getTodoCommitCount(content []string) int {
+func (c *RebasingMgr) getTodoCommitCount(content []string) int {
 	// count lines that are not blank and are not comments
 	commitCount := 0
 	for _, line := range content {
@@ -162,7 +226,7 @@ func (c *Git) getTodoCommitCount(content []string) int {
 }
 
 // MoveTodoDown moves a rebase todo item down by one position
-func (c *Git) MoveTodoDown(index int) error {
+func (c *RebasingMgr) MoveTodoDown(index int) error {
 	fileName := filepath.Join(c.dotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -181,7 +245,7 @@ func (c *Git) MoveTodoDown(index int) error {
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
-func (c *Git) SquashAllAboveFixupCommits(sha string) error {
+func (c *RebasingMgr) SquashAllAboveFixupCommits(sha string) error {
 	cmdObj := oscommands.NewCmdObjFromStr(fmt.Sprintf("rebase --interactive --autostash --autosquash %s^", sha))
 	c.SkipEditor(cmdObj)
 
@@ -190,7 +254,7 @@ func (c *Git) SquashAllAboveFixupCommits(sha string) error {
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
 // commit and pick all others. After this you'll want to call `c.ContinueRebase`
-func (c *Git) BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIndex int) error {
+func (c *RebasingMgr) BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIndex int) error {
 	if len(commits)-1 < commitIndex {
 		return errors.New("index outside of range of commits")
 	}
@@ -198,7 +262,7 @@ func (c *Git) BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIn
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
-	if c.UsingGpg() {
+	if c.config.UsingGpg() {
 		return errors.New(c.tr.DisabledForGPG)
 	}
 
@@ -215,20 +279,20 @@ func (c *Git) BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIn
 }
 
 // RebaseBranch interactive rebases onto a branch
-func (c *Git) RebaseBranch(branchName string) error {
+func (c *RebasingMgr) RebaseBranch(branchName string) error {
 	return c.Run(c.InteractiveRebaseCmdObj(branchName, "", false))
 }
 
-func (c *Git) AbortRebase() error {
+func (c *RebasingMgr) AbortRebase() error {
 	return c.GenericMergeOrRebaseAction("rebase", "abort")
 }
 
-func (c *Git) ContinueRebase() error {
+func (c *RebasingMgr) ContinueRebase() error {
 	return c.GenericMergeOrRebaseAction("rebase", "continue")
 }
 
-func (c *Git) MergeOrRebase() string {
-	if c.Status().IsMerging() {
+func (c *RebasingMgr) MergeOrRebase() string {
+	if c.statusMgr.IsMerging() {
 		return "merge"
 	}
 
@@ -237,7 +301,7 @@ func (c *Git) MergeOrRebase() string {
 
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
-func (c *Git) GenericMergeOrRebaseAction(commandType string, command string) error {
+func (c *RebasingMgr) GenericMergeOrRebaseAction(commandType string, command string) error {
 	cmdObj := c.BuildGitCmdObjFromStr(fmt.Sprintf(
 		"%s --%s",
 		commandType,
@@ -269,7 +333,7 @@ func (c *Git) GenericMergeOrRebaseAction(commandType string, command string) err
 }
 
 // CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
-func (c *Git) CherryPickCommits(commits []*models.Commit) error {
+func (c *RebasingMgr) CherryPickCommits(commits []*models.Commit) error {
 	todo := ""
 	for _, commit := range commits {
 		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
@@ -279,25 +343,25 @@ func (c *Git) CherryPickCommits(commits []*models.Commit) error {
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
-func (c *Git) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
+func (c *RebasingMgr) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
 	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
 		return err
 	}
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
 	if err := c.RunGitCmdFromStr(fmt.Sprintf("cat-file -e HEAD^:%s", fileName)); err != nil {
-		if err := c.GetOS().Remove(fileName); err != nil {
+		if err := c.os.Remove(fileName); err != nil {
 			return err
 		}
-		if err := c.Worktree().StageFile(fileName); err != nil {
+		if err := c.worktreeMgr.StageFile(fileName); err != nil {
 			return err
 		}
-	} else if err := c.Worktree().CheckoutFile("HEAD^", fileName); err != nil {
+	} else if err := c.worktreeMgr.CheckoutFile("HEAD^", fileName); err != nil {
 		return err
 	}
 
 	// amend the commit
-	err := c.Commits().AmendHead()
+	err := c.commitsMgr.AmendHead()
 	if err != nil {
 		return err
 	}

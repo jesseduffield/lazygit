@@ -32,23 +32,27 @@ const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 type Git struct {
 	*Commander
 	*GitConfigMgr
-	tagsMgr              *TagsMgr
-	remotesMgr           *RemotesMgr
-	commitsMgr           *CommitsMgr
-	reflogMgr            *ReflogMgr
-	branchesMgr          *BranchesMgr
-	worktreeMgr          *WorktreeMgr
-	submodulesMgr        *SubmodulesMgr
-	statusMgr            *StatusMgr
-	stashMgr             *StashMgr
-	syncMgr              *SyncMgr
-	flowMgr              *FlowMgr
-	log                  *logrus.Entry
-	os                   oscommands.IOS
-	repo                 *gogit.Repository
-	tr                   *i18n.TranslationSet
-	config               config.AppConfigurer
-	dotGitDir            string
+
+	tagsMgr       *TagsMgr
+	remotesMgr    *RemotesMgr
+	commitsMgr    *CommitsMgr
+	reflogMgr     *ReflogMgr
+	branchesMgr   *BranchesMgr
+	worktreeMgr   *WorktreeMgr
+	submodulesMgr *SubmodulesMgr
+	statusMgr     *StatusMgr
+	stashMgr      *StashMgr
+	syncMgr       *SyncMgr
+	flowMgr       *FlowMgr
+	rebasingMgr   *RebasingMgr
+
+	log       *logrus.Entry
+	os        oscommands.IOS
+	repo      *gogit.Repository
+	tr        *i18n.TranslationSet
+	config    config.AppConfigurer
+	dotGitDir string
+
 	onSuccessfulContinue func() error
 }
 
@@ -73,7 +77,7 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	}
 
 	commander := NewCommander(oS.RunWithOutput, log, oS.GetLazygitPath(), oS.Quote)
-	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), config.GetUserConfigDir(), getGitConfigValue, log)
+	gitConfig := NewGitConfigMgr(commander, config.GetUserConfig(), config.GetUserConfigDir(), getGitConfigValue, log, repo, config.GetDebug())
 	tagsMgr := NewTagsMgr(commander, gitConfig)
 	remotesMgr := NewRemotesMgr(commander, gitConfig, repo)
 	branchesMgr := NewBranchesMgr(commander, gitConfig, log)
@@ -85,6 +89,7 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	reflogMgr := NewReflogMgr(commander, gitConfig)
 	syncMgr := NewSyncMgr(commander, gitConfig, oS)
 	flowMgr := NewFlowMgr(commander, gitConfig)
+	rebasingMgr := NewRebasingMgr(commander, gitConfig, tr, oS, log, dotGitDir, commitsMgr, worktreeMgr, statusMgr)
 
 	gitCommand := &Git{
 		Commander:     commander,
@@ -100,6 +105,7 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 		stashMgr:      stashMgr,
 		syncMgr:       syncMgr,
 		flowMgr:       flowMgr,
+		rebasingMgr:   rebasingMgr,
 		log:           log,
 		os:            oS,
 		tr:            tr,

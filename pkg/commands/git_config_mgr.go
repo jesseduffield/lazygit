@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	gogit "github.com/jesseduffield/go-git/v5"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -19,17 +20,21 @@ type GitConfigMgr struct {
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	pushToCurrent bool
 
+	repo              *gogit.Repository
 	userConfig        *config.UserConfig
 	userConfigDir     string
 	getGitConfigValue getGitConfigValueFunc
+	debug             bool
 }
 
-func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, userConfigDir string, getGitConfigValue getGitConfigValueFunc, log *logrus.Entry) *GitConfigMgr {
+func NewGitConfigMgr(commander ICommander, userConfig *config.UserConfig, userConfigDir string, getGitConfigValue getGitConfigValueFunc, log *logrus.Entry, repo *gogit.Repository, debug bool) *GitConfigMgr {
 	gitConfig := &GitConfigMgr{
 		ICommander:        commander,
 		getGitConfigValue: getGitConfigValue,
 		userConfig:        userConfig,
 		userConfigDir:     userConfigDir,
+		repo:              repo,
+		debug:             debug,
 	}
 
 	output, err := commander.RunWithOutput(
@@ -108,8 +113,7 @@ func (c *GitConfigMgr) UsingGpg() bool {
 	return value == "true" || value == "1" || value == "yes" || value == "on"
 }
 
-// TODO: migrate to git config mgr
-func (c *Git) FindRemoteForBranchInConfig(branchName string) (string, error) {
+func (c *GitConfigMgr) FindRemoteForBranchInConfig(branchName string) (string, error) {
 	conf, err := c.repo.Config()
 	if err != nil {
 		return "", err
@@ -126,4 +130,8 @@ func (c *Git) FindRemoteForBranchInConfig(branchName string) (string, error) {
 
 func (c *GitConfigMgr) GetPushToCurrent() bool {
 	return c.pushToCurrent
+}
+
+func (c *GitConfigMgr) GetDebug() bool {
+	return c.debug
 }
