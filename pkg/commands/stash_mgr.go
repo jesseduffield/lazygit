@@ -13,7 +13,7 @@ type IStashMgr interface {
 	Save(message string) error
 	ShowEntryCmdObj(index int) ICmdObj
 	SaveStagedChanges(message string) error
-	GetEntries(filterPath string) []*models.StashEntry
+	LoadEntries(filterPath string) []*models.StashEntry
 }
 
 type StashMgr struct {
@@ -37,7 +37,7 @@ func NewStashMgr(commander ICommander, config IGitConfigMgr, oS oscommands.IOS, 
 	}
 }
 
-func (c *StashMgr) GetEntries(filterPath string) []*models.StashEntry {
+func (c *StashMgr) LoadEntries(filterPath string) []*models.StashEntry {
 	return c.stashEntriesLoader.Load(filterPath)
 }
 

@@ -5,7 +5,6 @@ import (
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/sirupsen/logrus"
 )
 

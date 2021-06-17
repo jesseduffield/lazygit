@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -13,7 +12,7 @@ import (
 type ITagsMgr interface {
 	Delete(tagName string) error
 	LightweightCreate(tagName string, commitSha string) error
-	Load() ([]*models.Tag, error)
+	LoadTags() ([]*models.Tag, error)
 }
 
 type TagsMgr struct {
@@ -32,7 +31,7 @@ func NewTagsMgr(
 	}
 }
 
-func (c *TagsMgr) Load() ([]*models.Tag, error) {
+func (c *TagsMgr) LoadTags() ([]*models.Tag, error) {
 	// get remote branches, sorted  by creation date (descending)
 	// see: https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sortltkeygt
 	remoteBranchesStr, err := c.RunWithOutput(

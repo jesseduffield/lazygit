@@ -41,7 +41,7 @@ func (gui *Gui) handleRemoteSelect() error {
 func (gui *Gui) refreshRemotes() error {
 	prevSelectedRemote := gui.getSelectedRemote()
 
-	remotes, err := gui.Git.Remotes().Load()
+	remotes, err := gui.Git.Remotes().LoadRemotes()
 	if err != nil {
 		return gui.SurfaceError(err)
 	}

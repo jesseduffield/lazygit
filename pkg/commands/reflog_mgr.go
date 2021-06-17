@@ -7,12 +7,11 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
 //counterfeiter:generate . IReflogMgr
 type IReflogMgr interface {
-	Load(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error)
+	LoadReflog(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error)
 }
 
 type ReflogMgr struct {
@@ -31,9 +30,9 @@ func NewReflogMgr(
 	}
 }
 
-// Load only returns the new reflog commits since the given lastReflogCommit
+// LoadReflog only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
-func (c *ReflogMgr) Load(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
+func (c *ReflogMgr) LoadReflog(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
 	commits := make([]*models.Commit, 0)
 	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 

@@ -62,7 +62,7 @@ func (gui *Gui) handleTagSelect() error {
 
 // this is a controller: it can't access tags directly. Or can it? It should be able to get but not set. But that's exactly what I'm doing here, setting it. but through a mutator which encapsulates the event.
 func (gui *Gui) refreshTags() error {
-	tags, err := gui.Git.Tags().Load()
+	tags, err := gui.Git.Tags().LoadTags()
 	if err != nil {
 		return gui.SurfaceError(err)
 	}

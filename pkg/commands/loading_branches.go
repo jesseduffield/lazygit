@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -23,15 +22,15 @@ import (
 
 type getCurrentBranchNameFunc func() (string, string, error)
 
-// BranchListBuilder returns a list of Branch objects for the current repo
-type BranchListBuilder struct {
+// BranchesLoader returns a list of Branch objects for the current repo
+type BranchesLoader struct {
 	commander            ICommander
 	getCurrentBranchName getCurrentBranchNameFunc
 	log                  *logrus.Entry
 }
 
-func NewBranchListBuilder(commander ICommander, getCurrentBranchname getCurrentBranchNameFunc, log *logrus.Entry) *BranchListBuilder {
-	return &BranchListBuilder{
+func NewBranchesLoader(commander ICommander, getCurrentBranchname getCurrentBranchNameFunc, log *logrus.Entry) *BranchesLoader {
+	return &BranchesLoader{
 		commander:            commander,
 		getCurrentBranchName: getCurrentBranchname,
 		log:                  log,
@@ -39,7 +38,7 @@ func NewBranchListBuilder(commander ICommander, getCurrentBranchname getCurrentB
 }
 
 // Build the list of branches for the current repo
-func (b *BranchListBuilder) GetBranches(reflogCommits []*models.Commit) []*models.Branch {
+func (b *BranchesLoader) Load(reflogCommits []*models.Commit) []*models.Branch {
 	branches := b.obtainBranches()
 
 	reflogBranches := b.obtainReflogBranches(reflogCommits)
@@ -83,7 +82,7 @@ outer:
 	return branches
 }
 
-func (b *BranchListBuilder) obtainBranches() []*models.Branch {
+func (b *BranchesLoader) obtainBranches() []*models.Branch {
 	output, err := b.commander.RunWithOutput(
 		b.commander.BuildGitCmdObjFromStr(
 			`for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`,
@@ -144,7 +143,7 @@ func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
 // int form against the branch to recalculate the time ago
-func (b *BranchListBuilder) obtainReflogBranches(reflogCommits []*models.Commit) []*models.Branch {
+func (b *BranchesLoader) obtainReflogBranches(reflogCommits []*models.Commit) []*models.Branch {
 	foundBranchesMap := map[string]bool{}
 	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
 	reflogBranches := make([]*models.Branch, 0, len(reflogCommits))

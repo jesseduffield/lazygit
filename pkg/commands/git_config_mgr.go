@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	gogit "github.com/jesseduffield/go-git/v5"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"

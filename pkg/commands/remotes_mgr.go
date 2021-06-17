@@ -8,7 +8,6 @@ import (
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
 //counterfeiter:generate . IRemotesMgr
@@ -19,7 +18,7 @@ type IRemotesMgr interface {
 	UpdateUrl(remoteName string, updatedUrl string) error
 	RemoteBranchExists(branch *models.Branch) bool
 	GetCurrentRemoteUrl() string
-	Load() ([]*models.Remote, error)
+	LoadRemotes() ([]*models.Remote, error)
 }
 
 type RemotesMgr struct {
@@ -74,7 +73,7 @@ func (c *RemotesMgr) GetCurrentRemoteUrl() string {
 	return c.config.GetConfigValue("remote.origin.url")
 }
 
-func (c *RemotesMgr) Load() ([]*models.Remote, error) {
+func (c *RemotesMgr) LoadRemotes() ([]*models.Remote, error) {
 	// get remote branches
 	remoteBranchesStr, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr("branch -r"),

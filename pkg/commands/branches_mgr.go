@@ -26,15 +26,15 @@ type IBranchesMgr interface {
 	SetUpstream(upstream string, branchName string) error
 	RenameBranch(oldName string, newName string) error
 	ResetToRef(ref string, strength ResetStrength, opts ResetToRefOpts) error
-	GetBranches(reflogCommits []*models.Commit) []*models.Branch
+	LoadBranches(reflogCommits []*models.Commit) []*models.Branch
 }
 
 type BranchesMgr struct {
 	ICommander
 
-	branchListBuilder *BranchListBuilder
-	config            IGitConfigMgr
-	log               *logrus.Entry
+	branchesLoader *BranchesLoader
+	config         IGitConfigMgr
+	log            *logrus.Entry
 }
 
 func NewBranchesMgr(commander ICommander, config IGitConfigMgr, log *logrus.Entry) *BranchesMgr {
@@ -43,15 +43,13 @@ func NewBranchesMgr(commander ICommander, config IGitConfigMgr, log *logrus.Entr
 		config:     config,
 	}
 
-	branchListBuilder := NewBranchListBuilder(commander, mgr.CurrentBranchName, log)
-
-	mgr.branchListBuilder = branchListBuilder
+	mgr.branchesLoader = NewBranchesLoader(commander, mgr.CurrentBranchName, log)
 
 	return mgr
 }
 
-func (c *BranchesMgr) GetBranches(reflogCommits []*models.Commit) []*models.Branch {
-	return c.branchListBuilder.GetBranches(reflogCommits)
+func (c *BranchesMgr) LoadBranches(reflogCommits []*models.Commit) []*models.Branch {
+	return c.branchesLoader.Load(reflogCommits)
 }
 
 // NewBranch create new branch

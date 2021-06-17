@@ -24,7 +24,7 @@ type ICommitsMgr interface {
 	Revert(sha string) error
 	RevertMerge(sha string, parentNumber int) error
 	CreateFixupCommit(sha string) error
-	Load(LoadCommitsOptions) ([]*models.Commit, error)
+	LoadCommits(LoadCommitsOptions) ([]*models.Commit, error)
 	MergeRebasingCommits(commits []*models.Commit) ([]*models.Commit, error)
 }
 
@@ -55,7 +55,7 @@ func NewCommitsMgr(
 	}
 }
 
-func (c *CommitsMgr) Load(opts LoadCommitsOptions) ([]*models.Commit, error) {
+func (c *CommitsMgr) LoadCommits(opts LoadCommitsOptions) ([]*models.Commit, error) {
 	return c.commitsLoader.Load(opts)
 }
 

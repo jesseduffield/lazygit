@@ -55,13 +55,13 @@ func (gui *Gui) refreshBranches() {
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = gui.Git.Reflog().Load(nil, "")
+		reflogCommits, _, err = gui.Git.Reflog().LoadReflog(nil, "")
 		if err != nil {
 			gui.Log.Error(err)
 		}
 	}
 
-	gui.State.Branches = gui.Git.Branches().GetBranches(reflogCommits)
+	gui.State.Branches = gui.Git.Branches().LoadBranches(reflogCommits)
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
