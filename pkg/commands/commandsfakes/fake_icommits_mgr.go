@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
@@ -88,6 +89,32 @@ type FakeICommitsMgr struct {
 	}
 	getMessageFirstLineReturnsOnCall map[int]struct {
 		result1 string
+		result2 error
+	}
+	LoadStub        func(commands.LoadCommitsOptions) ([]*models.Commit, error)
+	loadMutex       sync.RWMutex
+	loadArgsForCall []struct {
+		arg1 commands.LoadCommitsOptions
+	}
+	loadReturns struct {
+		result1 []*models.Commit
+		result2 error
+	}
+	loadReturnsOnCall map[int]struct {
+		result1 []*models.Commit
+		result2 error
+	}
+	MergeRebasingCommitsStub        func([]*models.Commit) ([]*models.Commit, error)
+	mergeRebasingCommitsMutex       sync.RWMutex
+	mergeRebasingCommitsArgsForCall []struct {
+		arg1 []*models.Commit
+	}
+	mergeRebasingCommitsReturns struct {
+		result1 []*models.Commit
+		result2 error
+	}
+	mergeRebasingCommitsReturnsOnCall map[int]struct {
+		result1 []*models.Commit
 		result2 error
 	}
 	RevertStub        func(string) error
@@ -553,6 +580,139 @@ func (fake *FakeICommitsMgr) GetMessageFirstLineReturnsOnCall(i int, result1 str
 	}{result1, result2}
 }
 
+func (fake *FakeICommitsMgr) Load(arg1 commands.LoadCommitsOptions) ([]*models.Commit, error) {
+	fake.loadMutex.Lock()
+	ret, specificReturn := fake.loadReturnsOnCall[len(fake.loadArgsForCall)]
+	fake.loadArgsForCall = append(fake.loadArgsForCall, struct {
+		arg1 commands.LoadCommitsOptions
+	}{arg1})
+	stub := fake.LoadStub
+	fakeReturns := fake.loadReturns
+	fake.recordInvocation("Load", []interface{}{arg1})
+	fake.loadMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeICommitsMgr) LoadCallCount() int {
+	fake.loadMutex.RLock()
+	defer fake.loadMutex.RUnlock()
+	return len(fake.loadArgsForCall)
+}
+
+func (fake *FakeICommitsMgr) LoadCalls(stub func(commands.LoadCommitsOptions) ([]*models.Commit, error)) {
+	fake.loadMutex.Lock()
+	defer fake.loadMutex.Unlock()
+	fake.LoadStub = stub
+}
+
+func (fake *FakeICommitsMgr) LoadArgsForCall(i int) commands.LoadCommitsOptions {
+	fake.loadMutex.RLock()
+	defer fake.loadMutex.RUnlock()
+	argsForCall := fake.loadArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeICommitsMgr) LoadReturns(result1 []*models.Commit, result2 error) {
+	fake.loadMutex.Lock()
+	defer fake.loadMutex.Unlock()
+	fake.LoadStub = nil
+	fake.loadReturns = struct {
+		result1 []*models.Commit
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeICommitsMgr) LoadReturnsOnCall(i int, result1 []*models.Commit, result2 error) {
+	fake.loadMutex.Lock()
+	defer fake.loadMutex.Unlock()
+	fake.LoadStub = nil
+	if fake.loadReturnsOnCall == nil {
+		fake.loadReturnsOnCall = make(map[int]struct {
+			result1 []*models.Commit
+			result2 error
+		})
+	}
+	fake.loadReturnsOnCall[i] = struct {
+		result1 []*models.Commit
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeICommitsMgr) MergeRebasingCommits(arg1 []*models.Commit) ([]*models.Commit, error) {
+	var arg1Copy []*models.Commit
+	if arg1 != nil {
+		arg1Copy = make([]*models.Commit, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.mergeRebasingCommitsMutex.Lock()
+	ret, specificReturn := fake.mergeRebasingCommitsReturnsOnCall[len(fake.mergeRebasingCommitsArgsForCall)]
+	fake.mergeRebasingCommitsArgsForCall = append(fake.mergeRebasingCommitsArgsForCall, struct {
+		arg1 []*models.Commit
+	}{arg1Copy})
+	stub := fake.MergeRebasingCommitsStub
+	fakeReturns := fake.mergeRebasingCommitsReturns
+	fake.recordInvocation("MergeRebasingCommits", []interface{}{arg1Copy})
+	fake.mergeRebasingCommitsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeICommitsMgr) MergeRebasingCommitsCallCount() int {
+	fake.mergeRebasingCommitsMutex.RLock()
+	defer fake.mergeRebasingCommitsMutex.RUnlock()
+	return len(fake.mergeRebasingCommitsArgsForCall)
+}
+
+func (fake *FakeICommitsMgr) MergeRebasingCommitsCalls(stub func([]*models.Commit) ([]*models.Commit, error)) {
+	fake.mergeRebasingCommitsMutex.Lock()
+	defer fake.mergeRebasingCommitsMutex.Unlock()
+	fake.MergeRebasingCommitsStub = stub
+}
+
+func (fake *FakeICommitsMgr) MergeRebasingCommitsArgsForCall(i int) []*models.Commit {
+	fake.mergeRebasingCommitsMutex.RLock()
+	defer fake.mergeRebasingCommitsMutex.RUnlock()
+	argsForCall := fake.mergeRebasingCommitsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeICommitsMgr) MergeRebasingCommitsReturns(result1 []*models.Commit, result2 error) {
+	fake.mergeRebasingCommitsMutex.Lock()
+	defer fake.mergeRebasingCommitsMutex.Unlock()
+	fake.MergeRebasingCommitsStub = nil
+	fake.mergeRebasingCommitsReturns = struct {
+		result1 []*models.Commit
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeICommitsMgr) MergeRebasingCommitsReturnsOnCall(i int, result1 []*models.Commit, result2 error) {
+	fake.mergeRebasingCommitsMutex.Lock()
+	defer fake.mergeRebasingCommitsMutex.Unlock()
+	fake.MergeRebasingCommitsStub = nil
+	if fake.mergeRebasingCommitsReturnsOnCall == nil {
+		fake.mergeRebasingCommitsReturnsOnCall = make(map[int]struct {
+			result1 []*models.Commit
+			result2 error
+		})
+	}
+	fake.mergeRebasingCommitsReturnsOnCall[i] = struct {
+		result1 []*models.Commit
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeICommitsMgr) Revert(arg1 string) error {
 	fake.revertMutex.Lock()
 	ret, specificReturn := fake.revertReturnsOnCall[len(fake.revertArgsForCall)]
@@ -816,6 +976,10 @@ func (fake *FakeICommitsMgr) Invocations() map[string][][]interface{} {
 	defer fake.getMessageMutex.RUnlock()
 	fake.getMessageFirstLineMutex.RLock()
 	defer fake.getMessageFirstLineMutex.RUnlock()
+	fake.loadMutex.RLock()
+	defer fake.loadMutex.RUnlock()
+	fake.mergeRebasingCommitsMutex.RLock()
+	defer fake.mergeRebasingCommitsMutex.RUnlock()
 	fake.revertMutex.RLock()
 	defer fake.revertMutex.RUnlock()
 	fake.revertMergeMutex.RLock()

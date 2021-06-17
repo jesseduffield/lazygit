@@ -19,7 +19,7 @@ type IRemotesMgr interface {
 	UpdateUrl(remoteName string, updatedUrl string) error
 	RemoteBranchExists(branch *models.Branch) bool
 	GetCurrentRemoteUrl() string
-	GetRemotes() ([]*models.Remote, error)
+	Load() ([]*models.Remote, error)
 }
 
 type RemotesMgr struct {
@@ -74,7 +74,7 @@ func (c *RemotesMgr) GetCurrentRemoteUrl() string {
 	return c.config.GetConfigValue("remote.origin.url")
 }
 
-func (c *RemotesMgr) GetRemotes() ([]*models.Remote, error) {
+func (c *RemotesMgr) Load() ([]*models.Remote, error) {
 	// get remote branches
 	remoteBranchesStr, err := c.RunWithOutput(
 		BuildGitCmdObjFromStr("branch -r"),
