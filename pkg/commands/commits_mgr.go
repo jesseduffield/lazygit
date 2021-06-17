@@ -33,10 +33,9 @@ type CommitsMgr struct {
 
 func NewCommitsMgr(
 	mgrCtx *MgrCtx,
-	branchesMgr IBranchesMgr,
 	statusMgr IStatusMgr,
 ) *CommitsMgr {
-	commitsLoader := NewCommitsLoader(mgrCtx, branchesMgr, statusMgr)
+	commitsLoader := NewCommitsLoader(mgrCtx, statusMgr)
 
 	return &CommitsMgr{
 		MgrCtx:        mgrCtx,

@@ -19,19 +19,17 @@ import (
 // if we find out we need to use one of these functions in the git.go file, we
 // can just pull them out of here and put them there and then call them from in here
 
-type getCurrentBranchNameFunc func() (string, string, error)
-
 // BranchesLoader returns a list of Branch objects for the current repo
 type BranchesLoader struct {
 	*MgrCtx
 
-	getCurrentBranchName getCurrentBranchNameFunc
+	statusMgr IStatusMgr
 }
 
-func NewBranchesLoader(mgrCtx *MgrCtx, getCurrentBranchname getCurrentBranchNameFunc) *BranchesLoader {
+func NewBranchesLoader(mgrCtx *MgrCtx, statusMgr IStatusMgr) *BranchesLoader {
 	return &BranchesLoader{
-		MgrCtx:               mgrCtx,
-		getCurrentBranchName: getCurrentBranchname,
+		MgrCtx:    mgrCtx,
+		statusMgr: statusMgr,
 	}
 }
 
@@ -71,7 +69,7 @@ outer:
 		}
 	}
 	if !foundHead {
-		currentBranchName, currentBranchDisplayName, err := b.getCurrentBranchName()
+		currentBranchName, currentBranchDisplayName, err := b.statusMgr.CurrentBranchName()
 		if err != nil {
 			panic(err)
 		}

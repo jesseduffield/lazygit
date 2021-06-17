@@ -2,8 +2,11 @@ package commands
 
 import (
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	gogit "github.com/jesseduffield/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type RebasingMode int
@@ -21,6 +24,7 @@ type IStatusMgr interface {
 	InNormalWorkingTreeState() bool
 	IsBareRepo() bool
 	IsHeadDetached() bool
+	CurrentBranchName() (string, string, error)
 }
 
 type StatusMgr struct {
@@ -84,4 +88,37 @@ func (c *StatusMgr) gitDirFileExists(path string) bool {
 func (c *StatusMgr) IsHeadDetached() bool {
 	err := c.RunGitCmdFromStr("symbolic-ref -q HEAD")
 	return err != nil
+}
+
+// CurrentBranchName get the current branch name and displayname.
+// the first returned string is the name and the second is the displayname
+// e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
+func (c *StatusMgr) CurrentBranchName() (string, string, error) {
+	branchName, err := c.RunWithOutput(
+		c.BuildGitCmdObjFromStr("symbolic-ref --short HEAD"),
+	)
+
+	if err == nil && branchName != "HEAD\n" {
+		trimmedBranchName := strings.TrimSpace(branchName)
+		return trimmedBranchName, trimmedBranchName, nil
+	}
+
+	output, err := c.RunWithOutput(
+		c.BuildGitCmdObjFromStr("branch --contains"),
+	)
+	if err != nil {
+		return "", "", err
+	}
+
+	for _, line := range utils.SplitLines(output) {
+		re := regexp.MustCompile(CurrentBranchNameRegex)
+		match := re.FindStringSubmatch(line)
+		if len(match) > 0 {
+			branchName = match[1]
+			displayBranchName := match[0][2:]
+			return branchName, displayBranchName, nil
+		}
+	}
+
+	return "HEAD", "HEAD", nil
 }

@@ -28,15 +28,13 @@ const SEPARATION_CHAR = "|"
 type CommitsLoader struct {
 	*MgrCtx
 
-	branchesMgr IBranchesMgr
-	statusMgr   IStatusMgr
+	statusMgr IStatusMgr
 }
 
-func NewCommitsLoader(mgrCtx *MgrCtx, branchesMgr IBranchesMgr, statusMgr IStatusMgr) *CommitsLoader {
+func NewCommitsLoader(mgrCtx *MgrCtx, statusMgr IStatusMgr) *CommitsLoader {
 	return &CommitsLoader{
-		MgrCtx:      mgrCtx,
-		branchesMgr: branchesMgr,
-		statusMgr:   statusMgr,
+		MgrCtx:    mgrCtx,
+		statusMgr: statusMgr,
 	}
 }
 
@@ -291,7 +289,7 @@ func (c *CommitsLoader) setCommitMergedStatuses(refName string, commits []*model
 }
 
 func (c *CommitsLoader) getMergeBase(refName string) (string, error) {
-	currentBranch, _, err := c.branchesMgr.CurrentBranchName()
+	currentBranch, _, err := c.statusMgr.CurrentBranchName()
 	if err != nil {
 		return "", err
 	}
