@@ -36,6 +36,7 @@ type IRebasingMgr interface {
 	RebaseBranch(branchName string) error
 	GenericMergeOrRebaseAction(commandType string, command string) error
 	CherryPickCommits(commits []*models.Commit) error
+	getWorkflow() *RebaseWorkflow
 }
 
 type RebasingMgr struct {
@@ -50,6 +51,8 @@ type RebasingMgr struct {
 	commitsMgr  ICommitsMgr
 	worktreeMgr IWorktreeMgr
 	statusMgr   IStatusMgr
+
+	workflow *RebaseWorkflow
 }
 
 func NewRebasingMgr(
@@ -73,6 +76,7 @@ func NewRebasingMgr(
 		commitsMgr:  commitsMgr,
 		worktreeMgr: worktreeMgr,
 		statusMgr:   statusMgr,
+		workflow:    &RebaseWorkflow{},
 	}
 }
 
@@ -318,16 +322,11 @@ func (c *RebasingMgr) GenericMergeOrRebaseAction(commandType string, command str
 		c.log.Warn(err)
 	}
 
-	// sometimes we need to do a sequence of things in a rebase but the user needs to
-	// fix merge conflicts along the way. When this happens we queue up the next step
-	// so that after the next successful rebase continue we can continue from where we left off
-	if commandType == "rebase" && command == "continue" && c.onSuccessfulContinue != nil {
-		f := c.onSuccessfulContinue
-		c.onSuccessfulContinue = nil
-		return f()
+	if commandType == "rebase" && command == "continue" && c.workflow.InProgress() {
+		return c.workflow.Continue()
 	}
 	if command == "abort" {
-		c.onSuccessfulContinue = nil
+		c.workflow.Abort()
 	}
 	return nil
 }
@@ -367,4 +366,28 @@ func (c *RebasingMgr) DiscardOldFileChanges(commits []*models.Commit, commitInde
 	}
 
 	return c.ContinueRebase()
+}
+
+func (c *RebasingMgr) GenericAbortCmdObj() ICmdObj {
+	return c.GenericMergeOrRebaseCmdObj("abort")
+}
+
+func (c *RebasingMgr) GenericContinueCmdObj() ICmdObj {
+	return c.GenericMergeOrRebaseCmdObj("continue")
+}
+
+func (c *RebasingMgr) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
+	if c.statusMgr.IsRebasing() {
+		return BuildGitCmdObjFromStr(fmt.Sprintf("rebase --%s", action))
+
+	}
+	if c.statusMgr.IsMerging() {
+		return BuildGitCmdObjFromStr(fmt.Sprintf("merge --%s", action))
+	}
+
+	panic("expected rebase mode")
+}
+
+func (c *RebasingMgr) getWorkflow() *RebaseWorkflow {
+	return c.workflow
 }

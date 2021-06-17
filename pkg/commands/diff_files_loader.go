@@ -5,10 +5,24 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
-// GetFilesInDiff get the specified commit files
-func (c *Git) GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error) {
+type DiffFilesLoader struct {
+	ICommander
+
+	config IGitConfigMgr
+}
+
+func NewDiffFilesLoader(commander ICommander, config IGitConfigMgr) *DiffFilesLoader {
+	return &DiffFilesLoader{
+		ICommander: commander,
+		config:     config,
+	}
+}
+
+// Load gets the specified files from a diff
+func (c *DiffFilesLoader) Load(from string, to string, reverse bool) ([]*models.CommitFile, error) {
 	reverseFlag := ""
 	if reverse {
 		reverseFlag = " -R "
@@ -27,7 +41,7 @@ func (c *Git) GetFilesInDiff(from string, to string, reverse bool) ([]*models.Co
 }
 
 // filenames string is something like "file1\nfile2\nfile3"
-func (c *Git) getCommitFilesFromFilenames(filenames string) []*models.CommitFile {
+func (c *DiffFilesLoader) getCommitFilesFromFilenames(filenames string) []*models.CommitFile {
 	commitFiles := make([]*models.CommitFile, 0)
 
 	lines := strings.Split(strings.TrimRight(filenames, "\x00"), "\x00")

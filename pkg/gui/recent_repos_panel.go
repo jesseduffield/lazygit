@@ -72,7 +72,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		return err
 	}
 	gui.Git = newGit
-	gui.State.Modes.PatchManager = newGit.NewPatchManager()
+	gui.State.Modes.PatchManager = newGit.Patches().NewPatchManager()
 
 	gui.g.Update(func(*gocui.Gui) error {
 		// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to

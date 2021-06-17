@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,7 +10,6 @@ import (
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
@@ -21,6 +19,31 @@ import (
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . IGit
+type IGit interface {
+	ICommander
+	IGitConfigMgr
+
+	Branches() IBranchesMgr
+	Commits() ICommitsMgr
+	Worktree() IWorktreeMgr
+	Submodules() ISubmodulesMgr
+	Status() IStatusMgr
+	Stash() IStashMgr
+	Tags() ITagsMgr
+	Remotes() IRemotesMgr
+	Reflog() IReflogMgr
+	Sync() ISyncMgr
+	Flow() IFlowMgr
+	Rebasing() IRebasingMgr
+	Patches() IPatchesMgr
+	Diff() IDiffMgr
+
+	GetLog() *logrus.Entry
+	WithSpan(span string) IGit
+	GetOS() oscommands.IOS
+}
 
 // this takes something like:
 // * (HEAD detached at 264fc6f5)
@@ -43,8 +66,10 @@ type Git struct {
 	statusMgr     *StatusMgr
 	stashMgr      *StashMgr
 	syncMgr       *SyncMgr
+	patchesMgr    *PatchesMgr
 	flowMgr       *FlowMgr
 	rebasingMgr   *RebasingMgr
+	diffMgr       *DiffMgr
 
 	log       *logrus.Entry
 	os        oscommands.IOS
@@ -52,8 +77,6 @@ type Git struct {
 	tr        *i18n.TranslationSet
 	config    config.AppConfigurer
 	dotGitDir string
-
-	onSuccessfulContinue func() error
 }
 
 func (c *Git) GetLog() *logrus.Entry {
@@ -90,6 +113,8 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 	syncMgr := NewSyncMgr(commander, gitConfig, oS)
 	flowMgr := NewFlowMgr(commander, gitConfig)
 	rebasingMgr := NewRebasingMgr(commander, gitConfig, tr, oS, log, dotGitDir, commitsMgr, worktreeMgr, statusMgr)
+	diffMgr := NewDiffMgr(commander, gitConfig)
+	patchesMgr := NewPatchesMgr(commander, gitConfig, commitsMgr, rebasingMgr, statusMgr, stashMgr, diffMgr, tr, log, oS)
 
 	gitCommand := &Git{
 		Commander:     commander,
@@ -104,8 +129,10 @@ func NewGit(log *logrus.Entry, oS *oscommands.OS, tr *i18n.TranslationSet, confi
 		statusMgr:     statusMgr,
 		stashMgr:      stashMgr,
 		syncMgr:       syncMgr,
+		patchesMgr:    patchesMgr,
 		flowMgr:       flowMgr,
 		rebasingMgr:   rebasingMgr,
+		diffMgr:       diffMgr,
 		log:           log,
 		os:            oS,
 		tr:            tr,
@@ -161,12 +188,20 @@ func (c *Git) Flow() IFlowMgr {
 	return c.flowMgr
 }
 
-func (c *Git) Quote(str string) string {
-	return c.os.Quote(str)
+func (c *Git) Rebasing() IRebasingMgr {
+	return c.rebasingMgr
 }
 
-func (c *Git) NewPatchManager() *patch.PatchManager {
-	return patch.NewPatchManager(c.log, c.ShowFileDiff)
+func (c *Git) Patches() IPatchesMgr {
+	return c.patchesMgr
+}
+
+func (c *Git) Diff() IDiffMgr {
+	return c.diffMgr
+}
+
+func (c *Git) Quote(str string) string {
+	return c.os.Quote(str)
 }
 
 func (c *Git) WithSpan(span string) IGit {
@@ -302,24 +337,4 @@ func VerifyInGitRepo(osCommand *oscommands.OS) error {
 
 func (c *Git) GetOS() oscommands.IOS {
 	return c.os
-}
-
-func (c *Git) GenericAbortCmdObj() ICmdObj {
-	return c.GenericMergeOrRebaseCmdObj("abort")
-}
-
-func (c *Git) GenericContinueCmdObj() ICmdObj {
-	return c.GenericMergeOrRebaseCmdObj("continue")
-}
-
-func (c *Git) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
-	if c.Status().IsRebasing() {
-		return BuildGitCmdObjFromStr(fmt.Sprintf("rebase --%s", action))
-
-	}
-	if c.Status().IsMerging() {
-		return BuildGitCmdObjFromStr(fmt.Sprintf("merge --%s", action))
-	}
-
-	panic("expected rebase mode")
 }

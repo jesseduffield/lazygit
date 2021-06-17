@@ -356,7 +356,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		Title:  gui.Tr.RebasingTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			err := gui.Git.WithSpan(gui.Tr.Spans.RebaseBranch).RebaseBranch(selectedBranchName)
+			err := gui.Git.WithSpan(gui.Tr.Spans.RebaseBranch).Rebasing().RebaseBranch(selectedBranchName)
 			return gui.handleGenericMergeCommandResult(err)
 		},
 	})

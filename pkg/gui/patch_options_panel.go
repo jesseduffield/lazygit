@@ -98,7 +98,7 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.Git.WithSpan(gui.Tr.Spans.RemovePatchFromCommit).DeletePatchesFromCommit(gui.State.Commits, commitIndex, gui.State.Modes.PatchManager)
+		err := gui.Git.WithSpan(gui.Tr.Spans.RemovePatchFromCommit).Patches().DeletePatchesFromCommit(gui.State.Commits, commitIndex, gui.State.Modes.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -114,7 +114,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.Git.WithSpan(gui.Tr.Spans.MovePatchToSelectedCommit).MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx, gui.State.Modes.PatchManager)
+		err := gui.Git.WithSpan(gui.Tr.Spans.MovePatchToSelectedCommit).Patches().MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx, gui.State.Modes.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -131,7 +131,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 	pull := func(stash bool) error {
 		return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 			commitIndex := gui.getPatchCommitIndex()
-			err := gui.Git.WithSpan(gui.Tr.Spans.MovePatchIntoIndex).MovePatchIntoIndex(gui.State.Commits, commitIndex, gui.State.Modes.PatchManager, stash)
+			err := gui.Git.WithSpan(gui.Tr.Spans.MovePatchIntoIndex).Patches().MovePatchIntoIndex(gui.State.Commits, commitIndex, gui.State.Modes.PatchManager, stash)
 			return gui.handleGenericMergeCommandResult(err)
 		})
 	}
@@ -160,7 +160,7 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		err := gui.Git.WithSpan(gui.Tr.Spans.MovePatchIntoNewCommit).PullPatchIntoNewCommit(gui.State.Commits, commitIndex, gui.State.Modes.PatchManager)
+		err := gui.Git.WithSpan(gui.Tr.Spans.MovePatchIntoNewCommit).Patches().PullPatchIntoNewCommit(gui.State.Commits, commitIndex, gui.State.Modes.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
 }
@@ -175,7 +175,7 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 		span = "Apply patch in reverse"
 	}
 
-	if err := gui.State.Modes.PatchManager.ApplyPatches(gui.Git.WithSpan(span).Worktree().ApplyPatch, reverse); err != nil {
+	if err := gui.State.Modes.PatchManager.ApplyPatches(gui.Git.WithSpan(span).Patches().ApplyPatch, reverse); err != nil {
 		return gui.SurfaceError(err)
 	}
 	return gui.RefreshSidePanels(RefreshOptions{Mode: ASYNC})

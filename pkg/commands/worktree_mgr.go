@@ -3,15 +3,12 @@ package commands
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,7 +25,6 @@ type IWorktreeMgr interface {
 	DiscardUnstagedDirChanges(node *filetree.FileNode) error
 	DiscardUnstagedFileChanges(file *models.File) error
 	Ignore(filename string) error
-	ApplyPatch(patch string, flags ...string) error
 	CheckoutFile(commitSha, fileName string) error
 	DiscardAnyUnstagedFileChanges() error
 	RemoveTrackedFiles(name string) error
@@ -229,21 +225,6 @@ func (c *WorktreeMgr) DiscardUnstagedFileChanges(file *models.File) error {
 // Ignore adds a file to the gitignore for the repo
 func (c *WorktreeMgr) Ignore(filename string) error {
 	return c.os.AppendLineToFile(".gitignore", filename)
-}
-
-func (c *WorktreeMgr) ApplyPatch(patch string, flags ...string) error {
-	filepath := filepath.Join(c.config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
-	c.log.Infof("saving temporary patch to %s", filepath)
-	if err := c.os.CreateFileWithContent(filepath, patch); err != nil {
-		return err
-	}
-
-	flagStr := ""
-	for _, flag := range flags {
-		flagStr += " --" + flag
-	}
-
-	return c.commander.RunGitCmdFromStr(fmt.Sprintf("apply %s %s", flagStr, c.commander.Quote(filepath)))
 }
 
 // CheckoutFile checks out the file for the given commit

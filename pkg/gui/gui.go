@@ -415,7 +415,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Filtering:     filtering.New(filterPath),
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
-			PatchManager:  gui.Git.NewPatchManager(),
+			PatchManager:  gui.Git.Patches().NewPatchManager(),
 		},
 		ViewContextMap:    contexts.initialViewContextMap(),
 		ViewTabContextMap: contexts.initialViewTabContextMap(),

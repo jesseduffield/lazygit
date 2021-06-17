@@ -75,7 +75,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
 		title: gui.Tr.UnstagedChanges,
 		task: NewRunPtyTask(
-			gui.Git.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges()),
+			gui.Git.Diff().WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges()),
 		),
 	}}
 
@@ -84,7 +84,7 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 			refreshOpts.secondary = &viewUpdateOpts{
 				title: gui.Tr.StagedChanges,
 				task: NewRunPtyTask(
-					gui.Git.WorktreeFileDiffCmdObj(node, false, true),
+					gui.Git.Diff().WorktreeFileDiffCmdObj(node, false, true),
 				),
 			}
 		}
@@ -679,7 +679,7 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 
 	switch mode {
 	case "rebase":
-		err := gitCommand.RebaseBranch("FETCH_HEAD")
+		err := gitCommand.Rebasing().RebaseBranch("FETCH_HEAD")
 		return gui.handleGenericMergeCommandResult(err)
 	case "merge":
 		err := gitCommand.Branches().Merge("FETCH_HEAD", commands.MergeOpts{})

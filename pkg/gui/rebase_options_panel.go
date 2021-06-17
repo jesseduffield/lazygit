@@ -41,12 +41,12 @@ func (gui *Gui) genericMergeCommand(action string) error {
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
 	if gui.Git.Status().IsMerging() && action != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
 		return gui.runSubprocessWithSuspenseAndRefresh(
-			gitCommand.GenericMergeOrRebaseCmdObj(action),
+			gitCommand.Rebasing().GenericMergeOrRebaseCmdObj(action),
 		)
 	}
 
-	command := gui.Git.MergeOrRebase()
-	actionErr := gui.Git.GenericMergeOrRebaseAction(command, action)
+	command := gui.Git.Rebasing().MergeOrRebase()
+	actionErr := gui.Git.Rebasing().GenericMergeOrRebaseAction(command, action)
 	if err := gui.handleGenericMergeCommandResult(actionErr); err != nil {
 		return err
 	}

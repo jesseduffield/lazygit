@@ -38,7 +38,7 @@ func (gui *Gui) handleSubmoduleSelect() error {
 		if file == nil {
 			task = NewRenderStringTask(prefix)
 		} else {
-			cmdObj := gui.Git.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+			cmdObj := gui.Git.Diff().WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
 			task = NewRunCommandTaskWithPrefix(cmdObj, prefix)
 		}
 	}
