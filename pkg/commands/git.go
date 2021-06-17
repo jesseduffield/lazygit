@@ -182,10 +182,6 @@ func (c *Git) Diff() IDiffMgr {
 	return c.diffMgr
 }
 
-func (c *Git) Quote(str string) string {
-	return c.os.Quote(str)
-}
-
 func (c *Git) WithSpan(span string) IGit {
 	// sometimes .WithSpan(span) will be called where span actually is empty, in
 	// which case we don't need to log anything so we can just return early here
