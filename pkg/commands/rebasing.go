@@ -10,8 +10,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/sirupsen/logrus"
 )
 
 //counterfeiter:generate . IRebasingMgr
@@ -40,13 +38,8 @@ type IRebasingMgr interface {
 }
 
 type RebasingMgr struct {
-	ICommander
+	*MgrCtx
 
-	config IGitConfigMgr
-
-	tr          *i18n.TranslationSet
-	os          oscommands.IOS
-	log         *logrus.Entry
 	commitsMgr  ICommitsMgr
 	worktreeMgr IWorktreeMgr
 	statusMgr   IStatusMgr
@@ -55,21 +48,13 @@ type RebasingMgr struct {
 }
 
 func NewRebasingMgr(
-	commander ICommander,
-	config IGitConfigMgr,
-	tr *i18n.TranslationSet,
-	os oscommands.IOS,
-	log *logrus.Entry,
+	mgrCtx *MgrCtx,
 	commitsMgr ICommitsMgr,
 	worktreeMgr IWorktreeMgr,
 	statusMgr IStatusMgr,
 ) *RebasingMgr {
 	return &RebasingMgr{
-		ICommander:  commander,
-		config:      config,
-		tr:          tr,
-		os:          os,
-		log:         log,
+		MgrCtx:      mgrCtx,
 		commitsMgr:  commitsMgr,
 		worktreeMgr: worktreeMgr,
 		statusMgr:   statusMgr,

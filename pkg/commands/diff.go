@@ -18,20 +18,17 @@ type IDiffMgr interface {
 }
 
 type DiffMgr struct {
-	ICommander
+	*MgrCtx
 
-	config          IGitConfigMgr
 	diffFilesLoader *DiffFilesLoader
 }
 
 func NewDiffMgr(
-	commander ICommander,
-	config IGitConfigMgr,
+	mgrCtx *MgrCtx,
 ) *DiffMgr {
 	return &DiffMgr{
-		ICommander:      commander,
-		config:          config,
-		diffFilesLoader: NewDiffFilesLoader(commander, config),
+		MgrCtx:          mgrCtx,
+		diffFilesLoader: NewDiffFilesLoader(mgrCtx),
 	}
 }
 

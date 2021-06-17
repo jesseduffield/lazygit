@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
@@ -22,26 +21,15 @@ type ISyncMgr interface {
 }
 
 type SyncMgr struct {
-	ICommander
-
-	config IGitConfigMgr
-	os     oscommands.IOS
+	*MgrCtx
 
 	// callbacks to be provided from the gui package
 	promptUserForCredential func(CredentialKind) string
 	handleCredentialError   func(error)
 }
 
-func NewSyncMgr(
-	commander ICommander,
-	config IGitConfigMgr,
-	os oscommands.IOS,
-) *SyncMgr {
-	return &SyncMgr{
-		ICommander: commander,
-		config:     config,
-		os:         os,
-	}
+func NewSyncMgr(mgrCtx *MgrCtx) *SyncMgr {
+	return &SyncMgr{MgrCtx: mgrCtx}
 }
 
 func (c *SyncMgr) SetCredentialHandlers(promptUserForCredential func(CredentialKind) string, handleCredentialError func(error)) {

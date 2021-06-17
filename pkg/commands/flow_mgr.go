@@ -14,18 +14,12 @@ type IFlowMgr interface {
 }
 
 type FlowMgr struct {
-	ICommander
-
-	config IGitConfigMgr
+	*MgrCtx
 }
 
-func NewFlowMgr(
-	commander ICommander,
-	config IGitConfigMgr,
-) *FlowMgr {
+func NewFlowMgr(mgrCtx *MgrCtx) *FlowMgr {
 	return &FlowMgr{
-		ICommander: commander,
-		config:     config,
+		MgrCtx: mgrCtx,
 	}
 }
 

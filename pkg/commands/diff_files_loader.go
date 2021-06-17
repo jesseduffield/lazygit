@@ -8,15 +8,12 @@ import (
 )
 
 type DiffFilesLoader struct {
-	ICommander
-
-	config IGitConfigMgr
+	*MgrCtx
 }
 
-func NewDiffFilesLoader(commander ICommander, config IGitConfigMgr) *DiffFilesLoader {
+func NewDiffFilesLoader(mgrCtx *MgrCtx) *DiffFilesLoader {
 	return &DiffFilesLoader{
-		ICommander: commander,
-		config:     config,
+		MgrCtx: mgrCtx,
 	}
 }
 

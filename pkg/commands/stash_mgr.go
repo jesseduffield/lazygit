@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
@@ -17,22 +16,18 @@ type IStashMgr interface {
 }
 
 type StashMgr struct {
-	ICommander
+	*MgrCtx
 
-	config             IGitConfigMgr
 	stashEntriesLoader *StashEntriesLoader
-	os                 oscommands.IOS
 	worktreeMgr        IWorktreeMgr
 }
 
-func NewStashMgr(commander ICommander, config IGitConfigMgr, oS oscommands.IOS, worktreeMgr IWorktreeMgr) *StashMgr {
-	stashEntriesLoader := NewStashEntriesLoader(commander)
+func NewStashMgr(mgrCtx *MgrCtx, worktreeMgr IWorktreeMgr) *StashMgr {
+	stashEntriesLoader := NewStashEntriesLoader(mgrCtx)
 
 	return &StashMgr{
+		MgrCtx:             mgrCtx,
 		stashEntriesLoader: stashEntriesLoader,
-		ICommander:         commander,
-		config:             config,
-		os:                 oS,
 		worktreeMgr:        worktreeMgr,
 	}
 }

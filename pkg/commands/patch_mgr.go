@@ -7,11 +7,8 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 )
 
 //counterfeiter:generate . IPatchesMgr
@@ -25,40 +22,28 @@ type IPatchesMgr interface {
 }
 
 type PatchesMgr struct {
+	*MgrCtx
+
 	IRebasingMgr
-	ICommander
 
 	commitsMgr ICommitsMgr
 	statusMgr  IStatusMgr
 	stashMgr   IStashMgr
 	diffMgr    IDiffMgr
-
-	config IGitConfigMgr
-	tr     *i18n.TranslationSet
-	log    *logrus.Entry
-	os     oscommands.IOS
 }
 
 func NewPatchesMgr(
-	commander ICommander,
-	config IGitConfigMgr,
+	mgrCtx *MgrCtx,
 	commitsMgr ICommitsMgr,
 	rebasingMgr IRebasingMgr,
 	statusMgr IStatusMgr,
 	stashMgr IStashMgr,
 	diffMgr IDiffMgr,
-	tr *i18n.TranslationSet,
-	log *logrus.Entry,
-	os oscommands.IOS,
 ) *PatchesMgr {
 	return &PatchesMgr{
-		ICommander:   commander,
-		config:       config,
+		MgrCtx:       mgrCtx,
 		commitsMgr:   commitsMgr,
 		IRebasingMgr: rebasingMgr,
-		tr:           tr,
-		log:          log,
-		os:           os,
 		statusMgr:    statusMgr,
 		stashMgr:     stashMgr,
 		diffMgr:      diffMgr,

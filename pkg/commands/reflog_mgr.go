@@ -15,19 +15,11 @@ type IReflogMgr interface {
 }
 
 type ReflogMgr struct {
-	ICommander
-
-	config IGitConfigMgr
+	*MgrCtx
 }
 
-func NewReflogMgr(
-	commander ICommander,
-	config IGitConfigMgr,
-) *ReflogMgr {
-	return &ReflogMgr{
-		ICommander: commander,
-		config:     config,
-	}
+func NewReflogMgr(mgrCtx *MgrCtx) *ReflogMgr {
+	return &ReflogMgr{MgrCtx: mgrCtx}
 }
 
 // LoadReflog only returns the new reflog commits since the given lastReflogCommit

@@ -10,13 +10,11 @@ import (
 )
 
 type StashEntriesLoader struct {
-	ICommander
+	*MgrCtx
 }
 
-func NewStashEntriesLoader(commander ICommander) *StashEntriesLoader {
-	return &StashEntriesLoader{
-		ICommander: commander,
-	}
+func NewStashEntriesLoader(mgrCtx *MgrCtx) *StashEntriesLoader {
+	return &StashEntriesLoader{MgrCtx: mgrCtx}
 }
 
 func (c *StashEntriesLoader) Load(filterPath string) []*models.StashEntry {
