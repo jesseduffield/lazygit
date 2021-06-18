@@ -1,7 +1,7 @@
 package i18n
 
-func dutchTranslationSet() TranslationSet {
-	return TranslationSet{
+func dutchTranslationSet() *TranslationSet {
+	return &TranslationSet{
 		NotEnoughSpace:                      "Niet genoeg ruimte om de panelen te renderen",
 		DiffTitle:                           "Diff",
 		LogTitle:                            "Log",

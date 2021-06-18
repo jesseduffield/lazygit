@@ -1,7 +1,7 @@
 package i18n
 
-func polishTranslationSet() TranslationSet {
-	return TranslationSet{
+func polishTranslationSet() *TranslationSet {
+	return &TranslationSet{
 		NotEnoughSpace:                      "Za mało miejsca do wyświetlenia paneli",
 		DiffTitle:                           "Różnice",
 		LogTitle:                            "Log",

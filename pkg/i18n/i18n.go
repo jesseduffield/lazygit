@@ -24,16 +24,16 @@ func NewTranslationSet(log *logrus.Entry) *TranslationSet {
 
 	for languageCode, translationSet := range GetTranslationSets() {
 		if strings.HasPrefix(userLang, languageCode) {
-			_ = mergo.Merge(&baseSet, translationSet, mergo.WithOverride)
+			_ = mergo.Merge(baseSet, translationSet, mergo.WithOverride)
 		}
 	}
 
-	return &baseSet
+	return baseSet
 }
 
 // GetTranslationSets gets all the translation sets, keyed by language code
-func GetTranslationSets() map[string]TranslationSet {
-	return map[string]TranslationSet{
+func GetTranslationSets() map[string]*TranslationSet {
+	return map[string]*TranslationSet{
 		"pl": polishTranslationSet(),
 		"nl": dutchTranslationSet(),
 		"en": EnglishTranslationSet(),
