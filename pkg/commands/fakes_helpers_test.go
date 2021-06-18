@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -19,6 +20,10 @@ func NewFakeCommander() *FakeICommander {
 
 	commander.BuildGitCmdObjFromStrCalls(func(command string) ICmdObj {
 		return oscommands.NewCmdObjFromStr("git " + command)
+	})
+
+	commander.BuildShellCmdObjCalls(func(command string) ICmdObj {
+		return oscommands.NewCmdObjFromArgs([]string{"sh", "-c", command})
 	})
 
 	commander.RunGitCmdFromStrCalls(func(command string) error {
@@ -86,6 +91,7 @@ func NewFakeMgrCtx(commander *FakeICommander, config *FakeIGitConfigMgr, os *osc
 
 	if os == nil {
 		os = &oscommandsfakes.FakeIOS{}
+
 	}
 
 	return commands.NewMgrCtx(commander, config, nil, utils.NewDummyLog(), os, i18n.EnglishTranslationSet())
@@ -93,4 +99,19 @@ func NewFakeMgrCtx(commander *FakeICommander, config *FakeIGitConfigMgr, os *osc
 
 func SuccessCall(cmdStr string) ExpectedRunCall {
 	return ExpectedRunCall{cmdStr: cmdStr}
+}
+
+func ErrorCall(cmdStr string, errStr string) ExpectedRunCall {
+	return ExpectedRunCall{cmdStr: cmdStr, outputErr: errors.New(errStr)}
+}
+
+// Note: this does not actually assert that the Getenv function has been called
+func MockGetenv(os *oscommandsfakes.FakeIOS, values map[string]string) {
+	os.GetenvCalls(func(key string) string {
+		value, ok := values[key]
+		if ok {
+			return value
+		}
+		return ""
+	})
 }

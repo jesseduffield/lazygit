@@ -66,7 +66,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				menuItems = append(menuItems, &menuItem{
 					displayString: gui.Tr.LcDiscardUnstagedChanges,
 					onPress: func() error {
-						if err := gui.Git.WithSpan(gui.Tr.Spans.DiscardAllUnstagedChangesInFile).Worktree().DiscardUnstagedFileChanges(file); err != nil {
+						if err := gui.Git.WithSpan(gui.Tr.Spans.DiscardAllUnstagedChangesInFile).Worktree().DiscardUnstagedFileChanges(file.Name); err != nil {
 							return gui.SurfaceError(err)
 						}
 

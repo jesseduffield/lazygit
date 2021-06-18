@@ -22,7 +22,7 @@ type IWorktreeMgr interface {
 	DiscardAllFileChanges(file *models.File) error
 	DiscardAllDirChanges(node *filetree.FileNode) error
 	DiscardUnstagedDirChanges(node *filetree.FileNode) error
-	DiscardUnstagedFileChanges(file *models.File) error
+	DiscardUnstagedFileChanges(fileName string) error
 	Ignore(filename string) error
 	CheckoutFile(commitSha, fileName string) error
 	DiscardAnyUnstagedFileChanges() error
@@ -173,7 +173,7 @@ func (c *WorktreeMgr) DiscardAllFileChanges(file *models.File) error {
 	if file.Added {
 		return c.os.RemoveFile(file.Name)
 	}
-	return c.DiscardUnstagedFileChanges(file)
+	return c.DiscardUnstagedFileChanges(file.Name)
 }
 
 func (c *WorktreeMgr) DiscardAllDirChanges(node *filetree.FileNode) error {
@@ -210,9 +210,8 @@ func (c *WorktreeMgr) removeUntrackedDirFiles(node *filetree.FileNode) error {
 }
 
 // DiscardUnstagedFileChanges directly
-func (c *WorktreeMgr) DiscardUnstagedFileChanges(file *models.File) error {
-	quotedFileName := c.Quote(file.Name)
-	return c.RunGitCmdFromStr(fmt.Sprintf("checkout -- %s", quotedFileName))
+func (c *WorktreeMgr) DiscardUnstagedFileChanges(fileName string) error {
+	return c.RunGitCmdFromStr(fmt.Sprintf("checkout -- %s", c.Quote(fileName)))
 }
 
 // Ignore adds a file to the gitignore for the repo
@@ -222,7 +221,7 @@ func (c *WorktreeMgr) Ignore(filename string) error {
 
 // CheckoutFile checks out the file for the given commit
 func (c *WorktreeMgr) CheckoutFile(commitSha, fileName string) error {
-	return c.RunGitCmdFromStr(fmt.Sprintf("checkout %s %s", commitSha, fileName))
+	return c.RunGitCmdFromStr(fmt.Sprintf("checkout %s %s", commitSha, c.Quote(fileName)))
 }
 
 // DiscardAnyUnstagedFileChanges discards any unstages file changes via `git checkout -- .`
@@ -281,6 +280,7 @@ func (c *WorktreeMgr) EditFileCmdObj(filename string) (ICmdObj, error) {
 			editor = "vi"
 		}
 	}
+
 	if editor == "" {
 		return nil, errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}

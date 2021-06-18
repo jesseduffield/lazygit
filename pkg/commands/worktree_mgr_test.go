@@ -122,6 +122,19 @@ var _ = Describe("WorktreeMgr", func() {
 					Expect(err).To(BeNil())
 				})
 			})
+
+			Context("with error from command", func() {
+				It("bubbles up error", func() {
+					WithRunCalls(commander, []ExpectedRunCall{
+						ErrorCall(`git reset -- "myfile.go"`, "my error"),
+					}, func() {
+						err := describedStruct.DiscardAllFileChanges(&models.File{
+							Name: "myfile.go", HasStagedChanges: true,
+						})
+						Expect(err).To(MatchError("my error"))
+					})
+				})
+			})
 		})
 
 		Context("with file of 'AA' status", func() {
@@ -195,6 +208,195 @@ var _ = Describe("WorktreeMgr", func() {
 
 					Expect(err).To(BeNil())
 					Expect(os.RemoveFileCallCount()).To(Equal(1))
+				})
+			})
+		})
+
+		Context("with renamed file", func() {
+			It("runs expected commands", func() {
+				WithRunCalls(commander, []ExpectedRunCall{
+					{
+						cmdStr:    "git status --untracked-files=all --porcelain -z --no-renames",
+						outputStr: " A myfile.go\n D myoldfile.go",
+						outputErr: nil,
+					},
+					SuccessCall(`git checkout -- "myoldfile.go"`),
+				}, func() {
+					os.RemoveFileCalls(func(s string) error {
+						Expect(s).To(Equal("myfile.go"))
+						return nil
+					})
+
+					err := describedStruct.DiscardAllFileChanges(&models.File{
+						Name: "myfile.go", PreviousName: "myoldfile.go",
+					})
+
+					Expect(err).To(BeNil())
+					Expect(os.RemoveFileCallCount()).To(Equal(1))
+				})
+			})
+		})
+
+		Context("with untracked, added, and staged file", func() {
+			It("runs expected commands", func() {
+				WithRunCalls(commander, []ExpectedRunCall{
+					SuccessCall("git reset -- \"myfile.go\""),
+				}, func() {
+					os.RemoveFileCalls(func(s string) error {
+						Expect(s).To(Equal("myfile.go"))
+						return nil
+					})
+
+					err := describedStruct.DiscardAllFileChanges(&models.File{
+						Name: "myfile.go", Tracked: false, Added: true, HasStagedChanges: true,
+						ShortStatus: "A ",
+					})
+
+					Expect(err).To(BeNil())
+					Expect(os.RemoveFileCallCount()).To(Equal(1))
+				})
+			})
+		})
+
+		Context("with untracked, added, and staged file", func() {
+			It("runs expected commands", func() {
+				WithRunCalls(commander, []ExpectedRunCall{
+					SuccessCall("git reset -- \"myfile.go\""),
+				}, func() {
+					os.RemoveFileCalls(func(s string) error {
+						Expect(s).To(Equal("myfile.go"))
+						return nil
+					})
+
+					err := describedStruct.DiscardAllFileChanges(&models.File{
+						Name: "myfile.go", Tracked: false, Added: true, HasStagedChanges: true,
+						ShortStatus: "A ",
+					})
+
+					Expect(err).To(BeNil())
+					Expect(os.RemoveFileCallCount()).To(Equal(1))
+				})
+			})
+		})
+	})
+
+	Describe("CheckoutFile", func() {
+		It("runs expected command", func() {
+			WithRunCalls(commander, []ExpectedRunCall{
+				SuccessCall("git checkout abc123 \"myfile.go\""),
+			}, func() {
+				err := describedStruct.CheckoutFile("abc123", "myfile.go")
+
+				Expect(err).To(BeNil())
+			})
+		})
+	})
+
+	Describe("DiscardUnstagedFileChanges", func() {
+		It("runs expected command", func() {
+			WithRunCalls(commander, []ExpectedRunCall{
+				SuccessCall("git checkout -- \"myfile.go\""),
+			}, func() {
+				err := describedStruct.DiscardUnstagedFileChanges("myfile.go")
+
+				Expect(err).To(BeNil())
+			})
+		})
+	})
+
+	Describe("DiscardAnyUnstagedFileChanges", func() {
+		It("runs expected command", func() {
+			WithRunCalls(commander, []ExpectedRunCall{
+				SuccessCall("git checkout -- ."),
+			}, func() {
+				err := describedStruct.DiscardAnyUnstagedFileChanges()
+
+				Expect(err).To(BeNil())
+			})
+		})
+	})
+
+	Describe("RemoveUntrackedFiles", func() {
+		It("runs expected command", func() {
+			WithRunCalls(commander, []ExpectedRunCall{
+				SuccessCall("git clean -fd"),
+			}, func() {
+				err := describedStruct.RemoveUntrackedFiles()
+
+				Expect(err).To(BeNil())
+			})
+		})
+	})
+
+	Describe("EditFileCmdObj", func() {
+		Context("user has set EditCommand value in the user config", func() {
+			It("runs expected command", func() {
+				userConfig.OS.EditCommand = "myedit"
+				result, err := describedStruct.EditFileCmdObj("myfile.go")
+				Expect(err).To(BeNil())
+				Expect(result.GetCmd().Args).To(Equal([]string{"sh", "-c", "myedit \"myfile.go\""}))
+			})
+		})
+
+		Context("user has set not set EditCommand value in the user config", func() {
+			Context("GIT_EDITOR env var is defined", func() {
+				JustBeforeEach(func() {
+					MockGetenv(os, map[string]string{
+						"GIT_EDITOR": "git_editor", "VISUAL": "visual", "EDITOR": "editor",
+					})
+				})
+
+				It("uses command from GIT_EDITOR env var", func() {
+					result, err := describedStruct.EditFileCmdObj("myfile.go")
+					Expect(err).To(BeNil())
+					Expect(result.GetCmd().Args).To(Equal([]string{"sh", "-c", "git_editor \"myfile.go\""}))
+				})
+			})
+		})
+
+		Context("VISUAL env var is defined", func() {
+			JustBeforeEach(func() {
+				MockGetenv(os, map[string]string{
+					"GIT_EDITOR": "", "VISUAL": "visual", "EDITOR": "editor",
+				})
+			})
+
+			It("uses command from VISUAL env var", func() {
+				result, err := describedStruct.EditFileCmdObj("myfile.go")
+				Expect(err).To(BeNil())
+				Expect(result.GetCmd().Args).To(Equal([]string{"sh", "-c", "visual \"myfile.go\""}))
+			})
+		})
+
+		Context("EDITOR env var is defined", func() {
+			JustBeforeEach(func() {
+				MockGetenv(os, map[string]string{
+					"GIT_EDITOR": "", "VISUAL": "", "EDITOR": "editor",
+				})
+			})
+
+			It("uses command from EDITOR env var", func() {
+				result, err := describedStruct.EditFileCmdObj("myfile.go")
+				Expect(err).To(BeNil())
+				Expect(result.GetCmd().Args).To(Equal([]string{"sh", "-c", "editor \"myfile.go\""}))
+			})
+		})
+
+		Context("no env vars are defined", func() {
+			JustBeforeEach(func() {
+				MockGetenv(os, map[string]string{
+					"GIT_EDITOR": "", "VISUAL": "", "EDITOR": "",
+				})
+			})
+
+			Context("when vi is installed", func() {
+				It("uses vi", func() {
+					WithRunCalls(commander, []ExpectedRunCall{
+						ErrorCall("which vi", "vi not found"),
+					}, func() {
+						_, err := describedStruct.EditFileCmdObj("myfile.go")
+						Expect(err).To(MatchError("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config"))
+					})
 				})
 			})
 		})

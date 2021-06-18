@@ -66,10 +66,10 @@ type FakeIWorktreeMgr struct {
 	discardUnstagedDirChangesReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DiscardUnstagedFileChangesStub        func(*models.File) error
+	DiscardUnstagedFileChangesStub        func(string) error
 	discardUnstagedFileChangesMutex       sync.RWMutex
 	discardUnstagedFileChangesArgsForCall []struct {
-		arg1 *models.File
+		arg1 string
 	}
 	discardUnstagedFileChangesReturns struct {
 		result1 error
@@ -498,11 +498,11 @@ func (fake *FakeIWorktreeMgr) DiscardUnstagedDirChangesReturnsOnCall(i int, resu
 	}{result1}
 }
 
-func (fake *FakeIWorktreeMgr) DiscardUnstagedFileChanges(arg1 *models.File) error {
+func (fake *FakeIWorktreeMgr) DiscardUnstagedFileChanges(arg1 string) error {
 	fake.discardUnstagedFileChangesMutex.Lock()
 	ret, specificReturn := fake.discardUnstagedFileChangesReturnsOnCall[len(fake.discardUnstagedFileChangesArgsForCall)]
 	fake.discardUnstagedFileChangesArgsForCall = append(fake.discardUnstagedFileChangesArgsForCall, struct {
-		arg1 *models.File
+		arg1 string
 	}{arg1})
 	stub := fake.DiscardUnstagedFileChangesStub
 	fakeReturns := fake.discardUnstagedFileChangesReturns
@@ -523,13 +523,13 @@ func (fake *FakeIWorktreeMgr) DiscardUnstagedFileChangesCallCount() int {
 	return len(fake.discardUnstagedFileChangesArgsForCall)
 }
 
-func (fake *FakeIWorktreeMgr) DiscardUnstagedFileChangesCalls(stub func(*models.File) error) {
+func (fake *FakeIWorktreeMgr) DiscardUnstagedFileChangesCalls(stub func(string) error) {
 	fake.discardUnstagedFileChangesMutex.Lock()
 	defer fake.discardUnstagedFileChangesMutex.Unlock()
 	fake.DiscardUnstagedFileChangesStub = stub
 }
 
-func (fake *FakeIWorktreeMgr) DiscardUnstagedFileChangesArgsForCall(i int) *models.File {
+func (fake *FakeIWorktreeMgr) DiscardUnstagedFileChangesArgsForCall(i int) string {
 	fake.discardUnstagedFileChangesMutex.RLock()
 	defer fake.discardUnstagedFileChangesMutex.RUnlock()
 	argsForCall := fake.discardUnstagedFileChangesArgsForCall[i]
