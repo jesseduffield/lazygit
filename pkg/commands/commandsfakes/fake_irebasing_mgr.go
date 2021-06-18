@@ -163,6 +163,16 @@ type FakeIRebasingMgr struct {
 		result1 types.ICmdObj
 		result2 error
 	}
+	GetWorkflowStub        func() *commands.RebaseWorkflow
+	getWorkflowMutex       sync.RWMutex
+	getWorkflowArgsForCall []struct {
+	}
+	getWorkflowReturns struct {
+		result1 *commands.RebaseWorkflow
+	}
+	getWorkflowReturnsOnCall map[int]struct {
+		result1 *commands.RebaseWorkflow
+	}
 	InteractiveRebaseStub        func([]*models.Commit, int, string) error
 	interactiveRebaseMutex       sync.RWMutex
 	interactiveRebaseArgsForCall []struct {
@@ -243,16 +253,6 @@ type FakeIRebasingMgr struct {
 	}
 	squashAllAboveFixupCommitsReturnsOnCall map[int]struct {
 		result1 error
-	}
-	getWorkflowStub        func() *commands.RebaseWorkflow
-	getWorkflowMutex       sync.RWMutex
-	getWorkflowArgsForCall []struct {
-	}
-	getWorkflowReturns struct {
-		result1 *commands.RebaseWorkflow
-	}
-	getWorkflowReturnsOnCall map[int]struct {
-		result1 *commands.RebaseWorkflow
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -1061,6 +1061,59 @@ func (fake *FakeIRebasingMgr) GetRewordCommitCmdObjReturnsOnCall(i int, result1 
 	}{result1, result2}
 }
 
+func (fake *FakeIRebasingMgr) GetWorkflow() *commands.RebaseWorkflow {
+	fake.getWorkflowMutex.Lock()
+	ret, specificReturn := fake.getWorkflowReturnsOnCall[len(fake.getWorkflowArgsForCall)]
+	fake.getWorkflowArgsForCall = append(fake.getWorkflowArgsForCall, struct {
+	}{})
+	stub := fake.GetWorkflowStub
+	fakeReturns := fake.getWorkflowReturns
+	fake.recordInvocation("GetWorkflow", []interface{}{})
+	fake.getWorkflowMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIRebasingMgr) GetWorkflowCallCount() int {
+	fake.getWorkflowMutex.RLock()
+	defer fake.getWorkflowMutex.RUnlock()
+	return len(fake.getWorkflowArgsForCall)
+}
+
+func (fake *FakeIRebasingMgr) GetWorkflowCalls(stub func() *commands.RebaseWorkflow) {
+	fake.getWorkflowMutex.Lock()
+	defer fake.getWorkflowMutex.Unlock()
+	fake.GetWorkflowStub = stub
+}
+
+func (fake *FakeIRebasingMgr) GetWorkflowReturns(result1 *commands.RebaseWorkflow) {
+	fake.getWorkflowMutex.Lock()
+	defer fake.getWorkflowMutex.Unlock()
+	fake.GetWorkflowStub = nil
+	fake.getWorkflowReturns = struct {
+		result1 *commands.RebaseWorkflow
+	}{result1}
+}
+
+func (fake *FakeIRebasingMgr) GetWorkflowReturnsOnCall(i int, result1 *commands.RebaseWorkflow) {
+	fake.getWorkflowMutex.Lock()
+	defer fake.getWorkflowMutex.Unlock()
+	fake.GetWorkflowStub = nil
+	if fake.getWorkflowReturnsOnCall == nil {
+		fake.getWorkflowReturnsOnCall = make(map[int]struct {
+			result1 *commands.RebaseWorkflow
+		})
+	}
+	fake.getWorkflowReturnsOnCall[i] = struct {
+		result1 *commands.RebaseWorkflow
+	}{result1}
+}
+
 func (fake *FakeIRebasingMgr) InteractiveRebase(arg1 []*models.Commit, arg2 int, arg3 string) error {
 	var arg1Copy []*models.Commit
 	if arg1 != nil {
@@ -1495,59 +1548,6 @@ func (fake *FakeIRebasingMgr) SquashAllAboveFixupCommitsReturnsOnCall(i int, res
 	}{result1}
 }
 
-func (fake *FakeIRebasingMgr) getWorkflow() *commands.RebaseWorkflow {
-	fake.getWorkflowMutex.Lock()
-	ret, specificReturn := fake.getWorkflowReturnsOnCall[len(fake.getWorkflowArgsForCall)]
-	fake.getWorkflowArgsForCall = append(fake.getWorkflowArgsForCall, struct {
-	}{})
-	stub := fake.getWorkflowStub
-	fakeReturns := fake.getWorkflowReturns
-	fake.recordInvocation("getWorkflow", []interface{}{})
-	fake.getWorkflowMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeIRebasingMgr) GetWorkflowCallCount() int {
-	fake.getWorkflowMutex.RLock()
-	defer fake.getWorkflowMutex.RUnlock()
-	return len(fake.getWorkflowArgsForCall)
-}
-
-func (fake *FakeIRebasingMgr) GetWorkflowCalls(stub func() *commands.RebaseWorkflow) {
-	fake.getWorkflowMutex.Lock()
-	defer fake.getWorkflowMutex.Unlock()
-	fake.getWorkflowStub = stub
-}
-
-func (fake *FakeIRebasingMgr) GetWorkflowReturns(result1 *commands.RebaseWorkflow) {
-	fake.getWorkflowMutex.Lock()
-	defer fake.getWorkflowMutex.Unlock()
-	fake.getWorkflowStub = nil
-	fake.getWorkflowReturns = struct {
-		result1 *commands.RebaseWorkflow
-	}{result1}
-}
-
-func (fake *FakeIRebasingMgr) GetWorkflowReturnsOnCall(i int, result1 *commands.RebaseWorkflow) {
-	fake.getWorkflowMutex.Lock()
-	defer fake.getWorkflowMutex.Unlock()
-	fake.getWorkflowStub = nil
-	if fake.getWorkflowReturnsOnCall == nil {
-		fake.getWorkflowReturnsOnCall = make(map[int]struct {
-			result1 *commands.RebaseWorkflow
-		})
-	}
-	fake.getWorkflowReturnsOnCall[i] = struct {
-		result1 *commands.RebaseWorkflow
-	}{result1}
-}
-
 func (fake *FakeIRebasingMgr) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -1577,6 +1577,8 @@ func (fake *FakeIRebasingMgr) Invocations() map[string][][]interface{} {
 	defer fake.genericMergeOrRebaseCmdObjMutex.RUnlock()
 	fake.getRewordCommitCmdObjMutex.RLock()
 	defer fake.getRewordCommitCmdObjMutex.RUnlock()
+	fake.getWorkflowMutex.RLock()
+	defer fake.getWorkflowMutex.RUnlock()
 	fake.interactiveRebaseMutex.RLock()
 	defer fake.interactiveRebaseMutex.RUnlock()
 	fake.interactiveRebaseCmdObjMutex.RLock()
@@ -1591,8 +1593,6 @@ func (fake *FakeIRebasingMgr) Invocations() map[string][][]interface{} {
 	defer fake.rebaseBranchMutex.RUnlock()
 	fake.squashAllAboveFixupCommitsMutex.RLock()
 	defer fake.squashAllAboveFixupCommitsMutex.RUnlock()
-	fake.getWorkflowMutex.RLock()
-	defer fake.getWorkflowMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

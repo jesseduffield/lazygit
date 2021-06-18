@@ -3,9 +3,12 @@ package commands_test
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	. "github.com/onsi/gomega"
 )
 
@@ -50,4 +53,8 @@ func SetExpectedRunWithOutputCalls(commander *FakeICommander, expectedCalls []Ex
 		Expect(cmdObj.ToString()).To(Equal(call.cmdStr))
 		return call.outputStr, call.outputErr
 	})
+}
+
+func NewFakeMgrCtx(commander *FakeICommander, config *FakeIGitConfigMgr) *commands.MgrCtx {
+	return commands.NewMgrCtx(commander, config, nil, utils.NewDummyLog(), nil, i18n.EnglishTranslationSet())
 }

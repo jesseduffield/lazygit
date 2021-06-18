@@ -12,7 +12,7 @@ import (
 var _ = Describe("CommitsMgr", func() {
 	var (
 		commander  *FakeICommander
-		gitconfig  *FakeIGitConfigMgr
+		config     *FakeIGitConfigMgr
 		commitsMgr *CommitsMgr
 		statusMgr  *FakeIStatusMgr
 		mgrCtx     *MgrCtx
@@ -20,13 +20,12 @@ var _ = Describe("CommitsMgr", func() {
 
 	BeforeEach(func() {
 		commander = NewFakeCommander()
-		gitconfig = &FakeIGitConfigMgr{}
-		gitconfig.ColorArgCalls(func() string { return "always" })
-		mgrCtx = &MgrCtx{
-			ICommander: commander,
-			config:     gitconfig,
-		}
+		config = &FakeIGitConfigMgr{}
+		config.ColorArgCalls(func() string { return "always" })
+
+		mgrCtx = NewFakeMgrCtx(commander, config)
 		statusMgr = &FakeIStatusMgr{}
+
 		commitsMgr = NewCommitsMgr(mgrCtx, statusMgr)
 	})
 

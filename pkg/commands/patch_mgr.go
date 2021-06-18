@@ -69,7 +69,7 @@ func (c *PatchesMgr) DeletePatchesFromCommit(commits []*models.Commit, commitInd
 		return err
 	}
 
-	c.getWorkflow().Start(func() error {
+	c.GetWorkflow().Start(func() error {
 		p.Reset()
 		return nil
 	})
@@ -97,7 +97,7 @@ func (c *PatchesMgr) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 			return err
 		}
 
-		c.getWorkflow().Start(func() error {
+		c.GetWorkflow().Start(func() error {
 			p.Reset()
 			return nil
 		})
@@ -146,11 +146,11 @@ func (c *PatchesMgr) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		return err
 	}
 
-	if c.getWorkflow().InProgress() {
+	if c.GetWorkflow().InProgress() {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
-	c.getWorkflow().Start(func() error {
+	c.GetWorkflow().Start(func() error {
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
 		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
@@ -165,7 +165,7 @@ func (c *PatchesMgr) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 			return err
 		}
 
-		c.getWorkflow().Start(func() error {
+		c.GetWorkflow().Start(func() error {
 			p.Reset()
 			return nil
 		})
@@ -201,11 +201,11 @@ func (c *PatchesMgr) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 		return err
 	}
 
-	if c.getWorkflow().InProgress() {
+	if c.GetWorkflow().InProgress() {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
-	c.getWorkflow().Start(func() error {
+	c.GetWorkflow().Start(func() error {
 		// add patches to index
 		if err := p.ApplyPatches(c.ApplyPatch, false); err != nil {
 			if c.statusMgr.IsRebasing() {
@@ -261,7 +261,7 @@ func (c *PatchesMgr) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 		return err
 	}
 
-	if c.getWorkflow().InProgress() {
+	if c.GetWorkflow().InProgress() {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 

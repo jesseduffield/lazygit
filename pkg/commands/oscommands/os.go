@@ -19,6 +19,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 // Platform stores the os state
 type Platform struct {
 	OS              string
@@ -30,6 +32,7 @@ type Platform struct {
 	OpenLinkCommand string
 }
 
+//counterfeiter:generate . IOS
 type IOS interface {
 	Getenv(envVar string) string
 	WithSpan(span string) IOS

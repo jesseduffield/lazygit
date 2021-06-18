@@ -34,7 +34,7 @@ type IRebasingMgr interface {
 	RebaseBranch(branchName string) error
 	GenericMergeOrRebaseAction(commandType string, command string) error
 	CherryPickCommits(commits []*models.Commit) error
-	getWorkflow() *RebaseWorkflow
+	GetWorkflow() *RebaseWorkflow
 }
 
 type RebasingMgr struct {
@@ -370,6 +370,6 @@ func (c *RebasingMgr) GenericMergeOrRebaseCmdObj(action string) ICmdObj {
 	panic("expected rebase mode")
 }
 
-func (c *RebasingMgr) getWorkflow() *RebaseWorkflow {
+func (c *RebasingMgr) GetWorkflow() *RebaseWorkflow {
 	return c.workflow
 }

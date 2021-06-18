@@ -67,6 +67,24 @@ func (c *Git) GetLog() *logrus.Entry {
 	return c.log
 }
 
+func NewMgrCtx(
+	commander ICommander,
+	config IGitConfigMgr,
+	repo *gogit.Repository,
+	log *logrus.Entry,
+	os oscommands.IOS,
+	tr *i18n.TranslationSet,
+) *MgrCtx {
+	return &MgrCtx{
+		ICommander: commander,
+		config:     config,
+		repo:       repo,
+		log:        log,
+		os:         os,
+		tr:         tr,
+	}
+}
+
 type MgrCtx struct {
 	ICommander
 

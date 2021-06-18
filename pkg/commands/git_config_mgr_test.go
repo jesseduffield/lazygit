@@ -4,6 +4,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/commands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/commandsfakes"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -21,7 +22,7 @@ var _ = Describe("GitConfigMgr", func() {
 		commander = NewFakeCommander()
 		userConfig = &config.UserConfig{}
 		getGitConfigValue = func(string) (string, error) { return "", nil }
-		gitconfig = NewGitConfigMgr(commander, userConfig, ".", getGitConfigValue, nil)
+		gitconfig = NewGitConfigMgr(commander, userConfig, ".", getGitConfigValue, utils.NewDummyLog(), nil, false, ".git")
 	})
 
 	Describe("UsingGpg", func() {
@@ -40,14 +41,14 @@ var _ = Describe("GitConfigMgr", func() {
 				userConfig.Git.OverrideGpg = false
 			})
 
-			DescribeTable("CommitCmdObj",
+			DescribeTable("Using git config",
 				func(result string, expected bool) {
 					getGitConfigValue = func(input string) (string, error) {
 						Expect(input).To(Equal("commit.gpgsign"))
 						return result, nil
 					}
 
-					gitconfig = NewGitConfigMgr(commander, userConfig, ".", getGitConfigValue, nil)
+					gitconfig = NewGitConfigMgr(commander, userConfig, ".", getGitConfigValue, utils.NewDummyLog(), nil, false, ".git")
 					Expect(gitconfig.UsingGpg()).To(Equal(expected))
 				},
 				Entry("when returning true", "true", true),
