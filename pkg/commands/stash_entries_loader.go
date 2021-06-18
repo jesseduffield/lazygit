@@ -32,7 +32,7 @@ func (c *StashEntriesLoader) Load(filterPath string) []*models.StashEntry {
 	var currentStashEntry *models.StashEntry
 	lines := utils.SplitLines(rawString)
 	isAStash := func(line string) bool { return strings.HasPrefix(line, "stash@{") }
-	re := regexp.MustCompile(`stash@\{(\d+)\}`)
+	re := regexp.MustCompile(`stash@\{(\d+)\}: (.*)`)
 
 outer:
 	for i := 0; i < len(lines); i++ {
@@ -44,7 +44,7 @@ outer:
 		if err != nil {
 			return c.getUnfilteredStashEntries()
 		}
-		currentStashEntry = stashEntryFromLine(lines[i], idx)
+		currentStashEntry = stashEntryFromLine(match[2], idx)
 		for i+1 < len(lines) && !isAStash(lines[i+1]) {
 			i++
 			if lines[i] == filterPath {

@@ -13,66 +13,6 @@ package commands
 // 	"github.com/stretchr/testify/assert"
 // )
 
-// // TestGitCommandStageFile is a function.
-// func TestGitCommandStageFile(t *testing.T) {
-// 	gitCmd := NewDummyGit()
-// 	gitCmd.GetOSCommand().Command = func(cmd string, args ...string) *exec.Cmd {
-// 		assert.EqualValues(t, "git", cmd)
-// 		assert.EqualValues(t, []string{"add", "--", "test.txt"}, args)
-
-// 		return secureexec.Command("echo")
-// 	}
-
-// 	assert.NoError(t, gitCmd.StageFile("test.txt"))
-// }
-
-// // TestGitCommandUnstageFile is a function.
-// func TestGitCommandUnstageFile(t *testing.T) {
-// 	type scenario struct {
-// 		testName string
-// 		command  func(string, ...string) *exec.Cmd
-// 		test     func(error)
-// 		reset    bool
-// 	}
-
-// 	scenarios := []scenario{
-// 		{
-// 			"Remove an untracked file from staging",
-// 			func(cmd string, args ...string) *exec.Cmd {
-// 				assert.EqualValues(t, "git", cmd)
-// 				assert.EqualValues(t, []string{"rm", "--cached", "--force", "--", "test.txt"}, args)
-
-// 				return secureexec.Command("echo")
-// 			},
-// 			func(err error) {
-// 				assert.NoError(t, err)
-// 			},
-// 			false,
-// 		},
-// 		{
-// 			"Remove a tracked file from staging",
-// 			func(cmd string, args ...string) *exec.Cmd {
-// 				assert.EqualValues(t, "git", cmd)
-// 				assert.EqualValues(t, []string{"reset", "HEAD", "--", "test.txt"}, args)
-
-// 				return secureexec.Command("echo")
-// 			},
-// 			func(err error) {
-// 				assert.NoError(t, err)
-// 			},
-// 			true,
-// 		},
-// 	}
-
-// 	for _, s := range scenarios {
-// 		t.Run(s.testName, func(t *testing.T) {
-// 			gitCmd := NewDummyGit()
-// 			gitCmd.GetOSCommand().Command = s.command
-// 			s.test(gitCmd.UnStageFile([]string{"test.txt"}, s.reset))
-// 		})
-// 	}
-// }
-
 // // TestGitCommandDiscardAllFileChanges is a function.
 // // these tests don't cover everything, in part because we already have an integration
 // // test which does cover everything. I don't want to unnecessarily assert on the 'how'

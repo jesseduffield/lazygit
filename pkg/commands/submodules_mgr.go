@@ -12,6 +12,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
+//counterfeiter:generate . ISubmodulesMgr
 type ISubmodulesMgr interface {
 	GetConfigs() ([]*models.SubmoduleConfig, error)
 	Stash(submodule *models.SubmoduleConfig) error

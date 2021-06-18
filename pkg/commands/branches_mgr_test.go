@@ -25,7 +25,7 @@ var _ = Describe("BranchesMgr", func() {
 		gitconfig.GetUserConfigCalls(func() *config.UserConfig { return userConfig })
 		gitconfig.ColorArgCalls(func() string { return "always" })
 
-		mgrCtx = NewFakeMgrCtx(commander, gitconfig)
+		mgrCtx = NewFakeMgrCtx(commander, gitconfig, nil)
 
 		statusMgr = &FakeIStatusMgr{}
 
@@ -34,11 +34,13 @@ var _ = Describe("BranchesMgr", func() {
 
 	Describe("NewBranch", func() {
 		It("runs expected command", func() {
-			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+			WithRunCalls(commander, []ExpectedRunCall{
 				{"git checkout -b newName master", "", nil},
-			})
+			}, func() {
 
-			branchesMgr.NewBranch("newName", "master")
+				err := branchesMgr.NewBranch("newName", "master")
+				Expect(err).To(BeNil())
+			})
 		})
 	})
 
@@ -63,23 +65,23 @@ var _ = Describe("BranchesMgr", func() {
 	Describe("Delete", func() {
 		Context("when force flag is true", func() {
 			It("runs expected command", func() {
-				SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				WithRunCalls(commander, []ExpectedRunCall{
 					{"git branch -D mybranch", "", nil},
+				}, func() {
+					err := branchesMgr.Delete("mybranch", true)
+					Expect(err).To(BeNil())
 				})
-
-				err := branchesMgr.Delete("mybranch", true)
-				Expect(err).To(BeNil())
 			})
 		})
 
 		Context("when force flag is false", func() {
 			It("runs expected command", func() {
-				SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				WithRunCalls(commander, []ExpectedRunCall{
 					{"git branch -d mybranch", "", nil},
+				}, func() {
+					err := branchesMgr.Delete("mybranch", false)
+					Expect(err).To(BeNil())
 				})
-
-				err := branchesMgr.Delete("mybranch", false)
-				Expect(err).To(BeNil())
 			})
 		})
 	})
@@ -87,35 +89,35 @@ var _ = Describe("BranchesMgr", func() {
 	Describe("Merge", func() {
 		Context("default case", func() {
 			It("runs expected command", func() {
-				SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				WithRunCalls(commander, []ExpectedRunCall{
 					{"git merge --no-edit mybranch", "", nil},
+				}, func() {
+					err := branchesMgr.Merge("mybranch", MergeOpts{})
+					Expect(err).To(BeNil())
 				})
-
-				err := branchesMgr.Merge("mybranch", MergeOpts{})
-				Expect(err).To(BeNil())
 			})
 		})
 
 		Context("when fast-forward only arg is passed", func() {
 			It("runs expected command", func() {
-				SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				WithRunCalls(commander, []ExpectedRunCall{
 					{"git merge --no-edit --ff-only mybranch", "", nil},
+				}, func() {
+					err := branchesMgr.Merge("mybranch", MergeOpts{FastForwardOnly: true})
+					Expect(err).To(BeNil())
 				})
-
-				err := branchesMgr.Merge("mybranch", MergeOpts{FastForwardOnly: true})
-				Expect(err).To(BeNil())
 			})
 
 			Context("when user has configured additional args", func() {
 				It("runs expected command", func() {
 					userConfig.Git.Merging.Args = "--extra-arg"
 
-					SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+					WithRunCalls(commander, []ExpectedRunCall{
 						{"git merge --no-edit --ff-only --extra-arg mybranch", "", nil},
+					}, func() {
+						err := branchesMgr.Merge("mybranch", MergeOpts{FastForwardOnly: true})
+						Expect(err).To(BeNil())
 					})
-
-					err := branchesMgr.Merge("mybranch", MergeOpts{FastForwardOnly: true})
-					Expect(err).To(BeNil())
 				})
 			})
 		})
@@ -124,35 +126,35 @@ var _ = Describe("BranchesMgr", func() {
 	Describe("Checkout", func() {
 		Context("non-forced", func() {
 			It("runs expected command", func() {
-				SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				WithRunCalls(commander, []ExpectedRunCall{
 					{"git checkout mybranch", "", nil},
+				}, func() {
+					err := branchesMgr.Checkout("mybranch", CheckoutOpts{})
+					Expect(err).To(BeNil())
 				})
-
-				err := branchesMgr.Checkout("mybranch", CheckoutOpts{})
-				Expect(err).To(BeNil())
 			})
 		})
 
 		Context("forced", func() {
 			It("runs expected command", func() {
-				SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+				WithRunCalls(commander, []ExpectedRunCall{
 					{"git checkout --force mybranch", "", nil},
+				}, func() {
+					err := branchesMgr.Checkout("mybranch", CheckoutOpts{Force: true})
+					Expect(err).To(BeNil())
 				})
-
-				err := branchesMgr.Checkout("mybranch", CheckoutOpts{Force: true})
-				Expect(err).To(BeNil())
 			})
 		})
 	})
 
 	Describe("ResetToRef", func() {
 		It("runs expected command", func() {
-			SetExpectedRunWithOutputCalls(commander, []ExpectedRunWithOutputCall{
+			WithRunCalls(commander, []ExpectedRunCall{
 				{"git reset --hard HEAD", "", nil},
+			}, func() {
+				err := branchesMgr.ResetToRef("HEAD", HARD, ResetToRefOpts{})
+				Expect(err).To(BeNil())
 			})
-
-			err := branchesMgr.ResetToRef("HEAD", HARD, ResetToRefOpts{})
-			Expect(err).To(BeNil())
 		})
 	})
 })

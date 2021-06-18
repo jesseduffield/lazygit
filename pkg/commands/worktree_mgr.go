@@ -125,6 +125,7 @@ func (c *WorktreeMgr) beforeAndAfterFileForRename(file *models.File) (*models.Fi
 
 // DiscardAllFileChanges directly
 func (c *WorktreeMgr) DiscardAllFileChanges(file *models.File) error {
+	// recursively call this function if we're dealing with rename
 	if file.IsRename() {
 		beforeFile, afterFile, err := c.beforeAndAfterFileForRename(file)
 		if err != nil {
@@ -148,7 +149,7 @@ func (c *WorktreeMgr) DiscardAllFileChanges(file *models.File) error {
 		if err := c.RunGitCmdFromStr(fmt.Sprintf("checkout --ours --  %s", quotedFileName)); err != nil {
 			return err
 		}
-		if err := c.RunGitCmdFromStr(fmt.Sprintf("add %s", quotedFileName)); err != nil {
+		if err := c.RunGitCmdFromStr(fmt.Sprintf("add -- %s", quotedFileName)); err != nil {
 			return err
 		}
 		return nil
