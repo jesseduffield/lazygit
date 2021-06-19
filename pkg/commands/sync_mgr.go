@@ -45,12 +45,15 @@ type PushOpts struct {
 }
 
 func (c *SyncMgr) Push(opts PushOpts) (bool, error) {
-	cmdObj := BuildGitCmdObj("push", []string{opts.DestinationRemote, opts.DestinationBranch},
-		map[string]bool{
-			"--follow-tags":      c.config.GetConfigValue("push.followTags") != "false",
-			"--force-with-lease": opts.Force,
-			"--set-upstream":     opts.SetUpstream,
-		})
+	kwArgs := joinPresentKwargs(map[string]bool{
+		"--follow-tags":      c.config.GetConfigValue("push.followTags") != "false",
+		"--force-with-lease": opts.Force,
+		"--set-upstream":     opts.SetUpstream,
+	})
+
+	cmdObj := c.BuildGitCmdObjFromStr(
+		joinPresent("push", kwArgs, opts.DestinationRemote, opts.DestinationBranch),
+	)
 
 	err := c.runCommandWithCredentialsPrompt(cmdObj)
 
@@ -74,30 +77,38 @@ type FetchOptions struct {
 
 // Fetch fetch git repo
 func (c *SyncMgr) Fetch(opts FetchOptions) error {
-	cmdObj := GetFetchCommandObj(opts)
+	cmdObj := c.getFetchCommandObj(opts)
 
 	return c.runCommandWithCredentialsHandling(cmdObj)
 }
 
 // FetchInBackground fails if credentials are requested
 func (c *SyncMgr) FetchInBackground(opts FetchOptions) error {
-	cmdObj := GetFetchCommandObj(opts)
+	cmdObj := c.getFetchCommandObj(opts)
 
 	cmdObj = c.failOnCredentialsRequest(cmdObj)
 	return c.Run(cmdObj)
 }
 
-func GetFetchCommandObj(opts FetchOptions) ICmdObj {
-	return BuildGitCmdObj("fetch", []string{opts.RemoteName, opts.BranchName}, nil)
+func (c *SyncMgr) getFetchCommandObj(opts FetchOptions) ICmdObj {
+	return c.BuildGitCmdObjFromStr(
+		joinPresent("fetch", opts.RemoteName, opts.BranchName),
+	)
 }
 
 func (c *SyncMgr) FastForward(branchName string, remoteName string, remoteBranchName string) error {
-	cmdObj := BuildGitCmdObj("fetch", []string{remoteName, remoteBranchName + ":" + branchName}, nil)
+	cmdObj := c.BuildGitCmdObjFromStr(
+		fmt.Sprintf("fetch %s %s:%s", remoteName, remoteBranchName, branchName),
+	)
+
 	return c.runCommandWithCredentialsHandling(cmdObj)
 }
 
 func (c *SyncMgr) FetchRemote(remoteName string) error {
-	cmdObj := BuildGitCmdObj("fetch", []string{remoteName}, nil)
+	cmdObj := c.BuildGitCmdObjFromStr(
+		fmt.Sprintf("fetch %s", remoteName),
+	)
+
 	return c.runCommandWithCredentialsHandling(cmdObj)
 }
 

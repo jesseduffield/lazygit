@@ -91,7 +91,6 @@ func NewFakeMgrCtx(commander *FakeICommander, config *FakeIGitConfigMgr, os *osc
 
 	if os == nil {
 		os = &oscommandsfakes.FakeIOS{}
-
 	}
 
 	return commands.NewMgrCtx(commander, config, nil, utils.NewDummyLog(), os, i18n.EnglishTranslationSet())

@@ -15,6 +15,8 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
+// All the stuff in this file hasn't yet been categorised, but should.
+
 // GetCurrentRepoName gets the repo's base name
 func GetCurrentRepoName() string {
 	pwd, err := os.Getwd()

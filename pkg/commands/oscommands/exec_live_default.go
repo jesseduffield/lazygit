@@ -15,10 +15,7 @@ import (
 	"github.com/creack/pty"
 )
 
-// runAndParseWords runs a command and return every word that gets written in stdout
-// Output is a function that executes by every word that gets read by bufio
-// As return of output you need to give a string that will be written to stdin
-// NOTE: If the return data is empty it won't written anything to stdin
+// runAndParseWords is intended to be used for commands that may prompt the user for input. Each word from stdout is passed to a callback function, and the callback function is expected to piece together the total output and work out if a credential is being requested. If it is, the callback will return a non-empty string and then here we'll write that string to stdin.
 func runAndParseWords(c *OS, cmdObj ICmdObj, output func(string) string) error {
 	c.log.WithField("command", cmdObj.ToString()).Info("RunCommand")
 	c.LogCommand(cmdObj.ToString(), true)
