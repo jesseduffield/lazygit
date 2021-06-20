@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"sync"
 )
 
 // Push pushes to a branch
@@ -58,4 +59,33 @@ func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBra
 func (c *GitCommand) FetchRemote(remoteName string, promptUserForCredential func(string) string) error {
 	command := fmt.Sprintf("git fetch %s", remoteName)
 	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
+}
+
+func (c *GitCommand) GetPullMode(mode string) string {
+	if mode != "auto" {
+		return mode
+	}
+
+	var isRebase bool
+	var isFf bool
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+	go func() {
+		isRebase = c.GetConfigValue("pull.rebase") == "true"
+		wg.Done()
+	}()
+	go func() {
+		isFf = c.GetConfigValue("pull.ff") == "only"
+		wg.Done()
+	}()
+	wg.Wait()
+
+	if isRebase {
+		return "rebase"
+	} else if isFf {
+		return "ff-only"
+	} else {
+		return "merge"
+	}
 }

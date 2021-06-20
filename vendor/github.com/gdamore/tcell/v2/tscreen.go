@@ -1682,6 +1682,7 @@ func (t *tScreen) disengage() {
 	ti := t.ti
 	t.cells.Resize(0, 0)
 	t.TPuts(ti.ShowCursor)
+	t.TPuts(ti.ResetFgBg)
 	t.TPuts(ti.AttrOff)
 	t.TPuts(ti.Clear)
 	t.TPuts(ti.ExitCA)

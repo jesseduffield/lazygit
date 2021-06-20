@@ -35,6 +35,7 @@ type GuiConfig struct {
 	Theme                    ThemeConfig        `yaml:"theme"`
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
+	ShowListFooter           bool               `yaml:"showListFooter"`
 	ShowFileTree             bool               `yaml:"showFileTree"`
 	ShowRandomTip            bool               `yaml:"showRandomTip"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
@@ -306,6 +307,7 @@ func GetDefaultConfig() *UserConfig {
 			},
 			CommitLength:             CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning: false,
+			ShowListFooter:           true,
 			ShowCommandLog:           true,
 			ShowFileTree:             false,
 			ShowRandomTip:            true,
@@ -321,7 +323,7 @@ func GetDefaultConfig() *UserConfig {
 				Args:         "",
 			},
 			Pull: PullConfig{
-				Mode: "merge",
+				Mode: "auto",
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,

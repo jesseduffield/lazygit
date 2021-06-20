@@ -41,6 +41,7 @@ gui:
   skipUnstageLineWarning: false
   skipStashWarning: true
   showFileTree: false # for rendering changes files in a tree format
+  showListFooter: true # for seeing the '5 of 20' message in list panels
   showRandomTip: true
   showCommandLog: true
   commandLogSize: 8
@@ -54,7 +55,7 @@ git:
     # extra args passed to `git merge`, e.g. --no-ff
     args: ''
   pull:
-    mode: 'merge' # one of 'merge' | 'rebase' | 'ff-only'
+    mode: 'auto' # one of 'auto' | 'merge' | 'rebase' | 'ff-only', auto reads from git configuration
   skipHookPrefix: WIP
   autoFetch: true
   branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'

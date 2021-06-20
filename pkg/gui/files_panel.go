@@ -659,10 +659,11 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 		return err
 	}
 
-	mode := gui.Config.GetUserConfig().Git.Pull.Mode
+	mode := &gui.Config.GetUserConfig().Git.Pull.Mode
+	*mode = gui.GitCommand.GetPullMode(*mode)
 
 	// TODO: this doesn't look like a good idea. Why the goroutine?
-	go utils.Safe(func() { _ = gui.pullWithMode(mode, opts) })
+	go utils.Safe(func() { _ = gui.pullWithMode(*mode, opts) })
 
 	return nil
 }

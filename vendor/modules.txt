@@ -33,7 +33,7 @@ github.com/fatih/color
 github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.3.8
+# github.com/gdamore/tcell/v2 v2.3.11
 ## explicit
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo
@@ -47,6 +47,7 @@ github.com/gdamore/tcell/v2/terminfo/d/dtterm
 github.com/gdamore/tcell/v2/terminfo/dynamic
 github.com/gdamore/tcell/v2/terminfo/e/emacs
 github.com/gdamore/tcell/v2/terminfo/extended
+github.com/gdamore/tcell/v2/terminfo/f/foot
 github.com/gdamore/tcell/v2/terminfo/g/gnome
 github.com/gdamore/tcell/v2/terminfo/h/hpterm
 github.com/gdamore/tcell/v2/terminfo/k/konsole
@@ -73,7 +74,7 @@ github.com/gdamore/tcell/v2/terminfo/x/xfce
 github.com/gdamore/tcell/v2/terminfo/x/xterm
 github.com/gdamore/tcell/v2/terminfo/x/xterm_kitty
 github.com/gdamore/tcell/v2/terminfo/x/xterm_termite
-# github.com/go-errors/errors v1.1.1
+# github.com/go-errors/errors v1.4.0
 ## explicit
 github.com/go-errors/errors
 # github.com/go-git/gcfg v1.5.0
@@ -149,11 +150,9 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20210417110745-37f79434200d
+# github.com/jesseduffield/gocui v0.3.1-0.20210614081440-74b42ecad52b
 ## explicit
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/termbox-go v0.0.0-20200823212418-a2289ed6aafe
-## explicit
 # github.com/jesseduffield/yaml v2.1.0+incompatible
 ## explicit
 github.com/jesseduffield/yaml
@@ -192,7 +191,6 @@ github.com/mitchellh/go-homedir
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/rivo/uniseg v0.2.0
-## explicit
 github.com/rivo/uniseg
 # github.com/sahilm/fuzzy v0.1.0
 ## explicit
@@ -235,7 +233,7 @@ golang.org/x/crypto/ssh/knownhosts
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20210603125802-9665404d3644
+# golang.org/x/sys v0.0.0-20210611083646-a4fc73990273
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader

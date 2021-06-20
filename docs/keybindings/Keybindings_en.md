@@ -3,6 +3,7 @@
 ## Global Keybindings
 
 <pre>
+  <kbd>ctrl+r</kbd>: switch to a recent repo (<c-r>)
   <kbd>pgup</kbd>: scroll up main panel (fn+up)
   <kbd>pgdown</kbd>: scroll down main panel (fn+down)
   <kbd>m</kbd>: view merge/rebase options
@@ -19,6 +20,7 @@
   <kbd>|</kbd>: view filter-by-path options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
+  <kbd>@</kbd>: open command log menu
 </pre>
 
 ## List Panel Navigation
@@ -122,7 +124,7 @@
   <kbd>g</kbd>: reset to this commit
   <kbd>f</kbd>: fixup commit
   <kbd>F</kbd>: create fixup commit for this commit
-  <kbd>S</kbd>: squash above commits
+  <kbd>S</kbd>: squash all 'fixup!' commits above selected commit (autosquash)
   <kbd>d</kbd>: delete commit
   <kbd>ctrl+j</kbd>: move commit down one
   <kbd>ctrl+k</kbd>: move commit up one
@@ -154,6 +156,12 @@
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
 </pre>
 
+## Extras Panel
+
+<pre>
+  <kbd>@</kbd>: open command log menu
+</pre>
+
 ## Files Panel (Files)
 
 <pre>
@@ -176,6 +184,7 @@
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>g</kbd>: view upstream reset options
   <kbd>`</kbd>: toggle file tree view
+  <kbd>M</kbd>: open external merge tool (git mergetool)
 </pre>
 
 ## Files Panel (Submodules)
@@ -195,6 +204,7 @@
 
 <pre>
   <kbd>esc</kbd>: return to files panel
+  <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>space</kbd>: pick hunk
   <kbd>b</kbd>: pick both hunks
   <kbd>◄</kbd>: select previous conflict

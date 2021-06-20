@@ -496,6 +496,8 @@ func (gui *Gui) Run() error {
 
 	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
+	g.ShowListFooter = userConfig.Gui.ShowListFooter
+
 	if userConfig.Gui.MouseEvents {
 		g.Mouse = true
 	}

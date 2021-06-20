@@ -437,6 +437,7 @@ type TranslationSet struct {
 	SubmodulesTitle                     string
 	NavigationTitle                     string
 	SuggestionsTitle                    string
+	ExtrasTitle                         string
 	PushingTagStatus                    string
 	PullRequestURLCopiedToClipboard     string
 	CommitMessageCopiedToClipboard      string
@@ -980,6 +981,7 @@ func englishTranslationSet() TranslationSet {
 		SubmodulesTitle:                     "Submodules",
 		NavigationTitle:                     "List Panel Navigation",
 		SuggestionsTitle:                    "Suggestions",
+		ExtrasTitle:                         "Extras",
 		PushingTagStatus:                    "pushing tag",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",

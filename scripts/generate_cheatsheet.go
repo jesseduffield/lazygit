@@ -82,6 +82,7 @@ func localisedTitle(mApp *app.App, str string) string {
 		"secondary":      tr.SecondaryTitle,
 		"stash":          tr.StashTitle,
 		"suggestions":    tr.SuggestionsTitle,
+		"extras":         tr.ExtrasTitle,
 	}
 
 	title, ok := contextTitleMap[str]

@@ -139,7 +139,6 @@ func WrapPrefix(e interface{}, prefix string, skip int) *Error {
 
 }
 
-
 // Errorf creates a new error with the given message. You can use it
 // as a drop-in replacement for fmt.Errorf() to provide descriptive
 // errors in return values.
@@ -202,4 +201,9 @@ func (err *Error) TypeName() string {
 		return "panic"
 	}
 	return reflect.TypeOf(err.Err).String()
+}
+
+// Return the wrapped error (implements api for As function).
+func (err *Error) Unwrap() error {
+	return err.Err
 }

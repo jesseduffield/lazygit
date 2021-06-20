@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -51,7 +52,7 @@ func (tty *devTty) Write(b []byte) (int, error) {
 }
 
 func (tty *devTty) Close() error {
-	return nil
+	return tty.f.Close()
 }
 
 func (tty *devTty) Start() error {
@@ -136,7 +137,23 @@ func (tty *devTty) Stop() error {
 }
 
 func (tty *devTty) WindowSize() (int, int, error) {
-	return term.GetSize(tty.fd)
+	w, h, err := term.GetSize(tty.fd)
+	if err != nil {
+		return 0, 0, err
+	}
+	if w == 0 {
+		w, _ = strconv.Atoi(os.Getenv("COLUMNS"))
+	}
+	if w == 0 {
+		w = 80 // default
+	}
+	if h == 0 {
+		h, _ = strconv.Atoi(os.Getenv("LINES"))
+	}
+	if h == 0 {
+		h = 25 // default
+	}
+	return w, h, nil
 }
 
 func (tty *devTty) NotifyResize(cb func()) {

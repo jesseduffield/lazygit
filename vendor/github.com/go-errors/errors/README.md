@@ -65,5 +65,16 @@ everyone can benefit.
 
 This package is licensed under the MIT license, see LICENSE.MIT for details.
 
+
 ## Changelog
 * v1.1.0 updated to use go1.13's standard-library errors.Is method instead of == in errors.Is
+* v1.2.0 added `errors.As` from the standard library.
+* v1.3.0 *BREAKING* updated error methods to return `error` instead of `*Error`.
+>  Code that needs access to the underlying `*Error` can use the new errors.AsError(e)
+> ```
+>   // before
+>   errors.New(err).ErrorStack()
+>   // after
+>.  errors.AsError(errors.Wrap(err)).ErrorStack()
+> ```
+* v1.4.0 *BREAKING* v1.4.0 reverted all changes from v1.3.0 and is identical to v1.2.0
