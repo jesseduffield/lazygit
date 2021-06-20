@@ -42,6 +42,7 @@ func dutchTranslationSet() TranslationSet {
 		LcScroll:                            "scroll",
 		LcAbortMerge:                        "samenvoegen afbreken",
 		LcResolveMergeConflicts:             "los merge conflicten op",
+		LcCommitFileFilter:                  "Commit dossiers filteren",
 		MergeConflictsTitle:                 "Merge Conflicten",
 		LcCheckout:                          "uitchecken",
 		FileHasNoUnstagedChanges:            "Het bestand heeft geen unstaged veranderingen om toe te voegen",
