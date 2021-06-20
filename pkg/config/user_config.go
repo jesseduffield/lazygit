@@ -189,6 +189,7 @@ type KeybindingFilesConfig struct {
 	Fetch                    string `yaml:"fetch"`
 	ToggleTreeView           string `yaml:"toggleTreeView"`
 	OpenMergeTool            string `yaml:"openMergeTool"`
+	OpenStatusFilter         string `yaml:"openStatusFilter"`
 }
 
 type KeybindingBranchesConfig struct {
@@ -438,6 +439,7 @@ func GetDefaultConfig() *UserConfig {
 				Fetch:                    "f",
 				ToggleTreeView:           "`",
 				OpenMergeTool:            "M",
+				OpenStatusFilter:         "<c-b>",
 			},
 			Branches: KeybindingBranchesConfig{
 				CopyPullRequestURL:     "<c-y>",

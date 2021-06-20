@@ -8,11 +8,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type FileManagerDisplayFilter int
+
+const (
+	DisplayAll FileManagerDisplayFilter = iota
+	DisplayStaged
+	DisplayUnstaged
+)
+
 type FileManager struct {
 	files          []*models.File
 	tree           *FileNode
 	showTree       bool
 	log            *logrus.Entry
+	filter         FileManagerDisplayFilter
 	collapsedPaths CollapsedPaths
 	sync.RWMutex
 }
@@ -22,6 +31,7 @@ func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *Fil
 		files:          files,
 		log:            log,
 		showTree:       showTree,
+		filter:         DisplayAll,
 		collapsedPaths: CollapsedPaths{},
 		RWMutex:        sync.RWMutex{},
 	}
@@ -33,6 +43,35 @@ func (m *FileManager) InTreeMode() bool {
 
 func (m *FileManager) ExpandToPath(path string) {
 	m.collapsedPaths.ExpandToPath(path)
+}
+
+func (m *FileManager) GetFilesForDisplay() []*models.File {
+	files := m.files
+	if m.filter == DisplayAll {
+		return files
+	}
+
+	result := make([]*models.File, 0)
+	if m.filter == DisplayStaged {
+		for _, file := range files {
+			if file.HasStagedChanges {
+				result = append(result, file)
+			}
+		}
+	} else {
+		for _, file := range files {
+			if !file.HasStagedChanges {
+				result = append(result, file)
+			}
+		}
+	}
+
+	return result
+}
+
+func (m *FileManager) SetDisplayFilter(filter FileManagerDisplayFilter) {
+	m.filter = filter
+	m.SetTree()
 }
 
 func (m *FileManager) ToggleShowTree() {
@@ -73,10 +112,11 @@ func (m *FileManager) SetFiles(files []*models.File) {
 }
 
 func (m *FileManager) SetTree() {
+	filesForDisplay := m.GetFilesForDisplay()
 	if m.showTree {
-		m.tree = BuildTreeFromFiles(m.files)
+		m.tree = BuildTreeFromFiles(filesForDisplay)
 	} else {
-		m.tree = BuildFlatTreeFromFiles(m.files)
+		m.tree = BuildFlatTreeFromFiles(filesForDisplay)
 	}
 }
 

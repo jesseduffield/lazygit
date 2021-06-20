@@ -383,6 +383,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
+			Key:         gui.getKey("<c-b>"),
+			Handler:     gui.handleStatusFilterPressed,
+			Description: gui.Tr.LcCommitFileFilter,
+		},
+		{
+			ViewName:    "files",
 			Contexts:    []string{string(FILES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Files.CommitChanges),
 			Handler:     gui.handleCommitPress,
