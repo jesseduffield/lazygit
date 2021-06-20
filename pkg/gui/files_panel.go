@@ -477,21 +477,21 @@ func (gui *Gui) handleStatusFilterPressed() error {
 	menuItems := []*menuItem{}
 
 	menuItems = append(menuItems, &menuItem{
-		displayString: "Show only staged files",
+		displayString: gui.Tr.FilterStagedFiles,
 		onPress: func() error {
 			return gui.setStatusFiltering(filetree.DisplayStaged)
 		},
 	})
 
 	menuItems = append(menuItems, &menuItem{
-		displayString: "Show only unstaged files",
+		displayString: gui.Tr.FilterUnstagedFiles,
 		onPress: func() error {
 			return gui.setStatusFiltering(filetree.DisplayUnstaged)
 		},
 	})
 
 	menuItems = append(menuItems, &menuItem{
-		displayString: "Reset Filter",
+		displayString: gui.Tr.ResetCommitFilterState,
 		onPress: func() error {
 			return gui.setStatusFiltering(filetree.DisplayAll)
 		},
