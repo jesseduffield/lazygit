@@ -37,6 +37,7 @@ func polishTranslationSet() TranslationSet {
 		LcScroll:                            "przewiń",
 		LcAbortMerge:                        "o scalaniu",
 		LcResolveMergeConflicts:             "rozwiąż konflikty scalania",
+		LcCommitFileFilter:                  "Filtrowanie plików commitować",
 		LcCheckout:                          "przełącz",
 		NoChangedFiles:                      "Brak zmienionych plików",
 		FileHasNoUnstagedChanges:            "Plik nie zawiera żadnych nieopublikowanych zmian do dodania",

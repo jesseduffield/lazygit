@@ -55,6 +55,7 @@ type TranslationSet struct {
 	LcScroll                            string
 	LcAbortMerge                        string
 	LcResolveMergeConflicts             string
+	LcCommitFileFilter                  string
 	MergeConflictsTitle                 string
 	LcCheckout                          string
 	NoChangedFiles                      string
@@ -599,6 +600,7 @@ func englishTranslationSet() TranslationSet {
 		LcResolveMergeConflicts:             "resolve merge conflicts",
 		MergeConflictsTitle:                 "Merge Conflicts",
 		LcCheckout:                          "checkout",
+		LcCommitFileFilter:                  "Filter commit files",
 		NoChangedFiles:                      "No changed files",
 		FileHasNoUnstagedChanges:            "File has no unstaged changes to add",
 		CannotGitAdd:                        "Cannot git add --patch untracked files",
