@@ -8,19 +8,19 @@ import (
 )
 
 func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
-	menuItems := make([]*menuItem, 0, 2)
+	menuItems := make([]*menuItem, 0, 4)
 
 	if selectedBranch != checkedOutBranch {
 		menuItems = append(menuItems, &menuItem{
 			displayStrings: []string{
-				fmt.Sprintf("%s -> default branch", selectedBranch.Name),
+				fmt.Sprintf("%s → default branch", selectedBranch.Name),
 			},
 			onPress: func() error {
 				return createPullRequest(selectedBranch, nil, gui)
 			},
 		}, &menuItem{
 			displayStrings: []string{
-				fmt.Sprintf("%s -> %s", checkedOutBranch.Name, selectedBranch.Name),
+				fmt.Sprintf("%s → %s", checkedOutBranch.Name, selectedBranch.Name),
 			},
 			onPress: func() error {
 				return createPullRequest(checkedOutBranch, selectedBranch, gui)
@@ -30,19 +30,33 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 
 	menuItems = append(menuItems, &menuItem{
 		displayStrings: []string{
-			fmt.Sprintf("%s -> default branch", checkedOutBranch.Name),
+			fmt.Sprintf("%s → default branch", checkedOutBranch.Name),
 		},
 		onPress: func() error {
 			return createPullRequest(checkedOutBranch, nil, gui)
+		},
+	}, &menuItem{
+		displayStrings: []string{
+			fmt.Sprintf("%s → select branch", checkedOutBranch.Name),
+		},
+		onPress: func() error {
+			return gui.prompt(promptOpts{
+				title:               checkedOutBranch.Name + " →",
+				findSuggestionsFunc: gui.findBranchNameSuggestions,
+				handleConfirm: func(response string) error {
+					targetBranch := gui.getBranchByName(response)
+					return createPullRequest(checkedOutBranch, targetBranch, gui)
+				}},
+			)
 		},
 	})
 
 	return gui.createMenu(fmt.Sprintf(gui.Tr.CreatePullRequestOptions), menuItems, createMenuOptions{showCancel: true})
 }
 
-func createPullRequest(checkedOutBranch *models.Branch, selectedBranch *models.Branch, gui *Gui) error {
+func createPullRequest(from *models.Branch, to *models.Branch, gui *Gui) error {
 	pullRequest := commands.NewPullRequest(gui.GitCommand)
-	url, err := pullRequest.Create(checkedOutBranch, selectedBranch)
+	url, err := pullRequest.Create(from, to)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

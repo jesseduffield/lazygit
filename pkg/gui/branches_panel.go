@@ -545,6 +545,16 @@ func (gui *Gui) getBranchNames() []string {
 	return result
 }
 
+func (gui *Gui) getBranchByName(name string) *models.Branch {
+	for _, branch := range gui.State.Branches {
+		if branch.Name == name {
+			return branch
+		}
+	}
+
+	return nil
+}
+
 func (gui *Gui) findBranchNameSuggestions(input string) []*types.Suggestion {
 	branchNames := gui.getBranchNames()
 
