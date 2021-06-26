@@ -45,6 +45,9 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 				findSuggestionsFunc: gui.findBranchNameSuggestions,
 				handleConfirm: func(response string) error {
 					targetBranch := gui.getBranchByName(response)
+					if targetBranch == nil {
+						return gui.createErrorPanel(gui.Tr.BranchNotFoundTitle)
+					}
 					return createPullRequest(checkedOutBranch, targetBranch, gui)
 				}},
 			)
