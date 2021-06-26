@@ -11,8 +11,9 @@ import (
 
 // Service is a service that repository is on (Github, Bitbucket, ...)
 type Service struct {
-	Name           string
-	PullRequestURL func(owner string, repository string, from string, to string) string
+	Name                            string
+	pullRequestURLIntoDefaultBranch func(owner string, repository string, from string) string
+	pullRequestURLIntoTargetBranch func(owner string, repository string, from string, to string) string
 }
 
 // PullRequest opens a link in browser to create new pull request
@@ -36,39 +37,44 @@ func NewService(typeName string, repositoryDomain string, siteDomain string) *Se
 	case "github":
 		service = &Service{
 			Name: repositoryDomain,
-			PullRequestURL: func(owner string, repository string, from string, to string) string {
-				if to == "" {
-					return fmt.Sprintf("https://%s/%s/%s/compare/%s?expand=1", siteDomain, owner, repository, from)
-				} else {
-					return fmt.Sprintf("https://%s/%s/%s/compare/%s...%s?expand=1", siteDomain, owner, repository, to, from)
-				}
+			pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
+				return fmt.Sprintf("https://%s/%s/%s/compare/%s?expand=1", siteDomain, owner, repository, from)
+			},
+			pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
+				return fmt.Sprintf("https://%s/%s/%s/compare/%s...%s?expand=1", siteDomain, owner, repository, to, from)
 			},
 		}
 	case "bitbucket":
 		service = &Service{
 			Name: repositoryDomain,
-			PullRequestURL: func(owner string, repository string, from string, to string) string {
-				if to == "" {
-					return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&t=1", siteDomain, owner, repository, from)
-				} else {
-					return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&dest=%s&t=1", siteDomain, owner, repository, from, to)
-				}
+			pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
+				return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&t=1", siteDomain, owner, repository, from)
+			},
+			pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
+				return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&dest=%s&t=1", siteDomain, owner, repository, from, to)
 			},
 		}
 	case "gitlab":
 		service = &Service{
 			Name: repositoryDomain,
-			PullRequestURL: func(owner string, repository string, from string, to string) string {
-				if to == "" {
-					return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s", siteDomain, owner, repository, from)
-				} else {
-					return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s", siteDomain, owner, repository, from, to)
-				}
+			pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
+				return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s", siteDomain, owner, repository, from)
+			},
+			pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
+				return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s", siteDomain, owner, repository, from, to)
 			},
 		}
 	}
 
 	return service
+}
+
+func (s *Service) PullRequestURL(owner string, repository string, from string, to string) string {
+	if to == "" {
+		return s.pullRequestURLIntoDefaultBranch(owner, repository, from)
+	} else {
+		return s.pullRequestURLIntoTargetBranch(owner, repository, from, to)
+	}
 }
 
 func getServices(config config.AppConfigurer) []*Service {
