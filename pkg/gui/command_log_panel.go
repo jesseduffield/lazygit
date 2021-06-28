@@ -102,7 +102,7 @@ func (gui *Gui) getRandomTip() string {
 			formattedKey(config.Universal.GoInto),
 		),
 		fmt.Sprintf(
-			"You can diff two commits by pressing '%s' one one commit and then navigating to the other. You can then press '%s' to view the files of the diff",
+			"You can diff two commits by pressing '%s' on one commit and then navigating to the other. You can then press '%s' to view the files of the diff",
 			formattedKey(config.Universal.DiffingMenu),
 			formattedKey(config.Universal.GoInto),
 		),
