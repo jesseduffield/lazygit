@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"testing"
 
+	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,20 +14,20 @@ import (
 // TestOSCommandRunWithOutput is a function.
 func TestOSCommandRunWithOutput(t *testing.T) {
 	type scenario struct {
-		command string
-		test    func(string, error)
+		cmdObj ICmdObj
+		test   func(string, error)
 	}
 
 	scenarios := []scenario{
 		{
-			"echo -n '123'",
+			NewCmdObjFromStr("echo -n '123'"),
 			func(output string, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "123", output)
 			},
 		},
 		{
-			"rmdir unexisting-folder",
+			NewCmdObjFromStr("rmdir unexisting-folder"),
 			func(output string, err error) {
 				assert.Regexp(t, "rmdir.*unexisting-folder.*", err.Error())
 			},
@@ -34,20 +35,20 @@ func TestOSCommandRunWithOutput(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOS().RunWithOutput(s.command))
+		s.test(NewDummyOS().RunWithOutput(s.cmdObj))
 	}
 }
 
 // TestOSCommandRunCommand is a function.
 func TestOSCommandRunCommand(t *testing.T) {
 	type scenario struct {
-		command string
-		test    func(error)
+		cmdObj ICmdObj
+		test   func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"rmdir unexisting-folder",
+			NewCmdObjFromStr("rmdir unexisting-folder"),
 			func(err error) {
 				assert.Regexp(t, "rmdir.*unexisting-folder.*", err.Error())
 			},
@@ -55,7 +56,7 @@ func TestOSCommandRunCommand(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOS().RunCommand(s.command))
+		s.test(NewDummyOS().Run(s.cmdObj))
 	}
 }
 
@@ -102,11 +103,11 @@ func TestOSCommandOpenFile(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		OSCmd := NewDummyOS()
-		OSCmd.command = s.command
-		OSCmd.config.GetUserConfig().OS.OpenCommand = "open {{filename}}"
+		os := NewDummyOS()
+		os.command = s.command
+		os.config.GetUserConfig().OS.OpenCommand = "open {{filename}}"
 
-		s.test(OSCmd.OpenFile(s.filename))
+		s.test(os.OpenFile(s.filename))
 	}
 }
 

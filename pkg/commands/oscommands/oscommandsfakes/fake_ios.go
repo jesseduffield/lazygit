@@ -205,6 +205,18 @@ type FakeIOS struct {
 	runReturnsOnCall map[int]struct {
 		result1 error
 	}
+	RunAndParseLinesStub        func(types.ICmdObj, func(line string) (bool, error)) error
+	runAndParseLinesMutex       sync.RWMutex
+	runAndParseLinesArgsForCall []struct {
+		arg1 types.ICmdObj
+		arg2 func(line string) (bool, error)
+	}
+	runAndParseLinesReturns struct {
+		result1 error
+	}
+	runAndParseLinesReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RunAndParseWordsStub        func(types.ICmdObj, func(string) string) error
 	runAndParseWordsMutex       sync.RWMutex
 	runAndParseWordsArgsForCall []struct {
@@ -1305,6 +1317,68 @@ func (fake *FakeIOS) RunReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeIOS) RunAndParseLines(arg1 types.ICmdObj, arg2 func(line string) (bool, error)) error {
+	fake.runAndParseLinesMutex.Lock()
+	ret, specificReturn := fake.runAndParseLinesReturnsOnCall[len(fake.runAndParseLinesArgsForCall)]
+	fake.runAndParseLinesArgsForCall = append(fake.runAndParseLinesArgsForCall, struct {
+		arg1 types.ICmdObj
+		arg2 func(line string) (bool, error)
+	}{arg1, arg2})
+	stub := fake.RunAndParseLinesStub
+	fakeReturns := fake.runAndParseLinesReturns
+	fake.recordInvocation("RunAndParseLines", []interface{}{arg1, arg2})
+	fake.runAndParseLinesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIOS) RunAndParseLinesCallCount() int {
+	fake.runAndParseLinesMutex.RLock()
+	defer fake.runAndParseLinesMutex.RUnlock()
+	return len(fake.runAndParseLinesArgsForCall)
+}
+
+func (fake *FakeIOS) RunAndParseLinesCalls(stub func(types.ICmdObj, func(line string) (bool, error)) error) {
+	fake.runAndParseLinesMutex.Lock()
+	defer fake.runAndParseLinesMutex.Unlock()
+	fake.RunAndParseLinesStub = stub
+}
+
+func (fake *FakeIOS) RunAndParseLinesArgsForCall(i int) (types.ICmdObj, func(line string) (bool, error)) {
+	fake.runAndParseLinesMutex.RLock()
+	defer fake.runAndParseLinesMutex.RUnlock()
+	argsForCall := fake.runAndParseLinesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeIOS) RunAndParseLinesReturns(result1 error) {
+	fake.runAndParseLinesMutex.Lock()
+	defer fake.runAndParseLinesMutex.Unlock()
+	fake.RunAndParseLinesStub = nil
+	fake.runAndParseLinesReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeIOS) RunAndParseLinesReturnsOnCall(i int, result1 error) {
+	fake.runAndParseLinesMutex.Lock()
+	defer fake.runAndParseLinesMutex.Unlock()
+	fake.RunAndParseLinesStub = nil
+	if fake.runAndParseLinesReturnsOnCall == nil {
+		fake.runAndParseLinesReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.runAndParseLinesReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeIOS) RunAndParseWords(arg1 types.ICmdObj, arg2 func(string) string) error {
 	fake.runAndParseWordsMutex.Lock()
 	ret, specificReturn := fake.runAndParseWordsReturnsOnCall[len(fake.runAndParseWordsArgsForCall)]
@@ -1627,6 +1701,8 @@ func (fake *FakeIOS) Invocations() map[string][][]interface{} {
 	defer fake.removeFileMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
+	fake.runAndParseLinesMutex.RLock()
+	defer fake.runAndParseLinesMutex.RUnlock()
 	fake.runAndParseWordsMutex.RLock()
 	defer fake.runAndParseWordsMutex.RUnlock()
 	fake.runWithOutputMutex.RLock()

@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	. "github.com/jesseduffield/lazygit/pkg/commands/types"
 )
 
@@ -132,7 +131,7 @@ func (c *CommitsLoader) Load(opts LoadCommitsOptions) ([]*models.Commit, error) 
 
 	cmdObj := c.getLogCmdObj(opts)
 
-	err = oscommands.RunAndParseLines(cmdObj, func(line string) (bool, error) {
+	err = c.os.RunAndParseLines(cmdObj, func(line string) (bool, error) {
 		if strings.Split(line, " ")[0] != "gpg:" {
 			commit := c.extractCommitFromLine(line)
 			if commit.Sha == firstPushedCommit {
@@ -300,7 +299,9 @@ func (c *CommitsLoader) getMergeBase(refName string) (string, error) {
 	}
 
 	// swallowing error because it's not a big deal; probably because there are no commits yet
-	output, _ := c.RunWithOutput(BuildGitCmdObjFromStr(fmt.Sprintf("merge-base %s %s", refName, baseBranch)))
+	output, _ := c.RunWithOutput(
+		BuildGitCmdObjFromStr(fmt.Sprintf("merge-base %s %s", refName, baseBranch)),
+	)
 	return ignoringWarnings(output), nil
 }
 

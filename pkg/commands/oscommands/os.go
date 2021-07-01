@@ -58,6 +58,7 @@ type IOS interface {
 	RunWithOutput(cmdObj ICmdObj) (string, error)
 	Run(cmd ICmdObj) error
 	RunAndParseWords(cmdObj ICmdObj, output func(string) string) error
+	RunAndParseLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
 }
 
 // OS holds all the os commands

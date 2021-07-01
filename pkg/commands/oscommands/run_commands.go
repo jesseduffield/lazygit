@@ -26,7 +26,7 @@ func (c *OS) RunAndParseWords(cmdObj ICmdObj, output func(string) string) error 
 	return runAndParseWords(c, cmdObj, output)
 }
 
-func RunAndParseLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+func (c *OS) RunAndParseLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
 	cmd := cmdObj.GetCmd()
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {

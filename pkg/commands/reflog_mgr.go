@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 //counterfeiter:generate . IReflogMgr
@@ -35,7 +34,7 @@ func (c *ReflogMgr) LoadReflog(lastReflogCommit *models.Commit, filterPath strin
 
 	cmdObj := BuildGitCmdObjFromStr(fmt.Sprintf("reflog --abbrev=20 --date=unix %s", filterPathArg))
 	onlyObtainedNewReflogCommits := false
-	err := oscommands.RunAndParseLines(cmdObj, func(line string) (bool, error) {
+	err := c.os.RunAndParseLines(cmdObj, func(line string) (bool, error) {
 		match := re.FindStringSubmatch(line)
 		if len(match) <= 1 {
 			return false, nil
