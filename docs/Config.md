@@ -62,6 +62,7 @@ git:
   allBranchesLogCmd: 'git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium'
   overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
   disableForcePushing: false
+  parseEmoji: false
 os:
   editCommand: '' # see 'Configuring File Editing' section
   openCommand: ''
