@@ -168,6 +168,9 @@ github.com/konsorten/go-windows-terminal-sequences
 github.com/kr/logfmt
 # github.com/kylelemons/godebug v1.1.0
 ## explicit
+# github.com/kyokomi/emoji/v2 v2.2.8
+## explicit
+github.com/kyokomi/emoji/v2
 # github.com/lucasb-eyer/go-colorful v1.2.0
 ## explicit
 github.com/lucasb-eyer/go-colorful

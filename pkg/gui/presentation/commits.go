@@ -7,12 +7,13 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/kyokomi/emoji/v2"
 )
 
-func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string) [][]string {
+func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
 	lines := make([][]string, len(commits))
 
-	var displayFunc func(*models.Commit, map[string]bool, bool) []string
+	var displayFunc func(*models.Commit, map[string]bool, bool, bool) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForCommit
 	} else {
@@ -21,13 +22,13 @@ func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool,
 
 	for i := range commits {
 		diffed := commits[i].Sha == diffName
-		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap, diffed)
+		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap, diffed, parseEmoji)
 	}
 
 	return lines
 }
 
-func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
+func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -73,10 +74,15 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 
 	truncatedAuthor := utils.TruncateWithEllipsis(c.Author, 17)
 
-	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(c.Name)}
+	name := c.Name
+	if parseEmoji {
+		name = emoji.Sprint(name)
+	}
+
+	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(name)}
 }
 
-func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed bool) []string {
+func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
 	green := color.New(color.FgGreen)
@@ -120,7 +126,12 @@ func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[s
 		tagString = utils.ColoredStringDirect(strings.Join(c.Tags, " "), tagColor) + " "
 	}
 
-	return []string{shaColor.Sprint(c.ShortSha()), actionString + tagString + defaultColor.Sprint(c.Name)}
+	name := c.Name
+	if parseEmoji {
+		name = emoji.Sprint(name)
+	}
+
+	return []string{shaColor.Sprint(c.ShortSha()), actionString + tagString + defaultColor.Sprint(name)}
 }
 
 func actionColorMap(str string) color.Attribute {

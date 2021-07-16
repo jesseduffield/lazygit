@@ -66,6 +66,7 @@ type GitConfig struct {
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
+	ParseEmoji          bool                          `yaml:"parseEmoji"`
 }
 
 type PagingConfig struct {
@@ -332,6 +333,7 @@ func GetDefaultConfig() *UserConfig {
 			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing: false,
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
+			ParseEmoji:          false,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,
