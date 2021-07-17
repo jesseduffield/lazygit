@@ -35,6 +35,18 @@ customCommands:
     command: "git flow {{index .PromptResponses 0}} start {{index .PromptResponses 1}}"
     context: 'localBranches'
     loadingText: 'creating branch'
+  - key : 'r'
+    description: 'Checkout a remote branch as FETCH_HEAD'
+    command: "git fetch {{index .PromptResponses 0}} {{index .PromptResponses 1}} && git checkout FETCH_HEAD"
+    context: 'remotes'
+    prompts:
+      - type: 'input'
+        title: 'Remote:'
+        initialValue: "{{index .SelectedRemote.Name }}"
+      - type: 'menuFromCommand'
+        title: 'Remote branch:'
+        command: 'git branch  -r --list {{index .PromptResponses 0}}/*'
+        filter: '.*{{index .PromptResponses 0}}/(.*)'
 ```
 
 Looking at the command assigned to the 'n' key, here's what the result looks like:
@@ -85,6 +97,10 @@ The permitted prompt fields are:
 | title        | the title to display in the popup panel                                          | no         |
 | initialValue | (only applicable to 'input' prompts) the initial value to appear in the text box | no         |
 | options      | (only applicable to 'menu' prompts) the options to display in the menu           | no         |
+| command      | (only applicable to 'menuFromCommand' prompts) the command to run to generate    | yes        |
+|              | menu options                                                                     |            |
+| filter       | (only applicable to 'menuFromCommand' prompts) the regexp to run specify groups  | yes        |
+|              | which are going to be kept from the command's output                             |            |
 
 The permitted option fields are:
 | _field_ | _description_ | _required_ |

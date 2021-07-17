@@ -179,11 +179,11 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
                                         var candidates []string
                                         reg := regexp.MustCompile(filter)
                                         for _,str := range strings.Split(string(message), "\n"){
-                                            cand := str
+                                            cand := ""
                                             if str != "" {
 					        for i := 1; i < (reg.NumSubexp()+1); i++ {
-                                                    trim := reg.ReplaceAllString(str, "${"+fmt.Sprint(i)+"}")
-                                                    cand = strings.Trim(cand, trim)
+                                                    keep := reg.ReplaceAllString(str, "${"+fmt.Sprint(i)+"}")
+                                                    cand += keep
                                                 }
                                                 candidates = append(candidates, cand)
                                             }
