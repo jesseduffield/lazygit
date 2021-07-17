@@ -280,6 +280,10 @@ type CustomCommandPrompt struct {
 
 	// this only applies to menus
 	Options []CustomCommandMenuOption
+
+        // this only applies to menuFromCommand
+        Command string `yaml:"command"`
+        Filter string `yaml:"filter"`
 }
 
 type CustomCommandMenuOption struct {

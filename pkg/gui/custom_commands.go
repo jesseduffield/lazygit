@@ -1,8 +1,10 @@
 package gui
 
 import (
+	"fmt"
 	"log"
 	"strings"
+        "regexp"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -153,8 +155,63 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 
 					return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 				}
+			case "menuFromCommand":
+				f = func() error {
+                                        // Collect cmd to run from config
+			                cmdStr, err := gui.resolveTemplate(prompt.Command, promptResponses)
+			                if err != nil {
+			                	return gui.surfaceError(err)
+			                }
+
+                                        // Collect Filter regexp
+			                filter, err := gui.resolveTemplate(prompt.Filter, promptResponses)
+			                if err != nil {
+			                	return gui.surfaceError(err)
+			                }
+
+                                        // Run and save output
+                                        message,err := gui.GitCommand.RunCommandWithOutput(cmdStr)
+			                if err != nil {
+			                	return gui.surfaceError(err)
+			                }
+
+					// Need to make a menu out of what the cmd has displayed
+                                        var candidates []string
+                                        reg := regexp.MustCompile(filter)
+                                        for _,str := range strings.Split(string(message), "\n"){
+                                            cand := str
+                                            if str != "" {
+					        for i := 1; i < (reg.NumSubexp()+1); i++ {
+                                                    trim := reg.ReplaceAllString(str, "${"+fmt.Sprint(i)+"}")
+                                                    cand = strings.Trim(cand, trim)
+                                                }
+                                                candidates = append(candidates, cand)
+                                            }
+                                        }
+
+					menuItems := make([]*menuItem, len(candidates))
+					for i, option := range candidates {
+						option := option
+
+						menuItems[i] = &menuItem{
+							displayStrings: []string{option},
+							onPress: func() error {
+								promptResponses[idx] = option
+
+								return wrappedF()
+							},
+						}
+					}
+
+					title, err := gui.resolveTemplate(prompt.Title, promptResponses)
+					if err != nil {
+						return gui.surfaceError(err)
+					}
+
+					return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
+				}
 			default:
-				return gui.createErrorPanel("custom command prompt must have a type of 'input' or 'menu'")
+				return gui.createErrorPanel("custom command prompt must have a type of 'input', 'menu' or 'menuFromCommand'")
 			}
 
 		}
