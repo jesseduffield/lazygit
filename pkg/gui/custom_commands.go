@@ -1,10 +1,10 @@
 package gui
 
 import (
-	"fmt"
 	"log"
+	"regexp"
+	"strconv"
 	"strings"
-        "regexp"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -157,47 +157,45 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				}
 			case "menuFromCommand":
 				f = func() error {
-                                        // Collect cmd to run from config
-			                cmdStr, err := gui.resolveTemplate(prompt.Command, promptResponses)
-			                if err != nil {
-			                	return gui.surfaceError(err)
-			                }
+					// Collect cmd to run from config
+					cmdStr, err := gui.resolveTemplate(prompt.Command, promptResponses)
+					if err != nil {
+						return gui.surfaceError(err)
+					}
 
-                                        // Collect Filter regexp
-			                filter, err := gui.resolveTemplate(prompt.Filter, promptResponses)
-			                if err != nil {
-			                	return gui.surfaceError(err)
-			                }
+					// Collect Filter regexp
+					filter, err := gui.resolveTemplate(prompt.Filter, promptResponses)
+					if err != nil {
+						return gui.surfaceError(err)
+					}
 
-                                        // Run and save output
-                                        message,err := gui.GitCommand.RunCommandWithOutput(cmdStr)
-			                if err != nil {
-			                	return gui.surfaceError(err)
-			                }
+					// Run and save output
+					message, err := gui.GitCommand.RunCommandWithOutput(cmdStr)
+					if err != nil {
+						return gui.surfaceError(err)
+					}
 
 					// Need to make a menu out of what the cmd has displayed
-                                        var candidates []string
-                                        reg := regexp.MustCompile(filter)
-                                        for _,str := range strings.Split(string(message), "\n"){
-                                            cand := ""
-                                            if str != "" {
-					        for i := 1; i < (reg.NumSubexp()+1); i++ {
-                                                    keep := reg.ReplaceAllString(str, "${"+fmt.Sprint(i)+"}")
-                                                    cand += keep
-                                                }
-                                                candidates = append(candidates, cand)
-                                            }
-                                        }
+					candidates := []string{}
+					reg := regexp.MustCompile(filter)
+					for _, str := range strings.Split(string(message), "\n") {
+						cand := ""
+						if str == "" {
+							continue
+						}
+						for i := 1; i < (reg.NumSubexp() + 1); i++ {
+							keep := reg.ReplaceAllString(str, "${"+strconv.Itoa(i)+"}")
+							cand += keep
+						}
+						candidates = append(candidates, cand)
+					}
 
 					menuItems := make([]*menuItem, len(candidates))
-					for i, option := range candidates {
-						option := option
-
+					for i := range candidates {
 						menuItems[i] = &menuItem{
-							displayStrings: []string{option},
+							displayStrings: []string{candidates[i]},
 							onPress: func() error {
-								promptResponses[idx] = option
-
+								promptResponses[idx] = candidates[i]
 								return wrappedF()
 							},
 						}
