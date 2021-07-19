@@ -1,10 +1,13 @@
 package gui
 
 import (
+	"bytes"
+	"errors"
 	"log"
 	"regexp"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
@@ -168,6 +171,10 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 					if err != nil {
 						return gui.surfaceError(err)
 					}
+					reg, err := regexp.Compile(filter)
+					if err != nil {
+						return gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
+					}
 
 					// Run and save output
 					message, err := gui.GitCommand.RunCommandWithOutput(cmdStr)
@@ -177,17 +184,31 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 
 					// Need to make a menu out of what the cmd has displayed
 					candidates := []string{}
-					reg := regexp.MustCompile(filter)
+					temp := template.Must(template.New("format").Parse(prompt.Format))
 					for _, str := range strings.Split(string(message), "\n") {
-						cand := ""
 						if str == "" {
 							continue
 						}
-						for i := 1; i < (reg.NumSubexp() + 1); i++ {
-							keep := reg.ReplaceAllString(str, "${"+strconv.Itoa(i)+"}")
-							cand += keep
+						buff := bytes.NewBuffer(nil)
+						groupNames := reg.SubexpNames()
+						tmplData := map[string]string{}
+						for matchNum, match := range reg.FindAllStringSubmatch(str, -1) {
+							if len(match) > 0 {
+								for groupIdx, group := range match {
+									// Record matched group with group and match ids
+									matchName := "group_" + strconv.Itoa(groupIdx) + "_" + strconv.Itoa(matchNum)
+									tmplData[matchName] = group
+									// Record last named group non-empty matches as group matches
+									name := groupNames[groupIdx]
+									_, ok := tmplData[name]
+									if name != "" && group != "" && !ok {
+										tmplData[name] = group
+									}
+								}
+							}
 						}
-						candidates = append(candidates, cand)
+						temp.Execute(buff, tmplData)
+						candidates = append(candidates, strings.TrimSpace(buff.String()))
 					}
 
 					menuItems := make([]*menuItem, len(candidates))
