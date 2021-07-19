@@ -184,31 +184,28 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 
 					// Need to make a menu out of what the cmd has displayed
 					candidates := []string{}
+					buff := bytes.NewBuffer(nil)
 					temp := template.Must(template.New("format").Parse(prompt.Format))
 					for _, str := range strings.Split(string(message), "\n") {
 						if str == "" {
 							continue
 						}
-						buff := bytes.NewBuffer(nil)
-						groupNames := reg.SubexpNames()
 						tmplData := map[string]string{}
-						for matchNum, match := range reg.FindAllStringSubmatch(str, -1) {
-							if len(match) > 0 {
-								for groupIdx, group := range match {
-									// Record matched group with group and match ids
-									matchName := "group_" + strconv.Itoa(groupIdx) + "_" + strconv.Itoa(matchNum)
-									tmplData[matchName] = group
-									// Record last named group non-empty matches as group matches
-									name := groupNames[groupIdx]
-									_, ok := tmplData[name]
-									if name != "" && group != "" && !ok {
-										tmplData[name] = group
-									}
+						out := reg.FindAllStringSubmatch(str, -1)
+						if len(out) > 0 {
+							for groupIdx, group := range reg.SubexpNames() {
+								// Record matched group with group ids
+								matchName := "group_" + strconv.Itoa(groupIdx)
+								tmplData[matchName] = group
+								// Record last named group non-empty matches as group matches
+								if group != "" {
+									tmplData[group] = out[0][idx]
 								}
 							}
 						}
 						temp.Execute(buff, tmplData)
 						candidates = append(candidates, strings.TrimSpace(buff.String()))
+						buff.Reset()
 					}
 
 					menuItems := make([]*menuItem, len(candidates))

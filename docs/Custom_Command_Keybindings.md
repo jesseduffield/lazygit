@@ -103,8 +103,8 @@ The permitted prompt fields are:
 | filter       | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying      | yes        |
 |              | groups which are going to be kept from the command's output                      |            |
 | format       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
-|              | the filter. You can use named groups, or `{{ .group_GROUPID_MATCHID }}`.         | yes        |
-|              | PS: named groups keep last non-empty match                                       | yes        |
+|              | the filter. You can use named groups, or `{{ .group_GROUPID }}`.                 | yes        |
+|              | PS: named groups keep first match only                                           | yes        |
 
 The permitted option fields are:
 | _field_ | _description_ | _required_ |
