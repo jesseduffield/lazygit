@@ -185,7 +185,10 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 					// Need to make a menu out of what the cmd has displayed
 					candidates := []string{}
 					buff := bytes.NewBuffer(nil)
-					temp := template.Must(template.New("format").Parse(prompt.Format))
+					temp, err := template.New("format").Parse(prompt.Format)
+					if err != nil {
+						return gui.surfaceError(errors.New("unable to parse format, error: " + err.Error()))
+					}
 					for _, str := range strings.Split(string(message), "\n") {
 						if str == "" {
 							continue
@@ -203,7 +206,11 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 								}
 							}
 						}
-						temp.Execute(buff, tmplData)
+						err = temp.Execute(buff, tmplData)
+						if err != nil {
+							return gui.surfaceError(err)
+						}
+
 						candidates = append(candidates, strings.TrimSpace(buff.String()))
 						buff.Reset()
 					}
