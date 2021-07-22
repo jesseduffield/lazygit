@@ -1,6 +1,8 @@
 package presentation
 
 import (
+	"strings"
+
 	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -48,6 +50,14 @@ func GetFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 		output += restColor.Sprint(" ")
 	}
 
+	name = strings.NewReplacer(
+		"\n", "\\n",
+		"\r", "\\r",
+		"\t", "\\t",
+		"\b", "\\b",
+		"\f", "\\f",
+		"\v", "\\v",
+	).Replace(name)
 	output += restColor.Sprint(name)
 
 	if file != nil && file.IsSubmodule(submoduleConfigs) {
