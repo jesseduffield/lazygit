@@ -139,7 +139,7 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput string, filter string, form
 			for groupIdx, group := range reg.SubexpNames() {
 				// Record matched group with group ids
 				matchName := "group_" + strconv.Itoa(groupIdx)
-				tmplData[matchName] =  out[0][groupIdx]
+				tmplData[matchName] = out[0][groupIdx]
 				// Record last named group non-empty matches as group matches
 				if group != "" {
 					tmplData[group] = out[0][groupIdx]
