@@ -80,3 +80,52 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 
 	return f.Close()
 }
+
+func TestGuiGenerateMenuCandidates(t *testing.T) {
+	type scenario struct {
+		testName string
+		cmdOut   string
+		filter   string
+                format   string
+		test     func([]string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Extract remote branch name",
+                        "upstream/pr-1",
+                        "upstream/(?P<branch>.*)",
+                        "{{ .branch }}",
+			func(actual []string, err error) {
+                            assert.NoError(t, err)
+                            assert.EqualValues(t, "pr-1", actual[0])
+			},
+		},
+		{
+			"Multiple named groups",
+                        "upstream/pr-1",
+                        "(?P<remote>[a-z]*)/(?P<branch>.*)",
+                        "{{ .branch }}|{{ .remote }}",
+			func(actual []string, err error) {
+                            assert.NoError(t, err)
+                            assert.EqualValues(t, "pr-1|upstream", actual[0])
+			},
+		},
+		{
+			"Multiple named groups with group ids",
+                        "upstream/pr-1",
+                        "(?P<remote>[a-z]*)/(?P<branch>.*)",
+                        "{{ .group_2 }}|{{ .group_1 }}",
+			func(actual []string, err error) {
+                            assert.NoError(t, err)
+                            assert.EqualValues(t, "pr-1|upstream", actual[0])
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			s.test(NewDummyGui().GenerateMenuCandidates(s.cmdOut, s.filter, s.format))
+		})
+	}
+}

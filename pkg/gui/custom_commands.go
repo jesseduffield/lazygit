@@ -117,7 +117,8 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 
 	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 }
-func (gui *Gui) generateMenuCandidates(commandOutput string, filter string, format string) ([]string, error) {
+
+func (gui *Gui) GenerateMenuCandidates(commandOutput string, filter string, format string) ([]string, error) {
 	candidates := []string{}
 	reg, err := regexp.Compile(filter)
 	if err != nil {
@@ -138,7 +139,7 @@ func (gui *Gui) generateMenuCandidates(commandOutput string, filter string, form
 			for groupIdx, group := range reg.SubexpNames() {
 				// Record matched group with group ids
 				matchName := "group_" + strconv.Itoa(groupIdx)
-				tmplData[matchName] = group
+				tmplData[matchName] =  out[0][groupIdx]
 				// Record last named group non-empty matches as group matches
 				if group != "" {
 					tmplData[group] = out[0][groupIdx]
@@ -176,7 +177,10 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	}
 
 	// Need to make a menu out of what the cmd has displayed
-	candidates, err := gui.generateMenuCandidates(message, filter, prompt.Format)
+	candidates, err := gui.GenerateMenuCandidates(message, filter, prompt.Format)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
 
 	menuItems := make([]*menuItem, len(candidates))
 	for i := range candidates {
