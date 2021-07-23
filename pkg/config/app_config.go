@@ -3,6 +3,7 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -94,7 +95,7 @@ func ConfigDir() string {
 func configDirForVendor(vendor string) string {
 	envConfigDir := os.Getenv("CONFIG_DIR")
 	if envConfigDir != "" {
-		return envConfigDir
+		return path.Join(envConfigDir, "lazygit")
 	}
 	configDirs := xdg.New(vendor, "lazygit")
 	return configDirs.ConfigHome()
