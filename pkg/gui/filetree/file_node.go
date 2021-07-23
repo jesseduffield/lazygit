@@ -1,8 +1,6 @@
 package filetree
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -182,7 +180,7 @@ func (s *FileNode) NameAtDepth(depth int) string {
 			prevName = join(splitPrevName[depth:])
 		}
 
-		return fmt.Sprintf("%s%s%s", prevName, " → ", name)
+		return prevName + " → " + name
 	}
 
 	return name

@@ -28,6 +28,7 @@ func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 		}
 	}
 
+	name = utils.EscapeSpecialChars(name)
 	if commitFile == nil {
 		return colour.Sprint(name)
 	}

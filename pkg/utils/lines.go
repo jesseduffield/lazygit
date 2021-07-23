@@ -32,3 +32,15 @@ func NormalizeLinefeeds(str string) string {
 	str = strings.Replace(str, "\r", "", -1)
 	return str
 }
+
+// EscapeSpecialChars - Replaces all special chars like \n with \\n
+func EscapeSpecialChars(str string) string {
+	return strings.NewReplacer(
+		"\n", "\\n",
+		"\r", "\\r",
+		"\t", "\\t",
+		"\b", "\\b",
+		"\f", "\\f",
+		"\v", "\\v",
+	).Replace(str)
+}
