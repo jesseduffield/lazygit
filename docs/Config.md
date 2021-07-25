@@ -252,7 +252,8 @@ os:
 For color attributes you can choose an array of attributes (with max one color attribute)
 The available attributes are:
 
-- default
+**Colors**
+
 - black
 - red
 - green
@@ -261,7 +262,12 @@ The available attributes are:
 - magenta
 - cyan
 - white
+- '#ff00ff' # can't be used on text
+
+**Modifiers**
+
 - bold
+- default
 - reverse # useful for high-contrast
 - underline
 

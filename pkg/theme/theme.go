@@ -1,6 +1,8 @@
 package theme
 
 import (
+	"encoding/hex"
+
 	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -59,8 +61,33 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	}
 }
 
+// getHexColorValues returns the rgb values of a hex color
+func getHexColorValues(v string) (r int32, g int32, b int32, valid bool) {
+	if len(v) == 4 {
+		v = string([]byte{v[0], v[1], v[1], v[2], v[2], v[3], v[3]})
+	} else if len(v) != 7 {
+		return
+	}
+
+	if v[0] != '#' {
+		return
+	}
+
+	rgb, err := hex.DecodeString(v[1:])
+	if err != nil {
+		return
+	}
+
+	return int32(rgb[0]), int32(rgb[1]), int32(rgb[2]), true
+}
+
 // GetAttribute gets the gocui color attribute from the string
 func GetGocuiAttribute(key string) gocui.Attribute {
+	r, g, b, validHexColor := getHexColorValues(key)
+	if validHexColor {
+		return gocui.NewRGBColor(r, g, b)
+	}
+
 	colorMap := map[string]gocui.Attribute{
 		"default":   gocui.ColorDefault,
 		"black":     gocui.ColorBlack,
