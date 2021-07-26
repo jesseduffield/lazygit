@@ -38,6 +38,9 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 
 				switch args[0] {
+				case "branch":
+					assert.EqualValues(t, []string{"branch", "--remotes", "--list", "*/HEAD", "--format", "%(symref:short)"}, args)
+					return secureexec.Command("echo", "origin/master")
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 					return secureexec.Command("echo", "master")
@@ -58,6 +61,9 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 
 				switch args[0] {
+				case "branch":
+					assert.EqualValues(t, []string{"branch", "--remotes", "--list", "*/HEAD", "--format", "%(symref:short)"}, args)
+					return secureexec.Command("echo", "origin/master")
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 					return secureexec.Command("echo", "master")
@@ -78,6 +84,14 @@ func TestCommitListBuilderGetMergeBase(t *testing.T) {
 				assert.EqualValues(t, "git", cmd)
 
 				switch args[0] {
+				case "branch":
+					if args[1] == "--format" {
+						assert.EqualValues(t, []string{"branch", "--format", "%(refname:short)", "--list", "develop"}, args)
+						return secureexec.Command("echo", "develop")
+					} else {
+						assert.EqualValues(t, []string{"branch", "--remotes", "--list", "*/HEAD", "--format", "%(symref:short)"}, args)
+						return secureexec.Command("echo", "origin/master")
+					}
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 					return secureexec.Command("echo", "feature/test")

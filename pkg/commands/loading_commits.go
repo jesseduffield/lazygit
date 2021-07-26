@@ -312,13 +312,16 @@ func (c *CommitListBuilder) setCommitMergedStatuses(refName string, commits []*m
 }
 
 func (c *CommitListBuilder) getMergeBase(refName string) (string, error) {
+	if c.GitCommand.MainBranch == "" {
+		c.GitCommand.MainBranch = c.GitCommand.TryGetMainBranch()
+	}
+	baseBranch := c.GitCommand.MainBranch
+
 	currentBranch, _, err := c.GitCommand.CurrentBranchName()
 	if err != nil {
 		return "", err
 	}
-
-	baseBranch := "master"
-	if strings.HasPrefix(currentBranch, "feature/") {
+	if strings.HasPrefix(currentBranch, "feature/") && c.GitCommand.HasDevelopmentBranch() {
 		baseBranch = "develop"
 	}
 
