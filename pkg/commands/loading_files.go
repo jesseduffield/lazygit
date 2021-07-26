@@ -24,11 +24,10 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	}
 	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
 
-	statusOutput, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
+	statusStrings, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
 	if err != nil {
 		c.Log.Error(err)
 	}
-	statusStrings := utils.SplitLines(statusOutput)
 	files := []*models.File{}
 
 	for _, statusString := range statusStrings {
@@ -77,7 +76,7 @@ type GitStatusOptions struct {
 	UntrackedFilesArg string
 }
 
-func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
+func (c *GitCommand) GitStatus(opts GitStatusOptions) ([]string, error) {
 	noRenamesFlag := ""
 	if opts.NoRenames {
 		noRenamesFlag = "--no-renames"
@@ -85,20 +84,24 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) (string, error) {
 
 	statusLines, err := c.RunCommandWithOutput("git status %s --porcelain -z %s", opts.UntrackedFilesArg, noRenamesFlag)
 	if err != nil {
-		return "", err
+		return []string{}, err
 	}
 
 	splitLines := strings.Split(statusLines, "\x00")
-	// if a line starts with 'R' then the next line is the original file.
-	for i := 0; i < len(splitLines)-1; i++ {
+	response := []string{}
+
+	for i := 0; i < len(splitLines); i++ {
 		original := splitLines[i]
-		if strings.HasPrefix(original, "R  ") {
-			next := splitLines[i+1]
-			updated := "R  " + next + RENAME_SEPARATOR + strings.TrimPrefix(original, "R  ")
-			splitLines[i] = updated
-			splitLines = append(splitLines[0:i+1], splitLines[i+2:]...)
+		if len(original) < 2 {
+			continue
+		} else if strings.HasPrefix(original, "R  ") {
+			// if a line starts with 'R' then the next line is the original file.
+			next := strings.TrimSpace(splitLines[i+1])
+			original = "R  " + next + RENAME_SEPARATOR + strings.TrimPrefix(original, "R  ")
+			i++
 		}
+		response = append(response, original)
 	}
 
-	return strings.Join(splitLines, "\n"), nil
+	return response, nil
 }

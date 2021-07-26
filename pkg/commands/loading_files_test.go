@@ -31,8 +31,8 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 			"Several files found",
 			func(cmd string, args ...string) *exec.Cmd {
 				return secureexec.Command(
-					"echo",
-					"MM file1.txt\nA  file3.txt\nAM file2.txt\n?? file4.txt\nUU file5.txt",
+					"printf",
+					`MM file1.txt\0A  file3.txt\0AM file2.txt\0?? file4.txt\0UU file5.txt`,
 				)
 			},
 			func(files []*models.File) {
@@ -103,6 +103,36 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 						DisplayString:           "UU file5.txt",
 						Type:                    "other",
 						ShortStatus:             "UU",
+					},
+				}
+
+				assert.EqualValues(t, expected, files)
+			},
+		},
+		{
+			"File with new line char",
+			func(cmd string, args ...string) *exec.Cmd {
+				return secureexec.Command(
+					"printf",
+					`MM a\nb.txt`,
+				)
+			},
+			func(files []*models.File) {
+				assert.Len(t, files, 1)
+
+				expected := []*models.File{
+					{
+						Name:                    "a\nb.txt",
+						HasStagedChanges:        true,
+						HasUnstagedChanges:      true,
+						Tracked:                 true,
+						Added:                   false,
+						Deleted:                 false,
+						HasMergeConflicts:       false,
+						HasInlineMergeConflicts: false,
+						DisplayString:           "MM a\nb.txt",
+						Type:                    "other",
+						ShortStatus:             "MM",
 					},
 				}
 

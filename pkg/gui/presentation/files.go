@@ -48,7 +48,7 @@ func GetFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 		output += restColor.Sprint(" ")
 	}
 
-	output += restColor.Sprint(name)
+	output += restColor.Sprint(utils.EscapeSpecialChars(name))
 
 	if file != nil && file.IsSubmodule(submoduleConfigs) {
 		output += utils.ColoredString(" (submodule)", theme.DefaultTextColor)

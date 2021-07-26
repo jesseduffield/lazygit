@@ -133,3 +133,35 @@ func TestPrevIndex(t *testing.T) {
 		})
 	}
 }
+
+func TestEscapeSpecialChars(t *testing.T) {
+	type scenario struct {
+		testName string
+		input    string
+		expected string
+	}
+
+	scenarios := []scenario{
+		{
+			"normal string",
+			"ab",
+			"ab",
+		},
+		{
+			"string with a special char",
+			"a\nb",
+			"a\\nb",
+		},
+		{
+			"multiple special chars",
+			"\n\r\t\b\f\v",
+			"\\n\\r\\t\\b\\f\\v",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.EqualValues(t, s.expected, EscapeSpecialChars(s.input))
+		})
+	}
+}
