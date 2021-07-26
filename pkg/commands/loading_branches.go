@@ -52,6 +52,12 @@ func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 		}
 
 		split := strings.Split(line, SEPARATION_CHAR)
+		if len(split) != 4 {
+			// Ignore line if it isn't separated into 4 parts
+			// This is probably a warning message, for more info see:
+			// https://github.com/jesseduffield/lazygit/issues/1385#issuecomment-885580439
+			continue
+		}
 
 		name := strings.TrimPrefix(split[1], "heads/")
 		branch := &models.Branch{
