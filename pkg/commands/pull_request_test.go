@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,8 +47,8 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 func TestCreatePullRequest(t *testing.T) {
 	type scenario struct {
 		testName  string
-		from      *models.Branch
-		to        *models.Branch
+		from      string
+		to        string
 		remoteUrl string
 		command   func(string, ...string) *exec.Cmd
 		test      func(url string, err error)
@@ -57,10 +56,8 @@ func TestCreatePullRequest(t *testing.T) {
 
 	scenarios := []scenario{
 		{
-			testName: "Opens a link to new pull request on bitbucket",
-			from: &models.Branch{
-				Name: "feature/profile-page",
-			},
+			testName:  "Opens a link to new pull request on bitbucket",
+			from:      "feature/profile-page",
 			remoteUrl: "git@bitbucket.org:johndoe/social_network.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -78,10 +75,8 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on bitbucket with http remote url",
-			from: &models.Branch{
-				Name: "feature/events",
-			},
+			testName:  "Opens a link to new pull request on bitbucket with http remote url",
+			from:      "feature/events",
 			remoteUrl: "https://my_username@bitbucket.org/johndoe/social_network.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -99,10 +94,8 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on github",
-			from: &models.Branch{
-				Name: "feature/sum-operation",
-			},
+			testName:  "Opens a link to new pull request on github",
+			from:      "feature/sum-operation",
 			remoteUrl: "git@github.com:peter/calculator.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -120,13 +113,9 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on bitbucket with specific target branch",
-			from: &models.Branch{
-				Name: "feature/profile-page/avatar",
-			},
-			to: &models.Branch{
-				Name: "feature/profile-page",
-			},
+			testName:  "Opens a link to new pull request on bitbucket with specific target branch",
+			from:      "feature/profile-page/avatar",
+			to:        "feature/profile-page",
 			remoteUrl: "git@bitbucket.org:johndoe/social_network.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -144,13 +133,9 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on bitbucket with http remote url with specified target branch",
-			from: &models.Branch{
-				Name: "feature/remote-events",
-			},
-			to: &models.Branch{
-				Name: "feature/events",
-			},
+			testName:  "Opens a link to new pull request on bitbucket with http remote url with specified target branch",
+			from:      "feature/remote-events",
+			to:        "feature/events",
 			remoteUrl: "https://my_username@bitbucket.org/johndoe/social_network.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -168,13 +153,9 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on github with specific target branch",
-			from: &models.Branch{
-				Name: "feature/sum-operation",
-			},
-			to: &models.Branch{
-				Name: "feature/operations",
-			},
+			testName:  "Opens a link to new pull request on github with specific target branch",
+			from:      "feature/sum-operation",
+			to:        "feature/operations",
 			remoteUrl: "git@github.com:peter/calculator.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -192,10 +173,8 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on gitlab",
-			from: &models.Branch{
-				Name: "feature/ui",
-			},
+			testName:  "Opens a link to new pull request on gitlab",
+			from:      "feature/ui",
 			remoteUrl: "git@gitlab.com:peter/calculator.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -213,10 +192,8 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on gitlab in nested groups",
-			from: &models.Branch{
-				Name: "feature/ui",
-			},
+			testName:  "Opens a link to new pull request on gitlab in nested groups",
+			from:      "feature/ui",
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -234,13 +211,9 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on gitlab with specific target branch",
-			from: &models.Branch{
-				Name: "feature/commit-ui",
-			},
-			to: &models.Branch{
-				Name: "epic/ui",
-			},
+			testName:  "Opens a link to new pull request on gitlab with specific target branch",
+			from:      "feature/commit-ui",
+			to:        "epic/ui",
 			remoteUrl: "git@gitlab.com:peter/calculator.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -258,13 +231,9 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Opens a link to new pull request on gitlab with specific target branch in nested groups",
-			from: &models.Branch{
-				Name: "feature/commit-ui",
-			},
-			to: &models.Branch{
-				Name: "epic/ui",
-			},
+			testName:  "Opens a link to new pull request on gitlab with specific target branch in nested groups",
+			from:      "feature/commit-ui",
+			to:        "epic/ui",
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				// Handle git remote url call
@@ -282,10 +251,8 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 		},
 		{
-			testName: "Throws an error if git service is unsupported",
-			from: &models.Branch{
-				Name: "feature/divide-operation",
-			},
+			testName:  "Throws an error if git service is unsupported",
+			from:      "feature/divide-operation",
 			remoteUrl: "git@something.com:peter/calculator.git",
 			command: func(cmd string, args ...string) *exec.Cmd {
 				return secureexec.Command("echo")

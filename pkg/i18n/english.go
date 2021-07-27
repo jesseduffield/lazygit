@@ -457,6 +457,9 @@ type TranslationSet struct {
 	CreatePullRequest                   string
 	CreatePullRequestOptions            string
 	LcCreatePullRequestOptions          string
+	SelectParentCommitForMerge          string
+	DefaultBranch                       string
+	SelectBranch                        string
 	Spans                               Spans
 }
 
@@ -1007,6 +1010,9 @@ func englishTranslationSet() TranslationSet {
 		CreatePullRequest:                   "Create pull request",
 		CreatePullRequestOptions:            "Create pull request options",
 		LcCreatePullRequestOptions:          "create pull request options",
+		SelectParentCommitForMerge:          "Select parent commit for merge",
+		DefaultBranch:                       "default branch",
+		SelectBranch:                        "select branch",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

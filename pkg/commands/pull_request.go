@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
@@ -13,20 +12,7 @@ import (
 type Service struct {
 	Name                            string
 	pullRequestURLIntoDefaultBranch func(owner string, repository string, from string) string
-	pullRequestURLIntoTargetBranch func(owner string, repository string, from string, to string) string
-}
-
-// PullRequest opens a link in browser to create new pull request
-// with selected branch
-type PullRequest struct {
-	GitServices []*Service
-	GitCommand  *GitCommand
-}
-
-// RepoInformation holds some basic information about the repo
-type RepoInformation struct {
-	Owner      string
-	Repository string
+	pullRequestURLIntoTargetBranch  func(owner string, repository string, from string, to string) string
 }
 
 // NewService builds a Service based on the host type
@@ -77,6 +63,19 @@ func (s *Service) PullRequestURL(owner string, repository string, from string, t
 	}
 }
 
+// PullRequest opens a link in browser to create new pull request
+// with selected branch
+type PullRequest struct {
+	GitServices []*Service
+	GitCommand  *GitCommand
+}
+
+// RepoInformation holds some basic information about the repo
+type RepoInformation struct {
+	Owner      string
+	Repository string
+}
+
 func getServices(config config.AppConfigurer) []*Service {
 	services := []*Service{
 		NewService("github", "github.com", "github.com"),
@@ -114,7 +113,7 @@ func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 }
 
 // Create opens link to new pull request in browser
-func (pr *PullRequest) Create(from *models.Branch, to *models.Branch) (string, error) {
+func (pr *PullRequest) Create(from string, to string) (string, error) {
 	pullRequestURL, err := pr.getPullRequestURL(from, to)
 	if err != nil {
 		return "", err
@@ -124,7 +123,7 @@ func (pr *PullRequest) Create(from *models.Branch, to *models.Branch) (string, e
 }
 
 // CopyURL copies the pull request URL to the clipboard
-func (pr *PullRequest) CopyURL(from *models.Branch, to *models.Branch) (string, error) {
+func (pr *PullRequest) CopyURL(from string, to string) (string, error) {
 	pullRequestURL, err := pr.getPullRequestURL(from, to)
 	if err != nil {
 		return "", err
@@ -133,7 +132,7 @@ func (pr *PullRequest) CopyURL(from *models.Branch, to *models.Branch) (string, 
 	return pullRequestURL, pr.GitCommand.OSCommand.CopyToClipboard(pullRequestURL)
 }
 
-func (pr *PullRequest) getPullRequestURL(from *models.Branch, to *models.Branch) (string, error) {
+func (pr *PullRequest) getPullRequestURL(from string, to string) (string, error) {
 	branchExistsOnRemote := pr.GitCommand.CheckRemoteBranchExists(from)
 
 	if !branchExistsOnRemote {
@@ -155,11 +154,8 @@ func (pr *PullRequest) getPullRequestURL(from *models.Branch, to *models.Branch)
 	}
 
 	repoInfo := getRepoInfoFromURL(repoURL)
-	toBranchName := ""
-	if to != nil {
-		toBranchName = to.Name
-	}
-	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, from.Name, toBranchName)
+
+	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, from, to)
 
 	return pullRequestURL, nil
 }
