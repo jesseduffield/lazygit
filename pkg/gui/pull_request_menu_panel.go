@@ -18,13 +18,13 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 	menuItemsForBranch := func(branch *models.Branch) []*menuItem {
 		return []*menuItem{
 			{
-				displayStrings: fromToDisplayStrings(branch.Name, gui.Tr.DefaultBranch),
+				displayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcDefaultBranch),
 				onPress: func() error {
 					return gui.createPullRequest(branch.Name, "")
 				},
 			},
 			{
-				displayStrings: fromToDisplayStrings(branch.Name, gui.Tr.SelectBranch),
+				displayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcSelectBranch),
 				onPress: func() error {
 					return gui.prompt(promptOpts{
 						title:               branch.Name + " →",
@@ -61,7 +61,7 @@ func (gui *Gui) createPullRequest(from string, to string) error {
 	if err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf("Creating pull request at URL: %s", url), "Create pull request", false))
+	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.CreatingPullRequestAtUrl, url), gui.Tr.CreatePullRequest, false))
 
 	return nil
 }
