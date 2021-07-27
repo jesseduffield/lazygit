@@ -84,9 +84,13 @@ func TestCompress(t *testing.T) {
 				Path: "",
 				Children: []*FileNode{
 					{
-						Path:             "dir1/file2",
-						File:             &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
-						CompressionLevel: 1,
+						Path: "dir1",
+						Children: []*FileNode{
+							{
+								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
+								Path: "dir1/file2",
+							},
+						},
 					},
 					{
 						Path: "dir2",
@@ -102,9 +106,14 @@ func TestCompress(t *testing.T) {
 						},
 					},
 					{
-						Path:             "dir3/dir3-1/file5",
-						File:             &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
-						CompressionLevel: 2,
+						Path:             "dir3/dir3-1",
+						CompressionLevel: 1,
+						Children: []*FileNode{
+							{
+								File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
+								Path: "dir3/dir3-1/file5",
+							},
+						},
 					},
 					{
 						File: &models.File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
