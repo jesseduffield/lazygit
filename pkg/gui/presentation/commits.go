@@ -3,8 +3,8 @@ package presentation
 import (
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
@@ -29,47 +29,35 @@ func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool,
 }
 
 func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
-	red := color.New(color.FgRed)
-	yellow := color.New(color.FgYellow)
-	green := color.New(color.FgGreen)
-	blue := color.New(color.FgBlue)
-	defaultColor := color.New(theme.DefaultTextColor)
-	diffedColor := color.New(theme.DiffTerminalColor)
-
-	// for some reason, setting the background to blue pads out the other commits
-	// horizontally. For the sake of accessibility I'm considering this a feature,
-	// not a bug
-	copied := color.New(color.FgCyan, color.BgBlue)
-
-	var shaColor *color.Color
+	shaColor := theme.DefaultTextColor
 	switch c.Status {
 	case "unpushed":
-		shaColor = red
+		shaColor = style.FgRed
 	case "pushed":
-		shaColor = yellow
+		shaColor = style.FgYellow
 	case "merged":
-		shaColor = green
+		shaColor = style.FgGreen
 	case "rebasing":
-		shaColor = blue
+		shaColor = style.FgBlue
 	case "reflog":
-		shaColor = blue
-	default:
-		shaColor = defaultColor
+		shaColor = style.FgBlue
 	}
 
 	if diffed {
-		shaColor = diffedColor
+		shaColor = theme.DiffTerminalColor
 	} else if cherryPickedCommitShaMap[c.Sha] {
-		shaColor = copied
+		// for some reason, setting the background to blue pads out the other commits
+		// horizontally. For the sake of accessibility I'm considering this a feature,
+		// not a bug
+		shaColor = style.FgCyan.SetColor(style.BgBlue)
 	}
 
 	tagString := ""
-	secondColumnString := blue.Sprint(utils.UnixToDate(c.UnixTimestamp))
+	secondColumnString := style.FgBlue.Sprint(utils.UnixToDate(c.UnixTimestamp))
 	if c.Action != "" {
-		secondColumnString = color.New(actionColorMap(c.Action)).Sprint(c.Action)
+		secondColumnString = actionColorMap(c.Action).Sprint(c.Action)
 	} else if c.ExtraInfo != "" {
-		tagColor := color.New(color.FgMagenta, color.Bold)
-		tagString = utils.ColoredStringDirect(c.ExtraInfo, tagColor) + " "
+		tagString = theme.DiffTerminalColor.SetBold(true).Sprint(c.ExtraInfo) + " "
 	}
 
 	truncatedAuthor := utils.TruncateWithEllipsis(c.Author, 17)
@@ -79,51 +67,44 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 		name = emoji.Sprint(name)
 	}
 
-	return []string{shaColor.Sprint(c.ShortSha()), secondColumnString, yellow.Sprint(truncatedAuthor), tagString + defaultColor.Sprint(name)}
+	return []string{
+		shaColor.Sprint(c.ShortSha()),
+		secondColumnString,
+		style.FgYellow.Sprint(truncatedAuthor),
+		tagString + theme.DefaultTextColor.Sprint(name),
+	}
 }
 
 func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
-	red := color.New(color.FgRed)
-	yellow := color.New(color.FgYellow)
-	green := color.New(color.FgGreen)
-	blue := color.New(color.FgBlue)
-	defaultColor := color.New(theme.DefaultTextColor)
-	diffedColor := color.New(theme.DiffTerminalColor)
-
-	// for some reason, setting the background to blue pads out the other commits
-	// horizontally. For the sake of accessibility I'm considering this a feature,
-	// not a bug
-	copied := color.New(color.FgCyan, color.BgBlue)
-
-	var shaColor *color.Color
+	shaColor := theme.DefaultTextColor
 	switch c.Status {
 	case "unpushed":
-		shaColor = red
+		shaColor = style.FgRed
 	case "pushed":
-		shaColor = yellow
+		shaColor = style.FgYellow
 	case "merged":
-		shaColor = green
+		shaColor = style.FgGreen
 	case "rebasing":
-		shaColor = blue
+		shaColor = style.FgBlue
 	case "reflog":
-		shaColor = blue
-	default:
-		shaColor = defaultColor
+		shaColor = style.FgBlue
 	}
 
 	if diffed {
-		shaColor = diffedColor
+		shaColor = theme.DiffTerminalColor
 	} else if cherryPickedCommitShaMap[c.Sha] {
-		shaColor = copied
+		// for some reason, setting the background to blue pads out the other commits
+		// horizontally. For the sake of accessibility I'm considering this a feature,
+		// not a bug
+		shaColor = style.FgCyan.SetColor(style.BgBlue)
 	}
 
 	actionString := ""
 	tagString := ""
 	if c.Action != "" {
-		actionString = color.New(actionColorMap(c.Action)).Sprint(utils.WithPadding(c.Action, 7)) + " "
+		actionString = actionColorMap(c.Action).Sprint(utils.WithPadding(c.Action, 7)) + " "
 	} else if len(c.Tags) > 0 {
-		tagColor := color.New(color.FgMagenta, color.Bold)
-		tagString = utils.ColoredStringDirect(strings.Join(c.Tags, " "), tagColor) + " "
+		tagString = theme.DiffTerminalColor.SetBold(true).Sprint(strings.Join(c.Tags, " ")) + " "
 	}
 
 	name := c.Name
@@ -131,20 +112,23 @@ func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[s
 		name = emoji.Sprint(name)
 	}
 
-	return []string{shaColor.Sprint(c.ShortSha()), actionString + tagString + defaultColor.Sprint(name)}
+	return []string{
+		shaColor.Sprint(c.ShortSha()),
+		actionString + tagString + theme.DefaultTextColor.Sprint(name),
+	}
 }
 
-func actionColorMap(str string) color.Attribute {
+func actionColorMap(str string) style.TextStyle {
 	switch str {
 	case "pick":
-		return color.FgCyan
+		return style.FgCyan
 	case "drop":
-		return color.FgRed
+		return style.FgRed
 	case "edit":
-		return color.FgGreen
+		return style.FgGreen
 	case "fixup":
-		return color.FgMagenta
+		return style.FgMagenta
 	default:
-		return color.FgYellow
+		return style.FgYellow
 	}
 }

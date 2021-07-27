@@ -9,10 +9,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -102,7 +102,7 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 		}
 
 		menuItems[i] = &menuItem{
-			displayStrings: []string{name, utils.ColoredString(description, color.FgYellow)},
+			displayStrings: []string{name, style.FgYellow.Sprint(description)},
 			onPress: func() error {
 				promptResponses[responseIdx] = value
 				return wrappedF()

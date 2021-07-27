@@ -3,11 +3,11 @@ package gui
 import (
 	"fmt"
 
-	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 func (gui *Gui) handleCreateResetMenu() error {
-	red := color.New(color.FgRed)
+	red := style.FgRed
 
 	nukeStr := "reset --hard HEAD && git clean -fd"
 	if len(gui.State.Submodules) > 0 {

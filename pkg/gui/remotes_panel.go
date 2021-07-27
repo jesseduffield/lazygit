@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -26,7 +26,7 @@ func (gui *Gui) handleRemoteSelect() error {
 	if remote == nil {
 		task = NewRenderStringTask("No remotes")
 	} else {
-		task = NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", utils.ColoredString(remote.Name, color.FgGreen), strings.Join(remote.Urls, "\n")))
+		task = NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n")))
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

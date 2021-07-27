@@ -3,7 +3,7 @@ package mergeconflicts
 import (
 	"bytes"
 
-	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -15,19 +15,18 @@ func ColoredConflictFile(content string, state *State, hasFocus bool) string {
 	conflict, remainingConflicts := shiftConflict(state.conflicts)
 	var outputBuffer bytes.Buffer
 	for i, line := range utils.SplitLines(content) {
-		colourAttr := theme.DefaultTextColor
+		colour := theme.DefaultTextColor
 		if i == conflict.start || i == conflict.middle || i == conflict.end {
-			colourAttr = color.FgRed
+			colour.SetColor(style.FgRed)
 		}
-		colour := color.New(colourAttr)
+
 		if hasFocus && state.conflictIndex < len(state.conflicts) && *state.conflicts[state.conflictIndex] == *conflict && shouldHighlightLine(i, conflict, state.conflictTop) {
-			colour.Add(color.Bold)
-			colour.Add(theme.SelectedRangeBgColor)
+			colour = theme.SelectedRangeBgColor.SetBold(true)
 		}
 		if i == conflict.end && len(remainingConflicts) > 0 {
 			conflict, remainingConflicts = shiftConflict(remainingConflicts)
 		}
-		outputBuffer.WriteString(utils.ColoredStringDirect(line, colour) + "\n")
+		outputBuffer.WriteString(colour.Sprint(line) + "\n")
 	}
 	return outputBuffer.String()
 }

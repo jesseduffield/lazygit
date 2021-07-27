@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -28,10 +28,10 @@ func (gui *Gui) refreshStatus() {
 	}
 
 	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
-		status += utils.ColoredString(fmt.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState()), color.FgYellow)
+		status += style.FgYellow.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState())
 	}
 
-	name := utils.ColoredString(currentBranch.Name, presentation.GetBranchColor(currentBranch.Name))
+	name := presentation.GetBranchColor(currentBranch.Name).Sprint(currentBranch.Name)
 	repoName := utils.GetCurrentRepoName()
 	status += fmt.Sprintf("%s → %s ", repoName, name)
 
@@ -94,8 +94,6 @@ func (gui *Gui) handleStatusSelect() error {
 		return nil
 	}
 
-	magenta := color.New(color.FgMagenta)
-
 	dashboardString := strings.Join(
 		[]string{
 			lazygitTitle(),
@@ -105,7 +103,7 @@ func (gui *Gui) handleStatusSelect() error {
 			fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
 			fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
 			fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
-			magenta.Sprintf("Become a sponsor (github is matching all donations for 12 months): %s", constants.Links.Donate), // caffeine ain't free
+			style.FgMagenta.Sprintf("Become a sponsor (github is matching all donations for 12 months): %s", constants.Links.Donate), // caffeine ain't free
 		}, "\n\n")
 
 	return gui.refreshMainViews(refreshMainOpts{

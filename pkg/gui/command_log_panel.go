@@ -6,11 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) GetOnRunCommand() func(entry oscommands.CmdLogEntry) {
@@ -25,17 +24,17 @@ func (gui *Gui) GetOnRunCommand() func(entry oscommands.CmdLogEntry) {
 		gui.Views.Extras.Autoscroll = true
 
 		if entry.GetSpan() != currentSpan {
-			fmt.Fprint(gui.Views.Extras, "\n"+utils.ColoredString(entry.GetSpan(), color.FgYellow))
+			fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(entry.GetSpan()))
 			currentSpan = entry.GetSpan()
 		}
 
 		clrAttr := theme.DefaultTextColor
 		if !entry.GetCommandLine() {
-			clrAttr = color.FgMagenta
+			clrAttr = clrAttr.SetColor(style.FgMagenta)
 		}
 		gui.CmdLog = append(gui.CmdLog, entry.GetCmdStr())
 		indentedCmdStr := "  " + strings.Replace(entry.GetCmdStr(), "\n", "\n  ", -1)
-		fmt.Fprint(gui.Views.Extras, "\n"+utils.ColoredString(indentedCmdStr, clrAttr))
+		fmt.Fprint(gui.Views.Extras, "\n"+clrAttr.Sprint(indentedCmdStr))
 	}
 }
 
@@ -44,14 +43,14 @@ func (gui *Gui) printCommandLogHeader() {
 		gui.Tr.CommandLogHeader,
 		gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.ExtrasMenu),
 	)
-	fmt.Fprintln(gui.Views.Extras, utils.ColoredString(introStr, color.FgCyan))
+	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
 	if gui.Config.GetUserConfig().Gui.ShowRandomTip {
 		fmt.Fprintf(
 			gui.Views.Extras,
 			"%s: %s",
-			utils.ColoredString(gui.Tr.RandomTip, color.FgYellow),
-			utils.ColoredString(gui.getRandomTip(), color.FgGreen),
+			style.FgYellow.Sprint(gui.Tr.RandomTip),
+			style.FgGreen.Sprint(gui.getRandomTip()),
 		)
 	}
 }

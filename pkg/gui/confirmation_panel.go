@@ -9,8 +9,8 @@ package gui
 import (
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -316,8 +316,7 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 }
 
 func (gui *Gui) createErrorPanel(message string) error {
-	colorFunction := color.New(color.FgRed).SprintFunc()
-	coloredMessage := colorFunction(strings.TrimSpace(message))
+	coloredMessage := style.FgRed.Sprint(strings.TrimSpace(message))
 	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
 		return err
 	}

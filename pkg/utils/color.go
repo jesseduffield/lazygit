@@ -1,24 +1,9 @@
 package utils
 
 import (
-	"fmt"
+	"encoding/hex"
 	"regexp"
-
-	"github.com/fatih/color"
 )
-
-// ColoredString takes a string and a colour attribute and returns a colored
-// string with that attribute
-func ColoredString(str string, colorAttributes ...color.Attribute) string {
-	colour := color.New(colorAttributes...)
-	return ColoredStringDirect(str, colour)
-}
-
-// ColoredStringDirect used for aggregating a few color attributes rather than
-// just sending a single one
-func ColoredStringDirect(str string, colour *color.Color) string {
-	return colour.SprintFunc()(fmt.Sprint(str))
-}
 
 // Decolorise strips a string of color
 func Decolorise(str string) string {
@@ -46,4 +31,24 @@ func getPadWidths(stringArrays [][]string) []int {
 		}
 	}
 	return padWidths
+}
+
+// GetHexColorValues returns the rgb values of a hex color
+func GetHexColorValues(v string) (r uint8, g uint8, b uint8, valid bool) {
+	if len(v) == 4 {
+		v = string([]byte{v[0], v[1], v[1], v[2], v[2], v[3], v[3]})
+	} else if len(v) != 7 {
+		return
+	}
+
+	if v[0] != '#' {
+		return
+	}
+
+	rgb, err := hex.DecodeString(v[1:])
+	if err != nil {
+		return
+	}
+
+	return rgb[0], rgb[1], rgb[2], true
 }

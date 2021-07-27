@@ -3,7 +3,6 @@ package presentation
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetStashEntryListDisplayStrings(stashEntries []*models.StashEntry, diffName string) [][]string {
@@ -23,5 +22,5 @@ func getStashEntryDisplayStrings(s *models.StashEntry, diffed bool) []string {
 	if diffed {
 		attr = theme.DiffTerminalColor
 	}
-	return []string{utils.ColoredString(s.Name, attr)}
+	return []string{attr.Sprint(s.Name)}
 }

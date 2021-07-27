@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -95,45 +95,38 @@ func (l *PatchLine) render(selected bool, included bool) string {
 	if l.Kind == HUNK_HEADER {
 		re := regexp.MustCompile("(@@.*?@@)(.*)")
 		match := re.FindStringSubmatch(content)
-		return coloredString(color.FgCyan, match[1], selected, included) + coloredString(theme.DefaultTextColor, match[2], selected, false)
+		return coloredString(style.FgCyan, match[1], selected, included) + coloredString(theme.DefaultTextColor, match[2], selected, false)
 	}
 
-	var colorAttr color.Attribute
+	colorAttr := theme.DefaultTextColor
 	switch l.Kind {
 	case PATCH_HEADER:
-		colorAttr = color.Bold
+		colorAttr = colorAttr.SetBold(true)
 	case ADDITION:
-		colorAttr = color.FgGreen
+		colorAttr = colorAttr.SetColor(style.FgGreen)
 	case DELETION:
-		colorAttr = color.FgRed
+		colorAttr = colorAttr.SetColor(style.FgRed)
 	case COMMIT_SHA:
-		colorAttr = color.FgYellow
-	default:
-		colorAttr = theme.DefaultTextColor
+		colorAttr = colorAttr.SetColor(style.FgYellow)
 	}
 
 	return coloredString(colorAttr, content, selected, included)
 }
 
-func coloredString(colorAttr color.Attribute, str string, selected bool, included bool) string {
-	var cl *color.Color
-	attributes := []color.Attribute{colorAttr}
+func coloredString(colorAttr style.TextStyle, str string, selected bool, included bool) string {
 	if selected {
-		attributes = append(attributes, theme.SelectedRangeBgColor)
-	}
-	cl = color.New(attributes...)
-	var clIncluded *color.Color
-	if included {
-		clIncluded = color.New(append(attributes, color.BgGreen)...)
-	} else {
-		clIncluded = color.New(attributes...)
+		colorAttr = colorAttr.SetColor(theme.SelectedRangeBgColor)
 	}
 
 	if len(str) < 2 {
-		return utils.ColoredStringDirect(str, clIncluded)
+		return colorAttr.Sprint(str)
 	}
 
-	return utils.ColoredStringDirect(str[:1], clIncluded) + utils.ColoredStringDirect(str[1:], cl)
+	res := colorAttr.Sprint(str[:1])
+	if included {
+		return res + colorAttr.SetColor(style.BgGreen).Sprint(str[1:])
+	}
+	return res + colorAttr.Sprint(str[1:])
 }
 
 func parsePatch(patch string) ([]int, []int, []*PatchLine) {

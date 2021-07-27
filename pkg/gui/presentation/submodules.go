@@ -3,7 +3,6 @@ package presentation
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetSubmoduleListDisplayStrings(submodules []*models.SubmoduleConfig) [][]string {
@@ -17,5 +16,5 @@ func GetSubmoduleListDisplayStrings(submodules []*models.SubmoduleConfig) [][]st
 }
 
 func getSubmoduleDisplayStrings(s *models.SubmoduleConfig) []string {
-	return []string{utils.ColoredString(s.Name, theme.DefaultTextColor)}
+	return []string{theme.DefaultTextColor.Sprint(s.Name)}
 }

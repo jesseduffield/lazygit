@@ -98,6 +98,9 @@ github.com/golang-collections/collections/stack
 ## explicit
 # github.com/google/go-cmp v0.3.1
 ## explicit
+# github.com/gookit/color v1.4.2
+## explicit
+github.com/gookit/color
 # github.com/imdario/mergo v0.3.11
 ## explicit
 github.com/imdario/mergo
@@ -206,11 +209,13 @@ github.com/sirupsen/logrus
 # github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 ## explicit
 github.com/spkg/bom
-# github.com/stretchr/testify v1.4.0
+# github.com/stretchr/testify v1.6.1
 ## explicit
 github.com/stretchr/testify/assert
 # github.com/xanzy/ssh-agent v0.2.1
 github.com/xanzy/ssh-agent
+# github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
+github.com/xo/terminfo
 # golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 ## explicit
 golang.org/x/crypto/blowfish
@@ -253,6 +258,6 @@ golang.org/x/text/encoding/internal/identifier
 golang.org/x/text/transform
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v2 v2.3.0
-gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+gopkg.in/yaml.v3
 # github.com/go-git/go-git/v5 => github.com/jesseduffield/go-git/v5 v5.1.1

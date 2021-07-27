@@ -3,7 +3,6 @@ package presentation
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetRemoteBranchListDisplayStrings(branches []*models.RemoteBranch, diffName string) [][]string {
@@ -24,7 +23,5 @@ func getRemoteBranchDisplayStrings(b *models.RemoteBranch, diffed bool) []string
 		nameColorAttr = theme.DiffTerminalColor
 	}
 
-	displayName := utils.ColoredString(b.Name, nameColorAttr)
-
-	return []string{displayName}
+	return []string{nameColorAttr.Sprint(b.Name)}
 }

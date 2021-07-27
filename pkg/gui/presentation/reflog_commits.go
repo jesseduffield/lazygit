@@ -1,8 +1,8 @@
 package presentation
 
 import (
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
@@ -27,11 +27,9 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 }
 
 func coloredReflogSha(c *models.Commit, cherryPickedCommitShaMap map[string]bool) string {
-	var shaColor *color.Color
+	shaColor := style.FgBlue
 	if cherryPickedCommitShaMap[c.Sha] {
-		shaColor = color.New(color.FgCyan, color.BgBlue)
-	} else {
-		shaColor = color.New(color.FgBlue)
+		shaColor = style.FgCyan.SetColor(style.BgBlue)
 	}
 
 	return shaColor.Sprint(c.ShortSha())
@@ -50,14 +48,12 @@ func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, cherryPic
 
 	return []string{
 		coloredReflogSha(c, cherryPickedCommitShaMap),
-		utils.ColoredString(utils.UnixToDate(c.UnixTimestamp), color.FgMagenta),
-		utils.ColoredString(name, colorAttr),
+		style.FgMagenta.Sprint(utils.UnixToDate(c.UnixTimestamp)),
+		colorAttr.Sprint(name),
 	}
 }
 
 func getDisplayStringsForReflogCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
-	defaultColor := color.New(theme.DefaultTextColor)
-
 	name := c.Name
 	if parseEmoji {
 		name = emoji.Sprint(name)
@@ -65,6 +61,6 @@ func getDisplayStringsForReflogCommit(c *models.Commit, cherryPickedCommitShaMap
 
 	return []string{
 		coloredReflogSha(c, cherryPickedCommitShaMap),
-		defaultColor.Sprint(name),
+		theme.DefaultTextColor.Sprint(name),
 	}
 }
