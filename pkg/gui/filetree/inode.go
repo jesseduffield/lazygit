@@ -170,7 +170,7 @@ func compressAux(node INode) INode {
 	children := node.GetChildren()
 	for i := range children {
 		grandchildren := children[i].GetChildren()
-		for len(grandchildren) == 1 {
+		for len(grandchildren) == 1 && !grandchildren[0].IsLeaf() {
 			grandchildren[0].SetCompressionLevel(children[i].GetCompressionLevel() + 1)
 			children[i] = grandchildren[0]
 			grandchildren = children[i].GetChildren()

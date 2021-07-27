@@ -54,23 +54,33 @@ func TestBuildTreeFromFiles(t *testing.T) {
 			name: "paths that can be compressed",
 			files: []*models.File{
 				{
-					Name: "dir1/a",
+					Name: "dir1/dir3/a",
 				},
 				{
-					Name: "dir2/b",
+					Name: "dir2/dir4/b",
 				},
 			},
 			expected: &FileNode{
 				Path: "",
 				Children: []*FileNode{
 					{
-						File:             &models.File{Name: "dir1/a"},
-						Path:             "dir1/a",
+						Path: "dir1/dir3",
+						Children: []*FileNode{
+							{
+								File: &models.File{Name: "dir1/dir3/a"},
+								Path: "dir1/dir3/a",
+							},
+						},
 						CompressionLevel: 1,
 					},
 					{
-						File:             &models.File{Name: "dir2/b"},
-						Path:             "dir2/b",
+						Path: "dir2/dir4",
+						Children: []*FileNode{
+							{
+								File: &models.File{Name: "dir2/dir4/b"},
+								Path: "dir2/dir4/b",
+							},
+						},
 						CompressionLevel: 1,
 					},
 				},
@@ -201,12 +211,12 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 					{
 						File:             &models.File{Name: "dir1/a"},
 						Path:             "dir1/a",
-						CompressionLevel: 1,
+						CompressionLevel: 0,
 					},
 					{
 						File:             &models.File{Name: "dir2/b"},
 						Path:             "dir2/b",
-						CompressionLevel: 1,
+						CompressionLevel: 0,
 					},
 				},
 			},
@@ -351,23 +361,33 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 			name: "paths that can be compressed",
 			files: []*models.CommitFile{
 				{
-					Name: "dir1/a",
+					Name: "dir1/dir3/a",
 				},
 				{
-					Name: "dir2/b",
+					Name: "dir2/dir4/b",
 				},
 			},
 			expected: &CommitFileNode{
 				Path: "",
 				Children: []*CommitFileNode{
 					{
-						File:             &models.CommitFile{Name: "dir1/a"},
-						Path:             "dir1/a",
+						Path: "dir1/dir3",
+						Children: []*CommitFileNode{
+							{
+								File: &models.CommitFile{Name: "dir1/dir3/a"},
+								Path: "dir1/dir3/a",
+							},
+						},
 						CompressionLevel: 1,
 					},
 					{
-						File:             &models.CommitFile{Name: "dir2/b"},
-						Path:             "dir2/b",
+						Path: "dir2/dir4",
+						Children: []*CommitFileNode{
+							{
+								File: &models.CommitFile{Name: "dir2/dir4/b"},
+								Path: "dir2/dir4/b",
+							},
+						},
 						CompressionLevel: 1,
 					},
 				},
@@ -464,12 +484,12 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 					{
 						File:             &models.CommitFile{Name: "dir1/a"},
 						Path:             "dir1/a",
-						CompressionLevel: 1,
+						CompressionLevel: 0,
 					},
 					{
 						File:             &models.CommitFile{Name: "dir2/b"},
 						Path:             "dir2/b",
-						CompressionLevel: 1,
+						CompressionLevel: 0,
 					},
 				},
 			},
