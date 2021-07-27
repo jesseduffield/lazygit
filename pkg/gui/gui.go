@@ -656,7 +656,11 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	onConfirm := func() error {
 		done <- struct{}{}
 		gui.Config.GetAppState().StartupPopupVersion = StartupPopupVersion
-		return gui.Config.SaveAppState()
+		err := gui.Config.SaveAppState()
+		if err != nil && os.IsPermission(err) {
+			return nil
+		}
+		return err
 	}
 
 	return gui.ask(askOpts{

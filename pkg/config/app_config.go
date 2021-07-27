@@ -12,18 +12,20 @@ import (
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug          bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version        string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit         string `long:"commit" env:"COMMIT"`
-	BuildDate      string `long:"build-date" env:"BUILD_DATE"`
-	Name           string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource    string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig     *UserConfig
-	UserConfigDir  string
-	UserConfigPath string
-	TempDir        string
-	AppState       *AppState
-	IsNewRepo      bool
+	Debug            bool   `long:"debug" env:"DEBUG" default:"false"`
+	Version          string `long:"version" env:"VERSION" default:"unversioned"`
+	Commit           string `long:"commit" env:"COMMIT"`
+	BuildDate        string `long:"build-date" env:"BUILD_DATE"`
+	Name             string `long:"name" env:"NAME" default:"lazygit"`
+	BuildSource      string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	UserConfig       *UserConfig
+	UserConfigFiles  []string
+	DeafultConfFiles bool
+	UserConfigPath   string
+	UserConfigDir    string
+	TempDir          string
+	AppState         *AppState
+	IsNewRepo        bool
 }
 
 // AppConfigurer interface allows individual app config structs to inherit Fields
@@ -36,6 +38,7 @@ type AppConfigurer interface {
 	GetName() string
 	GetBuildSource() string
 	GetUserConfig() *UserConfig
+	GetUserConfigFiles() []string
 	GetUserConfigDir() string
 	GetUserConfigPath() string
 	GetTempDir() string
@@ -49,11 +52,24 @@ type AppConfigurer interface {
 // NewAppConfig makes a new app config
 func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
 	configDir, err := findOrCreateConfigDir()
-	if err != nil {
+	if err != nil && !os.IsPermission(err) {
 		return nil, err
 	}
 
-	userConfig, err := loadUserConfigWithDefaults(configDir)
+	var userConfigFiles []string
+
+	userConfigFilesOverwrite := os.Getenv("LG_CONFIG_FILE")
+	deafultConfFiles := true
+	if userConfigFilesOverwrite != "" {
+		// Load user defined config files
+		userConfigFiles = strings.Split(userConfigFilesOverwrite, ",")
+		deafultConfFiles = false
+	} else {
+		// Load default config files
+		userConfigFiles = []string{filepath.Join(configDir, ConfigFilename)}
+	}
+
+	userConfig, err := loadUserConfigWithDefaults(userConfigFiles, deafultConfFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -70,18 +86,20 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	appConfig := &AppConfig{
-		Name:           "lazygit",
-		Version:        version,
-		Commit:         commit,
-		BuildDate:      date,
-		Debug:          debuggingFlag,
-		BuildSource:    buildSource,
-		UserConfig:     userConfig,
-		UserConfigDir:  configDir,
-		UserConfigPath: filepath.Join(configDir, "config.yml"),
-		TempDir:        tempDir,
-		AppState:       appState,
-		IsNewRepo:      false,
+		Name:             "lazygit",
+		Version:          version,
+		Commit:           commit,
+		BuildDate:        date,
+		Debug:            debuggingFlag,
+		BuildSource:      buildSource,
+		UserConfig:       userConfig,
+		UserConfigFiles:  userConfigFiles,
+		UserConfigDir:    configDir,
+		DeafultConfFiles: deafultConfFiles,
+		UserConfigPath:   filepath.Join(configDir, "config.yml"),
+		TempDir:          tempDir,
+		AppState:         appState,
+		IsNewRepo:        false,
 	}
 
 	return appConfig, nil
@@ -107,43 +125,43 @@ func configDirForVendor(vendor string) string {
 
 func findOrCreateConfigDir() (string, error) {
 	folder := ConfigDir()
-	err := os.MkdirAll(folder, 0755)
-	if err != nil {
-		return "", err
-	}
-
-	return folder, nil
+	return folder, os.MkdirAll(folder, 0755)
 }
 
-func loadUserConfigWithDefaults(configDir string) (*UserConfig, error) {
-	return loadUserConfig(configDir, GetDefaultConfig())
+func loadUserConfigWithDefaults(configFiles []string, deafultConfFiles bool) (*UserConfig, error) {
+	return loadUserConfig(configFiles, GetDefaultConfig(), deafultConfFiles)
 }
 
-func loadUserConfig(configDir string, base *UserConfig) (*UserConfig, error) {
-	fileName := filepath.Join(configDir, "config.yml")
+func loadUserConfig(configFiles []string, base *UserConfig, deafultConfFiles bool) (*UserConfig, error) {
+	for _, fileName := range configFiles {
+		content, readConfFileErr := ioutil.ReadFile(fileName)
+		if readConfFileErr != nil {
+			if !deafultConfFiles {
+				return nil, readConfFileErr
+			}
 
-	if _, err := os.Stat(fileName); err != nil {
-		if os.IsNotExist(err) {
+			_, err := os.Stat(fileName)
+			if err == nil {
+				return nil, readConfFileErr
+			}
+			if !os.IsNotExist(err) {
+				return nil, readConfFileErr
+			}
+
 			file, err := os.Create(fileName)
 			if err != nil {
-				if strings.Contains(err.Error(), "read-only file system") {
-					return base, nil
+				if os.IsPermission(err) {
+					continue
+				} else {
+					return nil, readConfFileErr
 				}
-				return nil, err
 			}
 			file.Close()
-		} else {
+		}
+
+		if err := yaml.Unmarshal(content, base); err != nil {
 			return nil, err
 		}
-	}
-
-	content, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := yaml.Unmarshal(content, base); err != nil {
-		return nil, err
 	}
 
 	return base, nil
@@ -195,14 +213,13 @@ func (c *AppConfig) GetUserConfig() *UserConfig {
 	return c.UserConfig
 }
 
-// GetUserConfig returns the user config
-func (c *AppConfig) GetUserConfigPath() string {
-	return c.UserConfigPath
-}
-
 // GetAppState returns the app state
 func (c *AppConfig) GetAppState() *AppState {
 	return c.AppState
+}
+
+func (c *AppConfig) GetUserConfigFiles() []string {
+	return c.UserConfigFiles
 }
 
 func (c *AppConfig) GetUserConfigDir() string {
@@ -214,7 +231,7 @@ func (c *AppConfig) GetTempDir() string {
 }
 
 func (c *AppConfig) ReloadUserConfig() error {
-	userConfig, err := loadUserConfigWithDefaults(c.UserConfigDir)
+	userConfig, err := loadUserConfigWithDefaults(c.UserConfigFiles, c.DeafultConfFiles)
 	if err != nil {
 		return err
 	}
@@ -232,9 +249,11 @@ func configFilePath(filename string) (string, error) {
 	return filepath.Join(folder, filename), nil
 }
 
-// ConfigFilename returns the filename of the current config file
+var ConfigFilename = "config.yml"
+
+// ConfigFilename returns the filename of the deafult config file
 func (c *AppConfig) ConfigFilename() string {
-	return filepath.Join(c.UserConfigDir, "config.yml")
+	return filepath.Join(c.UserConfigDir, ConfigFilename)
 }
 
 // SaveAppState marshalls the AppState struct and writes it to the disk
@@ -256,6 +275,9 @@ func (c *AppConfig) SaveAppState() error {
 func loadAppState() (*AppState, error) {
 	filepath, err := configFilePath("state.yml")
 	if err != nil {
+		if os.IsPermission(err) {
+			return getDefaultAppState(), nil
+		}
 		return nil, err
 	}
 

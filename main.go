@@ -61,6 +61,9 @@ func main() {
 	gitDir := ""
 	flaggy.String(&gitDir, "g", "git-dir", "equivalent of the --git-dir git argument")
 
+	customConfig := ""
+	flaggy.String(&customConfig, "cf", "config-file", "Comma seperated list to custom config file(s)")
+
 	flaggy.Parse()
 
 	if repoPath != "" {
@@ -70,6 +73,10 @@ func main() {
 
 		workTree = repoPath
 		gitDir = filepath.Join(repoPath, ".git")
+	}
+
+	if customConfig != "" {
+		os.Setenv("LG_CONFIG_FILE", customConfig)
 	}
 
 	if useConfigDir != "" {
