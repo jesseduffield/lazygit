@@ -241,6 +241,11 @@ os:
 
 Lazygit will log an error if none of these options are set.
 
+### Change config file used
+
+- Use `--config-file=~/.base_lg_conf,~/.light_theme_lg_conf` or `$LG_CONFIG_FILE="~/.base_lg_conf,~/.light_theme_lg_conf"`
+- Change the default config directory `$CONFIG_DIR="~/.config/lazygit"`
+
 ### Recommended Config Values
 
 for users of VSCode
