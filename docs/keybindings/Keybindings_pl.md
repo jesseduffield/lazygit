@@ -17,7 +17,7 @@
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>:</kbd>: execute custom command
-  <kbd>|</kbd>: view filter-by-path options
+  <kbd>ctrl+s</kbd>: view filter-by-path options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
@@ -186,6 +186,7 @@
   <kbd>g</kbd>: view upstream reset options
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
 </pre>
 
 ## Pliki Panel (Submodules)

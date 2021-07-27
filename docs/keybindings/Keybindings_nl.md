@@ -17,7 +17,7 @@
   <kbd>+</kbd>: volgende scherm modus (normaal/half/groot)
   <kbd>_</kbd>: vorige scherm modus
   <kbd>:</kbd>: voor aangepaste commando uit
-  <kbd>|</kbd>: bekijk scoping opties
+  <kbd>ctrl+s</kbd>: bekijk scoping opties
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
@@ -39,7 +39,7 @@
 
 <pre>
   <kbd>space</kbd>: uitchecken
-  <kbd>o</kbd>: maak een pull-aanvraag
+  <kbd>o</kbd>: maak een pull-request
   <kbd>O</kbd>: bekijk opties voor pull-aanvraag
   <kbd>ctrl+y</kbd>: kopieer de URL van het pull-verzoek naar het klembord
   <kbd>c</kbd>: uitchecken bij naam
@@ -186,6 +186,7 @@
   <kbd>g</kbd>: bekijk upstream reset opties
   <kbd>`</kbd>: toggle bestandsboom weergave
   <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
 </pre>
 
 ## Bestanden Paneel (Submodules)
