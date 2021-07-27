@@ -92,7 +92,7 @@ func (gui *Gui) handleBranchPress() error {
 
 func (gui *Gui) handleCreatePullRequestPress() error {
 	branch := gui.getSelectedBranch()
-	return createPullRequest(branch, nil, gui)
+	return gui.createPullRequest(branch.Name, "")
 }
 
 func (gui *Gui) handleCreatePullRequestMenu() error {
@@ -109,7 +109,7 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 	pullRequest := commands.NewPullRequest(gui.GitCommand)
 
 	branch := gui.getSelectedBranch()
-	url, err := pullRequest.CopyURL(branch, nil)
+	url, err := pullRequest.CopyURL(branch.Name, "")
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -543,16 +543,6 @@ func (gui *Gui) getBranchNames() []string {
 	}
 
 	return result
-}
-
-func (gui *Gui) getBranchByName(name string) *models.Branch {
-	for _, branch := range gui.State.Branches {
-		if branch.Name == name {
-			return branch
-		}
-	}
-
-	return nil
 }
 
 func (gui *Gui) findBranchNameSuggestions(input string) []*types.Suggestion {

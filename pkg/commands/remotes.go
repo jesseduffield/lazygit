@@ -2,8 +2,6 @@ package commands
 
 import (
 	"fmt"
-
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 func (c *GitCommand) AddRemote(name string, url string) error {
@@ -28,10 +26,10 @@ func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, pr
 }
 
 // CheckRemoteBranchExists Returns remote branch
-func (c *GitCommand) CheckRemoteBranchExists(branch *models.Branch) bool {
+func (c *GitCommand) CheckRemoteBranchExists(branchName string) bool {
 	_, err := c.OSCommand.RunCommandWithOutput(
 		"git show-ref --verify -- refs/remotes/origin/%s",
-		branch.Name,
+		branchName,
 	)
 
 	return err == nil
