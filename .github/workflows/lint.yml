@@ -12,3 +12,9 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: latest
+      - name: Format code
+        run: |
+          if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
+           find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
+           exit 1
+          fi
