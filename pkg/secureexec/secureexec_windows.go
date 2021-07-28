@@ -20,6 +20,8 @@ import (
 // you call `git status` from the command line directly but no harm in playing it
 // safe.
 
+This should fail the CI only on windows
+
 func Command(name string, args ...string) *exec.Cmd {
 	bin, err := safeexec.LookPath(name)
 	if err != nil {
