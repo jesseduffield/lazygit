@@ -289,12 +289,13 @@ type guiMutexes struct {
 type guiState struct {
 	// the file panels (files and commit files) can render as a tree, so we have
 	// managers for them which handle rendering a flat list of files in tree form
-	FileManager       *filetree.FileManager
-	CommitFileManager *filetree.CommitFileManager
-	Submodules        []*models.SubmoduleConfig
-	Branches          []*models.Branch
-	Commits           []*models.Commit
-	StashEntries      []*models.StashEntry
+	FileManager                    *filetree.FileManager
+	CommitFileManager              *filetree.CommitFileManager
+	Submodules                     []*models.SubmoduleConfig
+	Branches                       []*models.Branch
+	BranchesWithGithubPullRequests bool
+	Commits                        []*models.Commit
+	StashEntries                   []*models.StashEntry
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.

@@ -38,7 +38,7 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(getRepoInfoFromURL(s.repoURL))
+			s.test(GetRepoInfoFromURL(s.repoURL))
 		})
 	}
 }

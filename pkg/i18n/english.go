@@ -169,7 +169,7 @@ type TranslationSet struct {
 	SwitchRepo                          string
 	LcAllBranchesLogGraph               string
 	UnsupportedGitService               string
-	LcCreatePullRequest                 string
+	LcCreateOrShowPullRequest           string
 	LcCopyPullRequestURL                string
 	NoBranchOnRemote                    string
 	LcFetch                             string
@@ -454,11 +454,11 @@ type TranslationSet struct {
 	ToggleWhitespaceInDiffView          string
 	IgnoringWhitespaceInDiffView        string
 	ShowingWhitespaceInDiffView         string
-	CreatePullRequestOptions            string
-	LcCreatePullRequestOptions          string
+	CreateOrOpenPullRequestOptions      string
+	LcCreateOrOpenPullRequestOptions    string
 	LcDefaultBranch                     string
 	LcSelectBranch                      string
-	CreatePullRequest                   string
+	CreateOrShowPullRequest             string
 	CreatingPullRequestAtUrl            string
 	Spans                               Spans
 }
@@ -720,7 +720,7 @@ func englishTranslationSet() TranslationSet {
 		SwitchRepo:                          `switch to a recent repo`,
 		LcAllBranchesLogGraph:               `show all branch logs`,
 		UnsupportedGitService:               `Unsupported git service`,
-		LcCreatePullRequest:                 `create pull request`,
+		LcCreateOrShowPullRequest:           `create / show pull request`,
 		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
 		NoBranchOnRemote:                    `This branch doesn't exist on remote. You need to push it to remote first.`,
 		LcFetch:                             `fetch`,
@@ -1007,9 +1007,9 @@ func englishTranslationSet() TranslationSet {
 		ToggleWhitespaceInDiffView:          "Toggle whether or not whitespace changes are shown in the diff view",
 		IgnoringWhitespaceInDiffView:        "Whitespace will be ignored in the diff view",
 		ShowingWhitespaceInDiffView:         "Whitespace will be shown in the diff view",
-		CreatePullRequest:                   "Create pull request",
-		CreatePullRequestOptions:            "Create pull request options",
-		LcCreatePullRequestOptions:          "create pull request options",
+		CreateOrShowPullRequest:             "Create / show pull request",
+		CreateOrOpenPullRequestOptions:      "Create / show pull request options",
+		LcCreateOrOpenPullRequestOptions:    "create / show pull request options",
 		LcDefaultBranch:                     "default branch",
 		LcSelectBranch:                      "select branch",
 		CreatingPullRequestAtUrl:            "Creating pull request at URL: %s",

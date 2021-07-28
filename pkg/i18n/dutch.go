@@ -154,7 +154,7 @@ func dutchTranslationSet() TranslationSet {
 		SwitchRepo:                          "wissel naar een recente repo",
 		LcAllBranchesLogGraph:               `alle logs van de branch laten zien`,
 		UnsupportedGitService:               `Niet-ondersteunde git-service`,
-		LcCreatePullRequest:                 `maak een pull-request`,
+		LcCreateOrShowPullRequest:           `maak of laat een pull-request zien`,
 		LcCopyPullRequestURL:                `kopieer de URL van het pull-verzoek naar het klembord`,
 		NoBranchOnRemote:                    `Deze branch bestaat niet op de remote. U moet het eerst naar de remote pushen.`,
 		LcFetch:                             `fetch`,
@@ -396,7 +396,7 @@ func dutchTranslationSet() TranslationSet {
 		LcInitSubmodule:                     "initialiseer submodule",
 		LcViewBulkSubmoduleOptions:          "bekijk bulk submodule opties",
 		LcViewStashFiles:                    "bekijk bestanden van stash entry",
-		CreatePullRequestOptions:            "Bekijk opties voor pull-aanvraag",
-		LcCreatePullRequestOptions:          "bekijk opties voor pull-aanvraag",
+		CreateOrOpenPullRequestOptions:      "Bekijk opties voor pull-aanvraag",
+		LcCreateOrOpenPullRequestOptions:    "bekijk opties voor pull-aanvraag",
 	}
 }

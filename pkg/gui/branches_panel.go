@@ -68,13 +68,20 @@ func (gui *Gui) refreshBranches() {
 	if err != nil {
 		_ = gui.surfaceError(err)
 	}
-	gui.State.Branches = builder.Build()
+	gui.State.Branches, gui.State.BranchesWithGithubPullRequests = builder.Build()
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
 	}
 
 	gui.refreshStatus()
+}
+
+func (gui *Gui) refreshGithubPullRequests() {
+	prs := gui.GitCommand.GithubMostRecentPRs()
+	if len(prs) > 0 {
+		gui.GitCommand.GithubRecentPRs = prs
+	}
 }
 
 // specific functions
@@ -90,19 +97,22 @@ func (gui *Gui) handleBranchPress() error {
 	return gui.handleCheckoutRef(branch.Name, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutBranch})
 }
 
-func (gui *Gui) handleCreatePullRequestPress() error {
+func (gui *Gui) handleCreateOrShowPullRequestPress() error {
 	branch := gui.getSelectedBranch()
+	if branch.PR != nil {
+		return gui.OSCommand.OpenLink(branch.PR.Url)
+	}
 	return gui.createPullRequest(branch.Name, "")
 }
 
-func (gui *Gui) handleCreatePullRequestMenu() error {
+func (gui *Gui) handleCreateOrOpenPullRequestMenu() error {
 	selectedBranch := gui.getSelectedBranch()
 	if selectedBranch == nil {
 		return nil
 	}
 	checkedOutBranch := gui.getCheckedOutBranch()
 
-	return gui.createPullRequestMenu(selectedBranch, checkedOutBranch)
+	return gui.createOrOpenPullRequestMenu(selectedBranch, checkedOutBranch)
 }
 
 func (gui *Gui) handleCopyPullRequestURLPress() error {

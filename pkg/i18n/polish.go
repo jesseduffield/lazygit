@@ -127,7 +127,7 @@ func polishTranslationSet() TranslationSet {
 		ConfirmQuit:                         `Na pewno chcesz wyjść z programu?`,
 		LcAllBranchesLogGraph:               `pokazywać wszystkie logi branżowe`,
 		UnsupportedGitService:               `Nieobsługiwana usługa git`,
-		LcCreatePullRequest:                 `utwórz żądanie wyciągnięcia`,
+		LcCreateOrShowPullRequest:           `utwórz żądanie wyciągnięcia`,
 		LcCopyPullRequestURL:                `skopiuj adres URL żądania ściągnięcia do schowka`,
 		NoBranchOnRemote:                    `Ta gałąź nie istnieje na zdalnym. Najpierw musisz go odepchnąć na odległość.`,
 		LcFetch:                             `fetch`,
@@ -255,7 +255,7 @@ func polishTranslationSet() TranslationSet {
 		PullRequestURLCopiedToClipboard:     "URL żądania ściągnięcia skopiowany do schowka",
 		CommitMessageCopiedToClipboard:      "Commit message skopiowany do schowka",
 		LcCopiedToClipboard:                 "skopiowany do schowka",
-		CreatePullRequestOptions:            "Utwórz opcje żądania ściągnięcia",
-		LcCreatePullRequestOptions:          "utwórz opcje żądania ściągnięcia",
+		CreateOrOpenPullRequestOptions:      "Utwórz opcje żądania ściągnięcia",
+		LcCreateOrOpenPullRequestOptions:    "utwórz opcje żądania ściągnięcia",
 	}
 }
