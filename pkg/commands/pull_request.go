@@ -153,34 +153,9 @@ func (pr *PullRequest) getPullRequestURL(from string, to string) (string, error)
 		return "", errors.New(pr.GitCommand.Tr.UnsupportedGitService)
 	}
 
-	repoInfo := getRepoInfoFromURL(repoURL)
+	repoInfo := GetRepoInfoFromURL(repoURL)
 
 	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, from, to)
 
 	return pullRequestURL, nil
-}
-
-func getRepoInfoFromURL(url string) *RepoInformation {
-	isHTTP := strings.HasPrefix(url, "http")
-
-	if isHTTP {
-		splits := strings.Split(url, "/")
-		owner := strings.Join(splits[3:len(splits)-1], "/")
-		repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
-
-		return &RepoInformation{
-			Owner:      owner,
-			Repository: repo,
-		}
-	}
-
-	tmpSplit := strings.Split(url, ":")
-	splits := strings.Split(tmpSplit[1], "/")
-	owner := strings.Join(splits[0:len(splits)-1], "/")
-	repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
-
-	return &RepoInformation{
-		Owner:      owner,
-		Repository: repo,
-	}
 }

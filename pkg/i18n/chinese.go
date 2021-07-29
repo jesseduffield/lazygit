@@ -176,7 +176,7 @@ func chineseTranslationSet() TranslationSet {
 		SwitchRepo:                          `切换到最近的仓库`,
 		LcAllBranchesLogGraph:               `显示所有分支日志`,
 		UnsupportedGitService:               `不支持的git服务`,
-		LcCreatePullRequest:                 `创建pull请求`,
+		LcCreateOrShowPullRequest:           `创建pull请求`,
 		LcCopyPullRequestURL:                `将拉取请求URL复制到剪贴板`,
 		NoBranchOnRemote:                    `该分支在远程上不存在。您需要先将其推送到远程.`,
 		LcFetch:                             `fetch`,

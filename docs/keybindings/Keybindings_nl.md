@@ -39,7 +39,7 @@
 
 <pre>
   <kbd>space</kbd>: uitchecken
-  <kbd>o</kbd>: maak een pull-request
+  <kbd>o</kbd>: maak of laat een pull-request zien
   <kbd>O</kbd>: bekijk opties voor pull-aanvraag
   <kbd>ctrl+y</kbd>: kopieer de URL van het pull-verzoek naar het klembord
   <kbd>c</kbd>: uitchecken bij naam

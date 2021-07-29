@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -10,19 +11,19 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string) [][]string {
+func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string, showGithub bool) [][]string {
 	lines := make([][]string, len(branches))
 
 	for i := range branches {
 		diffed := branches[i].Name == diffName
-		lines[i] = getBranchDisplayStrings(branches[i], fullDescription, diffed)
+		lines[i] = getBranchDisplayStrings(branches[i], fullDescription, diffed, showGithub)
 	}
 
 	return lines
 }
 
 // getBranchDisplayStrings returns the display string of branch
-func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool) []string {
+func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed, showGithub bool) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName
@@ -42,11 +43,26 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 		recencyColor = color.FgGreen
 	}
 
-	if fullDescription {
-		return []string{utils.ColoredString(b.Recency, recencyColor), coloredName, utils.ColoredString(b.UpstreamName, color.FgYellow)}
+	res := []string{utils.ColoredString(b.Recency, recencyColor)}
+	if showGithub {
+		if b.PR != nil {
+			colour := color.FgMagenta // = state MERGED
+			switch b.PR.State {
+			case "OPEN":
+				colour = color.FgGreen
+			case "CLOSED":
+				colour = color.FgRed
+			}
+			res = append(res, utils.ColoredString("#"+strconv.Itoa(b.PR.Number), colour))
+		} else {
+			res = append(res, "")
+		}
 	}
 
-	return []string{utils.ColoredString(b.Recency, recencyColor), coloredName}
+	if fullDescription {
+		return append(res, coloredName, utils.ColoredString(b.UpstreamName, color.FgYellow))
+	}
+	return append(res, coloredName)
 }
 
 // GetBranchColor branch color

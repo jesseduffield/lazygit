@@ -541,16 +541,16 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "branches",
 			Contexts:    []string{string(LOCAL_BRANCHES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Branches.CreatePullRequest),
-			Handler:     gui.handleCreatePullRequestPress,
-			Description: gui.Tr.LcCreatePullRequest,
+			Key:         gui.getKey(config.Branches.CreateOrShowPullRequest),
+			Handler:     gui.handleCreateOrShowPullRequestPress,
+			Description: gui.Tr.LcCreateOrShowPullRequest,
 		},
 		{
 			ViewName:    "branches",
 			Contexts:    []string{string(LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Branches.ViewPullRequestOptions),
-			Handler:     gui.handleCreatePullRequestMenu,
-			Description: gui.Tr.LcCreatePullRequestOptions,
+			Handler:     gui.handleCreateOrOpenPullRequestMenu,
+			Description: gui.Tr.LcCreateOrOpenPullRequestOptions,
 			OpensMenu:   true,
 		},
 		{

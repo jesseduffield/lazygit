@@ -70,7 +70,12 @@ func (gui *Gui) branchesListContext() *ListContext {
 		Gui:                        gui,
 		ResetMainViewOriginOnFocus: true,
 		GetDisplayStrings: func() [][]string {
-			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
+			return presentation.GetBranchListDisplayStrings(
+				gui.State.Branches,
+				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.State.Modes.Diffing.Ref,
+				gui.State.BranchesWithGithubPullRequests,
+			)
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item := gui.getSelectedBranch()

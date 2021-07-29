@@ -2,13 +2,14 @@ package gui
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
-func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
+func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
 	menuItems := make([]*menuItem, 0, 4)
 
 	fromToDisplayStrings := func(from string, to string) []string {
@@ -38,6 +39,15 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 		}
 	}
 
+	if selectedBranch.PR != nil {
+		menuItems = append(menuItems, &menuItem{
+			displayString: "open #" + strconv.Itoa(selectedBranch.PR.Number),
+			onPress: func() error {
+				return gui.OSCommand.OpenLink(selectedBranch.PR.Url)
+			},
+		})
+	}
+
 	if selectedBranch != checkedOutBranch {
 		menuItems = append(menuItems,
 			&menuItem{
@@ -52,7 +62,7 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 
 	menuItems = append(menuItems, menuItemsForBranch(selectedBranch)...)
 
-	return gui.createMenu(fmt.Sprintf(gui.Tr.CreatePullRequestOptions), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(fmt.Sprintf(gui.Tr.CreateOrOpenPullRequestOptions), menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) createPullRequest(from string, to string) error {
@@ -61,7 +71,7 @@ func (gui *Gui) createPullRequest(from string, to string) error {
 	if err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.CreatingPullRequestAtUrl, url), gui.Tr.CreatePullRequest, false))
+	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.CreatingPullRequestAtUrl, url), gui.Tr.CreateOrShowPullRequest, false))
 
 	return nil
 }
