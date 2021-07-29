@@ -133,7 +133,9 @@ keybinding:
     diffingMenu-alt: '<c-e>' # deprecated
     copyToClipboard: '<c-o>'
     submitEditorText: '<enter>'
-    appendNewline: '<tab>'
+    appendNewline: '<a-enter>'
+    extrasMenu: '@'
+    toggleWhitespaceInDiffView: '<c-w>'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'
