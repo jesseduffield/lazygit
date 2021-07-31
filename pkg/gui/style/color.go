@@ -23,9 +23,16 @@ func (c Color) IsRGB() bool {
 	return c.rgb != nil
 }
 
-func (c Color) ToRGB() Color {
+func (c Color) ToRGB(isBg bool) Color {
 	if c.IsRGB() {
 		return c
+	}
+
+	if isBg {
+		// We need to convert bg color to fg color
+		// This is a gookit/color bug,
+		// https://github.com/gookit/color/issues/39
+		return NewRGBColor((*c.basic - 10).RGB())
 	}
 
 	return NewRGBColor(c.basic.RGB())

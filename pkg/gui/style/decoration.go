@@ -8,15 +8,15 @@ type Decoration struct {
 	reverse   bool
 }
 
-func (d Decoration) SetBold() {
+func (d *Decoration) SetBold() {
 	d.bold = true
 }
 
-func (d Decoration) SetUnderline() {
+func (d *Decoration) SetUnderline() {
 	d.underline = true
 }
 
-func (d Decoration) SetReverse() {
+func (d *Decoration) SetReverse() {
 	d.reverse = true
 }
 

@@ -134,11 +134,13 @@ func (b TextStyle) deriveRGBStyle() *color.RGBStyle {
 	style := &color.RGBStyle{}
 
 	if b.fg != nil {
-		style.SetFg(*b.fg.ToRGB().rgb)
+		style.SetFg(*b.fg.ToRGB(false).rgb)
 	}
 
 	if b.bg != nil {
-		style.SetBg(*b.bg.ToRGB().rgb)
+		// We need to convert the bg firstly to a foreground color,
+		// For more info see
+		style.SetBg(*b.bg.ToRGB(true).rgb)
 	}
 
 	style.SetOpts(b.decoration.ToOpts())
