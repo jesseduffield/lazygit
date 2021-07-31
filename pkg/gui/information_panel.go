@@ -15,8 +15,8 @@ func (gui *Gui) informationStr() string {
 	}
 
 	if gui.g.Mouse {
-		donate := style.FgMagenta.SetUnderline(true).Sprint(gui.Tr.Donate)
-		askQuestion := style.FgYellow.SetUnderline(true).Sprint(gui.Tr.AskQuestion)
+		donate := style.FgMagenta.SetUnderline().Sprint(gui.Tr.Donate)
+		askQuestion := style.FgYellow.SetUnderline().Sprint(gui.Tr.AskQuestion)
 		return fmt.Sprintf("%s %s %s", donate, askQuestion, gui.Config.GetVersion())
 	} else {
 		return gui.Config.GetVersion()

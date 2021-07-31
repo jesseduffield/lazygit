@@ -98,35 +98,35 @@ func (l *PatchLine) render(selected bool, included bool) string {
 		return coloredString(style.FgCyan, match[1], selected, included) + coloredString(theme.DefaultTextColor, match[2], selected, false)
 	}
 
-	colorAttr := theme.DefaultTextColor
+	textStyle := theme.DefaultTextColor
 	switch l.Kind {
 	case PATCH_HEADER:
-		colorAttr = colorAttr.SetBold(true)
+		textStyle = textStyle.SetBold()
 	case ADDITION:
-		colorAttr = colorAttr.SetColor(style.FgGreen)
+		textStyle = style.FgGreen
 	case DELETION:
-		colorAttr = colorAttr.SetColor(style.FgRed)
+		textStyle = style.FgRed
 	case COMMIT_SHA:
-		colorAttr = colorAttr.SetColor(style.FgYellow)
+		textStyle = style.FgYellow
 	}
 
-	return coloredString(colorAttr, content, selected, included)
+	return coloredString(textStyle, content, selected, included)
 }
 
-func coloredString(colorAttr style.TextStyle, str string, selected bool, included bool) string {
+func coloredString(textStyle style.TextStyle, str string, selected bool, included bool) string {
 	if selected {
-		colorAttr = colorAttr.SetColor(theme.SelectedRangeBgColor)
+		textStyle = textStyle.MergeStyle(theme.SelectedRangeBgColor)
 	}
 
 	if len(str) < 2 {
-		return colorAttr.Sprint(str)
+		return textStyle.Sprint(str)
 	}
 
-	res := colorAttr.Sprint(str[:1])
+	res := textStyle.Sprint(str[:1])
 	if included {
-		return res + colorAttr.SetColor(style.BgGreen).Sprint(str[1:])
+		return res + textStyle.MergeStyle(style.BgGreen).Sprint(str[1:])
 	}
-	return res + colorAttr.Sprint(str[1:])
+	return res + textStyle.Sprint(str[1:])
 }
 
 func parsePatch(patch string) ([]int, []int, []*PatchLine) {

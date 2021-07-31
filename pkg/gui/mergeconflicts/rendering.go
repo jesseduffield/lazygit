@@ -15,18 +15,18 @@ func ColoredConflictFile(content string, state *State, hasFocus bool) string {
 	conflict, remainingConflicts := shiftConflict(state.conflicts)
 	var outputBuffer bytes.Buffer
 	for i, line := range utils.SplitLines(content) {
-		colour := theme.DefaultTextColor
+		textStyle := theme.DefaultTextColor
 		if i == conflict.start || i == conflict.middle || i == conflict.end {
-			colour.SetColor(style.FgRed)
+			textStyle = style.FgRed
 		}
 
 		if hasFocus && state.conflictIndex < len(state.conflicts) && *state.conflicts[state.conflictIndex] == *conflict && shouldHighlightLine(i, conflict, state.conflictTop) {
-			colour = theme.SelectedRangeBgColor.SetBold(true)
+			textStyle = theme.SelectedRangeBgColor.SetBold()
 		}
 		if i == conflict.end && len(remainingConflicts) > 0 {
 			conflict, remainingConflicts = shiftConflict(remainingConflicts)
 		}
-		outputBuffer.WriteString(colour.Sprint(line) + "\n")
+		outputBuffer.WriteString(textStyle.Sprint(line) + "\n")
 	}
 	return outputBuffer.String()
 }

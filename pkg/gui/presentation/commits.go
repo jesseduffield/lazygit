@@ -10,6 +10,8 @@ import (
 	"github.com/kyokomi/emoji/v2"
 )
 
+var cherryPickedCommitTextStyle = style.FgCyan.MergeStyle(style.BgBlue)
+
 func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
 	lines := make([][]string, len(commits))
 
@@ -49,7 +51,7 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 		// for some reason, setting the background to blue pads out the other commits
 		// horizontally. For the sake of accessibility I'm considering this a feature,
 		// not a bug
-		shaColor = style.FgCyan.SetColor(style.BgBlue)
+		shaColor = cherryPickedCommitTextStyle
 	}
 
 	tagString := ""
@@ -57,7 +59,7 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 	if c.Action != "" {
 		secondColumnString = actionColorMap(c.Action).Sprint(c.Action)
 	} else if c.ExtraInfo != "" {
-		tagString = theme.DiffTerminalColor.SetBold(true).Sprint(c.ExtraInfo) + " "
+		tagString = theme.DiffTerminalColor.SetBold().Sprint(c.ExtraInfo) + " "
 	}
 
 	truncatedAuthor := utils.TruncateWithEllipsis(c.Author, 17)
@@ -96,7 +98,7 @@ func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[s
 		// for some reason, setting the background to blue pads out the other commits
 		// horizontally. For the sake of accessibility I'm considering this a feature,
 		// not a bug
-		shaColor = style.FgCyan.SetColor(style.BgBlue)
+		shaColor = cherryPickedCommitTextStyle
 	}
 
 	actionString := ""
@@ -104,7 +106,7 @@ func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[s
 	if c.Action != "" {
 		actionString = actionColorMap(c.Action).Sprint(utils.WithPadding(c.Action, 7)) + " "
 	} else if len(c.Tags) > 0 {
-		tagString = theme.DiffTerminalColor.SetBold(true).Sprint(strings.Join(c.Tags, " ")) + " "
+		tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(c.Tags, " ")) + " "
 	}
 
 	name := c.Name

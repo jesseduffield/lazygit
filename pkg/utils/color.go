@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/hex"
 	"regexp"
 )
 
@@ -33,22 +32,23 @@ func getPadWidths(stringArrays [][]string) []int {
 	return padWidths
 }
 
-// GetHexColorValues returns the rgb values of a hex color
-func GetHexColorValues(v string) (r uint8, g uint8, b uint8, valid bool) {
-	if len(v) == 4 {
-		v = string([]byte{v[0], v[1], v[1], v[2], v[2], v[3], v[3]})
-	} else if len(v) != 7 {
-		return
+func IsValidHexValue(v string) bool {
+	if len(v) != 4 && len(v) != 7 {
+		return false
 	}
 
 	if v[0] != '#' {
-		return
+		return false
 	}
 
-	rgb, err := hex.DecodeString(v[1:])
-	if err != nil {
-		return
+	for _, char := range v[1:] {
+		switch char {
+		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F':
+			continue
+		default:
+			return false
+		}
 	}
 
-	return rgb[0], rgb[1], rgb[2], true
+	return true
 }

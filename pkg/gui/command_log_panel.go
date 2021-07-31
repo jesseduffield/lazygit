@@ -28,13 +28,13 @@ func (gui *Gui) GetOnRunCommand() func(entry oscommands.CmdLogEntry) {
 			currentSpan = entry.GetSpan()
 		}
 
-		clrAttr := theme.DefaultTextColor
+		textStyle := theme.DefaultTextColor
 		if !entry.GetCommandLine() {
-			clrAttr = clrAttr.SetColor(style.FgMagenta)
+			textStyle = style.FgMagenta
 		}
 		gui.CmdLog = append(gui.CmdLog, entry.GetCmdStr())
 		indentedCmdStr := "  " + strings.Replace(entry.GetCmdStr(), "\n", "\n  ", -1)
-		fmt.Fprint(gui.Views.Extras, "\n"+clrAttr.Sprint(indentedCmdStr))
+		fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
 	}
 }
 
